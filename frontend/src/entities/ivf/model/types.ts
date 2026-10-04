@@ -30,6 +30,11 @@ export interface IvfCycle {
   stage: IvfStage;
   status: 'open' | 'closed';
   startedOn: string;
+  /** CB-IVF-06b: the stage dates the editor sets (`Y-m-d`; `*At` = Tehran wall clock `Y-m-d H:i:s`). */
+  stimStartedOn: string | null;
+  retrievalAt: string | null;
+  transferAt: string | null;
+  nextScanAt: string | null;
   betaOn: string | null;
   notifyCompanion: boolean;
   /** Day within the current stage («روز ۷ تحریک»), null when unknown. */
@@ -103,4 +108,38 @@ export interface IvfDoseInput {
   date: string;
   slot: string;
   site?: string | null;
+}
+
+/**
+ * CB-IVF-06b — «شروع سیکل درمان» setup (`POST /ivf/cycles`). Every key is
+ * optional server-side; `null` = the API default.
+ */
+export interface IvfCycleStartInput {
+  protocol: string | null;
+  stage: IvfStage | null;
+  startedOn: string | null;
+  stimStartedOn: string | null;
+}
+
+/**
+ * CB-IVF-06b — stage + dates editor (`PUT /ivf/cycles/current`, partial): only
+ * the keys present change; `null` clears an optional date. `*At` are Tehran
+ * wall clock `Y-m-d H:i`.
+ */
+export interface IvfCyclePatch {
+  protocol?: string | null;
+  stage?: IvfStage;
+  startedOn?: string;
+  stimStartedOn?: string | null;
+  nextScanAt?: string | null;
+  retrievalAt?: string | null;
+  transferAt?: string | null;
+  betaOn?: string | null;
+}
+
+/** A catalog `ivf_protocols` row (admin-editable, request locale). */
+export interface IvfProtocol {
+  code: string;
+  title: string | null;
+  body: string | null;
 }

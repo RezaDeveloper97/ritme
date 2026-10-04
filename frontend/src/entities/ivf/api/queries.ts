@@ -5,9 +5,16 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
-import type { IvfDoseDay, IvfDoseInput, IvfHome } from '../model/types';
+import type { IvfCyclePatch, IvfCycleStartInput, IvfDoseDay, IvfDoseInput, IvfHome } from '../model/types';
 import { ivfKeys } from './keys';
-import { ivfHomeSchema, ivfMedsTodaySchema, ivfStagesSchema } from './schema';
+import {
+  ivfHomeSchema,
+  ivfMedsTodaySchema,
+  ivfProtocolsSchema,
+  ivfStagesSchema,
+  toIvfCyclePatchBody,
+  toIvfCycleStartBody,
+} from './schema';
 
 /*
  * `/api/v1/ivf*` (CB-IVF-01), Go only. Health data (CLAUDE.md §11): never log
@@ -119,19 +126,56 @@ export function useSetIvfCompanionNotify() {
 }
 
 /**
- * POST /ivf/cycles {} — opens a cycle at «آماده‌سازی» today (and switches
- * «IVF/IUI» on server-side; callers refresh the life-stage read they own).
+ * POST /ivf/cycles — opens a cycle (CB-IVF-06b setup: protocol, start, stage,
+ * stimulation start; no input = «آماده‌سازی» today) and switches «IVF/IUI» on
+ * server-side; callers refresh the life-stage read they own.
  */
 export function useStartIvfCycle() {
   const queryClient = useQueryClient();
-  return useMutation<IvfHome, unknown, void>({
-    mutationFn: async () => {
-      const { data } = await apiClient.post<ApiEnvelope<unknown>>('/ivf/cycles', {});
+  return useMutation<IvfHome, unknown, IvfCycleStartInput | void>({
+    mutationFn: async (input) => {
+      const body = input ? toIvfCycleStartBody(input) : {};
+      const { data } = await apiClient.post<ApiEnvelope<unknown>>('/ivf/cycles', body);
       return ivfHomeSchema.parse(data.data);
     },
     onSuccess: (home) => {
       queryClient.setQueryData(ivfKeys.home(), home);
       void queryClient.invalidateQueries({ queryKey: ivfKeys.all });
     },
+  });
+}
+
+/**
+ * PUT /ivf/cycles/current (partial) — CB-IVF-06b stage + dates editor. The API
+ * moves the linked care appointments (scan / retrieval / transfer / beta) in
+ * the same transaction, so every IVF read is refreshed.
+ */
+export function useUpdateIvfCycle() {
+  const queryClient = useQueryClient();
+  return useMutation<IvfHome, unknown, IvfCyclePatch>({
+    mutationFn: async (patch) => {
+      const { data } = await apiClient.put<ApiEnvelope<unknown>>('/ivf/cycles/current', toIvfCyclePatchBody(patch));
+      return ivfHomeSchema.parse(data.data);
+    },
+    onSuccess: (home) => {
+      queryClient.setQueryData(ivfKeys.home(), home);
+      void queryClient.invalidateQueries({ queryKey: ivfKeys.all });
+    },
+  });
+}
+
+/** GET /catalog/ivf_protocols?audience=ttc — the setup's protocol choices (request locale). */
+export function useIvfProtocols(locale: string) {
+  return useQuery({
+    queryKey: ivfKeys.catalog('ivf_protocols', locale),
+    queryFn: async () => {
+      const { data } = await apiClient.get<ApiEnvelope<unknown>>('/catalog/ivf_protocols', {
+        params: { audience: 'ttc' },
+      });
+      return ivfProtocolsSchema.parse(data.data);
+    },
+    enabled: isAuthenticated(),
+    staleTime: 10 * 60_000,
+    retry: 1,
   });
 }

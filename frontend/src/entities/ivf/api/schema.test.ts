@@ -88,6 +88,14 @@ describe('ivfHomeSchema', () => {
     expect(home.enabled).toBe(true);
     expect(home.cycle?.stage).toBe('stim');
     expect(home.cycle?.stageDay).toBe(7);
+    // CB-IVF-06b: the stage dates the editor reads back.
+    expect(home.cycle).toMatchObject({
+      stimStartedOn: '2026-09-17',
+      retrievalAt: null,
+      transferAt: null,
+      nextScanAt: '2026-09-24 09:00:00',
+      betaOn: '2026-10-10',
+    });
     expect(home.cycle?.timeline.map((s) => s.status)).toEqual(['done', 'current', 'todo', 'todo', 'todo', 'todo']);
     expect(home.today.doses).toHaveLength(2);
     expect(home.today.doses[1]).toMatchObject({ medId: 1, dose: '150', unit: 'iu', taken: false, slot: '20:00' });

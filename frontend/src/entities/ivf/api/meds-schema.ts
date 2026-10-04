@@ -68,6 +68,7 @@ const inventorySchema = z
 const medSchema = z
   .object({
     id: z.number().int(),
+    reminder_id: z.number().int().nullable().catch(null),
     name: z.string(),
     role: z.enum(IVF_ROLES).catch('other'),
     route: z.enum(IVF_ROUTES).catch('other'),
@@ -85,6 +86,7 @@ const medSchema = z
   .transform(
     (d): IvfMed => ({
       id: d.id,
+      reminderId: d.reminder_id,
       name: d.name,
       role: d.role,
       route: d.route,

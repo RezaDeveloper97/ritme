@@ -140,3 +140,19 @@ export function useUnlogIvfScheduleDose() {
     onSuccess: apply,
   });
 }
+
+/**
+ * PUT /care/medications/{reminderId} {is_active} — CB-IVF-06b: pause / resume a
+ * cycle medicine (the IVF med IS a care medication reminder; `PUT /ivf/meds/{id}`
+ * keeps the switch as is). A paused medicine leaves today's doses and the
+ * reminders. Every IVF read is refreshed.
+ */
+export function useSetIvfMedActive() {
+  const queryClient = useQueryClient();
+  return useMutation<void, unknown, { reminderId: number; active: boolean }>({
+    mutationFn: async ({ reminderId, active }) => {
+      await apiClient.put<ApiEnvelope<unknown>>(`/care/medications/${reminderId}`, { is_active: active });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ivfKeys.all }),
+  });
+}

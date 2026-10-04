@@ -15,6 +15,7 @@ import {
   useDeleteIvfMed,
   useIvfMedPresets,
   useIvfMeds,
+  useSetIvfMedActive,
   useUpdateIvfMed,
 } from '@/entities/ivf';
 import { getApiSaveErrorMessage } from '@/shared/api';
@@ -167,6 +168,7 @@ function MedForm({ med }: { med?: IvfMed }) {
 
   return (
     <div className="ivfm-form">
+      {med ? <ActiveCard med={med} /> : null}
       {!med && presets.data?.length ? (
         <section className="ivfm-block" aria-labelledby={`${ids}-presets`}>
           <h2 id={`${ids}-presets`} className="ivfm-block-title">
@@ -483,6 +485,45 @@ function MedForm({ med }: { med?: IvfMed }) {
         />
       ) : null}
     </div>
+  );
+}
+
+/**
+ * CB-IVF-06b — «در برنامه»: the care reminder's switch, saved at once (not with
+ * the form — `PUT /ivf/meds/{id}` keeps it as is). Off = out of the daily
+ * injections and reminders, e.g. stimulation medicines after the stage moves on.
+ */
+function ActiveCard({ med }: { med: IvfMed }) {
+  const t = useTranslations('ivf.cycle.med');
+  const ids = useId();
+  const setActive = useSetIvfMedActive();
+  if (med.reminderId === null) return null;
+  const reminderId = med.reminderId;
+  return (
+    <Card className="ivfm-card">
+      <div className="ivfm-switch-row">
+        <span className="ivfm-switch-text">
+          <span id={`${ids}-active`} className="ivfm-label">
+            {t('active')}
+          </span>
+          <span id={`${ids}-active-hint`} className="ivfm-block-hint">
+            {t('activeHint')}
+          </span>
+        </span>
+        <Switch
+          checked={setActive.isPending ? (setActive.variables?.active ?? med.isActive) : med.isActive}
+          onCheckedChange={(active) => setActive.mutate({ reminderId, active })}
+          labelledBy={`${ids}-active`}
+          describedBy={`${ids}-active-hint`}
+          disabled={setActive.isPending}
+        />
+      </div>
+      {setActive.isError ? (
+        <p className="ivfm-error" role="alert">
+          {getApiSaveErrorMessage(setActive.error, t('error'))}
+        </p>
+      ) : null}
+    </Card>
   );
 }
 

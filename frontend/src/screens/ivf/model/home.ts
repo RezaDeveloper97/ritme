@@ -1,4 +1,12 @@
-import type { IvfCycle, IvfDose, IvfStage, IvfStageInfo, IvfTimelineStep } from '@/entities/ivf';
+import {
+  IVF_INJECTED_ROUTES,
+  type IvfCycle,
+  type IvfDose,
+  type IvfSites,
+  type IvfStage,
+  type IvfStageInfo,
+  type IvfTimelineStep,
+} from '@/entities/ivf';
 
 /*
  * Pure helpers of the IVF home (nbl_IVF_Home, CB-IVF-02). No React, no locale:
@@ -69,4 +77,17 @@ export function whenKey(daysUntil: number | null): 'today' | 'tomorrow' | 'date'
   if (daysUntil === 0) return 'today';
   if (daysUntil === 1) return 'tomorrow';
   return 'date';
+}
+
+/**
+ * CB-IVF-06b — the site a dose logged on the home sends: for an injection, the
+ * schedule's suggestion (`GET /ivf/meds` `sites.suggested` — never used yet in
+ * rotation order, else the least recently used) when still an active code,
+ * else the first site in rotation; null for a non-injected medicine (the API
+ * rejects a site there) or before the schedule has loaded.
+ */
+export function suggestedSiteFor(dose: Pick<IvfDose, 'route'>, sites: IvfSites | undefined): string | null {
+  if (!IVF_INJECTED_ROUTES.includes(dose.route) || !sites) return null;
+  if (sites.suggested && sites.codes.includes(sites.suggested)) return sites.suggested;
+  return sites.codes[0] ?? null;
 }

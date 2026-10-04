@@ -8,7 +8,10 @@ import {
   type IvfDose,
   type IvfDoseDay,
   type IvfHome,
+  type IvfCyclePatch,
+  type IvfCycleStartInput,
   type IvfNextAppointment,
+  type IvfProtocol,
   type IvfStageInfo,
 } from '../model/types';
 
@@ -29,6 +32,10 @@ export const ivfCycleSchema = z
     stage: z.enum(IVF_STAGES),
     status: z.enum(['open', 'closed']).catch('open'),
     started_on: z.string(),
+    stim_started_on: nullableText,
+    retrieval_at: nullableText,
+    transfer_at: nullableText,
+    next_scan_at: nullableText,
     beta_on: nullableText,
     notify_companion: z.boolean().catch(false),
     stage_day: nullableInt,
@@ -43,6 +50,10 @@ export const ivfCycleSchema = z
       stage: d.stage,
       status: d.status,
       startedOn: d.started_on,
+      stimStartedOn: d.stim_started_on,
+      retrievalAt: d.retrieval_at,
+      transferAt: d.transfer_at,
+      nextScanAt: d.next_scan_at,
       betaOn: d.beta_on,
       notifyCompanion: d.notify_companion,
       stageDay: d.stage_day,
@@ -159,3 +170,45 @@ export const ivfStagesSchema = z
       return item.success ? [item.data] : [];
     }),
   );
+
+/** `GET /catalog/ivf_protocols` → `data` (CB-IVF-06b setup); malformed items are dropped, never the list. */
+export const ivfProtocolsSchema = z
+  .object({ items: z.array(z.unknown()).catch([]) })
+  .catch({ items: [] })
+  .transform((g): IvfProtocol[] =>
+    g.items.flatMap((raw) => {
+      const item = z.object({ code: z.string(), title: text, body: text }).safeParse(raw);
+      return item.success ? [item.data] : [];
+    }),
+  );
+
+/** `POST /ivf/cycles` body (CB-IVF-06b): null keys are left out → the API defaults. */
+export function toIvfCycleStartBody(input: IvfCycleStartInput): Record<string, string> {
+  const body: Record<string, string> = {};
+  if (input.protocol) body.protocol = input.protocol;
+  if (input.stage) body.stage = input.stage;
+  if (input.startedOn) body.started_on = input.startedOn;
+  if (input.stimStartedOn) body.stim_started_on = input.stimStartedOn;
+  return body;
+}
+
+const PATCH_KEYS: readonly (readonly [keyof IvfCyclePatch, string])[] = [
+  ['protocol', 'protocol'],
+  ['stage', 'stage'],
+  ['startedOn', 'started_on'],
+  ['stimStartedOn', 'stim_started_on'],
+  ['nextScanAt', 'next_scan_at'],
+  ['retrievalAt', 'retrieval_at'],
+  ['transferAt', 'transfer_at'],
+  ['betaOn', 'beta_on'],
+];
+
+/** `PUT /ivf/cycles/current` body (CB-IVF-06b): only the keys present (a `null` clears the date). */
+export function toIvfCyclePatchBody(patch: IvfCyclePatch): Record<string, string | null> {
+  const body: Record<string, string | null> = {};
+  for (const [key, wire] of PATCH_KEYS) {
+    const value = patch[key];
+    if (value !== undefined) body[wire] = value;
+  }
+  return body;
+}

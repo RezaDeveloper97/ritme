@@ -7,11 +7,14 @@ export {
   type IvfAppointmentKind,
   type IvfCompanion,
   type IvfCycle,
+  type IvfCyclePatch,
+  type IvfCycleStartInput,
   type IvfDose,
   type IvfDoseDay,
   type IvfDoseInput,
   type IvfHome,
   type IvfNextAppointment,
+  type IvfProtocol,
   type IvfRole,
   type IvfRoute,
   type IvfStage,
@@ -20,21 +23,30 @@ export {
   type IvfTimelineStep,
 } from './model/types';
 export { ivfKeys } from './api/keys';
-export { ivfHomeSchema, ivfStagesSchema } from './api/schema';
+export {
+  ivfHomeSchema,
+  ivfProtocolsSchema,
+  ivfStagesSchema,
+  toIvfCyclePatchBody,
+  toIvfCycleStartBody,
+} from './api/schema';
 export {
   fetchIvfHome,
   useIvfHome,
+  useIvfProtocols,
   useIvfStages,
   useLogIvfDose,
   useSetIvfCompanionNotify,
   useStartIvfCycle,
   useUnlogIvfDose,
+  useUpdateIvfCycle,
 } from './api/queries';
 
 // CB-IVF-03 — the injection schedule (`/ivf/meds`): meds CRUD, doses with a site, catalog sites/presets/guidance.
 export {
   IVF_INJECTED_ROUTES,
   IVF_MAX_TIMES,
+  IVF_STIMULATION_ROLES,
   IVF_STOCK_UNITS,
   type IvfGuidance,
   type IvfInjectionSite,
@@ -64,6 +76,7 @@ export {
   useIvfMedPresets,
   useIvfMeds,
   useLogIvfScheduleDose,
+  useSetIvfMedActive,
   useUnlogIvfScheduleDose,
   useUpdateIvfMed,
 } from './api/meds-queries';
@@ -112,3 +125,6 @@ export {
   useRecordIvfOutcome,
   useSetIvfTwwMood,
 } from './api/tww';
+
+// CB-IVF-06b — the first 422 field message of any IVF write (the cycle setup / editor reuse the scan helper).
+export { ivfScanErrorMessage as ivfValidationMessage } from './api/scans';

@@ -1,6 +1,5 @@
 'use client';
 
-import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 
 import {
@@ -13,10 +12,9 @@ import {
   useIvfStages,
   useLogIvfDose,
   useSetIvfCompanionNotify,
-  useStartIvfCycle,
+  useIvfMeds,
   useUnlogIvfDose,
 } from '@/entities/ivf';
-import { lifeStageKeys } from '@/entities/user';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatDecimal, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
@@ -48,6 +46,7 @@ import {
   stageCopy,
   stageDayChip,
   stepMeta,
+  suggestedSiteFor,
   unitKey,
   whenKey,
 } from '../model/home';
@@ -165,9 +164,8 @@ function OffCard({ t }: { t: T }) {
   );
 }
 
+/** «شروع سیکل درمان» → the setup form (CB-IVF-06b: protocol, start, stage, stimulation start). */
 function StartCard({ t }: { t: T }) {
-  const queryClient = useQueryClient();
-  const start = useStartIvfCycle();
   return (
     <Card>
       <EmptyState
@@ -175,27 +173,9 @@ function StartCard({ t }: { t: T }) {
         title={t('empty.startTitle')}
         body={t('empty.startBody')}
         action={
-          <>
-            <button
-              type="button"
-              className="nb-btn is-primary is-block"
-              disabled={start.isPending}
-              aria-busy={start.isPending || undefined}
-              onClick={() =>
-                start.mutate(undefined, {
-                  // Starting a cycle switches «IVF/IUI» on server-side — the nav/home read it.
-                  onSuccess: () => void queryClient.invalidateQueries({ queryKey: lifeStageKeys.all }),
-                })
-              }
-            >
-              {t('empty.startCta')}
-            </button>
-            {start.isError ? (
-              <p className="ivf-error" role="alert">
-                {t('empty.startError')}
-              </p>
-            ) : null}
-          </>
+          <Link href="/ivf/cycle/new" className="nb-btn is-primary is-block">
+            {t('empty.startCta')}
+          </Link>
         }
       />
     </Card>
@@ -243,6 +223,11 @@ function TimelineCard({ cycle, t }: { cycle: IvfCycle; t: T }) {
         stateLabels={{ done: t('timeline.state.done'), current: t('timeline.state.current'), todo: t('timeline.state.todo') }}
         locale={locale}
       />
+      {/* CB-IVF-06b: stage + dates editor. */}
+      <Link href="/ivf/cycle" className="ivf-timeline-edit" aria-label={t('cycle.editLabel')}>
+        <Icon name="pencil" size={16} />
+        {t('cycle.edit')}
+      </Link>
     </Card>
   );
 }
@@ -252,6 +237,8 @@ function DosesSection({ today, t }: { today: IvfDoseDay; t: T }) {
   const router = useRouter();
   const log = useLogIvfDose();
   const unlog = useUnlogIvfDose();
+  // CB-IVF-06b: an injection logged here takes the schedule's suggested site (same rule as /ivf/meds).
+  const meds = useIvfMeds();
   const busy = log.isPending || unlog.isPending;
   return (
     <section className="ivf-section" id={DOSES_ANCHOR} aria-labelledby="ivf-doses-title">
@@ -276,7 +263,7 @@ function DosesSection({ today, t }: { today: IvfDoseDay; t: T }) {
               onToggle={() => {
                 const input = { medId: dose.medId, date: dose.date, slot: dose.slot };
                 if (dose.taken) unlog.mutate(input);
-                else log.mutate(input);
+                else log.mutate({ ...input, site: suggestedSiteFor(dose, meds.data?.sites) });
               }}
             />
           ))}

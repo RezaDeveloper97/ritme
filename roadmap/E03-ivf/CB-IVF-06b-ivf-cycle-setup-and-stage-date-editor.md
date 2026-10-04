@@ -3,7 +3,7 @@ id: CB-IVF-06b
 title: IVF cycle setup and stage-date editor
 epic: IVF
 type: frontend
-status: in_progress
+status: done
 depends_on: [CB-IVF-06]
 parallel_group: IVF-E
 touches: [frontend/src/screens/ivf,frontend/src/screens/ivf-cycle,frontend/src/screens/ivf-meds,frontend/src/entities/ivf,frontend/src/app/[locale]/ivf,frontend/messages,backend-go/resources/translations,backend-go/internal/i18n/testdata,docs/qa/canvas]

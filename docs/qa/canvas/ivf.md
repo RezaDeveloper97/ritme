@@ -111,3 +111,52 @@ Earlier users `09900002021` / `09900002051` were not touched.
 - The partner's companion meds subtitle prints «۰.۲۵ میلی‌گرم» (care backend formatting, Persian decimal) — bloom/care.
 - `/loss` from an IVF negative offers pregnancy-loss kinds only (no «IVF ناموفق / انتقال ناموفق» option) — LOSS
   content, [needs clinical review].
+
+## CB-IVF-06b — cycle setup, stage + date editor, med active switch
+
+Worktree Go API :8211 + Next dev :3114, 390 px, fa. Journey through the Playwright MCP browser (dev build), board
+states via `bloom/bin/shot.mjs --token`, API/DB checks with `curl` / `mariadb`. Screens in
+[`ivf/CB-IVF-06b/`](ivf/CB-IVF-06b/).
+
+**Test data (local `ritme_dev`):** woman **`09900002061`** (CB-IVF-06's user, ttc, «IVF/IUI» off) → through the UI:
+cycle #12 (cycle 4, antagonist), two meds (FSH 20:00, antagonist 08:00, both now paused), one home dose log, the cycle
+ends at «انتظار دو هفته‌ای» (retrieval ۸ مهر, transfer ۱۱ مهر, beta ۲۳ مهر). New woman **`09900002071`** «سارا»
+(onboarding via API: female / ttc / cycle 2026-09-22; «IVF/IUI» on, no cycle) for the start + setup states.
+
+### Journey (UI only)
+
+| # | Step | Result |
+|---|---|---|
+| 1 | ttc user → `/profile/mode` → «درمان ناباروری (IVF/IUI) دارم» on → `/home` | ✔ `ivf_iui: true`; `/home` → `/ivf` start card |
+| 2 | «شروع سیکل درمان» | ✔ now a link → `/ivf/cycle/new` (was a one-tap default POST) |
+| 3 | Setup: protocol «آنتاگونیست» (catalog hint shown), «تحریک تخمک‌گذاری», start ۲ مهر, stimulation start ۵ مهر → «شروع سیکل» | ✔ `POST /ivf/cycles {protocol, stage: stim, started_on, stim_started_on}` → `/ivf`, «روز ۸ تحریک», prep done / stim current ([form](ivf/CB-IVF-06b/j03-setup-filled.light.png) — shot before the bottom note changed to `setup.later`, [home](ivf/CB-IVF-06b/j04-home-after-setup.light.png)) |
+| 4 | Two meds from presets (`/ivf/meds/new`), home «ثبت» on the 08:00 antagonist | ✔ `ivf_dose_logs.site = abdomen_upper_left` = the schedule's `sites.suggested` (the CB-IVF-06 row from the home had `site NULL`); suggestion rotates to `thigh_left` |
+| 5 | Timeline «ویرایش» → `/ivf/cycle` → next scan ۱۳ مهر 09:00 → «ذخیره» | ✔ `PUT {next_scan_at: "2026-10-05 09:00"}` only; care appointment «سونوگرافی فولیکول» created, home «نوبت بعدی» shows it ([editor](ivf/CB-IVF-06b/j06-editor-open.light.png)) |
+| 6 | Stage «تخمک‌کشی» + retrieval ۱۴ مهر → «ذخیره» | ✔ `PUT {stage, retrieval_at}`, then the «داروهای تحریک متوقف شوند؟» sheet lists FSH + antagonist ([shot](ivf/CB-IVF-06b/j08-stop-stim-meds.light.png)) |
+| 7 | «متوقف کن» | ✔ both `PUT /care/medications/{reminder_id} {is_active:false}`; `GET /ivf/meds` `is_active: false`, today's doses empty, inventory pills «متوقف» |
+| 8 | `/ivf/meds/17` «در برنامه» switch on → off | ✔ the reminder flips each time (saved at once, not with the form) ([shot](ivf/CB-IVF-06b/j09-med-form-paused.light.png)) |
+| 9 | Stage «انتظار دو هفته‌ای», clear next scan, retrieval ۸ مهر, transfer ۱۱ مهر | ✔ «برای دیدن شمارش معکوس…» note while beta is empty ([shot](ivf/CB-IVF-06b/j10-editor-tww-no-beta.light.png)) |
+| 10 | Beta ۱۰ مهر (before the transfer) | ✔ client check «تست بتا نمی‌تواند پیش از انتقال باشد.», «ذخیره» disabled ([shot](ivf/CB-IVF-06b/j11-editor-beta-order-error.light.png)) |
+| 11 | Beta ۲۳ مهر → «ذخیره» | ✔ stage `tww`, `stage_day 2`, `days_to_beta 11`; scan appointment deleted, retrieval / transfer / beta (08:00) appointments; home «روز ۲ انتظار», «تست بارداری · ۲۳ مهر» ([shot](ivf/CB-IVF-06b/j12-home-tww.light.png)) |
+| 12 | Home «دو هفته انتظار» → `/ivf/tww` | ✔ ring «۱۱ روز تا تست خون (بتا)», «انتقال جنین: ۱۱ مهر» ([shot](ivf/CB-IVF-06b/j13-tww-countdown.light.png)) |
+
+### Fidelity (390 px, light + dark)
+
+| Board | Route | Light | Dark | Verdict | Fix / note |
+|---|---|---|---|---|---|
+| `nbl_IVF_Home` (entry) | `/ivf` (TWW) | [home](ivf/CB-IVF-06b/fa_ivf.light.png) | [home](ivf/CB-IVF-06b/fa_ivf.dark.png) | ✔ | Board order unchanged; one addition under the StepTimeline: «ویرایش» pill (44 px, pencil, `--brand-strong`) → `/ivf/cycle`. |
+| `nbl_IVF_Home` (empty) | `/ivf` (no cycle) | [start](ivf/CB-IVF-06b/fa_ivf_start.light.png) | [start](ivf/CB-IVF-06b/fa_ivf_start.dark.png) | ✔ | Same card; the CTA opens the setup instead of starting with defaults. |
+| — (no board; minimal per DECISIONS #8, `ivfm-` form look) | `/ivf/cycle/new` | [setup](ivf/CB-IVF-06b/fa_ivf_cycle_new.light.png) | [setup](ivf/CB-IVF-06b/fa_ivf_cycle_new.dark.png) | ✔ | Protocol chips (catalog `ivf_protocols`, optional, second tap clears; bundled names as fallback), «الان کجای درمان هستی؟» prep / stim, start (+ stim start) dates, note on adding dates later. |
+| — (no board) | `/ivf/cycle` | [editor](ivf/CB-IVF-06b/fa_ivf_cycle.light.png) | [editor](ivf/CB-IVF-06b/fa_ivf_cycle.dark.png) | ✔ | Six stage chips (catalog titles), protocol, dates card: start / stim start, next scan, retrieval, transfer (date + time), beta; clear buttons; same order checks as the API. |
+| `nbl_IVF_Meds` | `/ivf/meds` | [paused meds](ivf/CB-IVF-06b/fa_ivf_meds.light.png) | [paused meds](ivf/CB-IVF-06b/fa_ivf_meds.dark.png) | ✔ | Inventory rows of paused medicines show a neutral «متوقف» pill instead of «کم است» / «کافی». |
+| — (med form) | `/ivf/meds/17` | [form](ivf/CB-IVF-06b/fa_ivf_meds_17.light.png) | [form](ivf/CB-IVF-06b/fa_ivf_meds_17.dark.png) | ✔ | New first card «در برنامه» switch + hint (edit only). |
+| `nbl_IVF_TWW` | `/ivf/tww` | [countdown](ivf/CB-IVF-06b/fa_ivf_tww.light.png) | [countdown](ivf/CB-IVF-06b/fa_ivf_tww.dark.png) | ✔ | Unchanged screen, now reached from the UI. |
+
+**Verdicts:** all ✔, no ✘.
+
+**Open / TODO (ask user):**
+- The stop prompt covers `stimulation` + `suppression` medicines (not trigger, not luteal support) and only on a move
+  from prep/stim to retrieval or later — [needs clinical review].
+- The home empty-state body still says the cycle «از آماده‌سازی شروع می‌شود» (CB-IVF-02 copy); setup can now start at
+  stimulation.
+- Pausing a medicine refreshes the IVF reads only; a `/care` screen already open refetches on its own stale time.

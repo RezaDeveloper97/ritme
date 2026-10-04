@@ -3548,6 +3548,78 @@
       "body": "Whenever you're ready, start your next cycle."
      }
     }
+   },
+   "cycle": {
+    "edit": "Edit",
+    "editLabel": "Edit treatment stage and dates",
+    "back": "Back",
+    "loading": "Loading…",
+    "choose": "Choose",
+    "optional": "(optional)",
+    "clear": "Clear {what}",
+    "cancel": "Cancel",
+    "done": "Done",
+    "date": "Date",
+    "time": "Time",
+    "protocols": {
+     "antagonist": "Antagonist",
+     "long_agonist": "Long agonist",
+     "short_agonist": "Short agonist",
+     "mild": "Mild stimulation",
+     "natural": "Natural cycle",
+     "frozen_transfer": "Frozen embryo transfer"
+    },
+    "setup": {
+     "title": "Start a treatment cycle",
+     "intro": "A few short details are enough — you can change them any time.",
+     "protocol": "Treatment protocol",
+     "protocolHint": "Leave it empty if you're not sure.",
+     "where": "Where are you in treatment now?",
+     "startedOn": "Cycle start",
+     "stimStartedOn": "Stimulation start",
+     "submit": "Start the cycle",
+     "error": "The cycle couldn't be started. Try again.",
+     "open": "You already have an open treatment cycle.",
+     "openCta": "Edit stage and dates",
+     "later": "Later, add the scan, retrieval, transfer and beta test dates from «Edit» on the treatment screen."
+    },
+    "editor": {
+     "title": "Stage and dates",
+     "stage": "Current stage",
+     "protocol": "Protocol",
+     "dates": "Dates",
+     "datesHint": "Each date adds an appointment to your reminders, with a reminder the day before.",
+     "startedOn": "Cycle start",
+     "stimStartedOn": "Stimulation start",
+     "nextScan": "Next scan",
+     "retrieval": "Egg retrieval",
+     "transfer": "Embryo transfer",
+     "beta": "Blood test (beta)",
+     "betaHint": "Add the beta test date to see the two-week-wait countdown.",
+     "save": "Save",
+     "saveError": "Couldn't save. Try again.",
+     "noCycle": "You have no open treatment cycle.",
+     "noCycleCta": "Start a treatment cycle",
+     "errors": {
+      "future": "This date can't be in the future.",
+      "beforeStart": "This date can't be before the cycle start.",
+      "transfer": "The transfer can't be before the retrieval.",
+      "beta": "The beta test can't be before the transfer."
+     }
+    },
+    "stop": {
+     "title": "Stop the stimulation medicines?",
+     "body": "You've moved past stimulation and these medicines are still in your plan. Stop them only if your doctor said so.",
+     "confirm": "Stop them",
+     "keep": "Keep for now",
+     "error": "Couldn't stop them. Try again."
+    },
+    "med": {
+     "active": "In the plan",
+     "activeHint": "When off, this medicine leaves the daily injections and reminders. Agree any stop with your doctor.",
+     "error": "The change wasn't saved. Try again.",
+     "paused": "Paused"
+    }
    }
   },
   "log": {

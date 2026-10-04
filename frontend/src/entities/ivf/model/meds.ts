@@ -34,6 +34,8 @@ export interface IvfInventory {
 
 export interface IvfMed {
   id: number;
+  /** The care medication reminder (CB-IVF-06b: its `is_active` switch is `PUT /care/medications/{id}`). */
+  reminderId: number | null;
   name: string;
   role: IvfRole;
   route: IvfRoute;
@@ -132,3 +134,6 @@ export interface IvfGuidance {
   title: string | null;
   body: string | null;
 }
+
+/** Roles a stage change past stimulation offers to stop (CB-IVF-06b) [needs clinical review]. */
+export const IVF_STIMULATION_ROLES: readonly IvfRole[] = ['stimulation', 'suppression'];

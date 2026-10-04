@@ -345,3 +345,8 @@ TODO (ask user):
 - Fidelity: Home / Meds / Scan / TWW light + dark ✔. Fixes: straight row hairlines (CB-IVF-02 block), Persian decimal doses (`formatDecimal`), no «کافی تا…» when stock is 0.
 - Follow-up CB-IVF-06b (most important): no UI edits stage/dates, cycle setup uses defaults, stimulation meds stay active (no `is_active` in the form) — a real user never reaches TWW.
 - Other notes: /loss after a negative IVF offers only pregnancy-loss types (add «انتقال ناموفق»? [clinical]); companion home prints Latin decimals (bloom care formatting); male companion /home fires three 409s before redirect (bloom).
+
+## CB-IVF-06b — IVF cycle setup and stage-date editor
+- `/ivf/cycle/new` (protocol chips from `ivf_protocols`, start in prep or stim, Jalali start + stim start, client order checks → `POST /ivf/cycles`); `/ivf/cycle` editor from a «ویرایش» pill under the home timeline (6 stages, protocol, start/stim start, next scan / retrieval / transfer date-time, beta; clear; only changed keys → `PUT /ivf/cycles/current`). Stop-stim prompt after moving prep/stim → retrieval+ (stimulation + suppression meds). Med «در برنامه» switch via `PUT /care/medications/{reminder_id} {is_active}` (IVF med PUT ignores is_active), «متوقف» pill. Home dose log sends the suggested site. No backend changes.
+- UI-only journey ttc → IVF on → setup → scan date → retrieval (meds paused) → TWW → «۱۱ روز تا تست خون (بتا)» ✔. Verify (combined tree): typecheck, lint, fsd:lint, lint:styles (1066), lint:dark, 1440 tests, build; i18n Go tests — green.
+- Open / TODO (ask user): stop-prompt role set + trigger [needs clinical review]; home empty-state copy still says the cycle starts in prep; pausing a med doesn't refresh care screens immediately.

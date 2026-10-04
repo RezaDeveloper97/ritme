@@ -468,7 +468,10 @@ function Inventory({ meds, today, t }: { meds: readonly IvfMed[]; today: string;
                 title={med.name}
                 description={until && state === 'low' ? `${left} · ${until}` : left}
                 trailing={
-                  state === 'none' ? undefined : (
+                  // CB-IVF-06b: a paused medicine (care reminder off) says so instead of a stock verdict.
+                  !med.isActive ? (
+                    <span className="ivfm-pill is-off">{t('cycle.med.paused')}</span>
+                  ) : state === 'none' ? undefined : (
                     <span className={clsx('ivfm-pill', state === 'low' ? 'is-low' : 'is-ok')}>
                       {t(`meds.inventory.${state}`)}
                     </span>

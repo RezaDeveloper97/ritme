@@ -2,7 +2,17 @@ import { describe, expect, it } from 'vitest';
 
 import type { IvfCycle } from '@/entities/ivf';
 
-import { clockOf, dayOf, hasAmount, stageCopy, stageDayChip, stepMeta, unitKey, whenKey } from './home';
+import {
+  clockOf,
+  dayOf,
+  hasAmount,
+  stageCopy,
+  stageDayChip,
+  stepMeta,
+  suggestedSiteFor,
+  unitKey,
+  whenKey,
+} from './home';
 
 const CYCLE: IvfCycle = {
   id: 1,
@@ -11,6 +21,10 @@ const CYCLE: IvfCycle = {
   stage: 'stim',
   status: 'open',
   startedOn: '2026-09-10',
+  stimStartedOn: '2026-09-17',
+  retrievalAt: null,
+  transferAt: null,
+  nextScanAt: null,
   betaOn: null,
   notifyCompanion: false,
   stageDay: 7,
@@ -57,5 +71,14 @@ describe('IVF home helpers', () => {
     expect(whenKey(1)).toBe('tomorrow');
     expect(whenKey(5)).toBe('date');
     expect(whenKey(null)).toBe('date');
+  });
+
+  it('logs a home injection with the suggested site (CB-IVF-06b)', () => {
+    const sites = { codes: ['abdomen_upper_right', 'thigh_left'], last: null, suggested: 'thigh_left' };
+    expect(suggestedSiteFor({ route: 'subcutaneous' }, sites)).toBe('thigh_left');
+    expect(suggestedSiteFor({ route: 'intramuscular' }, { ...sites, suggested: 'gone' })).toBe('abdomen_upper_right');
+    expect(suggestedSiteFor({ route: 'vaginal' }, sites)).toBeNull();
+    expect(suggestedSiteFor({ route: 'subcutaneous' }, undefined)).toBeNull();
+    expect(suggestedSiteFor({ route: 'subcutaneous' }, { codes: [], last: null, suggested: null })).toBeNull();
   });
 });

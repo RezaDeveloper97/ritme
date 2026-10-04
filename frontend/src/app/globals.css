@@ -9850,3 +9850,22 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .lcr-group { padding: 2px 16px; border-radius: var(--r-card, 24px); background: var(--surface); border: 1px solid var(--line); }
 .lcr-group .nb-row { padding-block: 12px; min-height: 56px; }
 /* ═══ end CB-LOSS-03b ═══ */
+
+/* ═══ CB-IVF-06b — IVF cycle setup + stage/date editor (screens/ivf-cycle `ivfc-`, reuses the CB-IVF-03 `ivfm-` form) ═══ */
+.ivfc-intro { padding-inline: 2px; }
+/* «ویرایش» under the home StepTimeline → /ivf/cycle */
+.ivf-timeline-edit {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-block-size: 44px; padding: 0 14px;
+  margin-block-start: 4px; border-radius: var(--r-pill); border: 1px solid var(--line-strong); background: var(--surface);
+  font-size: var(--fs-md); font-weight: 800; color: var(--brand-strong); text-decoration: none;
+}
+.ivf-timeline-edit svg { color: var(--brand); }
+.ivf-timeline-edit:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+/* A paused medicine in the inventory list */
+.ivfm-pill.is-off { border: 1px solid var(--line-strong); color: var(--text-2); background: var(--surface-2); }
+/* «داروهای تحریک متوقف شوند؟» list */
+.ivfc-stop-list {
+  margin: 0 0 12px; padding-inline-start: 20px; display: flex; flex-direction: column; gap: 4px;
+  font-size: var(--fs-base); font-weight: 700; color: var(--text-1);
+}
+/* ═══ end CB-IVF-06b ═══ */

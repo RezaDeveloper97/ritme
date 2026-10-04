@@ -84,6 +84,7 @@ describe('draft → input', () => {
 describe('edit draft', () => {
   const med: IvfMed = {
     id: 1,
+    reminderId: 11,
     name: 'FSH',
     role: 'stimulation',
     route: 'subcutaneous',
