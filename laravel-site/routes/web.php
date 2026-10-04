@@ -8,6 +8,7 @@ use App\Http\Controllers\Blog\NewsletterController;
 use App\Http\Controllers\Blog\PostViewController;
 use App\Http\Controllers\Blog\ShowPostController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Directory\BookingController;
 use App\Http\Controllers\Directory\JoinController;
 use App\Http\Controllers\Directory\ListPlacesController;
 use App\Http\Controllers\Directory\ShowPlaceController;
@@ -110,7 +111,9 @@ Route::prefix('directory')->name('directory.')->group(function (): void {
     // Review form (L5-03): moderated (stored as pending), rate limited per IP, honeypot answered like a real submit.
     Route::post('/place/{slug}/reviews', [ShowPlaceController::class, 'storeReview'])
         ->middleware('throttle:'.ShowPlaceController::REVIEWS_PER_10_MINUTES.',10')->name('place.review');
-    Route::get('/booked/{code}', PlaceholderPageController::class)->where('code', '[A-Za-z0-9-]+')->name('booked'); // L5-04
+    // Booking request (L5-04): PRG to the booked page, rate limited per IP + mobile; honeypot + time trap answered like a real submit.
+    Route::post('/place/{slug}/book', [BookingController::class, 'store'])->middleware('throttle:directory-booking')->name('place.book');
+    Route::get('/booked/{code}', [BookingController::class, 'show'])->where('code', '[A-Za-z0-9-]+')->name('booked');   // L5-04
     // City / city × category landings (L5-02): after the fixed paths above, so `business`, `join` … never match a city.
     Route::get('/{city}', ListPlacesController::class)->name('city');                              // L5-02
     Route::get('/{city}/{category}', ListPlacesController::class)->name('category');               // L5-02

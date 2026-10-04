@@ -657,3 +657,20 @@ One section per finished task (appended by `/site-task`).
   links only from settings, zero external requests.
 - Orchestrator: `/offline` title/description lengthened (audit green).
 - Before go-live: fill `app_links` + `social` settings and upload a default OG image.
+
+## L5-04 — Booking request flow + booked page
+- Migration `2026_10_04_002170_create_directory_booking_requests_table`. `app/Domain/Directory/Booking`:
+  `CreateBookingRequest` (one transaction; snapshots of place/service/price), `BookingCode` (12 unambiguous chars
+  `XXXX-XXXX-XXXX`, case-insensitive lookup), `BookingDays` (next 10 open days from tomorrow — opening hours only, no
+  fake availability; server accepts Jalali dates up to 60 days), `ChildAge`, `MobileMask`, `SmsSender` contract →
+  `LogSmsSender` (no provider yet), `FindBookingByCode`. Minimal data, no IP/UA.
+- Form in the place page `#book` slot (no JS; radio day chips, time windows, name, mobile, optional child age + note);
+  `ShowPlaceController::bookingForm()`. POST `directory.place.book` (`throttle:directory-booking` 5/10 min, 20/day per
+  IP + 5/day per mobile), honeypot `homepage` + `FormTimer` (token stamped at cache render → only more lenient on
+  HITs), expired token → "send again". Booked page `/directory/booked/{code}` noindex + no-store, masked mobile, status
+  heading, request wording (never "confirmed/paid"). Queued notifications: support mail (no personal data), place SMS
+  via `SmsChannel` (not for demo places). `BookingTest` (26).
+- Diff 1440 16.58% / 390 36.32% (store badges in aside + footer hidden with NULL links; request wording; no calendar/
+  cancel; masked parent row).
+- Open (L5-06): admin resource for bookings; `booking_mode` on places to hide the form for phone-only places;
+  real SMS driver; retention policy; queue worker (L10-01).

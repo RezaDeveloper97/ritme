@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Directory;
 
+use App\Domain\Contact\Support\FormTimer;
 use App\Domain\Directory\Actions\SubmitPlaceReview;
+use App\Domain\Directory\Booking\Enums\TimeWindow;
+use App\Domain\Directory\Booking\Support\BookingDays;
 use App\Domain\Directory\Contracts\PlaceRepository;
 use App\Domain\Directory\Data\PlaceData;
 use App\Domain\Directory\Data\PlaceServiceData;
@@ -28,6 +31,7 @@ use App\Domain\Seo\Schema\SchemaIds;
 use App\Domain\Seo\SeoManager;
 use App\Domain\Seo\Support\CanonicalUrl;
 use App\Domain\Seo\Support\DescriptionText;
+use App\Http\Requests\BookingRequest;
 use App\View\Components\Icon;
 use App\View\Components\Picture;
 use Carbon\CarbonImmutable;
@@ -89,6 +93,7 @@ final class ShowPlaceController
         private readonly OgImageResolver $ogImages,
         private readonly DirectoryUrls $urls,
         private readonly Config $config,
+        private readonly FormTimer $timer,
     ) {}
 
     public function show(Request $request, string $slug, SeoManager $seo, SchemaGraph $graph): View|RedirectResponse
@@ -159,6 +164,7 @@ final class ShowPlaceController
                 'priceFrom' => $place->priceFrom,
                 'priceUnit' => $this->priceUnit($place),
                 'phone' => $place->phones[0] ?? null,
+                'form' => $this->bookingForm($place),
             ],
             'navRoute' => 'directory.index',
         ]);
@@ -480,6 +486,47 @@ final class ShowPlaceController
             ],
             'pin' => $place->name,
         ];
+    }
+
+    /**
+     * The booking request form of the `#book` panel (L5-04). Cached with the page: the day chips start tomorrow, which
+     * stays a bookable day for the whole cache TTL (BookingDays), and the FormTimer token carries the cache-store time, which is never
+     * later than when a visitor sees the form (see App\Http\Requests\BookingRequest).
+     *
+     * @return array<string, mixed>
+     */
+    private function bookingForm(PlaceData $place): array
+    {
+        $days = BookingDays::offered($place->openingHours());
+
+        return [
+            'action' => route('directory.place.book', [$place->slug]),
+            'services' => array_map(fn (PlaceServiceData $s): array => [
+                'id' => $s->id,
+                'label' => implode(' · ', array_filter([
+                    $s->name,
+                    $s->durationMinutes === null ? null : (string) __('directory.place.services.minutes', ['n' => fa_digits($s->durationMinutes)]),
+                ])),
+            ], $place->services),
+            'days' => array_map(static fn (CarbonImmutable $d): array => [
+                'value' => $d->format('Y-m-d'),
+                'weekday' => jdate($d, 'l'),
+                'day' => jdate($d, 'j'),
+                'label' => jdate($d, 'l j F'),
+            ], $days),
+            'month' => $days === [] ? null : jdate($days[0], 'F Y'),
+            'windows' => array_map(static fn (TimeWindow $w): array => ['value' => $w->value, 'label' => $w->label(), 'hours' => $w->hours()], TimeWindow::cases()),
+            'honeypot' => BookingRequest::HONEYPOT,
+            'timer' => BookingRequest::TIMER,
+            'token' => $this->timer->issue(),
+            'cancellation' => trim((string) $place->cancellationPolicy) === '' ? null : trim((string) $place->cancellationPolicy),
+        ];
+    }
+
+    /** Cover illustration of a category while a place has no photo (place page, booked page). */
+    public static function coverIllustration(string $categorySlug): string
+    {
+        return self::COVERS[$categorySlug] ?? self::FALLBACK_COVER;
     }
 
     /**

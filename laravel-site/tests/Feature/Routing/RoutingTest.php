@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Domain\Directory\Booking\Models\BookingRequest;
 use App\Http\Controllers\PlaceholderPageController;
 use Database\Seeders\BlogSeeder;
 use Database\Seeders\DirectorySeeder;
 use Database\Seeders\SettingsSeeder;
+use Database\Seeders\ShopSeeder;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -83,6 +85,15 @@ it('serves every audit page under its route name as a noindex placeholder with o
     }
     if ($name === 'directory.place') {
         $this->seed(DirectorySeeder::class);
+    }
+    if ($name === 'shop.category') {
+        $this->seed(ShopSeeder::class);
+    }
+    if ($name === 'directory.booked') {
+        BookingRequest::query()->create([
+            'code' => 'RT-2026-0042', 'place_name' => 'مجموعه', 'preferred_date' => '2026-10-10', 'time_window' => 'any',
+            'parent_name' => 'سارا', 'mobile' => '09121234567',
+        ]);
     }
 
     $url = concreteUrl($route);

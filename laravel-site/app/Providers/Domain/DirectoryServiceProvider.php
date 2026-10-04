@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Providers\Domain;
 
+use App\Domain\Contact\Support\ReplyChannel;
+use App\Domain\Directory\Booking\Contracts\SmsSender;
+use App\Domain\Directory\Booking\Sms\LogSmsSender;
 use App\Domain\Directory\Contracts\PlaceRepository;
 use App\Domain\Directory\Contracts\TaxonomyRepository;
 use App\Domain\Directory\Models\Amenity;
@@ -41,6 +44,22 @@ final class DirectoryServiceProvider extends DomainServiceProvider
     public const JOIN_PER_10_MINUTES = 3;
 
     public const JOIN_PER_DAY = 10;
+
+    /** Booking request posts (route middleware `throttle:directory-booking`, L5-04): per IP and per mobile. */
+    public const BOOKING_PER_10_MINUTES = 5;
+
+    public const BOOKING_PER_DAY = 20;
+
+    public const BOOKING_PER_MOBILE_PER_DAY = 5;
+
+    /**
+     * SMS to places goes through the contract; `log` driver until a provider is chosen (no external service).
+     *
+     * @var array<class-string, class-string>
+     */
+    public array $bindings = [
+        SmsSender::class => LogSmsSender::class,
+    ];
 
     protected array $repositories = [
         PlaceRepository::class => [EloquentPlaceRepository::class, CachedPlaceRepository::class],
@@ -88,6 +107,22 @@ final class DirectoryServiceProvider extends DomainServiceProvider
                 Limit::perMinutes(10, self::JOIN_PER_10_MINUTES)->by('directory-join:m:'.$ip),
                 Limit::perDay(self::JOIN_PER_DAY)->by('directory-join:d:'.$ip),
             ];
+        });
+
+        RateLimiter::for('directory-booking', static function (Request $request): array {
+            $ip = (string) $request->ip();
+            $mobile = $request->input('mobile');
+            $mobile = is_string($mobile) && ! str_contains($mobile, '@') ? ReplyChannel::parse($mobile)?->phone : null;
+
+            $limits = [
+                Limit::perMinutes(10, self::BOOKING_PER_10_MINUTES)->by('directory-booking:m:'.$ip),
+                Limit::perDay(self::BOOKING_PER_DAY)->by('directory-booking:d:'.$ip),
+            ];
+            if ($mobile !== null) {
+                $limits[] = Limit::perDay(self::BOOKING_PER_MOBILE_PER_DAY)->by('directory-booking:p:'.$mobile);
+            }
+
+            return $limits;
         });
     }
 }

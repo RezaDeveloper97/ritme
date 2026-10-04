@@ -119,7 +119,7 @@
             </div>
 
             <div class="pt-8 max-sm:w-full">
-                <x-directory.booking :price-from="$booking['priceFrom']" :unit="$booking['priceUnit']" :phone="$booking['phone']"/>
+                <x-directory.booking :price-from="$booking['priceFrom']" :unit="$booking['priceUnit']" :phone="$booking['phone']" :form="$booking['form'] ?? null"/>
             </div>
         </div>
     </div>

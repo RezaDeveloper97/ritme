@@ -3,7 +3,7 @@ id: L5-04
 title: Booking request flow + booked page
 milestone: L5
 type: fullstack
-status: todo
+status: done
 depends_on: [L5-03]
 parallel_group: L5-C
 touches: [app/Domain/Directory/Booking,database/migrations,app/Http/Controllers/Directory/BookingController.php,app/Http/Requests/BookingRequest.php,resources/views/pages/directory/booked.blade.php,app/Notifications,tests/Feature/Directory/BookingTest.php]
