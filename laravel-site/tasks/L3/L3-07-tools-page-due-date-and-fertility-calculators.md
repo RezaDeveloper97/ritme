@@ -3,7 +3,7 @@ id: L3-07
 title: Tools page: due-date and fertility calculators (JS + no-JS fallback)
 milestone: L3
 type: fullstack
-status: todo
+status: done
 depends_on: [L3-01,L1-04]
 parallel_group: L3-D
 touches: [resources/views/pages/tools.blade.php,app/Http/Controllers/ToolsController.php,app/Domain/Content/Tools,app/Support/Jalali,resources/js/modules/calculators.js,resources/js/lib/jalali.js,lang/fa/tools.php,tests/Feature/Pages/ToolsTest.php,tests/Unit/Tools,tests/js]

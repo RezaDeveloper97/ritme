@@ -35,6 +35,24 @@ final class JalaliCalendar
         return self::d2g(self::j2d($jy, $jm, $jd));
     }
 
+    /**
+     * Julian Day Number of a Jalali date — for day arithmetic (add N days, days between two dates).
+     */
+    public static function toDayNumber(int $jy, int $jm, int $jd): int
+    {
+        if (! self::isValid($jy, $jm, $jd)) {
+            throw new InvalidArgumentException("Invalid Jalali date {$jy}-{$jm}-{$jd}.");
+        }
+
+        return self::j2d($jy, $jm, $jd);
+    }
+
+    /** @return array{0: int, 1: int, 2: int} [jy, jm, jd] of a Julian Day Number. */
+    public static function fromDayNumber(int $jdn): array
+    {
+        return self::d2j($jdn);
+    }
+
     public static function isValid(int $jy, int $jm, int $jd): bool
     {
         return $jy >= self::BREAKS[0] && $jy < self::BREAKS[count(self::BREAKS) - 1]

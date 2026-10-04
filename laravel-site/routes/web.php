@@ -10,6 +10,7 @@ use App\Http\Controllers\Seo\RobotsTxtController;
 use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Seo\SitemapIndexController;
 use App\Http\Controllers\StagePageController;
+use App\Http\Controllers\ToolsController;
 use App\Http\Middleware\PageCache;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -38,7 +39,7 @@ Route::name('stage.')->group(function (): void {
 
 Route::get('/services', PlaceholderPageController::class)->name('services');                       // L3-06
 Route::get('/plus', PlaceholderPageController::class)->name('plus');                               // L3-06
-Route::get('/tools', PlaceholderPageController::class)->name('tools');                             // L3-07
+Route::get('/tools', ToolsController::class)->name('tools');                                     // L3-07
 Route::get('/about', PlaceholderPageController::class)->name('about');                             // L3-08
 Route::get('/social-responsibility', PlaceholderPageController::class)->name('social-responsibility'); // L3-08
 Route::get('/privacy', PlaceholderPageController::class)->name('privacy');                         // L3-08

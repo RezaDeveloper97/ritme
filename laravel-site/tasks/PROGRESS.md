@@ -361,3 +361,17 @@ One section per finished task (appended by `/site-task`).
 - Diff (links filled): ttc 390 2.67% / 1440 0.96%; pregnancy 390 3.45% (template −8 px drift accumulating over 6 tool
   cards) / 1440 1.66%. Empty links: ~8% / ~5%. `seo:audit` 0 errors. Design `#FFB86B` → `phase-luteal` token.
 - h1 wording reworded to fit the template's leading highlight → fixed by **L3-03b** (template hooks).
+
+## L3-07 — Tools page: due-date and fertility calculators (JS + no-JS fallback)
+- `ToolsController` (design title/description unless admin seo_meta; submitted URLs noindex + canonical `/tools`; one
+  free `WebApplication` node per calculator), `app/Domain/Content/Tools/` (`CalculatorInput` parses Persian/Arabic/Latin
+  + «۱۲ اردیبهشت ۱۴۰۵», `DueDateCalculator` LMP+280 adjusted by cycle−28, `FertilityWindowCalculator` ovulation −5..0,
+  DTOs, enums), `JalaliCalendar::toDayNumber()/fromDayNumber()` wrappers, `resources/js/lib/jalali.js` (same algorithm),
+  lazy `resources/js/modules/calculators.js`. No-JS GET fallback (query URLs bypass page cache). Anchors `#due-date`,
+  `#fertility`, `#hospital-bag`, `#sisemoni`. Estimate wording + "not a diagnosis" note.
+- Shared PHP/JS vectors `tests/js/fixtures/calculator-vectors.json`; `ToolsTest` (9), `CalculatorVectorsTest` (6),
+  `node --test tests/js` (7). `seo:audit --path=/tools` 0 errors.
+- Diff: 1440 1.96%; 390 9.34% (≈35 px shift from the added two-line note + next-period detail). Later re-shoots skewed
+  by app-link settings being NULL in the dev DB (their seeded default).
+- Open: example dates (1405) in `lang/fa/tools.php` will age; `x-ui.warn` + checklist card inline (extract if reused);
+  confirm wording «الان حدود N هفته و M روز…» (design was off by one week).
