@@ -487,3 +487,20 @@ One section per finished task (appended by `/site-task`).
   visibility), `share.js` (copy-link button revealed by JS, Clipboard API + fallback, Persian aria-live status).
 - `components/blog/*` strings moved to `lang/fa/blog.php` (`article.*`). `ViewBeaconTest` (16); CSP unchanged.
 - Open: `ShareLinks` labels + two headings in `pages/blog/show.blade.php` still inline.
+
+## L5-01 — Directory context: places, categories, cities, amenities, reviews
+- Migrations `2026_10_04_002000`–`002100` (11 tables: directory_cities, _districts, _categories, _amenities, _places,
+  _place_slugs, _place_amenity, _place_media (with id), _place_services, _reviews, _landings).
+- `app/Domain/Directory`: models (+`HasSeo`), enums (PlaceStatus, ReviewStatus, ReviewAspect, PlaceSort, Weekday from
+  Saturday), DTOs (`PlaceData::toLocalBusiness()`, `PlaceCardData`, `PlaceSearchCriteria`, `RatingSummaryData`), Place +
+  Taxonomy repos (Eloquent + Cached, `directory` ns), queries (SearchPlaces with Persian normalisation + open-now
+  (5-min cache) + sorts without paid placement, LandingCombos, SitemapPlaces), observers, actions (rating/price
+  recalculation, amenities/gallery sync, SubmitPlaceReview, ModeratePlaceReviews), support (OpeningHours incl. past
+  midnight + Tehran time, AgeRange, MapLinks geo:/Neshan/Balad/Google links only, LandingCopy, PlaceSlugger,
+  DirectoryUrls), sitemap providers (places, city×category landings), `PlaceSearchProvider`; media usages registered.
+- `DirectorySeeder` (idempotent, not in DatabaseSeeder): آب‌پری `ab-pari` + 5 places, Tehran + 5 districts, 8 categories;
+  all `is_demo` (excluded from rating + sitemap), addresses `[آدرس کامل مجموعه]`, no phones; design rating «۴٫۸ (۱۲۶)» not seeded.
+- 59 tests; full pest 921 passed.
+- Open: L5-02 route names assumed `directory.city`, `directory.category` (city slugs reserved vs fixed routes);
+  `LandingCopy` templates hard-coded; L5-03 must noindex demo places, label demo reviews «نمونه», show the pool health
+  note; Neshan/Balad URL formats unverified; LIKE normalisation duplicated with `SearchPosts` (candidate for app/Support).

@@ -3,7 +3,7 @@ id: L5-01
 title: Directory context: places, categories, cities, amenities, reviews
 milestone: L5
 type: backend
-status: todo
+status: done
 depends_on: [L2-01,L1-03,L4-04]
 parallel_group: L5-A
 touches: [app/Domain/Directory,database/migrations,database/factories,database/seeders/DirectorySeeder.php,tests/Feature/Directory,tests/Unit/Directory]
