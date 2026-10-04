@@ -1,0 +1,769 @@
+{
+  "case": "babylog/sleep_and_diapers.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "آوا",
+          "birth_date": "2026-06-12",
+          "sex": "girl"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Child added",
+        "data": {
+          "id": 1,
+          "name": "آوا",
+          "initial": "آ",
+          "birth_date": "2026-06-12",
+          "sex": "girl",
+          "sex_label": "Girl",
+          "delivery_type": null,
+          "delivery_type_label": null,
+          "birth": {
+            "weight_kg": null,
+            "length_cm": null,
+            "head_cm": null
+          },
+          "age": {
+            "days": 103,
+            "weeks": 14,
+            "months": 3,
+            "years": 0,
+            "days_in_month": 11,
+            "label": "3 months and 11 days"
+          },
+          "role": "owner",
+          "can_edit": true,
+          "owner_name": null,
+          "vaccines": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "At birth",
+              "due_date": "2026-06-12",
+              "remind_on": "2026-06-09",
+              "days_left": -103,
+              "status": "overdue",
+              "status_label": "Overdue",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "BCG",
+                "Hepatitis B, dose 1",
+                "Oral polio (OPV)"
+              ]
+            }
+          },
+          "growth": {
+            "status": "unknown",
+            "label": "No measurements yet"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/sleeps",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "started_at": "2026-09-22 22:00",
+          "ended_at": "2026-09-23 06:00"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-22T22:00:00+03:30",
+          "ended_at": "2026-09-23T06:00:00+03:30",
+          "is_active": false,
+          "duration_seconds": 28800,
+          "note": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/sleeps/start",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 2,
+          "started_at": "2026-09-23T10:00:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "duration_seconds": 0,
+          "note": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/sleeps/start",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:01:00+03:30"
+      },
+      "status": 409,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": false,
+        "message": "A sleep is already running for this child",
+        "error_code": "sleep_active"
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/sleeps/2/stop",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T11:30:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "id": 2,
+          "started_at": "2026-09-23T10:00:00+03:30",
+          "ended_at": "2026-09-23T11:30:00+03:30",
+          "is_active": false,
+          "duration_seconds": 5400,
+          "note": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/sleeps",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T12:30:00+03:30",
+        "body": {
+          "started_at": "2026-09-23 12:00",
+          "ended_at": "2026-09-23 11:00"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "54"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errors": {
+          "ended_at": [
+            "The end must be after the start."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1/sleeps",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T12:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-23",
+          "active": null,
+          "summary": {
+            "count": 1,
+            "seconds": 27000,
+            "longest_seconds": 5400
+          },
+          "items": [
+            {
+              "id": 2,
+              "started_at": "2026-09-23T10:00:00+03:30",
+              "ended_at": "2026-09-23T11:30:00+03:30",
+              "is_active": false,
+              "duration_seconds": 5400,
+              "note": null
+            },
+            {
+              "id": 1,
+              "started_at": "2026-09-22T22:00:00+03:30",
+              "ended_at": "2026-09-23T06:00:00+03:30",
+              "is_active": false,
+              "duration_seconds": 28800,
+              "note": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/diapers",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T09:00:00+03:30",
+        "body": {
+          "kind": "wet"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "53"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "id": 1,
+          "changed_at": "2026-09-23T09:00:00+03:30",
+          "kind": "wet",
+          "note": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/diapers",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T12:00:00+03:30",
+        "body": {
+          "kind": "both",
+          "changed_at": "2026-09-23 11:40",
+          "note": "کمی قرمزی"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "52"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "id": 2,
+          "changed_at": "2026-09-23T11:40:00+03:30",
+          "kind": "both",
+          "note": "کمی قرمزی"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/children/1/diapers/2",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T12:00:00+03:30",
+        "body": {
+          "kind": "dirty",
+          "changed_at": "2026-09-23 11:45"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "51"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "id": 2,
+          "changed_at": "2026-09-23T11:45:00+03:30",
+          "kind": "dirty",
+          "note": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/diapers",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "kind": "soaked"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "50"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errors": {
+          "kind": [
+            "The selected diaper type is invalid."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1/diapers",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T12:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-23",
+          "summary": {
+            "count": 2,
+            "wet": 1,
+            "dirty": 1,
+            "both": 0
+          },
+          "items": [
+            {
+              "id": 2,
+              "changed_at": "2026-09-23T11:45:00+03:30",
+              "kind": "dirty",
+              "note": null
+            },
+            {
+              "id": 1,
+              "changed_at": "2026-09-23T09:00:00+03:30",
+              "kind": "wet",
+              "note": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/feeds",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T12:00:00+03:30",
+        "body": {
+          "type": "breast",
+          "started_at": "2026-09-23 07:00",
+          "left_minutes": 8,
+          "right_minutes": 6
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "49"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "id": 1,
+          "type": "breast",
+          "started_at": "2026-09-23T07:00:00+03:30",
+          "ended_at": "2026-09-23T07:14:00+03:30",
+          "is_active": false,
+          "active_side": null,
+          "side_started_at": null,
+          "last_side": "right",
+          "left_seconds": 480,
+          "right_seconds": 360,
+          "duration_seconds": 840,
+          "amount_ml": null,
+          "note": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1/baby-logs?days=2",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T12:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "from": "2026-09-22",
+          "to": "2026-09-23",
+          "today": {
+            "date": "2026-09-23",
+            "feeds": {
+              "count": 1,
+              "breast": 1,
+              "bottle": 0,
+              "pump": 0,
+              "left_seconds": 480,
+              "right_seconds": 360,
+              "total_seconds": 840,
+              "bottle_ml": 0,
+              "pump_ml": 0,
+              "last": {
+                "id": 1,
+                "type": "breast",
+                "started_at": "2026-09-23T07:00:00+03:30",
+                "ended_at": "2026-09-23T07:14:00+03:30",
+                "is_active": false,
+                "active_side": null,
+                "side_started_at": null,
+                "last_side": "right",
+                "left_seconds": 480,
+                "right_seconds": 360,
+                "duration_seconds": 840,
+                "amount_ml": null,
+                "note": null
+              }
+            },
+            "sleep": {
+              "count": 1,
+              "seconds": 27000,
+              "longest_seconds": 5400
+            },
+            "diapers": {
+              "count": 2,
+              "wet": 1,
+              "dirty": 1,
+              "both": 0
+            },
+            "feeding_now": false,
+            "sleeping_now": false
+          },
+          "days": [
+            {
+              "date": "2026-09-22",
+              "feeds": {
+                "count": 0,
+                "breast": 0,
+                "bottle": 0,
+                "pump": 0,
+                "left_seconds": 0,
+                "right_seconds": 0,
+                "total_seconds": 0,
+                "bottle_ml": 0,
+                "pump_ml": 0
+              },
+              "sleep": {
+                "count": 1,
+                "seconds": 7200,
+                "longest_seconds": 28800
+              },
+              "diapers": {
+                "count": 0,
+                "wet": 0,
+                "dirty": 0,
+                "both": 0
+              }
+            },
+            {
+              "date": "2026-09-23",
+              "feeds": {
+                "count": 1,
+                "breast": 1,
+                "bottle": 0,
+                "pump": 0,
+                "left_seconds": 480,
+                "right_seconds": 360,
+                "total_seconds": 840,
+                "bottle_ml": 0,
+                "pump_ml": 0
+              },
+              "sleep": {
+                "count": 1,
+                "seconds": 27000,
+                "longest_seconds": 5400
+              },
+              "diapers": {
+                "count": 2,
+                "wet": 1,
+                "dirty": 1,
+                "both": 0
+              }
+            }
+          ],
+          "averages": {
+            "feeds_per_day": 0.5,
+            "sleep_seconds_per_day": 17100,
+            "diapers_per_day": 1,
+            "left_percent": 57,
+            "right_percent": 43
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T12:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "name": "آوا",
+          "initial": "آ",
+          "birth_date": "2026-06-12",
+          "sex": "girl",
+          "sex_label": "Girl",
+          "delivery_type": null,
+          "delivery_type_label": null,
+          "birth": {
+            "weight_kg": null,
+            "length_cm": null,
+            "head_cm": null
+          },
+          "age": {
+            "days": 103,
+            "weeks": 14,
+            "months": 3,
+            "years": 0,
+            "days_in_month": 11,
+            "label": "3 months and 11 days"
+          },
+          "role": "owner",
+          "can_edit": true,
+          "owner_name": null,
+          "vaccines": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "At birth",
+              "due_date": "2026-06-12",
+              "remind_on": "2026-06-09",
+              "days_left": -103,
+              "status": "overdue",
+              "status_label": "Overdue",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "BCG",
+                "Hepatitis B, dose 1",
+                "Oral polio (OPV)"
+              ]
+            }
+          },
+          "growth": {
+            "status": "unknown",
+            "label": "No measurements yet"
+          },
+          "latest": null,
+          "milestones": {
+            "band_months": 3,
+            "label": "3 months",
+            "checked": 0,
+            "total": 7
+          },
+          "this_week": {
+            "weeks": 14,
+            "months": 3,
+            "body": "Most babies this age hold their head up during tummy time, laugh at sounds and bring their hands to the mouth. If not yet, no rush; the normal range is wide."
+          },
+          "learn": {
+            "count": 6,
+            "featured": {
+              "code": "night_sleep_3m",
+              "topic": "sleep",
+              "topic_label": "Sleep",
+              "title": "Night sleep from 3 months",
+              "body": "Building a gentle routine: bath, feed, dim light, the same order every night. No cry-it-out methods.",
+              "minutes": 4,
+              "featured": true,
+              "from_months": 3,
+              "to_months": 6,
+              "article": null
+            }
+          },
+          "today": {
+            "date": "2026-09-23",
+            "feeds": {
+              "count": 1,
+              "breast": 1,
+              "bottle": 0,
+              "pump": 0,
+              "left_seconds": 480,
+              "right_seconds": 360,
+              "total_seconds": 840,
+              "bottle_ml": 0,
+              "pump_ml": 0,
+              "last": {
+                "id": 1,
+                "type": "breast",
+                "started_at": "2026-09-23T07:00:00+03:30",
+                "ended_at": "2026-09-23T07:14:00+03:30",
+                "is_active": false,
+                "active_side": null,
+                "side_started_at": null,
+                "last_side": "right",
+                "left_seconds": 480,
+                "right_seconds": 360,
+                "duration_seconds": 840,
+                "amount_ml": null,
+                "note": null
+              }
+            },
+            "sleep": {
+              "count": 1,
+              "seconds": 27000,
+              "longest_seconds": 5400
+            },
+            "diapers": {
+              "count": 2,
+              "wet": 1,
+              "dirty": 1,
+              "both": 0
+            },
+            "feeding_now": false,
+            "sleeping_now": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/children/1/diapers/2",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "48"
+      },
+      "body": {
+        "success": true,
+        "message": "Deleted"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/children/1/sleeps/2",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "47"
+      },
+      "body": {
+        "success": true,
+        "message": "Deleted"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/children/1/sleeps/2",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "46"
+      },
+      "body": {
+        "success": false,
+        "message": "Sleep not found",
+        "error_code": "sleep_not_found"
+      }
+    }
+  ]
+}

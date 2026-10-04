@@ -1,0 +1,162 @@
+# Pregnancy tools (/api/v1/pregnancy/kick-sessions, /api/v1/pregnancy/contractions) — Go only (bloom B-N5-03,
+# deviations.md D-60): no Laravel route, so these goldens were recorded from the Go server and reviewed by hand. The
+# fixture dump carries the empty pregnancy_kick_sessions / pregnancy_contraction_sessions / pregnancy_contractions
+# tables (goose 00033), added by hand; it has no goose-seeded pregnancy_alert rows, so the 5-1-1 alert itself
+# (contractions_511) is covered by internal/pregnancy/tools integration tests while these cases pin the verdict
+# (`five_one_one`), the timer maths and the default thresholds. `pregnant_ultrasound_w26` times; `regular` is not
+# pregnant. Steps pin X-Test-Now to move the timers.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: pregnancy-tools
+defaults:
+  persona: pregnant_ultrasound_w26
+  locales: none
+cases:
+  - name: kicks_anon
+    persona: anon
+    method: GET
+    path: /api/v1/pregnancy/kick-sessions
+    status: 401
+  - name: kicks_empty
+    locales: [none, en]
+    method: GET
+    path: /api/v1/pregnancy/kick-sessions
+    status: 200
+  - name: kicks_not_pregnant
+    persona: regular
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/pregnancy/kick-sessions
+    status: 409
+
+  - name: kick_counter
+    doc: nbl_Log_Kick — start, 10 movements in 24:10 (one taken back and re-tapped), «پایان و ذخیره», then the day's fetal movement log
+    locales: [fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/pregnancy/kick-sessions
+        now: "2026-09-23T21:15:00+03:30"
+        status: 201
+        capture: {id: data.id}
+      - method: POST
+        path: /api/v1/pregnancy/kick-sessions
+        now: "2026-09-23T21:15:05+03:30"
+        status: 409
+      - {method: POST, path: "/api/v1/pregnancy/kick-sessions/{{id}}/kicks", now: "2026-09-23T21:17:00+03:30", status: 200}
+      - {method: POST, path: "/api/v1/pregnancy/kick-sessions/{{id}}/kicks", now: "2026-09-23T21:19:00+03:30", status: 200}
+      - {method: POST, path: "/api/v1/pregnancy/kick-sessions/{{id}}/kicks", now: "2026-09-23T21:22:00+03:30", status: 200}
+      - {method: POST, path: "/api/v1/pregnancy/kick-sessions/{{id}}/kicks", now: "2026-09-23T21:24:00+03:30", status: 200}
+      - {method: POST, path: "/api/v1/pregnancy/kick-sessions/{{id}}/kicks", now: "2026-09-23T21:26:00+03:30", status: 200}
+      - {method: POST, path: "/api/v1/pregnancy/kick-sessions/{{id}}/kicks", now: "2026-09-23T21:29:00+03:30", status: 200}
+      - {method: POST, path: "/api/v1/pregnancy/kick-sessions/{{id}}/kicks", now: "2026-09-23T21:31:00+03:30", status: 200}
+      - {method: POST, path: "/api/v1/pregnancy/kick-sessions/{{id}}/kicks", now: "2026-09-23T21:33:00+03:30", status: 200}
+      - {method: DELETE, path: "/api/v1/pregnancy/kick-sessions/{{id}}/kicks", now: "2026-09-23T21:33:30+03:30", status: 200}
+      - {method: POST, path: "/api/v1/pregnancy/kick-sessions/{{id}}/kicks", now: "2026-09-23T21:34:00+03:30", status: 200}
+      - method: GET
+        path: /api/v1/pregnancy/kick-sessions
+        now: "2026-09-23T21:36:00+03:30"
+        status: 200
+      - {method: POST, path: "/api/v1/pregnancy/kick-sessions/{{id}}/kicks", now: "2026-09-23T21:37:00+03:30", status: 200}
+      - {method: POST, path: "/api/v1/pregnancy/kick-sessions/{{id}}/kicks", now: "2026-09-23T21:39:10+03:30", status: 200}
+      - method: POST
+        path: "/api/v1/pregnancy/kick-sessions/{{id}}/stop"
+        now: "2026-09-23T21:40:00+03:30"
+        status: 200
+      - method: POST
+        path: "/api/v1/pregnancy/kick-sessions/{{id}}/kicks"
+        now: "2026-09-23T21:41:00+03:30"
+        status: 409
+      - method: GET
+        path: /api/v1/pregnancy/fetal-movement
+        now: "2026-09-23T21:41:00+03:30"
+        status: 200
+      - method: GET
+        path: /api/v1/pregnancy/kick-sessions
+        now: "2026-09-23T21:41:00+03:30"
+        status: 200
+      - as: pregnant_lmp_w8
+        method: DELETE
+        path: "/api/v1/pregnancy/kick-sessions/{{id}}"
+        status: 404
+      - method: DELETE
+        path: "/api/v1/pregnancy/kick-sessions/{{id}}"
+        status: 200
+
+  - name: contraction_timer
+    doc: nbl_Log_Contraction — three contractions (0:47, 0:50, 0:55 about 6 min apart), one in progress, «توقف و ذخیره», history
+    locales: [fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/pregnancy/contractions/stop
+        now: "2026-09-23T22:27:00+03:30"
+        status: 409
+      - method: POST
+        path: /api/v1/pregnancy/contractions/start
+        now: "2026-09-23T22:28:00+03:30"
+        status: 200
+        capture: {sid: data.id}
+      - method: POST
+        path: /api/v1/pregnancy/contractions/start
+        now: "2026-09-23T22:28:10+03:30"
+        status: 409
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T22:28:47+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T22:34:20+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T22:35:10+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T22:40:25+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T22:41:20+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T22:46:35+03:30", status: 200}
+      - method: GET
+        path: /api/v1/pregnancy/contractions
+        now: "2026-09-23T22:47:23+03:30"
+        status: 200
+      - method: POST
+        path: "/api/v1/pregnancy/contractions/sessions/{{sid}}/finish"
+        now: "2026-09-23T22:47:30+03:30"
+        status: 200
+      - method: POST
+        path: "/api/v1/pregnancy/contractions/sessions/{{sid}}/finish"
+        now: "2026-09-23T22:47:40+03:30"
+        status: 409
+      - method: GET
+        path: /api/v1/pregnancy/contractions
+        now: "2026-09-23T22:48:00+03:30"
+        status: 200
+      - as: pregnant_lmp_w8
+        method: GET
+        path: "/api/v1/pregnancy/contractions/sessions/{{sid}}"
+        status: 404
+      - method: GET
+        path: "/api/v1/pregnancy/contractions/sessions/{{sid}}"
+        status: 200
+      - method: DELETE
+        path: "/api/v1/pregnancy/contractions/sessions/{{sid}}"
+        status: 200
+
+  - name: five_one_one
+    doc: 13 contractions every 5 minutes, 60 s each — the run spans 61 minutes and meets 5-1-1 (alert_at set; the alert row is the engine's, see the header)
+    steps:
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T20:00:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T20:01:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T20:05:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T20:06:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T20:10:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T20:11:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T20:15:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T20:16:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T20:20:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T20:21:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T20:25:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T20:26:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T20:30:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T20:31:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T20:35:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T20:36:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T20:40:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T20:41:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T20:45:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T20:46:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T20:50:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T20:51:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T20:55:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T20:56:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/start, now: "2026-09-23T21:00:00+03:30", status: 200}
+      - {method: POST, path: /api/v1/pregnancy/contractions/stop, now: "2026-09-23T21:01:00+03:30", status: 200}

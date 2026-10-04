@@ -1,0 +1,377 @@
+{
+  "case": "babylog/spouse_read_only",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "آوا",
+          "birth_date": "2026-06-12",
+          "sex": "girl"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "فرزند ثبت شد",
+        "data": {
+          "id": 1,
+          "name": "آوا",
+          "initial": "آ",
+          "birth_date": "2026-06-12",
+          "sex": "girl",
+          "sex_label": "دختر",
+          "delivery_type": null,
+          "delivery_type_label": null,
+          "birth": {
+            "weight_kg": null,
+            "length_cm": null,
+            "head_cm": null
+          },
+          "age": {
+            "days": 103,
+            "weeks": 14,
+            "months": 3,
+            "years": 0,
+            "days_in_month": 11,
+            "label": "۳ ماه و ۱۱ روز"
+          },
+          "role": "owner",
+          "can_edit": true,
+          "owner_name": null,
+          "vaccines": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "بدو تولد",
+              "due_date": "2026-06-12",
+              "remind_on": "2026-06-09",
+              "days_left": -103,
+              "status": "overdue",
+              "status_label": "عقب افتاده",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "ب.ث.ژ (BCG)",
+                "هپاتیت B نوبت اول",
+                "فلج اطفال خوراکی"
+              ]
+            }
+          },
+          "growth": {
+            "status": "unknown",
+            "label": "هنوز اندازه‌ای ثبت نشده"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/diapers",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "kind": "wet",
+          "changed_at": "2026-09-23 08:00"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "ذخیره شد",
+        "data": {
+          "id": 1,
+          "changed_at": "2026-09-23T08:00:00+03:30",
+          "kind": "wet",
+          "note": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/onboarding/steps/gender",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "gender": "male"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "ذخیره شد",
+        "data": {
+          "name": null,
+          "gender": "male",
+          "goal": null,
+          "life_stage": {
+            "mode": "companion",
+            "stored_mode": null,
+            "ivf_iui": false,
+            "track_contraception": false
+          },
+          "cycle": {
+            "last_period_start": null,
+            "period_duration": null,
+            "cycle_duration": null
+          },
+          "menopause": {
+            "stage": null,
+            "last_period": null,
+            "surgical": null,
+            "hrt": null
+          },
+          "conditions": {
+            "chronic_illnesses": null,
+            "gyn_conditions": null,
+            "medications": null
+          },
+          "health": {
+            "birthday": null,
+            "height": null,
+            "weight": null
+          },
+          "started_at": "2026-09-23T10:00:00+03:30",
+          "completed_at": null,
+          "completed": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/companions",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "spouse",
+          "child_ids": [
+            "{{child}}"
+          ]
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "دعوت ساخته شد.",
+        "data": {
+          "companion": {
+            "id": 1,
+            "type": "spouse",
+            "status": "invited",
+            "display_name": null,
+            "name": null,
+            "invited_at": "2026-09-23T10:00:00+03:30",
+            "accepted_at": null,
+            "grants": {
+              "cycle": "none",
+              "symptoms": "none",
+              "meds": "none",
+              "appointments": "none",
+              "pregnancy": "none"
+            },
+            "invite": {
+              "expires_at": "2026-09-24T10:00:00+03:30",
+              "phone": null
+            },
+            "family": {
+              "id": 1,
+              "shared_child_ids": [
+                1
+              ]
+            }
+          },
+          "invite": {
+            "code": "<pattern:^[A-HJ-NP-Z2-9]{6}$>",
+            "expires_at": "2026-09-24T10:00:00+03:30",
+            "phone": null,
+            "sms_sent": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/companions/accept",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "code": "{{code}}"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "30",
+        "x-ratelimit-remaining": "29"
+      },
+      "body": {
+        "success": true,
+        "message": "به هم وصل شدید.",
+        "data": {
+          "id": 1,
+          "type": "spouse",
+          "owner": {
+            "id": 1004,
+            "name": "Contract regular"
+          },
+          "accepted_at": "2026-09-23T10:00:00+03:30",
+          "grants": {
+            "cycle": "none",
+            "symptoms": "none",
+            "meds": "none",
+            "appointments": "none",
+            "pregnancy": "none"
+          },
+          "can_record_for": [],
+          "family": {
+            "id": 1,
+            "shared_child_ids": [
+              1
+            ]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1/diapers",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-23",
+          "summary": {
+            "count": 1,
+            "wet": 1,
+            "dirty": 0,
+            "both": 0
+          },
+          "items": [
+            {
+              "id": 1,
+              "changed_at": "2026-09-23T08:00:00+03:30",
+              "kind": "wet",
+              "note": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/feeds/start",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "breast"
+        }
+      },
+      "status": 403,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": false,
+        "message": "این فرزند با تو به اشتراک گذاشته شده و فقط می‌توانی آن را ببینی",
+        "error_code": "child_read_only"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/children/1/diapers/1",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 403,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": false,
+        "message": "این فرزند با تو به اشتراک گذاشته شده و فقط می‌توانی آن را ببینی",
+        "error_code": "child_read_only"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1/feeds",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "فرزند پیدا نشد",
+        "error_code": "child_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/children/1/diapers/1",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "فرزند پیدا نشد",
+        "error_code": "child_not_found"
+      }
+    }
+  ]
+}

@@ -1,0 +1,691 @@
+{
+  "case": "pregnancy-tools/kick_counter.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/kick-sessions",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:15:00+03:30"
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T21:15:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "kicks": 0,
+          "target": 10,
+          "window_minutes": 120,
+          "elapsed_seconds": 0,
+          "time_to_target_seconds": null,
+          "reached_target": false,
+          "low_count": false,
+          "last_kick_at": null,
+          "pregnancy_week": 26
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/kick-sessions",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:15:05+03:30"
+      },
+      "status": 409,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": false,
+        "message": "A kick count is already running",
+        "error_code": "kick_session_active"
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/kick-sessions/1/kicks",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:17:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T21:15:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "kicks": 1,
+          "target": 10,
+          "window_minutes": 120,
+          "elapsed_seconds": 120,
+          "time_to_target_seconds": null,
+          "reached_target": false,
+          "low_count": false,
+          "last_kick_at": "2026-09-23T21:17:00+03:30",
+          "pregnancy_week": 26
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/kick-sessions/1/kicks",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:19:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T21:15:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "kicks": 2,
+          "target": 10,
+          "window_minutes": 120,
+          "elapsed_seconds": 240,
+          "time_to_target_seconds": null,
+          "reached_target": false,
+          "low_count": false,
+          "last_kick_at": "2026-09-23T21:19:00+03:30",
+          "pregnancy_week": 26
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/kick-sessions/1/kicks",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:22:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T21:15:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "kicks": 3,
+          "target": 10,
+          "window_minutes": 120,
+          "elapsed_seconds": 420,
+          "time_to_target_seconds": null,
+          "reached_target": false,
+          "low_count": false,
+          "last_kick_at": "2026-09-23T21:22:00+03:30",
+          "pregnancy_week": 26
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/kick-sessions/1/kicks",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:24:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "54"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T21:15:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "kicks": 4,
+          "target": 10,
+          "window_minutes": 120,
+          "elapsed_seconds": 540,
+          "time_to_target_seconds": null,
+          "reached_target": false,
+          "low_count": false,
+          "last_kick_at": "2026-09-23T21:24:00+03:30",
+          "pregnancy_week": 26
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/kick-sessions/1/kicks",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:26:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "53"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T21:15:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "kicks": 5,
+          "target": 10,
+          "window_minutes": 120,
+          "elapsed_seconds": 660,
+          "time_to_target_seconds": null,
+          "reached_target": false,
+          "low_count": false,
+          "last_kick_at": "2026-09-23T21:26:00+03:30",
+          "pregnancy_week": 26
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/kick-sessions/1/kicks",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:29:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "52"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T21:15:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "kicks": 6,
+          "target": 10,
+          "window_minutes": 120,
+          "elapsed_seconds": 840,
+          "time_to_target_seconds": null,
+          "reached_target": false,
+          "low_count": false,
+          "last_kick_at": "2026-09-23T21:29:00+03:30",
+          "pregnancy_week": 26
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/kick-sessions/1/kicks",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:31:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "51"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T21:15:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "kicks": 7,
+          "target": 10,
+          "window_minutes": 120,
+          "elapsed_seconds": 960,
+          "time_to_target_seconds": null,
+          "reached_target": false,
+          "low_count": false,
+          "last_kick_at": "2026-09-23T21:31:00+03:30",
+          "pregnancy_week": 26
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/kick-sessions/1/kicks",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:33:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "50"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T21:15:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "kicks": 8,
+          "target": 10,
+          "window_minutes": 120,
+          "elapsed_seconds": 1080,
+          "time_to_target_seconds": null,
+          "reached_target": false,
+          "low_count": false,
+          "last_kick_at": "2026-09-23T21:33:00+03:30",
+          "pregnancy_week": 26
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/pregnancy/kick-sessions/1/kicks",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:33:30+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "49"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T21:15:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "kicks": 7,
+          "target": 10,
+          "window_minutes": 120,
+          "elapsed_seconds": 1110,
+          "time_to_target_seconds": null,
+          "reached_target": false,
+          "low_count": false,
+          "last_kick_at": "2026-09-23T21:33:00+03:30",
+          "pregnancy_week": 26
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/kick-sessions/1/kicks",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:34:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "48"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T21:15:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "kicks": 8,
+          "target": 10,
+          "window_minutes": 120,
+          "elapsed_seconds": 1140,
+          "time_to_target_seconds": null,
+          "reached_target": false,
+          "low_count": false,
+          "last_kick_at": "2026-09-23T21:34:00+03:30",
+          "pregnancy_week": 26
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/kick-sessions",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:36:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "target": 10,
+          "window_minutes": 120,
+          "active": {
+            "id": 1,
+            "started_at": "2026-09-23T21:15:00+03:30",
+            "ended_at": null,
+            "is_active": true,
+            "kicks": 8,
+            "target": 10,
+            "window_minutes": 120,
+            "elapsed_seconds": 1260,
+            "time_to_target_seconds": null,
+            "reached_target": false,
+            "low_count": false,
+            "last_kick_at": "2026-09-23T21:34:00+03:30",
+            "pregnancy_week": 26
+          },
+          "today": {
+            "date": "2026-09-23",
+            "kicks": 8,
+            "sessions": 1
+          },
+          "history": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/kick-sessions/1/kicks",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:37:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "47"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T21:15:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "kicks": 9,
+          "target": 10,
+          "window_minutes": 120,
+          "elapsed_seconds": 1320,
+          "time_to_target_seconds": null,
+          "reached_target": false,
+          "low_count": false,
+          "last_kick_at": "2026-09-23T21:37:00+03:30",
+          "pregnancy_week": 26
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/kick-sessions/1/kicks",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:39:10+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "46"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T21:15:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "kicks": 10,
+          "target": 10,
+          "window_minutes": 120,
+          "elapsed_seconds": 1450,
+          "time_to_target_seconds": 1450,
+          "reached_target": true,
+          "low_count": false,
+          "last_kick_at": "2026-09-23T21:39:10+03:30",
+          "pregnancy_week": 26
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/kick-sessions/1/stop",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:40:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "45"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T21:15:00+03:30",
+          "ended_at": "2026-09-23T21:40:00+03:30",
+          "is_active": false,
+          "kicks": 10,
+          "target": 10,
+          "window_minutes": 120,
+          "elapsed_seconds": 1500,
+          "time_to_target_seconds": 1450,
+          "reached_target": true,
+          "low_count": false,
+          "last_kick_at": "2026-09-23T21:39:10+03:30",
+          "pregnancy_week": 26
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/kick-sessions/1/kicks",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:41:00+03:30"
+      },
+      "status": 409,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "44"
+      },
+      "body": {
+        "success": false,
+        "message": "This session has already ended",
+        "error_code": "session_ended"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/fetal-movement",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:41:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "logs": [
+            {
+              "id": 101503,
+              "user_id": 1015,
+              "log_date": "2026-09-23",
+              "pregnancy_week": 26,
+              "movement_status": "reduced",
+              "movement_count": 10,
+              "first_movement_time": "21:15:00",
+              "last_movement_time": "21:39:00",
+              "notes": null,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T18:10:00.000000Z"
+            },
+            {
+              "id": 101502,
+              "user_id": 1015,
+              "log_date": "2026-09-22",
+              "pregnancy_week": 26,
+              "movement_status": "normal",
+              "movement_count": 10,
+              "first_movement_time": "08:15:00",
+              "last_movement_time": "21:40:00",
+              "notes": null,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            },
+            {
+              "id": 101501,
+              "user_id": 1015,
+              "log_date": "2026-09-21",
+              "pregnancy_week": 25,
+              "movement_status": "normal",
+              "movement_count": 12,
+              "first_movement_time": "08:15:00",
+              "last_movement_time": "21:40:00",
+              "notes": null,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          ],
+          "count": 3
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/kick-sessions",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T21:41:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "target": 10,
+          "window_minutes": 120,
+          "active": null,
+          "today": {
+            "date": "2026-09-23",
+            "kicks": 10,
+            "sessions": 1
+          },
+          "history": [
+            {
+              "id": 1,
+              "started_at": "2026-09-23T21:15:00+03:30",
+              "ended_at": "2026-09-23T21:40:00+03:30",
+              "is_active": false,
+              "kicks": 10,
+              "target": 10,
+              "window_minutes": 120,
+              "elapsed_seconds": 1500,
+              "time_to_target_seconds": 1450,
+              "reached_target": true,
+              "low_count": false,
+              "last_kick_at": "2026-09-23T21:39:10+03:30",
+              "pregnancy_week": 26
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/pregnancy/kick-sessions/1",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "Session not found",
+        "error_code": "session_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/pregnancy/kick-sessions/1",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "43"
+      },
+      "body": {
+        "success": true,
+        "message": "Deleted"
+      }
+    }
+  ]
+}

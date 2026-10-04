@@ -14,8 +14,10 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
+	"time"
 
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/pregnancy/labor"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
 )
 
@@ -37,7 +39,7 @@ func V1Level(level string) string {
 // RuleKeys are the registered detectors, in display order (= registry.AlertRules).
 var RuleKeys = []string{
 	"vomiting_streak", "severe_symptom_count", "critical_symptom", "weight_missing_week",
-	"week_entered", "bp_high", "sugar_high", "fetal_movement",
+	"week_entered", "bp_high", "sugar_high", "fetal_movement", "contractions_511",
 }
 
 // WeightMissingFromWeekday is weight_missing_week's default `from_weekday`: the 6th day of the
@@ -90,6 +92,9 @@ type Facts struct {
 	Weekly    []store.PregnancyWeeklyLog // logged within the longest window, plus the current week's
 	Fetal     []store.PregnancyFetalMovement
 	HasWeight bool // a weight is logged for the current week
+	// The contractions of the running contraction session (B-N5-03) and its id.
+	Contractions       []labor.Contraction
+	ContractionSession uint64
 }
 
 // Hit is one detector firing: a dedupe key and the placeholder values of its texts. On is the
@@ -140,8 +145,34 @@ func Detect(rule string, c Config, f Facts) []Hit {
 		return sugarHigh(c, f)
 	case "fetal_movement":
 		return fetal(c, f)
+	case "contractions_511":
+		return contractions511(c, f)
 	}
 	return nil
+}
+
+// LaborParams are the 5-1-1 thresholds of a contractions_511 rule row (labor defaults for missing params).
+func LaborParams(c Config) labor.Params {
+	return labor.Params{
+		IntervalMax: time.Duration(c.intParam("interval_max_minutes", labor.DefaultIntervalMaxMinutes)) * time.Minute,
+		DurationMin: time.Duration(c.intParam("duration_min_seconds", labor.DefaultDurationMinSeconds)) * time.Second,
+		Run:         time.Duration(c.intParam("run_minutes", labor.DefaultRunMinutes)) * time.Minute,
+	}
+}
+
+// contractions511: the running contraction session met the 5-1-1 rule (once per session).
+func contractions511(c Config, f Facts) []Hit {
+	if f.ContractionSession == 0 {
+		return nil
+	}
+	r := labor.FiveOneOne(f.Contractions, LaborParams(c))
+	if !r.Met {
+		return nil
+	}
+	return []Hit{{Rule: "contractions_511", Dedupe: "s" + strconv.FormatUint(f.ContractionSession, 10), Vars: [][2]string{
+		{"count", strconv.Itoa(r.Count)}, {"minutes", strconv.Itoa(int(r.Span / time.Minute))},
+		{"interval", labor.Clock(r.AvgInterval)}, {"duration", labor.Clock(r.AvgDuration)},
+	}}}
 }
 
 // vomitingStreak: consecutive days with vomiting ending today (or yesterday, when today is not

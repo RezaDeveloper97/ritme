@@ -3,7 +3,7 @@ id: B-N5-03
 title: Baby logs and pregnancy tools backend — feeding, sleep, diapers, kicks, contractions
 milestone: N5
 type: backend
-status: todo
+status: done
 depends_on: [B-N5-01]
 parallel_group: N5-C
 touches: [backend-go/db,backend-go/internal/babylog,backend-go/internal/pregnancy,backend-go/api]

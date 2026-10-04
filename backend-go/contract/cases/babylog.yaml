@@ -1,0 +1,267 @@
+# Baby logs (/api/v1/children/{id}/{feeds,sleeps,diapers,baby-logs}) — Go only (bloom B-N5-03, deviations.md D-60):
+# there is no Laravel route, so these goldens were recorded from the Go server and reviewed by hand (new-endpoint
+# skill, step 8). The fixture dump carries the empty baby_feeds / baby_sleeps / baby_diapers tables (goose 00033 /
+# Laravel 2026_10_04_000033), added by hand. No persona has a child, so every flow creates one (every writing case runs
+# on a fresh dump). Fixture day 2026-09-23; steps pin X-Test-Now to move the timers. `regular` (1004) is the owner;
+# `no_profile` (1001) becomes her spouse. The session maths (midnight split, running segments), the mother's
+# baby.feeds_count, concurrent starts and the IDOR matrix are covered by internal/babylog tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: babylog
+defaults:
+  persona: regular
+  locales: none
+  patterns:
+    data.invite.code: '^[A-HJ-NP-Z2-9]{6}$'
+cases:
+  - name: feeds_anon
+    persona: anon
+    method: GET
+    path: /api/v1/children/1/feeds
+    status: 401
+  - name: feeds_missing_child
+    locales: [none, en]
+    method: GET
+    path: /api/v1/children/999/feeds
+    status: 404
+
+  - name: breast_feed_timer
+    doc: nbl_Log_Feed — right side 7:00, switch to the left, 7:42 on the left, «پایان و ذخیره»; the day, the last feed, the next side
+    locales: [fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/children
+        body: {name: آوا, birth_date: "2026-06-12", sex: girl}
+        status: 201
+        capture: {id: data.id}
+      - method: POST
+        path: "/api/v1/children/{{id}}/feeds/start"
+        body: {type: breast, side: right}
+        now: "2026-09-23T14:00:00+03:30"
+        status: 201
+        capture: {fid: data.id}
+      - method: POST
+        path: "/api/v1/children/{{id}}/feeds/start"
+        body: {type: bottle}
+        now: "2026-09-23T14:01:00+03:30"
+        status: 409
+      - method: POST
+        path: "/api/v1/children/{{id}}/feeds/{{fid}}/side"
+        body: {side: left}
+        now: "2026-09-23T14:07:00+03:30"
+        status: 200
+      - method: GET
+        path: "/api/v1/children/{{id}}/feeds"
+        now: "2026-09-23T14:14:42+03:30"
+        status: 200
+      - method: POST
+        path: "/api/v1/children/{{id}}/feeds/{{fid}}/stop"
+        body: {note: خوب شیر خورد}
+        now: "2026-09-23T14:14:42+03:30"
+        status: 200
+      - method: POST
+        path: "/api/v1/children/{{id}}/feeds/{{fid}}/stop"
+        now: "2026-09-23T14:15:00+03:30"
+        status: 409
+      - method: GET
+        path: "/api/v1/children/{{id}}/feeds"
+        now: "2026-09-23T15:00:00+03:30"
+        status: 200
+
+  - name: bottle_and_pump
+    doc: A bottle entered by hand, a pump timer with ml, a side switch on a pump (422), editing the running pump (409), delete
+    steps:
+      - method: POST
+        path: /api/v1/children
+        body: {name: Ava, birth_date: "2026-06-12"}
+        status: 201
+        capture: {id: data.id}
+      - method: POST
+        path: "/api/v1/children/{{id}}/feeds"
+        body: {type: bottle, started_at: "2026-09-23 08:00", duration_minutes: 10, amount_ml: 90}
+        status: 201
+        capture: {bottle: data.id}
+      - method: POST
+        path: "/api/v1/children/{{id}}/feeds/start"
+        body: {type: pump}
+        now: "2026-09-23T09:00:00+03:30"
+        status: 201
+        capture: {pump: data.id}
+      - method: POST
+        path: "/api/v1/children/{{id}}/feeds/{{pump}}/side"
+        body: {side: left}
+        now: "2026-09-23T09:01:00+03:30"
+        status: 422
+      - method: PUT
+        path: "/api/v1/children/{{id}}/feeds/{{pump}}"
+        body: {type: pump, started_at: "2026-09-23 09:00"}
+        now: "2026-09-23T09:01:00+03:30"
+        status: 409
+      - method: POST
+        path: "/api/v1/children/{{id}}/feeds/{{pump}}/stop"
+        body: {amount_ml: 120}
+        now: "2026-09-23T09:15:00+03:30"
+        status: 200
+      - method: PUT
+        path: "/api/v1/children/{{id}}/feeds/{{bottle}}"
+        body: {type: breast, started_at: "2026-09-23 08:00", left_minutes: 6, right_minutes: 4, side: right}
+        status: 200
+      - method: DELETE
+        path: "/api/v1/children/{{id}}/feeds/{{pump}}"
+        status: 200
+      - method: GET
+        path: "/api/v1/children/{{id}}/feeds"
+        status: 200
+
+  - name: feed_invalid
+    locales: [fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/children
+        body: {name: Ava, birth_date: "2026-06-12"}
+        status: 201
+        capture: {id: data.id}
+      - method: POST
+        path: "/api/v1/children/{{id}}/feeds"
+        body: {type: cup, started_at: "23/09/2026", amount_ml: 900}
+        status: 422
+      - method: POST
+        path: "/api/v1/children/{{id}}/feeds"
+        body: {type: breast, started_at: "2026-09-23 09:00"}
+        status: 422
+      - method: POST
+        path: "/api/v1/children/{{id}}/feeds"
+        body: {type: breast, started_at: "2026-06-01 09:00", left_minutes: 5}
+        status: 422
+
+  - name: sleep_and_diapers
+    doc: A night sleep crossing midnight, a nap timer, diapers, then the summary for nbl_An_Hub_Post and the child home «امروز»
+    locales: [fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/children
+        body: {name: آوا, birth_date: "2026-06-12", sex: girl}
+        status: 201
+        capture: {id: data.id}
+      - method: POST
+        path: "/api/v1/children/{{id}}/sleeps"
+        body: {started_at: "2026-09-22 22:00", ended_at: "2026-09-23 06:00"}
+        status: 201
+      - method: POST
+        path: "/api/v1/children/{{id}}/sleeps/start"
+        now: "2026-09-23T10:00:00+03:30"
+        status: 201
+        capture: {sid: data.id}
+      - method: POST
+        path: "/api/v1/children/{{id}}/sleeps/start"
+        now: "2026-09-23T10:01:00+03:30"
+        status: 409
+      - method: POST
+        path: "/api/v1/children/{{id}}/sleeps/{{sid}}/stop"
+        now: "2026-09-23T11:30:00+03:30"
+        status: 200
+      - method: POST
+        path: "/api/v1/children/{{id}}/sleeps"
+        body: {started_at: "2026-09-23 12:00", ended_at: "2026-09-23 11:00"}
+        now: "2026-09-23T12:30:00+03:30"
+        status: 422
+      - method: GET
+        path: "/api/v1/children/{{id}}/sleeps"
+        now: "2026-09-23T12:00:00+03:30"
+        status: 200
+      - method: POST
+        path: "/api/v1/children/{{id}}/diapers"
+        body: {kind: wet}
+        now: "2026-09-23T09:00:00+03:30"
+        status: 201
+      - method: POST
+        path: "/api/v1/children/{{id}}/diapers"
+        body: {kind: both, changed_at: "2026-09-23 11:40", note: کمی قرمزی}
+        now: "2026-09-23T12:00:00+03:30"
+        status: 201
+        capture: {did: data.id}
+      - method: PUT
+        path: "/api/v1/children/{{id}}/diapers/{{did}}"
+        body: {kind: dirty, changed_at: "2026-09-23 11:45"}
+        now: "2026-09-23T12:00:00+03:30"
+        status: 200
+      - method: POST
+        path: "/api/v1/children/{{id}}/diapers"
+        body: {kind: soaked}
+        status: 422
+      - method: GET
+        path: "/api/v1/children/{{id}}/diapers"
+        now: "2026-09-23T12:00:00+03:30"
+        status: 200
+      - method: POST
+        path: "/api/v1/children/{{id}}/feeds"
+        body: {type: breast, started_at: "2026-09-23 07:00", left_minutes: 8, right_minutes: 6}
+        now: "2026-09-23T12:00:00+03:30"
+        status: 201
+      - method: GET
+        path: "/api/v1/children/{{id}}/baby-logs"
+        query: {days: "2"}
+        now: "2026-09-23T12:00:00+03:30"
+        status: 200
+      - method: GET
+        path: "/api/v1/children/{{id}}"
+        now: "2026-09-23T12:00:00+03:30"
+        status: 200
+      - method: DELETE
+        path: "/api/v1/children/{{id}}/diapers/{{did}}"
+        status: 200
+      - method: DELETE
+        path: "/api/v1/children/{{id}}/sleeps/{{sid}}"
+        status: 200
+      - method: DELETE
+        path: "/api/v1/children/{{id}}/sleeps/{{sid}}"
+        status: 404
+
+  - name: spouse_read_only
+    doc: The owner's spouse reads the shared child's logs (audited) and gets 403 child_read_only on writes; another account 404
+    steps:
+      - method: POST
+        path: /api/v1/children
+        body: {name: آوا, birth_date: "2026-06-12", sex: girl}
+        status: 201
+        capture: {child: data.id}
+      - method: POST
+        path: "/api/v1/children/{{child}}/diapers"
+        body: {kind: wet, changed_at: "2026-09-23 08:00"}
+        status: 201
+        capture: {did: data.id}
+      - as: no_profile
+        method: PUT
+        path: /api/v1/onboarding/steps/gender
+        body: {gender: male}
+        status: 200
+      - method: POST
+        path: /api/v1/companions
+        body: {type: spouse, child_ids: ["{{child}}"]}
+        status: 201
+        capture: {code: data.invite.code}
+      - as: no_profile
+        method: POST
+        path: /api/v1/companions/accept
+        body: {code: "{{code}}"}
+        status: 200
+      - as: no_profile
+        method: GET
+        path: "/api/v1/children/{{child}}/diapers"
+        status: 200
+      - as: no_profile
+        method: POST
+        path: "/api/v1/children/{{child}}/feeds/start"
+        body: {type: breast}
+        status: 403
+      - as: no_profile
+        method: DELETE
+        path: "/api/v1/children/{{child}}/diapers/{{did}}"
+        status: 403
+      - as: pregnant_ultrasound_w26
+        method: GET
+        path: "/api/v1/children/{{child}}/feeds"
+        status: 404
+      - as: pregnant_ultrasound_w26
+        method: DELETE
+        path: "/api/v1/children/{{child}}/diapers/{{did}}"
+        status: 404

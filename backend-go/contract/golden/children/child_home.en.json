@@ -277,7 +277,34 @@
               "article": null
             }
           },
-          "today": null
+          "today": {
+            "date": "2026-09-23",
+            "feeds": {
+              "count": 0,
+              "breast": 0,
+              "bottle": 0,
+              "pump": 0,
+              "left_seconds": 0,
+              "right_seconds": 0,
+              "total_seconds": 0,
+              "bottle_ml": 0,
+              "pump_ml": 0,
+              "last": null
+            },
+            "sleep": {
+              "count": 0,
+              "seconds": 0,
+              "longest_seconds": 0
+            },
+            "diapers": {
+              "count": 0,
+              "wet": 0,
+              "dirty": 0,
+              "both": 0
+            },
+            "feeding_now": false,
+            "sleeping_now": false
+          }
         }
       }
     },

@@ -332,7 +332,7 @@ func TestAlertRulesRead(t *testing.T) {
 
 	r := c.Get("/pregnancy-alert-rules")
 	require.Equal(t, 200, r.Status, r.Body)
-	require.Len(t, r.Items(), 8)
+	require.Len(t, r.Items(), 9)
 	vs := r.Items()[0].(map[string]any)
 	assert.Equal(t, "vomiting_streak", vs["key"])
 	assert.Equal(t, true, vs["configured"])
@@ -357,7 +357,7 @@ func TestAlertRulesRead(t *testing.T) {
 	r = c.Get("/pregnancy-alert-rules/options")
 	require.Equal(t, 200, r.Status)
 	assert.Equal(t, []any{"info", "suggestion", "follow_up", "urgent"}, r.Data()["levels"])
-	assert.Len(t, r.Data()["rules"], 8)
+	assert.Len(t, r.Data()["rules"], 9)
 
 	assert.Equal(t, 404, c.Get("/pregnancy-alert-rules/legend").Status, "the legend is not a rule")
 	assert.Equal(t, 404, c.Get("/pregnancy-alert-rules/nope").Status)

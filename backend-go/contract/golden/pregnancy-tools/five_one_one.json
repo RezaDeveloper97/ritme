@@ -1,0 +1,2358 @@
+{
+  "case": "pregnancy-tools/five_one_one",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/start",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T20:00:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "elapsed_seconds": 0,
+          "count": 0,
+          "running": {
+            "id": 1,
+            "started_at": "2026-09-23T20:00:00+03:30",
+            "elapsed_seconds": 0
+          },
+          "avg_duration_seconds": null,
+          "avg_interval_seconds": null,
+          "five_one_one": {
+            "met": false,
+            "count": 0,
+            "span_minutes": 0,
+            "avg_interval_seconds": null,
+            "avg_duration_seconds": null
+          },
+          "alert_at": null,
+          "contractions": [
+            {
+              "id": 1,
+              "started_at": "2026-09-23T20:00:00+03:30",
+              "ended_at": null,
+              "duration_seconds": null,
+              "interval_seconds": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/stop",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:01:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "session": {
+            "id": 1,
+            "started_at": "2026-09-23T20:00:00+03:30",
+            "ended_at": null,
+            "is_active": true,
+            "elapsed_seconds": 60,
+            "count": 1,
+            "running": null,
+            "avg_duration_seconds": 60,
+            "avg_interval_seconds": null,
+            "five_one_one": {
+              "met": false,
+              "count": 1,
+              "span_minutes": 1,
+              "avg_interval_seconds": null,
+              "avg_duration_seconds": 60
+            },
+            "alert_at": null,
+            "contractions": [
+              {
+                "id": 1,
+                "started_at": "2026-09-23T20:00:00+03:30",
+                "ended_at": "2026-09-23T20:01:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": null
+              }
+            ]
+          },
+          "alerts": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/start",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:05:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T20:00:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "elapsed_seconds": 300,
+          "count": 1,
+          "running": {
+            "id": 2,
+            "started_at": "2026-09-23T20:05:00+03:30",
+            "elapsed_seconds": 0
+          },
+          "avg_duration_seconds": 60,
+          "avg_interval_seconds": null,
+          "five_one_one": {
+            "met": false,
+            "count": 1,
+            "span_minutes": 1,
+            "avg_interval_seconds": null,
+            "avg_duration_seconds": 60
+          },
+          "alert_at": null,
+          "contractions": [
+            {
+              "id": 2,
+              "started_at": "2026-09-23T20:05:00+03:30",
+              "ended_at": null,
+              "duration_seconds": null,
+              "interval_seconds": 300
+            },
+            {
+              "id": 1,
+              "started_at": "2026-09-23T20:00:00+03:30",
+              "ended_at": "2026-09-23T20:01:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/stop",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:06:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "session": {
+            "id": 1,
+            "started_at": "2026-09-23T20:00:00+03:30",
+            "ended_at": null,
+            "is_active": true,
+            "elapsed_seconds": 360,
+            "count": 2,
+            "running": null,
+            "avg_duration_seconds": 60,
+            "avg_interval_seconds": 300,
+            "five_one_one": {
+              "met": false,
+              "count": 2,
+              "span_minutes": 6,
+              "avg_interval_seconds": 300,
+              "avg_duration_seconds": 60
+            },
+            "alert_at": null,
+            "contractions": [
+              {
+                "id": 2,
+                "started_at": "2026-09-23T20:05:00+03:30",
+                "ended_at": "2026-09-23T20:06:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 1,
+                "started_at": "2026-09-23T20:00:00+03:30",
+                "ended_at": "2026-09-23T20:01:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": null
+              }
+            ]
+          },
+          "alerts": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/start",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:10:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T20:00:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "elapsed_seconds": 600,
+          "count": 2,
+          "running": {
+            "id": 3,
+            "started_at": "2026-09-23T20:10:00+03:30",
+            "elapsed_seconds": 0
+          },
+          "avg_duration_seconds": 60,
+          "avg_interval_seconds": 300,
+          "five_one_one": {
+            "met": false,
+            "count": 2,
+            "span_minutes": 6,
+            "avg_interval_seconds": 300,
+            "avg_duration_seconds": 60
+          },
+          "alert_at": null,
+          "contractions": [
+            {
+              "id": 3,
+              "started_at": "2026-09-23T20:10:00+03:30",
+              "ended_at": null,
+              "duration_seconds": null,
+              "interval_seconds": 300
+            },
+            {
+              "id": 2,
+              "started_at": "2026-09-23T20:05:00+03:30",
+              "ended_at": "2026-09-23T20:06:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 1,
+              "started_at": "2026-09-23T20:00:00+03:30",
+              "ended_at": "2026-09-23T20:01:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/stop",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:11:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "54"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "session": {
+            "id": 1,
+            "started_at": "2026-09-23T20:00:00+03:30",
+            "ended_at": null,
+            "is_active": true,
+            "elapsed_seconds": 660,
+            "count": 3,
+            "running": null,
+            "avg_duration_seconds": 60,
+            "avg_interval_seconds": 300,
+            "five_one_one": {
+              "met": false,
+              "count": 3,
+              "span_minutes": 11,
+              "avg_interval_seconds": 300,
+              "avg_duration_seconds": 60
+            },
+            "alert_at": null,
+            "contractions": [
+              {
+                "id": 3,
+                "started_at": "2026-09-23T20:10:00+03:30",
+                "ended_at": "2026-09-23T20:11:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 2,
+                "started_at": "2026-09-23T20:05:00+03:30",
+                "ended_at": "2026-09-23T20:06:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 1,
+                "started_at": "2026-09-23T20:00:00+03:30",
+                "ended_at": "2026-09-23T20:01:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": null
+              }
+            ]
+          },
+          "alerts": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/start",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:15:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "53"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T20:00:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "elapsed_seconds": 900,
+          "count": 3,
+          "running": {
+            "id": 4,
+            "started_at": "2026-09-23T20:15:00+03:30",
+            "elapsed_seconds": 0
+          },
+          "avg_duration_seconds": 60,
+          "avg_interval_seconds": 300,
+          "five_one_one": {
+            "met": false,
+            "count": 3,
+            "span_minutes": 11,
+            "avg_interval_seconds": 300,
+            "avg_duration_seconds": 60
+          },
+          "alert_at": null,
+          "contractions": [
+            {
+              "id": 4,
+              "started_at": "2026-09-23T20:15:00+03:30",
+              "ended_at": null,
+              "duration_seconds": null,
+              "interval_seconds": 300
+            },
+            {
+              "id": 3,
+              "started_at": "2026-09-23T20:10:00+03:30",
+              "ended_at": "2026-09-23T20:11:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 2,
+              "started_at": "2026-09-23T20:05:00+03:30",
+              "ended_at": "2026-09-23T20:06:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 1,
+              "started_at": "2026-09-23T20:00:00+03:30",
+              "ended_at": "2026-09-23T20:01:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/stop",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:16:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "52"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "session": {
+            "id": 1,
+            "started_at": "2026-09-23T20:00:00+03:30",
+            "ended_at": null,
+            "is_active": true,
+            "elapsed_seconds": 960,
+            "count": 4,
+            "running": null,
+            "avg_duration_seconds": 60,
+            "avg_interval_seconds": 300,
+            "five_one_one": {
+              "met": false,
+              "count": 4,
+              "span_minutes": 16,
+              "avg_interval_seconds": 300,
+              "avg_duration_seconds": 60
+            },
+            "alert_at": null,
+            "contractions": [
+              {
+                "id": 4,
+                "started_at": "2026-09-23T20:15:00+03:30",
+                "ended_at": "2026-09-23T20:16:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 3,
+                "started_at": "2026-09-23T20:10:00+03:30",
+                "ended_at": "2026-09-23T20:11:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 2,
+                "started_at": "2026-09-23T20:05:00+03:30",
+                "ended_at": "2026-09-23T20:06:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 1,
+                "started_at": "2026-09-23T20:00:00+03:30",
+                "ended_at": "2026-09-23T20:01:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": null
+              }
+            ]
+          },
+          "alerts": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/start",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:20:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "51"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T20:00:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "elapsed_seconds": 1200,
+          "count": 4,
+          "running": {
+            "id": 5,
+            "started_at": "2026-09-23T20:20:00+03:30",
+            "elapsed_seconds": 0
+          },
+          "avg_duration_seconds": 60,
+          "avg_interval_seconds": 300,
+          "five_one_one": {
+            "met": false,
+            "count": 4,
+            "span_minutes": 16,
+            "avg_interval_seconds": 300,
+            "avg_duration_seconds": 60
+          },
+          "alert_at": null,
+          "contractions": [
+            {
+              "id": 5,
+              "started_at": "2026-09-23T20:20:00+03:30",
+              "ended_at": null,
+              "duration_seconds": null,
+              "interval_seconds": 300
+            },
+            {
+              "id": 4,
+              "started_at": "2026-09-23T20:15:00+03:30",
+              "ended_at": "2026-09-23T20:16:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 3,
+              "started_at": "2026-09-23T20:10:00+03:30",
+              "ended_at": "2026-09-23T20:11:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 2,
+              "started_at": "2026-09-23T20:05:00+03:30",
+              "ended_at": "2026-09-23T20:06:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 1,
+              "started_at": "2026-09-23T20:00:00+03:30",
+              "ended_at": "2026-09-23T20:01:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/stop",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:21:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "50"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "session": {
+            "id": 1,
+            "started_at": "2026-09-23T20:00:00+03:30",
+            "ended_at": null,
+            "is_active": true,
+            "elapsed_seconds": 1260,
+            "count": 5,
+            "running": null,
+            "avg_duration_seconds": 60,
+            "avg_interval_seconds": 300,
+            "five_one_one": {
+              "met": false,
+              "count": 5,
+              "span_minutes": 21,
+              "avg_interval_seconds": 300,
+              "avg_duration_seconds": 60
+            },
+            "alert_at": null,
+            "contractions": [
+              {
+                "id": 5,
+                "started_at": "2026-09-23T20:20:00+03:30",
+                "ended_at": "2026-09-23T20:21:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 4,
+                "started_at": "2026-09-23T20:15:00+03:30",
+                "ended_at": "2026-09-23T20:16:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 3,
+                "started_at": "2026-09-23T20:10:00+03:30",
+                "ended_at": "2026-09-23T20:11:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 2,
+                "started_at": "2026-09-23T20:05:00+03:30",
+                "ended_at": "2026-09-23T20:06:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 1,
+                "started_at": "2026-09-23T20:00:00+03:30",
+                "ended_at": "2026-09-23T20:01:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": null
+              }
+            ]
+          },
+          "alerts": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/start",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:25:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "49"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T20:00:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "elapsed_seconds": 1500,
+          "count": 5,
+          "running": {
+            "id": 6,
+            "started_at": "2026-09-23T20:25:00+03:30",
+            "elapsed_seconds": 0
+          },
+          "avg_duration_seconds": 60,
+          "avg_interval_seconds": 300,
+          "five_one_one": {
+            "met": false,
+            "count": 5,
+            "span_minutes": 21,
+            "avg_interval_seconds": 300,
+            "avg_duration_seconds": 60
+          },
+          "alert_at": null,
+          "contractions": [
+            {
+              "id": 6,
+              "started_at": "2026-09-23T20:25:00+03:30",
+              "ended_at": null,
+              "duration_seconds": null,
+              "interval_seconds": 300
+            },
+            {
+              "id": 5,
+              "started_at": "2026-09-23T20:20:00+03:30",
+              "ended_at": "2026-09-23T20:21:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 4,
+              "started_at": "2026-09-23T20:15:00+03:30",
+              "ended_at": "2026-09-23T20:16:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 3,
+              "started_at": "2026-09-23T20:10:00+03:30",
+              "ended_at": "2026-09-23T20:11:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 2,
+              "started_at": "2026-09-23T20:05:00+03:30",
+              "ended_at": "2026-09-23T20:06:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 1,
+              "started_at": "2026-09-23T20:00:00+03:30",
+              "ended_at": "2026-09-23T20:01:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/stop",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:26:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "48"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "session": {
+            "id": 1,
+            "started_at": "2026-09-23T20:00:00+03:30",
+            "ended_at": null,
+            "is_active": true,
+            "elapsed_seconds": 1560,
+            "count": 6,
+            "running": null,
+            "avg_duration_seconds": 60,
+            "avg_interval_seconds": 300,
+            "five_one_one": {
+              "met": false,
+              "count": 6,
+              "span_minutes": 26,
+              "avg_interval_seconds": 300,
+              "avg_duration_seconds": 60
+            },
+            "alert_at": null,
+            "contractions": [
+              {
+                "id": 6,
+                "started_at": "2026-09-23T20:25:00+03:30",
+                "ended_at": "2026-09-23T20:26:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 5,
+                "started_at": "2026-09-23T20:20:00+03:30",
+                "ended_at": "2026-09-23T20:21:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 4,
+                "started_at": "2026-09-23T20:15:00+03:30",
+                "ended_at": "2026-09-23T20:16:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 3,
+                "started_at": "2026-09-23T20:10:00+03:30",
+                "ended_at": "2026-09-23T20:11:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 2,
+                "started_at": "2026-09-23T20:05:00+03:30",
+                "ended_at": "2026-09-23T20:06:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 1,
+                "started_at": "2026-09-23T20:00:00+03:30",
+                "ended_at": "2026-09-23T20:01:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": null
+              }
+            ]
+          },
+          "alerts": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/start",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:30:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "47"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T20:00:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "elapsed_seconds": 1800,
+          "count": 6,
+          "running": {
+            "id": 7,
+            "started_at": "2026-09-23T20:30:00+03:30",
+            "elapsed_seconds": 0
+          },
+          "avg_duration_seconds": 60,
+          "avg_interval_seconds": 300,
+          "five_one_one": {
+            "met": false,
+            "count": 6,
+            "span_minutes": 26,
+            "avg_interval_seconds": 300,
+            "avg_duration_seconds": 60
+          },
+          "alert_at": null,
+          "contractions": [
+            {
+              "id": 7,
+              "started_at": "2026-09-23T20:30:00+03:30",
+              "ended_at": null,
+              "duration_seconds": null,
+              "interval_seconds": 300
+            },
+            {
+              "id": 6,
+              "started_at": "2026-09-23T20:25:00+03:30",
+              "ended_at": "2026-09-23T20:26:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 5,
+              "started_at": "2026-09-23T20:20:00+03:30",
+              "ended_at": "2026-09-23T20:21:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 4,
+              "started_at": "2026-09-23T20:15:00+03:30",
+              "ended_at": "2026-09-23T20:16:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 3,
+              "started_at": "2026-09-23T20:10:00+03:30",
+              "ended_at": "2026-09-23T20:11:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 2,
+              "started_at": "2026-09-23T20:05:00+03:30",
+              "ended_at": "2026-09-23T20:06:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 1,
+              "started_at": "2026-09-23T20:00:00+03:30",
+              "ended_at": "2026-09-23T20:01:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/stop",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:31:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "46"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "session": {
+            "id": 1,
+            "started_at": "2026-09-23T20:00:00+03:30",
+            "ended_at": null,
+            "is_active": true,
+            "elapsed_seconds": 1860,
+            "count": 7,
+            "running": null,
+            "avg_duration_seconds": 60,
+            "avg_interval_seconds": 300,
+            "five_one_one": {
+              "met": false,
+              "count": 7,
+              "span_minutes": 31,
+              "avg_interval_seconds": 300,
+              "avg_duration_seconds": 60
+            },
+            "alert_at": null,
+            "contractions": [
+              {
+                "id": 7,
+                "started_at": "2026-09-23T20:30:00+03:30",
+                "ended_at": "2026-09-23T20:31:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 6,
+                "started_at": "2026-09-23T20:25:00+03:30",
+                "ended_at": "2026-09-23T20:26:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 5,
+                "started_at": "2026-09-23T20:20:00+03:30",
+                "ended_at": "2026-09-23T20:21:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 4,
+                "started_at": "2026-09-23T20:15:00+03:30",
+                "ended_at": "2026-09-23T20:16:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 3,
+                "started_at": "2026-09-23T20:10:00+03:30",
+                "ended_at": "2026-09-23T20:11:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 2,
+                "started_at": "2026-09-23T20:05:00+03:30",
+                "ended_at": "2026-09-23T20:06:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 1,
+                "started_at": "2026-09-23T20:00:00+03:30",
+                "ended_at": "2026-09-23T20:01:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": null
+              }
+            ]
+          },
+          "alerts": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/start",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:35:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "45"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T20:00:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "elapsed_seconds": 2100,
+          "count": 7,
+          "running": {
+            "id": 8,
+            "started_at": "2026-09-23T20:35:00+03:30",
+            "elapsed_seconds": 0
+          },
+          "avg_duration_seconds": 60,
+          "avg_interval_seconds": 300,
+          "five_one_one": {
+            "met": false,
+            "count": 7,
+            "span_minutes": 31,
+            "avg_interval_seconds": 300,
+            "avg_duration_seconds": 60
+          },
+          "alert_at": null,
+          "contractions": [
+            {
+              "id": 8,
+              "started_at": "2026-09-23T20:35:00+03:30",
+              "ended_at": null,
+              "duration_seconds": null,
+              "interval_seconds": 300
+            },
+            {
+              "id": 7,
+              "started_at": "2026-09-23T20:30:00+03:30",
+              "ended_at": "2026-09-23T20:31:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 6,
+              "started_at": "2026-09-23T20:25:00+03:30",
+              "ended_at": "2026-09-23T20:26:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 5,
+              "started_at": "2026-09-23T20:20:00+03:30",
+              "ended_at": "2026-09-23T20:21:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 4,
+              "started_at": "2026-09-23T20:15:00+03:30",
+              "ended_at": "2026-09-23T20:16:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 3,
+              "started_at": "2026-09-23T20:10:00+03:30",
+              "ended_at": "2026-09-23T20:11:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 2,
+              "started_at": "2026-09-23T20:05:00+03:30",
+              "ended_at": "2026-09-23T20:06:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 1,
+              "started_at": "2026-09-23T20:00:00+03:30",
+              "ended_at": "2026-09-23T20:01:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/stop",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:36:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "44"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "session": {
+            "id": 1,
+            "started_at": "2026-09-23T20:00:00+03:30",
+            "ended_at": null,
+            "is_active": true,
+            "elapsed_seconds": 2160,
+            "count": 8,
+            "running": null,
+            "avg_duration_seconds": 60,
+            "avg_interval_seconds": 300,
+            "five_one_one": {
+              "met": false,
+              "count": 8,
+              "span_minutes": 36,
+              "avg_interval_seconds": 300,
+              "avg_duration_seconds": 60
+            },
+            "alert_at": null,
+            "contractions": [
+              {
+                "id": 8,
+                "started_at": "2026-09-23T20:35:00+03:30",
+                "ended_at": "2026-09-23T20:36:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 7,
+                "started_at": "2026-09-23T20:30:00+03:30",
+                "ended_at": "2026-09-23T20:31:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 6,
+                "started_at": "2026-09-23T20:25:00+03:30",
+                "ended_at": "2026-09-23T20:26:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 5,
+                "started_at": "2026-09-23T20:20:00+03:30",
+                "ended_at": "2026-09-23T20:21:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 4,
+                "started_at": "2026-09-23T20:15:00+03:30",
+                "ended_at": "2026-09-23T20:16:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 3,
+                "started_at": "2026-09-23T20:10:00+03:30",
+                "ended_at": "2026-09-23T20:11:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 2,
+                "started_at": "2026-09-23T20:05:00+03:30",
+                "ended_at": "2026-09-23T20:06:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 1,
+                "started_at": "2026-09-23T20:00:00+03:30",
+                "ended_at": "2026-09-23T20:01:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": null
+              }
+            ]
+          },
+          "alerts": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/start",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:40:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "43"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T20:00:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "elapsed_seconds": 2400,
+          "count": 8,
+          "running": {
+            "id": 9,
+            "started_at": "2026-09-23T20:40:00+03:30",
+            "elapsed_seconds": 0
+          },
+          "avg_duration_seconds": 60,
+          "avg_interval_seconds": 300,
+          "five_one_one": {
+            "met": false,
+            "count": 8,
+            "span_minutes": 36,
+            "avg_interval_seconds": 300,
+            "avg_duration_seconds": 60
+          },
+          "alert_at": null,
+          "contractions": [
+            {
+              "id": 9,
+              "started_at": "2026-09-23T20:40:00+03:30",
+              "ended_at": null,
+              "duration_seconds": null,
+              "interval_seconds": 300
+            },
+            {
+              "id": 8,
+              "started_at": "2026-09-23T20:35:00+03:30",
+              "ended_at": "2026-09-23T20:36:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 7,
+              "started_at": "2026-09-23T20:30:00+03:30",
+              "ended_at": "2026-09-23T20:31:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 6,
+              "started_at": "2026-09-23T20:25:00+03:30",
+              "ended_at": "2026-09-23T20:26:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 5,
+              "started_at": "2026-09-23T20:20:00+03:30",
+              "ended_at": "2026-09-23T20:21:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 4,
+              "started_at": "2026-09-23T20:15:00+03:30",
+              "ended_at": "2026-09-23T20:16:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 3,
+              "started_at": "2026-09-23T20:10:00+03:30",
+              "ended_at": "2026-09-23T20:11:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 2,
+              "started_at": "2026-09-23T20:05:00+03:30",
+              "ended_at": "2026-09-23T20:06:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 1,
+              "started_at": "2026-09-23T20:00:00+03:30",
+              "ended_at": "2026-09-23T20:01:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/stop",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:41:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "42"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "session": {
+            "id": 1,
+            "started_at": "2026-09-23T20:00:00+03:30",
+            "ended_at": null,
+            "is_active": true,
+            "elapsed_seconds": 2460,
+            "count": 9,
+            "running": null,
+            "avg_duration_seconds": 60,
+            "avg_interval_seconds": 300,
+            "five_one_one": {
+              "met": false,
+              "count": 9,
+              "span_minutes": 41,
+              "avg_interval_seconds": 300,
+              "avg_duration_seconds": 60
+            },
+            "alert_at": null,
+            "contractions": [
+              {
+                "id": 9,
+                "started_at": "2026-09-23T20:40:00+03:30",
+                "ended_at": "2026-09-23T20:41:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 8,
+                "started_at": "2026-09-23T20:35:00+03:30",
+                "ended_at": "2026-09-23T20:36:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 7,
+                "started_at": "2026-09-23T20:30:00+03:30",
+                "ended_at": "2026-09-23T20:31:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 6,
+                "started_at": "2026-09-23T20:25:00+03:30",
+                "ended_at": "2026-09-23T20:26:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 5,
+                "started_at": "2026-09-23T20:20:00+03:30",
+                "ended_at": "2026-09-23T20:21:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 4,
+                "started_at": "2026-09-23T20:15:00+03:30",
+                "ended_at": "2026-09-23T20:16:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 3,
+                "started_at": "2026-09-23T20:10:00+03:30",
+                "ended_at": "2026-09-23T20:11:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 2,
+                "started_at": "2026-09-23T20:05:00+03:30",
+                "ended_at": "2026-09-23T20:06:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 1,
+                "started_at": "2026-09-23T20:00:00+03:30",
+                "ended_at": "2026-09-23T20:01:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": null
+              }
+            ]
+          },
+          "alerts": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/start",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:45:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "41"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T20:00:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "elapsed_seconds": 2700,
+          "count": 9,
+          "running": {
+            "id": 10,
+            "started_at": "2026-09-23T20:45:00+03:30",
+            "elapsed_seconds": 0
+          },
+          "avg_duration_seconds": 60,
+          "avg_interval_seconds": 300,
+          "five_one_one": {
+            "met": false,
+            "count": 9,
+            "span_minutes": 41,
+            "avg_interval_seconds": 300,
+            "avg_duration_seconds": 60
+          },
+          "alert_at": null,
+          "contractions": [
+            {
+              "id": 10,
+              "started_at": "2026-09-23T20:45:00+03:30",
+              "ended_at": null,
+              "duration_seconds": null,
+              "interval_seconds": 300
+            },
+            {
+              "id": 9,
+              "started_at": "2026-09-23T20:40:00+03:30",
+              "ended_at": "2026-09-23T20:41:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 8,
+              "started_at": "2026-09-23T20:35:00+03:30",
+              "ended_at": "2026-09-23T20:36:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 7,
+              "started_at": "2026-09-23T20:30:00+03:30",
+              "ended_at": "2026-09-23T20:31:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 6,
+              "started_at": "2026-09-23T20:25:00+03:30",
+              "ended_at": "2026-09-23T20:26:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 5,
+              "started_at": "2026-09-23T20:20:00+03:30",
+              "ended_at": "2026-09-23T20:21:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 4,
+              "started_at": "2026-09-23T20:15:00+03:30",
+              "ended_at": "2026-09-23T20:16:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 3,
+              "started_at": "2026-09-23T20:10:00+03:30",
+              "ended_at": "2026-09-23T20:11:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 2,
+              "started_at": "2026-09-23T20:05:00+03:30",
+              "ended_at": "2026-09-23T20:06:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 1,
+              "started_at": "2026-09-23T20:00:00+03:30",
+              "ended_at": "2026-09-23T20:01:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/stop",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:46:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "40"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "session": {
+            "id": 1,
+            "started_at": "2026-09-23T20:00:00+03:30",
+            "ended_at": null,
+            "is_active": true,
+            "elapsed_seconds": 2760,
+            "count": 10,
+            "running": null,
+            "avg_duration_seconds": 60,
+            "avg_interval_seconds": 300,
+            "five_one_one": {
+              "met": false,
+              "count": 10,
+              "span_minutes": 46,
+              "avg_interval_seconds": 300,
+              "avg_duration_seconds": 60
+            },
+            "alert_at": null,
+            "contractions": [
+              {
+                "id": 10,
+                "started_at": "2026-09-23T20:45:00+03:30",
+                "ended_at": "2026-09-23T20:46:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 9,
+                "started_at": "2026-09-23T20:40:00+03:30",
+                "ended_at": "2026-09-23T20:41:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 8,
+                "started_at": "2026-09-23T20:35:00+03:30",
+                "ended_at": "2026-09-23T20:36:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 7,
+                "started_at": "2026-09-23T20:30:00+03:30",
+                "ended_at": "2026-09-23T20:31:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 6,
+                "started_at": "2026-09-23T20:25:00+03:30",
+                "ended_at": "2026-09-23T20:26:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 5,
+                "started_at": "2026-09-23T20:20:00+03:30",
+                "ended_at": "2026-09-23T20:21:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 4,
+                "started_at": "2026-09-23T20:15:00+03:30",
+                "ended_at": "2026-09-23T20:16:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 3,
+                "started_at": "2026-09-23T20:10:00+03:30",
+                "ended_at": "2026-09-23T20:11:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 2,
+                "started_at": "2026-09-23T20:05:00+03:30",
+                "ended_at": "2026-09-23T20:06:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 1,
+                "started_at": "2026-09-23T20:00:00+03:30",
+                "ended_at": "2026-09-23T20:01:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": null
+              }
+            ]
+          },
+          "alerts": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/start",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:50:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "39"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T20:00:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "elapsed_seconds": 3000,
+          "count": 10,
+          "running": {
+            "id": 11,
+            "started_at": "2026-09-23T20:50:00+03:30",
+            "elapsed_seconds": 0
+          },
+          "avg_duration_seconds": 60,
+          "avg_interval_seconds": 300,
+          "five_one_one": {
+            "met": false,
+            "count": 10,
+            "span_minutes": 46,
+            "avg_interval_seconds": 300,
+            "avg_duration_seconds": 60
+          },
+          "alert_at": null,
+          "contractions": [
+            {
+              "id": 11,
+              "started_at": "2026-09-23T20:50:00+03:30",
+              "ended_at": null,
+              "duration_seconds": null,
+              "interval_seconds": 300
+            },
+            {
+              "id": 10,
+              "started_at": "2026-09-23T20:45:00+03:30",
+              "ended_at": "2026-09-23T20:46:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 9,
+              "started_at": "2026-09-23T20:40:00+03:30",
+              "ended_at": "2026-09-23T20:41:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 8,
+              "started_at": "2026-09-23T20:35:00+03:30",
+              "ended_at": "2026-09-23T20:36:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 7,
+              "started_at": "2026-09-23T20:30:00+03:30",
+              "ended_at": "2026-09-23T20:31:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 6,
+              "started_at": "2026-09-23T20:25:00+03:30",
+              "ended_at": "2026-09-23T20:26:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 5,
+              "started_at": "2026-09-23T20:20:00+03:30",
+              "ended_at": "2026-09-23T20:21:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 4,
+              "started_at": "2026-09-23T20:15:00+03:30",
+              "ended_at": "2026-09-23T20:16:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 3,
+              "started_at": "2026-09-23T20:10:00+03:30",
+              "ended_at": "2026-09-23T20:11:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 2,
+              "started_at": "2026-09-23T20:05:00+03:30",
+              "ended_at": "2026-09-23T20:06:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 1,
+              "started_at": "2026-09-23T20:00:00+03:30",
+              "ended_at": "2026-09-23T20:01:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/stop",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:51:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "38"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "session": {
+            "id": 1,
+            "started_at": "2026-09-23T20:00:00+03:30",
+            "ended_at": null,
+            "is_active": true,
+            "elapsed_seconds": 3060,
+            "count": 11,
+            "running": null,
+            "avg_duration_seconds": 60,
+            "avg_interval_seconds": 300,
+            "five_one_one": {
+              "met": false,
+              "count": 11,
+              "span_minutes": 51,
+              "avg_interval_seconds": 300,
+              "avg_duration_seconds": 60
+            },
+            "alert_at": null,
+            "contractions": [
+              {
+                "id": 11,
+                "started_at": "2026-09-23T20:50:00+03:30",
+                "ended_at": "2026-09-23T20:51:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 10,
+                "started_at": "2026-09-23T20:45:00+03:30",
+                "ended_at": "2026-09-23T20:46:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 9,
+                "started_at": "2026-09-23T20:40:00+03:30",
+                "ended_at": "2026-09-23T20:41:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 8,
+                "started_at": "2026-09-23T20:35:00+03:30",
+                "ended_at": "2026-09-23T20:36:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 7,
+                "started_at": "2026-09-23T20:30:00+03:30",
+                "ended_at": "2026-09-23T20:31:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 6,
+                "started_at": "2026-09-23T20:25:00+03:30",
+                "ended_at": "2026-09-23T20:26:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 5,
+                "started_at": "2026-09-23T20:20:00+03:30",
+                "ended_at": "2026-09-23T20:21:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 4,
+                "started_at": "2026-09-23T20:15:00+03:30",
+                "ended_at": "2026-09-23T20:16:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 3,
+                "started_at": "2026-09-23T20:10:00+03:30",
+                "ended_at": "2026-09-23T20:11:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 2,
+                "started_at": "2026-09-23T20:05:00+03:30",
+                "ended_at": "2026-09-23T20:06:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 1,
+                "started_at": "2026-09-23T20:00:00+03:30",
+                "ended_at": "2026-09-23T20:01:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": null
+              }
+            ]
+          },
+          "alerts": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/start",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:55:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "37"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T20:00:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "elapsed_seconds": 3300,
+          "count": 11,
+          "running": {
+            "id": 12,
+            "started_at": "2026-09-23T20:55:00+03:30",
+            "elapsed_seconds": 0
+          },
+          "avg_duration_seconds": 60,
+          "avg_interval_seconds": 300,
+          "five_one_one": {
+            "met": false,
+            "count": 11,
+            "span_minutes": 51,
+            "avg_interval_seconds": 300,
+            "avg_duration_seconds": 60
+          },
+          "alert_at": null,
+          "contractions": [
+            {
+              "id": 12,
+              "started_at": "2026-09-23T20:55:00+03:30",
+              "ended_at": null,
+              "duration_seconds": null,
+              "interval_seconds": 300
+            },
+            {
+              "id": 11,
+              "started_at": "2026-09-23T20:50:00+03:30",
+              "ended_at": "2026-09-23T20:51:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 10,
+              "started_at": "2026-09-23T20:45:00+03:30",
+              "ended_at": "2026-09-23T20:46:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 9,
+              "started_at": "2026-09-23T20:40:00+03:30",
+              "ended_at": "2026-09-23T20:41:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 8,
+              "started_at": "2026-09-23T20:35:00+03:30",
+              "ended_at": "2026-09-23T20:36:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 7,
+              "started_at": "2026-09-23T20:30:00+03:30",
+              "ended_at": "2026-09-23T20:31:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 6,
+              "started_at": "2026-09-23T20:25:00+03:30",
+              "ended_at": "2026-09-23T20:26:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 5,
+              "started_at": "2026-09-23T20:20:00+03:30",
+              "ended_at": "2026-09-23T20:21:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 4,
+              "started_at": "2026-09-23T20:15:00+03:30",
+              "ended_at": "2026-09-23T20:16:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 3,
+              "started_at": "2026-09-23T20:10:00+03:30",
+              "ended_at": "2026-09-23T20:11:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 2,
+              "started_at": "2026-09-23T20:05:00+03:30",
+              "ended_at": "2026-09-23T20:06:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 1,
+              "started_at": "2026-09-23T20:00:00+03:30",
+              "ended_at": "2026-09-23T20:01:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/stop",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T20:56:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "36"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "session": {
+            "id": 1,
+            "started_at": "2026-09-23T20:00:00+03:30",
+            "ended_at": null,
+            "is_active": true,
+            "elapsed_seconds": 3360,
+            "count": 12,
+            "running": null,
+            "avg_duration_seconds": 60,
+            "avg_interval_seconds": 300,
+            "five_one_one": {
+              "met": false,
+              "count": 12,
+              "span_minutes": 56,
+              "avg_interval_seconds": 300,
+              "avg_duration_seconds": 60
+            },
+            "alert_at": null,
+            "contractions": [
+              {
+                "id": 12,
+                "started_at": "2026-09-23T20:55:00+03:30",
+                "ended_at": "2026-09-23T20:56:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 11,
+                "started_at": "2026-09-23T20:50:00+03:30",
+                "ended_at": "2026-09-23T20:51:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 10,
+                "started_at": "2026-09-23T20:45:00+03:30",
+                "ended_at": "2026-09-23T20:46:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 9,
+                "started_at": "2026-09-23T20:40:00+03:30",
+                "ended_at": "2026-09-23T20:41:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 8,
+                "started_at": "2026-09-23T20:35:00+03:30",
+                "ended_at": "2026-09-23T20:36:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 7,
+                "started_at": "2026-09-23T20:30:00+03:30",
+                "ended_at": "2026-09-23T20:31:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 6,
+                "started_at": "2026-09-23T20:25:00+03:30",
+                "ended_at": "2026-09-23T20:26:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 5,
+                "started_at": "2026-09-23T20:20:00+03:30",
+                "ended_at": "2026-09-23T20:21:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 4,
+                "started_at": "2026-09-23T20:15:00+03:30",
+                "ended_at": "2026-09-23T20:16:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 3,
+                "started_at": "2026-09-23T20:10:00+03:30",
+                "ended_at": "2026-09-23T20:11:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 2,
+                "started_at": "2026-09-23T20:05:00+03:30",
+                "ended_at": "2026-09-23T20:06:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 1,
+                "started_at": "2026-09-23T20:00:00+03:30",
+                "ended_at": "2026-09-23T20:01:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": null
+              }
+            ]
+          },
+          "alerts": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/start",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T21:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "35"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T20:00:00+03:30",
+          "ended_at": null,
+          "is_active": true,
+          "elapsed_seconds": 3600,
+          "count": 12,
+          "running": {
+            "id": 13,
+            "started_at": "2026-09-23T21:00:00+03:30",
+            "elapsed_seconds": 0
+          },
+          "avg_duration_seconds": 60,
+          "avg_interval_seconds": 300,
+          "five_one_one": {
+            "met": false,
+            "count": 12,
+            "span_minutes": 56,
+            "avg_interval_seconds": 300,
+            "avg_duration_seconds": 60
+          },
+          "alert_at": null,
+          "contractions": [
+            {
+              "id": 13,
+              "started_at": "2026-09-23T21:00:00+03:30",
+              "ended_at": null,
+              "duration_seconds": null,
+              "interval_seconds": 300
+            },
+            {
+              "id": 12,
+              "started_at": "2026-09-23T20:55:00+03:30",
+              "ended_at": "2026-09-23T20:56:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 11,
+              "started_at": "2026-09-23T20:50:00+03:30",
+              "ended_at": "2026-09-23T20:51:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 10,
+              "started_at": "2026-09-23T20:45:00+03:30",
+              "ended_at": "2026-09-23T20:46:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 9,
+              "started_at": "2026-09-23T20:40:00+03:30",
+              "ended_at": "2026-09-23T20:41:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 8,
+              "started_at": "2026-09-23T20:35:00+03:30",
+              "ended_at": "2026-09-23T20:36:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 7,
+              "started_at": "2026-09-23T20:30:00+03:30",
+              "ended_at": "2026-09-23T20:31:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 6,
+              "started_at": "2026-09-23T20:25:00+03:30",
+              "ended_at": "2026-09-23T20:26:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 5,
+              "started_at": "2026-09-23T20:20:00+03:30",
+              "ended_at": "2026-09-23T20:21:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 4,
+              "started_at": "2026-09-23T20:15:00+03:30",
+              "ended_at": "2026-09-23T20:16:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 3,
+              "started_at": "2026-09-23T20:10:00+03:30",
+              "ended_at": "2026-09-23T20:11:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 2,
+              "started_at": "2026-09-23T20:05:00+03:30",
+              "ended_at": "2026-09-23T20:06:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": 300
+            },
+            {
+              "id": 1,
+              "started_at": "2026-09-23T20:00:00+03:30",
+              "ended_at": "2026-09-23T20:01:00+03:30",
+              "duration_seconds": 60,
+              "interval_seconds": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/contractions/stop",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T21:01:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "34"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "session": {
+            "id": 1,
+            "started_at": "2026-09-23T20:00:00+03:30",
+            "ended_at": null,
+            "is_active": true,
+            "elapsed_seconds": 3660,
+            "count": 13,
+            "running": null,
+            "avg_duration_seconds": 60,
+            "avg_interval_seconds": 300,
+            "five_one_one": {
+              "met": true,
+              "count": 13,
+              "span_minutes": 61,
+              "avg_interval_seconds": 300,
+              "avg_duration_seconds": 60
+            },
+            "alert_at": "2026-09-23T21:01:00+03:30",
+            "contractions": [
+              {
+                "id": 13,
+                "started_at": "2026-09-23T21:00:00+03:30",
+                "ended_at": "2026-09-23T21:01:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 12,
+                "started_at": "2026-09-23T20:55:00+03:30",
+                "ended_at": "2026-09-23T20:56:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 11,
+                "started_at": "2026-09-23T20:50:00+03:30",
+                "ended_at": "2026-09-23T20:51:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 10,
+                "started_at": "2026-09-23T20:45:00+03:30",
+                "ended_at": "2026-09-23T20:46:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 9,
+                "started_at": "2026-09-23T20:40:00+03:30",
+                "ended_at": "2026-09-23T20:41:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 8,
+                "started_at": "2026-09-23T20:35:00+03:30",
+                "ended_at": "2026-09-23T20:36:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 7,
+                "started_at": "2026-09-23T20:30:00+03:30",
+                "ended_at": "2026-09-23T20:31:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 6,
+                "started_at": "2026-09-23T20:25:00+03:30",
+                "ended_at": "2026-09-23T20:26:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 5,
+                "started_at": "2026-09-23T20:20:00+03:30",
+                "ended_at": "2026-09-23T20:21:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 4,
+                "started_at": "2026-09-23T20:15:00+03:30",
+                "ended_at": "2026-09-23T20:16:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 3,
+                "started_at": "2026-09-23T20:10:00+03:30",
+                "ended_at": "2026-09-23T20:11:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 2,
+                "started_at": "2026-09-23T20:05:00+03:30",
+                "ended_at": "2026-09-23T20:06:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": 300
+              },
+              {
+                "id": 1,
+                "started_at": "2026-09-23T20:00:00+03:30",
+                "ended_at": "2026-09-23T20:01:00+03:30",
+                "duration_seconds": 60,
+                "interval_seconds": null
+              }
+            ]
+          },
+          "alerts": []
+        }
+      }
+    }
+  ]
+}

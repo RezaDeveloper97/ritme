@@ -452,6 +452,7 @@ not exist; sending texts for an active language without a row creates it (active
 | `bp_high` | `systolic_min` 90–200, `diastolic_min` 50–130 | `{systolic}`, `{diastolic}` |
 | `sugar_high` | `fasting_max` 60–200, `post_meal_max` 80–300 | `{fasting}`, `{post_meal}` |
 | `fetal_movement` | `from_week` 12–42, `statuses[]` ⊂ `FetalMovementStatus` | `{status}` |
+| `contractions_511` | `interval_max_minutes` 2–15, `duration_min_seconds` 20–120, `run_minutes` 20–180 (contraction timer, bloom B-N5-03, D-60; fires once per session) | `{count}`, `{minutes}`, `{interval}`, `{duration}` (m:ss) |
 
 `Schema` = `[{key, kind, nullable, …}]` with `kind` ∈ `text|text_list|integer|boolean|enum|enum_list|url|object|object_list`
 plus `max_length` (text/url/text_list), `min`/`max` (integer), `values` (enums), `min_items`/`max_items` (lists) and

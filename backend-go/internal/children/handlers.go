@@ -31,7 +31,16 @@ const (
 type Handlers struct {
 	svc   *Service
 	clock clock.Clock
+	today TodayProvider // nil: the child home's today is null
 }
+
+// TodayProvider builds the child home's «امروز» card (feeds, sleep, diapers — babylog.Service, B-N5-03).
+type TodayProvider interface {
+	Today(ctx context.Context, childID uint64, now time.Time) (any, error)
+}
+
+// SetToday wires the «امروز» card of the child home.
+func (h *Handlers) SetToday(t TodayProvider) { h.today = t }
 
 // NewHandlers wires the handlers; base is the fallback clock (tests and the contract suite pin it per request).
 func NewHandlers(svc *Service, base clock.Clock) *Handlers { return &Handlers{svc: svc, clock: base} }
@@ -196,7 +205,7 @@ func (h *Handlers) Store(c fiber.Ctx) error {
 
 // Show is GET /children/{id}: the child home (nbl_v16_ChildHome) — profile, latest measurement placed on the WHO
 // standard, growth verdict, vaccines with the next visit, the milestone band summary, «این هفته …», learn teaser.
-// today (feeds, sleep, diapers) belongs to the baby logs (B-N5-03) and is null here.
+// today (feeds, sleep, diapers) comes from the baby logs (B-N5-03, SetToday); null without them.
 func (h *Handlers) Show(c fiber.Ctx) error {
 	a, err := h.access(c, false)
 	if err != nil {
@@ -240,7 +249,13 @@ func (h *Handlers) Show(c fiber.Ctx) error {
 	out.Set("milestones", MilestoneSummaryJSON(band, l.Locale))
 	out.Set("this_week", thisWeek)
 	out.Set("learn", jsonx.Obj("count", len(tips), "featured", featured))
-	out.Set("today", nil)
+	var todayCard any
+	if h.today != nil {
+		if todayCard, err = h.today.Today(c, a.Child.ID, h.now(c)); err != nil {
+			return err
+		}
+	}
+	out.Set("today", todayCard)
 	return httpx.OK(c, out)
 }
 

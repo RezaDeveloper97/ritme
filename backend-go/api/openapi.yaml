@@ -43,6 +43,8 @@ tags:
   - {name: Menopause, description: "Menopause mode (Go only, CB-MENO-02): stage profile on bloom's life profile, home read model, hot-flash timer, monthly symptom score with domains and deltas, patterns in her own logs (not a diagnosis)"}
   - {name: Postpartum, description: "Postpartum mode (Go only, bloom B-N5-01): activation from pregnancy or directly, time since the birth, the recovery log on log taxonomy v2, EPDS mood checks (weekly EPDS-3, full every two weeks) with the urgent safety path (item 10 > 0 or total ≥ 13 → call 115 / 123 / 1480). EPDS answers are never logged or shared"}
   - {name: Children, description: "Children (Go only, bloom B-N5-02): profiles, measurements placed on the WHO Child Growth Standards (LMS percentiles / z-scores, 0–5 years), the Iran national immunisation schedule with per-child doses and 3-day reminders, milestones by age band, age-based learn tips. Owner read/write; an active spouse sees shared children read-only (audited). Child data is never logged"}
+  - {name: BabyLogs, description: "Baby logs (Go only, bloom B-N5-03): feeding sessions (breast timer per side, bottle / pump ml), baby sleep sessions and diapers per child, day summaries and the child home's «امروز» card. One running feed / sleep per child. Owner read/write; a shared spouse reads (audited) and gets 403 on writes. Never logged"}
+  - {name: PregnancyTools, description: "Kick counter and contraction timer (Go only, bloom B-N5-03): kick sessions write the day total into the fetal movement log; the 5-1-1 rule is the pregnancy alert engine's contractions_511 rule (admin-editable copy). One running session per user"}
   - {name: Loss, description: "Pregnancy loss path (Go only, CB-LOSS-01): record a loss (stops pregnancy content durably), physical follow-up as care appointments, mood check-ins, an encrypted private note, the next step. Owner-only; a companion gets one line at most"}
   - {name: Plus, description: "Ritme Plus (Go only): plans, trial, checkout through the payment port, verify, cancel, restore, history, entitlements and usage. Amounts are integer rials"}
   - {name: Payments, description: "Payment gateway adapter (Go only): browser return hop and the fake provider's TEST page. PAYMENT_PROVIDER = fake (default outside production) | zarinpal | none. Café Bazaar / Myket billing is Android-only and out of scope"}
@@ -5321,8 +5323,8 @@ paths:
       summary: Child home (v16 ChildHome)
       description: |
         The card plus the latest measurement placed on the WHO standard, the milestone band summary, «این هفته …»
-        (`this_week`, the age-band note), the learn teaser. `today` (feeds, sleep, diapers) is filled by the baby logs
-        (B-N5-03) and null here. Owner or shared spouse; anything else 404 `child_not_found`.
+        (`this_week`, the age-band note), the learn teaser. `today` is the baby logs' «امروز» card (feeds, sleep,
+        diapers — B-N5-03). Owner or shared spouse; anything else 404 `child_not_found`.
       operationId: showChild
       security:
         - {bearerAuth: []}
@@ -5390,6 +5392,615 @@ paths:
         '403': {$ref: "#/components/responses/ChildReadOnly"}
         '404': {$ref: "#/components/responses/ChildNotFound"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/feeds:
+    get:
+      tags: [BabyLogs]
+      summary: Feeds of a day (nbl_Log_Feed)
+      description: |
+        The running feed (`active`), the last ended feed (`last`, «دفعه قبل»), the side to offer first (`next_side`, the
+        other one than the last breast feed ended on), the day's totals and its feeds (newest first). Owner or shared spouse.
+      operationId: listBabyFeeds
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: date
+          in: query
+          required: false
+          description: "Day (Y-m-d, Tehran); default today"
+          schema: {$ref: "#/components/schemas/Date"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/BabyFeedDay"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '422': {$ref: "#/components/responses/BabyLogValidationFailed"}
+    post:
+      tags: [BabyLogs]
+      summary: Add an ended feed by hand
+      description: |
+        An ended feed. Breast: `left_minutes` / `right_minutes` (at least one above 0) and the side it ended on (`side`,
+        default the right one when it has minutes); bottle / pump: `duration_minutes` and `amount_ml`. `started_at` is Tehran
+        wall-clock, not in the future, not before the birth. Rewrites the mother's `baby.feeds_count` of that day while she
+        has a postpartum profile. Owner only.
+      operationId: storeBabyFeed
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/BabyFeedInput"}
+      responses:
+        '201':
+          description: Saved; the feed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/BabyFeed"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '422': {$ref: "#/components/responses/BabyLogValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/feeds/start:
+    post:
+      tags: [BabyLogs]
+      summary: Start the feed timer
+      description: |
+        Opens the running feed (one per child — a second start, also a concurrent one, is 409 `feed_active`). A breast
+        feed may start on a side.
+      operationId: startBabyFeed
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/BabyFeedStart"}
+      responses:
+        '201':
+          description: The running feed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/BabyFeed"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '409': {$ref: "#/components/responses/BabyLogConflict"}
+        '422': {$ref: "#/components/responses/BabyLogValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/feeds/{fid}:
+    put:
+      tags: [BabyLogs]
+      summary: Replace an ended feed
+      description: |
+        Same body as the manual feed. The running feed is 409 `session_running`.
+      operationId: updateBabyFeed
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: fid
+          in: path
+          required: true
+          description: Feed id (of this child)
+          schema: {type: integer, minimum: 1}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/BabyFeedInput"}
+      responses:
+        '200':
+          description: Saved; the feed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/BabyFeed"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '409': {$ref: "#/components/responses/BabyLogConflict"}
+        '422': {$ref: "#/components/responses/BabyLogValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [BabyLogs]
+      summary: Delete a feed
+      description: |
+        Removes a feed (a running one is discarded).
+      operationId: destroyBabyFeed
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: fid
+          in: path
+          required: true
+          description: Feed id (of this child)
+          schema: {type: integer, minimum: 1}
+      responses:
+        '200': {$ref: "#/components/responses/ChildMessage"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/feeds/{fid}/side:
+    post:
+      tags: [BabyLogs]
+      summary: Switch or pause the breast timer
+      description: |
+        Closes the running side segment into its total and starts `side` (`null` pauses both). Breast feeds only
+        (422 `not_breast_feed`); an ended feed is 409 `session_ended`.
+      operationId: sideBabyFeed
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: fid
+          in: path
+          required: true
+          description: Feed id (of this child)
+          schema: {type: integer, minimum: 1}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              type: object
+              required: [side]
+              properties:
+                side: {type: [string, "null"], enum: [left, right, null]}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/BabyFeed"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '409': {$ref: "#/components/responses/BabyLogConflict"}
+        '422': {$ref: "#/components/responses/BabyLogValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/feeds/{fid}/stop:
+    post:
+      tags: [BabyLogs]
+      summary: Stop the feed timer («پایان و ذخیره»)
+      description: |
+        Ends the running feed: breast duration = left + right; bottle / pump = the elapsed time, with `amount_ml`.
+      operationId: stopBabyFeed
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: fid
+          in: path
+          required: true
+          description: Feed id (of this child)
+          schema: {type: integer, minimum: 1}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                amount_ml: {type: [integer, "null"], minimum: 0, maximum: 500}
+                note: {type: [string, "null"], maxLength: 500}
+      responses:
+        '200':
+          description: Saved; the feed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/BabyFeed"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '409': {$ref: "#/components/responses/BabyLogConflict"}
+        '422': {$ref: "#/components/responses/BabyLogValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/sleeps:
+    get:
+      tags: [BabyLogs]
+      summary: Baby sleep of a day
+      description: |
+        The running sleep, the day's totals (time asleep inside the day — sleeps crossing midnight are split) and the
+        sleeps overlapping the day (newest first).
+      operationId: listBabySleeps
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: date
+          in: query
+          required: false
+          description: "Day (Y-m-d, Tehran); default today"
+          schema: {$ref: "#/components/schemas/Date"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/BabySleepDay"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '422': {$ref: "#/components/responses/BabyLogValidationFailed"}
+    post:
+      tags: [BabyLogs]
+      summary: Add an ended sleep by hand
+      description: |
+        `started_at` / `ended_at` (Tehran wall-clock), end after start, at most 24 hours, not in the future, not before
+        the birth. Owner only.
+      operationId: storeBabySleep
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/BabySleepInput"}
+      responses:
+        '201':
+          description: Saved; the sleep
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/BabySleep"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '422': {$ref: "#/components/responses/BabyLogValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/sleeps/start:
+    post:
+      tags: [BabyLogs]
+      summary: Start the sleep timer
+      description: |
+        Opens the running sleep (one per child; 409 `sleep_active`).
+      operationId: startBabySleep
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '201':
+          description: The running sleep
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/BabySleep"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '409': {$ref: "#/components/responses/BabyLogConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/sleeps/{sid}:
+    put:
+      tags: [BabyLogs]
+      summary: Replace an ended sleep
+      description: |
+        Same body as the manual sleep; the running sleep is 409 `session_running`.
+      operationId: updateBabySleep
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: sid
+          in: path
+          required: true
+          description: Sleep id (of this child)
+          schema: {type: integer, minimum: 1}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/BabySleepInput"}
+      responses:
+        '200':
+          description: Saved; the sleep
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/BabySleep"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '409': {$ref: "#/components/responses/BabyLogConflict"}
+        '422': {$ref: "#/components/responses/BabyLogValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [BabyLogs]
+      summary: Delete a sleep
+      description: |
+        Removes a sleep (a running one is discarded).
+      operationId: destroyBabySleep
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: sid
+          in: path
+          required: true
+          description: Sleep id (of this child)
+          schema: {type: integer, minimum: 1}
+      responses:
+        '200': {$ref: "#/components/responses/ChildMessage"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/sleeps/{sid}/stop:
+    post:
+      tags: [BabyLogs]
+      summary: Stop the sleep timer
+      description: |
+        Ends the running sleep (409 `session_ended` when it already ended).
+      operationId: stopBabySleep
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: sid
+          in: path
+          required: true
+          description: Sleep id (of this child)
+          schema: {type: integer, minimum: 1}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                note: {type: [string, "null"], maxLength: 500}
+      responses:
+        '200':
+          description: Saved; the sleep
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/BabySleep"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '409': {$ref: "#/components/responses/BabyLogConflict"}
+        '422': {$ref: "#/components/responses/BabyLogValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/diapers:
+    get:
+      tags: [BabyLogs]
+      summary: Diapers of a day
+      description: |
+        The day's totals (a «both» counts as wet and as dirty) and changes (newest first).
+      operationId: listBabyDiapers
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: date
+          in: query
+          required: false
+          description: "Day (Y-m-d, Tehran); default today"
+          schema: {$ref: "#/components/schemas/Date"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/BabyDiaperDay"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '422': {$ref: "#/components/responses/BabyLogValidationFailed"}
+    post:
+      tags: [BabyLogs]
+      summary: Log a diaper change
+      description: |
+        `kind` wet|dirty|both, `changed_at` (default now), optional note. Owner only.
+      operationId: storeBabyDiaper
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/BabyDiaperInput"}
+      responses:
+        '201':
+          description: Saved; the change
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/BabyDiaper"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '422': {$ref: "#/components/responses/BabyLogValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/diapers/{did}:
+    put:
+      tags: [BabyLogs]
+      summary: Replace a diaper change
+      description: |
+        Same body as the new change.
+      operationId: updateBabyDiaper
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: did
+          in: path
+          required: true
+          description: Diaper change id (of this child)
+          schema: {type: integer, minimum: 1}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/BabyDiaperInput"}
+      responses:
+        '200':
+          description: Saved; the change
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/BabyDiaper"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '422': {$ref: "#/components/responses/BabyLogValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [BabyLogs]
+      summary: Delete a diaper change
+      description: |
+        Removes a diaper change.
+      operationId: destroyBabyDiaper
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: did
+          in: path
+          required: true
+          description: Diaper change id (of this child)
+          schema: {type: integer, minimum: 1}
+      responses:
+        '200': {$ref: "#/components/responses/ChildMessage"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/baby-logs:
+    get:
+      tags: [BabyLogs]
+      summary: Baby log summary (nbl_An_Hub_Post)
+      description: |
+        Today's card (the child home's `today`), the last `days` days (oldest first, today included) and their per-day
+        averages with the breast side split (percent of breast time).
+      operationId: babyLogSummary
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: days
+          in: query
+          required: false
+          description: Days ending today (1–31, default 7)
+          schema: {type: integer, minimum: 1, maximum: 31, default: 7}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/BabyLogSummary"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/BabyLogNotFound"}
+        '422': {$ref: "#/components/responses/BabyLogValidationFailed"}
   /api/v1/children/{id}/measurements:
     get:
       tags: [Children]
@@ -9930,6 +10541,337 @@ paths:
                             label: {type: string}
                             description: {type: string}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/pregnancy/kick-sessions:
+    get:
+      tags: [PregnancyTools]
+      summary: Kick counter (nbl_Log_Kick)
+      description: |
+        The running session, today's total (sessions started today) and the last 20 ended sessions. Target 10
+        movements, guidance window 2 hours (`low_count` once the window passed under the target).
+      operationId: pregnancyKicks
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/KickOverview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    post:
+      tags: [PregnancyTools]
+      summary: Start a kick count
+      description: |
+        Opens a session (one at a time — 409 `kick_session_active`, also for a concurrent start). Needs an active, dated
+        pregnancy (409 `pregnancy_not_active`).
+      operationId: startPregnancyKicks
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '201':
+          description: The running session
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/KickSession"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/PregnancyToolConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/pregnancy/kick-sessions/{id}/kicks:
+    post:
+      tags: [PregnancyTools]
+      summary: Count one movement
+      description: |
+        Atomic +1 on a running session (the 10th sets `time_to_target_seconds`). 409 `session_ended` on an ended one,
+        422 `kick_limit` past 200.
+      operationId: pregnancyKick
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Kick session id (the caller's)
+          schema: {type: integer, minimum: 1}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/KickSession"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/PregnancyToolNotFound"}
+        '409': {$ref: "#/components/responses/PregnancyToolConflict"}
+        '422': {$ref: "#/components/responses/KickLimit"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [PregnancyTools]
+      summary: Take the last movement back
+      description: |
+        −1 on a running session (stays at 0); the time to 10 clears when the count drops under 10.
+      operationId: pregnancyUndoKick
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Kick session id (the caller's)
+          schema: {type: integer, minimum: 1}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/KickSession"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/PregnancyToolNotFound"}
+        '409': {$ref: "#/components/responses/PregnancyToolConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/pregnancy/kick-sessions/{id}/stop:
+    post:
+      tags: [PregnancyTools]
+      summary: End a kick count («پایان و ذخیره»)
+      description: |
+        Ends the session and writes the day's kick total (all ended sessions of the start day) into the daily fetal
+        movement log (`/pregnancy/fetal-movement`: `movement_count`, first / last time; a new row gets status `normal` when
+        a session reached 10 within 2 hours, else `felt`; an existing row keeps its status). Marks the first felt movement
+        on the profile.
+      operationId: stopPregnancyKicks
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Kick session id (the caller's)
+          schema: {type: integer, minimum: 1}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Saved; the session
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/KickSession"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/PregnancyToolNotFound"}
+        '409': {$ref: "#/components/responses/PregnancyToolConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/pregnancy/kick-sessions/{id}:
+    delete:
+      tags: [PregnancyTools]
+      summary: Delete a kick count
+      description: |
+        Removes a session; an ended one's day total is rewritten (a day left without counted kicks keeps its row).
+      operationId: destroyPregnancyKicks
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Kick session id (the caller's)
+          schema: {type: integer, minimum: 1}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/ChildMessage"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/PregnancyToolNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/pregnancy/contractions:
+    get:
+      tags: [PregnancyTools]
+      summary: Contraction timer (nbl_Log_Contraction)
+      description: |
+        The live 5-1-1 thresholds (`params`, the admin-editable `pregnancy_alert / contractions_511` row), the running
+        session with every contraction (newest first) and the last 20 ended sessions.
+      operationId: pregnancyContractions
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ContractionOverview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/pregnancy/contractions/start:
+    post:
+      tags: [PregnancyTools]
+      summary: A contraction begins
+      description: |
+        Starts a contraction; the first one opens a session. 409 `contraction_running` while one is timed,
+        `pregnancy_not_active` outside pregnancy.
+      operationId: startPregnancyContraction
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ContractionSession"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/PregnancyToolConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/pregnancy/contractions/stop:
+    post:
+      tags: [PregnancyTools]
+      summary: The contraction ends
+      description: |
+        Ends the contraction in progress (409 `no_contraction_running`), records the first 5-1-1 hit on the session
+        (`alert_at`) and runs the pregnancy alert rules: a `contractions_511` hit (once per session, urgent, call /
+        hospital copy and actions from its message row) comes back in `alerts` and in the alert centre.
+      operationId: stopPregnancyContraction
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: 
+                    type: object
+                    required: [session, alerts]
+                    properties:
+                      session: {$ref: "#/components/schemas/ContractionSession"}
+                      alerts: {type: array, items: {$ref: "#/components/schemas/PregnancyV2Alert"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/PregnancyToolConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/pregnancy/contractions/sessions/{id}:
+    get:
+      tags: [PregnancyTools]
+      summary: One contraction session
+      description: |
+        A session with every contraction (newest first).
+      operationId: pregnancyContractionSession
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Contraction session id (the caller's)
+          schema: {type: integer, minimum: 1}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ContractionSession"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/PregnancyToolNotFound"}
+    delete:
+      tags: [PregnancyTools]
+      summary: Delete a contraction session
+      description: |
+        Removes a session with its contractions.
+      operationId: destroyPregnancyContractionSession
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Contraction session id (the caller's)
+          schema: {type: integer, minimum: 1}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/ChildMessage"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/PregnancyToolNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/pregnancy/contractions/sessions/{id}/finish:
+    post:
+      tags: [PregnancyTools]
+      summary: End the timing («توقف و ذخیره»)
+      description: |
+        Ends a running session; a contraction still in progress ends now. 409 `session_ended` when it already ended.
+      operationId: finishPregnancyContractionSession
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Contraction session id (the caller's)
+          schema: {type: integer, minimum: 1}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Saved; the session
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/ContractionSession"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/PregnancyToolNotFound"}
+        '409': {$ref: "#/components/responses/PregnancyToolConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/pregnancy/fetal-movement:
     get:
       tags: [Pregnancy]
@@ -14734,6 +15676,81 @@ components:
               success: {type: boolean, const: false}
               message: {type: string}
               error_code: {type: string, const: child_read_only}
+    BabyLogNotFound:
+      description: "Bloom B-N5-03: the child, feed, sleep or diaper change does not exist or is not the caller's / not shared with the caller — one uniform answer."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [child_not_found, feed_not_found, sleep_not_found, diaper_not_found]}
+    BabyLogConflict:
+      description: "Bloom B-N5-03: a feed / sleep already runs for the child, the session already ended, or the running session cannot be edited."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [feed_active, sleep_active, session_ended, session_running]}
+    BabyLogValidationFailed:
+      description: "Baby log validation failed (controller 422 `{success: false, message, errors}`), or `not_breast_feed` (a side on a bottle / pump feed)."
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - type: object
+                required: [success, message, errors]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  errors:
+                    type: object
+                    additionalProperties: {type: array, items: {type: string}}
+              - type: object
+                required: [success, message, error_code]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, const: not_breast_feed}
+    PregnancyToolNotFound:
+      description: "Bloom B-N5-03: the kick / contraction session does not exist or is not the caller's."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: session_not_found}
+    PregnancyToolConflict:
+      description: "Bloom B-N5-03: a session / contraction already runs, the session ended, nothing is being timed, or pregnancy mode is off / undated."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [kick_session_active, session_ended, contraction_running, no_contraction_running, pregnancy_not_active]}
+    KickLimit:
+      description: "Bloom B-N5-03: the session reached 200 movements."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: kick_limit}
     ChildMessage:
       description: Done (message only)
       content:
@@ -15525,6 +16542,248 @@ components:
         weight: {$ref: "#/components/schemas/ChildIndicatorValue"}
         length: {$ref: "#/components/schemas/ChildIndicatorValue"}
         head: {$ref: "#/components/schemas/ChildIndicatorValue"}
+    BabyFeed:
+      type: object
+      required: [id, type, started_at, ended_at, is_active, active_side, side_started_at, last_side, left_seconds, right_seconds, duration_seconds, amount_ml, note]
+      properties:
+        id: {type: integer}
+        type: {type: string, enum: [breast, bottle, pump]}
+        started_at: {$ref: "#/components/schemas/IsoDateTime"}
+        ended_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        is_active: {type: boolean}
+        active_side: {type: [string, "null"], enum: [left, right, null], description: "Running breast segment's side"}
+        side_started_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}], description: "Start of the running segment: live side time = <side>_seconds + (now − side_started_at)"}
+        last_side: {type: [string, "null"], enum: [left, right, null]}
+        left_seconds: {type: integer, description: Closed left segments}
+        right_seconds: {type: integer, description: Closed right segments}
+        duration_seconds: {type: integer, description: "At the response time (running segment included)"}
+        amount_ml: {type: [integer, "null"]}
+        note: {type: [string, "null"]}
+    BabyFeedStart:
+      type: object
+      required: [type]
+      properties:
+        type: {type: string, enum: [breast, bottle, pump]}
+        side: {type: [string, "null"], enum: [left, right, null]}
+    BabyFeedInput:
+      type: object
+      required: [type, started_at]
+      properties:
+        type: {type: string, enum: [breast, bottle, pump]}
+        started_at: {type: string, example: "2026-09-23 14:20", description: "Y-m-d H:i[:s], Tehran wall-clock"}
+        left_minutes: {type: [integer, "null"], minimum: 0, maximum: 180}
+        right_minutes: {type: [integer, "null"], minimum: 0, maximum: 180}
+        side: {type: [string, "null"], enum: [left, right, null], description: "Breast: the side it ended on"}
+        duration_minutes: {type: [integer, "null"], minimum: 0, maximum: 180}
+        amount_ml: {type: [integer, "null"], minimum: 0, maximum: 500}
+        note: {type: [string, "null"], maxLength: 500}
+    BabySleep:
+      type: object
+      required: [id, started_at, ended_at, is_active, duration_seconds, note]
+      properties:
+        id: {type: integer}
+        started_at: {$ref: "#/components/schemas/IsoDateTime"}
+        ended_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        is_active: {type: boolean}
+        duration_seconds: {type: integer}
+        note: {type: [string, "null"]}
+    BabySleepInput:
+      type: object
+      required: [started_at, ended_at]
+      properties:
+        started_at: {type: string, example: "2026-09-23 13:00"}
+        ended_at: {type: string, example: "2026-09-23 14:30"}
+        note: {type: [string, "null"], maxLength: 500}
+    BabyDiaper:
+      type: object
+      required: [id, changed_at, kind, note]
+      properties:
+        id: {type: integer}
+        changed_at: {$ref: "#/components/schemas/IsoDateTime"}
+        kind: {type: string, enum: [wet, dirty, both]}
+        note: {type: [string, "null"]}
+    BabyDiaperInput:
+      type: object
+      required: [kind]
+      properties:
+        kind: {type: string, enum: [wet, dirty, both]}
+        changed_at: {type: [string, "null"], example: "2026-09-23 09:10", description: "Default now"}
+        note: {type: [string, "null"], maxLength: 500}
+    BabyFeedTotals:
+      type: object
+      required: [count, breast, bottle, pump, left_seconds, right_seconds, total_seconds, bottle_ml, pump_ml]
+      properties:
+        count: {type: integer}
+        breast: {type: integer}
+        bottle: {type: integer}
+        pump: {type: integer}
+        left_seconds: {type: integer}
+        right_seconds: {type: integer}
+        total_seconds: {type: integer}
+        bottle_ml: {type: integer}
+        pump_ml: {type: integer}
+        last: {anyOf: [{$ref: "#/components/schemas/BabyFeed"}, {type: "null"}], description: "Today's card only: the last ended feed"}
+    BabySleepTotals:
+      type: object
+      required: [count, seconds, longest_seconds]
+      properties:
+        count: {type: integer, description: Sleeps started that day}
+        seconds: {type: integer, description: Time asleep inside the day}
+        longest_seconds: {type: integer}
+    BabyDiaperTotals:
+      type: object
+      required: [count, wet, dirty, both]
+      properties:
+        count: {type: integer}
+        wet: {type: integer}
+        dirty: {type: integer}
+        both: {type: integer}
+    BabyLogDay:
+      type: object
+      required: [date, feeds, sleep, diapers]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        feeds: {$ref: "#/components/schemas/BabyFeedTotals"}
+        sleep: {$ref: "#/components/schemas/BabySleepTotals"}
+        diapers: {$ref: "#/components/schemas/BabyDiaperTotals"}
+    BabyLogToday:
+      description: "The child home's «امروز» card: today's totals, the last ended feed, and whether a feed / sleep runs"
+      allOf:
+        - {$ref: "#/components/schemas/BabyLogDay"}
+        - type: object
+          required: [feeding_now, sleeping_now]
+          properties:
+            feeding_now: {type: boolean}
+            sleeping_now: {type: boolean}
+    BabyFeedDay:
+      type: object
+      required: [date, active, last, next_side, summary, items]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        active: {anyOf: [{$ref: "#/components/schemas/BabyFeed"}, {type: "null"}]}
+        last: {anyOf: [{$ref: "#/components/schemas/BabyFeed"}, {type: "null"}]}
+        next_side: {type: [string, "null"], enum: [left, right, null]}
+        summary: {$ref: "#/components/schemas/BabyFeedTotals"}
+        items: {type: array, items: {$ref: "#/components/schemas/BabyFeed"}}
+    BabySleepDay:
+      type: object
+      required: [date, active, summary, items]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        active: {anyOf: [{$ref: "#/components/schemas/BabySleep"}, {type: "null"}]}
+        summary: {$ref: "#/components/schemas/BabySleepTotals"}
+        items: {type: array, items: {$ref: "#/components/schemas/BabySleep"}}
+    BabyDiaperDay:
+      type: object
+      required: [date, summary, items]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        summary: {$ref: "#/components/schemas/BabyDiaperTotals"}
+        items: {type: array, items: {$ref: "#/components/schemas/BabyDiaper"}}
+    BabyLogSummary:
+      type: object
+      required: [from, to, today, days, averages]
+      properties:
+        from: {$ref: "#/components/schemas/Date"}
+        to: {$ref: "#/components/schemas/Date"}
+        today: {$ref: "#/components/schemas/BabyLogToday"}
+        days: {type: array, items: {$ref: "#/components/schemas/BabyLogDay"}}
+        averages:
+          type: object
+          required: [feeds_per_day, sleep_seconds_per_day, diapers_per_day, left_percent, right_percent]
+          properties:
+            feeds_per_day: {type: number}
+            sleep_seconds_per_day: {type: integer}
+            diapers_per_day: {type: number}
+            left_percent: {type: [integer, "null"]}
+            right_percent: {type: [integer, "null"]}
+    KickSession:
+      type: object
+      required: [id, started_at, ended_at, is_active, kicks, target, window_minutes, elapsed_seconds, time_to_target_seconds, reached_target, low_count, last_kick_at, pregnancy_week]
+      properties:
+        id: {type: integer}
+        started_at: {$ref: "#/components/schemas/IsoDateTime"}
+        ended_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        is_active: {type: boolean}
+        kicks: {type: integer}
+        target: {type: integer, const: 10}
+        window_minutes: {type: integer, const: 120}
+        elapsed_seconds: {type: integer, description: "Until the end, or the response time while running"}
+        time_to_target_seconds: {type: [integer, "null"], description: Time to the 10th movement}
+        reached_target: {type: boolean}
+        low_count: {type: boolean, description: "Under the target once the 2-hour window passed — the «با پزشک یا ماما تماس بگیر» guidance"}
+        last_kick_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        pregnancy_week: {type: [integer, "null"]}
+    KickOverview:
+      type: object
+      required: [target, window_minutes, active, today, history]
+      properties:
+        target: {type: integer}
+        window_minutes: {type: integer}
+        active: {anyOf: [{$ref: "#/components/schemas/KickSession"}, {type: "null"}]}
+        today:
+          type: object
+          required: [date, kicks, sessions]
+          properties:
+            date: {$ref: "#/components/schemas/Date"}
+            kicks: {type: integer}
+            sessions: {type: integer}
+        history: {type: array, items: {$ref: "#/components/schemas/KickSession"}}
+    ContractionParams:
+      type: object
+      required: [interval_max_minutes, duration_min_seconds, run_minutes]
+      properties:
+        interval_max_minutes: {type: integer}
+        duration_min_seconds: {type: integer}
+        run_minutes: {type: integer}
+    ContractionSession:
+      type: object
+      required: [id, started_at, ended_at, is_active, elapsed_seconds, count, running, avg_duration_seconds, avg_interval_seconds, five_one_one, alert_at]
+      properties:
+        id: {type: integer}
+        started_at: {$ref: "#/components/schemas/IsoDateTime"}
+        ended_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        is_active: {type: boolean}
+        elapsed_seconds: {type: integer}
+        count: {type: integer, description: Ended contractions}
+        running:
+          type: [object, "null"]
+          required: [id, started_at, elapsed_seconds]
+          properties:
+            id: {type: integer}
+            started_at: {$ref: "#/components/schemas/IsoDateTime"}
+            elapsed_seconds: {type: integer}
+        avg_duration_seconds: {type: [integer, "null"], description: "«میانگین مدت» over the last run_minutes"}
+        avg_interval_seconds: {type: [integer, "null"], description: "«میانگین فاصله» (start to start) over the last run_minutes"}
+        five_one_one:
+          type: object
+          required: [met, count, span_minutes, avg_interval_seconds, avg_duration_seconds]
+          properties:
+            met: {type: boolean}
+            count: {type: integer}
+            span_minutes: {type: integer}
+            avg_interval_seconds: {type: [integer, "null"]}
+            avg_duration_seconds: {type: [integer, "null"]}
+        alert_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}], description: "First time the session met 5-1-1"}
+        contractions:
+          type: array
+          description: "Newest first (active / detail views only)"
+          items:
+            type: object
+            required: [id, started_at, ended_at, duration_seconds, interval_seconds]
+            properties:
+              id: {type: integer}
+              started_at: {$ref: "#/components/schemas/IsoDateTime"}
+              ended_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+              duration_seconds: {type: [integer, "null"]}
+              interval_seconds: {type: [integer, "null"], description: Start to start from the previous one}
+    ContractionOverview:
+      type: object
+      required: [params, active, history]
+      properties:
+        params: {$ref: "#/components/schemas/ContractionParams"}
+        active: {anyOf: [{$ref: "#/components/schemas/ContractionSession"}, {type: "null"}]}
+        history: {type: array, items: {$ref: "#/components/schemas/ContractionSession"}}
     ChildHome:
       allOf:
         - {$ref: "#/components/schemas/ChildCard"}
@@ -15551,7 +16810,7 @@ components:
               properties:
                 count: {type: integer}
                 featured: {anyOf: [{$ref: "#/components/schemas/ChildLearnTip"}, {type: "null"}]}
-            today: {type: "null"}
+            today: {anyOf: [{$ref: "#/components/schemas/BabyLogToday"}, {type: "null"}], description: "«امروز» from the baby logs (B-N5-03)"}
     ChildGrowthSeries:
       type: object
       required: [indicator, unit, sex, available, reason, range, band, reference, points, latest, verdict, disclaimer, source]
@@ -16400,7 +17659,7 @@ components:
       required: [id, rule_key, level, alert_level, title, what_we_saw, how_sure, advice, actions, contact, is_read, is_acked]
       properties:
         id: {type: integer}
-        rule_key: {type: string, enum: [vomiting_streak, severe_symptom_count, critical_symptom, weight_missing_week, week_entered, bp_high, sugar_high, fetal_movement]}
+        rule_key: {type: string, enum: [vomiting_streak, severe_symptom_count, critical_symptom, weight_missing_week, week_entered, bp_high, sugar_high, fetal_movement, contractions_511]}
         level: {type: string, enum: [info, suggestion, follow_up, urgent]}
         alert_level: {type: string, enum: [info, warning, emergency], description: "v1 level the row is stored with"}
         title: {type: string}

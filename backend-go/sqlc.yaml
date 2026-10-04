@@ -217,3 +217,9 @@ sql:
       go:
         <<: *go
         out: internal/ai/store
+  - <<: *pkg
+    queries: db/queries/babylog
+    gen:
+      go:
+        <<: *go
+        out: internal/babylog/store

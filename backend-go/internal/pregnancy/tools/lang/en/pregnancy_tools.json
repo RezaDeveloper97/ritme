@@ -1,0 +1,12 @@
+{
+    "messages": {
+        "not_found": "Session not found",
+        "kick_active": "A kick count is already running",
+        "session_ended": "This session has already ended",
+        "kick_limit": "This session cannot count more movements",
+        "contraction_running": "A contraction is already being timed",
+        "no_contraction": "No contraction is being timed",
+        "saved": "Saved",
+        "deleted": "Deleted"
+    }
+}

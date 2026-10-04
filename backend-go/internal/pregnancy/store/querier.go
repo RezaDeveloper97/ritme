@@ -11,6 +11,9 @@ import (
 type Querier interface {
 	// Action ack («دیدم، ممنون»): read + dismissed (hidden from the v1 active list too).
 	AckV2Alert(ctx context.Context, arg AckV2AlertParams) error
+	// One kick on a running session, atomically. tenth_kick_at is assigned before kicks (MariaDB evaluates SET left to
+	// right on the updated row), so it sees the count before this kick.
+	AddKick(ctx context.Context, arg AddKickParams) (int64, error)
 	CountActiveAlerts(ctx context.Context, userID uint64) (CountActiveAlertsRow, error)
 	CountAppointmentsOfCareItem(ctx context.Context, id uint64) (int64, error)
 	// Pregnancy v2 admin API (T-M7-06, docs/go-migration/admin-api.md §13): care-item delete guard and the
@@ -22,7 +25,9 @@ type Querier interface {
 	CountV2AlertDedupe(ctx context.Context, arg CountV2AlertDedupeParams) (int64, error)
 	CreateCareItem(ctx context.Context, arg CreateCareItemParams) (int64, error)
 	DeleteCareItem(ctx context.Context, id uint64) (int64, error)
+	DeleteContractionSession(ctx context.Context, arg DeleteContractionSessionParams) (int64, error)
 	DeleteDailyExtras(ctx context.Context, arg DeleteDailyExtrasParams) error
+	DeleteKickSession(ctx context.Context, arg DeleteKickSessionParams) (int64, error)
 	DeleteSymptomLog(ctx context.Context, arg DeleteSymptomLogParams) (int64, error)
 	// Deletes the item only while no non-cancelled appointment references its key (one statement: no race with a
 	// new booking).
@@ -30,14 +35,19 @@ type Querier interface {
 	DismissAlert(ctx context.Context, arg DismissAlertParams) error
 	// A pregnancy loss (CB-LOSS-01) closes every open alert (v1 and v2): none may resurface as a badge or nudge.
 	DismissOpenAlerts(ctx context.Context, arg DismissOpenAlertsParams) (int64, error)
+	FinishContractionSession(ctx context.Context, arg FinishContractionSessionParams) (int64, error)
+	GetActiveContractionSession(ctx context.Context, userID uint64) (PregnancyContractionSession, error)
+	GetActiveKickSession(ctx context.Context, userID uint64) (PregnancyKickSession, error)
 	GetAlert(ctx context.Context, arg GetAlertParams) (PregnancyAlert, error)
 	GetCareItem(ctx context.Context, id uint64) (PregnancyCareItem, error)
 	GetCareItemByKey(ctx context.Context, key string) (PregnancyCareItem, error)
+	GetContractionSession(ctx context.Context, arg GetContractionSessionParams) (PregnancyContractionSession, error)
 	// Pregnancy v2 per-day extras (table pregnancy_daily_extras, T-M7-01): the day-log fields
 	// pregnancy_symptom_logs lacks (mood, water, heartburn, constipation, visit note). Every query is
 	// scoped by user_id. Unique (user_id, log_date).
 	GetDailyExtras(ctx context.Context, arg GetDailyExtrasParams) (PregnancyDailyExtra, error)
 	GetFetalMovement(ctx context.Context, arg GetFetalMovementParams) (PregnancyFetalMovement, error)
+	GetKickSession(ctx context.Context, arg GetKickSessionParams) (PregnancyKickSession, error)
 	// PregnancyProfile (App\Models\PregnancyProfile). One row per user (unique user_id).
 	GetProfileByUser(ctx context.Context, userID uint64) (PregnancyProfile, error)
 	GetSymptomLog(ctx context.Context, arg GetSymptomLogParams) (PregnancySymptomLog, error)
@@ -64,7 +74,12 @@ type Querier interface {
 	GetWeeklyContent(ctx context.Context, weekNumber int32) (PregnancyWeeklyContent, error)
 	GetWeeklyLog(ctx context.Context, arg GetWeeklyLogParams) (PregnancyWeeklyLog, error)
 	InsertAlert(ctx context.Context, arg InsertAlertParams) (int64, error)
+	InsertContraction(ctx context.Context, arg InsertContractionParams) (int64, error)
+	InsertContractionSession(ctx context.Context, arg InsertContractionSessionParams) (int64, error)
 	InsertFetalMovement(ctx context.Context, arg InsertFetalMovementParams) (int64, error)
+	// Pregnancy tools (bloom B-N5-03; internal/pregnancy/tools): kick-count sessions and contraction sessions. Every
+	// query is scoped by user_id. active_lock = 1 marks the running session / contraction; NULL once it ended.
+	InsertKickSession(ctx context.Context, arg InsertKickSessionParams) (int64, error)
 	InsertMessageContent(ctx context.Context, arg InsertMessageContentParams) (int64, error)
 	InsertProfile(ctx context.Context, arg InsertProfileParams) (int64, error)
 	InsertSymptomLog(ctx context.Context, arg InsertSymptomLogParams) (int64, error)
@@ -76,12 +91,22 @@ type Querier interface {
 	// Pregnancy v2 care plan (table pregnancy_care_items, T-M7-01): admin-defined visits / tests / scans /
 	// vaccines with a pregnancy-week window. Visits themselves are M3 appointments (meta.care_item_key).
 	ListActiveCareItems(ctx context.Context) ([]PregnancyCareItem, error)
+	// The contractions of the user's running session (the alert engine's 5-1-1 facts).
+	ListActiveSessionContractions(ctx context.Context, arg ListActiveSessionContractionsParams) ([]PregnancyContraction, error)
 	// Admin list: active and inactive.
 	ListCareItems(ctx context.Context) ([]PregnancyCareItem, error)
+	// The user's ended contraction sessions, newest first.
+	ListContractionSessions(ctx context.Context, arg ListContractionSessionsParams) ([]PregnancyContractionSession, error)
+	// The user's contractions started on or after since (grouped by session for the history list).
+	ListContractionsSince(ctx context.Context, arg ListContractionsSinceParams) ([]PregnancyContraction, error)
 	// from..to inclusive (doctor report, alert windows).
 	ListDailyExtrasRange(ctx context.Context, arg ListDailyExtrasRangeParams) ([]PregnancyDailyExtra, error)
 	// PregnancyFetalMovement (App\Models\PregnancyFetalMovement). Unique (user_id, log_date).
 	ListFetalMovements(ctx context.Context, arg ListFetalMovementsParams) ([]PregnancyFetalMovement, error)
+	// The user's ended kick sessions, newest first.
+	ListKickSessions(ctx context.Context, arg ListKickSessionsParams) ([]PregnancyKickSession, error)
+	// Ended sessions started in [date_from, date_to) (the day's kick total written to pregnancy_fetal_movements).
+	ListKickSessionsBetween(ctx context.Context, arg ListKickSessionsBetweenParams) ([]PregnancyKickSession, error)
 	// Pregnancy v2 alert rules (T-M7-04, internal/messages/pregnancyalerts). v2 rows live in pregnancy_alerts
 	// with alert_type = 'v2:<rule_key>' and their v2 metadata (level4, dedupe key, placeholder values) in
 	// trigger_symptoms. Every user-scoped query filters by user_id.
@@ -90,6 +115,7 @@ type Querier interface {
 	// Every (group, item_key, locale) triple — the "missing rows of registered groups" view.
 	ListMessageContentKeys(ctx context.Context) ([]ListMessageContentKeysRow, error)
 	ListMessageContentsOfGroup(ctx context.Context, group string) ([]MessageContent, error)
+	ListSessionContractions(ctx context.Context, arg ListSessionContractionsParams) ([]PregnancyContraction, error)
 	// PregnancySymptomLog (App\Models\PregnancySymptomLog). Unique (user_id, log_date).
 	// from/to are compared as the raw query-string text, like Laravel's where('log_date', '>=', $from).
 	ListSymptomLogs(ctx context.Context, arg ListSymptomLogsParams) ([]PregnancySymptomLog, error)
@@ -122,6 +148,8 @@ type Querier interface {
 	ListWeeklyLogs(ctx context.Context, userID uint64) ([]PregnancyWeeklyLog, error)
 	MarkAlertRead(ctx context.Context, arg MarkAlertReadParams) error
 	MarkAllAlertsRead(ctx context.Context, arg MarkAllAlertsReadParams) (int64, error)
+	// The first counted kick marks the profile's first felt movement (like POST /pregnancy/fetal-movement with felt).
+	MarkFetalMovementFelt(ctx context.Context, arg MarkFetalMovementFeltParams) error
 	MarkV2AlertRead(ctx context.Context, arg MarkV2AlertReadParams) error
 	MessageContentExists(ctx context.Context, arg MessageContentExistsParams) (bool, error)
 	NextCareItemSortOrder(ctx context.Context) (int64, error)
@@ -130,9 +158,14 @@ type Querier interface {
 	RefreshV2AlertFacts(ctx context.Context, arg RefreshV2AlertFactsParams) error
 	SetCareItemActive(ctx context.Context, arg SetCareItemActiveParams) (int64, error)
 	SetCareItemSortOrder(ctx context.Context, arg SetCareItemSortOrderParams) (int64, error)
+	SetContractionAlertAt(ctx context.Context, arg SetContractionAlertAtParams) error
 	// Alert action add_to_visit_note (T-M7-04): creates the day's row when missing, keeps the other fields.
 	SetDailyVisitNote(ctx context.Context, arg SetDailyVisitNoteParams) error
 	SetMessageContentPayload(ctx context.Context, arg SetMessageContentPayloadParams) error
+	StopContraction(ctx context.Context, arg StopContractionParams) (int64, error)
+	StopKickSession(ctx context.Context, arg StopKickSessionParams) (int64, error)
+	// Takes the last kick back (the time to the target is cleared when the count drops under it).
+	UndoKick(ctx context.Context, arg UndoKickParams) (int64, error)
 	// `key` is immutable (appointments reference it).
 	UpdateCareItem(ctx context.Context, arg UpdateCareItemParams) (int64, error)
 	UpdateFetalMovement(ctx context.Context, arg UpdateFetalMovementParams) error

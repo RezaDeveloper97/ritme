@@ -10,6 +10,7 @@ import (
 
 	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/pregnancy/labor"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
 )
 
@@ -114,6 +115,24 @@ func TestFetalMovement(t *testing.T) {
 	assert.Empty(t, Detect("fetal_movement", c, f))
 	f.Fetal[0].PregnancyWeek = 24
 	assert.Len(t, Detect("fetal_movement", c, f), 1)
+}
+
+func TestContractions511(t *testing.T) {
+	c := cfg(1, map[string]any{"interval_max_minutes": 5.0, "duration_min_seconds": 45.0, "run_minutes": 60.0})
+	f := facts(nil)
+	start := today.TehranMidnight().Add(20 * time.Hour)
+	for i := range 13 {
+		s := start.Add(time.Duration(i) * 5 * time.Minute)
+		f.Contractions = append(f.Contractions, labor.Contraction{Start: s, End: s.Add(52 * time.Second)})
+	}
+	assert.Empty(t, Detect("contractions_511", c, f), "no running session")
+	f.ContractionSession = 7
+	hits := Detect("contractions_511", c, f)
+	require.Len(t, hits, 1)
+	assert.Equal(t, "s7", hits[0].Dedupe)
+	assert.Equal(t, [][2]string{{"count", "13"}, {"minutes", "60"}, {"interval", "5:00"}, {"duration", "0:52"}}, hits[0].Vars)
+	assert.Empty(t, Detect("contractions_511", cfg(1, map[string]any{"run_minutes": 90.0}), f), "admin run length")
+	assert.Equal(t, labor.DefaultParams(), LaborParams(cfg(1, map[string]any{})))
 }
 
 func TestRenderAndLevels(t *testing.T) {

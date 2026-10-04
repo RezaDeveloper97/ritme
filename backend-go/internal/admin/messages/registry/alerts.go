@@ -79,6 +79,12 @@ var AlertRules = []AlertRule{
 		intParam("from_week", 12, MaxWeek),
 		{Key: "statuses", Kind: KindEnumList, Values: fetalStatuses(), MinItems: 1},
 	}, Placeholders: []string{"status"}},
+	// 5-1-1 of the contraction timer (bloom B-N5-03, internal/pregnancy/labor): average interval at most
+	// interval_max_minutes, average duration at least duration_min_seconds, sustained for run_minutes. {interval} and
+	// {duration} are m:ss.
+	{Key: "contractions_511", Params: []Field{
+		intParam("interval_max_minutes", 2, 15), intParam("duration_min_seconds", 20, 120), intParam("run_minutes", 20, 180),
+	}, Placeholders: []string{"count", "minutes", "interval", "duration"}},
 }
 
 // FindAlertRule looks a rule up by key.

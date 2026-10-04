@@ -71,6 +71,46 @@ type Article struct {
 	UpdatedAt       sql.NullTime
 }
 
+type BabyDiaper struct {
+	ID        uint64
+	ChildID   uint64
+	ChangedAt time.Time
+	Kind      string
+	Note      sql.NullString
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type BabyFeed struct {
+	ID              uint64
+	ChildID         uint64
+	Type            string
+	StartedAt       time.Time
+	EndedAt         sql.NullTime
+	ActiveSide      sql.NullString
+	SideStartedAt   sql.NullTime
+	LastSide        sql.NullString
+	LeftSeconds     uint32
+	RightSeconds    uint32
+	DurationSeconds sql.NullInt32
+	AmountMl        sql.NullInt16
+	Note            sql.NullString
+	ActiveLock      sql.NullInt16
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
+type BabySleep struct {
+	ID         uint64
+	ChildID    uint64
+	StartedAt  time.Time
+	EndedAt    sql.NullTime
+	Note       sql.NullString
+	ActiveLock sql.NullInt16
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
 type Banner struct {
 	ID        uint64
 	Title     db.NullRawJSON
@@ -1005,6 +1045,28 @@ type PregnancyCareItem struct {
 	UpdatedAt    sql.NullTime
 }
 
+type PregnancyContraction struct {
+	ID         uint64
+	SessionID  uint64
+	UserID     uint64
+	StartedAt  time.Time
+	EndedAt    sql.NullTime
+	ActiveLock sql.NullInt16
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
+type PregnancyContractionSession struct {
+	ID         uint64
+	UserID     uint64
+	StartedAt  time.Time
+	EndedAt    sql.NullTime
+	AlertAt    sql.NullTime
+	ActiveLock sql.NullInt16
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
 type PregnancyDailyExtra struct {
 	ID                   uint64
 	UserID               uint64
@@ -1030,6 +1092,20 @@ type PregnancyFetalMovement struct {
 	Notes             sql.NullString
 	CreatedAt         sql.NullTime
 	UpdatedAt         sql.NullTime
+}
+
+type PregnancyKickSession struct {
+	ID            uint64
+	UserID        uint64
+	StartedAt     time.Time
+	EndedAt       sql.NullTime
+	Kicks         uint16
+	TenthKickAt   sql.NullTime
+	LastKickAt    sql.NullTime
+	PregnancyWeek sql.NullInt16
+	ActiveLock    sql.NullInt16
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
 }
 
 type PregnancyLoss struct {

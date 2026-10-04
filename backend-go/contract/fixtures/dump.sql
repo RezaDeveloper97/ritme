@@ -123,6 +123,81 @@ INSERT INTO `articles` VALUES
 (6,'cycle-nutrition-basics','{\"fa\":\"\\u062a\\u063a\\u0630\\u06cc\\u0647 \\u0645\\u062a\\u0646\\u0627\\u0633\\u0628 \\u0628\\u0627 \\u0686\\u0631\\u062e\\u0647 \\u0642\\u0627\\u0639\\u062f\\u06af\\u06cc\",\"en\":\"Eating in sync with your cycle\"}','{\"fa\":\"\\u062f\\u0631 \\u0647\\u0631 \\u0641\\u0627\\u0632 \\u0686\\u0647 \\u0628\\u062e\\u0648\\u0631\\u06cc\\u0645 \\u062a\\u0627 \\u062d\\u0627\\u0644 \\u0628\\u0647\\u062a\\u0631\\u06cc \\u062f\\u0627\\u0634\\u062a\\u0647 \\u0628\\u0627\\u0634\\u06cc\\u0645\",\"en\":\"What to eat in each phase to feel your best\"}',NULL,NULL,'nutrition',6,NULL,NULL,1,'2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `articles` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `baby_diapers`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `baby_diapers` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `child_id` bigint(20) unsigned NOT NULL,
+  `changed_at` datetime NOT NULL,
+  `kind` varchar(8) NOT NULL,
+  `note` varchar(500) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `baby_diapers_child_id_changed_at_index` (`child_id`,`changed_at`),
+  CONSTRAINT `baby_diapers_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `baby_diapers` WRITE;
+/*!40000 ALTER TABLE `baby_diapers` DISABLE KEYS */;
+/*!40000 ALTER TABLE `baby_diapers` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `baby_feeds`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `baby_feeds` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `child_id` bigint(20) unsigned NOT NULL,
+  `type` varchar(8) NOT NULL,
+  `started_at` datetime NOT NULL,
+  `ended_at` datetime DEFAULT NULL,
+  `active_side` varchar(8) DEFAULT NULL,
+  `side_started_at` datetime DEFAULT NULL,
+  `last_side` varchar(8) DEFAULT NULL,
+  `left_seconds` int(10) unsigned NOT NULL DEFAULT 0,
+  `right_seconds` int(10) unsigned NOT NULL DEFAULT 0,
+  `duration_seconds` int(10) unsigned DEFAULT NULL,
+  `amount_ml` smallint(5) unsigned DEFAULT NULL,
+  `note` varchar(500) DEFAULT NULL,
+  `active_lock` tinyint(3) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `baby_feeds_child_id_active_lock_unique` (`child_id`,`active_lock`),
+  KEY `baby_feeds_child_id_started_at_index` (`child_id`,`started_at`),
+  CONSTRAINT `baby_feeds_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `baby_feeds` WRITE;
+/*!40000 ALTER TABLE `baby_feeds` DISABLE KEYS */;
+/*!40000 ALTER TABLE `baby_feeds` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `baby_sleeps`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `baby_sleeps` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `child_id` bigint(20) unsigned NOT NULL,
+  `started_at` datetime NOT NULL,
+  `ended_at` datetime DEFAULT NULL,
+  `note` varchar(500) DEFAULT NULL,
+  `active_lock` tinyint(3) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `baby_sleeps_child_id_active_lock_unique` (`child_id`,`active_lock`),
+  KEY `baby_sleeps_child_id_started_at_index` (`child_id`,`started_at`),
+  CONSTRAINT `baby_sleeps_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `baby_sleeps` WRITE;
+/*!40000 ALTER TABLE `baby_sleeps` DISABLE KEYS */;
+/*!40000 ALTER TABLE `baby_sleeps` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `banners`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -2634,6 +2709,53 @@ INSERT INTO `pregnancy_alerts` VALUES
 (101503,1015,'info','routine','یادآوری مراقبت Rh منفی','با پزشک درباره‌ی تزریق روگام صحبت کنید.',26,'[]','{\"rh_negative\":true}',1,1,'2026-09-22 10:00:00','2026-09-22 10:05:00','[\"contact_doctor\"]','2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `pregnancy_alerts` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `pregnancy_contraction_sessions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pregnancy_contraction_sessions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `started_at` datetime NOT NULL,
+  `ended_at` datetime DEFAULT NULL,
+  `alert_at` datetime DEFAULT NULL,
+  `active_lock` tinyint(3) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `pregnancy_contraction_sessions_user_id_active_lock_unique` (`user_id`,`active_lock`),
+  KEY `pregnancy_contraction_sessions_user_id_started_at_index` (`user_id`,`started_at`),
+  CONSTRAINT `pregnancy_contraction_sessions_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `pregnancy_contraction_sessions` WRITE;
+/*!40000 ALTER TABLE `pregnancy_contraction_sessions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pregnancy_contraction_sessions` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `pregnancy_contractions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pregnancy_contractions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `session_id` bigint(20) unsigned NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `started_at` datetime NOT NULL,
+  `ended_at` datetime DEFAULT NULL,
+  `active_lock` tinyint(3) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `pregnancy_contractions_session_id_active_lock_unique` (`session_id`,`active_lock`),
+  KEY `pregnancy_contractions_user_id_started_at_index` (`user_id`,`started_at`),
+  CONSTRAINT `pregnancy_contractions_session_id_foreign` FOREIGN KEY (`session_id`) REFERENCES `pregnancy_contraction_sessions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `pregnancy_contractions_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `pregnancy_contractions` WRITE;
+/*!40000 ALTER TABLE `pregnancy_contractions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pregnancy_contractions` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `pregnancy_daily_extras`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -2686,6 +2808,32 @@ INSERT INTO `pregnancy_fetal_movements` VALUES
 (101502,1015,'2026-09-22',26,'normal',10,'08:15:00','21:40:00',NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
 (101503,1015,'2026-09-23',26,'reduced',3,'08:15:00','21:40:00',NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `pregnancy_fetal_movements` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `pregnancy_kick_sessions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pregnancy_kick_sessions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `started_at` datetime NOT NULL,
+  `ended_at` datetime DEFAULT NULL,
+  `kicks` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `tenth_kick_at` datetime DEFAULT NULL,
+  `last_kick_at` datetime DEFAULT NULL,
+  `pregnancy_week` tinyint(3) unsigned DEFAULT NULL,
+  `active_lock` tinyint(3) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `pregnancy_kick_sessions_user_id_active_lock_unique` (`user_id`,`active_lock`),
+  KEY `pregnancy_kick_sessions_user_id_started_at_index` (`user_id`,`started_at`),
+  CONSTRAINT `pregnancy_kick_sessions_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `pregnancy_kick_sessions` WRITE;
+/*!40000 ALTER TABLE `pregnancy_kick_sessions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pregnancy_kick_sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `pregnancy_loss_moods`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

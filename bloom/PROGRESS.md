@@ -836,3 +836,19 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
 - `internal/consent`: versioned consent catalog + `GET /api/v1/consents`, `GET|PUT /consents/{code}` (409 stale);
   `/profile/consents` unchanged in shape. Voice logging goes through the gate. Env `AI_DAILY_COST_CAP_USD`,
   `AI_PRICES`. 15 contract goldens; D-58 proposed. QUESTIONS #103. Security review pending.
+
+## B-N5-03 — Baby logs and pregnancy tools backend
+
+- **Migration** `00033_baby_logs` (+ Laravel `2026_10_04_000033_…`): `baby_feeds` / `baby_sleeps` / `baby_diapers`
+  (per child), `pregnancy_kick_sessions`, `pregnancy_contraction_sessions` + `pregnancy_contractions`; one running
+  session = `active_lock` + unique index; seeds `pregnancy_alert / contractions_511` (fa, en).
+- `internal/babylog` + `routes_babylog.go`: `/api/v1/children/{id}/feeds` (GET day + active + last + next_side, POST
+  manual, `/start`, `/{fid}/side`, `/{fid}/stop`, PUT/DELETE), same for `/sleeps`, `/diapers` CRUD,
+  `/baby-logs?days=` (today card, days, averages, L/R %). Child access via `children.Service` (spouse read-only).
+  Child home `today` filled (`children.Handlers.SetToday`). Feeds own the mother's `baby.feeds_count` (postpartum only).
+- `internal/pregnancy/tools` + `routes_pregnancy_tools.go`: `/api/v1/pregnancy/kick-sessions` (start, `/{id}/kicks`
+  ±1, `/{id}/stop` → day total into `pregnancy_fetal_movements`, delete) and `/api/v1/pregnancy/contractions`
+  (`/start`, `/stop` → `{session, alerts}`, `/sessions/{id}` get/finish/delete). Maths `internal/pregnancy/labor`;
+  5-1-1 = alert engine rule `contractions_511` (admin-editable, 9 rules now).
+- 21 Go-recorded goldens (`babylog`, `pregnancy-tools`) + `children/child_home` re-recorded; D-60 proposed.
+  QUESTIONS #104. Frontend B-N5-07/08: flip the «به‌زودی» tiles (feeding/diapers/baby sleep/contractions).

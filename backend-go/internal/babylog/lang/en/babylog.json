@@ -1,0 +1,37 @@
+{
+    "messages": {
+        "validation_failed": "Validation failed",
+        "feed_not_found": "Feed not found",
+        "sleep_not_found": "Sleep not found",
+        "diaper_not_found": "Diaper change not found",
+        "feed_active": "A feed is already running for this child",
+        "sleep_active": "A sleep is already running for this child",
+        "ended": "This session has already ended",
+        "running": "Stop the session before editing it",
+        "not_breast": "Sides can only be timed for breastfeeding",
+        "saved": "Saved",
+        "deleted": "Deleted"
+    },
+    "validation": {
+        "future": "The time cannot be in the future.",
+        "before_birth": "The time cannot be before the birth.",
+        "end_before_start": "The end must be after the start.",
+        "too_long": "A sleep can be at most 24 hours.",
+        "minutes_required": "Enter the minutes of at least one side."
+    },
+    "attributes": {
+        "type": "feeding type",
+        "side": "side",
+        "started_at": "start",
+        "ended_at": "end",
+        "changed_at": "time",
+        "left_minutes": "left side minutes",
+        "right_minutes": "right side minutes",
+        "duration_minutes": "duration",
+        "amount_ml": "amount",
+        "kind": "diaper type",
+        "note": "note",
+        "date": "date",
+        "days": "days"
+    }
+}

@@ -17,6 +17,7 @@ import (
 	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
+	"github.com/ritme/backend-go/internal/pregnancy/labor"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
 	v2 "github.com/ritme/backend-go/internal/pregnancy/v2"
 )
@@ -196,7 +197,33 @@ func (e *Engine) facts(ctx context.Context, userID uint64, d v2.Dating, window i
 	}); err != nil {
 		return Facts{}, fmt.Errorf("pregnancy alerts: fetal: %w", err)
 	}
+	cs, err := e.q.ListActiveSessionContractions(ctx, store.ListActiveSessionContractionsParams{UserID: userID})
+	if err != nil {
+		return Facts{}, fmt.Errorf("pregnancy alerts: contractions: %w", err)
+	}
+	for _, c := range cs {
+		f.ContractionSession = c.SessionID
+		lc := labor.Contraction{Start: c.StartedAt}
+		if c.EndedAt.Valid {
+			lc.End = c.EndedAt.Time
+		}
+		f.Contractions = append(f.Contractions, lc)
+	}
 	return f, nil
+}
+
+// RuleParams are the 5-1-1 thresholds of rule (contractions_511) from its live default-language row, whether or not
+// the rule is enabled (the timer shows the verdict either way); labor defaults when the row is missing.
+func (e *Engine) RuleParams(ctx context.Context, rule string, l v2.Lang) (labor.Params, error) {
+	rs, err := e.rows(ctx)
+	if err != nil {
+		return labor.Params{}, err
+	}
+	c, ok := rs.config(rule, l)
+	if !ok {
+		return labor.DefaultParams(), nil
+	}
+	return LaborParams(c), nil
 }
 
 // SymptomDay reads the v2 symptoms of a v1 symptom log and / or an extras row (has_X → severity,
