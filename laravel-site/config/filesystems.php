@@ -40,10 +40,13 @@ return [
             'report' => false,
         ],
 
+        // Media library (config/media.php). Writes straight into public/media so cPanel needs no
+        // storage:link; MEDIA_PUBLIC_ROOT / MEDIA_PUBLIC_URL switch it (e.g. storage/app/public + /storage).
+        // The URL is root-relative so srcsets work on any host; absolute URLs are built with url().
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            'root' => env('MEDIA_PUBLIC_ROOT', public_path('media')),
+            'url' => env('MEDIA_PUBLIC_URL', '/media'),
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

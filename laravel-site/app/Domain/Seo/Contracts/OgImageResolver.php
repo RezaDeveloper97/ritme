@@ -7,7 +7,7 @@ namespace App\Domain\Seo\Contracts;
 use App\Domain\Seo\Data\SeoImage;
 
 /**
- * Turns a media id into the 1200×630 OG image. Bound to NullOgImageResolver until the media library (L2) exists.
+ * Turns a media id into the 1200×630 OG image. Bound to MediaOgImageResolver (L2-01); NullOgImageResolver remains for tests.
  */
 interface OgImageResolver
 {

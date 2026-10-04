@@ -3,7 +3,7 @@ id: L2-01
 title: Media context: upload, optimise, mobile + desktop variants
 milestone: L2
 type: backend
-status: todo
+status: done
 depends_on: [L0-03,L1-01]
 parallel_group: L2-A
 touches: [app/Domain/Media,config/media.php,config/filesystems.php,database/migrations,app/Console/Commands/MediaRegenerate.php,tests/Feature/Media,tests/Unit/Media]

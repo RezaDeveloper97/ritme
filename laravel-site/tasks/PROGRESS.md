@@ -135,3 +135,19 @@ One section per finished task (appended by `/site-task`).
 - Verify: pest 229 passed; no external requests on /admin (shot.mjs + network log).
 - Open: panel logo waits for L2; Jalali dates in tables need a Support helper; admin theme CSS 67 KB gzip (admin only);
   L10 package must ship `php artisan filament:assets` output; tune primary button shade if contrast is an issue.
+
+## L2-01 — Media context: upload, optimise, mobile + desktop variants
+- Packages: intervention/image ^3.11 (GD/imagick auto), enshrined/svg-sanitize ^0.22 (0.21 had CVE-2025-55166).
+- `app/Domain/Media`: `Media` model, DTOs (`MediaUpload`, `MediaData` with url/srcset fallback to original, `VariantSpec`),
+  cached repo (`media` ns), `StoreMedia` (finfo sniffing, 15 MB / 8000 px limits, sha256 dedupe, auto-orient, strip
+  metadata, 2560 px cap, SVG sanitised + external refs removed), `GenerateMediaVariants` (mobile 480/768, desktop
+  1280/1920 × avif(if supported)/webp/fallback, thumb 320, og 1200×630 focal crop, square on demand, LQIP ≤600 B,
+  animated GIF kept + poster), `OptimizeMedia` job (after commit), `MediaObserver` (bumps media/seo/pages, deletes files),
+  `MediaOgImageResolver` now bound for `OgImageResolver`.
+- `php artisan media:regenerate {--id=*} {--preset=*}`; `config/media.php`; public disk root `public/media` (URL `/media`,
+  no symlink; gitignored). Migration `2026_10_04_001100_create_media_table`.
+- Env (optional): `MEDIA_DISK`, `MEDIA_DRIVER`, `MEDIA_QUEUE_CONNECTION`, `MEDIA_QUEUE`, `MEDIA_PUBLIC_ROOT`, `MEDIA_PUBLIC_URL`.
+- Pest 280 passed (whole suite).
+- Open: queue worker schedule belongs to L10-01 (until then variants need `media:regenerate` when queue≠sync);
+  `seo_meta.og_media_id` FK to media not added; duplicate upload ignores new alt; focal change must trigger
+  regenerate (L2-03); memory raised to 512M while processing.
