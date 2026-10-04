@@ -3,7 +3,7 @@ id: L3-06
 title: Services and Plus pages
 milestone: L3
 type: frontend
-status: todo
+status: done
 depends_on: [L3-01,L1-04]
 parallel_group: L3-C
 touches: [resources/views/pages/services.blade.php,resources/views/pages/plus.blade.php,app/Http/Controllers/ServicesController.php,app/Http/Controllers/PlusController.php,lang/fa/services.php,lang/fa/plus.php,tests/Feature/Pages/ServicesPlusTest.php]

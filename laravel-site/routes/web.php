@@ -10,11 +10,13 @@ use App\Http\Controllers\FaqController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PlaceholderPageController;
+use App\Http\Controllers\PlusController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Seo\RobotsTxtController;
 use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Seo\SitemapIndexController;
+use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\SocialResponsibilityController;
 use App\Http\Controllers\StagePageController;
 use App\Http\Controllers\TermsController;
@@ -45,8 +47,8 @@ Route::name('stage.')->group(function (): void {
     Route::get('/teen', StagePageController::class)->name('teen');                           // L3-05
 });
 
-Route::get('/services', PlaceholderPageController::class)->name('services');                       // L3-06
-Route::get('/plus', PlaceholderPageController::class)->name('plus');                               // L3-06
+Route::get('/services', ServicesController::class)->name('services');                               // L3-06
+Route::get('/plus', PlusController::class)->name('plus');                                       // L3-06
 Route::get('/tools', ToolsController::class)->name('tools');                                     // L3-07
 Route::get('/about', AboutController::class)->name('about');                                     // L3-08
 Route::get('/social-responsibility', SocialResponsibilityController::class)->name('social-responsibility'); // L3-08

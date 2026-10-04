@@ -455,3 +455,15 @@ One section per finished task (appended by `/site-task`).
 - Diff before → after (NULL app links): `/` 390 43.02→42.50%, 1440 6.99→4.61%; `/cycle` unchanged 7.47/4.84%;
   `/blog` 390 28.80→28.25%, 1440 14.62% unchanged; `/blog/period-pain` unchanged. Pest 823 passed.
 - Open: `BlogListingController::digits()` and `SerpMeasure` still have inline digit maps.
+
+## L3-06 — Services and Plus pages
+- `ServicesController` (CollectionPage; emergency number + app links from settings; in-app care cards as `<li>`+h3, no
+  dead links; bottom cards → `directory.index`, `shop.index`), `PlusController` (WebPage; FAQ grid via L3-09 composer;
+  no Product/Offer). Views + `lang/fa/{services,plus}.php`, `ServicesPlusTest` (7). Route lines swapped.
+- Pricing: design only has placeholders → `plus.pricing.show` in `lang/fa/plus.php` defaults **off** («قیمت در اپ»;
+  free tier «۰ تومان» always shown); when on, integer Toman amounts render via `Toman::withUnit`. «با تخفیف» removed,
+  placeholder feature rows dropped. No countdown/scarcity.
+- Diff: links NULL services 12.12/8.24%, plus 26.33/9.89%; links filled services 1.31/0.77%, plus 390 16.2% (dropped
+  placeholder rows + design's `max-lg:flex-wrap` render bug not reproduced) / 1440 1.16%. `seo:audit` 0 errors.
+- Open: owner decision on prices (move to a `PlusSettings` group); seeded FAQ answer still shows
+  «[سیاست بازگشت وجه…]» on /plus; `promo-split` mobile padding (worked around with `max-sm:[&>a]:p-9`); `x-cards.pricing` not built.

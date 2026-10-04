@@ -70,3 +70,5 @@
 2026-10-04T14:33Z L3-06 -> in_progress
 2026-10-04T14:33Z L5-01 -> in_progress
 2026-10-04T14:33Z L3-01c -> done
+2026-10-04T14:34Z L3-03b -> in_progress
+2026-10-04T14:46Z L3-06 -> done
