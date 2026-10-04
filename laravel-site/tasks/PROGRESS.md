@@ -262,3 +262,15 @@ One section per finished task (appended by `/site-task`).
   versioning split out as **L2-01b** (immutable cache vs same-name regenerated variants).
 - Open: deploys should `php artisan cache:ns bump pages`; cookie-free public responses still write a session file
   (keep file sessions in production); use sha256 hashes, not nonces, for any future inline script.
+
+## L3-01 — Shared UI component kit from the audit
+- Anonymous Blade components (no queries; props/DTOs): `ui/{icon-tile,eyebrow,section-header,pill,chip-nav (links +
+  aria-current),accordion (<details>),alert-emergency,steps,stepper,timeline,success-hero,rating,price,toggle-row,
+  newsletter,gallery,store-badges,qr (real SVG QR via bacon, cached in media ns),app-cta,promise-banner,promo-split,
+  page-intro}`, `ui/form/{field,input,textarea,select,radio-card (has-checked:),checkbox}`, `cards/{stage,feature,
+  service,value,article,product,place,review}`, `stage/{tools-block,help-block,readings}`. L1-02 components untouched.
+- `docs/COMPONENTS.md` = hand-off for page tasks. Preview `/_components` (non-production) + `previews/components.blade.php`.
+  `tests/Feature/Components/ComponentKitTest.php` (14; also scans kit for `style=`, raw hex, physical left/right).
+- Open: Persian digits / Jalali / Toman helpers not built (app/Support outside touches) → follow-up **L3-01b**;
+  components use `Footer::persianDigits()` and an inline Toman formatter meanwhile. app-cta aside built as the design's
+  night card (AUDIT said white).

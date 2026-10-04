@@ -77,4 +77,5 @@ Route::withoutMiddleware([EncryptCookies::class, AddQueuedCookiesToResponse::cla
 // L1-02 shell preview for fidelity screenshots (tools/shot.mjs); never registered in production.
 if (! app()->isProduction()) {
     Route::view('/_preview/layout/{variant}', 'layouts.preview')->whereIn('variant', ['dark', 'light'])->name('preview.layout');
+    Route::view('/_components', 'previews.components')->name('preview.components'); // L3-01 component kit
 }

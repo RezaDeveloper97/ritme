@@ -3,7 +3,7 @@ id: L3-01
 title: Shared UI component kit from the audit
 milestone: L3
 type: frontend
-status: todo
+status: done
 depends_on: [L1-02,L2-02]
 parallel_group: L3-A
 touches: [resources/views/components/ui,resources/views/components/stage,resources/views/components/cards,resources/js/modules,docs/COMPONENTS.md]
