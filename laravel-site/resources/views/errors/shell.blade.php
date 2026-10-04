@@ -25,7 +25,7 @@
             <x-ui.breadcrumbs :items="$breadcrumbs" class="mb-6"/>
         @endif
         @isset($code)
-            <p class="font-display text-d-md leading-none text-primary">{{ strtr((string) $code, ['0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴', '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹']) }}</p>
+            <p class="font-display text-d-md leading-none text-primary">{{ fa_digits($code) }}</p>
         @endisset
         <h1 class="mt-4 font-display text-d-xl leading-display text-ink">{{ $title }}</h1>
         <p class="mt-4 max-w-[640px] text-xl leading-relaxed text-muted">{{ $message }}</p>

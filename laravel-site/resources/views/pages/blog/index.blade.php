@@ -22,8 +22,7 @@
 
     @if ($featured)
         <section class="flex flex-col gap-10 px-30 pt-6 pb-12 max-lg:px-5 max-lg:pb-[26.4px]">
-            {{-- Design keeps the text block's 32px top padding when the card wraps (x-cards.article drops it). --}}
-            <x-cards.article :post="$featured" featured as="h2" :reviewer="$featuredReviewer" class="max-lg:[&>span:last-child]:pt-8"/>
+            <x-cards.article :post="$featured" featured as="h2" :reviewer="$featuredReviewer"/>
         </section>
     @endif
 
@@ -32,8 +31,7 @@
         @if ($posts === [])
             <p class="m-0 rounded-4xl border border-line bg-surface p-8 text-lg leading-loose font-medium text-muted">{{ __('blog.empty') }}</p>
         @else
-            {{-- The design's card cover renders 180px + 2×18px padding (content-box); x-cards.article uses border-box h-45. --}}
-            <div class="grid grid-cols-3 gap-4.5 max-sm:grid-cols-1 [&_a>span:first-child]:h-54">
+            <div class="grid grid-cols-3 gap-4.5 max-sm:grid-cols-1">
                 @foreach ($posts as $post)
                     <x-cards.article :post="$post"/>
                 @endforeach
@@ -45,7 +43,8 @@
     </section>
 
     <div class="flex flex-col gap-3 px-30 pt-0 pb-24 max-lg:px-5 max-lg:pb-[52.8px]">
-        <x-ui.newsletter id="newsletter" name="email" :action="route('newsletter.store')"
+        <x-ui.newsletter id="newsletter" name="email" :action="route('newsletter.store')" :value="old('email')"
+                         :describedby="session('newsletter_status') ? 'newsletter-status' : null"
                          :title="__('blog.newsletter.title')" :text="__('blog.newsletter.text')"
                          :placeholder="__('blog.newsletter.placeholder')" :button="__('blog.newsletter.button')">
             <input type="hidden" name="source" value="{{ $newsletterSource }}">
@@ -53,14 +52,13 @@
                 <label for="newsletter-website">{{ __('blog.newsletter.honeypot') }}</label>
                 <input id="newsletter-website" type="text" name="{{ \App\Http\Controllers\Blog\NewsletterController::HONEYPOT }}" value="" tabindex="-1" autocomplete="off">
             </div>
+            @if ($errors->newsletter->has('email'))
+                <x-slot:error>{{ $errors->newsletter->first('email') }}</x-slot:error>
+            @endif
         </x-ui.newsletter>
         @if (session('newsletter_status'))
-            <p role="status" class="m-0 flex items-center gap-2 rounded-3xl bg-success-soft px-5 py-3.5 text-base font-bold text-success">
+            <p id="newsletter-status" role="status" class="m-0 flex items-center gap-2 rounded-3xl bg-success-soft px-5 py-3.5 text-base font-bold text-success">
                 <x-icon name="check" class="size-4.5 shrink-0"/>{{ session('newsletter_status') }}
-            </p>
-        @elseif ($errors->newsletter->has('email'))
-            <p role="alert" class="m-0 flex items-center gap-2 rounded-3xl bg-danger-soft px-5 py-3.5 text-base font-bold text-danger">
-                <x-icon name="alert-triangle" class="size-4.5 shrink-0"/>{{ $errors->newsletter->first('email') }}
             </p>
         @endif
     </div>

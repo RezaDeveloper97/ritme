@@ -26,8 +26,7 @@
         <x-ui.alert-emergency :number="$page->emergencyNumber">{{ $page->emergencyText }}</x-ui.alert-emergency>
     </x-ui.section>
 
-    {{-- Workaround (report: x-cards.article): the design's 180px cover is content-box (+ p-4.5 = 216px). --}}
-    <x-stage.readings class="[&_a>span:first-child]:box-content" :posts="$page->readings" :more-href="$page->readingsMoreUrl" :more-label="$page->copy['readingsMore']" :eyebrow="$page->copy['readingsEyebrow']" :title="$page->copy['readingsTitle']"/>
+    <x-stage.readings :posts="$page->readings" :more-href="$page->readingsMoreUrl" :more-label="$page->copy['readingsMore']" :eyebrow="$page->copy['readingsEyebrow']" :title="$page->copy['readingsTitle']"/>
 
     @include('pages.stages.partials.faq', ['eyebrow' => $page->copy['faqEyebrow'], 'title' => $page->faqTitle, 'items' => $page->faqProps(), 'group' => $page->faqGroup])
 

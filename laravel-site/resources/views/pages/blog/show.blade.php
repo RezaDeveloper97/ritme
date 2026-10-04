@@ -55,7 +55,7 @@
         <section aria-labelledby="related-title" class="flex flex-col gap-6 bg-surface px-30 pt-16 pb-24 max-lg:px-5 max-lg:pt-[35.2px] max-lg:pb-[52.8px]">
             <h2 id="related-title" class="m-0 font-display text-[30px] leading-heading font-normal text-ink">مقاله‌های مرتبط</h2>
             {{-- The design's card cover renders 180px + 2×18px padding (content-box); x-cards.article uses border-box h-45. --}}
-            <div class="grid grid-cols-3 gap-4.5 max-sm:grid-cols-1 [&_a>span:first-child]:h-54">
+            <div class="grid grid-cols-3 gap-4.5 max-sm:grid-cols-1 ">
                 @foreach ($page->related as $related)
                     <x-cards.article :post="$related"/>
                 @endforeach

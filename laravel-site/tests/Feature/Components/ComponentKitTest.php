@@ -75,6 +75,8 @@ it('hides empty store links and accepts the AppLinksSettings DTO', function (): 
     expect($html)->toContain('کافه‌بازار')->toContain('rel="noopener"')
         ->not->toContain('مایکت')->not->toContain('گوگل‌پلی')->not->toContain('javascript:');
     expect(trim(Blade::render('<x-ui.store-badges :links="null"/>')))->toBe('');
+    // Design badges are 52px + 1px border (content-box, 54px) — matches the app-cta height at 390.
+    expect($html)->toContain('box-content flex h-13');
 });
 
 it('renders a local, cached SVG QR code and nothing for an empty URL', function (): void {
@@ -140,6 +142,16 @@ it('renders an article card from a PostCardData DTO with the stage fallback cove
         ->toContain('<h3');
 });
 
+it('sizes article covers and the featured text block like the design (L3-01c)', function (): void {
+    // 180px cover + 2×18px padding as content-box in the design = 216px border-box.
+    $card = Blade::render('<x-cards.article href="/blog/x" title="عنوان" stage="cycle"/>');
+    expect($card)->toContain('relative flex h-54 items-end')->not->toContain('h-45');
+
+    // Featured: padding 32px 0 32px 32px at every width (no mobile override).
+    $featured = Blade::render('<x-cards.article href="/blog/x" title="عنوان" featured/>');
+    expect($featured)->toContain('py-8 ps-0 pe-8')->not->toContain('max-lg:pt-0')->not->toContain('max-lg:px-6');
+});
+
 it('renders stage blocks and hides readings when there are no posts', function (): void {
     $tools = Blade::render('<x-stage.tools-block :items="$items"/>', ['items' => [
         ['href' => '/tools', 'icon' => 'calculator', 'color' => 'ttc', 'title' => 'محاسبه', 'where' => 'روی سایت'],
@@ -151,5 +163,25 @@ it('renders stage blocks and hides readings when there are no posts', function (
 
 it('renders the newsletter as a labelled form that is disabled until wired', function (): void {
     $html = Blade::render('<x-ui.newsletter/>');
-    expect($html)->toContain('<label for="newsletter-input"')->toContain('disabled')->not->toContain('action=');
+    expect($html)->toContain('<label for="newsletter-input"')->toContain('disabled')->not->toContain('action=')
+        ->toContain('p-9')->not->toContain('max-sm:p-6')->not->toContain('aria-invalid="true"')->not->toContain('aria-describedby');
+});
+
+it('refills the newsletter field and wires describedby and the error slot', function (): void {
+    $html = Blade::render(<<<'BLADE'
+        <x-ui.newsletter id="nl" action="/newsletter" name="email" value="a@b.test" describedby="nl-status">
+            <x-slot:error>نشانی درست نیست</x-slot:error>
+        </x-ui.newsletter>
+        BLADE);
+
+    expect($html)->toContain('value="a@b.test"')
+        ->toContain('aria-describedby="nl-status nl-error"')
+        ->toContain('aria-invalid="true"')
+        ->toContain('<p id="nl-error" role="alert"')
+        ->toContain('نشانی درست نیست');
+
+    $plain = Blade::render('<x-ui.newsletter id="nl" action="/newsletter" describedby="nl-status"/>');
+    preg_match('~<input id="nl-input"[^>]*>~', $plain, $input);
+    expect($plain)->toContain('aria-describedby="nl-status"')->not->toContain('nl-error')
+        ->and($input[0] ?? '')->not->toContain('value=');
 });

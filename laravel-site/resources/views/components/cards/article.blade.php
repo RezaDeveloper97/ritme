@@ -5,6 +5,8 @@
     Article card (AUDIT §2.3: index, blog, article related, stage «برای همین مرحله»): radius 24, 180px cover —
     <x-picture> of the cover when there is one, else the stage gradient (`stage/33 → stage/7`) with a book icon — stage
     label in the stage colour, title 18 lh 1.7 (h3), «مطالعه ۵ دقیقه». Explicit props override the DTO's values.
+    The design's cover is 180px + 18px padding as content-box, so the (border-box) cover is h-54 = 216px. The featured
+    text block keeps the design's `32px 0 32px 32px` padding (ps-0 pe-8) at every width, also when the card wraps.
 --}}
 @props([
     'post' => null,
@@ -51,7 +53,7 @@
             <x-icon name="book" class="size-22.5 {{ $labelColor }}" stroke="1.8"/>
         @endif
     </span>
-    <span class="flex flex-col gap-3.5 py-8 pe-8 max-lg:px-6 max-lg:pt-0">
+    <span class="flex flex-col gap-3.5 py-8 ps-0 pe-8">
         <span class="text-base font-extrabold text-primary">{{ $label }}@if ($minutesText) · {{ $minutesText }} دقیقه @endif</span>
         <{{ $as }} class="m-0 font-display text-[34px] leading-heading font-normal text-ink">{{ $title }}</{{ $as }}>
         @if ($excerpt)<span class="text-lg leading-loose font-medium text-muted">{{ $excerpt }}</span>@endif
@@ -60,7 +62,7 @@
 </a>
 @else
 <a href="{{ $href }}" {{ $attributes->class('flex flex-col overflow-hidden rounded-4xl border border-line bg-surface text-ink transition-shadow hover:text-ink hover:shadow-card') }}>
-    <span class="relative flex h-45 items-end overflow-hidden bg-linear-135/srgb p-4.5 {{ $gradient }}">
+    <span class="relative flex h-54 items-end overflow-hidden bg-linear-135/srgb p-4.5 {{ $gradient }}">
         @if ($media)
             <x-picture :media="$media" :mobile="$mobileMedia" decorative sizes="(max-width: 700px) 100vw, 33vw" picture-class="absolute inset-0" class="size-full object-cover"/>
         @else

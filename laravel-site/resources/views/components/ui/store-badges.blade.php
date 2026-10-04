@@ -1,6 +1,6 @@
 {{--
     <x-ui.store-badges :links="$appLinks" tone="dark|light"/>
-    The four download badges (کافه‌بازار، مایکت، گوگل‌پلی، نسخه iOS): 52px, radius 14, «دریافت از» 10.5px at 75%
+    The four download badges (کافه‌بازار، مایکت، گوگل‌پلی، نسخه iOS): 52px content + 1px border (54, as the design), radius 14, «دریافت از» 10.5px at 75%
     (AUDIT §2.2). `links` is the `AppLinksSettings` DTO (or a store-key ⇒ URL array) handed down by the controller —
     this component never reads settings itself. A badge whose link is empty (or not http(s)/relative) is hidden;
     nothing renders when all are empty.
@@ -22,7 +22,7 @@
 @if ($badges !== [])
 <ul {{ $attributes->class('m-0 flex list-none flex-wrap gap-2.5 p-0') }} aria-label="دریافت اپ ریتمی">
     @foreach ($badges as $badge)
-        <li><a href="{{ $badge['url'] }}" @if ($badge['external']) rel="noopener" @endif class="flex h-13 items-center gap-2.5 rounded-lg border px-4.5 text-base font-extrabold transition-colors {{ $badgeClasses }}">
+        <li><a href="{{ $badge['url'] }}" @if ($badge['external']) rel="noopener" @endif class="box-content flex h-13 items-center gap-2.5 rounded-lg border px-4.5 text-base font-extrabold transition-colors {{ $badgeClasses }}">
             <x-icon name="download" class="size-4.5"/>
             <span class="flex flex-col leading-snug"><span class="text-2xs font-semibold opacity-75">دریافت از</span>{{ $badge['label'] }}</span>
         </a></li>

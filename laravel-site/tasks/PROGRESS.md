@@ -446,3 +446,12 @@ One section per finished task (appended by `/site-task`).
 - `FeedSearchTest` (21). Updated ErrorPages/HeadComponent/SeoManager tests that asserted the routes' absence.
 - Orchestrator: `PostSlugger::RESERVED` (feed, category, tag, author, page, search) + test.
 - Open: no search box in header/mobile menu yet (layout components); MySQL FULLTEXT not added; term log in cache.
+
+## L3-01c — Kit fixes from page fidelity
+- `cards/article` cover `h-54` (216 px like the design), featured text `py-8 ps-0 pe-8` at all widths;
+  `ui/store-badges` content-box 54 px (app-cta 390 height now equals the design); `ui/newsletter` `value`,
+  `describedby`, named `error` slot (aria-invalid/aria-describedby), keeps `p-9` on mobile. Page workarounds removed
+  (stages/show, blog/index, blog/show). Error views use `fa_digits()`. Footer badges already match the design.
+- Diff before → after (NULL app links): `/` 390 43.02→42.50%, 1440 6.99→4.61%; `/cycle` unchanged 7.47/4.84%;
+  `/blog` 390 28.80→28.25%, 1440 14.62% unchanged; `/blog/period-pain` unchanged. Pest 823 passed.
+- Open: `BlogListingController::digits()` and `SerpMeasure` still have inline digit maps.

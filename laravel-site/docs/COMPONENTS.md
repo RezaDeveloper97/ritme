@@ -57,7 +57,7 @@ Rules that hold for all of them:
 | `rating` | `value`, `count`, `size` xs\|sm\|md, `stars` | `<x-ui.rating :value="4.8" :count="126"/>` | shop*, directory* |
 | `price` | `amount` (int toman), `compare`, `from`, `unit`, `size` md\|lg\|inline, `currency` | `<x-ui.price :amount="320000" from unit="هر جلسه" size="lg"/>` | shop*, directory, directory-place, directory-booked, directory-business |
 | `toggle-row` | `title`, `text`, `variant` status\|switch, `checked`, `default-label`, `divided` | `<x-ui.toggle-row title="…" text="…" divided/>` | privacy (consents), shop (reminder) |
-| `newsletter` | `title`, `text`, `action` (null = disabled), `placeholder`, `button`, `name`, `id`; slot | `<x-ui.newsletter :action="route('newsletter.store')"/>` | blog (L4-02 wires it) |
+| `newsletter` | `title`, `text`, `action` (null = disabled), `placeholder`, `button`, `name`, `id`, `value` (old input), `describedby`; named slot `error` (alert row + aria-invalid); slot | `<x-ui.newsletter :action="route('newsletter.store')"/>` | blog (L4-02 wires it) |
 | `gallery` | `images` (MediaData\|ids), `variant` mosaic\|product, `alt`, `total`, `more-href` | `<x-ui.gallery :images="$photos" alt="…" :total="12" more-href="#photos"/>` | directory-place, shop-product (lightbox: L5-03/L6-03) |
 | `store-badges` | `links` (AppLinksSettings or key⇒url array), `tone` dark\|light | `<x-ui.store-badges :links="$appLinks"/>` | footer (own markup, L1-02), every app CTA |
 | `qr` | `url`, `label`, `size` | `<x-ui.qr :url="$appLinks->webApp"/>` | 13 app-CTA pages |
@@ -114,5 +114,11 @@ link (no nested interactive content) and are inert until L6/L5 wire them.
 - Done in L3-01b: components use `fa_digits()` / `PersianDigits` / `Toman`; `Footer::persianDigits()` is gone.
   `resources/views/errors/*` and `app/Filament/Components/Seo/SerpMeasure.php` still inline a digit map (outside
   L3-01b's touches) — switch them to `fa_digits()` when next touched.
+- L3-01c: article cover is `h-54` (= design 180 + 2×18 content-box), featured text `py-8 ps-0 pe-8` at all widths,
+  store badges 54px (`box-content`, fixes app-cta height at 390), newsletter keeps `p-9` on mobile; page workarounds in
+  stages/show and blog/index removed. Footer badges already match the design (row at 390; the design itself stacks
+  them at 1440 in its ~219px brand column). Error views use `fa_digits()`. Still open: `pages/blog/show.blade.php`
+  keeps a now-redundant `[&_a>span:first-child]:h-54`; `BlogListingController::digits()` and `SerpMeasure` still
+  inline a digit map (outside L3-01c's touches).
 - `x-ui.qr` and `x-ui.store-badges` keep their (small) logic in Blade because `app/View/Components` is outside
   `touches`; moving them to class components is a mechanical follow-up.

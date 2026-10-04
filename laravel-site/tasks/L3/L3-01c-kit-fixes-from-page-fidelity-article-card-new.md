@@ -3,7 +3,7 @@ id: L3-01c
 title: Kit fixes from page fidelity: article card, newsletter input, store badges, app-cta
 milestone: L3
 type: frontend
-status: todo
+status: done
 depends_on: [L3-02,L3-03,L4-02]
 parallel_group: L3-A
 touches: [resources/views/components/ui,resources/views/components/cards,resources/views/components/layout,resources/views/pages/stages/show.blade.php,resources/views/pages/blog/index.blade.php,resources/views/pages/home,resources/views/pages/blog/partials,tests/Feature/Components]
