@@ -119,3 +119,19 @@ One section per finished task (appended by `/site-task`).
   `node tools/shot.mjs --design <page>.html --route <route> --out docs/qa/<TASK-ID>`.
 - Open: parameterised routes need an explicit `--route`; height mismatches count fully in the diff; unit tests for the
   exported helpers not added (tests/tools not in touches).
+
+## L1-08 — Filament v4 admin foundation: Persian RTL, local fonts, roles, activity log
+- Packages: filament/filament ^4 (4.14, livewire 3.8), spatie/laravel-permission ^6, spatie/laravel-activitylog ^4.10,
+  bacon/bacon-qr-code ^3 (TOTP QR as SVG). composer post-autoload-dump runs `filament:upgrade` (public/*/filament, gitignored).
+- `AdminPanelProvider` (path `config('filament.admin.path')`, fa/RTL, local Vazirmatn via `LocalFontProvider` + vite
+  theme `resources/css/filament/admin/theme.css`, brand from settings, TOTP MFA + recovery codes, local initials avatar,
+  `EnforceSessionTimeout`, `RequireMultiFactorForRoles`, `admin:create`).
+- `app/Filament`: `AdminRole` (6 roles), deny-by-default `AdminAccess` + policies, Users (super-admin only) and
+  Activities (read-only) resources, Settings pages (General/Contact/Social/AppLinks/Legal via `UpdateSettings`), overview widget.
+- Migrations 000800 (users admin columns), 000810 (permission tables), 000820 (activity log). `AdminRolesSeeder`;
+  test user removed from `DatabaseSeeder` (no users seeded). First admin: `php artisan migrate --seed && php artisan admin:create`.
+- Env: `ADMIN_PATH` (admin), `ADMIN_SESSION_TIMEOUT` (60). `config/blade-icons.php` disables blade-icons components so
+  `<x-icon>` stays ours. `phpunit.xml` memory_limit 512M.
+- Verify: pest 229 passed; no external requests on /admin (shot.mjs + network log).
+- Open: panel logo waits for L2; Jalali dates in tables need a Support helper; admin theme CSS 67 KB gzip (admin only);
+  L10 package must ship `php artisan filament:assets` output; tune primary button shade if contrast is an issue.

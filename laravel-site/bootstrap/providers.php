@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Providers\AppServiceProvider;
 use App\Providers\Domain;
+use App\Providers\Filament\AdminPanelProvider;
 
 return [
     AppServiceProvider::class,
@@ -20,4 +21,7 @@ return [
     Domain\DirectoryServiceProvider::class,
     Domain\ShopServiceProvider::class,
     Domain\PwaServiceProvider::class,
+
+    // Delivery: Filament admin panel (L1-08).
+    AdminPanelProvider::class,
 ];

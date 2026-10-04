@@ -3,7 +3,7 @@ id: L1-08
 title: Filament v4 admin foundation: Persian RTL, local fonts, roles, activity log
 milestone: L1
 type: admin
-status: todo
+status: done
 depends_on: [L1-01]
 parallel_group: L1-F
 touches: [app/Filament,app/Providers/Filament,app/Models/User.php,database/migrations,database/seeders,resources/css/filament,config/filament.php,config/permission.php,tests/Feature/Admin]

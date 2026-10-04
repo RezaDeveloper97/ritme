@@ -1,0 +1,15 @@
+/*
+ * Filament admin theme (L1-08) — compiled by Vite, registered with ->viteTheme() in AdminPanelProvider.
+ * Fonts: the site's self-hosted Vazirmatn (resources/fonts, fingerprinted by Vite). Filament's Bunny Fonts provider is
+ * replaced by LocalFontProvider, so the panel makes no external requests.
+ * Brand colour: config('filament.admin.brand_color') mirrors --color-primary of resources/css/app.css.
+ */
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+@import '../../fonts.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+:root {
+    --font-family: 'Vazirmatn', ui-sans-serif, system-ui, sans-serif;
+}
