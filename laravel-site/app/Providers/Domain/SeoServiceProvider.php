@@ -18,7 +18,10 @@ use App\Domain\Seo\Sitemap\PagesSitemapProvider;
 use App\Domain\Seo\Sitemap\RobotsRules;
 use App\Domain\Seo\Sitemap\SitemapRegistry;
 use App\Providers\DomainServiceProvider;
+use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Routing\UrlGenerator;
+use Illuminate\Routing\Router;
 
 final class SeoServiceProvider extends DomainServiceProvider
 {
@@ -49,6 +52,14 @@ final class SeoServiceProvider extends DomainServiceProvider
         $this->app->rebinding('request', static function (Application $app): void {
             $app->forgetInstance(SeoManager::class);
             $app->forgetInstance(SchemaGraph::class);
+        });
+
+        // WebSite SearchAction (L4-04) once the `search` route exists: {site}/search?q={search_term_string}.
+        $this->app->afterResolving(SchemaGraph::class, static function (SchemaGraph $graph, Application $app): void {
+            if ($app->make(Router::class)->has('search')) {
+                $path = $app->make(UrlGenerator::class)->route('search', [], false);
+                $graph->searchUrlTemplate(rtrim((string) $app->make(Config::class)->get('app.url'), '/').$path.'?q={search_term_string}');
+            }
         });
 
         // Sitemap files (L1-06). Other contexts tag their own providers the same way in their service provider.

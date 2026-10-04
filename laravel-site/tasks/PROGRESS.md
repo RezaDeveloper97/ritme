@@ -434,3 +434,15 @@ One section per finished task (appended by `/site-task`).
 - Open: /faq copy in Blade/controller (move to `lang/fa/faq.php`); design placeholders seeded verbatim for editors;
   blog `CategoryResource` drag-sort doesn't bump cache; controllers holding request-scoped SchemaGraph/SeoManager in
   constructors keep stale graphs across multiple requests within one test.
+
+## L4-04 — RSS feed, site search, WebSite SearchAction
+- `FeedController` `/blog/feed` (`blog.feed`, before `/{slug}`, no session/cookies): RSS 2.0, 30 latest, absolute https,
+  RFC 822 dates, permalink guids, OG-crop enclosure; XML cached in `blog` ns. `<x-seo.head/>` now prints the alternate link.
+- `/search` (`search`, `throttle:30,1`, noindex meta + `X-Robots-Tag`, never page-cached, SearchResultsPage, GET form).
+  `app/Domain/Search`: `SearchTerms` (Persian normalisation ي/ك/ة/ZWNJ/tatweel/diacritics/digits, ≤5 tokens),
+  `SearchRegistry` (posts + FAQ built in; others via `SearchRegistry::TAG` — L5/L6), anonymous daily term log in cache
+  (35 days, `zeroResults()` for L7-05), `SearchSite` (merge + rank, 300 s cache in `pages`). `Blog/Queries/SearchPosts`
+  (LIKE + LOWER/REPLACE chain, works on SQLite + MySQL). `searchUrlTemplate()` wired → WebSite SearchAction.
+- `FeedSearchTest` (21). Updated ErrorPages/HeadComponent/SeoManager tests that asserted the routes' absence.
+- Orchestrator: `PostSlugger::RESERVED` (feed, category, tag, author, page, search) + test.
+- Open: no search box in header/mobile menu yet (layout components); MySQL FULLTEXT not added; term log in cache.

@@ -7,9 +7,11 @@ use App\Http\Controllers\Blog\BlogListingController;
 use App\Http\Controllers\Blog\NewsletterController;
 use App\Http\Controllers\Blog\ShowPostController;
 use App\Http\Controllers\FaqController;
+use App\Http\Controllers\FeedController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PlaceholderPageController;
 use App\Http\Controllers\PrivacyController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Seo\RobotsTxtController;
 use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Seo\SitemapIndexController;
@@ -53,11 +55,18 @@ Route::get('/terms', TermsController::class)->name('terms');                    
 Route::get('/faq', FaqController::class)->name('faq');                                           // L3-09
 Route::get('/contact', PlaceholderPageController::class)->name('contact');                         // L3-10
 
+// Site search (L4-04): noindex + never page-cached (route name `search`, SeoManager::NOINDEX_ROUTES), rate limited per IP.
+Route::get('/search', SearchController::class)->middleware('throttle:'.SearchController::PER_MINUTE.',1')->name('search');
+
 Route::prefix('blog')->name('blog.')->group(function (): void {
     Route::get('/', [BlogListingController::class, 'index'])->name('index');                       // L4-02
     Route::get('/category/{slug}', [BlogListingController::class, 'category'])->name('category');  // L4-02
     Route::get('/tag/{slug}', [BlogListingController::class, 'tag'])->name('tag');                 // L4-02
     Route::get('/author/{slug}', [BlogListingController::class, 'author'])->name('author');        // L4-02
+    // RSS 2.0 (L4-04): before `/{slug}`; cached XML, no session or cookies (like the crawler files below).
+    Route::get('/feed', FeedController::class)
+        ->withoutMiddleware([EncryptCookies::class, AddQueuedCookiesToResponse::class, StartSession::class, ShareErrorsFromSession::class, ValidateCsrfToken::class])
+        ->name('feed');
     Route::get('/{slug}', ShowPostController::class)->name('show');                                // L4-03
 });
 

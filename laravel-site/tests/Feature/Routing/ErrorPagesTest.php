@@ -64,11 +64,6 @@ it('does not query the database for a 404 once settings are cached', function ()
     expect(DB::getQueryLog())->toBe([]);
 });
 
-it('shows the search link only once the search route exists', function (): void {
-    expect($this->get('/nope')->getContent())->not->toContain('جست‌وجو در ریتمی');
-
-    Route::get('/search', static fn () => 'search')->name('search');
-    app('router')->getRoutes()->refreshNameLookups();
-
+it('links the site search from error pages (route `search`, L4-04)', function (): void {
     expect($this->get('/nope')->getContent())->toContain('جست‌وجو در ریتمی')->toContain('href="/search"');
 });

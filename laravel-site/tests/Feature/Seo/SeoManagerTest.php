@@ -50,7 +50,7 @@ it('falls back to the settings defaults', function (): void {
             'og:title' => $defaults->defaultTitle,
         ])
         ->and($head->twitter['twitter:card'])->toBe('summary')
-        ->and($head->feeds)->toBe([]);
+        ->and(array_column($head->feeds, 'href'))->toBe([route('blog.feed')]); // L4-04
 });
 
 it('layers defaults, then static page meta, then model meta, then controller overrides', function (): void {

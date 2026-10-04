@@ -17,6 +17,9 @@ final class PostSlugger
 {
     public const MAX_LENGTH = 120;
 
+    /** Fixed routes under /blog that a post slug must never shadow (/blog/feed, /blog/category/…). */
+    public const RESERVED = ['feed', 'category', 'tag', 'author', 'page', 'search'];
+
     /**
      * Called while saving: fills an empty slug from the title, normalises and de-duplicates a new/changed one.
      */
@@ -66,6 +69,10 @@ final class PostSlugger
 
     private function taken(string $slug, ?int $ignoreId): bool
     {
+        if (in_array($slug, self::RESERVED, true)) {
+            return true;
+        }
+
         $live = Post::query()->where('slug', $slug)->when($ignoreId !== null, static fn ($q) => $q->whereKeyNot($ignoreId))->exists();
 
         return $live || PostSlug::query()->where('slug', $slug)->when($ignoreId !== null, static fn ($q) => $q->where('post_id', '!=', $ignoreId))->exists();

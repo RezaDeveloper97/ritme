@@ -3,7 +3,7 @@ id: L4-04
 title: RSS feed, site search, WebSite SearchAction
 milestone: L4
 type: backend
-status: todo
+status: done
 depends_on: [L4-03]
 parallel_group: L4-C
 touches: [app/Http/Controllers/FeedController.php,app/Http/Controllers/SearchController.php,app/Domain/Search,resources/views/pages/search.blade.php,resources/views/feed,routes/web.php,tests/Feature/FeedSearchTest.php]

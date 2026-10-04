@@ -37,7 +37,7 @@ it('renders a complete head from <x-seo.head/> with zero per-view boilerplate', 
         ->toContain('<meta name="google-site-verification" content="g-token">')
         ->not->toContain('rel="prev"')
         ->not->toContain('rel="next"')
-        ->not->toContain('application/rss+xml')
+        ->toContain('<link rel="alternate" type="application/rss+xml"') // blog.feed (L4-04)
         ->and(substr_count($html, '<title>'))->toBe(1);
 });
 
