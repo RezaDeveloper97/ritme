@@ -3,7 +3,7 @@ id: L1-04
 title: Structured data (JSON-LD graph) builders
 milestone: L1
 type: backend
-status: todo
+status: done
 depends_on: [L1-03]
 parallel_group: L1-C
 touches: [app/Domain/Seo/Schema,tests/Unit/Seo/Schema]

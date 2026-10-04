@@ -63,3 +63,10 @@ KISS, YAGNI — no folder, interface or decorator before a task needs it.
 3. Contract → `Eloquent*` → `Cached*`, register in `$repositories`; observer bumps the cache namespaces it affects
    (incl. `pages`).
 4. Add the context name to `tests/Arch/DomainServiceProviderTest.php`.
+
+## Structured data (JSON-LD)
+
+Hand-rolled builders in `app/Domain/Seo/Schema` instead of `spatie/schema-org`: we need ~12 node types, plain
+arrays are easier to merge by `@id` and to override from the admin, and it avoids a large generated dependency.
+One request-scoped `SchemaGraph` collects nodes; `<x-seo.head/>` renders it once (`PageGraph`) as a single
+`@graph` script. Rules per type: `docs/SEO.md`.

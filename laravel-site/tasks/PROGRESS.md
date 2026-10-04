@@ -87,3 +87,14 @@ One section per finished task (appended by `/site-task`).
 - `docs/AUDIT.md` §4.3 added; `tests/Feature/View/SvgComponentsTest.php` (12 tests). No sprite preload (reason in tool header).
 - Orchestrator placed `Illustration.php`, its test and AUDIT §4.3 (outside touches). Pest 171 passed.
 - Note: illustrations keep their multi-colour hex fills (SVG artwork, not CSS) — deliberate exception to the hex rule.
+
+## L1-04 — Structured data (JSON-LD graph) builders
+- Hand-rolled builders (no spatie/schema-org; reason in ARCHITECTURE "Structured data"): `app/Domain/Seo/Schema/` —
+  scoped `SchemaGraph` (merge by `@id`, breadcrumbs, `reviewedBy`, `searchUrlTemplate` for L4-04, JSON_HEX_TAG),
+  `PageGraph` (auto Organization/WebSite/WebPage/BreadcrumbList + `schema_overrides`), stable `SchemaIds`, nodes for
+  Organization, WebSite, WebPage, Person, BreadcrumbList, MobileApplication, FAQPage, BlogPosting, Product,
+  LocalBusiness, ItemList, typed DTOs + enums.
+- Wired: `SeoServiceProvider` (scoped graph), `<x-seo.head/>` prints one `ld+json` script. `docs/SEO.md` (Rich Results
+  requirements per builder). Tests incl. snapshot `tests/Unit/Seo/Schema/snapshots/sample-graph.json`.
+- Open: legacy `@stack('seo.jsonld')` kept (L1-03 test); breadcrumbs must be registered before the head renders
+  (L1-02 breadcrumbs component → `SchemaGraph::breadcrumbs()`); Organization logo waits for L2's OgImageResolver.

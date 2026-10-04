@@ -10,6 +10,7 @@ use App\Domain\Seo\Models\SeoMeta;
 use App\Domain\Seo\Observers\SeoMetaObserver;
 use App\Domain\Seo\Repositories\CachedSeoMetaRepository;
 use App\Domain\Seo\Repositories\EloquentSeoMetaRepository;
+use App\Domain\Seo\Schema\SchemaGraph;
 use App\Domain\Seo\SeoManager;
 use App\Domain\Seo\Support\NullOgImageResolver;
 use App\Providers\DomainServiceProvider;
@@ -36,9 +37,12 @@ final class SeoServiceProvider extends DomainServiceProvider
 
         // One SeoManager per request: controller overrides must never leak into the next request
         // (in-process sub-requests of seo:audit, tests, queue workers).
+        // Same for the JSON-LD graph pages add their nodes to.
         $this->app->scoped(SeoManager::class);
+        $this->app->scoped(SchemaGraph::class);
         $this->app->rebinding('request', static function (Application $app): void {
             $app->forgetInstance(SeoManager::class);
+            $app->forgetInstance(SchemaGraph::class);
         });
     }
 }

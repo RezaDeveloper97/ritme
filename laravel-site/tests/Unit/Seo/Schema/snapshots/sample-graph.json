@@ -1,0 +1,97 @@
+{
+    "@context": "https://schema.org",
+    "@graph": [
+        {
+            "@type": "Organization",
+            "@id": "https://ritme.test/#organization",
+            "name": "ریتمی",
+            "alternateName": "Ritme",
+            "legalName": "ریتمی",
+            "url": "https://ritme.test/",
+            "logo": {
+                "@type": "ImageObject",
+                "@id": "https://ritme.test/#logo",
+                "url": "https://ritme.test/media/logo.png",
+                "contentUrl": "https://ritme.test/media/logo.png",
+                "width": 512,
+                "height": 512,
+                "caption": "ریتمی",
+                "encodingFormat": "image/png"
+            },
+            "image": {
+                "@id": "https://ritme.test/#logo"
+            },
+            "foundingDate": "2025",
+            "email": "support@ritme.test",
+            "sameAs": [
+                "https://instagram.com/ritme",
+                "https://linkedin.com/company/ritme",
+                "https://aparat.com/ritme"
+            ],
+            "contactPoint": {
+                "@type": "ContactPoint",
+                "contactType": "customer support",
+                "telephone": "021-0000",
+                "email": "support@ritme.test",
+                "areaServed": "IR",
+                "availableLanguage": [
+                    "fa"
+                ]
+            }
+        },
+        {
+            "@type": "WebSite",
+            "@id": "https://ritme.test/#website",
+            "url": "https://ritme.test/",
+            "name": "ریتمی",
+            "alternateName": "Ritme",
+            "description": "همراه سلامت زنان.",
+            "inLanguage": "fa-IR",
+            "publisher": {
+                "@id": "https://ritme.test/#organization"
+            }
+        },
+        {
+            "@type": "AboutPage",
+            "@id": "https://ritme.test/about#webpage",
+            "url": "https://ritme.test/about",
+            "name": "درباره ما — ریتمی",
+            "description": "چرخه‌ات را بشناس.",
+            "inLanguage": "fa-IR",
+            "isPartOf": {
+                "@id": "https://ritme.test/#website"
+            },
+            "primaryImageOfPage": {
+                "@type": "ImageObject",
+                "@id": "https://ritme.test/about#primaryimage",
+                "url": "https://ritme.test/about.jpg",
+                "contentUrl": "https://ritme.test/about.jpg",
+                "width": 1200,
+                "height": 630,
+                "caption": "چرخه",
+                "encodingFormat": "image/jpeg"
+            },
+            "breadcrumb": {
+                "@id": "https://ritme.test/about#breadcrumb"
+            }
+        },
+        {
+            "@type": "BreadcrumbList",
+            "@id": "https://ritme.test/about#breadcrumb",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "خانه",
+                    "item": "https://ritme.test/"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "درباره ما",
+                    "item": "https://ritme.test/about"
+                }
+            ]
+        }
+    ]
+}
