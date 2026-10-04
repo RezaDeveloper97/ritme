@@ -16,14 +16,13 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge tone={STATUS_TONE[status] ?? 'neutral'}>{t.has(status as 'active') ? t(status as 'active') : status}</Badge>;
 }
 
-function Person({ person }: { person: { id: number; name: string | null; mobile: string | null } | null }) {
+function Person({ person }: { person: { name: string | null; mobile: string | null } | null }) {
   const t = useTranslations('companions.links');
-  const locale = useLocale();
   if (!person) return <span className="text-muted">{t('notJoined')}</span>;
   return (
     <span className="flex flex-col items-start">
       <span className="font-semibold" dir="auto">
-        {person.name ?? t('userNumber', { id: formatNumber(person.id, locale) })}
+        {person.name ?? '•••'}
       </span>
       {person.mobile ? (
         <span dir="ltr" className="text-xs text-muted">

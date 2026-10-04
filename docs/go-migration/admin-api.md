@@ -583,8 +583,22 @@ default_language | built_in`. Audit lines: `companion_tip.update` (attrs `phase`
 
 | Method | Path | Role | Query | `data` |
 |---|---|---|---|---|
-| GET | `/companions/links` | A | `status=all\|invited\|active\|revoked`, `type=all\|partner\|spouse` (unknown → `all`), `page`, `per_page` | list, newest first (`created_at DESC, id DESC`), items `{id, type, status, label, owner{id, name, mobile}, companion{id, name, mobile}\|null, invite{phone, expires_at, expired}\|null (status invited only), grants_count, invited_at, accepted_at, revoked_at, revoked_by, created_at}` + `filters{status, type}` + `counts{by_status{all, invited, active, revoked}, by_type{partner{…, all}, spouse{…, all}}}` (over every link, not the filter) + `statuses[]` + `types[]` |
+| GET | `/companions/links` | S | `status=all\|invited\|active\|revoked`, `type=all\|partner\|spouse\|parent` (unknown → `all`), `page`, `per_page` | list, newest first (`created_at DESC, id DESC`), items `{id, type, status, label, owner{name, mobile}, companion{name, mobile}\|null, invite{phone, expires_at, expired}\|null (status invited only), grants_count, invited_at, accepted_at, revoked_at, revoked_by, created_at}` + `filters{status, type}` + `counts{by_status{all, invited, active, revoked}, by_type{partner{…, all}, spouse{…, all}}}` (over every link, not the filter) + `statuses[]` + `types[]` |
 
-Masking: names and the owner's label keep the first letter (`س•••`), mobiles and the invite phone keep 4 + 4 digits
-(`0912•••4567`). Never sent: invite codes or their hash, attempts, which sections are shared (only `grants_count`),
-anything of the owner's health data. The full mobile stays on `/users/:id`.
+Masking: names and the owner's label keep the first letter (`س•••`), mobiles and the invite phone keep only the
+last 2 digits (`•••••••••67`). Never sent: user ids (B-N4-08b, CMP-L6: the relationship graph), invite codes or their
+hash, attempts, which sections are shared (only `grants_count`), anything of the owner's health data. Super admins only
+(CMP-L6).
+
+## 17. AI usage and cost (B-N6-05)
+
+Aggregates of `ai_usage_logs` (one row per AI provider call: feature, op, provider, model, tokens, audio / image
+bytes, estimated cost in micro-USD from `AI_PRICES`, latency, ok — never content). Any active admin (**A**): no user
+ids, no content. The admin-web screen comes with B-N9.
+
+| Method | Path | Role | Body / query | `data` |
+|---|---|---|---|---|
+| GET | `/ai/usage` | A | `from`, `to` (`Y-m-d`, Tehran days, inclusive; default the last 30 days up to today; ≤ 92 days, 422 `validation_failed` otherwise) | `{from, to, today{spent_micros, spent_usd, cap_micros, cap_usd, exhausted}, totals{calls, ok_calls, input_tokens, output_tokens, cost_micros, cost_usd}, by_day[{day, calls, ok_calls, input_tokens, output_tokens, cost_micros, cost_usd}], by_feature[{feature, provider, model, calls, ok_calls, users, input_tokens, output_tokens, audio_bytes, image_bytes, avg_latency_ms, cost_micros, cost_usd}]}` (by_feature: highest cost first) |
+
+`today` is the spend of the current Tehran day against `AI_DAILY_COST_CAP_USD`; `exhausted: true` means every AI
+feature currently answers 503 `ai_budget_exhausted`.

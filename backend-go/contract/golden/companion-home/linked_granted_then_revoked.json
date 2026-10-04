@@ -161,7 +161,9 @@
       },
       "status": 200,
       "headers": {
-        "content-type": "application/json"
+        "content-type": "application/json",
+        "x-ratelimit-limit": "300",
+        "x-ratelimit-remaining": "299"
       },
       "body": {
         "success": true,
@@ -340,7 +342,9 @@
       },
       "status": 200,
       "headers": {
-        "content-type": "application/json"
+        "content-type": "application/json",
+        "x-ratelimit-limit": "300",
+        "x-ratelimit-remaining": "298"
       },
       "body": {
         "success": true,

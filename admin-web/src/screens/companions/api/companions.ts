@@ -91,7 +91,8 @@ export function useResetCompanionTips() {
 // ---------------------------------------------------------------------------
 // Link overview (read-only, masked)
 
-const personSchema = z.object({ id: z.number(), name: z.string().nullable(), mobile: z.string().nullable() });
+// No user id since B-N4-08b (CMP-L6): masked name + last 2 digits of the mobile only.
+const personSchema = z.object({ name: z.string().nullable(), mobile: z.string().nullable() });
 
 export const companionLinkSchema = z.object({
   id: z.number(),

@@ -2,6 +2,7 @@ package companions
 
 import (
 	"database/sql"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -34,7 +35,8 @@ func filter(v string, allowed []string) (string, string) {
 	return filterAll, "%"
 }
 
-// MaskMobile hides the middle of a mobile number like the other admin lists: 0912•••6789; short numbers fully.
+// MaskMobile keeps only the last 2 digits of a mobile number: 09123456789 → •••••••••89 (CMP-L6: the invited number
+// is one the owner typed and may belong to someone who never signed up); short numbers fully.
 func MaskMobile(m sql.NullString) any {
 	if !m.Valid || m.String == "" {
 		return nil
@@ -43,7 +45,7 @@ func MaskMobile(m sql.NullString) any {
 	if len(r) < 9 {
 		return "•••"
 	}
-	return string(r[:4]) + "•••" + string(r[len(r)-4:])
+	return strings.Repeat("•", len(r)-2) + string(r[len(r)-2:])
 }
 
 // MaskName keeps the first letter of a name: «سارا رضایی» → «س•••». Empty → null.
@@ -61,14 +63,15 @@ func MaskName(n sql.NullString) any {
 	return string(r[:1]) + "•••"
 }
 
-func personJSON(id uint64, name, mobile sql.NullString) *jsonx.OrderedMap {
-	return jsonx.Obj("id", id, "name", MaskName(name), "mobile", MaskMobile(mobile))
+// personJSON is one party of a link: masked name and mobile, no user id (CMP-L6).
+func personJSON(name, mobile sql.NullString) *jsonx.OrderedMap {
+	return jsonx.Obj("name", MaskName(name), "mobile", MaskMobile(mobile))
 }
 
 func (h *Handlers) linkJSON(c fiber.Ctx, r *store.ListAdminCompanionLinksRow) *jsonx.OrderedMap {
 	var comp any
 	if r.CompanionUserID.Valid {
-		comp = personJSON(uint64(r.CompanionUserID.Int64), r.CompanionName, r.CompanionMobile) //nolint:gosec // G115: ids are positive
+		comp = personJSON(r.CompanionName, r.CompanionMobile)
 	}
 	var invite any
 	if r.Status == string(companion.StatusInvited) {
@@ -80,7 +83,7 @@ func (h *Handlers) linkJSON(c fiber.Ctx, r *store.ListAdminCompanionLinksRow) *j
 		"type", r.Type,
 		"status", r.Status,
 		"label", MaskName(r.DisplayName),
-		"owner", personJSON(r.OwnerID, r.OwnerName, r.OwnerMobile),
+		"owner", personJSON(r.OwnerName, r.OwnerMobile),
 		"companion", comp,
 		"invite", invite,
 		"grants_count", r.GrantsCount,

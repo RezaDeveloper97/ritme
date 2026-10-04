@@ -8,10 +8,12 @@
 //     (live: active + approved), so the language no longer falls back to the default language or the built-in copy;
 //     a reset deletes them again.
 //   - /companions/links — a read-only overview of companion links: counts by status and type and a list with masked
-//     names and mobiles. Never an invite code (or its hash), never what is shared, never the owner's health data.
+//     names and mobiles. Never an invite code (or its hash), never what is shared, never the owner's health data,
+//     never a user id (the relationship graph; B-N4-08b CMP-L6).
 //
-// Every route: any active admin (kit.Admin — tips are content like /messages; the overview is masked metadata like
-// the subscriptions list). Mutations pass the CSRF check of the admin chain and write an audit line.
+// Tips: any active admin (kit.Admin — tips are content like /messages). The links overview: super admins only
+// (kit.Super — who is whose partner is intimate personal data, CMP-L6). Mutations pass the CSRF check of the admin
+// chain and write an audit line.
 package companions
 
 import (
@@ -42,12 +44,12 @@ func New(sqlDB *sql.DB, logger *slog.Logger) *Handlers {
 	return &Handlers{db: sqlDB, q: store.New(sqlDB), logger: logger}
 }
 
-// Routes mounts the module (any active admin; static paths before params).
+// Routes mounts the module (tips: any active admin; links overview: super admins; static paths before params).
 func (h *Handlers) Routes(route Route, kit *httpadmin.Kit) {
 	a := kit.Admin
 	route(fiber.MethodGet, "/companions/tips", a(h.ListTips))
 	route(fiber.MethodGet, "/companions/tips/:phase", a(h.ShowTips))
 	route(fiber.MethodPut, "/companions/tips/:phase", a(h.UpdateTips))
 	route(fiber.MethodDelete, "/companions/tips/:phase", a(h.ResetTips))
-	route(fiber.MethodGet, "/companions/links", a(h.ListLinks))
+	route(fiber.MethodGet, "/companions/links", kit.Super(h.ListLinks)) // CMP-L6
 }

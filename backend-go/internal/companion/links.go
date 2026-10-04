@@ -45,7 +45,15 @@ func (s *Service) CompanionLink(ctx context.Context, viewerID, companionID uint6
 		uint64(c.CompanionUserID.Int64) != viewerID { //nolint:gosec // positive id
 		return Link{}, notFound(err)
 	}
-	return loadLink(ctx, q, companionID)
+	l, err := loadLink(ctx, q, companionID)
+	if err != nil {
+		return Link{}, err
+	}
+	links := []Link{l}
+	if err := suspendForTeens(ctx, q, links); err != nil { // B-N4-08b: the companion's effective grants
+		return Link{}, err
+	}
+	return links[0], nil
 }
 
 // Names returns users.name for the given account ids (missing or unnamed accounts are absent).
@@ -110,13 +118,13 @@ const (
 // language codes (the `languages` table): the title/body JSON carries one entry per language. The companion is named
 // by the owner's own label for the link, else the account name, else a neutral word.
 func (s *Service) NotifyOwner(ctx context.Context, link Link, notice Notice, languages []string) error {
-	name := strings.TrimSpace(link.DisplayName)
+	name := noticeName(link.DisplayName, false) // B-N4-08b CMP-L5: cleaned, clipped (notice_name.go)
 	if name == "" && link.CompanionUserID != 0 {
 		names, err := s.Names(ctx, link.CompanionUserID)
 		if err != nil {
 			return err
 		}
-		name = names[link.CompanionUserID]
+		name = noticeName(names[link.CompanionUserID], true)
 	}
 	title, body := map[string]string{}, map[string]string{}
 	bodyKey, url := "notices.recorded_body", pathReminders

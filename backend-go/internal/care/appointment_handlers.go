@@ -82,7 +82,7 @@ func (h *Handlers) ShowAppointment(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if a.HiddenFrom(userID, actorID) {
+	if a.HiddenFrom(userID, actorID) || outsideAppointmentView(a, userID, actorID, h.now(c)) { // CB-LOSS-01, CMP-M2
 		return appointmentNotFound(c)
 	}
 	if err := h.delegated(c, userID, actorID, companion.SectionAppointments, false, false); err != nil {
@@ -143,7 +143,7 @@ func (h *Handlers) UpdateAppointment(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if a.HiddenFrom(userID, actorID) {
+	if a.HiddenFrom(userID, actorID) || outsideAppointmentView(a, userID, actorID, h.now(c)) { // CB-LOSS-01, CMP-M2
 		return appointmentNotFound(c)
 	}
 	locale, now := i18n.Locale(c), h.now(c)

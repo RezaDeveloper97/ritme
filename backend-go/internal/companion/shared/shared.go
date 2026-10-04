@@ -10,6 +10,11 @@
 //   - meds: the owner's active medication reminders (the /care resource);
 //   - appointments: the owner's upcoming appointments (the /care resource) except private ones (loss follow-ups);
 //   - pregnancy: the pregnancy status (week, due date, trimester) or is_active=false.
+//
+// The views are mode-aware (B-N4-08b, CMP-H1 / CMP-M1 of docs/security/bloom-companion.md): ReadFor gets the link, so
+// a pregnancy / postpartum owner whose link has no pregnancy grant (and every menopause owner) gets the neutral cycle
+// view, the symptoms view keeps only what the cycle-mode log offers (mode.go), lateness past MaxLateDays is never
+// shown, and the fertile phase is mapped away for owners whose mode never gets fertility copy (teen).
 package shared
 
 import (
@@ -62,14 +67,30 @@ func NewReader(db DB) *Reader {
 	}
 }
 
-// Read is the view of one section of ownerID's data at now in locale.
+// Read is ReadFor on a link without grants (no pregnancy grant): the strictest mode-aware view of one section of
+// ownerID's data at now in locale.
 func (r *Reader) Read(ctx context.Context, ownerID uint64, section companion.Section, locale string, now time.Time) (any, error) {
+	return r.ReadFor(ctx, companion.Link{OwnerID: ownerID}, section, locale, now)
+}
+
+// ReadFor is the view of one section of link.OwnerID's data at now in locale, as the link's companion may see it:
+// the link's grants decide whether pregnancy-derived signals may show in the cycle and symptoms views.
+func (r *Reader) ReadFor(ctx context.Context, link companion.Link, section companion.Section, locale string, now time.Time) (any, error) {
+	ownerID := link.OwnerID
 	today := civildate.InTehran(now)
 	switch section {
 	case companion.SectionCycle:
-		return r.cycleView(ctx, ownerID, today)
+		scope, err := r.scope(ctx, link)
+		if err != nil {
+			return nil, err
+		}
+		return r.cycleView(ctx, ownerID, today, scope)
 	case companion.SectionSymptoms:
-		return r.symptomsView(ctx, ownerID, today)
+		scope, err := r.scope(ctx, link)
+		if err != nil {
+			return nil, err
+		}
+		return r.symptomsView(ctx, ownerID, today, scope)
 	case companion.SectionMeds:
 		return r.medsView(ctx, ownerID, locale)
 	case companion.SectionAppointments:
@@ -81,7 +102,10 @@ func (r *Reader) Read(ctx context.Context, ownerID uint64, section companion.Sec
 	}
 }
 
-func (r *Reader) cycleView(ctx context.Context, ownerID uint64, today civildate.Date) (any, error) {
+func (r *Reader) cycleView(ctx context.Context, ownerID uint64, today civildate.Date, scope viewScope) (any, error) {
+	if scope.neutralCycle() {
+		return neutralCycle(today), nil
+	}
 	sn, err := r.cycle.Load(ctx, ownerID, today, today, today)
 	if err != nil {
 		return nil, err
@@ -89,37 +113,42 @@ func (r *Reader) cycleView(ctx context.Context, ownerID uint64, today civildate.
 	profile := sn.EngineProfile()
 	m := metrics.Calculate(sn.Histories, profile)
 	st := resolver.Resolve(sn.Histories, profile, today, today, m)
-	var cycleLength, nextStart any
+	var cycleLength, nextStart, cycleDay, daysLate any
 	if st.EffectiveCycleLength > 0 {
 		cycleLength = st.EffectiveCycleLength
 	}
 	if !st.PredictedNextPeriodStart.IsZero() {
 		nextStart = st.PredictedNextPeriodStart
 	}
+	cycleDay, daysLate = st.CycleDay, st.DaysLate
+	if tooLate(st.DaysLate) { // a long lateness is an inference, not a cycle state (CMP-H1)
+		cycleDay, daysLate = nil, nil
+	}
 	return jsonx.Obj(
 		"date", today,
 		"has_data", len(sn.Histories) > 0 || sn.Profile != nil,
-		"cycle_day", st.CycleDay,
+		"cycle_day", cycleDay,
 		"cycle_length", cycleLength,
-		"main_phase", st.MainPhase,
+		"main_phase", sharedPhase(st.MainPhase, profile != nil && profile.NoFertilityCopy),
 		"days_to_period", st.DaysToPeriod,
-		"days_late", st.DaysLate,
+		"days_late", daysLate,
 		"predicted_next_period_start", nextStart,
 		"confidence", st.Confidence,
 	), nil
 }
 
-func (r *Reader) symptomsView(ctx context.Context, ownerID uint64, today civildate.Date) (any, error) {
+func (r *Reader) symptomsView(ctx context.Context, ownerID uint64, today civildate.Date, scope viewScope) (any, error) {
 	from := today.AddDays(-(SymptomDays - 1))
 	days, err := r.healthlg.Range(ctx, ownerID, from, today)
 	if err != nil {
 		return nil, err
 	}
+	modes := scope.symptomModes()
 	out := make([]*jsonx.OrderedMap, 0, len(days))
 	for i := len(days) - 1; i >= 0; i-- { // newest first
 		var kept []taxonomy.Entry
 		for _, e := range days[i].Entries {
-			if slices.Contains(SymptomCategories, e.Category) {
+			if slices.Contains(SymptomCategories, e.Category) && sharedEntry(e, modes) {
 				kept = append(kept, e)
 			}
 		}

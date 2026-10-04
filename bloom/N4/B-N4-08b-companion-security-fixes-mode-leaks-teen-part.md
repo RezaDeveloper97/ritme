@@ -3,7 +3,7 @@ id: B-N4-08b
 title: Companion security fixes (mode leaks, teen partner block, delegated reads, brute force, audit flood)
 milestone: N4
 type: backend
-status: todo
+status: done
 depends_on: [B-N4-08]
 parallel_group: N4-H2
 touches: [backend-go/internal/companion,backend-go/internal/care,backend-go/internal/http,backend-go/internal/admin/companions,backend-go/api,backend-go/contract]

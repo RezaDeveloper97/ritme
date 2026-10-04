@@ -21,19 +21,21 @@ func init() {
 		// «ثبت برای …» (B-N4-02): for_user_id on show / store / update of meds and appointments, live companion grant.
 		h.SetDelegation(companion.NewDelegation(d.DB, clock.Real{}, d.Logger))
 		writes := writeThrottle(d) // per-user write limit (security audit M3-M7 #5)
+		// for_user_id GETs: per-companion limit (B-N4-08b CMP-M2, companion_guards.go).
+		delegatedReads := delegatedReadThrottle(d)
 
 		r.Get("/api/v1/care/enums", locale, guard, h.Enums)
 		r.Get("/api/v1/care/today", locale, guard, h.Today)
 		r.Get("/api/v1/care/medications", locale, guard, h.ListMedications)
 		r.Post("/api/v1/care/medications", locale, guard, writes, h.StoreMedication)
-		r.Get("/api/v1/care/medications/:id", locale, guard, h.ShowMedication)
+		r.Get("/api/v1/care/medications/:id", locale, guard, delegatedReads, h.ShowMedication)
 		r.Put("/api/v1/care/medications/:id", locale, guard, writes, h.UpdateMedication)
 		r.Delete("/api/v1/care/medications/:id", locale, guard, writes, h.DestroyMedication)
 		r.Post("/api/v1/care/medications/:id/intakes", locale, guard, writes, h.TakeIntake)
 		r.Delete("/api/v1/care/medications/:id/intakes", locale, guard, writes, h.UntakeIntake)
 		r.Get("/api/v1/care/appointments", locale, guard, h.ListAppointments)
 		r.Post("/api/v1/care/appointments", locale, guard, writes, h.StoreAppointment)
-		r.Get("/api/v1/care/appointments/:id", locale, guard, h.ShowAppointment)
+		r.Get("/api/v1/care/appointments/:id", locale, guard, delegatedReads, h.ShowAppointment)
 		r.Put("/api/v1/care/appointments/:id", locale, guard, writes, h.UpdateAppointment)
 		r.Delete("/api/v1/care/appointments/:id", locale, guard, writes, h.DestroyAppointment)
 		r.Post("/api/v1/care/appointments/:id/cancel", locale, guard, writes, h.CancelAppointment)

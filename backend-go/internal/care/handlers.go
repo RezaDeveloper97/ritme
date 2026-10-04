@@ -86,6 +86,9 @@ func (h *Handlers) ShowMedication(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if outsideMedicationView(m, userID, actorID) { // CMP-M2
+		return notFound(c)
+	}
 	if err := h.delegated(c, userID, actorID, companion.SectionMeds, false, false); err != nil {
 		return err
 	}
@@ -145,6 +148,9 @@ func (h *Handlers) UpdateMedication(c fiber.Ctx) error {
 	m, err := h.find(c, userID)
 	if err != nil {
 		return err
+	}
+	if outsideMedicationView(m, userID, actorID) { // CMP-M2
+		return notFound(c)
 	}
 	locale, now := i18n.Locale(c), h.now(c)
 	body := validation.Input(c)

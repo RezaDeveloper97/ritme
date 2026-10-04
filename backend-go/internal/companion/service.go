@@ -628,6 +628,9 @@ func (s *Service) ListForCompanion(ctx context.Context, viewerID uint64) ([]Link
 		}
 		links = append(links, l)
 	}
+	if err := suspendForTeens(ctx, q, links); err != nil { // B-N4-08b: teen owner → partner / spouse grants none
+		return nil, err
+	}
 	return links, nil
 }
 
@@ -657,6 +660,9 @@ func (s *Service) access(ctx context.Context, ownerID, viewerID uint64, section 
 	if !l.Valid() || !section.AllowedFor(Type(row.Type)) {
 		return LevelNone, 0, nil // defence in depth: a grant the link type may not hold is no grant
 	}
+	if off, err := teenSuspended(ctx, store.New(s.conn), ownerID, Type(row.Type)); err != nil || off {
+		return LevelNone, 0, err // B-N4-08b: a partner / spouse link of a teen-mode owner grants nothing
+	}
 	if !section.Permits(l) {
 		l = section.MaxLevel() // a teen section is never writable, whatever is stored
 	}
@@ -684,7 +690,13 @@ func (s *Service) Audit(ctx context.Context, ownerID, actorID, companionID uint6
 	if !section.Valid() {
 		return ErrInvalidSection
 	}
-	return audit(ctx, store.New(s.conn), ownerID, actorID, companionID, section, action, s.now())
+	q, now := store.New(s.conn), s.now()
+	if action == ActionRead { // B-N4-08b: one read row per section per ReadAuditWindow (audit.go)
+		if seen, err := readAuditedRecently(ctx, q, ownerID, actorID, companionID, section, now); err != nil || seen {
+			return err
+		}
+	}
+	return audit(ctx, q, ownerID, actorID, companionID, section, action, now)
 }
 
 // AuditTrail returns the owner's latest audit entries, newest first.

@@ -65,7 +65,8 @@ func TestGuardsAndCSRF(t *testing.T) {
 	}
 	ed := e.As(admintest.EditorID)
 	assert.Equal(t, 200, ed.Get("/companions/tips").Status, "editors manage the tips")
-	assert.Equal(t, 200, ed.Get("/companions/links").Status, "any active admin reads the overview")
+	assert.Equal(t, 403, ed.Get("/companions/links").Status, "the overview is super admin only (CMP-L6)")
+	assert.Equal(t, 200, e.As(admintest.SuperID).Get("/companions/links").Status)
 
 	noToken := e.As(admintest.SuperID)
 	noToken.CSRF = ""
@@ -78,7 +79,7 @@ func TestGuardsAndCSRF(t *testing.T) {
 	assert.Equal(t, 404, ed.JSON(fiber.MethodPut, "/companions/tips/bogus", body).Status)
 
 	e.Exec("UPDATE admins SET is_active = 0 WHERE id = ?", admintest.EditorID)
-	assert.Equal(t, 401, e.As(admintest.EditorID).Get("/companions/links").Status, "a deactivated admin is out")
+	assert.Equal(t, 401, e.As(admintest.EditorID).Get("/companions/tips").Status, "a deactivated admin is out")
 }
 
 func TestTipsBuiltInThenSaveAndReset(t *testing.T) {
@@ -181,7 +182,7 @@ func TestTipsValidation(t *testing.T) {
 
 func TestLinksOverviewMaskedAndCounted(t *testing.T) {
 	e := newEnv(t)
-	c := e.As(admintest.EditorID)
+	c := e.As(admintest.SuperID)
 	owner := newUser(e, "09121234567", "سارا رضایی")
 	owner2 := newUser(e, "09129876543", "Mina")
 	man := newUser(e, "09351112233", "Ali Ahmadi")
@@ -205,14 +206,14 @@ func TestLinksOverviewMaskedAndCounted(t *testing.T) {
 	assert.Equal(t, "spouse", a["type"])
 	assert.Equal(t, "active", a["status"])
 	assert.Equal(t, "ع•••", a["label"])
-	assert.Equal(t, map[string]any{"id": float64(owner), "name": "س•••", "mobile": "0912•••4567"}, a["owner"])
-	assert.Equal(t, map[string]any{"id": float64(man), "name": "A•••", "mobile": "0935•••2233"}, a["companion"])
+	assert.Equal(t, map[string]any{"name": "س•••", "mobile": "•••••••••67"}, a["owner"], "no user id (CMP-L6)")
+	assert.Equal(t, map[string]any{"name": "A•••", "mobile": "•••••••••33"}, a["companion"])
 	assert.EqualValues(t, 2, a["grants_count"])
 	assert.Nil(t, a["invite"])
 
 	inv := items[0].(map[string]any)
 	assert.Nil(t, inv["companion"])
-	assert.Equal(t, map[string]any{"phone": "0935•••9900", "expires_at": "2037-01-01T00:00:00+03:30", "expired": false}, inv["invite"])
+	assert.Equal(t, map[string]any{"phone": "•••••••••00", "expires_at": "2037-01-01T00:00:00+03:30", "expired": false}, inv["invite"])
 	assert.Equal(t, "owner", items[2].(map[string]any)["revoked_by"])
 
 	// Nothing identifying in full, no code, no shared sections.
@@ -226,6 +227,7 @@ func TestLinksOverviewMaskedAndCounted(t *testing.T) {
 	assert.Equal(t, map[string]any{
 		"partner": map[string]any{"invited": float64(1), "active": float64(0), "revoked": float64(1), "all": float64(2)},
 		"spouse":  map[string]any{"invited": float64(0), "active": float64(1), "revoked": float64(0), "all": float64(1)},
+		"parent":  map[string]any{"invited": float64(0), "active": float64(0), "revoked": float64(0), "all": float64(0)},
 	}, counts["by_type"])
 	assert.Equal(t, map[string]any{"status": "all", "type": "all"}, r.Data()["filters"])
 

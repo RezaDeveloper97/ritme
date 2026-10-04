@@ -255,7 +255,8 @@ func TestParentCards_AccessRules(t *testing.T) {
 	assert.True(t, *cards[0].View.KitReady)
 	require.NotNil(t, cards[0].View.Note)
 	assert.Equal(t, "Need new pads", *cards[0].View.Note)
-	assert.Equal(t, 4, e.count(t, "SELECT COUNT(*) FROM companion_audit_logs WHERE action = 'read' AND actor_id = ?", mom))
+	// 3, not 4: the second period-week read within 15 minutes is coalesced (B-N4-08b, CMP-L1).
+	assert.Equal(t, 3, e.count(t, "SELECT COUNT(*) FROM companion_audit_logs WHERE action = 'read' AND actor_id = ?", mom))
 
 	// Isolation: teen B's parent sees only B; A's parent never sees B; a stranger sees nothing; B is not A's parent.
 	e.link(t, b, momB, companion.Grants{companion.SectionTeenNotes: companion.LevelView})
