@@ -8,8 +8,8 @@ use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Routing\Router;
 
 /**
- * Absolute URLs of magazine pages for sitemaps/feeds. Uses the named routes once L4-02/L4-03 register them
- * (`blog.show`, `blog.category`) and the planned paths until then.
+ * Absolute URLs of magazine pages for sitemaps/feeds. Uses the named routes (`blog.show` L4-03, `blog.category`,
+ * `blog.tag`, `blog.author` L4-02) and the planned paths while a route is not registered.
  */
 final class BlogUrls
 {
@@ -27,6 +27,20 @@ final class BlogUrls
         return $this->router->has('blog.category')
             ? $this->url->route('blog.category', [$slug])
             : $this->url->to('/blog/category/'.rawurlencode($slug));
+    }
+
+    public function tag(string $slug): string
+    {
+        return $this->router->has('blog.tag')
+            ? $this->url->route('blog.tag', [$slug])
+            : $this->url->to('/blog/tag/'.rawurlencode($slug));
+    }
+
+    public function author(string $slug): string
+    {
+        return $this->router->has('blog.author')
+            ? $this->url->route('blog.author', [$slug])
+            : $this->url->to('/blog/author/'.rawurlencode($slug));
     }
 
     public function absolute(string $pathOrUrl): string

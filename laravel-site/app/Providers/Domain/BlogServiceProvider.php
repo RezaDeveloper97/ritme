@@ -24,8 +24,10 @@ use App\Domain\Blog\Repositories\EloquentAuthorRepository;
 use App\Domain\Blog\Repositories\EloquentCategoryRepository;
 use App\Domain\Blog\Repositories\EloquentPostRepository;
 use App\Domain\Blog\Repositories\EloquentTagRepository;
+use App\Domain\Blog\Sitemap\AuthorSitemapProvider;
 use App\Domain\Blog\Sitemap\CategorySitemapProvider;
 use App\Domain\Blog\Sitemap\PostSitemapProvider;
+use App\Domain\Blog\Sitemap\TagSitemapProvider;
 use App\Domain\Blog\Support\PostContent;
 use App\Domain\Media\Actions\FindMediaUsages;
 use App\Domain\Seo\Sitemap\SitemapRegistry;
@@ -56,8 +58,8 @@ final class BlogServiceProvider extends DomainServiceProvider
 
         $this->app->singleton(PostContent::class, static fn (Application $app): PostContent => PostContent::fromConfig($app['config']));
 
-        // `/sitemaps/posts.xml`, `/sitemaps/blog-categories.xml` (L1-06).
-        $this->app->tag([PostSitemapProvider::class, CategorySitemapProvider::class], SitemapRegistry::TAG);
+        // `/sitemaps/posts.xml`, `/sitemaps/blog-categories.xml` (L1-06), `blog-tags.xml`, `blog-authors.xml` (L4-02).
+        $this->app->tag([PostSitemapProvider::class, CategorySitemapProvider::class, TagSitemapProvider::class, AuthorSitemapProvider::class], SitemapRegistry::TAG);
     }
 
     public function boot(): void

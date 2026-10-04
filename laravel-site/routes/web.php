@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Blog\BlogListingController;
+use App\Http\Controllers\Blog\NewsletterController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PlaceholderPageController;
 use App\Http\Controllers\Seo\RobotsTxtController;
 use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Seo\SitemapIndexController;
 use App\Http\Controllers\StagePageController;
+use App\Http\Middleware\PageCache;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
@@ -44,8 +47,23 @@ Route::get('/faq', PlaceholderPageController::class)->name('faq');              
 Route::get('/contact', PlaceholderPageController::class)->name('contact');                         // L3-10
 
 Route::prefix('blog')->name('blog.')->group(function (): void {
-    Route::get('/', PlaceholderPageController::class)->name('index');                              // L4-02
+    Route::get('/', [BlogListingController::class, 'index'])->name('index');                       // L4-02
+    Route::get('/category/{slug}', [BlogListingController::class, 'category'])->name('category');  // L4-02
+    Route::get('/tag/{slug}', [BlogListingController::class, 'tag'])->name('tag');                 // L4-02
+    Route::get('/author/{slug}', [BlogListingController::class, 'author'])->name('author');        // L4-02
     Route::get('/{slug}', PlaceholderPageController::class)->name('show');                         // L4-03
+});
+
+// Newsletter (L4-02): double opt-in. POST is rate limited (no captcha); token pages are never page-cached; the
+// unsubscribe POST is also the RFC 8058 one-click target, authorised by the token instead of CSRF.
+Route::prefix('newsletter')->name('newsletter.')->group(function (): void {
+    Route::post('/', [NewsletterController::class, 'store'])->middleware('throttle:newsletter')->name('store');
+    Route::withoutMiddleware([PageCache::class])->group(function (): void {
+        Route::get('/confirm/{token}', [NewsletterController::class, 'confirm'])->where('token', '[A-Za-z0-9]{1,64}')->name('confirm');
+        Route::get('/unsubscribe/{token}', [NewsletterController::class, 'unsubscribeForm'])->where('token', '[A-Za-z0-9]{1,64}')->name('unsubscribe');
+        Route::post('/unsubscribe/{token}', [NewsletterController::class, 'unsubscribe'])->where('token', '[A-Za-z0-9]{1,64}')
+            ->withoutMiddleware([ValidateCsrfToken::class])->middleware('throttle:newsletter')->name('unsubscribe.store');
+    });
 });
 
 Route::prefix('directory')->name('directory.')->group(function (): void {

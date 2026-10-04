@@ -336,3 +336,20 @@ One section per finished task (appended by `/site-task`).
 - Open: stage-nav/hero/faq/phone are includes under `pages/stages` (components dir was outside touches); FAQ copy in
   lang until L3-09 wires group `stage-cycle`; `cards/article` cover worked around with `[&_a>span:first-child]:box-content`;
   "all" readings link → `/blog` until category routes are wired.
+
+## L4-02 — Magazine list, category, tag, author pages + newsletter signup
+- `BlogListingController` (index/category/tag/author), routes `blog.{index,category,tag,author}`; `BlogUrls::tag()/author()`
+  (`/blog/tag/{slug}`, `/blog/author/{slug}` confirmed). Pagination `?page=n` self-canonical + «صفحه n», `?page=1` 301,
+  invalid → 404; other params noindex + uncached; empty lists / tags < 3 posts (`config('blog.tag_index_min_posts')`,
+  default 3) / authors without posts (unless reviewer with bio) → `noindex,follow`. Admin `seo_meta` overrides.
+  JSON-LD CollectionPage + ItemList + BreadcrumbList; ProfilePage + Person for authors. New sitemap providers
+  `blog-tags`, `blog-authors`.
+- Newsletter context: `Subscriber` (table `newsletter_subscribers`, migration `2026_10_04_001500`), `SubscriptionStatus`,
+  `Subscribe`/`ConfirmSubscription`/`Unsubscribe`, `ConfirmSubscriptionMail`; double opt-in, honeypot `website`,
+  `throttle:newsletter` (3/min, 20/day per IP), identical responses, unsubscribe confirmation form + RFC 8058 one-click
+  POST (token-authorised, CSRF-free), token pages bypass the page cache. Mail sent synchronously.
+- `ListingTest` (12). `seo:audit` 0 errors on list/category/tag/author pages (og.image warnings).
+- Diff (seeded data): 1440 8.58%, 390 23.22% — design repeats the featured post as the 6th card; with equal content
+  1440 2.35%, 390 8.66% (kit padding deviations + real reading times). Kit fixes collected in **L3-01c**.
+- Open: newsletter input is email-only (design says «ایمیل یا شماره همراه»); consent note dropped (privacy in success
+  message + mail); `/blog/{slug}` is L4-03; admin subscriber list is L4-05b.

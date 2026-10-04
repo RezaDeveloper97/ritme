@@ -3,7 +3,7 @@ id: L4-02
 title: Magazine list, category, tag, author pages + newsletter signup
 milestone: L4
 type: frontend
-status: todo
+status: done
 depends_on: [L4-01,L3-01]
 parallel_group: L4-B
 touches: [resources/views/pages/blog,app/Http/Controllers/Blog,app/Domain/Newsletter,database/migrations,lang/fa/blog.php,tests/Feature/Blog/ListingTest.php]
