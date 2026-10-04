@@ -3,7 +3,7 @@ id: CB-IVF-05
 title: Frontend: two-week wait + outcome
 epic: IVF
 type: frontend
-status: todo
+status: done
 depends_on: [CB-IVF-02, CB-LOSS-02]
 parallel_group: IVF-C
 touches: [frontend/src/screens/ivf-tww, frontend/src/app/[locale]/ivf/tww]
