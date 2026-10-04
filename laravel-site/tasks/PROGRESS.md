@@ -353,3 +353,11 @@ One section per finished task (appended by `/site-task`).
   1440 2.35%, 390 8.66% (kit padding deviations + real reading times). Kit fixes collected in **L3-01c**.
 - Open: newsletter input is email-only (design says «ایمیل یا شماره همراه»); consent note dropped (privacy in success
   message + mail); `/blog/{slug}` is L4-03; admin subscriber list is L4-05b.
+
+## L3-04 — TTC and pregnancy stage pages
+- `Stages/Ttc.php` (fertility/companion/treatment features, `/tools#fertility`), `Stages/Pregnancy.php` (weekly,
+  appointments, birth-prep; tools → `#hospital-bag`, `#sisemoni`, `#due-date`; help → directory), copy in
+  `lang/fa/stages/{ttc,pregnancy}.php`, mock screens `ttc-companion`, `pregnancy-week`. `StagesTtcPregnancyTest` (6).
+- Diff (links filled): ttc 390 2.67% / 1440 0.96%; pregnancy 390 3.45% (template −8 px drift accumulating over 6 tool
+  cards) / 1440 1.66%. Empty links: ~8% / ~5%. `seo:audit` 0 errors. Design `#FFB86B` → `phase-luteal` token.
+- h1 wording reworded to fit the template's leading highlight → fixed by **L3-03b** (template hooks).

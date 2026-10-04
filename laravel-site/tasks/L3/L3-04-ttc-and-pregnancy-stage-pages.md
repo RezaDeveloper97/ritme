@@ -3,7 +3,7 @@ id: L3-04
 title: TTC and pregnancy stage pages
 milestone: L3
 type: frontend
-status: todo
+status: done
 depends_on: [L3-03]
 parallel_group: L3-C
 touches: [lang/fa/stages/ttc.php,lang/fa/stages/pregnancy.php,resources/views/pages/stages/partials/ttc,resources/views/pages/stages/partials/pregnancy,app/Domain/Content/Stages/Ttc.php,app/Domain/Content/Stages/Pregnancy.php,tests/Feature/Pages/StagesTtcPregnancyTest.php]
