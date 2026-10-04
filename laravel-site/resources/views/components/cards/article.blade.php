@@ -40,7 +40,7 @@
         'teen' => ['from-stage-teen/33 to-stage-teen/7', 'text-stage-teen'],
         default => ['from-stage-menopause/33 to-stage-menopause/7', 'text-stage-menopause'],
     };
-    $minutesText = $minutes !== null ? \App\View\Components\Layout\Footer::persianDigits((string) $minutes) : null;
+    $minutesText = $minutes !== null ? fa_digits($minutes) : null;
 @endphp
 @if ($featured)
 <a href="{{ $href }}" {{ $attributes->class('flex items-center gap-8 overflow-hidden rounded-6xl border border-line bg-surface text-ink transition-shadow hover:text-ink hover:shadow-card max-lg:flex-wrap') }}>

@@ -15,7 +15,14 @@ Rules that hold for all of them:
 - **No JS.** The design has no real tabs (AUDIT §2 correction) — tab-like UI is `x-ui.chip-nav` (links). Accordion is
   native `<details>`, radio cards use CSS `has-checked:`. `resources/js/modules/` gained nothing.
 - Persian digits: numbers passed as integers/floats are rendered with Persian digits (`۴٫۸`, `۱٬۲۵۰`). Dates/times are
-  passed as ready display strings (format them with the Jalali helper before handing them over).
+  passed as ready display strings — format them with `jdate()` first (`x-ui.timeline` also accepts a
+  `DateTimeInterface`). Helpers (L3-01b, see `app/Support/README.md`):
+  - `fa_digits($v)` / `App\Support\Text\PersianDigits::toPersian()` — digits only; `PersianDigits::number($n, $decimals)`
+    — grouped «٬», decimal «٫», trailing zeros dropped; `PersianDigits::toLatin()` — normalise user input.
+  - `App\Support\Text\Toman::format(485000)` → «۴۸۵ هزار», `Toman::withUnit()` adds «تومان» (Money: L6-01).
+  - `jdate($date, 'j F Y')` → «۱۲ مهر ۱۴۰۵» (Tehran time, Persian digits; tokens Y y m n d j F l D H G h g i s A);
+    `App\Support\Jalali\JalaliDate` / `JalaliCalendar` for conversions and leap years. Pair with
+    `<time datetime="{{ $at->format(DATE_ATOM) }}">`.
 - Headings: card titles are `h3` (`as` prop), block titles `h2`; only `x-ui.page-intro` and `x-ui.success-hero` emit an
   `h1` (both take `as` to demote). Give section headers an `id` and point `aria-labelledby` at it.
 - Stage colours (`color` / `stage` / `tint` props): `cycle`, `ttc`, `pregnancy`, `postpartum`, `menopause`, `teen`,
@@ -45,7 +52,7 @@ Rules that hold for all of them:
 | `alert-emergency` | `number` (default 115) + slot text | `<x-ui.alert-emergency :number="$emergency">…</x-ui.alert-emergency>` | 6 stage pages, services |
 | `steps` | `items` [title, text], `tone` | `<x-ui.steps :items="$steps"/>` | directory-business, index («یک اپ، پنج بخش» uses `tone="dark"` or cards) |
 | `stepper` | `steps` [label, hint?], `current` (1-based), `variant` list\|bar, `label`; slot = note (list) | `<x-ui.stepper variant="bar" :current="2" :steps="$s"/>` | directory-join (list), shop-checkout (bar) |
-| `timeline` | `items` [title, time?, state done\|current\|todo], `label` | `<x-ui.timeline :items="$status"/>` | directory-join-done, shop-done |
+| `timeline` | `items` [title, time? (string\|DateTimeInterface), state done\|current\|todo], `label` | `<x-ui.timeline :items="$status"/>` | directory-join-done, shop-done |
 | `success-hero` | `icon`, `tone` success\|lavender, `title`, `align`, `as`; slot = lead; `actions` slot | `<x-ui.success-hero title="رزروت ثبت شد">کد پیگیری …</x-ui.success-hero>` | directory-booked, directory-join-done, shop-done |
 | `rating` | `value`, `count`, `size` xs\|sm\|md, `stars` | `<x-ui.rating :value="4.8" :count="126"/>` | shop*, directory* |
 | `price` | `amount` (int toman), `compare`, `from`, `unit`, `size` md\|lg\|inline, `currency` | `<x-ui.price :amount="320000" from unit="هر جلسه" size="lg"/>` | shop*, directory, directory-place, directory-booked, directory-business |
@@ -104,8 +111,8 @@ link (no nested interactive content) and are inert until L6/L5 wire them.
 
 ## Known gaps / follow-ups
 
-- `fa_digits()` and `App\Support\Jalali` / `Money` (task scope) live outside this task's `touches`; components use
-  `App\View\Components\Layout\Footer::persianDigits()` and an in-component toman formatter for now. Swap both when the
-  helpers land; dates are display strings until then.
+- Done in L3-01b: components use `fa_digits()` / `PersianDigits` / `Toman`; `Footer::persianDigits()` is gone.
+  `resources/views/errors/*` and `app/Filament/Components/Seo/SerpMeasure.php` still inline a digit map (outside
+  L3-01b's touches) — switch them to `fa_digits()` when next touched.
 - `x-ui.qr` and `x-ui.store-badges` keep their (small) logic in Blade because `app/View/Components` is outside
   `touches`; moving them to class components is a mechanical follow-up.

@@ -5,7 +5,7 @@
     from settings (`general.emergency_number`) via the page; default 115.
 --}}
 @props(['number' => '115'])
-@php($numberLabel = \App\View\Components\Layout\Footer::persianDigits((string) $number))
+@php($numberLabel = fa_digits($number))
 <div role="note" {{ $attributes->class('flex items-center gap-4 rounded-4xl border border-danger-line bg-danger-soft px-6.5 py-5.5 max-lg:flex-wrap') }}>
     <span aria-hidden="true" class="flex size-12 shrink-0 items-center justify-center rounded-full bg-surface"><x-icon name="alert-triangle" class="size-6 text-danger" stroke="1.8"/></span>
     <p class="m-0 grow text-lg leading-relaxed font-semibold text-ink">{{ $slot }}</p>

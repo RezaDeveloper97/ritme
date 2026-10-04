@@ -3,7 +3,7 @@ id: L3-01b
 title: Support helpers: Persian digits, Jalali dates, Toman formatting
 milestone: L3
 type: backend
-status: todo
+status: done
 depends_on: [L3-01]
 parallel_group: L3-A
 touches: [app/Support/Text,app/Support/Jalali,app/Support/helpers.php,composer.json,resources/views/components/ui,resources/views/components/cards,app/View/Components/Layout,tests/Unit/Support]

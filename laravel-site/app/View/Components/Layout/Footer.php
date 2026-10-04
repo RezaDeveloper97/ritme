@@ -13,11 +13,11 @@ use App\Domain\Settings\Data\SiteSettings;
 use App\Support\Cache\CacheAside;
 use App\Support\Cache\CacheKey;
 use App\Support\Cache\NamespaceVersions;
+use App\Support\Jalali\JalaliDate;
+use App\Support\Text\PersianDigits;
 use DateTimeImmutable;
-use DateTimeZone;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
-use IntlDateFormatter;
 
 /**
  * <x-layout.footer /> — brand + store badges, five `<nav>` link columns from the StaticPage registry, the enamad
@@ -58,36 +58,19 @@ final class Footer extends Component
                 'socials' => self::links($settings->social->toArray(), self::SOCIALS),
                 'enamadHtml' => AllowedHtml::clean($settings->legal->enamadHtml, $settings->legal->enamadAllowedTags, 'نماد اعتماد الکترونیکی'),
                 'enamadCode' => $settings->legal->enamadCode,
-                'year' => self::persianDigits((string) $year),
+                'year' => PersianDigits::toPersian($year),
                 'emergency' => $settings->general->emergencyNumber,
-                'emergencyLabel' => self::persianDigits($settings->general->emergencyNumber),
+                'emergencyLabel' => PersianDigits::toPersian($settings->general->emergencyNumber),
             ])->render();
         });
 
         return view('components.layout.fragment', ['html' => $html]);
     }
 
-    public static function persianDigits(string $value): string
-    {
-        return strtr($value, ['0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴', '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹']);
-    }
-
-    /** Current Solar Hijri year in Tehran (intl when available; Nowruz approximated as 21 March otherwise). */
+    /** Current Solar Hijri year in Tehran. */
     public static function jalaliYear(?DateTimeImmutable $now = null): int
     {
-        $now = ($now ?? new DateTimeImmutable('now'))->setTimezone(new DateTimeZone('Asia/Tehran'));
-
-        if (class_exists(IntlDateFormatter::class)) {
-            $formatter = new IntlDateFormatter('en_US@calendar=persian', IntlDateFormatter::NONE, IntlDateFormatter::NONE, 'Asia/Tehran', IntlDateFormatter::TRADITIONAL, 'y');
-            $year = $formatter->format($now);
-            if (is_string($year) && ctype_digit($year)) {
-                return (int) $year;
-            }
-        }
-
-        $gregorian = (int) $now->format('Y');
-
-        return $now->format('md') >= '0321' ? $gregorian - 621 : $gregorian - 622;
+        return JalaliDate::fromDateTime($now ?? new DateTimeImmutable('now'))->year;
     }
 
     private static function tagline(SiteSettings $settings): string

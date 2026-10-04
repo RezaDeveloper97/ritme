@@ -6,10 +6,9 @@
 --}}
 @props(['value', 'count' => null, 'size' => 'sm', 'stars' => false])
 @php
-    $fa = static fn (string $v): string => \App\View\Components\Layout\Footer::persianDigits(str_replace('.', '٫', $v));
     $score = (float) $value;
-    $scoreText = $fa(rtrim(rtrim(number_format($score, 1, '.', ''), '0'), '.'));
-    $countText = $count !== null ? $fa(number_format((int) $count, 0, '.', '٬')) : null;
+    $scoreText = \App\Support\Text\PersianDigits::number($score, 1);
+    $countText = $count !== null ? \App\Support\Text\PersianDigits::number((int) $count) : null;
     $spoken = "امتیاز {$scoreText} از ۵".($countText !== null ? " از {$countText} نظر" : '');
     $textSize = match ($size) {
         'md' => 'text-sm-plus',

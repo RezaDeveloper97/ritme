@@ -39,7 +39,7 @@
                     'bg-stage-teen text-white' => $state === 'done',
                     'bg-primary text-white' => $state === 'current',
                     'bg-line text-muted' => $state === 'todo',
-                ])>@if ($state === 'done')<x-icon name="check" class="size-4.5"/>@else{{ \App\View\Components\Layout\Footer::persianDigits((string) $loop->iteration) }}@endif</span>
+                ])>@if ($state === 'done')<x-icon name="check" class="size-4.5"/>@else{{ fa_digits($loop->iteration) }}@endif</span>
                 <span class="flex flex-col">
                     <b @class(['text-md', $state === 'todo' ? 'text-muted' : 'text-ink'])>{{ $step['label'] }}</b>
                     <span class="text-[12.5px] font-semibold text-muted">{{ $step['hint'] ?? '' }}<span class="sr-only">{{ ! empty($step['hint']) ? ' · ' : '' }}{{ $stateText[$state] }}</span></span>

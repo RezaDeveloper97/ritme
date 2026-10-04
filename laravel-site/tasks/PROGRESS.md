@@ -295,3 +295,13 @@ One section per finished task (appended by `/site-task`).
 - Split out **L4-05b**: newsletter subscribers list/export (needs L4-02's Newsletter model) + media usage scan of post bodies.
 - Open: L4-03 renders body images by `data-media-id` via `<x-picture>`; tag/author URLs assumed `/blog/tag/{slug}`,
   `/blog/author/{slug}` (L4-02 to confirm); admin date picker is Gregorian.
+
+## L3-01b — Support helpers: Persian digits, Jalali dates, Toman formatting
+- No package (morilog/jalali's own global `jdate()` would shadow ours): `App\Support\Jalali\{JalaliCalendar,JalaliDate}`
+  (integer port of jalaali-js; tested daily 1300–1500 + against ICU), `App\Support\Text\{PersianDigits,Toman}`,
+  `app/Support/helpers.php` via composer `autoload.files`: `fa_digits()`, `jdate($date, 'j F Y', $persianDigits)` (Tehran).
+- Components switched (price, rating, gallery, steps, stepper, alert-emergency, cards/article; timeline accepts
+  DateTimeInterface → `<time>`). `Footer::persianDigits()` removed. 74 unit tests; pest 706 passed.
+- Filament: `->formatStateUsing(fn ($s) => $s ? jdate($s, 'Y/m/d H:i') : null)`.
+- Open: error views + `SerpMeasure` still have inline digit maps (switch when next edited); Toman shows «۱٬۵۰۰ هزار»
+  for 1.5M (L6-01 may change).

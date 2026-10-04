@@ -2,21 +2,14 @@
     <x-ui.price :amount="485000" :compare="460000"/>             →  ۴۸۵ هزار تومان  ~~۴۶۰ هزار~~
     <x-ui.price :amount="320000" from unit="هر جلسه" size="lg"/>  →  از ۳۲۰ هزار تومان · هر جلسه (Lalezar 30)
     <x-ui.price :amount="320000" from size="inline"/>             →  inside running text (place card)
-    Amounts are integer tomans. Whole thousands read «… هزار», others are grouped with «٬»; digits are Persian
-    (AUDIT §2.2). `compare` (compare-at / old price) is struck through with an sr-only «قیمت قبلی». No currency
-    maths here — controllers pass ready integers (the Money value object replaces this formatter when it lands).
+    Amounts are integer tomans, formatted by App\Support\Text\Toman: whole thousands read «… هزار», others are
+    grouped with «٬»; digits are Persian (AUDIT §2.2). `compare` (compare-at / old price) is struck through with an
+    sr-only «قیمت قبلی». No currency maths here — controllers pass ready integers (Money value object: L6-01).
 --}}
 @props(['amount', 'compare' => null, 'from' => false, 'unit' => null, 'size' => 'md', 'currency' => 'تومان'])
 @php
-    $format = static function (int $value): string {
-        $text = $value >= 1000 && $value % 1000 === 0
-            ? number_format(intdiv($value, 1000), 0, '.', '٬').' هزار'
-            : number_format($value, 0, '.', '٬');
-
-        return \App\View\Components\Layout\Footer::persianDigits($text);
-    };
-    $amountText = $format((int) $amount);
-    $compareText = $compare !== null ? $format((int) $compare) : null;
+    $amountText = \App\Support\Text\Toman::format((int) $amount);
+    $compareText = $compare !== null ? \App\Support\Text\Toman::format((int) $compare) : null;
 @endphp
 @if ($size === 'inline')
 <span {{ $attributes }}>@if ($from)از @endif<b class="text-ink">{{ $amountText }}</b> {{ $currency }}@if ($unit) · {{ $unit }}@endif</span>

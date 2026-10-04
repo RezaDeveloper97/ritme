@@ -5,8 +5,8 @@
         ['title' => 'انتشار صفحه مجموعه', 'time' => '…', 'state' => 'todo'],
     ]"/>
     Vertical status list (AUDIT §2.2: directory-join-done, shop-done per seller): 14px dot (done = postpartum teal,
-    current = primary, todo = hollow) joined by a 2px line, title 13.5 + time 11.5. Times are display strings —
-    format dates with the Jalali helper before passing them. States are spoken via sr-only text.
+    current = primary, todo = hollow) joined by a 2px line, title 13.5 + time 11.5. `time` is a display string or a
+    DateTimeInterface (rendered as `<time>` via jdate(), «۱۲ مهر · ۰۹:۳۰» Tehran time). States are spoken via sr-only.
 --}}
 @props(['items' => [], 'label' => null])
 @php($stateText = ['done' => 'انجام شد', 'current' => 'در جریان', 'todo' => 'در انتظار'])
@@ -25,7 +25,11 @@
             </span>
             <span class="flex flex-col pb-3.5">
                 <b @class(['text-sm-plus', $state === 'todo' ? 'text-muted' : 'text-ink'])>{{ $item['title'] }}<span class="sr-only"> ({{ $stateText[$state] ?? '' }})</span></b>
-                @if (! empty($item['time']))<span class="text-[11.5px] font-semibold text-muted">{{ $item['time'] }}</span>@endif
+                @if (($item['time'] ?? null) instanceof \DateTimeInterface)
+                    <time datetime="{{ $item['time']->format(DATE_ATOM) }}" class="text-[11.5px] font-semibold text-muted">{{ jdate($item['time'], 'j F · H:i') }}</time>
+                @elseif (! empty($item['time']))
+                    <span class="text-[11.5px] font-semibold text-muted">{{ $item['time'] }}</span>
+                @endif
             </span>
         </li>
     @endforeach
