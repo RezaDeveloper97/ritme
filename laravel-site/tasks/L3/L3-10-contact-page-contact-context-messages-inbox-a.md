@@ -3,7 +3,7 @@ id: L3-10
 title: Contact page + Contact context (messages inbox, anti-spam)
 milestone: L3
 type: fullstack
-status: todo
+status: done
 depends_on: [L3-01,L1-08]
 parallel_group: L3-E
 touches: [app/Domain/Contact,database/migrations,resources/views/pages/contact.blade.php,app/Http/Controllers/ContactController.php,app/Http/Requests/ContactRequest.php,app/Filament/Resources/ContactMessages,app/Notifications,tests/Feature/Contact]

@@ -8,6 +8,7 @@ use App\Domain\Blog\Models\Author;
 use App\Domain\Blog\Models\Category;
 use App\Domain\Blog\Models\Post;
 use App\Domain\Blog\Models\Tag;
+use App\Domain\Contact\Models\ContactMessage;
 use App\Domain\Faq\Models\FaqGroup;
 use App\Domain\Faq\Models\FaqItem;
 use App\Domain\Media\Models\Media;
@@ -27,6 +28,7 @@ use App\Filament\Resources\Blog\Categories\CategoryPolicy;
 use App\Filament\Resources\Blog\Posts\PostPolicy;
 use App\Filament\Resources\Blog\Posts\PostPreviewController;
 use App\Filament\Resources\Blog\Tags\TagPolicy;
+use App\Filament\Resources\ContactMessages\ContactMessagePolicy;
 use App\Filament\Resources\Faq\FaqPolicy;
 use App\Filament\Resources\Media\MediaPolicy;
 use App\Filament\Resources\Newsletter\SubscriberPolicy;
@@ -83,6 +85,7 @@ final class AdminPanelProvider extends PanelProvider
         Gate::policy(FaqGroup::class, FaqPolicy::class);
         Gate::policy(FaqItem::class, FaqPolicy::class);
         Gate::policy(Subscriber::class, SubscriberPolicy::class);
+        Gate::policy(ContactMessage::class, ContactMessagePolicy::class);
 
         Event::listen(Login::class, RecordLastLogin::class);
     }

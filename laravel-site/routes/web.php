@@ -7,6 +7,7 @@ use App\Http\Controllers\Blog\BlogListingController;
 use App\Http\Controllers\Blog\NewsletterController;
 use App\Http\Controllers\Blog\PostViewController;
 use App\Http\Controllers\Blog\ShowPostController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Directory\ListPlacesController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\FeedController;
@@ -58,7 +59,9 @@ Route::get('/social-responsibility', SocialResponsibilityController::class)->nam
 Route::get('/privacy', PrivacyController::class)->name('privacy');                               // L3-08
 Route::get('/terms', TermsController::class)->name('terms');                                     // L3-08
 Route::get('/faq', FaqController::class)->name('faq');                                           // L3-09
-Route::get('/contact', PlaceholderPageController::class)->name('contact');                         // L3-10
+Route::get('/contact', [ContactController::class, 'show'])->name('contact');                       // L3-10
+// Contact form (L3-10): PRG, rate limited per IP (no captcha); honeypot + time trap answered like a real send.
+Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:contact')->name('contact.store');
 
 // Site search (L4-04): noindex + never page-cached (route name `search`, SeoManager::NOINDEX_ROUTES), rate limited per IP.
 Route::get('/search', SearchController::class)->middleware('throttle:'.SearchController::PER_MINUTE.',1')->name('search');

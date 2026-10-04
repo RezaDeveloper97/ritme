@@ -21,15 +21,16 @@ final class OrganizationNode
     {
         $organization = $settings->organization;
         $contact = $organization->contactPoint;
-        $telephone = $contact->telephone ?? $settings->contact->phone;
-        $email = $contact->email ?? $settings->contact->supportEmail;
+        $telephone = self::real($contact->telephone ?? $settings->contact->phone);
+        $email = self::real($contact->email ?? $settings->contact->supportEmail);
+        $email = $email !== null && filter_var($email, FILTER_VALIDATE_EMAIL) !== false ? $email : null;
 
         return Node::clean([
             '@type' => 'Organization',
             '@id' => SchemaIds::organization($siteUrl),
             'name' => $settings->general->siteName,
             'alternateName' => $settings->general->alternateName,
-            'legalName' => $organization->legalName,
+            'legalName' => self::real($organization->legalName),
             'url' => SchemaIds::root($siteUrl),
             'logo' => $logo !== null ? Node::image($logo, SchemaIds::logo($siteUrl)) : null,
             'image' => $logo !== null ? Node::ref(SchemaIds::logo($siteUrl)) : null,
@@ -45,5 +46,13 @@ final class OrganizationNode
                 'availableLanguage' => ['fa'],
             ] : null,
         ]);
+    }
+
+    /** Seeded design placeholders like «[شماره تماس]» are not facts and never go into structured data. */
+    private static function real(?string $value): ?string
+    {
+        $value = $value !== null ? trim($value) : null;
+
+        return $value === null || $value === '' || preg_match('/^\[.*\]$/u', $value) === 1 ? null : $value;
     }
 }

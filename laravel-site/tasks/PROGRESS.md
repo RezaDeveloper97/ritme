@@ -543,3 +543,20 @@ One section per finished task (appended by `/site-task`).
 - Diff 1440 26.12% / 390 49.15%: height (NULL app links, 6 demo places vs 4-page mock pagination, no fake ratings or
   distances, areas panel instead of the map, design's broken 390 search form fixed). Top section matches visually.
 - Open: demo-only lists are noindex (incl. /directory in dev); booking slots (L5-04); bookmark button inert.
+
+## L3-10 — Contact page + Contact context (messages inbox, anti-spam)
+- Migration `2026_10_04_001950_create_contact_messages_table` (topic, name, email/phone, message, status, read_at; no
+  IP/UA). `app/Domain/Contact`: model, enums (5 topics, unread/read/archived), `ReplyChannel` (email RFC-only or
+  Iranian mobile normalised), `FormTimer` (encrypted time trap 3 s–24 h), `ContactRecipients` (privacy → DPO,
+  partnership → partnership mailbox, fallback support), `SubmitContactMessage` (queued `ContactMessageReceived`
+  notification after commit: topic + name + panel link only), `ChangeContactMessageStatus` (activity log),
+  `ExportContactMessages` (CSV BOM, Jalali, formula guard).
+- `/contact` GET + POST (`contact.store`, `throttle:contact` 3/min 10/day); honeypot/time-trap spam answered exactly
+  like success; Persian validation; PRG to `#contact-form`. **Page is `no-store` (bypasses the page cache)** because
+  the time trap needs a per-visitor render time. ContactPage + FAQPage JSON-LD; FAQ group `contact` rendered.
+- Filament inbox (`ContactMessageResource`, Support + super-admin): tabs, topic filter, unread badge, open = read,
+  mailto/tel reply, single + bulk status actions, delete, CSV export. Tests: 20.
+- Diff body-above-footer 390 4.47% / 1440 4.46% (x-faq paragraph sizing + gap); whole page 8.26 / 9.77% (footer).
+- Orchestrator: `OrganizationNode` drops `[placeholder]` values and invalid emails from contactPoint/legalName on
+  every page (+ `OrganizationPlaceholdersTest`).
+- Open: queue worker/cron needed for notifications (L10-01); message retention/prune policy undefined.
