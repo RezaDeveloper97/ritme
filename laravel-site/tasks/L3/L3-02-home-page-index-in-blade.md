@@ -3,7 +3,7 @@ id: L3-02
 title: Home page (index) in Blade
 milestone: L3
 type: frontend
-status: todo
+status: done
 depends_on: [L3-01,L1-04]
 parallel_group: L3-B
 touches: [resources/views/pages/home.blade.php,resources/views/pages/home,app/Http/Controllers/HomeController.php,lang/fa/home.php,tests/Feature/Pages/HomeTest.php]

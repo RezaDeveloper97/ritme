@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PlaceholderPageController;
 use App\Http\Controllers\Seo\RobotsTxtController;
 use App\Http\Controllers\Seo\SitemapController;
@@ -20,7 +21,7 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
  * App\Http\Middleware\CanonicalizeUrl before routing.
  */
 
-Route::get('/', PlaceholderPageController::class)->name('home');                                   // L3-02
+Route::get('/', HomeController::class)->name('home');                                            // L3-02
 
 Route::name('stage.')->group(function (): void {
     Route::get('/cycle', PlaceholderPageController::class)->name('cycle');                         // L3-03

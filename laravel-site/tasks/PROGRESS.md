@@ -305,3 +305,16 @@ One section per finished task (appended by `/site-task`).
 - Filament: `->formatStateUsing(fn ($s) => $s ? jdate($s, 'Y/m/d H:i') : null)`.
 - Open: error views + `SerpMeasure` still have inline digit maps (switch when next edited); Toman shows «۱٬۵۰۰ هزار»
   for 1.5M (L6-01 may change).
+
+## L3-02 — Home page (index) in Blade
+- `HomeController` (title/description from design via `lang/fa/home.php`, admin `seo_meta` for route `home` wins;
+  MobileApplication node; readings via cached `PostRepository::latest(1, 3)`; app links/QR from settings; static middle
+  sections fragment-cached in `pages` ns keyed by manifest hash + template/lang mtimes). Route `home` → controller;
+  `welcome.blade.php` removed.
+- Views `pages/home.blade.php` + `pages/home/{hero,static,split}` + phone mockups (`aria-hidden`), built from the kit.
+  LCP is the h1 text. `tests/Feature/Pages/HomeTest.php` (7). `seo:audit --path=/`: 0 errors (og.image warning).
+- Diff: 1440 whole 19.58% (FAQ slot intentionally empty, −680 px) — aligned top 0–5700 px 1.55%, bottom 2.16%;
+  390 whole 46.77% — top 3.45%, bottom 2.51%. Deliberate fix: design's `#how` card kept 120 px side margin on mobile
+  (→ `max-sm:mx-5 max-sm:p-6`). Kit gaps: `cards/article` cover 180 vs 216 px, footer store badges stack vertically.
+- Open: L3-09 replaces the marked FAQ slot with `x-faq` group `home`; L3-07 must provide `/tools#due-date`, `#fertility`,
+  `#hospital-bag`, `#sisemoni`; mockup demo names/numbers live in `lang/fa/home.php`; «۸۶ مورد» claim to confirm.
