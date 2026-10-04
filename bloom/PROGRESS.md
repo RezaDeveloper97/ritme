@@ -863,3 +863,10 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   learn until B-N5-06). Nav «کودک» tab live (`NAV_READY.children`, `childIds` prop); postpartum hero children row +
   real vaccine rows; companion home shared-children card. Namespace `children`.
 - Screenshots `docs/qa/bloom/B-N5-05/`. Test users 09900005501/02/03 on ritme_dev.
+
+## B-N4-10 — N4 rollout — stage deploy and two-account e2e
+
+- verify green on HEAD (worktree); `stage` pushed and deployed (aa11509; goose 27–32 in order, version 32; new route
+  groups answer 401 unauthenticated). Two-account e2e: 24 checks — 22 pass, 1 fail (B-1: no UI to share children),
+  1 API-only; 0 5xx / console errors. CMP-H1 neutral view, grant change within 1 s, revoke, uniform 422 codes verified.
+- Report `docs/qa/bloom/n4-stage.md`, shots `docs/qa/bloom/n4-stage/`. Follow-ups → **B-N4-10b**. QUESTIONS #104b.

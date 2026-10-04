@@ -1,0 +1,922 @@
+[
+  {
+    "route": "A-code-01-list",
+    "theme": "light",
+    "landed": "/fa/companions",
+    "shot": "A-code-01-list.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-code-02-type",
+    "theme": "light",
+    "landed": "/fa/companions/new",
+    "shot": "A-code-02-type.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-code-02b-type-picked",
+    "theme": "light",
+    "landed": "/fa/companions/new",
+    "shot": "A-code-02b-type-picked.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-code-03-access",
+    "theme": "light",
+    "landed": "/fa/companions/new",
+    "shot": "A-code-03-access.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-code-04-invite",
+    "theme": "light",
+    "landed": "/fa/companions/new",
+    "shot": "A-code-04-invite.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-code-05-code",
+    "theme": "light",
+    "landed": "/fa/companions/new",
+    "shot": "A-code-05-code.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-code-06-done",
+    "theme": "light",
+    "landed": "/fa/companions/new",
+    "shot": "A-code-06-done.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-code-07-list-pending",
+    "theme": "light",
+    "landed": "/fa/companions",
+    "shot": "A-code-07-list-pending.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-phone-01-list",
+    "theme": "dark",
+    "landed": "/fa/companions",
+    "shot": "A-phone-01-list.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-phone-02-type",
+    "theme": "dark",
+    "landed": "/fa/companions/new",
+    "shot": "A-phone-02-type.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-phone-02b-type-picked",
+    "theme": "dark",
+    "landed": "/fa/companions/new",
+    "shot": "A-phone-02b-type-picked.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-phone-03-access",
+    "theme": "dark",
+    "landed": "/fa/companions/new",
+    "shot": "A-phone-03-access.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-phone-04-invite",
+    "theme": "dark",
+    "landed": "/fa/companions/new",
+    "shot": "A-phone-04-invite.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-phone-05-code",
+    "theme": "dark",
+    "landed": "/fa/companions/new",
+    "shot": "A-phone-05-code.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-phone-06-done",
+    "theme": "dark",
+    "landed": "/fa/companions/new",
+    "shot": "A-phone-06-done.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-phone-07-list-pending",
+    "theme": "dark",
+    "landed": "/fa/companions",
+    "shot": "A-phone-07-list-pending.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-01-signup",
+    "theme": "light",
+    "landed": "/fa/signup",
+    "shot": "B-01-signup.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-02-otp",
+    "theme": "light",
+    "landed": "/fa/onboarding/name",
+    "shot": "B-02-otp.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-03-name",
+    "theme": "light",
+    "landed": "/fa/onboarding/name",
+    "shot": "B-03-name.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-04-gender-male",
+    "theme": "light",
+    "landed": "/fa/onboarding/gender",
+    "shot": "B-04-gender-male.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-05-partner-empty",
+    "theme": "light",
+    "landed": "/fa/onboarding/partner",
+    "shot": "B-05-partner-empty.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-06-partner-wrong",
+    "theme": "light",
+    "landed": "/fa/onboarding/partner",
+    "shot": "B-06-partner-wrong.light.png",
+    "network": [
+      "422 /api/v1/companions/accept"
+    ],
+    "console": []
+  },
+  {
+    "route": "B-07-partner-filled",
+    "theme": "light",
+    "landed": "/fa/onboarding/partner",
+    "shot": "B-07-partner-filled.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-08-linked",
+    "theme": "light",
+    "landed": "/fa/onboarding/partner/linked",
+    "shot": "B-08-linked.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-09-companion",
+    "theme": "light",
+    "landed": "/fa/companion",
+    "shot": "B-09-companion.light.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "B-10-links",
+    "theme": "light",
+    "landed": "/fa/companion/links",
+    "shot": "B-10-links.light.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "B-11-med-new",
+    "theme": "light",
+    "landed": "/fa/reminders/medication/new",
+    "shot": "B-11-med-new.light.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "B-12-recordfor-sheet",
+    "theme": "light",
+    "landed": "/fa/reminders/medication/new",
+    "shot": "B-12-recordfor-sheet.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-13-med-form-for-sara",
+    "theme": "light",
+    "landed": "/fa/reminders/medication/new",
+    "shot": "B-13-med-form-for-sara.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-13b-confirm-sheet",
+    "theme": "light",
+    "landed": "/fa/reminders/medication/new",
+    "shot": "B-13b-confirm-sheet.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-14-med-saved",
+    "theme": "light",
+    "landed": "/fa/reminders/medication/new",
+    "shot": "B-14-med-saved.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-15-appt-new",
+    "theme": "light",
+    "landed": "/fa/reminders/appointment/new",
+    "shot": "B-15-appt-new.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-16-appt-new-for-sara",
+    "theme": "light",
+    "landed": "/fa/reminders/appointment/new?for=41",
+    "shot": "B-16-appt-new-for-sara.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-09-companion",
+    "theme": "dark",
+    "landed": "/fa/companion",
+    "shot": "B-09-companion.dark.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "B-10-links",
+    "theme": "dark",
+    "landed": "/fa/companion/links",
+    "shot": "B-10-links.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-11-med-new",
+    "theme": "dark",
+    "landed": "/fa/reminders/medication/new",
+    "shot": "B-11-med-new.dark.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "B-12-recordfor-sheet",
+    "theme": "dark",
+    "landed": "/fa/reminders/medication/new",
+    "shot": "B-12-recordfor-sheet.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-13-med-form-for-sara",
+    "theme": "dark",
+    "landed": "/fa/reminders/medication/new",
+    "shot": "B-13-med-form-for-sara.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-13b-confirm-sheet",
+    "theme": "dark",
+    "landed": "/fa/reminders/medication/new",
+    "shot": "B-13b-confirm-sheet.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-14-med-saved",
+    "theme": "dark",
+    "landed": "/fa/reminders/medication/new",
+    "shot": "B-14-med-saved.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-15-appt-new",
+    "theme": "dark",
+    "landed": "/fa/reminders/appointment/new",
+    "shot": "B-15-appt-new.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-16-appt-new-for-sara",
+    "theme": "dark",
+    "landed": "/fa/reminders/appointment/new?for=41",
+    "shot": "B-16-appt-new-for-sara.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-linked-home",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "A-linked-home.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-linked-notifications",
+    "theme": "light",
+    "landed": "/fa/home?sheet=notifications",
+    "shot": "A-linked-notifications.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-linked-companions",
+    "theme": "light",
+    "landed": "/fa/companions",
+    "shot": "A-linked-companions.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-linked-detail",
+    "theme": "light",
+    "landed": "/fa/companions/1",
+    "shot": "A-linked-detail.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-linked-privacy",
+    "theme": "light",
+    "landed": "/fa/profile/privacy",
+    "shot": "A-linked-privacy.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-linked-home",
+    "theme": "dark",
+    "landed": "/fa/home",
+    "shot": "A-linked-home.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-linked-notifications",
+    "theme": "dark",
+    "landed": "/fa/home?sheet=notifications",
+    "shot": "A-linked-notifications.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-linked-companions",
+    "theme": "dark",
+    "landed": "/fa/companions",
+    "shot": "A-linked-companions.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-linked-detail",
+    "theme": "dark",
+    "landed": "/fa/companions/1",
+    "shot": "A-linked-detail.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-linked-privacy",
+    "theme": "dark",
+    "landed": "/fa/profile/privacy",
+    "shot": "A-linked-privacy.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-grants-01-meds-none",
+    "theme": "light",
+    "landed": "/fa/companions/1",
+    "shot": "A-grants-01-meds-none.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-after-meds-none-companion",
+    "theme": "light",
+    "landed": "/fa/companion",
+    "shot": "B-after-meds-none-companion.light.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "B-after-meds-none-reminders_medication_new",
+    "theme": "light",
+    "landed": "/fa/reminders/medication/new",
+    "shot": "B-after-meds-none-reminders_medication_new.light.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "B-after-meds-none-companion",
+    "theme": "dark",
+    "landed": "/fa/companion",
+    "shot": "B-after-meds-none-companion.dark.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "B-after-meds-none-reminders_medication_new",
+    "theme": "dark",
+    "landed": "/fa/reminders/medication/new",
+    "shot": "B-after-meds-none-reminders_medication_new.dark.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "A-preg-01-mode",
+    "theme": "light",
+    "landed": "/fa/profile/mode",
+    "shot": "A-preg-01-mode.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-preg-02-after-click",
+    "theme": "light",
+    "landed": "/fa/profile/mode",
+    "shot": "A-preg-02-after-click.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-preg-03-setup",
+    "theme": "light",
+    "landed": "/fa/pregnancy/setup",
+    "shot": "A-preg-03-setup.light.png",
+    "network": [
+      "404 /api/v1/pregnancy/profile"
+    ],
+    "console": []
+  },
+  {
+    "route": "A-preg-04-step2",
+    "theme": "light",
+    "landed": "/fa/pregnancy/setup",
+    "shot": "A-preg-04-step2.light.png",
+    "network": [
+      "404 /api/v1/pregnancy/profile"
+    ],
+    "console": []
+  },
+  {
+    "route": "A-preg-05-step3",
+    "theme": "light",
+    "landed": "/fa/pregnancy/setup",
+    "shot": "A-preg-05-step3.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-preg-05-step4",
+    "theme": "light",
+    "landed": "/fa/pregnancy/setup",
+    "shot": "A-preg-05-step4.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-preg-06-home",
+    "theme": "light",
+    "landed": "/fa/pregnancy",
+    "shot": "A-preg-06-home.light.png",
+    "network": [
+      "404 /api/v1/pregnancy/profile"
+    ],
+    "console": []
+  },
+  {
+    "route": "B-pregnancy-companion",
+    "theme": "light",
+    "landed": "/fa/companion",
+    "shot": "B-pregnancy-companion.light.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "B-pregnancy-companion",
+    "theme": "dark",
+    "landed": "/fa/companion",
+    "shot": "B-pregnancy-companion.dark.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "A-revoke-01-confirm",
+    "theme": "dark",
+    "landed": "/fa/companions/1",
+    "shot": "A-revoke-01-confirm.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "A-revoke-02-after",
+    "theme": "dark",
+    "landed": "/fa/companions",
+    "shot": "A-revoke-02-after.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-revoked-companion",
+    "theme": "light",
+    "landed": "/fa/companion",
+    "shot": "B-revoked-companion.light.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "B-revoked-companion",
+    "theme": "dark",
+    "landed": "/fa/companion",
+    "shot": "B-revoked-companion.dark.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "S-01-access",
+    "theme": "light",
+    "landed": "/fa/companions/new",
+    "shot": "S-01-access.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S-02-children-step",
+    "theme": "light",
+    "landed": "/fa/companions/new",
+    "shot": "S-02-children-step.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S-03-code",
+    "theme": "light",
+    "landed": "/fa/companions/new",
+    "shot": "S-03-code.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S-04-b-code-entry",
+    "theme": "light",
+    "landed": "/fa/companion/links",
+    "shot": "S-04-b-code-entry.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S-05-b-after-connect",
+    "theme": "light",
+    "landed": "/fa/companion/links",
+    "shot": "S-05-b-after-connect.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-spouse-companion",
+    "theme": "light",
+    "landed": "/fa/companion",
+    "shot": "B-spouse-companion.light.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "B-spouse-companion_links",
+    "theme": "light",
+    "landed": "/fa/companion/links",
+    "shot": "B-spouse-companion_links.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "B-spouse-companion",
+    "theme": "dark",
+    "landed": "/fa/companion",
+    "shot": "B-spouse-companion.dark.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "B-spouse-companion_links",
+    "theme": "dark",
+    "landed": "/fa/companion/links",
+    "shot": "B-spouse-companion_links.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S-06-a-companions",
+    "theme": "light",
+    "landed": "/fa/companions",
+    "shot": "S-06-a-companions.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S-07-a-detail",
+    "theme": "light",
+    "landed": "/fa/companions/3",
+    "shot": "S-07-a-detail.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S-08-a-privacy",
+    "theme": "light",
+    "landed": "/fa/profile/privacy",
+    "shot": "S-08-a-privacy.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S-06-a-companions",
+    "theme": "dark",
+    "landed": "/fa/companions",
+    "shot": "S-06-a-companions.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S-07-a-detail",
+    "theme": "dark",
+    "landed": "/fa/companions/3",
+    "shot": "S-07-a-detail.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S-08-a-privacy",
+    "theme": "dark",
+    "landed": "/fa/profile/privacy",
+    "shot": "S-08-a-privacy.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/companions/tips",
+    "theme": "light",
+    "landed": "/panel/companions/tips",
+    "shot": "ADM-companions_tips.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/companions/links",
+    "theme": "light",
+    "landed": "/panel/companions/links",
+    "shot": "ADM-companions_links.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/companions/tips?phase=pregnancy",
+    "theme": "light",
+    "landed": "/panel/companions/tips?phase=pregnancy",
+    "shot": "ADM-companions_tips_phase_pregnancy.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/companions/tips",
+    "theme": "dark",
+    "landed": "/panel/companions/tips",
+    "shot": "ADM-companions_tips.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/companions/links",
+    "theme": "dark",
+    "landed": "/panel/companions/links",
+    "shot": "ADM-companions_links.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/companions/tips?phase=pregnancy",
+    "theme": "dark",
+    "landed": "/panel/companions/tips?phase=pregnancy",
+    "shot": "ADM-companions_tips_phase_pregnancy.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "D-01-signup",
+    "theme": "dark",
+    "landed": "/fa/signup",
+    "shot": "D-01-signup.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "D-02-otp",
+    "theme": "dark",
+    "landed": "/fa/onboarding/name",
+    "shot": "D-02-otp.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "D-03-name",
+    "theme": "dark",
+    "landed": "/fa/onboarding/name",
+    "shot": "D-03-name.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "D-04-gender-male",
+    "theme": "dark",
+    "landed": "/fa/onboarding/gender",
+    "shot": "D-04-gender-male.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "D-05-partner-empty",
+    "theme": "dark",
+    "landed": "/fa/onboarding/partner",
+    "shot": "D-05-partner-empty.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "D-06-later",
+    "theme": "dark",
+    "landed": "/fa/onboarding/setting-up",
+    "shot": "D-06-later.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "D-07-companion-empty",
+    "theme": "dark",
+    "landed": "/fa/companion",
+    "shot": "D-07-companion-empty.dark.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "D-08-me",
+    "theme": "dark",
+    "landed": "/fa/profile",
+    "shot": "D-08-me.dark.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "D-07-companion-empty",
+    "theme": "light",
+    "landed": "/fa/companion",
+    "shot": "D-07-companion-empty.light.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "D-08-me",
+    "theme": "light",
+    "landed": "/fa/profile",
+    "shot": "D-08-me.light.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  },
+  {
+    "route": "E-01-signup",
+    "theme": "dark",
+    "landed": "/fa/signup",
+    "shot": "E-01-signup.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "E-02-otp",
+    "theme": "dark",
+    "landed": "/fa/onboarding/name",
+    "shot": "E-02-otp.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "E-03-name",
+    "theme": "dark",
+    "landed": "/fa/onboarding/name",
+    "shot": "E-03-name.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "E-04-gender-male",
+    "theme": "dark",
+    "landed": "/fa/onboarding/gender",
+    "shot": "E-04-gender-male.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "E-05-partner-empty",
+    "theme": "dark",
+    "landed": "/fa/onboarding/partner",
+    "shot": "E-05-partner-empty.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "E-06-later",
+    "theme": "dark",
+    "landed": "/fa/onboarding/setting-up",
+    "shot": "E-06-later.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "E-07-companion-empty",
+    "theme": "dark",
+    "landed": "/fa/onboarding/name",
+    "shot": "E-07-companion-empty.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "E-07-after-ready",
+    "theme": "light",
+    "landed": "/fa/companion",
+    "shot": "E-07-after-ready.light.png",
+    "network": [
+      "409 /api/v1/messages/mode"
+    ],
+    "console": []
+  }
+]
