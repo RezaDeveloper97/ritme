@@ -28,6 +28,11 @@ use App\Domain\Seo\Redirects\Models\Redirect;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use App\Domain\Settings\Data\GeneralSettings;
 use App\Domain\Settings\Enums\SettingGroup;
+use App\Domain\Shop\Catalog\Models\Brand;
+use App\Domain\Shop\Catalog\Models\Category as ShopCategory;
+use App\Domain\Shop\Catalog\Models\Product;
+use App\Domain\Shop\Catalog\Models\ProductReview;
+use App\Domain\Shop\Ordering\Models\Order;
 use App\Filament\Auth\InitialsAvatarProvider;
 use App\Filament\Commands\CreateAdminCommand;
 use App\Filament\Http\Middleware\EnforceSessionTimeout;
@@ -51,7 +56,13 @@ use App\Filament\Resources\Newsletter\SubscriberPolicy;
 use App\Filament\Resources\Seo\NotFoundLogs\NotFoundLogPolicy;
 use App\Filament\Resources\Seo\Redirects\RedirectPolicy;
 use App\Filament\Resources\Seo\StaticPageSeo\StaticPageSeoPolicy;
+use App\Filament\Resources\Shop\OrderPolicy;
+use App\Filament\Resources\Shop\ProductReviewPolicy;
+use App\Filament\Resources\Shop\ShopCatalogPolicy;
+use App\Filament\Resources\Shop\ShopPolicy;
 use App\Filament\Widgets\AdminOverview;
+use App\Filament\Widgets\Shop\LowStockProducts;
+use App\Filament\Widgets\Shop\ShopOrdersOverview;
 use App\Models\User;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Facades\Filament;
@@ -114,6 +125,11 @@ final class AdminPanelProvider extends PanelProvider
         Gate::policy(PlaceReview::class, PlaceReviewPolicy::class);
         Gate::policy(BookingRequest::class, BookingRequestPolicy::class);
         Gate::policy(JoinRequest::class, JoinRequestPolicy::class);
+        Gate::policy(Product::class, ShopCatalogPolicy::class);      // L6-06
+        Gate::policy(ShopCategory::class, ShopCatalogPolicy::class);
+        Gate::policy(Brand::class, ShopPolicy::class);
+        Gate::policy(Order::class, OrderPolicy::class);
+        Gate::policy(ProductReview::class, ProductReviewPolicy::class);
 
         Event::listen(Login::class, RecordLastLogin::class);
     }
@@ -154,6 +170,8 @@ final class AdminPanelProvider extends PanelProvider
             ->widgets([
                 AccountWidget::class,
                 AdminOverview::class,
+                ShopOrdersOverview::class, // L6-06 (shop managers + super-admins only)
+                LowStockProducts::class,
             ])
             ->middleware([
                 EncryptCookies::class,

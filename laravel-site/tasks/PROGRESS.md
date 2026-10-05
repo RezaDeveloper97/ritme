@@ -827,3 +827,24 @@ One section per finished task (appended by `/site-task`).
   0 except product 0.159 (override 0.2, fix moved to L9-02). Fidelity unchanged on /, /cycle, /blog, /shop.
 - Deploy notes moved into L10-01 (`CRITICAL_STRICT=1`, ship critical/, bump `pages` after deploy). `CRITICAL_SKIP=1`
   for fast local builds (+~50 s otherwise).
+
+## L6-06 — Admin: products, categories, brands, orders, reviews, low-stock
+- `app/Filament/Resources/Shop/`: `ShopAdmin` helpers (Jalali, Toman input ↔ rial Money, masking), `LowStock`;
+  policies (catalog: ShopManager + super-admin full, SeoManager SEO tab only (server-enforced); brands; orders no
+  create/delete + `export`; reviews). Products (general, Toman prices, stock + variants repeater with duplicate
+  size+colour/SKU rejection, specs + size chart (`|` rows), gallery via MediaPicker, categories + cross-sells, SEO tab
+  with analysis panel; products with orders can't be deleted), Categories (tree, no self/descendant parent, sibling
+  drag-sort, guarded delete), Brands, Orders (status tabs with counts, filters, exact code/mobile search, masked list,
+  full data on view only, status actions, internal notes, printable invoice, CSV), Reviews (single/bulk moderation).
+- Actions: `SaveProduct` (one transaction via Sync*, never writes rating/sales), `ModerateProductReviews`,
+  `ChangeOrderStatus` (pending→confirmed|cancelled, confirmed→shipped|cancelled, shipped→delivered|cancelled;
+  conditional UPDATE; delivered → paid; cancel restores only `stock_tracked` lines via AdjustStock, decrements
+  `sales_count`, idempotent), `AddOrderNote` (activity `shop.order.note`), `ExportOrders` (BOM, Jalali, Toman, masked
+  mobile, no name/address, formula guard). Widgets `ShopOrdersOverview`, `LowStockProducts`.
+- `ShopSettings` group (`/admin/settings/shop`: shipping fee, free-shipping threshold, COD cap, low-stock threshold);
+  `ShippingRule` + `PaymentGateway` read settings with `config('shop.*')` fallback. Invoice view
+  `resources/views/admin/invoice.blade.php` (standalone, system font, no external assets). `ShopAdminTest` (10).
+- Orchestrator: Activity log filter gained blog/seo/newsletter/contact/directory/shop; Cart/Payment READMEs updated;
+  dev DB settings re-seeded (insert-missing).
+- Open: deleting a variant that was ordered means a later cancel can't restore that line (logged as skipped);
+  delivered COD auto-marks paid; Gregorian date pickers in filters.

@@ -55,7 +55,10 @@ final class ActivityResource extends Resource
                 TextColumn::make('subject_id')->label('شناسه'),
             ])
             ->filters([
-                SelectFilter::make('log_name')->label('دسته')->options(['admin' => 'مدیریت', 'settings' => 'تنظیمات']),
+                SelectFilter::make('log_name')->label('دسته')->options([
+                    'admin' => 'مدیریت', 'settings' => 'تنظیمات', 'blog' => 'مجله', 'seo' => 'سئو', 'newsletter' => 'خبرنامه',
+                    'contact' => 'تماس', 'directory' => 'راهنمای مراکز', 'shop' => 'فروشگاه',
+                ]),
                 SelectFilter::make('event')->label('رویداد')
                     ->options(['created' => 'ایجاد', 'updated' => 'ویرایش', 'deleted' => 'حذف']),
             ])

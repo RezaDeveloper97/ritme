@@ -11,5 +11,5 @@ it stays tiny and a client can never set a price.
   `ClearCart`. Problems are `Exceptions\CartException` / notices with a `Enums\CartProblem` (copy in `lang/fa/shop.php`
   `cart.problems.*`).
 - Shipping: `Data\ShippingRule` (flat fee and/or free over a threshold, both optional → «محاسبه در مرحله بعد»), bound
-  in `ShopServiceProvider` from `config('shop.shipping.*')` until a shop settings group exists (L6-06).
+  in `ShopServiceProvider` from `ShopSettings` (admin → تنظیمات فروشگاه, L6-06) with `config('shop.shipping.*')` as fallback.
 - The header badge reads the plain cookie `ritme_cart_count` that `CartController` writes after every cart response.

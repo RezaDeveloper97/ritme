@@ -21,6 +21,7 @@ final readonly class SiteSettings
         public OrganizationSettings $organization,
         public LegalSettings $legal,
         public PwaSettings $pwa,
+        public ShopSettings $shop,
     ) {}
 
     /**
@@ -39,6 +40,7 @@ final readonly class SiteSettings
             organization: OrganizationSettings::fromArray($group(SettingGroup::Organization)),
             legal: LegalSettings::fromArray($group(SettingGroup::Legal)),
             pwa: PwaSettings::fromArray($group(SettingGroup::Pwa)),
+            shop: ShopSettings::fromArray($group(SettingGroup::Shop)),
         );
     }
 
@@ -66,6 +68,7 @@ final readonly class SiteSettings
             SettingGroup::Organization => $this->organization,
             SettingGroup::Legal => $this->legal,
             SettingGroup::Pwa => $this->pwa,
+            SettingGroup::Shop => $this->shop,
         };
     }
 

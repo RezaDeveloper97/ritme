@@ -3,7 +3,7 @@ id: L6-06
 title: Admin: products, categories, brands, orders, reviews, low-stock
 milestone: L6
 type: admin
-status: todo
+status: done
 depends_on: [L6-05,L2-03,L4-05]
 parallel_group: L6-D
 touches: [app/Filament/Resources/Shop,app/Filament/Widgets/Shop,resources/views/admin/invoice.blade.php,tests/Feature/Admin/ShopAdminTest.php]

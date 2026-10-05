@@ -12,6 +12,7 @@ use App\Domain\Settings\Data\OrganizationSettings;
 use App\Domain\Settings\Data\PwaSettings;
 use App\Domain\Settings\Data\SeoDefaults;
 use App\Domain\Settings\Data\SettingsGroupData;
+use App\Domain\Settings\Data\ShopSettings;
 use App\Domain\Settings\Data\SocialSettings;
 use App\Domain\Settings\Exceptions\UnknownSettingException;
 
@@ -28,6 +29,7 @@ enum SettingGroup: string
     case Organization = 'organization';
     case Legal = 'legal';
     case Pwa = 'pwa';
+    case Shop = 'shop';
 
     public static function fromName(string $group): self
     {
@@ -48,6 +50,7 @@ enum SettingGroup: string
             self::Organization => OrganizationSettings::class,
             self::Legal => LegalSettings::class,
             self::Pwa => PwaSettings::class,
+            self::Shop => ShopSettings::class,
         };
     }
 

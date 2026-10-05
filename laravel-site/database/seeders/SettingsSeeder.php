@@ -102,6 +102,11 @@ final class SettingsSeeder extends Seeder
                 'theme_color' => '#17112B',
                 'background_color' => '#FFFFFF',
             ],
+            // L6-06: only the low-stock threshold; shipping fee / free-shipping threshold / COD cap stay unset (config
+            // fallback) until the shop decides them in «تنظیمات فروشگاه».
+            'shop' => [
+                'low_stock_threshold' => 3,
+            ],
         ];
     }
 }

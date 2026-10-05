@@ -8,6 +8,9 @@ use App\Domain\Contact\Support\ReplyChannel;
 use App\Domain\Media\Actions\FindMediaUsages;
 use App\Domain\Search\Support\SearchRegistry;
 use App\Domain\Seo\Sitemap\SitemapRegistry;
+use App\Domain\Settings\Contracts\SettingsRepository;
+use App\Domain\Settings\Data\ShopSettings;
+use App\Domain\Settings\Enums\SettingGroup;
 use App\Domain\Shop\Cart\Contracts\CartCatalog;
 use App\Domain\Shop\Cart\Contracts\CartRepository;
 use App\Domain\Shop\Cart\Data\ShippingRule;
@@ -44,6 +47,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
+use Throwable;
 
 final class ShopServiceProvider extends DomainServiceProvider
 {
@@ -70,19 +74,24 @@ final class ShopServiceProvider extends DomainServiceProvider
     {
         parent::register();
 
-        // Cart (L6-04): session-scoped, live catalog reads (never the `shop` cache). Shipping estimate from
-        // `shop.shipping.flat_fee` / `shop.shipping.free_over` (tomans, optional) until a shop settings group exists (L6-06).
+        // Cart (L6-04): session-scoped, live catalog reads (never the `shop` cache). Shipping estimate from the shop
+        // settings (L6-06, tomans) with `shop.shipping.flat_fee` / `shop.shipping.free_over` as the fallback. Bound
+        // (not singleton) so an admin change applies to the next resolve; the settings read is cached.
         $this->app->scoped(CartRepository::class, SessionCartRepository::class);
         $this->app->bind(CartCatalog::class, LiveCartCatalog::class);
-        $this->app->singleton(ShippingRule::class, static fn (Application $app): ShippingRule => ShippingRule::fromToman(
-            $app['config']->get('shop.shipping.flat_fee'),
-            $app['config']->get('shop.shipping.free_over'),
-        ));
+        $this->app->bind(ShippingRule::class, static function (Application $app): ShippingRule {
+            $shop = self::shopSettings($app);
+
+            return ShippingRule::fromToman(
+                $shop->shippingFlatFee ?? $app['config']->get('shop.shipping.flat_fee'),
+                $shop->freeShippingOver ?? $app['config']->get('shop.shipping.free_over'),
+            );
+        });
 
         // Checkout (L6-05): cash on delivery only (tasks/README.md decision) behind the PaymentGateway contract. COD cap
-        // `shop.cod_max_amount` (tomans, null = no cap) — ShopSettings.cod_max_amount once a shop settings group exists (L6-06).
-        $this->app->singleton(PaymentGateway::class, static fn (Application $app): PaymentGateway => CashOnDeliveryGateway::fromToman(
-            $app['config']->get('shop.cod_max_amount'),
+        // from ShopSettings.cod_max_amount (L6-06, tomans) with `shop.cod_max_amount` as the fallback (null = no cap).
+        $this->app->bind(PaymentGateway::class, static fn (Application $app): PaymentGateway => CashOnDeliveryGateway::fromToman(
+            self::shopSettings($app)->codMaxAmount ?? $app['config']->get('shop.cod_max_amount'),
         ));
         $this->app->scoped(CheckoutSession::class);
 
@@ -93,6 +102,21 @@ final class ShopServiceProvider extends DomainServiceProvider
 
         // Products in `/search` (L4-04 registry).
         $this->app->tag([ProductSearchProvider::class], SearchRegistry::TAG);
+    }
+
+    /**
+     * The shop settings group; defaults (everything unset → config fallback) when settings cannot be read yet
+     * (fresh install before the migrations ran).
+     */
+    private static function shopSettings(Application $app): ShopSettings
+    {
+        try {
+            $shop = $app->make(SettingsRepository::class)->group(SettingGroup::Shop);
+        } catch (Throwable) {
+            return new ShopSettings;
+        }
+
+        return $shop instanceof ShopSettings ? $shop : new ShopSettings;
     }
 
     public function boot(): void

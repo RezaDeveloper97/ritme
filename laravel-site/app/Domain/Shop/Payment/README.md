@@ -4,6 +4,6 @@ How an order is paid. Decision (tasks/README.md): **cash on delivery only**, beh
 contract so a bank gateway can be added later without touching checkout.
 
 - `Gateways\CashOnDeliveryGateway` — the only gateway (bound in `ShopServiceProvider`). Accepts a total up to the COD
-  cap (`config('shop.cod_max_amount')`, tomans, null = no cap — `ShopSettings.cod_max_amount` once a shop settings
-  group exists, L6-06). `start()` needs no redirect: the order stays `unpaid` until the courier is paid.
+  cap (`ShopSettings.cod_max_amount` from admin → تنظیمات فروشگاه, tomans, null = no cap; `config('shop.cod_max_amount')`
+  as fallback). `start()` needs no redirect: the order stays `unpaid` until the courier is paid.
 - Never claim "paid" on the site: `Enums\PaymentStatus::Unpaid` reads «پرداخت هنگام تحویل».
