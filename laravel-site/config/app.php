@@ -63,6 +63,14 @@ return [
     'canonical_redirect' => (bool) env('APP_CANONICAL_REDIRECT', false),
 
     /*
+    | Reverse proxies / CDN in front of the site whose X-Forwarded-* headers are believed (L9-04,
+    | AppServiceProvider). Empty (default, plain cPanel): none — the client IP used by every rate limiter is the
+    | TCP peer and a forged X-Forwarded-For changes nothing. Comma-separated IPs/CIDRs, or `*` only when the
+    | origin is reachable through the proxy alone.
+    */
+    'trusted_proxies' => array_values(array_filter(array_map('trim', explode(',', (string) env('TRUSTED_PROXIES', ''))))),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------

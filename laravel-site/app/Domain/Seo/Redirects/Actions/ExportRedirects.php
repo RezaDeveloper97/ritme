@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * CSV export of every redirect, in the column order ImportRedirects reads back (`from, to, code, regex, note`) plus
- * the hit statistics. UTF-8 with BOM (Excel), rows streamed with lazyById(). Recorded in the activity log.
+ * the hit statistics. UTF-8 with BOM (Excel), rows streamed with lazyById(). Recorded in the activity log. The free-text
+ * note is formula-guarded (paths always start with «/», targets with «/» or a scheme).
  */
 final class ExportRedirects
 {
@@ -37,7 +38,7 @@ final class ExportRedirects
                 (string) $redirect->to_url,
                 (string) $redirect->code->value,
                 $redirect->is_regex ? '1' : '0',
-                (string) $redirect->note,
+                self::cell((string) $redirect->note), // free text: formula guard (L9-04)
                 (string) $redirect->hits,
                 $redirect->last_hit_at?->toDateTimeString() ?? '',
                 $redirect->is_auto ? '1' : '0',
@@ -46,5 +47,11 @@ final class ExportRedirects
         }
 
         return $rows;
+    }
+
+    /** Spreadsheet formula injection guard (like the other exports): a cell starting with = + - @ TAB CR gets «'». */
+    private static function cell(string $value): string
+    {
+        return $value !== '' && in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true) ? "'".$value : $value;
     }
 }

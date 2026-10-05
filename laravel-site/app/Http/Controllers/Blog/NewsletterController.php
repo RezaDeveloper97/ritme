@@ -13,6 +13,8 @@ use Illuminate\Contracts\Validation\Factory as ValidatorFactory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
 /**
  * Newsletter sign-up (double opt-in) from the magazine lists. Anti-spam without captcha: the `website` honeypot
@@ -20,8 +22,19 @@ use Illuminate\Http\Request;
  * neutral message, so the form never reveals whether an address is subscribed. Result pages are noindex and never
  * page-cached (routes/web.php).
  */
-final class NewsletterController
+final class NewsletterController implements HasMiddleware
 {
+    /** L9-04: confirm / unsubscribe links are token-authorised; this caps token guessing per IP (the POST has throttle:newsletter). */
+    public const LOOKUPS_PER_MINUTE = 20;
+
+    /**
+     * @return list<Middleware>
+     */
+    public static function middleware(): array
+    {
+        return [new Middleware('throttle:'.self::LOOKUPS_PER_MINUTE.',1', only: ['confirm', 'unsubscribeForm'])];
+    }
+
     public const HONEYPOT = 'website';
 
     public function store(Request $request, Subscribe $subscribe, ValidatorFactory $validator): RedirectResponse

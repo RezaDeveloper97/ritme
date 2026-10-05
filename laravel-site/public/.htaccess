@@ -10,6 +10,12 @@
 # directive is explained on the comment line(s) right above it.
 # -----------------------------------------------------------------------------
 
+# --- Folder listings (L9-04) ---------------------------------------------------
+<IfModule mod_autoindex.c>
+    # Never list a folder's files (e.g. /media/2026/10/), even where mod_negotiation is absent.
+    Options -Indexes
+</IfModule>
+
 # --- Rewriting ---------------------------------------------------------------
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
@@ -30,8 +36,27 @@
     # Refuse dotfiles and dot-folders (.env, .git/…) except /.well-known (ACME / AutoSSL).
     RewriteRule (^|/)\.(?!well-known(/|$)) - [F,L]
 
+    # Security (L9-04): if the whole project was ever unpacked into the document root by mistake, never serve the
+    # application itself — config, code, logs, sessions, dependencies, the SQLite file and dev tooling all answer 403.
+    # (The supported layout keeps everything but this folder outside public_html — docs/SECURITY.md.) Only paths that
+    # really exist on disk are refused, so public routes such as /tools are never affected.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^(app|bootstrap|config|database|lang|node_modules|resources|routes|storage|tests|tools|vendor|design|docs|tasks)(/|$) - [F,L]
+    # Same for root-level project files (composer.*, package*.json, artisan, phpunit.xml, *.md, *.lock, *.sqlite …).
+    RewriteRule ^(artisan|composer\.(json|lock)|package(-lock)?\.json|phpunit\.xml|phpstan\.neon(\.dist)?|pint\.json|vite\.config\.js|[^/]+\.(md|lock|sqlite|sqlite3|db|log|sql|bak|swp|dist|ini|sh))$ - [F,L,NC]
+
+    # Security (L9-04): no PHP is ever executed from this folder except the front controller. Uploads land in /media
+    # with an extension chosen from the sniffed type, but a stray *.php (or .phtml/.phar …) anywhere answers 403.
+    # The path is relative to this folder, so the internal pass after the front-controller rewrite ("index.php") and
+    # a direct /index.php request still work.
+    RewriteRule ^(?!index\.php$).*\.(php[0-9]?|phtml|phar|pht|phps|shtml|cgi|pl|py|asp|aspx|jsp)$ - [F,L,NC]
+
     # Hashed Vite build files and generated media variants get the immutable cache header below.
     RewriteRule ^(build|media)/ - [E=RT_IMMUTABLE:1]
+
+    # Uploaded SVGs (sanitised on upload) get a sandboxing CSP below (L9-04).
+    RewriteRule ^media/.+\.svgz?$ - [E=RT_MEDIA_SVG:1,NC]
 
     # Pass the Authorization header through to PHP (CGI/FastCGI drop it otherwise) …
     RewriteCond %{HTTP:Authorization} .
@@ -157,6 +182,14 @@
         # Vary on the compression the client accepts.
         Header merge Vary Accept-Encoding
     </FilesMatch>
+
+    # Security (L9-04): static files never pass through Laravel's SecurityHeaders, so the browser must not
+    # second-guess their declared type (a GIF/JS polyglot in /media stays an image) …
+    Header always set X-Content-Type-Options "nosniff"
+    # … and an uploaded SVG (/media, flag set by the rewrite rule above) opened directly is a sandboxed document: no
+    # scripts, no forms, no plugins, no same-origin access, even if the sanitiser ever missed something. Inline styles
+    # are what SVG artwork uses. The icon sprite in /build is left alone (it is referenced by <use>).
+    Header always set Content-Security-Policy "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox" env=RT_MEDIA_SVG
 
     # Do not advertise the PHP version.
     Header always unset X-Powered-By

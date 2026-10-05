@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Blog\Posts;
 
 use App\Domain\Blog\Models\Post;
+use App\Domain\Blog\Support\PostContent;
 use App\Domain\Seo\SeoManager;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\URL;
@@ -38,7 +39,9 @@ final class PostPreviewController
         $response = response()->view(self::VIEW_NAMESPACE.'::post-preview', [
             'title' => $post->title,
             'excerpt' => $post->excerpt,
-            'body' => $post->body,
+            // Re-sanitised at render (L9-04) like the public article: this page runs under the admin origin's relaxed
+            // CSP and is reachable without login through the signed link, so it never trusts the stored HTML alone.
+            'body' => PostContent::fromConfig(config())->body((string) $post->body),
             'status' => $post->status->label(),
             'coverId' => $post->cover_media_id,
             'coverMobileId' => $post->cover_mobile_media_id,

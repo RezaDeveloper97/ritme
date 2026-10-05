@@ -146,6 +146,8 @@ return [
     |                    Login throttling is Filament's built-in limit (5 attempts / minute / IP).
     | brand_color:       mirrors `--color-primary` in resources/css/app.css @theme (asserted by a test).
     | mfa_required_roles: roles that must set up app (TOTP) multi-factor authentication before using the panel.
+    |                    ADMIN_MFA_ROLES (comma-separated). Go-live (docs/SECURITY.md): every role that can read
+    |                    personal data — super-admin,shop-manager,directory-manager,support (or all six roles).
     |
     */
 
@@ -153,7 +155,7 @@ return [
         'path' => env('ADMIN_PATH', 'admin'),
         'session_timeout' => (int) env('ADMIN_SESSION_TIMEOUT', 60),
         'brand_color' => '#6e54f0',
-        'mfa_required_roles' => ['super-admin'],
+        'mfa_required_roles' => array_values(array_filter(array_map('trim', explode(',', (string) env('ADMIN_MFA_ROLES', 'super-admin'))))),
     ],
 
 ];

@@ -116,4 +116,11 @@ return [
 
     'prefix' => env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-cache-'),
 
+    /*
+    | Classes allowed when cached values are unserialized (L9-04). The site only ever caches scalars and arrays
+    | (repositories cache DTO->toArray(), the page cache an array payload), so no class at all: a tampered file or
+    | database cache entry can never instantiate an object (no gadget chains). Tests/SerializableCacheTest guards it.
+    */
+    'serializable_classes' => false,
+
 ];

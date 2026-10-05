@@ -27,6 +27,8 @@ use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
 /**
  * Booking requests of the directory (L5-04):
@@ -40,8 +42,19 @@ use Illuminate\Http\Response;
  *    unguessable code (BookingCode). noindex + `no-store`; the mobile is masked and the note is not shown. A REQUEST,
  *    not a confirmed slot: the copy says the place confirms the time by phone, and nothing is paid here.
  */
-final class BookingController
+final class BookingController implements HasMiddleware
 {
+    /** L9-04: booked pages are found by an unguessable code only; this caps code guessing per IP (per route, ThrottlePerRoute). */
+    public const LOOKUPS_PER_MINUTE = 20;
+
+    /**
+     * @return list<Middleware>
+     */
+    public static function middleware(): array
+    {
+        return [new Middleware('throttle:'.self::LOOKUPS_PER_MINUTE.',1', only: ['show'])];
+    }
+
     public const SPAM_FLASH = 'directory_booking_echo';
 
     public function __construct(

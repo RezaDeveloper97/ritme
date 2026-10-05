@@ -38,10 +38,32 @@ final readonly class RedirectMap
 
             $resolved = $target === null ? null : @preg_replace($pattern, $target, $path);
 
-            return new RedirectMatch($id, is_string($resolved) ? $resolved : null, RedirectCode::from($code));
+            return new RedirectMatch($id, is_string($resolved) ? self::confine($target, $resolved) : null, RedirectCode::from($code));
         }
 
         return null;
+    }
+
+    /**
+     * L9-04: a captured group must never move a regex redirect to another host. A relative template stays on this
+     * site (`/$1` with `/evil.com` captured would give the protocol-relative `//evil.com`, so leading slashes and
+     * backslashes collapse to one «/»); an absolute template must keep its own host (`https://ritme.ir$1` with
+     * `@evil.com` captured would put ritme.ir in the user-info) — otherwise there is no redirect (null → 404 path).
+     */
+    private static function confine(string $template, string $resolved): ?string
+    {
+        if (str_starts_with($template, '/')) {
+            return '/'.ltrim($resolved, '/\\');
+        }
+
+        $expected = parse_url((string) preg_replace('/\$\{?\d+\}?|\\\\\d+/', '', $template), PHP_URL_HOST);
+        $actual = parse_url($resolved, PHP_URL_HOST);
+        $parts = parse_url($resolved);
+
+        return is_string($expected) && is_string($actual) && strtolower($expected) === strtolower($actual)
+            && is_array($parts) && ! isset($parts['user']) && ! isset($parts['pass']) && ! str_contains($resolved, '\\')
+            ? $resolved
+            : null;
     }
 
     public function isEmpty(): bool

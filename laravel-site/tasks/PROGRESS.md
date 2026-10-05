@@ -905,3 +905,18 @@ One section per finished task (appended by `/site-task`).
 - Open: gallery lightbox + booked/order pages verified by code review only (no photos/bookings in dev); 44 px targets
   not met for desktop nav/footer links (22 px), ± buttons (34 px), favourite (40 px), chips — ≥24 px (AA 2.2) everywhere;
   no manual screen-reader pass yet.
+
+## L9-04 — Security hardening + audit
+- `docs/SECURITY.md`: threat model, controls per area with file refs, findings F1–F23, go-live checklist.
+- Fixed: F1 per-route throttle buckets (`throttle` alias → `ThrottlePerRoute`; shared per-IP counter made forms 429
+  after reading articles); F2 `ADMIN_MFA_ROLES` (config; default super-admin, production list in checklist); F3
+  remember-me logins logged out (timeout/MFA bypass); sitemap ping SSRF guard (`App\Support\Http\OutboundUrl`: https
+  + public host, no redirects, at save and send); regex-redirect open-redirect guard; cart no longer redirects to
+  Referer; redirect CSV formula guard; app links http(s) only; order/booked/newsletter-token pages 20/min;
+  `TRUSTED_PROXIES` default none; secure session cookie when APP_URL is https; `cache.serializable_classes=false`;
+  draft preview re-sanitised; SMS log masks codes; `.htaccess` denies project files/dirs + any PHP but index.php,
+  nosniff on statics, sandbox CSP for `/media/*.svg`, `-Indexes`. Tests: `tests/Feature/Security` (37).
+- `composer audit`: no advisories; `npm audit --omit=dev`: 0 vulnerabilities. Pest 1327 passed.
+- Orchestrator: `.env.example` gained `TRUSTED_PROXIES`, `ADMIN_MFA_ROLES`. Deferred/accepted items → **L9-04b**
+  (POST newsletter confirm F19, private pending join photos F17, remember-me UI, PII-role MFA tests); F16 newsletter
+  timing → queued mail in L10-01; F18/F20–F23 accepted.

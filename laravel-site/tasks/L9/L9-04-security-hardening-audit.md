@@ -3,7 +3,7 @@ id: L9-04
 title: Security hardening + audit
 milestone: L9
 type: quality
-status: todo
+status: done
 depends_on: [L6-06,L5-06,L4-05,L7-04]
 parallel_group: L9-C
 touches: [app,config,public/.htaccess,docs/SECURITY.md]

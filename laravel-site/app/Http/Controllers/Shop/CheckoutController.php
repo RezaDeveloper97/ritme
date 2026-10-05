@@ -33,6 +33,8 @@ use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
 /**
  * Checkout + order page of the shop (L6-05), cash on delivery only (PaymentGateway contract, CashOnDeliveryGateway):
@@ -48,8 +50,19 @@ use Illuminate\Http\Response;
  *    Shows status, items and the amount due ON DELIVERY (never "paid"); the recipient rows (name, masked mobile,
  *    province/city — never the street address) only for the session that placed the order.
  */
-final class CheckoutController
+final class CheckoutController implements HasMiddleware
 {
+    /** L9-04: order pages are found by an unguessable code only; this caps code guessing per IP (per route, ThrottlePerRoute). */
+    public const LOOKUPS_PER_MINUTE = 20;
+
+    /**
+     * @return list<Middleware>
+     */
+    public static function middleware(): array
+    {
+        return [new Middleware('throttle:'.self::LOOKUPS_PER_MINUTE.',1', only: ['order'])];
+    }
+
     public const ERROR_FLASH = 'checkout_error';
 
     public const NOTICES_FLASH = 'checkout_notices';

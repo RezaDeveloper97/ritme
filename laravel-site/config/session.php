@@ -171,7 +171,9 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // L9-04: secure by default whenever the site URL is https (production), so the session, XSRF-TOKEN and the
+    // cart-count cookie are never sent over plain http; SESSION_SECURE_COOKIE still overrides.
+    'secure' => (bool) env('SESSION_SECURE_COOKIE', str_starts_with((string) env('APP_URL', ''), 'https://')),
 
     /*
     |--------------------------------------------------------------------------

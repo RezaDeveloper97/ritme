@@ -11,7 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Logs an admin out after `filament.admin.session_timeout` minutes without a request to the panel, independent of
- * the global SESSION_LIFETIME (the session cookie may outlive the admin login).
+ * the global SESSION_LIFETIME (the session cookie may outlive the admin login). A login restored from the
+ * remember-me cookie is logged out too, so it can't outlive the timeout.
  */
 final class EnforceSessionTimeout
 {
@@ -26,7 +27,11 @@ final class EnforceSessionTimeout
             $session = $request->session();
             $last = $session->get(self::SESSION_KEY);
 
-            if (is_int($last) && now()->getTimestamp() - $last > $timeout * 60) {
+            // L9-04: a login restored from the "remember me" cookie (only ever happens in a new session) would restart the
+            // inactivity clock and skip the MFA challenge forever. Such a login must go through the form again.
+            $remembered = $guard->viaRemember();
+
+            if ($remembered || (is_int($last) && now()->getTimestamp() - $last > $timeout * 60)) {
                 $guard->logout();
                 $session->invalidate();
                 $session->regenerateToken();

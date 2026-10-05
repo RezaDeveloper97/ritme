@@ -14,6 +14,7 @@ use App\Domain\Settings\Contracts\SettingsRepository;
 use App\Domain\Settings\Data\IndexingSettings;
 use App\Domain\Settings\Data\SeoDefaults;
 use App\Domain\Settings\Enums\SettingGroup;
+use App\Support\Http\OutboundUrl;
 
 /**
  * Validates and stores the indexing controls (robots rules, per-type robots, sitemap settings, verification codes,
@@ -111,8 +112,9 @@ final class SaveIndexingSettings
             }
         }
         foreach (is_array($values['sitemap_ping_urls'] ?? null) ? $values['sitemap_ping_urls'] : [] as $url) {
-            if (! is_string($url) || filter_var(str_replace('{sitemap}', 'x', $url), FILTER_VALIDATE_URL) === false || ! str_starts_with($url, 'https://')) {
-                $errors['sitemap_ping_urls'][] = 'نشانی پینگ باید یک نشانی کامل https باشد.';
+            // OutboundUrl (L9-04): https to a public host name only — no IP, localhost, internal names or ports.
+            if (! is_string($url) || ! OutboundUrl::isSafe(str_replace('{sitemap}', 'x', $url))) {
+                $errors['sitemap_ping_urls'][] = 'نشانی پینگ باید یک نشانی کامل https به یک دامنه عمومی باشد (بدون IP، localhost یا پورت).';
             }
         }
         foreach (is_array($values['verification'] ?? null) ? $values['verification'] : [] as $engine => $code) {

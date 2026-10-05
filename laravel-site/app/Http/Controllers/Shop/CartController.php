@@ -175,7 +175,7 @@ final class CartController
         $target = match (true) {
             $toCart => route('shop.cart'),
             $productSlug !== null => route('shop.product', [$productSlug]).'#buy',
-            default => url()->previous(route('shop.cart')),
+            default => route('shop.cart'), // never the Referer (L9-04: no header-controlled redirect target)
         };
 
         return $this->withCount(redirect()->to($target, 303)->with('cart_error', $message), $count);
