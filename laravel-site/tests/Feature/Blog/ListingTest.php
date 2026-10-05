@@ -230,7 +230,7 @@ it('subscribes with double opt-in and confirms with the mailed link', function (
         ->and($subscriber->consent_at)->not->toBeNull();
 
     $confirmUrl = null;
-    Mail::assertSent(ConfirmSubscriptionMail::class, function (ConfirmSubscriptionMail $mail) use (&$confirmUrl, $subscriber): bool {
+    Mail::assertQueued(ConfirmSubscriptionMail::class, function (ConfirmSubscriptionMail $mail) use (&$confirmUrl, $subscriber): bool {
         $confirmUrl = $mail->confirmUrl;
 
         return $mail->hasTo('reader@example.com') && str_contains($mail->unsubscribeUrl, $subscriber->token);
@@ -281,12 +281,12 @@ it('answers the same for every address and never mails an active one', function 
         ->and($subscribe->handle('a@example.com'))->toBe(SubscribeOutcome::Throttled);
     Subscriber::query()->update(['confirmed_at' => now()]);
     expect($subscribe->handle('a@example.com'))->toBe(SubscribeOutcome::AlreadyActive);
-    Mail::assertSentCount(1);
+    Mail::assertQueuedCount(1);
 
     $this->travel(11)->minutes();
     Subscriber::query()->update(['confirmed_at' => null]);
     expect($subscribe->handle('a@example.com'))->toBe(SubscribeOutcome::Resent);
-    Mail::assertSentCount(2);
+    Mail::assertQueuedCount(2);
 });
 
 it('drops honeypot submissions silently and validates the address in Persian', function (): void {
@@ -299,7 +299,7 @@ it('drops honeypot submissions silently and validates the address in Persian', f
     $this->post('/newsletter', ['email' => 'not-an-email', 'source' => 'https://evil.test'])
         ->assertRedirect(route('blog.index').'#newsletter')
         ->assertSessionHasErrors(['email' => 'این نشانی ایمیل درست به نظر نمی‌رسد.'], errorBag: 'newsletter');
-    Mail::assertNothingSent();
+    Mail::assertNothingOutgoing();
 });
 
 it('rate limits sign-ups per IP', function (): void {

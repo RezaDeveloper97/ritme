@@ -10,6 +10,7 @@ Newsletter subscriptions (double opt-in, unsubscribe) — L4-02. Form «هر ه�
   one-click target). The token is rotated on every new sign-up after an unsubscribe.
 - Anti-spam without captcha/external services: honeypot field `website` (filled → silently dropped) and the
   `throttle:newsletter` limiter (3/min, 20/day per IP, `NewsletterServiceProvider`).
-- Routes (`routes/web.php`): `newsletter.store` (POST), `newsletter.confirm` (GET), `newsletter.unsubscribe`
+- Routes (`routes/web.php`): `newsletter.store` (POST), `newsletter.confirm` (GET → button page) + `newsletter.confirm.store` (POST, CSRF; F19), `newsletter.unsubscribe`
   (GET form / POST, CSRF-free for one-click). None of them is page-cached. Controller: `App\Http\Controllers\Blog\NewsletterController`.
 - Mail driver: `MAIL_MAILER=log` by default. Admin list + CSV export: L4-05b.
+- The confirmation mail is queued after commit (F16): needs the cron-driven queue worker in production.

@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 
 /**
  * Filament decides "MFA required" once, at route registration (no user yet), so the panel marks it required for
- * everyone and this middleware narrows it to `filament.admin.mfa_required_roles` (super-admin). Other roles may
+ * everyone and this middleware narrows it to `filament.admin.mfa_required_roles` (`ADMIN_MFA_ROLES`; default super-admin + the PII roles). Other roles may
  * still enable app MFA from their profile.
  */
 final class RequireMultiFactorForRoles extends EnsureMultiFactorAuthenticationIsEnabled
