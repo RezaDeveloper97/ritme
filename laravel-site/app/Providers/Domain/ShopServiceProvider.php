@@ -7,6 +7,11 @@ namespace App\Providers\Domain;
 use App\Domain\Media\Actions\FindMediaUsages;
 use App\Domain\Search\Support\SearchRegistry;
 use App\Domain\Seo\Sitemap\SitemapRegistry;
+use App\Domain\Shop\Cart\Contracts\CartCatalog;
+use App\Domain\Shop\Cart\Contracts\CartRepository;
+use App\Domain\Shop\Cart\Data\ShippingRule;
+use App\Domain\Shop\Cart\Queries\LiveCartCatalog;
+use App\Domain\Shop\Cart\Repositories\SessionCartRepository;
 use App\Domain\Shop\Catalog\Contracts\CatalogRepository;
 use App\Domain\Shop\Catalog\Contracts\ProductRepository;
 use App\Domain\Shop\Catalog\Models\Brand;
@@ -48,6 +53,15 @@ final class ShopServiceProvider extends DomainServiceProvider
     public function register(): void
     {
         parent::register();
+
+        // Cart (L6-04): session-scoped, live catalog reads (never the `shop` cache). Shipping estimate from
+        // `shop.shipping.flat_fee` / `shop.shipping.free_over` (tomans, optional) until a shop settings group exists (L6-06).
+        $this->app->scoped(CartRepository::class, SessionCartRepository::class);
+        $this->app->bind(CartCatalog::class, LiveCartCatalog::class);
+        $this->app->singleton(ShippingRule::class, static fn (Application $app): ShippingRule => ShippingRule::fromToman(
+            $app['config']->get('shop.shipping.flat_fee'),
+            $app['config']->get('shop.shipping.free_over'),
+        ));
 
         $this->app->singleton(ProductContent::class, static fn (Application $app): ProductContent => ProductContent::fromConfig($app['config']));
 

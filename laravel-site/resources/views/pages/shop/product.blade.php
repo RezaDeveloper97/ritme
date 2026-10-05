@@ -54,8 +54,8 @@
                     <x-ui.badge :tone="$picker['stock']['in'] ? 'success' : 'danger'" data-stock role="status">{{ $picker['stock']['label'] }}</x-ui.badge>
                 </div>
 
-                {{-- Add-to-cart form: works without JS (radios + number input). L6-04 fills `action` (shop.cart.add) and the fetch + toast enhancement. --}}
-                <form @if ($cart['action']) method="post" action="{{ $cart['action'] }}" @endif data-cart-slot class="flex flex-col gap-5.5">
+                {{-- Add-to-cart form: works without JS (radios + number input, POST → cart page). L6-04: `cart` module posts it as JSON and shows the toast; a refused no-JS add comes back here with `cart_error`. --}}
+                <form id="buy" @if ($cart['action']) method="post" action="{{ $cart['action'] }}" data-module="cart" @endif data-cart-slot class="flex scroll-mt-24 flex-col gap-5.5">
                     @if ($cart['action'])
                         @csrf
                     @endif
@@ -114,6 +114,11 @@
                     @unless ($cart['action'])
                         <p id="cart-soon" class="sr-only">{{ __('shop.product.cart_soon') }}</p>
                     @endunless
+                    @php($cartError = session('cart_error'))
+                    <p role="status" data-cart-toast @if (is_string($cartError)) data-state="error" @endif @class(['m-0 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl bg-success-soft px-5 py-3 text-[14.5px] font-bold text-success data-[state=error]:bg-danger-soft data-[state=error]:text-danger', 'hidden' => ! is_string($cartError)])>
+                        <span data-cart-toast-text>{{ is_string($cartError) ? $cartError : '' }}</span>
+                        <a href="{{ route('shop.cart') }}" data-cart-toast-link @if (is_string($cartError)) hidden @endif class="text-primary underline">{{ __('shop.cart.view') }}</a>
+                    </p>
                 </form>
 
                 <ul class="m-0 list-none rounded-5xl border border-line bg-surface px-5 py-1">

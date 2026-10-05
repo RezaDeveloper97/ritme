@@ -54,8 +54,8 @@ use InvalidArgumentException;
  * Variant picker: plain radio inputs (`color`, `size`) inside the add-to-cart form, so it works without JS; a size is
  * disabled only when it is sold out in every colour. The lazy `product` module refines it per colour (sold-out sizes,
  * price, stock, size hint, size-chart row) and drives the quantity stepper. The cart (L6-04) resolves the variant
- * from size + colour and re-checks the stock; until a `shop.cart.add` route exists the button is disabled and the
- * form carries a marked `data-cart-slot`.
+ * from size + colour and re-checks the stock; the form posts to `shop.cart.add` and the lazy `cart` module turns it
+ * into a fetch + toast.
  *
  * SEO: admin seo_meta of the product wins, else title / short description templates. og:type product with
  * `product:price:*` (pushed by the view). JSON-LD: ItemPage + Product (images, sku, brand, Offer — or AggregateOffer

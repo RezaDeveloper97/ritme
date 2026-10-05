@@ -102,9 +102,10 @@ it('renders the variant picker as radio inputs inside the add-to-cart form, disa
         ->and($html)->toContain('۳-۶ ماه: قد ۶۱ تا ۶۷ سانت')                      // size hint from the chart
         ->and($html)->toMatch('/data-size-row="۳-۶ ماه" data-current/');
 
-    // No cart route yet (L6-04): a disabled button in a marked slot, no POST target.
-    expect($form)->toMatch('/<button type="submit" data-cart-submit\s+disabled/')
-        ->and($form)->not->toContain('method="post"');
+    // The cart (L6-04) is wired: the slot posts to shop.cart.add and is enhanced by the `cart` module.
+    expect($form)->toContain('method="post"')
+        ->and($form)->toContain('action="'.route('shop.cart.add').'"')
+        ->and($form)->toContain('data-module="cart"');
 });
 
 it('emits Product JSON-LD with an AggregateOffer of per-variant offers, availability from stock and the breadcrumb', function (): void {

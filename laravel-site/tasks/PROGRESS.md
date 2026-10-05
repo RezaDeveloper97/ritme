@@ -775,3 +775,19 @@ One section per finished task (appended by `/site-task`).
 - Filament Redirects (form, CSV import header action, streamed export) + NotFoundLogs («ساخت ریدایرکت»); SeoManager +
   super-admin; activity log `seo`. `RedirectsTest` (22). Pest 1256 passed.
 - Open: `seo.not_found.log_bots` only via config (add to indexing settings if needed); counters best-effort.
+
+## L6-04 — Cart (session) with progressive enhancement
+- `app/Domain/Shop/Cart/`: session payload `{v, l:[[product, variant, qty, unit-price snapshot]]}` (≤30 lines, ≤10 each,
+  sanitised `fromArray`), `SessionCartRepository` (scoped), `LiveCartCatalog` (uncached DB reads — prices + stock
+  re-read on every read/mutation; client prices ignored), actions Add/UpdateLine/Remove/Clear/`ResolveCart` (drops
+  unpublished items, keeps sold-out lines flagged and excluded from totals, clamps qty to stock, price-change notices),
+  `ShippingRule` from `config('shop.shipping.flat_fee'|'free_over')` (both null → «محاسبه در مرحله بعد»).
+- `CartController` + routes `shop.cart` and `shop.cart.add|update|remove` (`throttle:60,1`, PRG 303, JSON on
+  `Accept: application/json`); writes plain cookie `ritme_cart_count` (excluded from EncryptCookies in
+  `bootstrap/app.php`). `pages/shop/cart` (single «فروشگاه ریتمی» group, SVG free-shipping bar, suggestions),
+  `components/shop/{cart-line,cart-summary}`, lazy `cart.js` (product page toast + badge; cart page fetch + body swap,
+  live region, focus kept). Cart page noindex + no-store. Tests: Feature 16 + Unit 6; `ProductTest` updated.
+- Diff (cart filled via injected cookies) 1440 38.76% / 390 29.37% (no free-shipping threshold set, single seller
+  group, no coupon row, no fake ratings, NULL app links); empty state 58.62 / 72.49% (expected).
+- Open: shipping fee/threshold is a business decision (config or L6-06 settings); cart lifetime = session (120 min);
+  L6-05 must call `ResolveCart`/`ClearCart` + `AdjustStock`; coupon + delivery copy unconfirmed.

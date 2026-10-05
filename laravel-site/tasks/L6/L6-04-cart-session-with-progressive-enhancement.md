@@ -3,7 +3,7 @@ id: L6-04
 title: Cart (session) with progressive enhancement
 milestone: L6
 type: fullstack
-status: todo
+status: done
 depends_on: [L6-03]
 parallel_group: L6-C
 touches: [app/Domain/Shop/Cart,app/Http/Controllers/Shop/CartController.php,resources/views/pages/shop/cart.blade.php,resources/js/modules/cart.js,tests/Feature/Shop/CartTest.php,tests/Unit/Shop/CartTest.php]

@@ -31,6 +31,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Guest full-page cache right after the session starts (before route-model binding queries), then the
         // minifier inside it so pages are cached minified. See config/pagecache.php.
+        // The header cart badge (L6-02/L6-04) reads this plain integer cookie from JS.
+        $middleware->encryptCookies(except: ['ritme_cart_count']);
+
         $middleware->web(append: [PageCache::class, MinifyHtml::class]);
         $middleware->prependToPriorityList(SubstituteBindings::class, PageCache::class);
         $middleware->appendToPriorityList(PageCache::class, MinifyHtml::class);

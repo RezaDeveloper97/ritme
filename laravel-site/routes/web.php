@@ -26,6 +26,7 @@ use App\Http\Controllers\Seo\RobotsTxtController;
 use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Seo\SitemapIndexController;
 use App\Http\Controllers\ServicesController;
+use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CategoryController;
 use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\ShopHomeController;
@@ -129,7 +130,13 @@ Route::prefix('shop')->name('shop.')->group(function (): void {
     // Review form (L6-03): moderated (stored as pending), rate limited per IP, honeypot answered like a real submit.
     Route::post('/product/{slug}/reviews', [ProductController::class, 'storeReview'])
         ->middleware('throttle:'.ProductController::REVIEWS_PER_10_MINUTES.',10')->name('product.review');
-    Route::get('/cart', PlaceholderPageController::class)->name('cart');                           // L6-04
+    Route::get('/cart', [CartController::class, 'show'])->name('cart');                            // L6-04
+    // Cart mutations (L6-04): plain POST forms (PRG) or JSON for the `cart` module; rate limited per IP.
+    Route::middleware('throttle:'.CartController::MUTATIONS_PER_MINUTE.',1')->group(function (): void {
+        Route::post('/cart', [CartController::class, 'add'])->name('cart.add');
+        Route::post('/cart/{line}', [CartController::class, 'update'])->where('line', CartController::LINE_PATTERN)->name('cart.update');
+        Route::post('/cart/{line}/remove', [CartController::class, 'remove'])->where('line', CartController::LINE_PATTERN)->name('cart.remove');
+    });
     Route::get('/checkout', PlaceholderPageController::class)->name('checkout');                   // L6-05
     Route::get('/order/{code}', PlaceholderPageController::class)->where('code', '[A-Za-z0-9-]+')->name('order'); // L6-05
 });
