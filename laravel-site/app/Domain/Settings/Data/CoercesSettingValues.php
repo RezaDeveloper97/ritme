@@ -32,6 +32,21 @@ trait CoercesSettingValues
     /**
      * @param  array<string, mixed>  $values
      */
+    private static function bool(array $values, string $key, bool $default = false): bool
+    {
+        $value = $values[$key] ?? null;
+
+        return match (true) {
+            is_bool($value) => $value,
+            is_int($value) => $value === 1,
+            is_string($value) => in_array(strtolower(trim($value)), ['1', 'true', 'on', 'yes'], true),
+            default => $default,
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $values
+     */
     private static function nullableInt(array $values, string $key): ?int
     {
         $value = $values[$key] ?? null;

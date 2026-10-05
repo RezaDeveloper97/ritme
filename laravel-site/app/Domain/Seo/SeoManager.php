@@ -10,6 +10,7 @@ use App\Domain\Seo\Data\PageContext;
 use App\Domain\Seo\Data\SeoHead;
 use App\Domain\Seo\Data\SeoImage;
 use App\Domain\Seo\Data\SeoMetaData;
+use App\Domain\Seo\Indexing\IndexingRules;
 use App\Domain\Seo\Support\CanonicalUrl;
 use App\Domain\Seo\Support\DescriptionText;
 use App\Domain\Seo\Support\Robots;
@@ -98,6 +99,7 @@ final class SeoManager
         private readonly Router $router,
         private readonly UrlGenerator $url,
         private readonly Config $config,
+        private readonly IndexingRules $indexing,
     ) {}
 
     /**
@@ -252,7 +254,11 @@ final class SeoManager
             : CanonicalUrl::normalize($explicitCanonical ?? $context->url, (string) $this->config->get('app.url'), $this->keepQuery);
 
         $storedRobots = $pick('robots');
-        $robots = $this->robots ?? (is_string($storedRobots) ? Robots::parse($storedRobots) : Robots::default());
+        // Controller override > seo_meta row > admin per-type default (L7-04, e.g. tags noindex) > index,follow.
+        $robots = $this->robots
+            ?? (is_string($storedRobots) ? Robots::parse($storedRobots) : null)
+            ?? $this->indexing->robotsForRoute($context->routeName)
+            ?? Robots::default();
         if ($this->forcedNoindex($context)) {
             $robots = $robots->withNoindex();
         }

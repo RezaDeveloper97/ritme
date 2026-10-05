@@ -3,7 +3,7 @@ id: L7-04
 title: Indexing controls: robots editor, sitemap settings, IndexNow, verification, head code
 milestone: L7
 type: admin
-status: todo
+status: done
 depends_on: [L7-01,L1-06]
 parallel_group: L7-C
 touches: [app/Filament/Pages/Seo,app/Domain/Seo/Indexing,tests/Feature/Admin/IndexingTest.php]

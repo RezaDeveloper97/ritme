@@ -744,3 +744,19 @@ One section per finished task (appended by `/site-task`).
   booking form and POST book → 404. `DirectoryAdminTest` (7). Pest 1189 passed.
 - Open: Activity filter lacks `directory`; booking status changes don't notify the parent (no SMS driver yet);
   join request has no `place_id` column; `BookingMode` lives in `Join\Enums`; retention for bookings/join requests.
+
+## L7-04 — Indexing controls: robots editor, sitemap settings, IndexNow, verification, head code
+- `app/Domain/Seo/Indexing/` (IndexingType keyed like sitemap providers, IndexingRules, `RobotsTxtValidator` with
+  Persian line errors, `SettingsRobotsRules` (rebinds `RobotsRules`; non-production stays `Disallow: /`), `HeadCode`
+  (only same-origin `<meta>`/`<link>`, re-sanitised at render — no scripts/styles/external URLs), IndexNow (key, URLs,
+  `SubmitToIndexNow` job after commit, production-only, retry on 429/5xx, off by default), `PingSitemaps` job,
+  observers (seo-group writes bump `sitemap`), actions Save/ResetRobotsTxt/RegenerateSitemaps/RegenerateIndexNowKey).
+- `/admin/seo/indexing` (`IndexingSettingsPage`, 6 tabs: robots with live production preview, per-type robots,
+  sitemap exclusions/priority/changefreq/regenerate, Google/Bing/Yandex verification, IndexNow, head code super-admin
+  only); SeoManager + super-admin; activity log `seo`.
+- Extras: `IndexingSettings` DTO + `SeoDefaults::$indexing`, `SettingsSeeder` keys, `Sitemaps` honours excluded/noindex
+  types + overrides, `IndexNowKeyController` (`/{key}.txt` registered in SeoServiceProvider, no session),
+  `SeoManager` robots fallback chain (controller → seo_meta → type default → index,follow), head component renders HeadCode.
+- `IndexingTest` (23, `Http::preventStrayRequests`).
+- Open: CSP intentionally not editable from the head-code form; a type-level noindex can't be re-enabled per item
+  (null = inherit); scheduled posts aren't submitted to IndexNow at publish time.

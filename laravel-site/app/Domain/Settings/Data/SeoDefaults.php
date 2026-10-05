@@ -12,6 +12,7 @@ final readonly class SeoDefaults implements SettingsGroupData
 
     /**
      * @param  array<string, string>  $verification  e.g. ['google' => '…', 'bing' => '…']
+     * @param  IndexingSettings  $indexing  robots / sitemap / IndexNow / head-code controls (L7-04), flat keys of this group
      */
     public function __construct(
         public string $titleTemplate,
@@ -21,6 +22,7 @@ final readonly class SeoDefaults implements SettingsGroupData
         public ?int $defaultOgMediaId,
         public ?string $twitterHandle,
         public array $verification,
+        public IndexingSettings $indexing = new IndexingSettings,
     ) {}
 
     public static function group(): SettingGroup
@@ -40,6 +42,7 @@ final readonly class SeoDefaults implements SettingsGroupData
             defaultOgMediaId: self::nullableInt($values, 'default_og_media_id'),
             twitterHandle: self::nullableString($values, 'twitter_handle'),
             verification: self::stringMap($values, 'verification'),
+            indexing: IndexingSettings::fromArray($values),
         );
     }
 
@@ -53,6 +56,7 @@ final readonly class SeoDefaults implements SettingsGroupData
             'default_og_media_id' => $this->defaultOgMediaId,
             'twitter_handle' => $this->twitterHandle,
             'verification' => $this->verification,
+            ...$this->indexing->toArray(),
         ];
     }
 

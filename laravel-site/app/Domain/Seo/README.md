@@ -15,3 +15,4 @@ Folders: `Models/`, `Data/`, `Contracts/`, `Repositories/` (Eloquent + Cached, `
 `Support/` (Robots, CanonicalUrl, DescriptionText), `Audit/`. Bindings live in `App\Providers\Domain\SeoServiceProvider`.
 See `docs/ARCHITECTURE.md`.
 - `Analysis/` (L7-02): pure Persian-aware `SeoAnalyzer` (25 checks, score 0–100, red-line words + diagnosis claims as errors), `PersianText`, `ContentDocument`, `RedLines`, `TextWidth`; the live panel is part of `SeoFields`. Only `Queries/FindDuplicateSeoMeta` does I/O.
+- `Indexing/` (L7-04): settings-backed robots rules + validator, per-type robots defaults, sitemap settings, IndexNow (queued, production-only), verification metas, safe head code (same-origin meta/link only). See `Indexing/README.md`.

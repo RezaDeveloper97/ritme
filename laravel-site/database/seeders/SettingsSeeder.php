@@ -71,6 +71,16 @@ final class SettingsSeeder extends Seeder
                 'default_og_media_id' => null,
                 'twitter_handle' => null,
                 'verification' => [],
+                // Indexing controls (L7-04): built-in robots rules, every sitemap on, IndexNow off, no head code.
+                'robots_txt' => null,
+                'robots_types' => [],
+                'sitemap_exclude' => [],
+                'sitemap_priorities' => [],
+                'sitemap_changefreq' => [],
+                'sitemap_ping_urls' => [],
+                'indexnow_enabled' => false,
+                'indexnow_key' => null,
+                'head_code' => null,
             ],
             'organization' => [
                 'legal_name' => 'ریتمی',
