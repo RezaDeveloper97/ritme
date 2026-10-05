@@ -29,6 +29,7 @@ use App\Domain\Shop\Catalog\Data\ProductFacets;
 use App\Domain\Shop\Catalog\Data\ProductPage;
 use App\Domain\Shop\Catalog\Enums\ProductSort;
 use App\Domain\Shop\Catalog\Models\Category;
+use App\Domain\Shop\Catalog\Support\ProductListIndexing;
 use App\Domain\Shop\Catalog\Support\ShopUrls;
 use App\Support\Money\Money;
 use App\Support\Text\PersianDigits;
@@ -333,7 +334,7 @@ final class CategoryController
         if ($this->isFiltered($state)) {
             $this->seo->filtered()->canonical(route('shop.category', [$category->slug]));
         }
-        if (array_filter($list->items, static fn (ProductCardData $c): bool => ! $c->isDemo) === []) {
+        if (! ProductListIndexing::showsRealProduct($list->items)) {
             $this->seo->noindex();
         }
     }

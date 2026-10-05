@@ -3,7 +3,7 @@ id: L7-05b
 title: SEO audit follow-ups: noindex lists out of sitemap, reviewer profile placeholder
 milestone: L7
 type: backend
-status: todo
+status: done
 depends_on: [L7-05]
 parallel_group: L7-D
 touches: [app/Domain/Seo/Sitemap/PagesSitemapProvider.php,app/Http/Controllers/Blog/BlogListingController.php,tests/Feature/Seo/AuditTest.php,tests/Feature/Seo/SitemapTest.php,tests/Feature/Blog/ListingTest.php]

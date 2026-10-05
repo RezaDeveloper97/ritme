@@ -17,6 +17,7 @@ use App\Domain\Directory\Data\PlaceSearchCriteria;
 use App\Domain\Directory\Enums\PlaceSort;
 use App\Domain\Directory\Support\DirectoryUrls;
 use App\Domain\Directory\Support\LandingCopy;
+use App\Domain\Directory\Support\PlaceListIndexing;
 use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Schema\Data\BreadcrumbItem;
 use App\Domain\Seo\Schema\Data\ListEntry;
@@ -51,7 +52,7 @@ use Illuminate\Support\Str;
  */
 final class ListPlacesController
 {
-    public const PER_PAGE = 12;
+    public const PER_PAGE = PlaceListIndexing::PER_PAGE;
 
     /** Child-age choices of the search form, in months. */
     public const AGES = [3, 6, 9, 12, 18, 24, 36, 48, 60, 72];
@@ -361,9 +362,8 @@ final class ListPlacesController
             $this->seo->filtered()->canonical($this->url(['city' => $state['city'], 'category' => $state['city'] === null ? null : $state['category']]));
         }
 
-        $real = array_filter($list->items, static fn (PlaceCardData $card): bool => ! $card->isDemo);
-        if ($real === []) {
-            $this->seo->noindex(); // empty or demo-only lists are thin content (sitemaps skip them too)
+        if (! PlaceListIndexing::showsRealPlace($list->items)) {
+            $this->seo->noindex(); // empty or demo-only lists are thin content (PagesSitemapProvider skips them too)
         }
     }
 

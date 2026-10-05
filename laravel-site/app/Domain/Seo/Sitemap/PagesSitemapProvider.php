@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace App\Domain\Seo\Sitemap;
 
+use App\Domain\Blog\Support\PostListIndexing;
 use App\Domain\Content\Enums\StaticPage;
+use App\Domain\Directory\Support\PlaceListIndexing;
 use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Support\Robots;
+use App\Domain\Shop\Catalog\Support\ProductListIndexing;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Routing\Router;
 
 /**
  * Sitemap `pages`: the parameterless marketing pages of the StaticPage registry that are indexable, have a registered
  * route and are not excluded by their seo_meta row (`sitemap_include` false or a `noindex` robots value).
+ * Listing pages whose controller answers `noindex` because they show nothing real (`/blog` without posts, `/directory`
+ * and `/shop` with demo-only or no items) are skipped by the same rule (Post/Place/ProductListIndexing, L7-05b); the
+ * `sitemap` namespace is bumped by the Post/Place/Product observers, so they reappear once real content exists.
  * Priority / changefreq come from seo_meta, falling back to the registry. Static pages have no content timestamp yet,
  * so lastmod is omitted rather than faked.
  */
@@ -24,6 +30,9 @@ final class PagesSitemapProvider implements SitemapProvider
         private readonly SeoMetaRepository $seo,
         private readonly Router $router,
         private readonly UrlGenerator $url,
+        private readonly PostListIndexing $posts,
+        private readonly PlaceListIndexing $places,
+        private readonly ProductListIndexing $products,
     ) {}
 
     public function key(): string
@@ -57,6 +66,10 @@ final class PagesSitemapProvider implements SitemapProvider
                 continue;
             }
 
+            if (! $this->listingIndexable($page)) {
+                continue;
+            }
+
             $entries[] = new SitemapEntryData(
                 loc: $this->url->route($page->routeName()),
                 priority: $meta->sitemapPriority ?? $page->sitemapPriority(),
@@ -65,5 +78,18 @@ final class PagesSitemapProvider implements SitemapProvider
         }
 
         return $entries;
+    }
+
+    /**
+     * False for a listing page that would render `noindex` because it is empty or demo-only; true for every other page.
+     */
+    private function listingIndexable(StaticPage $page): bool
+    {
+        return match ($page) {
+            StaticPage::Blog => $this->posts->indexIndexable(),
+            StaticPage::Directory => $this->places->indexIndexable(),
+            StaticPage::Shop => $this->products->homeIndexable(),
+            default => true,
+        };
     }
 }

@@ -880,3 +880,12 @@ One section per finished task (appended by `/site-task`).
   `--max-pages --time-limit --no-store --as-is --queue --notices`. `AuditTest` (6).
 - Dev site: 85 pages, score 96/100, 3 errors (`/directory`, `/shop` noindex-in-sitemap; reviewer profile description
   26 chars), 32 og:image + 6 thin-content warnings → fixes split into **L7-05b**.
+
+## L7-05b — SEO audit follow-ups: noindex lists out of sitemap, reviewer profile placeholder
+- Shared listing-indexing rules extracted into the owning domains and used by both controllers and
+  `PagesSitemapProvider`: `Blog\Support\PostListIndexing` (list/author/`hasRealBio` — placeholder `[…]` or < 70 chars
+  → noindex even for reviewers, meta description falls back to lang default), `Directory\Support\PlaceListIndexing`,
+  `Shop\Catalog\Support\ProductListIndexing` (home department/best-seller layout built once). Empty/demo-only
+  `/blog`, `/directory`, `/shop` are no longer listed in `pages.xml`. Audit-test workaround removed; new tests.
+- Dev site `seo:audit`: **85 pages, 0 errors**, 37 warnings (og:image, thin demo posts), score 97/100.
+- Deploy note: bump `sitemap` (+ `pages`) once after deploying code changes to sitemap rules.

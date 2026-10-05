@@ -10,6 +10,7 @@ use App\Domain\Blog\Models\Post;
 use App\Domain\Blog\Models\Tag;
 use App\Domain\Blog\Sitemap\AuthorSitemapProvider;
 use App\Domain\Blog\Sitemap\TagSitemapProvider;
+use App\Domain\Blog\Support\PostListIndexing;
 use App\Domain\Newsletter\Actions\Subscribe;
 use App\Domain\Newsletter\Enums\SubscribeOutcome;
 use App\Domain\Newsletter\Enums\SubscriptionStatus;
@@ -169,6 +170,52 @@ it('renders author pages with a Person node, credentials and their posts', funct
         ->and(collect(app(AuthorSitemapProvider::class)->entries())->pluck('loc')->all())->toBe([route('blog.author', 'maryam')]);
 
     $this->get('/blog/author/missing')->assertNotFound();
+});
+
+it('indexes a reviewer profile without posts only once it has a real bio', function (): void {
+    listingProduction();
+    $reviewer = Author::factory()->reviewer()->create(['name' => 'متخصص بازبین', 'slug' => 'reviewer', 'bio' => '[معرفی کوتاه متخصص بازبین]']);
+    $robots = static function (string $html): string {
+        preg_match('#<meta name="robots" content="([^"]+)"#', $html, $m);
+
+        return $m[1] ?? '';
+    };
+    // The router caches controller instances (with the previous request's scoped SeoManager): one per request.
+    $fresh = static fn () => app('router')->getRoutes()->getByName('blog.author')?->flushController();
+    $description = static function (string $html): string {
+        preg_match('#<meta name="description" content="([^"]+)"#', $html, $m);
+
+        return html_entity_decode($m[1] ?? '');
+    };
+
+    // Placeholder bio: noindex, and the lang default stands in for the description.
+    $placeholder = (string) $this->get('/blog/author/reviewer')->assertOk()->getContent();
+    expect($robots($placeholder))->toContain('noindex')
+        ->and($description($placeholder))->not->toContain('[')
+        ->and(mb_strlen($description($placeholder)))->toBeGreaterThanOrEqual(PostListIndexing::MIN_BIO_LENGTH);
+
+    // Too short to be a real bio: still noindex.
+    $reviewer->update(['bio' => 'متخصص زنان و زایمان.']);
+    $fresh();
+    expect($robots((string) $this->get('/blog/author/reviewer')->getContent()))->toContain('noindex');
+
+    // A real bio: the credentials page is indexable without own articles, and the bio is the description.
+    $bio = 'متخصص زنان و زایمان با پانزده سال تجربه بالینی که مقاله‌های سلامت چرخه و بارداری مجله ریتمی را پیش از انتشار بازبینی می‌کند.';
+    $reviewer->update(['bio' => $bio]);
+    $fresh();
+    $real = (string) $this->get('/blog/author/reviewer')->getContent();
+    expect($robots($real))->toStartWith('index')
+        ->and($description($real))->toStartWith('متخصص زنان و زایمان با پانزده سال');
+
+    // A plain author without posts stays noindex whatever the bio.
+    Author::factory()->create(['slug' => 'writer', 'bio' => $bio]);
+    $fresh();
+    expect($robots((string) $this->get('/blog/author/writer')->getContent()))->toContain('noindex');
+
+    expect(PostListIndexing::hasRealBio(null))->toBeFalse()
+        ->and(PostListIndexing::hasRealBio('   '))->toBeFalse()
+        ->and(PostListIndexing::hasRealBio($bio.' [نام]'))->toBeFalse()
+        ->and(PostListIndexing::hasRealBio($bio))->toBeTrue();
 });
 
 // ---- newsletter --------------------------------------------------------------------------------------------------

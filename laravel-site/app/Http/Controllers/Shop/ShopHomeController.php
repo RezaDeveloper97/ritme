@@ -19,10 +19,10 @@ use App\Domain\Seo\SeoManager;
 use App\Domain\Seo\Support\CanonicalUrl;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use App\Domain\Shop\Catalog\Contracts\CatalogRepository;
-use App\Domain\Shop\Catalog\Contracts\ProductRepository;
 use App\Domain\Shop\Catalog\Data\CategoryData;
 use App\Domain\Shop\Catalog\Data\CategoryTree;
 use App\Domain\Shop\Catalog\Data\ProductCardData;
+use App\Domain\Shop\Catalog\Support\ProductListIndexing;
 use App\Domain\Shop\Catalog\Support\ShopUrls;
 use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\View\Factory as ViewFactory;
@@ -41,7 +41,7 @@ use Illuminate\Http\Request;
 final class ShopHomeController
 {
     /** Product cards per department row (design: 5). */
-    public const PRODUCTS_PER_DEPARTMENT = 5;
+    public const PRODUCTS_PER_DEPARTMENT = ProductListIndexing::PRODUCTS_PER_DEPARTMENT;
 
     /** Category tiles per department (design: 8). */
     public const TILES_PER_DEPARTMENT = 8;
@@ -84,7 +84,7 @@ final class ShopHomeController
 
     public function __construct(
         private readonly CatalogRepository $catalog,
-        private readonly ProductRepository $products,
+        private readonly ProductListIndexing $indexing,
         private readonly MediaRepository $media,
         private readonly SeoManager $seo,
         private readonly SeoMetaRepository $meta,
@@ -102,8 +102,7 @@ final class ShopHomeController
 
         $departments = [];
         $cards = [];
-        foreach ($tree->roots() as $i => $root) {
-            $products = $this->products->bestSellers(self::PRODUCTS_PER_DEPARTMENT, $root->id);
+        foreach ($this->indexing->homeDepartments() as $i => [$root, $products]) {
             $departments[] = $this->department($tree, $root, $i, $products);
             array_push($cards, ...$products);
         }
@@ -186,7 +185,7 @@ final class ShopHomeController
 
         $name = StaticPage::Shop->label();
         $this->graph->pageType(WebPageType::CollectionPage)->pageName($name);
-        if (array_filter($cards, static fn (ProductCardData $c): bool => ! $c->isDemo) === []) {
+        if (! ProductListIndexing::showsRealProduct($cards)) {
             $this->seo->noindex(); // empty or demo-only shop: nothing real to index yet
         }
         if ($cards === []) {

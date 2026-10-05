@@ -16,6 +16,7 @@ use App\Domain\Blog\Models\Author;
 use App\Domain\Blog\Models\Category;
 use App\Domain\Blog\Models\Tag;
 use App\Domain\Blog\Support\BlogUrls;
+use App\Domain\Blog\Support\PostListIndexing;
 use App\Domain\Blog\Support\TagIndexing;
 use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Data\SeoMetaData;
@@ -45,7 +46,8 @@ use Illuminate\Http\Request;
  * Pagination `?page=n`: n > 1 is a self-canonical, indexable page with the page number in title + description;
  * `?page=1` 301s to the clean URL; a non-numeric or out-of-range page is a 404. Any other query parameter makes the
  * page a filtered listing → SeoManager forces noindex (and the page cache skips it). Tag pages below the
- * TagIndexing threshold and empty lists are `noindex,follow`. Admin seo_meta (route `blog.index`, or the category /
+ * TagIndexing threshold, empty lists and authors without posts (unless a medical reviewer with a real bio —
+ * PostListIndexing) are `noindex,follow`. Admin seo_meta (route `blog.index`, or the category /
  * tag / author row) wins over the defaults here.
  */
 final class BlogListingController
@@ -83,7 +85,7 @@ final class BlogListingController
             title: $page === 1 ? __('blog.index.seo_title') : __('blog.index.seo_title_paged'),
             description: __('blog.index.seo_description'),
             page: $page,
-            indexable: $list->total > 0,
+            indexable: PostListIndexing::listIndexable($list),
         );
         $this->schema($request, $this->blogTrail(), $featured === null ? $items : [$featured, ...$items], __('blog.name'));
 
@@ -112,7 +114,7 @@ final class BlogListingController
             title: $title,
             description: $category->description ?? __('blog.category.seo_description', ['name' => $category->name]),
             page: $page,
-            indexable: $list->total > 0,
+            indexable: PostListIndexing::listIndexable($list),
         );
         $this->schema($request, [...$this->blogTrail(), new BreadcrumbItem($category->name, $this->urls->category($category->slug))], $list->items, $category->name);
 
@@ -168,10 +170,12 @@ final class BlogListingController
         $this->applySeo(
             meta: $this->seoMeta->forModel((new Author)->getMorphClass(), $author->id),
             title: __($reviewer ? 'blog.author.seo_title_reviewer' : 'blog.author.seo_title', ['name' => $author->name]),
-            description: $author->bio !== null && trim($author->bio) !== '' ? $author->bio : __('blog.author.seo_description', ['name' => $author->name]),
+            // A placeholder («[…]») or too-short bio is no description; the lang default is used instead.
+            description: PostListIndexing::hasRealBio($author->bio) ? trim((string) $author->bio) : __('blog.author.seo_description', ['name' => $author->name]),
             page: $page,
-            // A medical reviewer's credentials page is worth indexing even without own articles (E-E-A-T).
-            indexable: $list->total > 0 || ($author->isMedicalReviewer && $author->bio !== null),
+            // A medical reviewer's credentials page is worth indexing even without own articles (E-E-A-T) — once the
+            // bio is real.
+            indexable: PostListIndexing::authorIndexable($author, $list),
         );
         $this->seo->type('profile');
         $trail = [...$this->blogTrail(), new BreadcrumbItem($author->name, $this->urls->author($author->slug))];

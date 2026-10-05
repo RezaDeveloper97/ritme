@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 use App\Domain\Blog\Models\Category;
 use App\Domain\Blog\Models\Post;
+use App\Domain\Directory\Models\Place;
 use App\Domain\Media\Models\Media;
 use App\Domain\Seo\Models\SeoMeta;
 use App\Domain\Seo\Sitemap\SitemapEntryData;
 use App\Domain\Seo\Sitemap\SitemapProvider;
 use App\Domain\Seo\Sitemap\SitemapRegistry;
 use App\Domain\Seo\Sitemap\Sitemaps;
+use App\Domain\Shop\Catalog\Actions\SyncProductCategories;
+use App\Domain\Shop\Catalog\Models\Category as ShopCategory;
+use App\Domain\Shop\Catalog\Models\Product as ShopProduct;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
@@ -92,7 +96,7 @@ it('lists only indexable static pages, honouring seo_meta robots and sitemap_inc
     $locs = sitemapLocs($xml);
 
     expect($xml->getName())->toBe('urlset')
-        ->and($locs)->toContain('https://ritme.ir', 'https://ritme.ir/cycle', 'https://ritme.ir/blog', 'https://ritme.ir/directory/business')
+        ->and($locs)->toContain('https://ritme.ir', 'https://ritme.ir/cycle', 'https://ritme.ir/directory/business')
         ->and($locs)->not->toContain(
             'https://ritme.ir/terms',
             'https://ritme.ir/privacy',
@@ -111,6 +115,44 @@ it('lists only indexable static pages, honouring seo_meta robots and sitemap_inc
         ->and((string) $urls['https://ritme.ir/about']->changefreq)->toBe('weekly')
         ->and((string) $urls['https://ritme.ir']->priority)->toBe('1.0')
         ->and(isset($urls['https://ritme.ir']->lastmod))->toBeFalse();
+});
+
+it('skips listing pages that would answer noindex (empty or demo-only) until they show something real', function (): void {
+    config(['app.env' => 'production']); // non-production pages are always noindex
+    $root = ShopCategory::factory()->create(['slug' => 'baby']);
+    $shopProduct = static function (bool $demo) use ($root): void {
+        $factory = ShopProduct::factory()->published();
+        $product = ($demo ? $factory->demo() : $factory)->create();
+        app(SyncProductCategories::class)->handle($product, [$root->id]);
+    };
+    $shopProduct(true);
+    Place::factory()->published()->demo()->create();
+    $listings = ['https://ritme.ir/blog', 'https://ritme.ir/directory', 'https://ritme.ir/shop'];
+    $robots = function (string $path): string {
+        // The router caches controller instances (with the previous request's scoped SeoManager): one per request.
+        foreach (app('router')->getRoutes()->getRoutes() as $route) {
+            $route->flushController();
+        }
+        preg_match('#<meta name="robots" content="([^"]+)"#', (string) $this->get($path)->getContent(), $m);
+
+        return $m[1] ?? '';
+    };
+
+    $locs = sitemapLocs(sitemapXml($this->get('/sitemaps/pages.xml')));
+    expect($locs)->not->toContain(...$listings)
+        ->and($locs)->toContain('https://ritme.ir/cycle', 'https://ritme.ir/directory/business');
+    foreach (['/blog', '/directory', '/shop'] as $path) {
+        expect($robots($path))->toContain('noindex'); // the same rule the controllers apply
+    }
+
+    Post::factory()->published()->create(['slug' => 'first']);
+    Place::factory()->published()->create();
+    $shopProduct(false);
+
+    expect(sitemapLocs(sitemapXml($this->get('/sitemaps/pages.xml'))))->toContain(...$listings);
+    foreach (['/blog', '/directory', '/shop'] as $path) {
+        expect($robots($path))->toStartWith('index', $path);
+    }
 });
 
 it('lists indexable posts with real lastmod and image:image, excluding noindex posts', function (): void {

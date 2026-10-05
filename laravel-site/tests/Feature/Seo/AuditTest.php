@@ -15,7 +15,6 @@ use App\Domain\Seo\Audit\Models\AuditRunIssue;
 use App\Domain\Seo\Audit\Models\AuditRunPage;
 use App\Domain\Seo\Audit\Queries\AuditHistory;
 use App\Domain\Seo\Audit\Severity;
-use App\Domain\Seo\Models\SeoMeta;
 use App\Domain\Seo\Redirects\Enums\AgentClass;
 use App\Domain\Seo\Redirects\Models\NotFoundLog;
 use App\Domain\Seo\Sitemap\SitemapEntryData;
@@ -214,11 +213,6 @@ it('detects injected faults across pages, links, redirects, sitemap and JSON-LD'
 
 it('reports a clean seed with zero errors', function (): void {
     $this->seed(DatabaseSeeder::class);
-    // Empty listings are noindex (thin); until PagesSitemapProvider skips them itself they are excluded from the
-    // sitemap the supported way — otherwise the audit rightly reports sitemap.noindex for them.
-    foreach (['blog.index', 'directory.index', 'shop.index'] as $route) {
-        SeoMeta::query()->updateOrCreate(['route_name' => $route], ['sitemap_include' => false]);
-    }
 
     [$result] = app(RunSeoAudit::class)->handle(new AuditOptions, store: false);
 
