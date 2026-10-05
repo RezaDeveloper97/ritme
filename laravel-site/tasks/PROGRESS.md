@@ -848,3 +848,18 @@ One section per finished task (appended by `/site-task`).
   dev DB settings re-seeded (insert-missing).
 - Open: deleting a variant that was ordered means a later cancel can't restore that line (logged as skipped);
   delivered COD auto-marks paid; Gregorian date pickers in filters.
+
+## L7-06 — Bulk SEO editor + Organization/SEO defaults settings
+- `/admin/seo/bulk` (`BulkEditor`, SeoManager + super-admin): one table for posts, products, places, blog/shop
+  categories and indexable static pages; inline title/description with live char + SERP pixel counters (same
+  `TextWidth` + template), robots, cornerstone, score badge + checks (duplicate/long/missing/noindex); filters by type
+  and «نیاز به کار»; drafts saved by one action; bulk noindex/index/reset/recompute; CSV export/import; activity log
+  `seo.bulk.*`.
+- Actions: `ResolveSeoTarget`, `ListBulkSeoRows`, `BulkSaveSeoMeta`, `ResetSeoMeta`, `RecomputeSeoScores`
+  (`saveQuietly`), `ExportBulkSeoCsv`/`ImportBulkSeoCsv`. `SeoMetaObserver::batch()` → one seo/sitemap/pages bump per batch.
+- Migration `2026_10_05_100600_add_score_columns_to_seo_meta_table` (score, score_checked_at, cornerstone).
+- `/admin/settings/seo` (title template with `%s` + new `%sep%`, separator, default title/description, default OG image
+  ≥1200×630, X handle) and `/admin/settings/organization` (legal name, logo ≥112², founding date, http(s) sameAs,
+  contact point) → head + JSON-LD. `SeoDefaults::template()`; `PageGraph` uses it. `BulkSeoTest` (8).
+- Open: scores refresh only on bulk saves/recompute (no schedule; SEO-tab saves don't rescore); `SeoFields::cornerstone()`
+  doesn't read the column yet; recompute creates score-only rows for static pages (L7-01 then shows "reset").

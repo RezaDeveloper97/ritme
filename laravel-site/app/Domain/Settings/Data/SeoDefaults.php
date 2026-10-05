@@ -10,6 +10,9 @@ final readonly class SeoDefaults implements SettingsGroupData
 {
     use CoercesSettingValues;
 
+    /** Placeholder in the title template replaced by the separator (L7-06), e.g. «%s %sep% ریتمی». */
+    public const SEPARATOR_TOKEN = '%sep%';
+
     /**
      * @param  array<string, string>  $verification  e.g. ['google' => '…', 'bing' => '…']
      * @param  IndexingSettings  $indexing  robots / sitemap / IndexNow / head-code controls (L7-04), flat keys of this group
@@ -35,7 +38,7 @@ final readonly class SeoDefaults implements SettingsGroupData
         $template = self::string($values, 'title_template', '%s — ریتمی');
 
         return new self(
-            titleTemplate: str_contains($template, '%s') ? $template : '%s — ریتمی',
+            titleTemplate: str_contains(str_replace(self::SEPARATOR_TOKEN, '', $template), '%s') ? $template : '%s — ریتمی',
             separator: self::string($values, 'separator', '—'),
             defaultTitle: self::string($values, 'default_title', 'ریتمی'),
             defaultDescription: self::string($values, 'default_description'),
@@ -61,12 +64,20 @@ final readonly class SeoDefaults implements SettingsGroupData
     }
 
     /**
+     * The title template with the separator token resolved (still contains `%s`).
+     */
+    public function template(): string
+    {
+        return str_replace(self::SEPARATOR_TOKEN, $this->separator, $this->titleTemplate);
+    }
+
+    /**
      * Applies the title template to a page title; an empty title yields the default title.
      */
     public function title(?string $pageTitle): string
     {
         $pageTitle = trim((string) $pageTitle);
 
-        return $pageTitle === '' ? $this->defaultTitle : str_replace('%s', $pageTitle, $this->titleTemplate);
+        return $pageTitle === '' ? $this->defaultTitle : str_replace('%s', $pageTitle, $this->template());
     }
 }

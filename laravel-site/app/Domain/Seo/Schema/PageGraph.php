@@ -102,7 +102,7 @@ final class PageGraph
 
         return [
             new BreadcrumbItem(self::HOME_LABEL, $siteUrl),
-            new BreadcrumbItem($this->graph->getPageName() ?? $this->stripTemplate($title, $seo->titleTemplate), $url),
+            new BreadcrumbItem($this->graph->getPageName() ?? $this->stripTemplate($title, $seo->template()), $url),
         ];
     }
 

@@ -3,7 +3,7 @@ id: L7-06
 title: Bulk SEO editor + Organization/SEO defaults settings
 milestone: L7
 type: admin
-status: todo
+status: done
 depends_on: [L7-01,L5-06,L6-06]
 parallel_group: L7-C
 touches: [app/Filament/Pages/Seo/BulkEditor.php,app/Filament/Pages/Settings/SeoSettings.php,app/Filament/Pages/Settings/OrganizationSettings.php,tests/Feature/Admin/BulkSeoTest.php]
