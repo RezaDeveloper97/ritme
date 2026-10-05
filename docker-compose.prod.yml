@@ -112,6 +112,10 @@ services:
       # default_server blocks.
       - ${STAGE_CONF:-./deploy/stage-off.conf}:/etc/nginx/conf.d/zz-stage.conf:ro
       - ./deploy/vhost-stage.inc:/etc/nginx/conf.d/vhost-stage.inc:ro
+      # ── betatest.ritme.app (laravel-site, compose project `ritme-site`) ──
+      # Same selector trick: empty placeholder by default; laravel-site/deploy-betatest.sh
+      # sets SITE_CONF=./deploy/site-ssl.conf in the server .env.
+      - ${SITE_CONF:-./deploy/site-off.conf}:/etc/nginx/conf.d/zz-site.conf:ro
       # Server-only file (never rsynced); deploy.sh touches it so a fresh
       # server can't have Docker create a DIRECTORY here instead.
       - ./stage.htpasswd:/etc/nginx/stage.htpasswd:ro
