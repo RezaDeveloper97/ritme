@@ -43,7 +43,7 @@
                     class="flex size-8.5 cursor-pointer items-center justify-center rounded-full border-[1.5px] border-line bg-transparent text-ink hover:border-primary disabled:cursor-not-allowed disabled:opacity-40">
                 <x-icon name="plus" class="size-[15px]"/>
             </button>
-            <b class="min-w-3.5 text-center text-base" aria-label="{{ __('shop.cart.quantity_value', ['count' => fa_digits($item->quantity)]) }}">{{ fa_digits($item->quantity) }}</b>
+            <b class="min-w-3.5 text-center text-base"><span class="sr-only">{{ __('shop.cart.quantity_value', ['count' => fa_digits($item->quantity)]) }}</span><span aria-hidden="true">{{ fa_digits($item->quantity) }}</span></b>
             <button type="submit" name="quantity" value="{{ $item->quantity - 1 }}" aria-label="{{ __('shop.cart.less') }}" @disabled($item->quantity <= 1)
                     class="flex size-8.5 cursor-pointer items-center justify-center rounded-full border-[1.5px] border-line bg-transparent text-ink hover:border-primary disabled:cursor-not-allowed disabled:opacity-40">
                 <x-icon name="minus" class="size-[15px]"/>

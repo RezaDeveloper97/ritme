@@ -11,7 +11,7 @@
         ['id' => 'areas-landings', 'title' => __('directory.areas.landings'), 'items' => $areas['landings']],
     ], static fn (array $group): bool => $group['items'] !== [] && $group['title'] !== null));
 @endphp
-<aside aria-labelledby="areas-title" class="relative isolate flex h-295 w-140 shrink-0 flex-col justify-between gap-5 overflow-hidden rounded-6xl border border-line p-5 max-sm:h-auto max-sm:min-h-150 max-sm:w-full max-sm:max-w-full">
+<section aria-labelledby="areas-title" class="relative isolate flex h-295 w-140 shrink-0 flex-col justify-between gap-5 overflow-hidden rounded-6xl border border-line p-5 max-sm:h-auto max-sm:min-h-150 max-sm:w-full max-sm:max-w-full">
     <x-illustration name="map-directory" class="absolute inset-0 -z-10 size-full"/>
     <div class="flex flex-col gap-4 rounded-4xl border border-line bg-surface/92 p-5">
         <h2 id="areas-title" class="m-0 text-lg font-extrabold text-ink">{{ __('directory.areas.title') }}</h2>
@@ -29,4 +29,4 @@
     <p class="m-0 flex items-start gap-2.5 rounded-3xl border border-line bg-surface/92 px-4.5 py-3.5 text-sm-plus leading-relaxed font-semibold text-muted">
         <x-icon name="map-pin" class="mt-0.5 size-4.5 shrink-0 text-primary"/>{{ __('directory.areas.note') }}
     </p>
-</aside>
+</section>

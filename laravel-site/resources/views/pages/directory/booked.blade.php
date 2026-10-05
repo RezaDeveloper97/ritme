@@ -66,7 +66,7 @@
             <span class="text-base font-semibold text-muted">{{ $place['cancellation'] ?? __($t.'change') }}</span>
         </div>
 
-        <aside class="flex w-110 flex-col gap-5 max-sm:w-full max-sm:max-w-full">
+        <div class="flex w-110 flex-col gap-5 max-sm:w-full max-sm:max-w-full">
             <x-ui.app-cta variant="aside" icon="bell" :title="__($t.'app.title')" :lead="__($t.'app.lead')" :links="$appLinks"/>
             @if ($place !== null && $place['rules'] !== [])
                 <section aria-labelledby="booked-rules" class="flex flex-col gap-2.5 rounded-5xl border border-line bg-surface p-6">
@@ -78,6 +78,6 @@
                     </ul>
                 </section>
             @endif
-        </aside>
+        </div>
     </section>
 @endsection

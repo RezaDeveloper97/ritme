@@ -11,7 +11,7 @@
 @section('content')
     <x-ui.page-intro eyebrow="سؤالات متداول" title="جواب سؤال‌های رایج" lead="جوابت را پیدا نکردی؟ از صفحه تماس یا پشتیبانی داخل اپ بپرس.">
         @if ($groups !== [])
-            <div role="search" class="flex h-14.5 w-155 items-center gap-2.5 rounded-full border-[1.5px] border-line bg-surface px-5 focus-within:border-primary max-sm:w-full max-sm:max-w-full">
+            <div role="search" class="flex h-14.5 w-155 items-center gap-2.5 rounded-full border-[1.5px] border-line bg-surface px-5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary max-sm:w-full max-sm:max-w-full">
                 <x-icon name="search" class="size-5 shrink-0 text-muted"/>
                 <label for="faq-search" class="sr-only">جست‌وجو در سؤال‌ها</label>
                 <input id="faq-search" type="search" autocomplete="off" enterkeyhint="search" placeholder="جست‌وجو در سؤال‌ها"

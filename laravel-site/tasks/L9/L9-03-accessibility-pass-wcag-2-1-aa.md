@@ -3,7 +3,7 @@ id: L9-03
 title: Accessibility pass (WCAG 2.1 AA)
 milestone: L9
 type: quality
-status: todo
+status: done
 depends_on: [L3-11,L4-03,L5-03,L6-05]
 parallel_group: L9-C
 touches: [resources/views,resources/css,resources/js,docs/qa/a11y]

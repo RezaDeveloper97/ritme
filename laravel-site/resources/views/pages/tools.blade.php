@@ -75,7 +75,7 @@
 
                     <div class="flex flex-col gap-2">
                         <label for="{{ $id }}-lmp" class="text-base font-extrabold">{{ __('tools.calculators.lmp') }}</label>
-                        <span @class(['flex h-14 items-center justify-between gap-2 rounded-2xl border-[1.5px] bg-surface px-4.5 text-lg font-bold text-ink focus-within:border-primary', $lmpInvalid ? 'border-danger' : 'border-line'])>
+                        <span @class(['flex h-14 items-center justify-between gap-2 rounded-2xl border-[1.5px] bg-surface px-4.5 text-lg font-bold text-ink focus-within:border-primary focus-within:ring-2 focus-within:ring-primary', $lmpInvalid ? 'border-danger' : 'border-line'])>
                             <input
                                 id="{{ $id }}-lmp"
                                 name="lmp"
@@ -95,7 +95,7 @@
 
                     <div class="flex flex-col gap-2">
                         <label for="{{ $id }}-cycle" class="text-base font-extrabold">{{ __('tools.calculators.cycle') }}</label>
-                        <span @class(['flex h-14 items-center justify-between gap-2 rounded-2xl border-[1.5px] bg-surface px-4.5 text-lg font-bold text-ink focus-within:border-primary', $cycleInvalid ? 'border-danger' : 'border-line'])>
+                        <span @class(['flex h-14 items-center justify-between gap-2 rounded-2xl border-[1.5px] bg-surface px-4.5 text-lg font-bold text-ink focus-within:border-primary focus-within:ring-2 focus-within:ring-primary', $cycleInvalid ? 'border-danger' : 'border-line'])>
                             <input
                                 id="{{ $id }}-cycle"
                                 name="cycle"
@@ -122,10 +122,14 @@
                         <span>{{ __("tools.calculators.{$key}.warn") }}</span>
                     </p>
 
-                    <div data-calc-result aria-live="polite" @if (! $form->hasResult()) hidden @endif class="flex flex-col gap-1.5 rounded-4xl border p-5.5 {{ $card['result'] }}">
-                        <span class="text-base font-extrabold text-muted">{{ __("tools.calculators.{$key}.result") }}</span>
-                        <output for="{{ $id }}-lmp {{ $id }}-cycle" data-calc-value class="font-display text-[34px] leading-snug">{{ $form->value }}</output>
-                        <span data-calc-detail class="text-base font-semibold text-muted">{{ $form->detail }}</span>
+                    {{-- The live region stays in the tree (a region that is itself un-hidden is often not announced, L9-03); the
+                         negative margin cancels the form gap while the result is hidden. --}}
+                    <div aria-live="polite" aria-atomic="true" class="has-[>[hidden]]:-mt-4.5">
+                        <div data-calc-result @if (! $form->hasResult()) hidden @endif class="flex flex-col gap-1.5 rounded-4xl border p-5.5 {{ $card['result'] }}">
+                            <span class="text-base font-extrabold text-muted">{{ __("tools.calculators.{$key}.result") }}</span>
+                            <output for="{{ $id }}-lmp {{ $id }}-cycle" data-calc-value class="font-display text-[34px] leading-snug">{{ $form->value }}</output>
+                            <span data-calc-detail class="text-base font-semibold text-muted">{{ $form->detail }}</span>
+                        </div>
                     </div>
                 </form>
             @endforeach

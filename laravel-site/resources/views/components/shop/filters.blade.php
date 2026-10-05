@@ -12,7 +12,7 @@
     $legend = 'float-start mb-3 w-full p-0 text-md font-bold text-ink';
     $pill = 'flex h-10 cursor-pointer items-center rounded-full border-[1.5px] border-line px-3.5 text-[12.5px] font-bold text-muted hover:border-primary has-checked:border-primary has-checked:bg-primary/13 has-checked:text-ink has-focus-visible:outline-2 has-focus-visible:outline-primary';
 @endphp
-<aside aria-labelledby="filters-title" {{ $attributes->class('flex w-70 shrink-0 flex-col max-sm:w-full') }}>
+<section aria-labelledby="filters-title" {{ $attributes->class('flex w-70 shrink-0 flex-col max-sm:w-full') }}>
     <div class="flex items-center justify-between pb-4">
         <h2 id="filters-title" class="m-0 text-xl font-bold text-ink">{{ __('shop.filters.title') }}</h2>
         @if ($filters['filtered'])
@@ -71,11 +71,11 @@
             <div class="flex gap-2.5">
                 <label class="flex flex-1 flex-col gap-1 text-[12.5px] font-bold text-muted">{{ __('shop.filters.price_min') }}
                     <input type="text" inputmode="numeric" name="min" value="{{ $filters['price']['min'] }}" autocomplete="off" @if ($filters['price']['from']) placeholder="{{ $filters['price']['from'] }}" @endif
-                           class="h-10 w-full rounded-2xl border-[1.5px] border-line bg-surface px-3 text-base font-semibold text-ink focus:border-primary focus:outline-none">
+                           class="h-10 w-full rounded-2xl border-[1.5px] border-line bg-surface px-3 text-base font-semibold text-ink focus:border-primary">
                 </label>
                 <label class="flex flex-1 flex-col gap-1 text-[12.5px] font-bold text-muted">{{ __('shop.filters.price_max') }}
                     <input type="text" inputmode="numeric" name="max" value="{{ $filters['price']['max'] }}" autocomplete="off" @if ($filters['price']['to']) placeholder="{{ $filters['price']['to'] }}" @endif
-                           class="h-10 w-full rounded-2xl border-[1.5px] border-line bg-surface px-3 text-base font-semibold text-ink focus:border-primary focus:outline-none">
+                           class="h-10 w-full rounded-2xl border-[1.5px] border-line bg-surface px-3 text-base font-semibold text-ink focus:border-primary">
                 </label>
             </div>
             @if ($filters['price']['from'] && $filters['price']['to'])
@@ -112,4 +112,4 @@
         @endforeach
         <x-ui.button type="submit" size="md" class="mt-2 justify-center">{{ __('shop.filters.apply') }}</x-ui.button>
     </form>
-</aside>
+</section>

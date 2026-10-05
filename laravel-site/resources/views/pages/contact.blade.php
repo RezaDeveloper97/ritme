@@ -88,7 +88,7 @@
                     </div>
                 @endif
 
-                <x-ui.form.field as="fieldset" :label="__('contact.form.topic')" :error="$errors->first('topic')" class="gap-0">
+                <x-ui.form.field as="fieldset" for="contact-topic" :label="__('contact.form.topic')" :error="$errors->first('topic')" class="gap-0">
                     <div class="flex flex-wrap gap-2">
                         @foreach ($topics as $value => $label)
                             <label class="flex h-10 cursor-pointer items-center rounded-full border-[1.5px] border-line bg-surface px-3.5 text-sm-plus font-bold transition-colors hover:border-primary has-checked:border-primary has-checked:bg-lavender has-focus-visible:outline-2 has-focus-visible:outline-primary">

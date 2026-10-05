@@ -62,12 +62,12 @@
                         @endif
                     </div>
 
-                    <aside aria-labelledby="cart-summary-title" class="flex w-100 shrink-0 flex-col gap-4 max-sm:w-full max-sm:max-w-full">
+                    <section aria-labelledby="cart-summary-title" class="flex w-100 shrink-0 flex-col gap-4 max-sm:w-full max-sm:max-w-full">
                         <x-shop.cart-summary :cart="$cart"/>
                         <p class="m-0 flex gap-2.5 px-2 text-sm-plus leading-relaxed font-semibold text-muted">
                             <x-icon name="lock" class="size-4.5 shrink-0 text-stage-teen"/>{{ __('shop.cart.privacy') }}
                         </p>
-                    </aside>
+                    </section>
                 </div>
             @endif
         </div>

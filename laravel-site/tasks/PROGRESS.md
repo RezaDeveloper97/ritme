@@ -889,3 +889,19 @@ One section per finished task (appended by `/site-task`).
   `/blog`, `/directory`, `/shop` are no longer listed in `pages.xml`. Audit-test workaround removed; new tests.
 - Dev site `seo:audit`: **85 pages, 0 errors**, 37 warnings (og:image, thin demo posts), score 97/100.
 - Deploy note: bump `sitemap` (+ `pages`) once after deploying code changes to sitemap rules.
+
+## L9-03 — Accessibility pass (WCAG 2.1 AA)
+- `docs/qa/a11y/a11y-check.mjs` (system Chrome via CDP; axe-core 4.11 loaded from a local node_modules
+  (`../frontend/node_modules/axe-core` or `AXE_PATH`), pixel-sampled contrast on gradients, custom checks: lang/dir,
+  one h1, heading order, one main + skip link, aria-invalid ↔ aria-describedby, reduced motion, no external requests,
+  Tab walk with focus-indicator detection, touch targets), results in `docs/qa/a11y/{README.md,results.json}`.
+- Result: axe 0 violations on 84 page×width runs (42 pages/states incl. filled cart, checkout, form errors);
+  Lighthouse a11y 100 on 34 templates mobile + desktop; 10 keyboard scenarios pass.
+- Fixes: `--color-stage-pregnancy-ink #b8336b` (5.64:1) for article-card labels; promo-split CTA `text-primary-hover`;
+  dark-hero eyebrow pill `bg-night-card/80`; closed-day rows without opacity; visible focus on calculator / FAQ search /
+  price filter inputs; `<aside>` inside `<main>` → named `<section>`; radio-group errors linked via fieldset
+  `aria-describedby`; cart count label via sr-only text; calculator results in a persistent live region; global
+  reduced-motion rule + stepper `scrollIntoView` respects it. Build re-run (critical CSS refreshed).
+- Open: gallery lightbox + booked/order pages verified by code review only (no photos/bookings in dev); 44 px targets
+  not met for desktop nav/footer links (22 px), ± buttons (34 px), favourite (40 px), chips — ≥24 px (AA 2.2) everywhere;
+  no manual screen-reader pass yet.

@@ -154,7 +154,7 @@
                     </fieldset>
                 </div>
 
-                <aside aria-labelledby="checkout-summary-title" class="flex w-100 shrink-0 flex-col gap-4 max-sm:w-full max-sm:max-w-full">
+                <section aria-labelledby="checkout-summary-title" class="flex w-100 shrink-0 flex-col gap-4 max-sm:w-full max-sm:max-w-full">
                     <div class="{{ $card }}">
                         <h2 id="checkout-summary-title" class="m-0 text-2xl font-bold">{{ __($t.'summary') }}</h2>
                         <dl class="m-0 mt-2.5">
@@ -182,7 +182,7 @@
                     <p class="m-0 flex gap-2.5 px-2 text-sm-plus leading-relaxed font-semibold text-muted">
                         <x-icon name="lock" class="size-4.5 shrink-0 text-stage-teen"/>{{ __($t.'privacy') }}
                     </p>
-                </aside>
+                </section>
             </form>
         @endif
     </section>

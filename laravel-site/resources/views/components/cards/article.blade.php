@@ -37,7 +37,7 @@
     [$gradient, $labelColor] = match ($stageKey) {
         'cycle' => ['from-stage-cycle/33 to-stage-cycle/7', 'text-stage-cycle'],
         'ttc' => ['from-stage-ttc/33 to-stage-ttc/7', 'text-stage-ttc'],
-        'pregnancy' => ['from-stage-pregnancy/33 to-stage-pregnancy/7', 'text-stage-pregnancy'],
+        'pregnancy' => ['from-stage-pregnancy/33 to-stage-pregnancy/7', 'text-stage-pregnancy-ink'],
         'postpartum' => ['from-stage-postpartum/33 to-stage-postpartum/7', 'text-stage-postpartum'],
         'teen' => ['from-stage-teen/33 to-stage-teen/7', 'text-stage-teen'],
         default => ['from-stage-menopause/33 to-stage-menopause/7', 'text-stage-menopause'],

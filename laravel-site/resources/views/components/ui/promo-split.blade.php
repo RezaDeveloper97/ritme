@@ -48,7 +48,7 @@
                 @if (! empty($item['eyebrow']))<x-ui.eyebrow>{{ $item['eyebrow'] }}</x-ui.eyebrow>@endif
                 <{{ $level }} class="m-0 font-display text-d-md leading-heading font-normal text-ink">{{ $item['title'] }}</{{ $level }}>
                 @if (! empty($item['text']))<span class="text-lg leading-loose font-medium text-muted">{{ $item['text'] }}</span>@endif
-                @if (! empty($item['cta']))<span class="flex items-center gap-1.5 text-md font-extrabold text-primary">{{ $item['cta'] }}<x-icon name="arrow-left" class="size-4"/></span>@endif
+                @if (! empty($item['cta']))<span class="flex items-center gap-1.5 text-md font-extrabold {{ ($item['tone'] ?? 'lavender') === 'lavender' ? 'text-primary-hover' : 'text-primary' }}">{{ $item['cta'] }}<x-icon name="arrow-left" class="size-4"/></span>@endif
             @endif
         </a>
     @endforeach

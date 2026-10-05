@@ -50,6 +50,8 @@
     --color-stage-cycle: #b82a52;
     --color-stage-ttc: #8a5a00;
     --color-stage-pregnancy: #d9447f;
+    /* Small text in the pregnancy colour: #d9447f is 4.13:1 on white (AUDIT §6, L9-03); this shade is 5.64:1. */
+    --color-stage-pregnancy-ink: #b8336b;
     --color-stage-postpartum: #0a7390;
     --color-stage-menopause: #6e54f0;
     --color-stage-teen: #0c7064;
@@ -224,6 +226,18 @@
     :focus-visible {
         outline: 2px solid var(--color-primary);
         outline-offset: 2px;
+    }
+
+    /* Reduced motion (WCAG 2.3.3, L9-03): a safety net for every transition/animation, present and future. */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        ::before,
+        ::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
     }
 
     details > summary {

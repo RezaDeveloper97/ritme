@@ -95,7 +95,7 @@ export default (form) => {
                 heading.tabIndex = -1;
                 heading.focus({ preventScroll: true });
             }
-            form.scrollIntoView({ block: 'start', behavior: 'smooth' });
+            form.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
         }
     };
 

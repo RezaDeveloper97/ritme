@@ -4,11 +4,12 @@
     </x-ui.form.field>
     Label (14/800) above the control, optional hint and error (AUDIT §2.2 forms). The control must carry the same `id`
     as `for`; pass `aria-describedby="{for}-hint {for}-error"` (x-ui.form.input does it when `described` is set).
-    Use `as="fieldset"` + `legend` semantics for radio-card groups.
+    Use `as="fieldset"` + `legend` semantics for radio-card groups; give it `for` too (any unique id stem) so the
+    fieldset points at its error with aria-describedby (L9-03).
 --}}
 @props(['for' => null, 'label', 'hint' => null, 'error' => null, 'required' => false, 'as' => 'div'])
 @php($legend = $as === 'fieldset')
-<{{ $as }} {{ $attributes->class(['flex flex-col gap-2', 'm-0 min-w-0 border-0 p-0' => $legend]) }}>
+<{{ $as }} @if ($legend && $for && $error) aria-describedby="{{ $for }}-error" @endif {{ $attributes->class(['flex flex-col gap-2', 'm-0 min-w-0 border-0 p-0' => $legend]) }}>
     @if ($legend)
         <legend class="mb-2 p-0 text-base font-extrabold text-ink">{{ $label }}@if ($required)<span class="text-danger" aria-hidden="true"> *</span>@endif</legend>
     @else

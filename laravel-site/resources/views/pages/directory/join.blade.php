@@ -257,7 +257,7 @@
                         <x-ui.form.textarea id="join-services" name="services" rows="4" maxlength="{{ \App\Domain\Directory\Join\Support\JoinForm::SERVICES_MAX }}"
                                             :placeholder="__($t.'services.placeholder')" :invalid="$errors->has('services')" described>{{ old('services') }}</x-ui.form.textarea>
                     </x-ui.form.field>
-                    <x-ui.form.field as="fieldset" :label="__($t.'services.booking')" :error="$errors->first('booking_mode')" required>
+                    <x-ui.form.field as="fieldset" for="join-booking-mode" :label="__($t.'services.booking')" :error="$errors->first('booking_mode')" required>
                         <div class="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
                             @foreach ($bookingModes as $mode)
                                 <x-ui.form.radio-card name="booking_mode" :value="$mode['value']" :title="$mode['title']" :text="$mode['text']"
@@ -299,14 +299,14 @@
                 </div>
             </div>
 
-            <aside aria-label="{{ __($t.'preview.label') }}" class="flex w-90 shrink-0 flex-col gap-3 max-sm:w-full">
+            <section aria-label="{{ __($t.'preview.label') }}" class="flex w-90 shrink-0 flex-col gap-3 max-sm:w-full">
                 <span aria-hidden="true" class="flex items-center gap-1.5 text-sm-plus font-extrabold text-muted"><x-icon name="eye-off" class="size-4 text-muted"/>{{ __($t.'preview.label') }}</span>
                 <div inert data-preview>
                     <x-cards.place href="{{ route('directory.index') }}" as="b" :name="old('name') ?: __($t.'preview.name')" :category="__($t.'preview.category')"
                                    :district="__($t.'preview.district')" :slots="[__($t.'preview.after')]" illustration="place-cover-pool"/>
                 </div>
                 <p class="m-0 rounded-3xl border border-line bg-surface p-4 text-sm-plus leading-relaxed font-semibold text-muted">{{ __($t.'preview.note') }}</p>
-            </aside>
+            </section>
         </form>
     </section>
 @endsection
