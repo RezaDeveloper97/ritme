@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers\Domain;
 
+use App\Domain\Contact\Support\ReplyChannel;
 use App\Domain\Media\Actions\FindMediaUsages;
 use App\Domain\Search\Support\SearchRegistry;
 use App\Domain\Seo\Sitemap\SitemapRegistry;
@@ -31,12 +32,27 @@ use App\Domain\Shop\Catalog\Search\ProductSearchProvider;
 use App\Domain\Shop\Catalog\Sitemap\CategorySitemapProvider;
 use App\Domain\Shop\Catalog\Sitemap\ProductSitemapProvider;
 use App\Domain\Shop\Catalog\Support\ProductContent;
+use App\Domain\Shop\Ordering\Events\OrderPlaced;
+use App\Domain\Shop\Ordering\Listeners\SendOrderNotifications;
+use App\Domain\Shop\Ordering\Support\CheckoutSession;
+use App\Domain\Shop\Payment\Contracts\PaymentGateway;
+use App\Domain\Shop\Payment\Gateways\CashOnDeliveryGateway;
 use App\Providers\DomainServiceProvider;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 
 final class ShopServiceProvider extends DomainServiceProvider
 {
+    public const CHECKOUT_PER_10_MINUTES = 5;
+
+    public const CHECKOUT_PER_DAY = 20;
+
+    public const CHECKOUT_PER_MOBILE_PER_DAY = 10;
+
     protected array $repositories = [
         CatalogRepository::class => [EloquentCatalogRepository::class, CachedCatalogRepository::class],
         ProductRepository::class => [EloquentProductRepository::class, CachedProductRepository::class],
@@ -63,6 +79,13 @@ final class ShopServiceProvider extends DomainServiceProvider
             $app['config']->get('shop.shipping.free_over'),
         ));
 
+        // Checkout (L6-05): cash on delivery only (tasks/README.md decision) behind the PaymentGateway contract. COD cap
+        // `shop.cod_max_amount` (tomans, null = no cap) — ShopSettings.cod_max_amount once a shop settings group exists (L6-06).
+        $this->app->singleton(PaymentGateway::class, static fn (Application $app): PaymentGateway => CashOnDeliveryGateway::fromToman(
+            $app['config']->get('shop.cod_max_amount'),
+        ));
+        $this->app->scoped(CheckoutSession::class);
+
         $this->app->singleton(ProductContent::class, static fn (Application $app): ProductContent => ProductContent::fromConfig($app['config']));
 
         // `/sitemaps/shop-products.xml`, `/sitemaps/shop-categories.xml` (L1-06 registry).
@@ -75,6 +98,26 @@ final class ShopServiceProvider extends DomainServiceProvider
     public function boot(): void
     {
         parent::boot();
+
+        // Orders → queued team mail + customer SMS (after commit).
+        Event::listen(OrderPlaced::class, SendOrderNotifications::class);
+
+        // POST /shop/checkout: per IP (a household may order twice) and per mobile.
+        RateLimiter::for('shop-checkout', static function (Request $request): array {
+            $ip = (string) $request->ip();
+            $mobile = $request->input('mobile');
+            $mobile = is_string($mobile) && ! str_contains($mobile, '@') ? ReplyChannel::parse($mobile)?->phone : null;
+
+            $limits = [
+                Limit::perMinutes(10, self::CHECKOUT_PER_10_MINUTES)->by('shop-checkout:m:'.$ip),
+                Limit::perDay(self::CHECKOUT_PER_DAY)->by('shop-checkout:d:'.$ip),
+            ];
+            if ($mobile !== null) {
+                $limits[] = Limit::perDay(self::CHECKOUT_PER_MOBILE_PER_DAY)->by('shop-checkout:p:'.$mobile);
+            }
+
+            return $limits;
+        });
 
         // Stable morph names for seo_meta.seoable_type (class names may move).
         Relation::morphMap([

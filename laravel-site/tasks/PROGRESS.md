@@ -791,3 +791,23 @@ One section per finished task (appended by `/site-task`).
   group, no coupon row, no fake ratings, NULL app links); empty state 58.62 / 72.49% (expected).
 - Open: shipping fee/threshold is a business decision (config or L6-06 settings); cart lifetime = session (120 min);
   L6-05 must call `ResolveCart`/`ClearCart` + `AdjustStock`; coupon + delivery copy unconfirmed.
+
+## L6-05 — Checkout (cash on delivery), orders, done page
+- `app/Domain/Shop/Payment` (`PaymentGateway` contract → `CashOnDeliveryGateway`, optional `config('shop.cod_max_amount')`
+  Toman cap; `PaymentStatus::unpaid` «پرداخت هنگام تحویل»). `app/Domain/Shop/Ordering`: `Order`/`OrderItem`,
+  `OrderStatus` (pending/confirmed/shipped/delivered/cancelled), `DeliveryWindow`, `PlaceOrder` (ONE transaction:
+  `ResolveCart` live prices + `AdjustStock`, rollback on any refusal, `CartSignature` rejects carts changed since the
+  page opened, idempotency key unique), `OrderPlaced` (after commit) → `SendOrderNotifications` (team mail without
+  personal data, customer SMS via `SmsChannel` without "paid"), `OrderCode` (12 chars), `CheckoutSession` (one-time
+  token + this session's order codes), `DeliverySlots`, local `IranProvinces` (31 provinces), `FindOrder`.
+- Migration `2026_10_04_002300_create_shop_orders_tables` (rials, nullable shipping_fee, delivery date/window,
+  discreet packaging, is_demo; items snapshot + `stock_tracked`).
+- `CheckoutController` (show/store/order), `CheckoutRequest` (honeypot `website` + `FormTimer`, Persian digits,
+  `ReplyChannel` mobile, 10-digit postal code), routes `shop.checkout`, `shop.checkout.store` (`throttle:shop-checkout`
+  5/10 min, 20/day per IP, 10/day per mobile), `shop.order`; views checkout + done (noindex, no-store, masked mobile,
+  street address never shown, recipient rows only for the owning session, never "paid"). `sales_count` incremented.
+  `CheckoutTest` (14) incl. concurrency (one unit, two sessions). All placeholder routes are now replaced.
+- Diff checkout 390 12.48% / 1440 13.27% (address form instead of saved address, single seller slot group, COD only,
+  shipping «هنگام تماس اعلام می‌شود»); done 16.3 / 21.29%.
+- Open: `is_verified_purchase` not filled (review form has no mobile); ShopSettings for COD cap + shipping (L6-06);
+  cancellation must restore only tracked lines + `sales_count` (L6-06); returns copy unconfirmed; queue worker (L10-01).

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Directory\Booking\Models\BookingRequest;
+use App\Domain\Shop\Ordering\Models\Order;
 use App\Http\Controllers\PlaceholderPageController;
 use Database\Seeders\BlogSeeder;
 use Database\Seeders\DirectorySeeder;
@@ -88,6 +89,14 @@ it('serves every audit page under its route name as a noindex placeholder with o
     }
     if (in_array($name, ['shop.category', 'shop.product'], true)) {
         $this->seed(ShopSeeder::class);
+    }
+    if ($name === 'shop.order') {
+        Order::query()->create([
+            'code' => 'RT-2026-0042', 'idempotency_key' => str_repeat('0', 64), 'payment_method' => 'cash_on_delivery',
+            'subtotal' => 980_000, 'total' => 980_000, 'items_count' => 1, 'recipient_name' => 'سارا', 'mobile' => '09121234567',
+            'province' => 'tehran', 'city' => 'تهران', 'address' => 'خیابان نمونه، پلاک ۱', 'delivery_date' => '2026-10-10',
+            'delivery_window' => 'morning',
+        ]);
     }
     if ($name === 'directory.booked') {
         BookingRequest::query()->create([

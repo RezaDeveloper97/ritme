@@ -3,7 +3,7 @@ id: L6-05
 title: Checkout (cash on delivery), orders, done page
 milestone: L6
 type: fullstack
-status: todo
+status: done
 depends_on: [L6-04]
 parallel_group: L6-C
 touches: [app/Domain/Shop/Ordering,app/Domain/Shop/Payment,database/migrations,app/Http/Controllers/Shop/CheckoutController.php,app/Http/Requests/CheckoutRequest.php,resources/views/pages/shop/checkout.blade.php,resources/views/pages/shop/done.blade.php,app/Notifications,tests/Feature/Shop/CheckoutTest.php]

@@ -15,7 +15,6 @@ use App\Http\Controllers\Directory\ShowPlaceController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\PlaceholderPageController;
 use App\Http\Controllers\PlusController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\Pwa\ManifestController;
@@ -28,6 +27,7 @@ use App\Http\Controllers\Seo\SitemapIndexController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CategoryController;
+use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\ShopHomeController;
 use App\Http\Controllers\SocialResponsibilityController;
@@ -137,8 +137,10 @@ Route::prefix('shop')->name('shop.')->group(function (): void {
         Route::post('/cart/{line}', [CartController::class, 'update'])->where('line', CartController::LINE_PATTERN)->name('cart.update');
         Route::post('/cart/{line}/remove', [CartController::class, 'remove'])->where('line', CartController::LINE_PATTERN)->name('cart.remove');
     });
-    Route::get('/checkout', PlaceholderPageController::class)->name('checkout');                   // L6-05
-    Route::get('/order/{code}', PlaceholderPageController::class)->where('code', '[A-Za-z0-9-]+')->name('order'); // L6-05
+    Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout');                // L6-05
+    // Place a cash-on-delivery order (L6-05): PRG to the order page; rate limited per IP and per mobile.
+    Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:shop-checkout')->name('checkout.store');
+    Route::get('/order/{code}', [CheckoutController::class, 'order'])->where('code', '[A-Za-z0-9-]+')->name('order'); // L6-05
 });
 
 // Crawler files (L1-06): cached documents, no session or cookies so they stay cacheable by proxies and the server.
