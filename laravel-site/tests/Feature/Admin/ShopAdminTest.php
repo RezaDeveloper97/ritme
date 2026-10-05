@@ -17,6 +17,7 @@ use App\Domain\Shop\Ordering\Actions\ChangeOrderStatus;
 use App\Domain\Shop\Ordering\Enums\DeliveryWindow;
 use App\Domain\Shop\Ordering\Enums\OrderStatus;
 use App\Domain\Shop\Ordering\Models\Order;
+use App\Domain\Shop\Ordering\Support\OrderCode;
 use App\Domain\Shop\Payment\Contracts\PaymentGateway;
 use App\Domain\Shop\Payment\Enums\PaymentMethod;
 use App\Domain\Shop\Payment\Enums\PaymentStatus;
@@ -72,8 +73,8 @@ function shopAdminOrder(array $lines, string $status = 'pending'): Order
     }
 
     $order = Order::query()->create([
-        'code' => strtoupper(substr(md5((string) mt_rand()), 0, 4)).'-K7MP-2QXA',
-        'idempotency_key' => hash('sha256', (string) mt_rand()),
+        'code' => OrderCode::generate(), // unique: a 4-hex random prefix collided now and then
+        'idempotency_key' => bin2hex(random_bytes(32)),
         'status' => $status,
         'payment_method' => PaymentMethod::CashOnDelivery,
         'payment_status' => PaymentStatus::Unpaid,

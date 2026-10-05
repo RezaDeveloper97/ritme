@@ -2,8 +2,7 @@ includes:
     - vendor/larastan/larastan/extension.neon
 
 parameters:
-    # Raised to 8 in L9-05.
-    level: 6
+    level: 8
     paths:
         - app
         - config

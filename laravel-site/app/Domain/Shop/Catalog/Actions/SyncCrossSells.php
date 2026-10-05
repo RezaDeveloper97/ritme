@@ -16,7 +16,7 @@ final class SyncCrossSells
     public function __construct(private readonly NamespaceBumper $bumper) {}
 
     /**
-     * @param  list<int>  $productIds
+     * @param  array<int>  $productIds  any keys; duplicates are dropped
      */
     public function handle(Product $product, array $productIds): void
     {

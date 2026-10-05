@@ -29,7 +29,7 @@ final readonly class CityData
             name: $city->name,
             slug: $city->slug,
             province: $city->province,
-            districts: $withDistricts ? $city->districts->map(DistrictData::fromModel(...))->values()->all() : [],
+            districts: $withDistricts ? array_values($city->districts->map(DistrictData::fromModel(...))->all()) : [],
         );
     }
 

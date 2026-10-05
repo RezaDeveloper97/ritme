@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Media;
 
 use GdImage;
+use Illuminate\Filesystem\Filesystem;
 use Intervention\Image\ImageManager;
 
 /**
@@ -15,11 +16,16 @@ final class MediaFixtures
 {
     public const EXIF_MARKER = 'SECRETCAM';
 
+    /**
+     * One folder per process: fixtures are rewritten under fixed names (photo.jpg…), and parallel workers or a second
+     * test run sharing one folder read each other's half-written files («تصویر خراب است»). Removed on exit.
+     */
     public static function dir(): string
     {
-        $dir = sys_get_temp_dir().'/ritme-media-fixtures';
+        $dir = sys_get_temp_dir().'/ritme-media-fixtures-'.getmypid();
         if (! is_dir($dir)) {
             mkdir($dir, 0777, true);
+            register_shutdown_function(static fn () => (new Filesystem)->deleteDirectory($dir));
         }
 
         return $dir;

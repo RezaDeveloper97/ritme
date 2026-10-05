@@ -59,7 +59,7 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
-            "pest"
+            "pest --parallel"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

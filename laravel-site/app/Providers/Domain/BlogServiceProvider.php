@@ -33,6 +33,7 @@ use App\Domain\Media\Actions\FindMediaUsages;
 use App\Domain\Seo\Sitemap\SitemapRegistry;
 use App\Providers\DomainServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
@@ -56,7 +57,7 @@ final class BlogServiceProvider extends DomainServiceProvider
     {
         parent::register();
 
-        $this->app->singleton(PostContent::class, static fn (Application $app): PostContent => PostContent::fromConfig($app['config']));
+        $this->app->singleton(PostContent::class, static fn (Application $app): PostContent => PostContent::fromConfig($app->make(Config::class)));
 
         // `/sitemaps/posts.xml`, `/sitemaps/blog-categories.xml` (L1-06), `blog-tags.xml`, `blog-authors.xml` (L4-02).
         $this->app->tag([PostSitemapProvider::class, CategorySitemapProvider::class, TagSitemapProvider::class, AuthorSitemapProvider::class], SitemapRegistry::TAG);

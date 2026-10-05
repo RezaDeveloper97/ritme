@@ -22,7 +22,7 @@ final class RecalculateProductRating
             ->first();
 
         $count = (int) ($stats->aggregate_count ?? 0);
-        $average = $count > 0 ? round((float) $stats->aggregate_avg, 2) : 0.0;
+        $average = $count > 0 ? round((float) $stats?->aggregate_avg, 2) : 0.0;
 
         Product::query()->whereKey($productId)->toBase()->update(['rating_avg' => $average, 'rating_count' => $count]);
     }

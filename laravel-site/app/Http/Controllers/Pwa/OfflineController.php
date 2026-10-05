@@ -15,13 +15,13 @@ use Illuminate\Contracts\View\View;
 final class OfflineController
 {
     public function __construct(
-        private readonly SeoManager $seo,
         private readonly ViewFactory $views,
     ) {}
 
-    public function __invoke(): View
+    /** SeoManager is request-scoped: injected per call, not into the (route-cached) controller. */
+    public function __invoke(SeoManager $seo): View
     {
-        $this->seo->title('اتصال به اینترنت برقرار نیست — ریتمی آفلاین')
+        $seo->title('اتصال به اینترنت برقرار نیست — ریتمی آفلاین')
             ->description('ریتمی بدون اینترنت هم کنارت است: صفحه‌هایی که قبلاً دیده‌ای در دسترس می‌مانند و با برگشت اتصال، بقیه هم باز می‌شوند.')
             ->noindex();
 

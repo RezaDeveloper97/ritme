@@ -495,10 +495,9 @@ final class BulkEditor extends Page implements HasTable
      */
     private static function keys(Collection $records): array
     {
-        return $records->map(static fn (mixed $r): string => is_array($r) ? (string) ($r['key'] ?? '') : '')
+        return array_values($records->map(static fn (mixed $r): string => is_array($r) ? (string) ($r['key'] ?? '') : '')
             ->filter(static fn (string $key): bool => ResolveSeoTarget::parse($key) !== null)
-            ->values()
-            ->all();
+            ->all());
     }
 
     /**

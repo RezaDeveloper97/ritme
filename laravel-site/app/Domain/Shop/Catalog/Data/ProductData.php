@@ -66,11 +66,10 @@ final readonly class ProductData
      */
     public static function fromModel(Product $product): self
     {
-        $variants = $product->variants
+        $variants = array_values($product->variants
             ->filter(static fn (ProductVariant $v): bool => $v->is_active)
             ->map(static fn (ProductVariant $v): VariantData => VariantData::fromModel($v, $product))
-            ->values()
-            ->all();
+            ->all());
 
         return new self(
             id: $product->id,
@@ -79,7 +78,7 @@ final readonly class ProductData
             sku: $product->sku,
             brand: $product->brand === null ? null : BrandData::fromModel($product->brand),
             primaryCategory: $product->primaryCategory === null ? null : CategoryData::fromModel($product->primaryCategory),
-            categories: $product->categories->sortBy('sort_order')->map(CategoryData::fromModel(...))->values()->all(),
+            categories: array_values($product->categories->sortBy('sort_order')->map(CategoryData::fromModel(...))->all()),
             shortDescription: $product->short_description,
             description: $product->description,
             specs: $product->specs ?? [],
@@ -91,7 +90,7 @@ final readonly class ProductData
             stockStatus: $product->stock_status,
             weightGrams: $product->weight_grams,
             coverMediaId: $product->cover_media_id,
-            galleryMediaIds: $product->gallery->map(static fn ($media): int => (int) $media->getKey())->values()->all(),
+            galleryMediaIds: array_values($product->gallery->map(static fn ($media): int => (int) $media->getKey())->all()),
             illustration: $product->illustration,
             lifeStages: $product->lifeStages(),
             variants: $variants,

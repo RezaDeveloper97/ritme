@@ -56,7 +56,6 @@ final class CartController
     private const SUGGESTIONS = 5;
 
     public function __construct(
-        private readonly ResolveCart $resolve,
         private readonly ProductRepository $products,
         private readonly MediaRepository $media,
         private readonly ShopUrls $urls,
@@ -64,9 +63,13 @@ final class CartController
         private readonly Config $config,
     ) {}
 
-    public function show(Request $request, SeoManager $seo, SchemaGraph $graph): BaseResponse
+    /**
+     * SeoManager, SchemaGraph and the cart actions (scoped CartRepository) are request-scoped: injected per call, not
+     * into the (route-cached) controller.
+     */
+    public function show(Request $request, SeoManager $seo, SchemaGraph $graph, ResolveCart $resolve): BaseResponse
     {
-        $cart = $this->resolve->handle();
+        $cart = $resolve->handle();
         $suggestions = $this->suggestions($cart);
 
         $seo->rawTitle(self::text('shop.cart.seo_title'))->description(self::text('shop.cart.seo_description'))->noindex();
@@ -95,7 +98,7 @@ final class CartController
         return $this->withCount($response, $cart->count);
     }
 
-    public function add(Request $request, AddToCart $add): BaseResponse
+    public function add(Request $request, AddToCart $add, ResolveCart $resolve): BaseResponse
     {
         $product = self::integer($request->input('product'));
         $quantity = self::integer($request->input('quantity', '1'));
@@ -103,13 +106,13 @@ final class CartController
         $color = self::string($request->input('color'));
 
         if ($product === null || $product < 1 || $quantity === null || $quantity < 1 || $quantity > Cart::MAX_QUANTITY || $size === false || $color === false) {
-            return $this->refused($request, self::text('shop.cart.invalid'), null);
+            return $this->refused($resolve, $request, self::text('shop.cart.invalid'), null);
         }
 
         try {
             $change = $add->handle($product, $size, $color, $quantity);
         } catch (CartException $e) {
-            return $this->refused($request, self::message(new CartNotice($e->problem, $e->params)), $e->productSlug);
+            return $this->refused($resolve, $request, self::message(new CartNotice($e->problem, $e->params)), $e->productSlug);
         }
 
         $message = $change->notice === null
@@ -119,17 +122,17 @@ final class CartController
         return $this->done($request, $change, $message);
     }
 
-    public function update(Request $request, string $line, UpdateCartLine $update): BaseResponse
+    public function update(Request $request, string $line, UpdateCartLine $update, ResolveCart $resolve): BaseResponse
     {
         $quantity = self::integer($request->input('quantity'));
         if ($quantity === null || $quantity < 0 || $quantity > Cart::MAX_QUANTITY) {
-            return $this->refused($request, self::text('shop.cart.invalid'), null, toCart: true);
+            return $this->refused($resolve, $request, self::text('shop.cart.invalid'), null, toCart: true);
         }
 
         try {
             $change = $update->handle($line, $quantity);
         } catch (CartException $e) {
-            return $this->refused($request, self::message(new CartNotice($e->problem, $e->params)), null, toCart: true);
+            return $this->refused($resolve, $request, self::message(new CartNotice($e->problem, $e->params)), null, toCart: true);
         }
 
         $message = match (true) {
@@ -164,9 +167,9 @@ final class CartController
     /**
      * A refused change: JSON 422, or back to the product page (`#buy`) / the cart with the message flashed.
      */
-    private function refused(Request $request, string $message, ?string $productSlug, bool $toCart = false): BaseResponse
+    private function refused(ResolveCart $resolve, Request $request, string $message, ?string $productSlug, bool $toCart = false): BaseResponse
     {
-        $count = $this->resolve->handle()->count;
+        $count = $resolve->handle()->count;
 
         if ($request->expectsJson()) {
             return $this->withCount(new JsonResponse(['ok' => false, 'message' => $message, 'count' => $count], 422), $count);

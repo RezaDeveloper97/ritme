@@ -30,7 +30,7 @@ final class SitemapCategories
             $q->published();
         };
 
-        return Category::query()
+        return array_values(Category::query()
             ->leftJoin('seo_meta', static function (JoinClause $join) use ($category, $table): void {
                 $join->on('seo_meta.seoable_id', '=', "{$table}.id")
                     ->where('seo_meta.seoable_type', '=', $category->getMorphClass());
@@ -56,7 +56,6 @@ final class SitemapCategories
                     'lastmod' => $last === null ? null : Carbon::parse((string) $last)->toIso8601String(),
                 ];
             })
-            ->values()
-            ->all();
+            ->all());
     }
 }

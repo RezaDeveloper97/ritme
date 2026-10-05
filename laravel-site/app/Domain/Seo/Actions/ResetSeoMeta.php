@@ -25,7 +25,7 @@ final class ResetSeoMeta
      */
     public function handle(array $keys): array
     {
-        $reset = SeoMetaObserver::batch(fn (): array => SeoMeta::query()->getConnection()->transaction(function () use ($keys): array {
+        $reset = SeoMetaObserver::batch(fn () => SeoMeta::query()->getConnection()->transaction(function () use ($keys) {
             $reset = [];
             foreach (array_values(array_unique($keys)) as $key) {
                 $meta = $this->targets->handle($key);

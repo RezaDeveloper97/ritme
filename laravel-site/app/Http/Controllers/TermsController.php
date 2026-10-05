@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Content\Enums\StaticPage;
-use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Schema\SchemaGraph;
 use App\Domain\Seo\SeoManager;
+use App\Domain\Seo\StaticPages\StaticPageSeo;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Contracts\View\View;
@@ -20,25 +20,18 @@ use Illuminate\Contracts\View\View;
 final class TermsController
 {
     public function __construct(
-        private readonly SeoManager $seo,
-        private readonly SeoMetaRepository $meta,
-        private readonly SchemaGraph $graph,
+        private readonly StaticPageSeo $staticSeo,
         private readonly SettingsRepository $settings,
         private readonly ViewFactory $views,
     ) {}
 
-    public function __invoke(): View
+    /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
+    public function __invoke(SeoManager $seo, SchemaGraph $graph): View
     {
-        $meta = $this->meta->forRoute(StaticPage::Terms->routeName());
-        if (($meta->title ?? '') === '') {
-            $this->seo->rawTitle(self::text('terms.seo.title'));
-        }
-        if (($meta->description ?? '') === '') {
-            $this->seo->description(self::text('terms.seo.description'));
-        }
+        $this->staticSeo->apply($seo, StaticPage::Terms);
 
         $updated = PrivacyController::date(self::text('terms.updated_at'));
-        $this->graph->pageName(StaticPage::Terms->label())->dates(null, $updated?->toAtomString());
+        $graph->pageName(StaticPage::Terms->label())->dates(null, $updated?->toAtomString());
 
         $settings = $this->settings->all();
 

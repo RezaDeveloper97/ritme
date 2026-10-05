@@ -24,7 +24,7 @@ final class SitemapPlaces
         $place = new Place;
         $table = $place->getTable();
 
-        return Place::query()
+        return array_values(Place::query()
             ->published()
             ->where("{$table}.is_demo", false)
             ->leftJoin('seo_meta', static function (JoinClause $join) use ($place, $table): void {
@@ -46,7 +46,6 @@ final class SitemapPlaces
                 'lastmod' => $row->updated_at?->toIso8601String(),
                 'coverMediaId' => $row->cover_media_id,
             ])
-            ->values()
-            ->all();
+            ->all());
     }
 }

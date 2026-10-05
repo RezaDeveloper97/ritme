@@ -180,8 +180,6 @@ it('indexes a reviewer profile without posts only once it has a real bio', funct
 
         return $m[1] ?? '';
     };
-    // The router caches controller instances (with the previous request's scoped SeoManager): one per request.
-    $fresh = static fn () => app('router')->getRoutes()->getByName('blog.author')?->flushController();
     $description = static function (string $html): string {
         preg_match('#<meta name="description" content="([^"]+)"#', $html, $m);
 
@@ -196,20 +194,17 @@ it('indexes a reviewer profile without posts only once it has a real bio', funct
 
     // Too short to be a real bio: still noindex.
     $reviewer->update(['bio' => 'متخصص زنان و زایمان.']);
-    $fresh();
     expect($robots((string) $this->get('/blog/author/reviewer')->getContent()))->toContain('noindex');
 
     // A real bio: the credentials page is indexable without own articles, and the bio is the description.
     $bio = 'متخصص زنان و زایمان با پانزده سال تجربه بالینی که مقاله‌های سلامت چرخه و بارداری مجله ریتمی را پیش از انتشار بازبینی می‌کند.';
     $reviewer->update(['bio' => $bio]);
-    $fresh();
     $real = (string) $this->get('/blog/author/reviewer')->getContent();
     expect($robots($real))->toStartWith('index')
         ->and($description($real))->toStartWith('متخصص زنان و زایمان با پانزده سال');
 
     // A plain author without posts stays noindex whatever the bio.
     Author::factory()->create(['slug' => 'writer', 'bio' => $bio]);
-    $fresh();
     expect($robots((string) $this->get('/blog/author/writer')->getContent()))->toContain('noindex');
 
     expect(PostListIndexing::hasRealBio(null))->toBeFalse()

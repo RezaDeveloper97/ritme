@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Content\Enums\StaticPage;
-use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Schema\Enums\WebPageType;
 use App\Domain\Seo\Schema\SchemaGraph;
 use App\Domain\Seo\SeoManager;
+use App\Domain\Seo\StaticPages\StaticPageSeo;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Contracts\View\View;
 
@@ -20,22 +20,15 @@ use Illuminate\Contracts\View\View;
 final class AboutController
 {
     public function __construct(
-        private readonly SeoManager $seo,
-        private readonly SeoMetaRepository $meta,
-        private readonly SchemaGraph $graph,
+        private readonly StaticPageSeo $staticSeo,
         private readonly ViewFactory $views,
     ) {}
 
-    public function __invoke(): View
+    /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
+    public function __invoke(SeoManager $seo, SchemaGraph $graph): View
     {
-        $meta = $this->meta->forRoute(StaticPage::About->routeName());
-        if (($meta->title ?? '') === '') {
-            $this->seo->rawTitle(self::text('about.seo.title'));
-        }
-        if (($meta->description ?? '') === '') {
-            $this->seo->description(self::text('about.seo.description'));
-        }
-        $this->graph->pageType(WebPageType::AboutPage)->pageName(StaticPage::About->label());
+        $this->staticSeo->apply($seo, StaticPage::About);
+        $graph->pageType(WebPageType::AboutPage)->pageName(StaticPage::About->label());
 
         return $this->views->make('pages.about', [
             'stats' => self::rows('about.story.stats', ['value', 'label']),
@@ -100,12 +93,5 @@ final class AboutController
         $text = __($key);
 
         return is_string($text) && $text !== '' && $text !== $key ? $text : null;
-    }
-
-    private static function text(string $key): string
-    {
-        $text = __($key);
-
-        return is_string($text) ? $text : '';
     }
 }

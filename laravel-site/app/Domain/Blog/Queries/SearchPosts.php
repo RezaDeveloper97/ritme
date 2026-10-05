@@ -71,7 +71,7 @@ final class SearchPosts
             }
         }
 
-        return $query
+        return array_values($query
             ->with('category')
             ->orderByRaw('CASE WHEN '.implode(' OR ', $titleCases).' THEN 0 ELSE 1 END', $titleBindings)
             ->orderByDesc('published_at')
@@ -79,8 +79,7 @@ final class SearchPosts
             ->limit(max(1, min(200, $this->limit)))
             ->get()
             ->map(PostCardData::fromModel(...))
-            ->values()
-            ->all();
+            ->all());
     }
 
     private function normalized(string $column): string

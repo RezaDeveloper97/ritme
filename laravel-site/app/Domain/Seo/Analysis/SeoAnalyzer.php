@@ -476,10 +476,10 @@ final class SeoAnalyzer
      */
     private function sorted(array $checks): array
     {
-        $indexed = array_map(null, array_keys($checks), $checks);
-        usort($indexed, static fn (array $a, array $b): int => [$a[1]->severity->rank(), $a[0]] <=> [$b[1]->severity->rank(), $b[0]]);
+        $order = array_keys($checks);
+        usort($order, static fn (int $a, int $b): int => [$checks[$a]->severity->rank(), $a] <=> [$checks[$b]->severity->rank(), $b]);
 
-        return array_map(static fn (array $pair): SeoCheck => $pair[1], $indexed);
+        return array_map(static fn (int $i): SeoCheck => $checks[$i], $order);
     }
 
     private function n(int $value): string

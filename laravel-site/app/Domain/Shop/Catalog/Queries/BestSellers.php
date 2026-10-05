@@ -46,7 +46,7 @@ final class BestSellers
         $table = (new Product)->getTable();
         $categoryIds = $this->categoryIds;
 
-        return Product::query()
+        return array_values(Product::query()
             ->published()
             ->where("{$table}.stock_status", '!=', StockStatus::OutOfStock->value)
             ->when($this->excludeIds !== [], fn ($q) => $q->whereNotIn("{$table}.id", $this->excludeIds))
@@ -64,7 +64,6 @@ final class BestSellers
             ->limit($this->limit)
             ->pluck("{$table}.id")
             ->map(intval(...))
-            ->values()
-            ->all();
+            ->all());
     }
 }

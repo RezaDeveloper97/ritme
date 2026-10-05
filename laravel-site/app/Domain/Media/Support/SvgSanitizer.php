@@ -55,7 +55,7 @@ final class SvgSanitizer
                 continue;
             }
             $value = trim($attribute->value);
-            $isHref = in_array(strtolower($attribute->localName), ['href', 'src'], true);
+            $isHref = in_array(strtolower($attribute->localName ?? ''), ['href', 'src'], true);
             $external = $isHref
                 ? ! str_starts_with($value, '#')
                 : preg_match('/url\(\s*[\'"]?\s*(?!#)/i', $value) === 1;

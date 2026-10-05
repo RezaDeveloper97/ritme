@@ -24,7 +24,7 @@ final class SitemapProducts
         $product = new Product;
         $table = $product->getTable();
 
-        return Product::query()
+        return array_values(Product::query()
             ->published()
             ->where("{$table}.is_demo", false)
             ->leftJoin('seo_meta', static function (JoinClause $join) use ($product, $table): void {
@@ -46,7 +46,6 @@ final class SitemapProducts
                 'lastmod' => $row->updated_at?->toIso8601String(),
                 'coverMediaId' => $row->cover_media_id,
             ])
-            ->values()
-            ->all();
+            ->all());
     }
 }

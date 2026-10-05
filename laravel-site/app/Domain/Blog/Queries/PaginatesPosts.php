@@ -23,15 +23,14 @@ trait PaginatesPosts
         $perPage = max(1, min(100, $perPage));
         $total = (clone $query)->count();
 
-        $items = $total === 0 || ($page - 1) * $perPage >= $total ? [] : $query
+        $items = $total === 0 || ($page - 1) * $perPage >= $total ? [] : array_values($query
             ->with('category')
             ->orderByDesc('published_at')
             ->orderByDesc('id')
             ->forPage($page, $perPage)
             ->get()
             ->map(PostCardData::fromModel(...))
-            ->values()
-            ->all();
+            ->all());
 
         return new PostPage($items, $total, $page, $perPage);
     }

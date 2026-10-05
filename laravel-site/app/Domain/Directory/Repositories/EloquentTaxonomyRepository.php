@@ -19,15 +19,14 @@ final class EloquentTaxonomyRepository implements TaxonomyRepository
 {
     public function cities(): array
     {
-        return City::query()
+        return array_values(City::query()
             ->active()
             ->with('districts')
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get()
             ->map(static fn (City $city): CityData => CityData::fromModel($city, withDistricts: true))
-            ->values()
-            ->all();
+            ->all());
     }
 
     public function findCity(string $slug): ?CityData
@@ -43,8 +42,8 @@ final class EloquentTaxonomyRepository implements TaxonomyRepository
 
     public function categories(): array
     {
-        return PlaceCategory::query()->active()->orderBy('sort_order')->orderBy('id')->get()
-            ->map(CategoryData::fromModel(...))->values()->all();
+        return array_values(PlaceCategory::query()->active()->orderBy('sort_order')->orderBy('id')->get()
+            ->map(CategoryData::fromModel(...))->all());
     }
 
     public function findCategory(string $slug): ?CategoryData
@@ -56,8 +55,8 @@ final class EloquentTaxonomyRepository implements TaxonomyRepository
 
     public function amenities(): array
     {
-        return Amenity::query()->orderBy('sort_order')->orderBy('id')->get()
-            ->map(AmenityData::fromModel(...))->values()->all();
+        return array_values(Amenity::query()->orderBy('sort_order')->orderBy('id')->get()
+            ->map(AmenityData::fromModel(...))->all());
     }
 
     public function landing(int $cityId, ?int $categoryId = null): ?LandingData

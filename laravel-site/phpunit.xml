@@ -21,7 +21,7 @@
         </include>
     </source>
     <php>
-        <ini name="memory_limit" value="1G"/>
+        <ini name="memory_limit" value="512M"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_LOCALE" value="fa"/>
         <env name="APP_TIMEZONE" value="Asia/Tehran"/>

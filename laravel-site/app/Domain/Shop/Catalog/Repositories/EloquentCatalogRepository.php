@@ -25,9 +25,8 @@ final class EloquentCatalogRepository implements CatalogRepository
 
     public function brands(): array
     {
-        return Brand::query()->active()->orderBy('sort_order')->orderBy('name')->get()
+        return array_values(Brand::query()->active()->orderBy('sort_order')->orderBy('name')->get()
             ->map(BrandData::fromModel(...))
-            ->values()
-            ->all();
+            ->all());
     }
 }

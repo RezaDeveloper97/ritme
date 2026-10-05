@@ -8,7 +8,6 @@ use App\Domain\Content\Enums\StaticPage;
 use App\Domain\Content\SiteNavigation;
 use App\Domain\Media\Contracts\MediaRepository;
 use App\Domain\Media\Data\MediaData;
-use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Schema\Data\ListEntry;
 use App\Domain\Seo\Schema\Enums\WebPageType;
 use App\Domain\Seo\Schema\Node;
@@ -16,6 +15,7 @@ use App\Domain\Seo\Schema\Nodes\ItemListNode;
 use App\Domain\Seo\Schema\SchemaGraph;
 use App\Domain\Seo\Schema\SchemaIds;
 use App\Domain\Seo\SeoManager;
+use App\Domain\Seo\StaticPages\StaticPageSeo;
 use App\Domain\Seo\Support\CanonicalUrl;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use App\Domain\Shop\Catalog\Contracts\CatalogRepository;
@@ -86,9 +86,7 @@ final class ShopHomeController
         private readonly CatalogRepository $catalog,
         private readonly ProductListIndexing $indexing,
         private readonly MediaRepository $media,
-        private readonly SeoManager $seo,
-        private readonly SeoMetaRepository $meta,
-        private readonly SchemaGraph $graph,
+        private readonly StaticPageSeo $staticSeo,
         private readonly SettingsRepository $settings,
         private readonly SiteNavigation $navigation,
         private readonly ShopUrls $urls,
@@ -96,7 +94,8 @@ final class ShopHomeController
         private readonly Config $config,
     ) {}
 
-    public function __invoke(Request $request): View
+    /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
+    public function __invoke(Request $request, SeoManager $seo, SchemaGraph $graph): View
     {
         $tree = $this->catalog->categoryTree();
 
@@ -107,7 +106,7 @@ final class ShopHomeController
             array_push($cards, ...$products);
         }
 
-        $this->describe($request, $cards);
+        $this->describe($request, $seo, $graph, $cards);
 
         $appLinks = $this->settings->all()->appLinks;
 
@@ -173,31 +172,25 @@ final class ShopHomeController
      *
      * @param  list<ProductCardData>  $cards
      */
-    private function describe(Request $request, array $cards): void
+    private function describe(Request $request, SeoManager $seo, SchemaGraph $graph, array $cards): void
     {
-        $meta = $this->meta->forRoute(StaticPage::Shop->routeName());
-        if (($meta->title ?? '') === '') {
-            $this->seo->rawTitle((string) __('shop.home.seo_title'));
-        }
-        if (($meta->description ?? '') === '') {
-            $this->seo->description((string) __('shop.home.seo_description'));
-        }
+        $this->staticSeo->apply($seo, StaticPage::Shop);
 
         $name = StaticPage::Shop->label();
-        $this->graph->pageType(WebPageType::CollectionPage)->pageName($name);
+        $graph->pageType(WebPageType::CollectionPage)->pageName($name);
         if (! ProductListIndexing::showsRealProduct($cards)) {
-            $this->seo->noindex(); // empty or demo-only shop: nothing real to index yet
+            $seo->noindex(); // empty or demo-only shop: nothing real to index yet
         }
         if ($cards === []) {
             return;
         }
 
         $pageUrl = CanonicalUrl::normalize($request->fullUrl(), (string) $this->config->get('app.url'));
-        $this->graph->add(ItemListNode::make($pageUrl, array_map(
+        $graph->add(ItemListNode::make($pageUrl, array_map(
             fn (ProductCardData $card): ListEntry => new ListEntry($this->urls->product($card->slug), $card->title),
             $cards,
         ), $name));
-        $this->graph->add(['@id' => SchemaIds::webPage($pageUrl), 'mainEntity' => Node::ref(SchemaIds::itemList($pageUrl))]);
+        $graph->add(['@id' => SchemaIds::webPage($pageUrl), 'mainEntity' => Node::ref(SchemaIds::itemList($pageUrl))]);
     }
 
     public static function departmentIcon(string $slug): string
@@ -224,7 +217,13 @@ final class ShopHomeController
     private static function trust(): array
     {
         $items = __('shop.trust.items');
+        $trust = [];
+        foreach (is_array($items) ? $items : [] as $item) {
+            if (is_array($item) && is_string($item['icon'] ?? null) && is_string($item['title'] ?? null) && is_string($item['text'] ?? null)) {
+                $trust[] = ['icon' => $item['icon'], 'title' => $item['title'], 'text' => $item['text']];
+            }
+        }
 
-        return array_values(array_filter(is_array($items) ? $items : [], static fn (mixed $item): bool => is_array($item)));
+        return $trust;
     }
 }

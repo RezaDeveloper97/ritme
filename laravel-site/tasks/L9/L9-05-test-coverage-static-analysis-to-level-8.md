@@ -3,7 +3,7 @@ id: L9-05
 title: Test coverage + static analysis to level 8
 milestone: L9
 type: quality
-status: todo
+status: done
 depends_on: [L9-04]
 parallel_group: L9-D
 touches: [tests,phpstan.neon,app]

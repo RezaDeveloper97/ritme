@@ -6,10 +6,10 @@ namespace App\Http\Controllers;
 
 use App\Domain\Content\Enums\StaticPage;
 use App\Domain\Content\SiteNavigation;
-use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Schema\Enums\WebPageType;
 use App\Domain\Seo\Schema\SchemaGraph;
 use App\Domain\Seo\SeoManager;
+use App\Domain\Seo\StaticPages\StaticPageSeo;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Contracts\View\View;
@@ -22,24 +22,17 @@ use Illuminate\Contracts\View\View;
 final class ServicesController
 {
     public function __construct(
-        private readonly SeoManager $seo,
-        private readonly SeoMetaRepository $meta,
-        private readonly SchemaGraph $graph,
+        private readonly StaticPageSeo $staticSeo,
         private readonly SettingsRepository $settings,
         private readonly SiteNavigation $navigation,
         private readonly ViewFactory $views,
     ) {}
 
-    public function __invoke(): View
+    /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
+    public function __invoke(SeoManager $seo, SchemaGraph $graph): View
     {
-        $meta = $this->meta->forRoute(StaticPage::Services->routeName());
-        if (($meta->title ?? '') === '') {
-            $this->seo->rawTitle(self::text('services.seo.title'));
-        }
-        if (($meta->description ?? '') === '') {
-            $this->seo->description(self::text('services.seo.description'));
-        }
-        $this->graph->pageType(WebPageType::CollectionPage)->pageName(StaticPage::Services->label());
+        $this->staticSeo->apply($seo, StaticPage::Services);
+        $graph->pageType(WebPageType::CollectionPage)->pageName(StaticPage::Services->label());
 
         $settings = $this->settings->all();
         $appLinks = $settings->appLinks;
@@ -74,12 +67,5 @@ final class ServicesController
         }
 
         return $items;
-    }
-
-    private static function text(string $key): string
-    {
-        $text = __($key);
-
-        return is_string($text) ? $text : '';
     }
 }

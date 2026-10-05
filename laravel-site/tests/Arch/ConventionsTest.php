@@ -2,37 +2,18 @@
 
 declare(strict_types=1);
 
-$root = dirname(__DIR__, 2);
+use Tests\Arch\SourceFiles;
 
-/**
- * @return list<string>
- */
-function archPhpFiles(string $directory): array
-{
-    if (! is_dir($directory)) {
-        return [];
-    }
-
-    $files = [];
-    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS));
-    foreach ($iterator as $file) {
-        if ($file instanceof SplFileInfo && str_ends_with($file->getFilename(), '.php')) {
-            $files[] = $file->getPathname();
-        }
-    }
-    sort($files);
-
-    return $files;
-}
+$root = SourceFiles::root();
 
 it('calls env() only inside config/', function () use ($root): void {
     $violations = [];
     foreach (['app', 'bootstrap', 'database', 'routes', 'resources/views'] as $dir) {
-        foreach (archPhpFiles("{$root}/{$dir}") as $path) {
+        foreach (SourceFiles::in($dir) as $path) {
             if (str_contains($path, '/bootstrap/cache/')) {
                 continue;
             }
-            $tokens = token_get_all((string) file_get_contents($path));
+            $tokens = SourceFiles::tokens($path);
             foreach ($tokens as $i => $token) {
                 if (! is_array($token) || $token[0] !== T_STRING || strtolower($token[1]) !== 'env') {
                     continue;
@@ -55,7 +36,7 @@ it('calls env() only inside config/', function () use ($root): void {
 it('keeps actions final and single-purpose (__invoke or handle)', function () use ($root): void {
     $violations = [];
     foreach (glob("{$root}/app/Domain/*/Actions", GLOB_ONLYDIR) ?: [] as $dir) {
-        foreach (archPhpFiles($dir) as $path) {
+        foreach (SourceFiles::in(substr($dir, strlen($root) + 1)) as $path) {
             $class = 'App\\'.str_replace(['/', '.php'], ['\\', ''], substr($path, strlen("{$root}/app/")));
             if (! class_exists($class)) {
                 continue;

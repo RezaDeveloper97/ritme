@@ -57,12 +57,9 @@ final class KernelPageFetcher implements PageFetcher
             return new FetchResult($path, 0, milliseconds: (int) round((hrtime(true) - $started) / 1_000_000), error: $e->getMessage());
         }
 
+        // Controllers are reused across these in-process requests (the router caches them on the Route); they take
+        // request-scoped services per call (tests/Arch/RequestScopeTest.php), so no flush is needed.
         $route = $request->route();
-        // The router caches controller instances on the Route; a reused controller would keep the previous
-        // request's scoped SeoManager / SchemaGraph. One fresh controller per request, like PHP-FPM.
-        if ($route instanceof Route) {
-            $route->flushController();
-        }
         $parameters = [];
         if ($route instanceof Route) {
             foreach ((array) $route->originalParameters() as $key => $value) {

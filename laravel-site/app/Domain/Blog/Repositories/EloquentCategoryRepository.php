@@ -14,13 +14,12 @@ final class EloquentCategoryRepository implements CategoryRepository
 {
     public function all(): array
     {
-        return $this->query()
+        return array_values($this->query()
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get()
             ->map(static fn (Category $category): CategoryData => CategoryData::fromModel($category, (int) $category->getAttribute('published_posts_count')))
-            ->values()
-            ->all();
+            ->all());
     }
 
     public function findBySlug(string $slug): ?CategoryData

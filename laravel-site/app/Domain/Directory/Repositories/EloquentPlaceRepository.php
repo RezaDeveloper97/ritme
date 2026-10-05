@@ -54,14 +54,13 @@ final class EloquentPlaceRepository implements PlaceRepository
         $query = PlaceReview::query()->approved()->where('place_id', $placeId);
         $total = (clone $query)->count();
 
-        $items = $query
+        $items = array_values($query
             ->orderByDesc('approved_at')
             ->orderByDesc('id')
             ->forPage($page, $perPage)
             ->get()
             ->map(ReviewData::fromModel(...))
-            ->values()
-            ->all();
+            ->all());
 
         return new ReviewPage($items, $total, $page, $perPage);
     }

@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 final class ModerateProductReviews
 {
     /**
-     * @param  list<int>  $reviewIds
+     * @param  array<int>  $reviewIds  any keys; duplicates are dropped
      */
     public function handle(array $reviewIds, ReviewStatus $status, ?Model $causer = null): int
     {

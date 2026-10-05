@@ -72,14 +72,13 @@ final class EloquentProductRepository implements ProductRepository
         $query = ProductReview::query()->approved()->where('product_id', $productId);
         $total = (clone $query)->count();
 
-        $items = $query
+        $items = array_values($query
             ->orderByDesc('approved_at')
             ->orderByDesc('id')
             ->forPage($page, $perPage)
             ->get()
             ->map(ReviewData::fromModel(...))
-            ->values()
-            ->all();
+            ->all());
 
         return new ReviewPage($items, $total, $page, $perPage);
     }

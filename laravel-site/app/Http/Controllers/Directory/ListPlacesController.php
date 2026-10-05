@@ -78,14 +78,13 @@ final class ListPlacesController
     public function __construct(
         private readonly PlaceRepository $places,
         private readonly TaxonomyRepository $taxonomy,
-        private readonly SeoManager $seo,
-        private readonly SchemaGraph $graph,
         private readonly SeoMetaRepository $seoMeta,
         private readonly DirectoryUrls $urls,
         private readonly Config $config,
     ) {}
 
-    public function __invoke(Request $request, ?string $city = null, ?string $category = null): View|RedirectResponse
+    /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
+    public function __invoke(Request $request, SeoManager $seo, SchemaGraph $graph, ?string $city = null, ?string $category = null): View|RedirectResponse
     {
         $cityData = $city === null ? null : ($this->taxonomy->findCity($city) ?? abort(404));
         $categoryData = $category === null ? null : ($this->taxonomy->findCategory($category) ?? abort(404));
@@ -114,8 +113,8 @@ final class ListPlacesController
 
         $landing = $this->landing($state);
         $trail = $this->trail($state);
-        $this->applySeo($state, $landing, $list);
-        $this->schema($request, $trail, $list->items, $landing['h1']);
+        $this->applySeo($seo, $state, $landing, $list);
+        $this->schema($graph, $request, $trail, $list->items, $landing['h1']);
 
         return view('pages.directory.index', [
             'intro' => [
@@ -151,8 +150,9 @@ final class ListPlacesController
         // Search form: «کجا؟» submits `where` = city or city/district; links may carry `city` / `category`.
         $districtSlug = $string('district');
         if ($city === null && ($where = $string('where') ?? $string('city')) !== null) {
-            [$citySlug, $whereDistrict] = array_pad(explode('/', $where, 2), 2, null);
-            $city = $this->taxonomy->findCity($citySlug);
+            $parts = explode('/', $where, 2);
+            $whereDistrict = $parts[1] ?? null;
+            $city = $this->taxonomy->findCity($parts[0]);
             $districtSlug = $whereDistrict ?? $districtSlug;
         }
         if ($category === null && ($slug = $string('category')) !== null) {
@@ -347,23 +347,23 @@ final class ListPlacesController
      * @param  array<string, mixed>  $state
      * @param  array{h1: string, title: string, description: string, lead: string, meta: bool}  $landing
      */
-    private function applySeo(array $state, array $landing, PlacePage $list): void
+    private function applySeo(SeoManager $seo, array $state, array $landing, PlacePage $list): void
     {
         $page = (int) $state['page'];
         if ($page > 1) {
             $suffix = (string) __('directory.page_suffix', ['page' => fa_digits($page)]);
-            $this->seo->title($landing['title'].' — '.$suffix)->description(DescriptionText::fromExcerpt($suffix.' — '.$landing['description']));
+            $seo->title($landing['title'].' — '.$suffix)->description(DescriptionText::fromExcerpt($suffix.' — '.$landing['description']));
         } else {
-            $this->seo->title($landing['title'])->description($landing['meta'] ? $landing['description'] : DescriptionText::fromExcerpt($landing['description']));
+            $seo->title($landing['title'])->description($landing['meta'] ? $landing['description'] : DescriptionText::fromExcerpt($landing['description']));
         }
 
         if ($this->isFiltered($state)) {
             // Filter combinations are not landings: noindex,follow, canonical on the city / category landing.
-            $this->seo->filtered()->canonical($this->url(['city' => $state['city'], 'category' => $state['city'] === null ? null : $state['category']]));
+            $seo->filtered()->canonical($this->url(['city' => $state['city'], 'category' => $state['city'] === null ? null : $state['category']]));
         }
 
         if (! PlaceListIndexing::showsRealPlace($list->items)) {
-            $this->seo->noindex(); // empty or demo-only lists are thin content (PagesSitemapProvider skips them too)
+            $seo->noindex(); // empty or demo-only lists are thin content (PagesSitemapProvider skips them too)
         }
     }
 
@@ -371,19 +371,19 @@ final class ListPlacesController
      * @param  list<BreadcrumbItem>  $trail
      * @param  list<PlaceCardData>  $items
      */
-    private function schema(Request $request, array $trail, array $items, string $name): void
+    private function schema(SchemaGraph $graph, Request $request, array $trail, array $items, string $name): void
     {
-        $this->graph->breadcrumbs(...$trail)->pageType(WebPageType::CollectionPage)->pageName($name);
+        $graph->breadcrumbs(...$trail)->pageType(WebPageType::CollectionPage)->pageName($name);
         if ($items === []) {
             return;
         }
 
         $pageUrl = CanonicalUrl::normalize($request->fullUrl(), (string) $this->config->get('app.url'));
-        $this->graph->add(ItemListNode::make($pageUrl, array_map(
+        $graph->add(ItemListNode::make($pageUrl, array_map(
             fn (PlaceCardData $card): ListEntry => new ListEntry($this->urls->place($card->slug), $card->name),
             $items,
         ), $name));
-        $this->graph->add(['@id' => SchemaIds::webPage($pageUrl), 'mainEntity' => Node::ref(SchemaIds::itemList($pageUrl))]);
+        $graph->add(['@id' => SchemaIds::webPage($pageUrl), 'mainEntity' => Node::ref(SchemaIds::itemList($pageUrl))]);
     }
 
     /**

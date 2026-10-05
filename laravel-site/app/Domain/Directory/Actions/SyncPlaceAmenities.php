@@ -15,7 +15,7 @@ final class SyncPlaceAmenities
     public function __construct(private readonly NamespaceBumper $bumper) {}
 
     /**
-     * @param  list<int>  $amenityIds
+     * @param  array<int>  $amenityIds  any keys; duplicates are dropped
      */
     public function handle(Place $place, array $amenityIds): void
     {

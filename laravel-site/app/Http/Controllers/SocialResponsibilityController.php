@@ -6,9 +6,9 @@ namespace App\Http\Controllers;
 
 use App\Domain\Content\Enums\StaticPage;
 use App\Domain\Content\SiteNavigation;
-use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Schema\SchemaGraph;
 use App\Domain\Seo\SeoManager;
+use App\Domain\Seo\StaticPages\StaticPageSeo;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Contracts\View\View;
@@ -23,24 +23,17 @@ use Illuminate\Contracts\View\View;
 final class SocialResponsibilityController
 {
     public function __construct(
-        private readonly SeoManager $seo,
-        private readonly SeoMetaRepository $meta,
-        private readonly SchemaGraph $graph,
+        private readonly StaticPageSeo $staticSeo,
         private readonly SettingsRepository $settings,
         private readonly SiteNavigation $navigation,
         private readonly ViewFactory $views,
     ) {}
 
-    public function __invoke(): View
+    /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
+    public function __invoke(SeoManager $seo, SchemaGraph $graph): View
     {
-        $meta = $this->meta->forRoute(StaticPage::SocialResponsibility->routeName());
-        if (($meta->title ?? '') === '') {
-            $this->seo->rawTitle(self::text('social.seo.title'));
-        }
-        if (($meta->description ?? '') === '') {
-            $this->seo->description(self::text('social.seo.description'));
-        }
-        $this->graph->pageName(StaticPage::SocialResponsibility->label());
+        $this->staticSeo->apply($seo, StaticPage::SocialResponsibility);
+        $graph->pageName(StaticPage::SocialResponsibility->label());
 
         $appLinks = $this->settings->all()->appLinks;
         $report = __('social.transparency.url');
@@ -81,12 +74,5 @@ final class SocialResponsibilityController
         $value = __($key);
 
         return array_values(array_filter(is_array($value) ? $value : [], is_string(...)));
-    }
-
-    private static function text(string $key): string
-    {
-        $text = __($key);
-
-        return is_string($text) ? $text : '';
     }
 }

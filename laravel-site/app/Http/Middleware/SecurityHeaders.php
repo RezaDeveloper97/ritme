@@ -145,7 +145,7 @@ final class SecurityHeaders
     /**
      * Vite dev-server origins while `npm run dev` runs (never in production).
      *
-     * @return array{http?: list<string>, ws?: list<string>}
+     * @return array{}|array{http: list<string>, ws: list<string>}
      */
     private function hotOrigins(): array
     {

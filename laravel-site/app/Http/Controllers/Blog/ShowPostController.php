@@ -44,14 +44,13 @@ final class ShowPostController
     public function __construct(
         private readonly PostRepository $posts,
         private readonly ArticlePageBuilder $builder,
-        private readonly SeoManager $seo,
         private readonly SeoMetaRepository $seoMeta,
         private readonly OgImageResolver $ogImages,
-        private readonly SchemaGraph $graph,
         private readonly Config $config,
     ) {}
 
-    public function __invoke(Request $request, string $slug): View|RedirectResponse
+    /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
+    public function __invoke(Request $request, string $slug, SeoManager $seo, SchemaGraph $graph): View|RedirectResponse
     {
         $post = $this->posts->findPublishedBySlug($slug);
 
@@ -67,41 +66,41 @@ final class ShowPostController
         }
 
         $page = $this->builder->build($post);
-        $this->describe($page);
+        $this->describe($page, $seo, $graph);
 
         return view('pages.blog.show', ['page' => $page, 'navRoute' => 'blog.index', 'appCta' => true]);
     }
 
-    private function describe(ArticlePage $page): void
+    private function describe(ArticlePage $page, SeoManager $seo, SchemaGraph $graph): void
     {
         $post = $page->post;
         $meta = $this->seoMeta->forModel((new Post)->getMorphClass(), $post->id);
 
-        $this->seo->for((new Post)->forceFill(['id' => $post->id]));
+        $seo->for((new Post)->forceFill(['id' => $post->id]));
         if (($meta->title ?? '') === '') {
-            $this->seo->title($post->title);
+            $seo->title($post->title);
         }
-        $this->seo->excerpt($post->excerpt ?? HtmlText::plain($post->body));
+        $seo->excerpt($post->excerpt ?? HtmlText::plain($post->body));
         if (($meta->ogType ?? '') === '') {
-            $this->seo->type('article');
+            $seo->type('article');
         }
 
         $cover = $post->coverMediaId === null ? null : $this->ogImages->resolve($post->coverMediaId, $page->coverAlt);
         if ($cover !== null && $meta?->ogMediaId === null) {
-            $this->seo->image($cover);
+            $seo->image($cover);
         }
 
-        $head = $this->seo->resolve();
+        $head = $seo->resolve();
         $siteUrl = SchemaIds::root((string) $this->config->get('app.url'));
         $published = self::iso($post->publishedAt);
         $modified = self::iso($post->updatedContentAt);
 
-        $this->graph->pageName($post->title)->dates($published, $modified);
+        $graph->pageName($post->title)->dates($published, $modified);
         if ($post->reviewer !== null) {
-            $this->graph->reviewedBy($this->person($post->reviewer, $page->reviewerUrl), $post->reviewedAt?->setTimezone(self::tz())->toDateString());
+            $graph->reviewedBy($this->person($post->reviewer, $page->reviewerUrl), $post->reviewedAt?->setTimezone(self::tz())->toDateString());
         }
 
-        $this->graph->add(BlogPostingNode::make(new BlogPostingData(
+        $graph->add(BlogPostingNode::make(new BlogPostingData(
             url: $head->canonical,
             headline: $post->title,
             datePublished: $published,

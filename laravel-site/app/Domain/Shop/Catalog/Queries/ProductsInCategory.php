@@ -41,12 +41,11 @@ final class ProductsInCategory
         $filtered = $this->filtered();
         $total = (clone $filtered)->count();
 
-        $ids = $this->sorted($filtered)
+        $ids = array_values($this->sorted($filtered)
             ->forPage($c->page, $c->perPage)
             ->pluck("{$table}.id")
             ->map(intval(...))
-            ->values()
-            ->all();
+            ->all());
 
         return new ProductPage(ProductCards::load($ids), $total, $c->page, $c->perPage, $this->facets());
     }
@@ -197,12 +196,11 @@ final class ProductsInCategory
             ->groupBy("{$table}.brand_id")
             ->selectRaw("{$table}.brand_id as brand_id, COUNT(*) as aggregate")
             ->pluck('aggregate', 'brand_id');
-        $brands = Brand::query()->active()->whereIn('id', $brandCounts->keys()->map(intval(...))->all())
+        $brands = array_values(Brand::query()->active()->whereIn('id', $brandCounts->keys()->map(intval(...))->all())
             ->orderBy('sort_order')->orderBy('name')
             ->get(['id', 'name', 'slug'])
             ->map(static fn (Brand $b): array => ['id' => $b->id, 'name' => $b->name, 'slug' => $b->slug, 'count' => (int) $brandCounts[$b->id]])
-            ->values()
-            ->all();
+            ->all());
 
         return new ProductFacets(
             categoryCounts: $this->categoryCounts(clone $ids),

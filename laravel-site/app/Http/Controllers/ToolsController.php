@@ -10,10 +10,10 @@ use App\Domain\Content\Tools\Data\JalaliDay;
 use App\Domain\Content\Tools\ResultText;
 use App\Domain\Content\Tools\ToolsCalculators;
 use App\Domain\Content\Tools\ToolsSchema;
-use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Schema\SchemaGraph;
 use App\Domain\Seo\Schema\SchemaIds;
 use App\Domain\Seo\SeoManager;
+use App\Domain\Seo\StaticPages\StaticPageSeo;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use App\Support\Jalali\JalaliDate;
 use Illuminate\Contracts\Config\Repository as Config;
@@ -33,9 +33,7 @@ use Illuminate\Http\Request;
 final class ToolsController
 {
     public function __construct(
-        private readonly SeoManager $seo,
-        private readonly SeoMetaRepository $meta,
-        private readonly SchemaGraph $graph,
+        private readonly StaticPageSeo $staticSeo,
         private readonly SettingsRepository $settings,
         private readonly SiteNavigation $navigation,
         private readonly ToolsCalculators $calculators,
@@ -43,14 +41,15 @@ final class ToolsController
         private readonly Config $config,
     ) {}
 
-    public function __invoke(Request $request): View
+    /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
+    public function __invoke(Request $request, SeoManager $seo, SchemaGraph $graph): View
     {
         $settings = $this->settings->all();
         $templates = self::list('tools.text');
         $text = new ResultText($templates);
         $submitted = ToolsCalculators::submitted($request->query('calc'));
 
-        $this->describe($submitted);
+        $this->describe($seo, $graph, $submitted);
 
         return $this->views->make('pages.tools', [
             'forms' => $this->calculators->forms(
@@ -70,20 +69,14 @@ final class ToolsController
      * Title/description: the admin's (seo_meta of `tools`) when set, else the design's. Submissions: noindex,
      * canonical → /tools. JSON-LD: one free WebApplication per calculator (breadcrumbs Home → ابزارها are automatic).
      */
-    private function describe(bool $submitted): void
+    private function describe(SeoManager $seo, SchemaGraph $graph, bool $submitted): void
     {
-        $meta = $this->meta->forRoute(StaticPage::Tools->routeName());
         $pageUrl = $this->navigation->url(StaticPage::Tools, absolute: true);
 
-        if (($meta->title ?? '') === '') {
-            // The design title already carries the brand: no «%s — ریتمی» template.
-            $this->seo->rawTitle(self::text('tools.seo.title'));
-        }
-        if (($meta->description ?? '') === '') {
-            $this->seo->description(self::text('tools.seo.description'));
-        }
+        // The design title already carries the brand: no «%s — ریتمی» template.
+        $this->staticSeo->apply($seo, StaticPage::Tools);
         if ($submitted) {
-            $this->seo->noindex()->canonical($pageUrl);
+            $seo->noindex()->canonical($pageUrl);
         }
 
         $copy = [];
@@ -94,7 +87,7 @@ final class ToolsController
             ];
         }
         foreach (ToolsSchema::nodes($pageUrl, SchemaIds::root((string) $this->config->get('app.url')), $copy) as $node) {
-            $this->graph->add($node);
+            $graph->add($node);
         }
     }
 

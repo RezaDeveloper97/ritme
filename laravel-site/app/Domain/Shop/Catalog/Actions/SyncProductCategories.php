@@ -16,7 +16,7 @@ final class SyncProductCategories
     public function __construct(private readonly NamespaceBumper $bumper) {}
 
     /**
-     * @param  list<int>  $categoryIds
+     * @param  array<int>  $categoryIds  any keys; duplicates are dropped
      */
     public function handle(Product $product, array $categoryIds, ?int $primaryCategoryId = null): void
     {

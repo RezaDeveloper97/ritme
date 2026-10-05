@@ -6,9 +6,9 @@ namespace App\Http\Controllers;
 
 use App\Domain\Content\Enums\StaticPage;
 use App\Domain\Content\SiteNavigation;
-use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Schema\SchemaGraph;
 use App\Domain\Seo\SeoManager;
+use App\Domain\Seo\StaticPages\StaticPageSeo;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use App\Support\Text\Toman;
 use Illuminate\Contracts\View\Factory as ViewFactory;
@@ -26,24 +26,17 @@ use Illuminate\Contracts\View\View;
 final class PlusController
 {
     public function __construct(
-        private readonly SeoManager $seo,
-        private readonly SeoMetaRepository $meta,
-        private readonly SchemaGraph $graph,
+        private readonly StaticPageSeo $staticSeo,
         private readonly SettingsRepository $settings,
         private readonly SiteNavigation $navigation,
         private readonly ViewFactory $views,
     ) {}
 
-    public function __invoke(): View
+    /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
+    public function __invoke(SeoManager $seo, SchemaGraph $graph): View
     {
-        $meta = $this->meta->forRoute(StaticPage::Plus->routeName());
-        if (($meta->title ?? '') === '') {
-            $this->seo->rawTitle(self::text('plus.seo.title'));
-        }
-        if (($meta->description ?? '') === '') {
-            $this->seo->description(self::text('plus.seo.description'));
-        }
-        $this->graph->pageName(StaticPage::Plus->label());
+        $this->staticSeo->apply($seo, StaticPage::Plus);
+        $graph->pageName(StaticPage::Plus->label());
 
         $appLinks = $this->settings->all()->appLinks;
 

@@ -162,8 +162,8 @@ final class JoinRequest extends FormRequest
         }
         $messages['district.integer'] = __('directory.join.validation.district');
         $messages['photos.*'] = __('directory.join.validation.photo', $params);
-        $messages['ages.*'] = $messages['ages'];
-        $messages['amenities.*'] = $messages['amenities'];
+        $messages['ages.*'] = __('directory.join.validation.ages', $params);
+        $messages['amenities.*'] = __('directory.join.validation.amenities', $params);
         $messages['hours'] = __('directory.join.validation.hours');
         $messages['hours.*'] = __('directory.join.validation.hours');
 

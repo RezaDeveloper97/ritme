@@ -42,6 +42,7 @@ use App\Domain\Shop\Payment\Contracts\PaymentGateway;
 use App\Domain\Shop\Payment\Gateways\CashOnDeliveryGateway;
 use App\Providers\DomainServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
@@ -83,19 +84,19 @@ final class ShopServiceProvider extends DomainServiceProvider
             $shop = self::shopSettings($app);
 
             return ShippingRule::fromToman(
-                $shop->shippingFlatFee ?? $app['config']->get('shop.shipping.flat_fee'),
-                $shop->freeShippingOver ?? $app['config']->get('shop.shipping.free_over'),
+                $shop->shippingFlatFee ?? $app->make(Config::class)->get('shop.shipping.flat_fee'),
+                $shop->freeShippingOver ?? $app->make(Config::class)->get('shop.shipping.free_over'),
             );
         });
 
         // Checkout (L6-05): cash on delivery only (tasks/README.md decision) behind the PaymentGateway contract. COD cap
         // from ShopSettings.cod_max_amount (L6-06, tomans) with `shop.cod_max_amount` as the fallback (null = no cap).
         $this->app->bind(PaymentGateway::class, static fn (Application $app): PaymentGateway => CashOnDeliveryGateway::fromToman(
-            self::shopSettings($app)->codMaxAmount ?? $app['config']->get('shop.cod_max_amount'),
+            self::shopSettings($app)->codMaxAmount ?? $app->make(Config::class)->get('shop.cod_max_amount'),
         ));
         $this->app->scoped(CheckoutSession::class);
 
-        $this->app->singleton(ProductContent::class, static fn (Application $app): ProductContent => ProductContent::fromConfig($app['config']));
+        $this->app->singleton(ProductContent::class, static fn (Application $app): ProductContent => ProductContent::fromConfig($app->make(Config::class)));
 
         // `/sitemaps/shop-products.xml`, `/sitemaps/shop-categories.xml` (L1-06 registry).
         $this->app->tag([ProductSitemapProvider::class, CategorySitemapProvider::class], SitemapRegistry::TAG);

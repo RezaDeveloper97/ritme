@@ -129,10 +129,6 @@ it('skips listing pages that would answer noindex (empty or demo-only) until the
     Place::factory()->published()->demo()->create();
     $listings = ['https://ritme.ir/blog', 'https://ritme.ir/directory', 'https://ritme.ir/shop'];
     $robots = function (string $path): string {
-        // The router caches controller instances (with the previous request's scoped SeoManager): one per request.
-        foreach (app('router')->getRoutes()->getRoutes() as $route) {
-            $route->flushController();
-        }
         preg_match('#<meta name="robots" content="([^"]+)"#', (string) $this->get($path)->getContent(), $m);
 
         return $m[1] ?? '';

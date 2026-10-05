@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Directory\Booking\Enums\BookingStatus;
 use App\Domain\Directory\Booking\Enums\TimeWindow;
 use App\Domain\Directory\Booking\Models\BookingRequest;
+use App\Domain\Directory\Booking\Support\BookingCode;
 use App\Domain\Directory\Enums\PlaceStatus;
 use App\Domain\Directory\Enums\ReviewStatus;
 use App\Domain\Directory\Join\Enums\BookingMode;
@@ -104,7 +105,7 @@ function dirAdminJoinRequest(PlaceCategory $category, City $city, ?District $dis
 function dirAdminBooking(Place $place, string $status = 'new'): BookingRequest
 {
     return BookingRequest::query()->create([
-        'code' => strtoupper(substr(md5((string) mt_rand()), 0, 4)).'-ABCD-EFGH',
+        'code' => BookingCode::generate(), // unique: a 4-hex random prefix collided now and then
         'status' => $status,
         'place_id' => $place->id,
         'place_name' => $place->name,

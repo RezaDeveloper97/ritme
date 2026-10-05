@@ -33,14 +33,13 @@ final class FrequentlyBoughtWith
         }
 
         $table = (new Product)->getTable();
-        $ids = $product->crossSells()
+        $ids = array_values($product->crossSells()
             ->where("{$table}.is_published", true)
             ->where("{$table}.stock_status", '!=', StockStatus::OutOfStock->value)
             ->limit($this->limit)
             ->pluck("{$table}.id")
             ->map(intval(...))
-            ->values()
-            ->all();
+            ->all());
 
         if (count($ids) < $this->limit && $product->primary_category_id !== null) {
             $subtree = $this->tree->descendantIds($product->primary_category_id) ?: [$product->primary_category_id];

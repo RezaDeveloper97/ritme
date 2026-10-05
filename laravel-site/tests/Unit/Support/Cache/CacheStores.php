@@ -24,7 +24,11 @@ final class CacheStores
         $config = ['driver' => $driver];
 
         if ($driver === 'file') {
-            $dir = storage_path('framework/testing/cache-aside');
+            // Per process: a concurrent run (or parallel worker) must not flush this one's files.
+            $dir = storage_path('framework/testing/cache-aside-'.getmypid());
+            if (! is_dir($dir)) {
+                register_shutdown_function(static fn () => (new Filesystem)->deleteDirectory($dir));
+            }
             (new Filesystem)->deleteDirectory($dir);
             $config += ['path' => $dir, 'lock_path' => $dir];
         }

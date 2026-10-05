@@ -15,7 +15,7 @@ final class SyncPostTags
     public function __construct(private readonly NamespaceBumper $bumper) {}
 
     /**
-     * @param  list<int>  $tagIds
+     * @param  array<int|string>  $tagIds  any keys; duplicates are dropped
      */
     public function handle(Post $post, array $tagIds): void
     {

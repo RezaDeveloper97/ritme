@@ -48,7 +48,7 @@ final class SitemapTaxonomy
             $q->published();
         };
 
-        return $model->newQuery()
+        return array_values($model->newQuery()
             ->leftJoin('seo_meta', static function (JoinClause $join) use ($model, $table): void {
                 $join->on('seo_meta.seoable_id', '=', "{$table}.id")
                     ->where('seo_meta.seoable_type', '=', $model->getMorphClass());
@@ -73,7 +73,6 @@ final class SitemapTaxonomy
                     'lastmod' => $last === null ? null : Carbon::parse((string) $last)->toIso8601String(),
                 ];
             })
-            ->values()
-            ->all();
+            ->all());
     }
 }

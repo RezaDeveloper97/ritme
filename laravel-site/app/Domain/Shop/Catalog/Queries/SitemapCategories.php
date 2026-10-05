@@ -76,7 +76,7 @@ final class SitemapCategories
         $category = new Category;
         $table = $category->getTable();
 
-        return Category::query()
+        return array_values(Category::query()
             ->join('seo_meta', static function (JoinClause $join) use ($category, $table): void {
                 $join->on('seo_meta.seoable_id', '=', "{$table}.id")
                     ->where('seo_meta.seoable_type', '=', $category->getMorphClass());
@@ -84,7 +84,6 @@ final class SitemapCategories
             ->where(static fn (Builder $q) => $q->where('seo_meta.sitemap_include', false)->orWhere('seo_meta.robots', 'like', '%noindex%'))
             ->pluck("{$table}.id")
             ->map(intval(...))
-            ->values()
-            ->all();
+            ->all());
     }
 }

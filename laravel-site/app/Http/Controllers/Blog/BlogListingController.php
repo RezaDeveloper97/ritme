@@ -57,15 +57,14 @@ final class BlogListingController
     public function __construct(
         private readonly PostRepository $posts,
         private readonly CategoryRepository $categories,
-        private readonly SeoManager $seo,
-        private readonly SchemaGraph $graph,
         private readonly SeoMetaRepository $seoMeta,
         private readonly SettingsRepository $settings,
         private readonly BlogUrls $urls,
         private readonly Config $config,
     ) {}
 
-    public function index(Request $request): View|RedirectResponse
+    /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
+    public function index(Request $request, SeoManager $seo, SchemaGraph $graph): View|RedirectResponse
     {
         $page = $this->page($request);
         if ($page instanceof RedirectResponse) {
@@ -81,13 +80,14 @@ final class BlogListingController
         $reviewer = $featured === null ? null : $this->posts->findPublishedBySlug($featured->slug)?->reviewer?->name;
 
         $this->applySeo(
+            $seo,
             meta: $this->seoMeta->forRoute('blog.index'),
             title: $page === 1 ? __('blog.index.seo_title') : __('blog.index.seo_title_paged'),
             description: __('blog.index.seo_description'),
             page: $page,
             indexable: PostListIndexing::listIndexable($list),
         );
-        $this->schema($request, $this->blogTrail(), $featured === null ? $items : [$featured, ...$items], __('blog.name'));
+        $this->schema($graph, $request, $this->blogTrail(), $featured === null ? $items : [$featured, ...$items], __('blog.name'));
 
         return $this->view($request, $list, $items, [
             'intro' => ['eyebrow' => __('blog.index.eyebrow'), 'title' => __('blog.index.title'), 'lead' => __('blog.index.lead')],
@@ -97,7 +97,7 @@ final class BlogListingController
         ]);
     }
 
-    public function category(Request $request, string $slug): View|RedirectResponse
+    public function category(Request $request, string $slug, SeoManager $seo, SchemaGraph $graph): View|RedirectResponse
     {
         $category = $this->categories->findBySlug($slug) ?? abort(404);
         $page = $this->page($request);
@@ -108,15 +108,16 @@ final class BlogListingController
         $list = $this->guard($this->posts->byCategory($category->id, $page, self::PER_PAGE));
         $title = __('blog.category.seo_title', ['name' => $category->name]);
 
-        $this->seo->for($this->subject(Category::class, $category->id));
+        $seo->for($this->subject(Category::class, $category->id));
         $this->applySeo(
+            $seo,
             meta: $this->seoMeta->forModel((new Category)->getMorphClass(), $category->id),
             title: $title,
             description: $category->description ?? __('blog.category.seo_description', ['name' => $category->name]),
             page: $page,
             indexable: PostListIndexing::listIndexable($list),
         );
-        $this->schema($request, [...$this->blogTrail(), new BreadcrumbItem($category->name, $this->urls->category($category->slug))], $list->items, $category->name);
+        $this->schema($graph, $request, [...$this->blogTrail(), new BreadcrumbItem($category->name, $this->urls->category($category->slug))], $list->items, $category->name);
 
         return $this->view($request, $list, $list->items, [
             'intro' => [
@@ -128,7 +129,7 @@ final class BlogListingController
         ]);
     }
 
-    public function tag(Request $request, string $slug, TagRepository $tags, TagIndexing $indexing): View|RedirectResponse
+    public function tag(Request $request, string $slug, TagRepository $tags, TagIndexing $indexing, SeoManager $seo, SchemaGraph $graph): View|RedirectResponse
     {
         $tag = $tags->findBySlug($slug) ?? abort(404);
         $page = $this->page($request);
@@ -138,8 +139,9 @@ final class BlogListingController
 
         $list = $this->guard($this->posts->byTag($tag->id, $page, self::PER_PAGE));
 
-        $this->seo->for($this->subject(Tag::class, $tag->id));
+        $seo->for($this->subject(Tag::class, $tag->id));
         $this->applySeo(
+            $seo,
             meta: $this->seoMeta->forModel((new Tag)->getMorphClass(), $tag->id),
             title: __('blog.tag.seo_title', ['name' => $tag->name]),
             description: __('blog.tag.seo_description', ['name' => $tag->name]),
@@ -147,7 +149,7 @@ final class BlogListingController
             indexable: $indexing->indexable($tag),
         );
         $trail = [...$this->blogTrail(), new BreadcrumbItem($tag->name, $this->urls->tag($tag->slug))];
-        $this->schema($request, $trail, $list->items, $tag->name);
+        $this->schema($graph, $request, $trail, $list->items, $tag->name);
 
         return $this->view($request, $list, $list->items, [
             'intro' => ['eyebrow' => __('blog.tag.eyebrow'), 'title' => $tag->name, 'lead' => __('blog.tag.lead', ['name' => $tag->name])],
@@ -155,7 +157,7 @@ final class BlogListingController
         ]);
     }
 
-    public function author(Request $request, string $slug, AuthorRepository $authors): View|RedirectResponse
+    public function author(Request $request, string $slug, AuthorRepository $authors, SeoManager $seo, SchemaGraph $graph): View|RedirectResponse
     {
         $author = $authors->findBySlug($slug) ?? abort(404);
         $page = $this->page($request);
@@ -166,8 +168,9 @@ final class BlogListingController
         $list = $this->guard($this->posts->byAuthor($author->id, $page, self::PER_PAGE));
         $reviewer = $author->isMedicalReviewer && $list->total === 0;
 
-        $this->seo->for($this->subject(Author::class, $author->id));
+        $seo->for($this->subject(Author::class, $author->id));
         $this->applySeo(
+            $seo,
             meta: $this->seoMeta->forModel((new Author)->getMorphClass(), $author->id),
             title: __($reviewer ? 'blog.author.seo_title_reviewer' : 'blog.author.seo_title', ['name' => $author->name]),
             // A placeholder («[…]») or too-short bio is no description; the lang default is used instead.
@@ -177,9 +180,9 @@ final class BlogListingController
             // bio is real.
             indexable: PostListIndexing::authorIndexable($author, $list),
         );
-        $this->seo->type('profile');
+        $seo->type('profile');
         $trail = [...$this->blogTrail(), new BreadcrumbItem($author->name, $this->urls->author($author->slug))];
-        $this->schema($request, $trail, $list->items, __('blog.author.posts_title', ['name' => $author->name]), WebPageType::ProfilePage, $author);
+        $this->schema($graph, $request, $trail, $list->items, __('blog.author.posts_title', ['name' => $author->name]), WebPageType::ProfilePage, $author);
 
         return $this->view($request, $list, $list->items, [
             'intro' => [
@@ -254,20 +257,20 @@ final class BlogListingController
         return $list;
     }
 
-    private function applySeo(?SeoMetaData $meta, string $title, string $description, int $page, bool $indexable): void
+    private function applySeo(SeoManager $seo, ?SeoMetaData $meta, string $title, string $description, int $page, bool $indexable): void
     {
         $title = $meta->title ?? $title;
         $description = $meta->description ?? $description;
 
         if ($page > 1) {
             $suffix = __('blog.page_suffix', ['page' => self::digits($page)]);
-            $this->seo->title($title.' — '.$suffix)->description(DescriptionText::fromExcerpt($suffix.' — '.$description));
+            $seo->title($title.' — '.$suffix)->description(DescriptionText::fromExcerpt($suffix.' — '.$description));
         } else {
-            $this->seo->title($title)->description($meta?->description !== null ? $description : DescriptionText::fromExcerpt($description));
+            $seo->title($title)->description($meta?->description !== null ? $description : DescriptionText::fromExcerpt($description));
         }
 
         if (! $indexable) {
-            $this->seo->noindex();
+            $seo->noindex();
         }
     }
 
@@ -277,15 +280,15 @@ final class BlogListingController
      * @param  list<BreadcrumbItem>  $trail
      * @param  list<PostCardData>  $items
      */
-    private function schema(Request $request, array $trail, array $items, string $name, WebPageType $type = WebPageType::CollectionPage, ?AuthorData $author = null): void
+    private function schema(SchemaGraph $graph, Request $request, array $trail, array $items, string $name, WebPageType $type = WebPageType::CollectionPage, ?AuthorData $author = null): void
     {
-        $this->graph->breadcrumbs(...$trail)->pageType($type)->pageName($name);
+        $graph->breadcrumbs(...$trail)->pageType($type)->pageName($name);
         $siteUrl = (string) $this->config->get('app.url');
         $pageUrl = CanonicalUrl::normalize($request->fullUrl(), $siteUrl);
         $page = ['@id' => SchemaIds::webPage($pageUrl)];
 
         if ($items !== []) {
-            $this->graph->add(ItemListNode::make($pageUrl, array_map(
+            $graph->add(ItemListNode::make($pageUrl, array_map(
                 fn (PostCardData $card): ListEntry => new ListEntry($this->urls->post($card->slug), $card->title),
                 $items,
             ), $name));
@@ -294,12 +297,12 @@ final class BlogListingController
 
         if ($author !== null) {
             $person = PersonNode::make($author->toPerson($this->urls->author($author->slug)), SchemaIds::root($siteUrl));
-            $this->graph->add($person);
+            $graph->add($person);
             $page['mainEntity'] = Node::ref((string) $person['@id']);
         }
 
         if (count($page) > 1) {
-            $this->graph->add($page);
+            $graph->add($page);
         }
     }
 

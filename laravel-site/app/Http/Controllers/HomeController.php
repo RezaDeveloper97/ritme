@@ -8,11 +8,11 @@ use App\Domain\Blog\Contracts\PostRepository;
 use App\Domain\Blog\Data\PostCardData;
 use App\Domain\Content\Enums\StaticPage;
 use App\Domain\Content\SiteNavigation;
-use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Schema\Nodes\MobileApplicationNode;
 use App\Domain\Seo\Schema\SchemaGraph;
 use App\Domain\Seo\Schema\SchemaIds;
 use App\Domain\Seo\SeoManager;
+use App\Domain\Seo\StaticPages\StaticPageSeo;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use App\Domain\Settings\Data\SiteSettings;
 use App\Support\Cache\CacheAside;
@@ -37,9 +37,7 @@ final class HomeController
     public const READINGS = 3;
 
     public function __construct(
-        private readonly SeoManager $seo,
-        private readonly SeoMetaRepository $meta,
-        private readonly SchemaGraph $graph,
+        private readonly StaticPageSeo $staticSeo,
         private readonly SettingsRepository $settings,
         private readonly PostRepository $posts,
         private readonly SiteNavigation $navigation,
@@ -49,10 +47,11 @@ final class HomeController
         private readonly Config $config,
     ) {}
 
-    public function __invoke(): View
+    /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
+    public function __invoke(SeoManager $seo, SchemaGraph $graph): View
     {
         $settings = $this->settings->all();
-        $this->describe($settings);
+        $this->describe($seo, $graph, $settings);
 
         return $this->views->make('pages.home', [
             'staticSections' => $this->staticSections(),
@@ -66,20 +65,13 @@ final class HomeController
      * Title/description: the admin's (seo_meta of `home`) when set, else the design's. JSON-LD: Organization,
      * WebSite and WebPage are automatic (no breadcrumbs on the home page); the app the page offers is added here.
      */
-    private function describe(SiteSettings $settings): void
+    private function describe(SeoManager $seo, SchemaGraph $graph, SiteSettings $settings): void
     {
-        $meta = $this->meta->forRoute(StaticPage::Home->routeName());
-
-        if (($meta->title ?? '') === '') {
-            // The design title already carries the brand («ریتمی — …»): no «%s — ریتمی» template.
-            $this->seo->rawTitle(self::text('home.seo.title'));
-        }
-        if (($meta->description ?? '') === '') {
-            $this->seo->description(self::text('home.seo.description'));
-        }
+        // The design title already carries the brand («ریتمی — …»): no «%s — ریتمی» template.
+        $this->staticSeo->apply($seo, StaticPage::Home);
 
         $siteUrl = SchemaIds::root((string) $this->config->get('app.url'));
-        $this->graph->add(MobileApplicationNode::make($settings, $siteUrl, self::text('home.seo.description')));
+        $graph->add(MobileApplicationNode::make($settings, $siteUrl, self::text('home.seo.description')));
     }
 
     /**

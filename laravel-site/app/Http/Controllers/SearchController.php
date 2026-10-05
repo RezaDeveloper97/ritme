@@ -31,19 +31,18 @@ final class SearchController
 
     public function __construct(
         private readonly SearchSite $search,
-        private readonly SeoManager $seo,
-        private readonly SchemaGraph $graph,
         private readonly Config $config,
     ) {}
 
-    public function __invoke(Request $request): Response
+    /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
+    public function __invoke(Request $request, SeoManager $seo, SchemaGraph $graph): Response
     {
         $raw = $request->query->all()['q'] ?? null;
         $results = $this->search->handle(is_string($raw) ? $raw : null, $this->page($request), self::PER_PAGE);
 
         $title = $results->searched() ? __('search.seo_title_results', ['query' => $results->query]) : __('search.seo_title');
-        $this->seo->title($title)->description(__('search.seo_description'))->noindex();
-        $this->graph
+        $seo->title($title)->description(__('search.seo_description'))->noindex();
+        $graph
             ->breadcrumbs(
                 new BreadcrumbItem(PageGraph::HOME_LABEL, SchemaIds::root((string) $this->config->get('app.url'))),
                 new BreadcrumbItem(__('search.name'), route('search')),

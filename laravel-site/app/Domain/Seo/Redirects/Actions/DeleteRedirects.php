@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 final class DeleteRedirects
 {
     /**
-     * @param  list<int>  $ids
+     * @param  array<int>  $ids  any keys; duplicates are dropped
      */
     public function handle(array $ids, ?Model $causer = null): int
     {

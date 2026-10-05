@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Content\Enums\StaticPage;
-use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Schema\SchemaGraph;
 use App\Domain\Seo\SeoManager;
+use App\Domain\Seo\StaticPages\StaticPageSeo;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\Factory as ViewFactory;
@@ -25,25 +25,18 @@ use Throwable;
 final class PrivacyController
 {
     public function __construct(
-        private readonly SeoManager $seo,
-        private readonly SeoMetaRepository $meta,
-        private readonly SchemaGraph $graph,
+        private readonly StaticPageSeo $staticSeo,
         private readonly SettingsRepository $settings,
         private readonly ViewFactory $views,
     ) {}
 
-    public function __invoke(): View
+    /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
+    public function __invoke(SeoManager $seo, SchemaGraph $graph): View
     {
-        $meta = $this->meta->forRoute(StaticPage::Privacy->routeName());
-        if (($meta->title ?? '') === '') {
-            $this->seo->rawTitle(self::text('privacy.seo.title'));
-        }
-        if (($meta->description ?? '') === '') {
-            $this->seo->description(self::text('privacy.seo.description'));
-        }
+        $this->staticSeo->apply($seo, StaticPage::Privacy);
 
         $updated = self::date(self::text('privacy.updated_at'));
-        $this->graph->pageName(StaticPage::Privacy->label())->dates(null, $updated?->toAtomString());
+        $graph->pageName(StaticPage::Privacy->label())->dates(null, $updated?->toAtomString());
 
         $email = $this->settings->all()->legal->dataProtectionEmail;
         $emailText = $email ?? self::text('privacy.policy.dpo_missing');

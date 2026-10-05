@@ -141,8 +141,8 @@ final class PostRevisions
                 .'<p class="text-sm font-medium text-gray-950 dark:text-white">'.e(self::eventLabel((string) $entry->event))
                 .' <span class="font-normal text-gray-500 dark:text-gray-400">· '.e($entry->created_at?->format('Y-m-d H:i') ?? '').' · '.e(is_string($causer) ? $causer : 'سیستم').'</span></p>';
 
-            $attributes = $entry->properties->get('attributes', []);
-            $old = $entry->properties->get('old', []);
+            $attributes = $entry->properties?->get('attributes', []);
+            $old = $entry->properties?->get('old', []);
             if (is_array($attributes) && $attributes !== []) {
                 $html .= '<dl class="mt-2 grid gap-1 text-sm">';
                 foreach ($attributes as $key => $value) {

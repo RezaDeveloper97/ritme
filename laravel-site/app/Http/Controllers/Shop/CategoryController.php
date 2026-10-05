@@ -72,15 +72,14 @@ final class CategoryController
         private readonly CatalogRepository $catalog,
         private readonly ProductRepository $products,
         private readonly MediaRepository $media,
-        private readonly SeoManager $seo,
         private readonly SeoMetaRepository $meta,
-        private readonly SchemaGraph $graph,
         private readonly ShopUrls $urls,
         private readonly ViewFactory $views,
         private readonly Config $config,
     ) {}
 
-    public function __invoke(Request $request, string $slug): View|RedirectResponse
+    /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
+    public function __invoke(Request $request, SeoManager $seo, SchemaGraph $graph, string $slug): View|RedirectResponse
     {
         $tree = $this->catalog->categoryTree();
         $category = $tree->findBySlug($slug) ?? abort(404);
@@ -98,8 +97,8 @@ final class CategoryController
         }
 
         $trail = $this->trail($tree, $category);
-        $this->applySeo($category, $state, $list);
-        $this->schema($request, $category, $list->items);
+        $this->applySeo($seo, $category, $state, $list);
+        $this->schema($graph, $request, $category, $list->items);
 
         return $this->views->make('pages.shop.category', [
             'category' => $category,
@@ -313,9 +312,9 @@ final class CategoryController
      *
      * @param  array<string, mixed>  $state
      */
-    private function applySeo(CategoryData $category, array $state, ProductPage $list): void
+    private function applySeo(SeoManager $seo, CategoryData $category, array $state, ProductPage $list): void
     {
-        $this->seo->for((new Category)->forceFill(['id' => $category->id]));
+        $seo->for((new Category)->forceFill(['id' => $category->id]));
         $meta = $this->meta->forModel((new Category)->getMorphClass(), $category->id);
 
         $title = $meta->title ?? (string) __('shop.category.seo_title', ['name' => $category->name]);
@@ -326,36 +325,36 @@ final class CategoryController
         $page = (int) $state['page'];
         if ($page > 1) {
             $suffix = (string) __('shop.page_suffix', ['page' => fa_digits($page)]);
-            $this->seo->title($title.' — '.$suffix)->description(DescriptionText::fromExcerpt($suffix.' — '.$description));
+            $seo->title($title.' — '.$suffix)->description(DescriptionText::fromExcerpt($suffix.' — '.$description));
         } else {
-            $this->seo->title($title)->description($meta?->description !== null ? $description : DescriptionText::fromExcerpt($description));
+            $seo->title($title)->description($meta?->description !== null ? $description : DescriptionText::fromExcerpt($description));
         }
 
         if ($this->isFiltered($state)) {
-            $this->seo->filtered()->canonical(route('shop.category', [$category->slug]));
+            $seo->filtered()->canonical(route('shop.category', [$category->slug]));
         }
         if (! ProductListIndexing::showsRealProduct($list->items)) {
-            $this->seo->noindex();
+            $seo->noindex();
         }
     }
 
     /**
      * @param  list<ProductCardData>  $items
      */
-    private function schema(Request $request, CategoryData $category, array $items): void
+    private function schema(SchemaGraph $graph, Request $request, CategoryData $category, array $items): void
     {
         // BreadcrumbList: registered by <x-ui.breadcrumbs> in the view (same items as the visible trail).
-        $this->graph->pageType(WebPageType::CollectionPage)->pageName($category->name);
+        $graph->pageType(WebPageType::CollectionPage)->pageName($category->name);
         if ($items === []) {
             return;
         }
 
         $pageUrl = CanonicalUrl::normalize($request->fullUrl(), (string) $this->config->get('app.url'));
-        $this->graph->add(ItemListNode::make($pageUrl, array_map(
+        $graph->add(ItemListNode::make($pageUrl, array_map(
             fn (ProductCardData $card): ListEntry => new ListEntry($this->urls->product($card->slug), $card->title),
             $items,
         ), $category->name));
-        $this->graph->add(['@id' => SchemaIds::webPage($pageUrl), 'mainEntity' => Node::ref(SchemaIds::itemList($pageUrl))]);
+        $graph->add(['@id' => SchemaIds::webPage($pageUrl), 'mainEntity' => Node::ref(SchemaIds::itemList($pageUrl))]);
     }
 
     /**

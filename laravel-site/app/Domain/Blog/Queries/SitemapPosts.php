@@ -23,7 +23,7 @@ final class SitemapPosts
         $post = new Post;
         $table = $post->getTable();
 
-        return Post::query()
+        return array_values(Post::query()
             ->published()
             ->leftJoin('seo_meta', static function (JoinClause $join) use ($post, $table): void {
                 $join->on('seo_meta.seoable_id', '=', "{$table}.id")
@@ -50,7 +50,6 @@ final class SitemapPosts
                     'coverMediaId' => $row->cover_media_id,
                 ];
             })
-            ->values()
-            ->all();
+            ->all());
     }
 }

@@ -36,7 +36,7 @@ final class EloquentFaqRepository implements FaqRepository
      */
     public function all(): array
     {
-        return FaqGroup::query()
+        return array_values(FaqGroup::query()
             ->with(['items' => static function (Relation $query): void {
                 $query->where('is_published', true)->orderBy('sort_order')->orderBy('id');
             }])
@@ -48,12 +48,10 @@ final class EloquentFaqRepository implements FaqRepository
                 slug: $group->slug,
                 title: $group->title,
                 listed: $group->is_listed,
-                items: $group->items
+                items: array_values($group->items
                     ->map(static fn (FaqItem $item): FaqItemData => new FaqItemData($item->id, $item->question, $item->answer))
-                    ->values()
-                    ->all(),
+                    ->all()),
             ))
-            ->values()
-            ->all();
+            ->all());
     }
 }

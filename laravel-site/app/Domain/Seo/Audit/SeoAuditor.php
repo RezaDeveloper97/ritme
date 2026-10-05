@@ -6,6 +6,7 @@ namespace App\Domain\Seo\Audit;
 
 use DOMDocument;
 use DOMElement;
+use DOMNode;
 use DOMXPath;
 
 /**
@@ -176,7 +177,7 @@ final class SeoAuditor
         $nodes = $xpath->query($query);
         $texts = [];
         foreach ($nodes === false ? [] : $nodes as $node) {
-            $texts[] = trim((string) preg_replace('/\s+/u', ' ', $node->textContent));
+            $texts[] = trim((string) preg_replace('/\s+/u', ' ', $node instanceof DOMNode ? $node->textContent : ''));
         }
 
         return $texts;

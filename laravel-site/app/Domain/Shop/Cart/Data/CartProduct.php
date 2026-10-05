@@ -51,11 +51,10 @@ final readonly class CartProduct
             coverMediaId: $product->cover_media_id,
             illustration: $product->illustration,
             isDemo: $product->is_demo,
-            variants: $product->variants
+            variants: array_values($product->variants
                 ->filter(static fn (ProductVariant $v): bool => $v->is_active)
                 ->map(static fn (ProductVariant $v): VariantData => VariantData::fromModel($v, $product))
-                ->values()
-                ->all(),
+                ->all()),
         );
     }
 

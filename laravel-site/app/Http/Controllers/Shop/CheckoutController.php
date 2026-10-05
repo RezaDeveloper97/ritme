@@ -68,9 +68,6 @@ final class CheckoutController implements HasMiddleware
     public const NOTICES_FLASH = 'checkout_notices';
 
     public function __construct(
-        private readonly ResolveCart $resolve,
-        private readonly PaymentGateway $gateway,
-        private readonly CheckoutSession $session,
         private readonly FindOrder $find,
         private readonly MediaRepository $media,
         private readonly SettingsRepository $settings,
@@ -79,11 +76,15 @@ final class CheckoutController implements HasMiddleware
         private readonly Config $config,
     ) {}
 
-    public function show(Request $request, FormTimer $timer, SeoManager $seo, SchemaGraph $graph): Response
+    /**
+     * SeoManager, SchemaGraph, CheckoutSession and the cart (ResolveCart → CartRepository) are request-scoped and the
+     * gateway reads the shop settings: injected per call, not into the (route-cached) controller.
+     */
+    public function show(Request $request, FormTimer $timer, SeoManager $seo, SchemaGraph $graph, ResolveCart $resolve, CheckoutSession $session, PaymentGateway $gateway): Response
     {
-        $cart = $this->resolve->handle();
+        $cart = $resolve->handle();
         $soldOut = array_values(array_filter($cart->items, static fn (CartItemData $i): bool => ! $i->available));
-        $limit = $this->gateway->limit();
+        $limit = $gateway->limit();
 
         $seo->rawTitle(self::text('shop.checkout.seo_title'))->description(self::text('shop.checkout.seo_description'))->noindex();
         $graph->pageName(self::text('shop.checkout.title'))->breadcrumbs(...$this->trail(self::text('shop.checkout.title')));
@@ -96,7 +97,7 @@ final class CheckoutController implements HasMiddleware
             'state' => match (true) {
                 ! $cart->canCheckout() => 'empty',
                 $soldOut !== [] => 'sold_out',
-                ! $this->gateway->accepts($cart->total) => 'cod_limit',
+                ! $gateway->accepts($cart->total) => 'cod_limit',
                 default => 'ready',
             },
             'soldOut' => array_map(static fn (CartItemData $i): string => $i->title, $soldOut),
@@ -106,26 +107,26 @@ final class CheckoutController implements HasMiddleware
             'selectedSlot' => is_string($oldSlot) && $oldSlot !== '' ? $oldSlot : $slots[0]->value(),
             'provinces' => IranProvinces::options(),
             'cities' => IranProvinces::cities(),
-            'paymentMethod' => $this->gateway->method(),
+            'paymentMethod' => $gateway->method(),
             'codLimit' => $limit?->format(),
-            'token' => $this->session->token(),
+            'token' => $session->token(),
             'signature' => CartSignature::of($cart),
             'formToken' => $timer->issue(),
             'navRoute' => 'shop.index',
         ]);
     }
 
-    public function store(CheckoutRequest $request, PlaceOrder $place): RedirectResponse
+    public function store(CheckoutRequest $request, PlaceOrder $place, CheckoutSession $session): RedirectResponse
     {
         if ($request->isSpam()) {
             return redirect()->route('shop.checkout')->with(self::ERROR_FLASH, self::text('shop.checkout.retry'));
         }
 
         $submission = $request->toSubmission();
-        if (! $this->session->isCurrent($submission->token)) {
+        if (! $session->isCurrent($submission->token)) {
             // The form was already used: a double submit lands on the order it placed; anything else is a stale form.
             $existing = $this->find->byToken($submission->token);
-            if ($existing !== null && $this->session->owns($existing->code)) {
+            if ($existing !== null && $session->owns($existing->code)) {
                 return redirect()->route('shop.order', [$existing->code], 303);
             }
 
@@ -142,17 +143,17 @@ final class CheckoutController implements HasMiddleware
                 ->with(self::NOTICES_FLASH, array_map(self::notice(...), $e->notices));
         }
 
-        $this->session->remember($placement->order->code);
+        $session->remember($placement->order->code);
 
         return $placement->payment->redirectUrl !== null
             ? redirect()->away($placement->payment->redirectUrl, 303)
             : redirect()->route('shop.order', [$placement->order->code], 303);
     }
 
-    public function order(string $code, SeoManager $seo, SchemaGraph $graph): Response
+    public function order(string $code, SeoManager $seo, SchemaGraph $graph, CheckoutSession $session): Response
     {
         $order = $this->find->byCode($code) ?? abort(404);
-        $owner = $this->session->owns($order->code);
+        $owner = $session->owns($order->code);
         $cancelled = $order->status === OrderStatus::Cancelled;
         $title = self::text($cancelled ? 'shop.order.title_cancelled' : 'shop.order.title');
 
@@ -201,6 +202,7 @@ final class CheckoutController implements HasMiddleware
     }
 
     /**
+     * @param  view-string  $view
      * @param  array<string, mixed>  $data
      */
     private function page(string $view, array $data): Response

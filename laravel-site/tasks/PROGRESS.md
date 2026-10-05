@@ -920,3 +920,19 @@ One section per finished task (appended by `/site-task`).
 - Orchestrator: `.env.example` gained `TRUSTED_PROXIES`, `ADMIN_MFA_ROLES`. Deferred/accepted items → **L9-04b**
   (POST newsletter confirm F19, private pending join photos F17, remember-me UI, PII-role MFA tests); F16 newsletter
   timing → queued mail in L10-01; F18/F20–F23 accepted.
+
+## L9-05 — Test coverage + static analysis to level 8
+- phpstan **level 8, 0 errors**, no baseline, no `@phpstan-ignore` (from 70 errors: `array_values(...)` lists, `array<int>`
+  action params, null-safety, typed providers via `Config` contract, `view-string`).
+- Request-scoped `SeoManager`/`SchemaGraph`/`CheckoutSession`/`ResolveCart`/`PaymentGateway` injected per method in ~20
+  controllers; new `App\Domain\Seo\StaticPages\StaticPageSeo` applies `StaticPageSeoDefaults` (single source for static
+  page title/description unless admin override); `flushController()` workarounds removed. Guards: `tests/Arch/
+  RequestScopeTest.php` (constructor dependency walk) + `tests/Feature/Pages/ControllerReuseTest.php`.
+- Arch tests rewritten as a token scanner (`tests/Arch/SourceFiles.php`): 583 MB/6 s → 49 MB/0.5 s; `phpunit.xml`
+  memory_limit back to **512M** (peak RSS ~570 MB → serial suite fits). Media flakiness fixed (per-process fixture dirs
+  + fake disks via a `pid…` token in `tests/TestCase.php`, per-process `CacheStores`; admin test codes via
+  `BookingCode`/`OrderCode::generate()`). `composer test` = `pest --parallel` (22 s; serial 77 s).
+- New domain tests (UpdateCartLine, RobotsTxtValidator, taxonomy repo parity, DeleteRedirects, city regex redirects,
+  PageFaq merge, ContentTargets). Pest **1364 passed**.
+- Coverage (pcov built in scratchpad only): `app/Domain` 95.60% lines, `app/Support` 97.37%, whole `app` 93.47% lines /
+  84.6% methods (Http 96.6%, Filament 87.6%, View 83.9%, Models 78%).

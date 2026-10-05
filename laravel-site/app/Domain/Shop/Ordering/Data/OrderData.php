@@ -64,7 +64,7 @@ final readonly class OrderData
             discreetPackaging: $order->discreet_packaging,
             isDemo: $order->is_demo,
             placedAt: CarbonImmutable::instance($order->created_at ?? now()),
-            items: $order->items->map(static fn (OrderItem $item): OrderItemData => OrderItemData::fromModel($item))->values()->all(),
+            items: array_values($order->items->map(static fn (OrderItem $item): OrderItemData => OrderItemData::fromModel($item))->all()),
         );
     }
 }

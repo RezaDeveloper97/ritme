@@ -21,6 +21,7 @@ use App\Domain\Media\Exceptions\InvalidMediaException;
 use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Schema\SchemaGraph;
 use App\Domain\Seo\SeoManager;
+use App\Domain\Seo\StaticPages\StaticPageSeo;
 use App\Http\Requests\JoinRequest;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Contracts\View\View;
@@ -48,6 +49,7 @@ final class JoinController
 
     public function __construct(
         private readonly SeoMetaRepository $meta,
+        private readonly StaticPageSeo $staticSeo,
         private readonly TaxonomyRepository $taxonomy,
         private readonly SiteNavigation $navigation,
         private readonly FormTimer $timer,
@@ -57,14 +59,14 @@ final class JoinController
     /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
     public function business(SeoManager $seo, SchemaGraph $graph): View
     {
-        $this->seo($seo, $graph, StaticPage::DirectoryBusiness, 'business_page');
+        $this->seo($seo, $graph, StaticPage::DirectoryBusiness);
 
         return $this->views->make('pages.directory.business');
     }
 
     public function create(SeoManager $seo, SchemaGraph $graph): Response
     {
-        $this->seo($seo, $graph, StaticPage::DirectoryJoin, 'join');
+        $this->seo($seo, $graph, StaticPage::DirectoryJoin);
         $seo->noindex();
 
         return $this->noStore($this->views->make('pages.directory.join', [
@@ -113,7 +115,7 @@ final class JoinController
 
     public function done(SeoManager $seo, SchemaGraph $graph): Response
     {
-        $this->seo($seo, $graph, StaticPage::DirectoryJoinDone, 'done');
+        $this->seo($seo, $graph, StaticPage::DirectoryJoinDone);
         $seo->noindex();
 
         $flash = session(self::FLASH);
@@ -133,14 +135,23 @@ final class JoinController
         return redirect()->route('directory.join.done')->with(self::FLASH, ['code' => $code, 'name' => $name, 'at' => now()->getTimestamp()]);
     }
 
-    private function seo(SeoManager $seo, SchemaGraph $graph, StaticPage $page, string $key): void
+    /**
+     * Title/description: the admin's (seo_meta of the route) when set, else the page default — from
+     * StaticPageSeoDefaults for the indexable pages; the done page keeps its own lang copy (its registry default is
+     * only the label, and it is noindex).
+     */
+    private function seo(SeoManager $seo, SchemaGraph $graph, StaticPage $page): void
     {
-        $meta = $this->meta->forRoute($page->routeName());
-        if (($meta->title ?? '') === '') {
-            $seo->rawTitle(self::text("directory.{$key}.seo.title"));
-        }
-        if (($meta->description ?? '') === '') {
-            $seo->description(self::text("directory.{$key}.seo.description"));
+        if ($page !== StaticPage::DirectoryJoinDone) {
+            $this->staticSeo->apply($seo, $page);
+        } else {
+            $meta = $this->meta->forRoute($page->routeName());
+            if (($meta->title ?? '') === '') {
+                $seo->rawTitle(self::text('directory.done.seo.title'));
+            }
+            if (($meta->description ?? '') === '') {
+                $seo->description(self::text('directory.done.seo.description'));
+            }
         }
         $graph->pageName($page->label())->breadcrumbs(...$this->navigation->breadcrumbs($page));
     }

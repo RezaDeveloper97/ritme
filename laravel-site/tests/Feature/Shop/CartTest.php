@@ -226,3 +226,24 @@ it('posts the product page form to the cart', function (): void {
     addBodysuit($this, ['size' => '۰-۳ ماه']);
     expect((string) $this->get('/shop/product/bodysuit')->getContent())->toContain('بادی آستین‌بلند نخی در حال حاضر ناموجود است.');
 });
+
+// ---- request-scoped services (L9-05) -------------------------------------------------------------------------------
+
+it('sees the current session cart and a fresh SeoManager on every request through the route-cached controller', function (): void {
+    addBodysuit($this)->assertStatus(303)->assertPlainCookie(CartController::COUNT_COOKIE, '1');
+    $controller = app('router')->getRoutes()->getByName('shop.cart.add')?->getController();
+
+    $this->post('/shop/cart', ['product' => $this->pads->id, 'quantity' => '2'])
+        ->assertStatus(303)->assertPlainCookie(CartController::COUNT_COOKIE, '3');
+    expect(app('router')->getRoutes()->getByName('shop.cart.add')?->getController())->toBe($controller);
+
+    // A refused change reports the count of this request's cart, not the one of the first request.
+    $this->postJson('/shop/cart', ['product' => 'x'])->assertStatus(422)->assertJson(['ok' => false, 'count' => 3]);
+
+    foreach ([1, 2] as $visit) {
+        $html = (string) $this->get('/shop/cart')->assertOk()->assertPlainCookie(CartController::COUNT_COOKIE, '3')->getContent();
+        expect(substr_count($html, '<title>'))->toBe(1)
+            ->and(substr_count($html, '"@type":"BreadcrumbList"'))->toBeLessThanOrEqual(1)
+            ->and($html)->toContain('جمع کالاها (۳)');
+    }
+});

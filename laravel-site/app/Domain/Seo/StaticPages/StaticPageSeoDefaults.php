@@ -16,7 +16,7 @@ use Illuminate\Contracts\Translation\Translator;
  */
 final class StaticPageSeoDefaults
 {
-    /** FaqController::TITLE / ::DESCRIPTION (the FAQ page has no lang file). */
+    /** The FAQ page has no lang file: its default title / description live here. The design title «سؤالات متداول — ریتمی» is 21 chars (seo:audit wants 30–60). */
     public const FAQ_TITLE = 'سؤالات متداول — جواب سؤال‌های رایج درباره ریتمی';
 
     public const FAQ_DESCRIPTION = 'جواب سؤال‌های رایج درباره ریتمی: شروع کار، دقت پیش‌بینی‌ها و سلامت، حریم خصوصی و داده، پرداخت و اشتراک، خدمات و فروشگاه.';

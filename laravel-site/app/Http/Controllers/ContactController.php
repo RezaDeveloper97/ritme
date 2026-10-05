@@ -9,12 +9,12 @@ use App\Domain\Contact\Enums\ContactTopic;
 use App\Domain\Contact\Support\ContactRecipients;
 use App\Domain\Contact\Support\FormTimer;
 use App\Domain\Content\Enums\StaticPage;
-use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Schema\Enums\WebPageType;
 use App\Domain\Seo\Schema\Node;
 use App\Domain\Seo\Schema\SchemaGraph;
 use App\Domain\Seo\Schema\SchemaIds;
 use App\Domain\Seo\SeoManager;
+use App\Domain\Seo\StaticPages\StaticPageSeo;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use App\Domain\Settings\Data\SiteSettings;
 use App\Http\Requests\ContactRequest;
@@ -39,7 +39,7 @@ final class ContactController
     public const FLASH = 'contact_status';
 
     public function __construct(
-        private readonly SeoMetaRepository $meta,
+        private readonly StaticPageSeo $staticSeo,
         private readonly SettingsRepository $settings,
         private readonly FormTimer $timer,
         private readonly ViewFactory $views,
@@ -51,13 +51,7 @@ final class ContactController
     {
         $settings = $this->settings->all();
 
-        $meta = $this->meta->forRoute(StaticPage::Contact->routeName());
-        if (($meta->title ?? '') === '') {
-            $seo->rawTitle(self::text('contact.seo.title'));
-        }
-        if (($meta->description ?? '') === '') {
-            $seo->description(self::text('contact.seo.description'));
-        }
+        $this->staticSeo->apply($seo, StaticPage::Contact);
         $graph->pageType(WebPageType::ContactPage)->pageName(StaticPage::Contact->label());
         $this->contactPoints($graph, $settings);
 
@@ -125,12 +119,5 @@ final class ContactController
         $digits = preg_replace('/[^\d+]/', '', PersianDigits::toLatin($phone)) ?? '';
 
         return preg_match('/^\+?\d{5,15}$/', $digits) === 1 ? $digits : null;
-    }
-
-    private static function text(string $key): string
-    {
-        $text = __($key);
-
-        return is_string($text) ? $text : '';
     }
 }
