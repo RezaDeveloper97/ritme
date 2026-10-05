@@ -811,3 +811,19 @@ One section per finished task (appended by `/site-task`).
   shipping «هنگام تماس اعلام می‌شود»); done 16.3 / 21.29%.
 - Open: `is_verified_purchase` not filled (review form has no mobile); ShopSettings for COD cap + shipping (L6-06);
   cancellation must restore only tracked lines + `sales_count` (L6-06); returns copy unconfirmed; queue worker (L10-01).
+
+## L9-01 — Critical CSS, font loading and asset budget
+- `tools/critical.mjs` (system Chrome via CDP, no packages): per-template critical CSS generated at build time from
+  sample pages at 390/1024/1440 (above-the-fold selectors + hide/grid rules) → `public/build/critical/` (shipped; no Node
+  on cPanel). Layout inlines it in `<style>` whose sha256 `SecurityHeaders` adds to `style-src`; full CSS preloaded in
+  head and applied by a `<link rel=stylesheet>` at the end of `<body>`; `<link rel="expect" blocking="render">` on the
+  fold; falls back to blocking `@vite` tags if the manifest/hash is missing (tests, dev). modulepreload per template.
+- Fonts: still 2 preloads; space/NBSP moved into the Arabic subsets (Latin files no longer forced on every page);
+  `local()` fallbacks (Tahoma / Geeza Pro) with measured `size-adjust`/overrides.
+- `npm run build` = vite + build-sw + critical; final budget check fails on budget/CSP violation/external request/
+  missing critical inline; `npm run budget [--lab]`. `docs/PERFORMANCE.md` per-template table (390, gzip): HTML
+  10.7–17.3 KB, CSS 21.4–23.3 KB (≤25), JS 5.0–7.6 KB, fonts 199–252 KB (exception), 17–23 requests, 0 render-blocking.
+- Lab (150 ms, 1.6 Mbps, 4× CPU): FCP/LCP 1.27–1.50 s → 0.55–1.42 s; CLS blog 0.150 / product 0.344 / home 0.074 →
+  0 except product 0.159 (override 0.2, fix moved to L9-02). Fidelity unchanged on /, /cycle, /blog, /shop.
+- Deploy notes moved into L10-01 (`CRITICAL_STRICT=1`, ship critical/, bump `pages` after deploy). `CRITICAL_SKIP=1`
+  for fast local builds (+~50 s otherwise).

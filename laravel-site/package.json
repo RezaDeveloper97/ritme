@@ -3,7 +3,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build && node tools/build-sw.mjs",
+        "build": "vite build && node tools/build-sw.mjs && node tools/critical.mjs",
+        "budget": "node tools/critical.mjs --budget",
         "dev": "vite"
     },
     "devDependencies": {

@@ -103,3 +103,27 @@ registration and precache contents, offline navigation (visited page from cache,
 routes (admin, cart, version.json), install prompt, soft update (new SW + polling channel), forced screen
 (`min_build_id`, restored to null afterwards), zero external requests and zero CSP violations. Starts and stops its own
 `php -S` server unless `--base` is given. Writes `pwa-check.json` + 390 px screenshots to `--out`. Exit 1 on any failure.
+
+## critical.mjs — build-time critical CSS + asset budget (L9-01)
+
+Last step of `npm run build` (`vite build && node tools/build-sw.mjs && node tools/critical.mjs`). Starts its own
+`php -S` (page cache off), loads each template's sample pages in headless system Chrome (CDP, no npm deps) at
+390×844 / 1024×768 / 1440×900 and keeps the rules of the built `app-*.css` whose selectors match an above-the-fold
+element (plus hiding rules and grid placement). Writes `public/build/critical/<template>.css` + `manifest.json`
+(shipped in the deploy package; nothing runs on the server). `<x-layout.assets/>` inlines the file, the CSP allows
+its sha256 (`SecurityHeaders`), and the full stylesheet is preloaded + applied at the end of `<body>`.
+
+Then it checks the per-template budget (`BUDGET` in the script, documented in `docs/PERFORMANCE.md`) and exits 1 when
+a template exceeds it — the build (and `composer verify`) fail.
+
+```bash
+npm run budget                                        # = node tools/critical.mjs --budget (existing build)
+node tools/critical.mjs --budget --lab --json /tmp/b.json   # + throttled FCP/LCP/CLS (150 ms, 1.6 Mbps, 4× CPU)
+node tools/critical.mjs --no-budget                   # regenerate critical CSS only
+node tools/critical.mjs --base http://127.0.0.1:8000  # against a running server
+CRITICAL_SKIP=1 npm run build                         # skip (pages fall back to the blocking stylesheet)
+```
+
+No Chrome or no answering site (fresh checkout without a database) → warning, no critical CSS, exit 0
+(`CRITICAL_STRICT=1` makes it an error — use it for deploy builds). Adding a template: an entry in `TEMPLATES`
+(sample URLs or a `discover` link + route-name patterns); unmapped routes use `default` (union of all templates).

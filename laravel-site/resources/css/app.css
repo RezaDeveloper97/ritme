@@ -78,8 +78,8 @@
 
     /* ---------- Typography (AUDIT §3.2) ---------- */
     --font-*: initial;
-    --font-sans: Vazirmatn, Tahoma, ui-sans-serif, system-ui, sans-serif;
-    --font-display: Lalezar, Vazirmatn, Tahoma, sans-serif;
+    --font-sans: Vazirmatn, 'Vazirmatn Fallback', 'Vazirmatn Fallback Geeza', Tahoma, ui-sans-serif, system-ui, sans-serif;
+    --font-display: Lalezar, 'Lalezar Fallback', 'Lalezar Fallback Geeza', Vazirmatn, Tahoma, sans-serif;
 
     /* Text scale (px → rem @16px). Line height is set per element with `leading-*`. */
     --text-*: initial;

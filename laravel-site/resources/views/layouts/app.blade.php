@@ -6,6 +6,10 @@
     $appCta (bool: the page renders the #download app CTA). Defaults come from the StaticPage registry.
     SEO tags come from <x-seo.head/>; breadcrumbs (<x-ui.breadcrumbs/>) belong in a section so they register
     their JSON-LD before the head renders. Scripts: lazy data-module ES modules via app.js; @stack('scripts') last.
+    CSS (L9-01): <x-layout.assets/> inlines the template's critical CSS and pushes the full stylesheet onto
+    @stack('deferred-styles') at the end of <body> (preloaded in the head), so it never blocks the first paint.
+    The empty <template id="main-end"> (no box, so not a grid item) is the target of the head's
+    <link rel="expect" blocking="render">: the first paint waits until <main> is parsed, never a half-parsed fold.
     body[data-module=pwa]: service worker, two-tier update toast / forced screen, install prompt (L8-02).
 
     Dark pages: header, mobile menu and hero share ONE night/glow background (a grid layer under rows 1–3; the
@@ -53,8 +57,10 @@
                 @yield('content')
             </div>
         </main>
+        <template id="main-end"></template>
         <x-layout.footer/>
     </div>
+    @stack('deferred-styles')
     @stack('scripts')
 </body>
 </html>

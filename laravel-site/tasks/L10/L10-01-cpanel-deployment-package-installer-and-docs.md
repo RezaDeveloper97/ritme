@@ -36,6 +36,10 @@ LiteSpeed/Apache.
   set PHP version (MultiPHP), env, install command, cron, SSL (AutoSSL), troubleshooting (500 errors, permissions,
   `open_basedir`, missing extensions).
 
+- From L9-01/L8-02: build the package with `CRITICAL_STRICT=1 npm run build` (critical CSS per template + SW);
+  ship `public/build/critical/`, `public/sw.js`, `public/build/build-id.json`; post-deploy run
+  `php artisan cache:ns bump pages` (cached HTML carries the critical-CSS hash allowed by the CSP).
+
 ## Acceptance
 - Package installs on a clean local Apache/PHP container simulating cPanel (both layouts) and serves the site; docs
   reviewed.

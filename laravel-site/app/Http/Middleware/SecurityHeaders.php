@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\View\Components\Layout\Assets;
 use Closure;
 use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\Foundation\Application;
@@ -15,7 +16,8 @@ use Symfony\Component\HttpFoundation\Response;
  * Security headers on every response (global, outermost, so redirects and error pages get them too).
  *
  * Public site — strict CSP with no external origin: everything is `'self'` (+ `data:` images), no inline styles, no
- * inline scripts (JSON-LD data blocks are not executed and need nothing); an opt-in per-request nonce
+ * inline scripts (JSON-LD data blocks are not executed and need nothing) except the build-generated critical CSS
+ * <style> blocks, allowed by their sha256 from public/build/critical/manifest.json (L9-01); an opt-in per-request nonce
  * (pagecache.security.nonce) allows an inline bootstrap. Admin (filament.admin.path, Livewire, Filament endpoints) — Livewire/Alpine need inline scripts, eval and
  * inline styles, so `'unsafe-inline' 'unsafe-eval'` there, still without any external origin and without a nonce
  * (a nonce would disable 'unsafe-inline').
@@ -90,8 +92,12 @@ final class SecurityHeaders
             $img[] = 'blob:';
             $font[] = 'data:';
             $worker[] = 'blob:';
-        } elseif ($nonce !== null) {
-            $script[] = "'nonce-{$nonce}'";
+        } else {
+            if ($nonce !== null) {
+                $script[] = "'nonce-{$nonce}'";
+            }
+            // Inline critical CSS (L9-01): only the exact build-generated <style> blocks, by hash.
+            $style = [...$style, ...Assets::criticalStyleHashes($this->vite)];
         }
 
         if ($hot !== []) {

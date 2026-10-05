@@ -3,16 +3,12 @@
  * Weights per docs/AUDIT.md §3.2: Vazirmatn 400–800 (text), Lalezar 400 (display).
  * Each weight is split into an Arabic-script and a Latin file by unicode-range, so a page
  * only downloads the subsets it renders. No external font hosts — ever.
+ *
+ * Order matters (L9-01): for characters in both ranges the face declared LAST is tried first, so the Arabic file
+ * follows the Latin one and also claims U+0020/U+00A0 (it has both glyphs). Spaces and ZWNJ (U+200C, inside the Latin
+ * file's U+2000-206F) then no longer pull the Latin file onto Persian-only text; it loads only for real Latin
+ * characters (ASCII digits, punctuation, «», Latin words).
  */
-
-@font-face {
-    font-family: 'Vazirmatn';
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url('../fonts/vazirmatn-arabic-400-normal.woff2') format('woff2');
-    unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
-}
 
 @font-face {
     font-family: 'Vazirmatn';
@@ -26,10 +22,10 @@
 @font-face {
     font-family: 'Vazirmatn';
     font-style: normal;
-    font-weight: 500;
+    font-weight: 400;
     font-display: swap;
-    src: url('../fonts/vazirmatn-arabic-500-normal.woff2') format('woff2');
-    unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+    src: url('../fonts/vazirmatn-arabic-400-normal.woff2') format('woff2');
+    unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
 }
 
 @font-face {
@@ -44,10 +40,10 @@
 @font-face {
     font-family: 'Vazirmatn';
     font-style: normal;
-    font-weight: 600;
+    font-weight: 500;
     font-display: swap;
-    src: url('../fonts/vazirmatn-arabic-600-normal.woff2') format('woff2');
-    unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+    src: url('../fonts/vazirmatn-arabic-500-normal.woff2') format('woff2');
+    unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
 }
 
 @font-face {
@@ -62,10 +58,10 @@
 @font-face {
     font-family: 'Vazirmatn';
     font-style: normal;
-    font-weight: 700;
+    font-weight: 600;
     font-display: swap;
-    src: url('../fonts/vazirmatn-arabic-700-normal.woff2') format('woff2');
-    unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+    src: url('../fonts/vazirmatn-arabic-600-normal.woff2') format('woff2');
+    unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
 }
 
 @font-face {
@@ -80,10 +76,10 @@
 @font-face {
     font-family: 'Vazirmatn';
     font-style: normal;
-    font-weight: 800;
+    font-weight: 700;
     font-display: swap;
-    src: url('../fonts/vazirmatn-arabic-800-normal.woff2') format('woff2');
-    unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+    src: url('../fonts/vazirmatn-arabic-700-normal.woff2') format('woff2');
+    unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
 }
 
 @font-face {
@@ -96,12 +92,12 @@
 }
 
 @font-face {
-    font-family: 'Lalezar';
+    font-family: 'Vazirmatn';
     font-style: normal;
-    font-weight: 400;
+    font-weight: 800;
     font-display: swap;
-    src: url('../fonts/lalezar-arabic-400-normal.woff2') format('woff2');
-    unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+    src: url('../fonts/vazirmatn-arabic-800-normal.woff2') format('woff2');
+    unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
 }
 
 @font-face {
@@ -111,4 +107,156 @@
     font-display: swap;
     src: url('../fonts/lalezar-latin-400-normal.woff2') format('woff2');
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: 'Lalezar';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../fonts/lalezar-arabic-400-normal.woff2') format('woff2');
+    unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+
+/*
+ * Metric-matched local fallbacks (L9-01) — no download (local() only). While a web font is still loading
+ * (font-display: swap) text renders in the first available of these instead of a raw system font: size-adjust is the
+ * measured width ratio of Vazirmatn (per weight) / Lalezar to the local font on the site's Persian copy, so line
+ * breaks barely move when the web font swaps in (CLS). ascent/descent overrides reproduce the web font's vertical
+ * metrics (Vazirmatn 2100/1100 of 2048 units, Lalezar 979/588 of 1000) and are divided by size-adjust because they
+ * apply to the adjusted size. Tahoma: Windows/macOS · Geeza Pro: iOS/macOS. Android/Linux system
+ * Arabic fonts could not be measured here and fall through to the unadjusted stack.
+ * Used by --font-sans / --font-display in app.css.
+ */
+
+@font-face {
+    font-family: 'Vazirmatn Fallback';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Tahoma'), local('Tahoma');
+    size-adjust: 93.21%;
+    ascent-override: 110.01%;
+    descent-override: 57.62%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Vazirmatn Fallback';
+    font-style: normal;
+    font-weight: 500;
+    src: local('Tahoma'), local('Tahoma');
+    size-adjust: 93.96%;
+    ascent-override: 109.13%;
+    descent-override: 57.16%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Vazirmatn Fallback';
+    font-style: normal;
+    font-weight: 600;
+    src: local('Tahoma Bold'), local('Tahoma-Bold');
+    size-adjust: 83.24%;
+    ascent-override: 123.18%;
+    descent-override: 64.53%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Vazirmatn Fallback';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Tahoma Bold'), local('Tahoma-Bold');
+    size-adjust: 83.50%;
+    ascent-override: 122.80%;
+    descent-override: 64.32%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Vazirmatn Fallback';
+    font-style: normal;
+    font-weight: 800;
+    src: local('Tahoma Bold'), local('Tahoma-Bold');
+    size-adjust: 83.80%;
+    ascent-override: 122.36%;
+    descent-override: 64.09%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Lalezar Fallback';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Tahoma'), local('Tahoma');
+    size-adjust: 80.05%;
+    ascent-override: 122.30%;
+    descent-override: 73.45%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Vazirmatn Fallback Geeza';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Geeza Pro'), local('GeezaPro');
+    size-adjust: 109.22%;
+    ascent-override: 93.88%;
+    descent-override: 49.18%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Vazirmatn Fallback Geeza';
+    font-style: normal;
+    font-weight: 500;
+    src: local('Geeza Pro'), local('GeezaPro');
+    size-adjust: 110.10%;
+    ascent-override: 93.13%;
+    descent-override: 48.78%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Vazirmatn Fallback Geeza';
+    font-style: normal;
+    font-weight: 600;
+    src: local('Geeza Pro Bold'), local('GeezaPro-Bold');
+    size-adjust: 95.29%;
+    ascent-override: 107.61%;
+    descent-override: 56.37%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Vazirmatn Fallback Geeza';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Geeza Pro Bold'), local('GeezaPro-Bold');
+    size-adjust: 95.60%;
+    ascent-override: 107.26%;
+    descent-override: 56.18%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Vazirmatn Fallback Geeza';
+    font-style: normal;
+    font-weight: 800;
+    src: local('Geeza Pro Bold'), local('GeezaPro-Bold');
+    size-adjust: 95.94%;
+    ascent-override: 106.88%;
+    descent-override: 55.98%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Lalezar Fallback Geeza';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Geeza Pro'), local('GeezaPro');
+    size-adjust: 93.80%;
+    ascent-override: 104.37%;
+    descent-override: 62.69%;
+    line-gap-override: 0%;
 }

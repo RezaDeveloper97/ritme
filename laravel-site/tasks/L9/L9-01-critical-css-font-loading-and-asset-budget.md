@@ -3,7 +3,7 @@ id: L9-01
 title: Critical CSS, font loading and asset budget
 milestone: L9
 type: quality
-status: todo
+status: done
 depends_on: [L3-11,L4-03,L5-03,L6-03]
 parallel_group: L9-A
 touches: [vite.config.js,tools/critical.mjs,resources/views/layouts,resources/css,docs/PERFORMANCE.md]
