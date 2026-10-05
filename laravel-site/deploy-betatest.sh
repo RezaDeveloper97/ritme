@@ -152,17 +152,17 @@ fi
 
 step "Smoke tests"
 fail=0
-check() { # $1 label, $2 expected code, $3.. curl args
+check() { # $1 label, $2 expected code(s) "200" or "403|404", $3.. curl args
   local label="$1" want="$2"; shift 2
   local got; got="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$@" || echo 000)"
-  if [[ "$got" == "$want" ]]; then echo "   ✔ ${label} → ${got}"; else echo "   ✘ ${label} → ${got} (want ${want})"; fail=1; fi
+  if [[ "|${want}|" == *"|${got}|"* ]]; then echo "   ✔ ${label} → ${got}"; else echo "   ✘ ${label} → ${got} (want ${want})"; fail=1; fi
 }
 origin=(--resolve "${DOMAIN}:443:89.251.8.115" -k)
 check "origin /"             200 "${origin[@]}" "https://${DOMAIN}/"
 check "origin /up"           200 "${origin[@]}" "https://${DOMAIN}/up"
 check "origin /admin/login"  200 "${origin[@]}" "https://${DOMAIN}/admin/login"
 check "origin /blog"         200 "${origin[@]}" "https://${DOMAIN}/blog"
-check "origin /.env"         404 "${origin[@]}" "https://${DOMAIN}/.env"
+check "origin /.env"         "403|404" "${origin[@]}" "https://${DOMAIN}/.env"
 if curl -s --max-time 30 "${origin[@]}" "https://${DOMAIN}/robots.txt" | grep -qx 'Disallow: /'; then
   echo "   ✔ robots.txt disallows everything (beta)"; else echo "   ✘ robots.txt is not Disallow: /"; fail=1; fi
 check "CDN https://${DOMAIN}/" 200 "https://${DOMAIN}/"
