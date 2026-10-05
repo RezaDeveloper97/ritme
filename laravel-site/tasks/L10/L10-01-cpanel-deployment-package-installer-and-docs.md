@@ -3,7 +3,7 @@ id: L10-01
 title: cPanel deployment package, installer and docs
 milestone: L10
 type: release
-status: todo
+status: done
 depends_on: [L9-05,L8-03]
 parallel_group: L10-A
 touches: [deploy,app/Console/Commands/AppInstall.php,app/Console/Commands/AppUpgrade.php,.env.cpanel.example,docs/DEPLOY-CPANEL.md,public/.htaccess,bootstrap/app.php,routes/console.php]

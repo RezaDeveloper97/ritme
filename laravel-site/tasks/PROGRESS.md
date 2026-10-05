@@ -948,3 +948,22 @@ One section per finished task (appended by `/site-task`).
 - Orchestrator: `tools/critical.mjs` gives `shop.category` its own `category` template; `BUDGET_OVERRIDES` emptied;
   `docs/PERFORMANCE.md` + `tools/README.md` updated; rebuilt and re-ran the sweep (56/56).
 - Open: manual GTmetrix on stage after deploy; text typed with Arabic Presentation Forms now falls back to system fonts.
+
+## L10-01 — cPanel deployment package, installer and docs
+- `deploy/build-cpanel.sh` (bash 3.2; `--dry-run`, `--ref=<commit>` (default clean `git archive HEAD`), `--worktree`,
+  `--layout=docroot|public_html|all`, `--app-dir`, `--doc-root`, `--allow-no-critical`, `--keep`): no-dev composer
+  (platform 8.2, classmap-authoritative), temp SQLite + demo seeders for critical-CSS samples, `npm ci`,
+  `CRITICAL_STRICT=1 npm run build` with `BUILD_ID`, `filament:assets`, strips dev files, writes `release.json`,
+  zip + `.sha256` in `dist/` (~21–22 MB). Layout helpers `deploy/cpanel/{root.htaccess,index.public_html.php,public-path.php}`.
+- `php artisan app:install` (env/PHP/extension/permission checks + warnings for upload/memory/https/MFA/mailer, creates
+  `.env` from `.env.cpanel.example` + key then stops, DB test, migrate, seed, optional first admin, optimize, bump-all,
+  sitemap warm, prints the cron line; `--check --public-path --no-admin --no-cache --skip-checks --force`) and
+  `app:upgrade` (maintenance with secret, migrate, insert-missing seeders, rebuild caches, bump-all, queue:restart, up;
+  stays down on failure). `routes/console.php`: `queue:work --stop-when-empty --max-time=55` every minute, hourly
+  sitemap warm, daily failed-job prune + activitylog clean. `bootstrap/app.php` honours `bootstrap/public-path.php`;
+  `public/.htaccess` `DirectoryIndex` + 404 for direct `/public/…`. `.env.cpanel.example`. `docs/DEPLOY-CPANEL.md` (Persian).
+- Verified on local Apache 2.4 + PHP-FPM 8.4 in all three layouts: install, smoke (16 pages/assets 200; .env, vendor,
+  storage, composer.*, artisan, app/, config/, sqlite, release.json, /media/x.php denied), maintenance bypass, uploads
+  into `public_html/media`, cron-driven queue, upgrade over an existing install; 0 PHP errors. Tests `tests/Feature/Deploy` (12).
+- Open: real PHP 8.2 run pending (docker image pull was slow); production package must be built from a commit with
+  `--ref`; F16 (queued confirm mail) now possible; admin creation needs Terminal; docs need a human review.

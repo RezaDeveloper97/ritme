@@ -13,7 +13,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 
-return Application::configure(basePath: dirname(__DIR__))
+$app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
@@ -41,3 +41,17 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
+
+// cPanel layout "public_html" (L10-01, docs/DEPLOY-CPANEL.md): the public files live in the document root next to the
+// app folder instead of in public/. bootstrap/public-path.php — shipped by `deploy/build-cpanel.sh --layout=public_html`
+// or written by `php artisan app:install --public-path=…` — returns that folder, so the web front controller and every
+// CLI process (cron scheduler, queue worker, artisan) agree on public_path(): media uploads, Vite and critical-CSS
+// manifests, sw.js, Filament assets. No symlink needed.
+if (is_file(__DIR__.'/public-path.php')) {
+    $publicPath = require __DIR__.'/public-path.php';
+    if (is_string($publicPath) && is_dir($publicPath)) {
+        $app->usePublicPath((string) realpath($publicPath));
+    }
+}
+
+return $app;

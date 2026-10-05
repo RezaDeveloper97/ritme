@@ -36,3 +36,6 @@ Thumbs.db
 /docs/qa/**/*.png
 /.playwright-mcp
 /public/media
+
+# cPanel layout marker written by deploy/build-cpanel.sh / app:install (L10-01)
+/bootstrap/public-path.php

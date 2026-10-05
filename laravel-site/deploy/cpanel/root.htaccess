@@ -1,0 +1,62 @@
+# -----------------------------------------------------------------------------
+# Ritme — root .htaccess for the fallback layout (L10-01, docs/DEPLOY-CPANEL.md):
+# the WHOLE package was extracted into the document root (e.g. public_html) because
+# the host does not let the document root point at public/.
+#
+# Every request is served from public/ (whose own .htaccess routes to Laravel), so
+# app/, vendor/, storage/, .env, composer.json … are never reachable: they map to
+# public/<path>, which does not exist, and Laravel answers 404. The preferred layouts
+# (document root → public/, or the public_html package) keep the app outside the web
+# root entirely — use them when you can.
+# -----------------------------------------------------------------------------
+
+<IfModule mod_dir.c>
+    # public/index.php wins over a leftover index.html of the host's placeholder page.
+    DirectoryIndex index.php
+</IfModule>
+
+<IfModule mod_autoindex.c>
+    # Never list a folder's files.
+    Options -Indexes
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    # Turn the rewrite engine on for this directory.
+    RewriteEngine On
+
+    # cPanel AutoSSL / ACME domain validation writes into <docroot>/.well-known — let it through when the file exists.
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^\.well-known/ - [L]
+
+    # Everything else goes to public/ (its .htaccess sends non-files to index.php). Requests already under public/
+    # are handled by public/.htaccess itself, so this rule cannot loop.
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Without mod_rewrite nothing here may be served (the app would be exposed): refuse everything.
+<IfModule !mod_rewrite.c>
+    <IfModule mod_authz_core.c>
+        # Apache 2.4 / LiteSpeed syntax.
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        # Apache 2.2 syntax: evaluate allow before deny …
+        Order allow,deny
+        # … and deny everyone.
+        Deny from all
+    </IfModule>
+</IfModule>
+
+# Second line of defence: dotfiles (.env, .git …) at this level are never served, except .well-known.
+<FilesMatch "^\.(?!well-known)">
+    <IfModule mod_authz_core.c>
+        # Apache 2.4 / LiteSpeed syntax.
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        # Apache 2.2 syntax: evaluate allow before deny …
+        Order allow,deny
+        # … and deny everyone.
+        Deny from all
+    </IfModule>
+</FilesMatch>

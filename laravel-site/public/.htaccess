@@ -10,6 +10,12 @@
 # directive is explained on the comment line(s) right above it.
 # -----------------------------------------------------------------------------
 
+# --- Front controller (L10-01) -------------------------------------------------
+<IfModule mod_dir.c>
+    # "/" is Laravel even when the host left its placeholder index.html in public_html.
+    DirectoryIndex index.php
+</IfModule>
+
 # --- Folder listings (L9-04) ---------------------------------------------------
 <IfModule mod_autoindex.c>
     # Never list a folder's files (e.g. /media/2026/10/), even where mod_negotiation is absent.
@@ -35,6 +41,12 @@
 
     # Refuse dotfiles and dot-folders (.env, .git/…) except /.well-known (ACME / AutoSSL).
     RewriteRule (^|/)\.(?!well-known(/|$)) - [F,L]
+
+    # Fallback layout (L10-01, deploy/cpanel/root.htaccess): with the whole package in public_html, this folder is
+    # also reachable as /public/… — a duplicate of every URL. Requests that literally ask for /public/… answer 404
+    # (the root .htaccess's internal rewrite keeps the original request line, so it is not affected).
+    RewriteCond %{THE_REQUEST} ^[A-Z]+\s/public(/|\s|\?)
+    RewriteRule ^ - [R=404,L]
 
     # Security (L9-04): if the whole project was ever unpacked into the document root by mistake, never serve the
     # application itself — config, code, logs, sessions, dependencies, the SQLite file and dev tooling all answer 403.
