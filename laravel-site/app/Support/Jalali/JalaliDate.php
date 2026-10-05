@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Jalali;
 
 use App\Support\Text\PersianDigits;
+use Carbon\CarbonImmutable;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
@@ -73,7 +74,8 @@ final class JalaliDate
 
     public static function now(string|DateTimeZone $timezone = self::TIMEZONE): self
     {
-        return self::fromDateTime(new DateTimeImmutable('now'), $timezone);
+        // Carbon's clock honours test time travel (travelTo / setTestNow); plain `new DateTimeImmutable` would not.
+        return self::fromDateTime(CarbonImmutable::now(), $timezone);
     }
 
     /** Midnight (or the given time) of a Jalali calendar day in `$timezone`. */
