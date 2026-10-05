@@ -21,4 +21,14 @@ final readonly class AuditIssue
     {
         return new self(Severity::Warning, $code, $message);
     }
+
+    public static function notice(string $code, string $message): self
+    {
+        return new self(Severity::Notice, $code, $message);
+    }
+
+    public function withSeverity(Severity $severity): self
+    {
+        return new self($severity, $this->code, $this->message);
+    }
 }

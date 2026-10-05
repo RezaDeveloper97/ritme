@@ -9,10 +9,12 @@ use DOMElement;
 use DOMXPath;
 
 /**
- * seo:audit v1 rules on rendered HTML (extended into a full engine in L7-05):
- * title 30–60 chars and unique, description 70–160 and unique (uniqueness among indexable pages), exactly one
- * <h1>, canonical present + absolute, Open Graph complete, every <img> with alt + width + height, no href="#".
- * A missing og:image is a warning until the media library provides default OG images.
+ * Single-page rules on rendered HTML (seo:audit v1, kept stable for CI): title 30–60 chars and unique, description
+ * 70–160 and unique (uniqueness among indexable pages), exactly one <h1>, canonical present + absolute, Open Graph
+ * complete, every <img> with alt + width + height, no href="#". A missing og:image is a warning.
+ * On noindex pages (cart, checkout, search …) title / description length findings are only notices: those pages never
+ * show up in results. The crawl-level rules (links, sitemap, canonical self-reference, JSON-LD, weight …) live in
+ * PageInspector and SeoAuditEngine (L7-05).
  */
 final class SeoAuditor
 {
@@ -28,6 +30,9 @@ final class SeoAuditor
 
     public const IMAGE_OG = ['og:image:width', 'og:image:height', 'og:image:alt'];
 
+    /** Findings that only matter for pages search engines may show (demoted to notices on noindex pages). */
+    public const NOINDEX_SOFT = ['title.length', 'description.length', 'description.missing', 'og.image'];
+
     public function auditPage(string $url, string $html): PageAudit
     {
         $xpath = $this->xpath($html);
@@ -36,53 +41,53 @@ final class SeoAuditor
         $titles = $this->texts($xpath, '//head/title');
         $title = $titles[0] ?? null;
         if ($title === null || $title === '') {
-            $issues[] = AuditIssue::error('title.missing', 'No <title>.');
+            $issues[] = AuditIssue::error('title.missing', 'تگ <title> ندارد.');
         } else {
             if (count($titles) > 1) {
-                $issues[] = AuditIssue::error('title.multiple', count($titles).' <title> elements.');
+                $issues[] = AuditIssue::error('title.multiple', count($titles).' تگ <title> دارد.');
             }
             $length = mb_strlen($title);
             if ($length < self::TITLE_MIN || $length > self::TITLE_MAX) {
-                $issues[] = AuditIssue::error('title.length', "Title is {$length} chars (".self::TITLE_MIN.'–'.self::TITLE_MAX.').');
+                $issues[] = AuditIssue::error('title.length', "عنوان {$length} نویسه است (مجاز ".self::TITLE_MIN.'–'.self::TITLE_MAX.').');
             }
         }
 
         $description = $this->metaContent($xpath, 'name', 'description');
         if ($description === null || $description === '') {
-            $issues[] = AuditIssue::error('description.missing', 'No meta description.');
+            $issues[] = AuditIssue::error('description.missing', 'توضیح متا ندارد.');
         } else {
             $length = mb_strlen($description);
             if ($length < self::DESCRIPTION_MIN || $length > self::DESCRIPTION_MAX) {
-                $issues[] = AuditIssue::error('description.length', "Description is {$length} chars (".self::DESCRIPTION_MIN.'–'.self::DESCRIPTION_MAX.').');
+                $issues[] = AuditIssue::error('description.length', "توضیح متا {$length} نویسه است (مجاز ".self::DESCRIPTION_MIN.'–'.self::DESCRIPTION_MAX.').');
             }
         }
 
         $h1 = $xpath->query('//h1');
         $h1Count = $h1 === false ? 0 : $h1->length;
         if ($h1Count !== 1) {
-            $issues[] = AuditIssue::error('h1.count', "{$h1Count} <h1> elements (exactly one expected).");
+            $issues[] = AuditIssue::error('h1.count', "{$h1Count} تگ <h1> دارد (دقیقاً یکی لازم است).");
         }
 
         $canonicals = $this->attributes($xpath, '//link[@rel="canonical"]', 'href');
         if ($canonicals === []) {
-            $issues[] = AuditIssue::error('canonical.missing', 'No canonical link.');
+            $issues[] = AuditIssue::error('canonical.missing', 'پیوند canonical ندارد.');
         } elseif (count($canonicals) > 1) {
-            $issues[] = AuditIssue::error('canonical.multiple', count($canonicals).' canonical links.');
+            $issues[] = AuditIssue::error('canonical.multiple', count($canonicals).' پیوند canonical دارد.');
         } elseif (preg_match('#^https?://[^/\s]+#i', $canonicals[0]) !== 1) {
-            $issues[] = AuditIssue::error('canonical.relative', "Canonical is not absolute: {$canonicals[0]}");
+            $issues[] = AuditIssue::error('canonical.relative', "canonical نشانی کامل نیست: {$canonicals[0]}");
         }
 
         foreach (self::REQUIRED_OG as $property) {
             if (($this->metaContent($xpath, 'property', $property) ?? '') === '') {
-                $issues[] = AuditIssue::error('og.missing', "Missing {$property}.");
+                $issues[] = AuditIssue::error('og.missing', "{$property} ندارد.");
             }
         }
         if (($this->metaContent($xpath, 'property', 'og:image') ?? '') === '') {
-            $issues[] = AuditIssue::warning('og.image', 'Missing og:image.');
+            $issues[] = AuditIssue::warning('og.image', 'تصویر اشتراک (og:image) ندارد.');
         } else {
             foreach (self::IMAGE_OG as $property) {
                 if (($this->metaContent($xpath, 'property', $property) ?? '') === '') {
-                    $issues[] = AuditIssue::error('og.missing', "Missing {$property}.");
+                    $issues[] = AuditIssue::error('og.missing', "{$property} ندارد.");
                 }
             }
         }
@@ -95,23 +100,29 @@ final class SeoAuditor
             $missing = array_values(array_filter(['alt', 'width', 'height'], static fn (string $a): bool => ! $image->hasAttribute($a)));
             if ($missing !== []) {
                 $src = $image->getAttribute('src') ?: '#'.($index + 1);
-                $issues[] = AuditIssue::error('img.attributes', "<img {$src}> lacks ".implode(', ', $missing).'.');
+                $issues[] = AuditIssue::error('img.attributes', "تصویر {$src} این ویژگی‌ها را ندارد: ".implode(', ', $missing).'.');
             }
         }
 
         $hashLinks = $xpath->query('//a[normalize-space(@href)="#"]');
         $hashCount = $hashLinks === false ? 0 : $hashLinks->length;
         if ($hashCount > 0) {
-            $issues[] = AuditIssue::error('link.hash', "{$hashCount} link(s) with href=\"#\".");
+            $issues[] = AuditIssue::error('link.hash', "{$hashCount} پیوند با href=\"#\" دارد.");
         }
 
         $robots = strtolower($this->metaContent($xpath, 'name', 'robots') ?? '');
+        $indexable = ! str_contains($robots, 'noindex') && ! str_contains($robots, 'none');
+        if (! $indexable) {
+            $issues = array_map(static fn (AuditIssue $issue): AuditIssue => in_array($issue->code, self::NOINDEX_SOFT, true)
+                ? $issue->withSeverity(Severity::Notice)
+                : $issue, $issues);
+        }
 
         return new PageAudit(
             url: $url,
             title: $title,
             description: $description,
-            indexable: ! str_contains($robots, 'noindex') && ! str_contains($robots, 'none'),
+            indexable: $indexable,
             issues: $issues,
         );
     }
@@ -138,7 +149,7 @@ final class SeoAuditor
                     continue;
                 }
                 $others = array_values(array_diff($seen[$value], [$page->url]));
-                $pages[$i] = $page->with(AuditIssue::error($code, ucfirst($field).' also used by '.implode(', ', $others).'.'));
+                $pages[$i] = $page->with(AuditIssue::error($code, ($field === 'title' ? 'همین عنوان' : 'همین توضیح').' در این صفحه‌ها هم آمده: '.implode('، ', $others).'.'));
             }
         }
 

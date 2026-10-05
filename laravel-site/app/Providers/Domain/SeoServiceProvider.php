@@ -12,6 +12,8 @@ use App\Domain\Directory\Models\City as DirectoryCity;
 use App\Domain\Directory\Models\Place;
 use App\Domain\Directory\Models\PlaceCategory as DirectoryCategory;
 use App\Domain\Media\Support\MediaOgImageResolver;
+use App\Domain\Seo\Audit\Actions\QueueSeoAudit;
+use App\Domain\Seo\Audit\Enums\RunTrigger;
 use App\Domain\Seo\Contracts\OgImageResolver;
 use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Indexing\IndexNow\IndexNowKey;
@@ -103,6 +105,18 @@ final class SeoServiceProvider extends DomainServiceProvider
         // Sitemap files (L1-06). Other contexts tag their own providers the same way in their service provider.
         $this->app->tag([PagesSitemapProvider::class], SitemapRegistry::TAG);
         $this->registerRedirects();
+        $this->registerAudit();
+    }
+
+    /** SEO audit (L7-05): a stored, bounded full crawl every Saturday night through the queue. */
+    private function registerAudit(): void
+    {
+        $this->callAfterResolving(Schedule::class, static function (Schedule $schedule): void {
+            $schedule->call(static fn (QueueSeoAudit $queue) => $queue->handle(RunTrigger::Schedule))
+                ->name('seo-audit')
+                ->weeklyOn(6, '04:20')
+                ->withoutOverlapping(60);
+        });
     }
 
     /** Redirect manager (L7-03): stats flush every five minutes, 404 purge daily (cPanel cron runs schedule:run). */

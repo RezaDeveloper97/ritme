@@ -3,7 +3,7 @@ id: L7-05
 title: SEO audit engine + dashboard widgets
 milestone: L7
 type: admin
-status: todo
+status: done
 depends_on: [L7-02,L7-03,L5-06,L6-06]
 parallel_group: L7-D
 touches: [app/Domain/Seo/Audit,app/Console/Commands/SeoAudit.php,app/Filament/Widgets/Seo,app/Filament/Pages/Seo/AuditReport.php,database/migrations,tests/Feature/Seo/AuditTest.php]

@@ -863,3 +863,20 @@ One section per finished task (appended by `/site-task`).
   contact point) → head + JSON-LD. `SeoDefaults::template()`; `PageGraph` uses it. `BulkSeoTest` (8).
 - Open: scores refresh only on bulk saves/recompute (no schedule; SEO-tab saves don't rescore); `SeoFields::cornerstone()`
   doesn't read the column yet; recompute creates score-only rows for static pages (L7-01 then shows "reset").
+
+## L7-05 — SEO audit engine + dashboard widgets
+- `app/Domain/Seo/Audit/`: `SeoAuditEngine` (bounded in-process crawl via `Crawl/KernelPageFetcher` (`#[Bind]`),
+  `no-cache` + bot UA so page cache and 404 monitor are bypassed, production robots simulated unless `--as-is`; max
+  pages 500 / 240 s / render cap; previously failing pages first; keeps 30 runs), `PageInspector` + `IssueCodes`
+  (status, title/description length + uniqueness across all pages incl. content, one h1, canonical, noindex/redirect/404
+  in sitemap, broken internal links + missing fragments (Persian slugs/anchors fixed), redirect chains, JSON-LD parse +
+  required props, lazy LCP image, alt/width/height, og:image, external requests, orphan/not-in-sitemap pages, slow
+  responses, content analyser score), `Severity::Notice`, Persian messages; `RunSeoAudit`/`QueueSeoAudit`,
+  `RunSeoAuditJob` (weekly Saturday 04:20 via queue), models `AuditRun`/`AuditRunPage`/`AuditRunIssue`, queries
+  (history, top 404s, zero-result searches).
+- Migration `2026_10_05_100700_create_seo_audit_tables` (runs, pages, issues; sha1 path hashes; cascade).
+- `/admin/seo/audit` (`AuditReport`: filters by severity/code/run, «اجرای دوباره») + widgets (health overview, score
+  trend, top issues, top 404s, zero-result searches, content needing work). CLI `seo:audit` keeps its old output, gains
+  `--max-pages --time-limit --no-store --as-is --queue --notices`. `AuditTest` (6).
+- Dev site: 85 pages, score 96/100, 3 errors (`/directory`, `/shop` noindex-in-sitemap; reviewer profile description
+  26 chars), 32 og:image + 6 thin-content warnings → fixes split into **L7-05b**.

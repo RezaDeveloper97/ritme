@@ -4,136 +4,107 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Domain\Seo\Audit\AuditIssue;
-use App\Domain\Seo\Audit\PageAudit;
-use App\Domain\Seo\Audit\SeoAuditor;
+use App\Domain\Seo\Audit\Actions\QueueSeoAudit;
+use App\Domain\Seo\Audit\Actions\RunSeoAudit;
+use App\Domain\Seo\Audit\AuditOptions;
+use App\Domain\Seo\Audit\Enums\RunTrigger;
 use App\Domain\Seo\Audit\Severity;
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Http\Kernel as HttpKernel;
-use Illuminate\Http\Request;
-use Illuminate\Routing\Route;
-use Illuminate\Routing\Router;
-use Illuminate\Support\Str;
-use Throwable;
+use Illuminate\Contracts\Config\Repository as Config;
+use Illuminate\Support\Facades\Schema;
 
 /**
- * seo:audit v1 — renders every GET route without required parameters in-process (no HTTP, no network) and runs
- * the SeoAuditor rules on each HTML response. Exits non-zero when any error is found. Extended in L7-05.
+ * seo:audit — the SEO audit engine (L7-05) from the command line / CI. Renders pages in-process (no HTTP, no network):
+ * every parameterless GET route, every sitemap URL and the internal links found on them (bounded by --max-pages and
+ * --time-limit), or only the given --path values. Exits non-zero when any error is found (--strict: any warning).
+ * A full crawl is stored as a run for the admin report (--no-store to skip); --queue hands it to the queue instead.
  */
 final class SeoAudit extends Command
 {
-    /** URI patterns (Str::is) that are not public pages. */
-    public const EXCLUDED_URIS = [
-        'up', 'admin', 'admin/*', 'livewire/*', 'filament/*', 'storage/*', '_ignition/*', 'sanctum/*',
-        'sitemap.xml', 'sitemaps/*', 'robots.txt', 'manifest.webmanifest', 'sw.js', 'build/*',
-    ];
-
     protected $signature = 'seo:audit
         {--path=* : audit only these paths (e.g. --path=/ --path=/cycle)}
-        {--strict : treat warnings as errors}';
+        {--strict : treat warnings as errors}
+        {--max-pages= : maximum HTML pages to audit (default seo.audit.max_pages or 500)}
+        {--time-limit= : stop crawling after this many seconds (default seo.audit.time_limit or 240)}
+        {--no-store : do not store the run for the admin report}
+        {--as-is : keep this environment\'s robots (outside production every page is noindex)}
+        {--queue : queue a stored run instead of crawling now}
+        {--notices : also print notices}';
 
-    protected $description = 'Render every public route in-process and check titles, descriptions, h1, canonical, OG, images and links';
+    protected $description = 'Crawl the site in-process and check titles, descriptions, h1, canonical, robots vs sitemap, links, images, OG, JSON-LD, redirects and speed';
 
-    public function handle(HttpKernel $kernel, Router $router, SeoAuditor $auditor): int
+    public function handle(RunSeoAudit $audit, QueueSeoAudit $queue, Config $config): int
     {
-        $paths = $this->paths($router);
-        if ($paths === []) {
+        if ((bool) $this->option('queue')) {
+            $run = $queue->handle(RunTrigger::Cli);
+            $run === null ? $this->warn('An audit is already queued or running.') : $this->info("Audit #{$run->id} queued.");
+
+            return self::SUCCESS;
+        }
+
+        /** @var list<string> $paths */
+        $paths = array_values(array_filter((array) $this->option('path'), 'is_string'));
+        $options = new AuditOptions(
+            paths: $paths,
+            maxPages: max(1, (int) ($this->option('max-pages') ?? $config->get('seo.audit.max_pages', AuditOptions::DEFAULT_MAX_PAGES))),
+            timeLimit: max(1, (int) ($this->option('time-limit') ?? $config->get('seo.audit.time_limit', AuditOptions::DEFAULT_TIME_LIMIT))),
+            assumeProduction: ! (bool) $this->option('as-is'),
+        );
+        $store = $paths === [] && ! (bool) $this->option('no-store') && Schema::hasTable('seo_audit_runs');
+
+        [$result, $run] = $audit->handle($options, RunTrigger::Cli, store: $store);
+
+        foreach ($result->skipped as $skip) {
+            $this->line("<fg=gray>-</> {$skip['path']} skipped (HTTP {$skip['status']}, {$skip['type']})");
+        }
+
+        if ($result->pages === []) {
             $this->warn('No routes to audit.');
 
             return self::SUCCESS;
         }
 
-        $pages = [];
-        foreach ($paths as $path) {
-            $page = $this->render($kernel, $auditor, $path);
-            if ($page !== null) {
-                $pages[] = $page;
-            }
-        }
-
-        $pages = $auditor->crossCheck($pages);
         $strict = (bool) $this->option('strict');
+        $notices = (bool) $this->option('notices');
         $errors = 0;
         $warnings = 0;
-
-        foreach ($pages as $page) {
-            $pageErrors = $page->errorCount() + ($strict ? $page->warningCount() : 0);
+        foreach ($result->pages as $page) {
+            $audit = $page->audit;
+            $pageErrors = $audit->errorCount() + ($strict ? $audit->warningCount() : 0);
             $errors += $pageErrors;
-            $warnings += $strict ? 0 : $page->warningCount();
+            $warnings += $strict ? 0 : $audit->warningCount();
 
-            $this->line(($pageErrors > 0 ? '<fg=red>✘</>' : '<fg=green>✔</>').' '.$page->url);
-            foreach ($page->issues as $issue) {
-                $isError = $strict || $issue->severity === Severity::Error;
-                $this->line('    '.($isError ? '<fg=red>error</>' : '<fg=yellow>warning</>')." [{$issue->code}] {$issue->message}");
+            $this->line(($pageErrors > 0 ? '<fg=red>✘</>' : '<fg=green>✔</>').' '.$page->path());
+            foreach ($audit->issues as $issue) {
+                if ($issue->severity === Severity::Notice && ! $notices) {
+                    continue;
+                }
+                $label = match (true) {
+                    $issue->severity === Severity::Error, $strict && $issue->severity === Severity::Warning => '<fg=red>error</>',
+                    $issue->severity === Severity::Warning => '<fg=yellow>warning</>',
+                    default => '<fg=gray>notice</>',
+                };
+                $this->line("    {$label} [{$issue->code}] {$issue->message}");
             }
         }
 
         $this->newLine();
-        $summary = count($pages).' page(s), '.$errors.' error(s), '.$warnings.' warning(s).';
+        if ($result->truncated) {
+            $this->warn('Stopped early ('.($result->truncatedBy === 'time' ? 'time limit' : 'max pages').'): orphan-page check skipped.');
+        }
+        $summary = count($result->pages).' page(s), '.$errors.' error(s), '.$warnings.' warning(s).';
+        $details = 'Score '.$result->score().'/100, '.$result->count(Severity::Notice).' notice(s), '.$result->fetches.' render(s) in '.$result->milliseconds.' ms'
+            .($run !== null ? ", stored as run #{$run->id}." : '.');
         if ($errors > 0) {
             $this->error($summary);
+            $this->line($details);
 
             return self::FAILURE;
         }
 
         $this->info($summary);
+        $this->line($details);
 
         return self::SUCCESS;
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function paths(Router $router): array
-    {
-        /** @var list<string> $given */
-        $given = array_values(array_filter((array) $this->option('path'), 'is_string'));
-        if ($given !== []) {
-            return array_values(array_unique(array_map(static fn (string $p): string => '/'.ltrim($p, '/'), $given)));
-        }
-
-        $paths = [];
-        foreach ($router->getRoutes()->getRoutes() as $route) {
-            if ($this->auditable($route)) {
-                $paths[] = '/'.ltrim($route->uri(), '/');
-            }
-        }
-
-        return array_values(array_unique($paths));
-    }
-
-    private function auditable(Route $route): bool
-    {
-        if (! in_array('GET', $route->methods(), true) || Str::is(self::EXCLUDED_URIS, $route->uri())) {
-            return false;
-        }
-
-        // Only routes without required parameters ({id} but not {id?}).
-        return preg_match('/\{[^}?]+\}/', $route->uri()) !== 1;
-    }
-
-    private function render(HttpKernel $kernel, SeoAuditor $auditor, string $path): ?PageAudit
-    {
-        $request = Request::create(url($path), 'GET', server: ['HTTP_ACCEPT' => 'text/html']);
-
-        try {
-            $response = $kernel->handle($request);
-            $kernel->terminate($request, $response);
-        } catch (Throwable $e) {
-            return new PageAudit($path, null, null, false, [AuditIssue::error('render', $e->getMessage())]);
-        }
-
-        $status = $response->getStatusCode();
-        $type = (string) $response->headers->get('Content-Type');
-        if ($status >= 400) {
-            return new PageAudit($path, null, null, false, [AuditIssue::error('render', "HTTP {$status}.")]);
-        }
-        if ($status !== 200 || ! str_contains($type, 'text/html')) {
-            $this->line("<fg=gray>-</> {$path} skipped (HTTP {$status}, {$type})");
-
-            return null;
-        }
-
-        return $auditor->auditPage($path, (string) $response->getContent());
     }
 }

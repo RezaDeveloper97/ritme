@@ -61,6 +61,12 @@ use App\Filament\Resources\Shop\ProductReviewPolicy;
 use App\Filament\Resources\Shop\ShopCatalogPolicy;
 use App\Filament\Resources\Shop\ShopPolicy;
 use App\Filament\Widgets\AdminOverview;
+use App\Filament\Widgets\Seo\SeoContentNeedingWork;
+use App\Filament\Widgets\Seo\SeoHealthOverview;
+use App\Filament\Widgets\Seo\SeoScoreTrend;
+use App\Filament\Widgets\Seo\SeoTopIssues;
+use App\Filament\Widgets\Seo\SeoTopNotFound;
+use App\Filament\Widgets\Seo\SeoZeroResultSearches;
 use App\Filament\Widgets\Shop\LowStockProducts;
 use App\Filament\Widgets\Shop\ShopOrdersOverview;
 use App\Models\User;
@@ -172,6 +178,12 @@ final class AdminPanelProvider extends PanelProvider
                 AdminOverview::class,
                 ShopOrdersOverview::class, // L6-06 (shop managers + super-admins only)
                 LowStockProducts::class,
+                SeoHealthOverview::class, // L7-05 (SEO managers + super-admins only)
+                SeoScoreTrend::class,
+                SeoTopIssues::class,
+                SeoTopNotFound::class,
+                SeoZeroResultSearches::class,
+                SeoContentNeedingWork::class,
             ])
             ->middleware([
                 EncryptCookies::class,
