@@ -3,7 +3,7 @@ id: B-N5-06
 title: Growth, vaccines, milestones and child learn screens
 milestone: N5
 type: frontend
-status: todo
+status: done
 depends_on: [B-N5-05]
 parallel_group: N5-F
 touches: [frontend/src/screens/child-growth,frontend/src/screens/child-vaccines,frontend/src/screens/child-milestones,frontend/src/screens/child-learn]

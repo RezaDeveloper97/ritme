@@ -108,7 +108,7 @@ export const ROUTE_NAMESPACES = {
   childForm: ['children', 'common'], // B-N5-05 /children/new + /children/[id]/edit (v15_AddChild, form, no nav)
   childHome: ['babyLog', 'children', 'common', 'nav'], // B-N5-05 /children/[id] (v16_ChildHome, «کودک» tab root); B-N5-07 «امروز» rows (features/baby-log)
   logFeed: ['babyLog', 'children', 'common'], // B-N5-07 /children/[id]/feeding + /children/feeding (nbl_Log_Feed, close header, no nav; children = entities/child barrel)
-  childSection: ['babyLog', 'children', 'common', 'nav'], // B-N5-05 interim /children/[id]/{growth,vaccines,milestones,learn} until B-N5-06 (same slice as the child home; babyLog = its «امروز» rows, B-N5-07)
+  childSection: ['children', 'common'], // B-N5-06 /children/[id]/{growth,vaccines,milestones,learn} (v16_Growth / _Vaccines / _Milestones / _Learn; back header, no nav)
   ivf: ['common', 'ivf', 'nav'], // CB-IVF-02 /ivf (nbl_IVF_Home, TTC IVF sub-mode home)
   ivfScan: ['common', 'ivf'], // CB-IVF-04 /ivf/scan (nbl_IVF_Scan, back header, no nav)
   lossStart: ['common', 'companions', 'loss'], // CB-LOSS-02 /loss (Loss_Start, full screen, no nav; companions = entities/companion barrel)

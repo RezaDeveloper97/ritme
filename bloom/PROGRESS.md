@@ -910,3 +910,12 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   names, identity keys rejected in extraction schemas (lab fixture key `name` → `marker`). M5: `/profile/consents`
   version-aware, AI grants need `versions.<code>`, export carries versions + `ai_usage`. L2/L3/L4/L5 done (usage
   `user_id` anonymised after 90 days on write). Privacy screen sends versions. QUESTIONS #107.
+
+## B-N5-06 — Growth, vaccines, milestones and child learn screens
+
+- Screens `child-growth` (indicator tabs, P3–P97 band + median + child points via `widgets/charts`, history,
+  add/edit/delete sheet with 422 mapping), `child-vaccines` (ring + next visit, برنامه / کارت / یادداشت tabs, mark dose
+  or visit given, «ثبت نوبت» → appointment form via handoff), `child-milestones` (month chips, progress ring,
+  non-judgemental copy, play ideas, doctor note), `child-learn` (topic chips, weekly pick, tip/article sheets);
+  spouse read-only. Parsers tested on Go goldens. Replaces the B-N5-05 stubs.
+- Screenshots `docs/qa/bloom/B-N5-06/` (user 09900005501, child 1).
