@@ -979,3 +979,20 @@ One section per finished task (appended by `/site-task`).
   super-admin,shop-manager,directory-manager,support; admin tests enrol TOTP via `tests/Feature/Admin/AdminMfa.php`.
 - `docs/SECURITY.md` F17/F19 fixed, checklist updated. `tests/Feature/Security/FollowUpsTest.php`. Pest 1384 passed.
 - Open: pending media still listed in the media library/picker (filter `disk != pending` later).
+
+## L10-02 — Go-live checklist: backups, monitoring, final SEO/perf verification
+- `spatie/laravel-backup` ^9.3 (resolves under the PHP 8.2 pin): `config/backup.php` (DB + `<public>/media` +
+  `storage/app/pending` → private local disk `storage/app/private/ritme-site/`; retention 3 d all / 14 daily / 8 weekly
+  / 6 monthly / 1 yearly, `BACKUP_MAX_STORAGE_MB`; failure mail only to a valid `OPS_ALERT_EMAIL`). Schedule:
+  `backup:clean` 01:50, `backup:run` 02:10, `backup:monitor` 08:15; queue-worker `onSuccess` writes a heartbeat.
+- `php artisan app:doctor [--minutes=5] [--mail=]`: 26 checks (env, debug, key, https, canonical redirect, maintenance,
+  DB/migrations, cache/session/queue drivers, queue heartbeat, backlog, failed jobs, writable paths, optimize caches,
+  log rotation, build + critical-CSS manifest, `/up`, production robots, sitemap, home render, recent backup, mail,
+  alerts, MFA roles); FAIL → exit 1. Local production-like run: **26 ok, 0 warn, 0 FAIL**.
+- `MailFailedJob` (JobFailed → ≤1 mail/hour/job class, masked, never throws); Filament «سیستم ← پشتیبان‌ها»
+  (super-admin, streamed download behind auth/timeout/MFA, activity-logged); `config/logging.php` daily stack +
+  `logging.alerts`; `.env*.example` gained `OPS_ALERT_EMAIL`, `BACKUP_*`. Tests: AppDoctor (10) + Backups page (3).
+- `docs/GO-LIVE.md` (Persian, 12 sections): order of work, owner content/decisions, package + PHP 8.2 test, `.env`
+  table, SSL/DNS, `app:doctor`, SEO, performance, security, screen reader, 301 map, Search Console/Bing, backups +
+  restore test, monitoring, rollback. Orchestrator: `docs/DEPLOY-CPANEL.md` §12 points to it.
+- Final: `composer verify` green (1397 passed), `seo:audit` 85 pages / 0 errors / score 97.

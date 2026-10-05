@@ -253,7 +253,9 @@ php artisan app:upgrade
 
 ## ۱۲. پشتیبان‌گیری
 
-پشتیبان‌گیری به ابزار هاست سپرده شده است: cPanel → **Backup** (یا **JetBackup**) — پایگاه داده (MySQL)، `.env`،
+سایت خودش هر شب از پایگاه داده و `media` پشتیبان می‌گیرد (`backup:run` با cron؛ دانلود از «سیستم ← پشتیبان‌ها» در
+پنل؛ جزئیات و آزمون بازیابی در `docs/GO-LIVE.md` بخش ۹). در کنار آن پشتیبان هاست را هم نگه دارید: cPanel → **Backup**
+(یا **JetBackup**) — پایگاه داده (MySQL)، `.env`،
 `public/media` (یا `public_html/media`) و `storage/app`. پیش از هر ارتقا یک «Download a MySQL Database Backup» بگیرید.
 `APP_KEY` را جدا و امن نگه دارید (بدون آن رمز MFA مدیران و داده‌های رمزشده خوانده نمی‌شوند).
 

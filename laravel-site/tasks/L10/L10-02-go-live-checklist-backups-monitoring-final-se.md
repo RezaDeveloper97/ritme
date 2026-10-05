@@ -3,7 +3,7 @@ id: L10-02
 title: Go-live checklist: backups, monitoring, final SEO/perf verification
 milestone: L10
 type: release
-status: todo
+status: done
 depends_on: [L10-01]
 parallel_group: L10-B
 touches: [docs/GO-LIVE.md,config/backup.php,app/Console/Kernel.php,routes/console.php]

@@ -56,7 +56,8 @@ return [
 
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', (string) env('LOG_STACK', 'single')),
+            // Daily files (laravel-YYYY-MM-DD.log) so a busy shared host never grows one endless log (L10-02).
+            'channels' => explode(',', (string) env('LOG_STACK', 'daily')),
             'ignore_exceptions' => false,
         ],
 
@@ -71,7 +72,7 @@ return [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
-            'days' => env('LOG_DAILY_DAYS', 14),
+            'days' => (int) env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
         ],
 
@@ -129,6 +130,21 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Operator alerts (L10-02)
+    |--------------------------------------------------------------------------
+    | mail_to: where a failed queued job (App\Listeners\MailFailedJob) and failed/unhealthy backups
+    |          (config/backup.php) are reported. Empty = log only. OPS_ALERT_EMAIL.
+    | throttle_minutes: at most one job-failure mail per job class in this window, so a broken SMTP or a bad
+    |          deploy cannot flood the mailbox (every failure is still in the log and in `queue:failed`).
+    */
+
+    'alerts' => [
+        'mail_to' => env('OPS_ALERT_EMAIL'),
+        'throttle_minutes' => (int) env('OPS_ALERT_THROTTLE_MINUTES', 60),
     ],
 
 ];
