@@ -17,6 +17,7 @@ use App\Domain\Newsletter\Enums\SubscriptionStatus;
 use App\Domain\Newsletter\Mail\ConfirmSubscriptionMail;
 use App\Domain\Newsletter\Models\Subscriber;
 use App\Domain\Seo\Models\SeoMeta;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 
@@ -235,8 +236,41 @@ it('subscribes with double opt-in and confirms with the mailed link', function (
         return $mail->hasTo('reader@example.com') && str_contains($mail->unsubscribeUrl, $subscriber->token);
     });
 
-    $this->get((string) $confirmUrl)->assertOk()->assertSee('عضویتت تأیید شد')->assertSee('noindex', false);
+    // L9-04b (F19): the link only shows a confirm button — a mail scanner following it confirms nothing.
+    $this->get((string) $confirmUrl)->assertOk()->assertSee('تأیید عضویت در خبرنامه')->assertSee('noindex', false)
+        ->assertSee('action="'.route('newsletter.confirm.store', [$subscriber->token]).'"', false)
+        ->assertSee('name="_token"', false)
+        ->assertHeaderMissing('X-Page-Cache'); // never page-cached: the CSRF token is the session's
+    expect($subscriber->fresh()?->status())->toBe(SubscriptionStatus::Pending);
+
+    $this->post(route('newsletter.confirm.store', [$subscriber->token]))->assertOk()->assertSee('عضویتت تأیید شد')->assertSee('noindex', false);
     expect($subscriber->fresh()?->status())->toBe(SubscriptionStatus::Active);
+    $this->post(route('newsletter.confirm.store', [$subscriber->token]))->assertOk()->assertSee('عضویتت تأیید شد'); // idempotent
+});
+
+it('requires the CSRF token of the confirm page to confirm (F19)', function (): void {
+    $subscriber = Subscriber::query()->create(['email' => 'c@example.com', 'token' => Subscriber::newToken(), 'consent_at' => now()]);
+    $route = app('router')->getRoutes()->getByName('newsletter.confirm.store');
+    expect($route?->methods())->toContain('POST')
+        ->and($route?->gatherMiddleware())->toContain('web')
+        ->and($route?->excludedMiddleware())->not->toContain(ValidateCsrfToken::class);
+
+    // CSRF is skipped while running unit tests; leave the testing env for these requests to exercise it for real.
+    $this->app['env'] = 'local';
+
+    try {
+        $this->post(route('newsletter.confirm.store', [$subscriber->token]))->assertStatus(419);
+        expect($subscriber->fresh()?->status())->toBe(SubscriptionStatus::Pending);
+
+        $html = (string) $this->get(route('newsletter.confirm', [$subscriber->token]))->assertOk()->getContent();
+        preg_match('/name="_token" value="([^"]+)"/', $html, $m);
+        expect($m[1] ?? '')->not->toBe('');
+
+        $this->post(route('newsletter.confirm.store', [$subscriber->token]), ['_token' => $m[1]])->assertOk()->assertSee('عضویتت تأیید شد');
+        expect($subscriber->fresh()?->status())->toBe(SubscriptionStatus::Active);
+    } finally {
+        $this->app['env'] = 'testing';
+    }
 });
 
 it('answers the same for every address and never mails an active one', function (): void {
@@ -291,11 +325,11 @@ it('unsubscribes via the confirmation form or one-click POST, idempotently', fun
     expect($subscriber->fresh()?->status())->toBe(SubscriptionStatus::Unsubscribed);
 
     // An old confirm link never re-activates an unsubscribed address; a new sign-up rotates the token.
-    $this->get(route('newsletter.confirm', [$subscriber->token]))->assertOk()->assertSee('این پیوند معتبر نیست');
+    $this->post(route('newsletter.confirm.store', [$subscriber->token]))->assertOk()->assertSee('این پیوند معتبر نیست');
     Mail::fake();
     expect(app(Subscribe::class)->handle('u@example.com'))->toBe(SubscribeOutcome::Resubscribed)
         ->and($subscriber->fresh()?->token)->not->toBe($subscriber->token)
         ->and($subscriber->fresh()?->status())->toBe(SubscriptionStatus::Pending);
 
-    $this->get(route('newsletter.confirm', ['unknowntoken']))->assertOk()->assertSee('این پیوند معتبر نیست');
+    $this->post(route('newsletter.confirm.store', ['unknowntoken']))->assertOk()->assertSee('این پیوند معتبر نیست');
 });

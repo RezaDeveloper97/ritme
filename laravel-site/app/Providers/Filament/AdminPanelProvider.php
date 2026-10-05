@@ -49,6 +49,7 @@ use App\Filament\Resources\ContactMessages\ContactMessagePolicy;
 use App\Filament\Resources\Directory\BookingRequestPolicy;
 use App\Filament\Resources\Directory\DirectoryPolicy;
 use App\Filament\Resources\Directory\JoinRequestPolicy;
+use App\Filament\Resources\Directory\JoinRequests\PendingMediaController;
 use App\Filament\Resources\Directory\PlaceReviewPolicy;
 use App\Filament\Resources\Faq\FaqPolicy;
 use App\Filament\Resources\Media\MediaPolicy;
@@ -71,8 +72,10 @@ use App\Filament\Widgets\Shop\LowStockProducts;
 use App\Filament\Widgets\Shop\ShopOrdersOverview;
 use App\Models\User;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
+use Filament\Auth\Pages\Login as LoginPage;
 use Filament\Facades\Filament;
 use Filament\FontProviders\LocalFontProvider;
+use Filament\Forms\Components\Checkbox;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -98,7 +101,8 @@ use Throwable;
 /**
  * The Filament admin panel (thin delivery layer): Persian/RTL (APP_LOCALE=fa), self-hosted Vazirmatn through the Vite
  * theme, brand colour from the design tokens, brand name from settings, deny-by-default policies, app (TOTP) MFA
- * required for super-admins, login throttling (Filament: 5/min/IP) and an inactivity timeout.
+ * required for the roles in `filament.admin.mfa_required_roles`, login throttling (Filament: 5/min/IP), an inactivity
+ * timeout and no remember-me.
  */
 final class AdminPanelProvider extends PanelProvider
 {
@@ -138,6 +142,14 @@ final class AdminPanelProvider extends PanelProvider
         Gate::policy(ProductReview::class, ProductReviewPolicy::class);
 
         Event::listen(Login::class, RecordLastLogin::class);
+
+        // L9-04b: remember-me logins are logged out again (EnforceSessionTimeout, F3), so the login form does not offer
+        // the checkbox. Hidden fields are left out of the form state, so a crafted `remember` is ignored as well.
+        Checkbox::configureUsing(static function (Checkbox $checkbox): void {
+            if ($checkbox->getName() === 'remember') {
+                $checkbox->hidden(static fn (mixed $livewire = null): bool => $livewire instanceof LoginPage);
+            }
+        });
     }
 
     public function panel(Panel $panel): Panel
@@ -169,6 +181,13 @@ final class AdminPanelProvider extends PanelProvider
                 Route::get('blog/preview/{post}', PostPreviewController::class)
                     ->middleware('signed')
                     ->name(PostPreviewController::ROUTE);
+            })
+            // L9-04b (F17): not-yet-public uploads (pending join photos) — logged-in admins only, never public.
+            ->authenticatedRoutes(static function (): void {
+                Route::get('pending-media/{path}', PendingMediaController::class)
+                    ->where('path', PendingMediaController::PATH_PATTERN)
+                    ->middleware(RequireMultiFactorForRoles::class)
+                    ->name(PendingMediaController::ROUTE);
             })
             ->pages([
                 Dashboard::class,

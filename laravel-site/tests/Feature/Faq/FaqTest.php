@@ -17,6 +17,7 @@ use Database\Seeders\SettingsSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
+use Tests\Feature\Admin\AdminMfa;
 
 beforeEach(function (): void {
     $this->seed(SettingsSeeder::class);
@@ -205,7 +206,7 @@ it('lets editors manage FAQ groups and items in the admin and denies other roles
     foreach ([AdminRole::Support, AdminRole::ShopManager, AdminRole::SeoManager] as $role) {
         $user = User::factory()->create();
         $user->assignRole($role->value);
-        $this->actingAs($user)->get(FaqGroupResource::getUrl('index'))->assertForbidden();
+        $this->actingAs(AdminMfa::enrol($user))->get(FaqGroupResource::getUrl('index'))->assertForbidden();
     }
 
     $this->actingAs($editor);

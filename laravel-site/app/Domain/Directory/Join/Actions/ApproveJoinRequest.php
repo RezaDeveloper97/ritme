@@ -13,7 +13,8 @@ use App\Domain\Directory\Models\Amenity;
 use App\Domain\Directory\Models\Place;
 use App\Domain\Directory\Models\PlaceService;
 use App\Domain\Directory\Support\DirectoryActivity;
-use Illuminate\Database\ConnectionInterface;
+use App\Domain\Media\Actions\PromoteMedia;
+use App\Domain\Media\Models\Media;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
 
@@ -25,6 +26,10 @@ use InvalidArgumentException;
  * services (name only — prices are filled in by the team). The contact person's name, mobile and email are NOT
  * copied: they are for the Ritme team, not for the public page. Nothing is published here; the team reviews the
  * draft and publishes it with ChangePlaceStatus. The approval is written to the activity log with the new place id.
+ *
+ * L9-04b (F17): the photos wait on the private pending disk; PromoteMedia copies them to the public media disk before
+ * the transaction, switches their disk inside it and removes the pending files only after it committed — a failure
+ * anywhere leaves the request pending with its photos where they were and no copies behind.
  */
 final class ApproveJoinRequest
 {
@@ -35,7 +40,7 @@ final class ApproveJoinRequest
     private const SERVICES_MAX = 30;
 
     public function __construct(
-        private readonly ConnectionInterface $db,
+        private readonly PromoteMedia $promote,
         private readonly SyncPlaceAmenities $amenities,
         private readonly SyncPlaceGallery $gallery,
     ) {}
@@ -58,9 +63,11 @@ final class ApproveJoinRequest
             throw new InvalidArgumentException('A place needs a category and a city.');
         }
 
+        $photos = $request->photos()->get();
+
         /** @var Place $place */
-        $place = $this->db->transaction(function () use ($request, $categoryId, $cityId): Place {
-            $photoIds = $request->photos()->pluck('media.id')->map(intval(...))->values()->all();
+        $place = $this->promote->handle($photos, function () use ($request, $categoryId, $cityId, $photos): Place {
+            $photoIds = $photos->map(static fn (Media $media): int => $media->id)->values()->all();
             $age = $request->ageRange();
             $about = trim((string) $request->about);
 

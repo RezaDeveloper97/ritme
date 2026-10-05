@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Contact\Support\FormTimer;
+use App\Domain\Directory\Join\Actions\SubmitJoinRequest;
 use App\Domain\Directory\Join\Enums\BookingMode;
 use App\Domain\Directory\Join\Enums\JoinRequestStatus;
 use App\Domain\Directory\Join\Models\JoinRequest;
@@ -31,6 +32,7 @@ beforeEach(function (): void {
     $this->seed([SettingsSeeder::class, FaqSeeder::class, DirectorySeeder::class]);
     config(['app.url' => 'https://ritme.test']);
     Storage::fake('public');
+    Storage::fake('pending', ['url' => '/admin/pending-media']);
     Notification::fake();
 });
 
@@ -131,7 +133,7 @@ it('marks join and done noindex and keeps the business page indexable in product
         ->and($this->get('/directory/join/done')->getContent())->toContain('noindex');
 });
 
-it('stores a full submit with photos as a pending request with optimised media and notifies partnerships', function (): void {
+it('stores a full submit with photos as a pending request with private media and notifies partnerships', function (): void {
     app(UpdateSettings::class)->handle(SettingGroup::Contact, ['partnership_email' => 'partners@ritme.test']);
 
     $response = $this->post('/directory/join', joinForm(['photos' => [joinPhoto('a.jpg', 1000, 700), joinPhoto('b.jpg', 800, 800)]]));
@@ -155,9 +157,15 @@ it('stores a full submit with photos as a pending request with optimised media a
 
     $media = $request->photos->first();
     assert($media instanceof Media);
-    expect($media->optimized_at)->not->toBeNull()
-        ->and($media->variants)->not->toBeEmpty()
-        ->and($media->alt)->toContain('استخر مادر و کودک نیلوفر');
+    // L9-04b (F17): nothing a visitor uploads is web-reachable before approval — private disk, no variants yet,
+    // previews only through the admin route.
+    expect($media->disk)->toBe(SubmitJoinRequest::PHOTO_DISK)
+        ->and($media->optimized_at)->toBeNull()
+        ->and($media->variants)->toBe([])
+        ->and($media->alt)->toContain('استخر مادر و کودک نیلوفر')
+        ->and(Storage::disk('pending')->exists($media->path()))->toBeTrue()
+        ->and(Storage::disk('public')->allFiles())->toBe([])
+        ->and(Storage::disk('pending')->url($media->path()))->toStartWith('/admin/pending-media/');
     expect(app(FindMediaUsages::class)->used([$media->id]))->toContain($media->id);
 
     Notification::assertSentTo(new AnonymousNotifiable, JoinRequestReceived::class,
@@ -166,6 +174,20 @@ it('stores a full submit with photos as a pending request with optimised media a
     $this->get('/directory/join/done')->assertOk()
         ->assertSee('کد پیگیری '.fa_digits($request->code))
         ->assertSee('استخر مادر و کودک نیلوفر');
+});
+
+it('removes the photos it already stored when a later photo is refused by the pipeline (F17)', function (): void {
+    $broken = tempnam(sys_get_temp_dir(), 'join');
+    file_put_contents($broken, "\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01".str_repeat("\x00", 64)); // JPEG magic, no image
+    $photos = [joinPhoto('a.jpg'), new UploadedFile($broken, 'b.jpg', 'image/jpeg', null, true)];
+
+    $this->from('/directory/join')->post('/directory/join', joinForm(['photos' => $photos]))->assertSessionHasErrors('photos');
+
+    expect(JoinRequest::query()->count())->toBe(0)
+        ->and(Media::query()->count())->toBe(0)
+        ->and(Storage::disk('pending')->allFiles())->toBe([])
+        ->and(Storage::disk('public')->allFiles())->toBe([]);
+    @unlink($broken);
 });
 
 it('rejects invalid input with Persian messages, keeps old input and stores nothing', function (): void {

@@ -14,6 +14,7 @@ use Database\Seeders\AdminRolesSeeder;
 use Database\Seeders\SettingsSeeder;
 use Illuminate\Auth\Events\Login;
 use Spatie\Activitylog\Models\Activity;
+use Tests\Feature\Admin\AdminMfa;
 
 function adminUser(?AdminRole $role = AdminRole::Editor, array $attributes = []): User
 {
@@ -22,7 +23,7 @@ function adminUser(?AdminRole $role = AdminRole::Editor, array $attributes = [])
         $user->assignRole($role->value);
     }
 
-    return $user;
+    return AdminMfa::enrol($user); // PII roles must have MFA (L9-04b)
 }
 
 /**
@@ -30,10 +31,7 @@ function adminUser(?AdminRole $role = AdminRole::Editor, array $attributes = [])
  */
 function superAdmin(): User
 {
-    $user = adminUser(AdminRole::SuperAdmin);
-    $user->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP');
-
-    return $user->refresh();
+    return adminUser(AdminRole::SuperAdmin);
 }
 
 beforeEach(function (): void {
@@ -75,7 +73,7 @@ it('denies users without an admin role and inactive admins', function (): void {
 });
 
 it('lets any admin role open the dashboard', function (AdminRole $role): void {
-    $user = $role === AdminRole::SuperAdmin ? superAdmin() : adminUser($role);
+    $user = adminUser($role);
 
     $this->actingAs($user)->get('/admin')->assertOk();
 })->with(AdminRole::cases());
@@ -108,11 +106,21 @@ it('keeps the activity log read-only even for super-admins', function (): void {
         ->and($admin->can('delete', $admin))->toBeFalse();
 });
 
-it('requires super-admins to set up app MFA before using the panel', function (): void {
-    $user = adminUser(AdminRole::SuperAdmin);
+it('requires every role that reads personal data to set up app MFA before using the panel (L9-04b)', function (): void {
+    expect(config('filament.admin.mfa_required_roles'))->toBe(['super-admin', 'shop-manager', 'directory-manager', 'support']);
 
-    $this->actingAs($user)->get('/admin')->assertRedirectContains('multi-factor-authentication');
-    $this->actingAs(adminUser(AdminRole::Editor))->get('/admin')->assertOk();
+    foreach ([AdminRole::SuperAdmin, AdminRole::ShopManager, AdminRole::DirectoryManager, AdminRole::Support] as $role) {
+        $user = User::factory()->create();
+        $user->assignRole($role->value); // not enrolled yet
+        $this->actingAs($user)->get('/admin')->assertRedirectContains('multi-factor-authentication');
+        $this->actingAs(AdminMfa::enrol($user))->get('/admin')->assertOk();
+    }
+
+    foreach ([AdminRole::Editor, AdminRole::SeoManager] as $role) {
+        $user = adminUser($role);
+        expect($user->getAppAuthenticationSecret())->toBeNull();
+        $this->actingAs($user)->get('/admin')->assertOk();
+    }
 });
 
 it('shows placeholder counts on the dashboard', function (): void {

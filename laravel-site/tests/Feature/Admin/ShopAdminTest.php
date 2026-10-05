@@ -46,6 +46,7 @@ use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Livewire\Livewire;
 use Spatie\Activitylog\Models\Activity;
+use Tests\Feature\Admin\AdminMfa;
 
 function shopAdmin(?AdminRole $role = AdminRole::ShopManager): User
 {
@@ -53,11 +54,8 @@ function shopAdmin(?AdminRole $role = AdminRole::ShopManager): User
     if ($role !== null) {
         $user->assignRole($role->value);
     }
-    if ($role === AdminRole::SuperAdmin) {
-        $user->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP'); // super-admins must have MFA (RequireMultiFactorForRoles)
-    }
 
-    return $user->refresh();
+    return AdminMfa::enrol($user); // PII roles must have MFA (L9-04b)
 }
 
 /**

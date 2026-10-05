@@ -52,6 +52,18 @@ return [
             'report' => false,
         ],
 
+        // L9-04b (F17): uploads that are not public yet (join-request photos until an admin approves them). Under
+        // storage/app, so never web-reachable; admins see the files through an authorised streaming route in the
+        // panel, which is what url() points at. Approval moves the files to the public media disk (PromoteMedia).
+        'pending' => [
+            'driver' => 'local',
+            'root' => storage_path('app/pending'),
+            'url' => '/'.trim((string) env('ADMIN_PATH', 'admin'), '/').'/pending-media',
+            'visibility' => 'private',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

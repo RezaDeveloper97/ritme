@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\Livewire;
+use Tests\Feature\Admin\AdminMfa;
 use Tests\Feature\Media\MediaFixtures;
 
 function mediaAdmin(?AdminRole $role = AdminRole::Editor): User
@@ -35,7 +36,7 @@ function mediaAdmin(?AdminRole $role = AdminRole::Editor): User
         $user->assignRole($role->value);
     }
 
-    return $user;
+    return AdminMfa::enrol($user); // PII roles must have MFA (L9-04b)
 }
 
 function libraryItem(int $width = 1600, int $height = 1000, ?string $alt = 'منظره'): Media

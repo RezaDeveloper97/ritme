@@ -3,7 +3,7 @@ id: L9-04b
 title: Security follow-ups: POST newsletter confirm, private pending join photos, remember-me UI, PII-role MFA tests
 milestone: L9
 type: fullstack
-status: todo
+status: done
 depends_on: [L9-04,L9-02]
 parallel_group: L9-C
 touches: [resources/views/pages/blog/newsletter,app/Http/Controllers/Blog/NewsletterController.php,app/Domain/Directory/Join,app/Filament/Resources/Directory/JoinRequests,app/Providers/Filament/AdminPanelProvider.php,config/filament.php,routes/web.php,tests/Feature/Security,tests/Feature/Admin,tests/Feature/Blog,tests/Feature/Directory]

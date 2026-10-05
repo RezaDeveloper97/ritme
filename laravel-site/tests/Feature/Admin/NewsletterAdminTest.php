@@ -13,6 +13,7 @@ use Filament\Facades\Filament;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 use Spatie\Activitylog\Models\Activity;
+use Tests\Feature\Admin\AdminMfa;
 
 function newsletterAdmin(?AdminRole $role = AdminRole::Editor): User
 {
@@ -21,7 +22,7 @@ function newsletterAdmin(?AdminRole $role = AdminRole::Editor): User
         $user->assignRole($role->value);
     }
 
-    return $user;
+    return AdminMfa::enrol($user); // PII roles must have MFA (L9-04b)
 }
 
 /**

@@ -24,7 +24,10 @@ use Illuminate\Routing\Controllers\Middleware;
  */
 final class NewsletterController implements HasMiddleware
 {
-    /** L9-04: confirm / unsubscribe links are token-authorised; this caps token guessing per IP (the POST has throttle:newsletter). */
+    /**
+     * L9-04: confirm / unsubscribe links are token-authorised; this caps token guessing per IP (the confirm POST too;
+     * the unsubscribe POST has throttle:newsletter).
+     */
     public const LOOKUPS_PER_MINUTE = 20;
 
     /**
@@ -32,7 +35,7 @@ final class NewsletterController implements HasMiddleware
      */
     public static function middleware(): array
     {
-        return [new Middleware('throttle:'.self::LOOKUPS_PER_MINUTE.',1', only: ['confirm', 'unsubscribeForm'])];
+        return [new Middleware('throttle:'.self::LOOKUPS_PER_MINUTE.',1', only: ['confirmForm', 'confirm', 'unsubscribeForm'])];
     }
 
     public const HONEYPOT = 'website';
@@ -63,6 +66,23 @@ final class NewsletterController implements HasMiddleware
         return redirect()->to($back)->with('newsletter_status', __('blog.newsletter.sent'));
     }
 
+    /**
+     * L9-04b (F19): the mailed link only shows a confirm button — mail scanners and link prefetchers that follow it
+     * confirm nothing. No lookup here: valid and unknown tokens get the same page, the POST answers.
+     */
+    public function confirmForm(string $token, SeoManager $seo): View
+    {
+        $seo->title(__('blog.newsletter.confirm.title'))->noindex();
+
+        return view('pages.blog.newsletter.confirm', [
+            'action' => route('newsletter.confirm.store', [$token]),
+            'navRoute' => 'blog.index',
+        ]);
+    }
+
+    /**
+     * The confirm button (CSRF-protected; the GET page is never page-cached, so its token is always the session's).
+     */
     public function confirm(string $token, ConfirmSubscription $confirm, SeoManager $seo): View
     {
         $status = $confirm->handle($token);

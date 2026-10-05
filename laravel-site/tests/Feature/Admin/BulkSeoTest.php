@@ -25,6 +25,7 @@ use Database\Seeders\SettingsSeeder;
 use Filament\Facades\Filament;
 use Livewire\Livewire;
 use Spatie\Activitylog\Models\Activity;
+use Tests\Feature\Admin\AdminMfa;
 
 function bulkSeoUser(?AdminRole $role = AdminRole::SeoManager): User
 {
@@ -33,7 +34,7 @@ function bulkSeoUser(?AdminRole $role = AdminRole::SeoManager): User
         $user->assignRole($role->value);
     }
 
-    return $user;
+    return AdminMfa::enrol($user); // PII roles must have MFA (L9-04b)
 }
 
 /**

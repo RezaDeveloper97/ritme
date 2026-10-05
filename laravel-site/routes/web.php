@@ -93,11 +93,13 @@ Route::prefix('blog')->name('blog.')->group(function (): void {
 });
 
 // Newsletter (L4-02): double opt-in. POST is rate limited (no captcha); token pages are never page-cached; the
-// unsubscribe POST is also the RFC 8058 one-click target, authorised by the token instead of CSRF.
+// unsubscribe POST is also the RFC 8058 one-click target, authorised by the token instead of CSRF. The mailed
+// confirm link only shows a button; confirming is a CSRF-protected POST (L9-04b, F19).
 Route::prefix('newsletter')->name('newsletter.')->group(function (): void {
     Route::post('/', [NewsletterController::class, 'store'])->middleware('throttle:newsletter')->name('store');
     Route::withoutMiddleware([PageCache::class])->group(function (): void {
-        Route::get('/confirm/{token}', [NewsletterController::class, 'confirm'])->where('token', '[A-Za-z0-9]{1,64}')->name('confirm');
+        Route::get('/confirm/{token}', [NewsletterController::class, 'confirmForm'])->where('token', '[A-Za-z0-9]{1,64}')->name('confirm');
+        Route::post('/confirm/{token}', [NewsletterController::class, 'confirm'])->where('token', '[A-Za-z0-9]{1,64}')->name('confirm.store');
         Route::get('/unsubscribe/{token}', [NewsletterController::class, 'unsubscribeForm'])->where('token', '[A-Za-z0-9]{1,64}')->name('unsubscribe');
         Route::post('/unsubscribe/{token}', [NewsletterController::class, 'unsubscribe'])->where('token', '[A-Za-z0-9]{1,64}')
             ->withoutMiddleware([ValidateCsrfToken::class])->middleware('throttle:newsletter')->name('unsubscribe.store');

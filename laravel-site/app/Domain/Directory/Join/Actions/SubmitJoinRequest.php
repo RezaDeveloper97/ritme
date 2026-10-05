@@ -10,6 +10,7 @@ use App\Domain\Directory\Join\Data\JoinRequestData;
 use App\Domain\Directory\Join\Enums\AgeGroup;
 use App\Domain\Directory\Join\Models\JoinRequest;
 use App\Domain\Media\Actions\StoreMedia;
+use App\Domain\Media\Data\MediaUpload;
 use App\Domain\Media\Exceptions\InvalidMediaException;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use App\Notifications\JoinRequestReceived;
@@ -21,8 +22,11 @@ use Throwable;
 
 /**
  * Stores a join request as pending with its photos: every photo goes through the media pipeline first (StoreMedia —
- * sniffed type, size/pixel limits, metadata stripped, responsive variants queued), then the request and its ordered
- * photo list are written in one transaction with a fresh public tracking code. The partnership mailbox (settings,
+ * sniffed type, size/pixel limits, metadata stripped) onto the private PHOTO_DISK (L9-04b, F17: nothing a visitor
+ * uploads is web-reachable before an admin approves it; ApproveJoinRequest promotes the photos to the media disk and
+ * admins preview them through the panel's pending-media route), then the request and its ordered photo list are
+ * written in one transaction with a fresh public tracking code. If a photo is refused or the write fails, the photos
+ * this submission created are deleted again. The partnership mailbox (settings,
  * support as fallback) gets a data-minimal mail; mail problems are logged, never shown — the request is already safe.
  *
  * @throws InvalidMediaException when a photo is refused by the pipeline (nothing is stored for the request then)
@@ -30,6 +34,9 @@ use Throwable;
 final class SubmitJoinRequest
 {
     private const CODE_ATTEMPTS = 10;
+
+    /** Private disk (config/filesystems.php) that holds join photos until approval. */
+    public const PHOTO_DISK = 'pending';
 
     public function __construct(
         private readonly StoreMedia $storeMedia,
@@ -42,10 +49,51 @@ final class SubmitJoinRequest
     public function handle(JoinRequestData $data): JoinRequest
     {
         $mediaIds = [];
-        foreach ($data->photos as $photo) {
-            $mediaIds[] = $this->storeMedia->handle($photo)->id;
+        $created = [];
+
+        try {
+            foreach ($data->photos as $photo) {
+                $media = $this->storeMedia->handle(self::pending($photo));
+                $mediaIds[] = $media->id;
+                if ($media->wasRecentlyCreated) {
+                    $created[] = $media;
+                }
+            }
+
+            $request = $this->store($data, $mediaIds);
+        } catch (Throwable $e) {
+            foreach ($created as $media) {
+                $media->delete(); // MediaObserver removes the files
+            }
+
+            throw $e;
         }
 
+        $this->notify($request);
+
+        return $request;
+    }
+
+    private static function pending(MediaUpload $photo): MediaUpload
+    {
+        return new MediaUpload(
+            path: $photo->path,
+            originalName: $photo->originalName,
+            alt: $photo->alt,
+            title: $photo->title,
+            caption: $photo->caption,
+            focalX: $photo->focalX,
+            focalY: $photo->focalY,
+            uploadedBy: $photo->uploadedBy,
+            disk: self::PHOTO_DISK,
+        );
+    }
+
+    /**
+     * @param  list<int>  $mediaIds
+     */
+    private function store(JoinRequestData $data, array $mediaIds): JoinRequest
+    {
         /** @var JoinRequest $request */
         $request = $this->db->transaction(function () use ($data, $mediaIds): JoinRequest {
             $request = JoinRequest::query()->create([
@@ -78,8 +126,6 @@ final class SubmitJoinRequest
 
             return $request;
         });
-
-        $this->notify($request);
 
         return $request;
     }

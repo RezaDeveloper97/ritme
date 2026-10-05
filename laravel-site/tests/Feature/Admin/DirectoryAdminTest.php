@@ -8,6 +8,8 @@ use App\Domain\Directory\Booking\Models\BookingRequest;
 use App\Domain\Directory\Booking\Support\BookingCode;
 use App\Domain\Directory\Enums\PlaceStatus;
 use App\Domain\Directory\Enums\ReviewStatus;
+use App\Domain\Directory\Join\Actions\ApproveJoinRequest;
+use App\Domain\Directory\Join\Actions\SubmitJoinRequest;
 use App\Domain\Directory\Join\Enums\BookingMode;
 use App\Domain\Directory\Join\Enums\JoinRequestStatus;
 use App\Domain\Directory\Join\Models\JoinRequest;
@@ -47,9 +49,11 @@ use Database\Seeders\AdminRolesSeeder;
 use Database\Seeders\SettingsSeeder;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Spatie\Activitylog\Models\Activity;
+use Tests\Feature\Admin\AdminMfa;
 use Tests\Feature\Media\MediaFixtures;
 
 function dirAdmin(?AdminRole $role = AdminRole::DirectoryManager): User
@@ -58,20 +62,17 @@ function dirAdmin(?AdminRole $role = AdminRole::DirectoryManager): User
     if ($role !== null) {
         $user->assignRole($role->value);
     }
-    if ($role === AdminRole::SuperAdmin) {
-        $user->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP'); // super-admins must have MFA (RequireMultiFactorForRoles)
-    }
 
-    return $user->refresh();
+    return AdminMfa::enrol($user); // PII roles must have MFA (L9-04b)
 }
 
-function dirAdminPhoto(string $alt, int $width = 1200): Media
+function dirAdminPhoto(string $alt, int $width = 1200, ?string $disk = null): Media
 {
-    return app(StoreMedia::class)->handle(new MediaUpload(MediaFixtures::jpeg($width, 800), $alt.'.jpg', alt: $alt));
+    return app(StoreMedia::class)->handle(new MediaUpload(MediaFixtures::jpeg($width, 800), $alt.'.jpg', alt: $alt, disk: $disk));
 }
 
 /**
- * A pending join request as SubmitJoinRequest stores it, with two photos.
+ * A pending join request as SubmitJoinRequest stores it, with two photos on the private pending disk.
  */
 function dirAdminJoinRequest(PlaceCategory $category, City $city, ?District $district = null): JoinRequest
 {
@@ -97,7 +98,10 @@ function dirAdminJoinRequest(PlaceCategory $category, City $city, ?District $dis
         'booking_mode' => BookingMode::Phone,
         'terms_accepted_at' => now(),
     ]);
-    $request->photos()->sync([dirAdminPhoto('نمای استخر')->id => ['sort_order' => 0], dirAdminPhoto('رختکن', 1000)->id => ['sort_order' => 1]]);
+    $request->photos()->sync([
+        dirAdminPhoto('نمای استخر', disk: SubmitJoinRequest::PHOTO_DISK)->id => ['sort_order' => 0],
+        dirAdminPhoto('رختکن', 1000, SubmitJoinRequest::PHOTO_DISK)->id => ['sort_order' => 1],
+    ]);
 
     return $request;
 }
@@ -120,6 +124,7 @@ function dirAdminBooking(Place $place, string $status = 'new'): BookingRequest
 
 beforeEach(function (): void {
     Storage::fake('public');
+    Storage::fake('pending', ['url' => '/admin/pending-media']);
     $this->seed([SettingsSeeder::class, AdminRolesSeeder::class]);
     Filament::setCurrentPanel('admin');
 });
@@ -178,6 +183,17 @@ it('converts a join request into a draft place with its data and photos, then pu
         ->assertHasNoActionErrors();
 
     $place = Place::query()->where('name', 'استخر کودک دلفین')->firstOrFail();
+
+    // L9-04b (F17): approval moved the photos to the public media disk (+ variants) and removed the pending files.
+    foreach (Media::query()->whereKey($photoIds)->get() as $photo) {
+        expect($photo->disk)->toBe('public')
+            ->and($photo->optimized_at)->not->toBeNull()
+            ->and($photo->variants)->not->toBeEmpty()
+            ->and(Storage::disk('public')->exists($photo->path()))->toBeTrue()
+            ->and(Storage::disk('pending')->exists($photo->path()))->toBeFalse();
+    }
+    expect(Storage::disk('pending')->allFiles())->toBe([]);
+
     expect($request->refresh()->status)->toBe(JoinRequestStatus::Approved)
         ->and($place->status)->toBe(PlaceStatus::Draft)
         ->and($place->category_id)->toBe($category->id)
@@ -218,6 +234,81 @@ it('converts a join request into a draft place with its data and photos, then pu
 
     // A converted request cannot be converted twice.
     Livewire::test(ViewJoinRequest::class, ['record' => $request->getRouteKey()])->assertActionHidden('approve');
+});
+
+it('streams pending join photos only to admins who may review them (F17)', function (): void {
+    $request = dirAdminJoinRequest(PlaceCategory::factory()->create(), City::factory()->create());
+    $photo = $request->photos()->firstOrFail();
+    $url = Storage::disk('pending')->url($photo->path());
+
+    expect($url)->toBe('/admin/pending-media/'.$photo->path())
+        ->and(Storage::disk('public')->allFiles())->toBe([]);
+
+    // Guests: the panel login, never the file.
+    $this->get($url)->assertRedirect('/admin/login');
+
+    foreach ([AdminRole::DirectoryManager, AdminRole::SuperAdmin, AdminRole::Editor] as $role) {
+        $response = $this->actingAs(dirAdmin($role))->get($url)->assertOk()
+            ->assertHeader('Content-Type', 'image/jpeg')
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+        expect((string) $response->headers->get('Cache-Control'))->toContain('no-store')->toContain('private')
+            ->and((string) $response->headers->get('Content-Security-Policy'))->toContain('sandbox')
+            ->and($response->streamedContent())->toBe(Storage::disk('pending')->get($photo->path()));
+    }
+
+    // Support reviews neither join requests nor the media library; a user without a role is no admin at all.
+    $this->actingAs(dirAdmin(AdminRole::Support))->get($url)->assertForbidden();
+    $this->actingAs(dirAdmin(null))->get($url)->assertForbidden();
+
+    $manager = dirAdmin();
+    $this->actingAs($manager)->get('/admin/pending-media/'.dirname($photo->path()).'/missing.jpg')->assertNotFound();
+    $this->actingAs($manager)->get('/admin/pending-media/../../.env')->assertNotFound();
+    Storage::disk('pending')->put('2026/10/abcdefghij/note.txt', 'not an image');
+    $this->actingAs($manager)->get('/admin/pending-media/2026/10/abcdefghij/note.txt')->assertNotFound();
+
+    // The review page previews them through that route.
+    $this->actingAs($manager);
+    Livewire::test(ViewJoinRequest::class, ['record' => $request->getRouteKey()])->assertSee('/admin/pending-media/', false);
+});
+
+it('keeps the photos pending and leaves no public copies when an approval fails', function (): void {
+    $this->actingAs(dirAdmin());
+    $category = PlaceCategory::factory()->create();
+    $request = dirAdminJoinRequest($category, City::factory()->create());
+    $photos = $request->photos()->get();
+    // A copy that cannot be written (the second photo's target path is taken) aborts everything.
+    Storage::disk('public')->put($photos[1]->path(), 'occupied');
+
+    expect(fn () => app(ApproveJoinRequest::class)->handle($request))->toThrow(RuntimeException::class);
+
+    expect($request->refresh()->status)->toBe(JoinRequestStatus::Pending)
+        ->and(Place::query()->count())->toBe(0)
+        ->and(Media::query()->whereKey($photos->modelKeys())->pluck('disk')->unique()->all())->toBe([SubmitJoinRequest::PHOTO_DISK])
+        ->and(Storage::disk('pending')->exists($photos[0]->path()))->toBeTrue()
+        ->and(Storage::disk('pending')->exists($photos[1]->path()))->toBeTrue()
+        ->and(Storage::disk('public')->allFiles())->toBe([$photos[1]->path()]); // only the blocker, no copy of photo 1
+
+    // A failure inside the transaction rolls the disk switch back and removes the copies as well.
+    Storage::disk('public')->delete($photos[1]->path());
+    expect(fn () => app(ApproveJoinRequest::class)->handle($request, 999_999))->toThrow(QueryException::class); // unknown category (FK)
+    expect($request->refresh()->status)->toBe(JoinRequestStatus::Pending)
+        ->and(Media::query()->whereKey($photos->modelKeys())->pluck('disk')->unique()->all())->toBe([SubmitJoinRequest::PHOTO_DISK])
+        ->and(Storage::disk('public')->allFiles())->toBe([])
+        ->and(Storage::disk('pending')->allFiles())->toHaveCount(2);
+});
+
+it('promotes a pending photo when the same image is uploaded to the public library', function (): void {
+    $pending = dirAdminPhoto('نمای استخر', disk: SubmitJoinRequest::PHOTO_DISK);
+    expect($pending->disk)->toBe(SubmitJoinRequest::PHOTO_DISK);
+
+    $public = dirAdminPhoto('نمای استخر');
+
+    expect($public->id)->toBe($pending->id)
+        ->and($public->disk)->toBe('public')
+        ->and($public->optimized_at)->not->toBeNull()
+        ->and(Storage::disk('public')->exists($public->path()))->toBeTrue()
+        ->and(Storage::disk('pending')->allFiles())->toBe([]);
 });
 
 it('rejects a join request with an activity-log entry', function (): void {

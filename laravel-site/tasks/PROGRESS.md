@@ -967,3 +967,15 @@ One section per finished task (appended by `/site-task`).
   into `public_html/media`, cron-driven queue, upgrade over an existing install; 0 PHP errors. Tests `tests/Feature/Deploy` (12).
 - Open: real PHP 8.2 run pending (docker image pull was slow); production package must be built from a commit with
   `--ref`; F16 (queued confirm mail) now possible; admin creation needs Terminal; docs need a human review.
+
+## L9-04b — Security follow-ups
+- F19: newsletter confirm link (`newsletter.confirm`) shows a button page only; confirming is a CSRF-protected POST
+  (`newsletter.confirm.store`, uncached, 20/min) — idempotent; `lang/fa/blog.php` `newsletter.confirm.*`.
+- F17: private `pending` disk (`storage/app/pending`, URL via the admin route) for join photos (no variants; cleaned on
+  failure); `PromoteMedia` copies to the public disk inside `ApproveJoinRequest`'s transaction, deletes pending files +
+  queues `OptimizeMedia` after commit; admin streaming route `filament.admin.pending-media` (panel auth, timeout, MFA;
+  images only; private/no-store, nosniff, sandbox CSP, noindex; traversal → 404). `StoreMedia` gained a disk override.
+- Remember-me checkbox hidden on the Filament login. `ADMIN_MFA_ROLES` default now
+  super-admin,shop-manager,directory-manager,support; admin tests enrol TOTP via `tests/Feature/Admin/AdminMfa.php`.
+- `docs/SECURITY.md` F17/F19 fixed, checklist updated. `tests/Feature/Security/FollowUpsTest.php`. Pest 1384 passed.
+- Open: pending media still listed in the media library/picker (filter `disk != pending` later).

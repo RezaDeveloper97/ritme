@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Spatie\Activitylog\Models\Activity;
+use Tests\Feature\Admin\AdminMfa;
 
 const REDIRECTS_HUMAN_UA = 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/128.0 Mobile Safari/537.36';
 
@@ -48,7 +49,7 @@ function redirectsAdmin(?AdminRole $role = AdminRole::SeoManager): User
         $user->assignRole($role->value);
     }
 
-    return $user;
+    return AdminMfa::enrol($user); // PII roles must have MFA (L9-04b)
 }
 
 beforeEach(function (): void {

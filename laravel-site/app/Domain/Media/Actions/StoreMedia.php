@@ -27,6 +27,10 @@ use Throwable;
  * Upload use case: validate (sniffed mime, 15 MB, 8000 px, SVG sanitised), dedupe by sha256, auto-orient + strip
  * metadata + cap the original at `media.original_max`, compute dominant colour + LQIP, store, then queue
  * OptimizeMedia for the variants. Animated GIFs are stored byte-for-byte.
+ *
+ * Uploads to another disk than `media.disk` (MediaUpload::$disk, e.g. the private `pending` disk) keep only the
+ * original there; variants are generated when PromoteMedia moves them to the media disk. A public upload of bytes
+ * that already exist as a not-yet-public item promotes that item (one row per hash).
  */
 final class StoreMedia
 {
@@ -40,6 +44,7 @@ final class StoreMedia
         private readonly Filesystems $filesystems,
         private readonly Dispatcher $bus,
         private readonly Config $config,
+        private readonly PromoteMedia $promote,
     ) {}
 
     public function handle(MediaUpload $upload): Media
@@ -58,18 +63,28 @@ final class StoreMedia
         $format = MediaFormat::fromMime($mime);
         $this->assertAllowed($mime, $format);
 
+        $diskName = $upload->disk ?? $this->promote->mediaDisk();
+
         $hash = (string) hash_file('sha256', $path);
         $existing = Media::query()->where('hash', $hash)->first();
         if ($existing !== null) {
+            if ($existing->disk !== $diskName && $diskName === $this->promote->mediaDisk()) {
+                $this->promote->handle([$existing], static fn (): null => null);
+
+                return $existing->refresh();
+            }
+
             return $existing;
         }
 
         /** @var MediaFormat $format */
         $stored = $format === MediaFormat::Svg ? $this->processSvg($path) : $this->processRaster($path, $format);
 
-        $media = $this->persist($upload, $stored, $hash);
+        $media = $this->persist($upload, $stored, $hash, $diskName);
 
-        $this->queueOptimization($media);
+        if ($diskName === $this->promote->mediaDisk()) {
+            $this->queueOptimization($media);
+        }
 
         return $media->refresh();
     }
@@ -161,9 +176,8 @@ final class StoreMedia
     /**
      * @param  array{contents: string, format: MediaFormat, width: int|null, height: int|null, dominant: string|null, lqip: string|null}  $stored
      */
-    private function persist(MediaUpload $upload, array $stored, string $hash): Media
+    private function persist(MediaUpload $upload, array $stored, string $hash, string $diskName): Media
     {
-        $diskName = (string) $this->config->get('media.disk', 'public');
         $disk = $this->filesystems->disk($diskName);
 
         $directory = now()->format('Y/m').'/'.Str::lower(Str::random(10));

@@ -38,6 +38,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
+use Tests\Feature\Admin\AdminMfa;
 use Tests\Feature\Seo\SeoFixtures;
 
 /*
@@ -137,11 +138,8 @@ function auditAdmin(?AdminRole $role = AdminRole::SeoManager): User
     if ($role !== null) {
         $user->assignRole($role->value);
     }
-    if ($role === AdminRole::SuperAdmin) {
-        $user->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP');
-    }
 
-    return $user->refresh();
+    return AdminMfa::enrol($user); // PII roles must have MFA (L9-04b)
 }
 
 beforeEach(function (): void {
