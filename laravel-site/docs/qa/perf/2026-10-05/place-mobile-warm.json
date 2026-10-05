@@ -1,0 +1,129 @@
+{
+  "template": "place",
+  "url": "/directory/place/aramesh",
+  "formFactor": "mobile",
+  "mode": "warm",
+  "lighthouseVersion": "13.4.1",
+  "fetchTime": "2026-10-05T08:49:50.624Z",
+  "status": 200,
+  "pageCache": "HIT",
+  "scores": {
+    "performance": {
+      "score": 96,
+      "adjusted": false
+    },
+    "accessibility": {
+      "score": 100,
+      "adjusted": false
+    },
+    "best-practices": {
+      "score": 100,
+      "adjusted": false
+    },
+    "seo": {
+      "score": 100,
+      "adjusted": true,
+      "raw": 66
+    }
+  },
+  "metrics": {
+    "fcp": 1974.6514499999998,
+    "lcp": 2424.65145,
+    "tbt": 0,
+    "cls": 0.0002435649505172996,
+    "si": 1974.6514499999998,
+    "ttfb": 75
+  },
+  "requests": 19,
+  "transferKB": 231.8,
+  "lcpElement": {
+    "selector": "div.flex > div.flex > div.flex > h1.m-0",
+    "snippet": "<h1 class=\"m-0 font-display text-[46px] leading-display font-normal text-ink max-sm:t…\">"
+  },
+  "external": [],
+  "failing": [
+    {
+      "id": "first-contentful-paint",
+      "title": "First Contentful Paint",
+      "score": 0.85,
+      "displayValue": "2.0 s",
+      "items": []
+    },
+    {
+      "id": "largest-contentful-paint",
+      "title": "Largest Contentful Paint",
+      "score": 0.91,
+      "displayValue": "2.4 s",
+      "items": []
+    },
+    {
+      "id": "speed-index",
+      "title": "Speed Index",
+      "score": 0.99,
+      "displayValue": "2.0 s",
+      "items": []
+    },
+    {
+      "id": "interactive",
+      "title": "Time to Interactive",
+      "score": 0.98,
+      "displayValue": "2.4 s",
+      "items": []
+    },
+    {
+      "id": "is-crawlable",
+      "title": "Page is blocked from indexing",
+      "score": 0,
+      "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+      "items": [
+        {
+          "source": {
+            "selector": "head > meta",
+            "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+            "label": "head > meta"
+          }
+        }
+      ]
+    },
+    {
+      "id": "network-dependency-tree-insight",
+      "title": "Network dependency tree",
+      "score": 0,
+      "items": [
+        {
+          "type": "list-section"
+        },
+        {
+          "type": "list-section",
+          "title": "Preconnected origins",
+          "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+          "value": "no origins were preconnected"
+        },
+        {
+          "type": "list-section",
+          "title": "Preconnect candidates",
+          "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+          "value": "No additional origins are good candidates for preconnecting"
+        }
+      ]
+    },
+    {
+      "id": "render-blocking-insight",
+      "title": "Render-blocking requests",
+      "score": 0,
+      "displayValue": "Est savings of 150 ms",
+      "items": [
+        {
+          "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+          "totalBytes": 14672,
+          "wastedMs": 603
+        }
+      ]
+    }
+  ],
+  "fails": [],
+  "pass": true,
+  "runs": [
+    96
+  ]
+}

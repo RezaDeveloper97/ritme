@@ -8,6 +8,15 @@
  * follows the Latin one and also claims U+0020/U+00A0 (it has both glyphs). Spaces and ZWNJ (U+200C, inside the Latin
  * file's U+2000-206F) then no longer pull the Latin file onto Persian-only text; it loads only for real Latin
  * characters (ASCII digits, punctuation, «», Latin words).
+ *
+ * L9-02 (docs/qa/perf/font-subset.py rebuilds the Arabic files from the @fontsource originals):
+ * - they also carry the punctuation Persian copy uses — ASCII punctuation (no digits), « » © · × – — ‘ ’ “ ” • … ‹ › −
+ *   — and, for Vazirmatn, the Latin capitals A–Z (acronyms: PMS, PMDD, IRC, SPF), glyphs copied unchanged from the
+ *   same weight's Latin file. The 16 KB Latin file now loads only for lowercase Latin words and ASCII digits instead
+ *   of on every page;
+ * - Arabic Presentation Forms code points (U+FB50-FDFF, U+FE70-FEFC) are no longer mapped: shaping reaches every
+ *   contextual form through GSUB from U+0600-06FF; text typed as presentation forms falls back to the next font.
+ *   Lalezar 52 → 38 KB, Vazirmatn ≈ 21 KB per weight.
  */
 
 @font-face {
@@ -25,7 +34,7 @@
     font-weight: 400;
     font-display: swap;
     src: url('../fonts/vazirmatn-arabic-400-normal.woff2') format('woff2');
-    unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+    unicode-range: U+0020-002F, U+003A-0060, U+007B-007E, U+00A0, U+00A9, U+00AB, U+00B7, U+00BB, U+00D7, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+2013-2014, U+2018-2019, U+201C-201D, U+2022, U+2026, U+2039-203A, U+2212;
 }
 
 @font-face {
@@ -43,7 +52,7 @@
     font-weight: 500;
     font-display: swap;
     src: url('../fonts/vazirmatn-arabic-500-normal.woff2') format('woff2');
-    unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+    unicode-range: U+0020-002F, U+003A-0060, U+007B-007E, U+00A0, U+00A9, U+00AB, U+00B7, U+00BB, U+00D7, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+2013-2014, U+2018-2019, U+201C-201D, U+2022, U+2026, U+2039-203A, U+2212;
 }
 
 @font-face {
@@ -61,7 +70,7 @@
     font-weight: 600;
     font-display: swap;
     src: url('../fonts/vazirmatn-arabic-600-normal.woff2') format('woff2');
-    unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+    unicode-range: U+0020-002F, U+003A-0060, U+007B-007E, U+00A0, U+00A9, U+00AB, U+00B7, U+00BB, U+00D7, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+2013-2014, U+2018-2019, U+201C-201D, U+2022, U+2026, U+2039-203A, U+2212;
 }
 
 @font-face {
@@ -79,7 +88,7 @@
     font-weight: 700;
     font-display: swap;
     src: url('../fonts/vazirmatn-arabic-700-normal.woff2') format('woff2');
-    unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+    unicode-range: U+0020-002F, U+003A-0060, U+007B-007E, U+00A0, U+00A9, U+00AB, U+00B7, U+00BB, U+00D7, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+2013-2014, U+2018-2019, U+201C-201D, U+2022, U+2026, U+2039-203A, U+2212;
 }
 
 @font-face {
@@ -97,7 +106,7 @@
     font-weight: 800;
     font-display: swap;
     src: url('../fonts/vazirmatn-arabic-800-normal.woff2') format('woff2');
-    unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+    unicode-range: U+0020-002F, U+003A-0060, U+007B-007E, U+00A0, U+00A9, U+00AB, U+00B7, U+00BB, U+00D7, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+2013-2014, U+2018-2019, U+201C-201D, U+2022, U+2026, U+2039-203A, U+2212;
 }
 
 @font-face {
@@ -115,7 +124,7 @@
     font-weight: 400;
     font-display: swap;
     src: url('../fonts/lalezar-arabic-400-normal.woff2') format('woff2');
-    unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+    unicode-range: U+0020-002F, U+003A-0040, U+005B-0060, U+007B-007E, U+00A0, U+00A9, U+00AB, U+00B7, U+00BB, U+00D7, U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+2013-2014, U+2018-2019, U+201C-201D, U+2022, U+2026, U+2039-203A, U+2212;
 }
 
 /*

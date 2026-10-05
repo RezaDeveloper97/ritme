@@ -1,0 +1,127 @@
+{
+  "template": "cart",
+  "url": "/shop/cart",
+  "formFactor": "desktop",
+  "mode": "cold",
+  "lighthouseVersion": "13.4.1",
+  "fetchTime": "2026-10-05T08:51:55.622Z",
+  "status": 200,
+  "pageCache": "BYPASS",
+  "scores": {
+    "performance": {
+      "score": 100,
+      "adjusted": false
+    },
+    "accessibility": {
+      "score": 100,
+      "adjusted": false
+    },
+    "best-practices": {
+      "score": 100,
+      "adjusted": false
+    },
+    "seo": {
+      "score": 100,
+      "adjusted": true,
+      "raw": 66
+    }
+  },
+  "metrics": {
+    "fcp": 373.82849999999996,
+    "lcp": 461.438,
+    "tbt": 0,
+    "cls": 0.00003822353453115472,
+    "si": 373.82849999999996,
+    "ttfb": 63
+  },
+  "requests": 18,
+  "transferKB": 196.9,
+  "lcpElement": {
+    "selector": "div > section.flex > section.flex > h2#suggestions-title",
+    "snippet": "<h2 id=\"suggestions-title\" class=\"m-0 font-display text-d-md leading-heading font-normal text-ink\">"
+  },
+  "external": [],
+  "failing": [
+    {
+      "id": "is-crawlable",
+      "title": "Page is blocked from indexing",
+      "score": 0,
+      "allowed": "cart is noindex by design (SeoManager forced rule: search/cart/checkout/done)",
+      "items": [
+        {
+          "source": {
+            "selector": "head > meta",
+            "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+            "label": "head > meta"
+          }
+        },
+        {
+          "source": "http://127.0.0.1:56791/robots.txt:3"
+        }
+      ]
+    },
+    {
+      "id": "bf-cache",
+      "title": "Page prevented back/forward cache restoration",
+      "score": 0,
+      "displayValue": "3 failure reasons",
+      "items": [
+        {
+          "reason": "Pages with cache-control:no-store header cannot enter back/forward cache.",
+          "failureType": "Actionable",
+          "protocolReason": "CacheControlNoStoreHTTPOnlyCookieModified"
+        },
+        {
+          "reason": "Pages whose main resource has cache-control:no-store cannot enter back/forward cache.",
+          "failureType": "Not actionable",
+          "protocolReason": "MainResourceHasCacheControlNoStore"
+        },
+        {
+          "reason": "Back/forward cache is disabled because some JavaScript network request received resource with Cache-Control: no-store header.",
+          "failureType": "Not actionable",
+          "protocolReason": "JsNetworkRequestReceivedCacheControlNoStoreResource"
+        }
+      ]
+    },
+    {
+      "id": "network-dependency-tree-insight",
+      "title": "Network dependency tree",
+      "score": 0,
+      "items": [
+        {
+          "type": "list-section"
+        },
+        {
+          "type": "list-section",
+          "title": "Preconnected origins",
+          "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+          "value": "no origins were preconnected"
+        },
+        {
+          "type": "list-section",
+          "title": "Preconnect candidates",
+          "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+          "value": "No additional origins are good candidates for preconnecting"
+        }
+      ]
+    },
+    {
+      "id": "render-blocking-insight",
+      "title": "Render-blocking requests",
+      "score": 0,
+      "displayValue": "Est savings of 40 ms",
+      "items": [
+        {
+          "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+          "totalBytes": 14672,
+          "wastedMs": 122
+        }
+      ]
+    }
+  ],
+  "fails": [],
+  "pass": true,
+  "runs": [
+    100
+  ]
+}

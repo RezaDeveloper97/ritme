@@ -1,0 +1,136 @@
+{
+  "template": "404",
+  "url": "/lighthouse-missing-page",
+  "formFactor": "desktop",
+  "mode": "warm",
+  "lighthouseVersion": "13.4.1",
+  "fetchTime": "2026-10-05T08:52:13.014Z",
+  "status": 404,
+  "pageCache": null,
+  "scores": {
+    "performance": {
+      "score": 100,
+      "adjusted": false
+    },
+    "accessibility": {
+      "score": 100,
+      "adjusted": false
+    },
+    "best-practices": {
+      "score": 100,
+      "adjusted": true,
+      "raw": 96
+    },
+    "seo": {
+      "score": 100,
+      "adjusted": true,
+      "raw": 58
+    }
+  },
+  "metrics": {
+    "fcp": 410.68369999999993,
+    "lcp": 490.6837,
+    "tbt": 0,
+    "cls": 6.559399513457807e-7,
+    "si": 410.68369999999993,
+    "ttfb": 64
+  },
+  "requests": 16,
+  "transferKB": 190.6,
+  "lcpElement": {
+    "selector": "main#main > div > section.px-30 > h1.mt-4",
+    "snippet": "<h1 class=\"mt-4 font-display text-d-xl leading-display text-ink\">"
+  },
+  "external": [],
+  "failing": [
+    {
+      "id": "errors-in-console",
+      "title": "Browser errors were logged to the console",
+      "score": 0,
+      "allowed": "the only console error is the 404 of the document itself",
+      "items": [
+        {
+          "source": "network",
+          "description": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "sourceLocation": "http://127.0.0.1:56791/lighthouse-missing-page:0"
+        }
+      ]
+    },
+    {
+      "id": "http-status-code",
+      "title": "Page has unsuccessful HTTP status code",
+      "score": 0,
+      "displayValue": "404",
+      "allowed": "the 404 template must answer 404",
+      "items": []
+    },
+    {
+      "id": "is-crawlable",
+      "title": "Page is blocked from indexing",
+      "score": 0,
+      "allowed": "error pages are noindex by design",
+      "items": [
+        {
+          "source": {
+            "selector": "head > meta",
+            "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+            "label": "head > meta"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bf-cache",
+      "title": "Page prevented back/forward cache restoration",
+      "score": 0,
+      "displayValue": "1 failure reason",
+      "items": [
+        {
+          "reason": "Only pages with a status code of 2XX can be cached.",
+          "failureType": "Not actionable",
+          "protocolReason": "HTTPStatusNotOK"
+        }
+      ]
+    },
+    {
+      "id": "network-dependency-tree-insight",
+      "title": "Network dependency tree",
+      "score": 0,
+      "items": [
+        {
+          "type": "list-section"
+        },
+        {
+          "type": "list-section",
+          "title": "Preconnected origins",
+          "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+          "value": "no origins were preconnected"
+        },
+        {
+          "type": "list-section",
+          "title": "Preconnect candidates",
+          "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+          "value": "No additional origins are good candidates for preconnecting"
+        }
+      ]
+    },
+    {
+      "id": "render-blocking-insight",
+      "title": "Render-blocking requests",
+      "score": 0,
+      "displayValue": "Est savings of 40 ms",
+      "items": [
+        {
+          "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+          "totalBytes": 14672,
+          "wastedMs": 122
+        }
+      ]
+    }
+  ],
+  "fails": [],
+  "pass": true,
+  "runs": [
+    100
+  ]
+}

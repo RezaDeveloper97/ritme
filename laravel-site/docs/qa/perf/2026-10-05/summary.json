@@ -1,0 +1,6146 @@
+{
+  "date": "2026-10-05",
+  "lighthouse": "13.4.1",
+  "base": "own php -S (APP_ENV=production, page cache on) + .htaccess proxy",
+  "targets": {
+    "performance": 95,
+    "accessibility": 95,
+    "best-practices": 100,
+    "seo": 100,
+    "cls": 0.1,
+    "lcp": 2500,
+    "tbt": 150
+  },
+  "results": [
+    {
+      "template": "home",
+      "url": "/",
+      "formFactor": "mobile",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:46:39.407Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 97,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 1817.528,
+        "lcp": 2426.292,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1817.528,
+        "ttfb": 77
+      },
+      "requests": 17,
+      "transferKB": 215.1,
+      "lcpElement": {
+        "selector": "div.relative > section.flex > div.flex > p.m-0",
+        "snippet": "<p class=\"m-0 max-w-140 text-2xl leading-loose font-medium text-on-night-muted max-s…\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.91,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.98,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 601
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        97
+      ]
+    },
+    {
+      "template": "home",
+      "url": "/",
+      "formFactor": "mobile",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:46:45.775Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 97,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 1811.4721,
+        "lcp": 2417.20815,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1811.4721,
+        "ttfb": 64
+      },
+      "requests": 17,
+      "transferKB": 215.9,
+      "lcpElement": {
+        "selector": "div.relative > section.flex > div.flex > p.m-0",
+        "snippet": "<p class=\"m-0 max-w-140 text-2xl leading-loose font-medium text-on-night-muted max-s…\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.91,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.98,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 604
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        97
+      ]
+    },
+    {
+      "template": "home",
+      "url": "/",
+      "formFactor": "desktop",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:46:52.002Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 424.8588,
+        "lcp": 538.6441,
+        "tbt": 0,
+        "cls": 6.559399513457807e-7,
+        "si": 424.8588,
+        "ttfb": 63
+      },
+      "requests": 17,
+      "transferKB": 215.9,
+      "lcpElement": {
+        "selector": "div.relative > section.flex > div.flex > h1#home-title",
+        "snippet": "<h1 id=\"home-title\" class=\"m-0 font-display text-d-3xl leading-display font-normal text-on-night\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "displayValue": "Est savings of 10 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 123
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "home",
+      "url": "/",
+      "formFactor": "desktop",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:46:58.194Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 421.7124,
+        "lcp": 536.2843,
+        "tbt": 0,
+        "cls": 0,
+        "si": 421.7124,
+        "ttfb": 71
+      },
+      "requests": 17,
+      "transferKB": 215.9,
+      "lcpElement": {
+        "selector": "div.relative > section.flex > div.flex > h1#home-title",
+        "snippet": "<h1 id=\"home-title\" class=\"m-0 font-display text-d-3xl leading-display font-normal text-on-night\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "displayValue": "Est savings of 10 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 123
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "stage",
+      "url": "/cycle",
+      "formFactor": "mobile",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:47:04.472Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 97,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 1812.0572,
+        "lcp": 2418.0858,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1812.0572,
+        "ttfb": 57
+      },
+      "requests": 17,
+      "transferKB": 215.5,
+      "lcpElement": {
+        "selector": "div.relative > section.flex > div.flex > h1#stage-hero-title",
+        "snippet": "<h1 id=\"stage-hero-title\" class=\"m-0 font-display text-d-3xl leading-display font-normal text-on-night\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.91,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.98,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        97
+      ]
+    },
+    {
+      "template": "stage",
+      "url": "/cycle",
+      "formFactor": "mobile",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:47:10.414Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 97,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 1812.1698999999999,
+        "lcp": 2418.25485,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1812.1698999999999,
+        "ttfb": 70
+      },
+      "requests": 17,
+      "transferKB": 215.4,
+      "lcpElement": {
+        "selector": "div.relative > section.flex > div.flex > h1#stage-hero-title",
+        "snippet": "<h1 id=\"stage-hero-title\" class=\"m-0 font-display text-d-3xl leading-display font-normal text-on-night\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.91,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.98,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 603
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        97
+      ]
+    },
+    {
+      "template": "stage",
+      "url": "/cycle",
+      "formFactor": "desktop",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:47:16.457Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 418.4892,
+        "lcp": 533.8669,
+        "tbt": 0,
+        "cls": 6.559399513457807e-7,
+        "si": 418.4892,
+        "ttfb": 58
+      },
+      "requests": 17,
+      "transferKB": 215.5,
+      "lcpElement": {
+        "selector": "div.relative > section.flex > div.flex > h1#stage-hero-title",
+        "snippet": "<h1 id=\"stage-hero-title\" class=\"m-0 font-display text-d-3xl leading-display font-normal text-on-night\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "displayValue": "Est savings of 10 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "stage",
+      "url": "/cycle",
+      "formFactor": "desktop",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:47:22.582Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 422.5686999999999,
+        "lcp": 502.5687,
+        "tbt": 0,
+        "cls": 6.559399513457807e-7,
+        "si": 422.5686999999999,
+        "ttfb": 97
+      },
+      "requests": 17,
+      "transferKB": 215.4,
+      "lcpElement": {
+        "selector": "div.relative > section.flex > div.flex > h1#stage-hero-title",
+        "snippet": "<h1 id=\"stage-hero-title\" class=\"m-0 font-display text-d-3xl leading-display font-normal text-on-night\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 123
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "tools",
+      "url": "/tools",
+      "formFactor": "mobile",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:47:28.898Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 98,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 1656.4768,
+        "lcp": 2259.7151999999996,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1656.4768,
+        "ttfb": 61
+      },
+      "requests": 17,
+      "transferKB": 201.4,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display leading-display font-normal text-ink text-d-2xl\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        98
+      ]
+    },
+    {
+      "template": "tools",
+      "url": "/tools",
+      "formFactor": "mobile",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:47:34.704Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 98,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 1660.7710000000002,
+        "lcp": 2266.1564999999996,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1660.7710000000002,
+        "ttfb": 71
+      },
+      "requests": 17,
+      "transferKB": 201.3,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display leading-display font-normal text-ink text-d-2xl\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 603
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        98
+      ]
+    },
+    {
+      "template": "tools",
+      "url": "/tools",
+      "formFactor": "desktop",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:47:40.607Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 411.687,
+        "lcp": 497.5305,
+        "tbt": 0,
+        "cls": 6.559399513457807e-7,
+        "si": 411.687,
+        "ttfb": 63
+      },
+      "requests": 17,
+      "transferKB": 201.4,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display leading-display font-normal text-ink text-d-2xl\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 123
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "tools",
+      "url": "/tools",
+      "formFactor": "desktop",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:47:46.494Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 410.0356,
+        "lcp": 506.07120000000003,
+        "tbt": 0,
+        "cls": 0,
+        "si": 410.0356,
+        "ttfb": 66
+      },
+      "requests": 17,
+      "transferKB": 201.3,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display leading-display font-normal text-ink text-d-2xl\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "faq",
+      "url": "/faq",
+      "formFactor": "mobile",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:47:52.486Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 98,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 1657.761,
+        "lcp": 2257.761,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1657.761,
+        "ttfb": 55
+      },
+      "requests": 17,
+      "transferKB": 198.5,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > p.m-0",
+        "snippet": "<p class=\"m-0 max-w-205 text-[17.5px] leading-loose font-medium text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        98
+      ]
+    },
+    {
+      "template": "faq",
+      "url": "/faq",
+      "formFactor": "mobile",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:47:58.183Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 98,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 1658.3714,
+        "lcp": 2262.5571,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1658.3714,
+        "ttfb": 66
+      },
+      "requests": 17,
+      "transferKB": 198.5,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > p.m-0",
+        "snippet": "<p class=\"m-0 max-w-205 text-[17.5px] leading-loose font-medium text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        98
+      ]
+    },
+    {
+      "template": "faq",
+      "url": "/faq",
+      "formFactor": "desktop",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:48:04.043Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 407.9466,
+        "lcp": 491.9199,
+        "tbt": 0,
+        "cls": 6.559399513457807e-7,
+        "si": 407.9466,
+        "ttfb": 61
+      },
+      "requests": 17,
+      "transferKB": 198.5,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display leading-display font-normal text-ink text-d-2xl\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 123
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "faq",
+      "url": "/faq",
+      "formFactor": "desktop",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:48:09.875Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 410.4035,
+        "lcp": 500.807,
+        "tbt": 0,
+        "cls": 6.559399513457807e-7,
+        "si": 410.4035,
+        "ttfb": 65
+      },
+      "requests": 17,
+      "transferKB": 198.5,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display leading-display font-normal text-ink text-d-2xl\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "contact",
+      "url": "/contact",
+      "formFactor": "mobile",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:48:15.739Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 98,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 1660.9072999999999,
+        "lcp": 2266.36095,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1660.9072999999999,
+        "ttfb": 70
+      },
+      "requests": 16,
+      "transferKB": 196.9,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > p.m-0",
+        "snippet": "<p class=\"m-0 max-w-205 text-[17.5px] leading-loose font-medium text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "bf-cache",
+          "title": "Page prevented back/forward cache restoration",
+          "score": 0,
+          "displayValue": "3 failure reasons",
+          "items": [
+            {
+              "reason": "Pages with cache-control:no-store header cannot enter back/forward cache.",
+              "failureType": "Actionable",
+              "protocolReason": "CacheControlNoStoreHTTPOnlyCookieModified"
+            },
+            {
+              "reason": "Pages whose main resource has cache-control:no-store cannot enter back/forward cache.",
+              "failureType": "Not actionable",
+              "protocolReason": "MainResourceHasCacheControlNoStore"
+            },
+            {
+              "reason": "Back/forward cache is disabled because some JavaScript network request received resource with Cache-Control: no-store header.",
+              "failureType": "Not actionable",
+              "protocolReason": "JsNetworkRequestReceivedCacheControlNoStoreResource"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        98
+      ]
+    },
+    {
+      "template": "contact",
+      "url": "/contact",
+      "formFactor": "mobile",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:48:21.674Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 98,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 1659.768,
+        "lcp": 2264.652,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1659.768,
+        "ttfb": 62
+      },
+      "requests": 16,
+      "transferKB": 196.9,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > p.m-0",
+        "snippet": "<p class=\"m-0 max-w-205 text-[17.5px] leading-loose font-medium text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "bf-cache",
+          "title": "Page prevented back/forward cache restoration",
+          "score": 0,
+          "displayValue": "3 failure reasons",
+          "items": [
+            {
+              "reason": "Pages with cache-control:no-store header cannot enter back/forward cache.",
+              "failureType": "Actionable",
+              "protocolReason": "CacheControlNoStoreHTTPOnlyCookieModified"
+            },
+            {
+              "reason": "Pages whose main resource has cache-control:no-store cannot enter back/forward cache.",
+              "failureType": "Not actionable",
+              "protocolReason": "MainResourceHasCacheControlNoStore"
+            },
+            {
+              "reason": "Back/forward cache is disabled because some JavaScript network request received resource with Cache-Control: no-store header.",
+              "failureType": "Not actionable",
+              "protocolReason": "JsNetworkRequestReceivedCacheControlNoStoreResource"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        98
+      ]
+    },
+    {
+      "template": "contact",
+      "url": "/contact",
+      "formFactor": "desktop",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:48:27.563Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 405.24570000000006,
+        "lcp": 490.4914,
+        "tbt": 0,
+        "cls": 0.00003315774635339581,
+        "si": 405.24570000000006,
+        "ttfb": 73
+      },
+      "requests": 16,
+      "transferKB": 196.9,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display leading-display font-normal text-ink text-d-2xl\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "bf-cache",
+          "title": "Page prevented back/forward cache restoration",
+          "score": 0,
+          "displayValue": "3 failure reasons",
+          "items": [
+            {
+              "reason": "Pages with cache-control:no-store header cannot enter back/forward cache.",
+              "failureType": "Actionable",
+              "protocolReason": "CacheControlNoStoreHTTPOnlyCookieModified"
+            },
+            {
+              "reason": "Pages whose main resource has cache-control:no-store cannot enter back/forward cache.",
+              "failureType": "Not actionable",
+              "protocolReason": "MainResourceHasCacheControlNoStore"
+            },
+            {
+              "reason": "Back/forward cache is disabled because some JavaScript network request received resource with Cache-Control: no-store header.",
+              "failureType": "Not actionable",
+              "protocolReason": "JsNetworkRequestReceivedCacheControlNoStoreResource"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "contact",
+      "url": "/contact",
+      "formFactor": "desktop",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:48:33.383Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 410.85159999999996,
+        "lcp": 490.85159999999996,
+        "tbt": 0,
+        "cls": 0.00003360058906166479,
+        "si": 410.85159999999996,
+        "ttfb": 70
+      },
+      "requests": 16,
+      "transferKB": 196.9,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display leading-display font-normal text-ink text-d-2xl\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "bf-cache",
+          "title": "Page prevented back/forward cache restoration",
+          "score": 0,
+          "displayValue": "3 failure reasons",
+          "items": [
+            {
+              "reason": "Pages with cache-control:no-store header cannot enter back/forward cache.",
+              "failureType": "Actionable",
+              "protocolReason": "CacheControlNoStoreHTTPOnlyCookieModified"
+            },
+            {
+              "reason": "Pages whose main resource has cache-control:no-store cannot enter back/forward cache.",
+              "failureType": "Not actionable",
+              "protocolReason": "MainResourceHasCacheControlNoStore"
+            },
+            {
+              "reason": "Back/forward cache is disabled because some JavaScript network request received resource with Cache-Control: no-store header.",
+              "failureType": "Not actionable",
+              "protocolReason": "JsNetworkRequestReceivedCacheControlNoStoreResource"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 123
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "blog",
+      "url": "/blog",
+      "formFactor": "mobile",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:48:39.401Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 98,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 1659.3687,
+        "lcp": 2264.05305,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1659.3687,
+        "ttfb": 60
+      },
+      "requests": 16,
+      "transferKB": 195.6,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display leading-display font-normal text-ink text-d-2xl\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        98
+      ]
+    },
+    {
+      "template": "blog",
+      "url": "/blog",
+      "formFactor": "mobile",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:48:45.109Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 98,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 1660.3202,
+        "lcp": 2260.3202,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1660.3202,
+        "ttfb": 70
+      },
+      "requests": 16,
+      "transferKB": 195.5,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display leading-display font-normal text-ink text-d-2xl\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        98
+      ]
+    },
+    {
+      "template": "blog",
+      "url": "/blog",
+      "formFactor": "desktop",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:48:50.952Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 408.6952,
+        "lcp": 497.3904,
+        "tbt": 0,
+        "cls": 0.00002098322329278218,
+        "si": 408.6952,
+        "ttfb": 59
+      },
+      "requests": 16,
+      "transferKB": 195.6,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display leading-display font-normal text-ink text-d-2xl\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "blog",
+      "url": "/blog",
+      "formFactor": "desktop",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:48:56.683Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 414.09129999999993,
+        "lcp": 501.13694999999996,
+        "tbt": 0,
+        "cls": 0.00002098322329278218,
+        "si": 414.09129999999993,
+        "ttfb": 103
+      },
+      "requests": 16,
+      "transferKB": 195.5,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display leading-display font-normal text-ink text-d-2xl\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 123
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "article",
+      "url": "/blog/period-pain",
+      "formFactor": "mobile",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:49:02.871Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 97,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 1810.3749000000003,
+        "lcp": 2265.5623499999997,
+        "tbt": 0,
+        "cls": 0.00011571925322548,
+        "si": 1810.3749000000003,
+        "ttfb": 63
+      },
+      "requests": 20,
+      "transferKB": 192.5,
+      "lcpElement": {
+        "selector": "div.flex > div.flex > div.rt-article > p",
+        "snippet": "<p>"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 603
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        97
+      ]
+    },
+    {
+      "template": "article",
+      "url": "/blog/period-pain",
+      "formFactor": "mobile",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:49:08.684Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 98,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 1662.8363999999997,
+        "lcp": 2262.8364,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1662.8363999999997,
+        "ttfb": 75
+      },
+      "requests": 20,
+      "transferKB": 192.5,
+      "lcpElement": {
+        "selector": "div.flex > div.flex > div.rt-article > p",
+        "snippet": "<p>"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 604
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        98
+      ]
+    },
+    {
+      "template": "article",
+      "url": "/blog/period-pain",
+      "formFactor": "desktop",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:49:14.624Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 412.0061,
+        "lcp": 504.0122,
+        "tbt": 0,
+        "cls": 0,
+        "si": 412.0061,
+        "ttfb": 65
+      },
+      "requests": 20,
+      "transferKB": 192.5,
+      "lcpElement": {
+        "selector": "div > article > header.flex > h1#article-title",
+        "snippet": "<h1 id=\"article-title\" class=\"m-0 font-display text-[48px] leading-display font-normal text-ink max-sm:t…\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "article",
+      "url": "/blog/period-pain",
+      "formFactor": "desktop",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:49:20.445Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": false
+        }
+      },
+      "metrics": {
+        "fcp": 416.1817,
+        "lcp": 501.5756,
+        "tbt": 0,
+        "cls": 0,
+        "si": 416.1817,
+        "ttfb": 64
+      },
+      "requests": 20,
+      "transferKB": 192.5,
+      "lcpElement": {
+        "selector": "div > article > header.flex > h1#article-title",
+        "snippet": "<h1 id=\"article-title\" class=\"m-0 font-display text-[48px] leading-display font-normal text-ink max-sm:t…\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "directory",
+      "url": "/directory",
+      "formFactor": "mobile",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:49:26.418Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 98,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 1659.4056999999998,
+        "lcp": 2264.1085500000004,
+        "tbt": 0,
+        "cls": 0.02423694888232242,
+        "si": 1659.4056999999998,
+        "ttfb": 64
+      },
+      "requests": 16,
+      "transferKB": 197.5,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > p.m-0",
+        "snippet": "<p class=\"m-0 max-w-190 text-xl leading-loose font-medium text-muted max-sm:w-full m…\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        98
+      ]
+    },
+    {
+      "template": "directory",
+      "url": "/directory",
+      "formFactor": "mobile",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:49:32.316Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 98,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 1662.9591999999998,
+        "lcp": 2269.4388000000004,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1662.9591999999998,
+        "ttfb": 70
+      },
+      "requests": 16,
+      "transferKB": 197.5,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display text-[52px] leading-display font-normal text-ink max-lg:t…\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        98
+      ]
+    },
+    {
+      "template": "directory",
+      "url": "/directory",
+      "formFactor": "desktop",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:49:38.285Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 408.3004,
+        "lcp": 492.4506,
+        "tbt": 0,
+        "cls": 0.0001744338317391332,
+        "si": 408.3004,
+        "ttfb": 57
+      },
+      "requests": 16,
+      "transferKB": 197.5,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display text-[52px] leading-display font-normal text-ink max-lg:t…\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "directory",
+      "url": "/directory",
+      "formFactor": "desktop",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:49:44.167Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 425.16,
+        "lcp": 517.74,
+        "tbt": 0,
+        "cls": 0.00004892012449773666,
+        "si": 425.16,
+        "ttfb": 114
+      },
+      "requests": 16,
+      "transferKB": 197.5,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display text-[52px] leading-display font-normal text-ink max-lg:t…\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "place",
+      "url": "/directory/place/aramesh",
+      "formFactor": "mobile",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:49:50.624Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 96,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 1974.6514499999998,
+        "lcp": 2424.65145,
+        "tbt": 0,
+        "cls": 0.0002435649505172996,
+        "si": 1974.6514499999998,
+        "ttfb": 75
+      },
+      "requests": 19,
+      "transferKB": 231.8,
+      "lcpElement": {
+        "selector": "div.flex > div.flex > div.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display text-[46px] leading-display font-normal text-ink max-sm:t…\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.85,
+          "displayValue": "2.0 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.91,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "speed-index",
+          "title": "Speed Index",
+          "score": 0.99,
+          "displayValue": "2.0 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.98,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 603
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        96
+      ]
+    },
+    {
+      "template": "place",
+      "url": "/directory/place/aramesh",
+      "formFactor": "mobile",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:49:56.548Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 96,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 1966.6887000000002,
+        "lcp": 2416.6887,
+        "tbt": 0,
+        "cls": 0.0002435649505172996,
+        "si": 1966.6887000000002,
+        "ttfb": 83
+      },
+      "requests": 19,
+      "transferKB": 231.8,
+      "lcpElement": {
+        "selector": "div.flex > div.flex > div.flex > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display text-[46px] leading-display font-normal text-ink max-sm:t…\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.85,
+          "displayValue": "2.0 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.91,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "speed-index",
+          "title": "Speed Index",
+          "score": 0.99,
+          "displayValue": "2.0 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.98,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 603
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        96
+      ]
+    },
+    {
+      "template": "place",
+      "url": "/directory/place/aramesh",
+      "formFactor": "desktop",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:50:02.582Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 459.18545,
+        "lcp": 579.18545,
+        "tbt": 0,
+        "cls": 0.00007620572113867944,
+        "si": 459.18545,
+        "ttfb": 61
+      },
+      "requests": 19,
+      "transferKB": 231.8,
+      "lcpElement": {
+        "selector": "div.flex > div.flex > section#about > p.m-0",
+        "snippet": "<p class=\"m-0 text-lg leading-loose font-medium text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 123
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "place",
+      "url": "/directory/place/aramesh",
+      "formFactor": "desktop",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:50:08.548Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 454.77845,
+        "lcp": 574.77845,
+        "tbt": 0,
+        "cls": 0.00007620572113867944,
+        "si": 454.77845,
+        "ttfb": 78
+      },
+      "requests": 19,
+      "transferKB": 231.8,
+      "lcpElement": {
+        "selector": "div.flex > div.flex > section#about > p.m-0",
+        "snippet": "<p class=\"m-0 text-lg leading-loose font-medium text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "shop",
+      "url": "/shop",
+      "formFactor": "mobile",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:50:14.673Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 97,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 1818.8382000000001,
+        "lcp": 2414.12865,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1818.8382000000001,
+        "ttfb": 67
+      },
+      "requests": 18,
+      "transferKB": 214.1,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > p.m-0",
+        "snippet": "<p class=\"m-0 max-w-205 text-[16.5px] leading-loose font-medium text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.91,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.98,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        97
+      ]
+    },
+    {
+      "template": "shop",
+      "url": "/shop",
+      "formFactor": "mobile",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:50:20.558Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 97,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 1830.6488,
+        "lcp": 2422.9866,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1830.6488,
+        "ttfb": 95
+      },
+      "requests": 18,
+      "transferKB": 214.1,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > p.m-0",
+        "snippet": "<p class=\"m-0 max-w-205 text-[16.5px] leading-loose font-medium text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.91,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.98,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        97
+      ]
+    },
+    {
+      "template": "shop",
+      "url": "/shop",
+      "formFactor": "desktop",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:50:26.580Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 407.5686,
+        "lcp": 491.3529,
+        "tbt": 0,
+        "cls": 6.559399513457807e-7,
+        "si": 407.5686,
+        "ttfb": 57
+      },
+      "requests": 18,
+      "transferKB": 214.1,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > p.m-0",
+        "snippet": "<p class=\"m-0 max-w-205 text-[16.5px] leading-loose font-medium text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 123
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "shop",
+      "url": "/shop",
+      "formFactor": "desktop",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:50:32.482Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 452.6762,
+        "lcp": 532.6762,
+        "tbt": 0,
+        "cls": 6.559399513457807e-7,
+        "si": 452.6762,
+        "ttfb": 72
+      },
+      "requests": 18,
+      "transferKB": 214.1,
+      "lcpElement": {
+        "selector": "main#main > div > section.flex > p.m-0",
+        "snippet": "<p class=\"m-0 max-w-205 text-[16.5px] leading-loose font-medium text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "category",
+      "url": "/shop/category/baby",
+      "formFactor": "mobile",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:50:38.611Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 99,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 1518.9090999999999,
+        "lcp": 2118.9091,
+        "tbt": 0,
+        "cls": 0.000008735198786317822,
+        "si": 1518.9090999999999,
+        "ttfb": 63
+      },
+      "requests": 16,
+      "transferKB": 174.1,
+      "lcpElement": {
+        "selector": "section.flex > div.flex > div > p.m-0",
+        "snippet": "<p class=\"m-0 mt-1.5 text-[14.5px] font-semibold text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.95,
+          "displayValue": "1.5 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.96,
+          "displayValue": "2.1 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.1 s",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        99
+      ]
+    },
+    {
+      "template": "category",
+      "url": "/shop/category/baby",
+      "formFactor": "mobile",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:50:44.492Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 98,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 1657.7518,
+        "lcp": 2257.7518,
+        "tbt": 0,
+        "cls": 0.0001623272490572514,
+        "si": 1657.7518,
+        "ttfb": 65
+      },
+      "requests": 16,
+      "transferKB": 174,
+      "lcpElement": {
+        "selector": "section.flex > div.flex > div > p.m-0",
+        "snippet": "<p class=\"m-0 mt-1.5 text-[14.5px] font-semibold text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        98
+      ]
+    },
+    {
+      "template": "category",
+      "url": "/shop/category/baby",
+      "formFactor": "desktop",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:50:50.432Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 407.34399999999994,
+        "lcp": 487.34399999999994,
+        "tbt": 0,
+        "cls": 0.0003376935166954527,
+        "si": 407.34399999999994,
+        "ttfb": 58
+      },
+      "requests": 16,
+      "transferKB": 174.1,
+      "lcpElement": {
+        "selector": "section.flex > div.flex > div > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display text-d-xl leading-display font-normal text-ink\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "category",
+      "url": "/shop/category/baby",
+      "formFactor": "desktop",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:50:56.261Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 409.1903,
+        "lcp": 489.1903,
+        "tbt": 0,
+        "cls": 0,
+        "si": 409.1903,
+        "ttfb": 70
+      },
+      "requests": 16,
+      "transferKB": 174,
+      "lcpElement": {
+        "selector": "section.flex > div.flex > div > h1.m-0",
+        "snippet": "<h1 class=\"m-0 font-display text-d-xl leading-display font-normal text-ink\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "product",
+      "url": "/shop/product/long-sleeve-cotton-bodysuit-3",
+      "formFactor": "mobile",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:51:08.224Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 97,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 1824.7512499999998,
+        "lcp": 2414.85075,
+        "tbt": 0,
+        "cls": 0.00008636899874144425,
+        "si": 1824.7512499999998,
+        "ttfb": 55
+      },
+      "requests": 20,
+      "transferKB": 218.8,
+      "lcpElement": {
+        "selector": "nav.text-sm-plus > ol.flex > li.flex > span.text-ink",
+        "snippet": "<span aria-current=\"page\" class=\"text-ink\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.91,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.98,
+          "displayValue": "2.4 s",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "displayValue": "Est savings of 10 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 603
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        95,
+        97,
+        98
+      ]
+    },
+    {
+      "template": "product",
+      "url": "/shop/product/long-sleeve-cotton-bodysuit-3",
+      "formFactor": "mobile",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:51:20.064Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 97,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 1808.8915999999997,
+        "lcp": 2263.3374,
+        "tbt": 0,
+        "cls": 0.00008636899874144425,
+        "si": 1808.8915999999997,
+        "ttfb": 75
+      },
+      "requests": 20,
+      "transferKB": 218.8,
+      "lcpElement": {
+        "selector": "nav.text-sm-plus > ol.flex > li.flex > span.text-ink",
+        "snippet": "<span aria-current=\"page\" class=\"text-ink\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 603
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        97
+      ]
+    },
+    {
+      "template": "product",
+      "url": "/shop/product/long-sleeve-cotton-bodysuit-3",
+      "formFactor": "desktop",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:51:26.080Z",
+      "status": 200,
+      "pageCache": "HIT",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 457.17455,
+        "lcp": 537.17455,
+        "tbt": 0,
+        "cls": 0.000546662746826448,
+        "si": 457.17455,
+        "ttfb": 68
+      },
+      "requests": 20,
+      "transferKB": 218.8,
+      "lcpElement": {
+        "selector": "section.flex > div.flex > div.flex > h1#product-title",
+        "snippet": "<h1 id=\"product-title\" class=\"m-0 font-display text-[38px] leading-display font-normal text-ink\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 123
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "product",
+      "url": "/shop/product/long-sleeve-cotton-bodysuit-3",
+      "formFactor": "desktop",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:51:32.064Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 451.64255,
+        "lcp": 571.64255,
+        "tbt": 0,
+        "cls": 0.001422797166940798,
+        "si": 451.64255,
+        "ttfb": 75
+      },
+      "requests": 20,
+      "transferKB": 218.8,
+      "lcpElement": {
+        "selector": "section.flex > div.flex > div.flex > h1#product-title",
+        "snippet": "<h1 id=\"product-title\" class=\"m-0 font-display text-[38px] leading-display font-normal text-ink\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "cart",
+      "url": "/shop/cart",
+      "formFactor": "mobile",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:51:38.138Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 98,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 1583.7638000000002,
+        "lcp": 2113.1457,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1583.7638000000002,
+        "ttfb": 73
+      },
+      "requests": 18,
+      "transferKB": 196.9,
+      "lcpElement": {
+        "selector": "section.flex > div > div.flex > p.m-0",
+        "snippet": "<p class=\"m-0 text-base leading-loose font-medium text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.94,
+          "displayValue": "1.6 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.96,
+          "displayValue": "2.1 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.1 s",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "cart is noindex by design (SeoManager forced rule: search/cart/checkout/done)",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            },
+            {
+              "source": "http://127.0.0.1:56791/robots.txt:3"
+            }
+          ]
+        },
+        {
+          "id": "bf-cache",
+          "title": "Page prevented back/forward cache restoration",
+          "score": 0,
+          "displayValue": "3 failure reasons",
+          "items": [
+            {
+              "reason": "Pages with cache-control:no-store header cannot enter back/forward cache.",
+              "failureType": "Actionable",
+              "protocolReason": "CacheControlNoStoreHTTPOnlyCookieModified"
+            },
+            {
+              "reason": "Pages whose main resource has cache-control:no-store cannot enter back/forward cache.",
+              "failureType": "Not actionable",
+              "protocolReason": "MainResourceHasCacheControlNoStore"
+            },
+            {
+              "reason": "Back/forward cache is disabled because some JavaScript network request received resource with Cache-Control: no-store header.",
+              "failureType": "Not actionable",
+              "protocolReason": "JsNetworkRequestReceivedCacheControlNoStoreResource"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        98
+      ]
+    },
+    {
+      "template": "cart",
+      "url": "/shop/cart",
+      "formFactor": "mobile",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:51:43.856Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 98,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 1584.1945,
+        "lcp": 2109.1945,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1584.1945,
+        "ttfb": 61
+      },
+      "requests": 18,
+      "transferKB": 196.9,
+      "lcpElement": {
+        "selector": "section.flex > div > div.flex > p.m-0",
+        "snippet": "<p class=\"m-0 text-base leading-loose font-medium text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.94,
+          "displayValue": "1.6 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.96,
+          "displayValue": "2.1 s",
+          "items": []
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.1 s",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "cart is noindex by design (SeoManager forced rule: search/cart/checkout/done)",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            },
+            {
+              "source": "http://127.0.0.1:56791/robots.txt:3"
+            }
+          ]
+        },
+        {
+          "id": "bf-cache",
+          "title": "Page prevented back/forward cache restoration",
+          "score": 0,
+          "displayValue": "3 failure reasons",
+          "items": [
+            {
+              "reason": "Pages with cache-control:no-store header cannot enter back/forward cache.",
+              "failureType": "Actionable",
+              "protocolReason": "CacheControlNoStoreHTTPOnlyCookieModified"
+            },
+            {
+              "reason": "Pages whose main resource has cache-control:no-store cannot enter back/forward cache.",
+              "failureType": "Not actionable",
+              "protocolReason": "MainResourceHasCacheControlNoStore"
+            },
+            {
+              "reason": "Back/forward cache is disabled because some JavaScript network request received resource with Cache-Control: no-store header.",
+              "failureType": "Not actionable",
+              "protocolReason": "JsNetworkRequestReceivedCacheControlNoStoreResource"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0.5,
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        98
+      ]
+    },
+    {
+      "template": "cart",
+      "url": "/shop/cart",
+      "formFactor": "desktop",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:51:49.797Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 376.07025,
+        "lcp": 464.427,
+        "tbt": 0,
+        "cls": 0.00003822353453115472,
+        "si": 376.07025,
+        "ttfb": 67
+      },
+      "requests": 18,
+      "transferKB": 196.9,
+      "lcpElement": {
+        "selector": "div > section.flex > section.flex > h2#suggestions-title",
+        "snippet": "<h2 id=\"suggestions-title\" class=\"m-0 font-display text-d-md leading-heading font-normal text-ink\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "cart is noindex by design (SeoManager forced rule: search/cart/checkout/done)",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            },
+            {
+              "source": "http://127.0.0.1:56791/robots.txt:3"
+            }
+          ]
+        },
+        {
+          "id": "bf-cache",
+          "title": "Page prevented back/forward cache restoration",
+          "score": 0,
+          "displayValue": "3 failure reasons",
+          "items": [
+            {
+              "reason": "Pages with cache-control:no-store header cannot enter back/forward cache.",
+              "failureType": "Actionable",
+              "protocolReason": "CacheControlNoStoreHTTPOnlyCookieModified"
+            },
+            {
+              "reason": "Pages whose main resource has cache-control:no-store cannot enter back/forward cache.",
+              "failureType": "Not actionable",
+              "protocolReason": "MainResourceHasCacheControlNoStore"
+            },
+            {
+              "reason": "Back/forward cache is disabled because some JavaScript network request received resource with Cache-Control: no-store header.",
+              "failureType": "Not actionable",
+              "protocolReason": "JsNetworkRequestReceivedCacheControlNoStoreResource"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "cart",
+      "url": "/shop/cart",
+      "formFactor": "desktop",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:51:55.622Z",
+      "status": 200,
+      "pageCache": "BYPASS",
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": false
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 66
+        }
+      },
+      "metrics": {
+        "fcp": 373.82849999999996,
+        "lcp": 461.438,
+        "tbt": 0,
+        "cls": 0.00003822353453115472,
+        "si": 373.82849999999996,
+        "ttfb": 63
+      },
+      "requests": 18,
+      "transferKB": 196.9,
+      "lcpElement": {
+        "selector": "div > section.flex > section.flex > h2#suggestions-title",
+        "snippet": "<h2 id=\"suggestions-title\" class=\"m-0 font-display text-d-md leading-heading font-normal text-ink\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "cart is noindex by design (SeoManager forced rule: search/cart/checkout/done)",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            },
+            {
+              "source": "http://127.0.0.1:56791/robots.txt:3"
+            }
+          ]
+        },
+        {
+          "id": "bf-cache",
+          "title": "Page prevented back/forward cache restoration",
+          "score": 0,
+          "displayValue": "3 failure reasons",
+          "items": [
+            {
+              "reason": "Pages with cache-control:no-store header cannot enter back/forward cache.",
+              "failureType": "Actionable",
+              "protocolReason": "CacheControlNoStoreHTTPOnlyCookieModified"
+            },
+            {
+              "reason": "Pages whose main resource has cache-control:no-store cannot enter back/forward cache.",
+              "failureType": "Not actionable",
+              "protocolReason": "MainResourceHasCacheControlNoStore"
+            },
+            {
+              "reason": "Back/forward cache is disabled because some JavaScript network request received resource with Cache-Control: no-store header.",
+              "failureType": "Not actionable",
+              "protocolReason": "JsNetworkRequestReceivedCacheControlNoStoreResource"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "404",
+      "url": "/lighthouse-missing-page",
+      "formFactor": "mobile",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:52:01.484Z",
+      "status": 404,
+      "pageCache": null,
+      "scores": {
+        "performance": {
+          "score": 99,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 96
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 58
+        }
+      },
+      "metrics": {
+        "fcp": 1509.1808999999998,
+        "lcp": 2109.1809,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1509.1808999999998,
+        "ttfb": 69
+      },
+      "requests": 15,
+      "transferKB": 174.4,
+      "lcpElement": {
+        "selector": "main#main > div > section.px-30 > p.mt-4",
+        "snippet": "<p class=\"mt-4 max-w-[640px] text-xl leading-relaxed text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.96,
+          "displayValue": "1.5 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.96,
+          "displayValue": "2.1 s",
+          "items": []
+        },
+        {
+          "id": "errors-in-console",
+          "title": "Browser errors were logged to the console",
+          "score": 0,
+          "allowed": "the only console error is the 404 of the document itself",
+          "items": [
+            {
+              "source": "network",
+              "description": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+              "sourceLocation": "http://127.0.0.1:56791/lighthouse-missing-page:0"
+            }
+          ]
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.1 s",
+          "items": []
+        },
+        {
+          "id": "http-status-code",
+          "title": "Page has unsuccessful HTTP status code",
+          "score": 0,
+          "displayValue": "404",
+          "allowed": "the 404 template must answer 404",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "error pages are noindex by design",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "bf-cache",
+          "title": "Page prevented back/forward cache restoration",
+          "score": 0,
+          "displayValue": "1 failure reason",
+          "items": [
+            {
+              "reason": "Only pages with a status code of 2XX can be cached.",
+              "failureType": "Not actionable",
+              "protocolReason": "HTTPStatusNotOK"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        99
+      ]
+    },
+    {
+      "template": "404",
+      "url": "/lighthouse-missing-page",
+      "formFactor": "mobile",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:52:07.169Z",
+      "status": 404,
+      "pageCache": null,
+      "scores": {
+        "performance": {
+          "score": 98,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 96
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 58
+        }
+      },
+      "metrics": {
+        "fcp": 1660.2184000000002,
+        "lcp": 2110.2183999999997,
+        "tbt": 0,
+        "cls": 0,
+        "si": 1660.2184000000002,
+        "ttfb": 67
+      },
+      "requests": 15,
+      "transferKB": 174.4,
+      "lcpElement": {
+        "selector": "main#main > div > section.px-30 > p.mt-4",
+        "snippet": "<p class=\"mt-4 max-w-[640px] text-xl leading-relaxed text-muted\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "first-contentful-paint",
+          "title": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s",
+          "items": []
+        },
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.96,
+          "displayValue": "2.1 s",
+          "items": []
+        },
+        {
+          "id": "errors-in-console",
+          "title": "Browser errors were logged to the console",
+          "score": 0,
+          "allowed": "the only console error is the 404 of the document itself",
+          "items": [
+            {
+              "source": "network",
+              "description": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+              "sourceLocation": "http://127.0.0.1:56791/lighthouse-missing-page:0"
+            }
+          ]
+        },
+        {
+          "id": "interactive",
+          "title": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.1 s",
+          "items": []
+        },
+        {
+          "id": "http-status-code",
+          "title": "Page has unsuccessful HTTP status code",
+          "score": 0,
+          "displayValue": "404",
+          "allowed": "the 404 template must answer 404",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "error pages are noindex by design",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "bf-cache",
+          "title": "Page prevented back/forward cache restoration",
+          "score": 0,
+          "displayValue": "1 failure reason",
+          "items": [
+            {
+              "reason": "Only pages with a status code of 2XX can be cached.",
+              "failureType": "Not actionable",
+              "protocolReason": "HTTPStatusNotOK"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 602
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        98
+      ]
+    },
+    {
+      "template": "404",
+      "url": "/lighthouse-missing-page",
+      "formFactor": "desktop",
+      "mode": "warm",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:52:13.014Z",
+      "status": 404,
+      "pageCache": null,
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 96
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 58
+        }
+      },
+      "metrics": {
+        "fcp": 410.68369999999993,
+        "lcp": 490.6837,
+        "tbt": 0,
+        "cls": 6.559399513457807e-7,
+        "si": 410.68369999999993,
+        "ttfb": 64
+      },
+      "requests": 16,
+      "transferKB": 190.6,
+      "lcpElement": {
+        "selector": "main#main > div > section.px-30 > h1.mt-4",
+        "snippet": "<h1 class=\"mt-4 font-display text-d-xl leading-display text-ink\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "errors-in-console",
+          "title": "Browser errors were logged to the console",
+          "score": 0,
+          "allowed": "the only console error is the 404 of the document itself",
+          "items": [
+            {
+              "source": "network",
+              "description": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+              "sourceLocation": "http://127.0.0.1:56791/lighthouse-missing-page:0"
+            }
+          ]
+        },
+        {
+          "id": "http-status-code",
+          "title": "Page has unsuccessful HTTP status code",
+          "score": 0,
+          "displayValue": "404",
+          "allowed": "the 404 template must answer 404",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "error pages are noindex by design",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "bf-cache",
+          "title": "Page prevented back/forward cache restoration",
+          "score": 0,
+          "displayValue": "1 failure reason",
+          "items": [
+            {
+              "reason": "Only pages with a status code of 2XX can be cached.",
+              "failureType": "Not actionable",
+              "protocolReason": "HTTPStatusNotOK"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    },
+    {
+      "template": "404",
+      "url": "/lighthouse-missing-page",
+      "formFactor": "desktop",
+      "mode": "cold",
+      "lighthouseVersion": "13.4.1",
+      "fetchTime": "2026-10-05T08:52:18.684Z",
+      "status": 404,
+      "pageCache": null,
+      "scores": {
+        "performance": {
+          "score": 100,
+          "adjusted": false
+        },
+        "accessibility": {
+          "score": 100,
+          "adjusted": false
+        },
+        "best-practices": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 96
+        },
+        "seo": {
+          "score": 100,
+          "adjusted": true,
+          "raw": 58
+        }
+      },
+      "metrics": {
+        "fcp": 408.76519999999994,
+        "lcp": 488.76519999999994,
+        "tbt": 0,
+        "cls": 6.559399513457807e-7,
+        "si": 408.76519999999994,
+        "ttfb": 87
+      },
+      "requests": 16,
+      "transferKB": 190.6,
+      "lcpElement": {
+        "selector": "main#main > div > section.px-30 > h1.mt-4",
+        "snippet": "<h1 class=\"mt-4 font-display text-d-xl leading-display text-ink\">"
+      },
+      "external": [],
+      "failing": [
+        {
+          "id": "errors-in-console",
+          "title": "Browser errors were logged to the console",
+          "score": 0,
+          "allowed": "the only console error is the 404 of the document itself",
+          "items": [
+            {
+              "source": "network",
+              "description": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+              "sourceLocation": "http://127.0.0.1:56791/lighthouse-missing-page:0"
+            }
+          ]
+        },
+        {
+          "id": "http-status-code",
+          "title": "Page has unsuccessful HTTP status code",
+          "score": 0,
+          "displayValue": "404",
+          "allowed": "the 404 template must answer 404",
+          "items": []
+        },
+        {
+          "id": "is-crawlable",
+          "title": "Page is blocked from indexing",
+          "score": 0,
+          "allowed": "error pages are noindex by design",
+          "items": [
+            {
+              "source": {
+                "selector": "head > meta",
+                "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+                "label": "head > meta"
+              }
+            }
+          ]
+        },
+        {
+          "id": "bf-cache",
+          "title": "Page prevented back/forward cache restoration",
+          "score": 0,
+          "displayValue": "1 failure reason",
+          "items": [
+            {
+              "reason": "Only pages with a status code of 2XX can be cached.",
+              "failureType": "Not actionable",
+              "protocolReason": "HTTPStatusNotOK"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "title": "Network dependency tree",
+          "score": 0,
+          "items": [
+            {
+              "type": "list-section"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnected origins",
+              "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+              "value": "no origins were preconnected"
+            },
+            {
+              "type": "list-section",
+              "title": "Preconnect candidates",
+              "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+              "value": "No additional origins are good candidates for preconnecting"
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "title": "Render-blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+              "totalBytes": 14672,
+              "wastedMs": 122
+            }
+          ]
+        }
+      ],
+      "fails": [],
+      "pass": true,
+      "runs": [
+        100
+      ]
+    }
+  ]
+}

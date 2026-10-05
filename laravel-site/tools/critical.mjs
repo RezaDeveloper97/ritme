@@ -61,7 +61,9 @@ export const TEMPLATES = [
     },
     { key: 'blog', urls: ['/blog'], routes: ['blog.index', 'blog.category', 'blog.tag', 'blog.author'] },
     { key: 'post', discover: { from: '/blog', pattern: /href="(?:https?:\/\/[^/"]+)?(\/blog\/(?!category\/|tag\/|author\/|feed)[^"/?#]+)"/ }, routes: ['blog.show'] },
-    { key: 'shop', urls: ['/shop'], routes: ['shop.index', 'shop.category'] },
+    { key: 'shop', urls: ['/shop'], routes: ['shop.index'] },
+    // L9-02: the category listing needs its own above-the-fold cut (sharing /shop's shifted the whole <main>, CLS 0.89).
+    { key: 'category', discover: { from: '/shop', pattern: /href="(?:https?:\/\/[^/"]+)?(\/shop\/category\/[^"/?#]+)"/ }, routes: ['shop.category'] },
     { key: 'product', discover: { from: '/shop', pattern: /href="(?:https?:\/\/[^/"]+)?(\/shop\/product\/[^"/?#]+)"/ }, routes: ['shop.product'] },
     { key: 'directory', urls: ['/directory'], routes: ['directory.index', 'directory.city', 'directory.category'] },
     {
@@ -93,10 +95,7 @@ export const BUDGET = {
     lcp: 2500,
 };
 export const BUDGET_OVERRIDES = {
-    // Lab-only (--lab): the shop category chip row in the product header fits its 340 px container by < 1 px, so it
-    // wraps while Vazirmatn 800 is still swapping in (0.159; was 0.344 before L9-01). Fix belongs to the shop header
-    // component — docs/PERFORMANCE.md "Exceptions".
-    product: { cls: 0.2 },
+    // Empty since L9-02 (product chip row now `flex-nowrap` + overflow; lab CLS 0.001).
 };
 
 /* ------------------------------------------------------------------------------------------------ *

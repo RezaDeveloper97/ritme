@@ -3,7 +3,7 @@ id: L9-02
 title: Lighthouse / GTmetrix sweep on every template
 milestone: L9
 type: quality
-status: todo
+status: done
 depends_on: [L9-01,L8-02]
 parallel_group: L9-B
 touches: [tools/lighthouse.mjs,docs/qa/perf,resources,app/Http/Middleware]

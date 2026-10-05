@@ -936,3 +936,15 @@ One section per finished task (appended by `/site-task`).
   PageFaq merge, ContentTargets). Pest **1364 passed**.
 - Coverage (pcov built in scratchpad only): `app/Domain` 95.60% lines, `app/Support` 97.37%, whole `app` 93.47% lines /
   84.6% methods (Http 96.6%, Filament 87.6%, View 83.9%, Models 78%).
+
+## L9-02 — Lighthouse / GTmetrix sweep on every template
+- `tools/lighthouse.mjs` (local Lighthouse 13.4 + system Chrome, production-like env only, `.htaccess`-mimicking proxy,
+  warm + cold, retries, `docs/qa/perf/<date>/summary.{json,md}`, exit 1 on a miss). Result: **56/56 runs meet every
+  target** (Perf ≥ 95 mobile, A11y/BP/SEO 100, CLS < 0.1, LCP < 2.5 s); desktop all 100.
+- Mobile warm before → after: home 93→97 (LCP 2.87→2.42 s), stage 92→97, faq 95→98, contact 93→98, article 94→98,
+  place 93→100, shop 92→97, category 71→99 (CLS 0.894→0.001), product 91→99 (LCP 3.02→1.82 s), cart 94→99, 404 96→99.
+- Fixes: font re-subset (`docs/qa/perf/font-subset.py`, 142–165 KB/page, Lalezar 52→38 KB), `fetchpriority="low"` on
+  modulepreloads, shop subnav `flex-nowrap` + overflow, booking mobile placeholder in Persian digits.
+- Orchestrator: `tools/critical.mjs` gives `shop.category` its own `category` template; `BUDGET_OVERRIDES` emptied;
+  `docs/PERFORMANCE.md` + `tools/README.md` updated; rebuilt and re-ran the sweep (56/56).
+- Open: manual GTmetrix on stage after deploy; text typed with Arabic Presentation Forms now falls back to system fonts.

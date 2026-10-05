@@ -127,3 +127,11 @@ CRITICAL_SKIP=1 npm run build                         # skip (pages fall back to
 No Chrome or no answering site (fresh checkout without a database) → warning, no critical CSS, exit 0
 (`CRITICAL_STRICT=1` makes it an error — use it for deploy builds). Adding a template: an entry in `TEMPLATES`
 (sample URLs or a `discover` link + route-name patterns); unmapped routes use `default` (union of all templates).
+
+## lighthouse.mjs — Lighthouse sweep (L9-02)
+
+`node tools/lighthouse.mjs --all [--html] [--strict-seo]` — local Lighthouse (npx cache / `LIGHTHOUSE_DIR` /
+node_modules) + system Chrome against a production-like `php -S` (env only: `APP_ENV=production`, page cache on) behind
+a tiny Node proxy that mimics `.htaccess` compression/caching. Runs every template at mobile + desktop, warm (page-cache
+HIT) and cold, retries failures, writes JSON + `summary.md` to `docs/qa/perf/<date>/`, exits 1 when a target is missed.
+Run after `npm run build`. GTmetrix is external — run it manually against stage after deploy.

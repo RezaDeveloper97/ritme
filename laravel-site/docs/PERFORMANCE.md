@@ -126,3 +126,14 @@ on the page. Max 7.6 KB gz (product). No classic or render-blocking scripts.
 | Fonts 199–252 KB | not in task targets; budget 256 KB | Design uses Vazirmatn 400–800 + Lalezar; ASCII punctuation in Persian copy needs each weight's Latin file (16 KB). Fonts are `swap` and not render-blocking. | Re-subset Arabic files with `.:·«»©` (≈ −80 KB/page) — needs a font-tooling step and a design sign-off. |
 | Product lab CLS 0.159 | CLS < 0.1 | The shop category chip row in the product header fits its 340 px container by < 1 px; while Vazirmatn 800 swaps in, the fallback (≈ 6 % wider on those two labels) wraps it. Not visible without throttling (budget run: 0.000). Was 0.344. | Shop header component: allow horizontal scroll / `flex-nowrap` with overflow, or trim padding. |
 | Home lab FCP 1.3 s | — | `rel=expect` waits for the large inline-SVG `<main>` to parse under 4× CPU (see above). LCP still < 2.5 s. | Lighter hero SVG markup (L9-02 Lighthouse sweep). |
+
+## Update — L9-02 (2026-10-05)
+
+- Fonts re-subset (`docs/qa/perf/font-subset.py`): ASCII punctuation (+ A–Z for Vazirmatn) moved into the Arabic files,
+  Presentation Forms cmap dropped → **142–165 KB of fonts per page** (was 199–252 KB). The font-size exception above is
+  resolved for the budget (256 KB cap still in place).
+- Product lab CLS fixed (`components/shop/subnav` chip row `flex-nowrap` + `overflow-x-auto`): 0.159 → 0.001; the
+  `BUDGET_OVERRIDES.product` exception is removed. Shop category pages now get their own critical CSS (`category`
+  template) — sharing `/shop`'s cut shifted the whole `<main>` (CLS 0.89).
+- Lighthouse sweep: `node tools/lighthouse.mjs --all` → 56/56 runs (14 templates × mobile/desktop × warm/cold) meet
+  Performance ≥ 95, A11y/BP/SEO 100, CLS < 0.1, LCP < 2.5 s. Results in `docs/qa/perf/<date>/summary.md`.

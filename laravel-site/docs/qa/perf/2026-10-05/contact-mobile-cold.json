@@ -1,0 +1,128 @@
+{
+  "template": "contact",
+  "url": "/contact",
+  "formFactor": "mobile",
+  "mode": "cold",
+  "lighthouseVersion": "13.4.1",
+  "fetchTime": "2026-10-05T08:48:21.674Z",
+  "status": 200,
+  "pageCache": "BYPASS",
+  "scores": {
+    "performance": {
+      "score": 98,
+      "adjusted": false
+    },
+    "accessibility": {
+      "score": 100,
+      "adjusted": false
+    },
+    "best-practices": {
+      "score": 100,
+      "adjusted": false
+    },
+    "seo": {
+      "score": 100,
+      "adjusted": false
+    }
+  },
+  "metrics": {
+    "fcp": 1659.768,
+    "lcp": 2264.652,
+    "tbt": 0,
+    "cls": 0,
+    "si": 1659.768,
+    "ttfb": 62
+  },
+  "requests": 16,
+  "transferKB": 196.9,
+  "lcpElement": {
+    "selector": "main#main > div > section.flex > p.m-0",
+    "snippet": "<p class=\"m-0 max-w-205 text-[17.5px] leading-loose font-medium text-muted\">"
+  },
+  "external": [],
+  "failing": [
+    {
+      "id": "first-contentful-paint",
+      "title": "First Contentful Paint",
+      "score": 0.93,
+      "displayValue": "1.7 s",
+      "items": []
+    },
+    {
+      "id": "largest-contentful-paint",
+      "title": "Largest Contentful Paint",
+      "score": 0.94,
+      "displayValue": "2.3 s",
+      "items": []
+    },
+    {
+      "id": "interactive",
+      "title": "Time to Interactive",
+      "score": 0.99,
+      "displayValue": "2.3 s",
+      "items": []
+    },
+    {
+      "id": "bf-cache",
+      "title": "Page prevented back/forward cache restoration",
+      "score": 0,
+      "displayValue": "3 failure reasons",
+      "items": [
+        {
+          "reason": "Pages with cache-control:no-store header cannot enter back/forward cache.",
+          "failureType": "Actionable",
+          "protocolReason": "CacheControlNoStoreHTTPOnlyCookieModified"
+        },
+        {
+          "reason": "Pages whose main resource has cache-control:no-store cannot enter back/forward cache.",
+          "failureType": "Not actionable",
+          "protocolReason": "MainResourceHasCacheControlNoStore"
+        },
+        {
+          "reason": "Back/forward cache is disabled because some JavaScript network request received resource with Cache-Control: no-store header.",
+          "failureType": "Not actionable",
+          "protocolReason": "JsNetworkRequestReceivedCacheControlNoStoreResource"
+        }
+      ]
+    },
+    {
+      "id": "network-dependency-tree-insight",
+      "title": "Network dependency tree",
+      "score": 0,
+      "items": [
+        {
+          "type": "list-section"
+        },
+        {
+          "type": "list-section",
+          "title": "Preconnected origins",
+          "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+          "value": "no origins were preconnected"
+        },
+        {
+          "type": "list-section",
+          "title": "Preconnect candidates",
+          "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+          "value": "No additional origins are good candidates for preconnecting"
+        }
+      ]
+    },
+    {
+      "id": "render-blocking-insight",
+      "title": "Render-blocking requests",
+      "score": 0.5,
+      "items": [
+        {
+          "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+          "totalBytes": 14672,
+          "wastedMs": 602
+        }
+      ]
+    }
+  ],
+  "fails": [],
+  "pass": true,
+  "runs": [
+    98
+  ]
+}

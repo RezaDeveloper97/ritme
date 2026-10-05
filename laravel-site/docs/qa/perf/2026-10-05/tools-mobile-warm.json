@@ -1,0 +1,105 @@
+{
+  "template": "tools",
+  "url": "/tools",
+  "formFactor": "mobile",
+  "mode": "warm",
+  "lighthouseVersion": "13.4.1",
+  "fetchTime": "2026-10-05T08:47:28.898Z",
+  "status": 200,
+  "pageCache": "HIT",
+  "scores": {
+    "performance": {
+      "score": 98,
+      "adjusted": false
+    },
+    "accessibility": {
+      "score": 100,
+      "adjusted": false
+    },
+    "best-practices": {
+      "score": 100,
+      "adjusted": false
+    },
+    "seo": {
+      "score": 100,
+      "adjusted": false
+    }
+  },
+  "metrics": {
+    "fcp": 1656.4768,
+    "lcp": 2259.7151999999996,
+    "tbt": 0,
+    "cls": 0,
+    "si": 1656.4768,
+    "ttfb": 61
+  },
+  "requests": 17,
+  "transferKB": 201.4,
+  "lcpElement": {
+    "selector": "main#main > div > section.flex > h1.m-0",
+    "snippet": "<h1 class=\"m-0 font-display leading-display font-normal text-ink text-d-2xl\">"
+  },
+  "external": [],
+  "failing": [
+    {
+      "id": "first-contentful-paint",
+      "title": "First Contentful Paint",
+      "score": 0.93,
+      "displayValue": "1.7 s",
+      "items": []
+    },
+    {
+      "id": "largest-contentful-paint",
+      "title": "Largest Contentful Paint",
+      "score": 0.94,
+      "displayValue": "2.3 s",
+      "items": []
+    },
+    {
+      "id": "interactive",
+      "title": "Time to Interactive",
+      "score": 0.99,
+      "displayValue": "2.3 s",
+      "items": []
+    },
+    {
+      "id": "network-dependency-tree-insight",
+      "title": "Network dependency tree",
+      "score": 0,
+      "items": [
+        {
+          "type": "list-section"
+        },
+        {
+          "type": "list-section",
+          "title": "Preconnected origins",
+          "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+          "value": "no origins were preconnected"
+        },
+        {
+          "type": "list-section",
+          "title": "Preconnect candidates",
+          "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+          "value": "No additional origins are good candidates for preconnecting"
+        }
+      ]
+    },
+    {
+      "id": "render-blocking-insight",
+      "title": "Render-blocking requests",
+      "score": 0.5,
+      "items": [
+        {
+          "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+          "totalBytes": 14672,
+          "wastedMs": 602
+        }
+      ]
+    }
+  ],
+  "fails": [],
+  "pass": true,
+  "runs": [
+    98
+  ]
+}

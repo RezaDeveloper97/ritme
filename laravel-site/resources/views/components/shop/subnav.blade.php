@@ -6,11 +6,13 @@
 --}}
 @props(['departments' => [], 'links' => [], 'label' => ''])
 <div {{ $attributes->class('flex items-center justify-between gap-4 border-b border-line bg-surface px-30 py-3.5 max-lg:flex-wrap max-lg:px-5') }}>
-    <nav aria-label="{{ __('shop.subnav.departments') }}">
-        <ul class="m-0 flex list-none gap-1.5 rounded-[26px] border border-line bg-canvas p-1 max-lg:flex-wrap">
+    {{-- One row at every width (L9-02): when it used to wrap, the row fitted 340 px by < 1 px and the wider fallback
+         font wrapped it until Vazirmatn 800 swapped in (lab CLS 0.159). Too narrow → it scrolls sideways instead. --}}
+    <nav aria-label="{{ __('shop.subnav.departments') }}" class="max-w-full min-w-0">
+        <ul class="m-0 flex list-none flex-nowrap gap-1.5 overflow-x-auto rounded-[26px] border border-line bg-canvas p-1 [scrollbar-width:none]">
             @foreach ($departments as $department)
                 <li><a href="{{ $department['href'] }}" @if ($department['active']) aria-current="true" @endif @class([
-                    'flex h-11 items-center gap-2 rounded-full px-5 text-base font-extrabold',
+                    'flex h-11 shrink-0 items-center gap-2 rounded-full px-5 text-base font-extrabold whitespace-nowrap',
                     'bg-primary text-white hover:text-white' => $department['active'],
                     'text-muted hover:text-ink' => ! $department['active'],
                 ])><x-icon :name="$department['icon']" class="size-[17px]"/>{{ $department['label'] }}</a></li>

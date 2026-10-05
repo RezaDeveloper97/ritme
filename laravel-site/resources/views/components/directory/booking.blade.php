@@ -73,7 +73,7 @@
             </x-ui.form.field>
 
             <x-ui.form.field for="book-mobile" :label="__($t.'mobile')" :hint="__($t.'mobile_hint')" :error="$e->first('mobile')" required>
-                <x-ui.form.input id="book-mobile" name="mobile" type="tel" inputmode="tel" dir="ltr" :value="old('mobile')" maxlength="30" autocomplete="tel" placeholder="09xx xxx xxxx"
+                <x-ui.form.input id="book-mobile" name="mobile" type="tel" inputmode="tel" dir="ltr" :value="old('mobile')" maxlength="30" autocomplete="tel" placeholder="۰۹۱۲ ۳۴۵ ۶۷۸۹"
                                  required :invalid="$e->has('mobile')" described class="min-h-13 text-end"/>
             </x-ui.form.field>
 

@@ -1,0 +1,100 @@
+{
+  "template": "place",
+  "url": "/directory/place/aramesh",
+  "formFactor": "desktop",
+  "mode": "cold",
+  "lighthouseVersion": "13.4.1",
+  "fetchTime": "2026-10-05T08:50:08.548Z",
+  "status": 200,
+  "pageCache": "BYPASS",
+  "scores": {
+    "performance": {
+      "score": 100,
+      "adjusted": false
+    },
+    "accessibility": {
+      "score": 100,
+      "adjusted": false
+    },
+    "best-practices": {
+      "score": 100,
+      "adjusted": false
+    },
+    "seo": {
+      "score": 100,
+      "adjusted": true,
+      "raw": 66
+    }
+  },
+  "metrics": {
+    "fcp": 454.77845,
+    "lcp": 574.77845,
+    "tbt": 0,
+    "cls": 0.00007620572113867944,
+    "si": 454.77845,
+    "ttfb": 78
+  },
+  "requests": 19,
+  "transferKB": 231.8,
+  "lcpElement": {
+    "selector": "div.flex > div.flex > section#about > p.m-0",
+    "snippet": "<p class=\"m-0 text-lg leading-loose font-medium text-muted\">"
+  },
+  "external": [],
+  "failing": [
+    {
+      "id": "is-crawlable",
+      "title": "Page is blocked from indexing",
+      "score": 0,
+      "allowed": "sample/demo content is noindex by design (L6-01 demo products, L7-05b lists without real content); passes once real content is published — `--strict-seo` counts it",
+      "items": [
+        {
+          "source": {
+            "selector": "head > meta",
+            "snippet": "<meta name=\"robots\" content=\"noindex,follow\" />",
+            "label": "head > meta"
+          }
+        }
+      ]
+    },
+    {
+      "id": "network-dependency-tree-insight",
+      "title": "Network dependency tree",
+      "score": 0,
+      "items": [
+        {
+          "type": "list-section"
+        },
+        {
+          "type": "list-section",
+          "title": "Preconnected origins",
+          "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+          "value": "no origins were preconnected"
+        },
+        {
+          "type": "list-section",
+          "title": "Preconnect candidates",
+          "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+          "value": "No additional origins are good candidates for preconnecting"
+        }
+      ]
+    },
+    {
+      "id": "render-blocking-insight",
+      "title": "Render-blocking requests",
+      "score": 0.5,
+      "items": [
+        {
+          "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+          "totalBytes": 14672,
+          "wastedMs": 122
+        }
+      ]
+    }
+  ],
+  "fails": [],
+  "pass": true,
+  "runs": [
+    100
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "template": "stage",
+  "url": "/cycle",
+  "formFactor": "desktop",
+  "mode": "warm",
+  "lighthouseVersion": "13.4.1",
+  "fetchTime": "2026-10-05T08:47:16.457Z",
+  "status": 200,
+  "pageCache": "HIT",
+  "scores": {
+    "performance": {
+      "score": 100,
+      "adjusted": false
+    },
+    "accessibility": {
+      "score": 100,
+      "adjusted": false
+    },
+    "best-practices": {
+      "score": 100,
+      "adjusted": false
+    },
+    "seo": {
+      "score": 100,
+      "adjusted": false
+    }
+  },
+  "metrics": {
+    "fcp": 418.4892,
+    "lcp": 533.8669,
+    "tbt": 0,
+    "cls": 6.559399513457807e-7,
+    "si": 418.4892,
+    "ttfb": 58
+  },
+  "requests": 17,
+  "transferKB": 215.5,
+  "lcpElement": {
+    "selector": "div.relative > section.flex > div.flex > h1#stage-hero-title",
+    "snippet": "<h1 id=\"stage-hero-title\" class=\"m-0 font-display text-d-3xl leading-display font-normal text-on-night\">"
+  },
+  "external": [],
+  "failing": [
+    {
+      "id": "network-dependency-tree-insight",
+      "title": "Network dependency tree",
+      "score": 0,
+      "items": [
+        {
+          "type": "list-section"
+        },
+        {
+          "type": "list-section",
+          "title": "Preconnected origins",
+          "description": "[preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints help the browser establish a connection earlier in the page load, saving time when the first request f",
+          "value": "no origins were preconnected"
+        },
+        {
+          "type": "list-section",
+          "title": "Preconnect candidates",
+          "description": "Add [preconnect](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/) hints to your most important origins, but try to use no more than 4.",
+          "value": "No additional origins are good candidates for preconnecting"
+        }
+      ]
+    },
+    {
+      "id": "render-blocking-insight",
+      "title": "Render-blocking requests",
+      "score": 0.5,
+      "displayValue": "Est savings of 10 ms",
+      "items": [
+        {
+          "url": "http://127.0.0.1:56791/build/assets/app-C2O6GAOK.css",
+          "totalBytes": 14672,
+          "wastedMs": 122
+        }
+      ]
+    }
+  ],
+  "fails": [],
+  "pass": true,
+  "runs": [
+    100
+  ]
+}
