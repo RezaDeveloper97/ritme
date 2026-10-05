@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\ApplyRedirects;
 use App\Http\Middleware\CanonicalizeUrl;
 use App\Http\Middleware\HttpCacheHeaders;
 use App\Http\Middleware\MinifyHtml;
@@ -21,6 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Outermost: CSP nonce before anything renders, security headers on every response (redirects, errors too).
         $middleware->prepend(SecurityHeaders::class);
+        // Admin redirects (L7-03): wraps CanonicalizeUrl — wins over legacy 301s, otherwise only consulted on a 404.
+        $middleware->append(ApplyRedirects::class);
         // Global, after TrustProxies and maintenance mode, before routing: 301s to the one canonical URL + 410s.
         $middleware->append(CanonicalizeUrl::class);
         // Cache-Control + weak ETag/304 for page-cached HTML; global so it sees the session cookie of the web group.

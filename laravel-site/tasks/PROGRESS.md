@@ -760,3 +760,18 @@ One section per finished task (appended by `/site-task`).
 - `IndexingTest` (23, `Http::preventStrayRequests`).
 - Open: CSP intentionally not editable from the head-code form; a type-level noindex can't be re-enabled per item
   (null = inherit); scheduled posts aren't submitted to IndexNow at publish time.
+
+## L7-03 — Redirect manager, 404 monitor, auto-redirect on slug change
+- Migration `2026_10_04_000330_create_redirects_tables` (redirects, not_found_logs; sha1 path hashes for indexes).
+  `app/Domain/Seo/Redirects/`: models, `RedirectCode` (301/302/307/410), cached `RedirectMapRepository` (one map entry
+  in `seo` ns, 0 queries warm), `RedirectObserver` (seo + pages), `SlugRedirectObserver` (blog category/tag/author,
+  shop category, directory city (regex incl. landings) + category; posts/products/places keep their own slug-history
+  301s), actions (Save with chain collapse both ways + loop/self/duplicate/`/`/scheme/regex validation, Delete,
+  Import/Export CSV, CreateSlugRedirect, CreateRedirectFromNotFound, RecordRedirectHit/RecordNotFound buffered in
+  cache, FlushRedirectStats `seo:flush-redirect-stats` every 5 min, PurgeNotFoundLogs `seo:purge-404` daily, 90 d).
+- `ApplyRedirects` global middleware wrapping `CanonicalizeUrl`: consulted only for non-canonical/legacy URLs (admin
+  wins over `LegacyUrlMap`, one hop) and on 404s; never on live pages. 404 log: aggregate, ≤500 new paths per window,
+  ≤5000 rows, bots/assets/admin/scanner probes ignored, no IP/UA, referer without query.
+- Filament Redirects (form, CSV import header action, streamed export) + NotFoundLogs («ساخت ریدایرکت»); SeoManager +
+  super-admin; activity log `seo`. `RedirectsTest` (22). Pest 1256 passed.
+- Open: `seo.not_found.log_bots` only via config (add to indexing settings if needed); counters best-effort.

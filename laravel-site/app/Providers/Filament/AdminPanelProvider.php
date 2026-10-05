@@ -23,6 +23,8 @@ use App\Domain\Faq\Models\FaqItem;
 use App\Domain\Media\Models\Media;
 use App\Domain\Newsletter\Models\Subscriber;
 use App\Domain\Seo\Models\SeoMeta;
+use App\Domain\Seo\Redirects\Models\NotFoundLog;
+use App\Domain\Seo\Redirects\Models\Redirect;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use App\Domain\Settings\Data\GeneralSettings;
 use App\Domain\Settings\Enums\SettingGroup;
@@ -46,6 +48,8 @@ use App\Filament\Resources\Directory\PlaceReviewPolicy;
 use App\Filament\Resources\Faq\FaqPolicy;
 use App\Filament\Resources\Media\MediaPolicy;
 use App\Filament\Resources\Newsletter\SubscriberPolicy;
+use App\Filament\Resources\Seo\NotFoundLogs\NotFoundLogPolicy;
+use App\Filament\Resources\Seo\Redirects\RedirectPolicy;
 use App\Filament\Resources\Seo\StaticPageSeo\StaticPageSeoPolicy;
 use App\Filament\Widgets\AdminOverview;
 use App\Models\User;
@@ -102,6 +106,8 @@ final class AdminPanelProvider extends PanelProvider
         Gate::policy(Subscriber::class, SubscriberPolicy::class);
         Gate::policy(ContactMessage::class, ContactMessagePolicy::class);
         Gate::policy(SeoMeta::class, StaticPageSeoPolicy::class);
+        Gate::policy(Redirect::class, RedirectPolicy::class);       // L7-03
+        Gate::policy(NotFoundLog::class, NotFoundLogPolicy::class); // L7-03
         foreach ([Place::class, PlaceCategory::class, City::class, District::class, Amenity::class, Landing::class] as $model) {
             Gate::policy($model, DirectoryPolicy::class);
         }

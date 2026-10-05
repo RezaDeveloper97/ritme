@@ -3,7 +3,7 @@ id: L7-03
 title: Redirect manager, 404 monitor, auto-redirect on slug change
 milestone: L7
 type: admin
-status: todo
+status: done
 depends_on: [L7-01,L1-05]
 parallel_group: L7-B
 touches: [app/Domain/Seo/Redirects,database/migrations,app/Http/Middleware/ApplyRedirects.php,app/Filament/Resources/Seo/Redirects,app/Filament/Resources/Seo/NotFoundLogs,tests/Feature/Seo/RedirectsTest.php]
