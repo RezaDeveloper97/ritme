@@ -22,6 +22,8 @@ verify: cd backend-go && go vet ./... && go test ./... && make lint && cd .. && 
 ## Scope
 - Basic info (height, weight, BMI, blood type), conditions, meds (from care), allergies, pregnancies & births, cycle summary, vitals 30d, checkups & labs — each section editable where the data is user-owned.
 
+- From B-N6-01: analyses (`/analysis/summary` vitals card, pregnancy analysis BP/glucose) still read only taxonomy v2 measurements — make them read `vital_readings` merged with log values (same merge rule as `internal/vitals/merge.go`).
+
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.
 - Anything owned by another bloom task.

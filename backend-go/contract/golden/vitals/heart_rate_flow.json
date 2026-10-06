@@ -1,0 +1,245 @@
+{
+  "case": "vitals/heart_rate_flow",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/vitals/readings",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "hr",
+          "bpm": 72,
+          "context": "resting",
+          "measured_at": "2026-09-22 22:00"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "ثبت شد",
+        "data": {
+          "reading": {
+            "id": 1,
+            "source": "vitals",
+            "type": "hr",
+            "date": "2026-09-22",
+            "time": "22:00",
+            "measured_at": "2026-09-22T22:00:00+03:30",
+            "period": "night",
+            "blood_pressure": null,
+            "glucose": null,
+            "heart_rate": {
+              "bpm": 72,
+              "context": "resting"
+            },
+            "classification": {
+              "code": "normal",
+              "tone": "ok"
+            },
+            "urgent": false,
+            "note": null,
+            "editable": true
+          },
+          "alert": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/vitals/readings",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "hr",
+          "bpm": 128,
+          "context": "after_exercise",
+          "measured_at": "2026-09-23 07:00"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "ثبت شد",
+        "data": {
+          "reading": {
+            "id": 2,
+            "source": "vitals",
+            "type": "hr",
+            "date": "2026-09-23",
+            "time": "07:00",
+            "measured_at": "2026-09-23T07:00:00+03:30",
+            "period": "morning",
+            "blood_pressure": null,
+            "glucose": null,
+            "heart_rate": {
+              "bpm": 128,
+              "context": "after_exercise"
+            },
+            "classification": null,
+            "urgent": false,
+            "note": null,
+            "editable": true
+          },
+          "alert": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/vitals/reports/hr?range=30d",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "type": "hr",
+          "range": {
+            "key": "30d",
+            "from": "2026-08-25",
+            "to": "2026-09-23",
+            "days": 30
+          },
+          "unit": "bpm",
+          "readings": 2,
+          "average": {
+            "bpm": 100,
+            "readings": 2
+          },
+          "resting_average": {
+            "bpm": 72,
+            "readings": 1
+          },
+          "by_context": [
+            {
+              "context": "resting",
+              "readings": 1,
+              "average": {
+                "bpm": 72,
+                "readings": 1
+              }
+            },
+            {
+              "context": "after_exercise",
+              "readings": 1,
+              "average": {
+                "bpm": 128,
+                "readings": 1
+              }
+            }
+          ],
+          "min": {
+            "id": 1,
+            "source": "vitals",
+            "type": "hr",
+            "date": "2026-09-22",
+            "time": "22:00",
+            "measured_at": "2026-09-22T22:00:00+03:30",
+            "period": "night",
+            "blood_pressure": null,
+            "glucose": null,
+            "heart_rate": {
+              "bpm": 72,
+              "context": "resting"
+            },
+            "classification": {
+              "code": "normal",
+              "tone": "ok"
+            },
+            "urgent": false,
+            "note": null,
+            "editable": true
+          },
+          "max": {
+            "id": 2,
+            "source": "vitals",
+            "type": "hr",
+            "date": "2026-09-23",
+            "time": "07:00",
+            "measured_at": "2026-09-23T07:00:00+03:30",
+            "period": "morning",
+            "blood_pressure": null,
+            "glucose": null,
+            "heart_rate": {
+              "bpm": 128,
+              "context": "after_exercise"
+            },
+            "classification": null,
+            "urgent": false,
+            "note": null,
+            "editable": true
+          },
+          "distribution": [
+            {
+              "code": "low",
+              "tone": "watch",
+              "count": 0,
+              "percent": 0
+            },
+            {
+              "code": "normal",
+              "tone": "ok",
+              "count": 1,
+              "percent": 100
+            },
+            {
+              "code": "high",
+              "tone": "watch",
+              "count": 0,
+              "percent": 0
+            }
+          ],
+          "morning_vs_night": {
+            "morning": {
+              "bpm": 128,
+              "readings": 1
+            },
+            "night": {
+              "bpm": 72,
+              "readings": 1
+            },
+            "night_out_of_range": 0
+          },
+          "time_in_range": {
+            "in_range": 1,
+            "readings": 1,
+            "percent": 100
+          },
+          "target": {
+            "min": 60,
+            "max": 100
+          },
+          "series": [
+            {
+              "date": "2026-09-22",
+              "readings": 1,
+              "bpm": 72
+            },
+            {
+              "date": "2026-09-23",
+              "readings": 1,
+              "bpm": 128
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

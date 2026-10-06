@@ -3,7 +3,7 @@ id: B-N6-01
 title: Vitals backend — BP, glucose, heart rate, plan, reports, safety
 milestone: N6
 type: backend
-status: todo
+status: done
 depends_on: [B-N5-11]
 parallel_group: N6-A
 touches: [backend-go/db,backend-go/internal/vitals,backend-go/internal/messages,backend-go/api]

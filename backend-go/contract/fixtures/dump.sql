@@ -3806,6 +3806,60 @@ INSERT INTO `users` VALUES
 (1018,'Contract engaged',NULL,'09900000018','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `vital_plan_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `vital_plan_items` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `type` varchar(8) NOT NULL,
+  `slot` varchar(16) NOT NULL,
+  `days` tinyint(3) unsigned NOT NULL DEFAULT 127,
+  `remind_at` varchar(5) DEFAULT NULL,
+  `sort_order` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `vital_plan_items_user_id_type_slot_unique` (`user_id`,`type`,`slot`),
+  CONSTRAINT `vital_plan_items_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `vital_plan_items` WRITE;
+/*!40000 ALTER TABLE `vital_plan_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `vital_plan_items` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `vital_readings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `vital_readings` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `type` varchar(8) NOT NULL,
+  `measured_at` datetime NOT NULL,
+  `systolic` smallint(5) unsigned DEFAULT NULL,
+  `diastolic` smallint(5) unsigned DEFAULT NULL,
+  `pulse` smallint(5) unsigned DEFAULT NULL,
+  `arm` varchar(8) DEFAULT NULL,
+  `position` varchar(12) DEFAULT NULL,
+  `glucose_mg_dl` decimal(5,1) DEFAULT NULL,
+  `glucose_unit` varchar(8) DEFAULT NULL,
+  `context` varchar(16) DEFAULT NULL,
+  `method` varchar(12) DEFAULT NULL,
+  `note` varchar(500) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `vital_readings_user_id_type_measured_at_index` (`user_id`,`type`,`measured_at`),
+  KEY `vital_readings_user_id_measured_at_index` (`user_id`,`measured_at`),
+  CONSTRAINT `vital_readings_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `vital_readings` WRITE;
+/*!40000 ALTER TABLE `vital_readings` DISABLE KEYS */;
+/*!40000 ALTER TABLE `vital_readings` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

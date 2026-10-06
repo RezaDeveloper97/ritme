@@ -1,0 +1,127 @@
+{
+  "case": "vitals/thresholds",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/vitals/thresholds",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "version": "2026-10-acc-aha-2017.ada-2025.v1",
+          "intervals": "min_inclusive_max_exclusive",
+          "blood_pressure": {
+            "unit": "mmhg",
+            "source": "Whelton PK et al. 2017 ACC/AHA Guideline for the Prevention, Detection, Evaluation, and Management of High Blood Pressure in Adults. Hypertension 2018;71:e13–e115 (adults; AAP 2017 uses the same cut-offs from age 13)",
+            "classes": [
+              {
+                "code": "normal",
+                "tone": "ok",
+                "rule": "systolic < 120 and diastolic < 80"
+              },
+              {
+                "code": "elevated",
+                "tone": "watch",
+                "rule": "systolic 120–129 and diastolic < 80"
+              },
+              {
+                "code": "stage1",
+                "tone": "high",
+                "rule": "systolic 130–139 or diastolic 80–89"
+              },
+              {
+                "code": "stage2",
+                "tone": "high",
+                "rule": "systolic ≥ 140 or diastolic ≥ 90"
+              },
+              {
+                "code": "crisis",
+                "tone": "urgent",
+                "rule": "systolic > 180 and/or diastolic > 120"
+              }
+            ],
+            "elevated_systolic": 120,
+            "stage1": {
+              "systolic": 130,
+              "diastolic": 80
+            },
+            "stage2": {
+              "systolic": 140,
+              "diastolic": 90
+            },
+            "urgent_above": {
+              "systolic": 180,
+              "diastolic": 120
+            }
+          },
+          "glucose": {
+            "unit": "mg_dl",
+            "mmol_factor": 18,
+            "source": "American Diabetes Association. Standards of Care in Diabetes — 2025: §2 Diagnosis and Classification (fasting 100 / 126, 2-h 140 / 200 mg/dL) and §6 Glycemic Goals and Hypoglycemia (level 1 < 70, level 2 < 54 mg/dL). Diabetes Care 2025;48(Suppl 1)",
+            "classes": [
+              "urgent_low",
+              "low",
+              "in_range",
+              "high",
+              "very_high"
+            ],
+            "low_below": 70,
+            "urgent_below": 54,
+            "contexts": {
+              "fasting": {
+                "target_min": 70,
+                "target_max": 100,
+                "very_high_from": 126
+              },
+              "before_meal": {
+                "target_min": 70,
+                "target_max": 100,
+                "very_high_from": 126
+              },
+              "after_meal": {
+                "target_min": 70,
+                "target_max": 140,
+                "very_high_from": 200
+              },
+              "bedtime": {
+                "target_min": 70,
+                "target_max": 140,
+                "very_high_from": 200
+              },
+              "random": {
+                "target_min": 70,
+                "target_max": 140,
+                "very_high_from": 200
+              }
+            }
+          },
+          "heart_rate": {
+            "unit": "bpm",
+            "source": "American Heart Association — All About Heart Rate (Pulse): normal resting heart rate for adults 60–100 bpm",
+            "classes": [
+              "low",
+              "normal",
+              "high"
+            ],
+            "resting": {
+              "min": 60,
+              "max": 100,
+              "max_inclusive": true
+            },
+            "classified_contexts": [
+              "resting",
+              "after_waking"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

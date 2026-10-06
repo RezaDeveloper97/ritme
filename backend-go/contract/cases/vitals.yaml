@@ -1,0 +1,160 @@
+# Vitals (/api/v1/vitals/*) — Go only (bloom B-N6-01, deviations.md D-63): there is no Laravel route, so these goldens
+# were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The fixture dump carries the empty
+# vital_readings / vital_plan_items tables (goose 00035 / Laravel 2026_10_06_000035), added by hand; it has no goose
+# message rows, so the urgent copy here is the embedded lang fallback (the seeded / admin-edited message_contents copy
+# is covered by internal/vitals integration tests, with classification, unit conversion, reports, the plan maths, the
+# log-sheet merge and the IDOR matrix). Fixture day 2026-09-23 (Wednesday; week Sat 09-19 … Fri 09-25).
+# `regular` (1004) logs; `no_profile` (1001) is the other user.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: vitals
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: hub_anon
+    persona: anon
+    method: GET
+    path: /api/v1/vitals
+    status: 401
+  - name: hub
+    doc: nbl_Vitals_Hub before any vital reading
+    method: GET
+    path: /api/v1/vitals
+    status: 200
+  - name: thresholds
+    method: GET
+    path: /api/v1/vitals/thresholds
+    status: 200
+
+  - name: blood_pressure_flow
+    doc: nbl_Vitals_AddBP — 118/76 left arm sitting, a crisis reading (urgent modal), edit, list, report, delete; another user gets 404
+    locales: [fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/vitals/readings
+        body: {type: bp, systolic: 118, diastolic: 76, pulse: 70, arm: left, position: sitting, measured_at: "2026-09-23 08:10"}
+        status: 201
+        capture: {id: data.reading.id}
+      - method: POST
+        path: /api/v1/vitals/readings
+        body: {type: bp, systolic: 186, diastolic: 118, measured_at: "2026-09-22 22:00"}
+        status: 201
+        capture: {crisis: data.reading.id}
+      - method: PUT
+        path: "/api/v1/vitals/readings/{{crisis}}"
+        body: {type: bp, systolic: 132, diastolic: 86, pulse: 78, arm: left, position: sitting, measured_at: "2026-09-22 22:00"}
+        status: 200
+      - method: GET
+        path: "/api/v1/vitals/readings/{{id}}"
+        status: 200
+      - method: GET
+        path: "/api/v1/vitals/readings/{{id}}"
+        as: no_profile
+        status: 404
+      - method: GET
+        path: /api/v1/vitals/readings
+        query: {type: bp}
+        status: 200
+      - method: GET
+        path: /api/v1/vitals/reports/bp
+        query: {range: 7d}
+        status: 200
+      - method: DELETE
+        path: "/api/v1/vitals/readings/{{id}}"
+        status: 200
+      - method: DELETE
+        path: "/api/v1/vitals/readings/{{id}}"
+        status: 404
+
+  - name: glucose_flow
+    doc: nbl_Vitals_AddGlucose / GlucoseReport — mmol/L input, a severe low (urgent modal), fasting and after-meal readings, report filtered to fasting
+    locales: [fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/vitals/readings
+        body: {type: glucose, value: 2.8, unit: mmol_l, context: random, method: glucometer, measured_at: "2026-09-22 11:00"}
+        status: 201
+      - method: POST
+        path: /api/v1/vitals/readings
+        body: {type: glucose, value: 94, unit: mg_dl, context: fasting, method: glucometer, measured_at: "2026-09-23 07:45"}
+        status: 201
+      - method: POST
+        path: /api/v1/vitals/readings
+        body: {type: glucose, value: 148, unit: mg_dl, context: after_meal, measured_at: "2026-09-22 15:20"}
+        status: 201
+      - method: GET
+        path: /api/v1/vitals/reports/glucose
+        status: 200
+      - method: GET
+        path: /api/v1/vitals/reports/glucose
+        query: {range: 30d, filter: fasting}
+        status: 200
+
+  - name: heart_rate_flow
+    doc: nbl_Vitals_AddHR — resting 72, after exercise 128 (unclassified), 30-day report
+    steps:
+      - method: POST
+        path: /api/v1/vitals/readings
+        body: {type: hr, bpm: 72, context: resting, measured_at: "2026-09-22 22:00"}
+        status: 201
+      - method: POST
+        path: /api/v1/vitals/readings
+        body: {type: hr, bpm: 128, context: after_exercise, measured_at: "2026-09-23 07:00"}
+        status: 201
+      - method: GET
+        path: /api/v1/vitals/reports/hr
+        query: {range: 30d}
+        status: 200
+
+  - name: reading_invalid
+    locales: [fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/vitals/readings
+        body: {type: bp, systolic: 400}
+        status: 422
+      - method: POST
+        path: /api/v1/vitals/readings
+        body: {type: bp, systolic: 80, diastolic: 90}
+        status: 422
+      - method: POST
+        path: /api/v1/vitals/readings
+        body: {type: glucose, value: 40, unit: mmol_l, context: fasting}
+        status: 422
+      - method: GET
+        path: /api/v1/vitals/reports/glucose
+        query: {range: 1y}
+        status: 422
+  - name: report_unknown_type
+    method: GET
+    path: /api/v1/vitals/reports/weight
+    status: 404
+
+  - name: plan_flow
+    doc: «برنامه اندازه‌گیری این هفته» — BP morning daily with a reminder, BP evening Sat + Wed, fasting glucose Wed; a morning reading marks today done
+    locales: [none, en]
+    steps:
+      - method: GET
+        path: /api/v1/vitals/plan
+        status: 200
+      - method: PUT
+        path: /api/v1/vitals/plan
+        body:
+          items:
+            - {type: bp, slot: morning, days: [0, 1, 2, 3, 4, 5, 6], remind_at: "08:00"}
+            - {type: bp, slot: evening, days: [0, 4]}
+            - {type: glucose, slot: fasting, days: [4], remind_at: "07:30"}
+        status: 200
+      - method: PUT
+        path: /api/v1/vitals/plan
+        body:
+          items:
+            - {type: glucose, slot: morning, days: [1]}
+        status: 422
+      - method: POST
+        path: /api/v1/vitals/readings
+        body: {type: bp, systolic: 118, diastolic: 76, measured_at: "2026-09-23 08:10"}
+        status: 201
+      - method: GET
+        path: /api/v1/vitals
+        status: 200

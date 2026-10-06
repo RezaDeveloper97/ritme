@@ -1,0 +1,528 @@
+{
+  "case": "vitals/blood_pressure_flow.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/vitals/readings",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "bp",
+          "systolic": 118,
+          "diastolic": 76,
+          "pulse": 70,
+          "arm": "left",
+          "position": "sitting",
+          "measured_at": "2026-09-23 08:10"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "ثبت شد",
+        "data": {
+          "reading": {
+            "id": 1,
+            "source": "vitals",
+            "type": "bp",
+            "date": "2026-09-23",
+            "time": "08:10",
+            "measured_at": "2026-09-23T08:10:00+03:30",
+            "period": "morning",
+            "blood_pressure": {
+              "systolic": 118,
+              "diastolic": 76,
+              "pulse": 70,
+              "arm": "left",
+              "position": "sitting"
+            },
+            "glucose": null,
+            "heart_rate": null,
+            "classification": {
+              "code": "normal",
+              "tone": "ok"
+            },
+            "urgent": false,
+            "note": null,
+            "editable": true
+          },
+          "alert": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/vitals/readings",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "bp",
+          "systolic": 186,
+          "diastolic": 118,
+          "measured_at": "2026-09-22 22:00"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "ثبت شد",
+        "data": {
+          "reading": {
+            "id": 2,
+            "source": "vitals",
+            "type": "bp",
+            "date": "2026-09-22",
+            "time": "22:00",
+            "measured_at": "2026-09-22T22:00:00+03:30",
+            "period": "night",
+            "blood_pressure": {
+              "systolic": 186,
+              "diastolic": 118,
+              "pulse": null,
+              "arm": null,
+              "position": null
+            },
+            "glucose": null,
+            "heart_rate": null,
+            "classification": {
+              "code": "crisis",
+              "tone": "urgent"
+            },
+            "urgent": true,
+            "note": null,
+            "editable": true
+          },
+          "alert": {
+            "rule": "bp_crisis",
+            "level": "urgent",
+            "modal": true,
+            "title": "فشار خونت در محدودهٔ بحرانی است",
+            "what_we_saw": "فشار ۱۸۶/۱۱۸ mmHg ثبت کردی؛ عدد بالاتر از ۱۸۰/۱۲۰ اورژانسی حساب می‌شود.",
+            "advice": "۵ دقیقه آرام بنشین و دوباره اندازه بگیر. اگر باز هم بالاتر از ۱۸۰/۱۲۰ بود، یا سردرد شدید، درد قفسهٔ سینه، تنگی نفس، تاری دید، ضعف یا بی‌حسی یک طرف بدن یا اشکال در حرف زدن داری، منتظر نمان.",
+            "contact": "ریتمی تشخیص پزشکی نمی‌دهد؛ در شرایط اورژانسی همین حالا با ۱۱۵ تماس بگیر.",
+            "actions": [
+              {
+                "key": "call",
+                "label": "تماس با اورژانس ۱۱۵",
+                "phone": "115"
+              },
+              {
+                "key": "ack",
+                "label": "دوباره اندازه می‌گیرم"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/vitals/readings/2",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "bp",
+          "systolic": 132,
+          "diastolic": 86,
+          "pulse": 78,
+          "arm": "left",
+          "position": "sitting",
+          "measured_at": "2026-09-22 22:00"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "به‌روز شد",
+        "data": {
+          "reading": {
+            "id": 2,
+            "source": "vitals",
+            "type": "bp",
+            "date": "2026-09-22",
+            "time": "22:00",
+            "measured_at": "2026-09-22T22:00:00+03:30",
+            "period": "night",
+            "blood_pressure": {
+              "systolic": 132,
+              "diastolic": 86,
+              "pulse": 78,
+              "arm": "left",
+              "position": "sitting"
+            },
+            "glucose": null,
+            "heart_rate": null,
+            "classification": {
+              "code": "stage1",
+              "tone": "high"
+            },
+            "urgent": false,
+            "note": null,
+            "editable": true
+          },
+          "alert": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/vitals/readings/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "source": "vitals",
+          "type": "bp",
+          "date": "2026-09-23",
+          "time": "08:10",
+          "measured_at": "2026-09-23T08:10:00+03:30",
+          "period": "morning",
+          "blood_pressure": {
+            "systolic": 118,
+            "diastolic": 76,
+            "pulse": 70,
+            "arm": "left",
+            "position": "sitting"
+          },
+          "glucose": null,
+          "heart_rate": null,
+          "classification": {
+            "code": "normal",
+            "tone": "ok"
+          },
+          "urgent": false,
+          "note": null,
+          "editable": true
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/vitals/readings/1",
+        "persona": "no_profile",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این ثبت پیدا نشد",
+        "error_code": "vital_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/vitals/readings?type=bp",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "type": "bp",
+          "from": "2026-08-25",
+          "to": "2026-09-23",
+          "count": 2,
+          "items": [
+            {
+              "id": 1,
+              "source": "vitals",
+              "type": "bp",
+              "date": "2026-09-23",
+              "time": "08:10",
+              "measured_at": "2026-09-23T08:10:00+03:30",
+              "period": "morning",
+              "blood_pressure": {
+                "systolic": 118,
+                "diastolic": 76,
+                "pulse": 70,
+                "arm": "left",
+                "position": "sitting"
+              },
+              "glucose": null,
+              "heart_rate": null,
+              "classification": {
+                "code": "normal",
+                "tone": "ok"
+              },
+              "urgent": false,
+              "note": null,
+              "editable": true
+            },
+            {
+              "id": 2,
+              "source": "vitals",
+              "type": "bp",
+              "date": "2026-09-22",
+              "time": "22:00",
+              "measured_at": "2026-09-22T22:00:00+03:30",
+              "period": "night",
+              "blood_pressure": {
+                "systolic": 132,
+                "diastolic": 86,
+                "pulse": 78,
+                "arm": "left",
+                "position": "sitting"
+              },
+              "glucose": null,
+              "heart_rate": null,
+              "classification": {
+                "code": "stage1",
+                "tone": "high"
+              },
+              "urgent": false,
+              "note": null,
+              "editable": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/vitals/reports/bp?range=7d",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "type": "bp",
+          "range": {
+            "key": "7d",
+            "from": "2026-09-17",
+            "to": "2026-09-23",
+            "days": 7
+          },
+          "unit": "mmhg",
+          "readings": 2,
+          "average": {
+            "systolic": 125,
+            "diastolic": 81,
+            "readings": 2,
+            "classification": {
+              "code": "stage1",
+              "tone": "high"
+            }
+          },
+          "pulse": {
+            "bpm": 74,
+            "readings": 2
+          },
+          "min": {
+            "id": 1,
+            "source": "vitals",
+            "type": "bp",
+            "date": "2026-09-23",
+            "time": "08:10",
+            "measured_at": "2026-09-23T08:10:00+03:30",
+            "period": "morning",
+            "blood_pressure": {
+              "systolic": 118,
+              "diastolic": 76,
+              "pulse": 70,
+              "arm": "left",
+              "position": "sitting"
+            },
+            "glucose": null,
+            "heart_rate": null,
+            "classification": {
+              "code": "normal",
+              "tone": "ok"
+            },
+            "urgent": false,
+            "note": null,
+            "editable": true
+          },
+          "max": {
+            "id": 2,
+            "source": "vitals",
+            "type": "bp",
+            "date": "2026-09-22",
+            "time": "22:00",
+            "measured_at": "2026-09-22T22:00:00+03:30",
+            "period": "night",
+            "blood_pressure": {
+              "systolic": 132,
+              "diastolic": 86,
+              "pulse": 78,
+              "arm": "left",
+              "position": "sitting"
+            },
+            "glucose": null,
+            "heart_rate": null,
+            "classification": {
+              "code": "stage1",
+              "tone": "high"
+            },
+            "urgent": false,
+            "note": null,
+            "editable": true
+          },
+          "distribution": [
+            {
+              "code": "normal",
+              "tone": "ok",
+              "count": 1,
+              "percent": 50
+            },
+            {
+              "code": "elevated",
+              "tone": "watch",
+              "count": 0,
+              "percent": 0
+            },
+            {
+              "code": "stage1",
+              "tone": "high",
+              "count": 1,
+              "percent": 50
+            },
+            {
+              "code": "stage2",
+              "tone": "high",
+              "count": 0,
+              "percent": 0
+            },
+            {
+              "code": "crisis",
+              "tone": "urgent",
+              "count": 0,
+              "percent": 0
+            }
+          ],
+          "morning_vs_night": {
+            "morning": {
+              "systolic": 118,
+              "diastolic": 76,
+              "readings": 1,
+              "classification": {
+                "code": "normal",
+                "tone": "ok"
+              }
+            },
+            "night": {
+              "systolic": 132,
+              "diastolic": 86,
+              "readings": 1,
+              "classification": {
+                "code": "stage1",
+                "tone": "high"
+              }
+            },
+            "night_out_of_range": 1
+          },
+          "time_in_range": {
+            "in_range": 1,
+            "readings": 2,
+            "percent": 50
+          },
+          "target": {
+            "systolic_max": 120,
+            "diastolic_max": 80
+          },
+          "series": [
+            {
+              "date": "2026-09-22",
+              "readings": 1,
+              "systolic": 132,
+              "diastolic": 86
+            },
+            {
+              "date": "2026-09-23",
+              "readings": 1,
+              "systolic": 118,
+              "diastolic": 76
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/vitals/readings/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "message": "حذف شد",
+        "data": null
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/vitals/readings/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": false,
+        "message": "این ثبت پیدا نشد",
+        "error_code": "vital_not_found"
+      }
+    }
+  ]
+}

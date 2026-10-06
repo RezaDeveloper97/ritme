@@ -61,6 +61,7 @@ tags:
   - {name: Notifications, description: In-app notifications}
   - {name: System, description: Liveness and the public upload disk}
   - {name: Labs, description: "Lab analysis (Go only, bloom B-N6-06): upload a lab sheet (photos / PDF, encrypted at rest), AI extraction as a job, verify / edit / add markers, plain-language interpretation (AI with rules fallback, non-diagnostic), marker catalog, trends across labs, feedback. Upload is Plus (plus.lab_ai) behind the AI gate. Owner only; never logged"}
+  - {name: Vitals, description: "Vitals (Go only, bloom B-N6-01): timed blood pressure, glucose and heart-rate readings classified on read (ACC/AHA 2017, ADA 2025, AHA), log-sheet day values merged in read-only, 7/14/30/90-day reports, weekly measurement plan with opt-in reminders, urgent modal over BP 180/120 or glucose 54 mg/dL. Never logged"}
 paths:
   /api/v1/account:
     delete:
@@ -16148,6 +16149,339 @@ paths:
         '404': {$ref: "#/components/responses/LabNotFound"}
         '409': {$ref: "#/components/responses/LabConflict"}
         '429': {$ref: "#/components/responses/TooManyAttempts"}
+  /api/v1/vitals:
+    get:
+      tags: [Vitals]
+      summary: Vitals hub
+      description: |
+        nbl_Vitals_Hub: the latest reading of each type (bp · hr · glucose; a timed reading, or a log-sheet day value of
+        the last 90 days when newer), this week's plan progress (Saturday–Friday), the 5 most recent readings of the last
+        30 days (timed + log sheet) and whether the `vitals` notification category is on.
+      operationId: vitalsHub
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [date, latest, plan, recent, notifications]
+                    properties:
+                      date: {$ref: "#/components/schemas/Date"}
+                      latest:
+                        type: object
+                        required: [bp, hr, glucose]
+                        properties:
+                          bp: {oneOf: [{$ref: "#/components/schemas/VitalReading"}, {type: "null"}]}
+                          hr: {oneOf: [{$ref: "#/components/schemas/VitalReading"}, {type: "null"}]}
+                          glucose: {oneOf: [{$ref: "#/components/schemas/VitalReading"}, {type: "null"}]}
+                      plan: {$ref: "#/components/schemas/VitalPlanWeek"}
+                      recent: {type: array, items: {$ref: "#/components/schemas/VitalReading"}}
+                      notifications: {$ref: "#/components/schemas/VitalNotifications"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/vitals/thresholds:
+    get:
+      tags: [Vitals]
+      summary: Classification thresholds
+      description: |
+        The bands the server classifies with (ACC/AHA 2017 blood pressure, ADA 2025 glucose per context, AHA resting
+        heart rate) with their sources and the urgent thresholds (BP > 180 and/or > 120, glucose < 54 mg/dL). Intervals
+        are min-inclusive / max-exclusive except the heart-rate resting max. Versioned config in B-N9-11.
+      operationId: vitalsThresholds
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [version, intervals, blood_pressure, glucose, heart_rate]
+                    properties:
+                      version: {type: string}
+                      intervals: {type: string}
+                      blood_pressure: {type: object}
+                      glucose: {type: object}
+                      heart_rate: {type: object}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/vitals/plan:
+    get:
+      tags: [Vitals]
+      summary: Weekly measurement plan
+      description: |
+        The plan items (type + slot on weekdays, 0 = Saturday, optional reminder time), this week's progress, the slots
+        each type accepts and the `vitals` notification switch (reminders go through the notification gate and are
+        opt-in).
+      operationId: vitalsPlan
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/VitalPlan"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    put:
+      tags: [Vitals]
+      summary: Replace the weekly plan
+      description: |
+        `items` (≤ 8, one per type + slot; bp / hr slots morning|evening, glucose fasting|before_meal|after_meal|bedtime;
+        `days` 0–6 with 0 = Saturday; `remind_at` HH:MM or null). An empty list clears the plan.
+      operationId: saveVitalsPlan
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  maxItems: 8
+                  items: {$ref: "#/components/schemas/VitalPlanItem"}
+      responses:
+        '200':
+          description: Saved; the plan
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/VitalPlan"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/VitalValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/vitals/reports/{type}:
+    get:
+      tags: [Vitals]
+      summary: Vitals report
+      description: |
+        nbl_Vitals_BPReport / nbl_Vitals_GlucoseReport over `range` (7d|14d|30d|90d; default bp/hr 7d, glucose 14d):
+        averages, min / max reading, distribution by class, morning (04–12) vs night (18–04) — timed readings only —,
+        time in range (bp normal, glucose in target, hr resting 60–100) and the daily series. Glucose takes
+        `filter` all|fasting|before_meal|after_meal|bedtime|random and adds per-context averages; log-sheet values
+        (no time, no context) count as random. An unknown type is 404.
+      operationId: vitalsReport
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: type
+          in: path
+          required: true
+          schema: {type: string, enum: [bp, glucose, hr]}
+        - name: range
+          in: query
+          required: false
+          schema: {type: string, enum: [7d, 14d, 30d, 90d]}
+        - name: filter
+          in: query
+          required: false
+          description: Glucose only
+          schema: {type: string, enum: [all, fasting, before_meal, after_meal, bedtime, random]}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/VitalReport"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ModelNotFound"}
+        '422': {$ref: "#/components/responses/VitalValidationFailed"}
+  /api/v1/vitals/readings:
+    get:
+      tags: [Vitals]
+      summary: Readings of a range
+      description: |
+        Every reading of [from, to] (default the last 30 days, ≤ 366 days), timed readings and log-sheet day values
+        (`source: log`, id / time null, not editable here), newest first.
+      operationId: listVitalReadings
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: type
+          in: query
+          required: false
+          schema: {type: string, enum: [bp, glucose, hr]}
+        - name: from
+          in: query
+          required: false
+          schema: {$ref: "#/components/schemas/Date"}
+        - name: to
+          in: query
+          required: false
+          schema: {$ref: "#/components/schemas/Date"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [type, from, to, count, items]
+                    properties:
+                      type: {type: [string, "null"]}
+                      from: {$ref: "#/components/schemas/Date"}
+                      to: {$ref: "#/components/schemas/Date"}
+                      count: {type: integer}
+                      items: {type: array, items: {$ref: "#/components/schemas/VitalReading"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/VitalValidationFailed"}
+    post:
+      tags: [Vitals]
+      summary: Log a reading
+      description: |
+        BP `{type: bp, systolic, diastolic, pulse?, arm?, position?}`, glucose `{type: glucose, value, unit: mg_dl|mmol_l,
+        context, method?}` (mmol/L × 18 → mg/dL), heart rate `{type: hr, bpm, context}`; `measured_at` (Y-m-d H:i[:s],
+        Tehran, default now, not in the future, ≤ 2 years back), `note`. A reading over a safety threshold (BP > 180
+        and/or > 120, glucose < 54 mg/dL) returns `alert`: the urgent modal (admin-editable copy, call action).
+      operationId: storeVitalReading
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/VitalReadingInput"}
+      responses:
+        '201':
+          description: Saved; the reading and the urgent modal (null under the thresholds)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/VitalSaved"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/VitalValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/vitals/readings/{id}:
+    get:
+      tags: [Vitals]
+      summary: One reading
+      operationId: showVitalReading
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/VitalReadingId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/VitalReading"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/VitalNotFound"}
+    put:
+      tags: [Vitals]
+      summary: Replace a reading
+      description: Same body as POST (full replace); returns the reading and the urgent modal.
+      operationId: updateVitalReading
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/VitalReadingId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/VitalReadingInput"}
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/VitalSaved"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/VitalNotFound"}
+        '422': {$ref: "#/components/responses/VitalValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Vitals]
+      summary: Delete a reading
+      operationId: destroyVitalReading
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/VitalReadingId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: "null"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/VitalNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
 components:
   securitySchemes:
     bearerAuth:
@@ -16156,6 +16490,12 @@ components:
       bearerFormat: JWT
       description: "Passport access token from `POST /api/v1/auth/verify-otp`."
   parameters:
+    VitalReadingId:
+      name: id
+      in: path
+      required: true
+      description: Vital reading id (the caller's own)
+      schema: {type: integer, minimum: 1}
     LabId:
       name: id
       in: path
@@ -16212,6 +16552,30 @@ components:
       description: "Overrides `Accept-Language`. Some endpoints clamp to the languages they have content for."
       schema: {type: string}
   responses:
+    VitalNotFound:
+      description: "Bloom B-N6-01: the reading does not exist or is not the caller's — one uniform answer."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [vital_not_found]}
+    VitalValidationFailed:
+      description: "Vitals validation failed (controller 422 `{success: false, message, errors}`)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
     LabNotFound:
       description: "Bloom B-N6-06: the lab, marker or file does not exist or is not the caller's — one uniform answer."
       content:
@@ -17027,6 +17391,192 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    VitalClass:
+      type: [object, "null"]
+      required: [code, tone]
+      properties:
+        code: {type: string, enum: [normal, elevated, stage1, stage2, crisis, urgent_low, low, in_range, high, very_high]}
+        tone: {type: string, enum: [ok, watch, high, urgent]}
+    VitalReading:
+      type: object
+      required: [id, source, type, date, time, measured_at, period, blood_pressure, glucose, heart_rate, classification, urgent, note, editable]
+      properties:
+        id: {type: [integer, "null"], description: "null for a log-sheet value"}
+        source: {type: string, enum: [vitals, log]}
+        type: {type: string, enum: [bp, glucose, hr]}
+        date: {$ref: "#/components/schemas/Date"}
+        time: {type: [string, "null"], example: "08:10"}
+        measured_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+        period: {type: [string, "null"], enum: [morning, afternoon, night, null]}
+        blood_pressure:
+          type: [object, "null"]
+          properties:
+            systolic: {type: integer}
+            diastolic: {type: integer}
+            pulse: {type: [integer, "null"]}
+            arm: {type: [string, "null"], enum: [left, right, null]}
+            position: {type: [string, "null"], enum: [sitting, standing, lying, null]}
+        glucose:
+          type: [object, "null"]
+          properties:
+            mg_dl: {type: number}
+            mmol_l: {type: number}
+            value: {type: number, description: "In the unit typed"}
+            unit: {type: string, enum: [mg_dl, mmol_l]}
+            context: {type: [string, "null"], enum: [fasting, before_meal, after_meal, bedtime, random, null]}
+            method: {type: [string, "null"], enum: [glucometer, lab, sensor, null]}
+        heart_rate:
+          type: [object, "null"]
+          properties:
+            bpm: {type: integer}
+            context: {type: [string, "null"], enum: [resting, after_exercise, after_waking, stress, null]}
+        classification: {$ref: "#/components/schemas/VitalClass"}
+        urgent: {type: boolean}
+        note: {type: [string, "null"]}
+        editable: {type: boolean}
+    VitalReadingInput:
+      type: object
+      required: [type]
+      properties:
+        type: {type: string, enum: [bp, glucose, hr]}
+        measured_at: {type: [string, "null"], example: "2026-10-06 08:10", description: "Default now"}
+        systolic: {type: integer, minimum: 50, maximum: 300}
+        diastolic: {type: integer, minimum: 30, maximum: 200}
+        pulse: {type: [integer, "null"], minimum: 30, maximum: 250}
+        arm: {type: [string, "null"], enum: [left, right, null]}
+        position: {type: [string, "null"], enum: [sitting, standing, lying, null]}
+        value: {type: number, description: "mg/dL 20–600 or mmol/L 1.1–33.3"}
+        unit: {type: string, enum: [mg_dl, mmol_l]}
+        context: {type: string, description: "glucose fasting|before_meal|after_meal|bedtime|random; hr resting|after_exercise|after_waking|stress"}
+        method: {type: [string, "null"], enum: [glucometer, lab, sensor, null]}
+        bpm: {type: integer, minimum: 30, maximum: 250}
+        note: {type: [string, "null"], maxLength: 500}
+    VitalAlert:
+      type: [object, "null"]
+      required: [rule, level, modal, title, what_we_saw, advice, contact, actions]
+      properties:
+        rule: {type: string, enum: [bp_crisis, glucose_low]}
+        level: {type: string, enum: [urgent]}
+        modal: {type: boolean}
+        title: {type: [string, "null"]}
+        what_we_saw: {type: [string, "null"]}
+        advice: {type: [string, "null"]}
+        contact: {type: [string, "null"]}
+        actions:
+          type: array
+          items:
+            type: object
+            required: [key, label]
+            properties:
+              key: {type: string, description: "call | ack"}
+              label: {type: string}
+              phone: {type: string}
+    VitalSaved:
+      type: object
+      required: [reading, alert]
+      properties:
+        reading: {$ref: "#/components/schemas/VitalReading"}
+        alert: {$ref: "#/components/schemas/VitalAlert"}
+    VitalNotifications:
+      type: object
+      required: [category, enabled]
+      properties:
+        category: {type: string, enum: [vitals]}
+        enabled: {type: boolean}
+    VitalPlanItem:
+      type: object
+      required: [type, slot, days]
+      properties:
+        type: {type: string, enum: [bp, glucose, hr]}
+        slot: {type: string, enum: [morning, evening, fasting, before_meal, after_meal, bedtime]}
+        days: {type: array, minItems: 1, maxItems: 7, items: {type: integer, minimum: 0, maximum: 6}, description: "0 = Saturday"}
+        remind_at: {type: [string, "null"], example: "08:00"}
+    VitalPlanWeek:
+      type: object
+      required: [from, to, planned, done, items]
+      properties:
+        from: {$ref: "#/components/schemas/Date"}
+        to: {$ref: "#/components/schemas/Date"}
+        planned: {type: integer}
+        done: {type: integer}
+        items:
+          type: array
+          items:
+            type: object
+            required: [type, slot, planned, done, days]
+            properties:
+              type: {type: string}
+              slot: {type: string}
+              planned: {type: integer}
+              done: {type: integer}
+              days:
+                type: array
+                items:
+                  type: object
+                  required: [date, state]
+                  properties:
+                    date: {$ref: "#/components/schemas/Date"}
+                    state: {type: string, enum: [done, missed, due]}
+    VitalPlan:
+      type: object
+      required: [items, week, slots, notifications]
+      properties:
+        items: {type: array, items: {$ref: "#/components/schemas/VitalPlanItem"}}
+        week: {$ref: "#/components/schemas/VitalPlanWeek"}
+        slots:
+          type: object
+          additionalProperties: {type: array, items: {type: string}}
+        notifications: {$ref: "#/components/schemas/VitalNotifications"}
+    VitalReport:
+      type: object
+      required: [type, range, unit, readings, average, min, max, distribution, morning_vs_night, time_in_range, series]
+      properties:
+        type: {type: string, enum: [bp, glucose, hr]}
+        range:
+          type: object
+          required: [key, from, to, days]
+          properties:
+            key: {type: string, enum: [7d, 14d, 30d, 90d]}
+            from: {$ref: "#/components/schemas/Date"}
+            to: {$ref: "#/components/schemas/Date"}
+            days: {type: integer}
+        filter: {type: string, description: "Glucose only"}
+        unit: {type: string, enum: [mmhg, mg_dl, bpm]}
+        readings: {type: integer}
+        average: {type: [object, "null"]}
+        pulse: {type: [object, "null"], description: "BP only"}
+        resting_average: {type: [object, "null"], description: "HR only"}
+        by_context: {type: array, items: {type: object}, description: "Glucose / HR"}
+        min: {oneOf: [{$ref: "#/components/schemas/VitalReading"}, {type: "null"}]}
+        max: {oneOf: [{$ref: "#/components/schemas/VitalReading"}, {type: "null"}]}
+        distribution:
+          type: array
+          items:
+            type: object
+            required: [code, tone, count, percent]
+            properties:
+              code: {type: string}
+              tone: {type: string}
+              count: {type: integer}
+              percent: {type: integer}
+        morning_vs_night:
+          type: object
+          required: [morning, night, night_out_of_range]
+          properties:
+            morning: {type: [object, "null"]}
+            night: {type: [object, "null"]}
+            night_out_of_range: {type: integer}
+        time_in_range:
+          type: object
+          required: [in_range, readings, percent]
+          properties:
+            in_range: {type: integer}
+            below: {type: integer}
+            above: {type: integer}
+            readings: {type: integer}
+            percent: {type: integer}
+        target: {type: object}
+        series: {type: array, items: {type: object, required: [date, readings]}}
     LabStatusCode:
       type: string
       enum: [queued, extracting, needs_review, interpreting, ready, failed]

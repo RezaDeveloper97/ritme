@@ -1,0 +1,542 @@
+{
+  "case": "vitals/glucose_flow.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/vitals/readings",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "glucose",
+          "value": 2.8,
+          "unit": "mmol_l",
+          "context": "random",
+          "method": "glucometer",
+          "measured_at": "2026-09-22 11:00"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "ثبت شد",
+        "data": {
+          "reading": {
+            "id": 1,
+            "source": "vitals",
+            "type": "glucose",
+            "date": "2026-09-22",
+            "time": "11:00",
+            "measured_at": "2026-09-22T11:00:00+03:30",
+            "period": "morning",
+            "blood_pressure": null,
+            "glucose": {
+              "mg_dl": 50,
+              "mmol_l": 2.8,
+              "value": 2.8,
+              "unit": "mmol_l",
+              "context": "random",
+              "method": "glucometer"
+            },
+            "heart_rate": null,
+            "classification": {
+              "code": "urgent_low",
+              "tone": "urgent"
+            },
+            "urgent": true,
+            "note": null,
+            "editable": true
+          },
+          "alert": {
+            "rule": "glucose_low",
+            "level": "urgent",
+            "modal": true,
+            "title": "قند خونت خیلی پایین است",
+            "what_we_saw": "قند ۲٫۸ mmol/L ثبت کردی؛ کمتر از ۵۴ mg/dL (۳٫۰ mmol/L) افت قند شدید حساب می‌شود.",
+            "advice": "همین حالا ۱۵ گرم قند زودجذب بخور (مثلاً نصف لیوان آب‌میوه یا ۳ تا ۴ حبه قند) و ۱۵ دقیقه بعد دوباره اندازه بگیر. اگر گیج یا خواب‌آلودی، نمی‌توانی چیزی بخوری یا قند بالا نمی‌رود، از اطرافیان کمک بخواه.",
+            "contact": "ریتمی تشخیص پزشکی نمی‌دهد؛ در شرایط اورژانسی همین حالا با ۱۱۵ تماس بگیر.",
+            "actions": [
+              {
+                "key": "call",
+                "label": "تماس با اورژانس ۱۱۵",
+                "phone": "115"
+              },
+              {
+                "key": "ack",
+                "label": "قند خوردم، دوباره اندازه می‌گیرم"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/vitals/readings",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "glucose",
+          "value": 94,
+          "unit": "mg_dl",
+          "context": "fasting",
+          "method": "glucometer",
+          "measured_at": "2026-09-23 07:45"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "ثبت شد",
+        "data": {
+          "reading": {
+            "id": 2,
+            "source": "vitals",
+            "type": "glucose",
+            "date": "2026-09-23",
+            "time": "07:45",
+            "measured_at": "2026-09-23T07:45:00+03:30",
+            "period": "morning",
+            "blood_pressure": null,
+            "glucose": {
+              "mg_dl": 94,
+              "mmol_l": 5.2,
+              "value": 94,
+              "unit": "mg_dl",
+              "context": "fasting",
+              "method": "glucometer"
+            },
+            "heart_rate": null,
+            "classification": {
+              "code": "in_range",
+              "tone": "ok"
+            },
+            "urgent": false,
+            "note": null,
+            "editable": true
+          },
+          "alert": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/vitals/readings",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "glucose",
+          "value": 148,
+          "unit": "mg_dl",
+          "context": "after_meal",
+          "measured_at": "2026-09-22 15:20"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "ثبت شد",
+        "data": {
+          "reading": {
+            "id": 3,
+            "source": "vitals",
+            "type": "glucose",
+            "date": "2026-09-22",
+            "time": "15:20",
+            "measured_at": "2026-09-22T15:20:00+03:30",
+            "period": "afternoon",
+            "blood_pressure": null,
+            "glucose": {
+              "mg_dl": 148,
+              "mmol_l": 8.2,
+              "value": 148,
+              "unit": "mg_dl",
+              "context": "after_meal",
+              "method": null
+            },
+            "heart_rate": null,
+            "classification": {
+              "code": "high",
+              "tone": "watch"
+            },
+            "urgent": false,
+            "note": null,
+            "editable": true
+          },
+          "alert": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/vitals/reports/glucose",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "type": "glucose",
+          "range": {
+            "key": "14d",
+            "from": "2026-09-10",
+            "to": "2026-09-23",
+            "days": 14
+          },
+          "filter": "all",
+          "unit": "mg_dl",
+          "readings": 3,
+          "average": {
+            "mg_dl": 97,
+            "mmol_l": 5.4,
+            "readings": 3
+          },
+          "by_context": [
+            {
+              "context": "fasting",
+              "readings": 1,
+              "average": {
+                "mg_dl": 94,
+                "mmol_l": 5.2,
+                "readings": 1
+              },
+              "above_target": 0,
+              "target": {
+                "min": 70,
+                "max": 100
+              }
+            },
+            {
+              "context": "after_meal",
+              "readings": 1,
+              "average": {
+                "mg_dl": 148,
+                "mmol_l": 8.2,
+                "readings": 1
+              },
+              "above_target": 1,
+              "target": {
+                "min": 70,
+                "max": 140
+              }
+            },
+            {
+              "context": "random",
+              "readings": 1,
+              "average": {
+                "mg_dl": 50,
+                "mmol_l": 2.8,
+                "readings": 1
+              },
+              "above_target": 0,
+              "target": {
+                "min": 70,
+                "max": 140
+              }
+            }
+          ],
+          "min": {
+            "id": 1,
+            "source": "vitals",
+            "type": "glucose",
+            "date": "2026-09-22",
+            "time": "11:00",
+            "measured_at": "2026-09-22T11:00:00+03:30",
+            "period": "morning",
+            "blood_pressure": null,
+            "glucose": {
+              "mg_dl": 50,
+              "mmol_l": 2.8,
+              "value": 2.8,
+              "unit": "mmol_l",
+              "context": "random",
+              "method": "glucometer"
+            },
+            "heart_rate": null,
+            "classification": {
+              "code": "urgent_low",
+              "tone": "urgent"
+            },
+            "urgent": true,
+            "note": null,
+            "editable": true
+          },
+          "max": {
+            "id": 3,
+            "source": "vitals",
+            "type": "glucose",
+            "date": "2026-09-22",
+            "time": "15:20",
+            "measured_at": "2026-09-22T15:20:00+03:30",
+            "period": "afternoon",
+            "blood_pressure": null,
+            "glucose": {
+              "mg_dl": 148,
+              "mmol_l": 8.2,
+              "value": 148,
+              "unit": "mg_dl",
+              "context": "after_meal",
+              "method": null
+            },
+            "heart_rate": null,
+            "classification": {
+              "code": "high",
+              "tone": "watch"
+            },
+            "urgent": false,
+            "note": null,
+            "editable": true
+          },
+          "distribution": [
+            {
+              "code": "urgent_low",
+              "tone": "urgent",
+              "count": 1,
+              "percent": 33
+            },
+            {
+              "code": "low",
+              "tone": "high",
+              "count": 0,
+              "percent": 0
+            },
+            {
+              "code": "in_range",
+              "tone": "ok",
+              "count": 1,
+              "percent": 33
+            },
+            {
+              "code": "high",
+              "tone": "watch",
+              "count": 1,
+              "percent": 33
+            },
+            {
+              "code": "very_high",
+              "tone": "high",
+              "count": 0,
+              "percent": 0
+            }
+          ],
+          "morning_vs_night": {
+            "morning": {
+              "mg_dl": 72,
+              "mmol_l": 4,
+              "readings": 2
+            },
+            "night": null,
+            "night_out_of_range": 0
+          },
+          "time_in_range": {
+            "in_range": 1,
+            "below": 1,
+            "above": 1,
+            "readings": 3,
+            "percent": 33
+          },
+          "series": [
+            {
+              "date": "2026-09-22",
+              "readings": 2,
+              "fasting": null,
+              "after_meal": 148,
+              "other": 50
+            },
+            {
+              "date": "2026-09-23",
+              "readings": 1,
+              "fasting": 94,
+              "after_meal": null,
+              "other": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/vitals/reports/glucose?range=30d&filter=fasting",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "type": "glucose",
+          "range": {
+            "key": "30d",
+            "from": "2026-08-25",
+            "to": "2026-09-23",
+            "days": 30
+          },
+          "filter": "fasting",
+          "unit": "mg_dl",
+          "readings": 1,
+          "average": {
+            "mg_dl": 94,
+            "mmol_l": 5.2,
+            "readings": 1
+          },
+          "by_context": [
+            {
+              "context": "fasting",
+              "readings": 1,
+              "average": {
+                "mg_dl": 94,
+                "mmol_l": 5.2,
+                "readings": 1
+              },
+              "above_target": 0,
+              "target": {
+                "min": 70,
+                "max": 100
+              }
+            }
+          ],
+          "min": {
+            "id": 2,
+            "source": "vitals",
+            "type": "glucose",
+            "date": "2026-09-23",
+            "time": "07:45",
+            "measured_at": "2026-09-23T07:45:00+03:30",
+            "period": "morning",
+            "blood_pressure": null,
+            "glucose": {
+              "mg_dl": 94,
+              "mmol_l": 5.2,
+              "value": 94,
+              "unit": "mg_dl",
+              "context": "fasting",
+              "method": "glucometer"
+            },
+            "heart_rate": null,
+            "classification": {
+              "code": "in_range",
+              "tone": "ok"
+            },
+            "urgent": false,
+            "note": null,
+            "editable": true
+          },
+          "max": {
+            "id": 2,
+            "source": "vitals",
+            "type": "glucose",
+            "date": "2026-09-23",
+            "time": "07:45",
+            "measured_at": "2026-09-23T07:45:00+03:30",
+            "period": "morning",
+            "blood_pressure": null,
+            "glucose": {
+              "mg_dl": 94,
+              "mmol_l": 5.2,
+              "value": 94,
+              "unit": "mg_dl",
+              "context": "fasting",
+              "method": "glucometer"
+            },
+            "heart_rate": null,
+            "classification": {
+              "code": "in_range",
+              "tone": "ok"
+            },
+            "urgent": false,
+            "note": null,
+            "editable": true
+          },
+          "distribution": [
+            {
+              "code": "urgent_low",
+              "tone": "urgent",
+              "count": 0,
+              "percent": 0
+            },
+            {
+              "code": "low",
+              "tone": "high",
+              "count": 0,
+              "percent": 0
+            },
+            {
+              "code": "in_range",
+              "tone": "ok",
+              "count": 1,
+              "percent": 100
+            },
+            {
+              "code": "high",
+              "tone": "watch",
+              "count": 0,
+              "percent": 0
+            },
+            {
+              "code": "very_high",
+              "tone": "high",
+              "count": 0,
+              "percent": 0
+            }
+          ],
+          "morning_vs_night": {
+            "morning": {
+              "mg_dl": 94,
+              "mmol_l": 5.2,
+              "readings": 1
+            },
+            "night": null,
+            "night_out_of_range": 0
+          },
+          "time_in_range": {
+            "in_range": 1,
+            "below": 0,
+            "above": 0,
+            "readings": 1,
+            "percent": 100
+          },
+          "series": [
+            {
+              "date": "2026-09-23",
+              "readings": 1,
+              "fasting": 94,
+              "after_meal": null,
+              "other": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

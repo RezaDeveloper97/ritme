@@ -1,0 +1,100 @@
+{
+    "digits": "0123456789",
+    "decimal_separator": ".",
+    "messages": {
+        "validation_failed": "Validation failed",
+        "not_found": "Reading not found",
+        "saved": "Saved",
+        "updated": "Updated",
+        "deleted": "Deleted",
+        "plan_saved": "Plan saved"
+    },
+    "validation": {
+        "future": "The measurement time cannot be in the future.",
+        "too_old": "The measurement time cannot be more than two years ago.",
+        "systolic_gt_diastolic": "The systolic number must be higher than the diastolic.",
+        "glucose_range_mg_dl": "Blood sugar must be between 20 and 600 mg/dL.",
+        "glucose_range_mmol_l": "Blood sugar must be between 1.1 and 33.3 mmol/L.",
+        "slot_mismatch": "This time slot is not valid for this measurement.",
+        "duplicate_slot": "Each time slot can appear only once in the plan.",
+        "range_too_long": "The date range can be at most 366 days.",
+        "to_before_from": "The end date must be after the start date."
+    },
+    "attributes": {
+        "type": "type",
+        "measured_at": "measurement time",
+        "systolic": "systolic",
+        "diastolic": "diastolic",
+        "pulse": "pulse",
+        "arm": "arm",
+        "position": "position",
+        "value": "blood sugar",
+        "unit": "unit",
+        "context": "context",
+        "method": "method",
+        "bpm": "heart rate",
+        "note": "note",
+        "items": "plan",
+        "range": "range",
+        "filter": "filter",
+        "from": "from",
+        "to": "to"
+    },
+    "labels": {
+        "type": {
+            "bp": "blood pressure",
+            "glucose": "blood sugar",
+            "hr": "heart rate"
+        },
+        "slot": {
+            "morning": "morning",
+            "evening": "evening",
+            "fasting": "fasting",
+            "before_meal": "before a meal",
+            "after_meal": "after a meal",
+            "bedtime": "bedtime"
+        }
+    },
+    "reminder": {
+        "title": "Time to measure your :what",
+        "body": "Today's :slot plan: measure and log your :what."
+    },
+    "alerts": {
+        "bp_crisis": {
+            "level": "urgent",
+            "title": "Your blood pressure is in the crisis range",
+            "what_we_saw": "You logged {value}; a reading above 180/120 counts as an emergency.",
+            "advice": "Sit quietly for 5 minutes and measure again. If it is still above 180/120, or you have a severe headache, chest pain, shortness of breath, blurred vision, weakness or numbness on one side or trouble speaking, do not wait.",
+            "actions": [
+                {
+                    "key": "call",
+                    "label": "Call emergency services (115)",
+                    "phone": "115"
+                },
+                {
+                    "key": "ack",
+                    "label": "I will measure again"
+                }
+            ],
+            "contact": "Ritme does not give a medical diagnosis; in an emergency call 115 now."
+        },
+        "glucose_low": {
+            "level": "urgent",
+            "title": "Your blood sugar is very low",
+            "what_we_saw": "You logged {value}; below 54 mg/dL (3.0 mmol/L) counts as severe low blood sugar.",
+            "advice": "Take 15 g of fast-acting sugar now (for example half a glass of juice or 3 to 4 sugar cubes) and measure again after 15 minutes. If you feel confused or drowsy, cannot eat or it does not go up, ask someone near you for help.",
+            "actions": [
+                {
+                    "key": "call",
+                    "label": "Call emergency services (115)",
+                    "phone": "115"
+                },
+                {
+                    "key": "ack",
+                    "label": "I had sugar, measuring again"
+                }
+            ],
+            "contact": "Ritme does not give a medical diagnosis; in an emergency call 115 now."
+        }
+    }
+}

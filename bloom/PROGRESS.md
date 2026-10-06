@@ -942,3 +942,14 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   DB-backed worker (`lab_jobs`, lease, 3 tries). Interpretation via `Client.Chat` (non-streaming, redacted, ≤3 per lab)
   with rule-based red flags/doctor questions and rules fallback. Analysis summary `labs` section filled.
 - 23 contract goldens (fake provider), D-61 proposed. QUESTIONS #108. Security review pending.
+
+## B-N6-01 — Vitals backend — BP, glucose, heart rate, plan, reports, safety
+
+- **Migration** `00035_vitals` (+ Laravel twin): `vital_readings`, `vital_plan_items`, seeded `vitals_alert` copy
+  (`bp_crisis`, `glucose_low`).
+- `/api/v1/vitals` hub, `/vitals/thresholds`, readings CRUD (`POST` → `{reading, alert}`), reports
+  `/vitals/reports/{bp|glucose|hr}?range=` (avg/min/max, class distribution, morning vs night, time in range, daily
+  series, glucose by context), plan (≤8 items, reminders through `notifications.Decide` category `vitals`). ACC/AHA 2017,
+  ADA 2025, AHA HR thresholds versioned in `thresholds.go`; glucose stored mg/dL; BP >180/>120 or glucose <54 →
+  urgent alert. Log-sheet values merged read-only (D-63 proposed). 13 contract goldens. QUESTIONS #109.
+- Follow-up added to B-N6-03: analyses should read `vital_readings`.
