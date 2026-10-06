@@ -3,7 +3,7 @@ id: CB-CORE-05
 title: Generalise bloom's encrypted file storage for all document kinds
 epic: CORE
 type: backend
-status: todo
+status: done
 depends_on: [B-N6-06]
 parallel_group: CORE-B
 touches: [backend-go/internal/files, backend-go/internal/labs, backend-go/db/migrations, backend/database/migrations, backend-go/api/openapi.yaml, docs/canvas-build/files.md]

@@ -1361,6 +1361,30 @@ LOCK TABLES `fertility_logs` WRITE;
 /*!40000 ALTER TABLE `fertility_logs` DISABLE KEYS */;
 /*!40000 ALTER TABLE `fertility_logs` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `files`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `files` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned DEFAULT NULL,
+  `purpose` varchar(32) NOT NULL,
+  `visibility` varchar(8) NOT NULL,
+  `mime` varchar(32) NOT NULL,
+  `size_bytes` int(10) unsigned NOT NULL,
+  `sha256` char(64) NOT NULL,
+  `path` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `files_user_id_purpose_index` (`user_id`,`purpose`),
+  CONSTRAINT `files_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `files` WRITE;
+/*!40000 ALTER TABLE `files` DISABLE KEYS */;
+/*!40000 ALTER TABLE `files` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `health_log_custom_items`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;

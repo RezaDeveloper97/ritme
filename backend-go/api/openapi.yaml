@@ -61,6 +61,7 @@ tags:
   - {name: Notifications, description: In-app notifications}
   - {name: System, description: Liveness and the public upload disk}
   - {name: Labs, description: "Lab analysis (Go only, bloom B-N6-06): upload a lab sheet (photos / PDF, encrypted at rest), AI extraction as a job, verify / edit / add markers, plain-language interpretation (AI with rules fallback, non-diagnostic), marker catalog, trends across labs, feedback. Upload is Plus (plus.lab_ai) behind the AI gate. Owner only; never logged"}
+  - {name: Files, description: "Generic encrypted file storage (Go only, CB-CORE-05, D-59): record / claim documents, place photos / licences, product images. Encrypted at rest, owner-scoped, short-lived signed download links; public purposes (images only) served without auth. Never logged"}
   - {name: Vitals, description: "Vitals (Go only, bloom B-N6-01): timed blood pressure, glucose and heart-rate readings classified on read (ACC/AHA 2017, ADA 2025, AHA), log-sheet day values merged in read-only, 7/14/30/90-day reports, weekly measurement plan with opt-in reminders, urgent modal over BP 180/120 or glucose 54 mg/dL. Never logged"}
   - {name: HealthRecord, description: "Health record «پرونده سلامت من» (Go only, bloom B-N6-03, D-64): owner-only summary aggregated from profile, conditions, care meds, cycle engine, merged vitals, pregnancies, checkups and labs; user-owned blood type, allergies and hand-added pregnancies. A loss shows only as an ended pregnancy. No companion access. Never logged"}
 paths:
@@ -16641,6 +16642,155 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/HealthRecordPregnancyNotFound"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/files:
+    post:
+      tags: [Files]
+      summary: Upload a file (record / claim document)
+      description: |
+        Generic encrypted file storage (CB-CORE-05, Go only, D-59). Multipart: `purpose` (record_document |
+        claim_document; place_photo / place_licence open with the directory tasks, product_image is written by the
+        Ritme team only — all three are 422 here) and one `file`. The type is sniffed from the bytes (the name and
+        Content-Type are ignored): JPEG / PNG (≤ 8-bit) / WebP photos up to 20 MP, or a PDF starting with `%PDF-` and
+        ending with `%%EOF`. Photos are re-encoded to WebP (EXIF / GPS dropped), PDFs stored as sent; everything AES-256-GCM encrypted in private storage (FILE_KEY, else LAB_FILE_KEY; without
+        a key outside local / testing / contract → 503 `storage_unavailable`). Size and per-owner quotas per purpose
+        (docs/canvas-build/files.md). The answer carries a link: a signed URL valid 5 minutes for private files, the
+        public URL for public ones.
+      operationId: uploadFile
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [purpose, file]
+              properties:
+                purpose: {type: string, enum: [record_document, claim_document]}
+                file: {type: string, format: binary}
+      responses:
+        '201':
+          description: Stored
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/StoredFile"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/FileValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '503': {$ref: "#/components/responses/FileStorageUnavailable"}
+  /api/v1/files/public/{id}/{name}:
+    get:
+      tags: [Files]
+      summary: A public image (place photo, product image)
+      description: |
+        No auth. Only files of a public purpose (always re-encoded images) are served; a private file is a 404 under
+        any id. `name` is the file's random name from its `url` (ids alone cannot be enumerated). Cacheable
+        (`Cache-Control: public, max-age=3600`), `X-Content-Type-Options: nosniff`. IP-throttled.
+      operationId: showPublicFile
+      security: []
+      parameters:
+        - {$ref: "#/components/parameters/FileId"}
+        - {name: name, in: path, required: true, schema: {type: string, pattern: "^[a-f0-9]{40}$"}}
+      responses:
+        '200':
+          description: The image
+          content:
+            image/webp: {schema: {type: string, format: binary}}
+        '404': {$ref: "#/components/responses/FileNotFound"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '503': {$ref: "#/components/responses/FileStorageUnavailable"}
+  /api/v1/files/{id}/download:
+    get:
+      tags: [Files]
+      summary: Download a file through its signed link
+      description: |
+        No bearer: the link is the credential. `signature` = HMAC-SHA256 over the file id, its owner, purpose, stored
+        path and `expires` (unix seconds, at most 15 minutes ahead) with a key derived from the file key, so a link
+        opens exactly one file of one owner. A wrong, moved (another id / another user's file), tampered or unknown
+        link is 403 `link_invalid`; a past expiry 403 `link_expired` (never 401). The file is an attachment with
+        `Cache-Control: private, no-store`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: sandbox;
+        default-src 'none'`, `Referrer-Policy: no-referrer`. IP-throttled.
+      operationId: downloadFile
+      security: []
+      parameters:
+        - {$ref: "#/components/parameters/FileId"}
+        - {name: expires, in: query, required: true, schema: {type: string, pattern: "^[1-9][0-9]*$"}}
+        - {name: signature, in: query, required: true, schema: {type: string}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The file
+          content:
+            image/webp: {schema: {type: string, format: binary}}
+            application/pdf: {schema: {type: string, format: binary}}
+        '403':
+          description: Invalid or expired link
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, enum: [link_invalid, link_expired]}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '503': {$ref: "#/components/responses/FileStorageUnavailable"}
+  /api/v1/files/{id}:
+    get:
+      tags: [Files]
+      summary: One of the caller's files with a fresh link
+      operationId: showFile
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/FileId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  data: {$ref: "#/components/schemas/StoredFile"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/FileNotFound"}
+        '503': {$ref: "#/components/responses/FileStorageUnavailable"}
+    delete:
+      tags: [Files]
+      summary: Delete one of the caller's files (row and encrypted blob)
+      operationId: deleteFile
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/FileId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties:
+                  success: {type: boolean, const: true}
+                  message: {type: string}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/FileNotFound"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
 components:
   securitySchemes:
     bearerAuth:
@@ -16649,6 +16799,12 @@ components:
       bearerFormat: JWT
       description: "Passport access token from `POST /api/v1/auth/verify-otp`."
   parameters:
+    FileId:
+      name: id
+      in: path
+      required: true
+      description: Stored file id (the caller's own for the authenticated routes; anything else is a uniform 404)
+      schema: {type: integer, minimum: 1}
     HealthRecordPregnancyId:
       name: id
       in: path
@@ -16717,6 +16873,39 @@ components:
       description: "Overrides `Accept-Language`. Some endpoints clamp to the languages they have content for."
       schema: {type: string}
   responses:
+    FileNotFound:
+      description: "CB-CORE-05: the file does not exist, is not the caller's, or is not public — one uniform answer."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: file_not_found}
+    FileValidationFailed:
+      description: "CB-CORE-05: controller-style 422 `{success:false, message, errors}` on `purpose` or `file` (missing, type, size, quota)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors: {type: object, additionalProperties: {type: array, items: {type: string}}}
+    FileStorageUnavailable:
+      description: "CB-CORE-05: no file key outside local / testing / contract (fail closed), or too many photo re-encodes at once (`upload_busy`, Retry-After)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [storage_unavailable, upload_busy]}
     HealthRecordPregnancyNotFound:
       description: "Bloom B-N6-03: the manual pregnancy entry does not exist or is not the caller's — one uniform answer."
       content:
@@ -17580,6 +17769,20 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    StoredFile:
+      type: object
+      description: "CB-CORE-05: a stored file (no storage path, no owner)."
+      required: [id, purpose, visibility, mime, size_bytes, sha256, url, url_expires_at, created_at]
+      properties:
+        id: {type: integer}
+        purpose: {type: string, enum: [record_document, claim_document, place_photo, place_licence, product_image]}
+        visibility: {type: string, enum: [private, public]}
+        mime: {type: string, enum: [image/webp, application/pdf]}
+        size_bytes: {type: integer, description: Stored size (after photo re-encoding)}
+        sha256: {type: string, pattern: "^[a-f0-9]{64}$"}
+        url: {type: string, format: uri, description: "Signed download URL (private, short-lived) or the public URL"}
+        url_expires_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+        created_at: {$ref: "#/components/schemas/IsoDateTime"}
     HealthRecord:
       type: object
       required: [audience, date, updated_at, person, sections]

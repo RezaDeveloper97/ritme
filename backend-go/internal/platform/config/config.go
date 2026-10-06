@@ -48,6 +48,8 @@ type Config struct {
 	PrivateNotes PrivateNotes
 	// LabFiles is the key of the encrypted lab-sheet uploads (bloom B-N6-06, internal/labs/files).
 	LabFiles LabFiles
+	// Files is the key of the generic encrypted file storage (CB-CORE-05, internal/files).
+	Files Files
 	// StoragePath is the mounted Laravel storage/ directory (backend-storage volume):
 	// Passport keys, translations, public uploads.
 	StoragePath string
@@ -338,6 +340,36 @@ var devLabFileEnvs = map[string]bool{"local": true, "testing": true, "contract":
 // Missing reports whether lab files are unavailable: no key outside a local / testing / contract environment.
 func (l LabFiles) Missing(app App) bool { return len(l.Key) == 0 && !devLabFileEnvs[app.Env] }
 
+// Files holds FILE_KEY (CB-CORE-05): the AES-256-GCM key of the generic encrypted file storage (internal/files —
+// record / claim documents, place photos / licences, product images) and the root of its signed-URL key. A secret:
+// base64 of 32 random bytes (openssl rand -base64 32), server .env only. Optional: without it LAB_FILE_KEY is used.
+type Files struct {
+	// Key is the decoded FILE_KEY (empty → LAB_FILE_KEY, see Resolve).
+	Key []byte
+	// PreviousKeys (FILE_KEY_PREVIOUS, comma-separated base64) still open files sealed before a rotation.
+	PreviousKeys [][]byte
+}
+
+// Resolve picks the generic file keys: current = FILE_KEY, else LAB_FILE_KEY; previous = FILE_KEY_PREVIOUS plus
+// LAB_FILE_KEY and LAB_FILE_KEY_PREVIOUS (decrypt only — so setting FILE_KEY later keeps the files sealed under
+// LAB_FILE_KEY readable). dev = no key at all and APP_ENV local / testing / contract (the caller uses the public
+// development key); missing = no key anywhere else (fail closed: the routes answer 503).
+func (f Files) Resolve(app App, labs LabFiles) (current []byte, previous [][]byte, dev, missing bool) {
+	current = f.Key
+	previous = append(previous, f.PreviousKeys...)
+	if len(current) == 0 {
+		current = labs.Key
+	} else if len(labs.Key) > 0 {
+		previous = append(previous, labs.Key)
+	}
+	previous = append(previous, labs.PreviousKeys...)
+	if len(current) == 0 {
+		dev = devLabFileEnvs[app.Env] // the lab key policy (B-N6-06b): local / testing / contract only
+		missing = !dev
+	}
+	return current, previous, dev, missing
+}
+
 // Load reads the process environment.
 func Load() (*Config, error) { return LoadFrom(os.LookupEnv) }
 
@@ -555,6 +587,25 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			continue
 		}
 		cfg.PrivateNotes.PreviousKeys = append(cfg.PrivateNotes.PreviousKeys, key)
+	}
+	if raw := e.str("FILE_KEY", ""); raw != "" {
+		key, err := base64.StdEncoding.DecodeString(raw)
+		if err != nil || len(key) != LabFileKeyLen {
+			e.fail("FILE_KEY: must be the base64 encoding of %d bytes", LabFileKeyLen)
+		} else {
+			cfg.Files.Key = key
+		}
+	}
+	for _, raw := range strings.Split(e.str("FILE_KEY_PREVIOUS", ""), ",") {
+		if raw = strings.TrimSpace(raw); raw == "" {
+			continue
+		}
+		key, err := base64.StdEncoding.DecodeString(raw)
+		if err != nil || len(key) != LabFileKeyLen {
+			e.fail("FILE_KEY_PREVIOUS: every entry must be the base64 encoding of %d bytes", LabFileKeyLen)
+			continue
+		}
+		cfg.Files.PreviousKeys = append(cfg.Files.PreviousKeys, key)
 	}
 	if cfg.App.IsProduction() && cfg.App.Debug {
 		e.fail("APP_DEBUG must be false when APP_ENV=production")

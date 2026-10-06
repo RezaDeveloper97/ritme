@@ -1,0 +1,38 @@
+{
+  "case": "files/files_anon",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/files",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30",
+        "raw_body": "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nrecord_document\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"visit.pdf\"\r\n\r\n%PDF-1.4 visit note\n%%EOF\r\n--ritmeB--\r\n"
+      },
+      "status": 401,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Unauthenticated.",
+        "error_code": "unauthenticated"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/files/1",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 401,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Unauthenticated.",
+        "error_code": "unauthenticated"
+      }
+    }
+  ]
+}

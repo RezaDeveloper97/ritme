@@ -12,7 +12,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	companionstore "github.com/ritme/backend-go/internal/companion/store"
 	"github.com/ritme/backend-go/internal/enums"
-	labfiles "github.com/ritme/backend-go/internal/labs/files"
+	"github.com/ritme/backend-go/internal/files"
 	"github.com/ritme/backend-go/internal/notify"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
@@ -168,9 +168,9 @@ func (s *Service) DeleteAccount(ctx context.Context, userID uint64) (err error) 
 		return fmt.Errorf("profile: delete account: commit: %w", err)
 	}
 	RemoveSupportFiles(s.StoragePath, shots, s.Logger)
-	// B-N6-06: the encrypted lab sheets (their rows went with the user).
-	if err := labfiles.RemoveUser(s.StoragePath, userID); err != nil && s.Logger != nil {
-		s.Logger.ErrorContext(ctx, "profile: delete account: lab files", slog.String("error", err.Error()))
+	// B-N6-06 / CB-CORE-05: the encrypted files of every purpose, lab sheets included (their rows went with the user).
+	if err := files.RemoveUser(s.StoragePath, userID); err != nil && s.Logger != nil {
+		s.Logger.ErrorContext(ctx, "profile: delete account: files", slog.String("error", err.Error()))
 	}
 	return nil
 }

@@ -144,6 +144,10 @@ services:
       # the note routes answer 503). PRIVATE_NOTE_KEY_PREVIOUS (comma-separated) still opens notes after a rotation.
       PRIVATE_NOTE_KEY: ${PRIVATE_NOTE_KEY:-}
       PRIVATE_NOTE_KEY_PREVIOUS: ${PRIVATE_NOTE_KEY_PREVIOUS:-}
+      # Generic encrypted files (CB-CORE-05, docs/canvas-build/files.md): AES-256-GCM key + signed-URL key root, a secret
+      # from the server .env only (openssl rand -base64 32). Empty = LAB_FILE_KEY is used; no key at all = 503.
+      FILE_KEY: ${FILE_KEY:-}
+      FILE_KEY_PREVIOUS: ${FILE_KEY_PREVIOUS:-}
     # uid 33 = www-data in the PHP image: the Passport keys on backend-storage
     # are 0600 www-data. (The image already runs as 33; pinned here too so an
     # image change can't silently break key access.)

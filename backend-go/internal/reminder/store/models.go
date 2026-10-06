@@ -505,6 +505,19 @@ type FertilityLog struct {
 	UpdatedAt     sql.NullTime
 }
 
+type File struct {
+	ID         uint64
+	UserID     sql.NullInt64
+	Purpose    string
+	Visibility string
+	Mime       string
+	SizeBytes  uint32
+	Sha256     string
+	Path       string
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
 type HealthLogCustomItem struct {
 	ID        uint64
 	UserID    uint64

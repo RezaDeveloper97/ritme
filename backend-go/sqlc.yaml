@@ -230,6 +230,12 @@ sql:
         <<: *go
         out: internal/labs/store
   - <<: *pkg
+    queries: db/queries/files
+    gen:
+      go:
+        <<: *go
+        out: internal/files/store
+  - <<: *pkg
     queries: db/queries/vitals
     gen:
       go:

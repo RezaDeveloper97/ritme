@@ -1,0 +1,19 @@
+{
+    "messages": {
+        "validation_failed": "Validation failed",
+        "not_found": "File not found",
+        "storage_unavailable": "File storage is not available right now",
+        "busy": "Too many uploads are being processed; try again in a moment",
+        "link_invalid": "This download link is not valid",
+        "link_expired": "This download link has expired; open the file again",
+        "uploaded": "File uploaded",
+        "deleted": "File deleted"
+    },
+    "validation": {
+        "file_required": "Choose a file to upload.",
+        "purpose_invalid": "This kind of file cannot be uploaded here.",
+        "file_type": "This file type is not accepted here.",
+        "file_too_large": "The file can be at most :max MB.",
+        "quota": "You have reached the storage limit for this kind of file; delete some files first."
+    }
+}

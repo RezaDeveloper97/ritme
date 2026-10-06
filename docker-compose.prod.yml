@@ -69,6 +69,10 @@ services:
       # Lab analysis sheets (B-N6-06): AES-256-GCM key, a secret from the server .env only; empty = 503 (fail closed).
       LAB_FILE_KEY: ${LAB_FILE_KEY:-}
       LAB_FILE_KEY_PREVIOUS: ${LAB_FILE_KEY_PREVIOUS:-}
+      # Generic encrypted files (CB-CORE-05, docs/canvas-build/files.md): AES-256-GCM key + signed-URL key root, a secret
+      # from the server .env only (openssl rand -base64 32). Empty = LAB_FILE_KEY is used; no key at all = 503.
+      FILE_KEY: ${FILE_KEY:-}
+      FILE_KEY_PREVIOUS: ${FILE_KEY_PREVIOUS:-}
     ports: !override
       - "127.0.0.1:8081:80"
 

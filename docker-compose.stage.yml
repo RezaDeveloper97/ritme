@@ -134,6 +134,10 @@ services:
       # (openssl rand -base64 32). Empty = lab uploads / file reads answer 503 on stage (fail closed, B-N6-06b).
       LAB_FILE_KEY: ${LAB_FILE_KEY:-}
       LAB_FILE_KEY_PREVIOUS: ${LAB_FILE_KEY_PREVIOUS:-}
+      # Generic encrypted files (CB-CORE-05, docs/canvas-build/files.md): AES-256-GCM key + signed-URL key root, a secret
+      # from the server .env only (openssl rand -base64 32). Empty = LAB_FILE_KEY is used; no key at all = 503.
+      FILE_KEY: ${FILE_KEY:-}
+      FILE_KEY_PREVIOUS: ${FILE_KEY_PREVIOUS:-}
     ports: !override []
     networks:
       default:

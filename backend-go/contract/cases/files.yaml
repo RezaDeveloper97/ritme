@@ -1,0 +1,94 @@
+# Generic encrypted file storage (/api/v1/files/*, CB-CORE-05, deviations.md D-59) — Go only: there is no Laravel
+# route, so these goldens were recorded from the Go server (APP_ENV=contract → the public development file key) and
+# reviewed by hand (new-endpoint skill, step 8). The fixture dump carries the empty `files` table (goose 00040 /
+# Laravel 2026_10_06_000040), added by hand. A link's signature covers the random blob path, so `data.url` is a
+# pattern; the signed download and public image round trips, encryption at rest, quotas, the IDOR matrix, link
+# reuse on another user's file, the orphan sweep and account deletion are covered by internal/files tests. `regular` (1004) uploads;
+# `no_profile` (1001) is the other user.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: files
+defaults:
+  persona: regular
+  locales: none
+  patterns:
+    data.url: '^http://[^/]+/api/v1/files/\d+/download\?expires=\d+&signature=[A-Za-z0-9_-]{43}$'
+cases:
+  - name: files_anon
+    persona: anon
+    steps:
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nrecord_document\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"visit.pdf\"\r\n\r\n%PDF-1.4 visit note\n%%EOF\r\n--ritmeB--\r\n"
+        status: 401
+      - method: GET
+        path: /api/v1/files/1
+        status: 401
+  - name: upload_show_delete
+    doc: Upload a record document (PDF) → 201 with a 5-minute signed link; the owner reads it, the other user gets 404; delete
+    locales: [none, fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nrecord_document\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"visit.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 visit note\n%%EOF\r\n--ritmeB--\r\n"
+        status: 201
+        capture: {id: data.id}
+      - method: GET
+        path: "/api/v1/files/{{id}}"
+        status: 200
+      - method: GET
+        as: no_profile
+        path: "/api/v1/files/{{id}}"
+        status: 404
+      - method: DELETE
+        as: no_profile
+        path: "/api/v1/files/{{id}}"
+        status: 404
+      - method: GET
+        path: "/api/v1/files/{{id}}/download"
+        query: {expires: "1758609300", signature: AAAA}
+        status: 403
+      - method: GET
+        path: "/api/v1/files/public/{{id}}/0123456789abcdef0123456789abcdef01234567"
+        status: 404
+      - method: DELETE
+        path: "/api/v1/files/{{id}}"
+        status: 200
+      - method: GET
+        path: "/api/v1/files/{{id}}"
+        status: 404
+  - name: upload_invalid
+    doc: Unknown / lab / not-a-user-upload purpose (product_image, place_photo — CB-DIR opens it), a text file, no file → 422
+    locales: [none, fa]
+    steps:
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nx-ray\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"a.pdf\"\r\n\r\n%PDF-1.4 x\r\n--ritmeB--\r\n"
+        status: 422
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nlab\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"a.pdf\"\r\n\r\n%PDF-1.4 x\r\n--ritmeB--\r\n"
+        status: 422
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nproduct_image\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"a.pdf\"\r\n\r\n%PDF-1.4 x\r\n--ritmeB--\r\n"
+        status: 422
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nclaim_document\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"notes.txt\"\r\n\r\nhello\r\n--ritmeB--\r\n"
+        status: 422
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nplace_photo\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"a.pdf\"\r\n\r\n%PDF-1.4 x\r\n--ritmeB--\r\n"
+        status: 422
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nrecord_document\r\n--ritmeB--\r\n"
+        status: 422

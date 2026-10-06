@@ -74,6 +74,8 @@ services:
       SWAGGER_PASSWORD: ""
       # Contract-only lab file key (B-N6-06b; base64 of "contract-only-lab-file-key-nosec"). Never a real secret.
       LAB_FILE_KEY: Y29udHJhY3Qtb25seS1sYWItZmlsZS1rZXktbm9zZWM=
+      # Contract-only generic file key (CB-CORE-05; base64 of "contract-only-file-key-not-secrt"). Never a real secret.
+      FILE_KEY: Y29udHJhY3Qtb25seS1maWxlLWtleS1ub3Qtc2VjcnQ=
     volumes:
       # Throwaway: holds only the Passport key pair the entrypoint generates.
       - contract-storage:/var/www/html/storage

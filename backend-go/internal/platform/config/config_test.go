@@ -23,6 +23,53 @@ func minimal() map[string]string {
 	}
 }
 
+// CB-CORE-05: FILE_KEY, falling back to LAB_FILE_KEY; the development key only in local / testing / contract.
+func TestLoad_FileKey(t *testing.T) {
+	const a, b = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=", "YWJjZGVmMDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODk="
+	cfg, err := LoadFrom(lookup(minimal()))
+	require.NoError(t, err)
+	cur, prev, dev, missing := cfg.Files.Resolve(cfg.App, cfg.LabFiles)
+	assert.Empty(t, cur)
+	assert.Empty(t, prev)
+	assert.False(t, dev)
+	assert.True(t, missing, "no key in production: fail closed")
+
+	for envName, wantDev := range map[string]bool{"local": true, "testing": true, "contract": true, "staging": false, "production": false} {
+		env := minimal()
+		env["APP_ENV"] = envName
+		cfg, err = LoadFrom(lookup(env))
+		require.NoError(t, err)
+		_, _, dev, missing = cfg.Files.Resolve(cfg.App, cfg.LabFiles)
+		assert.Equal(t, wantDev, dev, envName)
+		assert.Equal(t, !wantDev, missing, envName)
+	}
+
+	env := minimal()
+	env["LAB_FILE_KEY"] = a
+	cfg, err = LoadFrom(lookup(env))
+	require.NoError(t, err)
+	cur, prev, dev, missing = cfg.Files.Resolve(cfg.App, cfg.LabFiles)
+	assert.Equal(t, cfg.LabFiles.Key, cur, "LAB_FILE_KEY is the fallback")
+	assert.Empty(t, prev)
+	assert.False(t, dev || missing)
+
+	env["FILE_KEY"] = b
+	env["FILE_KEY_PREVIOUS"] = a + ", " + b
+	cfg, err = LoadFrom(lookup(env))
+	require.NoError(t, err)
+	cur, prev, _, missing = cfg.Files.Resolve(cfg.App, cfg.LabFiles)
+	assert.Equal(t, cfg.Files.Key, cur)
+	assert.Len(t, prev, 3, "FILE_KEY_PREVIOUS + LAB_FILE_KEY still open older files")
+	assert.False(t, missing)
+
+	for _, k := range []string{"FILE_KEY", "FILE_KEY_PREVIOUS"} {
+		env = minimal()
+		env[k] = "c2hvcnQ="
+		_, err = LoadFrom(lookup(env))
+		require.ErrorContains(t, err, k)
+	}
+}
+
 // CB-LOSS-01: PRIVATE_NOTE_KEY is base64 of 32 bytes; missing in production disables the private notes.
 func TestLoad_PrivateNoteKey(t *testing.T) {
 	cfg, err := LoadFrom(lookup(minimal()))
