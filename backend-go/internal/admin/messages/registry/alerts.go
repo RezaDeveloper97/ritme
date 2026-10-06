@@ -1,6 +1,8 @@
 package registry
 
 import (
+	"regexp"
+
 	"github.com/ritme/backend-go/internal/enums"
 )
 
@@ -84,7 +86,24 @@ var AlertRules = []AlertRule{
 	// {duration} are m:ss.
 	{Key: "contractions_511", Params: []Field{
 		intParam("interval_max_minutes", 2, 15), intParam("duration_min_seconds", 20, 120), intParam("run_minutes", 20, 180),
+		// contact_phone (B-N5-09): the number the alert's «تماس» action dials (maternity unit / emergency); null = no
+		// number, the app then only shows the contact text. Digits, optional leading +, spaces or dashes (ContactPhone).
+		{Key: ContactPhoneParam, Kind: KindText, Nullable: true, MaxLen: MaxContactPhoneLen},
 	}, Placeholders: []string{"count", "minutes", "interval", "duration"}},
+}
+
+// ContactPhoneParam is the optional param holding the phone number an urgent alert's call action dials.
+const ContactPhoneParam = "contact_phone"
+
+// MaxContactPhoneLen bounds a contact phone.
+const MaxContactPhoneLen = 20
+
+var contactPhoneRe = regexp.MustCompile(`^\+?[0-9][0-9 \-]*[0-9]$`)
+
+// ValidContactPhone reports whether s is a dialable number: ASCII digits, an optional leading +, inner spaces or
+// dashes, 3–20 characters.
+func ValidContactPhone(s string) bool {
+	return len(s) >= 3 && len(s) <= MaxContactPhoneLen && contactPhoneRe.MatchString(s)
 }
 
 // FindAlertRule looks a rule up by key.

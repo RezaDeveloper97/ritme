@@ -80,6 +80,9 @@ func (h *Handlers) Store(c fiber.Ctx) error {
 	keyName, _ := key.(string)
 	item, known := registry.Lookup(groupName, keyName)
 	codes := i18n.LanguagesOf(c).Codes()
+	if err := canWrite(c, groupName); err != nil {
+		return err
+	}
 
 	rules := validation.Rules{
 		validation.F("group", "required|string", validation.In(registry.GroupNames()...)),

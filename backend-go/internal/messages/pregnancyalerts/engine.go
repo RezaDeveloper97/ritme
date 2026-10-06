@@ -547,6 +547,10 @@ func decodeMeta(r *store.PregnancyAlert) meta {
 	return m
 }
 
+// ContactPhoneParam is the rule param with the number an urgent alert's call action dials (admin registry
+// ContactPhoneParam).
+const ContactPhoneParam = "contact_phone"
+
 // alertJSON renders a v2 row with the current texts of its rule (the stored title / message
 // when the rule has no row any more).
 func alertJSON(r *store.PregnancyAlert, rs rows, l v2.Lang) *jsonx.OrderedMap {
@@ -569,6 +573,13 @@ func alertJSON(r *store.PregnancyAlert, rs rows, l v2.Lang) *jsonx.OrderedMap {
 	var contact, created, factDate, dateLabel any
 	if m.Level4 == "urgent" && t.contact != "" {
 		contact = t.contact
+		// A rule with a contact phone (contractions_511 param contact_phone, B-N5-09) answers {text, phone} so the
+		// app's «تماس» dials it; without one the contact stays the plain text (unchanged shape).
+		if c, ok := rs.config(m.Rule, l); ok {
+			if phone, isStr := c.Params[ContactPhoneParam].(string); isStr && strings.TrimSpace(phone) != "" {
+				contact = jsonx.Obj("text", t.contact, "phone", strings.TrimSpace(phone))
+			}
+		}
 	}
 	if r.CreatedAt.Valid {
 		c := r.CreatedAt.Time.In(civildate.Tehran)

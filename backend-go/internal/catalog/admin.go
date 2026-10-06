@@ -31,6 +31,7 @@ type Admin struct {
 	q      *store.Queries
 	reader *Reader
 	logger *slog.Logger
+	super  map[string]bool // groups whose writes need a super admin (clinical content, B-N5-09)
 }
 
 // NewAdmin builds the admin handlers; reader is used to flush a group's cache after writes.
@@ -39,6 +40,32 @@ func NewAdmin(conn *sql.DB, reader *Reader, logger *slog.Logger) *Admin {
 		logger = slog.Default()
 	}
 	return &Admin{db: conn, q: store.New(conn), reader: reader, logger: logger}
+}
+
+// WithSuperGroups makes writes (create, update, reorder, delete) of groups super-admin only: clinical content such as
+// the child catalogs (B-N5-09). Reads stay open to every active admin; an editor's write is a 403.
+func (h *Admin) WithSuperGroups(groups ...string) *Admin {
+	if h.super == nil {
+		h.super = map[string]bool{}
+	}
+	for _, g := range groups {
+		h.super[g] = true
+	}
+	return h
+}
+
+// SuperOnly reports whether writes of group need a super admin.
+func (h *Admin) SuperOnly(group string) bool { return h.super[group] }
+
+// canWrite is the write gate of group (403 for an editor on a super-only group).
+func (h *Admin) canWrite(c fiber.Ctx, g string) error {
+	if !h.super[g] {
+		return nil
+	}
+	if a := httpadmin.CurrentAdmin(c); a == nil || a.Role != httpadmin.RoleSuper {
+		return httpadmin.Forbidden()
+	}
+	return nil
 }
 
 // Routes registers the endpoints; static paths before params.
@@ -199,6 +226,9 @@ func (h *Admin) Store(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := h.canWrite(c, g); err != nil {
+		return err
+	}
 	data, err := h.validate(c, g, nil)
 	if err != nil {
 		return err
@@ -236,6 +266,9 @@ func (h *Admin) Update(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := h.canWrite(c, cur.Group); err != nil {
+		return err
+	}
 	data, err := h.validate(c, cur.Group, &cur)
 	if err != nil {
 		return err
@@ -257,6 +290,9 @@ func (h *Admin) Update(c fiber.Ctx) error {
 func (h *Admin) Destroy(c fiber.Ctx) error {
 	cur, err := h.find(c)
 	if err != nil {
+		return err
+	}
+	if err := h.canWrite(c, cur.Group); err != nil {
 		return err
 	}
 	res, err := h.q.DeleteCatalogItem(c.Context(), store.DeleteCatalogItemParams{ID: cur.ID, CatalogGroup: cur.Group})

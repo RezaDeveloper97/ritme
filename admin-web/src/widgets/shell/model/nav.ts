@@ -76,6 +76,17 @@ export const NAV: readonly NavGroup[] = [
     ],
   },
   {
+    // «کودک و پس از زایمان» (B-N5-09): clinical content — every admin reads, super admins write (API 403 + hidden buttons).
+    key: 'groupChildren',
+    items: [
+      { key: 'childVaccines', href: '/children-content/vaccines', icon: 'shieldCheck', ready: true },
+      { key: 'childMilestones', href: '/children-content/milestones', icon: 'flag', ready: true },
+      { key: 'childLearn', href: '/children-content/learn', icon: 'article', ready: true },
+      { key: 'childWho', href: '/children-content/who', icon: 'listOrdered', ready: true },
+      { key: 'postpartumContent', href: '/postpartum-content', icon: 'heart', ready: true },
+    ],
+  },
+  {
     key: 'groupMessages',
     items: [{ key: 'messages', href: '/messages', icon: 'message', ready: true }],
   },

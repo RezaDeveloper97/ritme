@@ -24,6 +24,7 @@ export function FormPage({
   saving,
   children,
   after,
+  readOnly = false,
 }: {
   title: ReactNode;
   backHref: string;
@@ -35,11 +36,13 @@ export function FormPage({
   saving: boolean;
   children: ReactNode;
   after?: ReactNode;
+  /** No save button (the viewer may read but not write, e.g. an editor on super-only content). */
+  readOnly?: boolean;
 }) {
   const t = useTranslations('crud');
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (!saving) onSubmit();
+    if (!saving && !readOnly) onSubmit();
   };
   return (
     <div className="flex flex-col gap-5">
@@ -48,9 +51,11 @@ export function FormPage({
         <Panel bodyClassName="">
           <div className="flex flex-col gap-5 p-4 sm:p-5">{children}</div>
           <div className="form-actions">
-            <Button type="submit" variant="primary" loading={saving}>
-              {submitLabel}
-            </Button>
+            {readOnly ? null : (
+              <Button type="submit" variant="primary" loading={saving}>
+                {submitLabel}
+              </Button>
+            )}
             <Link href={backHref} className="btn btn-ghost">
               {t('cancel')}
             </Link>

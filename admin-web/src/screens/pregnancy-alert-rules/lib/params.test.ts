@@ -26,4 +26,11 @@ describe('alert rule params body', () => {
     });
     expect(paramsBody(schema, { from_week: 0 }).from_weekday).toBeNull();
   });
+
+  it('trims a text param and sends an empty one as null (contact_phone)', () => {
+    const phone: ParamField[] = [{ key: 'contact_phone', kind: 'text', nullable: true, max_length: 20 }];
+    expect(paramsBody(phone, { contact_phone: ' 021 6612 3456 ' })).toEqual({ contact_phone: '021 6612 3456' });
+    expect(paramsBody(phone, { contact_phone: '  ' })).toEqual({ contact_phone: null });
+    expect(paramsBody(phone, {})).toEqual({ contact_phone: null });
+  });
 });

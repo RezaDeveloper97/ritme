@@ -270,6 +270,23 @@ function ParamInput({
   error?: string;
 }) {
   const labels = useAlertLabels();
+  const t = useTranslations('pregnancyAlertRules');
+  if (field.kind === 'text') {
+    // e.g. contractions_511.contact_phone (B-N5-09): the number the «تماس» action dials; empty = none.
+    return (
+      <TextInput
+        label={labels.param(field.key)}
+        hint={t.has(`paramHints.${field.key}` as 'title') ? t(`paramHints.${field.key}` as 'title') : undefined}
+        dir="ltr"
+        inputMode={field.key.endsWith('phone') ? 'tel' : undefined}
+        maxLength={field.max_length}
+        required={!field.nullable}
+        value={typeof value === 'string' ? value : ''}
+        onChange={(e) => onChange(e.target.value)}
+        error={error}
+      />
+    );
+  }
   if (field.kind === 'boolean') return <Switch label={labels.param(field.key)} checked={value === true} onChange={onChange} />;
   if (field.kind === 'enum') {
     return (

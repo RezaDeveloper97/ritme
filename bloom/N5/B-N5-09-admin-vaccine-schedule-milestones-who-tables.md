@@ -3,7 +3,7 @@ id: B-N5-09
 title: Admin — vaccine schedule, milestones, WHO tables, postpartum content
 milestone: N5
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N5-02]
 parallel_group: N5-I
 touches: [admin-web/src,backend-go/internal/admin,backend-go/api]

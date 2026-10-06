@@ -25,6 +25,9 @@ func (h *Admin) Reorder(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := h.canWrite(c, g); err != nil {
+		return err
+	}
 	tx, err := h.db.BeginTx(c.Context(), nil)
 	if err != nil {
 		return err

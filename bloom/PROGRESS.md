@@ -919,3 +919,14 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   non-judgemental copy, play ideas, doctor note), `child-learn` (topic chips, weekly pick, tip/article sheets);
   spouse read-only. Parsers tested on Go goldens. Replaces the B-N5-05 stubs.
 - Screenshots `docs/qa/bloom/B-N5-06/` (user 09900005501, child 1).
+
+## B-N5-09 — Admin — vaccine schedule, milestones, WHO tables, postpartum content
+
+- `GET /api/admin/v1/children/who` (read-only WHO LMS viewer with derived P3–P97, month/week/day sampling); child
+  catalog groups and postpartum message groups are super-admin-only for writes (`catalog.Admin.WithSuperGroups`,
+  `registry.SuperOnlyGroups`; `GET /messages` exposes `super_only_groups`); 5-1-1 rule gains optional `contact_phone`
+  (alert `contact {text, phone}`). Docs `admin-api.md` §18 + §13. Int tests.
+- admin-web «کودک و پس از زایمان»: vaccines (grouped by visit), milestones by month (4 sections), learn, WHO table,
+  shared item form with per-group meta + «بازبینی شد», postpartum content overview → messages editor (read-only for
+  editors); alert-rules editor shows `contact_phone`. `FormPage` `readOnly` prop. Screenshots `docs/qa/bloom/B-N5-09/`.
+- Pre-existing red: `internal/catalog/api_int_test.go` (3 tests) because canvas migrations seed catalog rows — canvas-owned.

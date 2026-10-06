@@ -76,6 +76,17 @@ func messageJSON(m *store.MessageContent) *jsonx.OrderedMap {
 	)
 }
 
+// canWrite is the write gate of a group: clinical groups (registry.SuperOnly) are super-admin only (403 otherwise).
+func canWrite(c fiber.Ctx, group string) error {
+	if !registry.SuperOnly(group) {
+		return nil
+	}
+	if a := httpadmin.CurrentAdmin(c); a == nil || a.Role != httpadmin.RoleSuper {
+		return httpadmin.Forbidden()
+	}
+	return nil
+}
+
 func (h *Handlers) find(c fiber.Ctx) (*store.MessageContent, error) {
 	id, ok := httpadmin.ID(c, "id")
 	if !ok {
@@ -144,6 +155,7 @@ func (h *Handlers) List(c fiber.Ctx) error {
 	page.Set("groups", jsonx.List(groups))
 	page.Set("locales", jsonx.List(locales))
 	page.Set("registered_groups", jsonx.List(registry.GroupNames()))
+	page.Set("super_only_groups", jsonx.List(registry.SuperOnlyGroups))
 	missing, err := h.missing(c, group, locale)
 	if err != nil {
 		return err
@@ -213,6 +225,9 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := canWrite(c, m.Group); err != nil {
+		return err
+	}
 	data, err := form.Validate(c, validation.Rules{
 		validation.F("payload", "nullable|array"),
 		validation.F("label", "nullable|string|max:255"),
@@ -253,6 +268,9 @@ func (h *Handlers) Approve(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := canWrite(c, m.Group); err != nil {
+		return err
+	}
 	if err := h.q.ToggleMessageApproved(c.Context(), store.ToggleMessageApprovedParams{
 		Now: httpadmin.DBTime(httpadmin.Now(c)), ID: m.ID,
 	}); err != nil {
@@ -270,6 +288,9 @@ func (h *Handlers) Approve(c fiber.Ctx) error {
 func (h *Handlers) Toggle(c fiber.Ctx) error {
 	m, err := h.find(c)
 	if err != nil {
+		return err
+	}
+	if err := canWrite(c, m.Group); err != nil {
 		return err
 	}
 	if err := h.q.ToggleMessageActive(c.Context(), store.ToggleMessageActiveParams{

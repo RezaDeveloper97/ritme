@@ -15,6 +15,7 @@ export interface ParamField {
   values?: string[];
   min_items?: number;
   max_items?: number;
+  max_length?: number;
 }
 const paramFieldSchema = z.object({
   key: z.string(),
@@ -25,6 +26,7 @@ const paramFieldSchema = z.object({
   values: z.array(z.string()).optional(),
   min_items: z.number().optional(),
   max_items: z.number().optional(),
+  max_length: z.number().optional(),
 });
 const objectSchema = z.preprocess((v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {}), z.record(z.string(), z.unknown()));
 const list = <T extends z.ZodTypeAny>(item: T) => z.preprocess((v) => (Array.isArray(v) ? v : []), z.array(item));

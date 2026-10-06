@@ -4,11 +4,13 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { useCurrentAdmin } from '@/features/auth';
 import { fieldError } from '@/shared/api';
 import { Badge, Button, Skeleton, FormPage, LoadGate, PageHeader, TextArea, TextInput, toast, useNotifyError } from '@/shared/ui';
 
 import { messagesApi, useRegistryItem, type Message, type SchemaField } from '../api/messages';
 import { asPayloadValues, fieldKind, fromDraft, toDraft } from '../lib/payload';
+import { canWriteGroup } from '../lib/super-only';
 import { normalizeDraft, seedDraft, type Draft } from '../lib/schema-form';
 import { SchemaForm } from './SchemaForm';
 import { useMessageLabels } from './labels';
@@ -46,6 +48,8 @@ function MessageForm({ message, typedFields }: { message: Message; typedFields: 
   const [typedDraft, setTypedDraft] = useState<Draft>(() => (typedFields ? seedDraft(typedFields, message.payload) : {}));
   const dir = labels.direction(message.locale);
   const backHref = `/messages?group=${encodeURIComponent(message.group)}`;
+  // Clinical groups (postpartum copy) are super-admin writes (admin-api.md §18).
+  const canWrite = canWriteGroup(message.group, useCurrentAdmin()?.role);
 
   const submit = () =>
     save.mutate(
@@ -79,41 +83,45 @@ function MessageForm({ message, typedFields }: { message: Message; typedFields: 
         </>
       }
       headerActions={
-        <>
-          <Button
-            loading={approve.isPending}
-            onClick={() =>
-              approve.mutate(
-                { id: message.id },
-                {
-                  onSuccess: () => toast.success(message.is_approved ? t('unapprovedToast') : t('approvedToast')),
-                  onError: notifyError,
-                },
-              )
-            }
-          >
-            {message.is_approved ? t('unapprove') : t('approve')}
-          </Button>
-          <Button
-            loading={toggle.isPending}
-            onClick={() =>
-              toggle.mutate(
-                { id: message.id },
-                {
-                  onSuccess: () => toast.success(tc('statusChanged')),
-                  onError: notifyError,
-                },
-              )
-            }
-          >
-            {message.is_active ? tc('deactivate') : tc('activate')}
-          </Button>
-        </>
+        canWrite ? (
+          <>
+            <Button
+              loading={approve.isPending}
+              onClick={() =>
+                approve.mutate(
+                  { id: message.id },
+                  {
+                    onSuccess: () => toast.success(message.is_approved ? t('unapprovedToast') : t('approvedToast')),
+                    onError: notifyError,
+                  },
+                )
+              }
+            >
+              {message.is_approved ? t('unapprove') : t('approve')}
+            </Button>
+            <Button
+              loading={toggle.isPending}
+              onClick={() =>
+                toggle.mutate(
+                  { id: message.id },
+                  {
+                    onSuccess: () => toast.success(tc('statusChanged')),
+                    onError: notifyError,
+                  },
+                )
+              }
+            >
+              {message.is_active ? tc('deactivate') : tc('activate')}
+            </Button>
+          </>
+        ) : null
       }
       onSubmit={submit}
       submitLabel={tc('saveChanges')}
       saving={save.isPending}
+      readOnly={!canWrite}
     >
+      {canWrite ? null : <p className="field-hint m-0 font-semibold">{t('superOnlyNotice')}</p>}
       <p className="field-hint m-0">{t('editHint')}</p>
       {typedFields ? <SchemaForm fields={typedFields} value={typedDraft} onChange={setTypedDraft} error={save.error} dir={dir} /> : null}
       {!typedFields && keys.length === 0 ? <p className="m-0 text-ink-3">{t('emptyPayload')}</p> : null}

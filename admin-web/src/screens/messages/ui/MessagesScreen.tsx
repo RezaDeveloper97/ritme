@@ -5,11 +5,13 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { useCurrentAdmin } from '@/features/auth';
 import { cn, excerpt, formatNumber, useListParams, useNumber } from '@/shared/lib';
 import { Badge, Button, DataTable, Pagination, Panel, RowActions, Select, toast, useNotifyError, type Column } from '@/shared/ui';
 
 import { messagesApi, type Message, type MissingMessage } from '../api/messages';
 import { previewOf } from '../lib/payload';
+import { SUPER_ONLY_GROUPS, canWriteGroup } from '../lib/super-only';
 import { useMessageLabels } from './labels';
 import { MessageCreatePanel, type CreateTarget } from './MessageCreatePanel';
 
@@ -25,6 +27,10 @@ export function MessagesScreen() {
   const approve = messagesApi.useAction('approve');
   const toggle = messagesApi.useAction('toggle');
   const [creating, setCreating] = useState<CreateTarget | null>(null);
+  const role = useCurrentAdmin()?.role;
+  const superOnly = query.data?.super_only_groups ?? SUPER_ONLY_GROUPS;
+  // Clinical groups (postpartum copy) are super-admin writes (admin-api.md §18): editors only read them.
+  const canWrite = (group: string) => canWriteGroup(group, role, superOnly);
   const busy = (m: { isPending: boolean; variables?: { id: number } }, id: number) => m.isPending && m.variables?.id === id;
 
   const columns: Column<Message>[] = [
@@ -72,38 +78,42 @@ export function MessagesScreen() {
       cell: (m) => (
         <RowActions>
           <Link href={`/messages/${m.id}`} className="btn btn-sm">
-            {tc('edit')}
+            {canWrite(m.group) ? tc('edit') : t('view')}
           </Link>
-          <Button
-            size="sm"
-            loading={busy(approve, m.id)}
-            onClick={() =>
-              approve.mutate(
-                { id: m.id },
-                {
-                  onSuccess: () => toast.success(m.is_approved ? t('unapprovedToast') : t('approvedToast')),
-                  onError: notifyError,
-                },
-              )
-            }
-          >
-            {m.is_approved ? t('unapprove') : t('approve')}
-          </Button>
-          <Button
-            size="sm"
-            loading={busy(toggle, m.id)}
-            onClick={() =>
-              toggle.mutate(
-                { id: m.id },
-                {
-                  onSuccess: () => toast.success(tc('statusChanged')),
-                  onError: notifyError,
-                },
-              )
-            }
-          >
-            {m.is_active ? tc('deactivate') : tc('activate')}
-          </Button>
+          {canWrite(m.group) ? (
+            <>
+              <Button
+                size="sm"
+                loading={busy(approve, m.id)}
+                onClick={() =>
+                  approve.mutate(
+                    { id: m.id },
+                    {
+                      onSuccess: () => toast.success(m.is_approved ? t('unapprovedToast') : t('approvedToast')),
+                      onError: notifyError,
+                    },
+                  )
+                }
+              >
+                {m.is_approved ? t('unapprove') : t('approve')}
+              </Button>
+              <Button
+                size="sm"
+                loading={busy(toggle, m.id)}
+                onClick={() =>
+                  toggle.mutate(
+                    { id: m.id },
+                    {
+                      onSuccess: () => toast.success(tc('statusChanged')),
+                      onError: notifyError,
+                    },
+                  )
+                }
+              >
+                {m.is_active ? tc('deactivate') : tc('activate')}
+              </Button>
+            </>
+          ) : null}
         </RowActions>
       ),
       className: 'cell-actions',
@@ -122,7 +132,7 @@ export function MessagesScreen() {
           group={list.params.filters.group ?? ''}
           missing={query.data.missing}
           registered={query.data.registered_groups}
-          onCreate={setCreating}
+          onCreate={canWrite(list.params.filters.group ?? '') ? setCreating : undefined}
           onGroup={(g) => list.setFilter('group', g)}
         />
       ) : null}
@@ -191,7 +201,8 @@ function MissingPanel({
   group: string;
   missing: MissingMessage[];
   registered: string[];
-  onCreate: (target: CreateTarget) => void;
+  /** Absent: the viewer may not create rows of this group (read-only listing). */
+  onCreate?: (target: CreateTarget) => void;
   onGroup: (group: string) => void;
 }) {
   const t = useTranslations('smartMessages');
@@ -219,7 +230,7 @@ function MissingPanel({
 
   return (
     <Panel title={t('missingTitle')}>
-      {group === WEEK_TIP_GROUP ? <WeekTipGrid missing={missing} onCreate={onCreate} /> : null}
+      {group === WEEK_TIP_GROUP && onCreate ? <WeekTipGrid missing={missing} onCreate={onCreate} /> : null}
       {missing.length === 0 ? (
         <p className="m-0 text-ink-3">{t('noMissing')}</p>
       ) : group === WEEK_TIP_GROUP ? null : (
@@ -230,9 +241,11 @@ function MissingPanel({
                 {m.item_key}
               </span>
               <Badge>{labels.locale(m.locale)}</Badge>
-              <Button size="sm" onClick={() => onCreate(m)}>
-                {t('create')}
-              </Button>
+              {onCreate ? (
+                <Button size="sm" onClick={() => onCreate(m)}>
+                  {t('create')}
+                </Button>
+              ) : null}
             </li>
           ))}
           {missing.length > MAX_MISSING_ROWS ? (

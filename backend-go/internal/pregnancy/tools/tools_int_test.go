@@ -335,6 +335,29 @@ func TestTools_ContractionTimer511(t *testing.T) {
 	assert.NotEqual(t, float64(sessionID), r.data()["id"])
 }
 
+// B-N5-09: with the admin-set contact_phone param the urgent alert's contact is {text, phone}.
+func TestTools_ContractionTimer511ContactPhone(t *testing.T) {
+	e := setup(t)
+	_, err := e.db.Exec(`UPDATE message_contents SET payload = JSON_SET(payload, '$.params.contact_phone', '021 6612 3456')
+		WHERE ` + "`group`" + ` = 'pregnancy_alert' AND item_key = 'contractions_511'`)
+	require.NoError(t, err)
+	_, tok := e.user(t, "09120000001", true)
+	c := "/api/v1/pregnancy/contractions"
+	var r response
+	for i := range 13 {
+		start := t0.Add(time.Duration(i) * 5 * time.Minute)
+		r = e.do(t, start, http.MethodPost, c+"/start", tok, "")
+		require.Equal(t, http.StatusOK, r.status, r.raw)
+		r = e.do(t, start.Add(time.Minute), http.MethodPost, c+"/stop", tok, "")
+		require.Equal(t, http.StatusOK, r.status, r.raw)
+	}
+	alerts := list(r.data()["alerts"])
+	require.Len(t, alerts, 1, r.raw)
+	contact := obj(obj(alerts[0]), "contact")
+	assert.Equal(t, "021 6612 3456", contact["phone"])
+	assert.Contains(t, contact["text"], "115")
+}
+
 // IDOR: another user's sessions are a uniform 404.
 func TestTools_OtherUsersSessions(t *testing.T) {
 	e := setup(t)

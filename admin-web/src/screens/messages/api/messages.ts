@@ -38,6 +38,7 @@ export const messagesApi = createResource({
     locales: z.array(z.string()),
     registered_groups: z.array(z.string()).optional().default([]),
     missing: z.array(missingSchema).optional().default([]),
+    super_only_groups: z.array(z.string()).optional(),
   }),
   detail: z.object({ message: messageSchema }),
   alsoInvalidate: [['dashboard']],

@@ -422,3 +422,42 @@ func TestAlertRulesUpdate(t *testing.T) {
 	assert.Equal(t, 1, e.Int("SELECT COUNT(*) FROM message_contents WHERE `group` = 'pregnancy_alert' AND item_key = 'week_entered' AND is_active = 1 AND is_approved = 1"))
 	assert.Equal(t, map[string]any{}, payload(e, "week_entered", "fa")["params"])
 }
+
+// B-N5-09: the 5-1-1 rule's optional contact_phone (the number «تماس» dials), validated as a dialable number.
+func TestAlertRulesContactPhone(t *testing.T) {
+	e := newEnv(t)
+	c := e.As(admintest.EditorID)
+
+	r := c.Get("/pregnancy-alert-rules/contractions_511")
+	require.Equal(t, 200, r.Status, r.Body)
+	rule := r.Obj("rule")
+	assert.Nil(t, rule["params"].(map[string]any)["contact_phone"], "seeded without a number")
+	schema := rule["params_schema"].([]any)
+	last := schema[len(schema)-1].(map[string]any)
+	assert.Equal(t, "contact_phone", last["key"])
+	assert.Equal(t, "text", last["kind"])
+	assert.Equal(t, true, last["nullable"])
+
+	body := func(phone any) map[string]any {
+		return map[string]any{"enabled": true, "level": "urgent", "window_days": 1, "params": map[string]any{
+			"interval_max_minutes": 5, "duration_min_seconds": 45, "run_minutes": 60, "contact_phone": phone,
+		}}
+	}
+	for _, bad := range []any{"call me", "۰۲۱۶۶۱۲", "12", "+98 21 6612 3456 7890 1", "021--", 42} {
+		r = c.JSON(fiber.MethodPut, "/pregnancy-alert-rules/contractions_511", body(bad))
+		require.Equal(t, 422, r.Status, "%v", bad)
+		assert.Contains(t, r.Errors(), "params.contact_phone", "%v", bad)
+	}
+
+	r = c.JSON(fiber.MethodPut, "/pregnancy-alert-rules/contractions_511", body("+98 21-6612 3456"))
+	require.Equal(t, 200, r.Status, r.Body)
+	for _, loc := range []string{"fa", "en"} {
+		p := payload(e, "contractions_511", loc)["params"].(map[string]any)
+		assert.Equal(t, "+98 21-6612 3456", p["contact_phone"], loc)
+		assert.InDelta(t, 5, p["interval_max_minutes"], 0)
+	}
+
+	r = c.JSON(fiber.MethodPut, "/pregnancy-alert-rules/contractions_511", body(""))
+	require.Equal(t, 200, r.Status, r.Body)
+	assert.Nil(t, payload(e, "contractions_511", "fa")["params"].(map[string]any)["contact_phone"], "empty clears it")
+}

@@ -452,7 +452,7 @@ not exist; sending texts for an active language without a row creates it (active
 | `bp_high` | `systolic_min` 90–200, `diastolic_min` 50–130 | `{systolic}`, `{diastolic}` |
 | `sugar_high` | `fasting_max` 60–200, `post_meal_max` 80–300 | `{fasting}`, `{post_meal}` |
 | `fetal_movement` | `from_week` 12–42, `statuses[]` ⊂ `FetalMovementStatus` | `{status}` |
-| `contractions_511` | `interval_max_minutes` 2–15, `duration_min_seconds` 20–120, `run_minutes` 20–180 (contraction timer, bloom B-N5-03, D-60; fires once per session) | `{count}`, `{minutes}`, `{interval}`, `{duration}` (m:ss) |
+| `contractions_511` | `interval_max_minutes` 2–15, `duration_min_seconds` 20–120, `run_minutes` 20–180 (contraction timer, bloom B-N5-03, D-60; fires once per session), `contact_phone` text or null (B-N5-09: the number the «تماس» action dials — ASCII digits, optional leading `+`, inner spaces / dashes, 3–20 chars, else 422 `regex`; `""` clears it; when set, the user alert's `contact` is `{text, phone}` instead of the plain text) | `{count}`, `{minutes}`, `{interval}`, `{duration}` (m:ss) |
 
 `Schema` = `[{key, kind, nullable, …}]` with `kind` ∈ `text|text_list|integer|boolean|enum|enum_list|url|object|object_list`
 plus `max_length` (text/url/text_list), `min`/`max` (integer), `values` (enums), `min_items`/`max_items` (lists) and
@@ -603,3 +603,44 @@ ids, no content. The admin-web screen comes with B-N9.
 
 `today` is the spend of the current Tehran day against `AI_DAILY_COST_CAP_USD`; `exhausted: true` means every AI
 feature currently answers 503 `ai_budget_exhausted`.
+
+## 18. Child catalogs, WHO viewer and postpartum copy (B-N5-09)
+
+**Child catalogs** (B-N5-02) are `catalog_items` groups edited through the generic catalog API
+(`/api/admin/v1/catalog/{group}`, docs/canvas-build/catalog.md) — no new write endpoint. Groups and the `meta` shape
+`internal/children` reads (an item whose meta lacks a required key is skipped by the app, never an error):
+
+| Group | admin-web | `meta` |
+|---|---|---|
+| `child_vaccines` | «برنامهٔ واکسن» | `visit` (req; doses sharing a visit form one appointment: `birth, m2, m4, m6, m12, m18, y6` or a new snake-case code), `age_months` (req, ≥ 0; the due date is the birth date + that many calendar months), `admin_note?` (editorial only, never served) |
+| `child_milestones` | «نقاط عطف» (by month) | `age_months` (req), `domain` `social\|language\|motor\|cognitive` |
+| `child_milestone_activities` | same page, «بازی‌های این ماه» | `age_months` |
+| `child_milestone_notes` | same page, «کی به پزشک بگم» | `age_months` |
+| `child_age_notes` | same page, «این هفته …» | `age_months` (the latest band ≤ the child's age is shown) |
+| `child_learn` | «آموزش کودک» | `topic` `sleep\|feeding\|play\|health\|mother`, `from_months`, `to_months` (req), `minutes`, `featured`, `article_slug?` |
+
+Title = the fa/en label, body = «در برابر …» (vaccines) / the text. Rows start `needs_review: true`; «بازبینی شد» is a
+`PUT` with `needs_review: false` (title is required on every PUT, absent optional fields are kept).
+
+**Super-only writes (clinical content):** `POST/PUT/DELETE /catalog/{group}[/{id}]` and `POST /catalog/{group}/reorder`
+on the six child groups answer **403** for editors (`catalog.Admin.WithSuperGroups(children.Groups...)` in
+`routes_admin_catalog.go`); reads stay **A**. The same holds in `/messages` for `postpartum_week_tip`,
+`postpartum_alert` and `postpartum_safety` (`POST /messages`, `PUT /messages/:id`, `POST …/approve`, `POST …/toggle` →
+403 for editors; `registry.SuperOnlyGroups`); `GET /messages` now also returns `super_only_groups[]` so admin-web hides
+the buttons. Existing audit lines (`catalog_item.*`, `message.*`) and CSRF apply.
+
+**Postpartum copy** (B-N5-01, `internal/postpartum/guide`) has no endpoint of its own: the registered rows are created
+and edited in `/messages` (`?group=postpartum_week_tip|postpartum_alert|postpartum_safety`, «ایجاد» from `missing`).
+Unwritten slots fall back to the embedded fa/en copy; the EPDS call numbers 115 / 123 / 1480 are fixed in code.
+
+**WHO growth standards** (read-only; package `internal/admin/children`, `routes_admin_children.go`):
+
+| Method | Path | Role | Query | `data` |
+|---|---|---|---|---|
+| GET | `/children/who` | A | `indicator` `weight\|length\|head` (default weight), `sex` `girl\|boy` (default girl), `step` `month\|week\|day` (default month; an unknown value of any of the three → 422), `page`, `per_page` (≤ 100) | list `{items:[{age (in step units), day, l, m, s, p3, p15, p50, p85, p97}], meta}` + `filters{indicator, sex, step}`, `unit` (`kg`\|`cm`), `options{indicators[], sexes[], steps[], max_day: 1856, percentiles[]}`, `source` (citation), `read_only: true` |
+
+Month sampling is `day = round(month × 30.4375)` (months 0–60), weeks `day = 7 × week` (0–265), days 0–1856. L/M/S
+are the embedded WHO expanded-table values verbatim; percentiles are `growth.ValueAt` at Φ⁻¹(p), rounded to 3
+decimals (weight-for-age uses WHO's restricted method beyond ±3 SD). **Import is out of scope:** the standards are
+fixed reference data embedded in `backend-go/seeds/who` (golden-tested); replacing them is a code change with new CSVs,
+not an admin action.

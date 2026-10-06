@@ -143,6 +143,10 @@ func Check(prefix string, fields []Field, value any, add form.Add, msg func(rule
 		}
 		attr := prefix + f.Key
 		switch f.Kind {
+		case KindText:
+			if s, isStr := v.(string); isStr && s != "" && f.Key == ContactPhoneParam && !ValidContactPhone(s) {
+				add(attr, msg("validation.regex", attr))
+			}
 		case KindURL:
 			if s, isStr := v.(string); isStr && !IsLink(s) {
 				add(attr, msg("validation.url", attr))

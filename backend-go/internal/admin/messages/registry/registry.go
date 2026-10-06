@@ -298,6 +298,20 @@ func companionTipGroup() Group {
 // check-in prompts — and SafetyGroup — the EPDS result messages; the urgent one's call numbers 115 / 123 / 1480 are
 // fixed, its labels are copy). Unseeded: the API and the postpartum message engine fall back to the embedded fa/en copy
 // until an admin writes a row of that language (or the default language); a written row is used as is.
+// SuperOnlyGroups are the clinical copy groups whose rows only super admins may create or change (B-N5-09): the
+// postpartum week tips, alerts and EPDS safety messages. Editors still read them.
+var SuperOnlyGroups = []string{guide.TipGroup, guide.AlertGroup, guide.SafetyGroup}
+
+// SuperOnly reports whether writes of group need a super admin.
+func SuperOnly(group string) bool {
+	for _, g := range SuperOnlyGroups {
+		if g == group {
+			return true
+		}
+	}
+	return false
+}
+
 func postpartumGroups() []Group {
 	var out []Group
 	for _, s := range guide.Slots() {

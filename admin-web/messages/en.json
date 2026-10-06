@@ -109,7 +109,13 @@
     "plusSettings": "Plus settings",
     "groupCompanions": "Companion",
     "companionTips": "Companion tips",
-    "companionLinks": "Companion links"
+    "companionLinks": "Companion links",
+    "groupChildren": "Child & postpartum",
+    "childVaccines": "Vaccine schedule",
+    "childMilestones": "Milestones",
+    "childLearn": "Child learn",
+    "childWho": "WHO growth tables",
+    "postpartumContent": "Postpartum content"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -673,7 +679,10 @@
       "pattern": "Patterns",
       "pregnancy_week_tip": "Pregnancy week tips",
       "pregnancy_alert": "Pregnancy alerts",
-      "pregnancy_setup": "Pregnancy setup"
+      "pregnancy_setup": "Pregnancy setup",
+      "postpartum_week_tip": "Postpartum weekly tips",
+      "postpartum_alert": "Postpartum alerts",
+      "postpartum_safety": "EPDS safety messages"
     },
     "optional": "optional",
     "urlHint": "http(s) URL or an in-app /path",
@@ -693,7 +702,9 @@
     "moreMissing": "…and {count} more",
     "weekTipGridHint": "Green: every language has a tip. Amber: click to create the missing one.",
     "weekMissing": "Week {week}: missing in {locales}",
-    "weekFilled": "Week {week}: complete"
+    "weekFilled": "Week {week}: complete",
+    "view": "View",
+    "superOnlyNotice": "This is clinical content: only a super admin can change it. You can view it."
   },
   "languages": {
     "title": "Languages",
@@ -995,7 +1006,8 @@
       "week_entered": "New week",
       "bp_high": "High blood pressure",
       "sugar_high": "High blood sugar",
-      "fetal_movement": "Fetal movement"
+      "fetal_movement": "Fetal movement",
+      "contractions_511": "Contractions (5-1-1 rule)"
     },
     "params": {
       "min_streak_days": "Minimum streak (days)",
@@ -1009,7 +1021,14 @@
       "diastolic_min": "Diastolic ≥",
       "fasting_max": "Fasting >",
       "post_meal_max": "After meal >",
-      "statuses": "Statuses"
+      "statuses": "Statuses",
+      "interval_max_minutes": "Max interval (minutes)",
+      "duration_min_seconds": "Min duration (seconds)",
+      "run_minutes": "Sustained for (minutes)",
+      "contact_phone": "Contact phone"
+    },
+    "paramHints": {
+      "contact_phone": "The number the alert’s “Call” button dials (maternity unit or emergency, e.g. 115). ASCII digits, optional leading +, spaces or dashes. Empty = no number."
     }
   },
   "catalog": {
@@ -1380,6 +1399,207 @@
         "revoked": "Revoked"
       },
       "countSub": "Partner {partner} · Spouse {spouse}"
+    }
+  },
+  "childContent": {
+    "title": "Child content",
+    "tabsLabel": "Child sections",
+    "pages": {
+      "vaccines": "Vaccine schedule",
+      "milestones": "Milestones",
+      "learn": "Child learn",
+      "who": "WHO growth tables"
+    },
+    "kinds": {
+      "vaccines": "Vaccine dose",
+      "milestones": "Milestone",
+      "activities": "Activity of the month",
+      "notes": "Doctor note",
+      "age-notes": "Age note",
+      "learn": "Learn item"
+    },
+    "newKind": {
+      "vaccines": "New dose",
+      "milestones": "New milestone",
+      "activities": "New activity",
+      "notes": "New doctor note",
+      "age-notes": "New age note",
+      "learn": "New learn item"
+    },
+    "sections": {
+      "milestones": "Milestones of the month",
+      "activities": "Activities of the month",
+      "notes": "When to tell the doctor",
+      "age-notes": "“This week …” age note"
+    },
+    "bodyLabel": {
+      "vaccines": "Protects against",
+      "milestones": "Description",
+      "activities": "Activity description",
+      "notes": "When to tell the doctor",
+      "age-notes": "Note text",
+      "learn": "Learn text"
+    },
+    "back": "Back",
+    "needsReview": "Needs review",
+    "reviewed": "Reviewed",
+    "inactive": "Inactive",
+    "incomplete": "Incomplete — hidden in the app",
+    "markReviewed": "Mark reviewed",
+    "markNeedsReview": "Needs review",
+    "markedReviewed": "Marked as reviewed.",
+    "markedNeedsReview": "Back to “needs review”.",
+    "readOnly": "This is clinical content: only a super admin can change it. You can view it.",
+    "view": "View",
+    "confirmDelete": "Delete this item? Users who logged it will no longer see it in the app.",
+    "actions": "Actions",
+    "review": "Review",
+    "add": "Add",
+    "dose": "Dose",
+    "protectsAgainst": "Protects against",
+    "dosesCount": "{count} doses",
+    "itemsCount": "{count} items",
+    "pendingCount": "{count} need review",
+    "allReviewed": "All reviewed",
+    "newDose": "New dose",
+    "addDoseToVisit": "Dose in this visit",
+    "noVisit": "No visit (hidden in the app)",
+    "approxDays": "about {days} days",
+    "vaccinesHint": "Doses that share a visit form one appointment; a visit is due at birth date + age (calendar months). Visits follow the catalog order. Iran national immunisation schedule; have it reviewed by a clinician before release.",
+    "emptyVaccines": "No doses yet.",
+    "milestonesHint": "Each month (age band) has its own milestones, activities, doctor notes and “this week …” note; a child sees the latest band ≤ their age. Observation, not scoring.",
+    "monthsLabel": "Age bands",
+    "newMonth": "New milestone",
+    "emptySection": "Nothing for this month.",
+    "learnHint": "Age-based learn tips; “featured” items lead the app’s learn page and an article slug links a published article.",
+    "newLearn": "New learn item",
+    "allTopics": "All topics",
+    "emptyLearn": "No learn items yet.",
+    "emptyFiltered": "Nothing matches this filter.",
+    "ageBand": "Age band",
+    "ageRange": "{from} to {to}",
+    "featured": "Featured",
+    "clinicalHint": "Clinical content: check the Persian and English text against a reliable source. New items are saved as “needs review” unless you switch “reviewed” on.",
+    "codeHint": "Lowercase letters, digits and _; fixed afterwards (user records point to it).",
+    "codeFixed": "The code is fixed after creation.",
+    "codeInvalid": "The code must start with a lowercase letter and contain only lowercase letters, digits and _ (max 64).",
+    "visitHint": "The doses of a visit are shown as one appointment.",
+    "chooseVisit": "Choose a visit…",
+    "otherVisit": "Other visit (new code)",
+    "visitCodeHint": "e.g. m9 or y4 — lowercase letters, digits and _.",
+    "ageMonthsHint": "Age in months (0 = at birth).",
+    "ageDaysHint": "≈ {days} days after birth (the app counts calendar months).",
+    "chooseDomain": "Choose a domain…",
+    "chooseTopic": "Choose a topic…",
+    "articleSlugHint": "Optional: the slug of a published article.",
+    "featuredHint": "Shown at the top of the learn page.",
+    "adminNoteHint": "For admins only; never shown in the app (e.g. the source or a review reminder).",
+    "activeHint": "Inactive items are hidden in the app.",
+    "reviewedHint": "Switch on after clinical sign-off; off = “needs review”.",
+    "fields": {
+      "code": "Code",
+      "title": "Title",
+      "doseName": "Dose name",
+      "visit": "Visit",
+      "visitCode": "Visit code",
+      "ageMonths": "Age (months)",
+      "domain": "Domain",
+      "topic": "Topic",
+      "fromMonths": "From month",
+      "toMonths": "To month",
+      "minutes": "Reading time (minutes)",
+      "articleSlug": "Article slug",
+      "featured": "Featured",
+      "adminNote": "Admin note",
+      "reviewed": "Reviewed"
+    },
+    "metaErrors": {
+      "required": "This is required.",
+      "months": "Enter a whole number from 0 to 120.",
+      "visit": "The visit code must start with a lowercase letter and contain only lowercase letters, digits and _.",
+      "range": "“To month” must not be less than “from month”.",
+      "minutes": "Enter a whole number from 0 to 240.",
+      "slug": "Letters, digits and dashes only."
+    },
+    "age": {
+      "birth": "At birth",
+      "months": "{n} months",
+      "years": "{n} years"
+    },
+    "domains": {
+      "social": "Social",
+      "language": "Language",
+      "motor": "Motor",
+      "cognitive": "Cognitive"
+    },
+    "topics": {
+      "sleep": "Sleep",
+      "feeding": "Feeding",
+      "play": "Play",
+      "health": "Health",
+      "mother": "Mother"
+    },
+    "units": {
+      "kg": "kg",
+      "cm": "cm"
+    },
+    "readOnlyBadge": "Read only",
+    "whoHint": "The WHO Child Growth Standards (0–5 years) the app’s percentiles come from. L, M and S are the day’s parameters; the percentiles are derived from them.",
+    "weekN": "Week {n}",
+    "dayN": "Day {n}",
+    "who": {
+      "indicator": "Indicator",
+      "sex": "Sex",
+      "step": "Step",
+      "age": "Age",
+      "day": "Day",
+      "p3": "P3",
+      "p15": "P15",
+      "p50": "P50",
+      "p85": "P85",
+      "p97": "P97",
+      "source": "Source",
+      "importNote": "Import is not available: these tables are fixed WHO reference data embedded in the code and tested against the official tables; replacing them is a code change.",
+      "indicators": {
+        "weight": "Weight-for-age",
+        "length": "Length/height-for-age",
+        "head": "Head circumference-for-age"
+      },
+      "sexes": {
+        "girl": "Girl",
+        "boy": "Boy"
+      },
+      "steps": {
+        "month": "Monthly",
+        "week": "Weekly",
+        "day": "Daily"
+      }
+    }
+  },
+  "postpartumContent": {
+    "title": "Postpartum content",
+    "hint": "The copy of postpartum mode. A slot without a row in a language shows the app’s built-in text; use “Open in messages” to create or edit rows.",
+    "readOnly": "This is clinical content: only a super admin can change it. You can view it.",
+    "open": "Open in messages",
+    "rows": "{count} rows",
+    "live": "{count} live",
+    "missing": "{count} slots on built-in text",
+    "complete": "Every slot is filled",
+    "fixedTitle": "Fixed parts",
+    "fixedBody": "The EPDS emergency numbers (115, 123, 1480) are fixed in code; only their labels are editable in “EPDS safety messages”. The EPDS questions and scoring do not change.",
+    "groups": {
+      "postpartum_week_tip": {
+        "title": "Weekly tips",
+        "body": "One tip per week since the birth (1–12, then “later”)."
+      },
+      "postpartum_alert": {
+        "title": "Alerts",
+        "body": "“When to call right away”, the bleeding alerts and the mood check-in prompts."
+      },
+      "postpartum_safety": {
+        "title": "Safety messages",
+        "body": "The EPDS result messages (urgent, advice, short screen) and the non-diagnostic note."
+      }
     }
   }
 }
