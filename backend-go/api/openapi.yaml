@@ -16800,6 +16800,231 @@ paths:
         '404': {$ref: "#/components/responses/ShareLinkNotFound"}
         '410': {$ref: "#/components/responses/ShareLinkGone"}
         '429': {$ref: "#/components/responses/TooManyAttempts"}
+  /api/v1/health-record/categories:
+    get:
+      tags: [HealthRecord]
+      summary: Record home category counts (nbl_Rec_Home)
+      description: |
+        CB-REC-01 (Go only, D-70). Counts for the record home grid in board order: ready lab sheets, documents per kind,
+        surgeries and family history entries; `documents_count`, `all_count` (documents + lab sheets) and
+        `needs_review_count` (documents whose extracted values wait for the user). Owner-only.
+      operationId: showHealthRecordCategories
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/RecordCategories"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/health-record/timeline:
+    get:
+      tags: [HealthRecord]
+      summary: Documents and lab sheets by month (nbl_Rec_Timeline)
+      description: |
+        CB-REC-01 (Go only, D-70). The owner's record documents and ready lab sheets (internal/labs) newest first,
+        grouped by Jalali month; documents come before lab sheets on the same day. A document without a date is filed
+        under its upload day (`date_known: false`). A page holds `limit` rows but never splits a day; pass
+        `next_before` as `before` for the next page. Nothing else is merged in: no loss event and no care appointment.
+      operationId: showHealthRecordTimeline
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: kind, in: query, required: false, schema: {type: string, enum: [all, lab, imaging, visit, prescription, hospital, other], default: all}}
+        - {name: before, in: query, required: false, description: "Exclusive upper bound (`next_before` of the previous page)", schema: {type: string, format: date}}
+        - {name: limit, in: query, required: false, schema: {type: integer, minimum: 1, maximum: 100, default: 30}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/RecordTimeline"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/HealthRecordValidationFailed"}
+  /api/v1/health-record/extras:
+    get:
+      tags: [HealthRecord]
+      summary: Record extras — emergency-card allergies flag, surgeries, family history
+      description: |
+        CB-REC-01 (Go only, D-70). `allergies` mirrors the record's allergy list (edited through PUT /health-record/basics).
+        A `null` list was never answered, `[]` is «ندارم». Owner-only.
+      operationId: showHealthRecordExtras
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/RecordExtras"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    put:
+      tags: [HealthRecord]
+      summary: Edit the record extras
+      description: A present key replaces its value (`null` clears a list, `[]` = none); an absent key keeps it.
+      operationId: updateHealthRecordExtras
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/RecordExtrasInput"}
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/RecordExtras"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/HealthRecordValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/health-record/documents:
+    post:
+      tags: [HealthRecord]
+      summary: Add a record document
+      description: |
+        CB-REC-01 (Go only, D-70). Lab sheets stay under /labs. `file_ids` are the caller's own files of purpose
+        `record_document` (POST /files) not attached to another document — another user's file, another purpose or an
+        unknown id is 422 `file_ids.N` («not found»), a file already on another document 422 «already attached». At
+        most 500 documents and 10 files per document. Starts in review state `manual`.
+      operationId: storeHealthRecordDocument
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/RecordDocumentInput"}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/RecordDocument"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/HealthRecordValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/health-record/documents/{id}:
+    get:
+      tags: [HealthRecord]
+      summary: A record document (nbl_Rec_Doc)
+      description: |
+        The document with its files (signed links valid 5 minutes; `url` is null while the storage is disabled), the
+        AI step's extracted values (`null` until CB-REC-02) and «where used» (claims, the pregnancy section).
+      operationId: showHealthRecordDocument
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/RecordDocumentId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/RecordDocument"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/RecordDocumentNotFound"}
+    put:
+      tags: [HealthRecord]
+      summary: Edit a record document
+      description: |
+        A present key replaces its value, an absent key keeps it. `file_ids` replaces the files; files dropped from
+        the list are deleted. `confirm: true` moves `needs_review` to `confirmed`.
+      operationId: updateHealthRecordDocument
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/RecordDocumentId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/RecordDocumentInput"}
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/RecordDocument"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/RecordDocumentNotFound"}
+        '422': {$ref: "#/components/responses/HealthRecordValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [HealthRecord]
+      summary: Delete a record document with its links and files
+      operationId: destroyHealthRecordDocument
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/RecordDocumentId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: "null"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/RecordDocumentNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/files:
     post:
       tags: [Files]
@@ -17238,6 +17463,12 @@ components:
       required: true
       description: Manual pregnancy entry id (the caller's own)
       schema: {type: integer, minimum: 1}
+    RecordDocumentId:
+      name: id
+      in: path
+      required: true
+      description: Record document id (the caller's own)
+      schema: {type: integer, minimum: 1}
     VitalReadingId:
       name: id
       in: path
@@ -17408,6 +17639,17 @@ components:
               errors:
                 type: object
                 additionalProperties: {type: array, items: {type: string}}
+    RecordDocumentNotFound:
+      description: "CB-REC-01: the record document does not exist or is not the caller's — one uniform answer."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [record_document_not_found]}
     VitalNotFound:
       description: "Bloom B-N6-01: the reading does not exist or is not the caller's — one uniform answer."
       content:
@@ -18490,6 +18732,165 @@ components:
         outcome: {type: string, enum: [vaginal, cesarean, ended]}
         ended_on: {type: [string, "null"], format: date, description: "1950-01-01 … today (approximate: clients send the first day of the year)"}
         baby_count: {type: [integer, "null"], minimum: 1, maximum: 4, description: "Ignored for ended"}
+    RecordCategories:
+      type: object
+      required: [categories, documents_count, all_count, needs_review_count]
+      properties:
+        categories:
+          type: array
+          items:
+            type: object
+            required: [key, count]
+            properties:
+              key: {type: string, enum: [labs, imaging, visit, prescription, hospital, other, surgeries, family_history]}
+              count: {type: integer, minimum: 0}
+        documents_count: {type: integer, minimum: 0}
+        all_count: {type: integer, minimum: 0, description: "Documents + ready lab sheets"}
+        needs_review_count: {type: integer, minimum: 0}
+    RecordTimelineItem:
+      type: object
+      required: [type, id, kind, title, date, date_known, ended_on, centre, doctor, file_count, review_state, lab, links]
+      properties:
+        type: {type: string, enum: [document, lab]}
+        id: {type: integer}
+        kind: {type: string, enum: [lab, imaging, visit, prescription, hospital, other]}
+        title: {type: [string, "null"], description: "null = the client shows the kind label"}
+        date: {$ref: "#/components/schemas/Date"}
+        date_known: {type: boolean, description: "false = no document date yet; filed under the upload day"}
+        ended_on: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        centre: {type: [string, "null"]}
+        doctor: {type: [string, "null"]}
+        file_count: {type: [integer, "null"], description: "Documents only"}
+        review_state: {type: [string, "null"], enum: [manual, pending, needs_review, confirmed, failed, null]}
+        lab:
+          type: [object, "null"]
+          description: Lab sheets only
+          required: [category, marker_count, attention_count, all_normal]
+          properties:
+            category: {type: string}
+            marker_count: {type: integer}
+            attention_count: {type: integer}
+            all_normal: {type: boolean}
+        links:
+          type: array
+          items:
+            type: object
+            required: [type, state]
+            properties:
+              type: {type: string, enum: [claim, pregnancy]}
+              state: {type: string, enum: [attached, waiting, applied]}
+    RecordTimeline:
+      type: object
+      required: [kind, months, next_before]
+      properties:
+        kind: {type: string, enum: [all, lab, imaging, visit, prescription, hospital, other]}
+        months:
+          type: array
+          items:
+            type: object
+            required: [key, jalali_year, jalali_month, start, end, items]
+            properties:
+              key: {type: string, pattern: "^\\d{4}-\\d{2}$", description: "Jalali year-month"}
+              jalali_year: {type: integer}
+              jalali_month: {type: integer, minimum: 1, maximum: 12}
+              start: {$ref: "#/components/schemas/Date"}
+              end: {$ref: "#/components/schemas/Date"}
+              items: {type: array, items: {$ref: "#/components/schemas/RecordTimelineItem"}}
+        next_before: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+    RecordExtras:
+      type: object
+      required: [allergies, allergies_on_emergency_card, surgeries, family_history]
+      properties:
+        allergies: {type: [array, "null"], items: {type: string}}
+        allergies_on_emergency_card: {type: boolean}
+        surgeries:
+          type: [array, "null"]
+          items:
+            type: object
+            required: [title, date]
+            properties:
+              title: {type: string}
+              date: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        family_history:
+          type: [array, "null"]
+          items:
+            type: object
+            required: [condition, relative]
+            properties:
+              condition: {type: string}
+              relative: {type: [string, "null"], enum: [mother, father, sister, brother, grandmother, grandfather, aunt, uncle, child, other, null]}
+    RecordExtrasInput:
+      type: object
+      properties:
+        allergies_on_emergency_card: {type: boolean}
+        surgeries:
+          type: [array, "null"]
+          maxItems: 20
+          items:
+            type: object
+            required: [title]
+            properties:
+              title: {type: string, maxLength: 120}
+              date: {type: [string, "null"], format: date, description: "1950-01-01 … today"}
+        family_history:
+          type: [array, "null"]
+          maxItems: 20
+          items:
+            type: object
+            required: [condition]
+            properties:
+              condition: {type: string, maxLength: 120}
+              relative: {type: [string, "null"], enum: [mother, father, sister, brother, grandmother, grandfather, aunt, uncle, child, other, null]}
+    RecordDocumentInput:
+      type: object
+      description: "POST requires `kind`; PUT changes only the keys sent."
+      properties:
+        kind: {type: string, enum: [imaging, visit, prescription, hospital, other]}
+        title: {type: [string, "null"], maxLength: 120}
+        date: {type: [string, "null"], format: date, description: "1950-01-01 … today"}
+        ended_on: {type: [string, "null"], format: date, description: "Hospital discharge; not before `date`"}
+        centre: {type: [string, "null"], maxLength: 120}
+        doctor: {type: [string, "null"], maxLength: 120}
+        note: {type: [string, "null"], maxLength: 1000}
+        file_ids: {type: [array, "null"], maxItems: 10, items: {type: integer, minimum: 1}}
+        confirm: {type: [boolean, "null"], description: "PUT: confirm the extracted values (needs_review → confirmed)"}
+    RecordDocument:
+      type: object
+      required: [id, kind, title, date, ended_on, centre, doctor, note, review_state, extracted, files, where_used, created_at, updated_at]
+      properties:
+        id: {type: integer}
+        kind: {type: string, enum: [imaging, visit, prescription, hospital, other]}
+        title: {type: [string, "null"]}
+        date: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        ended_on: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        centre: {type: [string, "null"]}
+        doctor: {type: [string, "null"]}
+        note: {type: [string, "null"]}
+        review_state: {type: string, enum: [manual, pending, needs_review, confirmed, failed]}
+        extracted: {type: [object, "null"], description: "The AI step's values (CB-REC-02); null until then"}
+        files:
+          type: array
+          items:
+            type: object
+            required: [id, mime, size_bytes, url, url_expires_at]
+            properties:
+              id: {type: integer}
+              mime: {type: string}
+              size_bytes: {type: integer}
+              url: {type: [string, "null"], description: "Signed download link, valid 5 minutes"}
+              url_expires_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+        where_used:
+          type: array
+          items:
+            type: object
+            required: [type, target_id, state, updated_at]
+            properties:
+              type: {type: string, enum: [claim, pregnancy]}
+              target_id: {type: integer}
+              state: {type: string, enum: [attached, waiting, applied]}
+              updated_at: {oneOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]}
+        created_at: {oneOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]}
+        updated_at: {oneOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]}
     VitalClass:
       type: [object, "null"]
       required: [code, tone]

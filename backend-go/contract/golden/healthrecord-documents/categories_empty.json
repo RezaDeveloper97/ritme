@@ -1,0 +1,60 @@
+{
+  "case": "healthrecord-documents/categories_empty",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/categories",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "categories": [
+            {
+              "key": "labs",
+              "count": 0
+            },
+            {
+              "key": "imaging",
+              "count": 0
+            },
+            {
+              "key": "visit",
+              "count": 0
+            },
+            {
+              "key": "prescription",
+              "count": 0
+            },
+            {
+              "key": "hospital",
+              "count": 0
+            },
+            {
+              "key": "other",
+              "count": 0
+            },
+            {
+              "key": "surgeries",
+              "count": 0
+            },
+            {
+              "key": "family_history",
+              "count": 0
+            }
+          ],
+          "documents_count": 0,
+          "all_count": 0,
+          "needs_review_count": 0
+        }
+      }
+    }
+  ]
+}

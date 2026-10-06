@@ -1,0 +1,91 @@
+{
+  "case": "healthrecord-documents/record_documents_anon",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/categories",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 401,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Unauthenticated.",
+        "error_code": "unauthenticated"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/timeline",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 401,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Unauthenticated.",
+        "error_code": "unauthenticated"
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/health-record/extras",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "surgeries": []
+        }
+      },
+      "status": 401,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Unauthenticated.",
+        "error_code": "unauthenticated"
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-record/documents",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "kind": "visit"
+        }
+      },
+      "status": 401,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Unauthenticated.",
+        "error_code": "unauthenticated"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/documents/1",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 401,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Unauthenticated.",
+        "error_code": "unauthenticated"
+      }
+    }
+  ]
+}

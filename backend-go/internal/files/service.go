@@ -241,6 +241,17 @@ func (s *Service) Delete(ctx context.Context, owner, id uint64) error {
 	return s.vault.Remove(p, f.Owner, f.Path)
 }
 
+// RemoveBlob removes the encrypted blob of f after a consumer deleted its `files` row inside its own transaction
+// (e.g. internal/healthrecord, which deletes a document and its files atomically). A failed removal leaves an
+// unreferenced blob that the orphan sweep removes.
+func (s *Service) RemoveBlob(f File) error {
+	p, ok := s.Purpose(f.Purpose)
+	if !ok {
+		return ErrNotFound
+	}
+	return s.vault.Remove(p, f.Owner, f.Path)
+}
+
 // Link returns how a client fetches f at now: the public URL for a public file, else a signed URL valid for ttl
 // (DefaultLinkTTL when ≤ 0, at most MaxLinkTTL).
 func (s *Service) Link(f File, now time.Time, ttl time.Duration) (Link, error) {

@@ -358,3 +358,10 @@ TODO (ask user):
 - security-auditor: no high/critical; M1 (FILE_KEY not passed to containers), M2 (public place uploads by anyone) and L1–L3, L6, L7 fixed; L4 (nginx logs signature), L5 (CDN real_ip), L8 (global per-user cap) noted in docs/canvas-build/files.md.
 - Verify (rebased on B-N6-03): sqlc, vet, go test ./..., golangci-lint 0, int files/labs/healthrecord, OpenAPI, contract all 1636/0, schema-diff OK (118 tables).
 - TODO (ask user): D-59 OK; quotas; dedicated FILE_KEY on stage/prod.
+
+## CB-REC-01 — Record documents + timeline backend (on bloom's health record)
+- Routes (Go-only, auth:api, owner-only, throttled writes; D-70): `GET /api/v1/health-record/categories` (board-order counts + documents/all/needs_review), `GET /health-record/timeline?kind=&before=&limit=` (documents + ready lab sheets by Jalali month, cursor never splits a day, no loss/care data), `GET|PUT /health-record/extras` (allergies emergency-card flag, surgeries, family history; allergies still edited via bloom's /basics), `POST /health-record/documents`, `GET|PUT|DELETE /health-record/documents/{id}` (files with 5-min signed links, `extracted` null until CB-REC-02, review_state, where_used; `file_ids` must be own `record_document` files).
+- Goose `00041` (+ twin `2026_10_06_000041`): `health_records` + 3 extras columns, `record_documents`, `record_document_files` (unique file_id, FK → files), `record_document_links` (claim | pregnancy; Go-only AddLink/RemoveLink).
+- security-auditor: no high/critical; L1–L4 fixed (atomic detached-file delete, locked delete, cap under owner lock, 1452 → file_not_found); notes: signed URLs in nginx logs, per-request full loads, deploy ordering (goose before serving).
+- Verify: sqlc, vet, go test ./..., golangci-lint 0, int healthrecord/files/labs/profile, OpenAPI, contract all 1656/0, schema-diff OK (125 tables) — rebased on B-N6-04 + B-N6-08.
+- Open / TODO (ask user): D-70 OK; Relatives list + copy [clinical review]; emergency-card allergies default ON; caps 500 docs / 10 files (code); documents not yet a section in GET /health-record (share audience).

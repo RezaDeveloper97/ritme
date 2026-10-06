@@ -56,7 +56,7 @@ func (q *Queries) DeleteManualPregnancy(ctx context.Context, arg DeleteManualPre
 
 const getHealthRecord = `-- name: GetHealthRecord :one
 
-SELECT id, user_id, blood_type, allergies, created_at, updated_at FROM ` + "`" + `health_records` + "`" + ` WHERE user_id = ? LIMIT 1
+SELECT id, user_id, blood_type, allergies, created_at, updated_at, allergies_on_emergency_card, surgeries, family_history FROM ` + "`" + `health_records` + "`" + ` WHERE user_id = ? LIMIT 1
 `
 
 // Health record «پرونده سلامت من» (bloom B-N6-03; internal/healthrecord): the user-owned rows (health_records,
@@ -73,6 +73,9 @@ func (q *Queries) GetHealthRecord(ctx context.Context, userID uint64) (HealthRec
 		&i.Allergies,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.AllergiesOnEmergencyCard,
+		&i.Surgeries,
+		&i.FamilyHistory,
 	)
 	return i, err
 }

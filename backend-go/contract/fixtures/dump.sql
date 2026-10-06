@@ -1568,6 +1568,9 @@ CREATE TABLE `health_records` (
   `user_id` bigint(20) unsigned NOT NULL,
   `blood_type` varchar(4) DEFAULT NULL,
   `allergies` json DEFAULT NULL,
+  `allergies_on_emergency_card` tinyint(1) NOT NULL DEFAULT 1,
+  `surgeries` json DEFAULT NULL,
+  `family_history` json DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -3394,6 +3397,82 @@ INSERT INTO `recommendations` VALUES
 (24,'symptom.bloating','digestion',NULL,'{\"fa\":\"\\u0645\\u0635\\u0631\\u0641 \\u0646\\u0645\\u06a9 \\u0631\\u0627 \\u06a9\\u0645 \\u06a9\\u0646\\u06cc\\u062f \\u0648 \\u0648\\u0639\\u062f\\u0647\\u200c\\u0647\\u0627\\u06cc \\u06a9\\u0648\\u0686\\u06a9 \\u0648 \\u0645\\u06a9\\u0631\\u0631 \\u0628\\u062e\\u0648\\u0631\\u06cc\\u062f.\",\"en\":\"Reduce salt intake and eat smaller, frequent meals.\"}',NULL,NULL,'bloating',1,240,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
 (25,'symptom.fatigue','energy',NULL,'{\"fa\":\"\\u0628\\u0647 \\u0628\\u062f\\u0646\\u062a\\u0627\\u0646 \\u06af\\u0648\\u0634 \\u062f\\u0647\\u06cc\\u062f. \\u0627\\u0633\\u062a\\u0631\\u0627\\u062d\\u062a\\u200c\\u0647\\u0627\\u06cc \\u06a9\\u0648\\u062a\\u0627\\u0647 \\u062f\\u0627\\u0634\\u062a\\u0647 \\u0628\\u0627\\u0634\\u06cc\\u062f \\u0648 \\u0627\\u0633\\u062a\\u0631\\u0627\\u062d\\u062a \\u0631\\u0627 \\u0627\\u0648\\u0644\\u0648\\u06cc\\u062a \\u0642\\u0631\\u0627\\u0631 \\u062f\\u0647\\u06cc\\u062f.\",\"en\":\"Listen to your body. Take short breaks and prioritize rest.\"}',NULL,NULL,'fatigue',1,250,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `recommendations` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `record_document_files`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `record_document_files` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `document_id` bigint(20) unsigned NOT NULL,
+  `file_id` bigint(20) unsigned NOT NULL,
+  `position` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `record_document_files_file_id_unique` (`file_id`),
+  KEY `record_document_files_user_id_foreign` (`user_id`),
+  KEY `record_document_files_document_id_foreign` (`document_id`),
+  CONSTRAINT `record_document_files_document_id_foreign` FOREIGN KEY (`document_id`) REFERENCES `record_documents` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `record_document_files_file_id_foreign` FOREIGN KEY (`file_id`) REFERENCES `files` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `record_document_files_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `record_document_files` WRITE;
+/*!40000 ALTER TABLE `record_document_files` DISABLE KEYS */;
+/*!40000 ALTER TABLE `record_document_files` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `record_document_links`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `record_document_links` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `document_id` bigint(20) unsigned NOT NULL,
+  `target_type` varchar(16) NOT NULL,
+  `target_id` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `state` varchar(16) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `record_document_links_document_id_target_type_target_id_unique` (`document_id`,`target_type`,`target_id`),
+  KEY `record_document_links_user_id_target_type_target_id_index` (`user_id`,`target_type`,`target_id`),
+  CONSTRAINT `record_document_links_document_id_foreign` FOREIGN KEY (`document_id`) REFERENCES `record_documents` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `record_document_links_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `record_document_links` WRITE;
+/*!40000 ALTER TABLE `record_document_links` DISABLE KEYS */;
+/*!40000 ALTER TABLE `record_document_links` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `record_documents`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `record_documents` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `kind` varchar(16) NOT NULL,
+  `title` varchar(120) DEFAULT NULL,
+  `document_date` date DEFAULT NULL,
+  `ended_on` date DEFAULT NULL,
+  `centre` varchar(120) DEFAULT NULL,
+  `doctor` varchar(120) DEFAULT NULL,
+  `note` text DEFAULT NULL,
+  `extracted` json DEFAULT NULL,
+  `review_state` varchar(16) NOT NULL DEFAULT 'manual',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `record_documents_user_id_document_date_index` (`user_id`,`document_date`),
+  CONSTRAINT `record_documents_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `record_documents` WRITE;
+/*!40000 ALTER TABLE `record_documents` DISABLE KEYS */;
+/*!40000 ALTER TABLE `record_documents` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `reminder_intakes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

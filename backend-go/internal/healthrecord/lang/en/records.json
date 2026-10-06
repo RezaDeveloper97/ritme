@@ -1,0 +1,40 @@
+{
+    "messages": {
+        "document_not_found": "This document was not found",
+        "document_created": "Document added",
+        "document_updated": "Document updated",
+        "document_deleted": "Document deleted",
+        "extras_saved": "Saved"
+    },
+    "validation": {
+        "too_many_documents": "You can keep at most :max documents.",
+        "file_not_found": "This file was not found.",
+        "file_taken": "This file is already attached to another document.",
+        "file_duplicate": "The same file was sent twice.",
+        "ended_before_date": "The end date cannot be before the document date.",
+        "item_blank": "This item cannot be empty."
+    },
+    "attributes": {
+        "kind": "kind",
+        "title": "title",
+        "date": "date",
+        "ended_on": "end date",
+        "centre": "centre",
+        "doctor": "doctor",
+        "note": "note",
+        "file_ids": "files",
+        "file_ids.*": "file",
+        "confirm": "confirmation",
+        "before": "before",
+        "limit": "limit",
+        "allergies_on_emergency_card": "show on emergency card",
+        "surgeries": "surgeries",
+        "surgeries.*": "surgery",
+        "surgeries.*.title": "surgery title",
+        "surgeries.*.date": "surgery date",
+        "family_history": "family history",
+        "family_history.*": "family history item",
+        "family_history.*.condition": "condition",
+        "family_history.*.relative": "relative"
+    }
+}

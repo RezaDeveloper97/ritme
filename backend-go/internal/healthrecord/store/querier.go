@@ -11,9 +11,18 @@ import (
 
 type Querier interface {
 	CountManualPregnancies(ctx context.Context, userID uint64) (int64, error)
+	CountRecordDocuments(ctx context.Context, userID uint64) (int64, error)
+	CountRecordDocumentsByKind(ctx context.Context, userID uint64) ([]CountRecordDocumentsByKindRow, error)
+	CountRecordDocumentsInReview(ctx context.Context, userID uint64) (int64, error)
 	// A pregnancy that ended in a loss shows only as «ended»: the count is all the record reads of pregnancy_losses.
 	CountRecordLosses(ctx context.Context, userID uint64) (int64, error)
+	// Deletes a record_document file of the user that no document uses any more (inside the transaction that detached
+	// it; the blob is removed after commit).
+	DeleteDetachedRecordFile(ctx context.Context, arg DeleteDetachedRecordFileParams) (int64, error)
 	DeleteManualPregnancy(ctx context.Context, arg DeleteManualPregnancyParams) (int64, error)
+	DeleteRecordDocument(ctx context.Context, arg DeleteRecordDocumentParams) (int64, error)
+	DeleteRecordDocumentFiles(ctx context.Context, arg DeleteRecordDocumentFilesParams) error
+	DeleteRecordDocumentLink(ctx context.Context, arg DeleteRecordDocumentLinkParams) (int64, error)
 	// Health record «پرونده سلامت من» (bloom B-N6-03; internal/healthrecord): the user-owned rows (health_records,
 	// health_record_pregnancies) and the read-only views of other domains' tables the record aggregates. Every query is
 	// scoped by user_id in the query itself (IDOR). pregnancy_losses is only ever counted: no column of a loss (type,
@@ -22,19 +31,46 @@ type Querier interface {
 	GetManualPregnancy(ctx context.Context, arg GetManualPregnancyParams) (HealthRecordPregnancy, error)
 	// The birth postpartum mode counts from (one per user).
 	GetRecordBirth(ctx context.Context, userID uint64) (GetRecordBirthRow, error)
+	GetRecordDocument(ctx context.Context, arg GetRecordDocumentParams) (RecordDocument, error)
+	// Record documents, extras and timeline (canvas-build CB-REC-01; internal/healthrecord documents*.go, extras.go,
+	// timeline.go). Every query is scoped by user_id in the query itself (IDOR): a document, its files and its links are
+	// only ever read or written together with the owner's id.
+	GetRecordExtras(ctx context.Context, userID uint64) (GetRecordExtrasRow, error)
+	// The document a file is attached to (a file belongs to at most one document).
+	GetRecordFileDocument(ctx context.Context, arg GetRecordFileDocumentParams) (uint64, error)
 	GetRecordLifeProfile(ctx context.Context, userID uint64) (GetRecordLifeProfileRow, error)
 	// The pregnancy profile (one per user): an active pregnancy is «ongoing»; blood_type + rh_factor are the fallback of
 	// health_records.blood_type.
 	GetRecordPregnancy(ctx context.Context, userID uint64) (GetRecordPregnancyRow, error)
+	// A pregnancy link target must be the user's own pregnancy profile.
+	GetRecordPregnancyProfileID(ctx context.Context, arg GetRecordPregnancyProfileIDParams) (uint64, error)
 	// $user->profile (hasOne: the first row in index order), only the columns the record shows.
 	GetRecordProfile(ctx context.Context, userID uint64) (GetRecordProfileRow, error)
 	GetRecordUser(ctx context.Context, userID uint64) (sql.NullString, error)
 	InsertManualPregnancy(ctx context.Context, arg InsertManualPregnancyParams) (int64, error)
+	InsertRecordDocument(ctx context.Context, arg InsertRecordDocumentParams) (int64, error)
+	InsertRecordDocumentFile(ctx context.Context, arg InsertRecordDocumentFileParams) error
 	ListManualPregnancies(ctx context.Context, userID uint64) ([]HealthRecordPregnancy, error)
 	// The latest done checkups with the checkup's title / key / icon (custom checkups included: they are the user's own).
 	ListRecordCheckups(ctx context.Context, arg ListRecordCheckupsParams) ([]ListRecordCheckupsRow, error)
+	ListRecordDocumentFiles(ctx context.Context, arg ListRecordDocumentFilesParams) ([]uint64, error)
+	ListRecordDocumentLinks(ctx context.Context, arg ListRecordDocumentLinksParams) ([]RecordDocumentLink, error)
+	// Newest first by the document's date (the upload day when the date is not known yet).
+	ListRecordDocuments(ctx context.Context, userID uint64) ([]ListRecordDocumentsRow, error)
+	// Every link of the user's documents (the timeline's badges).
+	ListUserRecordDocumentLinks(ctx context.Context, userID uint64) ([]ListUserRecordDocumentLinksRow, error)
+	LockRecordDocument(ctx context.Context, arg LockRecordDocumentParams) (uint64, error)
+	// The document's files with their storage rows, locked, inside the update / delete transaction.
+	LockRecordDocumentFiles(ctx context.Context, arg LockRecordDocumentFilesParams) ([]LockRecordDocumentFilesRow, error)
+	// First statement of a document create: the user row lock serialises one user's creates, so the MaxDocuments count
+	// that follows cannot race (same as internal/files LockOwner).
+	LockRecordOwner(ctx context.Context, id uint64) (uint64, error)
 	UpdateManualPregnancy(ctx context.Context, arg UpdateManualPregnancyParams) (int64, error)
+	UpdateRecordDocument(ctx context.Context, arg UpdateRecordDocumentParams) (int64, error)
 	UpsertHealthRecord(ctx context.Context, arg UpsertHealthRecordParams) error
+	UpsertRecordDocumentLink(ctx context.Context, arg UpsertRecordDocumentLinkParams) error
+	// Only the CB-REC-01 columns: blood type and allergies stay with UpsertHealthRecord (B-N6-03).
+	UpsertRecordExtras(ctx context.Context, arg UpsertRecordExtrasParams) error
 }
 
 var _ Querier = (*Queries)(nil)

@@ -3,7 +3,7 @@ id: CB-REC-01
 title: Record documents + timeline backend (on bloom's health record)
 epic: REC
 type: backend
-status: todo
+status: done
 depends_on: [B-N6-03, CB-CORE-05]
 parallel_group: REC-A
 touches: [backend-go/internal/healthrecord, backend-go/internal/http/routes_healthrecord.go, backend-go/db/queries/healthrecord, backend-go/api/openapi.yaml, backend-go/contract, backend-go/resources/translations, backend-go/db/migrations, backend/database/migrations, docs/go-migration/deviations.md]

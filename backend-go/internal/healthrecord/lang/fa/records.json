@@ -1,0 +1,40 @@
+{
+    "messages": {
+        "document_not_found": "این سند پیدا نشد",
+        "document_created": "سند اضافه شد",
+        "document_updated": "سند به‌روز شد",
+        "document_deleted": "سند حذف شد",
+        "extras_saved": "ذخیره شد"
+    },
+    "validation": {
+        "too_many_documents": "حداکثر :max سند می‌توانی نگه داری.",
+        "file_not_found": "این فایل پیدا نشد.",
+        "file_taken": "این فایل قبلاً به سند دیگری پیوست شده است.",
+        "file_duplicate": "یک فایل دو بار فرستاده شده است.",
+        "ended_before_date": "تاریخ پایان نمی‌تواند قبل از تاریخ سند باشد.",
+        "item_blank": "این مورد نمی‌تواند خالی باشد."
+    },
+    "attributes": {
+        "kind": "نوع سند",
+        "title": "عنوان",
+        "date": "تاریخ",
+        "ended_on": "تاریخ پایان",
+        "centre": "مرکز",
+        "doctor": "پزشک",
+        "note": "یادداشت",
+        "file_ids": "فایل‌ها",
+        "file_ids.*": "فایل",
+        "confirm": "تأیید",
+        "before": "قبل از",
+        "limit": "تعداد",
+        "allergies_on_emergency_card": "نمایش روی کارت اضطراری",
+        "surgeries": "جراحی‌ها",
+        "surgeries.*": "جراحی",
+        "surgeries.*.title": "عنوان جراحی",
+        "surgeries.*.date": "تاریخ جراحی",
+        "family_history": "سابقه خانوادگی",
+        "family_history.*": "مورد سابقه خانوادگی",
+        "family_history.*.condition": "بیماری",
+        "family_history.*.relative": "نسبت"
+    }
+}

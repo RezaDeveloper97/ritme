@@ -556,12 +556,15 @@ type HealthLogPreference struct {
 }
 
 type HealthRecord struct {
-	ID        uint64
-	UserID    uint64
-	BloodType sql.NullString
-	Allergies db.NullRawJSON
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
+	ID                       uint64
+	UserID                   uint64
+	BloodType                sql.NullString
+	Allergies                db.NullRawJSON
+	CreatedAt                sql.NullTime
+	UpdatedAt                sql.NullTime
+	AllergiesOnEmergencyCard bool
+	Surgeries                db.NullRawJSON
+	FamilyHistory            db.NullRawJSON
 }
 
 type HealthRecordPregnancy struct {
@@ -1414,6 +1417,43 @@ type Recommendation struct {
 	SortOrder      int32
 	CreatedAt      sql.NullTime
 	UpdatedAt      sql.NullTime
+}
+
+type RecordDocument struct {
+	ID           uint64
+	UserID       uint64
+	Kind         string
+	Title        sql.NullString
+	DocumentDate civildate.NullDate
+	EndedOn      civildate.NullDate
+	Centre       sql.NullString
+	Doctor       sql.NullString
+	Note         sql.NullString
+	Extracted    db.NullRawJSON
+	ReviewState  string
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+}
+
+type RecordDocumentFile struct {
+	ID         uint64
+	UserID     uint64
+	DocumentID uint64
+	FileID     uint64
+	Position   uint8
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
+type RecordDocumentLink struct {
+	ID         uint64
+	UserID     uint64
+	DocumentID uint64
+	TargetType string
+	TargetID   uint64
+	State      string
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
 }
 
 type Reminder struct {

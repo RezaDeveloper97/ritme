@@ -1,0 +1,442 @@
+{
+  "case": "healthrecord-documents/documents_flow",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/files",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "raw_body": "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nrecord_document\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"sono.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 sonography\n%%EOF\r\n--ritmeB--\r\n"
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "فایل بارگذاری شد",
+        "data": {
+          "id": 1,
+          "purpose": "record_document",
+          "visibility": "private",
+          "mime": "application/pdf",
+          "size_bytes": 25,
+          "sha256": "23211f6730cb72d27aa747762f485c96d72efd448790d91b7c23482722fbc448",
+          "url": "<pattern:^http://[^/]+/api/v1/files/\\d+/download\\?expires=\\d+&signature=[A-Za-z0-9_-]{43}$>",
+          "url_expires_at": "2026-09-23T10:05:00+03:30",
+          "created_at": "2026-09-23T10:00:00+03:30"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-record/documents",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "kind": "xray",
+          "date": "2030-01-01",
+          "file_ids": [
+            999999
+          ]
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست",
+        "errors": {
+          "kind": [
+            "نوع سند انتخاب‌شده معتبر نیست."
+          ],
+          "date": [
+            "این تاریخ نمی‌تواند در آینده باشد."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-record/documents",
+        "persona": "no_profile",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "kind": "imaging",
+          "file_ids": [
+            "{{file}}"
+          ]
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست",
+        "errors": {
+          "file_ids.0": [
+            "این فایل پیدا نشد."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-record/documents",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "kind": "imaging",
+          "title": "Pregnancy ultrasound",
+          "date": "2026-09-21",
+          "centre": "Imaging centre",
+          "doctor": "Dr. A",
+          "file_ids": [
+            "{{file}}"
+          ]
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "سند اضافه شد",
+        "data": {
+          "id": 1,
+          "kind": "imaging",
+          "title": "Pregnancy ultrasound",
+          "date": "2026-09-21",
+          "ended_on": null,
+          "centre": "Imaging centre",
+          "doctor": "Dr. A",
+          "note": null,
+          "review_state": "manual",
+          "extracted": null,
+          "files": [
+            {
+              "id": 1,
+              "mime": "application/pdf",
+              "size_bytes": 25,
+              "url": "<pattern:^http://[^/]+/api/v1/files/\\d+/download\\?expires=\\d+&signature=[A-Za-z0-9_-]{43}$>",
+              "url_expires_at": "2026-09-23T10:05:00+03:30"
+            }
+          ],
+          "where_used": [],
+          "created_at": "2026-09-23T06:30:00.000000Z",
+          "updated_at": "2026-09-23T06:30:00.000000Z"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/documents/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "kind": "imaging",
+          "title": "Pregnancy ultrasound",
+          "date": "2026-09-21",
+          "ended_on": null,
+          "centre": "Imaging centre",
+          "doctor": "Dr. A",
+          "note": null,
+          "review_state": "manual",
+          "extracted": null,
+          "files": [
+            {
+              "id": 1,
+              "mime": "application/pdf",
+              "size_bytes": 25,
+              "url": "<pattern:^http://[^/]+/api/v1/files/\\d+/download\\?expires=\\d+&signature=[A-Za-z0-9_-]{43}$>",
+              "url_expires_at": "2026-09-23T10:05:00+03:30"
+            }
+          ],
+          "where_used": [],
+          "created_at": "2026-09-23T06:30:00.000000Z",
+          "updated_at": "2026-09-23T06:30:00.000000Z"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/documents/1",
+        "persona": "no_profile",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این سند پیدا نشد",
+        "error_code": "record_document_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/health-record/documents/1",
+        "persona": "no_profile",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "title": "x"
+        }
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": false,
+        "message": "این سند پیدا نشد",
+        "error_code": "record_document_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/health-record/documents/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "centre": null,
+          "note": "8 weeks 6 days"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "message": "سند به‌روز شد",
+        "data": {
+          "id": 1,
+          "kind": "imaging",
+          "title": "Pregnancy ultrasound",
+          "date": "2026-09-21",
+          "ended_on": null,
+          "centre": null,
+          "doctor": "Dr. A",
+          "note": "8 weeks 6 days",
+          "review_state": "manual",
+          "extracted": null,
+          "files": [
+            {
+              "id": 1,
+              "mime": "application/pdf",
+              "size_bytes": 25,
+              "url": "<pattern:^http://[^/]+/api/v1/files/\\d+/download\\?expires=\\d+&signature=[A-Za-z0-9_-]{43}$>",
+              "url_expires_at": "2026-09-23T10:05:00+03:30"
+            }
+          ],
+          "where_used": [],
+          "created_at": "2026-09-23T06:30:00.000000Z",
+          "updated_at": "2026-09-23T06:30:00.000000Z"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/timeline",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "kind": "all",
+          "months": [
+            {
+              "key": "1405-06",
+              "jalali_year": 1405,
+              "jalali_month": 6,
+              "start": "2026-08-23",
+              "end": "2026-09-22",
+              "items": [
+                {
+                  "type": "document",
+                  "id": 1,
+                  "kind": "imaging",
+                  "title": "Pregnancy ultrasound",
+                  "date": "2026-09-21",
+                  "date_known": true,
+                  "ended_on": null,
+                  "centre": null,
+                  "doctor": "Dr. A",
+                  "file_count": 1,
+                  "review_state": "manual",
+                  "lab": null,
+                  "links": []
+                }
+              ]
+            }
+          ],
+          "next_before": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/categories",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "categories": [
+            {
+              "key": "labs",
+              "count": 0
+            },
+            {
+              "key": "imaging",
+              "count": 1
+            },
+            {
+              "key": "visit",
+              "count": 0
+            },
+            {
+              "key": "prescription",
+              "count": 0
+            },
+            {
+              "key": "hospital",
+              "count": 0
+            },
+            {
+              "key": "other",
+              "count": 0
+            },
+            {
+              "key": "surgeries",
+              "count": 0
+            },
+            {
+              "key": "family_history",
+              "count": 0
+            }
+          ],
+          "documents_count": 1,
+          "all_count": 1,
+          "needs_review_count": 0
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/health-record/documents/1",
+        "persona": "no_profile",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": false,
+        "message": "این سند پیدا نشد",
+        "error_code": "record_document_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/health-record/documents/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": true,
+        "message": "سند حذف شد",
+        "data": null
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/health-record/documents/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "54"
+      },
+      "body": {
+        "success": false,
+        "message": "این سند پیدا نشد",
+        "error_code": "record_document_not_found"
+      }
+    }
+  ]
+}

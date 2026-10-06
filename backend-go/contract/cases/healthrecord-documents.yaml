@@ -1,0 +1,134 @@
+# Record documents, extras and timeline (/api/v1/health-record/{categories,timeline,extras,documents*}) — Go only
+# (canvas-build CB-REC-01, deviations.md D-70): there is no Laravel route, so these goldens were recorded from the Go
+# server (APP_ENV=contract → the public development file key) and reviewed by hand (new-endpoint skill, step 8). The
+# fixture dump carries the empty record_documents / record_document_files / record_document_links tables and the
+# health_records extras columns (goose 00041 / Laravel 2026_10_06_000041), added by hand. A file link's signature
+# covers the random blob path, so `data.files[*].url` is a pattern. Lab sheets in the timeline, link badges, review
+# confirmation, file deletion with the document and the full IDOR matrix are covered by the internal/healthrecord
+# integration tests. Fixture day 2026-09-23. `regular` (1004) owns the documents; `no_profile` (1001) is the other
+# user.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: healthrecord-documents
+defaults:
+  persona: regular
+  locales: none
+  patterns:
+    data.files.*.url: '^http://[^/]+/api/v1/files/\d+/download\?expires=\d+&signature=[A-Za-z0-9_-]{43}$'
+    data.url: '^http://[^/]+/api/v1/files/\d+/download\?expires=\d+&signature=[A-Za-z0-9_-]{43}$'
+cases:
+  - name: record_documents_anon
+    persona: anon
+    steps:
+      - method: GET
+        path: /api/v1/health-record/categories
+        status: 401
+      - method: GET
+        path: /api/v1/health-record/timeline
+        status: 401
+      - method: PUT
+        path: /api/v1/health-record/extras
+        body: {surgeries: []}
+        status: 401
+      - method: POST
+        path: /api/v1/health-record/documents
+        body: {kind: visit}
+        status: 401
+      - method: GET
+        path: /api/v1/health-record/documents/1
+        status: 401
+
+  - name: categories_empty
+    doc: nbl_Rec_Home grid counts for a user without documents
+    locales: [fa]
+    method: GET
+    path: /api/v1/health-record/categories
+    status: 200
+
+  - name: timeline_empty
+    doc: nbl_Rec_Timeline without documents or lab sheets; an unknown filter / limit is 422
+    locales: [en]
+    steps:
+      - method: GET
+        path: /api/v1/health-record/timeline
+        status: 200
+      - method: GET
+        path: /api/v1/health-record/timeline
+        query: {kind: fax, limit: "500"}
+        status: 422
+
+  - name: extras_flow
+    doc: surgeries / family history / emergency-card flag — defaults, invalid 422, save, clear family history to «none»
+    locales: [en]
+    steps:
+      - method: GET
+        path: /api/v1/health-record/extras
+        status: 200
+      - method: PUT
+        path: /api/v1/health-record/extras
+        body: {allergies_on_emergency_card: maybe, surgeries: [{date: "2030-01-01"}], family_history: [{condition: Diabetes, relative: neighbour}]}
+        status: 422
+      - method: PUT
+        path: /api/v1/health-record/extras
+        body: {allergies_on_emergency_card: false, surgeries: [{title: Cesarean, date: "2025-03-04"}], family_history: [{condition: Diabetes, relative: mother}]}
+        status: 200
+      - method: PUT
+        path: /api/v1/health-record/extras
+        body: {family_history: []}
+        status: 200
+
+  - name: documents_flow
+    doc: upload a record_document file, add a document with it (invalid 422 first), read it, the other user gets 404 and cannot attach the file, edit, timeline + counts, delete
+    locales: [fa]
+    steps:
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nrecord_document\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"sono.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 sonography\n%%EOF\r\n--ritmeB--\r\n"
+        status: 201
+        capture: {file: data.id}
+      - method: POST
+        path: /api/v1/health-record/documents
+        body: {kind: xray, date: "2030-01-01", file_ids: [999999]}
+        status: 422
+      - method: POST
+        path: /api/v1/health-record/documents
+        as: no_profile
+        body: {kind: imaging, file_ids: ["{{file}}"]}
+        status: 422
+      - method: POST
+        path: /api/v1/health-record/documents
+        body: {kind: imaging, title: Pregnancy ultrasound, date: "2026-09-21", centre: Imaging centre, doctor: Dr. A, file_ids: ["{{file}}"]}
+        status: 201
+        capture: {id: data.id}
+      - method: GET
+        path: "/api/v1/health-record/documents/{{id}}"
+        status: 200
+      - method: GET
+        path: "/api/v1/health-record/documents/{{id}}"
+        as: no_profile
+        status: 404
+      - method: PUT
+        path: "/api/v1/health-record/documents/{{id}}"
+        as: no_profile
+        body: {title: x}
+        status: 404
+      - method: PUT
+        path: "/api/v1/health-record/documents/{{id}}"
+        body: {centre: null, note: 8 weeks 6 days}
+        status: 200
+      - method: GET
+        path: /api/v1/health-record/timeline
+        status: 200
+      - method: GET
+        path: /api/v1/health-record/categories
+        status: 200
+      - method: DELETE
+        path: "/api/v1/health-record/documents/{{id}}"
+        as: no_profile
+        status: 404
+      - method: DELETE
+        path: "/api/v1/health-record/documents/{{id}}"
+        status: 200
+      - method: DELETE
+        path: "/api/v1/health-record/documents/{{id}}"
+        status: 404
