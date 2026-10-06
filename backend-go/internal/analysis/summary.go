@@ -166,7 +166,7 @@ func (s Summary) JSON(c *Copy) *jsonx.OrderedMap {
 			"sleep_mood", s.corrCard(CorrSleepMood, func(it Correlation) any { return it.JSON(c) }).JSON(),
 			"weight", freeSection(weight.WeightReady(), weight.WeightJSON(hubWeightDays)).JSON(),
 			"vitals", freeSection(s.Vitals.BPReadings+s.Vitals.GlucoseReadings > 0, s.Vitals.JSON()).JSON(),
-			// Lab trends arrive with B-N6-06; until then an entitled user gets an empty, not-ready section.
+			// Lab trends (B-N6-06): filled by Handlers.Summary through LabsHub; without it an empty, not-ready section.
 			"labs", plusSection(s.entitled, func() (bool, any) { return false, nil }).JSON(),
 		),
 	)

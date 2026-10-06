@@ -930,3 +930,15 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   shared item form with per-group meta + «بازبینی شد», postpartum content overview → messages editor (read-only for
   editors); alert-rules editor shows `contact_phone`. `FormPage` `readOnly` prop. Screenshots `docs/qa/bloom/B-N5-09/`.
 - Pre-existing red: `internal/catalog/api_int_test.go` (3 tests) because canvas migrations seed catalog rows — canvas-owned.
+
+## B-N6-06 — Lab analysis backend
+
+- **Migration** `00034_labs` (+ Laravel twin): lab_reports, lab_files, lab_markers, lab_jobs; 26 `lab_markers` catalog
+  rows (needs_review; super-admin writes).
+- `/api/v1/labs/*` (17 ops): multipart upload (1–5 files, sniffed, images re-encoded to WebP, AES-256-GCM at rest with
+  `LAB_FILE_KEY` / `LAB_FILE_KEY_PREVIOUS`, private 0600 storage, deleted with lab/page/account + orphan sweep),
+  manual lab, status poll, verify (202), markers CRUD, trends, catalog, feedback, owner-only download.
+  Gate: throttle → `plus.lab_ai` → consent `ai_lab_analysis` → cost/busy → reserve; 10 uploads/day. In-process
+  DB-backed worker (`lab_jobs`, lease, 3 tries). Interpretation via `Client.Chat` (non-streaming, redacted, ≤3 per lab)
+  with rule-based red flags/doctor questions and rules fallback. Analysis summary `labs` section filled.
+- 23 contract goldens (fake provider), D-61 proposed. QUESTIONS #108. Security review pending.

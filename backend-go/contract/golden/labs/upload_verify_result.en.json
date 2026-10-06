@@ -1,0 +1,1576 @@
+{
+  "case": "labs/upload_verify_result.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/trial/start",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Your free Ritme Plus trial has started",
+        "data": {
+          "tier": "trial",
+          "is_plus": true,
+          "subscription": null,
+          "trial": {
+            "started_at": "2026-09-23T10:00:00+03:30",
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "is_active": true,
+            "days_left": 7
+          },
+          "trial_available": false,
+          "period_start": "2026-09-01",
+          "resets_at": "2026-10-01T00:00:00+03:30",
+          "entitlements": [
+            {
+              "key": "plus.deep_analysis",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.lab_ai",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 10,
+              "used": 0,
+              "remaining": 10
+            },
+            {
+              "key": "plus.assistant_unlimited",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.pdf_share",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.visit_discount",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.voice_log",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            }
+          ],
+          "trial_offer": {
+            "percent": 50,
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "seconds_left": 604800,
+            "days_left": 7,
+            "countdown": {
+              "days": 7,
+              "hours": 0,
+              "minutes": 0
+            },
+            "currency": "IRR",
+            "plan": {
+              "id": 2,
+              "code": "plus_3m",
+              "title": "3 months",
+              "badge": "Most popular",
+              "duration_months": 3,
+              "price": 2370000,
+              "monthly_price": 790000,
+              "savings_percent": 20,
+              "is_highlighted": true,
+              "offer_price": 1185000,
+              "offer_monthly_price": 395000
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/consents/ai_lab_analysis",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "granted": true,
+          "version": 1
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "Consent saved",
+        "data": {
+          "consent": {
+            "code": "ai_lab_analysis",
+            "version": 1,
+            "title": "AI lab analysis",
+            "body": "To read and explain a lab sheet, its photo or PDF is sent to an AI service.",
+            "points": [
+              "Only the lab file and what the explanation needs (age, life stage, medications) are sent; names, mobile numbers and national IDs are removed from text.",
+              "If your name or other personal details are printed on the sheet, it is best to cover them before uploading.",
+              "The provider may not use this data to train its models.",
+              "The result is not a substitute for a doctor's opinion.",
+              "You can withdraw this consent at any time in Privacy."
+            ],
+            "granted": true,
+            "accepted_version": 1,
+            "needs_consent": false,
+            "reason": null,
+            "granted_at": "2026-09-23T10:00:00+03:30",
+            "revoked_at": null
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/labs",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "raw_body": "--ritmeB\r\nContent-Disposition: form-data; name=\"category\"\r\n\r\nblood\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"taken_on\"\r\n\r\n2026-09-20\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"fasting\"\r\n\r\n1\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"files\"; filename=\"sheet.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 RITME-FAKE:lab_panel\r\n--ritmeB--\r\n"
+      },
+      "status": 202,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "4",
+        "x-ratelimit-remaining": "3"
+      },
+      "body": {
+        "success": true,
+        "message": "Lab sheet uploaded and being analysed",
+        "data": {
+          "id": 1,
+          "source": "upload",
+          "category": "blood",
+          "title": null,
+          "display_title": "Blood test",
+          "taken_on": "2026-09-20",
+          "date": "2026-09-20",
+          "fasting": true,
+          "lab_name": "آزمایشگاه نمونه",
+          "status": "needs_review",
+          "stage": "review",
+          "progress": 100,
+          "error_code": null,
+          "error_message": null,
+          "editable": true,
+          "ai_interpretations_left": 3,
+          "counts": {
+            "total": 5,
+            "normal": 2,
+            "attention": 3,
+            "low": 2,
+            "borderline_low": 1,
+            "high": 0,
+            "borderline_high": 0,
+            "unknown": 0
+          },
+          "low_confidence_count": 1,
+          "markers": [
+            {
+              "id": 1,
+              "code": "hemoglobin",
+              "name": "Hemoglobin",
+              "printed_name": "Hemoglobin",
+              "subtitle": "Oxygen carrier in blood",
+              "category": "cbc",
+              "value": 11.4,
+              "value_text": null,
+              "unit": "g/dL",
+              "reference": {
+                "low": 12,
+                "high": 16,
+                "text": "12–16",
+                "source": "sheet"
+              },
+              "state": "borderline_low",
+              "state_label": "Borderline low",
+              "attention": true,
+              "confidence": 0.95,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 2,
+              "code": "ferritin",
+              "name": "Ferritin",
+              "printed_name": "Ferritin",
+              "subtitle": "Body iron stores",
+              "category": "iron",
+              "value": 9,
+              "value_text": null,
+              "unit": "ng/mL",
+              "reference": {
+                "low": 15,
+                "high": 150,
+                "text": "15–150",
+                "source": "sheet"
+              },
+              "state": "low",
+              "state_label": "Low",
+              "attention": true,
+              "confidence": 0.9,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 3,
+              "code": "tsh",
+              "name": "TSH",
+              "printed_name": "TSH",
+              "subtitle": "Thyroid regulator",
+              "category": "thyroid",
+              "value": 2.1,
+              "value_text": null,
+              "unit": "mIU/L",
+              "reference": {
+                "low": 0.4,
+                "high": 4,
+                "text": "0.4–4",
+                "source": "sheet"
+              },
+              "state": "normal",
+              "state_label": "Normal",
+              "attention": false,
+              "confidence": 0.92,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 4,
+              "code": "vitamin_d",
+              "name": "Vitamin D",
+              "printed_name": "Vitamin D (25-OH)",
+              "subtitle": "Bones and immunity",
+              "category": "vitamin",
+              "value": 14,
+              "value_text": null,
+              "unit": "ng/mL",
+              "reference": {
+                "low": 30,
+                "high": 100,
+                "text": "30–100",
+                "source": "sheet"
+              },
+              "state": "low",
+              "state_label": "Low",
+              "attention": true,
+              "confidence": 0.88,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 5,
+              "code": "glucose_fasting",
+              "name": "Fasting glucose",
+              "printed_name": "FBS",
+              "subtitle": "Blood sugar",
+              "category": "glucose",
+              "value": 92,
+              "value_text": null,
+              "unit": "mg/dL",
+              "reference": {
+                "low": 70,
+                "high": 100,
+                "text": "70–100",
+                "source": "sheet"
+              },
+              "state": "normal",
+              "state_label": "Normal",
+              "attention": false,
+              "confidence": 0.62,
+              "low_confidence": true,
+              "source": "extracted",
+              "catalog_needs_review": true
+            }
+          ],
+          "files": [
+            {
+              "id": 1,
+              "page": 1,
+              "mime": "application/pdf",
+              "size_bytes": 29,
+              "url": "/api/v1/labs/1/files/1"
+            }
+          ],
+          "interpretation": null,
+          "feedback": null,
+          "verified_at": null,
+          "interpreted_at": null,
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "updated_at": "2026-09-23T10:00:00+03:30"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/labs/1/status",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "status": "needs_review",
+          "stage": "review",
+          "progress": 100,
+          "marker_count": 5,
+          "error_code": null,
+          "error_message": null,
+          "updated_at": "2026-09-23T10:00:00+03:30"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/labs/1/markers/5",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "FBS",
+          "value": "۹۵",
+          "unit": "mg/dL",
+          "ref_low": 70,
+          "ref_high": 100
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "id": 1,
+          "source": "upload",
+          "category": "blood",
+          "title": null,
+          "display_title": "Blood test",
+          "taken_on": "2026-09-20",
+          "date": "2026-09-20",
+          "fasting": true,
+          "lab_name": "آزمایشگاه نمونه",
+          "status": "needs_review",
+          "stage": "review",
+          "progress": 100,
+          "error_code": null,
+          "error_message": null,
+          "editable": true,
+          "ai_interpretations_left": 3,
+          "counts": {
+            "total": 5,
+            "normal": 2,
+            "attention": 3,
+            "low": 2,
+            "borderline_low": 1,
+            "high": 0,
+            "borderline_high": 0,
+            "unknown": 0
+          },
+          "low_confidence_count": 1,
+          "markers": [
+            {
+              "id": 1,
+              "code": "hemoglobin",
+              "name": "Hemoglobin",
+              "printed_name": "Hemoglobin",
+              "subtitle": "Oxygen carrier in blood",
+              "category": "cbc",
+              "value": 11.4,
+              "value_text": null,
+              "unit": "g/dL",
+              "reference": {
+                "low": 12,
+                "high": 16,
+                "text": "12–16",
+                "source": "sheet"
+              },
+              "state": "borderline_low",
+              "state_label": "Borderline low",
+              "attention": true,
+              "confidence": 0.95,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 2,
+              "code": "ferritin",
+              "name": "Ferritin",
+              "printed_name": "Ferritin",
+              "subtitle": "Body iron stores",
+              "category": "iron",
+              "value": 9,
+              "value_text": null,
+              "unit": "ng/mL",
+              "reference": {
+                "low": 15,
+                "high": 150,
+                "text": "15–150",
+                "source": "sheet"
+              },
+              "state": "low",
+              "state_label": "Low",
+              "attention": true,
+              "confidence": 0.9,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 3,
+              "code": "tsh",
+              "name": "TSH",
+              "printed_name": "TSH",
+              "subtitle": "Thyroid regulator",
+              "category": "thyroid",
+              "value": 2.1,
+              "value_text": null,
+              "unit": "mIU/L",
+              "reference": {
+                "low": 0.4,
+                "high": 4,
+                "text": "0.4–4",
+                "source": "sheet"
+              },
+              "state": "normal",
+              "state_label": "Normal",
+              "attention": false,
+              "confidence": 0.92,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 4,
+              "code": "vitamin_d",
+              "name": "Vitamin D",
+              "printed_name": "Vitamin D (25-OH)",
+              "subtitle": "Bones and immunity",
+              "category": "vitamin",
+              "value": 14,
+              "value_text": null,
+              "unit": "ng/mL",
+              "reference": {
+                "low": 30,
+                "high": 100,
+                "text": "30–100",
+                "source": "sheet"
+              },
+              "state": "low",
+              "state_label": "Low",
+              "attention": true,
+              "confidence": 0.88,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 5,
+              "code": "glucose_fasting",
+              "name": "Fasting glucose",
+              "printed_name": "FBS",
+              "subtitle": "Blood sugar",
+              "category": "glucose",
+              "value": 95,
+              "value_text": null,
+              "unit": "mg/dL",
+              "reference": {
+                "low": 70,
+                "high": 100,
+                "text": "70–100",
+                "source": "sheet"
+              },
+              "state": "normal",
+              "state_label": "Normal",
+              "attention": false,
+              "confidence": 0.62,
+              "low_confidence": true,
+              "source": "edited",
+              "catalog_needs_review": true
+            }
+          ],
+          "files": [
+            {
+              "id": 1,
+              "page": 1,
+              "mime": "application/pdf",
+              "size_bytes": 29,
+              "url": "/api/v1/labs/1/files/1"
+            }
+          ],
+          "interpretation": null,
+          "feedback": null,
+          "verified_at": null,
+          "interpreted_at": null,
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "updated_at": "2026-09-23T10:00:00+03:30"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/labs/1/markers",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "B12"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errors": {
+          "value": [
+            "A numeric or text result is required."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/labs/1/markers",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "Vitamin B12",
+          "value": 310,
+          "unit": "pg/mL",
+          "ref_low": 200,
+          "ref_high": 900
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "id": 1,
+          "source": "upload",
+          "category": "blood",
+          "title": null,
+          "display_title": "Blood test",
+          "taken_on": "2026-09-20",
+          "date": "2026-09-20",
+          "fasting": true,
+          "lab_name": "آزمایشگاه نمونه",
+          "status": "needs_review",
+          "stage": "review",
+          "progress": 100,
+          "error_code": null,
+          "error_message": null,
+          "editable": true,
+          "ai_interpretations_left": 3,
+          "counts": {
+            "total": 6,
+            "normal": 3,
+            "attention": 3,
+            "low": 2,
+            "borderline_low": 1,
+            "high": 0,
+            "borderline_high": 0,
+            "unknown": 0
+          },
+          "low_confidence_count": 1,
+          "markers": [
+            {
+              "id": 1,
+              "code": "hemoglobin",
+              "name": "Hemoglobin",
+              "printed_name": "Hemoglobin",
+              "subtitle": "Oxygen carrier in blood",
+              "category": "cbc",
+              "value": 11.4,
+              "value_text": null,
+              "unit": "g/dL",
+              "reference": {
+                "low": 12,
+                "high": 16,
+                "text": "12–16",
+                "source": "sheet"
+              },
+              "state": "borderline_low",
+              "state_label": "Borderline low",
+              "attention": true,
+              "confidence": 0.95,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 2,
+              "code": "ferritin",
+              "name": "Ferritin",
+              "printed_name": "Ferritin",
+              "subtitle": "Body iron stores",
+              "category": "iron",
+              "value": 9,
+              "value_text": null,
+              "unit": "ng/mL",
+              "reference": {
+                "low": 15,
+                "high": 150,
+                "text": "15–150",
+                "source": "sheet"
+              },
+              "state": "low",
+              "state_label": "Low",
+              "attention": true,
+              "confidence": 0.9,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 3,
+              "code": "tsh",
+              "name": "TSH",
+              "printed_name": "TSH",
+              "subtitle": "Thyroid regulator",
+              "category": "thyroid",
+              "value": 2.1,
+              "value_text": null,
+              "unit": "mIU/L",
+              "reference": {
+                "low": 0.4,
+                "high": 4,
+                "text": "0.4–4",
+                "source": "sheet"
+              },
+              "state": "normal",
+              "state_label": "Normal",
+              "attention": false,
+              "confidence": 0.92,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 4,
+              "code": "vitamin_d",
+              "name": "Vitamin D",
+              "printed_name": "Vitamin D (25-OH)",
+              "subtitle": "Bones and immunity",
+              "category": "vitamin",
+              "value": 14,
+              "value_text": null,
+              "unit": "ng/mL",
+              "reference": {
+                "low": 30,
+                "high": 100,
+                "text": "30–100",
+                "source": "sheet"
+              },
+              "state": "low",
+              "state_label": "Low",
+              "attention": true,
+              "confidence": 0.88,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 5,
+              "code": "glucose_fasting",
+              "name": "Fasting glucose",
+              "printed_name": "FBS",
+              "subtitle": "Blood sugar",
+              "category": "glucose",
+              "value": 95,
+              "value_text": null,
+              "unit": "mg/dL",
+              "reference": {
+                "low": 70,
+                "high": 100,
+                "text": "70–100",
+                "source": "sheet"
+              },
+              "state": "normal",
+              "state_label": "Normal",
+              "attention": false,
+              "confidence": 0.62,
+              "low_confidence": true,
+              "source": "edited",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 6,
+              "code": "b12",
+              "name": "Vitamin B12",
+              "printed_name": "Vitamin B12",
+              "subtitle": "Blood and nerves",
+              "category": "vitamin",
+              "value": 310,
+              "value_text": null,
+              "unit": "pg/mL",
+              "reference": {
+                "low": 200,
+                "high": 900,
+                "text": "200–900",
+                "source": "sheet"
+              },
+              "state": "normal",
+              "state_label": "Normal",
+              "attention": false,
+              "confidence": null,
+              "low_confidence": false,
+              "source": "manual",
+              "catalog_needs_review": true
+            }
+          ],
+          "files": [
+            {
+              "id": 1,
+              "page": 1,
+              "mime": "application/pdf",
+              "size_bytes": 29,
+              "url": "/api/v1/labs/1/files/1"
+            }
+          ],
+          "interpretation": null,
+          "feedback": null,
+          "verified_at": null,
+          "interpreted_at": null,
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "updated_at": "2026-09-23T10:00:00+03:30"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/labs/1/markers/3",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "54"
+      },
+      "body": {
+        "success": true,
+        "message": "Deleted",
+        "data": {
+          "id": 1,
+          "source": "upload",
+          "category": "blood",
+          "title": null,
+          "display_title": "Blood test",
+          "taken_on": "2026-09-20",
+          "date": "2026-09-20",
+          "fasting": true,
+          "lab_name": "آزمایشگاه نمونه",
+          "status": "needs_review",
+          "stage": "review",
+          "progress": 100,
+          "error_code": null,
+          "error_message": null,
+          "editable": true,
+          "ai_interpretations_left": 3,
+          "counts": {
+            "total": 5,
+            "normal": 2,
+            "attention": 3,
+            "low": 2,
+            "borderline_low": 1,
+            "high": 0,
+            "borderline_high": 0,
+            "unknown": 0
+          },
+          "low_confidence_count": 1,
+          "markers": [
+            {
+              "id": 1,
+              "code": "hemoglobin",
+              "name": "Hemoglobin",
+              "printed_name": "Hemoglobin",
+              "subtitle": "Oxygen carrier in blood",
+              "category": "cbc",
+              "value": 11.4,
+              "value_text": null,
+              "unit": "g/dL",
+              "reference": {
+                "low": 12,
+                "high": 16,
+                "text": "12–16",
+                "source": "sheet"
+              },
+              "state": "borderline_low",
+              "state_label": "Borderline low",
+              "attention": true,
+              "confidence": 0.95,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 2,
+              "code": "ferritin",
+              "name": "Ferritin",
+              "printed_name": "Ferritin",
+              "subtitle": "Body iron stores",
+              "category": "iron",
+              "value": 9,
+              "value_text": null,
+              "unit": "ng/mL",
+              "reference": {
+                "low": 15,
+                "high": 150,
+                "text": "15–150",
+                "source": "sheet"
+              },
+              "state": "low",
+              "state_label": "Low",
+              "attention": true,
+              "confidence": 0.9,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 4,
+              "code": "vitamin_d",
+              "name": "Vitamin D",
+              "printed_name": "Vitamin D (25-OH)",
+              "subtitle": "Bones and immunity",
+              "category": "vitamin",
+              "value": 14,
+              "value_text": null,
+              "unit": "ng/mL",
+              "reference": {
+                "low": 30,
+                "high": 100,
+                "text": "30–100",
+                "source": "sheet"
+              },
+              "state": "low",
+              "state_label": "Low",
+              "attention": true,
+              "confidence": 0.88,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 5,
+              "code": "glucose_fasting",
+              "name": "Fasting glucose",
+              "printed_name": "FBS",
+              "subtitle": "Blood sugar",
+              "category": "glucose",
+              "value": 95,
+              "value_text": null,
+              "unit": "mg/dL",
+              "reference": {
+                "low": 70,
+                "high": 100,
+                "text": "70–100",
+                "source": "sheet"
+              },
+              "state": "normal",
+              "state_label": "Normal",
+              "attention": false,
+              "confidence": 0.62,
+              "low_confidence": true,
+              "source": "edited",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 6,
+              "code": "b12",
+              "name": "Vitamin B12",
+              "printed_name": "Vitamin B12",
+              "subtitle": "Blood and nerves",
+              "category": "vitamin",
+              "value": 310,
+              "value_text": null,
+              "unit": "pg/mL",
+              "reference": {
+                "low": 200,
+                "high": 900,
+                "text": "200–900",
+                "source": "sheet"
+              },
+              "state": "normal",
+              "state_label": "Normal",
+              "attention": false,
+              "confidence": null,
+              "low_confidence": false,
+              "source": "manual",
+              "catalog_needs_review": true
+            }
+          ],
+          "files": [
+            {
+              "id": 1,
+              "page": 1,
+              "mime": "application/pdf",
+              "size_bytes": 29,
+              "url": "/api/v1/labs/1/files/1"
+            }
+          ],
+          "interpretation": null,
+          "feedback": null,
+          "verified_at": null,
+          "interpreted_at": null,
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "updated_at": "2026-09-23T10:00:00+03:30"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/labs/1/verify",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 202,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "53"
+      },
+      "body": {
+        "success": true,
+        "message": "Values confirmed; preparing the explanation",
+        "data": {
+          "id": 1,
+          "source": "upload",
+          "category": "blood",
+          "title": null,
+          "display_title": "Blood test",
+          "taken_on": "2026-09-20",
+          "date": "2026-09-20",
+          "fasting": true,
+          "lab_name": "آزمایشگاه نمونه",
+          "status": "ready",
+          "stage": "done",
+          "progress": 100,
+          "error_code": null,
+          "error_message": null,
+          "editable": true,
+          "ai_interpretations_left": 2,
+          "counts": {
+            "total": 5,
+            "normal": 2,
+            "attention": 3,
+            "low": 2,
+            "borderline_low": 1,
+            "high": 0,
+            "borderline_high": 0,
+            "unknown": 0
+          },
+          "low_confidence_count": 1,
+          "markers": [
+            {
+              "id": 1,
+              "code": "hemoglobin",
+              "name": "Hemoglobin",
+              "printed_name": "Hemoglobin",
+              "subtitle": "Oxygen carrier in blood",
+              "category": "cbc",
+              "value": 11.4,
+              "value_text": null,
+              "unit": "g/dL",
+              "reference": {
+                "low": 12,
+                "high": 16,
+                "text": "12–16",
+                "source": "sheet"
+              },
+              "state": "borderline_low",
+              "state_label": "Borderline low",
+              "attention": true,
+              "confidence": 0.95,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 2,
+              "code": "ferritin",
+              "name": "Ferritin",
+              "printed_name": "Ferritin",
+              "subtitle": "Body iron stores",
+              "category": "iron",
+              "value": 9,
+              "value_text": null,
+              "unit": "ng/mL",
+              "reference": {
+                "low": 15,
+                "high": 150,
+                "text": "15–150",
+                "source": "sheet"
+              },
+              "state": "low",
+              "state_label": "Low",
+              "attention": true,
+              "confidence": 0.9,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 4,
+              "code": "vitamin_d",
+              "name": "Vitamin D",
+              "printed_name": "Vitamin D (25-OH)",
+              "subtitle": "Bones and immunity",
+              "category": "vitamin",
+              "value": 14,
+              "value_text": null,
+              "unit": "ng/mL",
+              "reference": {
+                "low": 30,
+                "high": 100,
+                "text": "30–100",
+                "source": "sheet"
+              },
+              "state": "low",
+              "state_label": "Low",
+              "attention": true,
+              "confidence": 0.88,
+              "low_confidence": false,
+              "source": "extracted",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 5,
+              "code": "glucose_fasting",
+              "name": "Fasting glucose",
+              "printed_name": "FBS",
+              "subtitle": "Blood sugar",
+              "category": "glucose",
+              "value": 95,
+              "value_text": null,
+              "unit": "mg/dL",
+              "reference": {
+                "low": 70,
+                "high": 100,
+                "text": "70–100",
+                "source": "sheet"
+              },
+              "state": "normal",
+              "state_label": "Normal",
+              "attention": false,
+              "confidence": 0.62,
+              "low_confidence": true,
+              "source": "edited",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 6,
+              "code": "b12",
+              "name": "Vitamin B12",
+              "printed_name": "Vitamin B12",
+              "subtitle": "Blood and nerves",
+              "category": "vitamin",
+              "value": 310,
+              "value_text": null,
+              "unit": "pg/mL",
+              "reference": {
+                "low": 200,
+                "high": 900,
+                "text": "200–900",
+                "source": "sheet"
+              },
+              "state": "normal",
+              "state_label": "Normal",
+              "attention": false,
+              "confidence": null,
+              "low_confidence": false,
+              "source": "manual",
+              "catalog_needs_review": true
+            }
+          ],
+          "files": [
+            {
+              "id": 1,
+              "page": 1,
+              "mime": "application/pdf",
+              "size_bytes": 29,
+              "url": "/api/v1/labs/1/files/1"
+            }
+          ],
+          "interpretation": {
+            "summary": "This is a test answer from the Ritme assistant. I am not a doctor and I don't diagnose; if your symptoms are severe or getting worse, please see a doctor.",
+            "source": "ai",
+            "locale": "en",
+            "generated_at": "2026-09-23T10:00:00+03:30",
+            "stale": false,
+            "red_flags": [],
+            "doctor_questions": [
+              "Should I take an iron supplement for low iron stores? How much and for how long?",
+              "When should I repeat the test?",
+              "How much vitamin D should I take, and for how long?",
+              "What should my vitamin D be before pregnancy?",
+              "Do I have anaemia, and what is causing it?"
+            ],
+            "disclaimer": "This analysis is made by AI for general information; it is not a diagnosis or treatment. The final interpretation is your doctor's."
+          },
+          "feedback": null,
+          "verified_at": "2026-09-23T10:00:00+03:30",
+          "interpreted_at": "2026-09-23T10:00:00+03:30",
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "updated_at": "2026-09-23T10:00:00+03:30"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/labs/1/markers/2",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "lab": {
+            "id": 1,
+            "display_title": "Blood test",
+            "date": "2026-09-20",
+            "status": "ready"
+          },
+          "marker": {
+            "id": 2,
+            "code": "ferritin",
+            "name": "Ferritin",
+            "printed_name": "Ferritin",
+            "subtitle": "Body iron stores",
+            "category": "iron",
+            "value": 9,
+            "value_text": null,
+            "unit": "ng/mL",
+            "reference": {
+              "low": 15,
+              "high": 150,
+              "text": "15–150",
+              "source": "sheet"
+            },
+            "state": "low",
+            "state_label": "Low",
+            "attention": true,
+            "confidence": 0.9,
+            "low_confidence": false,
+            "source": "extracted",
+            "catalog_needs_review": true
+          },
+          "about": {
+            "code": "ferritin",
+            "name": "Ferritin",
+            "subtitle": "Body iron stores",
+            "body": "A protein that stores iron in the body. A low value usually means low iron stores, even before hemoglobin drops much.",
+            "typical_range": "15–150",
+            "needs_review": true
+          },
+          "factors": [
+            "Monthly period blood loss",
+            "Little iron in the diet",
+            "Poorer iron absorption in some digestive conditions"
+          ],
+          "see_doctor": "Talk to a doctor before deciding on an iron supplement and its dose. If you have severe tiredness, shortness of breath or palpitations, go sooner.",
+          "context_notes": [
+            "Your periods are logged as 5 days long."
+          ],
+          "red_flag": null,
+          "trend": {
+            "count": 1,
+            "direction": null,
+            "sentence": "A trend shows once this marker is in at least 2 of your lab results.",
+            "points": [
+              {
+                "lab_id": 1,
+                "marker_id": 2,
+                "date": "2026-09-20",
+                "value": 9,
+                "state": "low"
+              }
+            ]
+          },
+          "disclaimer": "This analysis is made by AI for general information; it is not a diagnosis or treatment. The final interpretation is your doctor's."
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/labs/1/feedback",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "helpful": true
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "52"
+      },
+      "body": {
+        "success": true,
+        "message": "Thanks for your feedback",
+        "data": {
+          "id": 1,
+          "helpful": true
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/labs",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "labs": [
+            {
+              "id": 1,
+              "source": "upload",
+              "category": "blood",
+              "title": null,
+              "display_title": "Blood test",
+              "taken_on": "2026-09-20",
+              "date": "2026-09-20",
+              "status": "ready",
+              "stage": "done",
+              "progress": 100,
+              "marker_count": 5,
+              "attention_count": 3,
+              "all_normal": false,
+              "created_at": "2026-09-23T10:00:00+03:30"
+            }
+          ],
+          "limits": {
+            "max_files": 5,
+            "max_image_kb": 5120,
+            "max_pdf_kb": 10240,
+            "categories": [
+              "blood",
+              "hormone",
+              "thyroid",
+              "urine",
+              "other"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/labs/trends",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "labs_count": 1,
+          "first_date": "2026-09-20",
+          "last_date": "2026-09-20",
+          "min_points": 2,
+          "markers": [
+            {
+              "key": "hemoglobin",
+              "code": "hemoglobin",
+              "name": "Hemoglobin",
+              "unit": "g/dL",
+              "reference_text": "12–16",
+              "latest": {
+                "lab_id": 1,
+                "marker_id": 1,
+                "value": 11.4,
+                "value_text": null,
+                "state": "borderline_low",
+                "state_label": "Borderline low",
+                "attention": true
+              },
+              "trend": {
+                "count": 1,
+                "direction": null,
+                "sentence": "A trend shows once this marker is in at least 2 of your lab results.",
+                "points": [
+                  {
+                    "lab_id": 1,
+                    "marker_id": 1,
+                    "date": "2026-09-20",
+                    "value": 11.4,
+                    "state": "borderline_low"
+                  }
+                ]
+              }
+            },
+            {
+              "key": "ferritin",
+              "code": "ferritin",
+              "name": "Ferritin",
+              "unit": "ng/mL",
+              "reference_text": "15–150",
+              "latest": {
+                "lab_id": 1,
+                "marker_id": 2,
+                "value": 9,
+                "value_text": null,
+                "state": "low",
+                "state_label": "Low",
+                "attention": true
+              },
+              "trend": {
+                "count": 1,
+                "direction": null,
+                "sentence": "A trend shows once this marker is in at least 2 of your lab results.",
+                "points": [
+                  {
+                    "lab_id": 1,
+                    "marker_id": 2,
+                    "date": "2026-09-20",
+                    "value": 9,
+                    "state": "low"
+                  }
+                ]
+              }
+            },
+            {
+              "key": "vitamin_d",
+              "code": "vitamin_d",
+              "name": "Vitamin D",
+              "unit": "ng/mL",
+              "reference_text": "30–100",
+              "latest": {
+                "lab_id": 1,
+                "marker_id": 4,
+                "value": 14,
+                "value_text": null,
+                "state": "low",
+                "state_label": "Low",
+                "attention": true
+              },
+              "trend": {
+                "count": 1,
+                "direction": null,
+                "sentence": "A trend shows once this marker is in at least 2 of your lab results.",
+                "points": [
+                  {
+                    "lab_id": 1,
+                    "marker_id": 4,
+                    "date": "2026-09-20",
+                    "value": 14,
+                    "state": "low"
+                  }
+                ]
+              }
+            },
+            {
+              "key": "b12",
+              "code": "b12",
+              "name": "Vitamin B12",
+              "unit": "pg/mL",
+              "reference_text": "200–900",
+              "latest": {
+                "lab_id": 1,
+                "marker_id": 6,
+                "value": 310,
+                "value_text": null,
+                "state": "normal",
+                "state_label": "Normal",
+                "attention": false
+              },
+              "trend": {
+                "count": 1,
+                "direction": null,
+                "sentence": "A trend shows once this marker is in at least 2 of your lab results.",
+                "points": [
+                  {
+                    "lab_id": 1,
+                    "marker_id": 6,
+                    "date": "2026-09-20",
+                    "value": 310,
+                    "state": "normal"
+                  }
+                ]
+              }
+            },
+            {
+              "key": "glucose_fasting",
+              "code": "glucose_fasting",
+              "name": "Fasting glucose",
+              "unit": "mg/dL",
+              "reference_text": "70–100",
+              "latest": {
+                "lab_id": 1,
+                "marker_id": 5,
+                "value": 95,
+                "value_text": null,
+                "state": "normal",
+                "state_label": "Normal",
+                "attention": false
+              },
+              "trend": {
+                "count": 1,
+                "direction": null,
+                "sentence": "A trend shows once this marker is in at least 2 of your lab results.",
+                "points": [
+                  {
+                    "lab_id": 1,
+                    "marker_id": 5,
+                    "date": "2026-09-20",
+                    "value": 95,
+                    "state": "normal"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/labs/1",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Lab result not found",
+        "error_code": "lab_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/labs/1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "51"
+      },
+      "body": {
+        "success": true,
+        "message": "Deleted",
+        "data": {
+          "id": 1
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/labs/1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Lab result not found",
+        "error_code": "lab_not_found"
+      }
+    }
+  ]
+}

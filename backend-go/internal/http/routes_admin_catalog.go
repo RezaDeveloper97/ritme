@@ -7,6 +7,7 @@ import (
 	"github.com/ritme/backend-go/internal/catalog"
 	catalogstore "github.com/ritme/backend-go/internal/catalog/store"
 	"github.com/ritme/backend-go/internal/children"
+	"github.com/ritme/backend-go/internal/labs"
 )
 
 // Content catalog admin API (CB-CORE-03): /api/admin/v1/catalog[/{group}[/{id}]] — see
@@ -16,7 +17,7 @@ func init() {
 	Register("admin_catalog", func(r fiber.Router, d *Deps) {
 		kit := httpadmin.Wire(d.Config.App.Env, d.DB, d.Cache, d.Logger)
 		reader := catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger)
-		catalog.NewAdmin(d.DB, reader, d.Logger).WithSuperGroups(children.Groups...).Routes(func(method, path string, chain httpadmin.Chain) {
+		catalog.NewAdmin(d.DB, reader, d.Logger).WithSuperGroups(append(append([]string{}, children.Groups...), labs.CatalogGroup)...).Routes(func(method, path string, chain httpadmin.Chain) {
 			httpadmin.Handle(r, method, httpadmin.Prefix+path, chain)
 		}, kit)
 	})

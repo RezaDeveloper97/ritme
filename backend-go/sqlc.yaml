@@ -223,3 +223,15 @@ sql:
       go:
         <<: *go
         out: internal/babylog/store
+  - <<: *pkg
+    queries: db/queries/labs
+    gen:
+      go:
+        <<: *go
+        out: internal/labs/store
+  - <<: *pkg
+    queries: db/queries/vitals
+    gen:
+      go:
+        <<: *go
+        out: internal/vitals/store

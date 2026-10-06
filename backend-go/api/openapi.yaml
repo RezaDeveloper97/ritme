@@ -60,6 +60,7 @@ tags:
   - {name: Home, description: "Home page sections, task and challenge toggles"}
   - {name: Notifications, description: In-app notifications}
   - {name: System, description: Liveness and the public upload disk}
+  - {name: Labs, description: "Lab analysis (Go only, bloom B-N6-06): upload a lab sheet (photos / PDF, encrypted at rest), AI extraction as a job, verify / edit / add markers, plain-language interpretation (AI with rules fallback, non-diagnostic), marker catalog, trends across labs, feedback. Upload is Plus (plus.lab_ai) behind the AI gate. Owner only; never logged"}
 paths:
   /api/v1/account:
     delete:
@@ -15617,6 +15618,536 @@ paths:
                   success: {type: boolean}
                   data: {type: array, items: {$ref: "#/components/schemas/TeenParentCard"}}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/labs:
+    get:
+      tags: [Labs]
+      summary: The user's lab results (nbl_Lab_Intro «تحلیل‌های قبلی»)
+      description: |
+        Newest sheet first (sheet date, else upload day; at most 100), with marker and out-of-range counts, plus the
+        upload limits. Go only (bloom B-N6-06).
+      operationId: listLabs
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  data:
+                    type: object
+                    required: [labs, limits]
+                    properties:
+                      labs: {type: array, items: {$ref: "#/components/schemas/LabListItem"}}
+                      limits:
+                        type: object
+                        required: [max_files, max_image_kb, max_pdf_kb, categories]
+                        properties:
+                          max_files: {type: integer}
+                          max_image_kb: {type: integer}
+                          max_pdf_kb: {type: integer}
+                          categories: {type: array, items: {type: string}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    post:
+      tags: [Labs]
+      summary: Upload a lab sheet for AI analysis (Plus)
+      description: |
+        «تحلیل آزمایش» (nbl_Lab_Upload). Multipart: `files` (or `files[]`, 1–5 parts: JPEG / PNG / WebP photos ≤ 5 MB each,
+        PDF ≤ 10 MB each, 20 MB in total; the type is sniffed from the bytes, the name and Content-Type are ignored),
+        `category` (blood | hormone | thyroid | urine | other), optional `title` (≤ 120), `taken_on` (Y-m-d, not in the
+        future) and `fasting` (boolean). Photos are re-encoded (WebP, EXIF / GPS dropped); every page is stored
+        AES-256-GCM encrypted in private storage (LAB_FILE_KEY; production without it answers 503
+        `lab_storage_unavailable`). Gate order (B-N6-05b): per-user throttles (4/minute, 20/hour), Plus `plus.lab_ai`
+        (10 per month; free users 402 before the body is read), consent `ai_lab_analysis` (403), global / per-user AI
+        cost caps, at most 2 AI requests at once, then one Plus use is reserved — given back when this request fails or
+        when the extraction fails for good. At most 10 uploads per user per 24 h (429 `lab_daily_limit`).
+        The extraction runs as a job: 202 with the lab `queued` (the client polls `GET /labs/{id}/status`); on the
+        contract stack (QUEUE_CONNECTION=sync) it has already run (`needs_review` or `failed`).
+      operationId: uploadLab
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [files, category]
+              properties:
+                files: {type: array, maxItems: 5, items: {type: string, format: binary}}
+                category: {type: string, enum: [blood, hormone, thyroid, urine, other]}
+                title: {type: string, maxLength: 120}
+                taken_on: {$ref: "#/components/schemas/Date"}
+                fasting: {type: boolean}
+      responses:
+        '202':
+          description: Uploaded; the analysis runs (or ran) as a job
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LabEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '402': {$ref: "#/components/responses/PlusRequired"}
+        '403': {$ref: "#/components/responses/ConsentRequired"}
+        '422': {$ref: "#/components/responses/LabValidationFailed"}
+        '429':
+          description: |
+            Throttled (`too_many_requests`), the monthly Plus quota spent (`plus_quota_exceeded`), the per-user AI cost cap
+            (`ai_user_budget_exhausted`), another AI request running (`ai_busy`) or the daily upload cap (`lab_daily_limit`).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, enum: [too_many_requests, plus_quota_exceeded, ai_user_budget_exhausted, ai_busy, lab_daily_limit]}
+        '503':
+          description: "`ai_unavailable` / `ai_budget_exhausted` (AI gate), `lab_storage_unavailable` (no LAB_FILE_KEY in production) or `lab_busy` (photo re-encoding saturated, Retry-After: 5)."
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, enum: [ai_unavailable, ai_budget_exhausted, ai_failed, lab_storage_unavailable, lab_busy]}
+  /api/v1/labs/manual:
+    post:
+      tags: [Labs]
+      summary: Save a typed-in lab result (no AI, not Plus)
+      description: |
+        A lab entered by hand: `category`, optional `title`, `taken_on`, `fasting` and `markers` (1–80 items: `name`
+        required, `value` number (Persian digits accepted) or `value_text`, optional `unit`, `ref_low` ≤ `ref_high`,
+        `ref_text`). Saved verified and interpreted at once by the rules (`interpretation.source: rules`): states against
+        the given range (else the catalog's typical range when the units match), red flags, doctor questions.
+      operationId: storeManualLab
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [category, markers]
+              properties:
+                category: {type: string, enum: [blood, hormone, thyroid, urine, other]}
+                title: {type: [string, "null"], maxLength: 120}
+                taken_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                fasting: {type: [boolean, "null"]}
+                markers: {type: array, minItems: 1, maxItems: 80, items: {$ref: "#/components/schemas/LabMarkerInput"}}
+      responses:
+        '201':
+          description: Saved and interpreted
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LabEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/LabValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
+  /api/v1/labs/trends:
+    get:
+      tags: [Labs]
+      summary: Marker trends across the user's labs (nbl_An_Labs)
+      description: |
+        Every marker of the user's verified labs (catalog code, else the printed name) with its latest value and state
+        against that sheet's range, and its values oldest first (only those in the latest unit). A direction (rising |
+        falling | stable, last 3 values, ±5 %) shows from 2 labs. Out-of-range markers first.
+      operationId: labTrends
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  data: {$ref: "#/components/schemas/LabTrends"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/labs/markers:
+    get:
+      tags: [Labs]
+      summary: The marker catalog («افزودن شاخص جاافتاده» picker)
+      description: |
+        Admin-editable catalog (catalog_items group `lab_markers`, CB-CORE-03): name, subtitle, category, unit and the
+        typical adult female range as text (`needs_review` until clinically reviewed; `range_varies` = cycle / age
+        dependent, never used to classify).
+      operationId: labMarkerCatalog
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  data:
+                    type: object
+                    required: [markers]
+                    properties:
+                      markers:
+                        type: array
+                        items:
+                          type: object
+                          required: [code, name, subtitle, category, unit, typical_range, range_varies, needs_review]
+                          properties:
+                            code: {type: string}
+                            name: {type: string}
+                            subtitle: {type: [string, "null"]}
+                            category: {type: [string, "null"]}
+                            unit: {type: [string, "null"]}
+                            typical_range: {type: [string, "null"]}
+                            range_varies: {type: boolean}
+                            needs_review: {type: boolean}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/labs/{id}:
+    get:
+      tags: [Labs]
+      summary: One lab result (nbl_Lab_Verify / nbl_Lab_Result)
+      description: |
+        The lab, its markers in sheet order (state against the sheet's range, `low_confidence` below 0.7), its pages
+        (`url` streams the decrypted file to its owner), the interpretation (summary + red flags, doctor questions and
+        disclaimer derived on read; `stale` while the values changed after it) and the feedback. Another user's lab is
+        a uniform 404.
+      operationId: showLab
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LabId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LabEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LabNotFound"}
+    put:
+      tags: [Labs]
+      summary: Change a lab's type, title, date or fasting flag
+      operationId: updateLab
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LabId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [category]
+              properties:
+                category: {type: string, enum: [blood, hormone, thyroid, urine, other]}
+                title: {type: [string, "null"], maxLength: 120}
+                taken_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                fasting: {type: [boolean, "null"]}
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LabEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LabNotFound"}
+        '422': {$ref: "#/components/responses/LabValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
+    delete:
+      tags: [Labs]
+      summary: Delete a lab with its markers and files
+      description: The rows go first, then the encrypted files («هر زمان می‌توانی تحلیل و فایل را پاک کنی»).
+      operationId: deleteLab
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LabId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  message: {type: string}
+                  data: {type: object, required: [id], properties: {id: {type: integer}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LabNotFound"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
+  /api/v1/labs/{id}/status:
+    get:
+      tags: [Labs]
+      summary: Processing state (nbl_Lab_Processing poll)
+      description: "`stage` queued → reading → extracting → review (verify) → explaining → done | failed, `progress` 0–100."
+      operationId: labStatus
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LabId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  data:
+                    type: object
+                    required: [id, status, stage, progress, marker_count, error_code, error_message, updated_at]
+                    properties:
+                      id: {type: integer}
+                      status: {$ref: "#/components/schemas/LabStatusCode"}
+                      stage: {$ref: "#/components/schemas/LabStage"}
+                      progress: {type: integer, minimum: 0, maximum: 100}
+                      marker_count: {type: integer}
+                      error_code: {type: [string, "null"]}
+                      error_message: {type: [string, "null"]}
+                      updated_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LabNotFound"}
+  /api/v1/labs/{id}/verify:
+    post:
+      tags: [Labs]
+      summary: Confirm the values and prepare the explanation («تأیید و ادامه»)
+      description: |
+        Only for an uploaded lab in `needs_review` (or `ready`, to re-explain after edits) with at least one marker
+        (else 409 `lab_not_reviewable` / 422 `no_markers`). Starts the interpretation job: a plain-language summary by
+        the AI client (context: life mode, age band, approximate cycle phase, medication names; non-diagnostic
+        guardrails) while the consent is in force and the lab has AI interpretations left (3), otherwise — or when the
+        provider fails — a rules summary. Never counts another Plus use. 202 with the lab (`ready` in sync mode).
+      operationId: verifyLab
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LabId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '202':
+          description: Confirmed; the interpretation runs (or ran)
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LabEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LabNotFound"}
+        '409': {$ref: "#/components/responses/LabConflict"}
+        '422': {$ref: "#/components/responses/LabValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
+  /api/v1/labs/{id}/feedback:
+    post:
+      tags: [Labs]
+      summary: «این تحلیل مفید بود؟» 👍 / 👎
+      operationId: labFeedback
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LabId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [helpful]
+              properties:
+                helpful: {type: boolean}
+                note: {type: [string, "null"], maxLength: 500}
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  message: {type: string}
+                  data: {type: object, required: [id, helpful], properties: {id: {type: integer}, helpful: {type: boolean}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LabNotFound"}
+        '422': {$ref: "#/components/responses/LabValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
+  /api/v1/labs/{id}/markers:
+    post:
+      tags: [Labs]
+      summary: Add a marker the extractor missed («افزودن شاخص جاافتاده»)
+      description: |
+        Not while the lab is processing or failed (409 `lab_busy`); at most 80 markers. The name is matched to the
+        catalog. An uploaded lab that was `ready` goes back to `needs_review`; a manual lab is re-interpreted at once.
+      operationId: storeLabMarker
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LabId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/LabMarkerInput"}
+      responses:
+        '201':
+          description: Added; the lab
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LabEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LabNotFound"}
+        '409': {$ref: "#/components/responses/LabConflict"}
+        '422': {$ref: "#/components/responses/LabValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
+  /api/v1/labs/{id}/markers/{mid}:
+    get:
+      tags: [Labs]
+      summary: One marker (nbl_Lab_Marker)
+      description: |
+        The value against its range, what the marker is, related factors and «کی به پزشک مراجعه کنم» for its state
+        (catalog), personal context notes (period length for iron markers, life mode, cycle-dependent ranges), a red
+        flag when beyond a catalog threshold, and the trend across the user's verified labs.
+      operationId: showLabMarker
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LabId"}
+        - {$ref: "#/components/parameters/LabMarkerId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  data: {$ref: "#/components/schemas/LabMarkerDetail"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LabNotFound"}
+    put:
+      tags: [Labs]
+      summary: Correct a marker
+      description: "Same body as adding; the marker's source becomes `edited` (a typed one stays `manual`). Same state rules as adding."
+      operationId: updateLabMarker
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LabId"}
+        - {$ref: "#/components/parameters/LabMarkerId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/LabMarkerInput"}
+      responses:
+        '200':
+          description: Saved; the lab
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LabEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LabNotFound"}
+        '409': {$ref: "#/components/responses/LabConflict"}
+        '422': {$ref: "#/components/responses/LabValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
+    delete:
+      tags: [Labs]
+      summary: Delete a misread marker
+      operationId: deleteLabMarker
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LabId"}
+        - {$ref: "#/components/parameters/LabMarkerId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Deleted; the lab
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LabEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LabNotFound"}
+        '409': {$ref: "#/components/responses/LabConflict"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
+  /api/v1/labs/{id}/files/{fid}:
+    get:
+      tags: [Labs]
+      summary: Download a page of the sheet (owner only)
+      description: |
+        The decrypted page as an attachment (`image/webp` or `application/pdf`) with `Cache-Control: private, no-store`,
+        `X-Content-Type-Options: nosniff` and `Content-Security-Policy: sandbox; default-src 'none'`.
+      operationId: showLabFile
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LabId"}
+        - {$ref: "#/components/parameters/LabFileId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The file
+          content:
+            image/webp: {schema: {type: string, format: binary}}
+            application/pdf: {schema: {type: string, format: binary}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LabNotFound"}
+        '503': {$ref: "#/components/responses/LabStorageUnavailable"}
+    delete:
+      tags: [Labs]
+      summary: Delete one page (the values read from it stay)
+      operationId: deleteLabFile
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LabId"}
+        - {$ref: "#/components/parameters/LabFileId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Deleted; the lab
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LabEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LabNotFound"}
+        '409': {$ref: "#/components/responses/LabConflict"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
 components:
   securitySchemes:
     bearerAuth:
@@ -15625,6 +16156,24 @@ components:
       bearerFormat: JWT
       description: "Passport access token from `POST /api/v1/auth/verify-otp`."
   parameters:
+    LabId:
+      name: id
+      in: path
+      required: true
+      description: Lab result id (the caller's own; anything else is a uniform 404)
+      schema: {type: integer, minimum: 1}
+    LabMarkerId:
+      name: mid
+      in: path
+      required: true
+      description: Marker id of the lab
+      schema: {type: integer, minimum: 1}
+    LabFileId:
+      name: fid
+      in: path
+      required: true
+      description: Page (file) id of the lab
+      schema: {type: integer, minimum: 1}
     ChildId:
       name: id
       in: path
@@ -15663,6 +16212,51 @@ components:
       description: "Overrides `Accept-Language`. Some endpoints clamp to the languages they have content for."
       schema: {type: string}
   responses:
+    LabNotFound:
+      description: "Bloom B-N6-06: the lab, marker or file does not exist or is not the caller's — one uniform answer."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [lab_not_found, marker_not_found, file_not_found]}
+    LabConflict:
+      description: "Bloom B-N6-06: the lab is being processed or failed (`lab_busy`), or cannot be verified now (`lab_not_reviewable`: a manual lab, or not in needs_review / ready)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [lab_busy, lab_not_reviewable]}
+    LabValidationFailed:
+      description: "Bloom B-N6-06: controller-style 422 `{success:false, message, errors}`; or `error_code` `no_markers` / `too_many_markers`."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors: {type: object, additionalProperties: {type: array, items: {type: string}}}
+              error_code: {type: string, enum: [no_markers, too_many_markers]}
+    LabStorageUnavailable:
+      description: "Bloom B-N6-06: lab file storage disabled (production without LAB_FILE_KEY)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: lab_storage_unavailable}
     ChildrenValidationFailed:
       description: "Children validation failed (controller 422 `{success: false, message, errors}`), or `children_limit` (`{success: false, message, error_code}`)."
       content:
@@ -16433,6 +17027,244 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    LabStatusCode:
+      type: string
+      enum: [queued, extracting, needs_review, interpreting, ready, failed]
+    LabStage:
+      type: string
+      enum: [queued, reading, extracting, review, explaining, done, failed]
+    LabState:
+      type: string
+      description: "Value against the range: below by ≤ 10 % of the bound = borderline"
+      enum: [low, borderline_low, normal, borderline_high, high, unknown]
+    LabMarkerInput:
+      type: object
+      required: [name]
+      description: "`value` (number; Persian digits accepted) or `value_text` is required; `ref_low` ≤ `ref_high`."
+      properties:
+        name: {type: string, maxLength: 120}
+        value: {type: [number, string, "null"]}
+        value_text: {type: [string, "null"], maxLength: 32}
+        unit: {type: [string, "null"], maxLength: 24}
+        ref_low: {type: [number, string, "null"]}
+        ref_high: {type: [number, string, "null"]}
+        ref_text: {type: [string, "null"], maxLength: 64}
+    LabMarker:
+      type: object
+      required: [id, code, name, printed_name, subtitle, category, value, value_text, unit, reference, state, state_label, attention, confidence, low_confidence, source, catalog_needs_review]
+      properties:
+        id: {type: integer}
+        code: {type: [string, "null"], description: "catalog code (lab_markers), null = not catalogued"}
+        name: {type: string, description: "catalog name in the request language, else the printed name"}
+        printed_name: {type: string}
+        subtitle: {type: [string, "null"]}
+        category: {type: [string, "null"]}
+        value: {type: [number, "null"]}
+        value_text: {type: [string, "null"]}
+        unit: {type: [string, "null"]}
+        reference:
+          type: object
+          required: [low, high, text, source]
+          properties:
+            low: {type: [number, "null"]}
+            high: {type: [number, "null"]}
+            text: {type: [string, "null"]}
+            source: {type: [string, "null"], enum: [sheet, typical, null]}
+        state: {$ref: "#/components/schemas/LabState"}
+        state_label: {type: string}
+        attention: {type: boolean}
+        confidence: {type: [number, "null"], description: "extractor confidence 0–1; null for typed values"}
+        low_confidence: {type: boolean}
+        source: {type: string, enum: [extracted, edited, manual]}
+        catalog_needs_review: {type: boolean}
+    LabRedFlag:
+      type: object
+      required: [marker_id, code, name, severity, direction, message]
+      properties:
+        marker_id: {type: integer}
+        code: {type: string}
+        name: {type: string}
+        severity: {type: string, enum: [urgent, soon]}
+        direction: {type: string, enum: [low, high]}
+        message: {type: string}
+    LabCounts:
+      type: object
+      required: [total, normal, attention, low, borderline_low, high, borderline_high, unknown]
+      properties:
+        total: {type: integer}
+        normal: {type: integer}
+        attention: {type: integer}
+        low: {type: integer}
+        borderline_low: {type: integer}
+        high: {type: integer}
+        borderline_high: {type: integer}
+        unknown: {type: integer}
+    Lab:
+      type: object
+      required: [id, source, category, title, display_title, taken_on, date, fasting, lab_name, status, stage, progress, error_code, error_message, editable, ai_interpretations_left, counts, low_confidence_count, markers, files, interpretation, feedback, verified_at, interpreted_at, created_at, updated_at]
+      properties:
+        id: {type: integer}
+        source: {type: string, enum: [upload, manual]}
+        category: {type: string, enum: [blood, hormone, thyroid, urine, other]}
+        title: {type: [string, "null"]}
+        display_title: {type: string}
+        taken_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        date: {$ref: "#/components/schemas/Date"}
+        fasting: {type: [boolean, "null"]}
+        lab_name: {type: [string, "null"]}
+        status: {$ref: "#/components/schemas/LabStatusCode"}
+        stage: {$ref: "#/components/schemas/LabStage"}
+        progress: {type: integer}
+        error_code: {type: [string, "null"], enum: [ai_failed, ai_unavailable, ai_budget_exhausted, unreadable, nothing_read, consent_required, invalid_file, internal, null]}
+        error_message: {type: [string, "null"]}
+        editable: {type: boolean}
+        ai_interpretations_left: {type: integer}
+        counts: {$ref: "#/components/schemas/LabCounts"}
+        low_confidence_count: {type: integer}
+        markers: {type: array, items: {$ref: "#/components/schemas/LabMarker"}}
+        files:
+          type: array
+          items:
+            type: object
+            required: [id, page, mime, size_bytes, url]
+            properties:
+              id: {type: integer}
+              page: {type: integer}
+              mime: {type: string, enum: [image/webp, application/pdf]}
+              size_bytes: {type: integer}
+              url: {type: string}
+        interpretation:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [summary, source, locale, generated_at, stale, red_flags, doctor_questions, disclaimer]
+              properties:
+                summary: {type: string}
+                source: {type: string, enum: [ai, rules]}
+                locale: {type: string}
+                generated_at: {$ref: "#/components/schemas/IsoDateTime"}
+                stale: {type: boolean}
+                red_flags: {type: array, items: {$ref: "#/components/schemas/LabRedFlag"}}
+                doctor_questions: {type: array, maxItems: 5, items: {type: string}}
+                disclaimer: {type: string}
+        feedback:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [helpful, note, at]
+              properties:
+                helpful: {type: boolean}
+                note: {type: [string, "null"]}
+                at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        verified_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        interpreted_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        created_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        updated_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+    LabEnvelope:
+      type: object
+      required: [success, data]
+      properties:
+        success: {type: boolean, const: true}
+        message: {type: string}
+        data: {$ref: "#/components/schemas/Lab"}
+    LabListItem:
+      type: object
+      required: [id, source, category, title, display_title, taken_on, date, status, stage, progress, marker_count, attention_count, all_normal, created_at]
+      properties:
+        id: {type: integer}
+        source: {type: string, enum: [upload, manual]}
+        category: {type: string}
+        title: {type: [string, "null"]}
+        display_title: {type: string}
+        taken_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        date: {$ref: "#/components/schemas/Date"}
+        status: {$ref: "#/components/schemas/LabStatusCode"}
+        stage: {$ref: "#/components/schemas/LabStage"}
+        progress: {type: integer}
+        marker_count: {type: integer}
+        attention_count: {type: integer}
+        all_normal: {type: boolean}
+        created_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+    LabTrend:
+      type: object
+      required: [count, direction, sentence, points]
+      properties:
+        count: {type: integer}
+        direction: {type: [string, "null"], enum: [rising, falling, stable, null]}
+        sentence: {type: string}
+        points:
+          type: array
+          items:
+            type: object
+            required: [lab_id, marker_id, date, value, state]
+            properties:
+              lab_id: {type: integer}
+              marker_id: {type: integer}
+              date: {$ref: "#/components/schemas/Date"}
+              value: {type: number}
+              state: {$ref: "#/components/schemas/LabState"}
+    LabTrends:
+      type: object
+      required: [labs_count, first_date, last_date, min_points, markers]
+      properties:
+        labs_count: {type: integer}
+        first_date: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        last_date: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        min_points: {type: integer}
+        markers:
+          type: array
+          items:
+            type: object
+            required: [key, code, name, unit, reference_text, latest, trend]
+            properties:
+              key: {type: string}
+              code: {type: [string, "null"]}
+              name: {type: string}
+              unit: {type: [string, "null"]}
+              reference_text: {type: [string, "null"]}
+              latest:
+                type: object
+                required: [lab_id, marker_id, value, value_text, state, state_label, attention]
+                properties:
+                  lab_id: {type: integer}
+                  marker_id: {type: integer}
+                  value: {type: [number, "null"]}
+                  value_text: {type: [string, "null"]}
+                  state: {$ref: "#/components/schemas/LabState"}
+                  state_label: {type: string}
+                  attention: {type: boolean}
+              trend: {$ref: "#/components/schemas/LabTrend"}
+    LabMarkerDetail:
+      type: object
+      required: [lab, marker, about, factors, see_doctor, context_notes, red_flag, trend, disclaimer]
+      properties:
+        lab:
+          type: object
+          required: [id, display_title, date, status]
+          properties:
+            id: {type: integer}
+            display_title: {type: string}
+            date: {$ref: "#/components/schemas/Date"}
+            status: {$ref: "#/components/schemas/LabStatusCode"}
+        marker: {$ref: "#/components/schemas/LabMarker"}
+        about:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [code, name, subtitle, body, typical_range, needs_review]
+              properties:
+                code: {type: string}
+                name: {type: string}
+                subtitle: {type: [string, "null"]}
+                body: {type: [string, "null"]}
+                typical_range: {type: [string, "null"]}
+                needs_review: {type: boolean}
+        factors: {type: array, items: {type: string}}
+        see_doctor: {type: [string, "null"]}
+        context_notes: {type: array, items: {type: string}}
+        red_flag: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/LabRedFlag"}]}
+        trend: {$ref: "#/components/schemas/LabTrend"}
+        disclaimer: {type: string}
     ChildInput:
       type: object
       properties:

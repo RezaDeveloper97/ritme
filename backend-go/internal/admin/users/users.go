@@ -22,6 +22,7 @@ import (
 	companionstore "github.com/ritme/backend-go/internal/companion/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
+	labfiles "github.com/ritme/backend-go/internal/labs/files"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
@@ -363,6 +364,10 @@ func (h *Handlers) Destroy(c fiber.Ctx) error {
 		return err
 	}
 	profile.RemoveSupportFiles(h.storagePath, shots, h.logger)
+	// B-N6-06: the encrypted lab sheets (their rows went with the user).
+	if err := labfiles.RemoveUser(h.storagePath, id); err != nil {
+		h.logger.ErrorContext(c.Context(), "users: delete: lab files", slog.String("error", err.Error()))
+	}
 	httpadmin.Audit(c, h.logger, "user.delete", "user", id, slog.Int64("revoked_tokens", revoked))
 	return httpadmin.OK(c, jsonx.Obj("id", id, "revoked_tokens", revoked), "User deleted.")
 }

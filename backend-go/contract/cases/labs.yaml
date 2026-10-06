@@ -1,0 +1,206 @@
+# Lab analysis (/api/v1/labs/*, bloom B-N6-06, deviations.md D-61) — Go only: there is no Laravel route, so these
+# goldens were recorded from the Go server with the fake AI provider (APP_ENV=contract → AI_PROVIDER fake) and
+# QUEUE_CONNECTION=sync (the extraction / interpretation jobs run inside the request), then reviewed by hand
+# (new-endpoint skill, step 8). The fixture dump carries the empty lab_* tables and the 26 catalog_items lab_markers
+# rows (goose 00034 / Laravel 2026_10_05_000034), added by hand. Uploads are hand-written multipart bodies: a PDF
+# header followed by the fake's fixture marker (RITME-FAKE:<key>, internal/ai/fake_extract.go). Encryption at rest,
+# photo re-encoding, the async worker / lease recovery, refunds, account deletion and the IDOR matrix are covered by
+# internal/labs tests. `regular` (1004) owns the labs; `no_profile` (1001) is the other user.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: labs
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: labs_anon
+    persona: anon
+    method: GET
+    path: /api/v1/labs
+    status: 401
+  - name: labs_empty
+    doc: No lab yet → empty history with the upload limits
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/labs
+    status: 200
+  - name: catalog
+    doc: The marker catalog (26 seeded markers, needs_review)
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/labs/markers
+    status: 200
+  - name: upload_locked
+    doc: A free user → 402 plus_required (plus.lab_ai) before the body is read
+    locales: [none, en]
+    method: POST
+    path: /api/v1/labs
+    content_type: multipart/form-data; boundary=ritmeB
+    raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"category\"\r\n\r\nblood\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"files\"; filename=\"sheet.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 RITME-FAKE:lab_panel\r\n--ritmeB--\r\n"
+    status: 402
+  - name: upload_consent_required
+    doc: During the trial but without the ai_lab_analysis consent → 403 consent_required
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: POST
+        path: /api/v1/labs
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"category\"\r\n\r\nblood\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"files\"; filename=\"sheet.pdf\"\r\n\r\n%PDF-1.4 RITME-FAKE:lab_panel\r\n--ritmeB--\r\n"
+        status: 403
+  - name: upload_invalid
+    doc: A text file / an unknown category → 422 (the reserved use is given back)
+    locales: [none, fa]
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: PUT
+        path: /api/v1/consents/ai_lab_analysis
+        body: {granted: true, version: 1}
+        status: 200
+      - method: POST
+        path: /api/v1/labs
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"category\"\r\n\r\nblood\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"files\"; filename=\"notes.txt\"\r\n\r\nhello\r\n--ritmeB--\r\n"
+        status: 422
+      - method: POST
+        path: /api/v1/labs
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"category\"\r\n\r\nx-ray\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"files\"; filename=\"sheet.pdf\"\r\n\r\n%PDF-1.4 RITME-FAKE:lab_panel\r\n--ritmeB--\r\n"
+        status: 422
+      - method: GET
+        path: /api/v1/plus/usage
+        status: 200
+  - name: upload_verify_result
+    doc: nbl_Lab_Upload → Processing → Verify (fix FBS, add B12, drop TSH) → Result (fake AI summary, questions) → Marker → feedback → history → delete
+    locales: [none, fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: PUT
+        path: /api/v1/consents/ai_lab_analysis
+        body: {granted: true, version: 1}
+        status: 200
+      - method: POST
+        path: /api/v1/labs
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"category\"\r\n\r\nblood\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"taken_on\"\r\n\r\n2026-09-20\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"fasting\"\r\n\r\n1\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"files\"; filename=\"sheet.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 RITME-FAKE:lab_panel\r\n--ritmeB--\r\n"
+        status: 202
+        capture: {id: data.id, tsh: data.markers.2.id, fbs: data.markers.4.id, ferritin: data.markers.1.id}
+      - method: GET
+        path: "/api/v1/labs/{{id}}/status"
+        status: 200
+      - method: PUT
+        path: "/api/v1/labs/{{id}}/markers/{{fbs}}"
+        body: {name: FBS, value: "۹۵", unit: mg/dL, ref_low: 70, ref_high: 100}
+        status: 200
+      - method: POST
+        path: "/api/v1/labs/{{id}}/markers"
+        body: {name: B12}
+        status: 422
+      - method: POST
+        path: "/api/v1/labs/{{id}}/markers"
+        body: {name: Vitamin B12, value: 310, unit: pg/mL, ref_low: 200, ref_high: 900}
+        status: 201
+      - method: DELETE
+        path: "/api/v1/labs/{{id}}/markers/{{tsh}}"
+        status: 200
+      - method: POST
+        path: "/api/v1/labs/{{id}}/verify"
+        status: 202
+      - method: GET
+        path: "/api/v1/labs/{{id}}/markers/{{ferritin}}"
+        status: 200
+      - method: POST
+        path: "/api/v1/labs/{{id}}/feedback"
+        body: {helpful: true}
+        status: 200
+      - method: GET
+        path: /api/v1/labs
+        status: 200
+      - method: GET
+        path: /api/v1/labs/trends
+        status: 200
+      - method: GET
+        path: "/api/v1/labs/{{id}}"
+        as: no_profile
+        status: 404
+      - method: DELETE
+        path: "/api/v1/labs/{{id}}"
+        status: 200
+      - method: GET
+        path: "/api/v1/labs/{{id}}"
+        status: 404
+  - name: upload_failed
+    doc: The provider fails → the lab is failed (ai_failed), the Plus use is given back, nothing can be verified
+    locales: [none, fa]
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: PUT
+        path: /api/v1/consents/ai_lab_analysis
+        body: {granted: true, version: 1}
+        status: 200
+      - method: POST
+        path: /api/v1/labs
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"category\"\r\n\r\nhormone\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"files\"; filename=\"sheet.pdf\"\r\n\r\n%PDF-1.4 RITME-FAKE:error\r\n--ritmeB--\r\n"
+        status: 202
+        capture: {id: data.id}
+      - method: POST
+        path: "/api/v1/labs/{{id}}/verify"
+        status: 409
+      - method: GET
+        path: /api/v1/plus/usage
+        status: 200
+  - name: manual_and_trends
+    doc: Two typed-in labs (no Plus, rules interpretation) → ferritin falling across labs (nbl_An_Labs), hub card, title edit
+    locales: [none, fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/labs/manual
+        body: {category: blood, taken_on: "2025-02-01", markers: [{name: Ferritin, value: 32, unit: ng/mL, ref_low: 15, ref_high: 150}, {name: TSH, value: 2.1, unit: mIU/L}]}
+        status: 201
+        capture: {first: data.id}
+      - method: POST
+        path: /api/v1/labs/manual
+        body: {category: blood, taken_on: "2026-09-01", markers: [{name: Ferritin, value: 9, unit: ng/mL, ref_low: 15, ref_high: 150}, {name: Hb, value: 6.5, unit: g/dL, ref_low: 12, ref_high: 15.5}]}
+        status: 201
+      - method: GET
+        path: /api/v1/labs/trends
+        status: 200
+      - method: PUT
+        path: "/api/v1/labs/{{first}}"
+        body: {category: blood, title: چکاپ سالانه}
+        status: 200
+      - method: POST
+        path: "/api/v1/labs/{{first}}/verify"
+        status: 409
+  - name: manual_invalid
+    doc: No markers, a missing value, inverted bounds, a future date → 422
+    locales: [none, fa]
+    steps:
+      - method: POST
+        path: /api/v1/labs/manual
+        body: {category: blood, markers: []}
+        status: 422
+      - method: POST
+        path: /api/v1/labs/manual
+        body: {category: blood, markers: [{name: TSH}]}
+        status: 422
+      - method: POST
+        path: /api/v1/labs/manual
+        body: {category: blood, markers: [{name: TSH, value: 2, ref_low: 4, ref_high: 0.4}]}
+        status: 422
+      - method: POST
+        path: /api/v1/labs/manual
+        body: {category: blood, taken_on: "2999-01-01", markers: [{name: TSH, value: 2}]}
+        status: 422
+  - name: missing_lab
+    locales: [none, en]
+    method: GET
+    path: /api/v1/labs/999
+    status: 404

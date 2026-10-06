@@ -46,6 +46,8 @@ type Config struct {
 	Companion Companion
 	// PrivateNotes is the key of the encrypted private notes (CB-LOSS-01 loss path).
 	PrivateNotes PrivateNotes
+	// LabFiles is the key of the encrypted lab-sheet uploads (bloom B-N6-06, internal/labs/files).
+	LabFiles LabFiles
 	// StoragePath is the mounted Laravel storage/ directory (backend-storage volume):
 	// Passport keys, translations, public uploads.
 	StoragePath string
@@ -315,6 +317,23 @@ var devNoteEnvs = map[string]bool{"local": true, "testing": true}
 // Missing reports whether the private notes are unavailable: no key outside a local / testing environment.
 func (p PrivateNotes) Missing(app App) bool { return len(p.Key) == 0 && !devNoteEnvs[app.Env] }
 
+// LabFileKeyLen is the decoded length of LAB_FILE_KEY (AES-256).
+const LabFileKeyLen = 32
+
+// LabFiles holds LAB_FILE_KEY (bloom B-N6-06): the AES-256-GCM key of the uploaded lab sheets stored at rest
+// (STORAGE_PATH/app/private/labs). A secret: base64 of 32 random bytes (openssl rand -base64 32), server .env only.
+type LabFiles struct {
+	// Key is the decoded key; empty → a public development key outside production. In production without a key
+	// lab uploads and file reads answer 503 (fail closed) instead of encrypting with the public key.
+	Key []byte
+	// PreviousKeys (LAB_FILE_KEY_PREVIOUS, comma-separated base64) still open files sealed before a rotation; new
+	// files are always sealed with Key.
+	PreviousKeys [][]byte
+}
+
+// Missing reports whether lab files are unavailable: production without a key.
+func (l LabFiles) Missing(app App) bool { return len(l.Key) == 0 && app.IsProduction() }
+
 // Load reads the process environment.
 func Load() (*Config, error) { return LoadFrom(os.LookupEnv) }
 
@@ -502,6 +521,25 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 		} else {
 			cfg.PrivateNotes.Key = key
 		}
+	}
+	if raw := e.str("LAB_FILE_KEY", ""); raw != "" {
+		key, err := base64.StdEncoding.DecodeString(raw)
+		if err != nil || len(key) != LabFileKeyLen {
+			e.fail("LAB_FILE_KEY: must be the base64 encoding of %d bytes", LabFileKeyLen)
+		} else {
+			cfg.LabFiles.Key = key
+		}
+	}
+	for _, raw := range strings.Split(e.str("LAB_FILE_KEY_PREVIOUS", ""), ",") {
+		if raw = strings.TrimSpace(raw); raw == "" {
+			continue
+		}
+		key, err := base64.StdEncoding.DecodeString(raw)
+		if err != nil || len(key) != LabFileKeyLen {
+			e.fail("LAB_FILE_KEY_PREVIOUS: every entry must be the base64 encoding of %d bytes", LabFileKeyLen)
+			continue
+		}
+		cfg.LabFiles.PreviousKeys = append(cfg.LabFiles.PreviousKeys, key)
 	}
 	for _, raw := range strings.Split(e.str("PRIVATE_NOTE_KEY_PREVIOUS", ""), ",") {
 		if raw = strings.TrimSpace(raw); raw == "" {

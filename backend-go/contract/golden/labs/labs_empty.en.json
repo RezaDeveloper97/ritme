@@ -1,0 +1,36 @@
+{
+  "case": "labs/labs_empty.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/labs",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "labs": [],
+          "limits": {
+            "max_files": 5,
+            "max_image_kb": 5120,
+            "max_pdf_kb": 10240,
+            "categories": [
+              "blood",
+              "hormone",
+              "thyroid",
+              "urine",
+              "other"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

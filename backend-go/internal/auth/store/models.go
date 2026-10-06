@@ -681,6 +681,76 @@ type JobBatch struct {
 	FinishedAt   sql.NullInt32
 }
 
+type LabFile struct {
+	ID        uint64
+	LabID     uint64
+	UserID    uint64
+	Page      uint8
+	Mime      string
+	SizeBytes uint32
+	Path      string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type LabJob struct {
+	ID          uint64
+	LabID       uint64
+	UserID      uint64
+	Kind        string
+	Locale      sql.NullString
+	Status      string
+	Attempts    uint8
+	AvailableAt time.Time
+	LockedUntil sql.NullTime
+	LastError   sql.NullString
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type LabMarker struct {
+	ID         uint64
+	LabID      uint64
+	UserID     uint64
+	Code       sql.NullString
+	Name       string
+	Value      sql.NullString
+	ValueText  sql.NullString
+	Unit       sql.NullString
+	RefLow     sql.NullString
+	RefHigh    sql.NullString
+	RefText    sql.NullString
+	Confidence sql.NullString
+	Source     string
+	SortOrder  uint16
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
+type LabReport struct {
+	ID             uint64
+	UserID         uint64
+	Source         string
+	Category       string
+	Title          sql.NullString
+	TakenOn        civildate.NullDate
+	Fasting        sql.NullBool
+	LabName        sql.NullString
+	Status         string
+	Progress       uint8
+	ErrorCode      sql.NullString
+	QuotaAt        sql.NullTime
+	VerifiedAt     sql.NullTime
+	Interpretation db.NullRawJSON
+	InterpretedAt  sql.NullTime
+	InterpretCount uint8
+	Feedback       sql.NullInt16
+	FeedbackNote   sql.NullString
+	FeedbackAt     sql.NullTime
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+}
+
 type Language struct {
 	ID          uint64
 	Code        string
@@ -1527,4 +1597,35 @@ type UserTaskCompletion struct {
 	CompletedAt    sql.NullTime
 	CreatedAt      sql.NullTime
 	UpdatedAt      sql.NullTime
+}
+
+type VitalPlanItem struct {
+	ID        uint64
+	UserID    uint64
+	Type      string
+	Slot      string
+	Days      uint8
+	RemindAt  sql.NullString
+	SortOrder uint8
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type VitalReading struct {
+	ID          uint64
+	UserID      uint64
+	Type        string
+	MeasuredAt  time.Time
+	Systolic    sql.NullInt16
+	Diastolic   sql.NullInt16
+	Pulse       sql.NullInt16
+	Arm         sql.NullString
+	Position    sql.NullString
+	GlucoseMgDl sql.NullString
+	GlucoseUnit sql.NullString
+	Context     sql.NullString
+	Method      sql.NullString
+	Note        sql.NullString
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
 }

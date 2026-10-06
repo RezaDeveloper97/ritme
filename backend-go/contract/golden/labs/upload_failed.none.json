@@ -1,0 +1,308 @@
+{
+  "case": "labs/upload_failed.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/trial/start",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "دوره رایگان ریتمی پلاس شروع شد",
+        "data": {
+          "tier": "trial",
+          "is_plus": true,
+          "subscription": null,
+          "trial": {
+            "started_at": "2026-09-23T10:00:00+03:30",
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "is_active": true,
+            "days_left": 7
+          },
+          "trial_available": false,
+          "period_start": "2026-09-01",
+          "resets_at": "2026-10-01T00:00:00+03:30",
+          "entitlements": [
+            {
+              "key": "plus.deep_analysis",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.lab_ai",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 10,
+              "used": 0,
+              "remaining": 10
+            },
+            {
+              "key": "plus.assistant_unlimited",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.pdf_share",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.visit_discount",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.voice_log",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            }
+          ],
+          "trial_offer": {
+            "percent": 50,
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "seconds_left": 604800,
+            "days_left": 7,
+            "countdown": {
+              "days": 7,
+              "hours": 0,
+              "minutes": 0
+            },
+            "currency": "IRR",
+            "plan": {
+              "id": 2,
+              "code": "plus_3m",
+              "title": "۳ ماهه",
+              "badge": "محبوب‌ترین",
+              "duration_months": 3,
+              "price": 2370000,
+              "monthly_price": 790000,
+              "savings_percent": 20,
+              "is_highlighted": true,
+              "offer_price": 1185000,
+              "offer_monthly_price": 395000
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/consents/ai_lab_analysis",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "granted": true,
+          "version": 1
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "رضایتت ثبت شد",
+        "data": {
+          "consent": {
+            "code": "ai_lab_analysis",
+            "version": 1,
+            "title": "تحلیل آزمایش با هوش مصنوعی",
+            "body": "برای خواندن و توضیح برگه آزمایش، تصویر یا PDF آن به یک سرویس هوش مصنوعی فرستاده می‌شود.",
+            "points": [
+              "فقط فایل آزمایش و اطلاعات لازم برای توضیح (سن، حالت زندگی، داروها) فرستاده می‌شود؛ نام، شماره موبایل و کد ملی از متن‌ها حذف می‌شود.",
+              "اگر نام یا اطلاعات شخصی روی برگه چاپ شده، بهتر است پیش از ارسال آن قسمت را بپوشانی.",
+              "سرویس‌دهنده اجازه ندارد این داده‌ها را برای آموزش مدل خود استفاده کند.",
+              "نتیجه جایگزین نظر پزشک نیست.",
+              "هر وقت بخواهی می‌توانی این رضایت را از «حریم خصوصی» پس بگیری."
+            ],
+            "granted": true,
+            "accepted_version": 1,
+            "needs_consent": false,
+            "reason": null,
+            "granted_at": "2026-09-23T10:00:00+03:30",
+            "revoked_at": null
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/labs",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "raw_body": "--ritmeB\r\nContent-Disposition: form-data; name=\"category\"\r\n\r\nhormone\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"files\"; filename=\"sheet.pdf\"\r\n\r\n%PDF-1.4 RITME-FAKE:error\r\n--ritmeB--\r\n"
+      },
+      "status": 202,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "4",
+        "x-ratelimit-remaining": "3"
+      },
+      "body": {
+        "success": true,
+        "message": "آزمایش بارگذاری شد و در حال تحلیل است",
+        "data": {
+          "id": 1,
+          "source": "upload",
+          "category": "hormone",
+          "title": null,
+          "display_title": "آزمایش هورمون",
+          "taken_on": null,
+          "date": "2026-09-23",
+          "fasting": null,
+          "lab_name": null,
+          "status": "failed",
+          "stage": "failed",
+          "progress": 0,
+          "error_code": "ai_failed",
+          "error_message": "تحلیل برگه انجام نشد؛ دوباره بارگذاری کن.",
+          "editable": false,
+          "ai_interpretations_left": 3,
+          "counts": {
+            "total": 0,
+            "normal": 0,
+            "attention": 0,
+            "low": 0,
+            "borderline_low": 0,
+            "high": 0,
+            "borderline_high": 0,
+            "unknown": 0
+          },
+          "low_confidence_count": 0,
+          "markers": [],
+          "files": [
+            {
+              "id": 1,
+              "page": 1,
+              "mime": "application/pdf",
+              "size_bytes": 25,
+              "url": "/api/v1/labs/1/files/1"
+            }
+          ],
+          "interpretation": null,
+          "feedback": null,
+          "verified_at": null,
+          "interpreted_at": null,
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "updated_at": "2026-09-23T10:00:00+03:30"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/labs/1/verify",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 409,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": false,
+        "message": "این آزمایش الان قابل تأیید نیست",
+        "error_code": "lab_not_reviewable"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/plus/usage",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "tier": "trial",
+          "period_start": "2026-09-01",
+          "resets_at": "2026-10-01T00:00:00+03:30",
+          "features": [
+            {
+              "key": "plus.deep_analysis",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.lab_ai",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 10,
+              "used": 0,
+              "remaining": 10
+            },
+            {
+              "key": "plus.assistant_unlimited",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.pdf_share",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.visit_discount",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.voice_log",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

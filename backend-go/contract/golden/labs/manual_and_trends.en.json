@@ -1,0 +1,547 @@
+{
+  "case": "labs/manual_and_trends.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/labs/manual",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "category": "blood",
+          "taken_on": "2025-02-01",
+          "markers": [
+            {
+              "name": "Ferritin",
+              "value": 32,
+              "unit": "ng/mL",
+              "ref_low": 15,
+              "ref_high": 150
+            },
+            {
+              "name": "TSH",
+              "value": 2.1,
+              "unit": "mIU/L"
+            }
+          ]
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "id": 1,
+          "source": "manual",
+          "category": "blood",
+          "title": null,
+          "display_title": "Blood test",
+          "taken_on": "2025-02-01",
+          "date": "2025-02-01",
+          "fasting": null,
+          "lab_name": null,
+          "status": "ready",
+          "stage": "done",
+          "progress": 100,
+          "error_code": null,
+          "error_message": null,
+          "editable": true,
+          "ai_interpretations_left": 0,
+          "counts": {
+            "total": 2,
+            "normal": 2,
+            "attention": 0,
+            "low": 0,
+            "borderline_low": 0,
+            "high": 0,
+            "borderline_high": 0,
+            "unknown": 0
+          },
+          "low_confidence_count": 0,
+          "markers": [
+            {
+              "id": 1,
+              "code": "ferritin",
+              "name": "Ferritin",
+              "printed_name": "Ferritin",
+              "subtitle": "Body iron stores",
+              "category": "iron",
+              "value": 32,
+              "value_text": null,
+              "unit": "ng/mL",
+              "reference": {
+                "low": 15,
+                "high": 150,
+                "text": "15–150",
+                "source": "sheet"
+              },
+              "state": "normal",
+              "state_label": "Normal",
+              "attention": false,
+              "confidence": null,
+              "low_confidence": false,
+              "source": "manual",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 2,
+              "code": "tsh",
+              "name": "TSH",
+              "printed_name": "TSH",
+              "subtitle": "Thyroid regulator",
+              "category": "thyroid",
+              "value": 2.1,
+              "value_text": null,
+              "unit": "mIU/L",
+              "reference": {
+                "low": 0.4,
+                "high": 4,
+                "text": "0.4–4.0",
+                "source": "typical"
+              },
+              "state": "normal",
+              "state_label": "Normal",
+              "attention": false,
+              "confidence": null,
+              "low_confidence": false,
+              "source": "manual",
+              "catalog_needs_review": true
+            }
+          ],
+          "files": [],
+          "interpretation": {
+            "summary": "All 2 markers are within the reference range printed on your lab sheet. This is general information, not a diagnosis; go over the results with your doctor.",
+            "source": "rules",
+            "locale": "en",
+            "generated_at": "2026-09-23T10:00:00+03:30",
+            "stale": false,
+            "red_flags": [],
+            "doctor_questions": [
+              "How often should I repeat this test?"
+            ],
+            "disclaimer": "This explanation is automatic and for general information; it is not a diagnosis or treatment. The final interpretation is your doctor's."
+          },
+          "feedback": null,
+          "verified_at": "2026-09-23T10:00:00+03:30",
+          "interpreted_at": "2026-09-23T10:00:00+03:30",
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "updated_at": "2026-09-23T10:00:00+03:30"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/labs/manual",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "category": "blood",
+          "taken_on": "2026-09-01",
+          "markers": [
+            {
+              "name": "Ferritin",
+              "value": 9,
+              "unit": "ng/mL",
+              "ref_low": 15,
+              "ref_high": 150
+            },
+            {
+              "name": "Hb",
+              "value": 6.5,
+              "unit": "g/dL",
+              "ref_low": 12,
+              "ref_high": 15.5
+            }
+          ]
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "id": 2,
+          "source": "manual",
+          "category": "blood",
+          "title": null,
+          "display_title": "Blood test",
+          "taken_on": "2026-09-01",
+          "date": "2026-09-01",
+          "fasting": null,
+          "lab_name": null,
+          "status": "ready",
+          "stage": "done",
+          "progress": 100,
+          "error_code": null,
+          "error_message": null,
+          "editable": true,
+          "ai_interpretations_left": 0,
+          "counts": {
+            "total": 2,
+            "normal": 0,
+            "attention": 2,
+            "low": 2,
+            "borderline_low": 0,
+            "high": 0,
+            "borderline_high": 0,
+            "unknown": 0
+          },
+          "low_confidence_count": 0,
+          "markers": [
+            {
+              "id": 3,
+              "code": "ferritin",
+              "name": "Ferritin",
+              "printed_name": "Ferritin",
+              "subtitle": "Body iron stores",
+              "category": "iron",
+              "value": 9,
+              "value_text": null,
+              "unit": "ng/mL",
+              "reference": {
+                "low": 15,
+                "high": 150,
+                "text": "15–150",
+                "source": "sheet"
+              },
+              "state": "low",
+              "state_label": "Low",
+              "attention": true,
+              "confidence": null,
+              "low_confidence": false,
+              "source": "manual",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 4,
+              "code": "hemoglobin",
+              "name": "Hemoglobin",
+              "printed_name": "Hb",
+              "subtitle": "Oxygen carrier in blood",
+              "category": "cbc",
+              "value": 6.5,
+              "value_text": null,
+              "unit": "g/dL",
+              "reference": {
+                "low": 12,
+                "high": 15.5,
+                "text": "12–15.5",
+                "source": "sheet"
+              },
+              "state": "low",
+              "state_label": "Low",
+              "attention": true,
+              "confidence": null,
+              "low_confidence": false,
+              "source": "manual",
+              "catalog_needs_review": true
+            }
+          ],
+          "files": [],
+          "interpretation": {
+            "summary": "2 values are outside the reference range on your sheet: Ferritin (Low), Hemoglobin (Low). This is general information, not a diagnosis; go over the results with your doctor.",
+            "source": "rules",
+            "locale": "en",
+            "generated_at": "2026-09-23T10:00:00+03:30",
+            "stale": false,
+            "red_flags": [
+              {
+                "marker_id": 4,
+                "code": "hemoglobin",
+                "name": "Hemoglobin",
+                "severity": "urgent",
+                "direction": "low",
+                "message": "Hemoglobin is far below the usual range; contact a doctor today."
+              }
+            ],
+            "doctor_questions": [
+              "Should I take an iron supplement for low iron stores? How much and for how long?",
+              "When should I repeat the test?",
+              "Do I have anaemia, and what is causing it?"
+            ],
+            "disclaimer": "This explanation is automatic and for general information; it is not a diagnosis or treatment. The final interpretation is your doctor's."
+          },
+          "feedback": null,
+          "verified_at": "2026-09-23T10:00:00+03:30",
+          "interpreted_at": "2026-09-23T10:00:00+03:30",
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "updated_at": "2026-09-23T10:00:00+03:30"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/labs/trends",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "labs_count": 2,
+          "first_date": "2025-02-01",
+          "last_date": "2026-09-01",
+          "min_points": 2,
+          "markers": [
+            {
+              "key": "ferritin",
+              "code": "ferritin",
+              "name": "Ferritin",
+              "unit": "ng/mL",
+              "reference_text": "15–150",
+              "latest": {
+                "lab_id": 2,
+                "marker_id": 3,
+                "value": 9,
+                "value_text": null,
+                "state": "low",
+                "state_label": "Low",
+                "attention": true
+              },
+              "trend": {
+                "count": 2,
+                "direction": "falling",
+                "sentence": "It has been falling over your last 2 tests.",
+                "points": [
+                  {
+                    "lab_id": 1,
+                    "marker_id": 1,
+                    "date": "2025-02-01",
+                    "value": 32,
+                    "state": "normal"
+                  },
+                  {
+                    "lab_id": 2,
+                    "marker_id": 3,
+                    "date": "2026-09-01",
+                    "value": 9,
+                    "state": "low"
+                  }
+                ]
+              }
+            },
+            {
+              "key": "hemoglobin",
+              "code": "hemoglobin",
+              "name": "Hemoglobin",
+              "unit": "g/dL",
+              "reference_text": "12–15.5",
+              "latest": {
+                "lab_id": 2,
+                "marker_id": 4,
+                "value": 6.5,
+                "value_text": null,
+                "state": "low",
+                "state_label": "Low",
+                "attention": true
+              },
+              "trend": {
+                "count": 1,
+                "direction": null,
+                "sentence": "A trend shows once this marker is in at least 2 of your lab results.",
+                "points": [
+                  {
+                    "lab_id": 2,
+                    "marker_id": 4,
+                    "date": "2026-09-01",
+                    "value": 6.5,
+                    "state": "low"
+                  }
+                ]
+              }
+            },
+            {
+              "key": "tsh",
+              "code": "tsh",
+              "name": "TSH",
+              "unit": "mIU/L",
+              "reference_text": "0.4–4.0",
+              "latest": {
+                "lab_id": 1,
+                "marker_id": 2,
+                "value": 2.1,
+                "value_text": null,
+                "state": "normal",
+                "state_label": "Normal",
+                "attention": false
+              },
+              "trend": {
+                "count": 1,
+                "direction": null,
+                "sentence": "A trend shows once this marker is in at least 2 of your lab results.",
+                "points": [
+                  {
+                    "lab_id": 1,
+                    "marker_id": 2,
+                    "date": "2025-02-01",
+                    "value": 2.1,
+                    "state": "normal"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/labs/1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "category": "blood",
+          "title": "چکاپ سالانه"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "id": 1,
+          "source": "manual",
+          "category": "blood",
+          "title": "چکاپ سالانه",
+          "display_title": "چکاپ سالانه",
+          "taken_on": null,
+          "date": "2026-09-23",
+          "fasting": null,
+          "lab_name": null,
+          "status": "ready",
+          "stage": "done",
+          "progress": 100,
+          "error_code": null,
+          "error_message": null,
+          "editable": true,
+          "ai_interpretations_left": 0,
+          "counts": {
+            "total": 2,
+            "normal": 2,
+            "attention": 0,
+            "low": 0,
+            "borderline_low": 0,
+            "high": 0,
+            "borderline_high": 0,
+            "unknown": 0
+          },
+          "low_confidence_count": 0,
+          "markers": [
+            {
+              "id": 1,
+              "code": "ferritin",
+              "name": "Ferritin",
+              "printed_name": "Ferritin",
+              "subtitle": "Body iron stores",
+              "category": "iron",
+              "value": 32,
+              "value_text": null,
+              "unit": "ng/mL",
+              "reference": {
+                "low": 15,
+                "high": 150,
+                "text": "15–150",
+                "source": "sheet"
+              },
+              "state": "normal",
+              "state_label": "Normal",
+              "attention": false,
+              "confidence": null,
+              "low_confidence": false,
+              "source": "manual",
+              "catalog_needs_review": true
+            },
+            {
+              "id": 2,
+              "code": "tsh",
+              "name": "TSH",
+              "printed_name": "TSH",
+              "subtitle": "Thyroid regulator",
+              "category": "thyroid",
+              "value": 2.1,
+              "value_text": null,
+              "unit": "mIU/L",
+              "reference": {
+                "low": 0.4,
+                "high": 4,
+                "text": "0.4–4.0",
+                "source": "typical"
+              },
+              "state": "normal",
+              "state_label": "Normal",
+              "attention": false,
+              "confidence": null,
+              "low_confidence": false,
+              "source": "manual",
+              "catalog_needs_review": true
+            }
+          ],
+          "files": [],
+          "interpretation": {
+            "summary": "All 2 markers are within the reference range printed on your lab sheet. This is general information, not a diagnosis; go over the results with your doctor.",
+            "source": "rules",
+            "locale": "en",
+            "generated_at": "2026-09-23T10:00:00+03:30",
+            "stale": false,
+            "red_flags": [],
+            "doctor_questions": [
+              "How often should I repeat this test?"
+            ],
+            "disclaimer": "This explanation is automatic and for general information; it is not a diagnosis or treatment. The final interpretation is your doctor's."
+          },
+          "feedback": null,
+          "verified_at": "2026-09-23T10:00:00+03:30",
+          "interpreted_at": "2026-09-23T10:00:00+03:30",
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "updated_at": "2026-09-23T10:00:00+03:30"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/labs/1/verify",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 409,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": false,
+        "message": "This lab result cannot be confirmed right now",
+        "error_code": "lab_not_reviewable"
+      }
+    }
+  ]
+}

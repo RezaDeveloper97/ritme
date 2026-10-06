@@ -1,0 +1,22 @@
+{
+  "case": "labs/missing_lab.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/labs/999",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "آزمایش پیدا نشد",
+        "error_code": "lab_not_found"
+      }
+    }
+  ]
+}

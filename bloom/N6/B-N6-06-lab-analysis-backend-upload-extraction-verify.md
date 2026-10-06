@@ -3,7 +3,7 @@ id: B-N6-06
 title: Lab analysis backend — upload, extraction, verify, interpretation, trends
 milestone: N6
 type: backend
-status: todo
+status: done
 depends_on: [B-N6-05,B-N6-05b]
 parallel_group: N6-F
 touches: [backend-go/internal/labs,backend-go/db,backend-go/api,backend-go/seeds]

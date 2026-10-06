@@ -31,6 +31,7 @@ type Handlers struct {
 	bundles   *i18n.TranslationStore
 	languages *i18n.Registry
 	clock     clock.Clock
+	labs      LabsHub
 }
 
 // NewHandlers wires the handlers; base is the fallback clock (clock.Middleware's request clock wins).
@@ -154,9 +155,41 @@ func withRange(r Range, body *jsonx.OrderedMap) *jsonx.OrderedMap {
 	return out
 }
 
+// LabsHub fills the hub's `labs` card (bloom B-N6-06, internal/labs.Service.HubLabs): ready when the user has a
+// verified lab; data = counts, date span and the highlighted marker's last values.
+type LabsHub interface {
+	HubLabs(ctx context.Context, userID uint64, locale, defaultLocale string) (bool, any, error)
+}
+
+// WithLabs wires the labs card (nil = the card stays empty, as before B-N6-06).
+func (h *Handlers) WithLabs(l LabsHub) *Handlers {
+	h.labs = l
+	return h
+}
+
 // Summary is GET /analysis/summary: the hub (free users get every free card; Plus cards are locked).
 func (h *Handlers) Summary(c fiber.Ctx) error {
-	return h.report(c, func(in *Input) *jsonx.OrderedMap { return BuildSummary(in).JSON(in.Copy) })
+	key, err := rangeQuery(c)
+	if err != nil {
+		return err
+	}
+	req, err := h.load(c, func(today civildate.Date) Range { return NewRange(key, today) }, lookback, false)
+	if err != nil {
+		return err
+	}
+	body := BuildSummary(req.in).JSON(req.in.Copy)
+	if h.labs != nil && req.in.DeepAnalysis {
+		ready, data, err := h.labs.HubLabs(c, req.userID, i18n.Locale(c), h.languages.DefaultCode(c.Context()))
+		if err != nil {
+			return err
+		}
+		if sections, ok := body.Get("sections"); ok {
+			if m, ok := sections.(*jsonx.OrderedMap); ok {
+				m.Set("labs", plusSection(true, func() (bool, any) { return ready, data }).JSON())
+			}
+		}
+	}
+	return httpx.OK(c, withRange(req.in.Range, body))
 }
 
 // Cycle is GET /analysis/cycle.

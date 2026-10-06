@@ -1,0 +1,110 @@
+{
+    "digits": "0123456789",
+    "messages": {
+        "validation_failed": "Validation failed",
+        "not_found": "Lab result not found",
+        "marker_not_found": "Marker not found",
+        "file_not_found": "File not found",
+        "busy": "This lab result is being processed; try again in a moment",
+        "not_reviewable": "This lab result cannot be confirmed right now",
+        "no_markers": "At least one marker is needed",
+        "too_many_markers": "This lab result already has the maximum number of markers",
+        "storage_unavailable": "Lab file storage is not available right now",
+        "daily_limit": "You reached today's upload limit; try again tomorrow",
+        "uploaded": "Lab sheet uploaded and being analysed",
+        "saved": "Saved",
+        "deleted": "Deleted",
+        "verified": "Values confirmed; preparing the explanation",
+        "feedback_saved": "Thanks for your feedback"
+    },
+    "validation": {
+        "files_required": "Add at least one photo or PDF of the lab sheet.",
+        "file_type": "Only photos (JPEG, PNG, WebP) or PDF files are accepted.",
+        "image_too_large": "Each photo can be at most 5 MB.",
+        "pdf_too_large": "Each PDF can be at most 10 MB.",
+        "too_many_files": "At most 5 pages per upload.",
+        "upload_too_large": "The files are too large in total.",
+        "image_unreadable": "This photo could not be read; choose another one.",
+        "future_date": "The test date cannot be in the future.",
+        "value_required": "A numeric or text result is required.",
+        "ref_order": "The lower bound of the reference range must be below the upper bound.",
+        "markers_required": "Enter at least one marker."
+    },
+    "attributes": {
+        "category": "test type",
+        "title": "title",
+        "taken_on": "test date",
+        "fasting": "fasting",
+        "files": "files",
+        "markers": "markers",
+        "name": "marker name",
+        "value": "value",
+        "value_text": "text result",
+        "unit": "unit",
+        "ref_low": "reference low",
+        "ref_high": "reference high",
+        "ref_text": "reference range",
+        "helpful": "helpful",
+        "note": "note"
+    },
+    "states": {
+        "low": "Low",
+        "borderline_low": "Borderline low",
+        "normal": "Normal",
+        "borderline_high": "Borderline high",
+        "high": "High",
+        "unknown": "No range"
+    },
+    "categories": {
+        "blood": "Blood test",
+        "hormone": "Hormone test",
+        "thyroid": "Thyroid test",
+        "urine": "Urine test",
+        "other": "Lab test"
+    },
+    "summary": {
+        "empty": "No markers to analyse yet.",
+        "no_ranges": "No reference range was found on the sheet for these values, so they were not compared.",
+        "all_normal": "All :count markers are within the reference range printed on your lab sheet.",
+        "attention": ":count values are outside the reference range on your sheet: :list.",
+        "item": ":name (:state)",
+        "separator": ", ",
+        "doctor": "This is general information, not a diagnosis; go over the results with your doctor."
+    },
+    "questions": {
+        "repeat": "When should I repeat the test?",
+        "routine": "How often should I repeat this test?"
+    },
+    "red_flags": {
+        "urgent_low": ":name is far below the usual range; contact a doctor today.",
+        "urgent_high": ":name is far above the usual range; contact a doctor today.",
+        "soon_low": ":name is markedly low; see a doctor soon.",
+        "soon_high": ":name is markedly high; see a doctor soon."
+    },
+    "trend": {
+        "rising": "It has been rising over your last :count tests.",
+        "falling": "It has been falling over your last :count tests.",
+        "stable": "It has stayed about the same over your last :count tests.",
+        "single": "A trend shows once this marker is in at least 2 of your lab results."
+    },
+    "context": {
+        "period_days": "Your periods are logged as :days days long.",
+        "mode_ttc": "As you are trying to conceive, go over the result with your doctor soon.",
+        "mode_pregnancy": "Reference ranges differ in pregnancy; go over the result with your doctor.",
+        "mode_postpartum": "Some values change after giving birth; go over the result with your doctor.",
+        "mode_menopause": "Some ranges differ in menopause; go over the result with your doctor.",
+        "range_varies": "This marker depends on the cycle day or age; it is read against the range on the same sheet and the cycle day of the test."
+    },
+    "errors": {
+        "ai_failed": "The sheet could not be analysed; please upload it again.",
+        "ai_unavailable": "The analysis service is not available right now.",
+        "ai_budget_exhausted": "The analysis service reached today's limit; try again later.",
+        "unreadable": "The lab file could not be read; please upload it again.",
+        "nothing_read": "No values could be read; take a clearer photo with every column visible.",
+        "consent_required": "Your consent to send the data is needed for the analysis.",
+        "invalid_file": "This file cannot be analysed.",
+        "internal": "Something went wrong; please try again."
+    },
+    "disclaimer": "This analysis is made by AI for general information; it is not a diagnosis or treatment. The final interpretation is your doctor's.",
+    "disclaimer_rules": "This explanation is automatic and for general information; it is not a diagnosis or treatment. The final interpretation is your doctor's."
+}
