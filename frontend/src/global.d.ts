@@ -23,6 +23,7 @@ import type enLogCustomize from '../messages/en/log-customize.json';
 import type enLogSheet from '../messages/en/log-sheet.json';
 import type enVoiceLog from '../messages/en/voice-log.json';
 import type enVitals from '../messages/en/vitals.json'; // B-N6-02
+import type enTodo from '../messages/en/todo.json'; // B-N6-08
 import type enLogTaxonomy from '../messages/en/log-taxonomy.json';
 import type enHealthRecord from '../messages/en/health-record.json';
 import type enRecordExport from '../messages/en/record-export.json';
@@ -103,6 +104,7 @@ type Messages = {
   logSheet: typeof enLogSheet;
   voiceLog: typeof enVoiceLog; // B-N3-05 features/voice-log
   vitals: typeof enVitals; // B-N6-02 entities/vital, features/add-vital, screens/vitals-*
+  todo: typeof enTodo; // B-N6-08 entities/todo, screens/todo*
   logTaxonomy: typeof enLogTaxonomy;
   teen: typeof enTeen;
   welcome: typeof enWelcome;

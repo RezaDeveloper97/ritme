@@ -3,7 +3,7 @@ id: B-N6-08
 title: To-do list with categories, shopping list and cycle suggestions
 milestone: N6
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N5-11]
 parallel_group: N6-H
 touches: [backend-go/internal/todo,backend-go/db,backend-go/api,frontend/src/screens/todo*,frontend/src/entities/todo]

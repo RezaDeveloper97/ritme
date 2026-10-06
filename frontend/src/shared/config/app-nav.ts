@@ -24,6 +24,7 @@ export const NAV_ROOT_PATHS: readonly string[] = [
   '/ivf', // CB-IVF-02: IVF «امروز» (nbl_IVF_Home, TTC + «IVF/IUI»)
   '/ivf/meds', // CB-IVF-03: IVF stage tab «درمان» (nbl_IVF_Meds)
   '/vitals', // B-N6-02: «علائم حیاتی» hub (nbl_Vitals_Hub, خدمات tab)
+  '/todo', // B-N6-08: «کارهای من» (nbl_Todo_Home, من tab)
   // Transitional (B-N1-04): these screens have no back button yet, so hiding
   // the nav would strand the user. Their restyle tasks add a ScreenHeader and
   // drop them from this list: /log (B-N3-03),

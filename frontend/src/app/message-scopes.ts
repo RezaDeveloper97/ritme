@@ -38,6 +38,7 @@ export const SHELL_NAMESPACES = [
   'pwa',
   'reminders',
   'labConsent', // B-N6-07: `?sheet=lab-consent` (screens/lab-consent; the consent text itself comes from the API)
+  'todo', // B-N6-08: `?sheet=todo-add` (screens/todo-add)
 ] as const satisfies readonly MessageNamespace[];
 
 // B-N2-02: every onboarding route mounts the one onboarding-flow screen slice
@@ -151,6 +152,8 @@ export const ROUTE_NAMESPACES = {
   vitals: ['common', 'nav', 'vitals'], // B-N6-02 /vitals (Vitals_Hub; plan editor sheet; bottom nav)
   vitalsAdd: ['common', 'vitals'], // B-N6-02 /vitals/{bp,glucose,heart-rate}/new (features/add-vital; CalendarPicker = common)
   vitalsReport: ['common', 'vitals'], // B-N6-02 /vitals/{bp,glucose,heart-rate} reports
+  todo: ['common', 'nav', 'todo'], // B-N6-08 /todo (Todo_Home / Todo_Empty; bottom nav)
+  todoList: ['common', 'todo'], // B-N6-08 /todo/lists/[id] (Todo_List; CalendarPicker of the add sheet = common)
 } as const satisfies Record<string, readonly MessageNamespace[]>;
 
 export type MessageRoute = keyof typeof ROUTE_NAMESPACES;

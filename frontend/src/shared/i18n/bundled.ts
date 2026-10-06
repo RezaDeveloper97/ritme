@@ -25,6 +25,7 @@ import enLogCustomize from '../../../messages/en/log-customize.json';
 import enLogSheet from '../../../messages/en/log-sheet.json';
 import enVoiceLog from '../../../messages/en/voice-log.json';
 import enVitals from '../../../messages/en/vitals.json'; // B-N6-02
+import enTodo from '../../../messages/en/todo.json'; // B-N6-08
 import enLogTaxonomy from '../../../messages/en/log-taxonomy.json';
 import enHealthRecord from '../../../messages/en/health-record.json';
 import enRecordExport from '../../../messages/en/record-export.json';
@@ -79,6 +80,7 @@ import faLogCustomize from '../../../messages/fa/log-customize.json';
 import faLogSheet from '../../../messages/fa/log-sheet.json';
 import faVoiceLog from '../../../messages/fa/voice-log.json';
 import faVitals from '../../../messages/fa/vitals.json'; // B-N6-02
+import faTodo from '../../../messages/fa/todo.json'; // B-N6-08
 import faLogTaxonomy from '../../../messages/fa/log-taxonomy.json';
 import faHealthRecord from '../../../messages/fa/health-record.json';
 import faRecordExport from '../../../messages/fa/record-export.json';
@@ -192,6 +194,7 @@ const bundled = {
     logSheet: faLogSheet,
     voiceLog: faVoiceLog,
     vitals: faVitals,
+    todo: faTodo, // B-N6-08 /todo
     logTaxonomy: faLogTaxonomy,
     teen: faTeen,
     welcome: faWelcome,
@@ -248,6 +251,7 @@ const bundled = {
     logSheet: enLogSheet,
     voiceLog: enVoiceLog,
     vitals: enVitals,
+    todo: enTodo, // B-N6-08 /todo
     logTaxonomy: enLogTaxonomy,
     teen: enTeen,
     welcome: enWelcome,

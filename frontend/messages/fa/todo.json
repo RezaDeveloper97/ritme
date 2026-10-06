@@ -10,7 +10,7 @@
   },
   "title": "کارهای من",
   "progress": "{done} از {total} کار انجام شده",
-  "progressShort": "{done}/{total}",
+  "progressShort": "{done, number}/{total, number}",
   "filters": {
     "label": "دسته‌ها",
     "all": "همه"
@@ -31,7 +31,6 @@
   "meta": {
     "noDate": "بدون تاریخ",
     "items": "{count, number} قلم",
-    "itemsLeft": "{open, number} از {total, number} قلم",
     "overdue": "عقب افتاده از {date}",
     "doneOn": "انجام شد {date}"
   },

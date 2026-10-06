@@ -214,6 +214,16 @@ export const SHEET_REGISTRY: Record<string, SheetDefinition> = {
     Title: dynamic(() => import('@/screens/lab-consent').then((m) => m.LabConsentTitle), { ssr: false }),
     Component: dynamic(() => import('@/screens/lab-consent').then((m) => m.LabConsentSheet), { ssr: false }),
   },
+
+  /**
+   * To-do add / edit (B-N6-08, nbl_Todo_Add) — `arg` is a category to preset
+   * (the board's active chip) or a task id to edit (ids only, §11).
+   */
+  'todo-add': {
+    size: 'half',
+    Title: dynamic(() => import('@/screens/todo-add').then((m) => m.TodoAddTitle), { ssr: false }),
+    Component: dynamic(() => import('@/screens/todo-add').then((m) => m.TodoAddSheet), { ssr: false }),
+  },
 };
 
 export function sheetDefinition(id: string): SheetDefinition | null {

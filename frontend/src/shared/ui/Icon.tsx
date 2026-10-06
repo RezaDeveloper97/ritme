@@ -27,7 +27,8 @@ export type IconName =
   | 'bottle' | 'sleep' | 'mother'
   | 'ruler'
   | 'gauge' | 'glucose'
-  | 'image' | 'fileDoc'; // B-N6-07
+  | 'image' | 'fileDoc' // B-N6-07
+  | 'bag' | 'briefcase' | 'moreH'; // B-N6-08
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -177,6 +178,9 @@ const PATHS: Record<IconName, string> = {
   // B-N6-07 (nbl_Lab_Upload): gallery and PDF pickers.
   image:        '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
   fileDoc:      '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M9 14h6M9 17h4"/>',
+  bag:          '<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 016 0v2"/>',
+  briefcase:    '<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M3 13h18"/>',
+  moreH:        '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
 };
 
 interface IconProps {

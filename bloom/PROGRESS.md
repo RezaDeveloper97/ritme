@@ -1023,3 +1023,14 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   M-1 nginx `access_log off` for the shared-report API (stage) and page (stage + web vhost); L-1 `no-store` on
   `/:locale/shared/*`. L-2 (window for checkups/labs), L-3 (atomic cap) + share entry points → **B-N6-04b**.
   Prod `go-routes.inc` lacks health-record/shared-reports (prod is Laravel until cutover). QUESTIONS #114.
+
+## B-N6-08 — To-do list with categories, shopping list and cycle suggestions
+
+- Backend (83d49232): migration **00043** (`todo_tasks`, `todo_items`, `todo_suggestion_events`; suggestion copy seeded
+  in `message_contents` `todo_suggestion/period_supplies`, admin-editable), `internal/todo`: `GET /todo` (categories,
+  suggestion, groups today/tomorrow/later, done ≤30 d, notifications), tasks CRUD (201, partial PUT incl. `done`),
+  shopping items CRUD, `POST /todo/suggestions/{key}/accept|dismiss` (server recomputes; period-supplies suggestion
+  5…1 days before the §35 predicted period for cycle/ttc/teen/no mode; accept adds «نوار بهداشتی» to an open shopping
+  list or creates a task due the day before). Uniform 404 for foreign ids, caps 1000 tasks / 100 items. D-66 proposed.
+- Frontend: `entities/todo`, screens `todo`, `todo-list`, `todo-add` (sheet `?sheet=todo-add`), routes `/todo`,
+  `/todo/lists/[id]`; «من» row «لیست کارها» live. Screenshots `docs/qa/bloom/B-N6-08/`. QUESTIONS #115.

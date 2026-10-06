@@ -37,7 +37,7 @@ import { firstLetter, localizeDigits, maskMobile, MODE_TONE } from './me-format'
 
 /** A hub row whose feature ships with a later bloom task: visible, not tappable, «به‌زودی». */
 interface SoonRow {
-  key: 'companions' | 'children' | 'courses' | 'todo' | 'bookings' | 'orders' | 'devices' | 'chat';
+  key: 'companions' | 'children' | 'courses' | 'bookings' | 'orders' | 'devices' | 'chat';
   icon: IconName;
   tone: Tone;
 }
@@ -47,7 +47,6 @@ const FAMILY_SOON: readonly SoonRow[] = [
 ];
 const TASK_ROWS: readonly SoonRow[] = [
   { key: 'courses', icon: 'gradCap', tone: 'bloom' }, // B-N8-03
-  { key: 'todo', icon: 'todo', tone: 'brand' }, // B-N6-08
   { key: 'bookings', icon: 'calendar', tone: 'data' }, // B-N7
   { key: 'orders', icon: 'box', tone: 'brand' }, // B-N10
 ];
@@ -212,6 +211,8 @@ export function ProfilePage() {
           <section className="me-sec" aria-labelledby="me-g-tasks">
             <SectionTitle id="me-g-tasks" title={t('groups.tasks')} />
             <ListGroup>
+              {/* B-N6-08: «کارهای من» → /todo. */}
+              <ListRow icon="todo" iconTone="brand" title={t('rows.todo')} onClick={() => router.push('/todo')} />
               {TASK_ROWS.map((row) => (
                 <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
               ))}

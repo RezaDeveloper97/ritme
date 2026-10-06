@@ -349,4 +349,10 @@ export default defineConfig([
     files: ['./src/entities/vital/**', './src/features/add-vital/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // B-N6-08: `entities/todo` is consumed by screens/todo, todo-list and todo-add — references FROM `screens` are
+    // invisible to steiger.
+    files: ['./src/entities/todo/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

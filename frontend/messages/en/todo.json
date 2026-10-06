@@ -10,7 +10,7 @@
   },
   "title": "My to-dos",
   "progress": "{done} of {total} tasks done",
-  "progressShort": "{done}/{total}",
+  "progressShort": "{done, number}/{total, number}",
   "filters": {
     "label": "Categories",
     "all": "All"
@@ -31,7 +31,6 @@
   "meta": {
     "noDate": "No date",
     "items": "{count, plural, one {# item} other {# items}}",
-    "itemsLeft": "{open, number} of {total, number} items",
     "overdue": "Overdue since {date}",
     "doneOn": "Done {date}"
   },
