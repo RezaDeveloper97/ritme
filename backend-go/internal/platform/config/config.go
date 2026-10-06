@@ -323,16 +323,20 @@ const LabFileKeyLen = 32
 // LabFiles holds LAB_FILE_KEY (bloom B-N6-06): the AES-256-GCM key of the uploaded lab sheets stored at rest
 // (STORAGE_PATH/app/private/labs). A secret: base64 of 32 random bytes (openssl rand -base64 32), server .env only.
 type LabFiles struct {
-	// Key is the decoded key; empty → a public development key outside production. In production without a key
-	// lab uploads and file reads answer 503 (fail closed) instead of encrypting with the public key.
+	// Key is the decoded key; empty → a public development key only when APP_ENV is local, testing or contract;
+	// anywhere else (stage included) lab uploads and file reads answer 503 (fail closed, B-N6-06b) instead of
+	// encrypting with the public key.
 	Key []byte
 	// PreviousKeys (LAB_FILE_KEY_PREVIOUS, comma-separated base64) still open files sealed before a rotation; new
 	// files are always sealed with Key.
 	PreviousKeys [][]byte
 }
 
-// Missing reports whether lab files are unavailable: production without a key.
-func (l LabFiles) Missing(app App) bool { return len(l.Key) == 0 && app.IsProduction() }
+// devLabFileEnvs are the APP_ENV values in which the public development key may stand in for LAB_FILE_KEY.
+var devLabFileEnvs = map[string]bool{"local": true, "testing": true, "contract": true}
+
+// Missing reports whether lab files are unavailable: no key outside a local / testing / contract environment.
+func (l LabFiles) Missing(app App) bool { return len(l.Key) == 0 && !devLabFileEnvs[app.Env] }
 
 // Load reads the process environment.
 func Load() (*Config, error) { return LoadFrom(os.LookupEnv) }

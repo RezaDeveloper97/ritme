@@ -15667,7 +15667,7 @@ paths:
         `lab_storage_unavailable`). Gate order (B-N6-05b): per-user throttles (4/minute, 20/hour), Plus `plus.lab_ai`
         (10 per month; free users 402 before the body is read), consent `ai_lab_analysis` (403), global / per-user AI
         cost caps, at most 2 AI requests at once, then one Plus use is reserved — given back when this request fails or
-        when the extraction fails for good. At most 10 uploads per user per 24 h (429 `lab_daily_limit`).
+        when the extraction fails for good (blank / unusable sheets only while the month's extraction calls stay within 30). At most 25 pages per user per 24 h, counted from the append-only AI usage log (429 `lab_daily_limit`). At most 4 uploads are processed at once per instance (503 `lab_busy`).
         The extraction runs as a job: 202 with the lab `queued` (the client polls `GET /labs/{id}/status`); on the
         contract stack (QUEUE_CONNECTION=sync) it has already run (`needs_review` or `failed`).
       operationId: uploadLab
@@ -15965,7 +15965,18 @@ paths:
         '404': {$ref: "#/components/responses/LabNotFound"}
         '409': {$ref: "#/components/responses/LabConflict"}
         '422': {$ref: "#/components/responses/LabValidationFailed"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429':
+          description: "Throttled writes (`too_many_requests`) or the lab's AI interpretations are used up (`lab_interpret_limit`, 3 per lab)."
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, enum: [too_many_requests, lab_interpret_limit]}
+                  retry_after: {type: integer}
   /api/v1/labs/{id}/feedback:
     post:
       tags: [Labs]

@@ -10,13 +10,20 @@ import (
 )
 
 type Querier interface {
-	// Atomic claim: only one worker turns the job running (the same condition as NextLabJob).
+	// Atomic claim (the same condition as NextLabJob). The new attempts value is the claim token: finish / retry /
+	// release only touch the row while it still carries it (B-N6-06b, L3).
 	ClaimLabJob(ctx context.Context, arg ClaimLabJobParams) (int64, error)
 	// Claims the refund of the reserved Plus use: only the first caller sees one affected row.
 	ClearLabQuota(ctx context.Context, id uint64) (int64, error)
+	// Extraction calls (one per page) of the user since a time, from the append-only AI usage log (B-N6-06b): deleting
+	// labs never resets the daily cap or the refund allowance.
+	CountLabExtractCallsSince(ctx context.Context, arg CountLabExtractCallsSinceParams) (int64, error)
 	CountLabMarkers(ctx context.Context, arg CountLabMarkersParams) (int64, error)
-	// Uploads of the user since a time (per-user daily cap on top of the Plus quota).
+	// Uploads of the user since a time (kept for reads; the daily cap counts ai_usage_logs, CountLabExtractCallsSince).
 	CountLabReportsSince(ctx context.Context, arg CountLabReportsSinceParams) (int64, error)
+	// The sweep refuses to run against an empty users table (a wrong database must never wipe lab files).
+	CountLabUsers(ctx context.Context) (int64, error)
+	CountUserLabFiles(ctx context.Context, userID uint64) (int64, error)
 	CreateLabFile(ctx context.Context, arg CreateLabFileParams) (int64, error)
 	CreateLabJob(ctx context.Context, arg CreateLabJobParams) (int64, error)
 	CreateLabMarker(ctx context.Context, arg CreateLabMarkerParams) (int64, error)
@@ -29,9 +36,10 @@ type Querier interface {
 	// Housekeeping: finished jobs older than a cut-off (the lab keeps its own status).
 	DeleteFinishedLabJobs(ctx context.Context, before sql.NullTime) error
 	DeleteLabFile(ctx context.Context, arg DeleteLabFileParams) (int64, error)
+	// Only while the lab is not being processed (B-N6-06b).
 	DeleteLabMarker(ctx context.Context, arg DeleteLabMarkerParams) (int64, error)
 	DeleteLabReport(ctx context.Context, arg DeleteLabReportParams) (int64, error)
-	FinishLabJob(ctx context.Context, arg FinishLabJobParams) error
+	FinishLabJob(ctx context.Context, arg FinishLabJobParams) (int64, error)
 	GetLabFile(ctx context.Context, arg GetLabFileParams) (LabFile, error)
 	GetLabJob(ctx context.Context, id uint64) (LabJob, error)
 	GetLabMarker(ctx context.Context, arg GetLabMarkerParams) (LabMarker, error)
@@ -42,26 +50,36 @@ type Querier interface {
 	// (enums.ResolveLifeMode), in one read.
 	GetLabUserContext(ctx context.Context, userID uint64) (GetLabUserContextRow, error)
 	LabUserExists(ctx context.Context, userID uint64) (int64, error)
+	// Running jobs whose lease expired after their last attempt (their worker died): the sweep finishes them.
+	ListExhaustedLabJobs(ctx context.Context, arg ListExhaustedLabJobsParams) ([]LabJob, error)
 	ListLabFiles(ctx context.Context, arg ListLabFilesParams) ([]LabFile, error)
 	ListLabMarkers(ctx context.Context, arg ListLabMarkersParams) ([]LabMarker, error)
 	// The user's own active medications (reminders type medication), names only.
 	ListLabMedicationNames(ctx context.Context, userID uint64) ([]string, error)
 	// The user's labs, newest sheet first (sheet date, else upload day), capped by the caller.
 	ListLabReports(ctx context.Context, arg ListLabReportsParams) ([]LabReport, error)
+	// Labs left queued / extracting / interpreting without a live job (pending or running), untouched since a cut-off.
+	ListOrphanBusyLabs(ctx context.Context, before sql.NullTime) ([]LabReport, error)
 	// Every marker of the user's labs with its lab's date and state (history counts, trends, the analysis hub).
 	ListUserLabMarkers(ctx context.Context, userID uint64) ([]ListUserLabMarkersRow, error)
-	// The user confirmed the values: one more interpretation, while fewer than max_count were made.
+	// The user confirmed the values of an uploaded lab in review (or ready, to re-explain after edits): one more
+	// interpretation, while fewer than max_count were made (B-N6-06b: state and source checked here, not only in Go).
 	MarkLabVerified(ctx context.Context, arg MarkLabVerifiedParams) (int64, error)
-	// The oldest job a worker may take: pending and due, or running with an expired lease (its worker died).
+	// The oldest job a worker may take (inside the claim transaction): pending and due, or running with an expired lease
+	// (its worker died) — never one that used all its attempts (the sweep finishes those). SKIP LOCKED: concurrent
+	// workers never wait on, or both take, the same row.
 	NextLabJob(ctx context.Context, arg NextLabJobParams) (uint64, error)
 	NextLabMarkerSort(ctx context.Context, labID uint64) (int64, error)
-	RetryLabJob(ctx context.Context, arg RetryLabJobParams) error
+	// A shutdown interrupted the attempt: back to pending without counting it (B-N6-06b, M2).
+	ReleaseLabJob(ctx context.Context, arg ReleaseLabJobParams) (int64, error)
+	RetryLabJob(ctx context.Context, arg RetryLabJobParams) (int64, error)
 	// Extraction done: needs_review; the sheet's date and lab fill only what the user left empty.
 	SetLabExtracted(ctx context.Context, arg SetLabExtractedParams) error
 	SetLabFeedback(ctx context.Context, arg SetLabFeedbackParams) (int64, error)
 	SetLabInterpretation(ctx context.Context, arg SetLabInterpretationParams) error
 	SetLabStatus(ctx context.Context, arg SetLabStatusParams) error
 	TouchLab(ctx context.Context, arg TouchLabParams) error
+	// Only while the lab is not being processed (B-N6-06b: checked in SQL, not only in Go).
 	UpdateLabMarker(ctx context.Context, arg UpdateLabMarkerParams) (int64, error)
 	UpdateLabMeta(ctx context.Context, arg UpdateLabMetaParams) (int64, error)
 }

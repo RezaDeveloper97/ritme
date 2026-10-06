@@ -72,6 +72,8 @@ services:
       ADMIN_SEED_EMAIL: admin@contract.test
       ADMIN_SEED_PASSWORD: contract-admin
       SWAGGER_PASSWORD: ""
+      # Contract-only lab file key (B-N6-06b; base64 of "contract-only-lab-file-key-nosec"). Never a real secret.
+      LAB_FILE_KEY: Y29udHJhY3Qtb25seS1sYWItZmlsZS1rZXktbm9zZWM=
     volumes:
       # Throwaway: holds only the Passport key pair the entrypoint generates.
       - contract-storage:/var/www/html/storage

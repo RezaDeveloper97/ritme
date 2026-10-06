@@ -29,6 +29,29 @@ const maxParts = MaxFiles + 8
 // imageOptimizer is the re-encode box of lab photos: large enough for small print on an A4 sheet.
 var imageOptimizer = media.Optimizer{MaxWidth: 2400, MaxHeight: 2400, Quality: 85, MaxPixels: MaxImagePixels}
 
+// uploadSlots caps the uploads parsed / stored at once process-wide (each holds up to MaxUploadBytes plus its pages;
+// B-N6-06b, L4); a request that finds every slot taken gets 503 lab_busy instead of queueing.
+var uploadSlots = make(chan struct{}, 4)
+
+// acquireUpload takes an upload slot (release with the returned func), or fails with 503 lab_busy.
+func acquireUpload(locale string) (func(), error) {
+	select {
+	case uploadSlots <- struct{}{}:
+		return func() { <-uploadSlots }, nil
+	default:
+		return nil, busyError(locale)
+	}
+}
+
+func busyError(locale string) error {
+	return httpx.Fail(fiber.StatusServiceUnavailable, T("messages.storage_unavailable", locale, nil),
+		"error_code", "lab_busy").WithHeader("Retry-After", "5")
+}
+
+// pdfHeaderWithin: a PDF must start with "%PDF-" within its first bytes (B-N6-06b, L6; the platform sniffer accepts
+// it anywhere in the first KB, which would let a polyglot through).
+const pdfHeaderWithin = 8
+
 // encodeSlots caps concurrent photo re-encodes process-wide (each can hold ~160 MB of pixels at the limit).
 var encodeSlots = make(chan struct{}, 2)
 
@@ -84,7 +107,7 @@ func readUpload(c fiber.Ctx, raw []byte, locale string) (*parsedUpload, error) {
 			if len(out.files) >= MaxFiles {
 				return fail(fieldFail(locale, "files", "too_many_files"))
 			}
-			page, err := readPage(part, locale)
+			page, err := readPage(part, len(raw), locale)
 			if err != nil {
 				return fail(err)
 			}
@@ -105,8 +128,8 @@ func readUpload(c fiber.Ctx, raw []byte, locale string) (*parsedUpload, error) {
 }
 
 // readPage reads one file part: bounded, sniffed, photos re-encoded.
-func readPage(part *multipart.Part, locale string) (Page, error) {
-	buf := make([]byte, MaxPDFBytes+1)
+func readPage(part *multipart.Part, bodyLen int, locale string) (Page, error) {
+	buf := make([]byte, min(MaxPDFBytes+1, bodyLen)) // never more than the body itself (B-N6-06b, L4)
 	n, err := io.ReadFull(part, buf)
 	if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) && !errors.Is(err, io.EOF) {
 		clear(buf)
@@ -116,6 +139,9 @@ func readPage(part *multipart.Part, locale string) (Page, error) {
 	kind := ai.SniffDocument(data)
 	switch {
 	case n == 0 || kind == "":
+		clear(buf)
+		return Page{}, fieldFail(locale, "files", "file_type")
+	case kind == "application/pdf" && !bytes.Contains(data[:min(len(data), pdfHeaderWithin+len("%PDF-"))], []byte("%PDF-")):
 		clear(buf)
 		return Page{}, fieldFail(locale, "files", "file_type")
 	case kind == "application/pdf":
@@ -139,8 +165,7 @@ func readPage(part *multipart.Part, locale string) (Page, error) {
 	case encodeSlots <- struct{}{}:
 		defer func() { <-encodeSlots }()
 	default:
-		return Page{}, httpx.Fail(fiber.StatusServiceUnavailable, T("messages.storage_unavailable", locale, nil),
-			"error_code", "lab_busy").WithHeader("Retry-After", "5")
+		return Page{}, busyError(locale)
 	}
 	out, err := imageOptimizer.Optimize(img)
 	if err != nil || ai.SniffDocument(out) != "image/webp" {

@@ -29,6 +29,7 @@ const (
 	ErrorCodeTooManyMarkers = "too_many_markers"
 	ErrorCodeStorage        = "lab_storage_unavailable"
 	ErrorCodeDailyLimit     = "lab_daily_limit"
+	ErrorCodeInterpretLimit = "lab_interpret_limit"
 )
 
 // Handlers are the /api/v1/labs actions. Mount them behind the locale middleware and auth RequireUser; POST /labs
@@ -81,6 +82,8 @@ func fail(err error, locale string) error {
 		return f(fiber.StatusServiceUnavailable, "storage_unavailable", ErrorCodeStorage)
 	case errors.Is(err, ErrDailyLimit):
 		return f(fiber.StatusTooManyRequests, "daily_limit", ErrorCodeDailyLimit)
+	case errors.Is(err, ErrInterpretLimit):
+		return f(fiber.StatusTooManyRequests, "interpret_limit", ErrorCodeInterpretLimit)
 	}
 	return err
 }
@@ -189,6 +192,11 @@ func (h *Handlers) Upload(c fiber.Ctx) error {
 	if h.svc.FilesDisabled() {
 		return fail(ErrStorage, locale)
 	}
+	release, err := acquireUpload(locale)
+	if err != nil {
+		return err
+	}
+	defer release()
 	up, err := readUpload(c, raw, locale)
 	if err != nil {
 		return err
@@ -207,7 +215,22 @@ func (h *Handlers) Upload(c fiber.Ctx) error {
 	if err != nil {
 		return fail(err, locale)
 	}
-	return h.reload(c, userID, id, fiber.StatusAccepted, T("messages.uploaded", locale, nil))
+	// From here the lab's job owns the reserved use (it refunds a failed extraction itself): this request must not
+	// answer an error any more, or the gate would refund it a second time (B-N6-06b, L5 — the access gate has no
+	// detach; a failed reload answers 202 with the id only).
+	body, err := h.uploadedBody(c, userID, id)
+	if err != nil {
+		return httpx.JSON(c, fiber.StatusAccepted, httpx.Envelope(jsonx.Obj("id", id, "status", StatusQueued), T("messages.uploaded", locale, nil)))
+	}
+	return httpx.JSON(c, fiber.StatusAccepted, httpx.Envelope(body, T("messages.uploaded", locale, nil)))
+}
+
+func (h *Handlers) uploadedBody(c fiber.Ctx, userID, id uint64) (*jsonx.OrderedMap, error) {
+	lab, err := h.svc.Get(c, userID, id)
+	if err != nil {
+		return nil, err
+	}
+	return h.detail(c, userID, lab)
 }
 
 // StoreManual is POST /labs/manual: a typed-in lab (no file, no AI, not Plus): verified, rules interpretation. 201.

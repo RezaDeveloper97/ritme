@@ -155,11 +155,14 @@ func (s *Service) CreateUpload(ctx context.Context, userID uint64, m Meta, pages
 	if s.files.Disabled() {
 		return 0, ErrStorage
 	}
-	n, err := s.q.CountLabReportsSince(ctx, store.CountLabReportsSinceParams{UserID: userID, Since: nullTime(now.Add(-24 * time.Hour))})
+	n, err := s.q.CountLabExtractCallsSince(ctx, store.CountLabExtractCallsSinceParams{
+		UserID: sql.NullInt64{Int64: int64(userID), Valid: true}, //nolint:gosec // G115: ids fit int64
+		Since:  nullTime(now.Add(-24 * time.Hour)),
+	})
 	if err != nil {
 		return 0, fmt.Errorf("labs: daily count: %w", err)
 	}
-	if n >= UploadsPerDay {
+	if int(n)+len(pages) > PagesPerDay {
 		return 0, ErrDailyLimit
 	}
 	var written []string
@@ -450,11 +453,17 @@ func (s *Service) UpdateMarker(ctx context.Context, userID, labID, markerID uint
 	if cur.Source == MarkerManual {
 		source = MarkerManual
 	}
-	if _, err := s.q.UpdateLabMarker(ctx, store.UpdateLabMarkerParams{Code: in.code(cat), Name: strings.TrimSpace(in.Name),
+	n, err := s.q.UpdateLabMarker(ctx, store.UpdateLabMarkerParams{Code: in.code(cat), Name: strings.TrimSpace(in.Name),
 		Value: nullDecimal(in.Value), ValueText: nullString(in.ValueText), Unit: nullString(in.Unit), RefLow: nullDecimal(in.RefLow),
 		RefHigh: nullDecimal(in.RefHigh), RefText: nullString(in.refText()), Source: source, Now: nullTime(now),
-		ID: markerID, LabID: labID, UserID: userID}); err != nil {
+		ID: markerID, LabID: labID, UserID: userID})
+	if err != nil {
 		return fmt.Errorf("labs: update marker: %w", err)
+	}
+	if n == 0 { // unchanged row, or the lab started processing meanwhile (checked in SQL)
+		if cur, err := s.Get(ctx, userID, labID); err != nil || busy(cur.Status) || cur.Status == StatusFailed {
+			return ErrBusy
+		}
 	}
 	return s.afterEdit(ctx, lab, l, now)
 }
@@ -470,6 +479,9 @@ func (s *Service) DeleteMarker(ctx context.Context, userID, labID, markerID uint
 		return fmt.Errorf("labs: delete marker: %w", err)
 	}
 	if n == 0 {
+		if _, gerr := s.q.GetLabMarker(ctx, store.GetLabMarkerParams{ID: markerID, LabID: labID, UserID: userID}); gerr == nil {
+			return ErrBusy // the lab started processing meanwhile (checked in SQL)
+		}
 		return ErrMarkerNotFound
 	}
 	return s.afterEdit(ctx, lab, l, now)
@@ -494,11 +506,14 @@ func (s *Service) Verify(ctx context.Context, userID, labID uint64, locale strin
 	var jobID uint64
 	err = s.inTx(ctx, func(q *store.Queries) error {
 		n, err := q.MarkLabVerified(ctx, store.MarkLabVerifiedParams{Now: nullTime(now), Status: StatusInterpreting, ID: labID,
-			UserID: userID, MaxCount: math.MaxUint8})
+			UserID: userID, MaxCount: MaxInterpretations})
 		if err != nil {
 			return err
 		}
 		if n == 0 {
+			if lab.InterpretCount >= MaxInterpretations {
+				return ErrInterpretLimit
+			}
 			return ErrNotReviewable
 		}
 		jid, err := q.CreateLabJob(ctx, store.CreateLabJobParams{LabID: labID, UserID: userID, Kind: JobInterpret,
@@ -506,7 +521,7 @@ func (s *Service) Verify(ctx context.Context, userID, labID uint64, locale strin
 		jobID = uint64(jid) //nolint:gosec // G115
 		return err
 	})
-	if errors.Is(err, ErrNotReviewable) {
+	if errors.Is(err, ErrNotReviewable) || errors.Is(err, ErrInterpretLimit) {
 		return err
 	}
 	if err != nil {

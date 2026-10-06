@@ -11,6 +11,7 @@
         "too_many_markers": "This lab result already has the maximum number of markers",
         "storage_unavailable": "Lab file storage is not available right now",
         "daily_limit": "You reached today's upload limit; try again tomorrow",
+        "interpret_limit": "This lab result reached its limit of explanations",
         "uploaded": "Lab sheet uploaded and being analysed",
         "saved": "Saved",
         "deleted": "Deleted",

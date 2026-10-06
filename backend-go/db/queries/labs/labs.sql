@@ -44,11 +44,13 @@ SET status = 'needs_review', progress = 100, error_code = NULL,
 WHERE id = sqlc.arg(id);
 
 -- name: MarkLabVerified :execrows
--- The user confirmed the values: one more interpretation, while fewer than max_count were made.
+-- The user confirmed the values of an uploaded lab in review (or ready, to re-explain after edits): one more
+-- interpretation, while fewer than max_count were made (B-N6-06b: state and source checked here, not only in Go).
 UPDATE `lab_reports`
 SET verified_at = sqlc.arg(now), status = sqlc.arg(status), progress = 0, error_code = NULL,
     interpret_count = interpret_count + 1, updated_at = sqlc.arg(now)
-WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id) AND interpret_count < sqlc.arg(max_count);
+WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id) AND source = 'upload'
+  AND status IN ('needs_review', 'ready') AND interpret_count < sqlc.arg(max_count);
 
 -- name: SetLabInterpretation :exec
 UPDATE `lab_reports`
@@ -72,9 +74,15 @@ UPDATE `lab_reports` SET updated_at = sqlc.arg(now) WHERE id = sqlc.arg(id) AND 
 DELETE FROM `lab_reports` WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id);
 
 -- name: CountLabReportsSince :one
--- Uploads of the user since a time (per-user daily cap on top of the Plus quota).
+-- Uploads of the user since a time (kept for reads; the daily cap counts ai_usage_logs, CountLabExtractCallsSince).
 SELECT COUNT(*) FROM `lab_reports`
 WHERE user_id = sqlc.arg(user_id) AND source = 'upload' AND created_at >= sqlc.arg(since);
+
+-- name: CountLabExtractCallsSince :one
+-- Extraction calls (one per page) of the user since a time, from the append-only AI usage log (B-N6-06b): deleting
+-- labs never resets the daily cap or the refund allowance.
+SELECT COUNT(*) FROM `ai_usage_logs`
+WHERE user_id = sqlc.arg(user_id) AND feature = 'lab_analysis' AND op = 'extract' AND created_at >= sqlc.arg(since);
 
 -- name: CreateLabFile :execlastid
 INSERT INTO `lab_files` (lab_id, user_id, page, mime, size_bytes, path, created_at, updated_at)
@@ -106,14 +114,21 @@ SELECT * FROM `lab_markers` WHERE lab_id = sqlc.arg(lab_id) AND user_id = sqlc.a
 SELECT * FROM `lab_markers` WHERE id = sqlc.arg(id) AND lab_id = sqlc.arg(lab_id) AND user_id = sqlc.arg(user_id) LIMIT 1;
 
 -- name: UpdateLabMarker :execrows
-UPDATE `lab_markers`
-SET code = sqlc.narg(code), name = sqlc.arg(name), value = sqlc.narg(value), value_text = sqlc.narg(value_text),
-    unit = sqlc.narg(unit), ref_low = sqlc.narg(ref_low), ref_high = sqlc.narg(ref_high), ref_text = sqlc.narg(ref_text),
-    source = sqlc.arg(source), updated_at = sqlc.arg(now)
-WHERE id = sqlc.arg(id) AND lab_id = sqlc.arg(lab_id) AND user_id = sqlc.arg(user_id);
+-- Only while the lab is not being processed (B-N6-06b: checked in SQL, not only in Go).
+UPDATE `lab_markers` m
+JOIN `lab_reports` r ON r.id = m.lab_id AND r.user_id = m.user_id
+SET m.code = sqlc.narg(code), m.name = sqlc.arg(name), m.value = sqlc.narg(value), m.value_text = sqlc.narg(value_text),
+    m.unit = sqlc.narg(unit), m.ref_low = sqlc.narg(ref_low), m.ref_high = sqlc.narg(ref_high), m.ref_text = sqlc.narg(ref_text),
+    m.source = sqlc.arg(source), m.updated_at = sqlc.arg(now)
+WHERE m.id = sqlc.arg(id) AND m.lab_id = sqlc.arg(lab_id) AND m.user_id = sqlc.arg(user_id)
+  AND r.status IN ('needs_review', 'ready');
 
 -- name: DeleteLabMarker :execrows
-DELETE FROM `lab_markers` WHERE id = sqlc.arg(id) AND lab_id = sqlc.arg(lab_id) AND user_id = sqlc.arg(user_id);
+-- Only while the lab is not being processed (B-N6-06b).
+DELETE m FROM `lab_markers` m
+JOIN `lab_reports` r ON r.id = m.lab_id AND r.user_id = m.user_id
+WHERE m.id = sqlc.arg(id) AND m.lab_id = sqlc.arg(lab_id) AND m.user_id = sqlc.arg(user_id)
+  AND r.status IN ('needs_review', 'ready');
 
 -- name: DeleteExtractedLabMarkers :exec
 -- A retried extraction replaces what an earlier try wrote.
@@ -139,31 +154,56 @@ INSERT INTO `lab_jobs` (lab_id, user_id, kind, locale, status, attempts, availab
 VALUES (sqlc.arg(lab_id), sqlc.arg(user_id), sqlc.arg(kind), sqlc.narg(locale), 'pending', 0, sqlc.arg(available_at), sqlc.arg(now), sqlc.arg(now));
 
 -- name: NextLabJob :one
--- The oldest job a worker may take: pending and due, or running with an expired lease (its worker died).
+-- The oldest job a worker may take (inside the claim transaction): pending and due, or running with an expired lease
+-- (its worker died) — never one that used all its attempts (the sweep finishes those). SKIP LOCKED: concurrent
+-- workers never wait on, or both take, the same row.
 SELECT id FROM `lab_jobs`
-WHERE (status = 'pending' AND available_at <= sqlc.arg(due)) OR (status = 'running' AND locked_until < sqlc.arg(expired))
-ORDER BY id LIMIT 1;
+WHERE ((status = 'pending' AND available_at <= sqlc.arg(due)) OR (status = 'running' AND locked_until < sqlc.arg(expired)))
+  AND attempts < sqlc.arg(max_attempts)
+ORDER BY id LIMIT 1
+FOR UPDATE SKIP LOCKED;
 
 -- name: ClaimLabJob :execrows
--- Atomic claim: only one worker turns the job running (the same condition as NextLabJob).
+-- Atomic claim (the same condition as NextLabJob). The new attempts value is the claim token: finish / retry /
+-- release only touch the row while it still carries it (B-N6-06b, L3).
 UPDATE `lab_jobs`
 SET status = 'running', locked_until = sqlc.arg(locked_until), attempts = attempts + 1, updated_at = sqlc.arg(now)
 WHERE id = sqlc.arg(id)
-  AND ((status = 'pending' AND available_at <= sqlc.arg(due)) OR (status = 'running' AND locked_until < sqlc.arg(expired)));
+  AND ((status = 'pending' AND available_at <= sqlc.arg(due)) OR (status = 'running' AND locked_until < sqlc.arg(expired)))
+  AND attempts < sqlc.arg(max_attempts);
 
 -- name: GetLabJob :one
 SELECT * FROM `lab_jobs` WHERE id = sqlc.arg(id) LIMIT 1;
 
--- name: FinishLabJob :exec
+-- name: FinishLabJob :execrows
 UPDATE `lab_jobs`
 SET status = sqlc.arg(status), last_error = sqlc.narg(last_error), locked_until = NULL, updated_at = sqlc.arg(now)
-WHERE id = sqlc.arg(id);
+WHERE id = sqlc.arg(id) AND status = 'running' AND attempts = sqlc.arg(token);
 
--- name: RetryLabJob :exec
+-- name: RetryLabJob :execrows
 UPDATE `lab_jobs`
 SET status = 'pending', available_at = sqlc.arg(available_at), locked_until = NULL, last_error = sqlc.narg(last_error),
     updated_at = sqlc.arg(now)
-WHERE id = sqlc.arg(id);
+WHERE id = sqlc.arg(id) AND status = 'running' AND attempts = sqlc.arg(token);
+
+-- name: ReleaseLabJob :execrows
+-- A shutdown interrupted the attempt: back to pending without counting it (B-N6-06b, M2).
+UPDATE `lab_jobs`
+SET status = 'pending', attempts = attempts - 1, locked_until = NULL, updated_at = sqlc.arg(now)
+WHERE id = sqlc.arg(id) AND status = 'running' AND attempts = sqlc.arg(token) AND attempts > 0;
+
+-- name: ListExhaustedLabJobs :many
+-- Running jobs whose lease expired after their last attempt (their worker died): the sweep finishes them.
+SELECT * FROM `lab_jobs`
+WHERE status = 'running' AND locked_until < sqlc.arg(expired) AND attempts >= sqlc.arg(max_attempts)
+ORDER BY id LIMIT 100;
+
+-- name: ListOrphanBusyLabs :many
+-- Labs left queued / extracting / interpreting without a live job (pending or running), untouched since a cut-off.
+SELECT * FROM `lab_reports` r
+WHERE r.status IN ('queued', 'extracting', 'interpreting') AND r.updated_at < sqlc.arg(before)
+  AND NOT EXISTS (SELECT 1 FROM `lab_jobs` j WHERE j.lab_id = r.id AND j.status IN ('pending', 'running'))
+ORDER BY r.id LIMIT 100;
 
 -- name: GetLabUserContext :one
 -- What the interpretation may know: name (PII redaction only), age, the cycle inputs and the life mode inputs
@@ -193,6 +233,13 @@ ORDER BY id LIMIT 10;
 
 -- name: LabUserExists :one
 SELECT COUNT(*) FROM `users` WHERE id = sqlc.arg(user_id);
+
+-- name: CountLabUsers :one
+-- The sweep refuses to run against an empty users table (a wrong database must never wipe lab files).
+SELECT COUNT(*) FROM `users`;
+
+-- name: CountUserLabFiles :one
+SELECT COUNT(*) FROM `lab_files` WHERE user_id = sqlc.arg(user_id);
 
 -- name: DeleteFinishedLabJobs :exec
 -- Housekeeping: finished jobs older than a cut-off (the lab keeps its own status).

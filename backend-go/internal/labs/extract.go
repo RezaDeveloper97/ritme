@@ -72,6 +72,9 @@ func classify(err error) *jobError {
 	switch {
 	case errors.As(err, &req):
 		return &jobError{code: CodeConsent, err: err}
+	case errors.Is(err, context.Canceled):
+		// A shutdown (or the caller) cut the attempt short: never a final verdict on the lab (B-N6-06b, M2).
+		return &jobError{code: CodeInternal, retry: true, err: err}
 	case errors.Is(err, ai.ErrUpstream), errors.Is(err, context.DeadlineExceeded):
 		return &jobError{code: CodeAIFailed, retry: true, err: err}
 	case errors.Is(err, ai.ErrUnavailable):
@@ -93,9 +96,11 @@ func (s *Service) subject(ctx context.Context, userID uint64) context.Context {
 	return ai.WithSubject(ctx, sub)
 }
 
-// runExtract reads every page of the lab and stores the markers (needs_review). final = no retry will follow.
+// runExtract reads every page of the lab and stores the markers (needs_review). final = no retry will follow. Every
+// write uses a context the shutdown cannot cancel (B-N6-06b); only the provider calls stop with ctx.
 func (s *Service) runExtract(ctx context.Context, job store.LabJob, final bool) error {
-	lab, err := s.q.GetLabReportByID(ctx, job.LabID)
+	wctx := context.WithoutCancel(ctx)
+	lab, err := s.q.GetLabReportByID(wctx, job.LabID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil // deleted meanwhile
 	}
@@ -106,24 +111,24 @@ func (s *Service) runExtract(ctx context.Context, job store.LabJob, final bool) 
 		return nil
 	}
 	fail := func(je *jobError) error {
-		if !je.retry || final {
-			s.failLab(ctx, lab, je.code)
+		if (!je.retry || final) && !errors.Is(je, context.Canceled) {
+			s.failLab(wctx, lab, je.code)
 		}
 		return je
 	}
-	now := s.now(ctx)
-	if err := s.q.SetLabStatus(ctx, store.SetLabStatusParams{Status: StatusExtracting, Progress: 10, Now: nullTime(now), ID: lab.ID}); err != nil {
+	now := s.now(wctx)
+	if err := s.q.SetLabStatus(wctx, store.SetLabStatusParams{Status: StatusExtracting, Progress: 10, Now: nullTime(now), ID: lab.ID}); err != nil {
 		return classify(err)
 	}
 	if s.client == nil {
 		return fail(&jobError{code: CodeAIUnavailable, err: ai.ErrUnavailable})
 	}
 	if s.consents != nil {
-		if err := s.consents.Require(ctx, lab.UserID, consent.AILabAnalysis); err != nil {
+		if err := s.consents.Require(wctx, lab.UserID, consent.AILabAnalysis); err != nil {
 			return fail(classify(err))
 		}
 	}
-	pages, err := s.q.ListLabFiles(ctx, store.ListLabFilesParams{LabID: lab.ID, UserID: lab.UserID})
+	pages, err := s.q.ListLabFiles(wctx, store.ListLabFilesParams{LabID: lab.ID, UserID: lab.UserID})
 	if err != nil {
 		return classify(err)
 	}
@@ -147,9 +152,9 @@ func (s *Service) runExtract(ctx context.Context, job store.LabJob, final bool) 
 		}
 		merged = append(merged, ex)
 		progress := uint8(10 + 80*(i+1)/len(pages)) //nolint:gosec // G115: 10..90
-		_ = s.q.SetLabStatus(ctx, store.SetLabStatusParams{Status: StatusExtracting, Progress: progress, Now: nullTime(s.now(ctx)), ID: lab.ID})
+		_ = s.q.SetLabStatus(wctx, store.SetLabStatusParams{Status: StatusExtracting, Progress: progress, Now: nullTime(s.now(wctx)), ID: lab.ID})
 	}
-	cat, err := s.Catalog(ctx)
+	cat, err := s.Catalog(wctx)
 	if err != nil {
 		return classify(err)
 	}
@@ -158,17 +163,17 @@ func (s *Service) runExtract(ctx context.Context, job store.LabJob, final bool) 
 	if len(rows) == 0 {
 		return fail(&jobError{code: CodeNothingRead, err: errors.New("no markers")})
 	}
-	err = s.inTx(ctx, func(q *store.Queries) error {
-		if err := q.DeleteExtractedLabMarkers(ctx, lab.ID); err != nil {
+	err = s.inTx(wctx, func(q *store.Queries) error {
+		if err := q.DeleteExtractedLabMarkers(wctx, lab.ID); err != nil {
 			return err
 		}
 		for i, r := range rows {
-			if err := insertMarker(ctx, q, lab.ID, lab.UserID, r.in, cat, MarkerExtracted,
+			if err := insertMarker(wctx, q, lab.ID, lab.UserID, r.in, cat, MarkerExtracted,
 				sql.NullString{String: strconv.FormatFloat(r.confidence, 'f', 3, 64), Valid: true}, uint16(i+1), now); err != nil { //nolint:gosec // G115
 				return err
 			}
 		}
-		return q.SetLabExtracted(ctx, store.SetLabExtractedParams{TakenOn: date, LabName: nullString(labName), Now: nullTime(now), ID: lab.ID})
+		return q.SetLabExtracted(wctx, store.SetLabExtractedParams{TakenOn: date, LabName: nullString(labName), Now: nullTime(now), ID: lab.ID})
 	})
 	if err != nil {
 		return classify(err)
@@ -176,8 +181,18 @@ func (s *Service) runExtract(ctx context.Context, job store.LabJob, final bool) 
 	return nil
 }
 
+// RefundableExtractCalls caps the refunds of extractions the provider was paid for but that gave nothing usable
+// (nothing_read, invalid_file): while the user made at most this many extraction calls (pages) this month — counted
+// from the append-only AI usage log — the Plus use is given back; beyond it a blank upload keeps its use (B-N6-06b,
+// M3), so deleting failed labs cannot buy unlimited free extractions. Provider failures always refund.
+const RefundableExtractCalls = 30
+
+// paidCodes are failures after the provider was paid.
+var paidCodes = map[string]bool{CodeNothingRead: true, CodeInvalidFile: true}
+
 // failLab marks the lab failed and gives the reserved Plus use back (at most once: ClearLabQuota).
 func (s *Service) failLab(ctx context.Context, lab store.LabReport, code string) {
+	ctx = context.WithoutCancel(ctx)
 	now := s.now(ctx)
 	if err := s.q.SetLabStatus(ctx, store.SetLabStatusParams{Status: StatusFailed, Progress: 0,
 		ErrorCode: sql.NullString{String: code, Valid: true}, Now: nullTime(now), ID: lab.ID}); err != nil {
@@ -186,12 +201,41 @@ func (s *Service) failLab(ctx context.Context, lab store.LabReport, code string)
 	if !lab.QuotaAt.Valid || s.plus == nil {
 		return
 	}
+	if paidCodes[code] {
+		calls, err := s.q.CountLabExtractCallsSince(ctx, store.CountLabExtractCallsSinceParams{
+			UserID: sql.NullInt64{Int64: int64(lab.UserID), Valid: true}, //nolint:gosec // G115: ids fit int64
+			Since:  nullTime(plus.PeriodStart(tehranSecond(now)).TehranMidnight()),
+		})
+		if err != nil || calls > RefundableExtractCalls {
+			return
+		}
+	}
 	n, err := s.q.ClearLabQuota(ctx, lab.ID)
 	if err != nil || n == 0 {
 		return
 	}
 	if err := s.plus.Refund(ctx, lab.UserID, plus.LabAI, lab.QuotaAt.Time, tehranSecond(now)); err != nil {
 		s.logger.ErrorContext(ctx, "labs: plus refund failed", slog.String("error", err.Error()))
+	}
+}
+
+// finalize gives a job's lab its final state when no attempt will (a panic, an exhausted job left by a dead worker,
+// a busy lab without a live job): a pending extraction fails (refund), a pending interpretation gets the rules
+// summary.
+func (s *Service) finalize(ctx context.Context, job store.LabJob, code string) {
+	ctx = context.WithoutCancel(ctx)
+	lab, err := s.q.GetLabReportByID(ctx, job.LabID)
+	if err != nil {
+		return
+	}
+	switch {
+	case job.Kind == JobExtract && (lab.Status == StatusQueued || lab.Status == StatusExtracting):
+		s.failLab(ctx, lab, code)
+	case job.Kind == JobInterpret && lab.Status == StatusInterpreting:
+		l := loc{Locale: job.Locale.String, Default: job.Locale.String}
+		if err := s.interpretRules(ctx, lab.UserID, lab.ID, l, s.now(ctx)); err != nil {
+			s.logger.ErrorContext(ctx, "labs: finalize interpretation", slog.String("error", err.Error()))
+		}
 	}
 }
 
@@ -298,7 +342,8 @@ func truncate(s string, n int) string {
 // interpretation allowance, a client, the consent in force and the budgets; otherwise — or when the provider fails
 // for good — the rules summary is stored. Never leaves the lab in interpreting.
 func (s *Service) runInterpret(ctx context.Context, job store.LabJob, final bool) error {
-	lab, err := s.q.GetLabReportByID(ctx, job.LabID)
+	wctx := context.WithoutCancel(ctx) // writes survive a shutdown; only the provider call stops with ctx
+	lab, err := s.q.GetLabReportByID(wctx, job.LabID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil
 	}
@@ -308,15 +353,15 @@ func (s *Service) runInterpret(ctx context.Context, job store.LabJob, final bool
 	if lab.Status != StatusInterpreting {
 		return nil
 	}
-	now := s.now(ctx)
-	_ = s.q.SetLabStatus(ctx, store.SetLabStatusParams{Status: StatusInterpreting, Progress: 50, Now: nullTime(now), ID: lab.ID})
+	now := s.now(wctx)
+	_ = s.q.SetLabStatus(wctx, store.SetLabStatusParams{Status: StatusInterpreting, Progress: 50, Now: nullTime(now), ID: lab.ID})
 	l := loc{Locale: job.Locale.String, Default: job.Locale.String}
-	useAI := lab.Source == SourceUpload && int(lab.InterpretCount) <= MaxInterpretations && s.client != nil
-	if useAI && s.consents != nil && s.consents.Require(ctx, lab.UserID, consent.AILabAnalysis) != nil {
+	useAI := lab.Source == SourceUpload && s.client != nil
+	if useAI && s.consents != nil && s.consents.Require(wctx, lab.UserID, consent.AILabAnalysis) != nil {
 		useAI = false
 	}
 	var retryErr error
-	err = s.storeInterpretation(ctx, lab.UserID, lab.ID, l, now, func(evals []Evaluated, uc UserContext) (string, string) {
+	err = s.storeInterpretation(wctx, lab.UserID, lab.ID, l, now, func(evals []Evaluated, uc UserContext) (string, string) {
 		if !useAI || len(evals) == 0 {
 			return "", SummaryRules
 		}
@@ -337,7 +382,7 @@ func (s *Service) runInterpret(ctx context.Context, job store.LabJob, final bool
 	})
 	if retryErr != nil {
 		// Undo nothing: the lab goes back to interpreting so the retry writes the AI summary over the rules one.
-		_ = s.q.SetLabStatus(ctx, store.SetLabStatusParams{Status: StatusInterpreting, Progress: 50, Now: nullTime(now), ID: lab.ID})
+		_ = s.q.SetLabStatus(wctx, store.SetLabStatusParams{Status: StatusInterpreting, Progress: 50, Now: nullTime(now), ID: lab.ID})
 		return retryErr
 	}
 	if err != nil {

@@ -66,6 +66,9 @@ services:
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
+      # Lab analysis sheets (B-N6-06): AES-256-GCM key, a secret from the server .env only; empty = 503 (fail closed).
+      LAB_FILE_KEY: ${LAB_FILE_KEY:-}
+      LAB_FILE_KEY_PREVIOUS: ${LAB_FILE_KEY_PREVIOUS:-}
     ports: !override
       - "127.0.0.1:8081:80"
 

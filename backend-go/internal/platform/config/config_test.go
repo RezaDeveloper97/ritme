@@ -289,3 +289,31 @@ func TestLoad_AICostCapAndPrices(t *testing.T) {
 		require.Error(t, err, bad)
 	}
 }
+
+// B-N6-06b: LAB_FILE_KEY is base64 of 32 bytes; without one only local / testing / contract may use the dev key.
+func TestLoad_LabFileKey(t *testing.T) {
+	for envName, missing := range map[string]bool{"local": false, "testing": false, "contract": false, "staging": true, "production": true, "": true} {
+		env := minimal()
+		if envName != "" {
+			env["APP_ENV"] = envName
+		}
+		cfg, err := LoadFrom(lookup(env))
+		require.NoError(t, err)
+		assert.Equal(t, missing, cfg.LabFiles.Missing(cfg.App), "the development lab key only in local/testing/contract: "+envName)
+	}
+	env := minimal()
+	env["APP_ENV"] = "staging"
+	env["LAB_FILE_KEY"] = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
+	env["LAB_FILE_KEY_PREVIOUS"] = "YWJjZGVmMDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODk="
+	cfg, err := LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.Len(t, cfg.LabFiles.Key, LabFileKeyLen)
+	assert.Len(t, cfg.LabFiles.PreviousKeys, 1)
+	assert.False(t, cfg.LabFiles.Missing(cfg.App))
+	for _, k := range []string{"LAB_FILE_KEY", "LAB_FILE_KEY_PREVIOUS"} {
+		env := minimal()
+		env[k] = "c2hvcnQ="
+		_, err := LoadFrom(lookup(env))
+		require.ErrorContains(t, err, k)
+	}
+}

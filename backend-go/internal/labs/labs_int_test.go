@@ -571,3 +571,141 @@ func TestAsyncWorkerAndLeaseRecovery(t *testing.T) {
 	assert.True(t, os.IsNotExist(err))
 	_ = strings.TrimSpace
 }
+
+// B-N6-06b: caps from the append-only usage log, the interpretation limit, SQL-side busy checks, the PDF header.
+func TestCapsAndBusyChecks(t *testing.T) {
+	e := setup(t, true)
+	a, aTok := e.user(t, "09900006041", true, true)
+	logCalls := func(n int, at string) {
+		for range n {
+			_, err := e.db.Exec(`INSERT INTO ai_usage_logs (user_id, feature, op, provider, model, ok, created_at)
+				VALUES (?, 'lab_analysis', 'extract', 'fake', 'x', 1, `+at+`)`, a)
+			require.NoError(t, err)
+		}
+	}
+
+	// A PDF header far from offset 0 (a polyglot) is refused.
+	r := e.upload(t, aTok, nil, part{"files", "x.pdf", []byte("<html>polyglot %PDF-1.4 RITME-FAKE:lab_panel")})
+	assert.Equal(t, http.StatusUnprocessableEntity, r.status, string(r.raw))
+
+	r = e.upload(t, aTok, nil, part{"files", "sheet.pdf", pdf("lab_panel")})
+	require.Equal(t, http.StatusAccepted, r.status, string(r.raw))
+	id := labID(r)
+
+	// Verify up to the interpretation limit, then 429.
+	for i := range labs.MaxInterpretations {
+		v := e.json(t, http.MethodPost, fmt.Sprintf("/api/v1/labs/%d/verify", id), aTok, nil)
+		require.Equal(t, http.StatusAccepted, v.status, "verify %d: %s", i+1, v.raw)
+	}
+	v := e.json(t, http.MethodPost, fmt.Sprintf("/api/v1/labs/%d/verify", id), aTok, nil)
+	require.Equal(t, http.StatusTooManyRequests, v.status, string(v.raw))
+	assert.Equal(t, "lab_interpret_limit", v.body["error_code"])
+
+	// Marker edits are refused in SQL while the lab is processing.
+	mid := uint64(markers(r)[0].(map[string]any)["id"].(float64))
+	_, err := e.db.Exec(`UPDATE lab_reports SET status = 'interpreting' WHERE id = ?`, id)
+	require.NoError(t, err)
+	up := e.json(t, http.MethodPut, fmt.Sprintf("/api/v1/labs/%d/markers/%d", id, mid), aTok, map[string]any{"name": "Hb", "value": 12})
+	assert.Equal(t, http.StatusConflict, up.status)
+	del := e.json(t, http.MethodDelete, fmt.Sprintf("/api/v1/labs/%d/markers/%d", id, mid), aTok, nil)
+	assert.Equal(t, http.StatusConflict, del.status)
+	var n int
+	require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM lab_markers WHERE id = ?`, mid).Scan(&n))
+	assert.Equal(t, 1, n)
+
+	// The daily page cap counts the usage log: deleting labs does not reset it.
+	require.Equal(t, http.StatusOK, e.json(t, http.MethodDelete, fmt.Sprintf("/api/v1/labs/%d", id), aTok, nil).status)
+	before := usage(t, e, a)
+	logCalls(labs.PagesPerDay-1, "NOW()")
+	r = e.upload(t, aTok, nil, part{"files", "a.pdf", pdf("lab_panel")}, part{"files", "b.pdf", pdf("lab_panel")})
+	require.Equal(t, http.StatusTooManyRequests, r.status, string(r.raw))
+	assert.Equal(t, "lab_daily_limit", r.body["error_code"])
+	assert.Equal(t, before, usage(t, e, a), "the refused upload keeps no use")
+}
+
+func TestBlankRefundsAreCapped(t *testing.T) {
+	now := time.Now().In(time.FixedZone("IRST", 3*3600+1800))
+	if now.Day() < 3 {
+		t.Skip("needs two days of the month behind the daily window")
+	}
+	e := setup(t, true)
+	a, aTok := e.user(t, "09900006051", true, true)
+	for range labs.RefundableExtractCalls + 1 {
+		_, err := e.db.Exec(`INSERT INTO ai_usage_logs (user_id, feature, op, provider, model, ok, created_at)
+			VALUES (?, 'lab_analysis', 'extract', 'fake', 'x', 1, DATE_SUB(NOW(), INTERVAL 30 HOUR))`, a)
+		require.NoError(t, err)
+	}
+	r := e.upload(t, aTok, nil, part{"files", "sheet.pdf", pdf("blank")})
+	require.Equal(t, http.StatusAccepted, r.status, string(r.raw))
+	assert.Equal(t, labs.CodeNothingRead, data(r)["error_code"])
+	assert.Equal(t, 1, usage(t, e, a), "beyond the monthly allowance a blank sheet keeps its use")
+	r = e.upload(t, aTok, nil, part{"files", "sheet.pdf", pdf("error")})
+	assert.Equal(t, labs.CodeAIFailed, data(r)["error_code"])
+	assert.Equal(t, 1, usage(t, e, a), "a provider failure is always refunded")
+}
+
+func TestSweepFinishesStuckJobsAndLabs(t *testing.T) {
+	e := setup(t, false)
+	a, _ := e.user(t, "09900006061", true, true)
+	now := time.Now()
+	insertLab := func(status string, quota bool) uint64 {
+		q := "NULL"
+		if quota {
+			q = "NOW()"
+			_, err := e.plus.Consume(context.Background(), a, plus.LabAI, now.In(time.FixedZone("IRST", 3*3600+1800)).Truncate(time.Second))
+			require.NoError(t, err)
+		}
+		res, err := e.db.Exec(`INSERT INTO lab_reports (user_id, source, category, status, quota_at, interpret_count, created_at, updated_at)
+			VALUES (?, 'upload', 'blood', ?, `+q+`, 1, DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR))`, a, status)
+		require.NoError(t, err)
+		id, _ := res.LastInsertId()
+		return uint64(id) //nolint:gosec // test ids
+	}
+	status := func(id uint64) (string, sql.NullString) {
+		var s string
+		var code sql.NullString
+		require.NoError(t, e.db.QueryRow(`SELECT status, error_code FROM lab_reports WHERE id = ?`, id).Scan(&s, &code))
+		return s, code
+	}
+
+	// An extraction whose last attempt's worker died: failed, refunded.
+	stuck := insertLab(labs.StatusExtracting, true)
+	_, err := e.db.Exec(`INSERT INTO lab_jobs (lab_id, user_id, kind, locale, status, attempts, available_at, locked_until, created_at, updated_at)
+		VALUES (?, ?, 'extract', 'fa', 'running', ?, NOW(), DATE_SUB(NOW(), INTERVAL 1 MINUTE), NOW(), NOW())`, stuck, a, labs.MaxAttempts)
+	require.NoError(t, err)
+	// A queued lab without any job, and an interpreting one without a job.
+	orphan := insertLab(labs.StatusQueued, true)
+	interp := insertLab(labs.StatusInterpreting, false)
+	_, err = e.db.Exec(`INSERT INTO lab_markers (lab_id, user_id, name, value, source, created_at, updated_at) VALUES (?, ?, 'TSH', 2.1, 'extracted', NOW(), NOW())`, interp, a)
+	require.NoError(t, err)
+	require.Equal(t, 2, usage(t, e, a))
+
+	e.runner.SweepJobs(context.Background())
+	s, code := status(stuck)
+	assert.Equal(t, labs.StatusFailed, s)
+	assert.Equal(t, labs.CodeInternal, code.String)
+	s, _ = status(orphan)
+	assert.Equal(t, labs.StatusFailed, s)
+	s, _ = status(interp)
+	assert.Equal(t, labs.StatusReady, s, "an interpretation without a job gets the rules summary")
+	assert.Equal(t, 0, usage(t, e, a), "both reserved uses refunded")
+	var jobStatus string
+	require.NoError(t, e.db.QueryRow(`SELECT status FROM lab_jobs WHERE lab_id = ?`, stuck).Scan(&jobStatus))
+	assert.Equal(t, "failed", jobStatus)
+
+	// The file sweep never removes a directory that still has lab_files rows.
+	box, _ := files.New(e.storage, nil, nil, false)
+	rel, err := box.Put(888888, []byte("x"))
+	require.NoError(t, err)
+	conn, err := e.db.Conn(context.Background()) // one connection: FOREIGN_KEY_CHECKS is per session
+	require.NoError(t, err)
+	_, err = conn.ExecContext(context.Background(), `SET FOREIGN_KEY_CHECKS = 0`)
+	require.NoError(t, err)
+	_, err = conn.ExecContext(context.Background(), `INSERT INTO lab_files (lab_id, user_id, page, mime, size_bytes, path, created_at) VALUES (?, 888888, 1, 'application/pdf', 1, ?, NOW())`, stuck, rel)
+	require.NoError(t, err)
+	_, _ = conn.ExecContext(context.Background(), `SET FOREIGN_KEY_CHECKS = 1`)
+	require.NoError(t, conn.Close())
+	e.runner.Sweep(context.Background())
+	_, err = os.Stat(filepath.Join(e.storage, rel))
+	assert.NoError(t, err, "kept: rows still point at it")
+}

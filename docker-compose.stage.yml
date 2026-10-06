@@ -130,6 +130,10 @@ services:
       # (comma-separated) keeps notes sealed before a key rotation readable.
       PRIVATE_NOTE_KEY: ${PRIVATE_NOTE_KEY:-}
       PRIVATE_NOTE_KEY_PREVIOUS: ${PRIVATE_NOTE_KEY_PREVIOUS:-}
+      # Lab analysis sheets (B-N6-06): AES-256-GCM key of the uploaded lab files, a secret from the server .env only
+      # (openssl rand -base64 32). Empty = lab uploads / file reads answer 503 on stage (fail closed, B-N6-06b).
+      LAB_FILE_KEY: ${LAB_FILE_KEY:-}
+      LAB_FILE_KEY_PREVIOUS: ${LAB_FILE_KEY_PREVIOUS:-}
     ports: !override []
     networks:
       default:

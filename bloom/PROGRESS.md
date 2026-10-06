@@ -953,3 +953,12 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   ADA 2025, AHA HR thresholds versioned in `thresholds.go`; glucose stored mg/dL; BP >180/>120 or glucose <54 →
   urgent alert. Log-sheet values merged read-only (D-63 proposed). 13 contract goldens. QUESTIONS #109.
 - Follow-up added to B-N6-03: analyses should read `vital_readings`.
+
+## B-N6-06b — Lab analysis security fixes
+
+- H1 `LAB_FILE_KEY` fail-closed outside local/testing/contract (contract stack test key; stage/prod compose passthrough).
+  M1 worker `recover()`, attempts cap in claim, `FOR UPDATE SKIP LOCKED`, `SweepJobs`. M2 shutdown releases the attempt,
+  final writes `WithoutCancel`, orphaned busy labs swept (fail + refund / rules summary). M3 daily cap from
+  `ai_usage_logs` (25 pages/24 h), refund cap 30/month. L1 verify guarded in SQL + 429 `lab_interpret_limit`, marker
+  edits 409 when busy. L2 inert prompt fields in a fenced JSON block, links stripped. L3 claim token. L4 buffer sizing +
+  global 4-upload semaphore. L5 no error after CreateUpload. L6 strict `%PDF-`. L8 sweep safety. QUESTIONS #110.

@@ -19,6 +19,7 @@ UPDATE ` + "`" + `lab_jobs` + "`" + `
 SET status = 'running', locked_until = ?, attempts = attempts + 1, updated_at = ?
 WHERE id = ?
   AND ((status = 'pending' AND available_at <= ?) OR (status = 'running' AND locked_until < ?))
+  AND attempts < ?
 `
 
 type ClaimLabJobParams struct {
@@ -27,9 +28,11 @@ type ClaimLabJobParams struct {
 	ID          uint64
 	Due         time.Time
 	Expired     sql.NullTime
+	MaxAttempts uint8
 }
 
-// Atomic claim: only one worker turns the job running (the same condition as NextLabJob).
+// Atomic claim (the same condition as NextLabJob). The new attempts value is the claim token: finish / retry /
+// release only touch the row while it still carries it (B-N6-06b, L3).
 func (q *Queries) ClaimLabJob(ctx context.Context, arg ClaimLabJobParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, claimLabJob,
 		arg.LockedUntil,
@@ -37,6 +40,7 @@ func (q *Queries) ClaimLabJob(ctx context.Context, arg ClaimLabJobParams) (int64
 		arg.ID,
 		arg.Due,
 		arg.Expired,
+		arg.MaxAttempts,
 	)
 	if err != nil {
 		return 0, err
@@ -55,6 +59,25 @@ func (q *Queries) ClearLabQuota(ctx context.Context, id uint64) (int64, error) {
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+const countLabExtractCallsSince = `-- name: CountLabExtractCallsSince :one
+SELECT COUNT(*) FROM ` + "`" + `ai_usage_logs` + "`" + `
+WHERE user_id = ? AND feature = 'lab_analysis' AND op = 'extract' AND created_at >= ?
+`
+
+type CountLabExtractCallsSinceParams struct {
+	UserID sql.NullInt64
+	Since  sql.NullTime
+}
+
+// Extraction calls (one per page) of the user since a time, from the append-only AI usage log (B-N6-06b): deleting
+// labs never resets the daily cap or the refund allowance.
+func (q *Queries) CountLabExtractCallsSince(ctx context.Context, arg CountLabExtractCallsSinceParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countLabExtractCallsSince, arg.UserID, arg.Since)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const countLabMarkers = `-- name: CountLabMarkers :one
@@ -83,9 +106,32 @@ type CountLabReportsSinceParams struct {
 	Since  sql.NullTime
 }
 
-// Uploads of the user since a time (per-user daily cap on top of the Plus quota).
+// Uploads of the user since a time (kept for reads; the daily cap counts ai_usage_logs, CountLabExtractCallsSince).
 func (q *Queries) CountLabReportsSince(ctx context.Context, arg CountLabReportsSinceParams) (int64, error) {
 	row := q.db.QueryRowContext(ctx, countLabReportsSince, arg.UserID, arg.Since)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countLabUsers = `-- name: CountLabUsers :one
+SELECT COUNT(*) FROM ` + "`" + `users` + "`" + `
+`
+
+// The sweep refuses to run against an empty users table (a wrong database must never wipe lab files).
+func (q *Queries) CountLabUsers(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countLabUsers)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countUserLabFiles = `-- name: CountUserLabFiles :one
+SELECT COUNT(*) FROM ` + "`" + `lab_files` + "`" + ` WHERE user_id = ?
+`
+
+func (q *Queries) CountUserLabFiles(ctx context.Context, userID uint64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUserLabFiles, userID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -292,7 +338,10 @@ func (q *Queries) DeleteLabFile(ctx context.Context, arg DeleteLabFileParams) (i
 }
 
 const deleteLabMarker = `-- name: DeleteLabMarker :execrows
-DELETE FROM ` + "`" + `lab_markers` + "`" + ` WHERE id = ? AND lab_id = ? AND user_id = ?
+DELETE m FROM ` + "`" + `lab_markers` + "`" + ` m
+JOIN ` + "`" + `lab_reports` + "`" + ` r ON r.id = m.lab_id AND r.user_id = m.user_id
+WHERE m.id = ? AND m.lab_id = ? AND m.user_id = ?
+  AND r.status IN ('needs_review', 'ready')
 `
 
 type DeleteLabMarkerParams struct {
@@ -301,6 +350,7 @@ type DeleteLabMarkerParams struct {
 	UserID uint64
 }
 
+// Only while the lab is not being processed (B-N6-06b).
 func (q *Queries) DeleteLabMarker(ctx context.Context, arg DeleteLabMarkerParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, deleteLabMarker, arg.ID, arg.LabID, arg.UserID)
 	if err != nil {
@@ -326,10 +376,10 @@ func (q *Queries) DeleteLabReport(ctx context.Context, arg DeleteLabReportParams
 	return result.RowsAffected()
 }
 
-const finishLabJob = `-- name: FinishLabJob :exec
+const finishLabJob = `-- name: FinishLabJob :execrows
 UPDATE ` + "`" + `lab_jobs` + "`" + `
 SET status = ?, last_error = ?, locked_until = NULL, updated_at = ?
-WHERE id = ?
+WHERE id = ? AND status = 'running' AND attempts = ?
 `
 
 type FinishLabJobParams struct {
@@ -337,16 +387,21 @@ type FinishLabJobParams struct {
 	LastError sql.NullString
 	Now       sql.NullTime
 	ID        uint64
+	Token     uint8
 }
 
-func (q *Queries) FinishLabJob(ctx context.Context, arg FinishLabJobParams) error {
-	_, err := q.db.ExecContext(ctx, finishLabJob,
+func (q *Queries) FinishLabJob(ctx context.Context, arg FinishLabJobParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, finishLabJob,
 		arg.Status,
 		arg.LastError,
 		arg.Now,
 		arg.ID,
+		arg.Token,
 	)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const getLabFile = `-- name: GetLabFile :one
@@ -565,6 +620,54 @@ func (q *Queries) LabUserExists(ctx context.Context, userID uint64) (int64, erro
 	return count, err
 }
 
+const listExhaustedLabJobs = `-- name: ListExhaustedLabJobs :many
+SELECT id, lab_id, user_id, kind, locale, status, attempts, available_at, locked_until, last_error, created_at, updated_at FROM ` + "`" + `lab_jobs` + "`" + `
+WHERE status = 'running' AND locked_until < ? AND attempts >= ?
+ORDER BY id LIMIT 100
+`
+
+type ListExhaustedLabJobsParams struct {
+	Expired     sql.NullTime
+	MaxAttempts uint8
+}
+
+// Running jobs whose lease expired after their last attempt (their worker died): the sweep finishes them.
+func (q *Queries) ListExhaustedLabJobs(ctx context.Context, arg ListExhaustedLabJobsParams) ([]LabJob, error) {
+	rows, err := q.db.QueryContext(ctx, listExhaustedLabJobs, arg.Expired, arg.MaxAttempts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []LabJob{}
+	for rows.Next() {
+		var i LabJob
+		if err := rows.Scan(
+			&i.ID,
+			&i.LabID,
+			&i.UserID,
+			&i.Kind,
+			&i.Locale,
+			&i.Status,
+			&i.Attempts,
+			&i.AvailableAt,
+			&i.LockedUntil,
+			&i.LastError,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listLabFiles = `-- name: ListLabFiles :many
 SELECT id, lab_id, user_id, page, mime, size_bytes, path, created_at, updated_at FROM ` + "`" + `lab_files` + "`" + ` WHERE lab_id = ? AND user_id = ? ORDER BY page, id
 `
@@ -744,6 +847,59 @@ func (q *Queries) ListLabReports(ctx context.Context, arg ListLabReportsParams) 
 	return items, nil
 }
 
+const listOrphanBusyLabs = `-- name: ListOrphanBusyLabs :many
+SELECT id, user_id, source, category, title, taken_on, fasting, lab_name, status, progress, error_code, quota_at, verified_at, interpretation, interpreted_at, interpret_count, feedback, feedback_note, feedback_at, created_at, updated_at FROM ` + "`" + `lab_reports` + "`" + ` r
+WHERE r.status IN ('queued', 'extracting', 'interpreting') AND r.updated_at < ?
+  AND NOT EXISTS (SELECT 1 FROM ` + "`" + `lab_jobs` + "`" + ` j WHERE j.lab_id = r.id AND j.status IN ('pending', 'running'))
+ORDER BY r.id LIMIT 100
+`
+
+// Labs left queued / extracting / interpreting without a live job (pending or running), untouched since a cut-off.
+func (q *Queries) ListOrphanBusyLabs(ctx context.Context, before sql.NullTime) ([]LabReport, error) {
+	rows, err := q.db.QueryContext(ctx, listOrphanBusyLabs, before)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []LabReport{}
+	for rows.Next() {
+		var i LabReport
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Source,
+			&i.Category,
+			&i.Title,
+			&i.TakenOn,
+			&i.Fasting,
+			&i.LabName,
+			&i.Status,
+			&i.Progress,
+			&i.ErrorCode,
+			&i.QuotaAt,
+			&i.VerifiedAt,
+			&i.Interpretation,
+			&i.InterpretedAt,
+			&i.InterpretCount,
+			&i.Feedback,
+			&i.FeedbackNote,
+			&i.FeedbackAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUserLabMarkers = `-- name: ListUserLabMarkers :many
 SELECT m.id, m.lab_id, m.user_id, m.code, m.name, m.value, m.value_text, m.unit, m.ref_low, m.ref_high, m.ref_text, m.confidence, m.source, m.sort_order, m.created_at, m.updated_at, r.taken_on AS lab_taken_on, r.created_at AS lab_created_at, r.verified_at AS lab_verified_at,
        r.status AS lab_status, r.source AS lab_source
@@ -827,7 +983,8 @@ const markLabVerified = `-- name: MarkLabVerified :execrows
 UPDATE ` + "`" + `lab_reports` + "`" + `
 SET verified_at = ?, status = ?, progress = 0, error_code = NULL,
     interpret_count = interpret_count + 1, updated_at = ?
-WHERE id = ? AND user_id = ? AND interpret_count < ?
+WHERE id = ? AND user_id = ? AND source = 'upload'
+  AND status IN ('needs_review', 'ready') AND interpret_count < ?
 `
 
 type MarkLabVerifiedParams struct {
@@ -838,7 +995,8 @@ type MarkLabVerifiedParams struct {
 	MaxCount uint8
 }
 
-// The user confirmed the values: one more interpretation, while fewer than max_count were made.
+// The user confirmed the values of an uploaded lab in review (or ready, to re-explain after edits): one more
+// interpretation, while fewer than max_count were made (B-N6-06b: state and source checked here, not only in Go).
 func (q *Queries) MarkLabVerified(ctx context.Context, arg MarkLabVerifiedParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, markLabVerified,
 		arg.Now,
@@ -856,18 +1014,23 @@ func (q *Queries) MarkLabVerified(ctx context.Context, arg MarkLabVerifiedParams
 
 const nextLabJob = `-- name: NextLabJob :one
 SELECT id FROM ` + "`" + `lab_jobs` + "`" + `
-WHERE (status = 'pending' AND available_at <= ?) OR (status = 'running' AND locked_until < ?)
+WHERE ((status = 'pending' AND available_at <= ?) OR (status = 'running' AND locked_until < ?))
+  AND attempts < ?
 ORDER BY id LIMIT 1
+FOR UPDATE SKIP LOCKED
 `
 
 type NextLabJobParams struct {
-	Due     time.Time
-	Expired sql.NullTime
+	Due         time.Time
+	Expired     sql.NullTime
+	MaxAttempts uint8
 }
 
-// The oldest job a worker may take: pending and due, or running with an expired lease (its worker died).
+// The oldest job a worker may take (inside the claim transaction): pending and due, or running with an expired lease
+// (its worker died) — never one that used all its attempts (the sweep finishes those). SKIP LOCKED: concurrent
+// workers never wait on, or both take, the same row.
 func (q *Queries) NextLabJob(ctx context.Context, arg NextLabJobParams) (uint64, error) {
-	row := q.db.QueryRowContext(ctx, nextLabJob, arg.Due, arg.Expired)
+	row := q.db.QueryRowContext(ctx, nextLabJob, arg.Due, arg.Expired, arg.MaxAttempts)
 	var id uint64
 	err := row.Scan(&id)
 	return id, err
@@ -884,11 +1047,32 @@ func (q *Queries) NextLabMarkerSort(ctx context.Context, labID uint64) (int64, e
 	return column_1, err
 }
 
-const retryLabJob = `-- name: RetryLabJob :exec
+const releaseLabJob = `-- name: ReleaseLabJob :execrows
+UPDATE ` + "`" + `lab_jobs` + "`" + `
+SET status = 'pending', attempts = attempts - 1, locked_until = NULL, updated_at = ?
+WHERE id = ? AND status = 'running' AND attempts = ? AND attempts > 0
+`
+
+type ReleaseLabJobParams struct {
+	Now   sql.NullTime
+	ID    uint64
+	Token uint8
+}
+
+// A shutdown interrupted the attempt: back to pending without counting it (B-N6-06b, M2).
+func (q *Queries) ReleaseLabJob(ctx context.Context, arg ReleaseLabJobParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, releaseLabJob, arg.Now, arg.ID, arg.Token)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const retryLabJob = `-- name: RetryLabJob :execrows
 UPDATE ` + "`" + `lab_jobs` + "`" + `
 SET status = 'pending', available_at = ?, locked_until = NULL, last_error = ?,
     updated_at = ?
-WHERE id = ?
+WHERE id = ? AND status = 'running' AND attempts = ?
 `
 
 type RetryLabJobParams struct {
@@ -896,16 +1080,21 @@ type RetryLabJobParams struct {
 	LastError   sql.NullString
 	Now         sql.NullTime
 	ID          uint64
+	Token       uint8
 }
 
-func (q *Queries) RetryLabJob(ctx context.Context, arg RetryLabJobParams) error {
-	_, err := q.db.ExecContext(ctx, retryLabJob,
+func (q *Queries) RetryLabJob(ctx context.Context, arg RetryLabJobParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, retryLabJob,
 		arg.AvailableAt,
 		arg.LastError,
 		arg.Now,
 		arg.ID,
+		arg.Token,
 	)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const setLabExtracted = `-- name: SetLabExtracted :exec
@@ -1027,11 +1216,13 @@ func (q *Queries) TouchLab(ctx context.Context, arg TouchLabParams) error {
 }
 
 const updateLabMarker = `-- name: UpdateLabMarker :execrows
-UPDATE ` + "`" + `lab_markers` + "`" + `
-SET code = ?, name = ?, value = ?, value_text = ?,
-    unit = ?, ref_low = ?, ref_high = ?, ref_text = ?,
-    source = ?, updated_at = ?
-WHERE id = ? AND lab_id = ? AND user_id = ?
+UPDATE ` + "`" + `lab_markers` + "`" + ` m
+JOIN ` + "`" + `lab_reports` + "`" + ` r ON r.id = m.lab_id AND r.user_id = m.user_id
+SET m.code = ?, m.name = ?, m.value = ?, m.value_text = ?,
+    m.unit = ?, m.ref_low = ?, m.ref_high = ?, m.ref_text = ?,
+    m.source = ?, m.updated_at = ?
+WHERE m.id = ? AND m.lab_id = ? AND m.user_id = ?
+  AND r.status IN ('needs_review', 'ready')
 `
 
 type UpdateLabMarkerParams struct {
@@ -1050,6 +1241,7 @@ type UpdateLabMarkerParams struct {
 	UserID    uint64
 }
 
+// Only while the lab is not being processed (B-N6-06b: checked in SQL, not only in Go).
 func (q *Queries) UpdateLabMarker(ctx context.Context, arg UpdateLabMarkerParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, updateLabMarker,
 		arg.Code,

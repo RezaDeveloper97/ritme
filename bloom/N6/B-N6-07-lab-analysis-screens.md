@@ -3,8 +3,8 @@ id: B-N6-07
 title: Lab analysis screens
 milestone: N6
 type: frontend
-status: todo
-depends_on: [B-N6-06]
+status: in_progress
+depends_on: [B-N6-06,B-N6-06b]
 parallel_group: N6-G
 touches: [frontend/src/screens/lab-*,frontend/src/entities/lab,frontend/src/features/upload-lab]
 skills: [new-fsd-slice,verify-all]

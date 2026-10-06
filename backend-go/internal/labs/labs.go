@@ -82,8 +82,9 @@ const (
 	MaxInterpretations = 3
 	// MaxLabsListed caps GET /labs.
 	MaxLabsListed = 100
-	// UploadsPerDay is a per-user cap on top of the monthly Plus quota (abuse / cost guard).
-	UploadsPerDay = 10
+	// PagesPerDay caps the pages a user may send to the extractor in 24 h, on top of the monthly Plus quota (abuse /
+	// cost guard). Counted from the append-only AI usage log (B-N6-06b), so deleting labs never resets it.
+	PagesPerDay = 25
 	// LowConfidence marks a value the extractor was unsure about (nbl_Lab_Verify «با اطمینان کم»).
 	LowConfidence = 0.7
 	// MaxNameLen etc. are the column sizes.
