@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -121,6 +123,26 @@ func (e *env) seed(group, code string, sort int, active bool, audiences, title, 
 		group, code, sort, active, enc(audiences), enc(title), enc(body), enc(meta))
 }
 
+// testGroup returns a fresh, test-only catalog group name. Migrations seed real groups (missed_pill_rules, teen_*,
+// meno_*, child_*, …), so admin tests write to a group of their own and assert only on rows they created.
+func testGroup(t *testing.T) string {
+	t.Helper()
+	b := make([]byte, 6)
+	_, err := rand.Read(b)
+	require.NoError(t, err)
+	return "test_" + hex.EncodeToString(b)
+}
+
+// groupRow is the GET /catalog entry of group (nil when the group has no items).
+func groupRow(groups []any, group string) map[string]any {
+	for _, x := range groups {
+		if g, _ := x.(map[string]any); g["group"] == group {
+			return g
+		}
+	}
+	return nil
+}
+
 // ---------------------------------------------------------------------------
 // Public read
 
@@ -195,11 +217,14 @@ func TestAdmin_Guards(t *testing.T) {
 	assert.Equal(t, "unauthenticated", r.Code())
 	assert.Equal(t, 200, e.As(admintest.EditorID).Get("/catalog").Status, "editors manage the catalog")
 
+	g := testGroup(t)
+	before := e.Int("SELECT COUNT(*) FROM catalog_items")
 	noCSRF := e.As(admintest.EditorID)
 	noCSRF.CSRF = ""
-	r = noCSRF.JSON(fiber.MethodPost, "/catalog/missed_pill_rules", validBody())
+	r = noCSRF.JSON(fiber.MethodPost, "/catalog/"+g, validBody())
 	assert.Equal(t, 419, r.Status)
-	assert.Equal(t, 0, e.Int("SELECT COUNT(*) FROM catalog_items"))
+	assert.Equal(t, 0, e.Int("SELECT COUNT(*) FROM catalog_items WHERE `group` = ?", g))
+	assert.Equal(t, before, e.Int("SELECT COUNT(*) FROM catalog_items"), "nothing written")
 
 	a := e.As(admintest.SuperID)
 	assert.Equal(t, 404, a.Get("/catalog/Bad-Group").Status)
@@ -210,17 +235,18 @@ func TestAdmin_Guards(t *testing.T) {
 func TestAdmin_CRUDFlushesPublicCache(t *testing.T) {
 	e := newEnv(t)
 	a := e.As(admintest.EditorID)
-	const g = "/catalog/missed_pill_rules"
+	grp, other := testGroup(t), testGroup(t)
+	g, pubPath := "/catalog/"+grp, "/api/v1/catalog/"+grp
 
 	// Warm the public cache with the empty group.
-	assert.Empty(t, e.get(t, "/api/v1/catalog/missed_pill_rules", "en").items())
+	assert.Empty(t, e.get(t, pubPath, "en").items())
 
 	r := a.JSON(fiber.MethodPost, g, validBody())
 	require.Equal(t, 201, r.Status, string(r.Raw))
 	assert.Equal(t, "Catalog item created.", r.Body["message"])
 	it := r.Obj("catalog_item")
 	id := int(it["id"].(float64))
-	assert.Equal(t, "missed_pill_rules", it["group"])
+	assert.Equal(t, grp, it["group"])
 	assert.Equal(t, "missed_one", it["code"])
 	assert.Equal(t, map[string]any{"fa": "یک قرص جا افتاده", "en": "One pill missed"}, it["title"], "unknown languages dropped")
 	assert.Equal(t, []any{"contraception"}, it["audiences"], "deduplicated")
@@ -230,7 +256,7 @@ func TestAdmin_CRUDFlushesPublicCache(t *testing.T) {
 	assert.Equal(t, "{\"hours\":24,\"steps\":[{\"en\":\"Take\",\"fa\":\"بخور\"}]}",
 		e.String("SELECT meta FROM catalog_items WHERE id = ?", id), "stored as raw UTF-8 JSON")
 
-	pubEN := e.get(t, "/api/v1/catalog/missed_pill_rules", "en")
+	pubEN := e.get(t, pubPath, "en")
 	require.Len(t, pubEN.items(), 1, "the create flushed the cached empty group")
 	assert.Equal(t, "One pill missed", pubEN.items()[0]["title"])
 	assert.Equal(t, map[string]any{"hours": float64(24), "steps": []any{"Take"}}, pubEN.items()[0]["meta"])
@@ -239,7 +265,7 @@ func TestAdmin_CRUDFlushesPublicCache(t *testing.T) {
 	r = a.JSON(fiber.MethodPost, g, validBody())
 	assert.Equal(t, 422, r.Status)
 	assert.Contains(t, r.Errors(), "code")
-	assert.Equal(t, 201, a.JSON(fiber.MethodPost, "/catalog/teen_faq", validBody()).Status)
+	assert.Equal(t, 201, a.JSON(fiber.MethodPost, "/catalog/"+other, validBody()).Status)
 
 	// Validation: title in the default language, code format, audience format, booleans.
 	bad := map[string]any{"code": "Bad Code", "title": map[string]any{"en": "Only en"},
@@ -252,14 +278,14 @@ func TestAdmin_CRUDFlushesPublicCache(t *testing.T) {
 
 	// Show / list (search, status) / groups.
 	assert.Equal(t, "missed_one", a.Get(g + "/" + itoa(id)).Obj("catalog_item")["code"])
-	assert.Equal(t, 404, a.Get("/catalog/teen_faq/"+itoa(id)).Status, "an id of another group is not found")
+	assert.Equal(t, 404, a.Get("/catalog/"+other+"/"+itoa(id)).Status, "an id of another group is not found")
 	list := a.Get(g + "?q=" + "pill")
 	require.Equal(t, 200, list.Status)
 	assert.Len(t, list.Items(), 1)
 	assert.Empty(t, a.Get(g+"?status=inactive").Items())
 	groups := a.Get("/catalog").Items()
-	require.Len(t, groups, 2)
-	assert.Equal(t, map[string]any{"group": "missed_pill_rules", "items_count": float64(1), "active_count": float64(1)}, groups[0])
+	assert.Equal(t, map[string]any{"group": grp, "items_count": float64(1), "active_count": float64(1)}, groupRow(groups, grp))
+	assert.Equal(t, map[string]any{"group": other, "items_count": float64(1), "active_count": float64(1)}, groupRow(groups, other))
 
 	// Update: partial — absent optional fields keep their value; null clears.
 	r = a.JSON(fiber.MethodPut, g+"/"+itoa(id), map[string]any{
@@ -274,7 +300,7 @@ func TestAdmin_CRUDFlushesPublicCache(t *testing.T) {
 	assert.Equal(t, map[string]any{"fa": "همین حالا بخور", "en": "Take it now"}, it["body"], "kept")
 	assert.Equal(t, false, it["needs_review"])
 	assert.Equal(t, true, it["is_active"], "kept")
-	pubFA := e.get(t, "/api/v1/catalog/missed_pill_rules", "fa")
+	pubFA := e.get(t, pubPath, "fa")
 	assert.Equal(t, "جاافتادن قرص", pubFA.items()[0]["title"], "the update flushed the cache")
 	assert.Equal(t, false, pubFA.items()[0]["needs_review"])
 
@@ -282,7 +308,7 @@ func TestAdmin_CRUDFlushesPublicCache(t *testing.T) {
 	require.Equal(t, 200, a.JSON(fiber.MethodPut, g+"/"+itoa(id), map[string]any{
 		"title": map[string]any{"fa": "جاافتادن قرص"}, "is_active": false,
 	}).Status)
-	assert.Empty(t, e.get(t, "/api/v1/catalog/missed_pill_rules", "fa").items())
+	assert.Empty(t, e.get(t, pubPath, "fa").items())
 	assert.Len(t, a.Get(g+"?status=inactive").Items(), 1)
 
 	// Delete.
@@ -290,8 +316,8 @@ func TestAdmin_CRUDFlushesPublicCache(t *testing.T) {
 	require.Equal(t, 200, r.Status)
 	assert.Equal(t, "Catalog item deleted.", r.Body["message"])
 	assert.Equal(t, 404, a.JSON(fiber.MethodDelete, g+"/"+itoa(id), nil).Status)
-	assert.Equal(t, 0, e.Int("SELECT COUNT(*) FROM catalog_items WHERE `group` = 'missed_pill_rules'"))
-	assert.Equal(t, 1, e.Int("SELECT COUNT(*) FROM catalog_items WHERE `group` = 'teen_faq'"), "other group untouched")
+	assert.Equal(t, 0, e.Int("SELECT COUNT(*) FROM catalog_items WHERE `group` = ?", grp))
+	assert.Equal(t, 1, e.Int("SELECT COUNT(*) FROM catalog_items WHERE `group` = ?", other), "other group untouched")
 }
 
 func itoa(n int) string { return strconv.Itoa(n) }
@@ -321,12 +347,13 @@ func (e *env) id(group, code string) int {
 
 func TestAdmin_Reorder(t *testing.T) {
 	e := newEnv(t)
+	grp, other := testGroup(t), testGroup(t)
 	for i, code := range []string{"a", "b", "c"} {
-		e.seed("teen_faq", code, 0, i != 1, nil, map[string]any{"fa": code}, nil, nil) // colliding orders
+		e.seed(grp, code, 0, i != 1, nil, map[string]any{"fa": code}, nil, nil) // colliding orders
 	}
-	e.seed("other", "x", 0, true, nil, map[string]any{"fa": "x"}, nil, nil)
-	a, b, c, x := e.id("teen_faq", "a"), e.id("teen_faq", "b"), e.id("teen_faq", "c"), e.id("other", "x")
-	const path = "/catalog/teen_faq/reorder"
+	e.seed(other, "x", 0, true, nil, map[string]any{"fa": "x"}, nil, nil)
+	a, b, c, x := e.id(grp, "a"), e.id(grp, "b"), e.id(grp, "c"), e.id(other, "x")
+	path, pubPath := "/catalog/"+grp+"/reorder", "/api/v1/catalog/"+grp
 
 	// Guards: auth, CSRF, group format.
 	assert.Equal(t, 401, e.Anonymous().JSON(fiber.MethodPost, path, map[string]any{"ids": []int{c, a, b}}).Status)
@@ -349,10 +376,10 @@ func TestAdmin_Reorder(t *testing.T) {
 	}
 	r := ed.JSON(fiber.MethodPost, path, map[string]any{"ids": []int{c, a, a}})
 	assert.Contains(t, r.Errors(), "ids.2")
-	assert.Equal(t, map[string]int{"a": 0, "b": 0, "c": 0}, e.orders("teen_faq"), "a 422 writes nothing")
+	assert.Equal(t, map[string]int{"a": 0, "b": 0, "c": 0}, e.orders(grp), "a 422 writes nothing")
 
 	// Warm the public cache, then reorder (inactive rows included).
-	assert.Equal(t, []string{"a", "c"}, codes(e.get(t, "/api/v1/catalog/teen_faq", "fa")))
+	assert.Equal(t, []string{"a", "c"}, codes(e.get(t, pubPath, "fa")))
 	r = ed.JSON(fiber.MethodPost, path, map[string]any{"ids": []int{c, b, a}})
 	require.Equal(t, 200, r.Status, string(r.Raw))
 	assert.Equal(t, "Order saved.", r.Body["message"])
@@ -361,35 +388,38 @@ func TestAdmin_Reorder(t *testing.T) {
 		map[string]any{"id": float64(b), "sort_order": float64(2)},
 		map[string]any{"id": float64(a), "sort_order": float64(3)},
 	}, r.Items())
-	assert.Equal(t, map[string]int{"c": 1, "b": 2, "a": 3}, e.orders("teen_faq"))
-	assert.Equal(t, map[string]int{"x": 0}, e.orders("other"), "other group untouched")
-	assert.Equal(t, []string{"c", "a"}, codes(e.get(t, "/api/v1/catalog/teen_faq", "fa")), "the reorder flushed the cache")
+	assert.Equal(t, map[string]int{"c": 1, "b": 2, "a": 3}, e.orders(grp))
+	assert.Equal(t, map[string]int{"x": 0}, e.orders(other), "other group untouched")
+	assert.Equal(t, []string{"c", "a"}, codes(e.get(t, pubPath, "fa")), "the reorder flushed the cache")
 	assert.Equal(t, "b", e.String("SELECT code FROM catalog_items WHERE id = ? AND is_active = 0", b), "other columns kept")
 }
 
 // A failure on a later row rolls back the rows already written: all or nothing.
 func TestAdmin_ReorderIsAtomic(t *testing.T) {
 	e := newEnv(t)
+	grp := testGroup(t)
 	for i, code := range []string{"a", "b", "boom"} {
-		e.seed("teen_faq", code, i+1, true, nil, map[string]any{"fa": code}, nil, nil)
+		e.seed(grp, code, i+1, true, nil, map[string]any{"fa": code}, nil, nil)
 	}
-	e.Exec("CREATE TRIGGER catalog_boom BEFORE UPDATE ON catalog_items FOR EACH ROW " +
-		"IF NEW.code = 'boom' THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'boom'; END IF")
-	a, b, boom := e.id("teen_faq", "a"), e.id("teen_faq", "b"), e.id("teen_faq", "boom")
+	// grp is generated ([a-z0-9_] only), so interpolating it into the trigger body is safe.
+	e.Exec(fmt.Sprintf("CREATE TRIGGER catalog_boom BEFORE UPDATE ON catalog_items FOR EACH ROW "+
+		"IF NEW.`group` = '%s' AND NEW.code = 'boom' THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'boom'; END IF", grp))
+	a, b, boom := e.id(grp, "a"), e.id(grp, "b"), e.id(grp, "boom")
 
 	// b → 1 is written first, then writing boom → 2 fails: b's write must be rolled back.
-	r := e.As(admintest.EditorID).JSON(fiber.MethodPost, "/catalog/teen_faq/reorder",
+	r := e.As(admintest.EditorID).JSON(fiber.MethodPost, "/catalog/"+grp+"/reorder",
 		map[string]any{"ids": []int{b, boom, a}})
 	assert.Equal(t, 500, r.Status, string(r.Raw))
-	assert.Equal(t, map[string]int{"a": 1, "b": 2, "boom": 3}, e.orders("teen_faq"), "nothing written")
+	assert.Equal(t, map[string]int{"a": 1, "b": 2, "boom": 3}, e.orders(grp), "nothing written")
 }
 
 // The duplicate-code 422 names the catalog item code, not the shared `code` label (the OTP code).
 func TestAdmin_CodeAttributeLabel(t *testing.T) {
 	e := newEnv(t)
 	a := e.As(admintest.EditorID)
-	require.Equal(t, 201, a.JSON(fiber.MethodPost, "/catalog/teen_faq", validBody()).Status)
-	r := a.JSON(fiber.MethodPost, "/catalog/teen_faq", validBody())
+	g := "/catalog/" + testGroup(t)
+	require.Equal(t, 201, a.JSON(fiber.MethodPost, g, validBody()).Status)
+	r := a.JSON(fiber.MethodPost, g, validBody())
 	require.Equal(t, 422, r.Status)
 	msgs, _ := r.Errors()["code"].([]any)
 	require.Len(t, msgs, 1)
@@ -400,7 +430,7 @@ func TestAdmin_CodeAttributeLabel(t *testing.T) {
 	assert.Equal(t, "item code", en)
 
 	// Rule messages for code use the catalog label too.
-	r = a.JSON(fiber.MethodPost, "/catalog/teen_faq", map[string]any{"title": map[string]any{"fa": "x"}})
+	r = a.JSON(fiber.MethodPost, g, map[string]any{"title": map[string]any{"fa": "x"}})
 	require.Equal(t, 422, r.Status)
 	msgs, _ = r.Errors()["code"].([]any)
 	require.Len(t, msgs, 1)
