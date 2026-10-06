@@ -5,6 +5,13 @@
 
 client_max_body_size 25m;
 
+# Doctor share links (B-N6-04): the token in the path is a bearer secret — no access log.
+location ~ ^/[A-Za-z-]+/shared/report/ {
+    access_log off;
+    proxy_pass http://frontend_upstream;
+    include /etc/nginx/conf.d/proxy-params.inc;
+}
+
 location / {
     proxy_pass http://frontend_upstream;
     include /etc/nginx/conf.d/proxy-params.inc;

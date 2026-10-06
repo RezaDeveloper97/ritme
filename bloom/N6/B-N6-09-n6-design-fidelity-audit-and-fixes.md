@@ -4,7 +4,7 @@ title: N6 design-fidelity audit and fixes
 milestone: N6
 type: frontend
 status: todo
-depends_on: [B-N6-02,B-N6-04,B-N6-07,B-N6-08]
+depends_on: [B-N6-02,B-N6-04,B-N6-04b,B-N6-07,B-N6-08]
 parallel_group: N6-I
 touches: [docs/night-bloom/audit-n6.md,frontend/src,frontend/messages]
 skills: [verify-all]

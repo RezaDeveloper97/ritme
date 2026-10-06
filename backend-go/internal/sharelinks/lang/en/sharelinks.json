@@ -1,0 +1,10 @@
+{
+    "messages": {
+        "created": "Share link created",
+        "revoked": "Share link revoked",
+        "not_found": "This report link was not found",
+        "expired": "This report link has expired",
+        "revoked_link": "This report link was revoked by its owner",
+        "limit": "You can have at most :max active share links. Revoke one first."
+    }
+}

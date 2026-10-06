@@ -29,6 +29,7 @@ import {
 } from '@/shared/ui';
 
 import { useConsents, useUpdateConsent } from '../api/consents';
+import { ShareLinksSection } from './ShareLinksSection';
 
 function SectionLabel({ id, children }: { id: string; children: string }) {
   return (
@@ -311,6 +312,8 @@ export function PrivacyPage() {
             />
           </ListGroup>
         </section>
+
+        <ShareLinksSection />
 
         <section className="prv-sec" aria-labelledby="prv-g-mine">
           <SectionLabel id="prv-g-mine">{t('groups.mine')}</SectionLabel>

@@ -3,7 +3,7 @@ id: B-N6-04
 title: Doctor report builder, PDF and 7-day share link
 milestone: N6
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N6-03]
 parallel_group: N6-D
 touches: [backend-go/internal/healthrecord,backend-go/internal/sharelinks,backend-go/api,frontend/src/screens/record-export,frontend/src/shared/lib/pdf]

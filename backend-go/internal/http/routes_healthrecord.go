@@ -31,6 +31,7 @@ func init() {
 
 		p := "/api/v1/health-record"
 		r.Get(p, locale, guard, h.Show)
+		r.Get(p+"/report", locale, guard, h.Report) // doctor report preview / PDF source (B-N6-04)
 		r.Put(p+"/basics", locale, guard, writes, h.UpdateBasics)
 		r.Post(p+"/pregnancies", locale, guard, writes, h.StorePregnancy)
 		r.Put(p+"/pregnancies/:id", locale, guard, writes, h.UpdatePregnancy)

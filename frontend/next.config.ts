@@ -140,6 +140,12 @@ const nextConfig: NextConfig = {
         headers: [{ key: 'Cache-Control', value: 'private, no-cache' }],
       },
       {
+        // A doctor's shared report (B-N6-04): never stored, never restored from
+        // bfcache on a shared clinic PC. Must follow the HTML rule above.
+        source: '/:locale/shared/:path*',
+        headers: [{ key: 'Cache-Control', value: 'no-store' }],
+      },
+      {
         // Update-detection source of truth — a cached copy would hide releases.
         source: '/version.json',
         headers: [{ key: 'Cache-Control', value: 'no-store, max-age=0' }],

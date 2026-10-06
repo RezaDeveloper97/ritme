@@ -27,6 +27,7 @@ import enVoiceLog from '../../../messages/en/voice-log.json';
 import enVitals from '../../../messages/en/vitals.json'; // B-N6-02
 import enLogTaxonomy from '../../../messages/en/log-taxonomy.json';
 import enHealthRecord from '../../../messages/en/health-record.json';
+import enRecordExport from '../../../messages/en/record-export.json';
 import enLoss from '../../../messages/en/loss.json';
 import enMe from '../../../messages/en/me.json';
 import enIvf from '../../../messages/en/ivf.json'; // CB-IVF-02
@@ -80,6 +81,7 @@ import faVoiceLog from '../../../messages/fa/voice-log.json';
 import faVitals from '../../../messages/fa/vitals.json'; // B-N6-02
 import faLogTaxonomy from '../../../messages/fa/log-taxonomy.json';
 import faHealthRecord from '../../../messages/fa/health-record.json';
+import faRecordExport from '../../../messages/fa/record-export.json';
 import faLoss from '../../../messages/fa/loss.json';
 import faMe from '../../../messages/fa/me.json';
 import faIvf from '../../../messages/fa/ivf.json'; // CB-IVF-02
@@ -160,6 +162,7 @@ const bundled = {
     labs: faLabs,
     labConsent: faLabConsent,
     healthRecord: faHealthRecord, // B-N6-03 /record
+    recordExport: faRecordExport, // B-N6-04 /record/export, /shared/report
     loss: faLoss,
     me: faMe,
     menopause: faMenopause,
@@ -215,6 +218,7 @@ const bundled = {
     labs: enLabs,
     labConsent: enLabConsent,
     healthRecord: enHealthRecord, // B-N6-03 /record
+    recordExport: enRecordExport, // B-N6-04 /record/export, /shared/report
     loss: enLoss,
     me: enMe,
     menopause: enMenopause,

@@ -17,6 +17,11 @@
         "allergies.*": "allergy",
         "outcome": "outcome",
         "ended_on": "date",
-        "baby_count": "number of babies"
+        "baby_count": "number of babies",
+        "range": "time range",
+        "from": "start date",
+        "sections": "sections",
+        "sections.*": "section",
+        "question": "question"
     }
 }

@@ -1006,3 +1006,20 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   targets); unchanged output without timed readings.
 - Frontend `entities/health-record`, `screens/health-record` on `/record` with edit sheets (basics, conditions,
   allergies, pregnancies); doctor-report CTA «به‌زودی» until B-N6-04. Screenshots `docs/qa/bloom/B-N6-03/`. QUESTIONS #113.
+
+## B-N6-04 — Doctor report builder, PDF and 7-day share link
+
+- `GET /health-record/report?range=3m|6m|1y|custom&from=&sections=` (share audience, no ids) → on-device PDF
+  (`shared/lib/pdf` gained `row` + `note` ops); screens `record-export` (range + section toggles + patient question ≤300,
+  2-page preview), `/record/export[/preview]`, public read-only `/{locale}/shared/report/{token}` (noindex, no-referrer,
+  no-store, `shared` in `PUBLIC_SEGMENTS`).
+- `internal/sharelinks`: Plus-gated (`plus.pdf_share`) `POST /health-record/share-links` (201, token once, ≤10 active,
+  409 `share_link_limit`), list (30 days), `DELETE …/{id}` (404 foreign); public `GET /shared-reports/{token}`
+  (30/min/IP; 404 unknown, **410** expired/revoked). 256-bit token, only sha256 stored; snapshot AES-256-GCM with a key
+  HKDF'd from the token (AAD = hash) — no env key, DB leak alone reveals nothing. Revoke/purge null the ciphertext,
+  rows deleted 30 d after expiry, cascade on account deletion. Privacy screen lists/revokes links. Migration **00042**,
+  D-65 proposed.
+- Security audit: H-1 token in Go access/error logs → `/api/v1/shared-reports` added to `httpx.LogPath` redaction;
+  M-1 nginx `access_log off` for the shared-report API (stage) and page (stage + web vhost); L-1 `no-store` on
+  `/:locale/shared/*`. L-2 (window for checkups/labs), L-3 (atomic cap) + share entry points → **B-N6-04b**.
+  Prod `go-routes.inc` lacks health-record/shared-reports (prod is Laravel until cutover). QUESTIONS #114.

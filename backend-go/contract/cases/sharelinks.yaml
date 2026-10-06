@@ -1,0 +1,85 @@
+# Doctor report + 7-day share links (/api/v1/health-record/report, /api/v1/health-record/share-links*,
+# /api/v1/shared-reports/{token}) — Go only (bloom B-N6-04, deviations.md D-65): no Laravel route, so these goldens were
+# recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The fixture dump carries the empty
+# health_share_links table (goose 00042 / Laravel 2026_10_06_000042), added by hand. The token is random per run
+# (pattern only). Encryption at rest, the frozen snapshot, expiry / purge, the active cap and the IDOR matrix are
+# covered by the internal/sharelinks integration tests. Fixture day 2026-09-23; `regular` (1004) has a profile and
+# cycle logs, `no_profile` (1001) is the other user.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: sharelinks
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: report_anon
+    persona: anon
+    method: GET
+    path: /api/v1/health-record/report
+    query: {range: 3m, sections: basics}
+    status: 401
+  - name: report
+    doc: nbl_Record_Preview — the share-audience record over the last 3 months, every section
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/health-record/report
+    query: {range: 3m, sections: "basics,conditions,medications,allergies,cycle,vitals,pregnancies,checkups,labs"}
+    status: 200
+  - name: report_custom
+    doc: a custom window (from a date to today) and two sections
+    method: GET
+    path: /api/v1/health-record/report
+    query: {range: custom, from: "2026-08-01", sections: "vitals,cycle"}
+    status: 200
+  - name: report_invalid
+    doc: unknown range / section, custom without a start date → 422
+    locales: [en]
+    method: GET
+    path: /api/v1/health-record/report
+    query: {range: custom, sections: "basics,diary"}
+    status: 422
+  - name: share_free
+    doc: a free user → 402 plus_required (plus.pdf_share)
+    method: POST
+    path: /api/v1/health-record/share-links
+    body: {range: 3m, sections: [basics]}
+    status: 402
+  - name: share_flow
+    doc: «اشتراک لینک» during the trial — invalid 422, create, list, open publicly, another user cannot revoke, revoke, 410
+    locales: [fa]
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: POST
+        path: /api/v1/health-record/share-links
+        body: {range: 2y, sections: []}
+        status: 422
+      - method: POST
+        path: /api/v1/health-record/share-links
+        body: {range: 6m, sections: [basics, medications, vitals], question: "آیا فشار شبانه‌ام نگران‌کننده است؟"}
+        status: 201
+        patterns: {data.token: "^[A-Za-z0-9_-]{43}$"}
+        capture: {id: data.id, token: data.token}
+      - method: GET
+        path: /api/v1/health-record/share-links
+        status: 200
+      - method: GET
+        path: "/api/v1/shared-reports/{{token}}"
+        as: anon
+        status: 200
+      - method: DELETE
+        path: "/api/v1/health-record/share-links/{{id}}"
+        as: no_profile
+        status: 404
+      - method: DELETE
+        path: "/api/v1/health-record/share-links/{{id}}"
+        status: 200
+      - method: GET
+        path: "/api/v1/shared-reports/{{token}}"
+        as: anon
+        status: 410
+  - name: shared_unknown
+    persona: anon
+    method: GET
+    path: /api/v1/shared-reports/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    status: 404

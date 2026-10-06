@@ -12,6 +12,12 @@ const num = z.number();
 const nnum = z.number().nullable();
 const nstr = z.string().nullable();
 const codes = z.array(z.string()).nullable();
+/** Row id: the doctor report / share link (B-N6-04) carries none, so it reads as 0 there. */
+const rowId = z
+  .number()
+  .optional()
+  .transform((v) => v ?? 0);
+const bpPoint = z.object({ systolic: num, diastolic: num });
 
 const valueSummary = z
   .object({ avg: num, min: num, max: num, readings: num, in_target_percent: num.optional() })
@@ -44,7 +50,7 @@ const medications = z
   .object({
     items: z.array(
       z.object({
-        id: num,
+        id: rowId,
         title: z.string(),
         dose: nstr,
         recurrence: z.string(),
@@ -86,7 +92,7 @@ const vitals = z
   .object({
     days: num,
     blood_pressure: z
-      .object({ systolic: num, diastolic: num, readings: num, tone: z.string() })
+      .object({ systolic: num, diastolic: num, readings: num, tone: z.string(), min: bpPoint.optional(), max: bpPoint.optional() })
       .nullable(),
     heart_rate: valueSummary,
     glucose_fasting: valueSummary,
@@ -127,7 +133,7 @@ const pregnancies = z
 const checkups = z.object({
   items: z.array(
     z
-      .object({ id: num, title: z.string(), done_on: z.string(), result: z.string() })
+      .object({ id: rowId, title: z.string(), done_on: z.string(), result: z.string() })
       .transform((c) => ({ id: c.id, title: c.title, doneOn: c.done_on, result: c.result })),
   ),
 });
@@ -136,7 +142,7 @@ const labs = z.object({
   items: z.array(
     z
       .object({
-        id: num,
+        id: rowId,
         title: z.string(),
         date: z.string(),
         marker_count: num,
@@ -156,7 +162,7 @@ const labs = z.object({
   ),
 });
 
-const SECTION_SCHEMAS = {
+export const SECTION_SCHEMAS = {
   basics,
   conditions,
   medications,
@@ -168,9 +174,9 @@ const SECTION_SCHEMAS = {
   labs,
 } as const;
 
-type SectionKey = keyof typeof SECTION_SCHEMAS;
+export type SectionKey = keyof typeof SECTION_SCHEMAS;
 
-const rawSection = z.object({ key: z.string(), editable: z.boolean(), empty: z.boolean(), data: z.unknown() });
+export const rawSection = z.object({ key: z.string(), editable: z.boolean(), empty: z.boolean(), data: z.unknown() });
 
 export const healthRecordSchema = z
   .object({

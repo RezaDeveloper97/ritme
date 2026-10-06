@@ -61,7 +61,7 @@ export const ROUTE_NAMESPACES = {
   profileAppearance: ['common', 'me'], // B-N1-10 /profile/appearance
   profileLanguage: ['common', 'me'], // B-N1-10 /profile/language
   profileNotifications: ['common', 'me'], // B-N1-11 /profile/notifications
-  profilePrivacy: ['account', 'common', 'companions', 'me'], // B-N1-12 /profile/privacy (DeleteAccountConfirm = account; B-N4-04 companions section)
+  profilePrivacy: ['account', 'common', 'companions', 'me', 'recordExport'], // B-N1-12 /profile/privacy (DeleteAccountConfirm = account; B-N4-04 companions section)
   companions: ['children', 'common', 'companions', 'teen'], // B-N4-10b family strip children (features/invite-companion → entities/child); B-N4-04 /companions (Hamdam_List); CB-TEEN-03 parent code card (widgets/linked-teen-card)
   companionsNew: ['children', 'common', 'companions'], // B-N4-10b ChildrenPicker (entities/child); B-N4-04 /companions/new (Hamdam_Type → Access → Children → Invite → Done)
   companionDetail: ['children', 'common', 'companions'], // B-N4-10b children editor (entities/child); B-N4-04 /companions/[id] (grants, renew, revoke)
@@ -115,6 +115,8 @@ export const ROUTE_NAMESPACES = {
   lossStart: ['common', 'companions', 'loss'], // CB-LOSS-02 /loss (Loss_Start, full screen, no nav; companions = entities/companion barrel)
   lossCare: ['common', 'loss'], // CB-LOSS-02 /loss/care (Loss_Care; «ثبت» opens the shell's log sheet)
   lossNext: ['common', 'loss'], // CB-LOSS-02 /loss/next (Loss_Next)
+  recordExport: ['common', 'healthRecord', 'plus', 'recordExport'], // B-N6-04 /record/export + /record/export/preview
+  sharedReport: ['common', 'healthRecord', 'plus', 'recordExport'], // B-N6-04 public /shared/report/[token]
   healthRecord: ['common', 'healthRecord', 'profileEdit'], // B-N6-03 /record (Record_Summary; profileEdit = the height/weight QuickEditSheet)
   ivfMeds: ['common', 'ivf', 'nav'], // CB-IVF-03 /ivf/meds (nbl_IVF_Meds, IVF stage tab «درمان»)
   ivfMedForm: ['common', 'ivf', 'nav'], // CB-IVF-03 /ivf/meds/new, /ivf/meds/[id] (form, no nav; same screen slice as /ivf/meds)

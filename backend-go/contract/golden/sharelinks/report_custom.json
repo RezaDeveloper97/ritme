@@ -1,0 +1,85 @@
+{
+  "case": "sharelinks/report_custom",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/report?range=custom&from=2026-08-01&sections=vitals%2Ccycle",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "range": {
+            "key": "custom",
+            "from": "2026-08-01",
+            "to": "2026-09-23",
+            "days": 54
+          },
+          "record": {
+            "audience": "share",
+            "date": "2026-09-23",
+            "updated_at": "2026-09-23T05:30:00.000000Z",
+            "person": {
+              "name": "Contract regular",
+              "age": 30,
+              "gender": null,
+              "life_mode": "cycle"
+            },
+            "sections": [
+              {
+                "key": "cycle",
+                "editable": false,
+                "empty": false,
+                "data": {
+                  "range": {
+                    "key": "custom",
+                    "from": "2026-08-01",
+                    "to": "2026-09-23",
+                    "days": 54
+                  },
+                  "based_on": 1,
+                  "median_cycle": 28,
+                  "variation": null,
+                  "median_period": 5,
+                  "regularity": "not_enough_data",
+                  "cycle_status": "normal",
+                  "period_status": "normal",
+                  "last_period_start": "2026-09-14",
+                  "current_day": 10,
+                  "top_symptoms": [
+                    {
+                      "key": "pain.location.abdomen",
+                      "label": "گرفتگی",
+                      "days": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "key": "vitals",
+                "editable": false,
+                "empty": true,
+                "data": {
+                  "from": "2026-08-01",
+                  "to": "2026-09-23",
+                  "days": 54,
+                  "blood_pressure": null,
+                  "heart_rate": null,
+                  "glucose_fasting": null,
+                  "glucose_after_meal": null,
+                  "glucose_other": null
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

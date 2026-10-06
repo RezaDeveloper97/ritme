@@ -247,3 +247,9 @@ sql:
       go:
         <<: *go
         out: internal/healthrecord/store
+  - <<: *pkg
+    queries: db/queries/sharelinks
+    gen:
+      go:
+        <<: *go
+        out: internal/sharelinks/store

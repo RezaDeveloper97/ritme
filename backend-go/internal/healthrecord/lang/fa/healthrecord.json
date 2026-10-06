@@ -17,6 +17,11 @@
         "allergies.*": "حساسیت",
         "outcome": "نتیجه",
         "ended_on": "تاریخ",
-        "baby_count": "تعداد نوزاد"
+        "baby_count": "تعداد نوزاد",
+        "range": "بازه زمانی",
+        "from": "تاریخ شروع",
+        "sections": "بخش‌ها",
+        "sections.*": "بخش",
+        "question": "سؤال"
     }
 }

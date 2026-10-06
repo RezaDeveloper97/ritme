@@ -1,0 +1,155 @@
+{
+  "case": "sharelinks/report.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/report?range=3m&sections=basics%2Cconditions%2Cmedications%2Callergies%2Ccycle%2Cvitals%2Cpregnancies%2Ccheckups%2Clabs",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "range": {
+            "key": "3m",
+            "from": "2026-06-25",
+            "to": "2026-09-23",
+            "days": 91
+          },
+          "record": {
+            "audience": "share",
+            "date": "2026-09-23",
+            "updated_at": "2026-09-23T05:30:00.000000Z",
+            "person": {
+              "name": "Contract regular",
+              "age": 30,
+              "gender": null,
+              "life_mode": "cycle"
+            },
+            "sections": [
+              {
+                "key": "basics",
+                "editable": false,
+                "empty": false,
+                "data": {
+                  "height_cm": 165,
+                  "weight_kg": 60.5,
+                  "bmi": {
+                    "value": 22.2,
+                    "category": "normal"
+                  },
+                  "blood_type": null,
+                  "blood_type_source": null
+                }
+              },
+              {
+                "key": "conditions",
+                "editable": false,
+                "empty": true,
+                "data": {
+                  "chronic_illnesses": null,
+                  "gyn_conditions": null,
+                  "answered": false
+                }
+              },
+              {
+                "key": "medications",
+                "editable": false,
+                "empty": true,
+                "data": {
+                  "items": [],
+                  "profile_medications": null
+                }
+              },
+              {
+                "key": "allergies",
+                "editable": false,
+                "empty": true,
+                "data": {
+                  "items": null,
+                  "answered": false
+                }
+              },
+              {
+                "key": "cycle",
+                "editable": false,
+                "empty": false,
+                "data": {
+                  "range": {
+                    "key": "3m",
+                    "from": "2026-06-25",
+                    "to": "2026-09-23",
+                    "days": 91
+                  },
+                  "based_on": 2,
+                  "median_cycle": 28,
+                  "variation": null,
+                  "median_period": 5,
+                  "regularity": "not_enough_data",
+                  "cycle_status": "normal",
+                  "period_status": "normal",
+                  "last_period_start": "2026-09-14",
+                  "current_day": 10,
+                  "top_symptoms": [
+                    {
+                      "key": "pain.location.abdomen",
+                      "label": "Cramps",
+                      "days": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "key": "vitals",
+                "editable": false,
+                "empty": true,
+                "data": {
+                  "from": "2026-06-25",
+                  "to": "2026-09-23",
+                  "days": 91,
+                  "blood_pressure": null,
+                  "heart_rate": null,
+                  "glucose_fasting": null,
+                  "glucose_after_meal": null,
+                  "glucose_other": null
+                }
+              },
+              {
+                "key": "pregnancies",
+                "editable": false,
+                "empty": true,
+                "data": {
+                  "pregnancies_count": 0,
+                  "births_count": 0,
+                  "items": []
+                }
+              },
+              {
+                "key": "checkups",
+                "editable": false,
+                "empty": true,
+                "data": {
+                  "items": []
+                }
+              },
+              {
+                "key": "labs",
+                "editable": false,
+                "empty": true,
+                "data": {
+                  "items": []
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

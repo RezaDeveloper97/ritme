@@ -574,6 +574,22 @@ type HealthRecordPregnancy struct {
 	UpdatedAt sql.NullTime
 }
 
+type HealthShareLink struct {
+	ID           uint64
+	UserID       uint64
+	TokenHash    string
+	Payload      sql.NullString
+	Sections     json.RawMessage
+	RangeFrom    civildate.Date
+	RangeTo      civildate.Date
+	ExpiresAt    sql.NullTime
+	RevokedAt    sql.NullTime
+	ViewCount    uint32
+	LastViewedAt sql.NullTime
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+}
+
 type HotFlash struct {
 	ID        uint64
 	UserID    uint64

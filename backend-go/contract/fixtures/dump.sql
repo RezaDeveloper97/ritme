@@ -1580,6 +1580,35 @@ LOCK TABLES `health_records` WRITE;
 /*!40000 ALTER TABLE `health_records` DISABLE KEYS */;
 /*!40000 ALTER TABLE `health_records` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `health_share_links`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `health_share_links` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `token_hash` char(64) NOT NULL,
+  `payload` mediumtext DEFAULT NULL,
+  `sections` json NOT NULL,
+  `range_from` date NOT NULL,
+  `range_to` date NOT NULL,
+  `expires_at` timestamp NULL DEFAULT NULL,
+  `revoked_at` timestamp NULL DEFAULT NULL,
+  `view_count` int(10) unsigned NOT NULL DEFAULT 0,
+  `last_viewed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `health_share_links_token_hash_unique` (`token_hash`),
+  KEY `health_share_links_user_id_created_at_index` (`user_id`,`created_at`),
+  KEY `health_share_links_expires_at_index` (`expires_at`),
+  CONSTRAINT `health_share_links_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `health_share_links` WRITE;
+/*!40000 ALTER TABLE `health_share_links` DISABLE KEYS */;
+/*!40000 ALTER TABLE `health_share_links` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `hot_flashes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;

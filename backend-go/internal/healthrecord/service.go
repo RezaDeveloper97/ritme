@@ -96,9 +96,14 @@ type Options struct {
 	CycleRange string
 	// Checkups / Labs cap the listed rows (default 5 each).
 	Checkups, Labs int
+	// From, when set, is a custom report window [From, Today] (B-N6-04): it replaces CycleRange and VitalsDays.
+	From civildate.Date
 }
 
 func (o Options) withDefaults() Options {
+	if !o.From.IsZero() && !o.From.After(o.Today) {
+		o.VitalsDays = o.From.DiffDays(o.Today) + 1
+	}
 	if o.VitalsDays <= 0 {
 		o.VitalsDays = DefaultVitalsDays
 	}
@@ -445,6 +450,9 @@ func (s *Service) cycleSection(ctx context.Context, userID uint64, f facts, opts
 	}
 	in := &analysis.Input{Today: today, Range: analysis.NewRange(opts.CycleRange, today), Histories: sn.Histories,
 		Profile: sn.EngineProfile(), Days: map[civildate.Date]*analysis.Day{}}
+	if !opts.From.IsZero() && !opts.From.After(today) {
+		in.Range = analysis.Range{Key: ReportRangeCustom, From: opts.From, To: today}
+	}
 	if f.profile != nil {
 		if f.profile.Height.Valid {
 			in.HeightCM = int(f.profile.Height.Int16)

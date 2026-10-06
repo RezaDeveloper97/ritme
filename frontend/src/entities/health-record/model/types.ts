@@ -82,7 +82,15 @@ export interface ValueSummary {
 
 export interface VitalsSummary {
   days: number;
-  bloodPressure: { systolic: number; diastolic: number; readings: number; tone: string } | null;
+  bloodPressure: {
+    systolic: number;
+    diastolic: number;
+    readings: number;
+    tone: string;
+    /** Lowest / highest reading of the window (the doctor report's «کمینه–بیشینه»). */
+    min?: { systolic: number; diastolic: number };
+    max?: { systolic: number; diastolic: number };
+  } | null;
   heartRate: ValueSummary | null;
   glucoseFasting: ValueSummary | null;
   glucoseAfterMeal: ValueSummary | null;

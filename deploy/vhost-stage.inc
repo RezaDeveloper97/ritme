@@ -186,6 +186,18 @@ location /api/ {
     proxy_read_timeout 120s;
     proxy_send_timeout 120s;
 }
+# Doctor share links (B-N6-04): the path token is the bearer secret and the
+# report's decryption key, so these requests are never written to the access log.
+location ^~ /api/v1/shared-reports/ {
+    access_log off;
+    proxy_pass $stage_backend_go_target;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $ritme_client_xff;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host  $host;
+}
 location /storage/   { proxy_pass $stage_backend_go_target; include /etc/nginx/conf.d/proxy-params.inc; }
 location ^~ /docs    { proxy_pass $stage_backend_go_target; include /etc/nginx/conf.d/proxy-params.inc; }
 
@@ -214,6 +226,11 @@ location ^~ /admin/ {
     return 301 /panel/;
 }
 
+location ~ ^/[A-Za-z-]+/shared/report/ {
+    access_log off;
+    proxy_pass http://stage_frontend_upstream;
+    include /etc/nginx/conf.d/proxy-params.inc;
+}
 location / {
     proxy_pass http://stage_frontend_upstream;
     include /etc/nginx/conf.d/proxy-params.inc;

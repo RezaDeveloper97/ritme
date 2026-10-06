@@ -16642,6 +16642,163 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/HealthRecordPregnancyNotFound"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/health-record/report:
+    get:
+      tags: [HealthRecord]
+      summary: Doctor report preview (nbl_Record_Preview)
+      description: |
+        Bloom B-N6-04 (D-65). The owner's record built for the **share** audience (no row ids, no free-text notes, nothing
+        editable, a loss only as an ended pregnancy) over the chosen window and sections. The client draws the PDF on the
+        device from this body. Free (only the share link is Plus-gated).
+      operationId: showHealthRecordReport
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: range, in: query, required: true, schema: {type: string, enum: [3m, 6m, 1y, custom]}}
+        - {name: from, in: query, required: false, description: "Required for range=custom; at most 3 years back, before today.", schema: {$ref: "#/components/schemas/Date"}}
+        - {name: sections, in: query, required: true, description: "Comma-separated section keys (basics, conditions, medications, allergies, cycle, vitals, pregnancies, checkups, labs).", schema: {type: string}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/HealthReport"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/HealthRecordValidationFailed"}
+  /api/v1/health-record/share-links:
+    get:
+      tags: [HealthRecord]
+      summary: The owner's doctor-report share links (Privacy & security)
+      description: "Links created in the last 30 days, newest first — metadata only (never the token or the report)."
+      operationId: listHealthShareLinks
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [items, active_count, max_active, ttl_days]
+                    properties:
+                      items: {type: array, items: {$ref: "#/components/schemas/HealthShareLink"}}
+                      active_count: {type: integer}
+                      max_active: {type: integer}
+                      ttl_days: {type: integer}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    post:
+      tags: [HealthRecord]
+      summary: Create a 7-day share link to a frozen doctor report (Plus)
+      description: |
+        Builds the share-audience report, freezes it with the optional question and stores it encrypted under a key
+        derived from a fresh 256-bit token (only the token's SHA-256 is stored). The token is returned once; the client
+        builds the public URL from it. Plus-gated (`plus.pdf_share`), at most 10 live links.
+      operationId: storeHealthShareLink
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [range, sections]
+              properties:
+                range: {type: string, enum: [3m, 6m, 1y, custom]}
+                from: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+                sections: {type: array, minItems: 1, maxItems: 9, items: {type: string, enum: [basics, conditions, medications, allergies, cycle, vitals, pregnancies, checkups, labs]}}
+                question: {type: [string, "null"], maxLength: 300}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    allOf:
+                      - {$ref: "#/components/schemas/HealthShareLink"}
+                      - type: object
+                        required: [token]
+                        properties:
+                          token: {type: string, description: "43 base64url characters (256 random bits); shown once."}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '402': {$ref: "#/components/responses/PlusRequired"}
+        '409': {$ref: "#/components/responses/ShareLinkLimit"}
+        '422': {$ref: "#/components/responses/HealthRecordValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/health-record/share-links/{id}:
+    delete:
+      tags: [HealthRecord]
+      summary: Revoke a share link now
+      description: "The report is wiped at once; the public URL answers 410 from then on."
+      operationId: revokeHealthShareLink
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Revoked
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/HealthShareLink"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ShareLinkNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/shared-reports/{token}:
+    get:
+      tags: [HealthRecord]
+      summary: Public doctor report behind a share link
+      description: |
+        Unauthenticated, IP-throttled (30/min). The frozen report of a live link; `Cache-Control: no-store`,
+        `X-Robots-Tag: noindex`. 404 for an unknown token, 410 once the link expired (7 days) or was revoked.
+      operationId: showSharedReport
+      security: []
+      parameters:
+        - {name: token, in: path, required: true, schema: {type: string}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/SharedReport"}
+        '404': {$ref: "#/components/responses/ShareLinkNotFound"}
+        '410': {$ref: "#/components/responses/ShareLinkGone"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/files:
     post:
       tags: [Files]
@@ -16917,6 +17074,39 @@ components:
               success: {type: boolean, const: false}
               message: {type: string}
               error_code: {type: string, enum: [record_pregnancy_not_found]}
+    ShareLinkNotFound:
+      description: "Bloom B-N6-04: unknown token, or a link id that does not exist or is not the caller's — one uniform answer."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [share_link_not_found]}
+    ShareLinkGone:
+      description: "Bloom B-N6-04: the share link expired (7 days) or its owner revoked it."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [share_link_expired, share_link_revoked]}
+    ShareLinkLimit:
+      description: "Bloom B-N6-04: the owner already has the maximum number of live share links."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [share_link_limit]}
     HealthRecordValidationFailed:
       description: "Health record validation failed (controller 422 `{success: false, message, errors}`)."
       content:
@@ -17802,6 +17992,52 @@ components:
           type: array
           description: "Screen order: basics, conditions, medications, allergies, cycle, vitals, pregnancies, checkups, labs (extensible: later sections append)."
           items: {$ref: "#/components/schemas/HealthRecordSection"}
+    HealthReportRange:
+      type: object
+      required: [key, from, to, days]
+      properties:
+        key: {type: string, enum: [3m, 6m, 1y, custom]}
+        from: {$ref: "#/components/schemas/Date"}
+        to: {$ref: "#/components/schemas/Date"}
+        days: {type: integer}
+    HealthReport:
+      type: object
+      description: "Bloom B-N6-04: the share-audience record (audience share, no `id` in any item) over the report window."
+      required: [range, record]
+      properties:
+        range: {$ref: "#/components/schemas/HealthReportRange"}
+        record: {$ref: "#/components/schemas/HealthRecord"}
+    SharedReport:
+      type: object
+      description: "Bloom B-N6-04: the frozen report behind a share link."
+      required: [version, locale, created_at, range, record, question, expires_at]
+      properties:
+        version: {type: integer, const: 1}
+        locale: {type: string}
+        created_at: {$ref: "#/components/schemas/IsoDateTime"}
+        range: {$ref: "#/components/schemas/HealthReportRange"}
+        record: {$ref: "#/components/schemas/HealthRecord"}
+        question: {type: [string, "null"]}
+        expires_at: {$ref: "#/components/schemas/IsoDateTime"}
+    HealthShareLink:
+      type: object
+      description: "Bloom B-N6-04: a share link's metadata (never the token after creation, never the report)."
+      required: [id, status, sections, range, created_at, expires_at, revoked_at, views, last_viewed_at]
+      properties:
+        id: {type: integer}
+        status: {type: string, enum: [active, expired, revoked]}
+        sections: {type: array, items: {type: string}}
+        range:
+          type: object
+          required: [from, to]
+          properties:
+            from: {$ref: "#/components/schemas/Date"}
+            to: {$ref: "#/components/schemas/Date"}
+        created_at: {$ref: "#/components/schemas/IsoDateTime"}
+        expires_at: {$ref: "#/components/schemas/IsoDateTime"}
+        revoked_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+        views: {type: integer}
+        last_viewed_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
     HealthRecordSection:
       type: object
       required: [key, editable, empty, data]

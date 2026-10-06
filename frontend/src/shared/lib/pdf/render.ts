@@ -9,11 +9,18 @@ import { A4_POINTS, type PdfImagePage, buildImagePdf } from './writer';
  * device; nothing is uploaded.
  */
 
-export type PdfBlockKind = 'title' | 'subtitle' | 'heading' | 'text' | 'muted' | 'rule';
+export type PdfBlockKind = 'title' | 'subtitle' | 'heading' | 'text' | 'muted' | 'rule' | 'row' | 'note';
 
+/**
+ * A block of the document. `row` lays `cells` out as table columns (the first cell bold, the rest regular; widths
+ * from `weights`, default equal) with a hairline under it — used by the doctor report (B-N6-04). `note` is `text` in
+ * a framed box (the patient's question).
+ */
 export interface PdfBlock {
   kind: PdfBlockKind;
   text?: string;
+  cells?: readonly string[];
+  weights?: readonly number[];
 }
 
 export interface PdfDocumentSpec {
@@ -46,8 +53,9 @@ const FOOTER_H = 28 * SCALE;
 
 // Paper, not UI: the PDF is always black-on-white whatever the app theme, so
 // these are fixed CSS named colours rather than theme tokens (which flip).
-const STYLE: Record<Exclude<PdfBlockKind, 'rule'>, { size: number; weight: number; color: string; gap: number }> = {
+const STYLE: Record<Exclude<PdfBlockKind, 'rule' | 'row'>, { size: number; weight: number; color: string; gap: number }> = {
   title: { size: 20, weight: 800, color: 'black', gap: 6 },
+  note: { size: 11, weight: 600, color: 'black', gap: 10 },
   subtitle: { size: 11, weight: 500, color: 'dimgray', gap: 14 },
   heading: { size: 13, weight: 800, color: 'black', gap: 4 },
   text: { size: 11, weight: 500, color: 'darkslategray', gap: 3 },
@@ -57,6 +65,32 @@ const STYLE: Record<Exclude<PdfBlockKind, 'rule'>, { size: number; weight: numbe
 interface Line {
   text: string;
   kind: PdfBlockKind;
+  /** row: the cells; note: the box's top edge and height. */
+  cells?: readonly string[];
+  weights?: readonly number[];
+  boxH?: number;
+}
+
+const ROW_SIZE = 10.5;
+const ROW_H = 26;
+
+/** Column x ranges of a row (in RTL the first column is on the right). */
+export function rowColumns(width: number, count: number, weights?: readonly number[]): { start: number; width: number }[] {
+  const w = Array.from({ length: count }, (_, i) => (weights?.[i] && weights[i]! > 0 ? weights[i]! : 1));
+  const total = w.reduce((a, b) => a + b, 0);
+  let at = 0;
+  return w.map((x) => {
+    const col = { start: at, width: (width * x) / total };
+    at += col.width;
+    return col;
+  });
+}
+
+function ellipsize(ctx: CanvasRenderingContext2D, text: string, width: number): string {
+  if (ctx.measureText(text).width <= width) return text;
+  let t = text;
+  while (t.length > 1 && ctx.measureText(`${t}…`).width > width) t = t.slice(0, -1);
+  return `${t}…`;
 }
 
 function wrap(ctx: CanvasRenderingContext2D, text: string, width: number): string[] {
@@ -92,8 +126,9 @@ function toJpeg(canvas: HTMLCanvasElement): Promise<Uint8Array> {
 
 export async function renderPdf(spec: PdfDocumentSpec): Promise<Blob> {
   const family = spec.fontFamily ?? getComputedStyle(document.body).fontFamily;
-  const font = (kind: Exclude<PdfBlockKind, 'rule'>) =>
+  const font = (kind: Exclude<PdfBlockKind, 'rule' | 'row'>) =>
     `${STYLE[kind].weight} ${STYLE[kind].size * SCALE}px ${family}`;
+  const rowFont = (bold: boolean) => `${bold ? 700 : 500} ${ROW_SIZE * SCALE}px ${family}`;
   // Make sure every weight is loaded before measuring, or the fallback font is drawn.
   await Promise.all((['title', 'text', 'heading'] as const).map((k) => document.fonts.load(font(k), 'آب')));
 
@@ -118,6 +153,34 @@ export async function renderPdf(spec: PdfDocumentSpec): Promise<Blob> {
       y += h;
       continue;
     }
+    if (block.kind === 'row') {
+      const h = ROW_H * SCALE;
+      if (y + h > PAGE_H - MARGIN - FOOTER_H) {
+        pagesLines.push([]);
+        y = MARGIN;
+      }
+      pagesLines[pagesLines.length - 1].push({ text: '', kind: 'row', cells: block.cells ?? [], weights: block.weights, y });
+      y += h;
+      continue;
+    }
+    if (block.kind === 'note') {
+      const st = STYLE.note;
+      ctx.font = font('note');
+      const pad = 10 * SCALE;
+      const lineH = st.size * SCALE * 1.7;
+      const lines = wrap(ctx, block.text ?? '', contentW - pad * 2);
+      const boxH = lines.length * lineH + pad * 2;
+      if (y + boxH > PAGE_H - MARGIN - FOOTER_H) {
+        pagesLines.push([]);
+        y = MARGIN;
+      }
+      pagesLines[pagesLines.length - 1].push({ text: '', kind: 'note', y, boxH });
+      lines.forEach((text, i) => {
+        pagesLines[pagesLines.length - 1].push({ text, kind: 'note', y: y + pad + i * lineH + st.size * SCALE * 1.2 });
+      });
+      y += boxH + st.gap * SCALE;
+      continue;
+    }
     const st = STYLE[block.kind];
     ctx.font = font(block.kind);
     const lineH = st.size * SCALE * 1.7;
@@ -139,13 +202,38 @@ export async function renderPdf(spec: PdfDocumentSpec): Promise<Blob> {
     ctx.fillRect(0, 0, PAGE_W, PAGE_H);
     ctx.direction = spec.dir;
     ctx.textAlign = rtl ? 'right' : 'left';
-    const x = rtl ? PAGE_W - MARGIN : MARGIN;
     for (const line of pagesLines[p]) {
       if (line.kind === 'rule') {
         ctx.fillStyle = 'gainsboro';
         ctx.fillRect(MARGIN, line.y, contentW, SCALE);
         continue;
       }
+      if (line.kind === 'row') {
+        const cells = line.cells ?? [];
+        const cols = rowColumns(contentW, cells.length, line.weights);
+        const gap = 6 * SCALE;
+        cells.forEach((cell, i) => {
+          const col = cols[i]!;
+          ctx.font = rowFont(i === 0);
+          ctx.fillStyle = i === 0 ? 'black' : 'darkslategray';
+          ctx.textAlign = rtl ? 'right' : 'left';
+          const cx = rtl ? PAGE_W - MARGIN - col.start : MARGIN + col.start;
+          ctx.fillText(ellipsize(ctx, cell, col.width - gap), cx, line.y + ROW_H * SCALE * 0.62);
+        });
+        ctx.fillStyle = 'gainsboro';
+        ctx.fillRect(MARGIN, line.y + ROW_H * SCALE - SCALE, contentW, SCALE);
+        ctx.textAlign = rtl ? 'right' : 'left';
+        continue;
+      }
+      if (line.kind === 'note' && line.boxH !== undefined) {
+        ctx.strokeStyle = 'darkgray';
+        ctx.lineWidth = SCALE;
+        ctx.setLineDash([4 * SCALE, 3 * SCALE]);
+        ctx.strokeRect(MARGIN, line.y, contentW, line.boxH);
+        ctx.setLineDash([]);
+        continue;
+      }
+      const x = rtl ? PAGE_W - MARGIN - (line.kind === 'note' ? 10 * SCALE : 0) : MARGIN + (line.kind === 'note' ? 10 * SCALE : 0);
       ctx.font = font(line.kind);
       ctx.fillStyle = STYLE[line.kind].color;
       ctx.fillText(line.text, x, line.y);

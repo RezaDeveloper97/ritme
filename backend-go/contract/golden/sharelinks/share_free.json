@@ -1,0 +1,32 @@
+{
+  "case": "sharelinks/share_free",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-record/share-links",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "range": "3m",
+          "sections": [
+            "basics"
+          ]
+        }
+      },
+      "status": 402,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این امکان بخشی از ریتمی پلاس است.",
+        "error_code": "plus_required",
+        "feature": "plus.pdf_share",
+        "reason": "locked",
+        "limit": null,
+        "resets_at": null
+      }
+    }
+  ]
+}

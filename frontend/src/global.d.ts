@@ -25,6 +25,7 @@ import type enVoiceLog from '../messages/en/voice-log.json';
 import type enVitals from '../messages/en/vitals.json'; // B-N6-02
 import type enLogTaxonomy from '../messages/en/log-taxonomy.json';
 import type enHealthRecord from '../messages/en/health-record.json';
+import type enRecordExport from '../messages/en/record-export.json';
 import type enLoss from '../messages/en/loss.json';
 import type enMe from '../messages/en/me.json';
 import type enIvf from '../messages/en/ivf.json'; // CB-IVF-02
@@ -76,6 +77,7 @@ type Messages = {
   labConsent: typeof enLabConsent; // B-N6-07 ?sheet=lab-consent
   pwa: typeof enPwa;
   healthRecord: typeof enHealthRecord; // B-N6-03 entities/health-record, screens/health-record
+  recordExport: typeof enRecordExport; // B-N6-04 screens/record-export
   loss: typeof enLoss;
   me: typeof enMe;
   menopause: typeof enMenopause;

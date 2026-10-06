@@ -35,7 +35,6 @@ import {
   Skeleton,
   SkeletonGroup,
   SkyLayer,
-  StatusPill,
   type Tone,
 } from '@/shared/ui';
 import type { IconName } from '@/shared/ui';
@@ -96,12 +95,9 @@ export function HealthRecordPage() {
         />
         {body}
         <div className="hrec-footer">
-          <PrimaryButton icon="fileDoc" disabled aria-describedby="hrec-report-soon">
+          <PrimaryButton icon="fileDoc" onClick={() => router.push('/record/export')}>
             {t('report.cta')}
           </PrimaryButton>
-          <span id="hrec-report-soon" className="hrec-soon">
-            <StatusPill tone="neutral">{t('report.soon')}</StatusPill>
-          </span>
         </div>
       </div>
       {/* Sheets sit outside the scroller: AppSheet is positioned against the screen, not the scrolled content. */}
