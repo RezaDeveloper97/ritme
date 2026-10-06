@@ -1,0 +1,86 @@
+# Health record (/api/v1/health-record*) — Go only (bloom B-N6-03, deviations.md D-64): there is no Laravel route, so
+# these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The fixture dump
+# carries the empty health_records / health_record_pregnancies tables (goose 00036 / Laravel 2026_10_06_000036), added
+# by hand. Loss privacy, the share audience, the vitals merge and the full IDOR matrix are covered by the
+# internal/healthrecord integration tests. Fixture day 2026-09-23. `regular` (1004) has a profile and cycle logs;
+# `no_profile` (1001) is the other user.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: healthrecord
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: show_anon
+    persona: anon
+    method: GET
+    path: /api/v1/health-record
+    status: 401
+  - name: show
+    doc: nbl_Record_Summary for a user with a profile and cycle history
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/health-record
+    status: 200
+  - name: show_no_profile
+    doc: every section empty
+    persona: no_profile
+    method: GET
+    path: /api/v1/health-record
+    status: 200
+
+  - name: basics_flow
+    doc: blood type + allergies edit sheet — invalid values 422, save, clear allergies to «none»
+    locales: [en]
+    steps:
+      - method: PUT
+        path: /api/v1/health-record/basics
+        body: {blood_type: Z+, allergies: penicillin}
+        status: 422
+      - method: PUT
+        path: /api/v1/health-record/basics
+        body: {blood_type: A+, allergies: [" Penicillin ", penicillin, Pollen]}
+        status: 200
+      - method: PUT
+        path: /api/v1/health-record/basics
+        body: {allergies: []}
+        status: 200
+
+  - name: pregnancies_flow
+    doc: «بارداری و زایمان» manual entries — invalid 422, add a birth and an ended pregnancy, edit, another user gets 404, delete
+    locales: [fa]
+    steps:
+      - method: POST
+        path: /api/v1/health-record/pregnancies
+        body: {outcome: twins, ended_on: "2030-01-01", baby_count: 5}
+        status: 422
+      - method: POST
+        path: /api/v1/health-record/pregnancies
+        body: {outcome: vaginal, ended_on: "2024-01-01", baby_count: 1}
+        status: 201
+        capture: {id: data.id}
+      - method: POST
+        path: /api/v1/health-record/pregnancies
+        body: {outcome: ended}
+        status: 201
+      - method: PUT
+        path: "/api/v1/health-record/pregnancies/{{id}}"
+        body: {outcome: cesarean, ended_on: "2023-01-01", baby_count: 1}
+        status: 200
+      - method: PUT
+        path: "/api/v1/health-record/pregnancies/{{id}}"
+        as: no_profile
+        body: {outcome: vaginal}
+        status: 404
+      - method: DELETE
+        path: "/api/v1/health-record/pregnancies/{{id}}"
+        as: no_profile
+        status: 404
+      - method: GET
+        path: /api/v1/health-record
+        status: 200
+      - method: DELETE
+        path: "/api/v1/health-record/pregnancies/{{id}}"
+        status: 200
+      - method: DELETE
+        path: "/api/v1/health-record/pregnancies/{{id}}"
+        status: 404

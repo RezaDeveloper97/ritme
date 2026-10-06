@@ -232,6 +232,26 @@ export function ProfilePage() {
                 onClick={() => router.push('/analysis')}
               />
             ) : null}
+            {/* B-N6-02: Me entry into the vitals hub (also on «خدمات»). */}
+            {navMode !== 'companion' ? (
+              <ListRow
+                icon="heartLine"
+                iconTone="bloom"
+                title={t('rows.vitals')}
+                description={t('rows.vitalsSub')}
+                onClick={() => router.push('/vitals')}
+              />
+            ) : null}
+            {/* B-N6-03: «پرونده سلامت من» (owner-only; a companion account has no record). */}
+            {navMode !== 'companion' ? (
+              <ListRow
+                icon="fileDoc"
+                iconTone="brand"
+                title={t('rows.healthRecord')}
+                description={t('rows.healthRecordSub')}
+                onClick={() => router.push('/record')}
+              />
+            ) : null}
             <ListRow icon="watch" iconTone="data" title={t('rows.devices')} trailing={soon} />
             {/* §11 — export is a first-class right: GET /profile/export as a JSON file. */}
             <ListRow

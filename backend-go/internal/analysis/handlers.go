@@ -32,6 +32,7 @@ type Handlers struct {
 	languages *i18n.Registry
 	clock     clock.Clock
 	labs      LabsHub
+	vitals    VitalsSource
 }
 
 // NewHandlers wires the handlers; base is the fallback clock (clock.Middleware's request clock wins).
@@ -96,6 +97,9 @@ func (h *Handlers) load(c fiber.Ctx, rng func(today civildate.Date) Range, logsF
 	}
 	if !plusOnly || in.DeepAnalysis {
 		if in.Days, err = h.days(ctx, uid, logsFrom(r), today); err != nil {
+			return nil, err
+		}
+		if err := loadVitals(ctx, h.vitals, uid, in, logsFrom(r), today); err != nil {
 			return nil, err
 		}
 	}
@@ -164,6 +168,12 @@ type LabsHub interface {
 // WithLabs wires the labs card (nil = the card stays empty, as before B-N6-06).
 func (h *Handlers) WithLabs(l LabsHub) *Handlers {
 	h.labs = l
+	return h
+}
+
+// WithVitals wires the merged vitals readings (nil = the vitals averages read the log sheet only, as before B-N6-03).
+func (h *Handlers) WithVitals(v VitalsSource) *Handlers {
+	h.vitals = v
 	return h
 }
 

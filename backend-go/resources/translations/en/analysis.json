@@ -481,7 +481,13 @@
       "cta": "Lab analysis",
       "soon": "Soon",
       "locked": "Lab trends are part of Ritme Plus.",
-      "note": "Each value is rated against the reference range on its own lab report; a trend shows only once a marker appears in at least 2 reports."
+      "note": "Each value is rated against the reference range on its own lab report; a trend shows only once a marker appears in at least 2 reports.",
+      "subLabs": "{n} verified labs",
+      "markersTitle": "Markers",
+      "allLabs": "All lab analyses",
+      "trendLabel": "{name} trend: {values}",
+      "loadError": "Couldn't load lab trends.",
+      "retry": "Try again"
     }
   },
   "ttc": {

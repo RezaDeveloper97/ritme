@@ -1515,6 +1515,47 @@ LOCK TABLES `health_log_preferences` WRITE;
 /*!40000 ALTER TABLE `health_log_preferences` DISABLE KEYS */;
 /*!40000 ALTER TABLE `health_log_preferences` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `health_record_pregnancies`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `health_record_pregnancies` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `outcome` varchar(16) NOT NULL,
+  `ended_on` date DEFAULT NULL,
+  `baby_count` tinyint(3) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `health_record_pregnancies_user_id_ended_on_index` (`user_id`,`ended_on`),
+  CONSTRAINT `health_record_pregnancies_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `health_record_pregnancies` WRITE;
+/*!40000 ALTER TABLE `health_record_pregnancies` DISABLE KEYS */;
+/*!40000 ALTER TABLE `health_record_pregnancies` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `health_records`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `health_records` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `blood_type` varchar(4) DEFAULT NULL,
+  `allergies` json DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `health_records_user_id_unique` (`user_id`),
+  CONSTRAINT `health_records_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `health_records` WRITE;
+/*!40000 ALTER TABLE `health_records` DISABLE KEYS */;
+/*!40000 ALTER TABLE `health_records` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `hot_flashes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;

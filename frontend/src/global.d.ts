@@ -22,7 +22,9 @@ import type enLogPeriod from '../messages/en/log-period.json';
 import type enLogCustomize from '../messages/en/log-customize.json';
 import type enLogSheet from '../messages/en/log-sheet.json';
 import type enVoiceLog from '../messages/en/voice-log.json';
+import type enVitals from '../messages/en/vitals.json'; // B-N6-02
 import type enLogTaxonomy from '../messages/en/log-taxonomy.json';
+import type enHealthRecord from '../messages/en/health-record.json';
 import type enLoss from '../messages/en/loss.json';
 import type enMe from '../messages/en/me.json';
 import type enIvf from '../messages/en/ivf.json'; // CB-IVF-02
@@ -35,6 +37,8 @@ import type enPregnancy from '../messages/en/pregnancy.json';
 import type enPregnancyV2 from '../messages/en/pregnancy-v2.json';
 import type enPostpartum from '../messages/en/postpartum.json';
 import type enPregnancyTools from '../messages/en/pregnancy-tools.json'; // B-N5-08
+import type enLabs from '../messages/en/labs.json'; // B-N6-07
+import type enLabConsent from '../messages/en/lab-consent.json'; // B-N6-07
 import type enPwa from '../messages/en/pwa.json';
 import type enProfile from '../messages/en/profile.json';
 import type enProfileEdit from '../messages/en/profile-edit.json';
@@ -68,7 +72,10 @@ type Messages = {
   pregnancyV2: typeof enPregnancyV2;
   postpartum: typeof enPostpartum;
   pregnancyTools: typeof enPregnancyTools; // B-N5-08 features/pregnancy-tools
+  labs: typeof enLabs; // B-N6-07 entities/lab, features/upload-lab, screens/lab-*
+  labConsent: typeof enLabConsent; // B-N6-07 ?sheet=lab-consent
   pwa: typeof enPwa;
+  healthRecord: typeof enHealthRecord; // B-N6-03 entities/health-record, screens/health-record
   loss: typeof enLoss;
   me: typeof enMe;
   menopause: typeof enMenopause;
@@ -93,6 +100,7 @@ type Messages = {
   logCustomize: typeof enLogCustomize;
   logSheet: typeof enLogSheet;
   voiceLog: typeof enVoiceLog; // B-N3-05 features/voice-log
+  vitals: typeof enVitals; // B-N6-02 entities/vital, features/add-vital, screens/vitals-*
   logTaxonomy: typeof enLogTaxonomy;
   teen: typeof enTeen;
   welcome: typeof enWelcome;

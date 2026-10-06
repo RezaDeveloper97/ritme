@@ -235,3 +235,9 @@ sql:
       go:
         <<: *go
         out: internal/vitals/store
+  - <<: *pkg
+    queries: db/queries/healthrecord
+    gen:
+      go:
+        <<: *go
+        out: internal/healthrecord/store

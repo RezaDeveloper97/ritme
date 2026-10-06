@@ -1,0 +1,182 @@
+{
+  "title": "My health record",
+  "updatedToday": "Updated today",
+  "updatedOn": "Updated {date}",
+  "back": "Back",
+  "loading": "Loading your health record",
+  "edit": "Edit",
+  "editSection": "Edit {section}",
+  "add": "Add",
+  "save": "Save",
+  "saving": "Saving…",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "notSet": "Not set",
+  "notAnswered": "Nothing recorded yet",
+  "none": "None",
+  "error": {
+    "title": "Couldn't load your record",
+    "body": "Check your connection and try again.",
+    "retry": "Try again",
+    "save": "Couldn't save. Please try again."
+  },
+  "person": {
+    "age": "{age} years",
+    "mode": "Mode: {mode}",
+    "gender": {
+      "female": "Female",
+      "male": "Male"
+    },
+    "lifeMode": {
+      "cycle": "Cycle tracking",
+      "ttc": "Trying to conceive",
+      "pregnancy": "Pregnancy",
+      "postpartum": "Postpartum",
+      "menopause": "Menopause",
+      "teen": "Teen",
+      "companion": "Companion"
+    }
+  },
+  "sections": {
+    "basics": "Basic information",
+    "conditions": "Conditions",
+    "medications": "Medicines & supplements",
+    "allergies": "Allergies",
+    "cycle": "Cycle summary ({count, plural, =0 {no cycles} one {# cycle} other {# cycles}})",
+    "vitals": "Vitals ({days} days)",
+    "pregnancies": "Pregnancies & births",
+    "checkups": "Checkups & tests"
+  },
+  "basics": {
+    "height": "Height",
+    "heightValue": "{value} cm",
+    "weight": "Weight",
+    "weightValue": "{value} kg",
+    "bmi": "BMI",
+    "bloodType": "Blood type",
+    "bloodFromPregnancy": "From your pregnancy profile",
+    "empty": "Add your height, weight and blood type to complete your record."
+  },
+  "conditions": {
+    "empty": "No conditions recorded.",
+    "chronicIllness": {
+      "diabetes": "Diabetes",
+      "hypertension": "High blood pressure",
+      "thyroid": "Thyroid condition",
+      "asthma": "Asthma",
+      "anemia": "Anemia",
+      "migraine": "Migraine",
+      "other": "Other illness"
+    },
+    "gynCondition": {
+      "pcos": "Polycystic ovary syndrome (PCOS)",
+      "endometriosis": "Endometriosis",
+      "fibroids": "Uterine fibroids",
+      "recurrent_infections": "Recurrent infections",
+      "other": "Other gynecological condition"
+    },
+    "chronicTitle": "Chronic illnesses",
+    "gynTitle": "Gynecological conditions"
+  },
+  "medications": {
+    "empty": "No medicines or supplements recorded.",
+    "daily": "Daily",
+    "weekly": "{count, plural, one {# day a week} other {# days a week}}",
+    "times": "{times}",
+    "manage": "Manage medicines in reminders",
+    "profileTitle": "From your profile",
+    "profile": {
+      "contraceptive_pill": "Birth control pill",
+      "iud": "IUD",
+      "hormonal_medication": "Hormonal medication"
+    }
+  },
+  "allergies": {
+    "empty": "No allergies recorded.",
+    "none": "No known allergies",
+    "placeholder": "e.g. Penicillin",
+    "inputLabel": "New allergy",
+    "remove": "Remove {name}",
+    "hint": "Medicines, foods or anything else you react to. Up to 20 items."
+  },
+  "cycle": {
+    "length": "Cycle length",
+    "lengthValue": "{days} days",
+    "variation": "±{days}",
+    "period": "Period length",
+    "periodValue": "{days} days",
+    "lastPeriod": "Last period",
+    "regularity": "Regularity",
+    "regular": "Regular",
+    "irregular": "Irregular",
+    "not_enough_data": "Not enough data",
+    "topSymptoms": "Frequent symptoms: {list}",
+    "empty": "No cycles yet — log a period and your cycle summary appears here."
+  },
+  "vitals": {
+    "bp": "Blood pressure",
+    "bpValue": "Avg {sys}/{dia} · {count, plural, one {# reading} other {# readings}}",
+    "hr": "Resting heart rate",
+    "hrValue": "Avg {bpm} bpm",
+    "fasting": "Fasting glucose",
+    "afterMeal": "Glucose after meals",
+    "otherGlucose": "Blood glucose",
+    "glucoseValue": "Avg {avg} mg/dL",
+    "glucoseTarget": "Avg {avg} mg/dL · {percent}% in target",
+    "empty": "No blood pressure, heart rate or glucose in the last 30 days.",
+    "open": "Vitals"
+  },
+  "pregnancies": {
+    "count": "Pregnancies",
+    "births": "Birth",
+    "outcome": {
+      "ongoing": "Current pregnancy",
+      "birth": "Birth",
+      "vaginal": "Vaginal",
+      "cesarean": "C-section",
+      "ended": "Ended"
+    },
+    "ongoingDue": "Due {date}",
+    "babies": "{count, plural, one {# baby} other {# babies}}",
+    "empty": "No pregnancies or births recorded.",
+    "manual": "Added by you",
+    "sheetHint": "Add pregnancies and births that weren't tracked in Ritme. Ones tracked in the app appear automatically.",
+    "addTitle": "Add a pregnancy",
+    "editTitle": "Edit pregnancy",
+    "outcomeLabel": "Outcome",
+    "yearLabel": "Year",
+    "yearUnknown": "Not sure",
+    "babiesLabel": "Number of babies",
+    "deleteConfirm": "Delete this entry?",
+    "fewer": "One fewer",
+    "more": "One more"
+  },
+  "checkups": {
+    "empty": "No checkups or tests recorded yet.",
+    "result": {
+      "normal": "Normal",
+      "follow_up": "Needs follow-up",
+      "pending": "Awaiting result"
+    },
+    "labAllNormal": "All normal",
+    "labAttention": "{count, plural, one {# out of range} other {# out of range}}",
+    "labMarkers": "{count, plural, one {# marker} other {# markers}}"
+  },
+  "bloodSheet": {
+    "title": "Basic information",
+    "bloodType": "Blood type",
+    "unknown": "I don't know",
+    "bodyTitle": "Height & weight",
+    "editHeight": "Edit height",
+    "editWeight": "Edit weight"
+  },
+  "conditionsSheet": {
+    "title": "Conditions",
+    "hint": "The same answers as when you started Ritme; changing them updates your tips too."
+  },
+  "report": {
+    "cta": "Create a report for your doctor",
+    "soon": "Soon"
+  },
+  "note": "This record is built from what you logged yourself and doesn't replace a doctor's examination."
+}

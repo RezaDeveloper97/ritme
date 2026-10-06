@@ -64,6 +64,10 @@
     "cycleSettingsSub": "Cycle, period length and reminders",
     "analysis": "Analysis & reports",
     "analysisSub": "Cycle, symptoms, mood and body",
+    "healthRecord": "My health record",
+    "healthRecordSub": "Basics, medicines, vitals and tests",
+    "vitals": "Vitals",
+    "vitalsSub": "Blood pressure, glucose and pulse",
     "companionCode": "Companion code",
     "companionCodeSub": "Connect to a partner or leave a link"
   },

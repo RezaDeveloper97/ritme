@@ -38,6 +38,14 @@ type PregnancyHandlers struct {
 	bundles   *i18n.TranslationStore
 	languages *i18n.Registry
 	clock     clock.Clock
+	vitals    VitalsSource
+}
+
+// WithVitals wires the merged vitals readings into the BP / glucose sections (bloom B-N6-03; nil = weekly logs and
+// the log sheet only, as before).
+func (h *PregnancyHandlers) WithVitals(v VitalsSource) *PregnancyHandlers {
+	h.vitals = v
+	return h
 }
 
 // NewPregnancyHandlers wires the handlers; base is the fallback clock (clock.Middleware's request clock wins).
@@ -242,6 +250,16 @@ func (h *PregnancyHandlers) loadPregnancy(ctx context.Context, uid uint64, in *P
 				in.addSymptom(date, k)
 			}
 		}
+	}
+
+	// Vitals (vital_readings merged with the log sheet, D-63): they win over the day's weekly-log / log-sheet BP and a
+	// weekly-log glucose value of the same slot.
+	if h.vitals != nil {
+		rs, err := h.vitals.Merged(ctx, uid, "", from, in.Today)
+		if err != nil {
+			return err
+		}
+		mergeVitals(in, VitalReadingsOf(rs))
 	}
 
 	// v1 symptom logs + v2 extras (heartburn, constipation).

@@ -12,6 +12,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/plus"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
+	"github.com/ritme/backend-go/internal/vitals"
 	"github.com/ritme/backend-go/resources/translations"
 )
 
@@ -30,7 +31,7 @@ func init() {
 			i18n.NewTranslationStore(translations.FS, d.Config.StoragePath),
 			languages,
 			clock.Real{},
-		)
+		).WithVitals(vitals.NewService(d.DB)) // B-N6-03: BP / glucose read vital_readings merged with the log sheet
 		r.Get("/api/v1/analysis/pregnancy", i18n.Middleware(languages), guard, h.Pregnancy)
 	})
 }

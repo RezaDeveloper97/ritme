@@ -14,6 +14,7 @@ import (
 	"github.com/ritme/backend-go/internal/labs"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/plus"
+	"github.com/ritme/backend-go/internal/vitals"
 	"github.com/ritme/backend-go/resources/translations"
 )
 
@@ -35,7 +36,7 @@ func init() {
 			clock.Real{},
 		).WithLabs(labs.NewService(labs.Options{ // B-N6-06: the hub's labs card (reads only)
 			DB: d.DB, Catalog: catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger), Logger: d.Logger,
-		}))
+		})).WithVitals(vitals.NewService(d.DB)) // B-N6-03: vitals averages read vital_readings merged with the log sheet
 
 		r.Get("/api/v1/analysis/summary", locale, guard, h.Summary)
 		r.Get("/api/v1/analysis/cycle", locale, guard, h.Cycle)

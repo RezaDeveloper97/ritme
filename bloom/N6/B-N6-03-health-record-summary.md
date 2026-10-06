@@ -3,7 +3,7 @@ id: B-N6-03
 title: Health record summary
 milestone: N6
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N6-01]
 parallel_group: N6-C
 touches: [backend-go/internal/healthrecord,backend-go/db,backend-go/api,frontend/src/screens/health-record,frontend/src/entities/health-record]

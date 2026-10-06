@@ -1,0 +1,43 @@
+// Public API of the `health-record` entity (bloom B-N6-03). Import only from here (CLAUDE.md §3.3).
+
+export {
+  BLOOD_TYPES,
+  CHRONIC_ILLNESSES,
+  GYN_CONDITIONS,
+  MANUAL_OUTCOMES,
+  MAX_ALLERGIES,
+  MAX_ALLERGY_LENGTH,
+  MAX_BABY_COUNT,
+  type Allergies,
+  type Basics,
+  type BasicsInput,
+  type BloodType,
+  type Conditions,
+  type ConditionsInput,
+  type CycleSummary,
+  type HealthRecord,
+  type ManualOutcome,
+  type Medications,
+  type PregnancyEntry,
+  type PregnancyInput,
+  type PregnancyOutcome,
+  type Pregnancies,
+  type RecordCheckup,
+  type RecordLab,
+  type RecordMedication,
+  type RecordPerson,
+  type Section,
+  type ValueSummary,
+  type VitalsSummary,
+} from './model/types';
+export { addAllergy, removeAllergy, toggleCode } from './model/edit';
+export { healthRecordKeys } from './api/keys';
+export { healthRecordSchema, pregnancyEntrySchema } from './api/schema';
+export {
+  fetchHealthRecord,
+  useDeleteRecordPregnancy,
+  useHealthRecord,
+  useSaveRecordBasics,
+  useSaveRecordConditions,
+  useSaveRecordPregnancy,
+} from './api/queries';

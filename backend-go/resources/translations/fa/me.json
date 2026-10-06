@@ -64,6 +64,10 @@
     "cycleSettingsSub": "طول سیکل، پریود و یادآورها",
     "analysis": "تحلیل و گزارش‌ها",
     "analysisSub": "سیکل، علائم، حال و بدن",
+    "healthRecord": "پرونده سلامت من",
+    "healthRecordSub": "اطلاعات پایه، داروها، علائم حیاتی و آزمایش‌ها",
+    "vitals": "علائم حیاتی",
+    "vitalsSub": "فشار خون، قند و ضربان",
     "companionCode": "کد همدم",
     "companionCodeSub": "وصل شدن به شریک یا خروج از اتصال"
   },

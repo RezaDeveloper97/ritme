@@ -24,7 +24,9 @@ import enLogPeriod from '../../../messages/en/log-period.json';
 import enLogCustomize from '../../../messages/en/log-customize.json';
 import enLogSheet from '../../../messages/en/log-sheet.json';
 import enVoiceLog from '../../../messages/en/voice-log.json';
+import enVitals from '../../../messages/en/vitals.json'; // B-N6-02
 import enLogTaxonomy from '../../../messages/en/log-taxonomy.json';
+import enHealthRecord from '../../../messages/en/health-record.json';
 import enLoss from '../../../messages/en/loss.json';
 import enMe from '../../../messages/en/me.json';
 import enIvf from '../../../messages/en/ivf.json'; // CB-IVF-02
@@ -37,6 +39,8 @@ import enPregnancy from '../../../messages/en/pregnancy.json';
 import enPregnancyV2 from '../../../messages/en/pregnancy-v2.json';
 import enPostpartum from '../../../messages/en/postpartum.json';
 import enPregnancyTools from '../../../messages/en/pregnancy-tools.json'; // B-N5-08
+import enLabs from '../../../messages/en/labs.json'; // B-N6-07
+import enLabConsent from '../../../messages/en/lab-consent.json'; // B-N6-07
 import enProfile from '../../../messages/en/profile.json';
 import enProfileEdit from '../../../messages/en/profile-edit.json';
 import enProfileInfo from '../../../messages/en/profile-info.json';
@@ -73,7 +77,9 @@ import faLogPeriod from '../../../messages/fa/log-period.json';
 import faLogCustomize from '../../../messages/fa/log-customize.json';
 import faLogSheet from '../../../messages/fa/log-sheet.json';
 import faVoiceLog from '../../../messages/fa/voice-log.json';
+import faVitals from '../../../messages/fa/vitals.json'; // B-N6-02
 import faLogTaxonomy from '../../../messages/fa/log-taxonomy.json';
+import faHealthRecord from '../../../messages/fa/health-record.json';
 import faLoss from '../../../messages/fa/loss.json';
 import faMe from '../../../messages/fa/me.json';
 import faIvf from '../../../messages/fa/ivf.json'; // CB-IVF-02
@@ -86,6 +92,8 @@ import faPregnancy from '../../../messages/fa/pregnancy.json';
 import faPregnancyV2 from '../../../messages/fa/pregnancy-v2.json';
 import faPostpartum from '../../../messages/fa/postpartum.json';
 import faPregnancyTools from '../../../messages/fa/pregnancy-tools.json'; // B-N5-08
+import faLabs from '../../../messages/fa/labs.json'; // B-N6-07
+import faLabConsent from '../../../messages/fa/lab-consent.json'; // B-N6-07
 import faProfile from '../../../messages/fa/profile.json';
 import faProfileEdit from '../../../messages/fa/profile-edit.json';
 import faProfileInfo from '../../../messages/fa/profile-info.json';
@@ -149,6 +157,9 @@ const bundled = {
     pregnancyV2: faPregnancyV2,
     postpartum: faPostpartum,
     pregnancyTools: faPregnancyTools,
+    labs: faLabs,
+    labConsent: faLabConsent,
+    healthRecord: faHealthRecord, // B-N6-03 /record
     loss: faLoss,
     me: faMe,
     menopause: faMenopause,
@@ -177,6 +188,7 @@ const bundled = {
     logCustomize: faLogCustomize,
     logSheet: faLogSheet,
     voiceLog: faVoiceLog,
+    vitals: faVitals,
     logTaxonomy: faLogTaxonomy,
     teen: faTeen,
     welcome: faWelcome,
@@ -200,6 +212,9 @@ const bundled = {
     pregnancyV2: enPregnancyV2,
     postpartum: enPostpartum,
     pregnancyTools: enPregnancyTools,
+    labs: enLabs,
+    labConsent: enLabConsent,
+    healthRecord: enHealthRecord, // B-N6-03 /record
     loss: enLoss,
     me: enMe,
     menopause: enMenopause,
@@ -228,6 +243,7 @@ const bundled = {
     logCustomize: enLogCustomize,
     logSheet: enLogSheet,
     voiceLog: enVoiceLog,
+    vitals: enVitals,
     logTaxonomy: enLogTaxonomy,
     teen: enTeen,
     welcome: enWelcome,

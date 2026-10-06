@@ -26,6 +26,10 @@ type Input struct {
 	DeepAnalysis bool
 	// Copy renders the localized sentences (nil → keys only, text "").
 	Copy *Copy
+	// VitalReadings are the merged vitals readings (VitalsLoaded = the handler read them); without them the vitals
+	// averages fall back to the log sheet's day values in Days.
+	VitalReadings []VitalReading
+	VitalsLoaded  bool
 }
 
 // LookbackDays is how far before Range.From the handlers load day logs: a 30-day delta of a 7-day

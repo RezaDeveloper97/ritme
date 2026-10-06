@@ -970,3 +970,39 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   «هنوز ثبت نشده», companion hint only when the card renders, post-loss `/pregnancy` calm line + «مراقبت از خودت»
   within 60 days) fixed; 10 low open. Follow-up: backend should auto-close/cap stale kick/contraction sessions.
 - Screenshots `docs/qa/bloom/B-N5-10/` (+ side-by-side for high/med).
+
+## B-N6-07 — Lab analysis screens
+
+- `entities/lab` (parsers tested on Go goldens, hooks, consent read/PUT, status state machine + polling backoff, range
+  bar, Persian number parsing, `RangeBar`, `MarkerStatePill`), `features/upload-lab` (server-mirrored validation incl.
+  strict `%PDF-`, on-device photo shrink, anonymised file names, error mapping, camera/gallery/PDF, reorder, progress via
+  `apiClient` `onUploadProgress` XHR path), screens `lab-intro`, `lab-consent` (sheet), `lab-upload`, `lab-processing`,
+  `lab-verify`, `lab-result`, `lab-marker` (trend chart); routes `/labs`, `/labs/new`, `/labs/[id]`,
+  `/labs/[id]/processing|verify`, `/labs/[id]/markers/[mid]`. All AI/catalog text rendered as plain text.
+  `/analysis/labs` lists markers with trends. Screenshots `docs/qa/bloom/B-N6-07/`. QUESTIONS #111.
+
+## B-N6-02 — Vitals screens (hub, add BP/glucose/HR, reports)
+
+- `entities/vital` (singular — steiger naming): types, server-range constants, `classify` fed by `/vitals/thresholds`
+  (fallback mirrors `thresholds.go`), mg/dL↔mmol/L (×18, server rounding), hooks for hub/thresholds/report/readings/
+  plan/create/delete; `features/add-vital` (BP/glucose/HR forms, Jalali date-time sheet, server-mirrored validation,
+  `UrgentAlertSheet` from the create response's `alert`, never blocks the save); screens `vitals-hub` (latest per kind,
+  weekly plan + editor `PUT /vitals/plan`), `vitals-add`, `vitals-report` (range/filter tabs, SVG daily chart LTR with
+  normal/target band, class distribution, morning vs evening, time in range, delete own rows; `source: log` read-only).
+- Routes `/vitals`, `/vitals/{bp,glucose,heart-rate}[/new]`. Entry points: services tile, «من» row, pregnancy log row
+  «+ فشار / + قند», analysis hub cards, bottom-nav «خدمات» active. Screenshots `docs/qa/bloom/B-N6-02/`. QUESTIONS #112.
+
+## B-N6-03 — Health record summary
+
+- `internal/healthrecord`: `GET /api/v1/health-record` (owner only, no id) → `person` + 9 sections
+  `{key, editable, empty, data}` (basics w/ blood-type fallback from pregnancy profile, conditions, meds = active care
+  meds + profile list, allergies, 6-month cycle summary, 30-day vitals via `vitals.Merged`, pregnancies (current,
+  postpartum birth, loss COUNT only + manual rows), last 5 checkups w/o notes, last 5 ready labs w/ out-of-range names).
+  `Service.Build(ctx, uid, audience, Options)` with `owner|share` audience (share drops ids, free notes, editable) for
+  B-N6-04; `SectionProvider` hook for CB-REC/CB-MENO. `PUT /health-record/basics`, `POST/PUT/DELETE
+  /health-record/pregnancies[/{id}]` (404 `record_pregnancy_not_found`, cap 20). Migration **00036** (+ Laravel twin),
+  D-64 proposed, contract group `healthrecord`.
+- Analyses now read merged `vital_readings` (summary vitals card, monthly BP, pregnancy BP daily max, glucose fasting/2h
+  targets); unchanged output without timed readings.
+- Frontend `entities/health-record`, `screens/health-record` on `/record` with edit sheets (basics, conditions,
+  allergies, pregnancies); doctor-report CTA «به‌زودی» until B-N6-04. Screenshots `docs/qa/bloom/B-N6-03/`. QUESTIONS #113.

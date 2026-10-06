@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "validation_failed": "Validation failed",
+        "not_found": "This pregnancy entry was not found",
+        "saved": "Saved",
+        "created": "Added",
+        "updated": "Updated",
+        "deleted": "Deleted"
+    },
+    "validation": {
+        "too_many_pregnancies": "You can add at most :max pregnancies.",
+        "allergy_blank": "An allergy cannot be empty."
+    },
+    "attributes": {
+        "blood_type": "blood type",
+        "allergies": "allergies",
+        "allergies.*": "allergy",
+        "outcome": "outcome",
+        "ended_on": "date",
+        "baby_count": "number of babies"
+    }
+}

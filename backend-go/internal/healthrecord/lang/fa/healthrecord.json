@@ -1,0 +1,22 @@
+{
+    "messages": {
+        "validation_failed": "اطلاعات واردشده معتبر نیست",
+        "not_found": "این مورد بارداری پیدا نشد",
+        "saved": "ذخیره شد",
+        "created": "اضافه شد",
+        "updated": "به‌روز شد",
+        "deleted": "حذف شد"
+    },
+    "validation": {
+        "too_many_pregnancies": "حداکثر :max بارداری می‌توانی اضافه کنی.",
+        "allergy_blank": "حساسیت نمی‌تواند خالی باشد."
+    },
+    "attributes": {
+        "blood_type": "گروه خونی",
+        "allergies": "حساسیت‌ها",
+        "allergies.*": "حساسیت",
+        "outcome": "نتیجه",
+        "ended_on": "تاریخ",
+        "baby_count": "تعداد نوزاد"
+    }
+}

@@ -62,6 +62,7 @@ tags:
   - {name: System, description: Liveness and the public upload disk}
   - {name: Labs, description: "Lab analysis (Go only, bloom B-N6-06): upload a lab sheet (photos / PDF, encrypted at rest), AI extraction as a job, verify / edit / add markers, plain-language interpretation (AI with rules fallback, non-diagnostic), marker catalog, trends across labs, feedback. Upload is Plus (plus.lab_ai) behind the AI gate. Owner only; never logged"}
   - {name: Vitals, description: "Vitals (Go only, bloom B-N6-01): timed blood pressure, glucose and heart-rate readings classified on read (ACC/AHA 2017, ADA 2025, AHA), log-sheet day values merged in read-only, 7/14/30/90-day reports, weekly measurement plan with opt-in reminders, urgent modal over BP 180/120 or glucose 54 mg/dL. Never logged"}
+  - {name: HealthRecord, description: "Health record «پرونده سلامت من» (Go only, bloom B-N6-03, D-64): owner-only summary aggregated from profile, conditions, care meds, cycle engine, merged vitals, pregnancies, checkups and labs; user-owned blood type, allergies and hand-added pregnancies. A loss shows only as an ended pregnancy. No companion access. Never logged"}
 paths:
   /api/v1/account:
     delete:
@@ -16493,6 +16494,153 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/VitalNotFound"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/health-record:
+    get:
+      tags: [HealthRecord]
+      summary: The owner's health record (nbl_Record_Summary)
+      description: |
+        Owner-only summary aggregated from the profile, life profile, care medications, the cycle engine (last 6 months),
+        vitals (vital_readings merged with the log sheet, last 30 days), pregnancy / postpartum / manual pregnancies,
+        checkups and labs. Sections come in screen order as `{key, editable, empty, data}`. A pregnancy that ended in a
+        loss is only an `ended` entry (no date, type or note).
+      operationId: showHealthRecord
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/HealthRecord"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/health-record/basics:
+    put:
+      tags: [HealthRecord]
+      summary: Set blood type and / or allergies
+      description: "A present key replaces its value (null clears it; `allergies: []` = none); an absent key is kept. Returns the whole record."
+      operationId: updateHealthRecordBasics
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                blood_type: {type: [string, "null"], enum: [A+, A-, B+, B-, AB+, AB-, O+, O-, null]}
+                allergies:
+                  type: [array, "null"]
+                  maxItems: 20
+                  items: {type: string, maxLength: 60}
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/HealthRecord"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/HealthRecordValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/health-record/pregnancies:
+    post:
+      tags: [HealthRecord]
+      summary: Add a pregnancy / birth the app did not track
+      operationId: storeHealthRecordPregnancy
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/HealthRecordPregnancyInput"}
+      responses:
+        '201':
+          description: Added
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/HealthRecordPregnancy"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/HealthRecordValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/health-record/pregnancies/{id}:
+    put:
+      tags: [HealthRecord]
+      summary: Replace a manual pregnancy entry
+      operationId: updateHealthRecordPregnancy
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/HealthRecordPregnancyId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/HealthRecordPregnancyInput"}
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/HealthRecordPregnancy"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/HealthRecordPregnancyNotFound"}
+        '422': {$ref: "#/components/responses/HealthRecordValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [HealthRecord]
+      summary: Delete a manual pregnancy entry
+      operationId: destroyHealthRecordPregnancy
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/HealthRecordPregnancyId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: "null"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/HealthRecordPregnancyNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
 components:
   securitySchemes:
     bearerAuth:
@@ -16501,6 +16649,12 @@ components:
       bearerFormat: JWT
       description: "Passport access token from `POST /api/v1/auth/verify-otp`."
   parameters:
+    HealthRecordPregnancyId:
+      name: id
+      in: path
+      required: true
+      description: Manual pregnancy entry id (the caller's own)
+      schema: {type: integer, minimum: 1}
     VitalReadingId:
       name: id
       in: path
@@ -16563,6 +16717,30 @@ components:
       description: "Overrides `Accept-Language`. Some endpoints clamp to the languages they have content for."
       schema: {type: string}
   responses:
+    HealthRecordPregnancyNotFound:
+      description: "Bloom B-N6-03: the manual pregnancy entry does not exist or is not the caller's — one uniform answer."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [record_pregnancy_not_found]}
+    HealthRecordValidationFailed:
+      description: "Health record validation failed (controller 422 `{success: false, message, errors}`)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
     VitalNotFound:
       description: "Bloom B-N6-01: the reading does not exist or is not the caller's — one uniform answer."
       content:
@@ -17402,6 +17580,64 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    HealthRecord:
+      type: object
+      required: [audience, date, updated_at, person, sections]
+      properties:
+        audience: {type: string, enum: [owner, share]}
+        date: {$ref: "#/components/schemas/Date"}
+        updated_at: {oneOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]}
+        person:
+          type: object
+          required: [name, age, gender, life_mode]
+          properties:
+            name: {type: [string, "null"]}
+            age: {type: [integer, "null"]}
+            gender: {type: [string, "null"]}
+            life_mode: {type: string}
+        sections:
+          type: array
+          description: "Screen order: basics, conditions, medications, allergies, cycle, vitals, pregnancies, checkups, labs (extensible: later sections append)."
+          items: {$ref: "#/components/schemas/HealthRecordSection"}
+    HealthRecordSection:
+      type: object
+      required: [key, editable, empty, data]
+      properties:
+        key: {type: string}
+        editable: {type: boolean, description: "The section holds user-owned data the owner can edit (always false for the share audience)."}
+        empty: {type: boolean}
+        data:
+          type: object
+          description: |
+            basics {height_cm, weight_kg, bmi {value, category}|null, blood_type, blood_type_source record|pregnancy|null};
+            conditions {chronic_illnesses, gyn_conditions (null = never answered), answered};
+            medications {items [{id, title, dose, form, recurrence, weekdays, times, notes}], profile_medications};
+            allergies {items|null, answered};
+            cycle {range, based_on, median_cycle, variation, median_period, regularity, cycle_status, period_status,
+            last_period_start, current_day, top_symptoms [{key, label, days}]};
+            vitals {from, to, days, blood_pressure {systolic, diastolic, min, max, readings, classification, tone, unit}|null,
+            heart_rate / glucose_fasting / glucose_after_meal / glucose_other {avg, min, max, readings[, in_target, in_target_percent], unit}|null};
+            pregnancies {pregnancies_count, births_count, items [HealthRecordPregnancy]};
+            checkups {items [{id, title, key, icon, done_on, result}]};
+            labs {items [{id, category, title, date, marker_count, attention_count, all_normal, attention [{name, state, state_label}]}]}.
+          additionalProperties: true
+    HealthRecordPregnancy:
+      type: object
+      required: [id, source, outcome, date, baby_count, editable]
+      properties:
+        id: {type: [integer, "null"], description: "Manual entries of the owner only."}
+        source: {type: string, enum: [tracked, manual]}
+        outcome: {type: string, enum: [ongoing, birth, vaginal, cesarean, ended]}
+        date: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        baby_count: {type: [integer, "null"]}
+        editable: {type: boolean}
+    HealthRecordPregnancyInput:
+      type: object
+      required: [outcome]
+      properties:
+        outcome: {type: string, enum: [vaginal, cesarean, ended]}
+        ended_on: {type: [string, "null"], format: date, description: "1950-01-01 … today (approximate: clients send the first day of the year)"}
+        baby_count: {type: [integer, "null"], minimum: 1, maximum: 4, description: "Ignored for ended"}
     VitalClass:
       type: [object, "null"]
       required: [code, tone]

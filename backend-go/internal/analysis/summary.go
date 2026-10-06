@@ -22,9 +22,27 @@ type Vitals struct {
 	BPReadings, GlucoseReadings  int
 }
 
-// vitals averages the readings of [from, to].
+// vitals averages the readings of [from, to]: the merged vitals readings when the handler loaded them (bloom B-N6-03 —
+// vital_readings + the log sheet, internal/vitals merge rule D-63), else the log sheet's day values.
 func (in *Input) vitals(from, to civildate.Date) Vitals {
 	var sys, dia, glu []float64
+	if in.VitalsLoaded {
+		for _, r := range in.VitalReadings {
+			if r.Date.Before(from) || r.Date.After(to) {
+				continue
+			}
+			if r.Systolic > 0 && r.Diastolic > 0 {
+				sys, dia = append(sys, r.Systolic), append(dia, r.Diastolic)
+			}
+			if r.Glucose > 0 && r.SummaryGlucose() {
+				glu = append(glu, r.Glucose)
+			}
+		}
+		return Vitals{
+			Systolic: roundPtr(meanPtr(sys), 0), Diastolic: roundPtr(meanPtr(dia), 0), Glucose: roundPtr(meanPtr(glu), 0),
+			BPReadings: len(sys), GlucoseReadings: len(glu),
+		}
+	}
 	for d, day := range in.Days {
 		if d.Before(from) || d.After(to) {
 			continue

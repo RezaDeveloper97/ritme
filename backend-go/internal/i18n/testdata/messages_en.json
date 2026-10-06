@@ -499,7 +499,13 @@
      "cta": "Lab analysis",
      "soon": "Soon",
      "locked": "Lab trends are part of Ritme Plus.",
-     "note": "Each value is rated against the reference range on its own lab report; a trend shows only once a marker appears in at least 2 reports."
+     "note": "Each value is rated against the reference range on its own lab report; a trend shows only once a marker appears in at least 2 reports.",
+     "subLabs": "{n} verified labs",
+     "markersTitle": "Markers",
+     "allLabs": "All lab analyses",
+     "trendLabel": "{name} trend: {values}",
+     "loadError": "Couldn't load lab trends.",
+     "retry": "Try again"
     }
    },
    "ttc": {
@@ -1055,7 +1061,8 @@
     "feedsLast": "{count} times · last {time}",
     "sleepHours": "{hours} h",
     "diaperCount": "{count} times",
-    "add": "Log"
+    "add": "Log",
+    "none": "Nothing yet"
    },
    "noChild": {
     "title": "Add your child first",
@@ -2078,6 +2085,7 @@
     "cycle": "Period & cycle",
     "pregnancy": "Pregnancy",
     "aboveCard": "The card above",
+    "nothingYet": "Nothing to show right now",
     "symptoms": "Symptoms & daily mood",
     "symptomDays": "{days, plural, =0 {Nothing logged this week} one {# day logged this week} other {# days logged this week}}",
     "noMeds": "No active medication",
@@ -2923,6 +2931,188 @@
     "calendarLabel": "Fertile window calendar"
    }
   },
+  "health-record": {
+   "title": "My health record",
+   "updatedToday": "Updated today",
+   "updatedOn": "Updated {date}",
+   "back": "Back",
+   "loading": "Loading your health record",
+   "edit": "Edit",
+   "editSection": "Edit {section}",
+   "add": "Add",
+   "save": "Save",
+   "saving": "Saving…",
+   "cancel": "Cancel",
+   "delete": "Delete",
+   "notSet": "Not set",
+   "notAnswered": "Nothing recorded yet",
+   "none": "None",
+   "error": {
+    "title": "Couldn't load your record",
+    "body": "Check your connection and try again.",
+    "retry": "Try again",
+    "save": "Couldn't save. Please try again."
+   },
+   "person": {
+    "age": "{age} years",
+    "mode": "Mode: {mode}",
+    "gender": {
+     "female": "Female",
+     "male": "Male"
+    },
+    "lifeMode": {
+     "cycle": "Cycle tracking",
+     "ttc": "Trying to conceive",
+     "pregnancy": "Pregnancy",
+     "postpartum": "Postpartum",
+     "menopause": "Menopause",
+     "teen": "Teen",
+     "companion": "Companion"
+    }
+   },
+   "sections": {
+    "basics": "Basic information",
+    "conditions": "Conditions",
+    "medications": "Medicines & supplements",
+    "allergies": "Allergies",
+    "cycle": "Cycle summary ({count, plural, =0 {no cycles} one {# cycle} other {# cycles}})",
+    "vitals": "Vitals ({days} days)",
+    "pregnancies": "Pregnancies & births",
+    "checkups": "Checkups & tests"
+   },
+   "basics": {
+    "height": "Height",
+    "heightValue": "{value} cm",
+    "weight": "Weight",
+    "weightValue": "{value} kg",
+    "bmi": "BMI",
+    "bloodType": "Blood type",
+    "bloodFromPregnancy": "From your pregnancy profile",
+    "empty": "Add your height, weight and blood type to complete your record."
+   },
+   "conditions": {
+    "empty": "No conditions recorded.",
+    "chronicIllness": {
+     "diabetes": "Diabetes",
+     "hypertension": "High blood pressure",
+     "thyroid": "Thyroid condition",
+     "asthma": "Asthma",
+     "anemia": "Anemia",
+     "migraine": "Migraine",
+     "other": "Other illness"
+    },
+    "gynCondition": {
+     "pcos": "Polycystic ovary syndrome (PCOS)",
+     "endometriosis": "Endometriosis",
+     "fibroids": "Uterine fibroids",
+     "recurrent_infections": "Recurrent infections",
+     "other": "Other gynecological condition"
+    },
+    "chronicTitle": "Chronic illnesses",
+    "gynTitle": "Gynecological conditions"
+   },
+   "medications": {
+    "empty": "No medicines or supplements recorded.",
+    "daily": "Daily",
+    "weekly": "{count, plural, one {# day a week} other {# days a week}}",
+    "times": "{times}",
+    "manage": "Manage medicines in reminders",
+    "profileTitle": "From your profile",
+    "profile": {
+     "contraceptive_pill": "Birth control pill",
+     "iud": "IUD",
+     "hormonal_medication": "Hormonal medication"
+    }
+   },
+   "allergies": {
+    "empty": "No allergies recorded.",
+    "none": "No known allergies",
+    "placeholder": "e.g. Penicillin",
+    "inputLabel": "New allergy",
+    "remove": "Remove {name}",
+    "hint": "Medicines, foods or anything else you react to. Up to 20 items."
+   },
+   "cycle": {
+    "length": "Cycle length",
+    "lengthValue": "{days} days",
+    "variation": "±{days}",
+    "period": "Period length",
+    "periodValue": "{days} days",
+    "lastPeriod": "Last period",
+    "regularity": "Regularity",
+    "regular": "Regular",
+    "irregular": "Irregular",
+    "not_enough_data": "Not enough data",
+    "topSymptoms": "Frequent symptoms: {list}",
+    "empty": "No cycles yet — log a period and your cycle summary appears here."
+   },
+   "vitals": {
+    "bp": "Blood pressure",
+    "bpValue": "Avg {sys}/{dia} · {count, plural, one {# reading} other {# readings}}",
+    "hr": "Resting heart rate",
+    "hrValue": "Avg {bpm} bpm",
+    "fasting": "Fasting glucose",
+    "afterMeal": "Glucose after meals",
+    "otherGlucose": "Blood glucose",
+    "glucoseValue": "Avg {avg} mg/dL",
+    "glucoseTarget": "Avg {avg} mg/dL · {percent}% in target",
+    "empty": "No blood pressure, heart rate or glucose in the last 30 days.",
+    "open": "Vitals"
+   },
+   "pregnancies": {
+    "count": "Pregnancies",
+    "births": "Birth",
+    "outcome": {
+     "ongoing": "Current pregnancy",
+     "birth": "Birth",
+     "vaginal": "Vaginal",
+     "cesarean": "C-section",
+     "ended": "Ended"
+    },
+    "ongoingDue": "Due {date}",
+    "babies": "{count, plural, one {# baby} other {# babies}}",
+    "empty": "No pregnancies or births recorded.",
+    "manual": "Added by you",
+    "sheetHint": "Add pregnancies and births that weren't tracked in Ritme. Ones tracked in the app appear automatically.",
+    "addTitle": "Add a pregnancy",
+    "editTitle": "Edit pregnancy",
+    "outcomeLabel": "Outcome",
+    "yearLabel": "Year",
+    "yearUnknown": "Not sure",
+    "babiesLabel": "Number of babies",
+    "deleteConfirm": "Delete this entry?",
+    "fewer": "One fewer",
+    "more": "One more"
+   },
+   "checkups": {
+    "empty": "No checkups or tests recorded yet.",
+    "result": {
+     "normal": "Normal",
+     "follow_up": "Needs follow-up",
+     "pending": "Awaiting result"
+    },
+    "labAllNormal": "All normal",
+    "labAttention": "{count, plural, one {# out of range} other {# out of range}}",
+    "labMarkers": "{count, plural, one {# marker} other {# markers}}"
+   },
+   "bloodSheet": {
+    "title": "Basic information",
+    "bloodType": "Blood type",
+    "unknown": "I don't know",
+    "bodyTitle": "Height & weight",
+    "editHeight": "Edit height",
+    "editWeight": "Edit weight"
+   },
+   "conditionsSheet": {
+    "title": "Conditions",
+    "hint": "The same answers as when you started Ritme; changing them updates your tips too."
+   },
+   "report": {
+    "cta": "Create a report for your doctor",
+    "soon": "Soon"
+   },
+   "note": "This record is built from what you logged yourself and doesn't replace a doctor's examination."
+  },
   "home": {
    "title": "Welcome to Ritme",
    "subtitle": "Your women's health companion",
@@ -3739,6 +3929,232 @@
     }
    }
   },
+  "lab-consent": {
+   "title": "Before you start",
+   "loading": "Loading the consent text",
+   "loadError": "Couldn't load the consent text.",
+   "retry": "Try again",
+   "lead": "For the analysis, the lab image and part of your health record are sent to an AI service.",
+   "version": "Version {v}",
+   "agree": "I accept that using this feature means I agree to my medical information being processed by AI.",
+   "accept": "I agree, continue",
+   "cancel": "Cancel",
+   "granted": "Your consent is recorded. You can withdraw it at any time.",
+   "continue": "Continue",
+   "withdraw": "Withdraw consent",
+   "stale": "The consent text was updated; read the new version and accept again.",
+   "saveError": "Not saved. Try again."
+  },
+  "labs": {
+   "common": {
+    "back": "Back",
+    "loading": "Loading",
+    "loadError": "Couldn't load this.",
+    "retry": "Try again",
+    "notFoundTitle": "Lab not found",
+    "notFoundBody": "It may have been deleted. Pick it again from your labs.",
+    "toList": "My labs",
+    "disclaimer": "This analysis is made by AI for general awareness; it is not a diagnosis or treatment. The final interpretation is your doctor's.",
+    "soon": "Soon"
+   },
+   "intro": {
+    "title": "Lab analysis",
+    "about": "About the analysis and consent",
+    "upload": "Upload a new lab",
+    "plus": "Plus",
+    "heroTitle": "Understand your lab results",
+    "heroBody": "Upload a photo or PDF of your lab sheet; the values are read, compared with the reference ranges and explained in plain words.",
+    "tagsLabel": "Lab types",
+    "tags": {
+     "blood": "Blood test",
+     "hormone": "Hormones",
+     "thyroid": "Thyroid",
+     "urine": "Urine"
+    },
+    "history": "Previous analyses",
+    "all": "All",
+    "less": "Less",
+    "rowSub": "{date} · {n} markers",
+    "allNormal": "All normal",
+    "outOfRange": "{n} out of range",
+    "noRange": "No range",
+    "needsReview": "Needs review",
+    "failed": "Failed",
+    "processing": "Analyzing",
+    "emptyTitle": "No labs analyzed yet",
+    "emptyBody": "Upload your first lab sheet; results stay here so you can follow their trend."
+   },
+   "upload": {
+    "title": "Upload a lab",
+    "camera": "Camera",
+    "gallery": "Gallery",
+    "pdf": "PDF file",
+    "pages": "Selected pages",
+    "pageCount": "{count, plural, =0 {No pages} one {# page} other {# pages}}",
+    "remove": "Remove page {n}",
+    "moveEarlier": "Move page {n} earlier",
+    "moveLater": "Move page {n} later",
+    "nextPage": "Next page",
+    "firstPage": "Add a page",
+    "limitsHint": "Up to {max} pages; JPEG, PNG or WebP photos or a PDF.",
+    "type": "Lab type",
+    "categories": {
+     "blood": "Blood",
+     "hormone": "Hormone",
+     "thyroid": "Thyroid",
+     "urine": "Urine",
+     "other": "Other"
+    },
+    "date": "Lab date",
+    "dateUnset": "Choose",
+    "fasting": "Were you fasting?",
+    "fastingUnset": "Choose",
+    "yes": "Yes",
+    "no": "No",
+    "tipsTitle": "For better reading",
+    "tips": {
+     "flat": "Sheet flat and well lit",
+     "columns": "All columns visible, including the reference range",
+     "onePage": "One photo per page",
+     "privacy": "Better to cover your name and national ID on the sheet"
+    },
+    "plusNote": "AI lab analysis is part of Ritme Plus.",
+    "uploading": "Uploading {percent}%",
+    "uploaded": "Uploaded; getting ready…",
+    "submit": "Analyze",
+    "cancel": "Cancel",
+    "pick": "Choose",
+    "errors": {
+     "file_type": "Only photos (JPEG, PNG, WebP) or PDF files are accepted.",
+     "image_too_large": "Each photo can be up to {image} MB.",
+     "pdf_too_large": "A PDF can be up to {pdf} MB.",
+     "empty_file": "This file is empty.",
+     "too_many_files": "You can send up to {max} pages.",
+     "files_required": "Add at least one page of your lab sheet.",
+     "upload_too_large": "The files are too large together; remove a page or two.",
+     "category_invalid": "Choose the lab type.",
+     "date_future": "The lab date can't be after today.",
+     "consent": "To continue, read and accept the consent first.",
+     "network": "No connection. Check your internet and try again.",
+     "busy": "Analysis isn't available right now; try again a little later.",
+     "unknown": "Upload failed. Try again."
+    }
+   },
+   "processing": {
+    "title": "Just a few seconds",
+    "ringLabel": "Analysis progress",
+    "percent": "{p}%",
+    "analyzing": "Analyzing",
+    "stepsLabel": "Analysis steps",
+    "steps": {
+     "read": "Reading the image",
+     "extract": "Extracting markers",
+     "extractN": "Extracting {n} markers",
+     "compare": "Comparing with reference ranges",
+     "explain": "Preparing a plain explanation"
+    },
+    "state": {
+     "done": "done",
+     "current": "in progress",
+     "todo": "waiting"
+    },
+    "leaveNote": "You can leave this page; this lab's status shows under «Previous analyses».",
+    "leave": "Go, we'll let you know",
+    "slow": "This is taking longer than usual.",
+    "offline": "Couldn't get the status.",
+    "failedTitle": "Analysis failed",
+    "failedBody": "The sheet couldn't be analyzed; upload it again.",
+    "again": "Upload again"
+   },
+   "verify": {
+    "title": "Check the values",
+    "heading": "Were these numbers read correctly?",
+    "lead": "Before the analysis, compare the values read with your sheet.",
+    "lowConfidence": "{count, plural, one {# value was read with low confidence} other {# values were read with low confidence}}",
+    "lowOne": "read with low confidence",
+    "listLabel": "Values read",
+    "empty": "No values were read; add the markers by hand.",
+    "editLabel": "Edit {name}: {value} {unit}",
+    "add": "Add a missing marker",
+    "addTitle": "Add a marker",
+    "submit": "Confirm and continue",
+    "limit": "This lab has reached its analysis limit.",
+    "error": "Couldn't confirm. Try again.",
+    "saveError": "Not saved. Try again.",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "fields": {
+     "name": "Marker name",
+     "value": "Value",
+     "unit": "Unit",
+     "refLow": "Reference low",
+     "refHigh": "Reference high"
+    },
+    "rangeHint": "Enter the reference range as printed on the sheet; leave it empty if there is none.",
+    "errors": {
+     "name": "Enter the marker name.",
+     "value": "Enter the value.",
+     "number": "Enter a number.",
+     "order": "The low bound must be below the high bound."
+    }
+   },
+   "result": {
+    "title": "Analysis result",
+    "subtitle": "{title} · {date}",
+    "flagMore": "Details",
+    "ringLabel": "Share of normal markers",
+    "ringValue": "{normal} of {total} normal",
+    "normal": "normal",
+    "attentionTitle": "{count, plural, one {# needs attention} other {# need attention}}",
+    "allNormalTitle": "All markers are in range",
+    "counts": {
+     "low": "{n} low",
+     "borderline_low": "{n} borderline low",
+     "high": "{n} high",
+     "borderline_high": "{n} borderline high"
+    },
+    "sourceAi": "AI explanation",
+    "sourceRules": "Automatic explanation from the ranges",
+    "stale": "Values changed; the explanation is being prepared again.",
+    "attention": "Needs attention",
+    "inRange": "In the normal range",
+    "markerCount": "{n} markers",
+    "showAll": "Show all {n} markers",
+    "showLess": "Show less",
+    "questions": "Questions you can ask your doctor",
+    "doctor": "Consult a doctor",
+    "addRecord": "Add to record",
+    "askTitle": "More questions?",
+    "askSub": "Chat with the health assistant about this result",
+    "feedback": "Was this analysis helpful?",
+    "feedbackThanks": "Thanks for your feedback",
+    "helpful": "Helpful",
+    "notHelpful": "Not helpful",
+    "editValues": "Edit values",
+    "delete": "Delete this lab",
+    "deleteConfirm": "Delete this lab, its values and files for good?",
+    "keep": "Keep",
+    "deleteError": "Couldn't delete. Try again.",
+    "rangeLabel": "{value}, reference range {ref}",
+    "reference": "Reference: {ref}"
+   },
+   "marker": {
+    "title": "Marker",
+    "typicalRange": "Typical range: {ref}",
+    "sheetRange": "Lab reference range: {ref}",
+    "trend": "Trend across your labs",
+    "what": "What is {name}?",
+    "factors": "What may be related",
+    "forYou": "For you",
+    "doctor": "When to see a doctor",
+    "chartLabel": "Values across your labs: {values}",
+    "chartCaption": "Marker trend",
+    "chartDate": "Date",
+    "chartValue": "Value",
+    "between": "{low} to {high}"
+   }
+  },
   "log": {
    "title": "Daily log",
    "subtitle": "Record what you felt today so Ritme gets to know you better.",
@@ -4303,7 +4719,15 @@
       },
       "vitals": {
        "title": "Blood pressure & sugar",
-       "desc": "Today's pressure and sugar"
+       "desc": "Today's pressure and sugar",
+       "add": {
+        "bp": "BP",
+        "glucose": "Glucose"
+       },
+       "addAria": {
+        "bp": "Add blood pressure in Vitals",
+        "glucose": "Add blood glucose in Vitals"
+       }
       },
       "meds": {
        "title": "Medicines & supplements",
@@ -5150,6 +5574,10 @@
     "cycleSettingsSub": "Cycle, period length and reminders",
     "analysis": "Analysis & reports",
     "analysisSub": "Cycle, symptoms, mood and body",
+    "healthRecord": "My health record",
+    "healthRecordSub": "Basics, medicines, vitals and tests",
+    "vitals": "Vitals",
+    "vitalsSub": "Blood pressure, glucose and pulse",
     "companionCode": "Companion code",
     "companionCodeSub": "Connect to a partner or leave a link"
    },
@@ -6372,6 +6800,8 @@
     "ringValue": "Day {day} of {total}",
     "ringCaption": "Day",
     "ringOf": "of {weeks} weeks",
+    "ringWeeks": "weeks",
+    "ringDone": "complete",
     "feedingChip": "Feeding",
     "babiesChip": "{count} babies",
     "heroNote": "Bleeding after birth usually lasts 4 to 6 weeks and slowly gets lighter. If it suddenly gets heavy or you pass a large clot, call your doctor.",
@@ -6809,6 +7239,9 @@
     "tapToEnd": "Tap to end",
     "ready": "Contraction starting?",
     "tapToStart": "Tap to start",
+    "staleLabel": "Earlier timing left open",
+    "staleCta": "Close it first",
+    "staleBody": "This timing has been open since {time}. Tap “Stop and save” to close it, then start a new one.",
     "sinceLast": "Since the last one started",
     "startAria": "Start a contraction",
     "endAria": "End the contraction; {time}",
@@ -6851,6 +7284,7 @@
     "back": "Back",
     "close": "Close",
     "notActive": "Pregnancy mode is off.",
+    "notActiveAfterLoss": "Nothing here for now. Whenever you are ready, we are here.",
     "weekOf": "Week {week, number} of {total, number}",
     "age": "{days, plural, =0 {{weeks, plural, one {# week} other {# weeks}}} other {{weeks, plural, one {# week} other {# weeks}} and {days, plural, one {# day} other {# days}}}}",
     "trimester": {
@@ -7725,6 +8159,280 @@
       "generic": "Couldn't connect. Try again."
      }
     }
+   }
+  },
+  "vitals": {
+   "common": {
+    "back": "Back",
+    "close": "Close",
+    "loading": "Loading",
+    "loadError": "Couldn't load. Check your connection and try again.",
+    "retry": "Try again",
+    "separator": " · ",
+    "listSeparator": ", ",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "at": "{day} {time}",
+    "fromLog": "From the daily log",
+    "pulseValue": "pulse {n}",
+    "deleteAria": "Delete reading {value}",
+    "deleteConfirm": "Delete this reading?",
+    "deleteError": "Couldn't delete. Try again."
+   },
+   "types": {
+    "bp": "Blood pressure",
+    "hr": "Heart rate",
+    "glucose": "Blood glucose"
+   },
+   "short": {
+    "bp": "BP",
+    "hr": "Pulse",
+    "glucose": "Glucose"
+   },
+   "units": {
+    "mmhg": "mmHg",
+    "bpm": "bpm",
+    "bpmLong": "beats per minute"
+   },
+   "classes": {
+    "bp": {
+     "normal": "Normal",
+     "elevated": "Elevated",
+     "stage1": "Stage 1",
+     "stage2": "Stage 2",
+     "crisis": "Crisis"
+    },
+    "glucose": {
+     "urgent_low": "Very low",
+     "low": "Below target",
+     "in_range": "In target",
+     "high": "Above target",
+     "very_high": "Very high"
+    },
+    "hr": {
+     "low": "Lower than usual",
+     "normal": "Normal",
+     "high": "Higher than usual"
+    }
+   },
+   "arms": {
+    "left": "Left arm",
+    "right": "Right arm"
+   },
+   "positions": {
+    "sitting": "Sitting",
+    "standing": "Standing",
+    "lying": "Lying down"
+   },
+   "glucoseContexts": {
+    "fasting": "Fasting",
+    "before_meal": "Before a meal",
+    "after_meal": "2 h after a meal",
+    "bedtime": "Bedtime",
+    "random": "Random"
+   },
+   "glucoseContextsShort": {
+    "fasting": "Fasting",
+    "before_meal": "Before meal",
+    "after_meal": "After meal",
+    "bedtime": "Bedtime",
+    "random": "Random"
+   },
+   "methods": {
+    "glucometer": "Glucometer",
+    "lab": "Lab",
+    "sensor": "Sensor"
+   },
+   "hrContexts": {
+    "resting": "Resting",
+    "after_exercise": "After exercise",
+    "after_waking": "After waking",
+    "stress": "Stressed"
+   },
+   "hrStates": {
+    "resting": "Resting",
+    "after_exercise": "After exercise",
+    "after_waking": "After waking",
+    "stress": "Stressed"
+   },
+   "slots": {
+    "morning": "Morning",
+    "evening": "Evening",
+    "fasting": "Fasting",
+    "before_meal": "Before meal",
+    "after_meal": "After meal",
+    "bedtime": "Bedtime"
+   },
+   "weekdays": [
+    "Sa",
+    "Su",
+    "Mo",
+    "Tu",
+    "We",
+    "Th",
+    "Fr"
+   ],
+   "hub": {
+    "title": "Vitals",
+    "record": "Health record",
+    "latestEmpty": "No readings yet",
+    "addFirst": "Add your first reading",
+    "openReport": "{type} report",
+    "planTitle": "This week's measuring plan",
+    "planCount": "{done} of {planned}",
+    "planEmpty": "Make a weekly plan so you remember when to measure.",
+    "planSetup": "Create a plan",
+    "planEdit": "Edit plan",
+    "planRow": "{type} · {slot}",
+    "dayDone": "{day}: done",
+    "dayMissed": "{day}: missed",
+    "dayDue": "{day}: to do",
+    "recentTitle": "Recent readings",
+    "all": "All",
+    "recentEmpty": "Your readings show up here. Add blood pressure, pulse or glucose with the buttons below.",
+    "addLabel": "Add {type}",
+    "addGroup": "Add a reading"
+   },
+   "plan": {
+    "title": "Measuring plan",
+    "intro": "Each row is one measurement on the days you pick. Up to 8 rows.",
+    "add": "Add a row",
+    "type": "What",
+    "slot": "When",
+    "days": "Days",
+    "remindAt": "Reminder time",
+    "remindOff": "No reminder",
+    "remove": "Remove row {row}",
+    "empty": "No rows yet.",
+    "save": "Save plan",
+    "error": "Couldn't save. Try again.",
+    "full": "Every possible row is already added.",
+    "needDay": "Pick at least one day.",
+    "duplicate": "This row is a duplicate.",
+    "remindersOff": "Vitals reminders are off in notification settings; the plan works without reminders.",
+    "openSettings": "Notification settings"
+   },
+   "add": {
+    "titles": {
+     "bp": "Add blood pressure",
+     "glucose": "Add blood glucose",
+     "hr": "Add heart rate"
+    },
+    "systolic": "Systolic",
+    "diastolic": "Diastolic",
+    "pulse": "Pulse",
+    "increase": "Increase {label}",
+    "decrease": "Decrease {label}",
+    "meaning": "What this number means",
+    "scaleLabel": "Blood pressure category: {class}",
+    "disclaimer": "Based on the common adult blood pressure categories; not a medical diagnosis.",
+    "conditions": "Measuring conditions",
+    "arm": "Arm",
+    "position": "Position",
+    "time": "Time",
+    "changeTime": "Change measuring time",
+    "note": "Note",
+    "notePlaceholder": {
+     "bp": "e.g. after coffee",
+     "glucose": "e.g. heavy dinner last night",
+     "hr": "e.g. after a walk"
+    },
+    "unit": "Unit",
+    "when": "When did you measure?",
+    "method": "Method",
+    "hrState": "How were you?",
+    "hrTip": "For a resting pulse, sit quietly for 5 minutes, count your wrist pulse for 30 seconds and double it.",
+    "glucoseVerdict": {
+     "in_range": "In the {context} target range ({min}–{max})",
+     "low": "Below the target range ({min}–{max})",
+     "urgent_low": "Very low; below {value}",
+     "high": "Above the {context} target range ({min}–{max})",
+     "very_high": "Well above the {context} target range"
+    },
+    "hrVerdict": "{state} · {class} ({min}–{max})",
+    "hrUnclassified": "{state} · not compared with the resting range",
+    "save": "Save",
+    "saveError": "Couldn't save. Try again.",
+    "errors": {
+     "range": "Enter a number between {min} and {max}.",
+     "systolicGtDiastolic": "Systolic must be higher than diastolic.",
+     "future": "The measuring time can't be in the future.",
+     "tooOld": "The measuring time is more than two years ago.",
+     "noteTooLong": "The note can be at most {max} characters."
+    },
+    "timeSheet": {
+     "title": "Measuring time",
+     "date": "Date",
+     "clock": "Time",
+     "now": "Right now",
+     "done": "Done"
+    }
+   },
+   "alert": {
+    "title": "This number is in the emergency range",
+    "body": "Saved. Ritme doesn't diagnose; if you have symptoms or see this number again, call 115 now.",
+    "call": "Call {number}",
+    "ack": "Got it"
+   },
+   "report": {
+    "titles": {
+     "bp": "Blood pressure report",
+     "glucose": "Blood glucose report",
+     "hr": "Heart rate report"
+    },
+    "subtitle": "Last {range} · {n} readings",
+    "rangeTabs": "Report range",
+    "filterTabs": "Measurement type",
+    "ranges": {
+     "7d": "7 days",
+     "14d": "14 days",
+     "30d": "30 days",
+     "90d": "3 months"
+    },
+    "all": "All",
+    "average": "Average",
+    "averageOf": "{context} average",
+    "restingAverage": "Resting average",
+    "legend": {
+     "systolic": "Systolic",
+     "diastolic": "Diastolic",
+     "normal": "Normal range",
+     "target": "Target range",
+     "bpm": "Pulse"
+    },
+    "min": "Lowest",
+    "max": "Highest",
+    "pulse": "Pulse",
+    "pulseAvg": "average bpm",
+    "distribution": "Readings by category",
+    "distributionItem": "{class} {pct}%",
+    "morningVsNight": "Morning vs night",
+    "morning": "Morning",
+    "night": "Night",
+    "noReadings": "No readings",
+    "nightNote": {
+     "bp": "{n} night readings were above normal. If it keeps happening or you have headaches or dizziness, talk to a doctor. Above 180/120 is an emergency.",
+     "glucose": "{n} night readings were outside the target range. If it keeps happening, talk to a doctor.",
+     "hr": "{n} night readings were outside the resting range."
+    },
+    "tir": "Time in target range",
+    "tirText": "{in} of {n} readings were in the target range.",
+    "tirAbove": "{n} above target.",
+    "tirBelow": "{n} below target.",
+    "tirPct": "{pct}%",
+    "allReadings": "All readings",
+    "moreReadings": "More readings in range",
+    "empty": {
+     "title": "No readings in this range",
+     "body": "Add a reading and its report builds up here."
+    },
+    "addCta": "Add {type}",
+    "chartBp": "Daily blood pressure over {n} days: {list}",
+    "chartGlucose": "Daily glucose over {n} days: {list}",
+    "chartHr": "Daily heart rate over {n} days: {list}",
+    "colDate": "Day",
+    "colValue": "Value",
+    "generalNote": "These ranges are general; if your doctor set a different target, follow their advice."
    }
   },
   "voice-log": {

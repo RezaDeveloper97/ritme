@@ -542,6 +542,25 @@ type HealthLogPreference struct {
 	UpdatedAt     sql.NullTime
 }
 
+type HealthRecord struct {
+	ID        uint64
+	UserID    uint64
+	BloodType sql.NullString
+	Allergies db.NullRawJSON
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type HealthRecordPregnancy struct {
+	ID        uint64
+	UserID    uint64
+	Outcome   string
+	EndedOn   civildate.NullDate
+	BabyCount sql.NullInt16
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
 type HotFlash struct {
 	ID        uint64
 	UserID    uint64

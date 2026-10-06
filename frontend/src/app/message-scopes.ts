@@ -37,6 +37,7 @@ export const SHELL_NAMESPACES = [
   'plus', // B-N3-03: the log sheet's voice tab is a PlusFeatureGate (plus.voice_log)
   'pwa',
   'reminders',
+  'labConsent', // B-N6-07: `?sheet=lab-consent` (screens/lab-consent; the consent text itself comes from the API)
 ] as const satisfies readonly MessageNamespace[];
 
 // B-N2-02: every onboarding route mounts the one onboarding-flow screen slice
@@ -114,10 +115,13 @@ export const ROUTE_NAMESPACES = {
   lossStart: ['common', 'companions', 'loss'], // CB-LOSS-02 /loss (Loss_Start, full screen, no nav; companions = entities/companion barrel)
   lossCare: ['common', 'loss'], // CB-LOSS-02 /loss/care (Loss_Care; «ثبت» opens the shell's log sheet)
   lossNext: ['common', 'loss'], // CB-LOSS-02 /loss/next (Loss_Next)
+  healthRecord: ['common', 'healthRecord', 'profileEdit'], // B-N6-03 /record (Record_Summary; profileEdit = the height/weight QuickEditSheet)
   ivfMeds: ['common', 'ivf', 'nav'], // CB-IVF-03 /ivf/meds (nbl_IVF_Meds, IVF stage tab «درمان»)
   ivfMedForm: ['common', 'ivf', 'nav'], // CB-IVF-03 /ivf/meds/new, /ivf/meds/[id] (form, no nav; same screen slice as /ivf/meds)
   ivfCycle: ['common', 'ivf'], // CB-IVF-06b /ivf/cycle/new (setup) + /ivf/cycle (stage + dates editor); forms, no nav
   ivfTww: ['common', 'ivf'], // CB-IVF-05 /ivf/tww (nbl_IVF_TWW; back button, no nav — sensitive; «ثبت علائم» opens the global log sheet)
+  labs: ['common', 'labs', 'plus'], // B-N6-07 /labs + /labs/new (Lab_Intro / Lab_Upload; back header, no nav; plus = PlusFeatureGate copy)
+  labDetail: ['common', 'labs'], // B-N6-07 /labs/[id], /labs/[id]/{processing,verify}, /labs/[id]/markers/[mid] (Lab_Result / _Processing / _Verify / _Marker)
   analysis: ['analysis', 'common', 'nav', 'plus'], // B-N3-08 /analysis hub + /analysis/* stubs (one screen slice; PlusGate copy = plus.gate)
   analysisHub: ['analysis', 'analysisPostpartum', 'analysisPregnancy', 'babyLog', 'children', 'common', 'nav', 'plus'], // B-N3-12 /analysis itself: + the pregnancy hub (screens/analysis-pregnancy); B-N5-07 + the postpartum hub (screens/analysis-postpartum, features/baby-log, entities/child)
   analysisPregnancyWeight: ['analysisPregnancy', 'common', 'nav', 'plus'], // B-N3-12 /analysis/pregnancy-weight (An_PregWeight; the slice's hub cards carry plus.gate)
@@ -142,6 +146,9 @@ export const ROUTE_NAMESPACES = {
   onboardingPartner: ONBOARDING,
   onboardingPartnerLinked: ONBOARDING, // B-N4-05
   onboardingSettingUp: ONBOARDING,
+  vitals: ['common', 'nav', 'vitals'], // B-N6-02 /vitals (Vitals_Hub; plan editor sheet; bottom nav)
+  vitalsAdd: ['common', 'vitals'], // B-N6-02 /vitals/{bp,glucose,heart-rate}/new (features/add-vital; CalendarPicker = common)
+  vitalsReport: ['common', 'vitals'], // B-N6-02 /vitals/{bp,glucose,heart-rate} reports
 } as const satisfies Record<string, readonly MessageNamespace[]>;
 
 export type MessageRoute = keyof typeof ROUTE_NAMESPACES;

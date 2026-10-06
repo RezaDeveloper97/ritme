@@ -1,0 +1,182 @@
+{
+  "title": "پرونده سلامت من",
+  "updatedToday": "به‌روز شده امروز",
+  "updatedOn": "به‌روز شده {date}",
+  "back": "بازگشت",
+  "loading": "در حال بارگذاری پرونده سلامت",
+  "edit": "ویرایش",
+  "editSection": "ویرایش {section}",
+  "add": "افزودن",
+  "save": "ذخیره",
+  "saving": "در حال ذخیره…",
+  "cancel": "انصراف",
+  "delete": "حذف",
+  "notSet": "ثبت نشده",
+  "notAnswered": "هنوز چیزی ثبت نکرده‌ای",
+  "none": "ندارم",
+  "error": {
+    "title": "پرونده بارگذاری نشد",
+    "body": "اتصال را بررسی کن و دوباره امتحان کن.",
+    "retry": "تلاش دوباره",
+    "save": "ذخیره نشد. دوباره امتحان کن."
+  },
+  "person": {
+    "age": "{age} سال",
+    "mode": "حالت: {mode}",
+    "gender": {
+      "female": "زن",
+      "male": "مرد"
+    },
+    "lifeMode": {
+      "cycle": "پیگیری سیکل",
+      "ttc": "اقدام به بارداری",
+      "pregnancy": "بارداری",
+      "postpartum": "پس از زایمان",
+      "menopause": "یائسگی",
+      "teen": "نوجوان",
+      "companion": "همدم"
+    }
+  },
+  "sections": {
+    "basics": "اطلاعات پایه",
+    "conditions": "بیماری‌ها و شرایط",
+    "medications": "داروها و مکمل‌ها",
+    "allergies": "حساسیت‌ها",
+    "cycle": "خلاصه سیکل ({count, plural, =0 {بدون سیکل} other {# سیکل}})",
+    "vitals": "علائم حیاتی ({days} روز)",
+    "pregnancies": "بارداری و زایمان",
+    "checkups": "چکاپ‌ها و آزمایش‌ها"
+  },
+  "basics": {
+    "height": "قد",
+    "heightValue": "{value} سانتی‌متر",
+    "weight": "وزن",
+    "weightValue": "{value} کیلوگرم",
+    "bmi": "BMI",
+    "bloodType": "گروه خونی",
+    "bloodFromPregnancy": "از پروفایل بارداری",
+    "empty": "قد، وزن و گروه خونی‌ات را ثبت کن تا پرونده کامل شود."
+  },
+  "conditions": {
+    "empty": "بیماری یا شرایط خاصی ثبت نشده.",
+    "chronicIllness": {
+      "diabetes": "دیابت",
+      "hypertension": "فشار خون بالا",
+      "thyroid": "کم‌کاری یا پرکاری تیروئید",
+      "asthma": "آسم",
+      "anemia": "کم‌خونی",
+      "migraine": "میگرن",
+      "other": "سایر بیماری‌ها"
+    },
+    "gynCondition": {
+      "pcos": "سندرم تخمدان پلی‌کیستیک",
+      "endometriosis": "اندومتریوز",
+      "fibroids": "فیبروم رحم",
+      "recurrent_infections": "عفونت‌های مکرر",
+      "other": "سایر شرایط زنان"
+    },
+    "chronicTitle": "بیماری‌های مزمن",
+    "gynTitle": "بیماری‌ها و شرایط زنان"
+  },
+  "medications": {
+    "empty": "دارو یا مکملی ثبت نشده.",
+    "daily": "روزانه",
+    "weekly": "{count, plural, other {# روز در هفته}}",
+    "times": "{times}",
+    "manage": "مدیریت داروها در یادآورها",
+    "profileTitle": "از پروفایل",
+    "profile": {
+      "contraceptive_pill": "قرص پیشگیری",
+      "iud": "آی‌یو‌دی",
+      "hormonal_medication": "داروی هورمونی"
+    }
+  },
+  "allergies": {
+    "empty": "حساسیتی ثبت نشده.",
+    "none": "حساسیت شناخته‌شده‌ای ندارم",
+    "placeholder": "مثلاً پنی‌سیلین",
+    "inputLabel": "حساسیت تازه",
+    "remove": "حذف {name}",
+    "hint": "دارو، غذا یا هر چیزی که به آن حساسیت داری. حداکثر ۲۰ مورد."
+  },
+  "cycle": {
+    "length": "طول سیکل",
+    "lengthValue": "{days} روز",
+    "variation": "±{days}",
+    "period": "طول پریود",
+    "periodValue": "{days} روز",
+    "lastPeriod": "آخرین پریود",
+    "regularity": "نظم",
+    "regular": "منظم",
+    "irregular": "نامنظم",
+    "not_enough_data": "داده کافی نیست",
+    "topSymptoms": "علائم پرتکرار: {list}",
+    "empty": "هنوز سیکلی ثبت نشده؛ با ثبت پریود خلاصه سیکل اینجا می‌آید."
+  },
+  "vitals": {
+    "bp": "فشار خون",
+    "bpValue": "میانگین {sys}/{dia} · {count, plural, other {# ثبت}}",
+    "hr": "ضربان استراحت",
+    "hrValue": "میانگین {bpm} bpm",
+    "fasting": "قند ناشتا",
+    "afterMeal": "قند بعد غذا",
+    "otherGlucose": "قند خون",
+    "glucoseValue": "میانگین {avg} mg/dL",
+    "glucoseTarget": "میانگین {avg} mg/dL · ٪{percent} در هدف",
+    "empty": "در ۳۰ روز اخیر فشار، ضربان یا قندی ثبت نشده.",
+    "open": "علائم حیاتی"
+  },
+  "pregnancies": {
+    "count": "تعداد بارداری",
+    "births": "زایمان",
+    "outcome": {
+      "ongoing": "بارداری فعلی",
+      "birth": "زایمان",
+      "vaginal": "طبیعی",
+      "cesarean": "سزارین",
+      "ended": "پایان‌یافته"
+    },
+    "ongoingDue": "موعد زایمان {date}",
+    "babies": "{count, plural, =1 {یک نوزاد} other {# نوزاد}}",
+    "empty": "بارداری یا زایمانی ثبت نشده.",
+    "manual": "ثبت دستی",
+    "sheetHint": "بارداری‌ها و زایمان‌هایی که در ریتمی ثبت نشده‌اند را اینجا اضافه کن. موارد ثبت‌شده در اپ خودکار نشان داده می‌شوند.",
+    "addTitle": "افزودن بارداری",
+    "editTitle": "ویرایش بارداری",
+    "outcomeLabel": "نتیجه",
+    "yearLabel": "سال",
+    "yearUnknown": "یادم نیست",
+    "babiesLabel": "تعداد نوزاد",
+    "deleteConfirm": "این مورد حذف شود؟",
+    "fewer": "یکی کمتر",
+    "more": "یکی بیشتر"
+  },
+  "checkups": {
+    "empty": "هنوز چکاپ یا آزمایشی ثبت نشده.",
+    "result": {
+      "normal": "نرمال",
+      "follow_up": "نیاز به پیگیری",
+      "pending": "در انتظار جواب"
+    },
+    "labAllNormal": "همه طبیعی",
+    "labAttention": "{count, plural, other {# خارج از محدوده}}",
+    "labMarkers": "{count, plural, other {# شاخص}}"
+  },
+  "bloodSheet": {
+    "title": "اطلاعات پایه",
+    "bloodType": "گروه خونی",
+    "unknown": "نمی‌دانم",
+    "bodyTitle": "قد و وزن",
+    "editHeight": "ویرایش قد",
+    "editWeight": "ویرایش وزن"
+  },
+  "conditionsSheet": {
+    "title": "بیماری‌ها و شرایط",
+    "hint": "همان پاسخ‌های شروع ریتمی؛ با تغییر آن‌ها توصیه‌ها هم به‌روز می‌شوند."
+  },
+  "report": {
+    "cta": "ساخت گزارش برای پزشک",
+    "soon": "به‌زودی"
+  },
+  "note": "این پرونده از داده‌هایی که خودت ثبت کرده‌ای ساخته می‌شود و جایگزین معاینه پزشک نیست."
+}

@@ -53,6 +53,12 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // B-N6-03 health record: consumed only by screens/health-record today (B-N6-04's report builder reuses it) —
+    // references coming FROM `screens` are invisible to steiger (same reason as the blocks above).
+    files: ['./src/entities/health-record/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // Checkups foundation (M4, T-M4-05). Consumed by the checkups screens and
     // the home card (T-M4-06…09) — references coming FROM `screens` are
     // invisible to steiger (same reason as the blocks above).
@@ -329,6 +335,18 @@ export default defineConfig([
     // B-N5-07: `features/baby-log` is mounted by screens/log-feed, screens/child-home and
     // screens/analysis-postpartum — references FROM `screens` are invisible to steiger.
     files: ['./src/features/baby-log/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // B-N6-07: `entities/lab` and `features/upload-lab` are consumed by the screens/lab-* screens and
+    // screens/analysis-labs — references FROM `screens` are invisible to steiger.
+    files: ['./src/entities/lab/**', './src/features/upload-lab/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // B-N6-02: `entities/vital` and `features/add-vital` are consumed by screens/vitals-hub, vitals-add and
+    // vitals-report — references FROM `screens` are invisible to steiger.
+    files: ['./src/entities/vital/**', './src/features/add-vital/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
 ]);

@@ -25,7 +25,9 @@ export type IconName =
   | 'grip' | 'pin' | 'chevronUp'
   | 'copy' | 'share' | 'send'
   | 'bottle' | 'sleep' | 'mother'
-  | 'ruler';
+  | 'ruler'
+  | 'gauge' | 'glucose'
+  | 'image' | 'fileDoc'; // B-N6-07
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -169,6 +171,12 @@ const PATHS: Record<IconName, string> = {
   mother:       '<circle cx="12" cy="7" r="3.5"/><path d="M6 21c0-4 2.5-7 6-7s6 3 6 7"/><path d="M9 13.5c-1 2-1 5-1 7.5"/>',
   // B-N5-06: «ثبت اندازه جدید» (nbl_v16_Growth)
   ruler:        '<path d="M3 17L17 3l4 4L7 21z"/><path d="M8 12l2 2M11 9l2 2M14 6l2 2"/>',
+  // B-N6-02 (nbl_Vitals_Hub): blood pressure dial, blood glucose drop.
+  gauge:        '<path d="M4 16a8 8 0 1116 0"/><path d="M12 16l4-5"/>',
+  glucose:      '<path d="M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z"/><path d="M10 14h4M12 12v4"/>',
+  // B-N6-07 (nbl_Lab_Upload): gallery and PDF pickers.
+  image:        '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
+  fileDoc:      '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M9 14h6M9 17h4"/>',
 };
 
 interface IconProps {
