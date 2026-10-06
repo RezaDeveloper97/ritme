@@ -16,11 +16,13 @@ import { hoursText } from './SleepCard';
  * feeds (count · last), sleep (hours), diapers (count), each a link into the
  * feeding screen's section. `today` is `ChildHome.today` as the API sent it.
  */
-export function BabyTodayList({ childId, today }: { childId: number; today: unknown }) {
+/** `readOnly` (a shared child, B-N5-10): empty rows read «هنوز ثبت نشده», not the «ثبت» call to action. */
+export function BabyTodayList({ childId, today, readOnly = false }: { childId: number; today: unknown; readOnly?: boolean }) {
   const t = useTranslations('babyLog');
   const loc = useLocale() as Locale;
   const rtl = useDirection() === 'rtl';
   const d = parseBabyToday(today);
+  const empty = readOnly ? t('today.none') : t('today.add');
 
   const feeding = d?.feedingNow
     ? t('today.feedingNow')
@@ -28,13 +30,13 @@ export function BabyTodayList({ childId, today }: { childId: number; today: unkn
       ? d.lastFeed
         ? t('today.feedsLast', { count: formatNumber(d.feeds.count, loc), time: formatNumber(wallTime(d.lastFeed.startedAt), loc) })
         : t('today.feeds', { count: formatNumber(d.feeds.count, loc) })
-      : t('today.add');
+      : empty;
   const sleep = d?.sleepingNow
     ? t('today.sleepingNow')
     : d && d.sleep.count > 0
       ? t('today.sleepHours', { hours: hoursText(d.sleep.seconds, loc) })
-      : t('today.add');
-  const diapers = d && d.diapers.count > 0 ? t('today.diaperCount', { count: formatNumber(d.diapers.count, loc) }) : t('today.add');
+      : empty;
+  const diapers = d && d.diapers.count > 0 ? t('today.diaperCount', { count: formatNumber(d.diapers.count, loc) }) : empty;
 
   const rows: { key: 'feeding' | 'sleep' | 'diapers'; icon: IconName; tone: Tone; value: string; live: boolean }[] = [
     { key: 'feeding', icon: 'bottle', tone: 'data', value: feeding, live: !!d?.feedingNow },

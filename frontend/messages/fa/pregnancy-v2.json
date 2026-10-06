@@ -10,6 +10,7 @@
     "back": "بازگشت",
     "close": "بستن",
     "notActive": "حالت بارداری روشن نیست.",
+    "notActiveAfterLoss": "فعلاً اینجا چیزی برای نمایش نیست. هر وقت آماده بودی، ما همین‌جاییم.",
     "weekOf": "هفتهٔ {week, number} از {total, number}",
     "age": "{days, plural, =0 {{weeks, number} هفته} other {{weeks, number} هفته و {days, number} روز}}",
     "trimester": {

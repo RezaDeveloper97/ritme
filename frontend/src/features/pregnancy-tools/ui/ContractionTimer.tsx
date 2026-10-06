@@ -11,7 +11,7 @@ import { Card, Icon, PrimaryButton, SectionTitle, StatusPill } from '@/shared/ui
 
 import { useAckToolAlert, useFinishContractions, useToggleContraction } from '../api/queries';
 import { buzz } from '../model/haptics';
-import { contractionRows, contractionView, secondsToMs } from '../model/timing';
+import { contractionRows, contractionView, isStaleContraction, secondsToMs } from '../model/timing';
 import type { ContractionOverview, ContractionSession } from '../model/types';
 import { useNow } from '../model/use-now';
 import { useToolFormat } from './format';
@@ -40,6 +40,7 @@ export function ContractionTimer({ overview }: ContractionTimerProps) {
   const now = useNow(active !== null);
   const view = contractionView(active, now);
   const contracting = view.phase === 'contracting';
+  const stale = isStaleContraction(view);
   const busy = toggle.isPending || finish.isPending;
 
   const onToggle = () => {
@@ -86,20 +87,20 @@ export function ContractionTimer({ overview }: ContractionTimerProps) {
       <div className="ptl-body">
         <button
           type="button"
-          className={clsx('ptl-ctr-btn', contracting && 'is-running')}
+          className={clsx('ptl-ctr-btn', contracting && !stale && 'is-running')}
           aria-pressed={contracting}
-          aria-label={contracting ? t('endAria', { time: f.dur(view.runningMs) }) : t('startAria')}
-          disabled={busy}
+          aria-label={stale ? t('staleLabel') : contracting ? t('endAria', { time: f.dur(view.runningMs) }) : t('startAria')}
+          disabled={busy || stale}
           onClick={onToggle}
         >
           <span className="ptl-ctr-label" aria-hidden>
-            {contracting ? t('running') : view.phase === 'resting' ? t('sinceLast') : t('ready')}
+            {stale ? t('staleLabel') : contracting ? t('running') : view.phase === 'resting' ? t('sinceLast') : t('ready')}
           </span>
           <span className="ptl-ctr-time" aria-hidden>
-            {f.dur(contracting ? view.runningMs : (view.sinceLastStartMs ?? 0))}
+            {stale ? '—' : f.dur(contracting ? view.runningMs : (view.sinceLastStartMs ?? 0))}
           </span>
           <span className="ptl-ctr-cta" aria-hidden>
-            {contracting ? t('tapToEnd') : t('tapToStart')}
+            {stale ? t('staleCta') : contracting ? t('tapToEnd') : t('tapToStart')}
           </span>
         </button>
         <p className="sr-only" aria-live="polite" aria-atomic="true">
@@ -123,6 +124,13 @@ export function ContractionTimer({ overview }: ContractionTimerProps) {
             <Icon name="checkCircle" size={18} />
             {t('saved', { count: f.num(saved.count) })}
           </p>
+        ) : null}
+
+        {stale && active ? (
+          <Card className="ptl-note" role="note">
+            <Icon name="info" size={17} className="ptl-note-icon" />
+            <span className="ptl-note-text">{t('staleBody', { time: f.dayTime(active.startedAt) })}</span>
+          </Card>
         ) : null}
 
         {alerts.map((a) => (
@@ -156,7 +164,7 @@ export function ContractionTimer({ overview }: ContractionTimerProps) {
             {rows.map((r) => (
               <div key={r.id} className={clsx('ptl-tr', r.running && 'is-running')} role="row">
                 <span role="cell">{f.num(r.start)}</span>
-                <span role="cell">{r.durationMs === null ? '—' : f.dur(r.durationMs)}</span>
+                <span role="cell">{r.durationMs === null || (r.running && stale) ? '—' : f.dur(r.durationMs)}</span>
                 <span role="cell" className="ptl-td-muted">
                   {r.intervalMs === null ? '—' : f.dur(r.intervalMs)}
                 </span>

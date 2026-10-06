@@ -124,6 +124,21 @@ export function contractionView(session: ContractionSession | null, nowMs: numbe
   return { phase: 'resting', runningMs: 0, sinceLastStartMs };
 }
 
+/** A contraction «running» this long was left open (no real one lasts 30 min). */
+export const STALE_RUNNING_MS = 30 * 60_000;
+/** A session with no new contraction for this long was left open. */
+export const STALE_RESTING_MS = 6 * 60 * 60_000;
+
+/**
+ * Whether the active session was left open (a forgotten tap, days ago): the
+ * screen then asks to close it instead of ticking a 40-hour contraction (B-N5-10).
+ */
+export function isStaleContraction(view: ContractionView): boolean {
+  if (view.phase === 'contracting') return view.runningMs > STALE_RUNNING_MS;
+  if (view.phase === 'resting') return (view.sinceLastStartMs ?? 0) > STALE_RESTING_MS;
+  return false;
+}
+
 export interface ContractionRow {
   id: number;
   /** `HH:mm` of the start. */

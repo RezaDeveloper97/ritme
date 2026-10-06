@@ -359,7 +359,7 @@ function TodayCard({ child, t }: { child: ChildHome; t: T }) {
       <h2 id="chd-today-title" className="chd-card-title">
         {t('home.today')}
       </h2>
-      <BabyTodayList childId={child.id} today={child.today} />
+      <BabyTodayList childId={child.id} today={child.today} readOnly={!child.canEdit} />
     </Card>
   );
 }

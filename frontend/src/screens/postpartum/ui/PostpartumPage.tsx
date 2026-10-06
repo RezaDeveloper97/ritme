@@ -244,12 +244,13 @@ function Hero({ data, status, t }: { data: PostpartumOverview; status: Postpartu
           size={112}
           thickness={9}
           label={t('home.ringLabel')}
-          valueText={t('home.ringValue', { day: n(day), total: n(status.puerperiumDays) })}
+          valueText={inPuerperium ? t('home.ringValue', { day: n(day), total: n(status.puerperiumDays) }) : t('home.ringDone')}
           className="pp-ring"
         >
-          <span className="pp-ring-cap">{t('home.ringCaption')}</span>
-          <span className="pp-ring-num">{n(day)}</span>
-          <span className="pp-ring-cap">{t('home.ringOf', { weeks: n(totalWeeks) })}</span>
+          {/* B-N5-10: past day 42 the ring says «۶ هفته · کامل شد» instead of a frozen «روز ۴۲». */}
+          <span className="pp-ring-cap">{inPuerperium ? t('home.ringCaption') : t('home.ringWeeks')}</span>
+          <span className="pp-ring-num">{n(inPuerperium ? day : totalWeeks)}</span>
+          <span className="pp-ring-cap">{inPuerperium ? t('home.ringOf', { weeks: n(totalWeeks) }) : t('home.ringDone')}</span>
         </ProgressRing>
       </div>
       {inPuerperium && <p className="pp-hero-note">{t('home.heroNote')}</p>}

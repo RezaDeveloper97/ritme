@@ -10047,3 +10047,10 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .clr-sheet { display: flex; flex-direction: column; gap: 12px; padding-block-end: 8px; }
 .clr-sheet-body { margin: 0; font-size: 14px; font-weight: 600; line-height: 2; color: var(--text-1); }
 /* ═══ end B-N5-06 ═══ */
+
+/* ═══ B-N5-10 — N5 fidelity fixes ═══ */
+/* Milestones: ticked items in the warm tone of the progress ring (v16_Milestones), not brand violet. */
+.cms-item .nb-check-input:checked + .nb-check-box { background: var(--warm); border-color: var(--warm); color: var(--surface); }
+/* /pregnancy right after a loss: one calm line, brand-tinted disc (not the error tint). */
+.pgn-state-disc.is-calm { background: var(--brand-soft); color: var(--brand); }
+/* ═══ end B-N5-10 ═══ */

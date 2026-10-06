@@ -11,6 +11,7 @@ import {
   V2_TERM_WEEKS,
   type WeekTip,
 } from '@/entities/pregnancy';
+import { isLossCareOpen, LossCareReturn, useLossState } from '@/entities/loss';
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import {
   formatDayMonth,
@@ -19,6 +20,7 @@ import {
   formatWeekday,
   formatWeekdayDayMonth,
   fromApiDate,
+  toApiDate,
   today as todayDate,
 } from '@/shared/lib/date';
 import {
@@ -308,8 +310,11 @@ export function PregnancyPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const query = usePregnancyToday();
+  // B-N5-10 (canvas QA CB-LOSS-03): right after a loss, no «راه‌اندازی حالت بارداری» CTA here.
+  const lossState = useLossState();
+  const recentLoss = isLossCareOpen(lossState.data?.loss, toApiDate(todayDate()));
 
-  if (!mounted || query.isLoading) return <Loading t={t} />;
+  if (!mounted || query.isLoading || (!query.data && lossState.isLoading)) return <Loading t={t} />;
 
   if (query.isError) {
     return (
@@ -328,6 +333,19 @@ export function PregnancyPage() {
   }
 
   const data = query.data;
+  if (!data && recentLoss) {
+    return (
+      <Shell header={<Header unread={0} t={t} />}>
+        <Card className="pgn-state">
+          <span className="pgn-state-disc is-calm" aria-hidden>
+            <Icon name="heart" size={24} />
+          </span>
+          <p className="pgn-state-text">{t('common.notActiveAfterLoss')}</p>
+        </Card>
+        <LossCareReturn variant="row" />
+      </Shell>
+    );
+  }
   if (!data) {
     return (
       <Shell header={<Header unread={0} t={t} />}>

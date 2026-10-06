@@ -6,6 +6,7 @@ import {
   contractionRows,
   contractionView,
   formatDuration,
+  isStaleContraction,
   kickView,
   liveElapsedMs,
   serverOffsetMs,
@@ -225,5 +226,15 @@ describe('contraction timer', () => {
     const s = parseContractionOverview({ active: null, history: [sessionPayload({ is_active: false, ended_at: C3 })] }, 0);
     expect(s.history[0].contractions).toHaveLength(2);
     expect(contractionView(s.history[0], 0).phase).toBe('idle');
+  });
+});
+
+describe('isStaleContraction (B-N5-10)', () => {
+  it('flags a contraction left running for hours and a long-idle session', () => {
+    expect(isStaleContraction({ phase: 'contracting', runningMs: 48_000, sinceLastStartMs: 48_000 })).toBe(false);
+    expect(isStaleContraction({ phase: 'contracting', runningMs: 43 * 3_600_000, sinceLastStartMs: 43 * 3_600_000 })).toBe(true);
+    expect(isStaleContraction({ phase: 'resting', runningMs: 0, sinceLastStartMs: 6 * 60_000 })).toBe(false);
+    expect(isStaleContraction({ phase: 'resting', runningMs: 0, sinceLastStartMs: 7 * 3_600_000 })).toBe(true);
+    expect(isStaleContraction({ phase: 'idle', runningMs: 0, sinceLastStartMs: null })).toBe(false);
   });
 });

@@ -19,6 +19,8 @@
     "ringValue": "Day {day} of {total}",
     "ringCaption": "Day",
     "ringOf": "of {weeks} weeks",
+    "ringWeeks": "weeks",
+    "ringDone": "complete",
     "feedingChip": "Feeding",
     "babiesChip": "{count} babies",
     "heroNote": "Bleeding after birth usually lasts 4 to 6 weeks and slowly gets lighter. If it suddenly gets heavy or you pass a large clot, call your doctor.",

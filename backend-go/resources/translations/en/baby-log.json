@@ -98,7 +98,8 @@
     "feedsLast": "{count} times · last {time}",
     "sleepHours": "{hours} h",
     "diaperCount": "{count} times",
-    "add": "Log"
+    "add": "Log",
+    "none": "Nothing yet"
   },
   "noChild": {
     "title": "Add your child first",

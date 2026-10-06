@@ -46,6 +46,7 @@
     "cycle": "Period & cycle",
     "pregnancy": "Pregnancy",
     "aboveCard": "The card above",
+    "nothingYet": "Nothing to show right now",
     "symptoms": "Symptoms & daily mood",
     "symptomDays": "{days, plural, =0 {Nothing logged this week} one {# day logged this week} other {# days logged this week}}",
     "noMeds": "No active medication",

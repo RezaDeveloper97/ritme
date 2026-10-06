@@ -10,6 +10,7 @@
     "back": "Back",
     "close": "Close",
     "notActive": "Pregnancy mode is off.",
+    "notActiveAfterLoss": "Nothing here for now. Whenever you are ready, we are here.",
     "weekOf": "Week {week, number} of {total, number}",
     "age": "{days, plural, =0 {{weeks, plural, one {# week} other {# weeks}}} other {{weeks, plural, one {# week} other {# weeks}} and {days, plural, one {# day} other {# days}}}}",
     "trimester": {

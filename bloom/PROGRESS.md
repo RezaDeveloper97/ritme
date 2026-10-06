@@ -962,3 +962,11 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `ai_usage_logs` (25 pages/24 h), refund cap 30/month. L1 verify guarded in SQL + 429 `lab_interpret_limit`, marker
   edits 409 when busy. L2 inert prompt fields in a fenced JSON block, links stripped. L3 claim token. L4 buffer sizing +
   global 4-upload semaphore. L5 no error after CreateUpload. L6 strict `%PDF-`. L8 sweep safety. QUESTIONS #110.
+
+## B-N5-10 — N5 design-fidelity audit and fixes
+
+- `docs/night-bloom/audit-n5.md`: 1 high (stale contraction session blew up the timer → `isStaleContraction`, disabled
+  ring + finish note), 5 med (postpartum ring after day 42 «کامل شد», milestone ticks `--warm`, spouse child-home
+  «هنوز ثبت نشده», companion hint only when the card renders, post-loss `/pregnancy` calm line + «مراقبت از خودت»
+  within 60 days) fixed; 10 low open. Follow-up: backend should auto-close/cap stale kick/contraction sessions.
+- Screenshots `docs/qa/bloom/B-N5-10/` (+ side-by-side for high/med).

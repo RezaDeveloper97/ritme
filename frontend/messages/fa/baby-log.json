@@ -98,7 +98,8 @@
     "feedsLast": "{count} بار · آخرین {time}",
     "sleepHours": "{hours} ساعت",
     "diaperCount": "{count} بار",
-    "add": "ثبت"
+    "add": "ثبت",
+    "none": "هنوز ثبت نشده"
   },
   "noChild": {
     "title": "اول فرزندت را اضافه کن",

@@ -75,7 +75,7 @@ export const ROUTE_NAMESPACES = {
   plusCheckout: ['common', 'nav', 'plus'], // B-N2-07 /plus/checkout
   plusSuccess: ['common', 'plus'], // B-N2-07 /plus/success + gateway return /plus/return
   plusManage: ['common', 'plus'], // B-N2-07 /plus/manage
-  pregnancy: ['care', 'common', 'nav', 'pregnancyV2', 'search'], // CB-NAV-02 header search button
+  pregnancy: ['care', 'common', 'loss', 'nav', 'pregnancyV2', 'search'], // CB-NAV-02 header search button; B-N5-10 post-loss care row (entities/loss)
   pregnancyLog: [...PREGNANCY, 'logSheet', 'plus', 'pregnancyV2', 'voiceLog'], // B-N3-06: default tab = log sheet v2 (pregnancy preset)
   pregnancyWeek: ['common', 'nav', 'pregnancyV2'],
   pregnancyAlerts: ['common', 'nav', 'pregnancyV2'],

@@ -217,12 +217,17 @@ function SharedSection({ partner, name, t, locale }: { partner: CompanionPartner
       );
     }
   }
+  // «همین کارت بالا» only when PartnerCard actually renders that section (B-N5-10).
+  const heroPregnancy = Boolean(partner.pregnancy?.isActive);
+  const heroCycle = !heroPregnancy && Boolean(partner.cycle?.hasData);
   if (partner.cycle) {
-    rows.push(<SharedRow key="cycle" icon="drop" tone="period" title={t('shared.cycle')} sub={t('shared.aboveCard')} level={level('cycle')} t={t} />);
+    rows.push(
+      <SharedRow key="cycle" icon="drop" tone="period" title={t('shared.cycle')} sub={t(heroCycle ? 'shared.aboveCard' : 'shared.nothingYet')} level={level('cycle')} t={t} />,
+    );
   }
   if (partner.pregnancy) {
     rows.push(
-      <SharedRow key="preg" icon="heart" tone="bloom" title={t('shared.pregnancy')} sub={t('shared.aboveCard')} level={level('pregnancy')} t={t} />,
+      <SharedRow key="preg" icon="heart" tone="bloom" title={t('shared.pregnancy')} sub={t(heroPregnancy ? 'shared.aboveCard' : 'shared.nothingYet')} level={level('pregnancy')} t={t} />,
     );
   }
   if (partner.symptomDays != null) {
