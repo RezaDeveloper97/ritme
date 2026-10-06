@@ -1,0 +1,43 @@
+{
+    "digits": "0123456789",
+    "messages": {
+        "validation_failed": "The given data was invalid",
+        "not_found": "Task not found",
+        "item_not_found": "Item not found",
+        "suggestion_not_found": "This suggestion is no longer available",
+        "saved": "Task added",
+        "updated": "Updated",
+        "deleted": "Deleted",
+        "item_saved": "Item added",
+        "suggestion_added": "Added",
+        "suggestion_dismissed": "We will not show it again"
+    },
+    "validation": {
+        "remind_needs_time": "Set a date and a time to get a reminder.",
+        "due_out_of_range": "The date must be between one year ago and five years from now.",
+        "too_many_tasks": "You have reached 1000 tasks; delete a few done ones.",
+        "too_many_items": "A list holds at most 100 items."
+    },
+    "attributes": {
+        "title": "title",
+        "note": "note",
+        "category": "category",
+        "due_date": "date",
+        "due_time": "time",
+        "remind": "reminder",
+        "done": "done"
+    },
+    "reminder": {
+        "title": "Task reminder",
+        "body": ":title"
+    },
+    "suggestions": {
+        "period_supplies": {
+            "prompt": "Your period is {days} days away. Add “{title}”?",
+            "prompt_tomorrow": "Your period may start tomorrow. Add “{title}”?",
+            "action": "Add",
+            "task_title": "Buy pads",
+            "item_title": "Pads"
+        }
+    }
+}

@@ -1,0 +1,102 @@
+# To-do list (/api/v1/todo*) — Go only (bloom B-N6-08, deviations.md D-66): there is no Laravel route, so these goldens
+# were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The fixture dump carries the empty
+# todo_tasks / todo_items / todo_suggestion_events tables (goose 00043 / Laravel 2026_10_06_000043), added by hand; it has
+# no goose message rows, so any suggestion copy here is the embedded lang fallback (the seeded / admin-edited copy, the
+# suggestion window, accept into a list and the IDOR matrix are covered by the internal/todo integration tests).
+# Fixture day 2026-09-23. `regular` (1004) has a profile and cycle logs; `no_profile` (1001) is the other user.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: todo
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: board_anon
+    persona: anon
+    method: GET
+    path: /api/v1/todo
+    status: 401
+  - name: board_empty
+    doc: nbl_Todo_Empty — no task yet
+    persona: no_profile
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/todo
+    status: 200
+
+  - name: task_invalid
+    doc: Todo_Add — empty title, unknown category, a reminder without a time
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/todo/tasks
+    body: {title: "", category: food, remind: true}
+    status: 422
+
+  - name: tasks_flow
+    doc: nbl_Todo_Home / Todo_List — add a timed work task and a shopping list with items, tick an item and the task, board, edit, delete; another user gets 404
+    locales: [fa]
+    steps:
+      - method: POST
+        path: /api/v1/todo/tasks
+        body: {title: "Design team meeting", category: work, due_date: "2026-09-23", due_time: "10:00"}
+        status: 201
+        capture: {meeting: data.task.id}
+      - method: POST
+        path: /api/v1/todo/tasks
+        body: {title: "Fruit and yogurt", category: shopping, due_date: "2026-09-23"}
+        status: 201
+        capture: {list: data.task.id}
+      - method: POST
+        path: /api/v1/todo/tasks
+        body: {title: "Monthly report", category: work, due_date: "2026-09-24", due_time: "14:00", remind: true}
+        status: 201
+      - method: POST
+        path: /api/v1/todo/tasks
+        body: {title: "Renew insurance", category: personal}
+        status: 201
+      - method: POST
+        path: "/api/v1/todo/tasks/{{list}}/items"
+        body: {title: "Apples"}
+        status: 201
+        capture: {apples: data.item.id}
+      - method: POST
+        path: "/api/v1/todo/tasks/{{list}}/items"
+        body: {title: "Pads", due_date: "2026-09-28"}
+        status: 201
+      - method: PUT
+        path: "/api/v1/todo/tasks/{{list}}/items/{{apples}}"
+        body: {done: true}
+        status: 200
+      - method: PUT
+        path: "/api/v1/todo/tasks/{{meeting}}"
+        body: {done: true}
+        status: 200
+      - method: GET
+        path: /api/v1/todo
+        status: 200
+      - method: GET
+        path: "/api/v1/todo/tasks/{{list}}"
+        status: 200
+      - method: GET
+        path: "/api/v1/todo/tasks/{{list}}"
+        as: no_profile
+        status: 404
+      - method: PUT
+        path: "/api/v1/todo/tasks/{{meeting}}"
+        body: {title: "Design review", due_date: null, due_time: null, done: false}
+        status: 200
+      - method: DELETE
+        path: "/api/v1/todo/tasks/{{list}}/items/{{apples}}"
+        status: 200
+      - method: DELETE
+        path: "/api/v1/todo/tasks/{{list}}"
+        status: 200
+      - method: DELETE
+        path: "/api/v1/todo/tasks/{{list}}"
+        status: 404
+
+  - name: suggestion_unknown
+    doc: a suggestion key that is not due → 404
+    locales: [en]
+    method: POST
+    path: /api/v1/todo/suggestions/unknown/accept
+    status: 404

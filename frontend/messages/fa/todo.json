@@ -1,0 +1,109 @@
+{
+  "common": {
+    "back": "بازگشت",
+    "loading": "در حال بارگذاری",
+    "loadError": "بارگذاری نشد. اتصال را بررسی کن و دوباره امتحان کن.",
+    "retry": "تلاش دوباره",
+    "separator": " · ",
+    "saveError": "ذخیره نشد. دوباره امتحان کن.",
+    "cancel": "انصراف"
+  },
+  "title": "کارهای من",
+  "progress": "{done} از {total} کار انجام شده",
+  "progressShort": "{done}/{total}",
+  "filters": {
+    "label": "دسته‌ها",
+    "all": "همه"
+  },
+  "categories": {
+    "shopping": "خرید",
+    "work": "کار",
+    "personal": "شخصی",
+    "health": "سلامت"
+  },
+  "groups": {
+    "today": "امروز",
+    "tomorrow": "فردا",
+    "later": "بعداً"
+  },
+  "count": "{count, number} کار",
+  "doneSection": "انجام‌شده · {count, number}",
+  "meta": {
+    "noDate": "بدون تاریخ",
+    "items": "{count, number} قلم",
+    "itemsLeft": "{open, number} از {total, number} قلم",
+    "overdue": "عقب افتاده از {date}",
+    "doneOn": "انجام شد {date}"
+  },
+  "suggestion": {
+    "label": "پیشنهاد ریتمی",
+    "dismiss": "دیگر نشان نده",
+    "error": "اضافه نشد. دوباره امتحان کن."
+  },
+  "newTask": "کار جدید",
+  "empty": {
+    "allDoneTitle": "همه کارها انجام شد",
+    "allDoneBody": "لیست «{category}» امروز خالی است. یک کار جدید اضافه کن یا استراحت کن.",
+    "allDoneBodyAll": "کارهای امروز تمام شد. یک کار جدید اضافه کن یا استراحت کن.",
+    "freshTitle": "هنوز کاری اضافه نکردی",
+    "freshBody": "کارها و خریدهایت را اینجا بنویس؛ نزدیک پریود هم ریتمی خرید نوار بهداشتی را یادت می‌اندازد."
+  },
+  "check": {
+    "mark": "علامت انجام شد: {title}",
+    "unmark": "برگرداندن به انجام‌نشده: {title}"
+  },
+  "openTask": "باز کردن {title}",
+  "editTask": "ویرایش {title}",
+  "add": {
+    "title": "کار جدید",
+    "editTitle": "ویرایش کار",
+    "titleLabel": "عنوان کار",
+    "titlePlaceholder": "مثلاً خرید میوه",
+    "note": "یادداشت (اختیاری)",
+    "today": "امروز",
+    "tomorrow": "فردا",
+    "pickDate": "تاریخ",
+    "dateGroup": "تاریخ کار",
+    "time": "ساعت",
+    "timeLabel": "ساعت کار",
+    "clearTime": "بدون ساعت",
+    "categoryGroup": "دسته",
+    "remind": "یادآور",
+    "remindNeedsTime": "برای یادآور، تاریخ و ساعت را انتخاب کن.",
+    "remindOff": "اعلان «قرارها» خاموش است؛ برای گرفتن یادآور از تنظیمات اعلان روشنش کن.",
+    "save": "ذخیره",
+    "delete": "حذف کار",
+    "deleteConfirm": "این کار حذف شود؟",
+    "confirmDelete": "حذف",
+    "calendarTitle": "انتخاب تاریخ",
+    "clearDate": "بدون تاریخ",
+    "done": "تأیید",
+    "markDone": "انجام شد",
+    "notFound": "این کار پیدا نشد."
+  },
+  "list": {
+    "remaining": "{open, number} از {total, number} مانده",
+    "more": "گزینه‌های لیست",
+    "addItem": "افزودن قلم",
+    "itemPlaceholder": "نام قلم",
+    "addItemSave": "افزودن",
+    "doneSection": "انجام‌شده · {count, number}",
+    "empty": "هنوز قلمی نداری؛ اولین قلم را اضافه کن.",
+    "edit": "ویرایش",
+    "deleteList": "حذف لیست",
+    "deleteConfirm": "این لیست و همه قلم‌هایش حذف شود؟",
+    "notFound": "این لیست پیدا نشد یا حذف شده است.",
+    "backToTodo": "برگشت به کارهای من",
+    "deleteItem": "حذف {title}",
+    "due": {
+      "today": "امروز",
+      "tomorrow": "فردا",
+      "before": "قبل از {date}",
+      "past": "{date}"
+    },
+    "doneWhen": {
+      "today": "امروز",
+      "yesterday": "دیروز"
+    }
+  }
+}

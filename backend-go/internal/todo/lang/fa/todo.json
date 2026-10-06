@@ -1,0 +1,43 @@
+{
+    "digits": "۰۱۲۳۴۵۶۷۸۹",
+    "messages": {
+        "validation_failed": "اطلاعات واردشده معتبر نیست",
+        "not_found": "این کار پیدا نشد",
+        "item_not_found": "این قلم پیدا نشد",
+        "suggestion_not_found": "این پیشنهاد دیگر در دسترس نیست",
+        "saved": "کار اضافه شد",
+        "updated": "به‌روز شد",
+        "deleted": "حذف شد",
+        "item_saved": "قلم اضافه شد",
+        "suggestion_added": "اضافه شد",
+        "suggestion_dismissed": "دیگر نشان داده نمی‌شود"
+    },
+    "validation": {
+        "remind_needs_time": "برای یادآور، تاریخ و ساعت کار را مشخص کن.",
+        "due_out_of_range": "تاریخ کار باید بین یک سال پیش تا پنج سال آینده باشد.",
+        "too_many_tasks": "تعداد کارها به سقف ۱۰۰۰ رسیده است؛ چند کار انجام‌شده را حذف کن.",
+        "too_many_items": "هر لیست حداکثر ۱۰۰ قلم دارد."
+    },
+    "attributes": {
+        "title": "عنوان",
+        "note": "یادداشت",
+        "category": "دسته",
+        "due_date": "تاریخ",
+        "due_time": "ساعت",
+        "remind": "یادآور",
+        "done": "انجام شده"
+    },
+    "reminder": {
+        "title": "یادآوری کار",
+        "body": ":title"
+    },
+    "suggestions": {
+        "period_supplies": {
+            "prompt": "پریودت {days} روز دیگر است؛ «{title}» را اضافه کنم؟",
+            "prompt_tomorrow": "پریودت احتمالاً از فردا شروع می‌شود؛ «{title}» را اضافه کنم؟",
+            "action": "افزودن",
+            "task_title": "خرید نوار بهداشتی",
+            "item_title": "نوار بهداشتی"
+        }
+    }
+}

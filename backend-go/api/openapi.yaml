@@ -64,6 +64,7 @@ tags:
   - {name: Files, description: "Generic encrypted file storage (Go only, CB-CORE-05, D-59): record / claim documents, place photos / licences, product images. Encrypted at rest, owner-scoped, short-lived signed download links; public purposes (images only) served without auth. Never logged"}
   - {name: Vitals, description: "Vitals (Go only, bloom B-N6-01): timed blood pressure, glucose and heart-rate readings classified on read (ACC/AHA 2017, ADA 2025, AHA), log-sheet day values merged in read-only, 7/14/30/90-day reports, weekly measurement plan with opt-in reminders, urgent modal over BP 180/120 or glucose 54 mg/dL. Never logged"}
   - {name: HealthRecord, description: "Health record «پرونده سلامت من» (Go only, bloom B-N6-03, D-64): owner-only summary aggregated from profile, conditions, care meds, cycle engine, merged vitals, pregnancies, checkups and labs; user-owned blood type, allergies and hand-added pregnancies. A loss shows only as an ended pregnancy. No companion access. Never logged"}
+  - {name: Todo, description: "To-do list «کارهای من» (Go only, bloom B-N6-08, D-66): tasks with a category (shopping / work / personal / health), optional due date, time and reminder; list items (shopping list); board grouped today / tomorrow / later + recently done; one cycle suggestion from the predicted period (admin-editable copy). Owner only; never logged"}
 paths:
   /api/v1/account:
     delete:
@@ -16948,6 +16949,275 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/FileNotFound"}
         '429': {$ref: "#/components/responses/TooManyAttempts"}
+  /api/v1/todo:
+    get:
+      tags: [Todo]
+      summary: To-do board
+      description: "nbl_Todo_Home: today (due today, overdue or ticked today) / tomorrow / later (later or undated) groups, open first; tasks ticked before today within 30 days in `done`; the cycle suggestion (null when none is due); the reminder notification category state."
+      operationId: todoBoard
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/TodoBoard"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/todo/tasks:
+    post:
+      tags: [Todo]
+      summary: Add a task
+      operationId: storeTodoTask
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/TodoTaskInput"}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: object, required: [task], properties: {task: {$ref: "#/components/schemas/TodoTask"}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/TodoValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/todo/tasks/{id}:
+    get:
+      tags: [Todo]
+      summary: One task with its list items
+      operationId: showTodoTask
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TodoTaskId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: object, required: [task, items], properties: {task: {$ref: "#/components/schemas/TodoTask"}, items: {type: array, items: {$ref: "#/components/schemas/TodoItem"}}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TodoNotFound"}
+    put:
+      tags: [Todo]
+      summary: Update a task (partial)
+      description: Every field is optional; missing fields keep their value. `done` ticks (done_at = now) or unticks.
+      operationId: updateTodoTask
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TodoTaskId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/TodoTaskUpdate"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: object, required: [task], properties: {task: {$ref: "#/components/schemas/TodoTask"}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TodoNotFound"}
+        '422': {$ref: "#/components/responses/TodoValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Todo]
+      summary: Delete a task and its items
+      operationId: destroyTodoTask
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TodoTaskId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: "null"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TodoNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/todo/tasks/{id}/items:
+    post:
+      tags: [Todo]
+      summary: Add a list item
+      operationId: storeTodoItem
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TodoTaskId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/TodoItemInput"}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: object, required: [item, task], properties: {item: {$ref: "#/components/schemas/TodoItem"}, task: {$ref: "#/components/schemas/TodoTask"}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TodoNotFound"}
+        '422': {$ref: "#/components/responses/TodoValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/todo/tasks/{id}/items/{item}:
+    put:
+      tags: [Todo]
+      summary: Update a list item (partial)
+      description: Every field is optional; `done` ticks or unticks. Returns the item and the task with fresh list counts.
+      operationId: updateTodoItem
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TodoTaskId"}
+        - {$ref: "#/components/parameters/TodoItemId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/TodoItemUpdate"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: object, required: [item, task], properties: {item: {$ref: "#/components/schemas/TodoItem"}, task: {$ref: "#/components/schemas/TodoTask"}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TodoNotFound"}
+        '422': {$ref: "#/components/responses/TodoValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Todo]
+      summary: Delete a list item
+      operationId: destroyTodoItem
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TodoTaskId"}
+        - {$ref: "#/components/parameters/TodoItemId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: object, required: [task], properties: {task: {$ref: "#/components/schemas/TodoTask"}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TodoNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/todo/suggestions/{key}/accept:
+    post:
+      tags: [Todo]
+      summary: Accept the cycle suggestion
+      description: "The server recomputes the suggestion due today (404 when the key is not due or already answered for this period). Adds the item to the newest open shopping list (due the predicted period start; `item` set), else creates a shopping task due the day before (`item` null)."
+      operationId: acceptTodoSuggestion
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TodoSuggestionKey"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: object, required: [task, item], properties: {task: {$ref: "#/components/schemas/TodoTask"}, item: {oneOf: [{$ref: "#/components/schemas/TodoItem"}, {type: "null"}]}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TodoNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/todo/suggestions/{key}/dismiss:
+    post:
+      tags: [Todo]
+      summary: Dismiss the cycle suggestion for this predicted period
+      operationId: dismissTodoSuggestion
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TodoSuggestionKey"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: "null"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TodoNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
 components:
   securitySchemes:
     bearerAuth:
@@ -16974,6 +17244,24 @@ components:
       required: true
       description: Vital reading id (the caller's own)
       schema: {type: integer, minimum: 1}
+    TodoTaskId:
+      name: id
+      in: path
+      required: true
+      description: Task id (the caller's own)
+      schema: {type: integer, minimum: 1}
+    TodoItemId:
+      name: item
+      in: path
+      required: true
+      description: List item id (of that task)
+      schema: {type: integer, minimum: 1}
+    TodoSuggestionKey:
+      name: key
+      in: path
+      required: true
+      description: Suggestion key (period_supplies)
+      schema: {type: string}
     LabId:
       name: id
       in: path
@@ -17133,6 +17421,30 @@ components:
               error_code: {type: string, enum: [vital_not_found]}
     VitalValidationFailed:
       description: "Vitals validation failed (controller 422 `{success: false, message, errors}`)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+    TodoNotFound:
+      description: "Bloom B-N6-08: the task / item does not exist or is not the caller's, or the suggestion is not due — one uniform answer."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [todo_not_found, todo_item_not_found, todo_suggestion_not_found]}
+    TodoValidationFailed:
+      description: "To-do validation failed (controller 422 `{success: false, message, errors}`)."
       content:
         application/json:
           schema:
@@ -17959,6 +18271,107 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    TodoCategory:
+      type: string
+      enum: [shopping, work, personal, health]
+    TodoTask:
+      type: object
+      required: [id, title, note, category, due_date, due_time, remind, done, done_at, overdue, suggestion_key, list, created_at]
+      properties:
+        id: {type: integer}
+        title: {type: string}
+        note: {type: [string, "null"]}
+        category: {$ref: "#/components/schemas/TodoCategory"}
+        due_date: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        due_time: {type: [string, "null"], description: "HH:MM (Tehran)"}
+        remind: {type: boolean}
+        done: {type: boolean}
+        done_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+        overdue: {type: boolean, description: open with a due date before today}
+        suggestion_key: {type: [string, "null"]}
+        list:
+          description: item counts of the list, null without items
+          oneOf:
+            - {type: object, required: [total, open], properties: {total: {type: integer}, open: {type: integer}}}
+            - {type: "null"}
+        created_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+    TodoItem:
+      type: object
+      required: [id, task_id, title, due_date, done, done_at]
+      properties:
+        id: {type: integer}
+        task_id: {type: integer}
+        title: {type: string}
+        due_date: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        done: {type: boolean}
+        done_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+    TodoSuggestion:
+      type: object
+      required: [key, prompt, action, days, period_start, category, task_title, item_title]
+      properties:
+        key: {type: string, enum: [period_supplies]}
+        prompt: {type: string, description: "admin-editable copy (message_contents todo_suggestion) with {days} / {title} filled"}
+        action: {type: string}
+        days: {type: integer, minimum: 1, maximum: 5}
+        period_start: {$ref: "#/components/schemas/Date"}
+        category: {$ref: "#/components/schemas/TodoCategory"}
+        task_title: {type: string}
+        item_title: {type: string}
+    TodoBoard:
+      type: object
+      required: [date, categories, suggestion, groups, done, notifications]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        categories: {type: array, items: {$ref: "#/components/schemas/TodoCategory"}}
+        suggestion: {oneOf: [{$ref: "#/components/schemas/TodoSuggestion"}, {type: "null"}]}
+        groups:
+          type: array
+          items:
+            type: object
+            required: [key, date, tasks]
+            properties:
+              key: {type: string, enum: [today, tomorrow, later]}
+              date: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+              tasks: {type: array, items: {$ref: "#/components/schemas/TodoTask"}}
+        done: {type: array, items: {$ref: "#/components/schemas/TodoTask"}}
+        notifications:
+          type: object
+          required: [category, enabled]
+          properties:
+            category: {type: string}
+            enabled: {type: boolean}
+    TodoTaskInput:
+      type: object
+      required: [title, category]
+      properties:
+        title: {type: string, maxLength: 120}
+        note: {type: [string, "null"], maxLength: 500}
+        category: {$ref: "#/components/schemas/TodoCategory"}
+        due_date: {type: [string, "null"], format: date, description: "Y-m-d; one year back to five years ahead"}
+        due_time: {type: [string, "null"], description: "H:i"}
+        remind: {type: [boolean, "null"], description: needs due_date and due_time}
+    TodoTaskUpdate:
+      type: object
+      properties:
+        title: {type: string, maxLength: 120}
+        note: {type: [string, "null"], maxLength: 500}
+        category: {$ref: "#/components/schemas/TodoCategory"}
+        due_date: {type: [string, "null"], format: date}
+        due_time: {type: [string, "null"]}
+        remind: {type: [boolean, "null"]}
+        done: {type: boolean}
+    TodoItemInput:
+      type: object
+      required: [title]
+      properties:
+        title: {type: string, maxLength: 120}
+        due_date: {type: [string, "null"], format: date}
+    TodoItemUpdate:
+      type: object
+      properties:
+        title: {type: string, maxLength: 120}
+        due_date: {type: [string, "null"], format: date}
+        done: {type: boolean}
     StoredFile:
       type: object
       description: "CB-CORE-05: a stored file (no storage path, no owner)."

@@ -8306,6 +8306,115 @@
     }
    }
   },
+  "todo": {
+   "common": {
+    "back": "Back",
+    "loading": "Loading",
+    "loadError": "Could not load. Check your connection and try again.",
+    "retry": "Try again",
+    "separator": " · ",
+    "saveError": "Could not save. Try again.",
+    "cancel": "Cancel"
+   },
+   "title": "My to-dos",
+   "progress": "{done} of {total} tasks done",
+   "progressShort": "{done}/{total}",
+   "filters": {
+    "label": "Categories",
+    "all": "All"
+   },
+   "categories": {
+    "shopping": "Shopping",
+    "work": "Work",
+    "personal": "Personal",
+    "health": "Health"
+   },
+   "groups": {
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "later": "Later"
+   },
+   "count": "{count, plural, one {# task} other {# tasks}}",
+   "doneSection": "Done · {count, number}",
+   "meta": {
+    "noDate": "No date",
+    "items": "{count, plural, one {# item} other {# items}}",
+    "itemsLeft": "{open, number} of {total, number} items",
+    "overdue": "Overdue since {date}",
+    "doneOn": "Done {date}"
+   },
+   "suggestion": {
+    "label": "Ritme suggestion",
+    "dismiss": "Don't show again",
+    "error": "Could not add it. Try again."
+   },
+   "newTask": "New task",
+   "empty": {
+    "allDoneTitle": "All tasks done",
+    "allDoneBody": "Your “{category}” list is empty today. Add a new task or take a break.",
+    "allDoneBodyAll": "Today's tasks are done. Add a new task or take a break.",
+    "freshTitle": "No tasks yet",
+    "freshBody": "Write down your tasks and shopping here; near your period Ritme also reminds you to buy pads."
+   },
+   "check": {
+    "mark": "Mark done: {title}",
+    "unmark": "Mark not done: {title}"
+   },
+   "openTask": "Open {title}",
+   "editTask": "Edit {title}",
+   "add": {
+    "title": "New task",
+    "editTitle": "Edit task",
+    "titleLabel": "Task title",
+    "titlePlaceholder": "e.g. Buy fruit",
+    "note": "Note (optional)",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "pickDate": "Date",
+    "dateGroup": "Task date",
+    "time": "Time",
+    "timeLabel": "Task time",
+    "clearTime": "No time",
+    "categoryGroup": "Category",
+    "remind": "Reminder",
+    "remindNeedsTime": "Pick a date and a time to get a reminder.",
+    "remindOff": "“Appointments” notifications are off; turn them on in notification settings to get reminders.",
+    "save": "Save",
+    "delete": "Delete task",
+    "deleteConfirm": "Delete this task?",
+    "confirmDelete": "Delete",
+    "calendarTitle": "Pick a date",
+    "clearDate": "No date",
+    "done": "Done",
+    "markDone": "Done",
+    "notFound": "Task not found."
+   },
+   "list": {
+    "remaining": "{open, number} of {total, number} left",
+    "more": "List options",
+    "addItem": "Add item",
+    "itemPlaceholder": "Item name",
+    "addItemSave": "Add",
+    "doneSection": "Done · {count, number}",
+    "empty": "No items yet; add the first one.",
+    "edit": "Edit",
+    "deleteList": "Delete list",
+    "deleteConfirm": "Delete this list and all its items?",
+    "notFound": "This list was not found or has been deleted.",
+    "backToTodo": "Back to my to-dos",
+    "deleteItem": "Delete {title}",
+    "due": {
+     "today": "Today",
+     "tomorrow": "Tomorrow",
+     "before": "Before {date}",
+     "past": "{date}"
+    },
+    "doneWhen": {
+     "today": "Today",
+     "yesterday": "Yesterday"
+    }
+   }
+  },
   "vitals": {
    "common": {
     "back": "Back",

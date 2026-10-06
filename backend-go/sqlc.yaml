@@ -253,3 +253,9 @@ sql:
       go:
         <<: *go
         out: internal/sharelinks/store
+  - <<: *pkg
+    queries: db/queries/todo
+    gen:
+      go:
+        <<: *go
+        out: internal/todo/store

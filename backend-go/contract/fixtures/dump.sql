@@ -3592,6 +3592,79 @@ LOCK TABLES `teen_profiles` WRITE;
 /*!40000 ALTER TABLE `teen_profiles` DISABLE KEYS */;
 /*!40000 ALTER TABLE `teen_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `todo_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `todo_items` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `task_id` bigint(20) unsigned NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `title` varchar(120) NOT NULL,
+  `due_date` date DEFAULT NULL,
+  `done_at` datetime DEFAULT NULL,
+  `sort_order` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `todo_items_task_id_sort_order_index` (`task_id`,`sort_order`),
+  KEY `todo_items_user_id_index` (`user_id`),
+  CONSTRAINT `todo_items_task_id_foreign` FOREIGN KEY (`task_id`) REFERENCES `todo_tasks` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `todo_items_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `todo_items` WRITE;
+/*!40000 ALTER TABLE `todo_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `todo_items` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `todo_suggestion_events`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `todo_suggestion_events` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `suggestion_key` varchar(40) NOT NULL,
+  `ref_date` date NOT NULL,
+  `action` varchar(10) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `todo_suggestion_events_user_id_suggestion_key_ref_date_unique` (`user_id`,`suggestion_key`,`ref_date`),
+  CONSTRAINT `todo_suggestion_events_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `todo_suggestion_events` WRITE;
+/*!40000 ALTER TABLE `todo_suggestion_events` DISABLE KEYS */;
+/*!40000 ALTER TABLE `todo_suggestion_events` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `todo_tasks`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `todo_tasks` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `title` varchar(120) NOT NULL,
+  `note` varchar(500) DEFAULT NULL,
+  `category` varchar(12) NOT NULL,
+  `due_date` date DEFAULT NULL,
+  `due_time` varchar(5) DEFAULT NULL,
+  `remind` tinyint(1) NOT NULL DEFAULT 0,
+  `done_at` datetime DEFAULT NULL,
+  `suggestion_key` varchar(40) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `todo_tasks_user_id_done_at_index` (`user_id`,`done_at`),
+  KEY `todo_tasks_user_id_due_date_index` (`user_id`,`due_date`),
+  CONSTRAINT `todo_tasks_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `todo_tasks` WRITE;
+/*!40000 ALTER TABLE `todo_tasks` DISABLE KEYS */;
+/*!40000 ALTER TABLE `todo_tasks` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `treatment_intakes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;

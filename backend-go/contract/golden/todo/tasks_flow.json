@@ -1,0 +1,668 @@
+{
+  "case": "todo/tasks_flow",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/todo/tasks",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "title": "Design team meeting",
+          "category": "work",
+          "due_date": "2026-09-23",
+          "due_time": "10:00"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "کار اضافه شد",
+        "data": {
+          "task": {
+            "id": 1,
+            "title": "Design team meeting",
+            "note": null,
+            "category": "work",
+            "due_date": "2026-09-23",
+            "due_time": "10:00",
+            "remind": false,
+            "done": false,
+            "done_at": null,
+            "overdue": false,
+            "suggestion_key": null,
+            "list": null,
+            "created_at": "2026-09-23T10:00:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/todo/tasks",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "title": "Fruit and yogurt",
+          "category": "shopping",
+          "due_date": "2026-09-23"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "کار اضافه شد",
+        "data": {
+          "task": {
+            "id": 2,
+            "title": "Fruit and yogurt",
+            "note": null,
+            "category": "shopping",
+            "due_date": "2026-09-23",
+            "due_time": null,
+            "remind": false,
+            "done": false,
+            "done_at": null,
+            "overdue": false,
+            "suggestion_key": null,
+            "list": null,
+            "created_at": "2026-09-23T10:00:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/todo/tasks",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "title": "Monthly report",
+          "category": "work",
+          "due_date": "2026-09-24",
+          "due_time": "14:00",
+          "remind": true
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "کار اضافه شد",
+        "data": {
+          "task": {
+            "id": 3,
+            "title": "Monthly report",
+            "note": null,
+            "category": "work",
+            "due_date": "2026-09-24",
+            "due_time": "14:00",
+            "remind": true,
+            "done": false,
+            "done_at": null,
+            "overdue": false,
+            "suggestion_key": null,
+            "list": null,
+            "created_at": "2026-09-23T10:00:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/todo/tasks",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "title": "Renew insurance",
+          "category": "personal"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "message": "کار اضافه شد",
+        "data": {
+          "task": {
+            "id": 4,
+            "title": "Renew insurance",
+            "note": null,
+            "category": "personal",
+            "due_date": null,
+            "due_time": null,
+            "remind": false,
+            "done": false,
+            "done_at": null,
+            "overdue": false,
+            "suggestion_key": null,
+            "list": null,
+            "created_at": "2026-09-23T10:00:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/todo/tasks/2/items",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "title": "Apples"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": true,
+        "message": "قلم اضافه شد",
+        "data": {
+          "item": {
+            "id": 1,
+            "task_id": 2,
+            "title": "Apples",
+            "due_date": null,
+            "done": false,
+            "done_at": null
+          },
+          "task": {
+            "id": 2,
+            "title": "Fruit and yogurt",
+            "note": null,
+            "category": "shopping",
+            "due_date": "2026-09-23",
+            "due_time": null,
+            "remind": false,
+            "done": false,
+            "done_at": null,
+            "overdue": false,
+            "suggestion_key": null,
+            "list": {
+              "total": 1,
+              "open": 1
+            },
+            "created_at": "2026-09-23T10:00:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/todo/tasks/2/items",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "title": "Pads",
+          "due_date": "2026-09-28"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "54"
+      },
+      "body": {
+        "success": true,
+        "message": "قلم اضافه شد",
+        "data": {
+          "item": {
+            "id": 2,
+            "task_id": 2,
+            "title": "Pads",
+            "due_date": "2026-09-28",
+            "done": false,
+            "done_at": null
+          },
+          "task": {
+            "id": 2,
+            "title": "Fruit and yogurt",
+            "note": null,
+            "category": "shopping",
+            "due_date": "2026-09-23",
+            "due_time": null,
+            "remind": false,
+            "done": false,
+            "done_at": null,
+            "overdue": false,
+            "suggestion_key": null,
+            "list": {
+              "total": 2,
+              "open": 2
+            },
+            "created_at": "2026-09-23T10:00:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/todo/tasks/2/items/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "done": true
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "53"
+      },
+      "body": {
+        "success": true,
+        "message": "به‌روز شد",
+        "data": {
+          "item": {
+            "id": 1,
+            "task_id": 2,
+            "title": "Apples",
+            "due_date": null,
+            "done": true,
+            "done_at": "2026-09-23T10:00:00+03:30"
+          },
+          "task": {
+            "id": 2,
+            "title": "Fruit and yogurt",
+            "note": null,
+            "category": "shopping",
+            "due_date": "2026-09-23",
+            "due_time": null,
+            "remind": false,
+            "done": false,
+            "done_at": null,
+            "overdue": false,
+            "suggestion_key": null,
+            "list": {
+              "total": 2,
+              "open": 1
+            },
+            "created_at": "2026-09-23T10:00:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/todo/tasks/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "done": true
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "52"
+      },
+      "body": {
+        "success": true,
+        "message": "به‌روز شد",
+        "data": {
+          "task": {
+            "id": 1,
+            "title": "Design team meeting",
+            "note": null,
+            "category": "work",
+            "due_date": "2026-09-23",
+            "due_time": "10:00",
+            "remind": false,
+            "done": true,
+            "done_at": "2026-09-23T10:00:00+03:30",
+            "overdue": false,
+            "suggestion_key": null,
+            "list": null,
+            "created_at": "2026-09-23T10:00:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/todo",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-23",
+          "categories": [
+            "shopping",
+            "work",
+            "personal",
+            "health"
+          ],
+          "suggestion": null,
+          "groups": [
+            {
+              "key": "today",
+              "date": "2026-09-23",
+              "tasks": [
+                {
+                  "id": 2,
+                  "title": "Fruit and yogurt",
+                  "note": null,
+                  "category": "shopping",
+                  "due_date": "2026-09-23",
+                  "due_time": null,
+                  "remind": false,
+                  "done": false,
+                  "done_at": null,
+                  "overdue": false,
+                  "suggestion_key": null,
+                  "list": {
+                    "total": 2,
+                    "open": 1
+                  },
+                  "created_at": "2026-09-23T10:00:00+03:30"
+                },
+                {
+                  "id": 1,
+                  "title": "Design team meeting",
+                  "note": null,
+                  "category": "work",
+                  "due_date": "2026-09-23",
+                  "due_time": "10:00",
+                  "remind": false,
+                  "done": true,
+                  "done_at": "2026-09-23T10:00:00+03:30",
+                  "overdue": false,
+                  "suggestion_key": null,
+                  "list": null,
+                  "created_at": "2026-09-23T10:00:00+03:30"
+                }
+              ]
+            },
+            {
+              "key": "tomorrow",
+              "date": "2026-09-24",
+              "tasks": [
+                {
+                  "id": 3,
+                  "title": "Monthly report",
+                  "note": null,
+                  "category": "work",
+                  "due_date": "2026-09-24",
+                  "due_time": "14:00",
+                  "remind": true,
+                  "done": false,
+                  "done_at": null,
+                  "overdue": false,
+                  "suggestion_key": null,
+                  "list": null,
+                  "created_at": "2026-09-23T10:00:00+03:30"
+                }
+              ]
+            },
+            {
+              "key": "later",
+              "date": null,
+              "tasks": [
+                {
+                  "id": 4,
+                  "title": "Renew insurance",
+                  "note": null,
+                  "category": "personal",
+                  "due_date": null,
+                  "due_time": null,
+                  "remind": false,
+                  "done": false,
+                  "done_at": null,
+                  "overdue": false,
+                  "suggestion_key": null,
+                  "list": null,
+                  "created_at": "2026-09-23T10:00:00+03:30"
+                }
+              ]
+            }
+          ],
+          "done": [],
+          "notifications": {
+            "category": "appointments",
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/todo/tasks/2",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "task": {
+            "id": 2,
+            "title": "Fruit and yogurt",
+            "note": null,
+            "category": "shopping",
+            "due_date": "2026-09-23",
+            "due_time": null,
+            "remind": false,
+            "done": false,
+            "done_at": null,
+            "overdue": false,
+            "suggestion_key": null,
+            "list": {
+              "total": 2,
+              "open": 1
+            },
+            "created_at": "2026-09-23T10:00:00+03:30"
+          },
+          "items": [
+            {
+              "id": 1,
+              "task_id": 2,
+              "title": "Apples",
+              "due_date": null,
+              "done": true,
+              "done_at": "2026-09-23T10:00:00+03:30"
+            },
+            {
+              "id": 2,
+              "task_id": 2,
+              "title": "Pads",
+              "due_date": "2026-09-28",
+              "done": false,
+              "done_at": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/todo/tasks/2",
+        "persona": "no_profile",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این کار پیدا نشد",
+        "error_code": "todo_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/todo/tasks/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "title": "Design review",
+          "due_date": null,
+          "due_time": null,
+          "done": false
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "51"
+      },
+      "body": {
+        "success": true,
+        "message": "به‌روز شد",
+        "data": {
+          "task": {
+            "id": 1,
+            "title": "Design review",
+            "note": null,
+            "category": "work",
+            "due_date": null,
+            "due_time": null,
+            "remind": false,
+            "done": false,
+            "done_at": null,
+            "overdue": false,
+            "suggestion_key": null,
+            "list": null,
+            "created_at": "2026-09-23T10:00:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/todo/tasks/2/items/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "50"
+      },
+      "body": {
+        "success": true,
+        "message": "حذف شد",
+        "data": {
+          "task": {
+            "id": 2,
+            "title": "Fruit and yogurt",
+            "note": null,
+            "category": "shopping",
+            "due_date": "2026-09-23",
+            "due_time": null,
+            "remind": false,
+            "done": false,
+            "done_at": null,
+            "overdue": false,
+            "suggestion_key": null,
+            "list": {
+              "total": 1,
+              "open": 1
+            },
+            "created_at": "2026-09-23T10:00:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/todo/tasks/2",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "49"
+      },
+      "body": {
+        "success": true,
+        "message": "حذف شد",
+        "data": null
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/todo/tasks/2",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "48"
+      },
+      "body": {
+        "success": false,
+        "message": "این کار پیدا نشد",
+        "error_code": "todo_not_found"
+      }
+    }
+  ]
+}

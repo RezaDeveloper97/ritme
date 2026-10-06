@@ -1508,6 +1508,43 @@ type TeenProfile struct {
 	UpdatedAt  sql.NullTime
 }
 
+type TodoItem struct {
+	ID        uint64
+	TaskID    uint64
+	UserID    uint64
+	Title     string
+	DueDate   civildate.NullDate
+	DoneAt    sql.NullTime
+	SortOrder uint16
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type TodoSuggestionEvent struct {
+	ID            uint64
+	UserID        uint64
+	SuggestionKey string
+	RefDate       civildate.Date
+	Action        string
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
+type TodoTask struct {
+	ID            uint64
+	UserID        uint64
+	Title         string
+	Note          sql.NullString
+	Category      string
+	DueDate       civildate.NullDate
+	DueTime       sql.NullString
+	Remind        bool
+	DoneAt        sql.NullTime
+	SuggestionKey sql.NullString
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
 type TreatmentIntake struct {
 	ID              uint64
 	UserID          uint64
