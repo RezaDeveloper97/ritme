@@ -31,7 +31,17 @@ export interface ItemRow {
  */
 export type PresetRowSpec =
   | { kind: 'items'; code: string; icon: IconName; tone: Tone; rows: readonly ItemRow[]; section?: string }
-  | { kind: 'panel'; code: string; icon: IconName; tone: Tone; panel: 'bleeding' | 'pain' | 'measure'; category: string; params?: readonly string[] }
+  | {
+      kind: 'panel';
+      code: string;
+      icon: IconName;
+      tone: Tone;
+      panel: 'bleeding' | 'pain' | 'measure';
+      category: string;
+      params?: readonly string[];
+      /** B-N6-02: the row opens these screens instead of the panel (copy `rows.<code>.add.<key>`). */
+      links?: ReadonlyArray<{ key: string; href: string }>;
+    }
   | { kind: 'section'; code: string; icon: IconName; tone: Tone; category: string }
   | { kind: 'link'; code: string; icon: IconName; tone: Tone; category: string; param: string };
 
@@ -94,6 +104,11 @@ export const PREGNANCY_CARDS: readonly PresetCardSpec[] = [
         panel: 'measure',
         category: 'measurements',
         params: ['bp_systolic', 'bp_diastolic', 'blood_sugar'],
+        // B-N6-02: timed readings live in Vitals now; the day's log values still show here and in Vitals (read-only).
+        links: [
+          { key: 'bp', href: '/vitals/bp/new' },
+          { key: 'glucose', href: '/vitals/glucose/new' },
+        ],
       },
       { kind: 'section', code: 'meds', icon: 'tablet', tone: 'bloom', category: 'meds' },
     ],

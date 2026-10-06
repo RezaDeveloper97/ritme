@@ -1,0 +1,82 @@
+// Public API of the `vital` entity (B-N6-02 on the B-N6-01 API). Import only from here (CLAUDE.md §3.3).
+
+export {
+  ARMS,
+  DEFAULT_RANGE,
+  GLUCOSE_CONTEXTS,
+  GLUCOSE_METHODS,
+  GLUCOSE_UNITS,
+  HR_CONTEXTS,
+  LIMITS,
+  POSITIONS,
+  REPORT_RANGES,
+  VITAL_TYPES,
+  type Arm,
+  type BpAverage,
+  type BpReport,
+  type DistributionEntry,
+  type GlucoseAverage,
+  type GlucoseContext,
+  type GlucoseFilter,
+  type GlucoseMethod,
+  type GlucoseReport,
+  type GlucoseUnit,
+  type HrAverage,
+  type HrContext,
+  type HrReport,
+  type PlanDayState,
+  type PlanItem,
+  type PlanWeek,
+  type Position,
+  type ReadingInput,
+  type ReportRange,
+  type SavedReading,
+  type VitalAlert,
+  type VitalClass,
+  type VitalReading,
+  type VitalReport,
+  type VitalsHub,
+  type VitalsPlan,
+  type VitalThresholds,
+  type VitalTone,
+  type VitalType,
+} from './model/types';
+export {
+  BP_SCALE,
+  DEFAULT_THRESHOLDS,
+  bpScalePosition,
+  classifyBp,
+  classifyGlucose,
+  classifyHr,
+  isUrgentBp,
+  uiTone,
+} from './model/classify';
+export {
+  MMOL_FACTOR,
+  convertGlucose,
+  fromMgDl,
+  glucoseDecimals,
+  glucoseStep,
+  glucoseText,
+  stepGlucose,
+  toMgDl,
+  unitSymbol,
+} from './model/units';
+export { vitalAddPath, vitalReportPath, vitalSlug } from './model/paths';
+export { vitalsKeys } from './api/keys';
+export { alertSchema, hubSchema, parseReport, planSchema, readingsSchema, savedSchema, thresholdsSchema } from './api/schema';
+export {
+  fieldErrors,
+  toPlanBody,
+  toReadingBody,
+  useCreateReading,
+  useDeleteReading,
+  useSavePlan,
+  useVitalReadings,
+  useVitalReport,
+  useVitalsHub,
+  useVitalsPlan,
+  useVitalThresholds,
+} from './api/queries';
+export { ClassPill, ReadingRow, VITAL_LOOK, VitalIcon } from './ui/VitalBits';
+export { useVitalFormat, type VitalFormat } from './ui/useVitalFormat';

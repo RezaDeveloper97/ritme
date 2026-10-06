@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 
-import { useRouter, type Locale } from '@/shared/i18n';
+import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
 import {
@@ -32,6 +32,11 @@ const CARE_TILES: ReadonlyArray<{ key: TileKey; icon: IconName; tone: Tone }> = 
   { key: 'insurance', icon: 'shield', tone: 'data' },
 ];
 
+/** Tiles whose screens exist (the rest show «به‌زودی»). */
+const LIVE_TILES: Partial<Record<TileKey, string>> = {
+  vitals: '/vitals', // B-N6-02
+};
+
 /**
  * «خدمات» tab (B-N1-04). A placeholder hub so the new tab works now: the care
  * grid shows what is coming, the two services that already exist (checkups,
@@ -59,16 +64,27 @@ export function ServicesPage() {
         <section className="svc-sec" aria-labelledby="svc-care">
           <SectionTitle id="svc-care" title={t('careTitle')} />
           <ul className="svc-grid">
-            {CARE_TILES.map((tile) => (
-              <li key={tile.key} className="svc-tile">
-                <div className="svc-tile-top">
-                  <IconCircle icon={tile.icon} tone={tile.tone} size="sm" />
-                  <StatusPill tone="neutral">{t('soon')}</StatusPill>
-                </div>
-                <p className="svc-tile-title">{t(`tiles.${tile.key}.title`)}</p>
-                <p className="svc-tile-sub">{t(`tiles.${tile.key}.sub`)}</p>
-              </li>
-            ))}
+            {CARE_TILES.map((tile) => {
+              const href = LIVE_TILES[tile.key];
+              return (
+                <li key={tile.key} className={href ? 'svc-tile is-live' : 'svc-tile'}>
+                  <div className="svc-tile-top">
+                    <IconCircle icon={tile.icon} tone={tile.tone} size="sm" />
+                    {href ? null : <StatusPill tone="neutral">{t('soon')}</StatusPill>}
+                  </div>
+                  <p className="svc-tile-title">
+                    {href ? (
+                      <Link href={href} className="svc-tile-hit">
+                        {t(`tiles.${tile.key}.title`)}
+                      </Link>
+                    ) : (
+                      t(`tiles.${tile.key}.title`)
+                    )}
+                  </p>
+                  <p className="svc-tile-sub">{t(`tiles.${tile.key}.sub`)}</p>
+                </li>
+              );
+            })}
           </ul>
         </section>
 

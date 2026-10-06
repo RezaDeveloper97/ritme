@@ -1,0 +1,274 @@
+{
+  "common": {
+    "back": "Back",
+    "close": "Close",
+    "loading": "Loading",
+    "loadError": "Couldn't load. Check your connection and try again.",
+    "retry": "Try again",
+    "separator": " · ",
+    "listSeparator": ", ",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "at": "{day} {time}",
+    "fromLog": "From the daily log",
+    "pulseValue": "pulse {n}",
+    "deleteAria": "Delete reading {value}",
+    "deleteConfirm": "Delete this reading?",
+    "deleteError": "Couldn't delete. Try again."
+  },
+  "types": {
+    "bp": "Blood pressure",
+    "hr": "Heart rate",
+    "glucose": "Blood glucose"
+  },
+  "short": {
+    "bp": "BP",
+    "hr": "Pulse",
+    "glucose": "Glucose"
+  },
+  "units": {
+    "mmhg": "mmHg",
+    "bpm": "bpm",
+    "bpmLong": "beats per minute"
+  },
+  "classes": {
+    "bp": {
+      "normal": "Normal",
+      "elevated": "Elevated",
+      "stage1": "Stage 1",
+      "stage2": "Stage 2",
+      "crisis": "Crisis"
+    },
+    "glucose": {
+      "urgent_low": "Very low",
+      "low": "Below target",
+      "in_range": "In target",
+      "high": "Above target",
+      "very_high": "Very high"
+    },
+    "hr": {
+      "low": "Lower than usual",
+      "normal": "Normal",
+      "high": "Higher than usual"
+    }
+  },
+  "arms": {
+    "left": "Left arm",
+    "right": "Right arm"
+  },
+  "positions": {
+    "sitting": "Sitting",
+    "standing": "Standing",
+    "lying": "Lying down"
+  },
+  "glucoseContexts": {
+    "fasting": "Fasting",
+    "before_meal": "Before a meal",
+    "after_meal": "2 h after a meal",
+    "bedtime": "Bedtime",
+    "random": "Random"
+  },
+  "glucoseContextsShort": {
+    "fasting": "Fasting",
+    "before_meal": "Before meal",
+    "after_meal": "After meal",
+    "bedtime": "Bedtime",
+    "random": "Random"
+  },
+  "methods": {
+    "glucometer": "Glucometer",
+    "lab": "Lab",
+    "sensor": "Sensor"
+  },
+  "hrContexts": {
+    "resting": "Resting",
+    "after_exercise": "After exercise",
+    "after_waking": "After waking",
+    "stress": "Stressed"
+  },
+  "hrStates": {
+    "resting": "Resting",
+    "after_exercise": "After exercise",
+    "after_waking": "After waking",
+    "stress": "Stressed"
+  },
+  "slots": {
+    "morning": "Morning",
+    "evening": "Evening",
+    "fasting": "Fasting",
+    "before_meal": "Before meal",
+    "after_meal": "After meal",
+    "bedtime": "Bedtime"
+  },
+  "weekdays": {
+    "0": "Sa",
+    "1": "Su",
+    "2": "Mo",
+    "3": "Tu",
+    "4": "We",
+    "5": "Th",
+    "6": "Fr"
+  },
+  "hub": {
+    "title": "Vitals",
+    "record": "Health record",
+    "latestEmpty": "No readings yet",
+    "addFirst": "Add your first reading",
+    "openReport": "{type} report",
+    "planTitle": "This week's measuring plan",
+    "planCount": "{done} of {planned}",
+    "planEmpty": "Make a weekly plan so you remember when to measure.",
+    "planSetup": "Create a plan",
+    "planEdit": "Edit plan",
+    "planRow": "{type} · {slot}",
+    "dayDone": "{day}: done",
+    "dayMissed": "{day}: missed",
+    "dayDue": "{day}: to do",
+    "recentTitle": "Recent readings",
+    "all": "All",
+    "recentEmpty": "Your readings show up here. Add blood pressure, pulse or glucose with the buttons below.",
+    "addLabel": "Add {type}",
+    "addGroup": "Add a reading"
+  },
+  "plan": {
+    "title": "Measuring plan",
+    "intro": "Each row is one measurement on the days you pick. Up to 8 rows.",
+    "add": "Add a row",
+    "type": "What",
+    "slot": "When",
+    "days": "Days",
+    "remindAt": "Reminder time",
+    "remindOff": "No reminder",
+    "remove": "Remove row {row}",
+    "empty": "No rows yet.",
+    "save": "Save plan",
+    "error": "Couldn't save. Try again.",
+    "full": "Every possible row is already added.",
+    "needDay": "Pick at least one day.",
+    "duplicate": "This row is a duplicate.",
+    "remindersOff": "Vitals reminders are off in notification settings; the plan works without reminders.",
+    "openSettings": "Notification settings"
+  },
+  "add": {
+    "titles": {
+      "bp": "Add blood pressure",
+      "glucose": "Add blood glucose",
+      "hr": "Add heart rate"
+    },
+    "systolic": "Systolic",
+    "diastolic": "Diastolic",
+    "pulse": "Pulse",
+    "increase": "Increase {label}",
+    "decrease": "Decrease {label}",
+    "meaning": "What this number means",
+    "scaleLabel": "Blood pressure category: {class}",
+    "disclaimer": "Based on the common adult blood pressure categories; not a medical diagnosis.",
+    "conditions": "Measuring conditions",
+    "arm": "Arm",
+    "position": "Position",
+    "time": "Time",
+    "changeTime": "Change measuring time",
+    "note": "Note",
+    "notePlaceholder": {
+      "bp": "e.g. after coffee",
+      "glucose": "e.g. heavy dinner last night",
+      "hr": "e.g. after a walk"
+    },
+    "unit": "Unit",
+    "when": "When did you measure?",
+    "method": "Method",
+    "hrState": "How were you?",
+    "hrTip": "For a resting pulse, sit quietly for 5 minutes, count your wrist pulse for 30 seconds and double it.",
+    "glucoseVerdict": {
+      "in_range": "In the {context} target range ({min}–{max})",
+      "low": "Below the target range ({min}–{max})",
+      "urgent_low": "Very low; below {value}",
+      "high": "Above the {context} target range ({min}–{max})",
+      "very_high": "Well above the {context} target range"
+    },
+    "hrVerdict": "{state} · {class} ({min}–{max})",
+    "hrUnclassified": "{state} · not compared with the resting range",
+    "save": "Save",
+    "saveError": "Couldn't save. Try again.",
+    "errors": {
+      "range": "Enter a number between {min} and {max}.",
+      "systolicGtDiastolic": "Systolic must be higher than diastolic.",
+      "future": "The measuring time can't be in the future.",
+      "tooOld": "The measuring time is more than two years ago.",
+      "noteTooLong": "The note can be at most {max} characters."
+    },
+    "timeSheet": {
+      "title": "Measuring time",
+      "date": "Date",
+      "clock": "Time",
+      "now": "Right now",
+      "done": "Done"
+    }
+  },
+  "alert": {
+    "title": "This number is in the emergency range",
+    "body": "Saved. Ritme doesn't diagnose; if you have symptoms or see this number again, call 115 now.",
+    "call": "Call {number}",
+    "ack": "Got it"
+  },
+  "report": {
+    "titles": {
+      "bp": "Blood pressure report",
+      "glucose": "Blood glucose report",
+      "hr": "Heart rate report"
+    },
+    "subtitle": "Last {range} · {n} readings",
+    "rangeTabs": "Report range",
+    "filterTabs": "Measurement type",
+    "ranges": {
+      "7d": "7 days",
+      "14d": "14 days",
+      "30d": "30 days",
+      "90d": "3 months"
+    },
+    "all": "All",
+    "average": "Average",
+    "averageOf": "{context} average",
+    "restingAverage": "Resting average",
+    "legend": {
+      "systolic": "Systolic",
+      "diastolic": "Diastolic",
+      "normal": "Normal range",
+      "target": "Target range",
+      "bpm": "Pulse"
+    },
+    "min": "Lowest",
+    "max": "Highest",
+    "pulse": "Pulse",
+    "pulseAvg": "average bpm",
+    "distribution": "Readings by category",
+    "distributionItem": "{class} {pct}%",
+    "morningVsNight": "Morning vs night",
+    "morning": "Morning",
+    "night": "Night",
+    "noReadings": "No readings",
+    "nightNote": {
+      "bp": "{n} night readings were above normal. If it keeps happening or you have headaches or dizziness, talk to a doctor. Above 180/120 is an emergency.",
+      "glucose": "{n} night readings were outside the target range. If it keeps happening, talk to a doctor.",
+      "hr": "{n} night readings were outside the resting range."
+    },
+    "tir": "Time in target range",
+    "tirText": "{in} of {n} readings were in the target range.",
+    "tirAbove": "{n} above target.",
+    "tirBelow": "{n} below target.",
+    "tirPct": "{pct}%",
+    "allReadings": "All readings",
+    "moreReadings": "More readings in range",
+    "empty": {
+      "title": "No readings in this range",
+      "body": "Add a reading and its report builds up here."
+    },
+    "addCta": "Add {type}",
+    "chartBp": "Daily blood pressure over {n} days: {list}",
+    "chartGlucose": "Daily glucose over {n} days: {list}",
+    "chartHr": "Daily heart rate over {n} days: {list}",
+    "colDate": "Day",
+    "colValue": "Value",
+    "generalNote": "These ranges are general; if your doctor set a different target, follow their advice."
+  }
+}

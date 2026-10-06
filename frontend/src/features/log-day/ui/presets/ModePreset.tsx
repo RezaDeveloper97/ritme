@@ -163,6 +163,27 @@ function ActionRow({ kind, spec, categories, values, labels, onPanel, onSection 
   const params = spec.kind === 'panel' && spec.params ? category.params.filter((p) => spec.params!.includes(p.code)) : category.params;
   const entries = params.flatMap((p) => paramEntries(category.code, p, values[category.code]?.[p.code], labels));
   const desc = entries.length ? entries.map((e) => e.summary).join(tSheet('separator')) : (rowDesc(t, kind, spec.code) ?? tSheet('notLogged'));
+  if (spec.kind === 'panel' && spec.links?.length) {
+    // B-N6-02: «فشار خون و قند» opens the Vitals add screens (timed readings with classes and the urgent check).
+    return (
+      <div className={clsx('mpre-row', 'has-links', entries.length > 0 && 'is-active')}>
+        <RowHead icon={spec.icon} tone={spec.tone} title={rowTitle(t, kind, spec.code)} desc={desc} active={entries.length > 0} />
+        <span className="mpre-links">
+          {spec.links.map((l) => (
+            <Link
+              key={l.key}
+              href={l.href}
+              className="mpre-link"
+              aria-label={t(`${kind}.rows.${spec.code}.addAria.${l.key}` as 'pregnancy.rows.vitals.addAria.bp')}
+            >
+              <Icon name="plus" size={14} strokeWidth={2.4} />
+              {t(`${kind}.rows.${spec.code}.add.${l.key}` as 'pregnancy.rows.vitals.add.bp')}
+            </Link>
+          ))}
+        </span>
+      </div>
+    );
+  }
   return (
     <button
       type="button"

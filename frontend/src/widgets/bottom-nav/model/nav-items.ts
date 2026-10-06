@@ -117,7 +117,8 @@ export const NAV_READY: NavReady = { postpartum: true, children: true, analysis:
 /** «درمان» before CB-IVF-03: the IVF home's today-injections section (`id="ivf-doses"`), never a 404. */
 export const IVF_TREATMENT_FALLBACK = '/ivf#ivf-doses';
 
-const SERVICES: NavTab = { key: 'services', href: '/services', icon: 'services' };
+// B-N6-02: the vitals hub is a services hub (nbl_Vitals_Hub marks «خدمات» active).
+const SERVICES: NavTab = { key: 'services', href: '/services', icon: 'services', alsoActive: ['/vitals'] };
 const ME: NavTab = { key: 'me', href: '/profile', icon: 'me' };
 
 /** The second tab, whose label and target follow the mode. */

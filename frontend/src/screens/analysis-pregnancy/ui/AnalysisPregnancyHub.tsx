@@ -83,12 +83,13 @@ function WeightCard({ s, t, week }: { s: PregnancySections['weightGain']; t: T; 
   );
 }
 
+/** «فشار خون» (weekly pregnancy BP); opens the Vitals BP report (B-N6-02). */
 function BloodPressureCard({ s, t }: { s: PregnancySections['bloodPressure']; t: T }) {
   const { loc, num } = useFmt();
   const b = s.data;
   if (!s.ready || !b) {
     return (
-      <PregCard title={t('bp.title')}>
+      <PregCard title={t('bp.title')} href="/vitals/bp">
         <p className="an-card-note">{t('bp.empty')}</p>
       </PregCard>
     );
@@ -102,7 +103,7 @@ function BloodPressureCard({ s, t }: { s: PregnancySections['bloodPressure']; t:
         ? t('bp.high', { n: num(b.highCount), sys: num(th.systolic), dia: num(th.diastolic) })
         : t('bp.below', { sys: num(th.systolic), dia: num(th.diastolic) });
   return (
-    <PregCard title={t('bp.title')}>
+    <PregCard title={t('bp.title')} href="/vitals/bp">
       {b.readings.length > 1 ? (
         <BpChartView
           label={t('bp.chart', {

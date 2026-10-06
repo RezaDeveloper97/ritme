@@ -206,7 +206,9 @@
         },
         "vitals": {
           "title": "Blood pressure & sugar",
-          "desc": "Today's pressure and sugar"
+          "desc": "Today's pressure and sugar",
+          "add": { "bp": "BP", "glucose": "Glucose" },
+          "addAria": { "bp": "Add blood pressure in Vitals", "glucose": "Add blood glucose in Vitals" }
         },
         "meds": {
           "title": "Medicines & supplements",

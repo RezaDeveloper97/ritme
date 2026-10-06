@@ -317,12 +317,12 @@ export function WeightCard({ section }: { section: AnalysisSection<HubWeight> })
   );
 }
 
-/** «فشار خون و قند»: range averages. No detail screen until the vitals reports (B-N6). */
+/** «فشار خون و قند»: range averages; opens the vitals hub (B-N6-02). */
 export function VitalsCard({ section }: { section: AnalysisSection<HubVitals> }) {
   const { t, num } = useHub();
   const v = section.data;
   return (
-    <HubCard title={t('vitals.title')}>
+    <HubCard title={t('vitals.title')} href="/vitals">
       {section.ready && v ? (
         <dl className="an-vitals">
           <div>

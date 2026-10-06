@@ -3,7 +3,7 @@ id: B-N6-02
 title: Vitals screens — hub, add BP/glucose/HR, reports
 milestone: N6
 type: frontend
-status: todo
+status: done
 depends_on: [B-N6-01]
 parallel_group: N6-B
 touches: [frontend/src/screens/vitals*,frontend/src/entities/vitals,frontend/src/features/add-vital]
