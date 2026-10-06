@@ -1,0 +1,16 @@
+{
+  "title": "Before you start",
+  "loading": "Loading the consent text",
+  "loadError": "Couldn't load the consent text.",
+  "retry": "Try again",
+  "lead": "For the analysis, the lab image and part of your health record are sent to an AI service.",
+  "version": "Version {v}",
+  "agree": "I accept that using this feature means I agree to my medical information being processed by AI.",
+  "accept": "I agree, continue",
+  "cancel": "Cancel",
+  "granted": "Your consent is recorded. You can withdraw it at any time.",
+  "continue": "Continue",
+  "withdraw": "Withdraw consent",
+  "stale": "The consent text was updated; read the new version and accept again.",
+  "saveError": "Not saved. Try again."
+}

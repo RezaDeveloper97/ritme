@@ -25,6 +25,12 @@ export interface RequestConfig {
   params?: Record<string, ParamValue>;
   /** Overrides {@link REQUEST_TIMEOUT_MS} (e.g. an upload that waits for speech-to-text). */
   timeoutMs?: number;
+  /**
+   * Upload progress (0–1) of a `FormData` body. When set, the request goes over
+   * `XMLHttpRequest` (fetch has no upload progress); everything else — headers,
+   * timeout, the error shape, the session rules — is the same.
+   */
+  onUploadProgress?: (fraction: number) => void;
 }
 
 export interface ApiResponse<T> {
@@ -96,6 +102,46 @@ async function readBody(response: Response): Promise<unknown> {
   }
 }
 
+/** A `FormData` request over XHR for its upload progress; rejects (no response) on a network error or abort. */
+function sendWithProgress(
+  method: string,
+  url: string,
+  headers: Record<string, string>,
+  body: FormData,
+  signal: AbortSignal,
+  onProgress: (fraction: number) => void,
+): Promise<ApiResponse<unknown>> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url);
+    for (const [key, value] of Object.entries(headers)) xhr.setRequestHeader(key, value);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && e.total > 0) onProgress(Math.min(1, e.loaded / e.total));
+    };
+    xhr.onload = () => {
+      const out: Record<string, string> = {};
+      for (const line of xhr.getAllResponseHeaders().trim().split(/[\r\n]+/)) {
+        const i = line.indexOf(':');
+        if (i > 0) out[line.slice(0, i).trim().toLowerCase()] = line.slice(i + 1).trim();
+      }
+      let data: unknown = xhr.responseText;
+      if (!xhr.responseText) data = '';
+      else {
+        try {
+          data = JSON.parse(xhr.responseText) as unknown;
+        } catch {
+          // a proxy's HTML page stays text, as readBody() does
+        }
+      }
+      resolve({ data, status: xhr.status, headers: out });
+    };
+    xhr.onerror = () => reject(new Error('network'));
+    xhr.onabort = () => reject(new Error('abort'));
+    signal.addEventListener('abort', () => xhr.abort(), { once: true });
+    xhr.send(body);
+  });
+}
+
 async function request<T>(
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   path: string,
@@ -141,18 +187,22 @@ async function request<T>(
 
   let result: ApiResponse<unknown>;
   try {
-    const response = await fetch(buildUrl(path, config?.params), {
-      method,
-      headers,
-      body: isForm ? (body as FormData) : hasBody ? JSON.stringify(body) : undefined,
-      signal: controller.signal,
-    });
-    // The budget covers the body too, as axios' did.
-    result = {
-      data: await readBody(response),
-      status: response.status,
-      headers: headersOf(response),
-    };
+    if (isForm && config?.onUploadProgress && typeof XMLHttpRequest !== 'undefined') {
+      result = await sendWithProgress(method, buildUrl(path, config.params), headers, body as FormData, controller.signal, config.onUploadProgress);
+    } else {
+      const response = await fetch(buildUrl(path, config?.params), {
+        method,
+        headers,
+        body: isForm ? (body as FormData) : hasBody ? JSON.stringify(body) : undefined,
+        signal: controller.signal,
+      });
+      // The budget covers the body too, as axios' did.
+      result = {
+        data: await readBody(response),
+        status: response.status,
+        headers: headersOf(response),
+      };
+    }
   } catch {
     // No response at all: never a reason to touch the session.
     throw new ApiError(timedOut ? 'Request timed out' : 'Network error', {

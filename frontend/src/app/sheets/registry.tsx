@@ -204,6 +204,16 @@ export const SHEET_REGISTRY: Record<string, SheetDefinition> = {
       { ssr: false },
     ),
   },
+
+  /**
+   * AI lab analysis consent (B-N6-07, nbl_Lab_Consent): the versioned text from
+   * `GET /consents/ai_lab_analysis`. `arg=upload` continues to `/labs/new`.
+   */
+  'lab-consent': {
+    size: 'full',
+    Title: dynamic(() => import('@/screens/lab-consent').then((m) => m.LabConsentTitle), { ssr: false }),
+    Component: dynamic(() => import('@/screens/lab-consent').then((m) => m.LabConsentSheet), { ssr: false }),
+  },
 };
 
 export function sheetDefinition(id: string): SheetDefinition | null {
