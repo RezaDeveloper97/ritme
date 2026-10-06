@@ -6660,6 +6660,238 @@ paths:
                   success: {type: boolean}
                   data: {$ref: "#/components/schemas/MenopausePatterns"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/menopause/treatment:
+    get:
+      tags: [Menopause]
+      summary: Treatment & care screen (Meno_Treatment)
+      description: |
+        CB-MENO-03. Her HRT, supplements and lifestyle goals for the Saturday-start week of `date` (default today):
+        `items` grouped by kind (active and not-yet-started items), `stopped` the items stopped on or before `date`;
+        each with the week's dots (`taken` / lifestyle `amount`), `days_taken` of `days` (scheduled active days up to
+        `date`), `adherence_pct` (hrt / supplement), the lifestyle `goal` progress and its care `reminder` (HRT and
+        supplements ARE care medication reminders — a tick in /care counts here too). `review` = the earliest
+        review_on of an active HRT item, else a suggestion (`suggested: true`) of the earliest HRT start + the
+        catalog `meno_tips` hrt_review `review_after_months` (default 3) [needs clinical review]. `side_effects` =
+        the codes, the day's and the week's logged ones. `tips` = active `meno_tips` placed `treatment` /
+        `treatment_lifestyle`. Names and doses are what she typed; the app never prescribes.
+      operationId: getMenopauseTreatment
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: query, required: false, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The screen
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/MenopauseTreatmentScreen"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/MenopauseValidationFailed"}
+  /api/v1/menopause/treatment/items:
+    post:
+      tags: [Menopause]
+      summary: Add an HRT, supplement or lifestyle item
+      description: |
+        `kind` hrt | supplement | lifestyle. hrt / supplement need a `schedule` (morning 08:00, noon 13:00, evening
+        18:00, night 22:00, weekly 09:00 on the start weekday) and become a care medication reminder (form default
+        tablet; `remind` = its notify switch, default true; counted against care's 100-medication cap → 422
+        `limit_reached`). lifestyle needs `weekly_goal` + `goal_unit` (sessions ≤ 21 | minutes ≤ 3000) and has no
+        reminder. `stopped_on` ≤ today stops the item (its reminder is switched off). At most 30 items → 422
+        `limit_reached`. 201 with the treatment screen of this week.
+      operationId: createMenopauseTreatmentItem
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/MenopauseTreatmentItemInput"}
+            example: {kind: hrt, name: استروژن (ژل پوستی), dose: ۱ پمپ, schedule: morning, started_on: "2026-08-01"}
+      responses:
+        '201':
+          description: Saved; the treatment screen
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/MenopauseTreatmentEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/MenopauseValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/menopause/treatment/items/{id}:
+    put:
+      tags: [Menopause]
+      summary: Replace an item (edit, review date, stop)
+      description: "A full replace of the editable fields (`kind` stays; same rules as create). The care reminder is updated in place (her care switch stays unless the item is stopped; a restarted item switches it back on), or created again when she deleted it in /care. Another user's or a missing id → 404."
+      operationId: updateMenopauseTreatmentItem
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/MenopauseTreatmentItemInput"}
+            example: {name: Estrogen gel, schedule: morning, started_on: "2026-08-01", review_on: "2026-11-20"}
+      responses:
+        '200':
+          description: Saved; the treatment screen
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/MenopauseTreatmentEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/MenopauseNotFound"}
+        '422': {$ref: "#/components/responses/MenopauseValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Menopause]
+      summary: Delete an item
+      description: "Deletes the item, its intakes and its care medication reminder (side effects keep the day, unlinked). Another user's or a missing id → 404."
+      operationId: deleteMenopauseTreatmentItem
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Deleted; the treatment screen
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/MenopauseTreatmentEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/MenopauseNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/menopause/treatment/items/{id}/intakes/{date}:
+    put:
+      tags: [Menopause]
+      summary: Log the item taken on a day («ثبت»)
+      description: |
+        Idempotent; logging the day again replaces the amount. `date` Y-m-d, not in the future, at most 30 days back,
+        a day the item was active (else 422 `date`). Lifestyle minutes goals need `amount` (1–600 minutes); sessions
+        may send a count (1–10, default one session); other kinds ignore it. An HRT / supplement intake also ticks its
+        care dose of that day. 200 with the treatment screen of that day's week.
+      operationId: logMenopauseTreatmentIntake
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount: {type: [integer, "null"], minimum: 1}
+            example: {amount: 30}
+      responses:
+        '200':
+          description: Logged; the treatment screen
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/MenopauseTreatmentEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/MenopauseNotFound"}
+        '422': {$ref: "#/components/responses/MenopauseValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Menopause]
+      summary: Remove a day's intake
+      description: "Idempotent; also unticks the care dose of that day. Same `date` rules as logging."
+      operationId: unlogMenopauseTreatmentIntake
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Removed; the treatment screen
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/MenopauseTreatmentEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/MenopauseNotFound"}
+        '422': {$ref: "#/components/responses/MenopauseValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/menopause/treatment/side-effects/{date}:
+    put:
+      tags: [Menopause]
+      summary: The day's side effects («عوارض احتمالی را ثبت کن»)
+      description: "Replaces the day's side effects as a set (`codes: []` clears). Codes breast_tenderness | spotting | headache | bloating | mood_change (labels are UI strings). `treatment_item_id` (optional) must be one of her items (else 422). `date` as for intakes."
+      operationId: saveMenopauseSideEffects
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [codes]
+              properties:
+                codes: {type: array, items: {type: string, enum: [breast_tenderness, spotting, headache, bloating, mood_change]}}
+                treatment_item_id: {type: [integer, "null"], minimum: 1}
+            example: {codes: [breast_tenderness]}
+      responses:
+        '200':
+          description: Saved; the treatment screen
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/MenopauseTreatmentEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/MenopauseValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/menopause/report:
+    get:
+      tags: [Menopause]
+      summary: Doctor report preview (Meno_Report)
+      description: |
+        CB-MENO-03. The menopause report over the last `months` months (1 | 3 | 6, default 3): window [today −
+        months, today]. The same data is the `menopause` section of `GET /health-record/report` and of share links
+        (bloom's builder, owner and share audiences alike — no ids, no notes, no loss data). The patient's questions
+        are the builder's `question`. Not a diagnosis; summaries of her own records.
+      operationId: getMenopauseReport
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: months, in: query, required: false, schema: {type: integer, enum: [1, 3, 6]}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The report
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [months, months_options, empty, report]
+                    properties:
+                      months: {type: integer}
+                      months_options: {type: array, items: {type: integer}}
+                      empty: {type: boolean}
+                      report: {$ref: "#/components/schemas/MenopauseReport"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/MenopauseValidationFailed"}
   /api/v1/checkups:
     get:
       tags: [Checkups]
@@ -16658,7 +16890,7 @@ paths:
         - {$ref: "#/components/parameters/AcceptLanguage"}
         - {name: range, in: query, required: true, schema: {type: string, enum: [3m, 6m, 1y, custom]}}
         - {name: from, in: query, required: false, description: "Required for range=custom; at most 3 years back, before today.", schema: {$ref: "#/components/schemas/Date"}}
-        - {name: sections, in: query, required: true, description: "Comma-separated section keys (basics, conditions, medications, allergies, cycle, vitals, pregnancies, checkups, labs).", schema: {type: string}}
+        - {name: sections, in: query, required: true, description: "Comma-separated section keys (basics, conditions, medications, allergies, cycle, vitals, pregnancies, checkups, labs, menopause). `menopause` (CB-MENO-03) is built for a user in menopause mode only (else absent): MenopauseReport over the report window.", schema: {type: string}}
       responses:
         '200':
           description: OK
@@ -16723,7 +16955,7 @@ paths:
               properties:
                 range: {type: string, enum: [3m, 6m, 1y, custom]}
                 from: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
-                sections: {type: array, minItems: 1, maxItems: 9, items: {type: string, enum: [basics, conditions, medications, allergies, cycle, vitals, pregnancies, checkups, labs]}}
+                sections: {type: array, minItems: 1, maxItems: 10, items: {type: string, enum: [basics, conditions, medications, allergies, cycle, vitals, pregnancies, checkups, labs, menopause]}}
                 question: {type: [string, "null"], maxLength: 300}
       responses:
         '201':
@@ -18410,7 +18642,7 @@ components:
               message: {type: string}
           example: {success: false, message: این مورد کیف پیدا نشد}
     MenopauseNotFound:
-      description: "No hot flash with that id for the caller (`{success: false, message}` in the request language)."
+      description: "No hot flash / treatment item with that id for the caller (`{success: false, message}` in the request language)."
       content:
         application/json:
           schema:
@@ -18713,7 +18945,8 @@ components:
             heart_rate / glucose_fasting / glucose_after_meal / glucose_other {avg, min, max, readings[, in_target, in_target_percent], unit}|null};
             pregnancies {pregnancies_count, births_count, items [HealthRecordPregnancy]};
             checkups {items [{id, title, key, icon, done_on, result}]};
-            labs {items [{id, category, title, date, marker_count, attention_count, all_normal, attention [{name, state, state_label}]}]}.
+            labs {items [{id, category, title, date, marker_count, attention_count, all_normal, attention [{name, state, state_label}]}]};
+            menopause (report only, menopause mode, CB-MENO-03) = MenopauseReport.
           additionalProperties: true
     HealthRecordPregnancy:
       type: object
@@ -21838,6 +22071,245 @@ components:
         goal_unit: {type: [string, "null"]}
         amount: {type: integer, description: "Minutes (goal_unit minutes) or sessions in the window"}
         review_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+    MenopauseTreatmentItemInput:
+      type: object
+      required: [name]
+      properties:
+        kind: {type: string, enum: [hrt, supplement, lifestyle], description: "Create only (required); ignored on replace."}
+        name: {type: string, maxLength: 120}
+        dose: {type: [string, "null"], maxLength: 120}
+        schedule: {type: [string, "null"], enum: [morning, noon, evening, night, weekly, null], description: "Required for hrt / supplement."}
+        form: {type: [string, "null"], enum: [tablet, capsule, syrup, injection, drops, null]}
+        started_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        review_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        stopped_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        weekly_goal: {type: [integer, "null"], minimum: 1, description: "Required for lifestyle."}
+        goal_unit: {type: [string, "null"], enum: [sessions, minutes, null], description: "Required for lifestyle."}
+        remind: {type: [boolean, "null"]}
+    MenopauseTreatmentItem:
+      type: object
+      required: [id, kind, name, dose, schedule, form, started_on, review_on, stopped_on, active, taken_today, week, days_taken, days, adherence_pct, goal, reminder]
+      properties:
+        id: {type: integer}
+        kind: {type: string, enum: [hrt, supplement, lifestyle]}
+        name: {type: string}
+        dose: {type: [string, "null"]}
+        schedule: {type: [string, "null"]}
+        form: {type: [string, "null"]}
+        started_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        review_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        stopped_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        active: {type: boolean, description: "Active on the screen's date"}
+        taken_today: {type: boolean, description: "Taken on the screen's date"}
+        week:
+          type: array
+          items:
+            type: object
+            required: [date, taken, amount]
+            properties:
+              date: {$ref: "#/components/schemas/Date"}
+              taken: {type: boolean}
+              amount: {type: [integer, "null"]}
+        days_taken: {type: integer}
+        days: {type: integer, description: "Scheduled active days of the week up to the screen's date"}
+        adherence_pct: {type: [integer, "null"], description: "hrt / supplement only"}
+        goal:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [target, unit, amount, done]
+              properties:
+                target: {type: integer}
+                unit: {type: string, enum: [sessions, minutes]}
+                amount: {type: integer}
+                done: {type: boolean}
+        reminder:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [id, time, notify, active]
+              properties:
+                id: {type: integer, description: "The care medication reminder (/care)"}
+                time: {type: [string, "null"]}
+                notify: {type: boolean}
+                active: {type: boolean}
+    MenopauseTreatmentScreen:
+      type: object
+      required: [date, week, items, stopped, review, side_effects, tips]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        week:
+          type: object
+          required: [from, to]
+          properties:
+            from: {$ref: "#/components/schemas/Date"}
+            to: {$ref: "#/components/schemas/Date"}
+        items:
+          type: object
+          required: [hrt, supplement, lifestyle]
+          properties:
+            hrt: {type: array, items: {$ref: "#/components/schemas/MenopauseTreatmentItem"}}
+            supplement: {type: array, items: {$ref: "#/components/schemas/MenopauseTreatmentItem"}}
+            lifestyle: {type: array, items: {$ref: "#/components/schemas/MenopauseTreatmentItem"}}
+        stopped: {type: array, items: {$ref: "#/components/schemas/MenopauseTreatmentItem"}}
+        review:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [on, item_id, suggested]
+              properties:
+                on: {$ref: "#/components/schemas/Date"}
+                item_id: {type: [integer, "null"]}
+                suggested: {type: boolean}
+        side_effects:
+          type: object
+          required: [codes, today, week]
+          properties:
+            codes: {type: array, items: {type: string}}
+            today: {type: array, items: {type: string}}
+            week:
+              type: array
+              items:
+                type: object
+                required: [date, codes]
+                properties:
+                  date: {$ref: "#/components/schemas/Date"}
+                  codes: {type: array, items: {type: string}}
+        tips: {type: array, items: {$ref: "#/components/schemas/MenopauseCatalogItem"}}
+    MenopauseTreatmentEnvelope:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: {type: boolean}
+        message: {type: string}
+        data: {$ref: "#/components/schemas/MenopauseTreatmentScreen"}
+    MenopauseReport:
+      type: object
+      description: "The menopause report data (also the `data` of the health record's `menopause` section). Averages are rounded to 1 decimal; `per_day` / `per_week` are over `tracked_days` (days with a hot flash or a log entry); top symptoms are % of tracked days."
+      required: [window, stage, score, hot_flashes, night_sweats, sleep, bleeding, blood_pressure, symptoms, treatment, side_effects, supplements]
+      properties:
+        window:
+          type: object
+          required: [from, to, days]
+          properties:
+            from: {$ref: "#/components/schemas/Date"}
+            to: {$ref: "#/components/schemas/Date"}
+            days: {type: integer}
+        stage:
+          type: object
+          required: [code, months_without_period, surgical, hrt]
+          properties:
+            code: {type: [string, "null"], enum: [peri, meno, post, null]}
+            months_without_period: {type: [integer, "null"]}
+            surgical: {type: [boolean, "null"]}
+            hrt: {type: [boolean, "null"]}
+        score:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [first, last, max, change]
+              properties:
+                first: {$ref: "#/components/schemas/MenopauseReportScorePoint"}
+                last: {$ref: "#/components/schemas/MenopauseReportScorePoint"}
+                max: {type: integer}
+                change: {type: integer}
+        hot_flashes:
+          type: object
+          required: [total, per_day, tracked_days]
+          properties:
+            total: {type: integer}
+            per_day: {type: [number, "null"]}
+            tracked_days: {type: integer}
+        night_sweats:
+          type: object
+          required: [nights, per_week]
+          properties:
+            nights: {type: integer}
+            per_week: {type: [number, "null"]}
+        sleep:
+          type: object
+          required: [avg_hours, nights]
+          properties:
+            avg_hours: {type: [number, "null"]}
+            nights: {type: integer}
+        bleeding:
+          type: object
+          required: [events, days, dates]
+          properties:
+            events: {type: integer, description: "Runs of consecutive bleeding / spotting days"}
+            days: {type: integer}
+            dates: {type: array, items: {$ref: "#/components/schemas/Date"}, description: "Each event's first day"}
+        blood_pressure:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [systolic, diastolic, readings, unit]
+              properties:
+                systolic: {type: integer}
+                diastolic: {type: integer}
+                readings: {type: integer}
+                unit: {type: string, const: mmhg}
+        symptoms:
+          type: object
+          required: [tracked_days, top]
+          properties:
+            tracked_days: {type: integer}
+            top:
+              type: array
+              items:
+                type: object
+                required: [key, label, days, percent]
+                properties:
+                  key: {type: string}
+                  label: {type: string}
+                  days: {type: integer}
+                  percent: {type: integer}
+        treatment:
+          type: object
+          required: [hrt_adherence_pct, items, lifestyle]
+          properties:
+            hrt_adherence_pct: {type: [integer, "null"]}
+            items:
+              type: array
+              items:
+                type: object
+                required: [kind, name, dose, started_on, stopped_on, days_taken, days, adherence_pct]
+                properties:
+                  kind: {type: string, enum: [hrt, supplement]}
+                  name: {type: string}
+                  dose: {type: [string, "null"]}
+                  started_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                  stopped_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                  days_taken: {type: integer}
+                  days: {type: integer}
+                  adherence_pct: {type: [integer, "null"]}
+            lifestyle:
+              type: array
+              items:
+                type: object
+                required: [name, weekly_goal, goal_unit, per_week]
+                properties:
+                  name: {type: string}
+                  weekly_goal: {type: [integer, "null"]}
+                  goal_unit: {type: [string, "null"]}
+                  per_week: {type: [number, "null"]}
+        side_effects:
+          type: array
+          items:
+            type: object
+            required: [code, days, first_on, last_on]
+            properties:
+              code: {type: string}
+              days: {type: integer}
+              first_on: {$ref: "#/components/schemas/Date"}
+              last_on: {$ref: "#/components/schemas/Date"}
+        supplements: {type: array, items: {type: string}}
+    MenopauseReportScorePoint:
+      type: object
+      required: [month, total]
+      properties:
+        month: {$ref: "#/components/schemas/Date"}
+        total: {type: integer}
     MenopauseToday:
       type: object
       required: [date, profile, hot_flashes, night_sweats, sleep, score, checkups, treatment, bleeding]

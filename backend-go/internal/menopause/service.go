@@ -26,6 +26,7 @@ import (
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/menopause/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/vitals"
 )
 
 // Catalog groups the package reads (CB-MENO-01 seeds, audience menopause).
@@ -60,11 +61,16 @@ type Service struct {
 	q       *store.Queries
 	logs    *healthlog.Service
 	catalog CatalogSource
+	vitals  *vitals.Service // the report's blood pressure (bloom B-N6-01 merged readings); nil on a transaction
 }
 
 // NewService returns a Service on db.
 func NewService(db DB, cat CatalogSource) *Service {
-	return &Service{db: db, q: store.New(db), logs: healthlog.NewService(db), catalog: cat}
+	s := &Service{db: db, q: store.New(db), logs: healthlog.NewService(db), catalog: cat}
+	if conn, ok := db.(*sql.DB); ok {
+		s.vitals = vitals.NewService(conn)
+	}
+	return s
 }
 
 func tehranNow(now time.Time) sql.NullTime {

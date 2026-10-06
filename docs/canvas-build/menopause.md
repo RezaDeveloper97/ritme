@@ -108,3 +108,13 @@ Go-only, `/api/v1/menopause/*` (deviation D-42, OpenAPI tag `Menopause`, contrac
 | `GET /menopause/hot-flashes?date=` · `POST /menopause/hot-flashes` · `POST /menopause/hot-flashes/{id}/stop` | timer: start (running one returned, forgotten ≥ 1 h closed at 3600 s), log a finished flash (`duration_s`, ≤ 7 days back), stop/edit; night by default 22:00–06:00 |
 | `GET\|POST /menopause/scores` | one questionnaire per Jalali month (refill replaces), total/domains/band/delta, history `?months=` (1–24) with the HRT annotation |
 | `GET /menopause/patterns` | 90-day φ cards via bloom's `analysis.Binary` (min 20 days / 5 per group / 3 outcomes): each logged trigger × more flashes than her median day, night sweats × fatigue; `not_a_diagnosis`, sentences in `internal/menopause/lang` (needs review) |
+
+### CB-MENO-03 — treatment & care, doctor report section
+
+| Route | What |
+|---|---|
+| `GET /menopause/treatment?date=` | Meno_Treatment for the Saturday week of `date`: items by kind (+ `stopped`), week dots, days taken / scheduled days, adherence %, lifestyle goal progress, care reminder; next review (earliest HRT `review_on`, else start + `meno_tips` hrt_review `review_after_months`, default 3, `suggested`); the week's side effects; `treatment` / `treatment_lifestyle` tips |
+| `POST /menopause/treatment/items` · `PUT\|DELETE …/items/{id}` | hrt / supplement need a schedule (morning 08:00 · noon 13:00 · evening 18:00 · night 22:00 · weekly 09:00 on the start weekday) and **are a care medication reminder** (`reminder_id`; `remind` = notify; care's 100 cap); lifestyle = weekly goal (sessions ≤ 21 / minutes ≤ 3000), no reminder. `stopped_on` stops it (reminder off). Cap 30 items. Delete removes the care reminder too |
+| `PUT\|DELETE …/items/{id}/intakes/{date}` | one intake per (item, day), ≤ 30 days back, active day only; lifestyle `amount` (minutes required / sessions optional). Ticks / unticks the care dose; a /care tick counts here too |
+| `PUT /menopause/treatment/side-effects/{date}` | the day's codes as a set (optional own `treatment_item_id`) |
+| `GET /menopause/report?months=1\|3\|6` | owner preview of the report; the same data is the provider section `menopause` of bloom's builder (`GET /health-record/report?sections=…,menopause`, share links): stage, score first → last, flashes/day and night-sweat nights/week over tracked days (a flash or a log entry), sleep avg, bleeding events (runs of days), BP avg (merged vitals), top 5 symptoms % of tracked days, per-item adherence + pooled HRT %, lifestyle per week, side effects, supplements. Menopause mode only, report-only (not on the summary), no ids / notes / loss data. The questions are the builder's `question` |

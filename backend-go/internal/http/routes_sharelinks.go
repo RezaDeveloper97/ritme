@@ -36,8 +36,9 @@ func init() {
 		labsSvc := labs.NewService(labs.Options{ // the report's lab rows (reads only)
 			DB: d.DB, Catalog: catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger), Logger: d.Logger,
 		})
-		reports := healthrecord.NewService(d.DB, labsSvc).
-			WithBundles(i18n.NewTranslationStore(translations.FS, d.Config.StoragePath))
+		bundles := i18n.NewTranslationStore(translations.FS, d.Config.StoragePath)
+		reports := healthrecord.NewService(d.DB, labsSvc).WithBundles(bundles).
+			WithProviders(menopauseReportSection(d, bundles))
 		svc := sharelinks.NewService(sharelinkstore.New(d.DB), reports, d.Logger)
 		h := sharelinks.NewHandlers(svc, clock.Real{})
 		gate := plus.NewGate(plus.NewService(d.DB, d.Config.Plus, nil, d.Logger), clock.Real{}) // entitlements only

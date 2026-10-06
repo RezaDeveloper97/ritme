@@ -1,0 +1,155 @@
+{
+  "case": "menopause/treatment_empty.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/menopause/treatment",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-23",
+          "week": {
+            "from": "2026-09-19",
+            "to": "2026-09-25"
+          },
+          "items": {
+            "hrt": [],
+            "supplement": [],
+            "lifestyle": []
+          },
+          "stopped": [],
+          "review": null,
+          "side_effects": {
+            "codes": [
+              "breast_tenderness",
+              "spotting",
+              "headache",
+              "bloating",
+              "mood_change"
+            ],
+            "today": [],
+            "week": [
+              {
+                "date": "2026-09-19",
+                "codes": []
+              },
+              {
+                "date": "2026-09-20",
+                "codes": []
+              },
+              {
+                "date": "2026-09-21",
+                "codes": []
+              },
+              {
+                "date": "2026-09-22",
+                "codes": []
+              },
+              {
+                "date": "2026-09-23",
+                "codes": []
+              },
+              {
+                "date": "2026-09-24",
+                "codes": []
+              },
+              {
+                "date": "2026-09-25",
+                "codes": []
+              }
+            ]
+          },
+          "tips": [
+            {
+              "code": "hrt_review",
+              "title": "بازبینی با پزشک",
+              "body": "معمولاً ۳ ماه بعد از شروع، اثر و عوارض بررسی می‌شود.",
+              "meta": {
+                "placement": "treatment",
+                "review_after_months": 3
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "hrt_spotting",
+              "title": "لکه‌بینی در ماه‌های اول",
+              "body": "لکه‌بینی در ماه‌های اول شایع است، اما اگر ادامه داشت یا زیاد بود به پزشک بگو.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "doctor_only",
+              "title": "فقط با نظر پزشک",
+              "body": "شروع، قطع یا تغییر دوز هر دارو فقط با نظر پزشک.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_resistance",
+              "title": "ورزش مقاومتی",
+              "body": "برای استخوان و عضله",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 2,
+                "goal_unit": "sessions"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_brisk_walk",
+              "title": "پیاده‌روی تند",
+              "body": "۱۵۰ دقیقه در هفته",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 150,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_relaxation",
+              "title": "تمرین آرام‌سازی",
+              "body": "۱۰ دقیقه، برای گرگرفتگی و خواب",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 70,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

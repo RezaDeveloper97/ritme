@@ -23,7 +23,8 @@ const startSlack = time.Minute
 
 func messages(locale string) validation.Option {
 	future := T("validation.date_future", locale)
-	return validation.Messages("last_period.before_or_equal", future, "month.before_or_equal", future)
+	return validation.Messages("last_period.before_or_equal", future, "month.before_or_equal", future,
+		"date.before_or_equal", future, "stopped_on.before_or_equal", future)
 }
 
 // validate runs rules over the keys of body (plus fields already set in data) and returns the data.

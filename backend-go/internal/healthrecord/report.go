@@ -42,7 +42,7 @@ const (
 type ReportRequest struct {
 	Range    string
 	From     civildate.Date // custom only
-	Sections []string       // built-in section keys, screen order
+	Sections []string       // section keys (ReportSections), screen order
 	Question string         // "" = none
 }
 
@@ -97,8 +97,8 @@ func ParseReportRequest(data phpval.Map, locale string, now time.Time, withQuest
 		validation.F("range", "required", "string", validation.In(ReportRanges...)),
 		validation.F("from", "nullable", "required_if:range,"+ReportRangeCustom, "date",
 			"after_or_equal:"+civildate.FromTime(today.Midnight(time.UTC).AddDate(-MaxCustomYears, 0, 0)).String(), "before:today"),
-		validation.F("sections", "required", "array", "min:1", "max:"+strconv.Itoa(len(Sections))),
-		validation.F("sections.*", "required", "string", validation.In(Sections...)),
+		validation.F("sections", "required", "array", "min:1", "max:"+strconv.Itoa(len(ReportSections()))),
+		validation.F("sections.*", "required", "string", validation.In(ReportSections()...)),
 	}
 	if withQuestion {
 		rules = append(rules, validation.F("question", "nullable", "string", "max:"+strconv.Itoa(MaxQuestionLen)))
@@ -118,7 +118,7 @@ func ParseReportRequest(data phpval.Map, locale string, now time.Time, withQuest
 	for _, x := range vals {
 		picked[phpval.ToString(x)] = true
 	}
-	for _, k := range Sections { // screen order, duplicates dropped
+	for _, k := range ReportSections() { // screen order, duplicates dropped
 		if picked[k] {
 			req.Sections = append(req.Sections, k)
 		}

@@ -1,0 +1,3512 @@
+{
+  "case": "menopause/treatment_flow",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/menopause/treatment/items",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "kind": "hrt",
+          "name": "Estrogen gel",
+          "dose": "1 pump",
+          "schedule": "morning",
+          "started_on": "2026-08-01"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Treatment saved",
+        "data": {
+          "date": "2026-09-23",
+          "week": {
+            "from": "2026-09-19",
+            "to": "2026-09-25"
+          },
+          "items": {
+            "hrt": [
+              {
+                "id": 1,
+                "kind": "hrt",
+                "name": "Estrogen gel",
+                "dose": "1 pump",
+                "schedule": "morning",
+                "form": "tablet",
+                "started_on": "2026-08-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 5,
+                "adherence_pct": 0,
+                "goal": null,
+                "reminder": {
+                  "id": 101805,
+                  "time": "08:00",
+                  "notify": true,
+                  "active": true
+                }
+              }
+            ],
+            "supplement": [],
+            "lifestyle": []
+          },
+          "stopped": [],
+          "review": {
+            "on": "2026-11-01",
+            "item_id": null,
+            "suggested": true
+          },
+          "side_effects": {
+            "codes": [
+              "breast_tenderness",
+              "spotting",
+              "headache",
+              "bloating",
+              "mood_change"
+            ],
+            "today": [],
+            "week": [
+              {
+                "date": "2026-09-19",
+                "codes": []
+              },
+              {
+                "date": "2026-09-20",
+                "codes": []
+              },
+              {
+                "date": "2026-09-21",
+                "codes": []
+              },
+              {
+                "date": "2026-09-22",
+                "codes": []
+              },
+              {
+                "date": "2026-09-23",
+                "codes": []
+              },
+              {
+                "date": "2026-09-24",
+                "codes": []
+              },
+              {
+                "date": "2026-09-25",
+                "codes": []
+              }
+            ]
+          },
+          "tips": [
+            {
+              "code": "hrt_review",
+              "title": "Review with your doctor",
+              "body": "Effects and side effects are usually reviewed about 3 months after starting.",
+              "meta": {
+                "placement": "treatment",
+                "review_after_months": 3
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "hrt_spotting",
+              "title": "Spotting in the first months",
+              "body": "Spotting is common in the first months, but tell your doctor if it continues or is heavy.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "doctor_only",
+              "title": "Only with your doctor",
+              "body": "Start, stop or change the dose of any medicine only with your doctor.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_resistance",
+              "title": "Resistance exercise",
+              "body": "For bones and muscles",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 2,
+                "goal_unit": "sessions"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_brisk_walk",
+              "title": "Brisk walking",
+              "body": "150 minutes a week",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 150,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_relaxation",
+              "title": "Relaxation practice",
+              "body": "10 minutes, for hot flashes and sleep",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 70,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/menopause/treatment/items",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "kind": "supplement",
+          "name": "Calcium + vitamin D",
+          "schedule": "noon",
+          "remind": false
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "Treatment saved",
+        "data": {
+          "date": "2026-09-23",
+          "week": {
+            "from": "2026-09-19",
+            "to": "2026-09-25"
+          },
+          "items": {
+            "hrt": [
+              {
+                "id": 1,
+                "kind": "hrt",
+                "name": "Estrogen gel",
+                "dose": "1 pump",
+                "schedule": "morning",
+                "form": "tablet",
+                "started_on": "2026-08-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 5,
+                "adherence_pct": 0,
+                "goal": null,
+                "reminder": {
+                  "id": 101805,
+                  "time": "08:00",
+                  "notify": true,
+                  "active": true
+                }
+              }
+            ],
+            "supplement": [
+              {
+                "id": 2,
+                "kind": "supplement",
+                "name": "Calcium + vitamin D",
+                "dose": null,
+                "schedule": "noon",
+                "form": "tablet",
+                "started_on": null,
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 5,
+                "adherence_pct": 0,
+                "goal": null,
+                "reminder": {
+                  "id": 101806,
+                  "time": "13:00",
+                  "notify": false,
+                  "active": true
+                }
+              }
+            ],
+            "lifestyle": []
+          },
+          "stopped": [],
+          "review": {
+            "on": "2026-11-01",
+            "item_id": null,
+            "suggested": true
+          },
+          "side_effects": {
+            "codes": [
+              "breast_tenderness",
+              "spotting",
+              "headache",
+              "bloating",
+              "mood_change"
+            ],
+            "today": [],
+            "week": [
+              {
+                "date": "2026-09-19",
+                "codes": []
+              },
+              {
+                "date": "2026-09-20",
+                "codes": []
+              },
+              {
+                "date": "2026-09-21",
+                "codes": []
+              },
+              {
+                "date": "2026-09-22",
+                "codes": []
+              },
+              {
+                "date": "2026-09-23",
+                "codes": []
+              },
+              {
+                "date": "2026-09-24",
+                "codes": []
+              },
+              {
+                "date": "2026-09-25",
+                "codes": []
+              }
+            ]
+          },
+          "tips": [
+            {
+              "code": "hrt_review",
+              "title": "Review with your doctor",
+              "body": "Effects and side effects are usually reviewed about 3 months after starting.",
+              "meta": {
+                "placement": "treatment",
+                "review_after_months": 3
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "hrt_spotting",
+              "title": "Spotting in the first months",
+              "body": "Spotting is common in the first months, but tell your doctor if it continues or is heavy.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "doctor_only",
+              "title": "Only with your doctor",
+              "body": "Start, stop or change the dose of any medicine only with your doctor.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_resistance",
+              "title": "Resistance exercise",
+              "body": "For bones and muscles",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 2,
+                "goal_unit": "sessions"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_brisk_walk",
+              "title": "Brisk walking",
+              "body": "150 minutes a week",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 150,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_relaxation",
+              "title": "Relaxation practice",
+              "body": "10 minutes, for hot flashes and sleep",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 70,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/menopause/treatment/items",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "kind": "lifestyle",
+          "name": "Brisk walk",
+          "weekly_goal": 150,
+          "goal_unit": "minutes",
+          "started_on": "2026-09-01"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "Treatment saved",
+        "data": {
+          "date": "2026-09-23",
+          "week": {
+            "from": "2026-09-19",
+            "to": "2026-09-25"
+          },
+          "items": {
+            "hrt": [
+              {
+                "id": 1,
+                "kind": "hrt",
+                "name": "Estrogen gel",
+                "dose": "1 pump",
+                "schedule": "morning",
+                "form": "tablet",
+                "started_on": "2026-08-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 5,
+                "adherence_pct": 0,
+                "goal": null,
+                "reminder": {
+                  "id": 101805,
+                  "time": "08:00",
+                  "notify": true,
+                  "active": true
+                }
+              }
+            ],
+            "supplement": [
+              {
+                "id": 2,
+                "kind": "supplement",
+                "name": "Calcium + vitamin D",
+                "dose": null,
+                "schedule": "noon",
+                "form": "tablet",
+                "started_on": null,
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 5,
+                "adherence_pct": 0,
+                "goal": null,
+                "reminder": {
+                  "id": 101806,
+                  "time": "13:00",
+                  "notify": false,
+                  "active": true
+                }
+              }
+            ],
+            "lifestyle": [
+              {
+                "id": 3,
+                "kind": "lifestyle",
+                "name": "Brisk walk",
+                "dose": null,
+                "schedule": null,
+                "form": null,
+                "started_on": "2026-09-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 5,
+                "adherence_pct": null,
+                "goal": {
+                  "target": 150,
+                  "unit": "minutes",
+                  "amount": 0,
+                  "done": false
+                },
+                "reminder": null
+              }
+            ]
+          },
+          "stopped": [],
+          "review": {
+            "on": "2026-11-01",
+            "item_id": null,
+            "suggested": true
+          },
+          "side_effects": {
+            "codes": [
+              "breast_tenderness",
+              "spotting",
+              "headache",
+              "bloating",
+              "mood_change"
+            ],
+            "today": [],
+            "week": [
+              {
+                "date": "2026-09-19",
+                "codes": []
+              },
+              {
+                "date": "2026-09-20",
+                "codes": []
+              },
+              {
+                "date": "2026-09-21",
+                "codes": []
+              },
+              {
+                "date": "2026-09-22",
+                "codes": []
+              },
+              {
+                "date": "2026-09-23",
+                "codes": []
+              },
+              {
+                "date": "2026-09-24",
+                "codes": []
+              },
+              {
+                "date": "2026-09-25",
+                "codes": []
+              }
+            ]
+          },
+          "tips": [
+            {
+              "code": "hrt_review",
+              "title": "Review with your doctor",
+              "body": "Effects and side effects are usually reviewed about 3 months after starting.",
+              "meta": {
+                "placement": "treatment",
+                "review_after_months": 3
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "hrt_spotting",
+              "title": "Spotting in the first months",
+              "body": "Spotting is common in the first months, but tell your doctor if it continues or is heavy.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "doctor_only",
+              "title": "Only with your doctor",
+              "body": "Start, stop or change the dose of any medicine only with your doctor.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_resistance",
+              "title": "Resistance exercise",
+              "body": "For bones and muscles",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 2,
+                "goal_unit": "sessions"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_brisk_walk",
+              "title": "Brisk walking",
+              "body": "150 minutes a week",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 150,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_relaxation",
+              "title": "Relaxation practice",
+              "body": "10 minutes, for hot flashes and sleep",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 70,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/menopause/treatment/items/1/intakes/2026-09-23",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "message": "Logged",
+        "data": {
+          "date": "2026-09-23",
+          "week": {
+            "from": "2026-09-19",
+            "to": "2026-09-25"
+          },
+          "items": {
+            "hrt": [
+              {
+                "id": 1,
+                "kind": "hrt",
+                "name": "Estrogen gel",
+                "dose": "1 pump",
+                "schedule": "morning",
+                "form": "tablet",
+                "started_on": "2026-08-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": true,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": true,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 1,
+                "days": 5,
+                "adherence_pct": 20,
+                "goal": null,
+                "reminder": {
+                  "id": 101805,
+                  "time": "08:00",
+                  "notify": true,
+                  "active": true
+                }
+              }
+            ],
+            "supplement": [
+              {
+                "id": 2,
+                "kind": "supplement",
+                "name": "Calcium + vitamin D",
+                "dose": null,
+                "schedule": "noon",
+                "form": "tablet",
+                "started_on": null,
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 5,
+                "adherence_pct": 0,
+                "goal": null,
+                "reminder": {
+                  "id": 101806,
+                  "time": "13:00",
+                  "notify": false,
+                  "active": true
+                }
+              }
+            ],
+            "lifestyle": [
+              {
+                "id": 3,
+                "kind": "lifestyle",
+                "name": "Brisk walk",
+                "dose": null,
+                "schedule": null,
+                "form": null,
+                "started_on": "2026-09-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 5,
+                "adherence_pct": null,
+                "goal": {
+                  "target": 150,
+                  "unit": "minutes",
+                  "amount": 0,
+                  "done": false
+                },
+                "reminder": null
+              }
+            ]
+          },
+          "stopped": [],
+          "review": {
+            "on": "2026-11-01",
+            "item_id": null,
+            "suggested": true
+          },
+          "side_effects": {
+            "codes": [
+              "breast_tenderness",
+              "spotting",
+              "headache",
+              "bloating",
+              "mood_change"
+            ],
+            "today": [],
+            "week": [
+              {
+                "date": "2026-09-19",
+                "codes": []
+              },
+              {
+                "date": "2026-09-20",
+                "codes": []
+              },
+              {
+                "date": "2026-09-21",
+                "codes": []
+              },
+              {
+                "date": "2026-09-22",
+                "codes": []
+              },
+              {
+                "date": "2026-09-23",
+                "codes": []
+              },
+              {
+                "date": "2026-09-24",
+                "codes": []
+              },
+              {
+                "date": "2026-09-25",
+                "codes": []
+              }
+            ]
+          },
+          "tips": [
+            {
+              "code": "hrt_review",
+              "title": "Review with your doctor",
+              "body": "Effects and side effects are usually reviewed about 3 months after starting.",
+              "meta": {
+                "placement": "treatment",
+                "review_after_months": 3
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "hrt_spotting",
+              "title": "Spotting in the first months",
+              "body": "Spotting is common in the first months, but tell your doctor if it continues or is heavy.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "doctor_only",
+              "title": "Only with your doctor",
+              "body": "Start, stop or change the dose of any medicine only with your doctor.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_resistance",
+              "title": "Resistance exercise",
+              "body": "For bones and muscles",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 2,
+                "goal_unit": "sessions"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_brisk_walk",
+              "title": "Brisk walking",
+              "body": "150 minutes a week",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 150,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_relaxation",
+              "title": "Relaxation practice",
+              "body": "10 minutes, for hot flashes and sleep",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 70,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/menopause/treatment/items/1/intakes/2026-09-22",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": true,
+        "message": "Logged",
+        "data": {
+          "date": "2026-09-22",
+          "week": {
+            "from": "2026-09-19",
+            "to": "2026-09-25"
+          },
+          "items": {
+            "hrt": [
+              {
+                "id": 1,
+                "kind": "hrt",
+                "name": "Estrogen gel",
+                "dose": "1 pump",
+                "schedule": "morning",
+                "form": "tablet",
+                "started_on": "2026-08-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": true,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": true,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": true,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 1,
+                "days": 4,
+                "adherence_pct": 25,
+                "goal": null,
+                "reminder": {
+                  "id": 101805,
+                  "time": "08:00",
+                  "notify": true,
+                  "active": true
+                }
+              }
+            ],
+            "supplement": [
+              {
+                "id": 2,
+                "kind": "supplement",
+                "name": "Calcium + vitamin D",
+                "dose": null,
+                "schedule": "noon",
+                "form": "tablet",
+                "started_on": null,
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 4,
+                "adherence_pct": 0,
+                "goal": null,
+                "reminder": {
+                  "id": 101806,
+                  "time": "13:00",
+                  "notify": false,
+                  "active": true
+                }
+              }
+            ],
+            "lifestyle": [
+              {
+                "id": 3,
+                "kind": "lifestyle",
+                "name": "Brisk walk",
+                "dose": null,
+                "schedule": null,
+                "form": null,
+                "started_on": "2026-09-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 4,
+                "adherence_pct": null,
+                "goal": {
+                  "target": 150,
+                  "unit": "minutes",
+                  "amount": 0,
+                  "done": false
+                },
+                "reminder": null
+              }
+            ]
+          },
+          "stopped": [],
+          "review": {
+            "on": "2026-11-01",
+            "item_id": null,
+            "suggested": true
+          },
+          "side_effects": {
+            "codes": [
+              "breast_tenderness",
+              "spotting",
+              "headache",
+              "bloating",
+              "mood_change"
+            ],
+            "today": [],
+            "week": [
+              {
+                "date": "2026-09-19",
+                "codes": []
+              },
+              {
+                "date": "2026-09-20",
+                "codes": []
+              },
+              {
+                "date": "2026-09-21",
+                "codes": []
+              },
+              {
+                "date": "2026-09-22",
+                "codes": []
+              },
+              {
+                "date": "2026-09-23",
+                "codes": []
+              },
+              {
+                "date": "2026-09-24",
+                "codes": []
+              },
+              {
+                "date": "2026-09-25",
+                "codes": []
+              }
+            ]
+          },
+          "tips": [
+            {
+              "code": "hrt_review",
+              "title": "Review with your doctor",
+              "body": "Effects and side effects are usually reviewed about 3 months after starting.",
+              "meta": {
+                "placement": "treatment",
+                "review_after_months": 3
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "hrt_spotting",
+              "title": "Spotting in the first months",
+              "body": "Spotting is common in the first months, but tell your doctor if it continues or is heavy.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "doctor_only",
+              "title": "Only with your doctor",
+              "body": "Start, stop or change the dose of any medicine only with your doctor.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_resistance",
+              "title": "Resistance exercise",
+              "body": "For bones and muscles",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 2,
+                "goal_unit": "sessions"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_brisk_walk",
+              "title": "Brisk walking",
+              "body": "150 minutes a week",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 150,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_relaxation",
+              "title": "Relaxation practice",
+              "body": "10 minutes, for hot flashes and sleep",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 70,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/menopause/treatment/items/3/intakes/2026-09-23",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "amount": 30
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "54"
+      },
+      "body": {
+        "success": true,
+        "message": "Logged",
+        "data": {
+          "date": "2026-09-23",
+          "week": {
+            "from": "2026-09-19",
+            "to": "2026-09-25"
+          },
+          "items": {
+            "hrt": [
+              {
+                "id": 1,
+                "kind": "hrt",
+                "name": "Estrogen gel",
+                "dose": "1 pump",
+                "schedule": "morning",
+                "form": "tablet",
+                "started_on": "2026-08-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": true,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": true,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": true,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 2,
+                "days": 5,
+                "adherence_pct": 40,
+                "goal": null,
+                "reminder": {
+                  "id": 101805,
+                  "time": "08:00",
+                  "notify": true,
+                  "active": true
+                }
+              }
+            ],
+            "supplement": [
+              {
+                "id": 2,
+                "kind": "supplement",
+                "name": "Calcium + vitamin D",
+                "dose": null,
+                "schedule": "noon",
+                "form": "tablet",
+                "started_on": null,
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 5,
+                "adherence_pct": 0,
+                "goal": null,
+                "reminder": {
+                  "id": 101806,
+                  "time": "13:00",
+                  "notify": false,
+                  "active": true
+                }
+              }
+            ],
+            "lifestyle": [
+              {
+                "id": 3,
+                "kind": "lifestyle",
+                "name": "Brisk walk",
+                "dose": null,
+                "schedule": null,
+                "form": null,
+                "started_on": "2026-09-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": true,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": true,
+                    "amount": 30
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 1,
+                "days": 5,
+                "adherence_pct": null,
+                "goal": {
+                  "target": 150,
+                  "unit": "minutes",
+                  "amount": 30,
+                  "done": false
+                },
+                "reminder": null
+              }
+            ]
+          },
+          "stopped": [],
+          "review": {
+            "on": "2026-11-01",
+            "item_id": null,
+            "suggested": true
+          },
+          "side_effects": {
+            "codes": [
+              "breast_tenderness",
+              "spotting",
+              "headache",
+              "bloating",
+              "mood_change"
+            ],
+            "today": [],
+            "week": [
+              {
+                "date": "2026-09-19",
+                "codes": []
+              },
+              {
+                "date": "2026-09-20",
+                "codes": []
+              },
+              {
+                "date": "2026-09-21",
+                "codes": []
+              },
+              {
+                "date": "2026-09-22",
+                "codes": []
+              },
+              {
+                "date": "2026-09-23",
+                "codes": []
+              },
+              {
+                "date": "2026-09-24",
+                "codes": []
+              },
+              {
+                "date": "2026-09-25",
+                "codes": []
+              }
+            ]
+          },
+          "tips": [
+            {
+              "code": "hrt_review",
+              "title": "Review with your doctor",
+              "body": "Effects and side effects are usually reviewed about 3 months after starting.",
+              "meta": {
+                "placement": "treatment",
+                "review_after_months": 3
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "hrt_spotting",
+              "title": "Spotting in the first months",
+              "body": "Spotting is common in the first months, but tell your doctor if it continues or is heavy.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "doctor_only",
+              "title": "Only with your doctor",
+              "body": "Start, stop or change the dose of any medicine only with your doctor.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_resistance",
+              "title": "Resistance exercise",
+              "body": "For bones and muscles",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 2,
+                "goal_unit": "sessions"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_brisk_walk",
+              "title": "Brisk walking",
+              "body": "150 minutes a week",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 150,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_relaxation",
+              "title": "Relaxation practice",
+              "body": "10 minutes, for hot flashes and sleep",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 70,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/menopause/treatment/side-effects/2026-09-23",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "codes": [
+            "spotting",
+            "breast_tenderness"
+          ],
+          "treatment_item_id": 1
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "53"
+      },
+      "body": {
+        "success": true,
+        "message": "Side effects saved",
+        "data": {
+          "date": "2026-09-23",
+          "week": {
+            "from": "2026-09-19",
+            "to": "2026-09-25"
+          },
+          "items": {
+            "hrt": [
+              {
+                "id": 1,
+                "kind": "hrt",
+                "name": "Estrogen gel",
+                "dose": "1 pump",
+                "schedule": "morning",
+                "form": "tablet",
+                "started_on": "2026-08-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": true,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": true,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": true,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 2,
+                "days": 5,
+                "adherence_pct": 40,
+                "goal": null,
+                "reminder": {
+                  "id": 101805,
+                  "time": "08:00",
+                  "notify": true,
+                  "active": true
+                }
+              }
+            ],
+            "supplement": [
+              {
+                "id": 2,
+                "kind": "supplement",
+                "name": "Calcium + vitamin D",
+                "dose": null,
+                "schedule": "noon",
+                "form": "tablet",
+                "started_on": null,
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 5,
+                "adherence_pct": 0,
+                "goal": null,
+                "reminder": {
+                  "id": 101806,
+                  "time": "13:00",
+                  "notify": false,
+                  "active": true
+                }
+              }
+            ],
+            "lifestyle": [
+              {
+                "id": 3,
+                "kind": "lifestyle",
+                "name": "Brisk walk",
+                "dose": null,
+                "schedule": null,
+                "form": null,
+                "started_on": "2026-09-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": true,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": true,
+                    "amount": 30
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 1,
+                "days": 5,
+                "adherence_pct": null,
+                "goal": {
+                  "target": 150,
+                  "unit": "minutes",
+                  "amount": 30,
+                  "done": false
+                },
+                "reminder": null
+              }
+            ]
+          },
+          "stopped": [],
+          "review": {
+            "on": "2026-11-01",
+            "item_id": null,
+            "suggested": true
+          },
+          "side_effects": {
+            "codes": [
+              "breast_tenderness",
+              "spotting",
+              "headache",
+              "bloating",
+              "mood_change"
+            ],
+            "today": [
+              "breast_tenderness",
+              "spotting"
+            ],
+            "week": [
+              {
+                "date": "2026-09-19",
+                "codes": []
+              },
+              {
+                "date": "2026-09-20",
+                "codes": []
+              },
+              {
+                "date": "2026-09-21",
+                "codes": []
+              },
+              {
+                "date": "2026-09-22",
+                "codes": []
+              },
+              {
+                "date": "2026-09-23",
+                "codes": [
+                  "breast_tenderness",
+                  "spotting"
+                ]
+              },
+              {
+                "date": "2026-09-24",
+                "codes": []
+              },
+              {
+                "date": "2026-09-25",
+                "codes": []
+              }
+            ]
+          },
+          "tips": [
+            {
+              "code": "hrt_review",
+              "title": "Review with your doctor",
+              "body": "Effects and side effects are usually reviewed about 3 months after starting.",
+              "meta": {
+                "placement": "treatment",
+                "review_after_months": 3
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "hrt_spotting",
+              "title": "Spotting in the first months",
+              "body": "Spotting is common in the first months, but tell your doctor if it continues or is heavy.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "doctor_only",
+              "title": "Only with your doctor",
+              "body": "Start, stop or change the dose of any medicine only with your doctor.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_resistance",
+              "title": "Resistance exercise",
+              "body": "For bones and muscles",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 2,
+                "goal_unit": "sessions"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_brisk_walk",
+              "title": "Brisk walking",
+              "body": "150 minutes a week",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 150,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_relaxation",
+              "title": "Relaxation practice",
+              "body": "10 minutes, for hot flashes and sleep",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 70,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/menopause/treatment/items/1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "Estrogen gel",
+          "dose": "1 pump",
+          "schedule": "morning",
+          "started_on": "2026-08-01",
+          "review_on": "2026-11-21"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "52"
+      },
+      "body": {
+        "success": true,
+        "message": "Treatment saved",
+        "data": {
+          "date": "2026-09-23",
+          "week": {
+            "from": "2026-09-19",
+            "to": "2026-09-25"
+          },
+          "items": {
+            "hrt": [
+              {
+                "id": 1,
+                "kind": "hrt",
+                "name": "Estrogen gel",
+                "dose": "1 pump",
+                "schedule": "morning",
+                "form": "tablet",
+                "started_on": "2026-08-01",
+                "review_on": "2026-11-21",
+                "stopped_on": null,
+                "active": true,
+                "taken_today": true,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": true,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": true,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 2,
+                "days": 5,
+                "adherence_pct": 40,
+                "goal": null,
+                "reminder": {
+                  "id": 101805,
+                  "time": "08:00",
+                  "notify": true,
+                  "active": true
+                }
+              }
+            ],
+            "supplement": [
+              {
+                "id": 2,
+                "kind": "supplement",
+                "name": "Calcium + vitamin D",
+                "dose": null,
+                "schedule": "noon",
+                "form": "tablet",
+                "started_on": null,
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 5,
+                "adherence_pct": 0,
+                "goal": null,
+                "reminder": {
+                  "id": 101806,
+                  "time": "13:00",
+                  "notify": false,
+                  "active": true
+                }
+              }
+            ],
+            "lifestyle": [
+              {
+                "id": 3,
+                "kind": "lifestyle",
+                "name": "Brisk walk",
+                "dose": null,
+                "schedule": null,
+                "form": null,
+                "started_on": "2026-09-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": true,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": true,
+                    "amount": 30
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 1,
+                "days": 5,
+                "adherence_pct": null,
+                "goal": {
+                  "target": 150,
+                  "unit": "minutes",
+                  "amount": 30,
+                  "done": false
+                },
+                "reminder": null
+              }
+            ]
+          },
+          "stopped": [],
+          "review": {
+            "on": "2026-11-21",
+            "item_id": 1,
+            "suggested": false
+          },
+          "side_effects": {
+            "codes": [
+              "breast_tenderness",
+              "spotting",
+              "headache",
+              "bloating",
+              "mood_change"
+            ],
+            "today": [
+              "breast_tenderness",
+              "spotting"
+            ],
+            "week": [
+              {
+                "date": "2026-09-19",
+                "codes": []
+              },
+              {
+                "date": "2026-09-20",
+                "codes": []
+              },
+              {
+                "date": "2026-09-21",
+                "codes": []
+              },
+              {
+                "date": "2026-09-22",
+                "codes": []
+              },
+              {
+                "date": "2026-09-23",
+                "codes": [
+                  "breast_tenderness",
+                  "spotting"
+                ]
+              },
+              {
+                "date": "2026-09-24",
+                "codes": []
+              },
+              {
+                "date": "2026-09-25",
+                "codes": []
+              }
+            ]
+          },
+          "tips": [
+            {
+              "code": "hrt_review",
+              "title": "Review with your doctor",
+              "body": "Effects and side effects are usually reviewed about 3 months after starting.",
+              "meta": {
+                "placement": "treatment",
+                "review_after_months": 3
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "hrt_spotting",
+              "title": "Spotting in the first months",
+              "body": "Spotting is common in the first months, but tell your doctor if it continues or is heavy.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "doctor_only",
+              "title": "Only with your doctor",
+              "body": "Start, stop or change the dose of any medicine only with your doctor.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_resistance",
+              "title": "Resistance exercise",
+              "body": "For bones and muscles",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 2,
+                "goal_unit": "sessions"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_brisk_walk",
+              "title": "Brisk walking",
+              "body": "150 minutes a week",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 150,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_relaxation",
+              "title": "Relaxation practice",
+              "body": "10 minutes, for hot flashes and sleep",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 70,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/menopause/treatment/items/1/intakes/2026-09-22",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "51"
+      },
+      "body": {
+        "success": true,
+        "message": "Log removed",
+        "data": {
+          "date": "2026-09-22",
+          "week": {
+            "from": "2026-09-19",
+            "to": "2026-09-25"
+          },
+          "items": {
+            "hrt": [
+              {
+                "id": 1,
+                "kind": "hrt",
+                "name": "Estrogen gel",
+                "dose": "1 pump",
+                "schedule": "morning",
+                "form": "tablet",
+                "started_on": "2026-08-01",
+                "review_on": "2026-11-21",
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": true,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 4,
+                "adherence_pct": 0,
+                "goal": null,
+                "reminder": {
+                  "id": 101805,
+                  "time": "08:00",
+                  "notify": true,
+                  "active": true
+                }
+              }
+            ],
+            "supplement": [
+              {
+                "id": 2,
+                "kind": "supplement",
+                "name": "Calcium + vitamin D",
+                "dose": null,
+                "schedule": "noon",
+                "form": "tablet",
+                "started_on": null,
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 4,
+                "adherence_pct": 0,
+                "goal": null,
+                "reminder": {
+                  "id": 101806,
+                  "time": "13:00",
+                  "notify": false,
+                  "active": true
+                }
+              }
+            ],
+            "lifestyle": [
+              {
+                "id": 3,
+                "kind": "lifestyle",
+                "name": "Brisk walk",
+                "dose": null,
+                "schedule": null,
+                "form": null,
+                "started_on": "2026-09-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": false,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": true,
+                    "amount": 30
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 0,
+                "days": 4,
+                "adherence_pct": null,
+                "goal": {
+                  "target": 150,
+                  "unit": "minutes",
+                  "amount": 30,
+                  "done": false
+                },
+                "reminder": null
+              }
+            ]
+          },
+          "stopped": [],
+          "review": {
+            "on": "2026-11-21",
+            "item_id": 1,
+            "suggested": false
+          },
+          "side_effects": {
+            "codes": [
+              "breast_tenderness",
+              "spotting",
+              "headache",
+              "bloating",
+              "mood_change"
+            ],
+            "today": [],
+            "week": [
+              {
+                "date": "2026-09-19",
+                "codes": []
+              },
+              {
+                "date": "2026-09-20",
+                "codes": []
+              },
+              {
+                "date": "2026-09-21",
+                "codes": []
+              },
+              {
+                "date": "2026-09-22",
+                "codes": []
+              },
+              {
+                "date": "2026-09-23",
+                "codes": [
+                  "breast_tenderness",
+                  "spotting"
+                ]
+              },
+              {
+                "date": "2026-09-24",
+                "codes": []
+              },
+              {
+                "date": "2026-09-25",
+                "codes": []
+              }
+            ]
+          },
+          "tips": [
+            {
+              "code": "hrt_review",
+              "title": "Review with your doctor",
+              "body": "Effects and side effects are usually reviewed about 3 months after starting.",
+              "meta": {
+                "placement": "treatment",
+                "review_after_months": 3
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "hrt_spotting",
+              "title": "Spotting in the first months",
+              "body": "Spotting is common in the first months, but tell your doctor if it continues or is heavy.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "doctor_only",
+              "title": "Only with your doctor",
+              "body": "Start, stop or change the dose of any medicine only with your doctor.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_resistance",
+              "title": "Resistance exercise",
+              "body": "For bones and muscles",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 2,
+                "goal_unit": "sessions"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_brisk_walk",
+              "title": "Brisk walking",
+              "body": "150 minutes a week",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 150,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_relaxation",
+              "title": "Relaxation practice",
+              "body": "10 minutes, for hot flashes and sleep",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 70,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/menopause/treatment/items/2",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "50"
+      },
+      "body": {
+        "success": true,
+        "message": "Treatment removed",
+        "data": {
+          "date": "2026-09-23",
+          "week": {
+            "from": "2026-09-19",
+            "to": "2026-09-25"
+          },
+          "items": {
+            "hrt": [
+              {
+                "id": 1,
+                "kind": "hrt",
+                "name": "Estrogen gel",
+                "dose": "1 pump",
+                "schedule": "morning",
+                "form": "tablet",
+                "started_on": "2026-08-01",
+                "review_on": "2026-11-21",
+                "stopped_on": null,
+                "active": true,
+                "taken_today": true,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": true,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 1,
+                "days": 5,
+                "adherence_pct": 20,
+                "goal": null,
+                "reminder": {
+                  "id": 101805,
+                  "time": "08:00",
+                  "notify": true,
+                  "active": true
+                }
+              }
+            ],
+            "supplement": [],
+            "lifestyle": [
+              {
+                "id": 3,
+                "kind": "lifestyle",
+                "name": "Brisk walk",
+                "dose": null,
+                "schedule": null,
+                "form": null,
+                "started_on": "2026-09-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": true,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": true,
+                    "amount": 30
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 1,
+                "days": 5,
+                "adherence_pct": null,
+                "goal": {
+                  "target": 150,
+                  "unit": "minutes",
+                  "amount": 30,
+                  "done": false
+                },
+                "reminder": null
+              }
+            ]
+          },
+          "stopped": [],
+          "review": {
+            "on": "2026-11-21",
+            "item_id": 1,
+            "suggested": false
+          },
+          "side_effects": {
+            "codes": [
+              "breast_tenderness",
+              "spotting",
+              "headache",
+              "bloating",
+              "mood_change"
+            ],
+            "today": [
+              "breast_tenderness",
+              "spotting"
+            ],
+            "week": [
+              {
+                "date": "2026-09-19",
+                "codes": []
+              },
+              {
+                "date": "2026-09-20",
+                "codes": []
+              },
+              {
+                "date": "2026-09-21",
+                "codes": []
+              },
+              {
+                "date": "2026-09-22",
+                "codes": []
+              },
+              {
+                "date": "2026-09-23",
+                "codes": [
+                  "breast_tenderness",
+                  "spotting"
+                ]
+              },
+              {
+                "date": "2026-09-24",
+                "codes": []
+              },
+              {
+                "date": "2026-09-25",
+                "codes": []
+              }
+            ]
+          },
+          "tips": [
+            {
+              "code": "hrt_review",
+              "title": "Review with your doctor",
+              "body": "Effects and side effects are usually reviewed about 3 months after starting.",
+              "meta": {
+                "placement": "treatment",
+                "review_after_months": 3
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "hrt_spotting",
+              "title": "Spotting in the first months",
+              "body": "Spotting is common in the first months, but tell your doctor if it continues or is heavy.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "doctor_only",
+              "title": "Only with your doctor",
+              "body": "Start, stop or change the dose of any medicine only with your doctor.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_resistance",
+              "title": "Resistance exercise",
+              "body": "For bones and muscles",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 2,
+                "goal_unit": "sessions"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_brisk_walk",
+              "title": "Brisk walking",
+              "body": "150 minutes a week",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 150,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_relaxation",
+              "title": "Relaxation practice",
+              "body": "10 minutes, for hot flashes and sleep",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 70,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/menopause/treatment?date=2026-09-23",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-23",
+          "week": {
+            "from": "2026-09-19",
+            "to": "2026-09-25"
+          },
+          "items": {
+            "hrt": [
+              {
+                "id": 1,
+                "kind": "hrt",
+                "name": "Estrogen gel",
+                "dose": "1 pump",
+                "schedule": "morning",
+                "form": "tablet",
+                "started_on": "2026-08-01",
+                "review_on": "2026-11-21",
+                "stopped_on": null,
+                "active": true,
+                "taken_today": true,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": true,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 1,
+                "days": 5,
+                "adherence_pct": 20,
+                "goal": null,
+                "reminder": {
+                  "id": 101805,
+                  "time": "08:00",
+                  "notify": true,
+                  "active": true
+                }
+              }
+            ],
+            "supplement": [],
+            "lifestyle": [
+              {
+                "id": 3,
+                "kind": "lifestyle",
+                "name": "Brisk walk",
+                "dose": null,
+                "schedule": null,
+                "form": null,
+                "started_on": "2026-09-01",
+                "review_on": null,
+                "stopped_on": null,
+                "active": true,
+                "taken_today": true,
+                "week": [
+                  {
+                    "date": "2026-09-19",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "taken": true,
+                    "amount": 30
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "taken": false,
+                    "amount": null
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "taken": false,
+                    "amount": null
+                  }
+                ],
+                "days_taken": 1,
+                "days": 5,
+                "adherence_pct": null,
+                "goal": {
+                  "target": 150,
+                  "unit": "minutes",
+                  "amount": 30,
+                  "done": false
+                },
+                "reminder": null
+              }
+            ]
+          },
+          "stopped": [],
+          "review": {
+            "on": "2026-11-21",
+            "item_id": 1,
+            "suggested": false
+          },
+          "side_effects": {
+            "codes": [
+              "breast_tenderness",
+              "spotting",
+              "headache",
+              "bloating",
+              "mood_change"
+            ],
+            "today": [
+              "breast_tenderness",
+              "spotting"
+            ],
+            "week": [
+              {
+                "date": "2026-09-19",
+                "codes": []
+              },
+              {
+                "date": "2026-09-20",
+                "codes": []
+              },
+              {
+                "date": "2026-09-21",
+                "codes": []
+              },
+              {
+                "date": "2026-09-22",
+                "codes": []
+              },
+              {
+                "date": "2026-09-23",
+                "codes": [
+                  "breast_tenderness",
+                  "spotting"
+                ]
+              },
+              {
+                "date": "2026-09-24",
+                "codes": []
+              },
+              {
+                "date": "2026-09-25",
+                "codes": []
+              }
+            ]
+          },
+          "tips": [
+            {
+              "code": "hrt_review",
+              "title": "Review with your doctor",
+              "body": "Effects and side effects are usually reviewed about 3 months after starting.",
+              "meta": {
+                "placement": "treatment",
+                "review_after_months": 3
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "hrt_spotting",
+              "title": "Spotting in the first months",
+              "body": "Spotting is common in the first months, but tell your doctor if it continues or is heavy.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "doctor_only",
+              "title": "Only with your doctor",
+              "body": "Start, stop or change the dose of any medicine only with your doctor.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_resistance",
+              "title": "Resistance exercise",
+              "body": "For bones and muscles",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 2,
+                "goal_unit": "sessions"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_brisk_walk",
+              "title": "Brisk walking",
+              "body": "150 minutes a week",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 150,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_relaxation",
+              "title": "Relaxation practice",
+              "body": "10 minutes, for hot flashes and sleep",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 70,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

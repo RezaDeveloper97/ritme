@@ -74,6 +74,14 @@ func setup(t *testing.T) *env {
 	app.Get("/api/v1/menopause/scores", locale, guard, h.Scores)
 	app.Post("/api/v1/menopause/scores", locale, guard, h.SaveScore)
 	app.Get("/api/v1/menopause/patterns", locale, guard, h.Patterns)
+	app.Get("/api/v1/menopause/treatment", locale, guard, h.Treatment)
+	app.Post("/api/v1/menopause/treatment/items", locale, guard, h.StoreItem)
+	app.Put("/api/v1/menopause/treatment/items/:id", locale, guard, h.UpdateItem)
+	app.Delete("/api/v1/menopause/treatment/items/:id", locale, guard, h.DestroyItem)
+	app.Put("/api/v1/menopause/treatment/items/:id/intakes/:date", locale, guard, h.LogIntake)
+	app.Delete("/api/v1/menopause/treatment/items/:id/intakes/:date", locale, guard, h.UnlogIntake)
+	app.Put("/api/v1/menopause/treatment/side-effects/:date", locale, guard, h.SaveSideEffects)
+	app.Get("/api/v1/menopause/report", locale, guard, h.Report)
 	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365)}
 }
 

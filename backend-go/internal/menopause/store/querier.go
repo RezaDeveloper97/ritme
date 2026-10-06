@@ -6,13 +6,20 @@ package store
 
 import (
 	"context"
+	"database/sql"
 )
 
 type Querier interface {
+	CountTreatmentItems(ctx context.Context, userID uint64) (int64, error)
 	// Menopause (CB-MENO-01, goose 00022): the base reads/writes of the menopause tables for the API tasks
 	// (CB-MENO-02 hot flashes + score, CB-MENO-03 treatment). Health data: every statement is scoped by user_id in the
 	// statement itself. Profile = user_life_profiles.menopause_* (B-N2-01); daily symptoms = health_log_entries (B-N3-01).
 	CreateHotFlash(ctx context.Context, arg CreateHotFlashParams) (int64, error)
+	// The day's side effects are replaced as a set.
+	DeleteSideEffectsOn(ctx context.Context, arg DeleteSideEffectsOnParams) error
+	DeleteTreatmentIntake(ctx context.Context, arg DeleteTreatmentIntakeParams) (int64, error)
+	// Intakes go with it (FK cascade); side effects keep the day and lose the link (SET NULL).
+	DeleteTreatmentItem(ctx context.Context, arg DeleteTreatmentItemParams) (int64, error)
 	GetHotFlash(ctx context.Context, arg GetHotFlashParams) (HotFlash, error)
 	// CB-MENO-02 — the menopause API (profile, today, hot-flash timer, monthly score, patterns).
 	// The menopause answers of bloom's life profile (B-N2-01 columns; no menopause profile table).
@@ -21,21 +28,39 @@ type Querier interface {
 	GetPreviousMenopauseScore(ctx context.Context, arg GetPreviousMenopauseScoreParams) (MenopauseScore, error)
 	// The timer still running (duration_s NULL), newest first.
 	GetRunningHotFlash(ctx context.Context, userID uint64) (HotFlash, error)
+	// The stored life mode (bloom user_life_profiles.life_mode): the doctor report's menopause section is built for a
+	// user in menopause mode only.
+	GetStoredLifeMode(ctx context.Context, userID uint64) (sql.NullString, error)
+	// Menopause treatment & care (CB-MENO-03, tables from goose 00022): HRT / supplement / lifestyle items, their intakes
+	// (one row per item and day), the side effects of a day, and the care reminders the items are. Health data: every
+	// statement is scoped by user_id in the statement itself (an item id of another user matches nothing).
+	GetTreatmentItem(ctx context.Context, arg GetTreatmentItemParams) (TreatmentItem, error)
+	InsertSideEffect(ctx context.Context, arg InsertSideEffectParams) error
+	InsertTreatmentItem(ctx context.Context, arg InsertTreatmentItemParams) (int64, error)
 	// started_at in [from, to).
 	ListHotFlashesInRange(ctx context.Context, arg ListHotFlashesInRangeParams) ([]HotFlash, error)
 	ListMenopauseScoresSince(ctx context.Context, arg ListMenopauseScoresSinceParams) ([]MenopauseScore, error)
+	// The days a care reminder was ticked in /care (any slot) in [from, to]: a menopause item that is a care medication
+	// counts those days as taken too, so both screens agree.
+	ListReminderIntakeDays(ctx context.Context, arg ListReminderIntakeDaysParams) ([]ListReminderIntakeDaysRow, error)
 	// log_date in [from, to].
 	ListSideEffectLogsInRange(ctx context.Context, arg ListSideEffectLogsInRangeParams) ([]SideEffectLog, error)
 	// intake_date in [from, to].
 	ListTreatmentIntakesInRange(ctx context.Context, arg ListTreatmentIntakesInRangeParams) ([]TreatmentIntake, error)
 	ListTreatmentItems(ctx context.Context, userID uint64) ([]TreatmentItem, error)
+	// The next sort_order of a kind (appended at the end of its list).
+	NextTreatmentSortOrder(ctx context.Context, arg NextTreatmentSortOrderParams) (int64, error)
 	// The stop / edit of one flash (the service computes every column).
 	UpdateHotFlash(ctx context.Context, arg UpdateHotFlashParams) error
+	// A full replace of the user-editable columns (kind and sort order stay).
+	UpdateTreatmentItem(ctx context.Context, arg UpdateTreatmentItemParams) error
 	// Writes only the four menopause columns (mode, onboarding and conditions are untouched; a user without a row gets
 	// one with the column defaults).
 	UpsertMenopauseProfile(ctx context.Context, arg UpsertMenopauseProfileParams) error
 	// One questionnaire per (user, month); filling it again replaces the answers.
 	UpsertMenopauseScore(ctx context.Context, arg UpsertMenopauseScoreParams) error
+	// One intake per (item, day): logging the day again replaces the amount and keeps the first taken_at.
+	UpsertTreatmentIntake(ctx context.Context, arg UpsertTreatmentIntakeParams) error
 }
 
 var _ Querier = (*Queries)(nil)

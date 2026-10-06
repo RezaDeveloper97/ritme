@@ -25,8 +25,9 @@ func init() {
 		labsSvc := labs.NewService(labs.Options{ // the record's lab rows (reads only)
 			DB: d.DB, Catalog: catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger), Logger: d.Logger,
 		})
-		h := healthrecord.NewHandlers(healthrecord.NewService(d.DB, labsSvc).
-			WithBundles(i18n.NewTranslationStore(translations.FS, d.Config.StoragePath)), clock.Real{})
+		bundles := i18n.NewTranslationStore(translations.FS, d.Config.StoragePath)
+		h := healthrecord.NewHandlers(healthrecord.NewService(d.DB, labsSvc).WithBundles(bundles).
+			WithProviders(menopauseReportSection(d, bundles)), clock.Real{})
 		writes := writeThrottle(d)
 
 		p := "/api/v1/health-record"

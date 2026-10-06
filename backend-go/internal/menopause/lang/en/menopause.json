@@ -7,12 +7,27 @@
         "flash_logged": "Hot flash logged",
         "flash_saved": "Hot flash saved",
         "flash_not_found": "Hot flash not found",
-        "score_saved": "This month's questionnaire was saved"
+        "score_saved": "This month's questionnaire was saved",
+        "item_saved": "Treatment saved",
+        "item_removed": "Treatment removed",
+        "item_not_found": "Treatment not found",
+        "item_limit": "You have reached the maximum number of treatments. Remove an old one first.",
+        "medication_limit": "You have reached the maximum number of medicines. Remove an old one first.",
+        "intake_saved": "Logged",
+        "intake_removed": "Log removed",
+        "side_effects_saved": "Side effects saved"
     },
     "validation": {
         "date_future": "You cannot log a future time.",
         "started_too_old": "You can log a hot flash from the last 7 days only.",
-        "answers_missing": "Answer every question."
+        "answers_missing": "Answer every question.",
+        "name_blank": "Enter a name.",
+        "stopped_before_start": "The stop date cannot be before the start date.",
+        "review_before_start": "The review date cannot be before the start date.",
+        "goal_too_many_sessions": "A weekly goal can be at most 21 sessions.",
+        "date_too_old": "You can log the last 30 days only.",
+        "item_inactive": "This treatment was not active on that day.",
+        "item_unknown": "This treatment was not found."
     },
     "patterns": {
         "needs_review": true,
@@ -41,6 +56,21 @@
         "month": "month",
         "months": "months",
         "answers": "answers",
-        "answers.*": "answer"
+        "answers.*": "answer",
+        "kind": "type",
+        "name": "name",
+        "dose": "dose",
+        "schedule": "schedule",
+        "form": "form",
+        "started_on": "start date",
+        "review_on": "review date",
+        "stopped_on": "stop date",
+        "weekly_goal": "weekly goal",
+        "goal_unit": "goal unit",
+        "remind": "reminder",
+        "amount": "amount",
+        "codes": "side effects",
+        "codes.*": "side effect",
+        "treatment_item_id": "treatment"
     }
 }

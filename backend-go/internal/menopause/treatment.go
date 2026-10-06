@@ -2,14 +2,15 @@ package menopause
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/ritme/backend-go/internal/menopause/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
-// Treatment kinds and units (treatment_items, CB-MENO-01). The treatment endpoints are CB-MENO-03's; the home only
-// reads the items and their intakes here.
+// Treatment kinds and units (treatment_items, CB-MENO-01). The home reads the items and their intakes here; the
+// treatment endpoints (CB-MENO-03) are in treatment_items.go / treatment_screen.go.
 const (
 	KindHRT       = "hrt"
 	KindLifestyle = "lifestyle"
@@ -62,9 +63,9 @@ func (s *Service) Treatment(ctx context.Context, userID uint64, today civildate.
 		return nil, fmt.Errorf("menopause: list treatment: %w", err)
 	}
 	from := today.AddDays(-(AdherenceDays - 1))
-	intakes, err := s.q.ListTreatmentIntakesInRange(ctx, store.ListTreatmentIntakesInRangeParams{UserID: userID, FromDate: from, ToDate: today})
+	intakes, err := s.itemIntakes(ctx, userID, items, from, today)
 	if err != nil {
-		return nil, fmt.Errorf("menopause: list intakes: %w", err)
+		return nil, err
 	}
 	out := []TreatmentToday{}
 	for _, it := range items {
@@ -75,22 +76,67 @@ func (s *Service) Treatment(ctx context.Context, userID uint64, today civildate.
 		if it.StartedOn.Valid && it.StartedOn.Date.After(from) {
 			t.Days = it.StartedOn.Date.DiffDays(today) + 1
 		}
-		for _, in := range intakes {
-			if in.TreatmentItemID != it.ID {
-				continue
-			}
+		for day, amount := range intakes[it.ID] {
 			t.DaysTaken++
-			if in.IntakeDate == today {
+			if day == today {
 				t.TakenToday = true
 			}
-			switch {
-			case in.Amount.Valid && in.Amount.Int16 > 0:
-				t.Amount += int(in.Amount.Int16) // minutes, or sessions logged as a number
-			case it.GoalUnit.String != UnitMinutes:
-				t.Amount++ // one session (or one intake)
-			}
+			t.Amount += amountOf(it, amount)
 		}
 		out = append(out, t)
+	}
+	return out, nil
+}
+
+// amountOf is what one intake adds to a weekly total: its minutes or sessions logged as a number, else one session
+// (or one intake); a minutes goal without minutes adds nothing.
+func amountOf(it store.TreatmentItem, amount sql.NullInt16) int {
+	switch {
+	case amount.Valid && amount.Int16 > 0:
+		return int(amount.Int16)
+	case it.GoalUnit.String != UnitMinutes:
+		return 1
+	}
+	return 0
+}
+
+// itemIntakes maps item id → taken day → amount over [from, to]: the item's own intakes plus the days its care
+// medication reminder was ticked in /care (no amount), so both screens agree.
+func (s *Service) itemIntakes(ctx context.Context, userID uint64, items []store.TreatmentItem, from, to civildate.Date,
+) (map[uint64]map[civildate.Date]sql.NullInt16, error) {
+	rows, err := s.q.ListTreatmentIntakesInRange(ctx, store.ListTreatmentIntakesInRangeParams{UserID: userID, FromDate: from, ToDate: to})
+	if err != nil {
+		return nil, fmt.Errorf("menopause: list intakes: %w", err)
+	}
+	out := map[uint64]map[civildate.Date]sql.NullInt16{}
+	add := func(id uint64, day civildate.Date, amount sql.NullInt16) {
+		if out[id] == nil {
+			out[id] = map[civildate.Date]sql.NullInt16{}
+		}
+		if _, seen := out[id][day]; !seen || amount.Valid {
+			out[id][day] = amount
+		}
+	}
+	for _, r := range rows {
+		add(r.TreatmentItemID, r.IntakeDate, r.Amount)
+	}
+	byReminder := map[uint64]uint64{}
+	for _, it := range items {
+		if it.ReminderID.Valid {
+			byReminder[uint64(it.ReminderID.Int64)] = it.ID //nolint:gosec // FK id
+		}
+	}
+	if len(byReminder) == 0 {
+		return out, nil
+	}
+	ticks, err := s.q.ListReminderIntakeDays(ctx, store.ListReminderIntakeDaysParams{UserID: userID, FromDate: from, ToDate: to})
+	if err != nil {
+		return nil, fmt.Errorf("menopause: list care intakes: %w", err)
+	}
+	for _, t := range ticks {
+		if id, ok := byReminder[t.ReminderID]; ok {
+			add(id, t.IntakeDate, sql.NullInt16{})
+		}
 	}
 	return out, nil
 }

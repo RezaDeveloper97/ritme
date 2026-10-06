@@ -3,7 +3,7 @@ id: CB-MENO-03
 title: Menopause API: treatment + report section
 epic: MENO
 type: backend
-status: todo
+status: done
 depends_on: [CB-MENO-01, B-N6-04]
 parallel_group: MENO-B
 touches: [backend-go/internal/menopause/treatment, backend-go/internal/menopause/report, backend-go/internal/healthrecord, backend-go/internal/http/routes_menopause.go, backend-go/db/queries/menopause, backend-go/api/openapi.yaml, backend-go/contract]

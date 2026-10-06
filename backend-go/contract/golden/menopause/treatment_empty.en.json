@@ -1,0 +1,156 @@
+{
+  "case": "menopause/treatment_empty.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/menopause/treatment",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-23",
+          "week": {
+            "from": "2026-09-19",
+            "to": "2026-09-25"
+          },
+          "items": {
+            "hrt": [],
+            "supplement": [],
+            "lifestyle": []
+          },
+          "stopped": [],
+          "review": null,
+          "side_effects": {
+            "codes": [
+              "breast_tenderness",
+              "spotting",
+              "headache",
+              "bloating",
+              "mood_change"
+            ],
+            "today": [],
+            "week": [
+              {
+                "date": "2026-09-19",
+                "codes": []
+              },
+              {
+                "date": "2026-09-20",
+                "codes": []
+              },
+              {
+                "date": "2026-09-21",
+                "codes": []
+              },
+              {
+                "date": "2026-09-22",
+                "codes": []
+              },
+              {
+                "date": "2026-09-23",
+                "codes": []
+              },
+              {
+                "date": "2026-09-24",
+                "codes": []
+              },
+              {
+                "date": "2026-09-25",
+                "codes": []
+              }
+            ]
+          },
+          "tips": [
+            {
+              "code": "hrt_review",
+              "title": "Review with your doctor",
+              "body": "Effects and side effects are usually reviewed about 3 months after starting.",
+              "meta": {
+                "placement": "treatment",
+                "review_after_months": 3
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "hrt_spotting",
+              "title": "Spotting in the first months",
+              "body": "Spotting is common in the first months, but tell your doctor if it continues or is heavy.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "doctor_only",
+              "title": "Only with your doctor",
+              "body": "Start, stop or change the dose of any medicine only with your doctor.",
+              "meta": {
+                "placement": "treatment"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_resistance",
+              "title": "Resistance exercise",
+              "body": "For bones and muscles",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 2,
+                "goal_unit": "sessions"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_brisk_walk",
+              "title": "Brisk walking",
+              "body": "150 minutes a week",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 150,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "lifestyle_relaxation",
+              "title": "Relaxation practice",
+              "body": "10 minutes, for hot flashes and sleep",
+              "meta": {
+                "placement": "treatment_lifestyle",
+                "weekly_goal": 70,
+                "goal_unit": "minutes"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

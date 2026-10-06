@@ -1,0 +1,278 @@
+{
+  "case": "menopause/report_builder_section",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/report?range=3m&sections=vitals%2Cmenopause",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "range": {
+            "key": "3m",
+            "from": "2026-06-25",
+            "to": "2026-09-23",
+            "days": 91
+          },
+          "record": {
+            "audience": "share",
+            "date": "2026-09-23",
+            "updated_at": "2026-09-23T05:30:00.000000Z",
+            "person": {
+              "name": "Contract regular",
+              "age": 30,
+              "gender": null,
+              "life_mode": "cycle"
+            },
+            "sections": [
+              {
+                "key": "vitals",
+                "editable": false,
+                "empty": true,
+                "data": {
+                  "from": "2026-06-25",
+                  "to": "2026-09-23",
+                  "days": 91,
+                  "blood_pressure": null,
+                  "heart_rate": null,
+                  "glucose_fasting": null,
+                  "glucose_after_meal": null,
+                  "glucose_other": null
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/profile/life-stage",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "mode": "menopause"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Life stage saved",
+        "data": {
+          "mode": "menopause",
+          "stored_mode": "menopause",
+          "ivf_iui": false,
+          "track_contraception": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/menopause/profile",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "stage": "peri",
+          "last_period": "2026-06-01"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "Your menopause stage was saved",
+        "data": {
+          "stage": "peri",
+          "stored_stage": "peri",
+          "last_period": "2026-06-01",
+          "surgical": null,
+          "hrt": null,
+          "months_without_period": 3,
+          "suggested_stage": null,
+          "needs_stage": false,
+          "post_menopausal": false,
+          "tip": {
+            "code": "stage_peri",
+            "title": "Perimenopause",
+            "body": "Periods may become irregular, lighter or heavier, and new symptoms may start. Logging periods and symptoms helps you see patterns and talk to your doctor in detail.",
+            "meta": {
+              "placement": "home",
+              "stages": [
+                "peri"
+              ]
+            },
+            "audiences": [
+              "menopause"
+            ],
+            "needs_review": true
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/menopause/hot-flashes",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "started_at": "2026-09-22 14:00",
+          "duration_s": 90
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "Hot flash logged",
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-22T14:00:00+03:30",
+          "running": false,
+          "duration_s": 90,
+          "elapsed_s": 90,
+          "severity": null,
+          "night": false,
+          "sweat": false,
+          "triggers": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/report?range=3m&sections=vitals%2Cmenopause",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "range": {
+            "key": "3m",
+            "from": "2026-06-25",
+            "to": "2026-09-23",
+            "days": 91
+          },
+          "record": {
+            "audience": "share",
+            "date": "2026-09-23",
+            "updated_at": "2026-09-23T06:30:00.000000Z",
+            "person": {
+              "name": "Contract regular",
+              "age": 30,
+              "gender": null,
+              "life_mode": "menopause"
+            },
+            "sections": [
+              {
+                "key": "vitals",
+                "editable": false,
+                "empty": true,
+                "data": {
+                  "from": "2026-06-25",
+                  "to": "2026-09-23",
+                  "days": 91,
+                  "blood_pressure": null,
+                  "heart_rate": null,
+                  "glucose_fasting": null,
+                  "glucose_after_meal": null,
+                  "glucose_other": null
+                }
+              },
+              {
+                "key": "menopause",
+                "editable": false,
+                "empty": false,
+                "data": {
+                  "window": {
+                    "from": "2026-06-25",
+                    "to": "2026-09-23",
+                    "days": 91
+                  },
+                  "stage": {
+                    "code": "peri",
+                    "months_without_period": 3,
+                    "surgical": null,
+                    "hrt": null
+                  },
+                  "score": null,
+                  "hot_flashes": {
+                    "total": 1,
+                    "per_day": 0.2,
+                    "tracked_days": 5
+                  },
+                  "night_sweats": {
+                    "nights": 0,
+                    "per_week": 0
+                  },
+                  "sleep": {
+                    "avg_hours": 7.5,
+                    "nights": 1
+                  },
+                  "bleeding": {
+                    "events": 1,
+                    "days": 2,
+                    "dates": [
+                      "2026-09-14"
+                    ]
+                  },
+                  "blood_pressure": null,
+                  "symptoms": {
+                    "tracked_days": 5,
+                    "top": [
+                      {
+                        "key": "symptoms.general.hot_flashes",
+                        "label": "Hot flashes",
+                        "days": 1,
+                        "percent": 20
+                      }
+                    ]
+                  },
+                  "treatment": {
+                    "hrt_adherence_pct": null,
+                    "items": [],
+                    "lifestyle": []
+                  },
+                  "side_effects": [],
+                  "supplements": []
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

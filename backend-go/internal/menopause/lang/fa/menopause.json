@@ -7,12 +7,27 @@
         "flash_logged": "گرگرفتگی ثبت شد",
         "flash_saved": "گرگرفتگی ذخیره شد",
         "flash_not_found": "گرگرفتگی پیدا نشد",
-        "score_saved": "پرسشنامه این ماه ذخیره شد"
+        "score_saved": "پرسشنامه این ماه ذخیره شد",
+        "item_saved": "درمان ذخیره شد",
+        "item_removed": "درمان حذف شد",
+        "item_not_found": "درمان پیدا نشد",
+        "item_limit": "به حداکثر تعداد درمان‌ها رسیده‌ای. اول یکی از قبلی‌ها را حذف کن.",
+        "medication_limit": "به حداکثر تعداد داروها رسیده‌ای. اول یکی از قبلی‌ها را حذف کن.",
+        "intake_saved": "ثبت شد",
+        "intake_removed": "ثبت حذف شد",
+        "side_effects_saved": "عوارض ذخیره شد"
     },
     "validation": {
         "date_future": "ثبت برای زمان آینده ممکن نیست.",
         "started_too_old": "فقط گرگرفتگی‌های ۷ روز گذشته را می‌توانی ثبت کنی.",
-        "answers_missing": "به همه سؤال‌ها جواب بده."
+        "answers_missing": "به همه سؤال‌ها جواب بده.",
+        "name_blank": "یک نام وارد کن.",
+        "stopped_before_start": "تاریخ قطع نمی‌تواند قبل از تاریخ شروع باشد.",
+        "review_before_start": "تاریخ بازبینی نمی‌تواند قبل از تاریخ شروع باشد.",
+        "goal_too_many_sessions": "هدف هفتگی حداکثر ۲۱ جلسه است.",
+        "date_too_old": "فقط ۳۰ روز گذشته را می‌توانی ثبت کنی.",
+        "item_inactive": "این درمان در آن روز فعال نبود.",
+        "item_unknown": "این درمان پیدا نشد."
     },
     "patterns": {
         "needs_review": true,
@@ -41,6 +56,21 @@
         "month": "ماه",
         "months": "تعداد ماه",
         "answers": "جواب‌ها",
-        "answers.*": "جواب"
+        "answers.*": "جواب",
+        "kind": "نوع",
+        "name": "نام",
+        "dose": "دوز",
+        "schedule": "زمان مصرف",
+        "form": "شکل دارو",
+        "started_on": "تاریخ شروع",
+        "review_on": "تاریخ بازبینی",
+        "stopped_on": "تاریخ قطع",
+        "weekly_goal": "هدف هفتگی",
+        "goal_unit": "واحد هدف",
+        "remind": "یادآور",
+        "amount": "مقدار",
+        "codes": "عوارض",
+        "codes.*": "عارضه",
+        "treatment_item_id": "درمان"
     }
 }

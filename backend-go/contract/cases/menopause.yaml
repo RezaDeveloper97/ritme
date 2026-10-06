@@ -211,3 +211,206 @@ cases:
     method: GET
     path: /api/v1/menopause/patterns
     status: 401
+
+  # ---------------- treatment & care (CB-MENO-03) ----------------
+  # Fixture day 2026-09-23 (Wednesday); its week is Sat 2026-09-19 … Fri 2026-09-25. Item ids start at 1 on the fresh
+  # dump. HRT / supplements are care medication reminders (reminder.id from the dump's auto-increment).
+  - name: treatment_empty
+    doc: No items yet; the treatment tips from meno_tips
+    method: GET
+    path: /api/v1/menopause/treatment
+    status: 200
+  - name: treatment_flow
+    doc: Board Meno_Treatment — estrogen gel (morning), calcium + D (noon, reminder muted), brisk walk 150 min/week; intakes, side effects, review date, delete
+    locales: en
+    steps:
+      - method: POST
+        path: /api/v1/menopause/treatment/items
+        body: {kind: hrt, name: Estrogen gel, dose: 1 pump, schedule: morning, started_on: "2026-08-01"}
+        status: 201
+      - method: POST
+        path: /api/v1/menopause/treatment/items
+        body: {kind: supplement, name: Calcium + vitamin D, schedule: noon, remind: false}
+        status: 201
+      - method: POST
+        path: /api/v1/menopause/treatment/items
+        body: {kind: lifestyle, name: Brisk walk, weekly_goal: 150, goal_unit: minutes, started_on: "2026-09-01"}
+        status: 201
+      - method: PUT
+        path: /api/v1/menopause/treatment/items/1/intakes/2026-09-23
+        status: 200
+      - method: PUT
+        path: /api/v1/menopause/treatment/items/1/intakes/2026-09-22
+        status: 200
+      - method: PUT
+        path: /api/v1/menopause/treatment/items/3/intakes/2026-09-23
+        body: {amount: 30}
+        status: 200
+      - method: PUT
+        path: /api/v1/menopause/treatment/side-effects/2026-09-23
+        body: {codes: [spotting, breast_tenderness], treatment_item_id: 1}
+        status: 200
+      - method: PUT
+        path: /api/v1/menopause/treatment/items/1
+        body: {name: Estrogen gel, dose: 1 pump, schedule: morning, started_on: "2026-08-01", review_on: "2026-11-21"}
+        status: 200
+      - method: DELETE
+        path: /api/v1/menopause/treatment/items/1/intakes/2026-09-22
+        status: 200
+      - method: DELETE
+        path: /api/v1/menopause/treatment/items/2
+        status: 200
+      - method: GET
+        path: /api/v1/menopause/treatment
+        query: {date: "2026-09-23"}
+        status: 200
+  - name: treatment_stop
+    doc: Stopping an item moves it to «stopped» and switches its care reminder off
+    locales: en
+    steps:
+      - method: POST
+        path: /api/v1/menopause/treatment/items
+        body: {kind: hrt, name: Progesterone, schedule: night, started_on: "2026-08-01"}
+        status: 201
+      - method: PUT
+        path: /api/v1/menopause/treatment/items/1
+        body: {name: Progesterone, schedule: night, started_on: "2026-08-01", stopped_on: "2026-09-23"}
+        status: 200
+  - name: treatment_invalid
+    doc: hrt without a schedule, blank name, a future stop date
+    method: POST
+    path: /api/v1/menopause/treatment/items
+    body: {kind: hrt, name: "", stopped_on: "2026-09-30"}
+    status: 422
+  - name: treatment_intake_invalid
+    doc: A minutes goal needs the minutes; a future day; a day before the start
+    locales: en
+    steps:
+      - method: POST
+        path: /api/v1/menopause/treatment/items
+        body: {kind: lifestyle, name: Brisk walk, weekly_goal: 150, goal_unit: minutes, started_on: "2026-09-20"}
+        status: 201
+      - method: PUT
+        path: /api/v1/menopause/treatment/items/1/intakes/2026-09-23
+        status: 422
+      - method: PUT
+        path: /api/v1/menopause/treatment/items/1/intakes/2026-09-24
+        body: {amount: 30}
+        status: 422
+      - method: PUT
+        path: /api/v1/menopause/treatment/items/1/intakes/2026-09-19
+        body: {amount: 30}
+        status: 422
+  - name: treatment_not_found
+    locales: en
+    steps:
+      - method: PUT
+        path: /api/v1/menopause/treatment/items/999
+        body: {name: x, schedule: night}
+        status: 404
+      - method: DELETE
+        path: /api/v1/menopause/treatment/items/999
+        status: 404
+      - method: PUT
+        path: /api/v1/menopause/treatment/items/999/intakes/2026-09-23
+        status: 404
+  - name: side_effects_invalid
+    locales: en
+    method: PUT
+    path: /api/v1/menopause/treatment/side-effects/2026-09-23
+    body: {codes: [rash]}
+    status: 422
+  - name: side_effects_foreign_item
+    locales: en
+    method: PUT
+    path: /api/v1/menopause/treatment/side-effects/2026-09-23
+    body: {codes: [headache], treatment_item_id: 999}
+    status: 422
+  - name: treatment_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/menopause/treatment
+    status: 401
+  - name: treatment_item_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/menopause/treatment/items
+    status: 401
+
+  # ---------------- doctor report (CB-MENO-03) ----------------
+  - name: report_empty
+    doc: No menopause data (the regular persona's own log days still count as tracked)
+    method: GET
+    path: /api/v1/menopause/report
+    status: 200
+  - name: report_flow
+    doc: Board Meno_Report — stage meno, a sweaty night flash, the month's score, HRT with an intake, a side effect; 1-month window
+    locales: en
+    steps:
+      - method: PUT
+        path: /api/v1/menopause/profile
+        body: {stage: meno, last_period: "2025-07-01"}
+        status: 200
+      - method: POST
+        path: /api/v1/menopause/hot-flashes
+        body: {started_at: "2026-09-23 03:20", duration_s: 180, severity: moderate, sweat: true}
+        status: 201
+      - method: POST
+        path: /api/v1/menopause/scores
+        body:
+          answers: {hot_flashes: 3, heart_discomfort: 1, sleep_problems: 2, joint_muscle: 1, depressive_mood: 1,
+                    irritability: 1, anxiety: 1, exhaustion: 1, sexual_problems: 1, bladder_problems: 0, vaginal_dryness: 2}
+        status: 200
+      - method: POST
+        path: /api/v1/menopause/treatment/items
+        body: {kind: hrt, name: Estrogen gel, schedule: morning, started_on: "2026-09-20"}
+        status: 201
+      - method: PUT
+        path: /api/v1/menopause/treatment/items/1/intakes/2026-09-22
+        status: 200
+      - method: PUT
+        path: /api/v1/menopause/treatment/side-effects/2026-09-22
+        body: {codes: [breast_tenderness]}
+        status: 200
+      - method: GET
+        path: /api/v1/menopause/report
+        query: {months: "1"}
+        status: 200
+  - name: report_builder_section
+    doc: The `menopause` section of bloom's report builder (share audience) — absent before menopause mode, then built over the 3-month window
+    locales: en
+    steps:
+      - method: GET
+        path: /api/v1/health-record/report
+        query: {range: 3m, sections: "vitals,menopause"}
+        status: 200
+      - method: PUT
+        path: /api/v1/profile/life-stage
+        body: {mode: menopause}
+        status: 200
+      - method: PUT
+        path: /api/v1/menopause/profile
+        body: {stage: peri, last_period: "2026-06-01"}
+        status: 200
+      - method: POST
+        path: /api/v1/menopause/hot-flashes
+        body: {started_at: "2026-09-22 14:00", duration_s: 90}
+        status: 201
+      - method: GET
+        path: /api/v1/health-record/report
+        query: {range: 3m, sections: "vitals,menopause"}
+        status: 200
+  - name: report_invalid
+    locales: en
+    method: GET
+    path: /api/v1/menopause/report
+    query: {months: "2"}
+    status: 422
+  - name: report_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/menopause/report
+    status: 401

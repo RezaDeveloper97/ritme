@@ -1,0 +1,27 @@
+{
+  "case": "menopause/report_invalid",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/menopause/report?months=2",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errors": {
+          "months": [
+            "The selected months is invalid."
+          ]
+        }
+      }
+    }
+  ]
+}
