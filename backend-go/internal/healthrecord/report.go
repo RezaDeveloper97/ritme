@@ -49,6 +49,7 @@ type ReportRequest struct {
 // Options are the Build options of the request for today.
 func (r ReportRequest) Options(today civildate.Date, locale, def string) Options {
 	o := Options{Today: today, Locale: locale, DefaultLocale: def, Sections: r.Sections}
+	o.ListFrom, _ = r.Window(today) // checkups and labs inside the window only (B-N6-04b, L-2)
 	if r.Range == ReportRangeCustom {
 		o.From = r.From
 	} else {

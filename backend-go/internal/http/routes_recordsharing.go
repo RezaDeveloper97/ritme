@@ -127,7 +127,7 @@ func init() {
 		if pepperMissing {
 			d.Logger.Warn("SHARE_CODE_PEPPER is not set in production: 24h doctor codes are disabled (503)")
 		}
-		svc := sharelinks.NewService(sharelinkstore.New(d.DB), reports, d.Logger).
+		svc := sharelinks.NewService(sharelinkstore.New(d.DB), reports, d.Logger).WithDB(d.DB).
 			WithCodes([]byte(d.Config.Sharing.CodePepper), pepperMissing).
 			WithDocuments(sharelinks.NewRecordDocuments(d.DB), fileSvc)
 		family := companionFamily{svc: companion.NewService(d.DB, clock.Real{}, companion.Options{

@@ -64,7 +64,7 @@ func setup(t *testing.T) *env {
 	locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(db), nil, quiet))
 	records := healthrecord.NewService(db, nil)
 	rh := healthrecord.NewHandlers(records, clock.Fixed(fixed))
-	svc := sharelinks.NewService(store.New(db), records, quiet)
+	svc := sharelinks.NewService(store.New(db), records, quiet).WithDB(db)
 	h := sharelinks.NewHandlers(svc, clock.Fixed(fixed))
 	plusSvc := plus.NewService(db, config.Plus{TrialDays: 7}, nil, quiet)
 	gate := plus.NewGate(plusSvc, clock.Real{})

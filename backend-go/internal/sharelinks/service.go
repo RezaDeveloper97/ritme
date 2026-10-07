@@ -35,6 +35,7 @@ type Reports interface {
 // Service creates, lists, revokes and opens share links. Owner calls are scoped by the user id they are given.
 type Service struct {
 	q       store.Querier
+	db      *sql.DB // WithDB: link creates run count + insert in one transaction under the user row lock (B-N6-04b)
 	reports Reports
 	rand    io.Reader
 	logger  *slog.Logger
@@ -50,6 +51,40 @@ func NewService(q store.Querier, reports Reports, logger *slog.Logger) *Service 
 		logger = slog.Default()
 	}
 	return &Service{q: q, reports: reports, rand: rand.Reader, logger: logger} // coder nil = codes off until WithCodes (fail closed)
+}
+
+// WithDB gives the service the database handle its creates take the user row lock on, so the active-link cap holds
+// under concurrent POSTs. Without it (unit wiring) count and insert run unlocked.
+func (s *Service) WithDB(db *sql.DB) *Service { s.db = db; return s }
+
+// inTx runs fn on queries bound to one transaction (or on s.q without WithDB).
+func (s *Service) inTx(ctx context.Context, fn func(q store.Querier) error) error {
+	if s.db == nil {
+		return fn(s.q)
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("sharelinks: begin: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	if err := fn(store.New(tx)); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("sharelinks: commit: %w", err)
+	}
+	return nil
+}
+
+// lockOwner takes the user row lock that serialises one user's link creates (a no-op without WithDB).
+func (s *Service) lockOwner(ctx context.Context, q store.Querier, userID uint64) error {
+	if s.db == nil {
+		return nil
+	}
+	if _, err := q.LockShareLinkOwner(ctx, userID); err != nil {
+		return fmt.Errorf("sharelinks: lock owner: %w", err)
+	}
+	return nil
 }
 
 // WithRand replaces the token / nonce source (tests).
@@ -131,6 +166,7 @@ type Created struct {
 func (s *Service) Create(ctx context.Context, userID uint64, req healthrecord.ReportRequest, now time.Time,
 	locale, def string,
 ) (Created, error) {
+	// Unlocked fast path: a user at the cap gets the 409 before the report is built (re-checked under the lock below).
 	n, err := s.q.CountActiveShareLinks(ctx, store.CountActiveShareLinksParams{UserID: userID, Now: stamp(now)})
 	if err != nil {
 		return Created{}, fmt.Errorf("sharelinks: count: %w", err)
@@ -166,12 +202,30 @@ func (s *Service) Create(ctx context.Context, userID uint64, req healthrecord.Re
 	today := civildate.InTehran(now)
 	from, to := req.Window(today)
 	expires := now.Add(LinkTTL)
-	id, err := s.q.InsertShareLink(ctx, store.InsertShareLinkParams{
-		UserID: userID, TokenHash: HashToken(token), Payload: sql.NullString{String: payload, Valid: true},
-		Sections: sections, RangeFrom: from, RangeTo: to, ExpiresAt: stamp(expires), Now: stamp(now),
+	var id int64
+	// The cap check and the insert share one transaction under the user row lock: parallel POSTs cannot pass MaxActive.
+	err = s.inTx(ctx, func(q store.Querier) error {
+		if err := s.lockOwner(ctx, q, userID); err != nil {
+			return err
+		}
+		n, err := q.CountActiveShareLinks(ctx, store.CountActiveShareLinksParams{UserID: userID, Now: stamp(now)})
+		if err != nil {
+			return fmt.Errorf("sharelinks: count: %w", err)
+		}
+		if n >= MaxActive {
+			return ErrLimit
+		}
+		id, err = q.InsertShareLink(ctx, store.InsertShareLinkParams{
+			UserID: userID, TokenHash: HashToken(token), Payload: sql.NullString{String: payload, Valid: true},
+			Sections: sections, RangeFrom: from, RangeTo: to, ExpiresAt: stamp(expires), Now: stamp(now),
+		})
+		if err != nil {
+			return fmt.Errorf("sharelinks: insert: %w", err)
+		}
+		return nil
 	})
 	if err != nil {
-		return Created{}, fmt.Errorf("sharelinks: insert: %w", err)
+		return Created{}, err
 	}
 	return Created{
 		Link: Link{

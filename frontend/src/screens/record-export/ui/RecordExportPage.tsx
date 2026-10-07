@@ -1,7 +1,8 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 import { MAX_REPORT_QUESTION, REPORT_RANGES, type ReportRange, useHealthReport } from '@/entities/health-record';
 import { useLanguages } from '@/entities/language';
@@ -21,7 +22,7 @@ import {
   Switch,
 } from '@/shared/ui';
 
-import { isValidFrom, REPORT_GROUPS, selectionOf, useReportDraft } from '../model/selection';
+import { isValidFrom, parseGroup, REPORT_GROUPS, SECTION_PARAM, selectionOf, useReportDraft } from '../model/selection';
 import { ShareLinkSheet } from './ShareLinkSheet';
 import { estimatePages, usePaperModel, usePdfDownload } from './usePaper';
 
@@ -39,6 +40,16 @@ export function RecordExportPage() {
   const [sharing, setSharing] = useState(false);
   const questionId = useId();
   const noneId = useId();
+
+  // `?section=` from a share entry point (vitals report, lab result): preselect once, then drop the param so the
+  // user's own toggles survive a round trip through the preview.
+  const preset = parseGroup(useSearchParams().get(SECTION_PARAM));
+  const { preselect } = draft;
+  useEffect(() => {
+    if (!preset) return;
+    preselect(preset);
+    router.replace('/record/export');
+  }, [preset, preselect, router]);
 
   const ready = selection.sections.length > 0 && (draft.range !== 'custom' || !!draft.from);
   const report = useHealthReport(selection, ready);

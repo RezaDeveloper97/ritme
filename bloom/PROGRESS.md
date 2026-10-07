@@ -1043,3 +1043,14 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   A1 compact `/analysis/labs` rows per An_Labs), 17 low open. T1: local API served stale `todo.progressShort` /
   missing `vitals.weekdays.*` (DB translation copy older than the seed — resyncs on restart/deploy).
 - Side-by-side shots `docs/qa/bloom/B-N6-09/side-by-side/`.
+
+## B-N6-04b — Doctor report follow-ups
+
+- Security L-2: `Options.ListFrom` = report window start for every range (3m/6m/1y/custom) bounds checkups
+  (`done_on`) and labs (sheet date, else upload day) in `/health-record/report` + share snapshots; owner record and
+  emergency card unchanged (latest 5).
+- L-3: active-link cap atomic for both create paths (`Create` ≤10 report links, CB-REC-03 `CreateSummary` ≤5): count +
+  insert in one tx with `SELECT … FOR UPDATE` on the user row (`LockShareLinkOwner`, `Service.WithDB`); race tests
+  (12 / 9 goroutines) fail without the lock.
+- Header «اشتراک با پزشک» on vitals reports and the ready lab result → `/record/export?section=vitals|checkups`
+  (basics + that section preselected, param dropped after). PWA install prompt hidden on `/shared/*`. QUESTIONS #117.

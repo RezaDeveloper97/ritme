@@ -28,6 +28,23 @@ export const DEFAULT_GROUPS: Record<ReportGroup, boolean> = {
   pregnancies: false,
 };
 
+/**
+ * `?section=<group>` (B-N6-04b): the share entry points («اشتراک با پزشک» on the vitals report → `vitals`, on a lab
+ * result → `checkups`) open the builder with that group preselected. Unknown values are ignored.
+ */
+export const SECTION_PARAM = 'section';
+
+/** The group named by a `?section=` value, or null. */
+export function parseGroup(value: string | null): ReportGroup | null {
+  return (REPORT_GROUPS as readonly string[]).includes(value ?? '') ? (value as ReportGroup) : null;
+}
+
+/** Toggles for an entry point: the basics (who the patient is) plus the group it came from, nothing else. */
+export function preselectedGroups(group: ReportGroup): Record<ReportGroup, boolean> {
+  const out = Object.fromEntries(REPORT_GROUPS.map((g) => [g, false])) as Record<ReportGroup, boolean>;
+  return { ...out, basics: true, [group]: true };
+}
+
 /** API section keys of the chosen groups, in API screen order. */
 export function sectionsOf(groups: Record<ReportGroup, boolean>): ReportSection[] {
   const picked = new Set(REPORT_GROUPS.filter((g) => groups[g]).flatMap((g) => GROUP_SECTIONS[g]));
@@ -51,6 +68,7 @@ interface ReportDraft {
   setRange: (range: ReportRange, from?: string | null) => void;
   toggle: (group: ReportGroup, on: boolean) => void;
   setQuestion: (q: string) => void;
+  preselect: (group: ReportGroup) => void;
 }
 
 export const useReportDraft = create<ReportDraft>((set) => ({
@@ -61,6 +79,7 @@ export const useReportDraft = create<ReportDraft>((set) => ({
   setRange: (range, from = null) => set({ range, from: range === 'custom' ? from : null }),
   toggle: (group, on) => set((s) => ({ groups: { ...s.groups, [group]: on } })),
   setQuestion: (question) => set({ question }),
+  preselect: (group) => set({ groups: preselectedGroups(group) }),
 }));
 
 /** The draft as the API selection. */

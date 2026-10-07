@@ -4102,6 +4102,7 @@
    "result": {
     "title": "نتیجه تحلیل",
     "subtitle": "{title} · {date}",
+    "shareDoctor": "اشتراک با پزشک",
     "flagMore": "جزئیات",
     "ringLabel": "سهم شاخص‌های طبیعی",
     "ringValue": "{normal} از {total} طبیعی",
@@ -8838,6 +8839,7 @@
      "hr": "گزارش ضربان قلب"
     },
     "subtitle": "{range} اخیر · {n} ثبت",
+    "shareDoctor": "اشتراک با پزشک",
     "rangeTabs": "بازه گزارش",
     "filterTabs": "نوع اندازه‌گیری",
     "ranges": {

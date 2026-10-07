@@ -155,6 +155,7 @@
   "result": {
     "title": "Analysis result",
     "subtitle": "{title} · {date}",
+    "shareDoctor": "Share with a doctor",
     "flagMore": "Details",
     "ringLabel": "Share of normal markers",
     "ringValue": "{normal} of {total} normal",

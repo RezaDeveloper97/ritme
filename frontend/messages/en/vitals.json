@@ -218,6 +218,7 @@
       "hr": "Heart rate report"
     },
     "subtitle": "Last {range} · {n} readings",
+    "shareDoctor": "Share with a doctor",
     "rangeTabs": "Report range",
     "filterTabs": "Measurement type",
     "ranges": {

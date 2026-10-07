@@ -11,6 +11,7 @@ import { useMounted } from '@/shared/lib/use-mounted';
 import {
   Card,
   EmptyState,
+  HeaderButton,
   Icon,
   IconCircle,
   InfoNote,
@@ -96,6 +97,11 @@ export function LabResultPage({ id }: { id: number }) {
       }
       onBack={() => router.push('/labs')}
       backLabel={t('common.back')}
+      action={
+        lab.data?.status === 'ready' ? (
+          <HeaderButton icon="export" label={t('result.shareDoctor')} onClick={() => router.push('/record/export?section=checkups')} />
+        ) : undefined
+      }
     />
   );
 

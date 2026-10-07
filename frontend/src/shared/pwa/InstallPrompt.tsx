@@ -3,6 +3,8 @@
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
+import { usePathname } from '@/shared/i18n';
+
 import { isShellUserAgent } from './shell';
 
 // Icon paths from Material Symbols (via Iconify): ios-share, add-box-outline,
@@ -103,6 +105,14 @@ function isInAppBrowser(): boolean {
 }
 
 /**
+ * The public read-only doctor view (`/shared/*`, B-N6-04b) is opened by someone who is not a Ritme user: no «نصب
+ * اپ» there. `pathname` is locale-free.
+ */
+export function hidesInstallPrompt(pathname: string): boolean {
+  return pathname === '/shared' || pathname.startsWith('/shared/');
+}
+
+/**
  * Custom install affordance. On Chromium (Android/desktop) it captures
  * `beforeinstallprompt` and shows a native-prompt button; on iOS Safari —
  * which has no install event — it shows Add-to-Home-Screen instructions
@@ -116,6 +126,7 @@ export function InstallPrompt() {
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [showIosGuide, setShowIosGuide] = useState(false);
   const [showInAppHint, setShowInAppHint] = useState(false);
+  const hidden = hidesInstallPrompt(usePathname());
 
   useEffect(() => {
     if (isNativeShell() || isStandalone() || wasDismissed()) return;
@@ -149,6 +160,8 @@ export function InstallPrompt() {
     setShowIosGuide(false);
     setShowInAppHint(false);
   };
+
+  if (hidden) return null;
 
   const install = async () => {
     if (!installEvent) return;

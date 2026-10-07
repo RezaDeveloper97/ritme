@@ -98,6 +98,10 @@ type Options struct {
 	Checkups, Labs int
 	// From, when set, is a custom report window [From, Today] (B-N6-04): it replaces CycleRange and VitalsDays.
 	From civildate.Date
+	// ListFrom, when set, bounds the listed checkups (done_on >= ListFrom) and labs (sheet date, else upload day,
+	// >= ListFrom): the doctor report sets it to its window start for every range (B-N6-04b). Zero = the newest
+	// Checkups / Labs rows whatever their date (the owner's record).
+	ListFrom civildate.Date
 }
 
 func (o Options) withDefaults() Options {
@@ -582,6 +586,10 @@ func (s *Service) checkupsSection(ctx context.Context, userID uint64, opts Optio
 	}
 	items := make([]*jsonx.OrderedMap, 0, len(rows))
 	for _, r := range rows {
+		// Rows come newest first, so the in-window rows are a prefix: filtering the newest N keeps the newest N in it.
+		if !opts.ListFrom.IsZero() && r.DoneOn.Before(opts.ListFrom) {
+			break
+		}
 		var key, icon any
 		if r.CheckupKey.Valid && r.CheckupKey.String != "" {
 			key = r.CheckupKey.String
@@ -601,6 +609,15 @@ func (s *Service) labsSection(ctx context.Context, userID uint64, opts Options) 
 		var err error
 		if items, err = s.labs.RecordLabs(ctx, userID, opts.Locale, opts.DefaultLocale, opts.Labs); err != nil {
 			return Section{}, err
+		}
+	}
+	if !opts.ListFrom.IsZero() { // newest first: keep the in-window prefix (`date` = sheet date, else upload day)
+		from := opts.ListFrom.String()
+		for i, it := range items {
+			if v, _ := it.Get("date"); fmt.Sprint(v) < from {
+				items = items[:i]
+				break
+			}
 		}
 	}
 	return Section{Key: SectionLabs, Empty: len(items) == 0, Data: jsonx.Obj("items", items)}, nil

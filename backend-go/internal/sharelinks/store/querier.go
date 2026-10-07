@@ -33,6 +33,9 @@ type Querier interface {
 	ListShareLinkAccess(ctx context.Context, arg ListShareLinkAccessParams) ([]ListShareLinkAccessRow, error)
 	ListShareLinks(ctx context.Context, arg ListShareLinksParams) ([]ListShareLinksRow, error)
 	ListSummaryLinks(ctx context.Context, arg ListSummaryLinksParams) ([]ListSummaryLinksRow, error)
+	// First statement of a link create (report or summary): the user row lock serialises one user's creates, so the
+	// active-link count that follows and the insert cannot race past the cap (B-N6-04b, same as LockRecordOwner).
+	LockShareLinkOwner(ctx context.Context, id uint64) (uint64, error)
 	PurgeExpiredShareLinks(ctx context.Context, arg PurgeExpiredShareLinksParams) (int64, error)
 	RevokeShareLink(ctx context.Context, arg RevokeShareLinkParams) (int64, error)
 	RevokeSummaryLink(ctx context.Context, arg RevokeSummaryLinkParams) (int64, error)

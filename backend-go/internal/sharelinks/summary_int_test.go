@@ -24,7 +24,7 @@ func TestSummary_ShareAudienceExpiryPurgeAndPepper(t *testing.T) {
 	ctx := context.Background()
 	uid, _ := e.user(t, "09120000301", false)
 	e.seed(t, uid)
-	svc := sharelinks.NewService(store.New(e.db), healthrecord.NewService(e.db, nil), quiet).
+	svc := sharelinks.NewService(store.New(e.db), healthrecord.NewService(e.db, nil), quiet).WithDB(e.db).
 		WithCodes([]byte("pepper-0123456789-0123456789-0123456789"), false)
 
 	created, err := svc.CreateSummary(ctx, uid, summaryReq(), fixed, "en", "fa")
@@ -42,13 +42,13 @@ func TestSummary_ShareAudienceExpiryPurgeAndPepper(t *testing.T) {
 	assert.Contains(t, string(raw), `"documents":[]`, "no document unless explicitly picked")
 
 	// Another pepper (or a rotated one) opens nothing; neither does the bloom report path for the code.
-	other := sharelinks.NewService(store.New(e.db), healthrecord.NewService(e.db, nil), quiet).
+	other := sharelinks.NewService(store.New(e.db), healthrecord.NewService(e.db, nil), quiet).WithDB(e.db).
 		WithCodes([]byte("another-pepper-0123456789-0123456789"), false)
 	_, err = other.OpenCode(ctx, created.Code, fixed.Add(time.Hour), sharelinks.Viewer{})
 	assert.ErrorIs(t, err, sharelinks.ErrNotFound)
 
 	// Kill switch: production without a pepper.
-	off := sharelinks.NewService(store.New(e.db), healthrecord.NewService(e.db, nil), quiet).WithCodes(nil, true)
+	off := sharelinks.NewService(store.New(e.db), healthrecord.NewService(e.db, nil), quiet).WithDB(e.db).WithCodes(nil, true)
 	_, err = off.CreateSummary(ctx, uid, summaryReq(), fixed, "en", "fa")
 	assert.ErrorIs(t, err, sharelinks.ErrCodesDisabled)
 	_, err = off.OpenCode(ctx, created.Code, fixed, sharelinks.Viewer{})

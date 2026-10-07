@@ -6,6 +6,11 @@ INSERT INTO `health_share_links` (user_id, token_hash, payload, sections, range_
 VALUES (sqlc.arg(user_id), sqlc.arg(token_hash), sqlc.arg(payload), sqlc.arg(sections), sqlc.arg(range_from), sqlc.arg(range_to),
         sqlc.arg(expires_at), sqlc.arg(now), sqlc.arg(now));
 
+-- name: LockShareLinkOwner :one
+-- First statement of a link create (report or summary): the user row lock serialises one user's creates, so the
+-- active-link count that follows and the insert cannot race past the cap (B-N6-04b, same as LockRecordOwner).
+SELECT id FROM `users` WHERE id = sqlc.arg(id) FOR UPDATE;
+
 -- name: CountActiveShareLinks :one
 SELECT COUNT(*) FROM `health_share_links`
 WHERE user_id = sqlc.arg(user_id) AND kind = 'report' AND revoked_at IS NULL AND expires_at > sqlc.arg(now);

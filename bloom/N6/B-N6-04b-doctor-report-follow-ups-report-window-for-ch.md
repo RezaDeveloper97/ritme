@@ -3,7 +3,7 @@ id: B-N6-04b
 title: Doctor report follow-ups — report window for checkups/labs, atomic link cap, share entry points
 milestone: N6
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N6-04]
 parallel_group: N6-D2
 touches: [backend-go/internal/healthrecord,backend-go/internal/sharelinks,frontend/src/screens/vitals-report,frontend/src/screens/lab-result]

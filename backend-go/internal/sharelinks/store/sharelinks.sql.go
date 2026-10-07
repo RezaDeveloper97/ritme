@@ -225,6 +225,19 @@ func (q *Queries) ListShareLinks(ctx context.Context, arg ListShareLinksParams) 
 	return items, nil
 }
 
+const lockShareLinkOwner = `-- name: LockShareLinkOwner :one
+SELECT id FROM ` + "`" + `users` + "`" + ` WHERE id = ? FOR UPDATE
+`
+
+// First statement of a link create (report or summary): the user row lock serialises one user's creates, so the
+// active-link count that follows and the insert cannot race past the cap (B-N6-04b, same as LockRecordOwner).
+func (q *Queries) LockShareLinkOwner(ctx context.Context, id uint64) (uint64, error) {
+	row := q.db.QueryRowContext(ctx, lockShareLinkOwner, id)
+	var id_2 uint64
+	err := row.Scan(&id_2)
+	return id_2, err
+}
+
 const purgeExpiredShareLinks = `-- name: PurgeExpiredShareLinks :execrows
 UPDATE ` + "`" + `health_share_links` + "`" + `
 SET payload = NULL, code_payload = NULL, updated_at = ?

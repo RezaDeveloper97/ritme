@@ -33,6 +33,7 @@ import {
   Card,
   ChipGroup,
   EmptyState,
+  HeaderButton,
   Icon,
   InfoNote,
   PillChip,
@@ -132,7 +133,13 @@ export function VitalsReportPage({ type }: { type: VitalType }) {
     <div className="view vt-screen vt-report-screen">
       <SkyLayer />
       <div className="scroll vt-scroll">
-        <ScreenHeader title={t(`report.titles.${type}`)} subtitle={subtitle} onBack={() => router.push('/vitals')} backLabel={t('common.back')} />
+        <ScreenHeader
+          title={t(`report.titles.${type}`)}
+          subtitle={subtitle}
+          onBack={() => router.push('/vitals')}
+          backLabel={t('common.back')}
+          action={<HeaderButton icon="export" label={t('report.shareDoctor')} onClick={() => router.push('/record/export?section=vitals')} />}
+        />
         <div className="vt-report-tabs">
           {type === 'glucose' ? (
             <>

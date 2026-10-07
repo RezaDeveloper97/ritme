@@ -155,6 +155,7 @@
   "result": {
     "title": "نتیجه تحلیل",
     "subtitle": "{title} · {date}",
+    "shareDoctor": "اشتراک با پزشک",
     "flagMore": "جزئیات",
     "ringLabel": "سهم شاخص‌های طبیعی",
     "ringValue": "{normal} از {total} طبیعی",

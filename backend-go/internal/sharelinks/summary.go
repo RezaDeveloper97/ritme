@@ -133,6 +133,7 @@ func (s *Service) CreateSummary(ctx context.Context, userID uint64, req SummaryR
 	if s.coder == nil {
 		return CreatedSummary{}, ErrCodesDisabled
 	}
+	// Unlocked fast path before the build; re-checked under the user row lock at insert.
 	n, err := s.q.CountActiveSummaryLinks(ctx, store.CountActiveSummaryLinksParams{UserID: userID, Now: stamp(now)})
 	if err != nil {
 		return CreatedSummary{}, fmt.Errorf("sharelinks: count summaries: %w", err)
@@ -164,6 +165,35 @@ func (s *Service) CreateSummary(ctx context.Context, userID uint64, req SummaryR
 	sections, _ := json.Marshal(req.Report.Sections)
 	from, to := req.Report.Window(civildate.InTehran(now))
 	expires := now.Add(SummaryTTL)
+	var out CreatedSummary
+	// The cap check and the insert share one transaction under the user row lock (B-N6-04b): parallel creates cannot
+	// pass MaxActiveSummaries. A duplicate-key insert fails only its statement, so the retry stays in the transaction.
+	err = s.inTx(ctx, func(q store.Querier) error {
+		if err := s.lockOwner(ctx, q, userID); err != nil {
+			return err
+		}
+		n, err := q.CountActiveSummaryLinks(ctx, store.CountActiveSummaryLinksParams{UserID: userID, Now: stamp(now)})
+		if err != nil {
+			return fmt.Errorf("sharelinks: count summaries: %w", err)
+		}
+		if n >= MaxActiveSummaries {
+			return ErrSummaryLimit
+		}
+		out, err = s.insertSummary(ctx, q, userID, req, plain, sections, from, to, expires, now)
+		return err
+	})
+	if err != nil {
+		return CreatedSummary{}, err
+	}
+	out.Documents = len(docs)
+	return out, nil
+}
+
+// insertSummary draws a token and a code, seals plain under them and inserts the summary row (redrawing on a code
+// collision).
+func (s *Service) insertSummary(ctx context.Context, q store.Querier, userID uint64, req SummaryRequest, plain,
+	sections []byte, from, to civildate.Date, expires, now time.Time,
+) (CreatedSummary, error) {
 	for range codeAttempts {
 		token, err := NewToken(s.rand)
 		if err != nil {
@@ -181,7 +211,7 @@ func (s *Service) CreateSummary(ctx context.Context, userID uint64, req SummaryR
 		if err != nil {
 			return CreatedSummary{}, err
 		}
-		id, err := s.q.InsertSummaryLink(ctx, store.InsertSummaryLinkParams{
+		id, err := q.InsertSummaryLink(ctx, store.InsertSummaryLinkParams{
 			UserID: userID, Label: sql.NullString{String: req.Label, Valid: req.Label != ""}, TokenHash: HashToken(token),
 			CodeHash:    sql.NullString{String: s.coder.Hash(code), Valid: true},
 			CodePayload: sql.NullString{String: wrapped, Valid: true},
@@ -200,7 +230,7 @@ func (s *Service) CreateSummary(ctx context.Context, userID uint64, req SummaryR
 					ExpiresAt: expires, CreatedAt: now},
 				Label: req.Label,
 			},
-			Token: token, Code: code, Documents: len(docs),
+			Token: token, Code: code,
 		}, nil
 	}
 	return CreatedSummary{}, errors.New("sharelinks: no free code after retries")
