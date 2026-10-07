@@ -4,7 +4,7 @@ title: N8 rollout — stage deploy incl. instructor.ritmeapp.ir, e2e
 milestone: N8
 type: release
 status: todo
-depends_on: [B-N8-08,B-N8-09]
+depends_on: [B-N8-08,B-N8-09,B-N8-01b]
 parallel_group: N8-J
 touches: [docs/qa/bloom,bloom/PROGRESS.md]
 skills: [verify-all,deploy-stage]
