@@ -1,0 +1,164 @@
+# Courses (/api/v1/learning*, /api/instructor/v1*) — Go only (bloom B-N8-01, deviations.md D-68): there is no Laravel
+# route, so these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The fixture
+# dump carries the empty learning_* tables (goose 00046 / Laravel 2026_10_07_000046), added by hand, plus one approved
+# instructor row for `engaged` (1018). `regular` (1004, 09900000004) is a student, `no_profile` (1001) the outsider.
+# SMS dispatch, quiet hours, expiry, renewals and the full IDOR matrix are covered by the internal/learning integration
+# tests. Fixture day 2026-09-23. Case format: backend-go/cmd/contract/cases.go.
+group: learning
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: courses_anon
+    persona: anon
+    method: GET
+    path: /api/v1/learning/courses
+    status: 401
+  - name: my_courses_empty
+    doc: nbl_Learn_Hub — no course opened yet
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/learning/courses
+    status: 200
+  - name: instructor_me_none
+    doc: the caller never applied
+    method: GET
+    path: /api/instructor/v1/me
+    status: 200
+  - name: instructor_forbidden
+    doc: a student on the instructor API — 403 instructor_required, never 401
+    locales: [fa, en]
+    method: GET
+    path: /api/instructor/v1/courses
+    status: 403
+  - name: apply_invalid
+    locales: [fa, en]
+    method: POST
+    path: /api/instructor/v1/apply
+    body: {display_name: ""}
+    status: 422
+  - name: apply_pending
+    doc: an application is pending until an admin approves it (B-N8-08)
+    persona: no_profile
+    locales: [fa]
+    steps:
+      - method: POST
+        path: /api/instructor/v1/apply
+        body: {display_name: "Sara Karimi", title: "Midwife"}
+        status: 201
+      - method: GET
+        path: /api/instructor/v1/me
+        status: 200
+      - method: GET
+        path: /api/instructor/v1/courses
+        status: 403
+  - name: course_invalid
+    persona: engaged
+    locales: [fa, en]
+    method: POST
+    path: /api/instructor/v1/courses
+    body: {kind: book, title: ""}
+    status: 422
+  - name: instructor_student_flow
+    doc: nbl_Ins_Course / Ins_Group / Ins_AddUser → nbl_Learn_Hub / Learn_Course / Learn_Video — the instructor builds a course (one chapter locked until 15 Mehr), a group, adds a registered student and an unknown number; the student opens the course, saves progress, the locked lesson is 403; an outsider gets 404; the unknown number signs up with the OTP and its grant is active
+    persona: engaged
+    locales: [fa]
+    steps:
+      - method: POST
+        path: /api/instructor/v1/courses
+        body: {kind: course, title: "Natural birth prep", description: "12 short lessons", status: published}
+        status: 201
+        capture: {course: data.course.id}
+      - method: POST
+        path: "/api/instructor/v1/courses/{{course}}/chapters"
+        body: {title: "Understanding birth"}
+        status: 201
+        capture: {ch1: data.chapter.id}
+      - method: POST
+        path: "/api/instructor/v1/courses/{{course}}/lessons"
+        body: {kind: video, title: "Introduction", chapter_id: "{{ch1}}", duration_seconds: 360, status: published}
+        status: 201
+        capture: {lesson: data.lesson.id}
+      - method: POST
+        path: "/api/instructor/v1/courses/{{course}}/chapters"
+        body: {title: "After birth", unlock_at: "2026-10-07 08:00"}
+        status: 201
+        capture: {ch2: data.chapter.id}
+      - method: POST
+        path: "/api/instructor/v1/courses/{{course}}/lessons"
+        body: {kind: audio, title: "Relaxation", chapter_id: "{{ch2}}", duration_seconds: 1200, status: published}
+        status: 201
+        capture: {locked: data.lesson.id}
+      - method: POST
+        path: /api/instructor/v1/groups
+        body: {name: "Mehr 1405", course_ids: ["{{course}}"]}
+        status: 201
+        capture: {group: data.group.id}
+      - method: POST
+        path: /api/instructor/v1/grants
+        body: {phones: ["0990 000 0004", "09900000099"], scope: group, target_id: "{{group}}", duration: "90"}
+        status: 201
+      - method: GET
+        path: "/api/instructor/v1/groups/{{group}}"
+        status: 200
+      - method: GET
+        path: /api/instructor/v1/groups
+        status: 200
+      - method: GET
+        path: "/api/instructor/v1/courses/{{course}}"
+        status: 200
+      - method: GET
+        path: /api/instructor/v1/courses
+        status: 200
+      - as: regular
+        method: GET
+        path: /api/v1/learning/courses
+        status: 200
+      - as: regular
+        method: GET
+        path: "/api/v1/learning/courses/{{course}}"
+        status: 200
+      - as: regular
+        method: GET
+        path: "/api/v1/learning/lessons/{{lesson}}"
+        status: 200
+      - as: regular
+        method: PUT
+        path: "/api/v1/learning/lessons/{{lesson}}/progress"
+        body: {position_seconds: 180}
+        status: 200
+      - as: regular
+        method: GET
+        path: /api/v1/learning/courses
+        status: 200
+      - as: regular
+        method: GET
+        path: "/api/v1/learning/lessons/{{locked}}"
+        status: 403
+      - as: no_profile
+        method: GET
+        path: "/api/v1/learning/courses/{{course}}"
+        status: 404
+      - as: anon
+        method: POST
+        path: /api/v1/auth/send-otp
+        body: {mobile: "09900000099"}
+        status: 200
+      - as: anon
+        otp_for: "09900000099"
+        method: POST
+        path: /api/v1/auth/verify-otp
+        body: {mobile: "09900000099", code: "{{otp}}"}
+        status: 200
+        capture: {token: data.access_token}
+        ignore: ["header:x-ratelimit-remaining"]
+        patterns:
+          data.access_token: '^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
+      - as: anon
+        method: GET
+        path: /api/v1/learning/courses
+        headers: {Authorization: "Bearer {{token}}"}
+        status: 200
+      - method: GET
+        path: /api/instructor/v1/students
+        status: 200

@@ -1,0 +1,1069 @@
+{
+  "case": "learning/instructor_student_flow",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/instructor/v1/courses",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "kind": "course",
+          "title": "Natural birth prep",
+          "description": "12 short lessons",
+          "status": "published"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "ذخیره شد",
+        "data": {
+          "course": {
+            "id": 1,
+            "kind": "course",
+            "title": "Natural birth prep",
+            "description": "12 short lessons",
+            "status": "published",
+            "published_at": "2026-09-23T10:00:00+03:30",
+            "cover_media_id": null,
+            "created_at": "2026-09-23T10:00:00+03:30"
+          },
+          "chapters": [],
+          "lessons": [],
+          "duration_seconds": 0,
+          "access": {
+            "students": 0,
+            "groups": [],
+            "direct": 0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/instructor/v1/courses/1/chapters",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "title": "Understanding birth"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "ذخیره شد",
+        "data": {
+          "chapter": {
+            "id": 1,
+            "title": "Understanding birth",
+            "sort_order": 1,
+            "unlock_at": null,
+            "locked": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/instructor/v1/courses/1/lessons",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "kind": "video",
+          "title": "Introduction",
+          "chapter_id": "{{ch1}}",
+          "duration_seconds": 360,
+          "status": "published"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "ذخیره شد",
+        "data": {
+          "lesson": {
+            "id": 1,
+            "chapter_id": 1,
+            "kind": "video",
+            "title": "Introduction",
+            "description": null,
+            "duration_seconds": 360,
+            "page_count": null,
+            "size_bytes": null,
+            "status": "published",
+            "published_at": "2026-09-23T10:00:00+03:30",
+            "sort_order": 1,
+            "media": null,
+            "media_status": "none"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/instructor/v1/courses/1/chapters",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "title": "After birth",
+          "unlock_at": "2026-10-07 08:00"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "message": "ذخیره شد",
+        "data": {
+          "chapter": {
+            "id": 2,
+            "title": "After birth",
+            "sort_order": 2,
+            "unlock_at": "2026-10-07T08:00:00+03:30",
+            "locked": true
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/instructor/v1/courses/1/lessons",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "kind": "audio",
+          "title": "Relaxation",
+          "chapter_id": "{{ch2}}",
+          "duration_seconds": 1200,
+          "status": "published"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": true,
+        "message": "ذخیره شد",
+        "data": {
+          "lesson": {
+            "id": 2,
+            "chapter_id": 2,
+            "kind": "audio",
+            "title": "Relaxation",
+            "description": null,
+            "duration_seconds": 1200,
+            "page_count": null,
+            "size_bytes": null,
+            "status": "published",
+            "published_at": "2026-09-23T10:00:00+03:30",
+            "sort_order": 2,
+            "media": null,
+            "media_status": "none"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/instructor/v1/groups",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "Mehr 1405",
+          "course_ids": [
+            "{{course}}"
+          ]
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "54"
+      },
+      "body": {
+        "success": true,
+        "message": "ذخیره شد",
+        "data": {
+          "group": {
+            "id": 1,
+            "name": "Mehr 1405",
+            "courses": [
+              {
+                "id": 1,
+                "kind": "course",
+                "title": "Natural birth prep",
+                "status": "published"
+              }
+            ],
+            "created_at": "2026-09-23T10:00:00+03:30"
+          },
+          "members": [],
+          "pending_signups": 0
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/instructor/v1/grants",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "phones": [
+            "0990 000 0004",
+            "09900000099"
+          ],
+          "scope": "group",
+          "target_id": "{{group}}",
+          "duration": "90"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "53"
+      },
+      "body": {
+        "success": true,
+        "message": "دسترسی‌ها ثبت شد",
+        "data": {
+          "grants": [
+            {
+              "id": 1,
+              "phone": "09900000004",
+              "status": "active",
+              "registered": true,
+              "renewed": false,
+              "duration": {
+                "type": "days",
+                "days": 90,
+                "until": null
+              },
+              "activated_at": "2026-09-23T10:00:00+03:30",
+              "expires_at": "2026-12-22T10:00:00+03:30"
+            },
+            {
+              "id": 2,
+              "phone": "09900000099",
+              "status": "pending",
+              "registered": false,
+              "renewed": false,
+              "duration": {
+                "type": "days",
+                "days": 90,
+                "until": null
+              },
+              "activated_at": null,
+              "expires_at": null
+            }
+          ],
+          "summary": {
+            "active": 1,
+            "pending": 1
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/instructor/v1/groups/1",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "group": {
+            "id": 1,
+            "name": "Mehr 1405",
+            "courses": [
+              {
+                "id": 1,
+                "kind": "course",
+                "title": "Natural birth prep",
+                "status": "published"
+              }
+            ],
+            "created_at": "2026-09-23T10:00:00+03:30"
+          },
+          "members": [
+            {
+              "id": 2,
+              "phone": "09900000099",
+              "status": "pending",
+              "registered": false,
+              "student_name": null,
+              "group": {
+                "id": 1,
+                "name": "Mehr 1405"
+              },
+              "course": null,
+              "duration": {
+                "type": "days",
+                "days": 90,
+                "until": null
+              },
+              "activated_at": null,
+              "expires_at": null,
+              "days_left": null,
+              "progress_percent": null,
+              "created_at": "2026-09-23T10:00:00+03:30"
+            },
+            {
+              "id": 1,
+              "phone": "09900000004",
+              "status": "active",
+              "registered": true,
+              "student_name": "Contract regular",
+              "group": {
+                "id": 1,
+                "name": "Mehr 1405"
+              },
+              "course": null,
+              "duration": {
+                "type": "days",
+                "days": 90,
+                "until": null
+              },
+              "activated_at": "2026-09-23T10:00:00+03:30",
+              "expires_at": "2026-12-22T10:00:00+03:30",
+              "days_left": 90,
+              "progress_percent": 0,
+              "created_at": "2026-09-23T10:00:00+03:30"
+            }
+          ],
+          "pending_signups": 1
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/instructor/v1/groups",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "groups": [
+            {
+              "id": 1,
+              "name": "Mehr 1405",
+              "courses": [
+                {
+                  "id": 1,
+                  "kind": "course",
+                  "title": "Natural birth prep",
+                  "status": "published"
+                }
+              ],
+              "members": {
+                "active": 1,
+                "pending": 1
+              },
+              "created_at": "2026-09-23T10:00:00+03:30"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/instructor/v1/courses/1",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "course": {
+            "id": 1,
+            "kind": "course",
+            "title": "Natural birth prep",
+            "description": "12 short lessons",
+            "status": "published",
+            "published_at": "2026-09-23T10:00:00+03:30",
+            "cover_media_id": null,
+            "created_at": "2026-09-23T10:00:00+03:30"
+          },
+          "chapters": [
+            {
+              "id": 1,
+              "title": "Understanding birth",
+              "sort_order": 1,
+              "unlock_at": null,
+              "locked": false
+            },
+            {
+              "id": 2,
+              "title": "After birth",
+              "sort_order": 2,
+              "unlock_at": "2026-10-07T08:00:00+03:30",
+              "locked": true
+            }
+          ],
+          "lessons": [
+            {
+              "id": 1,
+              "chapter_id": 1,
+              "kind": "video",
+              "title": "Introduction",
+              "description": null,
+              "duration_seconds": 360,
+              "page_count": null,
+              "size_bytes": null,
+              "status": "published",
+              "published_at": "2026-09-23T10:00:00+03:30",
+              "sort_order": 1,
+              "media": null,
+              "media_status": "none"
+            },
+            {
+              "id": 2,
+              "chapter_id": 2,
+              "kind": "audio",
+              "title": "Relaxation",
+              "description": null,
+              "duration_seconds": 1200,
+              "page_count": null,
+              "size_bytes": null,
+              "status": "published",
+              "published_at": "2026-09-23T10:00:00+03:30",
+              "sort_order": 2,
+              "media": null,
+              "media_status": "none"
+            }
+          ],
+          "duration_seconds": 1560,
+          "access": {
+            "students": 1,
+            "groups": [
+              {
+                "id": 1,
+                "name": "Mehr 1405",
+                "members": 1
+              }
+            ],
+            "direct": 0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/instructor/v1/courses",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "courses": [
+            {
+              "id": 1,
+              "kind": "course",
+              "title": "Natural birth prep",
+              "description": "12 short lessons",
+              "status": "published",
+              "published_at": "2026-09-23T10:00:00+03:30",
+              "cover_media_id": null,
+              "lessons_count": 2,
+              "published_lessons": 2,
+              "duration_seconds": 1560,
+              "created_at": "2026-09-23T10:00:00+03:30"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/learning/courses",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "continue": null,
+          "courses": [
+            {
+              "id": 1,
+              "kind": "course",
+              "title": "Natural birth prep",
+              "description": "12 short lessons",
+              "cover_media_id": null,
+              "instructor": {
+                "id": 1,
+                "name": "مدرس نمونه",
+                "title": "ماما"
+              },
+              "lessons_count": 2,
+              "completed_lessons": 0,
+              "primary_kind": "video",
+              "duration_seconds": 1560,
+              "page_count": 0,
+              "progress_percent": 0,
+              "access": {
+                "grant_id": 1,
+                "unlimited": false,
+                "expires_at": "2026-12-22T10:00:00+03:30",
+                "days_left": 90,
+                "expired": false,
+                "granted_at": "2026-09-23T10:00:00+03:30",
+                "group": {
+                  "id": 1,
+                  "name": "Mehr 1405"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/learning/courses/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "course": {
+            "id": 1,
+            "kind": "course",
+            "title": "Natural birth prep",
+            "description": "12 short lessons",
+            "cover_media_id": null,
+            "instructor": {
+              "id": 1,
+              "name": "مدرس نمونه",
+              "title": "ماما"
+            },
+            "lessons_count": 2,
+            "completed_lessons": 0,
+            "primary_kind": "video",
+            "duration_seconds": 1560,
+            "page_count": 0,
+            "progress_percent": 0,
+            "access": {
+              "grant_id": 1,
+              "unlimited": false,
+              "expires_at": "2026-12-22T10:00:00+03:30",
+              "days_left": 90,
+              "expired": false,
+              "granted_at": "2026-09-23T10:00:00+03:30",
+              "group": {
+                "id": 1,
+                "name": "Mehr 1405"
+              }
+            }
+          },
+          "next_lesson": {
+            "id": 1,
+            "number": 1,
+            "title": "Introduction"
+          },
+          "chapters": [
+            {
+              "id": 1,
+              "title": "Understanding birth",
+              "locked": false,
+              "unlock_at": null,
+              "lessons": [
+                {
+                  "id": 1,
+                  "number": 1,
+                  "chapter_id": 1,
+                  "kind": "video",
+                  "title": "Introduction",
+                  "description": null,
+                  "duration_seconds": 360,
+                  "page_count": null,
+                  "size_bytes": null,
+                  "is_new": true,
+                  "locked": false,
+                  "unlock_at": null,
+                  "progress": null,
+                  "media": null
+                }
+              ]
+            },
+            {
+              "id": 2,
+              "title": "After birth",
+              "locked": true,
+              "unlock_at": "2026-10-07T08:00:00+03:30",
+              "lessons": [
+                {
+                  "id": 2,
+                  "number": 2,
+                  "chapter_id": 2,
+                  "kind": "audio",
+                  "title": "Relaxation",
+                  "description": null,
+                  "duration_seconds": 1200,
+                  "page_count": null,
+                  "size_bytes": null,
+                  "is_new": true,
+                  "locked": true,
+                  "unlock_at": "2026-10-07T08:00:00+03:30",
+                  "progress": null,
+                  "media": null
+                }
+              ]
+            }
+          ],
+          "lessons": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/learning/lessons/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "lesson": {
+            "id": 1,
+            "number": 1,
+            "chapter_id": 1,
+            "kind": "video",
+            "title": "Introduction",
+            "description": null,
+            "duration_seconds": 360,
+            "page_count": null,
+            "size_bytes": null,
+            "is_new": true,
+            "locked": false,
+            "unlock_at": null,
+            "progress": null,
+            "media": null
+          },
+          "course": {
+            "id": 1,
+            "title": "Natural birth prep",
+            "kind": "course",
+            "lessons_count": 2,
+            "instructor": {
+              "id": 1,
+              "name": "مدرس نمونه",
+              "title": "ماما"
+            }
+          },
+          "next_lesson_id": 2
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/learning/lessons/1/progress",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "position_seconds": 180
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "پیشرفت ذخیره شد",
+        "data": {
+          "progress": {
+            "lesson_id": 1,
+            "position_seconds": 180,
+            "percent": 50,
+            "completed": false,
+            "last_seen_at": "2026-09-23T10:00:00+03:30"
+          },
+          "course_percent": 25
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/learning/courses",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "continue": {
+            "course": {
+              "id": 1,
+              "title": "Natural birth prep",
+              "kind": "course",
+              "instructor": {
+                "id": 1,
+                "name": "مدرس نمونه",
+                "title": "ماما"
+              }
+            },
+            "lesson": {
+              "id": 1,
+              "number": 1,
+              "kind": "video",
+              "title": "Introduction",
+              "duration_seconds": 360
+            },
+            "position_seconds": 180,
+            "remaining_seconds": 180,
+            "percent": 50,
+            "course_percent": 25
+          },
+          "courses": [
+            {
+              "id": 1,
+              "kind": "course",
+              "title": "Natural birth prep",
+              "description": "12 short lessons",
+              "cover_media_id": null,
+              "instructor": {
+                "id": 1,
+                "name": "مدرس نمونه",
+                "title": "ماما"
+              },
+              "lessons_count": 2,
+              "completed_lessons": 0,
+              "primary_kind": "video",
+              "duration_seconds": 1560,
+              "page_count": 0,
+              "progress_percent": 25,
+              "access": {
+                "grant_id": 1,
+                "unlimited": false,
+                "expires_at": "2026-12-22T10:00:00+03:30",
+                "days_left": 90,
+                "expired": false,
+                "granted_at": "2026-09-23T10:00:00+03:30",
+                "group": {
+                  "id": 1,
+                  "name": "Mehr 1405"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/learning/lessons/2",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 403,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این فصل هنوز باز نشده است",
+        "error_code": "learning_chapter_locked",
+        "unlock_at": "2026-10-07T08:00:00+03:30"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/learning/courses/1",
+        "persona": "no_profile",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این دوره پیدا نشد",
+        "error_code": "learning_course_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/auth/send-otp",
+        "persona": "anon",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "mobile": "09900000099"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "5",
+        "x-ratelimit-remaining": "4"
+      },
+      "body": {
+        "success": true,
+        "message": "OTP sent successfully",
+        "data": {
+          "expires_in": 120
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/auth/verify-otp",
+        "persona": "anon",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "mobile": "09900000099",
+          "code": "{{otp}}"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "10",
+        "x-ratelimit-remaining": "<ignored>"
+      },
+      "body": {
+        "success": true,
+        "message": "Registration successful",
+        "data": {
+          "user": {
+            "id": 1019,
+            "name": null,
+            "email": null,
+            "mobile": "09900000099",
+            "mobile_verified_at": null,
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "new_user": true,
+          "profile_completed": false,
+          "access_token": "<pattern:^eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$>",
+          "token_type": "Bearer"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/learning/courses",
+        "persona": "anon",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "continue": null,
+          "courses": [
+            {
+              "id": 1,
+              "kind": "course",
+              "title": "Natural birth prep",
+              "description": "12 short lessons",
+              "cover_media_id": null,
+              "instructor": {
+                "id": 1,
+                "name": "مدرس نمونه",
+                "title": "ماما"
+              },
+              "lessons_count": 2,
+              "completed_lessons": 0,
+              "primary_kind": "video",
+              "duration_seconds": 1560,
+              "page_count": 0,
+              "progress_percent": 0,
+              "access": {
+                "grant_id": 2,
+                "unlimited": false,
+                "expires_at": "2026-12-22T10:00:00+03:30",
+                "days_left": 90,
+                "expired": false,
+                "granted_at": "2026-09-23T10:00:00+03:30",
+                "group": {
+                  "id": 1,
+                  "name": "Mehr 1405"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/instructor/v1/students",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "counts": {
+            "active": 2,
+            "pending": 0,
+            "expired": 0
+          },
+          "students": [
+            {
+              "id": 2,
+              "phone": "09900000099",
+              "status": "active",
+              "registered": true,
+              "student_name": null,
+              "group": {
+                "id": 1,
+                "name": "Mehr 1405"
+              },
+              "course": null,
+              "duration": {
+                "type": "days",
+                "days": 90,
+                "until": null
+              },
+              "activated_at": "2026-09-23T10:00:00+03:30",
+              "expires_at": "2026-12-22T10:00:00+03:30",
+              "days_left": 90,
+              "progress_percent": null,
+              "created_at": "2026-09-23T10:00:00+03:30"
+            },
+            {
+              "id": 1,
+              "phone": "09900000004",
+              "status": "active",
+              "registered": true,
+              "student_name": "Contract regular",
+              "group": {
+                "id": 1,
+                "name": "Mehr 1405"
+              },
+              "course": null,
+              "duration": {
+                "type": "days",
+                "days": 90,
+                "until": null
+              },
+              "activated_at": "2026-09-23T10:00:00+03:30",
+              "expires_at": "2026-12-22T10:00:00+03:30",
+              "days_left": 90,
+              "progress_percent": null,
+              "created_at": "2026-09-23T10:00:00+03:30"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "case": "learning/instructor_forbidden.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/instructor/v1/courses",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 403,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این بخش فقط برای مدرس‌های تأییدشده است",
+        "error_code": "instructor_required"
+      }
+    }
+  ]
+}

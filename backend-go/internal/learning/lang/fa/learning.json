@@ -1,0 +1,61 @@
+{
+    "messages": {
+        "validation_failed": "اطلاعات واردشده معتبر نیست",
+        "course_not_found": "این دوره پیدا نشد",
+        "chapter_not_found": "این فصل پیدا نشد",
+        "lesson_not_found": "این درس پیدا نشد",
+        "group_not_found": "این گروه پیدا نشد",
+        "grant_not_found": "این دسترسی پیدا نشد",
+        "instructor_required": "این بخش فقط برای مدرس‌های تأییدشده است",
+        "instructor_pending": "درخواست مدرسی تو در انتظار تأیید است",
+        "access_expired": "دسترسی به این دوره تمام شده است؛ برای تمدید با مدرس تماس بگیر.",
+        "chapter_locked": "این فصل هنوز باز نشده است",
+        "applied": "درخواستت ثبت شد و پس از بررسی تأیید می‌شود",
+        "saved": "ذخیره شد",
+        "updated": "به‌روز شد",
+        "deleted": "حذف شد",
+        "granted": "دسترسی‌ها ثبت شد",
+        "revoked": "دسترسی لغو شد",
+        "progress_saved": "پیشرفت ذخیره شد"
+    },
+    "validation": {
+        "phone_invalid": "شماره موبایل معتبر نیست.",
+        "until_out_of_range": "تاریخ پایان دسترسی باید بین امروز تا پنج سال آینده باشد.",
+        "target_invalid": "این گروه یا دوره متعلق به تو نیست.",
+        "course_ids_invalid": "یکی از دوره‌ها متعلق به تو نیست.",
+        "chapter_invalid": "این فصل متعلق به این دوره نیست.",
+        "standalone_single_lesson": "محتوای مستقل فقط یک فایل دارد.",
+        "standalone_no_chapters": "محتوای مستقل فصل ندارد.",
+        "too_many": "به سقف مجاز رسیده‌ای."
+    },
+    "attributes": {
+        "display_name": "نام نمایشی",
+        "title": "عنوان",
+        "bio": "معرفی",
+        "kind": "نوع",
+        "description": "توضیح",
+        "status": "وضعیت",
+        "unlock_at": "زمان باز شدن",
+        "sort_order": "ترتیب",
+        "chapter_id": "فصل",
+        "duration_seconds": "مدت",
+        "page_count": "تعداد صفحه",
+        "size_bytes": "حجم",
+        "name": "نام",
+        "course_ids": "دوره‌ها",
+        "phones": "شماره‌ها",
+        "scope": "دسترسی به",
+        "target_id": "گروه یا دوره",
+        "duration": "مدت دسترسی",
+        "until": "تاریخ پایان",
+        "position_seconds": "موقعیت",
+        "percent": "درصد",
+        "completed": "تمام‌شده"
+    },
+    "notice": {
+        "title_one": ":instructor «:course» را برایت باز کرد",
+        "title_many": ":instructor :count دوره برایت باز کرد",
+        "body": "دوره برایت باز شد؛ از «دوره‌های من» شروع کن.",
+        "someone": "مدرست"
+    }
+}

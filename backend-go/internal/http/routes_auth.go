@@ -18,6 +18,7 @@ func init() {
 		}
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		h, guard := m.Handlers, m.Guard.RequireUser
+		h.OnSignup(learningSignupHook(d)) // B-N8-01: pending course grants of the new number become active
 
 		r.Post("/api/v1/auth/send-otp", locale, m.Throttle(5), h.SendOTP)
 		r.Post("/api/v1/auth/verify-otp", locale, m.Throttle(10), h.VerifyOTP)

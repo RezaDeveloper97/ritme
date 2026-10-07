@@ -1,0 +1,25 @@
+{
+  "case": "learning/my_courses_empty.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/learning/courses",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "continue": null,
+          "courses": []
+        }
+      }
+    }
+  ]
+}

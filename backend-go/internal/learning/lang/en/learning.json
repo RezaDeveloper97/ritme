@@ -1,0 +1,61 @@
+{
+    "messages": {
+        "validation_failed": "The given data was invalid",
+        "course_not_found": "Course not found",
+        "chapter_not_found": "Chapter not found",
+        "lesson_not_found": "Lesson not found",
+        "group_not_found": "Group not found",
+        "grant_not_found": "Access not found",
+        "instructor_required": "This area is for approved instructors only",
+        "instructor_pending": "Your instructor application is awaiting approval",
+        "access_expired": "Your access to this course has ended. Contact your instructor to renew it.",
+        "chapter_locked": "This chapter is not open yet",
+        "applied": "Your application was received and will be reviewed",
+        "saved": "Saved",
+        "updated": "Updated",
+        "deleted": "Deleted",
+        "granted": "Access saved",
+        "revoked": "Access revoked",
+        "progress_saved": "Progress saved"
+    },
+    "validation": {
+        "phone_invalid": "The mobile number is not valid.",
+        "until_out_of_range": "The end date must be between today and five years from now.",
+        "target_invalid": "This group or course is not yours.",
+        "course_ids_invalid": "One of the courses is not yours.",
+        "chapter_invalid": "This chapter does not belong to the course.",
+        "standalone_single_lesson": "A standalone item has exactly one file.",
+        "standalone_no_chapters": "A standalone item has no chapters.",
+        "too_many": "You have reached the limit."
+    },
+    "attributes": {
+        "display_name": "display name",
+        "title": "title",
+        "bio": "bio",
+        "kind": "type",
+        "description": "description",
+        "status": "status",
+        "unlock_at": "unlock time",
+        "sort_order": "order",
+        "chapter_id": "chapter",
+        "duration_seconds": "duration",
+        "page_count": "page count",
+        "size_bytes": "size",
+        "name": "name",
+        "course_ids": "courses",
+        "phones": "numbers",
+        "scope": "access to",
+        "target_id": "group or course",
+        "duration": "access period",
+        "until": "end date",
+        "position_seconds": "position",
+        "percent": "percent",
+        "completed": "completed"
+    },
+    "notice": {
+        "title_one": ":instructor opened “:course” for you",
+        "title_many": ":instructor opened :count courses for you",
+        "body": "A course is open for you. Start it from My courses.",
+        "someone": "Your instructor"
+    }
+}

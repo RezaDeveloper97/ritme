@@ -44,6 +44,8 @@ type Config struct {
 	AI       AI
 	// Companion is «همدم» (bloom B-N4-02): invite-code pepper and the invite SMS adapter.
 	Companion Companion
+	// Learning is the courses domain (bloom B-N8-01): the «دوره برایت باز شد» SMS adapter.
+	Learning Learning
 	// PrivateNotes is the key of the encrypted private notes (CB-LOSS-01 loss path).
 	PrivateNotes PrivateNotes
 	// LabFiles is the key of the encrypted lab-sheet uploads (bloom B-N6-06, internal/labs/files).
@@ -298,6 +300,16 @@ type Companion struct {
 	InviteTemplate string
 }
 
+// Learning holds the courses settings (B-N8-01).
+type Learning struct {
+	// SMSProvider is LEARNING_SMS_PROVIDER: none | fake | gateway (the CompanionSMS* ids). Unset → fake outside
+	// production, none in production. fake with APP_ENV=production is refused at start-up.
+	SMSProvider string
+	// UnlockTemplate (KAVENEGAR_TEMPLATE_COURSE_UNLOCKED, default course-unlocked) is the gateway template of the
+	// «دوره برایت باز شد» SMS; its single token is the number of courses opened.
+	UnlockTemplate string
+}
+
 // PepperMissing reports whether production runs without a pepper (companion invites are then disabled).
 func (c Companion) PepperMissing(app App) bool { return app.IsProduction() && c.CodePepper == "" }
 
@@ -465,6 +477,10 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			SMSProvider:    strings.ToLower(e.str("COMPANION_SMS_PROVIDER", "")),
 			InviteTemplate: e.str("KAVENEGAR_TEMPLATE_COMPANION_INVITE", "companion-invite"),
 		},
+		Learning: Learning{
+			SMSProvider:    strings.ToLower(e.str("LEARNING_SMS_PROVIDER", "")),
+			UnlockTemplate: e.str("KAVENEGAR_TEMPLATE_COURSE_UNLOCKED", "course-unlocked"),
+		},
 		StoragePath:   strings.TrimRight(e.required("STORAGE_PATH"), "/"),
 		RunMigrations: e.boolean("RUN_MIGRATIONS", false),
 	}
@@ -548,6 +564,16 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 		}
 	default:
 		e.fail("COMPANION_SMS_PROVIDER: %q is not one of none, fake, gateway", cfg.Companion.SMSProvider)
+	}
+	cfg.Learning.SMSProvider = DefaultCompanionSMSProvider(cfg.Learning.SMSProvider, cfg.App)
+	switch cfg.Learning.SMSProvider {
+	case CompanionSMSNone, CompanionSMSGateway:
+	case CompanionSMSFake:
+		if cfg.App.IsProduction() {
+			e.fail("LEARNING_SMS_PROVIDER=fake is not allowed when APP_ENV=production (it reports SMS as sent)")
+		}
+	default:
+		e.fail("LEARNING_SMS_PROVIDER: %q is not one of none, fake, gateway", cfg.Learning.SMSProvider)
 	}
 	if p := cfg.Companion.CodePepper; p != "" && cfg.App.IsProduction() && len(p) < MinCompanionPepperLen {
 		e.fail("COMPANION_CODE_PEPPER: must be at least %d bytes in production", MinCompanionPepperLen)

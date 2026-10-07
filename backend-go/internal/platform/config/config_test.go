@@ -364,3 +364,26 @@ func TestLoad_LabFileKey(t *testing.T) {
 		require.ErrorContains(t, err, k)
 	}
 }
+
+func TestLoad_Learning(t *testing.T) {
+	// B-N8-01: the course SMS is the fake outside production, none in production; fake is refused there.
+	env := minimal()
+	env["APP_ENV"] = "local"
+	cfg, err := LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.Equal(t, CompanionSMSFake, cfg.Learning.SMSProvider)
+	assert.Equal(t, "course-unlocked", cfg.Learning.UnlockTemplate)
+
+	cfg, err = LoadFrom(lookup(minimal()))
+	require.NoError(t, err)
+	assert.Equal(t, CompanionSMSNone, cfg.Learning.SMSProvider)
+
+	env = minimal()
+	env["LEARNING_SMS_PROVIDER"] = "fake"
+	_, err = LoadFrom(lookup(env))
+	require.ErrorContains(t, err, "LEARNING_SMS_PROVIDER=fake")
+	env = minimal()
+	env["LEARNING_SMS_PROVIDER"] = "pigeon"
+	_, err = LoadFrom(lookup(env))
+	require.ErrorContains(t, err, "LEARNING_SMS_PROVIDER")
+}

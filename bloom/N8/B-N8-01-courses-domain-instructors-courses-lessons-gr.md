@@ -3,7 +3,7 @@ id: B-N8-01
 title: Courses domain — instructors, courses, lessons, groups, phone-based access
 milestone: N8
 type: backend
-status: todo
+status: done
 depends_on: [B-N7-10]
 parallel_group: N8-A
 touches: [backend-go/db,backend-go/internal/learning,backend-go/internal/auth,backend-go/api]

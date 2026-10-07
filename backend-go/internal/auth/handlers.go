@@ -74,6 +74,39 @@ type Handlers struct {
 	clock             clock.Clock // fallback when the request has no clock
 	refreshWindowDays int
 	logger            *slog.Logger
+	signupHooks       []SignupHook
+}
+
+// SignupHook is told about an account verify-otp has just created (now = the request clock) (e.g. learning: pending course grants of that
+// number become active). Hooks run after the token is issued, each bounded by SignupHookTimeout and isolated: an
+// error or panic is logged (user id only) and never changes the login response.
+type SignupHook func(ctx context.Context, userID uint64, mobile string, now time.Time) error
+
+// SignupHookTimeout bounds one signup hook (keeps the OTP path's latency predictable).
+const SignupHookTimeout = 2 * time.Second
+
+// OnSignup registers a signup hook. Call it while wiring routes, before the server serves requests.
+func (h *Handlers) OnSignup(fn SignupHook) {
+	if fn != nil {
+		h.signupHooks = append(h.signupHooks, fn)
+	}
+}
+
+func (h *Handlers) runSignupHooks(ctx context.Context, userID uint64, mobile string, now time.Time) {
+	for _, fn := range h.signupHooks {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					h.logger.ErrorContext(ctx, "auth: signup hook panicked", slog.Uint64("user_id", userID), slog.Any("panic", r))
+				}
+			}()
+			hctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), SignupHookTimeout)
+			defer cancel()
+			if err := fn(hctx, userID, mobile, now); err != nil {
+				h.logger.ErrorContext(ctx, "auth: signup hook failed", slog.Uint64("user_id", userID), slog.String("error", err.Error()))
+			}
+		}()
+	}
 }
 
 // NewHandlers wires the controller.
@@ -223,6 +256,9 @@ func (h *Handlers) VerifyOTP(c fiber.Ctx) error {
 	issued, err := h.issuer.Issue(ctx, user.ID, now)
 	if err != nil {
 		return err
+	}
+	if isNew {
+		h.runSignupHooks(ctx, user.ID, mobile, now)
 	}
 	fresh, err := h.q.GetUserByID(ctx, user.ID)
 	if err != nil {
