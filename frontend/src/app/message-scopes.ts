@@ -94,7 +94,7 @@ export const ROUTE_NAMESPACES = {
   contraceptionMissed: ['common', 'contraception'], // CB-CONTRA-03 /contraception/missed
   contraceptionOther: ['common', 'contraception'], // CB-CONTRA-03 /contraception/other
   uiKit: ['common'], // dev-only /dev/ui-kit showcase (B-N1-03)
-  services: ['common', 'nav', 'services'], // «خدمات» tab (B-N1-04)
+  services: ['common', 'nav', 'services'], // «خدمات» tab (B-N1-04, hub B-N7-01)
   search: ['common', 'search'], // CB-NAV-02 /search (global search, flow — no nav)
   menopauseStage: ['common', 'menopause'], // CB-MENO-05 /menopause/stage (stage form, no nav)
   menopauseHotFlash: ['common', 'menopause'], // CB-MENO-07 /menopause/hot-flash (timer flow, no nav)

@@ -193,6 +193,11 @@ interface IconProps {
   className?: string;
 }
 
+/** Whether a string from data (admin content, API) names a known glyph. */
+export function isIconName(value: string): value is IconName {
+  return Object.prototype.hasOwnProperty.call(PATHS, value);
+}
+
 export function Icon({
   name,
   size = 24,

@@ -8,7 +8,7 @@ interface Props {
   params: Promise<{ locale: string }>;
 }
 
-/** `/services` — the «خدمات» tab (B-N1-04 placeholder; real hub B-N7-01). */
+/** `/services` — the «خدمات» tab hub (B-N7-01, v17_Main). */
 export default async function ServicesRoute({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);

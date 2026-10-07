@@ -4550,35 +4550,7 @@ body.pwa-locked { overflow: hidden; }
 .nblog-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .nblog-grid .nb-skel.is-card { height: 96px; }
 
-/* «خدمات» placeholder hub (v17_Main; real hub B-N7-01) */
-.svc-page { background: var(--page); }
-.svc-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 18px; padding-top: 8px; }
-.svc-page .nb-hub-greeting { font-family: var(--font-display); font-size: 30px; font-weight: 400; line-height: 1.3; }
-.svc-sec { display: flex; flex-direction: column; gap: 10px; padding: 0 var(--gutter); }
-.svc-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.svc-tile {
-  display: flex; flex-direction: column; gap: 4px; min-height: 112px; padding: 12px 10px;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
-}
-.svc-tile-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; margin-bottom: 6px; }
-.svc-tile-top .nb-pill { font-size: 9px; padding: 2px 6px; }
-.svc-tile-title { margin: 0; font-size: var(--fs-md); font-weight: 800; color: var(--text-1); }
-.svc-tile-sub { margin: 0; font-size: var(--fs-xs); font-weight: 600; color: var(--text-3); }
-.svc-sos {
-  display: flex; align-items: center; gap: 12px; margin: 0 var(--gutter); padding: 14px 16px;
-  background: var(--danger-soft); border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
-  border-radius: var(--r-card);
-}
-.svc-sos-text { flex: 1; min-width: 0; }
-.svc-sos-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--danger-deep); }
-.svc-sos-body { margin: 2px 0 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }
-.svc-sos-call {
-  flex-shrink: 0; min-width: 56px; height: 44px; padding: 0 14px; border-radius: 22px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: var(--danger); color: var(--on-danger); font-family: var(--font-display); font-size: 18px;
-  text-decoration: none;
-}
-.svc-sos-call:focus-visible { outline: 2px solid var(--danger); outline-offset: 2px; }
+/* «خدمات» placeholder styles moved: the hub is B-N7-01 (block at the end of this file). */
 /* ═══ end B-N1-04 ═══ */
 
 /* ══════════════════════════════════════════════════════════════════
@@ -10588,12 +10560,6 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
   background: var(--brand-soft); color: var(--brand-ink); font-size: 12px; font-weight: 800; text-decoration: none;
 }
 .mpre-link:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
-/* services grid: a live tile is one link (the title's ::after covers the tile) */
-.svc-tile.is-live { position: relative; border-color: var(--line-strong); }
-.svc-tile-hit { color: inherit; text-decoration: none; }
-.svc-tile-hit::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
-.svc-tile-hit:focus-visible { outline: none; }
-.svc-tile.is-live:has(.svc-tile-hit:focus-visible) { outline: 3px solid var(--brand); outline-offset: 2px; }
 /* ═══ end B-N6-02 ═══ */
 
 /* ═══ B-N6-03 · health record «پرونده سلامت من» (nbl_Record_Summary, screens/health-record `hrec-`) ═══ */
@@ -11128,3 +11094,157 @@ button.mh-row:focus-visible { outline: 2px solid var(--brand); outline-offset: 2
 .mrp-skel-card { block-size: 340px; }
 .nb-btn.is-outline.mh-report-link, .nb-btn.is-outline.mal-report { text-decoration: none; font-size: var(--fs-md); }
 /* ═══ end CB-MENO-11 ═══ */
+
+/* ══════════════════════════════════════════════════════════════════
+   B-N7-01 — «خدمات» services hub (nbl_/nbd_v17_Main). Replaces the B-N1-04 placeholder styles.
+   ══════════════════════════════════════════════════════════════════ */
+.svc-page { background: var(--page); }
+.svc-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 18px; padding-top: 8px; }
+.svc-page .nb-hub { padding-inline: var(--gutter-form); }
+.svc-page .nb-hub-greeting { font-family: var(--font-display); font-size: 32px; font-weight: 400; line-height: 1.2; }
+.svc-sec { display: flex; flex-direction: column; gap: 10px; padding: 0 var(--gutter-form); }
+.svc-sec-head { padding: 0 4px; min-height: 32px; }
+.svc-sec-sub { margin: 0; font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+
+/* search: a link to /search styled as the 50px field */
+.svc-search {
+  display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 14px;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 18px;
+  color: var(--text-2); font-size: 13.5px; font-weight: 600; text-decoration: none;
+}
+.svc-search-icon { flex-shrink: 0; color: var(--text-2); }
+.svc-search-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.svc-search:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+
+/* upcoming booking */
+.svc-booking {
+  display: flex; align-items: center; gap: 12px; padding: 14px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card);
+}
+.svc-booking-date {
+  width: 52px; height: 52px; flex-shrink: 0; border-radius: 18px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--data-soft);
+}
+.svc-booking-day { font-family: var(--font-display); font-size: 22px; line-height: 1.2; color: var(--text-1); }
+.svc-booking-month { font-size: 10px; font-weight: 700; color: var(--text-2); }
+.svc-booking-text { flex: 1; min-width: 0; }
+.svc-booking-title { margin: 0; font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+.svc-booking-when { margin: 0; font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+.svc-booking-cta {
+  flex-shrink: 0; min-height: 44px; padding: 0 14px; border-radius: 22px; border: 1.5px solid var(--line);
+  display: inline-flex; align-items: center; font-size: 12px; font-weight: 800; color: var(--brand); text-decoration: none;
+}
+.svc-booking-cta:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+
+/* care grid + program cards */
+.svc-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.svc-tile {
+  position: relative; display: flex; flex-direction: column; gap: 8px; min-height: 44px; padding: 14px 12px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
+}
+.svc-tile-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; }
+.svc-tile-top .nb-icircle { width: 36px; height: 36px; }
+.svc-tile-top .nb-pill { font-size: 9px; padding: 2px 6px; }
+.svc-tile-title { margin: 0; font-size: 13px; font-weight: 800; line-height: 1.5; color: var(--text-1); }
+.svc-tile-sub { margin: 0; font-size: 11px; font-weight: 700; line-height: 1.5; color: var(--text-2); }
+.svc-tile-hit { color: inherit; text-decoration: none; }
+.svc-tile-hit::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.svc-tile-hit:focus-visible { outline: none; }
+.svc-tile.is-live:has(.svc-tile-hit:focus-visible) { outline: 3px solid var(--brand); outline-offset: 2px; }
+.svc-programs {
+  list-style: none; margin: 0 calc(-1 * var(--gutter-form)); padding: 0 var(--gutter-form) 2px;
+  display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: var(--gutter-form);
+  scrollbar-width: none;
+}
+.svc-programs::-webkit-scrollbar { display: none; }
+.svc-program { width: 150px; flex-shrink: 0; padding: 14px; border-radius: 22px; scroll-snap-align: start; }
+.svc-program .svc-tile-sub { font-weight: 600; line-height: 1.6; }
+
+/* checkups & meds link */
+.svc-inline-link {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin: -10px 0 0; padding: 0 4px;
+  font-size: 12.5px; font-weight: 800; color: var(--brand); text-decoration: none; align-self: flex-start;
+}
+.svc-inline-link.is-soon { color: var(--text-2); }
+.svc-inline-link:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; border-radius: 8px; }
+
+/* mother & child: decorative map (city services land in N10) */
+.svc-map { position: relative; height: 150px; border-radius: var(--r-card); overflow: hidden; border: 1px solid var(--line); }
+.svc-map-art { position: absolute; inset: 0; background: color-mix(in srgb, var(--data) 9%, var(--surface-4)); }
+.svc-map-road { position: absolute; background: var(--surface); opacity: .9; }
+.svc-map-road.is-h1 { inset-inline: 0; top: 30px; height: 14px; transform: skewY(-4deg); }
+.svc-map-road.is-h2 { inset-inline: 0; top: 92px; height: 12px; }
+.svc-map-road.is-v1 { inset-block: 0; inset-inline-start: 34%; width: 14px; transform: skewX(-6deg); }
+.svc-map-road.is-v2 { inset-block: 0; inset-inline-start: 72%; width: 12px; }
+.svc-map-block { position: absolute; border-radius: 14px; background: color-mix(in srgb, var(--data) 16%, var(--surface-4)); }
+.svc-map-block.is-a { inset-inline-start: 8%; top: 52px; width: 22%; height: 32px; }
+.svc-map-block.is-b { inset-inline-start: 40%; top: 50px; width: 26%; height: 36px; }
+.svc-map-pin {
+  position: absolute; width: 34px; height: 34px; border-radius: 17px; display: flex; align-items: center; justify-content: center;
+  background: var(--surface); border: 2px solid var(--brand); color: var(--brand); box-shadow: var(--shadow-float);
+}
+.svc-map-pin::after {
+  content: ""; position: absolute; bottom: -6px; width: 10px; height: 10px; border-radius: 2px;
+  background: var(--brand); transform: rotate(45deg); z-index: -1;
+}
+.svc-map-pin.is-a { inset-inline-end: 18%; top: 36px; }
+.svc-map-pin.is-b { inset-inline-end: 55%; top: 60px; }
+.svc-map-pill {
+  position: absolute; inset-inline: 12px; bottom: 12px; margin: 0; min-height: 44px; border-radius: 22px;
+  display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 12px;
+  background: var(--surface); border: 1px solid var(--line); color: var(--text-1);
+  font-size: 12.5px; font-weight: 800; text-decoration: none;
+}
+.svc-map-pill .nb-pill { font-size: 9px; padding: 2px 6px; }
+a.svc-map-pill:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+
+/* learning */
+.svc-learn .nb-row-title { font-size: 13.5px; font-weight: 800; }
+
+/* shop: dashed frame, kept apart from health data */
+.svc-shop { display: flex; flex-direction: column; gap: 12px; padding: 14px; border: 1.5px dashed var(--line); border-radius: 26px; }
+.svc-shop-head { display: flex; align-items: center; gap: 8px; }
+.svc-shop-title { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); }
+.svc-shop-tag {
+  display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--text-2) 40%, transparent); font-size: 11.5px; font-weight: 700; color: var(--text-1);
+}
+.svc-shop-end { margin-inline-start: auto; }
+.svc-shop-enter {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px;
+  font-size: 12.5px; font-weight: 800; color: var(--brand); text-decoration: none;
+}
+.svc-shop-cats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.svc-shop-cat { display: flex; flex-direction: column; gap: 8px; }
+.svc-shop-art {
+  height: 96px; border-radius: 18px; display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--bloom) 18%, var(--surface)); color: var(--bloom-deep);
+}
+.svc-shop-cat.is-alt .svc-shop-art { background: var(--brand-soft); color: var(--brand); }
+.svc-shop-cat-title { font-size: 12.5px; font-weight: 800; color: var(--text-1); }
+.svc-shop-note { margin: 0; font-size: 11.5px; font-weight: 600; line-height: 1.8; color: var(--text-2); }
+
+/* emergency */
+.svc-sos {
+  display: flex; align-items: center; gap: 12px; margin: 0 var(--gutter-form); padding: 12px 14px;
+  background: var(--danger-soft); border: 1px solid color-mix(in srgb, var(--danger) 33%, transparent);
+  border-radius: 22px;
+}
+.svc-sos-text { flex: 1; min-width: 0; }
+.svc-sos-title { margin: 0; font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+.svc-sos-body { margin: 0; font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+.svc-sos-call {
+  flex-shrink: 0; min-width: 56px; height: 44px; padding: 0 16px; border-radius: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--danger); color: var(--on-danger); font-size: 14px; font-weight: 800;
+  text-decoration: none;
+}
+.svc-sos-call:focus-visible { outline: 2px solid var(--danger); outline-offset: 2px; }
+
+/* loading */
+.svc-skel { display: flex; flex-direction: column; gap: 18px; padding: 0 var(--gutter-form); }
+.svc-skel-search { height: 50px; border-radius: 18px; }
+.svc-skel-tile { height: 112px; }
+.svc-skel-row { height: 72px; }
+/* ═══ end B-N7-01 ═══ */

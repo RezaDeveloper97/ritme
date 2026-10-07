@@ -1,53 +1,42 @@
 'use client';
 
+import { Fragment } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { Link, useRouter, type Locale } from '@/shared/i18n';
-import { formatNumber } from '@/shared/lib/date';
+import { type ServiceSection, type ServicesHub, useServicesHub } from '@/entities/service-hub';
+import { type Locale } from '@/shared/i18n';
 import { openSheet } from '@/shared/sheet';
 import {
+  EmptyState,
   HeaderButton,
   HubHeader,
-  IconCircle,
-  InfoNote,
-  ListGroup,
-  ListRow,
-  SectionTitle,
+  PrimaryButton,
+  Skeleton,
+  SkeletonGroup,
   SkyLayer,
-  StatusPill,
-  type IconName,
-  type Tone,
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
-type TileKey = 'assistant' | 'doctors' | 'labs' | 'record' | 'vitals' | 'insurance';
-
-/** v17_Main «مراقبت سلامت» grid, in artboard order. Each lands with its own N6/N7/N10 task. */
-const CARE_TILES: ReadonlyArray<{ key: TileKey; icon: IconName; tone: Tone }> = [
-  { key: 'assistant', icon: 'sparkle', tone: 'brand' },
-  { key: 'doctors', icon: 'stetho', tone: 'data' },
-  { key: 'record', icon: 'note', tone: 'brand' },
-  { key: 'labs', icon: 'flask', tone: 'period' },
-  { key: 'vitals', icon: 'heartLine', tone: 'period' },
-  { key: 'insurance', icon: 'shield', tone: 'data' },
-];
-
-/** Tiles whose screens exist (the rest show «به‌زودی»). */
-const LIVE_TILES: Partial<Record<TileKey, string>> = {
-  vitals: '/vitals', // B-N6-02
-};
+import {
+  BookingCard,
+  CareGrid,
+  CheckupsLink,
+  LearningCard,
+  MotherChildCard,
+  ProgramsRow,
+  SearchLink,
+  ShopCard,
+  SosCard,
+} from './sections';
 
 /**
- * «خدمات» tab (B-N1-04). A placeholder hub so the new tab works now: the care
- * grid shows what is coming, the two services that already exist (checkups,
- * reminders) are live, and the emergency note is always there. The real hub —
- * appointment card, programs, map, courses, shop — is B-N7-01 (`v17_Main`).
- * Static content: no loading / error state to show.
+ * «خدمات» tab (B-N7-01, nbl_/nbd_v17_Main). Every section, its order and its copy come from GET /services (admin
+ * catalog); a destination without a screen yet is shown «به‌زودی» and never linked. The upcoming-booking card
+ * renders only when the API returns a booking. The emergency card stays on screen while loading and on error.
  */
 export function ServicesPage() {
   const t = useTranslations('services');
-  const router = useRouter();
-  const locale = useLocale() as Locale;
+  const hub = useServicesHub();
 
   return (
     <div className="view svc-page">
@@ -60,67 +49,100 @@ export function ServicesPage() {
             <HeaderButton label={t('notifications')} icon="bell" variant="soft" onClick={() => openSheet('notifications')} />
           }
         />
-
-        <section className="svc-sec" aria-labelledby="svc-care">
-          <SectionTitle id="svc-care" title={t('careTitle')} />
-          <ul className="svc-grid">
-            {CARE_TILES.map((tile) => {
-              const href = LIVE_TILES[tile.key];
-              return (
-                <li key={tile.key} className={href ? 'svc-tile is-live' : 'svc-tile'}>
-                  <div className="svc-tile-top">
-                    <IconCircle icon={tile.icon} tone={tile.tone} size="sm" />
-                    {href ? null : <StatusPill tone="neutral">{t('soon')}</StatusPill>}
-                  </div>
-                  <p className="svc-tile-title">
-                    {href ? (
-                      <Link href={href} className="svc-tile-hit">
-                        {t(`tiles.${tile.key}.title`)}
-                      </Link>
-                    ) : (
-                      t(`tiles.${tile.key}.title`)
-                    )}
-                  </p>
-                  <p className="svc-tile-sub">{t(`tiles.${tile.key}.sub`)}</p>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-
-        <section className="svc-sec" aria-labelledby="svc-now">
-          <SectionTitle id="svc-now" title={t('availableTitle')} />
-          <ListGroup>
-            <ListRow
-              icon="stetho"
-              iconTone="data"
-              title={t('checkups.title')}
-              description={t('checkups.sub')}
-              onClick={() => router.push('/checkups')}
-            />
-            <ListRow
-              icon="pill"
-              iconTone="warm"
-              title={t('reminders.title')}
-              description={t('reminders.sub')}
-              onClick={() => router.push('/reminders')}
-            />
-          </ListGroup>
-          <InfoNote>{t('building')}</InfoNote>
-        </section>
-
-        <div className="svc-sos">
-          <IconCircle icon="warning" tone="danger" size="md" />
-          <div className="svc-sos-text">
-            <p className="svc-sos-title">{t('sos.title')}</p>
-            <p className="svc-sos-body">{t('sos.body')}</p>
-          </div>
-          <a className="svc-sos-call" href="tel:115" aria-label={t('sos.call')}>
-            <bdi>{formatNumber(115, locale)}</bdi>
-          </a>
-        </div>
+        {hub.isPending ? (
+          <>
+            <SkeletonGroup label={t('loading')} className="svc-skel">
+              <Skeleton shape="block" className="svc-skel-search" />
+              <div className="svc-grid">
+                {Array.from({ length: 6 }, (_, i) => (
+                  <Skeleton key={i} shape="card" className="svc-skel-tile" />
+                ))}
+              </div>
+              <Skeleton shape="card" className="svc-skel-row" />
+            </SkeletonGroup>
+            <SosCard section={null} />
+          </>
+        ) : hub.isError ? (
+          <>
+            <div className="svc-sec">
+              <EmptyState
+                icon="warning"
+                title={t('loadError')}
+                action={<PrimaryButton onClick={() => void hub.refetch()}>{t('retry')}</PrimaryButton>}
+              />
+            </div>
+            <SosCard section={null} />
+          </>
+        ) : (
+          <HubSections hub={hub.data} />
+        )}
       </div>
       <BottomNav />
     </div>
+  );
+}
+
+/** Sections that carry content (search and the emergency card alone count as an empty hub). */
+function hasContent(section: ServiceSection, hub: ServicesHub): boolean {
+  switch (section.code) {
+    case 'booking':
+      return hub.upcomingBooking !== null;
+    case 'care':
+      return hub.care.length > 0;
+    case 'programs':
+      return hub.programs.length > 0;
+    case 'search':
+    case 'emergency':
+      return false;
+    default:
+      return true;
+  }
+}
+
+function HubSections({ hub }: { hub: ServicesHub }) {
+  const t = useTranslations('services');
+  const locale = useLocale() as Locale;
+  const empty = !hub.sections.some((s) => hasContent(s, hub));
+
+  return (
+    <>
+      {hub.sections.map((section) => {
+        switch (section.code) {
+          case 'search':
+            return <SearchLink key={section.code} section={section} />;
+          case 'booking':
+            return hub.upcomingBooking ? (
+              <BookingCard key={section.code} booking={hub.upcomingBooking} locale={locale} />
+            ) : null;
+          case 'care':
+            return hub.care.length ? <CareGrid key={section.code} section={section} tiles={hub.care} /> : null;
+          case 'checkups':
+            return <CheckupsLink key={section.code} section={section} />;
+          case 'programs':
+            return hub.programs.length ? (
+              <ProgramsRow key={section.code} section={section} tiles={hub.programs} />
+            ) : null;
+          case 'mother_child':
+            return <MotherChildCard key={section.code} section={section} />;
+          case 'learning':
+            return <LearningCard key={section.code} section={section} />;
+          case 'shop':
+            return <ShopCard key={section.code} section={section} />;
+          case 'emergency':
+            return (
+              <Fragment key={section.code}>
+                {empty ? (
+                  <div className="svc-sec">
+                    <EmptyState icon="grid" title={t('empty.title')} body={t('empty.body')} />
+                  </div>
+                ) : null}
+                <SosCard section={section} />
+              </Fragment>
+            );
+          default:
+            return null;
+        }
+      })}
+    </>
   );
 }

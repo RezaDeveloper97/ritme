@@ -1,3 +1,2 @@
-// Public API of the `services` screen — the «خدمات» tab (route /services).
-// Placeholder hub from B-N1-04; the real hub (v17_Main) is B-N7-01.
+// Public API of the `services` screen — the «خدمات» tab (route /services), the hub of B-N7-01 (v17_Main).
 export { ServicesPage } from './ui/ServicesPage';

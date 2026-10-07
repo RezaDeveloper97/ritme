@@ -2,23 +2,60 @@
   "title": "Services",
   "subtitle": "Care, programs and city services",
   "notifications": "Notifications",
-  "careTitle": "Health care",
-  "soon": "Soon",
-  "tiles": {
-    "assistant": { "title": "Health assistant", "sub": "Answers and referrals" },
-    "doctors": { "title": "Doctors & midwives", "sub": "Video or in person" },
-    "labs": { "title": "Lab analysis", "sub": "Photo of your lab sheet" },
-    "record": { "title": "Health record", "sub": "History and documents" },
-    "vitals": { "title": "Vital signs", "sub": "Blood pressure, sugar, pulse" },
-    "insurance": { "title": "Insurance", "sub": "Coverage and claims" }
+  "loading": "Loading services",
+  "loadError": "Services didn't load. Check your connection and try again.",
+  "retry": "Try again",
+  "empty": {
+    "title": "No services to show right now",
+    "body": "New services will appear here soon."
   },
-  "availableTitle": "Available now",
-  "checkups": { "title": "Routine checkups", "sub": "When exams and tests are due" },
-  "reminders": { "title": "Medication & visit reminders", "sub": "Pills, supplements, appointments" },
-  "building": "More services will be added here over time.",
+  "soon": "Soon",
+  "soonLabel": "{title} (coming soon)",
+  "search": {
+    "label": "Search",
+    "placeholder": "Doctors, labs, classes or programs…"
+  },
+  "booking": {
+    "label": "Upcoming visit",
+    "kind": {
+      "video": "Video visit",
+      "phone": "Phone consultation",
+      "in_person": "In-person visit"
+    },
+    "title": "{kind} · {name}",
+    "when": "{days, plural, =0 {Today} =1 {Tomorrow} other {In # days}} · {time}",
+    "details": "Details",
+    "detailsLabel": "Details of the visit with {name}"
+  },
+  "care": {
+    "title": "Health care",
+    "docCount": "{count, plural, =1 {# document} other {# documents}}"
+  },
+  "checkups": {
+    "title": "Routine checkups & medication reminders"
+  },
+  "programs": {
+    "title": "Care programs",
+    "subtitle": "Based on what you turn on"
+  },
+  "motherChild": {
+    "title": "For mother & child",
+    "caption": "Classes, pools and play centres near you"
+  },
+  "learning": {
+    "title": "Learning",
+    "card": "Online courses and classes",
+    "caption": "Birth prep, breastfeeding, menopause"
+  },
+  "shop": {
+    "title": "Shop",
+    "tag": "Shopping",
+    "enter": "Enter",
+    "note": "The shop is separate from your health data and its suggestions are not based on what you log."
+  },
   "sos": {
     "title": "Is it an emergency?",
     "body": "Ritme is not a substitute for emergency care",
-    "call": "Call 115"
+    "call": "Call {phone}"
   }
 }
