@@ -1,0 +1,631 @@
+{
+  "case": "healthrecord-extract/extract_review_visit.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/trial/start",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "دوره رایگان ریتمی پلاس شروع شد",
+        "data": {
+          "tier": "trial",
+          "is_plus": true,
+          "subscription": null,
+          "trial": {
+            "started_at": "2026-09-23T10:00:00+03:30",
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "is_active": true,
+            "days_left": 7
+          },
+          "trial_available": false,
+          "period_start": "2026-09-01",
+          "resets_at": "2026-10-01T00:00:00+03:30",
+          "entitlements": [
+            {
+              "key": "plus.deep_analysis",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.lab_ai",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 10,
+              "used": 0,
+              "remaining": 10
+            },
+            {
+              "key": "plus.assistant_unlimited",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.pdf_share",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.visit_discount",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.voice_log",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.doc_ai",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 20,
+              "used": 0,
+              "remaining": 20
+            }
+          ],
+          "trial_offer": {
+            "percent": 50,
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "seconds_left": 604800,
+            "days_left": 7,
+            "countdown": {
+              "days": 7,
+              "hours": 0,
+              "minutes": 0
+            },
+            "currency": "IRR",
+            "plan": {
+              "id": 2,
+              "code": "plus_3m",
+              "title": "۳ ماهه",
+              "badge": "محبوب‌ترین",
+              "duration_months": 3,
+              "price": 2370000,
+              "monthly_price": 790000,
+              "savings_percent": 20,
+              "is_highlighted": true,
+              "offer_price": 1185000,
+              "offer_monthly_price": 395000
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/consents/ai_documents",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "granted": true,
+          "version": 1
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "رضایتت ثبت شد",
+        "data": {
+          "consent": {
+            "code": "ai_documents",
+            "version": 1,
+            "title": "خواندن مدارک پزشکی با هوش مصنوعی",
+            "body": "برای پر کردن خودکار فیلدهای مدرک (مثل تاریخ، مرکز و سن بارداری)، تصویر یا PDF آن به یک سرویس هوش مصنوعی فرستاده می‌شود.",
+            "points": [
+              "اگر نام یا اطلاعات شخصی روی مدرک چاپ شده، بهتر است پیش از ارسال آن قسمت را بپوشانی.",
+              "فیلدهای خوانده‌شده تا تأیید خودت ذخیره نهایی نمی‌شوند.",
+              "سرویس‌دهنده اجازه ندارد این داده‌ها را برای آموزش مدل خود استفاده کند.",
+              "هر وقت بخواهی می‌توانی این رضایت را پس بگیری."
+            ],
+            "granted": true,
+            "accepted_version": 1,
+            "needs_consent": false,
+            "reason": null,
+            "granted_at": "2026-09-23T10:00:00+03:30",
+            "revoked_at": null
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/files",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "raw_body": "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nrecord_document\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"visit.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 RITME-FAKE:visit\n%%EOF\r\n--ritmeB--\r\n"
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "فایل بارگذاری شد",
+        "data": {
+          "id": 1,
+          "purpose": "record_document",
+          "visibility": "private",
+          "mime": "application/pdf",
+          "size_bytes": 31,
+          "sha256": "5f7b48eeb07b4d491f318853fe12059751fc754766acd3cd59896440054a96e1",
+          "url": "<pattern:^http://[^/]+/api/v1/files/\\d+/download\\?expires=\\d+&signature=[A-Za-z0-9_-]{43}$>",
+          "url_expires_at": "2026-09-23T10:05:00+03:30",
+          "created_at": "2026-09-23T10:00:00+03:30"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-record/documents",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "kind": "visit",
+          "file_ids": [
+            "{{file}}"
+          ]
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "message": "سند اضافه شد",
+        "data": {
+          "id": 1,
+          "kind": "visit",
+          "title": null,
+          "date": null,
+          "ended_on": null,
+          "centre": null,
+          "doctor": null,
+          "note": null,
+          "review_state": "manual",
+          "extracted": null,
+          "files": [
+            {
+              "id": 1,
+              "mime": "application/pdf",
+              "size_bytes": 31,
+              "url": "<pattern:^http://[^/]+/api/v1/files/\\d+/download\\?expires=\\d+&signature=[A-Za-z0-9_-]{43}$>",
+              "url_expires_at": "2026-09-23T10:05:00+03:30"
+            }
+          ],
+          "where_used": [],
+          "created_at": "2026-09-23T06:30:00.000000Z",
+          "updated_at": "2026-09-23T06:30:00.000000Z"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-record/documents/1/extract",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 402,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "4",
+        "x-ratelimit-remaining": "3"
+      },
+      "body": {
+        "success": false,
+        "message": "این امکان بخشی از ریتمی پلاس است.",
+        "error_code": "plus_required",
+        "feature": "plus.doc_ai",
+        "reason": "locked",
+        "limit": null,
+        "resets_at": null
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-record/documents/1/extract",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 202,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "4",
+        "x-ratelimit-remaining": "3"
+      },
+      "body": {
+        "success": true,
+        "message": "در حال خواندن سند… چند لحظه دیگر اطلاعاتش را ببین",
+        "data": {
+          "id": 1,
+          "kind": "visit",
+          "title": null,
+          "date": null,
+          "ended_on": null,
+          "centre": null,
+          "doctor": null,
+          "note": null,
+          "review_state": "needs_review",
+          "extracted": {
+            "dating": null,
+            "error_code": null,
+            "extracted_at": "2026-09-23T10:00:00+03:30",
+            "fields": {
+              "centre": {
+                "value": "مطب نمونه",
+                "confidence": 0.74
+              },
+              "date": {
+                "value": "2026-09-15",
+                "confidence": 0.92
+              },
+              "diagnosis": {
+                "value": "سندرم تخمدان پلی‌کیستیک",
+                "confidence": 0.58
+              },
+              "doctor": {
+                "value": "دکتر نمونه",
+                "confidence": 0.81
+              },
+              "findings": {
+                "value": "ادامهٔ درمان و آزمایش سه ماه بعد",
+                "confidence": 0.55
+              },
+              "next_visit": {
+                "value": "2026-12-15",
+                "confidence": 0.66
+              },
+              "reason": {
+                "value": "پیگیری دوره‌ای",
+                "confidence": 0.6
+              },
+              "specialty": {
+                "value": "زنان و زایمان",
+                "confidence": 0.77
+              }
+            },
+            "items": [],
+            "requested_at": "2026-09-23T10:00:00+03:30",
+            "reviewed": null,
+            "reviewed_at": null,
+            "reviewed_items": null,
+            "schema": "visit",
+            "status": "done"
+          },
+          "files": [
+            {
+              "id": 1,
+              "mime": "application/pdf",
+              "size_bytes": 31,
+              "url": "<pattern:^http://[^/]+/api/v1/files/\\d+/download\\?expires=\\d+&signature=[A-Za-z0-9_-]{43}$>",
+              "url_expires_at": "2026-09-23T10:05:00+03:30"
+            }
+          ],
+          "where_used": [],
+          "created_at": "2026-09-23T06:30:00.000000Z",
+          "updated_at": "2026-09-23T06:30:00.000000Z"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-record/documents/1/review",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "این سند پیدا نشد",
+        "error_code": "record_document_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-record/documents/1/review",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "fields": {
+            "ga_weeks": 12,
+            "date": "2030-01-01"
+          }
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات ارسال‌شده معتبر نیست",
+        "errors": {
+          "fields.date": [
+            "تاریخ باید تاریخی برابر یا قبل از today باشد."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-record/documents/1/review",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "fields": {
+            "doctor": "Dr. B",
+            "diagnosis": null
+          }
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "54"
+      },
+      "body": {
+        "success": true,
+        "message": "ذخیره شد — ممنون که بررسی کردی",
+        "data": {
+          "document": {
+            "id": 1,
+            "kind": "visit",
+            "title": null,
+            "date": "2026-09-15",
+            "ended_on": null,
+            "centre": "مطب نمونه",
+            "doctor": "Dr. B",
+            "note": null,
+            "review_state": "confirmed",
+            "extracted": {
+              "dating": null,
+              "error_code": null,
+              "extracted_at": "2026-09-23T10:00:00+03:30",
+              "fields": {
+                "centre": {
+                  "value": "مطب نمونه",
+                  "confidence": 0.74
+                },
+                "date": {
+                  "value": "2026-09-15",
+                  "confidence": 0.92
+                },
+                "diagnosis": {
+                  "value": "سندرم تخمدان پلی‌کیستیک",
+                  "confidence": 0.58
+                },
+                "doctor": {
+                  "value": "دکتر نمونه",
+                  "confidence": 0.81
+                },
+                "findings": {
+                  "value": "ادامهٔ درمان و آزمایش سه ماه بعد",
+                  "confidence": 0.55
+                },
+                "next_visit": {
+                  "value": "2026-12-15",
+                  "confidence": 0.66
+                },
+                "reason": {
+                  "value": "پیگیری دوره‌ای",
+                  "confidence": 0.6
+                },
+                "specialty": {
+                  "value": "زنان و زایمان",
+                  "confidence": 0.77
+                }
+              },
+              "items": [],
+              "requested_at": "2026-09-23T10:00:00+03:30",
+              "reviewed": {
+                "centre": "مطب نمونه",
+                "date": "2026-09-15",
+                "doctor": "Dr. B",
+                "findings": "ادامهٔ درمان و آزمایش سه ماه بعد",
+                "next_visit": "2026-12-15",
+                "reason": "پیگیری دوره‌ای",
+                "specialty": "زنان و زایمان"
+              },
+              "reviewed_at": "2026-09-23T10:00:00+03:30",
+              "reviewed_items": [],
+              "schema": "visit",
+              "status": "done"
+            },
+            "files": [
+              {
+                "id": 1,
+                "mime": "application/pdf",
+                "size_bytes": 31,
+                "url": "<pattern:^http://[^/]+/api/v1/files/\\d+/download\\?expires=\\d+&signature=[A-Za-z0-9_-]{43}$>",
+                "url_expires_at": "2026-09-23T10:05:00+03:30"
+              }
+            ],
+            "where_used": [],
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "dating": {
+            "state": "unavailable",
+            "reason": "not_imaging",
+            "message": "فقط گزارش تصویربرداری می‌تواند سن بارداری را به‌روز کند",
+            "scan_date": null,
+            "proposed": null,
+            "current": null,
+            "difference_days": null
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/documents/1/dating",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "state": "unavailable",
+          "reason": "not_imaging",
+          "message": "فقط گزارش تصویربرداری می‌تواند سن بارداری را به‌روز کند",
+          "scan_date": null,
+          "proposed": null,
+          "current": null,
+          "difference_days": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-record/documents/1/extract",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 409,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "4",
+        "x-ratelimit-remaining": "2"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات این سند را قبلاً تأیید کرده‌ای",
+        "error_code": "document_confirmed"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/plus/usage",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "tier": "trial",
+          "period_start": "2026-09-01",
+          "resets_at": "2026-10-01T00:00:00+03:30",
+          "features": [
+            {
+              "key": "plus.deep_analysis",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.lab_ai",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 10,
+              "used": 0,
+              "remaining": 10
+            },
+            {
+              "key": "plus.assistant_unlimited",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.pdf_share",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.visit_discount",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.voice_log",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.doc_ai",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 20,
+              "used": 1,
+              "remaining": 19
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -221,6 +221,14 @@
                 "limit": null,
                 "used": 0,
                 "remaining": null
+              },
+              {
+                "key": "plus.doc_ai",
+                "allowed": true,
+                "unlimited": false,
+                "limit": 20,
+                "used": 0,
+                "remaining": 20
               }
             ],
             "trial_offer": null
@@ -351,6 +359,14 @@
                 "limit": null,
                 "used": 0,
                 "remaining": null
+              },
+              {
+                "key": "plus.doc_ai",
+                "allowed": true,
+                "unlimited": false,
+                "limit": 20,
+                "used": 0,
+                "remaining": 20
               }
             ],
             "trial_offer": null
@@ -491,6 +507,14 @@
               "limit": null,
               "used": 0,
               "remaining": null
+            },
+            {
+              "key": "plus.doc_ai",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 20,
+              "used": 0,
+              "remaining": 20
             }
           ],
           "trial_offer": null
@@ -561,6 +585,14 @@
             },
             {
               "key": "plus.voice_log",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.doc_ai",
               "allowed": false,
               "unlimited": false,
               "limit": 0,

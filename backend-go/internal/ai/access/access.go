@@ -93,8 +93,8 @@ var policies = []Policy{
 	{Feature: ai.FeatureAssistant, Consent: consent.AIAssistant, Plus: plus.AssistantUnlimited, Throttles: []Throttle{
 		{Name: "ai-assistant-burst", Max: 10, Window: time.Minute}, {Name: "ai-assistant-hourly", Max: 120, Window: time.Hour},
 	}},
-	// CB-REC-02 picks its Plus key (entitlements B-N2-06) when it lands; the consent is required already.
-	{Feature: ai.FeatureDocExtract, Consent: consent.AIDocuments, Throttles: []Throttle{
+	// CB-REC-02: record document extraction (plus.doc_ai, 20 / month; free users fill the fields in by hand).
+	{Feature: ai.FeatureDocExtract, Consent: consent.AIDocuments, Plus: plus.DocAI, Throttles: []Throttle{
 		{Name: "ai-doc-burst", Max: 4, Window: time.Minute}, {Name: "ai-doc-hourly", Max: 20, Window: time.Hour},
 	}},
 }

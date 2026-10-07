@@ -3,7 +3,7 @@ id: CB-REC-02
 title: Document extraction for non-lab kinds (AI adapter, Plus) + pregnancy dating hook
 epic: REC
 type: backend
-status: todo
+status: done
 depends_on: [CB-REC-01, B-N6-05, B-N6-06, B-N2-06]
 parallel_group: REC-B
 touches: [backend-go/internal/healthrecord/extract, backend-go/internal/healthrecord, backend-go/internal/pregnancy, backend-go/api/openapi.yaml]

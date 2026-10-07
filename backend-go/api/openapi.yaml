@@ -17525,7 +17525,7 @@ paths:
       summary: A record document (nbl_Rec_Doc)
       description: |
         The document with its files (signed links valid 5 minutes; `url` is null while the storage is disabled), the
-        AI step's extracted values (`null` until CB-REC-02) and «where used» (claims, the pregnancy section).
+        AI step's extracted values (`null` until a first extraction, CB-REC-02) and «where used» (claims, the pregnancy section).
       operationId: showHealthRecordDocument
       security:
         - {bearerAuth: []}
@@ -17576,6 +17576,17 @@ paths:
                   data: {$ref: "#/components/schemas/RecordDocument"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/RecordDocumentNotFound"}
+        '409':
+          description: "CB-REC-02: the document's extraction is pending — no kind change and no `confirm` until it ends (`extraction_running`)."
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, const: extraction_running}
         '422': {$ref: "#/components/responses/HealthRecordValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
     delete:
@@ -17601,6 +17612,204 @@ paths:
                   data: {type: "null"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/RecordDocumentNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/health-record/documents/{id}/extract:
+    post:
+      tags: [HealthRecord]
+      summary: Read a record document with the AI (Plus)
+      description: |
+        CB-REC-02 (nbl_Rec_Doc «اطلاعات خوانده‌شده از سند»). Queues the AI extraction of the document's files (the first
+        5) with the kind's schema (date, centre, doctor; imaging: modality, gestational age, due date, findings;
+        visit, prescription with medicine rows, hospital, other). The AI gate runs first, in the B-N6-05b order:
+        throttles → `plus.doc_ai` (20 / month; free users get 402 and fill the fields in by hand with PUT) → versioned
+        consent `ai_documents` (403) → cost caps / concurrency → one reserved Plus use, given back when the request or
+        the extraction fails. 202 with the document: `review_state` `pending` (the job runs on the workers; poll
+        GET /health-record/documents/{id}), or already `needs_review` / `failed` when the queue runs inline.
+        Values are suggestions with a confidence until the user confirms them (POST …/review or PUT `confirm`).
+      operationId: extractHealthRecordDocument
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/RecordDocumentId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '202':
+          description: Queued (or read, in sync mode)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/RecordDocument"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '402': {$ref: "#/components/responses/PlusRequired"}
+        '403': {$ref: "#/components/responses/ConsentRequired"}
+        '404': {$ref: "#/components/responses/RecordDocumentNotFound"}
+        '409': {$ref: "#/components/responses/RecordExtractionConflict"}
+        '422': {$ref: "#/components/responses/HealthRecordValidationFailed"}
+        '429':
+          description: Throttled (`too_many_requests`), the monthly Plus quota spent (`plus_quota_exceeded`), the per-user AI cost cap (`ai_user_budget_exhausted`) or another AI request running (`ai_busy`).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, enum: [too_many_requests, plus_quota_exceeded, ai_user_budget_exhausted, ai_busy]}
+        '503': {$ref: "#/components/responses/AIUnavailable"}
+  /api/v1/health-record/documents/{id}/review:
+    post:
+      tags: [HealthRecord]
+      summary: Confirm (and correct) the values read from a document
+      description: |
+        `needs_review` → `confirmed`. `fields` overrides values by key of the kind's schema (a value replaces, `null`
+        clears, an absent key keeps what was read; an unknown key is 422); `items` (prescriptions only) replaces the
+        medicine rows. Date, discharge date, centre and doctor are copied to the document. Returns the document and
+        its pregnancy dating offer — confirming never re-dates the pregnancy by itself.
+      operationId: reviewHealthRecordDocument
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/RecordDocumentId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fields:
+                  type: [object, "null"]
+                  description: "Keys of the kind's schema: date, ended_on, centre, doctor, kind, ga_weeks (0–45), ga_days (0–6), edd, findings, specialty, reason, diagnosis, next_visit, procedures, title"
+                  additionalProperties: {type: [string, number, "null"]}
+                items:
+                  type: [array, "null"]
+                  maxItems: 30
+                  items:
+                    type: object
+                    properties:
+                      medicine: {type: [string, "null"], maxLength: 500}
+                      dose: {type: [string, "null"], maxLength: 500}
+                      frequency: {type: [string, "null"], maxLength: 500}
+                      duration: {type: [string, "null"], maxLength: 500}
+      responses:
+        '200':
+          description: Confirmed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [document, dating]
+                    properties:
+                      document: {$ref: "#/components/schemas/RecordDocument"}
+                      dating: {$ref: "#/components/schemas/RecordDatingOffer"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/RecordDocumentNotFound"}
+        '409': {$ref: "#/components/responses/RecordExtractionConflict"}
+        '422': {$ref: "#/components/responses/HealthRecordValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/health-record/documents/{id}/dating:
+    get:
+      tags: [HealthRecord]
+      summary: The pregnancy dating offer of a document
+      description: |
+        A confirmed imaging document with a gestational age (or a due date) and a scan date, while the user is in
+        pregnancy mode, offers «سن بارداری را از این سند به‌روز کنم؟» (`state: offered`, the proposed dating vs the
+        current one). Otherwise `unavailable` with a `reason`; `applied` / `dismissed` once answered.
+      operationId: showHealthRecordDocumentDating
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/RecordDocumentId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/RecordDatingOffer"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/RecordDocumentNotFound"}
+    post:
+      tags: [HealthRecord]
+      summary: Re-date the pregnancy from the document (explicit confirm)
+      description: |
+        Only with `confirm: true`: the pregnancy profile is dated from the scan (age source ultrasound, high
+        confidence, due date recomputed — what PUT /pregnancy/profile does) and the document is linked to the pregnancy
+        (`where_used` pregnancy `applied`). 409 `dating_unavailable` when the offer is not open.
+      operationId: applyHealthRecordDocumentDating
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/RecordDocumentId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirm]
+              properties:
+                confirm: {type: boolean, const: true}
+      responses:
+        '200':
+          description: Applied
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/RecordDatingOffer"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/RecordDocumentNotFound"}
+        '409': {$ref: "#/components/responses/RecordExtractionConflict"}
+        '422': {$ref: "#/components/responses/HealthRecordValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [HealthRecord]
+      summary: Dismiss the pregnancy dating offer
+      description: "«نه، همین بماند» — the offer closes (`dismissed`), the pregnancy is untouched. 409 when it is not open."
+      operationId: dismissHealthRecordDocumentDating
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/RecordDocumentId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Dismissed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/RecordDatingOffer"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/RecordDocumentNotFound"}
+        '409': {$ref: "#/components/responses/RecordExtractionConflict"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/files:
     post:
@@ -18309,6 +18518,19 @@ components:
               success: {type: boolean, const: false}
               message: {type: string}
               error_code: {type: string, enum: [record_document_not_found]}
+    RecordExtractionConflict:
+      description: "CB-REC-02: `extraction_running` (already queued), `document_confirmed` (values already confirmed), `not_in_review` (nothing read waits for review) or `dating_unavailable` (the dating offer is not open; with its `state` and `reason`)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [extraction_running, document_confirmed, not_in_review, dating_unavailable]}
+              state: {type: string, enum: [offered, applied, dismissed, unavailable]}
+              reason: {type: [string, "null"]}
     VitalNotFound:
       description: "Bloom B-N6-01: the reading does not exist or is not the caller's — one uniform answer."
       content:
@@ -19674,7 +19896,7 @@ components:
         doctor: {type: [string, "null"]}
         note: {type: [string, "null"]}
         review_state: {type: string, enum: [manual, pending, needs_review, confirmed, failed]}
-        extracted: {type: [object, "null"], description: "The AI step's values (CB-REC-02); null until then"}
+        extracted: {oneOf: [{$ref: "#/components/schemas/RecordExtraction"}, {type: "null"}], description: "The AI step's values (CB-REC-02, without the job bookkeeping); null until a first extraction"}
         files:
           type: array
           items:
@@ -19698,6 +19920,57 @@ components:
               updated_at: {oneOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]}
         created_at: {oneOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]}
         updated_at: {oneOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]}
+    RecordExtraction:
+      type: object
+      description: "CB-REC-02: what the AI read from a record document (suggestions until reviewed). Keys sorted."
+      required: [dating, error_code, extracted_at, fields, items, requested_at, reviewed, reviewed_at, reviewed_items, schema, status]
+      properties:
+        dating: {type: [string, "null"], enum: [applied, dismissed, null]}
+        error_code: {type: [string, "null"], enum: [ai_failed, ai_unavailable, ai_budget_exhausted, consent_required, unreadable, invalid_file, nothing_read, internal, null]}
+        extracted_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+        fields:
+          type: object
+          description: "Schema key → {value, confidence 0–1}; dates Y-m-d, numbers as numbers"
+          additionalProperties:
+            type: object
+            required: [value, confidence]
+            properties:
+              value: {type: [string, number, boolean]}
+              confidence: {type: number}
+        items:
+          type: array
+          description: "Prescription rows (medicine, dose, frequency, duration), each {value, confidence}"
+          items: {type: object}
+        requested_at: {$ref: "#/components/schemas/IsoDateTime"}
+        reviewed: {type: [object, "null"], description: "The values the user confirmed (key → value)"}
+        reviewed_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+        reviewed_items: {type: [array, "null"], items: {type: object}}
+        schema: {type: string, enum: [imaging, visit, prescription, hospital, other]}
+        status: {type: string, enum: [pending, done, failed]}
+    RecordDatingOffer:
+      type: object
+      required: [state, reason, message, scan_date, proposed, current, difference_days]
+      properties:
+        state: {type: string, enum: [offered, applied, dismissed, unavailable]}
+        reason: {type: [string, "null"], enum: [not_imaging, not_confirmed, no_dating, out_of_range, not_pregnant, other_pregnancy, same_dating, null]}
+        message: {type: string}
+        scan_date: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        proposed:
+          type: [object, "null"]
+          required: [ga_weeks, ga_days, due_date, weeks_today, days_today]
+          properties:
+            ga_weeks: {type: integer}
+            ga_days: {type: integer}
+            due_date: {$ref: "#/components/schemas/Date"}
+            weeks_today: {type: integer}
+            days_today: {type: integer}
+        current:
+          type: [object, "null"]
+          required: [source, due_date]
+          properties:
+            source: {type: string}
+            due_date: {$ref: "#/components/schemas/Date"}
+        difference_days: {type: [integer, "null"], description: "Proposed due date minus the current one, in days"}
     VitalClass:
       type: [object, "null"]
       required: [code, tone]
@@ -21158,7 +21431,7 @@ components:
       properties:
         key:
           type: string
-          description: "Stable key; known today: plus.deep_analysis, plus.lab_ai, plus.assistant_unlimited, plus.pdf_share, plus.visit_discount, plus.voice_log (more may be added)"
+          description: "Stable key; known today: plus.deep_analysis, plus.lab_ai, plus.assistant_unlimited, plus.pdf_share, plus.visit_discount, plus.voice_log, plus.doc_ai (more may be added)"
           examples: [plus.lab_ai]
         allowed: {type: boolean, description: May use it now}
         unlimited: {type: boolean}

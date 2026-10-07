@@ -99,6 +99,12 @@
                 "used": 0,
                 "unlimited": true,
                 "plus_limit": null
+              },
+              {
+                "key": "plus.doc_ai",
+                "used": 0,
+                "unlimited": false,
+                "plus_limit": 20
               }
             ]
           }

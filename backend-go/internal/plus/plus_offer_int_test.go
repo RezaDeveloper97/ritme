@@ -112,7 +112,8 @@ func TestTrialOffer_StatusBannerSheetAndExpiry(t *testing.T) {
 		{"key":"plus.assistant_unlimited","used":3,"unlimited":true,"plus_limit":null},
 		{"key":"plus.pdf_share","used":0,"unlimited":true,"plus_limit":null},
 		{"key":"plus.visit_discount","used":0,"unlimited":true,"plus_limit":null},
-		{"key":"plus.voice_log","used":0,"unlimited":true,"plus_limit":null}]}`, mustJSON(t, d["usage"]))
+		{"key":"plus.voice_log","used":0,"unlimited":true,"plus_limit":null},
+		{"key":"plus.doc_ai","used":0,"unlimited":false,"plus_limit":20}]}`, mustJSON(t, d["usage"]))
 	r = e.doAt(t, at, http.MethodGet, "/api/v1/plus/usage", tok, "en", "")
 	assert.EqualValues(t, 1, entitlement(t, r.data()["features"], "plus.deep_analysis")["used"], "monthly counter")
 

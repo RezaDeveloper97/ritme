@@ -66,6 +66,14 @@
               "limit": 0,
               "used": 0,
               "remaining": 0
+            },
+            {
+              "key": "plus.doc_ai",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
             }
           ]
         }

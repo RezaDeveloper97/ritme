@@ -4,7 +4,8 @@
         "document_created": "Document added",
         "document_updated": "Document updated",
         "document_deleted": "Document deleted",
-        "extras_saved": "Saved"
+        "extras_saved": "Saved",
+        "document_busy": "This document is being read — try again in a moment"
     },
     "validation": {
         "too_many_documents": "You can keep at most :max documents.",

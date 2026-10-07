@@ -1,0 +1,57 @@
+{
+    "messages": {
+        "document_not_found": "This document was not found",
+        "validation_failed": "The data sent is not valid",
+        "extraction_started": "Reading the document… you can check the values in a moment",
+        "extraction_running": "This document is already being read",
+        "document_confirmed": "You have already confirmed this document",
+        "not_in_review": "This document has no read values waiting for your check",
+        "review_confirmed": "Saved — thanks for checking",
+        "dating_applied": "Your pregnancy dating was updated from this scan",
+        "dating_dismissed": "Okay, your pregnancy dating stays as it is",
+        "dating_unavailable": "This document cannot update your pregnancy dating"
+    },
+    "offer": {
+        "offered": "This scan says :weeks weeks :days days on :date. Update your pregnancy dating from it?",
+        "applied": "Your pregnancy dating was updated from this document",
+        "dismissed": "You kept your previous pregnancy dating",
+        "not_imaging": "Only an imaging report can update the pregnancy dating",
+        "not_confirmed": "Check and confirm the values read from the document first",
+        "no_dating": "No gestational age or due date was found in this document",
+        "out_of_range": "The dating in this document does not look like the current pregnancy",
+        "not_pregnant": "Pregnancy mode is not on",
+        "other_pregnancy": "This scan seems to belong to another pregnancy",
+        "same_dating": "Your pregnancy is already dated from this scan"
+    },
+    "validation": {
+        "no_files": "Add a photo or PDF of the document first.",
+        "unknown_field": "This field is not read for this kind of document.",
+        "no_items": "This kind of document has no list of items.",
+        "not_object": "This must be a set of named values."
+    },
+    "attributes": {
+        "fields": "values",
+        "items": "items",
+        "confirm": "confirmation",
+        "fields.date": "date",
+        "fields.ended_on": "discharge date",
+        "fields.centre": "centre",
+        "fields.doctor": "doctor",
+        "fields.kind": "imaging type",
+        "fields.ga_weeks": "gestational age (weeks)",
+        "fields.ga_days": "gestational age (days)",
+        "fields.edd": "due date",
+        "fields.findings": "findings",
+        "fields.specialty": "specialty",
+        "fields.reason": "reason",
+        "fields.diagnosis": "diagnosis",
+        "fields.next_visit": "next visit",
+        "fields.procedures": "procedures",
+        "fields.title": "title",
+        "items.*": "item",
+        "items.*.medicine": "medicine",
+        "items.*.dose": "dose",
+        "items.*.frequency": "frequency",
+        "items.*.duration": "duration"
+    }
+}

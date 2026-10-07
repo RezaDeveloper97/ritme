@@ -20,6 +20,9 @@ import (
 // ErrorCodeDocumentNotFound is the 404 code of an unknown or foreign record document.
 const ErrorCodeDocumentNotFound = "record_document_not_found"
 
+// ErrorCodeDocumentBusy is the 409 code of a kind change / confirm while the document's extraction is pending.
+const ErrorCodeDocumentBusy = "extraction_running"
+
 // minDocumentDate is the earliest accepted document / surgery date.
 const minDocumentDate = "1950-01-01"
 
@@ -191,9 +194,9 @@ func (h *DocumentHandlers) UpdateExtras(c fiber.Ctx) error {
 			in.Surgeries = []Surgery{}
 			_, items := phpval.Entries(v)
 			for i, x := range items {
-				m, _ := x.(phpval.Map)
+				m, isMap := x.(phpval.Map)
 				title := str(m, "title")
-				if title == "" {
+				if !isMap || title == "" {
 					return fieldError(locale, "surgeries."+strconv.Itoa(i)+".title", RT("validation.item_blank", locale))
 				}
 				in.Surgeries = append(in.Surgeries, Surgery{Title: title, Date: surgeryDate(str(m, "date"), now)})
@@ -206,9 +209,9 @@ func (h *DocumentHandlers) UpdateExtras(c fiber.Ctx) error {
 			in.FamilyHistory = []FamilyItem{}
 			_, items := phpval.Entries(v)
 			for i, x := range items {
-				m, _ := x.(phpval.Map)
+				m, isMap := x.(phpval.Map)
 				cond := str(m, "condition")
-				if cond == "" {
+				if !isMap || cond == "" {
 					return fieldError(locale, "family_history."+strconv.Itoa(i)+".condition", RT("validation.item_blank", locale))
 				}
 				in.FamilyHistory = append(in.FamilyHistory, FamilyItem{Condition: cond, Relative: str(m, "relative")})
@@ -311,6 +314,8 @@ func (h *DocumentHandlers) writeError(err error, locale string) error {
 			map[string]string{"max": strconv.Itoa(MaxDocuments)}, locale))
 	case errors.Is(err, ErrDocumentNotFound):
 		return documentNotFound(locale)
+	case errors.Is(err, ErrDocumentBusy):
+		return httpx.Fail(fiber.StatusConflict, RT("messages.document_busy", locale), "error_code", ErrorCodeDocumentBusy)
 	}
 	return err
 }

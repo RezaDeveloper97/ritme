@@ -1,0 +1,335 @@
+# Record document extraction (/api/v1/health-record/documents/{id}/{extract,review,dating}) — Go only (canvas-build
+# CB-REC-02, deviations.md D-70): there is no Laravel route, so these goldens were recorded from the Go server with the
+# fake AI provider (APP_ENV=contract → AI_PROVIDER fake) and QUEUE_CONNECTION=sync (the extraction job runs inside the
+# request), then reviewed by hand (new-endpoint skill, step 8). No new table: the job lives in
+# record_documents.extracted (never shown). Uploads are hand-written multipart bodies: a PDF whose text carries the
+# fake's fixture marker (RITME-FAKE:<key>, internal/ai/fake_extract*.go). The async worker, lease recovery, exhausted
+# jobs, refunds, the prescription rows and the IDOR matrix are covered by internal/healthrecord/extract tests.
+# `regular` (1004) owns the documents; `no_profile` (1001) is the other user; `pregnant_lmp_w8` (1014) is dated by
+# LMP at 8 weeks on the fixture day 2026-09-23.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: healthrecord-extract
+defaults:
+  persona: regular
+  locales: none
+  patterns:
+    data.url: '^http://[^/]+/api/v1/files/\d+/download\?expires=\d+&signature=[A-Za-z0-9_-]{43}$'
+    data.files.*.url: '^http://[^/]+/api/v1/files/\d+/download\?expires=\d+&signature=[A-Za-z0-9_-]{43}$'
+    data.document.files.*.url: '^http://[^/]+/api/v1/files/\d+/download\?expires=\d+&signature=[A-Za-z0-9_-]{43}$'
+cases:
+  - name: extract_anon
+    persona: anon
+    steps:
+      - method: POST
+        path: /api/v1/health-record/documents/1/extract
+        status: 401
+      - method: POST
+        path: /api/v1/health-record/documents/1/review
+        status: 401
+      - method: GET
+        path: /api/v1/health-record/documents/1/dating
+        status: 401
+      - method: POST
+        path: /api/v1/health-record/documents/1/dating
+        body: {confirm: true}
+        status: 401
+      - method: DELETE
+        path: /api/v1/health-record/documents/1/dating
+        status: 401
+
+  - name: extract_free_user
+    doc: A free user → 402 plus_required (plus.doc_ai) before anything is read; she fills the document in by hand
+    locales: [none, fa]
+    steps:
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nrecord_document\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"visit.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 RITME-FAKE:visit\n%%EOF\r\n--ritmeB--\r\n"
+        status: 201
+        capture: {file: data.id}
+      - method: POST
+        path: /api/v1/health-record/documents
+        body: {kind: visit, file_ids: ["{{file}}"]}
+        status: 201
+        capture: {id: data.id}
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/extract"
+        status: 402
+      - method: PUT
+        path: "/api/v1/health-record/documents/{{id}}"
+        body: {date: "2026-09-15", centre: Clinic, doctor: Dr. A}
+        status: 200
+
+  - name: extract_consent_required
+    doc: During the trial but without the ai_documents consent → 403 consent_required (nothing reserved)
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: POST
+        path: /api/v1/health-record/documents/1/extract
+        status: 403
+
+  - name: extract_review_visit
+    doc: nbl_Rec_Doc — a visit note read by the AI (needs_review, values with confidence), the other user gets 404, an unknown key is 422, the user corrects the doctor and clears the diagnosis → confirmed; no dating offer for a visit; a second extraction is 409
+    locales: [none, fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: PUT
+        path: /api/v1/consents/ai_documents
+        body: {granted: true, version: 1}
+        status: 200
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nrecord_document\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"visit.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 RITME-FAKE:visit\n%%EOF\r\n--ritmeB--\r\n"
+        status: 201
+        capture: {file: data.id}
+      - method: POST
+        path: /api/v1/health-record/documents
+        body: {kind: visit, file_ids: ["{{file}}"]}
+        status: 201
+        capture: {id: data.id}
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/extract"
+        as: no_profile
+        status: 402
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/extract"
+        status: 202
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/review"
+        as: no_profile
+        status: 404
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/review"
+        body: {fields: {ga_weeks: 12, date: "2030-01-01"}}
+        status: 422
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/review"
+        body: {fields: {doctor: Dr. B, diagnosis: null}}
+        status: 200
+      - method: GET
+        path: "/api/v1/health-record/documents/{{id}}/dating"
+        status: 200
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/extract"
+        status: 409
+      - method: GET
+        path: /api/v1/plus/usage
+        status: 200
+
+  - name: extract_prescription
+    doc: A prescription — medicine rows read, the user keeps one corrected row
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: PUT
+        path: /api/v1/consents/ai_documents
+        body: {granted: true, version: 1}
+        status: 200
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nrecord_document\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"rx.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 RITME-FAKE:prescription\n%%EOF\r\n--ritmeB--\r\n"
+        status: 201
+        capture: {file: data.id}
+      - method: POST
+        path: /api/v1/health-record/documents
+        body: {kind: prescription, file_ids: ["{{file}}"]}
+        status: 201
+        capture: {id: data.id}
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/extract"
+        status: 202
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/review"
+        body: {items: [{medicine: Folic acid 1mg, dose: "1", frequency: daily}]}
+        status: 200
+
+  - name: extract_failed_and_no_files
+    doc: A document without files is 422; the provider fails → failed (ai_failed) and the Plus use is given back
+    locales: [none, en]
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: PUT
+        path: /api/v1/consents/ai_documents
+        body: {granted: true, version: 1}
+        status: 200
+      - method: POST
+        path: /api/v1/health-record/documents
+        body: {kind: hospital}
+        status: 201
+        capture: {empty: data.id}
+      - method: POST
+        path: "/api/v1/health-record/documents/{{empty}}/extract"
+        status: 422
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nrecord_document\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"bad.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 RITME-FAKE:error\n%%EOF\r\n--ritmeB--\r\n"
+        status: 201
+        capture: {file: data.id}
+      - method: POST
+        path: /api/v1/health-record/documents
+        body: {kind: hospital, file_ids: ["{{file}}"]}
+        status: 201
+        capture: {id: data.id}
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/extract"
+        status: 202
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/review"
+        status: 409
+      - method: GET
+        path: /api/v1/plus/usage
+        status: 200
+
+  - name: dating_apply
+    doc: A pregnancy ultrasound (12w3d on 2026-09-18) read and confirmed → the dating offer (nothing changed yet); without confirm 422; with it the pregnancy is dated from the scan and the document linked; a second apply is 409
+    persona: pregnant_lmp_w8
+    locales: [none, fa]
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: PUT
+        path: /api/v1/consents/ai_documents
+        body: {granted: true, version: 1}
+        status: 200
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nrecord_document\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"sono.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 RITME-FAKE:imaging\n%%EOF\r\n--ritmeB--\r\n"
+        status: 201
+        capture: {file: data.id}
+      - method: POST
+        path: /api/v1/health-record/documents
+        body: {kind: imaging, title: NT scan, file_ids: ["{{file}}"]}
+        status: 201
+        capture: {id: data.id}
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/extract"
+        status: 202
+      - method: GET
+        path: "/api/v1/health-record/documents/{{id}}/dating"
+        status: 200
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/review"
+        status: 200
+      - method: GET
+        path: /api/v1/pregnancy/profile
+        status: 200
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/dating"
+        body: {}
+        status: 422
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/dating"
+        as: no_profile
+        body: {confirm: true}
+        status: 404
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/dating"
+        body: {confirm: true}
+        status: 200
+      - method: GET
+        path: /api/v1/pregnancy/profile
+        status: 200
+      - method: GET
+        path: "/api/v1/health-record/documents/{{id}}"
+        status: 200
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/dating"
+        body: {confirm: true}
+        status: 409
+
+  - name: dating_dismiss
+    doc: A scan with only a printed due date, corrected by the user → offered; «نه، همین بماند» dismisses it, the pregnancy is untouched
+    persona: pregnant_lmp_w8
+    locales: [en]
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: PUT
+        path: /api/v1/consents/ai_documents
+        body: {granted: true, version: 1}
+        status: 200
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nrecord_document\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"sono.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 RITME-FAKE:imaging_edd\n%%EOF\r\n--ritmeB--\r\n"
+        status: 201
+        capture: {file: data.id}
+      - method: POST
+        path: /api/v1/health-record/documents
+        body: {kind: imaging, file_ids: ["{{file}}"]}
+        status: 201
+        capture: {id: data.id}
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/extract"
+        status: 202
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/review"
+        body: {fields: {edd: "2027-04-02"}}
+        status: 200
+      - method: DELETE
+        path: "/api/v1/health-record/documents/{{id}}/dating"
+        status: 200
+      - method: DELETE
+        path: "/api/v1/health-record/documents/{{id}}/dating"
+        status: 409
+      - method: GET
+        path: /api/v1/pregnancy/profile
+        status: 200
+
+  - name: review_malformed
+    doc: "Security audit (HIGH-1): `fields: []` and a medicine row that is a list are 422 on that field / row — never a panic; the review then still works"
+    locales: [none, fa]
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: PUT
+        path: /api/v1/consents/ai_documents
+        body: {granted: true, version: 1}
+        status: 200
+      - method: POST
+        path: /api/v1/files
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"purpose\"\r\n\r\nrecord_document\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"rx.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 RITME-FAKE:prescription\n%%EOF\r\n--ritmeB--\r\n"
+        status: 201
+        capture: {file: data.id}
+      - method: POST
+        path: /api/v1/health-record/documents
+        body: {kind: prescription, file_ids: ["{{file}}"]}
+        status: 201
+        capture: {id: data.id}
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/extract"
+        status: 202
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/review"
+        body: {fields: []}
+        status: 422
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/review"
+        body: {items: [[x]]}
+        status: 422
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/review"
+        body: {items: [{medicine: Folic acid 1mg}, [x, y]]}
+        status: 422
+      - method: PUT
+        path: /api/v1/health-record/extras
+        body: {surgeries: [[x]]}
+        status: 422
+      - method: POST
+        path: "/api/v1/health-record/documents/{{id}}/review"
+        status: 200

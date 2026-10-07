@@ -79,6 +79,14 @@
               "limit": null,
               "used": 0,
               "remaining": null
+            },
+            {
+              "key": "plus.doc_ai",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 20,
+              "used": 0,
+              "remaining": 20
             }
           ],
           "trial_offer": {
@@ -304,6 +312,14 @@
               "limit": null,
               "used": 0,
               "remaining": null
+            },
+            {
+              "key": "plus.doc_ai",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 20,
+              "used": 0,
+              "remaining": 20
             }
           ]
         }

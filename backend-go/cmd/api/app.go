@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	fiberrecover "github.com/gofiber/fiber/v3/middleware/recover"
 
 	apihttp "github.com/ritme/backend-go/internal/http"
 	"github.com/ritme/backend-go/internal/platform/clock"
@@ -31,6 +33,8 @@ func newApp(reg *apihttp.Registry, deps *apihttp.Deps) *fiber.App {
 		ErrorHandler:       httpx.ErrorHandler(deps.Logger),
 	})
 
+	// First: a panic in any handler becomes a 500 instead of killing the process (security audit of CB-REC-02).
+	app.Use(recoverPanics(deps.Logger))
 	app.Use(accessLog(deps.Logger))
 	// Lets the strangler smoke tests see which stack answered (deploy/switch-go-route.sh).
 	app.Use(func(c fiber.Ctx) error {
@@ -43,6 +47,20 @@ func newApp(reg *apihttp.Registry, deps *apihttp.Deps) *fiber.App {
 
 	reg.Mount(app, deps)
 	return app
+}
+
+// recoverPanics turns a handler panic into the framework 500 (httpx.ServerError through the error handler). The log
+// line carries the method, the masked path (httpx.LogPath) and the panic's Go type only — never its value, the body or
+// a stack, which could hold health data.
+func recoverPanics(logger *slog.Logger) fiber.Handler {
+	return fiberrecover.New(fiberrecover.Config{PanicHandler: func(c fiber.Ctx, r any) error {
+		logger.LogAttrs(c.Context(), slog.LevelError, "panic recovered",
+			slog.String("method", c.Method()),
+			slog.String("path", httpx.LogPath(c.Path())),
+			slog.String("panic_type", fmt.Sprintf("%T", r)),
+		)
+		return httpx.ServerError()
+	}})
 }
 
 // accessLog writes one JSON line per request.

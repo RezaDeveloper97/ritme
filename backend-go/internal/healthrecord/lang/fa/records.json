@@ -4,7 +4,8 @@
         "document_created": "سند اضافه شد",
         "document_updated": "سند به‌روز شد",
         "document_deleted": "سند حذف شد",
-        "extras_saved": "ذخیره شد"
+        "extras_saved": "ذخیره شد",
+        "document_busy": "این سند در حال خوانده‌شدن است — چند لحظه دیگر دوباره امتحان کن"
     },
     "validation": {
         "too_many_documents": "حداکثر :max سند می‌توانی نگه داری.",

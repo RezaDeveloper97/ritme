@@ -265,3 +265,9 @@ sql:
       go:
         <<: *go
         out: internal/todo/store
+  - <<: *pkg
+    queries: db/queries/recordextract
+    gen:
+      go:
+        <<: *go
+        out: internal/healthrecord/extract/store

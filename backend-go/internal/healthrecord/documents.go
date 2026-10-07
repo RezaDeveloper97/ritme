@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 
+	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/files"
 	"github.com/ritme/backend-go/internal/healthrecord/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -85,6 +86,8 @@ var (
 	ErrTooManyDocuments = errors.New("healthrecord: too many documents")
 	// ErrLinkTarget: the link target is not the user's (or the type / state is unknown).
 	ErrLinkTarget = errors.New("healthrecord: invalid link target")
+	// ErrDocumentBusy: an extraction of the document is pending (CB-REC-02): no kind change, no confirm.
+	ErrDocumentBusy = errors.New("healthrecord: document extraction pending")
 )
 
 // FileError rejects file_ids[Index]: Code file_not_found (unknown, another user's, or not a record_document) or
@@ -111,11 +114,22 @@ type FileStore interface {
 
 // Documents is the record documents service.
 type Documents struct {
-	db      *sql.DB
-	q       *store.Queries
-	files   FileStore
-	labs    LabsSource
-	maxDocs int64
+	db              *sql.DB
+	q               *store.Queries
+	files           FileStore
+	labs            LabsSource
+	maxDocs         int64
+	onDeletePending PendingDeleteHook
+}
+
+// PendingDeleteHook is told, after the commit, that a document was deleted while its extraction was pending (CB-REC-02:
+// the extraction package gives a never-run job's reserved Plus use back). extracted is the row's stored JSON.
+type PendingDeleteHook func(ctx context.Context, userID uint64, extracted db.NullRawJSON)
+
+// OnDeletePending installs the hook (nil = none).
+func (s *Documents) OnDeletePending(h PendingDeleteHook) *Documents {
+	s.onDeletePending = h
+	return s
 }
 
 // NewDocuments wires the service. labs may be nil (no lab rows in the timeline and counts).
@@ -275,17 +289,26 @@ func (s *Documents) Update(ctx context.Context, userID, id uint64, in DocumentIn
 			return cur, err
 		}
 	}
-	state := cur.ReviewState
-	if in.Confirm && state == ReviewNeedsReview {
-		state = ReviewConfirmed
-	}
 	var dropped []files.File
 	err = s.inTx(ctx, func(q *store.Queries) error {
 		if err := lockDocument(ctx, q, userID, id); err != nil {
 			return err
 		}
+		// The review state comes from the locked row: an extraction job (CB-REC-02) may have moved it since cur was
+		// read. While a job is pending the kind cannot change and nothing can be confirmed (security audit L1).
+		locked, err := q.GetRecordDocument(ctx, store.GetRecordDocumentParams{ID: id, UserID: userID})
+		if err != nil {
+			return fmt.Errorf("healthrecord: document: %w", err)
+		}
+		state := locked.ReviewState
+		if state == ReviewPending && (in.Kind != locked.Kind || in.Confirm) {
+			return ErrDocumentBusy
+		}
+		if in.Confirm && state == ReviewNeedsReview {
+			state = ReviewConfirmed
+		}
 		// The row is locked and the user's (lockDocument); 0 affected rows only means nothing changed.
-		_, err := q.UpdateRecordDocument(ctx, store.UpdateRecordDocumentParams{
+		_, err = q.UpdateRecordDocument(ctx, store.UpdateRecordDocumentParams{
 			ID: id, UserID: userID, Kind: in.Kind, Title: nullStr(in.Title), DocumentDate: nullDate(in.Date),
 			EndedOn: nullDate(in.EndedOn), Centre: nullStr(in.Centre), Doctor: nullStr(in.Doctor),
 			Note: nullStr(in.Note), ReviewState: state, Now: nullTime(now),
@@ -364,10 +387,20 @@ func (s *Documents) removeBlobs(fs []files.File) {
 // Delete removes a document of the user, its links and its files in one transaction (the document row locked
 // first); the blobs go after commit.
 func (s *Documents) Delete(ctx context.Context, userID, id uint64) error {
-	var dropped []files.File
+	var (
+		dropped []files.File
+		pending db.NullRawJSON
+	)
 	err := s.inTx(ctx, func(q *store.Queries) error {
 		if err := lockDocument(ctx, q, userID, id); err != nil {
 			return err
+		}
+		row, err := q.GetRecordDocument(ctx, store.GetRecordDocumentParams{ID: id, UserID: userID})
+		if err != nil {
+			return fmt.Errorf("healthrecord: document: %w", err)
+		}
+		if row.ReviewState == ReviewPending {
+			pending = row.Extracted
 		}
 		rows, err := q.LockRecordDocumentFiles(ctx, store.LockRecordDocumentFilesParams{DocumentID: id, UserID: userID})
 		if err != nil {
@@ -387,6 +420,9 @@ func (s *Documents) Delete(ctx context.Context, userID, id uint64) error {
 		return err
 	}
 	s.removeBlobs(dropped)
+	if pending.Valid && s.onDeletePending != nil {
+		s.onDeletePending(context.WithoutCancel(ctx), userID, pending)
+	}
 	return nil
 }
 
@@ -491,10 +527,7 @@ func (s *Documents) Detail(ctx context.Context, userID uint64, doc store.RecordD
 		used = append(used, jsonx.Obj("type", l.TargetType, "target_id", l.TargetID, "state", l.State,
 			"updated_at", timeVal(l.UpdatedAt)))
 	}
-	var extracted any
-	if doc.Extracted.Valid {
-		extracted = doc.Extracted.V
-	}
+	extracted := publicExtracted(doc.Extracted) // CB-REC-02: without the job bookkeeping
 	return jsonx.Obj(
 		"id", doc.ID,
 		"kind", doc.Kind,

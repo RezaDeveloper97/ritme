@@ -8,10 +8,12 @@ import (
 	catalogstore "github.com/ritme/backend-go/internal/catalog/store"
 	"github.com/ritme/backend-go/internal/files"
 	"github.com/ritme/backend-go/internal/healthrecord"
+	"github.com/ritme/backend-go/internal/healthrecord/extract"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/labs"
 	"github.com/ritme/backend-go/internal/platform/clock"
+	"github.com/ritme/backend-go/internal/plus"
 )
 
 // Record documents, extras and timeline (canvas-build CB-REC-01, deviations.md D-70), Go only, on top of bloom's
@@ -39,7 +41,10 @@ func init() {
 		labsSvc := labs.NewService(labs.Options{ // lab sheets in the timeline and counts (reads only)
 			DB: d.DB, Catalog: catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger), Logger: d.Logger,
 		})
-		h := healthrecord.NewDocumentHandlers(healthrecord.NewDocuments(d.DB, fileSvc, labsSvc), clock.Real{})
+		// CB-REC-02: deleting a document whose extraction still waits in the queue gives the reserved Plus use back.
+		docs := healthrecord.NewDocuments(d.DB, fileSvc, labsSvc).
+			OnDeletePending(extract.RefundDeleted(plus.NewService(d.DB, d.Config.Plus, nil, d.Logger), clock.Real{}, d.Logger))
+		h := healthrecord.NewDocumentHandlers(docs, clock.Real{})
 
 		const p = "/api/v1/health-record"
 		r.Get(p+"/categories", locale, guard, h.Categories)

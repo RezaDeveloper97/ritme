@@ -16,6 +16,7 @@ const (
 	AssistantUnlimited Key = "plus.assistant_unlimited" // health assistant without a message cap (B-N7)
 	PDFShare           Key = "plus.pdf_share"           // doctor report PDF + 7-day share link (B-N6-04)
 	VisitDiscount      Key = "plus.visit_discount"      // discount on online doctor visits (B-N7)
+	DocAI              Key = "plus.doc_ai"              // AI reading of record documents, 20 per month (CB-REC-02)
 )
 
 // Tier is what the user currently has.
@@ -57,6 +58,7 @@ var definitions = []Definition{
 	{Key: PDFShare, Plus: unlimited, Free: locked},
 	{Key: VisitDiscount, Plus: unlimited, Free: locked},
 	{Key: VoiceLog, Plus: unlimited, Free: locked},
+	{Key: DocAI, Plus: Quota{Enabled: true, Limit: 20}, Free: locked},
 }
 
 // Definitions returns a copy of the entitlement rules in display order.

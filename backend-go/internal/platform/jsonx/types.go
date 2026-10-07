@@ -283,14 +283,20 @@ func (m *OrderedMap) Set(key string, v any) *OrderedMap {
 	return m
 }
 
-// Get returns the value at key.
+// Get returns the value at key. A nil map has no keys (a failed `x.(phpval.Map)` assertion must never panic).
 func (m *OrderedMap) Get(key string) (any, bool) {
+	if m == nil {
+		return nil, false
+	}
 	v, ok := m.vals[key]
 	return v, ok
 }
 
 // Delete removes key (unset($a[$key])).
 func (m *OrderedMap) Delete(key string) {
+	if m == nil {
+		return
+	}
 	if _, ok := m.vals[key]; !ok {
 		return
 	}
@@ -303,11 +309,21 @@ func (m *OrderedMap) Delete(key string) {
 	}
 }
 
-// Keys returns the keys in order.
-func (m *OrderedMap) Keys() []string { return append([]string(nil), m.keys...) }
+// Keys returns the keys in order (nil for a nil map).
+func (m *OrderedMap) Keys() []string {
+	if m == nil {
+		return nil
+	}
+	return append([]string(nil), m.keys...)
+}
 
-// Len is the number of keys.
-func (m *OrderedMap) Len() int { return len(m.keys) }
+// Len is the number of keys (0 for a nil map).
+func (m *OrderedMap) Len() int {
+	if m == nil {
+		return 0
+	}
+	return len(m.keys)
+}
 
 // MarshalJSON implements json.Marshaler.
 func (m *OrderedMap) MarshalJSON() ([]byte, error) {
