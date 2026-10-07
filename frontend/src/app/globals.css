@@ -10994,3 +10994,106 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .alb-row-trend .axc-line-end { r: 9px; stroke-width: 4; }
 .alb-row-end { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 /* ═══ end B-N6-09 ═══ */
+
+/* ═══ CB-MENO-10 treatment & care (/menopause/treatment, nbl_Meno_Treatment) ═══ */
+.mtr-page { background: var(--page); }
+.mtr-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; padding-bottom: 32px; }
+.mtr-scroll > :not(.nb-hdr) { margin-inline: var(--gutter); }
+.mtr-skel { display: flex; flex-direction: column; gap: 12px; }
+.mtr-body { display: flex; flex-direction: column; gap: 20px; }
+.mtr-sec { display: flex; flex-direction: column; gap: 10px; }
+.mtr-sect-head { display: flex; flex-direction: column; gap: 2px; }
+.mtr-sect-sub { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); text-align: start; }
+.mtr-empty {
+  margin: 0; padding: 14px 16px; border-radius: var(--r-card); border: 1px dashed var(--line-strong);
+  font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); text-align: start;
+}
+/* Rows */
+.nb-card.mtr-list { display: flex; flex-direction: column; padding: 4px 16px; }
+.mtr-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-block-size: 70px; padding-block: 10px; }
+.mtr-list > .mtr-row + .mtr-row { border-top: 1px solid var(--line); }
+.mtr-row-main {
+  flex: 1; min-inline-size: 0; display: flex; align-items: center; gap: 12px; padding: 0; border: 0; background: none;
+  font: inherit; color: var(--text-1); text-align: start; cursor: pointer; border-radius: 12px;
+}
+span.mtr-row-main { cursor: default; }
+.mtr-row-main:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.mtr-row-text { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; gap: 3px; text-align: start; }
+.mtr-row-title { font-size: var(--fs-base); font-weight: 800; line-height: 1.6; color: var(--text-1); }
+.mtr-row-sub { font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); }
+.mtr-row.is-stopped .mtr-row-title { color: var(--text-2); }
+.mtr-row-error { flex-basis: 100%; margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--danger-deep); text-align: start; }
+/* Today's intake toggle + lifestyle progress pill */
+.mtr-take, .mtr-goal {
+  flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  min-block-size: 36px; padding: 0 14px; border-radius: var(--r-pill); border: 1.5px solid var(--line-strong);
+  background: var(--surface); font: inherit; font-size: var(--fs-sm); font-weight: 800; color: var(--text-1); cursor: pointer;
+}
+.mtr-take.is-open { min-block-size: 40px; padding: 0 18px; border-color: var(--brand); color: var(--brand-strong); }
+.mtr-take.is-taken { border-color: color-mix(in srgb, var(--data) 55%, transparent); color: var(--data-deep); }
+.mtr-goal { border-color: color-mix(in srgb, var(--bloom) 45%, transparent); }
+.mtr-goal.is-today { border-color: color-mix(in srgb, var(--data) 55%, transparent); color: var(--data-deep); }
+.mtr-goal.is-done { background: var(--data-soft); border-color: transparent; color: var(--data-deep); }
+.mtr-take:disabled, .mtr-goal:disabled { opacity: .6; cursor: default; }
+.mtr-take:focus-visible, .mtr-goal:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+/* HRT week */
+.mtr-week { display: flex; flex-direction: column; gap: 10px; padding-block: 12px 14px; border-top: 1px solid var(--line); }
+.mtr-week-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.mtr-week-title { margin: 0; font-size: var(--fs-md); font-weight: 800; color: var(--text-1); }
+.mtr-week-sum { font-size: var(--fs-sm); font-weight: 700; color: var(--data-deep); }
+/* Review */
+.nb-card.mtr-review { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; }
+.mtr-review-tag {
+  display: inline-block; margin-inline-start: 8px; padding: 0 8px; border-radius: var(--r-pill); background: var(--brand-soft);
+  font-size: var(--fs-xs); font-weight: 800; line-height: 1.8; color: var(--brand-ink); vertical-align: middle;
+}
+.mtr-review-body { font-size: var(--fs-sm); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+/* Side effects */
+.nb-card.mtr-side { display: flex; flex-direction: column; gap: 12px; }
+.mtr-side-note { margin: 0; font-size: var(--fs-sm); font-weight: 600; line-height: 1.9; color: var(--text-2); text-align: start; }
+/* Lifestyle suggestions */
+.mtr-suggest { display: flex; flex-direction: column; gap: 8px; margin-block-start: 4px; }
+.mtr-suggest-title { margin: 0; font-size: var(--fs-md); font-weight: 800; color: var(--text-2); text-align: start; }
+.mtr-note { align-self: stretch; }
+/* Item sheet */
+.mtr-form { display: flex; flex-direction: column; gap: 16px; }
+.mtr-field { display: flex; flex-direction: column; gap: 8px; min-inline-size: 0; }
+.mtr-field-label { font-size: var(--fs-base); font-weight: 800; color: var(--text-1); text-align: start; }
+.mtr-input {
+  inline-size: 100%; min-block-size: 50px; padding: 0 14px; border-radius: var(--r-lg); border: 1.5px solid transparent;
+  background: var(--surface-3); font: inherit; font-size: var(--fs-lg); font-weight: 700; color: var(--text-1); text-align: start;
+}
+.mtr-input::placeholder { color: var(--text-4); font-weight: 600; }
+.mtr-input:focus { outline: none; border-color: var(--brand); }
+.mtr-input.is-invalid { border-color: var(--danger); }
+.mtr-error { margin: 0; font-size: var(--fs-sm); font-weight: 700; line-height: var(--lh-body); color: var(--danger-deep); text-align: start; }
+.mtr-error.is-block { padding: 10px 14px; border-radius: var(--r-md); background: var(--danger-soft); }
+.mtr-hint { margin: 0; font-size: var(--fs-sm); font-weight: 600; line-height: var(--lh-body); color: var(--text-3); text-align: start; }
+.mtr-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mtr-switch-text { display: flex; flex-direction: column; gap: 2px; }
+.mtr-pick { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.mtr-pick-btn {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-block-size: 58px; padding: 8px 14px;
+  padding-inline-end: 48px; border-radius: var(--r-lg); border: 1.5px solid transparent; background: var(--surface-3);
+  cursor: pointer; font-family: inherit; text-align: start;
+}
+.mtr-pick.is-invalid .mtr-pick-btn { border-color: var(--danger); }
+.mtr-pick-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.mtr-pick-label { font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); }
+.mtr-pick-value { font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.mtr-pick-value.is-empty { color: var(--text-3); font-weight: 700; }
+.mtr-pick-clear {
+  position: absolute; inset-inline-end: 8px; inset-block-start: 13px; display: inline-flex; align-items: center; justify-content: center;
+  inline-size: 32px; block-size: 32px; border: 0; border-radius: var(--r-pill); background: var(--surface); color: var(--text-2); cursor: pointer;
+}
+.mtr-pick-clear:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.mtr-manage { display: flex; flex-direction: column; gap: 10px; padding-block-start: 12px; border-top: 1px solid var(--line); }
+.nb-btn.mtr-delete { color: var(--danger-deep); }
+.mtr-sheet-btns { display: flex; gap: 10px; }
+.mtr-sheet-btns > .nb-btn { flex: 1; }
+.nb-btn.is-primary.mtr-danger { background: var(--danger); color: var(--on-accent); box-shadow: none; }
+.mtr-sheet-body { margin: 0; font-size: var(--fs-base); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); text-align: start; }
+/* Home card: the empty row is a button */
+button.mh-row { inline-size: 100%; border: 0; background: none; font: inherit; text-align: start; cursor: pointer; }
+button.mh-row:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+/* ═══ end CB-MENO-10 ═══ */

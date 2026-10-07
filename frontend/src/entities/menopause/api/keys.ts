@@ -12,4 +12,7 @@ export const menopauseKeys = {
   scores: (months: number) => [...menopauseKeys.all, 'scores', months] as const,
   scoreQuestions: () => [...menopauseKeys.all, 'score-questions'] as const,
   patterns: () => [...menopauseKeys.all, 'patterns'] as const,
+  // CB-MENO-10 treatment & care (`date` null = this week).
+  treatments: () => [...menopauseKeys.all, 'treatment'] as const,
+  treatment: (date: string | null) => [...menopauseKeys.treatments(), date ?? 'today'] as const,
 };

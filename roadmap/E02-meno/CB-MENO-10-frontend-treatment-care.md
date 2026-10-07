@@ -3,7 +3,7 @@ id: CB-MENO-10
 title: Frontend: treatment & care
 epic: MENO
 type: frontend
-status: todo
+status: done
 depends_on: [CB-MENO-05, CB-MENO-03]
 parallel_group: MENO-D
 touches: [frontend/src/screens/menopause-treatment, frontend/src/app/[locale]/menopause/treatment]

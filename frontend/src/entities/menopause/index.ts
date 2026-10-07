@@ -72,3 +72,33 @@ export {
   useHotFlashDay,
   useMenopauseTips,
 } from './api/hot-flashes';
+
+// CB-MENO-10 — treatment & care.
+export {
+  SIDE_EFFECT_CODES,
+  TREATMENT_GOAL_UNITS,
+  TREATMENT_KINDS,
+  TREATMENT_LIMITS,
+  TREATMENT_SCHEDULES,
+  type SideEffectCode,
+  type TreatmentDay,
+  type TreatmentGoal,
+  type TreatmentGoalUnit,
+  type TreatmentItem,
+  type TreatmentItemInput,
+  type TreatmentKind,
+  type TreatmentSchedule,
+  type TreatmentScreen,
+  type TreatmentTip,
+  toTreatmentItemBody,
+  treatmentItemInput,
+} from './model/treatment';
+export {
+  fetchTreatment,
+  treatmentScreenSchema,
+  useDeleteTreatmentItem,
+  useSaveSideEffects,
+  useSaveTreatmentItem,
+  useTreatment,
+  useTreatmentIntake,
+} from './api/treatment';

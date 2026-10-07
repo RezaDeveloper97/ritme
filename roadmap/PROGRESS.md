@@ -379,3 +379,8 @@ TODO (ask user):
 - security-auditor (agent-run): no high/critical; M1/M2/L1/L3/L4/L5 fixed; open L2 (stage needs SHARE_CODE_PEPPER), L6 (active-code cap not atomic), L7 (prod vhost/go-routes at cutover).
 - Verify on the combined tree (after CB-MENO-03): sqlc, vet, go test ./..., golangci-lint 0, int sharelinks/emergency/healthrecord/menopause/companion/http, contract all 1691/0, schema-diff OK (127 tables).
 - TODO (ask user): D-71/D-72 OK; 24h code without Plus (bloom's 7-day link needs Plus)?; public card optional expiry (e.g. 90 days) + minimal data OK?; make SHARE_CODE_PEPPER mandatory on stage; summary defaults 6 months / all sections / 5 codes. Frontend (`/shared/report`, code entry, `/emergency/{token}`) not built.
+
+## CB-MENO-10 — Frontend: treatment & care
+- `/menopause/treatment` (FSD `screens/menopause-treatment`, `entities/menopause` treatment API/model): HRT rows with today's take toggle + week dots/adherence, review card (`meno_tips/hrt_review`), today's side-effect chips (PUT per tap), supplements, lifestyle goals ("x of y", minutes stepper sheet), add/edit sheet (dose, schedule, reminder, start/review, stop/resume, delete), suggested goals, stopped section, doctor-only note. Home treatment card → this screen (`routedLink` allows `/menopause/treatment`).
+- Messages: `menopause.treatment` (+ Go copy, goldens). CSS block CB-MENO-10. Fidelity table in docs/qa/canvas/meno.md (light/dark/en).
+- Verify on stage after B-N6-09: tsc, vitest (entities/menopause, screens), lint:styles, lint:dark, steiger, i18n golden test.

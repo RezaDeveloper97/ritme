@@ -226,5 +226,137 @@
   "log": {
     "title": "Log symptoms",
     "today": "Today · {date}"
+  },
+  "treatment": {
+    "title": "Treatment & care",
+    "back": "Back",
+    "loading": "Loading your treatments",
+    "loadError": "Couldn't load your treatments.",
+    "retry": "Try again",
+    "error": "Not saved. Try again.",
+    "add": "Add",
+    "kinds": {
+      "hrt": "Hormone therapy",
+      "supplement": "Supplements",
+      "lifestyle": "Lifestyle plan"
+    },
+    "startedOn": "Started: {date}",
+    "empty": {
+      "hrt": "If you take hormone therapy, add it to track daily doses and your review with your doctor.",
+      "supplement": "No supplements yet.",
+      "lifestyle": "Add a weekly goal such as walking or resistance exercise."
+    },
+    "schedule": {
+      "morning": "Morning",
+      "noon": "Lunch",
+      "evening": "Evening",
+      "night": "Night",
+      "weekly": "Weekly"
+    },
+    "asPrescribed": "As prescribed",
+    "taken": "Taken",
+    "log": "Log",
+    "takeA11y": "Log today's {name}",
+    "untakeA11y": "Undo today's {name}",
+    "editA11y": "Edit {name}",
+    "thisWeek": "This week",
+    "weekDays": "{taken} of {days} days",
+    "dot": {
+      "done": "Taken",
+      "missed": "Not logged",
+      "future": "Not yet"
+    },
+    "review": {
+      "title": "Review with your doctor · {date}",
+      "suggested": "Suggested",
+      "body": "Effects and side effects are usually reviewed about 3 months after starting."
+    },
+    "sideEffects": {
+      "title": "Log possible side effects",
+      "label": "Today's side effects",
+      "codes": {
+        "breast_tenderness": "Breast tenderness",
+        "spotting": "Spotting",
+        "headache": "Headache",
+        "bloating": "Bloating",
+        "mood_change": "Mood change"
+      },
+      "spottingNote": "Spotting is common in the first months, but tell your doctor if it continues or is heavy.",
+      "error": "Side effects not saved. Try again."
+    },
+    "lifestyle": {
+      "sessions": "{count} times a week",
+      "minutes": "{count} minutes a week",
+      "progress": "{amount} of {target}",
+      "logA11y": "Log today's {name}, {progress}",
+      "addA11y": "Add {name}",
+      "suggestions": "Suggestions"
+    },
+    "minutes": {
+      "title": "{name} today",
+      "label": "How many minutes?",
+      "unit": "min",
+      "save": "Save",
+      "cancel": "Cancel",
+      "remove": "Remove today's log",
+      "decrease": "Less",
+      "increase": "More",
+      "error": "Not saved. Try again."
+    },
+    "stopped": {
+      "title": "Stopped",
+      "on": "Stopped: {date}"
+    },
+    "doctorOnly": "Start, stop or change the dose of any medicine only with your doctor.",
+    "form": {
+      "addTitle": {
+        "hrt": "Add hormone therapy",
+        "supplement": "Add a supplement",
+        "lifestyle": "Add a plan"
+      },
+      "editTitle": "Edit",
+      "name": "Name",
+      "namePlaceholder": {
+        "hrt": "e.g. Estrogen (skin gel)",
+        "supplement": "e.g. Calcium + vitamin D",
+        "lifestyle": "e.g. Brisk walking"
+      },
+      "dose": "Dose (optional)",
+      "dosePlaceholder": "As written on your prescription",
+      "schedule": "When you take it",
+      "remind": "Dose reminder",
+      "remindHint": "Also shows in your medicine reminders.",
+      "unit": "Goal unit",
+      "units": {
+        "sessions": "sessions",
+        "minutes": "minutes"
+      },
+      "goal": "Weekly goal",
+      "decrease": "Less",
+      "increase": "More",
+      "startedOn": "Start date",
+      "reviewOn": "Review with your doctor",
+      "reviewHint": "Without a review date, about 3 months after starting is suggested.",
+      "notSet": "Not set",
+      "clear": "Clear {field}",
+      "save": "Save",
+      "cancel": "Cancel",
+      "done": "Done",
+      "stop": "Stop from today",
+      "stopGoal": "Stop this plan",
+      "resume": "Resume",
+      "delete": "Delete",
+      "deleteTitle": "Delete?",
+      "deleteBody": "“{name}” and its logged doses will be deleted.",
+      "deleteYes": "Delete",
+      "nameRequired": "Write a name.",
+      "scheduleRequired": "Choose when you take it.",
+      "saveError": "Not saved. Try again."
+    },
+    "home": {
+      "manage": "Manage",
+      "add": "Add",
+      "empty": "No treatments or supplements yet."
+    }
   }
 }

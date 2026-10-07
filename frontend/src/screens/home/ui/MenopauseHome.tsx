@@ -146,7 +146,7 @@ function HomeBody({ data, fetchedAt }: { data: MenopauseToday; fetchedAt: number
       ) : null}
       <ScoreCard data={data} />
       {checkups.length ? <Checkups items={checkups.slice(0, 3)} /> : null}
-      {data.treatment.length ? <Treatment items={data.treatment} /> : null}
+      <Treatment items={data.treatment} />
     </>
   );
 }
@@ -389,13 +389,25 @@ function Checkups({ items }: { items: CheckupItem[] }) {
 
 function Treatment({ items }: { items: MenopauseTreatment[] }) {
   const t = useTranslations('menopause.home.treatment');
+  const tLink = useTranslations('menopause.treatment.home');
   const locale = useLocale() as Locale;
+  const router = useRouter();
   // HRT first (the board's card), then supplements and lifestyle.
   const sorted = [...items].sort((a, b) => Number(b.kind === 'hrt') - Number(a.kind === 'hrt'));
+  // CB-MENO-10: the card opens /menopause/treatment; empty = an invitation to add.
+  const open = () => router.push('/menopause/treatment');
   return (
     <section className="mh-sec" aria-labelledby="mh-treatment">
-      <SectionTitle id="mh-treatment" title={t('title')} />
+      <SectionTitle id="mh-treatment" title={t('title')} actionLabel={tLink(items.length ? 'manage' : 'add')} onAction={open} />
       <Card className="mh-list" padding="none">
+        {sorted.length ? null : (
+          <button type="button" className="mh-row" onClick={open}>
+            <IconCircle icon="pill" tone="data" size="md" />
+            <span className="mh-row-text">
+              <span className="mh-row-sub">{tLink('empty')}</span>
+            </span>
+          </button>
+        )}
         {sorted.map((item) => {
           const parts = [
             t('week', { taken: formatNumber(item.daysTaken, locale), days: formatNumber(item.days, locale) }),
