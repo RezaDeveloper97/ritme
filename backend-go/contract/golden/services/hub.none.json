@@ -1,0 +1,235 @@
+{
+  "case": "services/hub.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/services",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "sections": [
+            {
+              "code": "search",
+              "title": "پزشک، آزمایش، کلاس یا برنامه…",
+              "subtitle": null,
+              "caption": null,
+              "href": "/search",
+              "status": "live",
+              "phone": null,
+              "categories": []
+            },
+            {
+              "code": "booking",
+              "title": "نوبت پیش رو",
+              "subtitle": null,
+              "caption": null,
+              "href": null,
+              "status": "soon",
+              "phone": null,
+              "categories": []
+            },
+            {
+              "code": "care",
+              "title": "مراقبت سلامت",
+              "subtitle": null,
+              "caption": null,
+              "href": null,
+              "status": "soon",
+              "phone": null,
+              "categories": []
+            },
+            {
+              "code": "checkups",
+              "title": "چکاپ‌های دوره‌ای و یادآور دارو",
+              "subtitle": null,
+              "caption": null,
+              "href": "/checkups",
+              "status": "live",
+              "phone": null,
+              "categories": []
+            },
+            {
+              "code": "programs",
+              "title": "برنامه‌های مراقبتی",
+              "subtitle": "بر اساس چیزی که خودت فعال کنی",
+              "caption": null,
+              "href": null,
+              "status": "soon",
+              "phone": null,
+              "categories": []
+            },
+            {
+              "code": "mother_child",
+              "title": "برای مادر و کودک",
+              "subtitle": null,
+              "caption": "کلاس، استخر و خانه بازی نزدیک تو",
+              "href": null,
+              "status": "soon",
+              "phone": null,
+              "categories": []
+            },
+            {
+              "code": "learning",
+              "title": "آموزش",
+              "subtitle": "دوره‌ها و کلاس‌های آنلاین",
+              "caption": "آمادگی زایمان، شیردهی، یائسگی",
+              "href": null,
+              "status": "soon",
+              "phone": null,
+              "categories": []
+            },
+            {
+              "code": "shop",
+              "title": "فروشگاه",
+              "subtitle": "فروشگاه از داده سلامت تو جداست و پیشنهادهایش بر اساس ثبت‌هایت نیست.",
+              "caption": null,
+              "href": null,
+              "status": "soon",
+              "phone": null,
+              "categories": [
+                {
+                  "code": "layette",
+                  "title": "سیسمونی و نوزاد",
+                  "icon": "bottle"
+                },
+                {
+                  "code": "beauty",
+                  "title": "آرایشی و بهداشتی",
+                  "icon": "dropLine"
+                }
+              ]
+            },
+            {
+              "code": "emergency",
+              "title": "اورژانس است؟",
+              "subtitle": "ریتمی جایگزین اورژانس نیست",
+              "caption": null,
+              "href": null,
+              "status": "soon",
+              "phone": "115",
+              "categories": []
+            }
+          ],
+          "upcoming_booking": null,
+          "care": [
+            {
+              "code": "assistant",
+              "title": "دستیار سلامت",
+              "subtitle": "پاسخ و ارجاع",
+              "icon": "sparkle",
+              "tone": "brand",
+              "href": null,
+              "status": "soon",
+              "count": null
+            },
+            {
+              "code": "doctors",
+              "title": "پزشک و ماما",
+              "subtitle": "ویدیویی، حضوری",
+              "icon": "stetho",
+              "tone": "data",
+              "href": null,
+              "status": "soon",
+              "count": null
+            },
+            {
+              "code": "record",
+              "title": "پرونده سلامت",
+              "subtitle": "سوابق و مدارک",
+              "icon": "fileDoc",
+              "tone": "brand",
+              "href": "/record",
+              "status": "live",
+              "count": 0
+            },
+            {
+              "code": "labs",
+              "title": "تحلیل آزمایش",
+              "subtitle": "عکس برگه آزمایش",
+              "icon": "flask",
+              "tone": "period",
+              "href": "/labs",
+              "status": "live",
+              "count": null
+            },
+            {
+              "code": "vitals",
+              "title": "علائم حیاتی",
+              "subtitle": "فشار، قند، ضربان",
+              "icon": "heartLine",
+              "tone": "period",
+              "href": "/vitals",
+              "status": "live",
+              "count": null
+            },
+            {
+              "code": "insurance",
+              "title": "بیمه",
+              "subtitle": "پوشش و خسارت",
+              "icon": "shield",
+              "tone": "data",
+              "href": null,
+              "status": "soon",
+              "count": null
+            }
+          ],
+          "programs": [
+            {
+              "code": "pain_endometriosis",
+              "title": "درد و اندومتریوز",
+              "subtitle": "دفترچه درد و گزارش",
+              "icon": "flame",
+              "tone": "period",
+              "href": null,
+              "status": "soon"
+            },
+            {
+              "code": "pmdd",
+              "title": "PMDD و خلق",
+              "subtitle": "پرسشنامه ماهانه",
+              "icon": "smile",
+              "tone": "brand",
+              "href": null,
+              "status": "soon"
+            },
+            {
+              "code": "heavy_bleeding",
+              "title": "خونریزی زیاد",
+              "subtitle": "جدول خونریزی",
+              "icon": "drop",
+              "tone": "period",
+              "href": null,
+              "status": "soon"
+            },
+            {
+              "code": "pelvic_floor",
+              "title": "کف لگن",
+              "subtitle": "برنامه ۸ هفته‌ای",
+              "icon": "target",
+              "tone": "data",
+              "href": null,
+              "status": "soon"
+            },
+            {
+              "code": "contraception",
+              "title": "پیشگیری",
+              "subtitle": "قرص و روش‌ها",
+              "icon": "pill",
+              "tone": "brand",
+              "href": "/contraception",
+              "status": "live"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

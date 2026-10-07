@@ -644,3 +644,37 @@ are the embedded WHO expanded-table values verbatim; percentiles are `growth.Val
 decimals (weight-for-age uses WHO's restricted method beyond ±3 SD). **Import is out of scope:** the standards are
 fixed reference data embedded in `backend-go/seeds/who` (golden-tested); replacing them is a code change with new CSVs,
 not an admin action.
+
+## 19. Doctors directory — «پزشکان و ماماها» (B-N7-02)
+
+Package `internal/telemed` (`admin.go`, `admin_schedule.go`), `routes_admin_telemed.go`. The minimal CRUD the public
+directory (`/api/v1/telemed/*`, D-67) needs; the console UI (bookings, doctor replies, `doctor` role via
+`telemed_doctors.admin_id`) is B-N7-08. **A** = editor or super, **S** = super only. Writes are audit-logged
+(`telemed_doctor.create|update|delete|photo|photo_delete|visit_types|availability|time_off|time_off_delete`,
+`telemed_review.update`) with ids only. Translatable fields (`name`, `headline`, `bio`, visit-type `note` / `address`)
+are `{lang: text}` objects; only the default language of `name` is required. Specialty / city / insurer values are
+`catalog_items` codes of the groups `telemed_specialties` (six seeded by goose 00045, `needs_review`), `telemed_cities`
+and `telemed_insurers` (empty: admins add them through `/catalog/{group}`); an unknown or inactive code is a 422.
+Money is integer **rials** (`price_rials`; clients show toman).
+
+| Method | Path | Role | Body / query | `data` |
+|---|---|---|---|---|
+| GET | `/telemed/doctors` | A | `q` (name in any language or licence no.), `status` `all\|active\|inactive`, `page`, `per_page` | `{items:[doctor + modes[] (active visit modes)], meta, filters}` |
+| GET | `/telemed/doctors/options` | A | — | `kinds[]`, `modes[]`, `weekdays` (0 = Sunday … 6 = Saturday), `catalog_groups`, `limits`, `currency: IRR`, `next_sort_order` |
+| POST | `/telemed/doctors` | A | `kind` `doctor\|midwife`, `name{}`, `headline{}?`, `bio{}?`, `specialty`, `city?`, `licence_no` (≤ 32), `experience_years?` (0–80), `response_minutes?` (1–10080), `insurers[]?` (≤ 30 codes), `is_active?` (default true), `sort_order?` (default last) | 201 `{doctor}` |
+| GET | `/telemed/doctors/{id}` | A | — | `{doctor}` = id, kind, name, headline, bio, specialty, city, licence_no, experience_years, photo_path, photo_url, response_minutes, visits_count, rating, reviews_count, satisfaction_percent, is_active, sort_order, admin_id, created_at, updated_at, `insurers[]`, `visit_types[]` (inactive included), `availability[]`, `time_off[]` (ending after now) |
+| PUT | `/telemed/doctors/{id}` | A | the POST body; `kind`, `name`, `specialty`, `licence_no` required again; absent optional fields keep their value, `null` clears; `insurers` replaces the set when sent | `{doctor}` |
+| DELETE | `/telemed/doctors/{id}` | S | — | `{id}` — cascades visit types, availability, time off, insurers, reviews; the photo file is removed. Prefer `is_active: false` |
+| POST | `/telemed/doctors/{id}/photo` | A | multipart `photo` (jpeg/png/webp ≤ 4 MB, ≥ 200×200) → WebP ≤ 1080² under `doctors/` on the public disk | `{doctor}` |
+| DELETE | `/telemed/doctors/{id}/photo` | A | — | `{doctor}` |
+| PUT | `/telemed/doctors/{id}/visit-types` | A | `visit_types: [{mode, duration_minutes (5–240), price_rials (0–10¹⁰), note{}?, address{}?, is_active?}]` — the full set, each mode once; modes left out are deleted | `{doctor}` |
+| PUT | `/telemed/doctors/{id}/availability` | A | `rules: [{weekday 0–6, start_time "HH:MM", end_time "HH:MM" (≤ 24:00, after start), slot_minutes 5–240 (≤ the window), modes[]? (null = all)}]` (≤ 50) — replaces the weekly schedule | `{doctor}` |
+| POST | `/telemed/doctors/{id}/time-off` | A | `starts_at`, `ends_at` (`Y-m-d H:i`, Tehran, end after start, ≤ 366 days), `note?` | 201 `{doctor}` |
+| DELETE | `/telemed/doctors/{id}/time-off/{off}` | A | — | `{doctor}` |
+| GET | `/telemed/doctors/{id}/slots` | A | `mode`, `from`, `days` as the public route | the public slot grid (inactive doctors too) |
+| GET | `/telemed/reviews` | A | `doctor_id?`, `visibility` `all\|visible\|hidden`, `page`, `per_page` | `{items:[{id, doctor_id, user_id, booking_id, rating, body, is_visible, created_at, updated_at}], meta, filters}` |
+| PUT | `/telemed/reviews/{id}` | A | `is_visible` (required) | `{review}` — the doctor's rating is recomputed from visible reviews |
+
+A doctor is listed publicly only while `is_active` and with at least one active visit type. Slots come from the
+availability grid (a visit must end inside its window, start ≥ 30 min from now, within 60 days) minus time off and the
+booked intervals B-N7-03 reports through `telemed.Busy`.

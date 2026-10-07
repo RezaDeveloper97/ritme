@@ -1,0 +1,22 @@
+# Services hub (/api/v1/services) — Go only (bloom B-N7-01, deviations.md D-69): there is no Laravel route, so these
+# goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The fixture dump carries
+# the services_* catalog rows of goose 00047 / Laravel 2026_10_07_000047 (ids 700-719, added by hand). The admin
+# toggle, the always-on emergency card, the teen rules, the empty-catalog fallback and the record-count isolation
+# between users are covered by internal/services (services_test.go, services_int_test.go).
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: services
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: hub
+    doc: nbl_v17_Main — hub of a cycle user (seeded catalog; no booking until B-N7-03)
+    locales: [none, en]
+    method: GET
+    path: /api/v1/services
+    status: 200
+  - name: hub_anon
+    persona: anon
+    method: GET
+    path: /api/v1/services
+    status: 401

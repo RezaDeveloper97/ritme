@@ -66,7 +66,11 @@ tags:
   - {name: HealthRecord, description: "Health record «پرونده سلامت من» (Go only, bloom B-N6-03, D-64): owner-only summary aggregated from profile, conditions, care meds, cycle engine, merged vitals, pregnancies, checkups and labs; user-owned blood type, allergies and hand-added pregnancies. A loss shows only as an ended pregnancy. No companion access. Never logged"}
   - {name: RecordSharing, description: "Record sharing (Go only, canvas-build CB-REC-03, D-71): 24h doctor code + QR to a frozen share-audience summary (documents only when explicitly picked), access log of every share link, the sharing overview with the companion scope (meds & appointments only, never documents), public code lookup (throttled + global breaker). Codes, tokens and reports are never logged"}
   - {name: EmergencyCard, description: "Emergency card «کارت اضطراری» (Go only, canvas-build CB-REC-03, D-72): name, blood group, allergies (flag), conditions, permanent meds, optional pregnancy week, masked insurance placeholder, emergency contact; lock-screen flag; optional public minimal card by unguessable token (IP-throttled)"}
+  - {name: Services, description: "Services hub «خدمات» (Go only, bloom B-N7-01, D-69): sections (order / toggles), health-care tiles and care programs from the catalog groups services_sections / services_care / services_programs; destinations without a screen are status soon; upcoming booking (null until telemedicine, B-N7-03); emergency card always present"}
   - {name: Todo, description: "To-do list «کارهای من» (Go only, bloom B-N6-08, D-66): tasks with a category (shopping / work / personal / health), optional due date, time and reminder; list items (shopping list); board grouped today / tomorrow / later + recently done; one cycle suggestion from the predicted period (admin-editable copy). Owner only; never logged"}
+  - {name: Telemed, description: "Doctors directory «پزشکان و ماماها» (Go only, bloom B-N7-02, D-67): admin-managed doctors / midwives, visit types (video / phone / in person; price in integer rials, clients show toman), free slots generated from weekly availability minus time off and booked intervals, reviews from users with a completed visit. Specialty / city / insurer labels are catalog_items (telemed_specialties / telemed_cities / telemed_insurers)"}
+  - {name: Learning, description: "Courses «دوره‌های من» for students (Go only, bloom B-N8-01, D-68): courses / standalone items opened by an instructor's grant (by phone; pending until that number signs up), chapters with scheduled unlock, per-lesson progress, the unlocked screen. Media references are filled by the B-N8-02 pipeline"}
+  - {name: Instructor, description: "Instructor panel API /api/instructor/v1 (Go only, bloom B-N8-01, D-68; instructor-web B-N8-05..07): apply / profile, courses → chapters → lessons (draft / published), groups, grants by phone with duration unlimited / 30 / 90 / until a date. Approved instructors only (403 otherwise); everything scoped to the instructor"}
 paths:
   /api/v1/account:
     delete:
@@ -17960,6 +17964,28 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/FileNotFound"}
         '429': {$ref: "#/components/responses/TooManyAttempts"}
+  /api/v1/services:
+    get:
+      tags: [Services]
+      summary: Services hub
+      description: "nbl_v17_Main: the active sections in admin order (board order when the catalog group is empty; `emergency` always present and last when deactivated; no `shop` in teen mode), the care tiles and the care programs for the user's life mode (catalog audiences), and the next booking. `href` is an in-app path or null; `status` is `live` when there is an href, else `soon`. Titles are null when the catalog has no copy (clients fall back to their bundled strings)."
+      operationId: servicesHub
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ServicesHub"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/todo:
     get:
       tags: [Todo]
@@ -18229,6 +18255,927 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/TodoNotFound"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/telemed/doctors:
+    get:
+      tags: [Telemed]
+      summary: Doctors directory
+      description: "nbl_v17_Doctors: active doctors with at least one active visit type, in admin display order, 20 per page. `today=1` keeps doctors with a free slot today (in `mode` when given); `price_from_rials` and `next_slot` consider `mode` when given, else every offered mode. An unknown specialty / city / insurer code matches nobody."
+      operationId: listTelemedDoctors
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: mode, in: query, required: false, schema: {type: string, enum: [video, phone, in_person]}}
+        - {name: kind, in: query, required: false, schema: {type: string, enum: [doctor, midwife]}}
+        - {name: specialty, in: query, required: false, description: "telemed_specialties catalog code", schema: {type: string, maxLength: 64}}
+        - {name: city, in: query, required: false, description: "telemed_cities catalog code", schema: {type: string, maxLength: 64}}
+        - {name: insurance, in: query, required: false, description: "telemed_insurers catalog code, or `any` (accepts at least one insurer)", schema: {type: string, maxLength: 64}}
+        - {name: today, in: query, required: false, schema: {type: boolean}}
+        - {name: q, in: query, required: false, description: Name search (any language), schema: {type: string, maxLength: 100}}
+        - {name: page, in: query, required: false, schema: {type: integer, minimum: 1}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [items, meta]
+                    properties:
+                      items: {type: array, items: {$ref: "#/components/schemas/TelemedDoctorCard"}}
+                      meta: {$ref: "#/components/schemas/TelemedPageMeta"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/TelemedValidationFailed"}
+  /api/v1/telemed/doctors/filters:
+    get:
+      tags: [Telemed]
+      summary: Directory filter chips
+      description: "Modes and kinds (labels are client copy), and the catalog specialties / cities / insurers in catalog order with the number of listed doctors; a code used by doctors but missing from the catalog comes last with a null title. `total` = listed doctors."
+      operationId: telemedDoctorFilters
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/TelemedFilters"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/telemed/doctors/{id}:
+    get:
+      tags: [Telemed]
+      summary: Doctor profile
+      description: "nbl_v17_DoctorProfile: the card fields plus licence number, bio, stats, offered visit types, accepted insurers, the 3 latest visible reviews and whether the caller may review now (a completed visit not yet reviewed)."
+      operationId: showTelemedDoctor
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TelemedDoctorId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: object, required: [doctor], properties: {doctor: {$ref: "#/components/schemas/TelemedDoctorProfile"}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedDoctorNotFound"}
+  /api/v1/telemed/doctors/{id}/slots:
+    get:
+      tags: [Telemed]
+      summary: Free slots of one visit mode
+      description: "One entry per day from `from` (default and minimum today) for `days` days (1–31, default 7). Slots follow the weekly availability grid; a visit must end inside its window, start at least 30 minutes from now, lie within 60 days and not overlap time off or a booked slot. `next_slot` = the first free slot from `from` within 30 days. `mode` defaults to the doctor's first offered mode; a mode the doctor does not offer is a 422 on `mode`."
+      operationId: telemedDoctorSlots
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TelemedDoctorId"}
+        - {name: mode, in: query, required: false, schema: {type: string, enum: [video, phone, in_person]}}
+        - {name: from, in: query, required: false, schema: {$ref: "#/components/schemas/Date"}}
+        - {name: days, in: query, required: false, schema: {type: integer, minimum: 1, maximum: 31}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/TelemedSlots"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedDoctorNotFound"}
+        '422': {$ref: "#/components/responses/TelemedValidationFailed"}
+  /api/v1/telemed/doctors/{id}/reviews:
+    get:
+      tags: [Telemed]
+      summary: Doctor reviews
+      description: Visible reviews, newest first, 20 per page. Reviewers appear as the first letter of their name only.
+      operationId: listTelemedReviews
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TelemedDoctorId"}
+        - {name: page, in: query, required: false, schema: {type: integer, minimum: 1}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [items, meta]
+                    properties:
+                      items: {type: array, items: {$ref: "#/components/schemas/TelemedReview"}}
+                      meta: {$ref: "#/components/schemas/TelemedPageMeta"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedDoctorNotFound"}
+    post:
+      tags: [Telemed]
+      summary: Review a completed visit
+      description: "Only with a completed visit of this doctor that has no review yet (booking, B-N7-03); otherwise 403 `review_not_allowed`. One review per visit (409 `review_exists`). Per-user write throttle."
+      operationId: storeTelemedReview
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TelemedDoctorId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rating]
+              properties:
+                rating: {type: integer, minimum: 1, maximum: 5}
+                body: {type: [string, "null"], maxLength: 1000}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: object, required: [review], properties: {review: {$ref: "#/components/schemas/TelemedReview"}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TelemedReviewRefused"}
+        '404': {$ref: "#/components/responses/TelemedDoctorNotFound"}
+        '409': {$ref: "#/components/responses/TelemedReviewRefused"}
+        '422': {$ref: "#/components/responses/TelemedValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/telemed/doctors/{id}/reviews/{review}:
+    delete:
+      tags: [Telemed]
+      summary: Delete one's own review
+      description: Any review that is not the caller's (or not of this doctor) is the same 404.
+      operationId: destroyTelemedReview
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TelemedDoctorId"}
+        - {name: review, in: path, required: true, description: "Review id (the caller's own)", schema: {type: integer, minimum: 1}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: object, required: [id], properties: {id: {type: integer}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedReviewNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/learning/courses:
+    get:
+      tags: [Learning]
+      summary: My courses and the continue card
+      description: "Learn_Hub + home card: every course a grant opens (expired ones flagged in `access`), most recently opened first, and the most recently watched unfinished lesson (`continue`, null when none). Pending grants of the caller's number are claimed first."
+      operationId: learningMyCourses
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/LearningMyCourses"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/learning/courses/{id}:
+    get:
+      tags: [Learning]
+      summary: One course (student)
+      description: "Learn_Course: chapters (locked ones carry unlock_at) with published lessons and progress, lessons outside a chapter, next lesson. An expired access still answers 200 (no media) so the client shows «دسترسی تمام شد»; no grant → 404."
+      operationId: learningCourse
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningCourseId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/LearningStudentOutline"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+  /api/v1/learning/lessons/{id}:
+    get:
+      tags: [Learning]
+      summary: Open a lesson
+      description: "Learn_Video / Learn_Audio / Learn_PDF: the lesson with its media reference (filled by the media pipeline, B-N8-02) and the next lesson id. 403 learning_access_expired / learning_chapter_locked (with unlock_at); 404 without access or for drafts."
+      operationId: learningLesson
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningLessonId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/LearningStudentLessonDetail"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+  /api/v1/learning/lessons/{id}/progress:
+    put:
+      tags: [Learning]
+      summary: Save lesson progress
+      description: "Position in seconds; percent derived from the lesson duration when not sent; the percent never goes down and a lesson is complete from 95 % (or `completed: true`)."
+      operationId: learningSaveProgress
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningLessonId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/LearningProgressInput"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/LearningProgressSaved"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+        '422': {$ref: "#/components/responses/LearningValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/learning/unlocked/{grant}:
+    get:
+      tags: [Learning]
+      summary: An unlocked grant
+      description: "Learn_Unlocked (opened from the «دوره برایت باز شد» inbox notice): instructor, group, courses and access end of one of the caller's active grants."
+      operationId: learningUnlocked
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningGrantId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/LearningUnlocked"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+  /api/instructor/v1/me:
+    get:
+      tags: [Instructor]
+      summary: The caller's instructor profile
+      description: "null when the caller never applied; status pending | approved | revoked."
+      operationId: instructorMe
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/InstructorMe"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/instructor/v1/apply:
+    post:
+      tags: [Instructor]
+      summary: Apply to become an instructor
+      description: "201 creates a pending application (an admin approves it, B-N8-08); 200 updates an existing one (a revoked applicant becomes pending again)."
+      operationId: instructorApply
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InstructorApplyInput"}
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InstructorMe"}
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InstructorMe"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/LearningValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/instructor/v1/courses:
+    get:
+      tags: [Instructor]
+      summary: The instructor's courses
+      operationId: instructorCourses
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/InstructorCourseList"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+    post:
+      tags: [Instructor]
+      summary: Create a course or standalone item
+      operationId: instructorStoreCourse
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InstructorCourseInput"}
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InstructorCourseOutline"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '422': {$ref: "#/components/responses/LearningValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/instructor/v1/courses/{id}:
+    get:
+      tags: [Instructor]
+      summary: One course with outline and access
+      operationId: instructorCourse
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningCourseId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/InstructorCourseOutline"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+    put:
+      tags: [Instructor]
+      summary: Update / publish a course
+      operationId: instructorUpdateCourse
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningCourseId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InstructorCourseInput"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InstructorCourseOutline"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+        '422': {$ref: "#/components/responses/LearningValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Instructor]
+      summary: Delete a course
+      operationId: instructorDestroyCourse
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningCourseId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: 'null'}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/instructor/v1/courses/{id}/chapters:
+    post:
+      tags: [Instructor]
+      summary: Add a chapter
+      operationId: instructorStoreChapter
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningCourseId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InstructorChapterInput"}
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InstructorChapterEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+        '422': {$ref: "#/components/responses/LearningValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/instructor/v1/courses/{id}/chapters/{chapter}:
+    put:
+      tags: [Instructor]
+      summary: Update a chapter
+      operationId: instructorUpdateChapter
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningCourseId"}
+        - {$ref: "#/components/parameters/LearningChapterId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InstructorChapterInput"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InstructorChapterEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+        '422': {$ref: "#/components/responses/LearningValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Instructor]
+      summary: Delete a chapter
+      operationId: instructorDestroyChapter
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningCourseId"}
+        - {$ref: "#/components/parameters/LearningChapterId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: 'null'}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/instructor/v1/courses/{id}/lessons:
+    post:
+      tags: [Instructor]
+      summary: Add a lesson
+      operationId: instructorStoreLesson
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningCourseId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InstructorLessonInput"}
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InstructorLessonEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+        '422': {$ref: "#/components/responses/LearningValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/instructor/v1/courses/{id}/lessons/{lesson}:
+    put:
+      tags: [Instructor]
+      summary: Update a lesson
+      operationId: instructorUpdateLesson
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningCourseId"}
+        - {$ref: "#/components/parameters/LearningLessonParam"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InstructorLessonInput"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InstructorLessonEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+        '422': {$ref: "#/components/responses/LearningValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Instructor]
+      summary: Delete a lesson
+      operationId: instructorDestroyLesson
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningCourseId"}
+        - {$ref: "#/components/parameters/LearningLessonParam"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: 'null'}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/instructor/v1/groups:
+    get:
+      tags: [Instructor]
+      summary: The instructor's groups
+      operationId: instructorGroups
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/InstructorGroupList"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+    post:
+      tags: [Instructor]
+      summary: Create a group
+      operationId: instructorStoreGroup
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InstructorGroupInput"}
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InstructorGroupDetail"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '422': {$ref: "#/components/responses/LearningValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/instructor/v1/groups/{id}:
+    get:
+      tags: [Instructor]
+      summary: One group with members
+      operationId: instructorGroup
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningGroupId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/InstructorGroupDetail"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+    put:
+      tags: [Instructor]
+      summary: Rename a group / replace its courses
+      operationId: instructorUpdateGroup
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningGroupId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InstructorGroupInput"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InstructorGroupDetail"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+        '422': {$ref: "#/components/responses/LearningValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Instructor]
+      summary: Delete a group
+      operationId: instructorDestroyGroup
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningGroupId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: 'null'}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/instructor/v1/students:
+    get:
+      tags: [Instructor]
+      summary: Students (grants)
+      operationId: instructorStudents
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningStudentStatus"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/InstructorStudents"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '422': {$ref: "#/components/responses/LearningValidationFailed"}
+  /api/instructor/v1/grants:
+    post:
+      tags: [Instructor]
+      summary: Open a group / course to phone numbers
+      description: "Ins_AddUser: a number with an account gets an active grant now (inbox notice), an unknown number a pending one that activates when it signs up. Re-adding a number to the same target renews that grant. New / re-opened grants queue the «دوره برایت باز شد» SMS (notification policy + daily caps)."
+      operationId: instructorStoreGrants
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InstructorGrantInput"}
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InstructorGrantResults"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '422': {$ref: "#/components/responses/LearningValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/instructor/v1/grants/{id}:
+    delete:
+      tags: [Instructor]
+      summary: Revoke a grant
+      operationId: instructorRevokeGrant
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningGrantPathId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: 'null'}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/LearningNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
 components:
   securitySchemes:
     bearerAuth:
@@ -18237,6 +19184,60 @@ components:
       bearerFormat: JWT
       description: "Passport access token from `POST /api/v1/auth/verify-otp`."
   parameters:
+    LearningCourseId:
+      name: id
+      in: path
+      required: true
+      description: Course id (one the caller may open / the instructor's own)
+      schema: {type: integer, minimum: 1}
+    LearningLessonId:
+      name: id
+      in: path
+      required: true
+      description: Lesson id
+      schema: {type: integer, minimum: 1}
+    LearningLessonParam:
+      name: lesson
+      in: path
+      required: true
+      description: Lesson id (of this course)
+      schema: {type: integer, minimum: 1}
+    LearningChapterId:
+      name: chapter
+      in: path
+      required: true
+      description: Chapter id (of this course)
+      schema: {type: integer, minimum: 1}
+    LearningGroupId:
+      name: id
+      in: path
+      required: true
+      description: Group id (the instructor's own)
+      schema: {type: integer, minimum: 1}
+    LearningGrantId:
+      name: grant
+      in: path
+      required: true
+      description: Grant id (one of the caller's active grants)
+      schema: {type: integer, minimum: 1}
+    LearningGrantPathId:
+      name: id
+      in: path
+      required: true
+      description: Grant id (the instructor's own)
+      schema: {type: integer, minimum: 1}
+    LearningStudentStatus:
+      name: status
+      in: query
+      required: false
+      description: Filter by shown status
+      schema: {type: string, enum: [active, pending, expired]}
+    TelemedDoctorId:
+      name: id
+      in: path
+      required: true
+      description: Doctor id (an inactive doctor or one without an active visit type is a 404)
+      schema: {type: integer, minimum: 1}
     FileId:
       name: id
       in: path
@@ -18335,6 +19336,86 @@ components:
       description: "Overrides `Accept-Language`. Some endpoints clamp to the languages they have content for."
       schema: {type: string}
   responses:
+    LearningValidationFailed:
+      description: "Courses validation failed (controller 422 `{success: false, message, errors}`)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+    LearningForbidden:
+      description: "Bloom B-N8-01: not an approved instructor (`instructor_required` / `instructor_pending`), the access ended (`learning_access_expired`) or the chapter opens later (`learning_chapter_locked`, with unlock_at). Never 401."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [instructor_required, instructor_pending, learning_access_expired, learning_chapter_locked]}
+              unlock_at: {$ref: "#/components/schemas/IsoDateTime"}
+    LearningNotFound:
+      description: "Bloom B-N8-01: the course / chapter / lesson / group / grant does not exist or is not the caller's — one uniform answer."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [learning_course_not_found, learning_chapter_not_found, learning_lesson_not_found, learning_group_not_found, learning_grant_not_found]}
+    TelemedValidationFailed:
+      description: "Bloom B-N7-02: controller-style 422 `{success: false, message, errors}`."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors: {type: object, additionalProperties: {type: array, items: {type: string}}}
+    TelemedDoctorNotFound:
+      description: "Bloom B-N7-02: unknown, inactive or unlisted doctor — one uniform answer."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [doctor_not_found]}
+    TelemedReviewNotFound:
+      description: "Bloom B-N7-02: the review does not exist, is not the caller's or not of this doctor — one uniform answer."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [review_not_found]}
+    TelemedReviewRefused:
+      description: "Bloom B-N7-02: 403 `review_not_allowed` (no completed visit to review) or 409 `review_exists` (the visit is already reviewed)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [review_not_allowed, review_exists]}
     FileNotFound:
       description: "CB-CORE-05: the file does not exist, is not the caller's, or is not public — one uniform answer."
       content:
@@ -19394,6 +20475,512 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    LearningIsoOrNull:
+      anyOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]
+    LearningMedia:
+      description: "Media reference of a lesson (B-N8-02 media pipeline); null while nothing was uploaded or while the lesson is locked for the student."
+      oneOf:
+        - type: object
+          required: [id, status]
+          properties:
+            id: {type: integer}
+            status: {type: string, enum: [none, uploading, processing, ready, failed]}
+        - {type: "null"}
+    LearningInstructorRef:
+      type: object
+      required: [id, name, title]
+      properties:
+        id: {type: integer}
+        name: {type: string}
+        title: {type: [string, "null"]}
+    LearningRef:
+      oneOf:
+        - type: object
+          required: [id]
+          properties:
+            id: {type: integer}
+            name: {type: [string, "null"]}
+            title: {type: [string, "null"]}
+        - {type: "null"}
+    LearningAccess:
+      type: object
+      required: [grant_id, unlimited, expires_at, days_left, expired, granted_at, group]
+      properties:
+        grant_id: {type: integer}
+        unlimited: {type: boolean}
+        expires_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+        days_left: {type: [integer, "null"], description: "Whole days left (null = unlimited, 0 = expired)"}
+        expired: {type: boolean}
+        granted_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+        group: {$ref: "#/components/schemas/LearningRef"}
+    LearningStudentCourse:
+      type: object
+      required: [id, kind, title, instructor, lessons_count, completed_lessons, progress_percent, access]
+      properties:
+        id: {type: integer}
+        kind: {type: string, enum: [course, standalone]}
+        title: {type: string}
+        description: {type: [string, "null"]}
+        cover_media_id: {type: [integer, "null"]}
+        instructor: {$ref: "#/components/schemas/LearningInstructorRef"}
+        lessons_count: {type: integer}
+        completed_lessons: {type: integer}
+        primary_kind: {type: [string, "null"], enum: [video, audio, pdf, null]}
+        duration_seconds: {type: integer}
+        page_count: {type: integer}
+        progress_percent: {type: integer, minimum: 0, maximum: 100}
+        access: {$ref: "#/components/schemas/LearningAccess"}
+    LearningLessonProgress:
+      oneOf:
+        - type: object
+          required: [position_seconds, percent, completed]
+          properties:
+            lesson_id: {type: integer}
+            position_seconds: {type: integer}
+            percent: {type: integer, minimum: 0, maximum: 100}
+            completed: {type: boolean}
+            last_seen_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+        - {type: "null"}
+    LearningStudentLesson:
+      type: object
+      required: [id, number, kind, title, locked, progress, media]
+      properties:
+        id: {type: integer}
+        number: {type: integer, description: "1-based position in reading order"}
+        chapter_id: {type: [integer, "null"]}
+        kind: {type: string, enum: [video, audio, pdf]}
+        title: {type: string}
+        description: {type: [string, "null"]}
+        duration_seconds: {type: [integer, "null"]}
+        page_count: {type: [integer, "null"]}
+        size_bytes: {type: [integer, "null"]}
+        is_new: {type: boolean}
+        locked: {type: boolean}
+        unlock_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+        progress: {$ref: "#/components/schemas/LearningLessonProgress"}
+        media: {$ref: "#/components/schemas/LearningMedia"}
+    LearningContinue:
+      oneOf:
+        - type: object
+          required: [course, lesson, position_seconds, percent]
+          properties:
+            course: {type: object}
+            lesson: {type: object}
+            position_seconds: {type: integer}
+            remaining_seconds: {type: [integer, "null"]}
+            percent: {type: integer}
+            course_percent: {type: integer}
+        - {type: "null"}
+    LearningMyCourses:
+      type: object
+      required: [continue, courses]
+      properties:
+        continue: {$ref: "#/components/schemas/LearningContinue"}
+        courses: {type: array, items: {$ref: "#/components/schemas/LearningStudentCourse"}}
+    LearningStudentOutline:
+      type: object
+      required: [course, next_lesson, chapters, lessons]
+      properties:
+        course: {$ref: "#/components/schemas/LearningStudentCourse"}
+        next_lesson: {oneOf: [{type: object}, {type: "null"}]}
+        chapters:
+          type: array
+          items:
+            type: object
+            required: [id, title, locked, unlock_at, lessons]
+            properties:
+              id: {type: integer}
+              title: {type: string}
+              locked: {type: boolean}
+              unlock_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+              lessons: {type: array, items: {$ref: "#/components/schemas/LearningStudentLesson"}}
+        lessons: {type: array, items: {$ref: "#/components/schemas/LearningStudentLesson"}}
+    LearningStudentLessonDetail:
+      type: object
+      required: [lesson, course, next_lesson_id]
+      properties:
+        lesson: {$ref: "#/components/schemas/LearningStudentLesson"}
+        course: {type: object}
+        next_lesson_id: {type: [integer, "null"]}
+    LearningProgressInput:
+      type: object
+      required: [position_seconds]
+      properties:
+        position_seconds: {type: integer, minimum: 0, maximum: 86400}
+        percent: {type: [integer, "null"], minimum: 0, maximum: 100}
+        completed: {type: [boolean, "null"]}
+    LearningProgressSaved:
+      type: object
+      required: [progress, course_percent]
+      properties:
+        progress: {$ref: "#/components/schemas/LearningLessonProgress"}
+        course_percent: {type: integer}
+    LearningUnlocked:
+      type: object
+      required: [grant_id, instructor, group, courses, unlimited, expires_at, expired]
+      properties:
+        grant_id: {type: integer}
+        instructor: {$ref: "#/components/schemas/LearningInstructorRef"}
+        group: {$ref: "#/components/schemas/LearningRef"}
+        courses: {type: array, items: {type: object}}
+        unlimited: {type: boolean}
+        expires_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+        days_left: {type: [integer, "null"]}
+        expired: {type: boolean}
+        granted_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+    InstructorProfile:
+      type: object
+      required: [id, display_name, status]
+      properties:
+        id: {type: integer}
+        display_name: {type: string}
+        title: {type: [string, "null"]}
+        bio: {type: [string, "null"]}
+        status: {type: string, enum: [pending, approved, revoked]}
+        approved_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+        created_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+    InstructorMe:
+      type: object
+      required: [instructor]
+      properties:
+        instructor: {oneOf: [{$ref: "#/components/schemas/InstructorProfile"}, {type: "null"}]}
+    InstructorApplyInput:
+      type: object
+      required: [display_name]
+      properties:
+        display_name: {type: string, minLength: 2, maxLength: 80}
+        title: {type: [string, "null"], maxLength: 60}
+        bio: {type: [string, "null"], maxLength: 500}
+    InstructorCourse:
+      type: object
+      required: [id, kind, title, status]
+      properties:
+        id: {type: integer}
+        kind: {type: string, enum: [course, standalone]}
+        title: {type: string}
+        description: {type: [string, "null"]}
+        status: {type: string, enum: [draft, published]}
+        published_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+        cover_media_id: {type: [integer, "null"]}
+        lessons_count: {type: integer}
+        published_lessons: {type: integer}
+        duration_seconds: {type: integer}
+        created_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+    InstructorCourseList:
+      type: object
+      required: [courses]
+      properties:
+        courses: {type: array, items: {$ref: "#/components/schemas/InstructorCourse"}}
+    InstructorCourseInput:
+      type: object
+      description: "Create: kind + title required. Update: every field optional, kind cannot change."
+      properties:
+        kind: {type: string, enum: [course, standalone]}
+        title: {type: string, maxLength: 150}
+        description: {type: [string, "null"], maxLength: 5000}
+        status: {type: string, enum: [draft, published]}
+    InstructorChapter:
+      type: object
+      required: [id, title, sort_order, unlock_at, locked]
+      properties:
+        id: {type: integer}
+        title: {type: string}
+        sort_order: {type: integer}
+        unlock_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+        locked: {type: boolean}
+    InstructorChapterEnvelope:
+      type: object
+      required: [chapter]
+      properties:
+        chapter: {$ref: "#/components/schemas/InstructorChapter"}
+    InstructorChapterInput:
+      type: object
+      properties:
+        title: {type: string, maxLength: 150}
+        unlock_at: {type: [string, "null"], description: "Tehran wall-clock `Y-m-d H:i`; null = open now", examples: ["2026-10-15 08:00"]}
+        sort_order: {type: integer, minimum: 1, maximum: 1000}
+    InstructorLesson:
+      type: object
+      required: [id, kind, title, status, sort_order, media, media_status]
+      properties:
+        id: {type: integer}
+        chapter_id: {type: [integer, "null"]}
+        kind: {type: string, enum: [video, audio, pdf]}
+        title: {type: string}
+        description: {type: [string, "null"]}
+        duration_seconds: {type: [integer, "null"]}
+        page_count: {type: [integer, "null"]}
+        size_bytes: {type: [integer, "null"]}
+        status: {type: string, enum: [draft, published]}
+        published_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+        sort_order: {type: integer}
+        media: {$ref: "#/components/schemas/LearningMedia"}
+        media_status: {type: string}
+    InstructorLessonEnvelope:
+      type: object
+      required: [lesson]
+      properties:
+        lesson: {$ref: "#/components/schemas/InstructorLesson"}
+    InstructorLessonInput:
+      type: object
+      description: "Create: kind + title required (a standalone item holds one lesson and no chapter). Update: every field optional."
+      properties:
+        kind: {type: string, enum: [video, audio, pdf]}
+        title: {type: string, maxLength: 150}
+        chapter_id: {type: [integer, "null"]}
+        description: {type: [string, "null"]}
+        duration_seconds: {type: [integer, "null"], minimum: 0, maximum: 86400}
+        page_count: {type: [integer, "null"], minimum: 0}
+        size_bytes: {type: [integer, "null"], minimum: 0}
+        status: {type: string, enum: [draft, published]}
+        sort_order: {type: integer, minimum: 1, maximum: 1000}
+    InstructorCourseOutline:
+      type: object
+      required: [course, chapters, lessons, duration_seconds, access]
+      properties:
+        course: {$ref: "#/components/schemas/InstructorCourse"}
+        chapters: {type: array, items: {$ref: "#/components/schemas/InstructorChapter"}}
+        lessons: {type: array, items: {$ref: "#/components/schemas/InstructorLesson"}}
+        duration_seconds: {type: integer}
+        access:
+          type: object
+          required: [students, groups, direct]
+          properties:
+            students: {type: integer}
+            groups: {type: array, items: {type: object}}
+            direct: {type: integer}
+    InstructorGroupCourse:
+      type: object
+      required: [id, kind, title, status]
+      properties:
+        id: {type: integer}
+        kind: {type: string}
+        title: {type: string}
+        status: {type: string}
+    InstructorGroupList:
+      type: object
+      required: [groups]
+      properties:
+        groups:
+          type: array
+          items:
+            type: object
+            required: [id, name, courses, members]
+            properties:
+              id: {type: integer}
+              name: {type: string}
+              courses: {type: array, items: {$ref: "#/components/schemas/InstructorGroupCourse"}}
+              members: {type: object, required: [active, pending], properties: {active: {type: integer}, pending: {type: integer}}}
+              created_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+    InstructorGroupInput:
+      type: object
+      properties:
+        name: {type: string, maxLength: 100}
+        course_ids: {type: [array, "null"], items: {type: integer, minimum: 1}, description: "Replaces the group's courses when sent"}
+    InstructorGrant:
+      type: object
+      required: [id, phone, status, registered, duration]
+      properties:
+        id: {type: integer}
+        phone: {type: string, pattern: "^09[0-9]{9}$", description: "The normalised number the instructor entered"}
+        status: {type: string, enum: [pending, active, expired]}
+        registered: {type: boolean}
+        student_name: {type: [string, "null"]}
+        group: {$ref: "#/components/schemas/LearningRef"}
+        course: {$ref: "#/components/schemas/LearningRef"}
+        duration:
+          type: object
+          required: [type]
+          properties:
+            type: {type: string, enum: [unlimited, days, until]}
+            days: {type: [integer, "null"]}
+            until: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        activated_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+        expires_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+        days_left: {type: [integer, "null"]}
+        progress_percent: {type: [integer, "null"]}
+        created_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+    InstructorGroupDetail:
+      type: object
+      required: [group, members, pending_signups]
+      properties:
+        group:
+          type: object
+          required: [id, name, courses]
+          properties:
+            id: {type: integer}
+            name: {type: string}
+            courses: {type: array, items: {$ref: "#/components/schemas/InstructorGroupCourse"}}
+            created_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+        members: {type: array, items: {$ref: "#/components/schemas/InstructorGrant"}}
+        pending_signups: {type: integer}
+    InstructorStudents:
+      type: object
+      required: [counts, students]
+      properties:
+        counts: {type: object, required: [active, pending, expired], properties: {active: {type: integer}, pending: {type: integer}, expired: {type: integer}}}
+        students: {type: array, items: {$ref: "#/components/schemas/InstructorGrant"}}
+    InstructorGrantInput:
+      type: object
+      required: [phones, scope, target_id, duration]
+      properties:
+        phones: {type: array, minItems: 1, maxItems: 200, items: {type: string, maxLength: 20}, description: "Persian digits and +98 / 0098 prefixes accepted; duplicates collapse"}
+        scope: {type: string, enum: [group, course]}
+        target_id: {type: integer, minimum: 1}
+        duration: {type: string, enum: [unlimited, "30", "90", until]}
+        until: {type: [string, "null"], format: date, description: "Required with duration until; today … 5 years ahead (inclusive)"}
+    InstructorGrantResults:
+      type: object
+      required: [grants, summary]
+      properties:
+        grants:
+          type: array
+          items:
+            type: object
+            required: [id, phone, status, registered, renewed]
+            properties:
+              id: {type: integer}
+              phone: {type: string}
+              status: {type: string, enum: [pending, active, expired]}
+              registered: {type: boolean}
+              renewed: {type: boolean}
+              duration: {type: object}
+              activated_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+              expires_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+        summary: {type: object, required: [active, pending], properties: {active: {type: integer}, pending: {type: integer}}}
+    TelemedPageMeta:
+      type: object
+      required: [current_page, last_page, per_page, total]
+      properties:
+        current_page: {type: integer}
+        last_page: {type: integer}
+        per_page: {type: integer}
+        total: {type: integer}
+    TelemedCode:
+      type: object
+      description: A catalog code with its label in the request language (null when the catalog has no active item for it).
+      required: [code, title]
+      properties:
+        code: {type: string}
+        title: {type: [string, "null"]}
+    TelemedNextSlot:
+      type: [object, "null"]
+      required: [starts_at, date, time, mode]
+      properties:
+        starts_at: {$ref: "#/components/schemas/IsoDateTime"}
+        date: {$ref: "#/components/schemas/Date"}
+        time: {type: string, pattern: "^\\d{2}:\\d{2}$"}
+        mode: {type: string, enum: [video, phone, in_person]}
+    TelemedDoctorCard:
+      type: object
+      required: [id, kind, name, initial, headline, specialty, city, experience_years, photo_url, rating, reviews_count, modes, price_from_rials, next_slot]
+      properties:
+        id: {type: integer}
+        kind: {type: string, enum: [doctor, midwife], description: "Clients prefix the honorific by kind"}
+        name: {type: [string, "null"]}
+        initial: {type: [string, "null"], description: First letter of the name (avatar)}
+        headline: {type: [string, "null"]}
+        specialty: {$ref: "#/components/schemas/TelemedCode"}
+        city:
+          oneOf:
+            - {$ref: "#/components/schemas/TelemedCode"}
+            - {type: "null"}
+        experience_years: {type: [integer, "null"]}
+        photo_url: {type: [string, "null"]}
+        rating: {type: [number, "null"], description: Average of the visible ratings, one decimal}
+        reviews_count: {type: integer}
+        modes: {type: array, items: {type: string, enum: [video, phone, in_person]}}
+        price_from_rials: {type: integer, description: "Lowest price of the considered modes, integer rials (toman = rials / 10)"}
+        next_slot: {$ref: "#/components/schemas/TelemedNextSlot"}
+    TelemedVisitType:
+      type: object
+      required: [mode, duration_minutes, price_rials, note, address]
+      properties:
+        mode: {type: string, enum: [video, phone, in_person]}
+        duration_minutes: {type: integer}
+        price_rials: {type: integer}
+        note: {type: [string, "null"]}
+        address: {type: [string, "null"]}
+    TelemedReview:
+      type: object
+      required: [id, rating, body, author_initial, created_at, mine]
+      properties:
+        id: {type: integer}
+        rating: {type: integer, minimum: 1, maximum: 5}
+        body: {type: [string, "null"]}
+        author_initial: {type: [string, "null"]}
+        created_at:
+          oneOf:
+            - {$ref: "#/components/schemas/IsoDateTime"}
+            - {type: "null"}
+        mine: {type: boolean}
+    TelemedDoctorProfile:
+      allOf:
+        - {$ref: "#/components/schemas/TelemedDoctorCard"}
+        - type: object
+          required: [licence_no, bio, stats, visit_types, insurers, reviews, can_review]
+          properties:
+            licence_no: {type: string}
+            bio: {type: [string, "null"]}
+            stats:
+              type: object
+              required: [experience_years, visits_count, response_minutes, satisfaction_percent]
+              properties:
+                experience_years: {type: [integer, "null"]}
+                visits_count: {type: integer}
+                response_minutes: {type: [integer, "null"]}
+                satisfaction_percent: {type: [integer, "null"], description: "Percent of visible ratings ≥ 4"}
+            visit_types: {type: array, items: {$ref: "#/components/schemas/TelemedVisitType"}}
+            insurers: {type: array, items: {$ref: "#/components/schemas/TelemedCode"}}
+            reviews:
+              type: object
+              required: [count, items]
+              properties:
+                count: {type: integer}
+                items: {type: array, items: {$ref: "#/components/schemas/TelemedReview"}}
+            can_review: {type: boolean}
+    TelemedSlots:
+      type: object
+      required: [visit_type, from, days, next_slot]
+      properties:
+        visit_type: {$ref: "#/components/schemas/TelemedVisitType"}
+        from: {$ref: "#/components/schemas/Date"}
+        days:
+          type: array
+          items:
+            type: object
+            required: [date, weekday, count, slots]
+            properties:
+              date: {$ref: "#/components/schemas/Date"}
+              weekday: {type: integer, minimum: 0, maximum: 6, description: "0 = Sunday … 6 = Saturday"}
+              count: {type: integer}
+              slots:
+                type: array
+                items:
+                  type: object
+                  required: [starts_at, ends_at, time]
+                  properties:
+                    starts_at: {$ref: "#/components/schemas/IsoDateTime"}
+                    ends_at: {$ref: "#/components/schemas/IsoDateTime"}
+                    time: {type: string, pattern: "^\\d{2}:\\d{2}$"}
+        next_slot: {$ref: "#/components/schemas/TelemedNextSlot"}
+    TelemedFilterOption:
+      type: object
+      required: [code, title, count]
+      properties:
+        code: {type: string}
+        title: {type: [string, "null"]}
+        count: {type: integer}
+    TelemedFilters:
+      type: object
+      required: [total, modes, kinds, specialties, cities, insurers]
+      properties:
+        total: {type: integer}
+        modes: {type: array, items: {type: string}}
+        kinds: {type: array, items: {type: string}}
+        specialties: {type: array, items: {$ref: "#/components/schemas/TelemedFilterOption"}}
+        cities: {type: array, items: {$ref: "#/components/schemas/TelemedFilterOption"}}
+        insurers: {type: array, items: {$ref: "#/components/schemas/TelemedFilterOption"}}
     TodoCategory:
       type: string
       enum: [shopping, work, personal, health]
@@ -19440,6 +21027,63 @@ components:
         category: {$ref: "#/components/schemas/TodoCategory"}
         task_title: {type: string}
         item_title: {type: string}
+    ServicesHub:
+      type: object
+      required: [sections, upcoming_booking, care, programs]
+      properties:
+        sections:
+          type: array
+          items:
+            type: object
+            required: [code, title, subtitle, caption, href, status, phone, categories]
+            properties:
+              code: {type: string, enum: [search, booking, care, checkups, programs, mother_child, learning, shop, emergency]}
+              title: {type: [string, "null"]}
+              subtitle: {type: [string, "null"]}
+              caption: {type: [string, "null"]}
+              href: {type: [string, "null"], description: "In-app path (`/checkups`); null = no screen yet"}
+              status: {type: string, enum: [live, soon]}
+              phone: {type: [string, "null"], description: "Emergency number (emergency section only, default 115)"}
+              categories:
+                type: array
+                description: Shop categories (shop section only)
+                items:
+                  type: object
+                  required: [code, title, icon]
+                  properties:
+                    code: {type: string}
+                    title: {type: [string, "null"]}
+                    icon: {type: string}
+        upcoming_booking:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [id, kind, provider_name, starts_at, duration_minutes, href]
+              properties:
+                id: {type: integer}
+                kind: {type: string, enum: [video, phone, in_person]}
+                provider_name: {type: string}
+                starts_at: {$ref: "#/components/schemas/IsoDateTime"}
+                duration_minutes: {type: integer}
+                href: {type: [string, "null"]}
+        care:
+          type: array
+          items: {$ref: "#/components/schemas/ServicesTile"}
+        programs:
+          type: array
+          items: {$ref: "#/components/schemas/ServicesTile"}
+    ServicesTile:
+      type: object
+      required: [code, title, subtitle, icon, tone, href, status]
+      properties:
+        code: {type: string}
+        title: {type: [string, "null"]}
+        subtitle: {type: [string, "null"]}
+        icon: {type: string}
+        tone: {type: string, enum: [brand, data, warm, period, bloom, success, danger, neutral]}
+        href: {type: [string, "null"]}
+        status: {type: string, enum: [live, soon]}
+        count: {type: [integer, "null"], description: "Care tiles only: the health record's document count on the record tile, else null"}
     TodoBoard:
       type: object
       required: [date, categories, suggestion, groups, done, notifications]

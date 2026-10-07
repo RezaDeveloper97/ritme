@@ -1054,3 +1054,34 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   (12 / 9 goroutines) fail without the lock.
 - Header «اشتراک با پزشک» on vitals reports and the ready lab result → `/record/export?section=vitals|checkups`
   (basics + that section preselected, param dropped after). PWA install prompt hidden on `/shared/*`. QUESTIONS #117.
+
+## B-N7-01 — Services hub (خدمات)
+
+- `GET /api/v1/services` (`internal/services`): sections / care tiles / programs from catalog groups `services_sections`,
+  `services_care`, `services_programs` (seeded by data migration **00047**, admin-editable via the catalog editor;
+  internal `href` only, else «به‌زودی»), `upcoming_booking` null until B-N7-03 wires `services.BookingSource`, record
+  tile counts the user's documents, teen hides shop, programs filtered by life mode, emergency card always on (`tel:`).
+  D-69 proposed. Frontend `entities/service-hub` + rewritten `screens/services` (skeleton/error/empty, 115 card).
+  Screenshots `docs/qa/bloom/B-N7-01/`. QUESTIONS #119.
+
+## B-N7-02 — Doctors directory backend
+
+- `internal/telemed`, migration **00045** (doctors, insurers, visit types, availability rules, time off, reviews; 6
+  specialty codes seeded in catalog `telemed_specialties`, no placeholder doctors). User API: doctors list with filters
+  (mode/kind/specialty/city/insurance/today/q, 20 per page), filter chips, profile (`can_review`), free slots
+  (weekly grid, lead 30 min, horizon 60 d, minus time off + `Busy`), reviews list/create/delete-own. Admin
+  `/api/admin/v1/telemed/*`: doctor CRUD (delete super-only), photo → WebP, visit types, availability, time off, slot
+  preview, review moderation (admin-api §19). Prices `price_rials` (integer rials like plus/payments). Hooks `Busy`
+  and `VisitChecker` default to none until B-N7-03. D-67 proposed. QUESTIONS #120.
+
+## B-N8-01 — Courses domain
+
+- `internal/learning`, migration **00046** (instructors pending/approved/revoked, courses course|standalone draft|
+  published, chapters with `unlock_at`, lessons video/audio/pdf with `media_id`/`media_status` for B-N8-02, groups,
+  grants by normalised phone pending→active with unlimited/30/90 days/until, progress, SMS outbox). Student API
+  `/api/v1/learning/*` (continue card, course, lesson 403 expired/locked, monotonic progress, unlocked grant); instructor
+  API `/api/instructor/v1/*` (me/apply open; approved-only CRUD, students, grants 201 per phone, revoke; 403
+  `instructor_required|instructor_pending`). OTP signup hook (2 s budget, isolated, panic-safe) activates pending grants;
+  lazy claim on student endpoints. In-app notification + SMS outbox loop via `notifications.Decide` (quiet hours,
+  category `learning`), caps 3/phone/day and 300/instructor/day, fake provider outside production. D-68 proposed.
+  QUESTIONS #121.

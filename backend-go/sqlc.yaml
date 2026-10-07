@@ -271,3 +271,15 @@ sql:
       go:
         <<: *go
         out: internal/healthrecord/extract/store
+  - <<: *pkg
+    queries: db/queries/telemed
+    gen:
+      go:
+        <<: *go
+        out: internal/telemed/store
+  - <<: *pkg
+    queries: db/queries/learning
+    gen:
+      go:
+        <<: *go
+        out: internal/learning/store

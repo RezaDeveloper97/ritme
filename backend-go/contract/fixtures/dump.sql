@@ -597,7 +597,33 @@ INSERT INTO `catalog_items` VALUES
 (313,'lab_markers','progesterone',23,1,NULL,'{\"fa\":\"پروژسترون\",\"en\":\"Progesterone\"}','{\"fa\":\"هورمونی که بعد از تخمک‌گذاری بالا می‌رود و رحم را برای بارداری آماده می‌کند. آزمایش روز ۲۱ (حدود ۷ روز بعد از تخمک‌گذاری) نشان می‌دهد تخمک‌گذاری رخ داده یا نه.\",\"en\":\"A hormone that rises after ovulation and prepares the womb for pregnancy. A day-21 test (about 7 days after ovulation) shows whether ovulation happened.\"}','{\"category\":\"hormone\",\"subtitle\":{\"fa\":\"نشانه تخمک‌گذاری\",\"en\":\"Sign of ovulation\"},\"aliases\":[\"progesterone\",\"prog\",\"p4\",\"day21progesterone\",\"پروژسترون\"],\"unit\":\"ng/mL\",\"range_varies\":true,\"typical\":{\"low\":1.8,\"high\":24,\"text\":\"1.8–24 (luteal)\"},\"low\":{\"factors\":[{\"fa\":\"آزمایش در نیمه اول سیکل\",\"en\":\"Testing in the first half of the cycle\"},{\"fa\":\"تخمک‌گذاری نکردن در آن سیکل\",\"en\":\"No ovulation that cycle\"}],\"questions\":[{\"fa\":\"آیا در این سیکل تخمک‌گذاری داشته‌ام؟\",\"en\":\"Did I ovulate this cycle?\"},{\"fa\":\"آیا آزمایش در روز درست سیکل انجام شده است؟\",\"en\":\"Was the test done on the right cycle day?\"}],\"see_doctor\":{\"fa\":\"برای تفسیر بر اساس روز سیکل با پزشک زنان صحبت کن.\",\"en\":\"Talk to a gynaecologist to read it for your cycle day.\"}},\"high\":{\"factors\":[{\"fa\":\"فاز لوتئال یا بارداری\",\"en\":\"The luteal phase or pregnancy\"},{\"fa\":\"مکمل پروژسترون\",\"en\":\"Progesterone supplements\"}],\"questions\":[{\"fa\":\"آیا این عدد با روز سیکل من هم‌خوانی دارد؟\",\"en\":\"Does this fit my cycle day?\"}],\"see_doctor\":{\"fa\":\"برای تفسیر بر اساس روز سیکل با پزشک زنان صحبت کن.\",\"en\":\"Talk to a gynaecologist to read it for your cycle day.\"}}}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (314,'lab_markers','prolactin',24,1,NULL,'{\"fa\":\"پرولاکتین\",\"en\":\"Prolactin\"}','{\"fa\":\"هورمونی که شیرسازی را تحریک می‌کند. بالا بودنش در غیر شیردهی می‌تواند سیکل و تخمک‌گذاری را مختل کند.\",\"en\":\"A hormone that drives milk production. When high outside breastfeeding it can disturb cycles and ovulation.\"}','{\"category\":\"hormone\",\"subtitle\":{\"fa\":\"هورمون شیرسازی\",\"en\":\"Milk hormone\"},\"aliases\":[\"prolactin\",\"prl\",\"پرولاکتین\"],\"unit\":\"ng/mL\",\"typical\":{\"low\":4.8,\"high\":23.3,\"text\":\"4.8–23.3\"},\"critical\":{\"soon_high\":100},\"low\":{\"factors\":[{\"fa\":\"معمولاً نگران‌کننده نیست\",\"en\":\"Usually not a concern\"}],\"questions\":[{\"fa\":\"آیا لازم است کاری انجام دهم؟\",\"en\":\"Do I need to do anything about it?\"}],\"see_doctor\":{\"fa\":\"در صورت شک با پزشک صحبت کن.\",\"en\":\"Ask a doctor if unsure.\"}},\"high\":{\"factors\":[{\"fa\":\"استرس، خواب کم یا آزمایش بلافاصله بعد از بیدار شدن\",\"en\":\"Stress, poor sleep or testing right after waking\"},{\"fa\":\"شیردهی یا بارداری\",\"en\":\"Breastfeeding or pregnancy\"},{\"fa\":\"برخی داروها\",\"en\":\"Some medicines\"}],\"questions\":[{\"fa\":\"آیا باید آزمایش را در حالت استراحت تکرار کنم؟\",\"en\":\"Should I repeat the test at rest?\"},{\"fa\":\"آیا پرولاکتین بالا روی نظم پریود یا بارداری من اثر دارد؟\",\"en\":\"Could high prolactin affect my periods or getting pregnant?\"}],\"see_doctor\":{\"fa\":\"اگر ترشح شیر از سینه، سردرد یا اختلال دید داری، زودتر مراجعه کن.\",\"en\":\"If you have milky nipple discharge, headaches or vision changes, see a doctor soon.\"}}}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (315,'lab_markers','amh',25,1,NULL,'{\"fa\":\"AMH\",\"en\":\"AMH\"}','{\"fa\":\"هورمونی که فولیکول‌های کوچک تخمدان می‌سازند و تخمینی از ذخیره تخمدان می‌دهد. با سن کم می‌شود و به‌تنهایی شانس بارداری را تعیین نمی‌کند.\",\"en\":\"A hormone made by small ovarian follicles that estimates ovarian reserve. It falls with age and does not on its own decide the chance of pregnancy.\"}','{\"category\":\"hormone\",\"subtitle\":{\"fa\":\"ذخیره تخمدان\",\"en\":\"Ovarian reserve\"},\"aliases\":[\"amh\",\"antimullerianhormone\",\"antimüllerianhormone\",\"mullerianinhibitinghormone\"],\"unit\":\"ng/mL\",\"range_varies\":true,\"typical\":{\"low\":1.0,\"high\":3.5,\"text\":\"1.0–3.5 (varies with age)\"},\"low\":{\"factors\":[{\"fa\":\"افزایش سن\",\"en\":\"Getting older\"},{\"fa\":\"جراحی یا درمان‌های قبلی تخمدان\",\"en\":\"Past ovarian surgery or treatment\"}],\"questions\":[{\"fa\":\"ذخیره تخمدان من برای سنم چطور است؟\",\"en\":\"What is my ovarian reserve like for my age?\"},{\"fa\":\"آیا باید برای بارداری زودتر اقدام کنم؟\",\"en\":\"Should I try to conceive sooner?\"}],\"see_doctor\":{\"fa\":\"برای تفسیر بر اساس سن و برنامه بارداری با پزشک زنان یا متخصص ناباروری صحبت کن.\",\"en\":\"Talk to a gynaecologist or fertility specialist to read it for your age and plans.\"}},\"high\":{\"factors\":[{\"fa\":\"سندرم تخمدان پلی‌کیستیک\",\"en\":\"Polycystic ovary syndrome\"}],\"questions\":[{\"fa\":\"آیا AMH بالا نشانه PCOS است؟\",\"en\":\"Does a high AMH suggest PCOS?\"}],\"see_doctor\":{\"fa\":\"همراه با سونوگرافی و علائمت با پزشک زنان بررسی کن.\",\"en\":\"Review it with a gynaecologist together with an ultrasound and your symptoms.\"}}}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
-(316,'lab_markers','testosterone',26,1,NULL,'{\"fa\":\"تستوسترون\",\"en\":\"Testosterone\"}','{\"fa\":\"هورمون مردانه‌ای که در زنان هم به مقدار کم ساخته می‌شود. بالا بودنش می‌تواند با آکنه، موهای زائد و سیکل نامنظم همراه باشد.\",\"en\":\"A male hormone that women make in small amounts. A high level can go with acne, unwanted hair and irregular cycles.\"}','{\"category\":\"hormone\",\"subtitle\":{\"fa\":\"آندروژن\",\"en\":\"Androgen\"},\"aliases\":[\"testosterone\",\"totaltestosterone\",\"testosteronetotal\",\"تستوسترون\"],\"unit\":\"ng/dL\",\"typical\":{\"low\":15,\"high\":70,\"text\":\"15–70\"},\"low\":{\"factors\":[{\"fa\":\"قرص‌های هورمونی\",\"en\":\"Hormonal contraceptives\"},{\"fa\":\"نزدیک شدن به یائسگی\",\"en\":\"Approaching menopause\"}],\"questions\":[{\"fa\":\"آیا لازم است کاری انجام دهم؟\",\"en\":\"Do I need to do anything about it?\"}],\"see_doctor\":{\"fa\":\"در صورت شک با پزشک صحبت کن.\",\"en\":\"Ask a doctor if unsure.\"}},\"high\":{\"factors\":[{\"fa\":\"سندرم تخمدان پلی‌کیستیک\",\"en\":\"Polycystic ovary syndrome\"},{\"fa\":\"برخی داروها یا مکمل‌ها\",\"en\":\"Some medicines or supplements\"}],\"questions\":[{\"fa\":\"آیا تستوسترون بالا نشانه PCOS است؟\",\"en\":\"Does a high testosterone suggest PCOS?\"}],\"see_doctor\":{\"fa\":\"همراه با علائمت با پزشک زنان یا غدد بررسی کن.\",\"en\":\"Review it with a gynaecologist or endocrinologist together with your symptoms.\"}}}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+(316,'lab_markers','testosterone',26,1,NULL,'{\"fa\":\"تستوسترون\",\"en\":\"Testosterone\"}','{\"fa\":\"هورمون مردانه‌ای که در زنان هم به مقدار کم ساخته می‌شود. بالا بودنش می‌تواند با آکنه، موهای زائد و سیکل نامنظم همراه باشد.\",\"en\":\"A male hormone that women make in small amounts. A high level can go with acne, unwanted hair and irregular cycles.\"}','{\"category\":\"hormone\",\"subtitle\":{\"fa\":\"آندروژن\",\"en\":\"Androgen\"},\"aliases\":[\"testosterone\",\"totaltestosterone\",\"testosteronetotal\",\"تستوسترون\"],\"unit\":\"ng/dL\",\"typical\":{\"low\":15,\"high\":70,\"text\":\"15–70\"},\"low\":{\"factors\":[{\"fa\":\"قرص‌های هورمونی\",\"en\":\"Hormonal contraceptives\"},{\"fa\":\"نزدیک شدن به یائسگی\",\"en\":\"Approaching menopause\"}],\"questions\":[{\"fa\":\"آیا لازم است کاری انجام دهم؟\",\"en\":\"Do I need to do anything about it?\"}],\"see_doctor\":{\"fa\":\"در صورت شک با پزشک صحبت کن.\",\"en\":\"Ask a doctor if unsure.\"}},\"high\":{\"factors\":[{\"fa\":\"سندرم تخمدان پلی‌کیستیک\",\"en\":\"Polycystic ovary syndrome\"},{\"fa\":\"برخی داروها یا مکمل‌ها\",\"en\":\"Some medicines or supplements\"}],\"questions\":[{\"fa\":\"آیا تستوسترون بالا نشانه PCOS است؟\",\"en\":\"Does a high testosterone suggest PCOS?\"}],\"see_doctor\":{\"fa\":\"همراه با علائمت با پزشک زنان یا غدد بررسی کن.\",\"en\":\"Review it with a gynaecologist or endocrinologist together with your symptoms.\"}}}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(317,'telemed_specialties','gynecology',1,1,NULL,'{\"fa\":\"زنان و زایمان\",\"en\":\"Obstetrics & gynaecology\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(318,'telemed_specialties','midwifery',2,1,NULL,'{\"fa\":\"ماما\",\"en\":\"Midwife\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(319,'telemed_specialties','dermatology',3,1,NULL,'{\"fa\":\"پوست\",\"en\":\"Dermatology\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(320,'telemed_specialties','nutrition',4,1,NULL,'{\"fa\":\"تغذیه\",\"en\":\"Nutrition\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(321,'telemed_specialties','psychology',5,1,NULL,'{\"fa\":\"روان‌شناسی\",\"en\":\"Psychology\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(322,'telemed_specialties','general',6,1,NULL,'{\"fa\":\"پزشک عمومی\",\"en\":\"General practice\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(700,'services_sections','search',1,1,NULL,'{\"fa\":\"پزشک، آزمایش، کلاس یا برنامه…\",\"en\":\"Doctors, labs, classes or programs…\"}',NULL,'{\"href\":\"/search\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(701,'services_sections','booking',2,1,NULL,'{\"fa\":\"نوبت پیش رو\",\"en\":\"Upcoming visit\"}',NULL,NULL,0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(702,'services_sections','care',3,1,NULL,'{\"fa\":\"مراقبت سلامت\",\"en\":\"Health care\"}',NULL,NULL,0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(703,'services_sections','checkups',4,1,NULL,'{\"fa\":\"چکاپ‌های دوره‌ای و یادآور دارو\",\"en\":\"Routine checkups & medication reminders\"}',NULL,'{\"href\":\"/checkups\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(704,'services_sections','programs',5,1,NULL,'{\"fa\":\"برنامه‌های مراقبتی\",\"en\":\"Care programs\"}','{\"fa\":\"بر اساس چیزی که خودت فعال کنی\",\"en\":\"Based on what you turn on\"}',NULL,0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(705,'services_sections','mother_child',6,1,NULL,'{\"fa\":\"برای مادر و کودک\",\"en\":\"For mother & child\"}',NULL,'{\"caption\":{\"fa\":\"کلاس، استخر و خانه بازی نزدیک تو\",\"en\":\"Classes, pools and play centres near you\"}}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(706,'services_sections','learning',7,1,NULL,'{\"fa\":\"آموزش\",\"en\":\"Learning\"}','{\"fa\":\"دوره‌ها و کلاس‌های آنلاین\",\"en\":\"Online courses and classes\"}','{\"caption\":{\"fa\":\"آمادگی زایمان، شیردهی، یائسگی\",\"en\":\"Birth prep, breastfeeding, menopause\"}}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(707,'services_sections','shop',8,1,NULL,'{\"fa\":\"فروشگاه\",\"en\":\"Shop\"}','{\"fa\":\"فروشگاه از داده سلامت تو جداست و پیشنهادهایش بر اساس ثبت‌هایت نیست.\",\"en\":\"The shop is separate from your health data and its suggestions are not based on what you log.\"}','{\"categories\":[{\"code\":\"layette\",\"icon\":\"bottle\",\"title\":{\"fa\":\"سیسمونی و نوزاد\",\"en\":\"Layette & baby\"}},{\"code\":\"beauty\",\"icon\":\"dropLine\",\"title\":{\"fa\":\"آرایشی و بهداشتی\",\"en\":\"Beauty & hygiene\"}}]}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(708,'services_sections','emergency',9,1,NULL,'{\"fa\":\"اورژانس است؟\",\"en\":\"Is it an emergency?\"}','{\"fa\":\"ریتمی جایگزین اورژانس نیست\",\"en\":\"Ritme is not a substitute for emergency care\"}','{\"phone\":\"115\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(709,'services_care','assistant',1,1,NULL,'{\"fa\":\"دستیار سلامت\",\"en\":\"Health assistant\"}','{\"fa\":\"پاسخ و ارجاع\",\"en\":\"Answers and referrals\"}','{\"icon\":\"sparkle\",\"tone\":\"brand\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(710,'services_care','doctors',2,1,NULL,'{\"fa\":\"پزشک و ماما\",\"en\":\"Doctors & midwives\"}','{\"fa\":\"ویدیویی، حضوری\",\"en\":\"Video or in person\"}','{\"icon\":\"stetho\",\"tone\":\"data\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(711,'services_care','record',3,1,NULL,'{\"fa\":\"پرونده سلامت\",\"en\":\"Health record\"}','{\"fa\":\"سوابق و مدارک\",\"en\":\"History and documents\"}','{\"icon\":\"fileDoc\",\"tone\":\"brand\",\"href\":\"/record\",\"counter\":\"record_documents\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(712,'services_care','labs',4,1,NULL,'{\"fa\":\"تحلیل آزمایش\",\"en\":\"Lab analysis\"}','{\"fa\":\"عکس برگه آزمایش\",\"en\":\"Photo of your lab sheet\"}','{\"icon\":\"flask\",\"tone\":\"period\",\"href\":\"/labs\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(713,'services_care','vitals',5,1,NULL,'{\"fa\":\"علائم حیاتی\",\"en\":\"Vital signs\"}','{\"fa\":\"فشار، قند، ضربان\",\"en\":\"Blood pressure, sugar, pulse\"}','{\"icon\":\"heartLine\",\"tone\":\"period\",\"href\":\"/vitals\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(714,'services_care','insurance',6,1,NULL,'{\"fa\":\"بیمه\",\"en\":\"Insurance\"}','{\"fa\":\"پوشش و خسارت\",\"en\":\"Coverage and claims\"}','{\"icon\":\"shield\",\"tone\":\"data\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(715,'services_programs','pain_endometriosis',1,1,NULL,'{\"fa\":\"درد و اندومتریوز\",\"en\":\"Pain & endometriosis\"}','{\"fa\":\"دفترچه درد و گزارش\",\"en\":\"Pain diary and report\"}','{\"icon\":\"flame\",\"tone\":\"period\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(716,'services_programs','pmdd',2,1,NULL,'{\"fa\":\"PMDD و خلق\",\"en\":\"PMDD & mood\"}','{\"fa\":\"پرسشنامه ماهانه\",\"en\":\"Monthly questionnaire\"}','{\"icon\":\"smile\",\"tone\":\"brand\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(717,'services_programs','heavy_bleeding',3,1,NULL,'{\"fa\":\"خونریزی زیاد\",\"en\":\"Heavy bleeding\"}','{\"fa\":\"جدول خونریزی\",\"en\":\"Bleeding chart\"}','{\"icon\":\"drop\",\"tone\":\"period\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(718,'services_programs','pelvic_floor',4,1,NULL,'{\"fa\":\"کف لگن\",\"en\":\"Pelvic floor\"}','{\"fa\":\"برنامه ۸ هفته‌ای\",\"en\":\"8-week program\"}','{\"icon\":\"target\",\"tone\":\"data\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(719,'services_programs','contraception',5,1,'[\"cycle\",\"postpartum\",\"menopause\"]','{\"fa\":\"پیشگیری\",\"en\":\"Contraception\"}','{\"fa\":\"قرص و روش‌ها\",\"en\":\"Pill and methods\"}','{\"icon\":\"pill\",\"tone\":\"brand\",\"href\":\"/contraception\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00');
 /*!40000 ALTER TABLE `catalog_items` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `challenges`;
@@ -2095,6 +2121,242 @@ INSERT INTO `languages` VALUES
 (2,'en','English','English','ltr',1,0,1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
 (3,'ar','العربية','Arabic','rtl',1,0,2,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `languages` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `learning_chapters`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `learning_chapters` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `course_id` bigint(20) unsigned NOT NULL,
+  `title` varchar(150) NOT NULL,
+  `sort_order` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `unlock_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `learning_chapters_course_id_sort_order_index` (`course_id`,`sort_order`),
+  CONSTRAINT `learning_chapters_course_id_foreign` FOREIGN KEY (`course_id`) REFERENCES `learning_courses` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `learning_chapters` WRITE;
+/*!40000 ALTER TABLE `learning_chapters` DISABLE KEYS */;
+/*!40000 ALTER TABLE `learning_chapters` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `learning_courses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `learning_courses` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `instructor_id` bigint(20) unsigned NOT NULL,
+  `kind` varchar(12) NOT NULL DEFAULT 'course',
+  `title` varchar(150) NOT NULL,
+  `description` text DEFAULT NULL,
+  `cover_media_id` bigint(20) unsigned DEFAULT NULL,
+  `status` varchar(10) NOT NULL DEFAULT 'draft',
+  `published_at` datetime DEFAULT NULL,
+  `sort_order` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `learning_courses_instructor_id_status_index` (`instructor_id`,`status`),
+  CONSTRAINT `learning_courses_instructor_id_foreign` FOREIGN KEY (`instructor_id`) REFERENCES `learning_instructors` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `learning_courses` WRITE;
+/*!40000 ALTER TABLE `learning_courses` DISABLE KEYS */;
+/*!40000 ALTER TABLE `learning_courses` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `learning_grants`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `learning_grants` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `instructor_id` bigint(20) unsigned NOT NULL,
+  `phone` varchar(11) NOT NULL,
+  `user_id` bigint(20) unsigned DEFAULT NULL,
+  `group_id` bigint(20) unsigned DEFAULT NULL,
+  `course_id` bigint(20) unsigned DEFAULT NULL,
+  `duration` varchar(10) NOT NULL,
+  `duration_days` smallint(5) unsigned DEFAULT NULL,
+  `until_date` date DEFAULT NULL,
+  `status` varchar(10) NOT NULL DEFAULT 'pending',
+  `activated_at` datetime DEFAULT NULL,
+  `expires_at` datetime DEFAULT NULL,
+  `revoked_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `learning_grants_phone_status_index` (`phone`,`status`),
+  KEY `learning_grants_user_id_status_index` (`user_id`,`status`),
+  KEY `learning_grants_instructor_id_status_index` (`instructor_id`,`status`),
+  KEY `learning_grants_group_id_index` (`group_id`),
+  KEY `learning_grants_course_id_index` (`course_id`),
+  CONSTRAINT `learning_grants_course_id_foreign` FOREIGN KEY (`course_id`) REFERENCES `learning_courses` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `learning_grants_group_id_foreign` FOREIGN KEY (`group_id`) REFERENCES `learning_groups` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `learning_grants_instructor_id_foreign` FOREIGN KEY (`instructor_id`) REFERENCES `learning_instructors` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `learning_grants_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `learning_grants` WRITE;
+/*!40000 ALTER TABLE `learning_grants` DISABLE KEYS */;
+/*!40000 ALTER TABLE `learning_grants` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `learning_group_courses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `learning_group_courses` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `group_id` bigint(20) unsigned NOT NULL,
+  `course_id` bigint(20) unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `learning_group_courses_group_id_course_id_unique` (`group_id`,`course_id`),
+  KEY `learning_group_courses_course_id_index` (`course_id`),
+  CONSTRAINT `learning_group_courses_course_id_foreign` FOREIGN KEY (`course_id`) REFERENCES `learning_courses` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `learning_group_courses_group_id_foreign` FOREIGN KEY (`group_id`) REFERENCES `learning_groups` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `learning_group_courses` WRITE;
+/*!40000 ALTER TABLE `learning_group_courses` DISABLE KEYS */;
+/*!40000 ALTER TABLE `learning_group_courses` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `learning_groups`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `learning_groups` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `instructor_id` bigint(20) unsigned NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `learning_groups_instructor_id_index` (`instructor_id`),
+  CONSTRAINT `learning_groups_instructor_id_foreign` FOREIGN KEY (`instructor_id`) REFERENCES `learning_instructors` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `learning_groups` WRITE;
+/*!40000 ALTER TABLE `learning_groups` DISABLE KEYS */;
+/*!40000 ALTER TABLE `learning_groups` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `learning_instructors`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `learning_instructors` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `display_name` varchar(80) NOT NULL,
+  `title` varchar(60) DEFAULT NULL,
+  `bio` varchar(500) DEFAULT NULL,
+  `status` varchar(10) NOT NULL DEFAULT 'pending',
+  `approved_at` datetime DEFAULT NULL,
+  `approved_by` bigint(20) unsigned DEFAULT NULL,
+  `revoked_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `learning_instructors_user_id_unique` (`user_id`),
+  KEY `learning_instructors_status_index` (`status`),
+  CONSTRAINT `learning_instructors_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `learning_instructors` WRITE;
+/*!40000 ALTER TABLE `learning_instructors` DISABLE KEYS */;
+INSERT INTO `learning_instructors` VALUES
+(1,1018,'مدرس نمونه','ماما',NULL,'approved','2026-09-20 09:00:00',NULL,NULL,'2026-09-20 09:00:00','2026-09-20 09:00:00');
+/*!40000 ALTER TABLE `learning_instructors` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `learning_lessons`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `learning_lessons` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `course_id` bigint(20) unsigned NOT NULL,
+  `chapter_id` bigint(20) unsigned DEFAULT NULL,
+  `kind` varchar(8) NOT NULL,
+  `title` varchar(150) NOT NULL,
+  `description` text DEFAULT NULL,
+  `duration_seconds` int(10) unsigned DEFAULT NULL,
+  `page_count` smallint(5) unsigned DEFAULT NULL,
+  `size_bytes` bigint(20) unsigned DEFAULT NULL,
+  `media_id` bigint(20) unsigned DEFAULT NULL,
+  `media_status` varchar(12) NOT NULL DEFAULT 'none',
+  `status` varchar(10) NOT NULL DEFAULT 'draft',
+  `published_at` datetime DEFAULT NULL,
+  `sort_order` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `learning_lessons_course_id_sort_order_index` (`course_id`,`sort_order`),
+  KEY `learning_lessons_chapter_id_index` (`chapter_id`),
+  CONSTRAINT `learning_lessons_chapter_id_foreign` FOREIGN KEY (`chapter_id`) REFERENCES `learning_chapters` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `learning_lessons_course_id_foreign` FOREIGN KEY (`course_id`) REFERENCES `learning_courses` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `learning_lessons` WRITE;
+/*!40000 ALTER TABLE `learning_lessons` DISABLE KEYS */;
+/*!40000 ALTER TABLE `learning_lessons` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `learning_progress`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `learning_progress` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `lesson_id` bigint(20) unsigned NOT NULL,
+  `course_id` bigint(20) unsigned NOT NULL,
+  `position_seconds` int(10) unsigned NOT NULL DEFAULT 0,
+  `percent` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `completed_at` datetime DEFAULT NULL,
+  `last_seen_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `learning_progress_user_id_lesson_id_unique` (`user_id`,`lesson_id`),
+  KEY `learning_progress_user_id_last_seen_at_index` (`user_id`,`last_seen_at`),
+  KEY `learning_progress_lesson_id_index` (`lesson_id`),
+  KEY `learning_progress_course_id_index` (`course_id`),
+  CONSTRAINT `learning_progress_course_id_foreign` FOREIGN KEY (`course_id`) REFERENCES `learning_courses` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `learning_progress_lesson_id_foreign` FOREIGN KEY (`lesson_id`) REFERENCES `learning_lessons` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `learning_progress_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `learning_progress` WRITE;
+/*!40000 ALTER TABLE `learning_progress` DISABLE KEYS */;
+/*!40000 ALTER TABLE `learning_progress` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `learning_sms_outbox`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `learning_sms_outbox` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `grant_id` bigint(20) unsigned NOT NULL,
+  `status` varchar(10) NOT NULL DEFAULT 'pending',
+  `reason` varchar(20) DEFAULT NULL,
+  `due_at` datetime NOT NULL,
+  `attempts` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `lease_until` datetime DEFAULT NULL,
+  `sent_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `learning_sms_outbox_status_due_at_index` (`status`,`due_at`),
+  KEY `learning_sms_outbox_grant_id_index` (`grant_id`),
+  CONSTRAINT `learning_sms_outbox_grant_id_foreign` FOREIGN KEY (`grant_id`) REFERENCES `learning_grants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `learning_sms_outbox` WRITE;
+/*!40000 ALTER TABLE `learning_sms_outbox` DISABLE KEYS */;
+/*!40000 ALTER TABLE `learning_sms_outbox` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `menopause_scores`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3729,6 +3991,153 @@ CREATE TABLE `teen_profiles` (
 LOCK TABLES `teen_profiles` WRITE;
 /*!40000 ALTER TABLE `teen_profiles` DISABLE KEYS */;
 /*!40000 ALTER TABLE `teen_profiles` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `telemed_availability_rules`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `telemed_availability_rules` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `doctor_id` bigint(20) unsigned NOT NULL,
+  `weekday` tinyint(3) unsigned NOT NULL,
+  `start_minute` smallint(5) unsigned NOT NULL,
+  `end_minute` smallint(5) unsigned NOT NULL,
+  `slot_minutes` smallint(5) unsigned NOT NULL,
+  `modes` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`modes`)),
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `telemed_availability_rules_doctor_id_weekday_index` (`doctor_id`,`weekday`),
+  CONSTRAINT `telemed_availability_rules_doctor_id_foreign` FOREIGN KEY (`doctor_id`) REFERENCES `telemed_doctors` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `telemed_availability_rules` WRITE;
+/*!40000 ALTER TABLE `telemed_availability_rules` DISABLE KEYS */;
+/*!40000 ALTER TABLE `telemed_availability_rules` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `telemed_doctor_insurers`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `telemed_doctor_insurers` (
+  `doctor_id` bigint(20) unsigned NOT NULL,
+  `insurer` varchar(64) NOT NULL,
+  PRIMARY KEY (`doctor_id`,`insurer`),
+  KEY `telemed_doctor_insurers_insurer_index` (`insurer`),
+  CONSTRAINT `telemed_doctor_insurers_doctor_id_foreign` FOREIGN KEY (`doctor_id`) REFERENCES `telemed_doctors` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `telemed_doctor_insurers` WRITE;
+/*!40000 ALTER TABLE `telemed_doctor_insurers` DISABLE KEYS */;
+/*!40000 ALTER TABLE `telemed_doctor_insurers` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `telemed_doctors`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `telemed_doctors` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `kind` varchar(12) NOT NULL,
+  `name` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`name`)),
+  `headline` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`headline`)),
+  `bio` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`bio`)),
+  `specialty` varchar(64) NOT NULL,
+  `city` varchar(64) DEFAULT NULL,
+  `licence_no` varchar(32) NOT NULL,
+  `experience_years` tinyint(3) unsigned DEFAULT NULL,
+  `photo_path` varchar(255) DEFAULT NULL,
+  `response_minutes` smallint(5) unsigned DEFAULT NULL,
+  `visits_count` int(10) unsigned NOT NULL DEFAULT 0,
+  `rating_sum` int(10) unsigned NOT NULL DEFAULT 0,
+  `rating_count` int(10) unsigned NOT NULL DEFAULT 0,
+  `positive_count` int(10) unsigned NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `admin_id` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `telemed_doctors_admin_id_unique` (`admin_id`),
+  KEY `telemed_doctors_is_active_sort_order_index` (`is_active`,`sort_order`),
+  KEY `telemed_doctors_specialty_index` (`specialty`),
+  KEY `telemed_doctors_city_index` (`city`),
+  CONSTRAINT `telemed_doctors_admin_id_foreign` FOREIGN KEY (`admin_id`) REFERENCES `admins` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `telemed_doctors` WRITE;
+/*!40000 ALTER TABLE `telemed_doctors` DISABLE KEYS */;
+/*!40000 ALTER TABLE `telemed_doctors` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `telemed_reviews`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `telemed_reviews` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `doctor_id` bigint(20) unsigned NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `booking_id` bigint(20) unsigned DEFAULT NULL,
+  `rating` tinyint(3) unsigned NOT NULL,
+  `body` varchar(1000) DEFAULT NULL,
+  `is_visible` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `telemed_reviews_booking_id_unique` (`booking_id`),
+  KEY `telemed_reviews_doctor_id_is_visible_created_at_index` (`doctor_id`,`is_visible`,`created_at`),
+  KEY `telemed_reviews_user_id_index` (`user_id`),
+  CONSTRAINT `telemed_reviews_doctor_id_foreign` FOREIGN KEY (`doctor_id`) REFERENCES `telemed_doctors` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `telemed_reviews_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `telemed_reviews` WRITE;
+/*!40000 ALTER TABLE `telemed_reviews` DISABLE KEYS */;
+/*!40000 ALTER TABLE `telemed_reviews` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `telemed_time_off`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `telemed_time_off` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `doctor_id` bigint(20) unsigned NOT NULL,
+  `starts_at` datetime NOT NULL,
+  `ends_at` datetime NOT NULL,
+  `note` varchar(190) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `telemed_time_off_doctor_id_ends_at_index` (`doctor_id`,`ends_at`),
+  CONSTRAINT `telemed_time_off_doctor_id_foreign` FOREIGN KEY (`doctor_id`) REFERENCES `telemed_doctors` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `telemed_time_off` WRITE;
+/*!40000 ALTER TABLE `telemed_time_off` DISABLE KEYS */;
+/*!40000 ALTER TABLE `telemed_time_off` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `telemed_visit_types`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `telemed_visit_types` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `doctor_id` bigint(20) unsigned NOT NULL,
+  `mode` varchar(12) NOT NULL,
+  `duration_minutes` smallint(5) unsigned NOT NULL,
+  `price_rials` bigint(20) unsigned NOT NULL,
+  `note` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`note`)),
+  `address` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`address`)),
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `telemed_visit_types_doctor_id_mode_unique` (`doctor_id`,`mode`),
+  CONSTRAINT `telemed_visit_types_doctor_id_foreign` FOREIGN KEY (`doctor_id`) REFERENCES `telemed_doctors` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `telemed_visit_types` WRITE;
+/*!40000 ALTER TABLE `telemed_visit_types` DISABLE KEYS */;
+/*!40000 ALTER TABLE `telemed_visit_types` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `todo_items`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

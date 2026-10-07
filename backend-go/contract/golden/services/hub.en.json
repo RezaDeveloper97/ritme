@@ -1,0 +1,236 @@
+{
+  "case": "services/hub.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/services",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "sections": [
+            {
+              "code": "search",
+              "title": "Doctors, labs, classes or programs…",
+              "subtitle": null,
+              "caption": null,
+              "href": "/search",
+              "status": "live",
+              "phone": null,
+              "categories": []
+            },
+            {
+              "code": "booking",
+              "title": "Upcoming visit",
+              "subtitle": null,
+              "caption": null,
+              "href": null,
+              "status": "soon",
+              "phone": null,
+              "categories": []
+            },
+            {
+              "code": "care",
+              "title": "Health care",
+              "subtitle": null,
+              "caption": null,
+              "href": null,
+              "status": "soon",
+              "phone": null,
+              "categories": []
+            },
+            {
+              "code": "checkups",
+              "title": "Routine checkups & medication reminders",
+              "subtitle": null,
+              "caption": null,
+              "href": "/checkups",
+              "status": "live",
+              "phone": null,
+              "categories": []
+            },
+            {
+              "code": "programs",
+              "title": "Care programs",
+              "subtitle": "Based on what you turn on",
+              "caption": null,
+              "href": null,
+              "status": "soon",
+              "phone": null,
+              "categories": []
+            },
+            {
+              "code": "mother_child",
+              "title": "For mother & child",
+              "subtitle": null,
+              "caption": "Classes, pools and play centres near you",
+              "href": null,
+              "status": "soon",
+              "phone": null,
+              "categories": []
+            },
+            {
+              "code": "learning",
+              "title": "Learning",
+              "subtitle": "Online courses and classes",
+              "caption": "Birth prep, breastfeeding, menopause",
+              "href": null,
+              "status": "soon",
+              "phone": null,
+              "categories": []
+            },
+            {
+              "code": "shop",
+              "title": "Shop",
+              "subtitle": "The shop is separate from your health data and its suggestions are not based on what you log.",
+              "caption": null,
+              "href": null,
+              "status": "soon",
+              "phone": null,
+              "categories": [
+                {
+                  "code": "layette",
+                  "title": "Layette & baby",
+                  "icon": "bottle"
+                },
+                {
+                  "code": "beauty",
+                  "title": "Beauty & hygiene",
+                  "icon": "dropLine"
+                }
+              ]
+            },
+            {
+              "code": "emergency",
+              "title": "Is it an emergency?",
+              "subtitle": "Ritme is not a substitute for emergency care",
+              "caption": null,
+              "href": null,
+              "status": "soon",
+              "phone": "115",
+              "categories": []
+            }
+          ],
+          "upcoming_booking": null,
+          "care": [
+            {
+              "code": "assistant",
+              "title": "Health assistant",
+              "subtitle": "Answers and referrals",
+              "icon": "sparkle",
+              "tone": "brand",
+              "href": null,
+              "status": "soon",
+              "count": null
+            },
+            {
+              "code": "doctors",
+              "title": "Doctors & midwives",
+              "subtitle": "Video or in person",
+              "icon": "stetho",
+              "tone": "data",
+              "href": null,
+              "status": "soon",
+              "count": null
+            },
+            {
+              "code": "record",
+              "title": "Health record",
+              "subtitle": "History and documents",
+              "icon": "fileDoc",
+              "tone": "brand",
+              "href": "/record",
+              "status": "live",
+              "count": 0
+            },
+            {
+              "code": "labs",
+              "title": "Lab analysis",
+              "subtitle": "Photo of your lab sheet",
+              "icon": "flask",
+              "tone": "period",
+              "href": "/labs",
+              "status": "live",
+              "count": null
+            },
+            {
+              "code": "vitals",
+              "title": "Vital signs",
+              "subtitle": "Blood pressure, sugar, pulse",
+              "icon": "heartLine",
+              "tone": "period",
+              "href": "/vitals",
+              "status": "live",
+              "count": null
+            },
+            {
+              "code": "insurance",
+              "title": "Insurance",
+              "subtitle": "Coverage and claims",
+              "icon": "shield",
+              "tone": "data",
+              "href": null,
+              "status": "soon",
+              "count": null
+            }
+          ],
+          "programs": [
+            {
+              "code": "pain_endometriosis",
+              "title": "Pain & endometriosis",
+              "subtitle": "Pain diary and report",
+              "icon": "flame",
+              "tone": "period",
+              "href": null,
+              "status": "soon"
+            },
+            {
+              "code": "pmdd",
+              "title": "PMDD & mood",
+              "subtitle": "Monthly questionnaire",
+              "icon": "smile",
+              "tone": "brand",
+              "href": null,
+              "status": "soon"
+            },
+            {
+              "code": "heavy_bleeding",
+              "title": "Heavy bleeding",
+              "subtitle": "Bleeding chart",
+              "icon": "drop",
+              "tone": "period",
+              "href": null,
+              "status": "soon"
+            },
+            {
+              "code": "pelvic_floor",
+              "title": "Pelvic floor",
+              "subtitle": "8-week program",
+              "icon": "target",
+              "tone": "data",
+              "href": null,
+              "status": "soon"
+            },
+            {
+              "code": "contraception",
+              "title": "Contraception",
+              "subtitle": "Pill and methods",
+              "icon": "pill",
+              "tone": "brand",
+              "href": "/contraception",
+              "status": "live"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

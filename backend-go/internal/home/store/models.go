@@ -847,6 +847,123 @@ type Language struct {
 	UpdatedAt   sql.NullTime
 }
 
+type LearningChapter struct {
+	ID        uint64
+	CourseID  uint64
+	Title     string
+	SortOrder uint16
+	UnlockAt  sql.NullTime
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type LearningCourse struct {
+	ID           uint64
+	InstructorID uint64
+	Kind         string
+	Title        string
+	Description  sql.NullString
+	CoverMediaID sql.NullInt64
+	Status       string
+	PublishedAt  sql.NullTime
+	SortOrder    uint16
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+}
+
+type LearningGrant struct {
+	ID           uint64
+	InstructorID uint64
+	Phone        string
+	UserID       sql.NullInt64
+	GroupID      sql.NullInt64
+	CourseID     sql.NullInt64
+	Duration     string
+	DurationDays sql.NullInt16
+	UntilDate    civildate.NullDate
+	Status       string
+	ActivatedAt  sql.NullTime
+	ExpiresAt    sql.NullTime
+	RevokedAt    sql.NullTime
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+}
+
+type LearningGroup struct {
+	ID           uint64
+	InstructorID uint64
+	Name         string
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+}
+
+type LearningGroupCourse struct {
+	ID        uint64
+	GroupID   uint64
+	CourseID  uint64
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type LearningInstructor struct {
+	ID          uint64
+	UserID      uint64
+	DisplayName string
+	Title       sql.NullString
+	Bio         sql.NullString
+	Status      string
+	ApprovedAt  sql.NullTime
+	ApprovedBy  sql.NullInt64
+	RevokedAt   sql.NullTime
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type LearningLesson struct {
+	ID              uint64
+	CourseID        uint64
+	ChapterID       sql.NullInt64
+	Kind            string
+	Title           string
+	Description     sql.NullString
+	DurationSeconds sql.NullInt32
+	PageCount       sql.NullInt16
+	SizeBytes       sql.NullInt64
+	MediaID         sql.NullInt64
+	MediaStatus     string
+	Status          string
+	PublishedAt     sql.NullTime
+	SortOrder       uint16
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
+type LearningProgress struct {
+	ID              uint64
+	UserID          uint64
+	LessonID        uint64
+	CourseID        uint64
+	PositionSeconds uint32
+	Percent         uint8
+	CompletedAt     sql.NullTime
+	LastSeenAt      sql.NullTime
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
+type LearningSmsOutbox struct {
+	ID         uint64
+	GrantID    uint64
+	Status     string
+	Reason     sql.NullString
+	DueAt      time.Time
+	Attempts   uint8
+	LeaseUntil sql.NullTime
+	SentAt     sql.NullTime
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
 type MenopauseScore struct {
 	ID            uint64
 	UserID        uint64
@@ -1578,6 +1695,81 @@ type TeenProfile struct {
 	ParentNote sql.NullString
 	CreatedAt  sql.NullTime
 	UpdatedAt  sql.NullTime
+}
+
+type TelemedAvailabilityRule struct {
+	ID          uint64
+	DoctorID    uint64
+	Weekday     uint8
+	StartMinute uint16
+	EndMinute   uint16
+	SlotMinutes uint16
+	Modes       db.NullRawJSON
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type TelemedDoctor struct {
+	ID              uint64
+	Kind            string
+	Name            json.RawMessage
+	Headline        db.NullRawJSON
+	Bio             db.NullRawJSON
+	Specialty       string
+	City            sql.NullString
+	LicenceNo       string
+	ExperienceYears sql.NullInt16
+	PhotoPath       sql.NullString
+	ResponseMinutes sql.NullInt16
+	VisitsCount     uint32
+	RatingSum       uint32
+	RatingCount     uint32
+	PositiveCount   uint32
+	IsActive        bool
+	SortOrder       int32
+	AdminID         sql.NullInt64
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
+type TelemedDoctorInsurer struct {
+	DoctorID uint64
+	Insurer  string
+}
+
+type TelemedReview struct {
+	ID        uint64
+	DoctorID  uint64
+	UserID    uint64
+	BookingID sql.NullInt64
+	Rating    uint8
+	Body      sql.NullString
+	IsVisible bool
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type TelemedTimeOff struct {
+	ID        uint64
+	DoctorID  uint64
+	StartsAt  time.Time
+	EndsAt    time.Time
+	Note      sql.NullString
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type TelemedVisitType struct {
+	ID              uint64
+	DoctorID        uint64
+	Mode            string
+	DurationMinutes uint16
+	PriceRials      uint64
+	Note            db.NullRawJSON
+	Address         db.NullRawJSON
+	IsActive        bool
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
 }
 
 type TodoItem struct {

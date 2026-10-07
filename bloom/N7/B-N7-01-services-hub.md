@@ -3,7 +3,7 @@ id: B-N7-01
 title: Services hub (خدمات)
 milestone: N7
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N6-10]
 parallel_group: N7-A
 touches: [frontend/src/screens/services,backend-go/internal/services,backend-go/api]
