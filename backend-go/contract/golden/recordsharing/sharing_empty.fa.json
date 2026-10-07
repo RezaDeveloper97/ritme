@@ -1,0 +1,32 @@
+{
+  "case": "recordsharing/sharing_empty.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/sharing",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "doctor": {
+            "available": true,
+            "ttl_hours": 24,
+            "active_count": 0,
+            "max_active": 5,
+            "items": []
+          },
+          "family": [],
+          "access_log": []
+        }
+      }
+    }
+  ]
+}

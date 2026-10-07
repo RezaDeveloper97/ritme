@@ -1,0 +1,500 @@
+{
+  "case": "recordsharing/share_code_flow",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-record/share-codes",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "label": "دکتر احمدی",
+          "range": "3m",
+          "sections": [
+            "basics",
+            "medications",
+            "cycle"
+          ]
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "کد پزشک ساخته شد و ۲۴ ساعت معتبر است.",
+        "data": {
+          "id": 1,
+          "kind": "summary",
+          "label": "دکتر احمدی",
+          "status": "active",
+          "sections": [
+            "basics",
+            "medications",
+            "cycle"
+          ],
+          "range": {
+            "from": "2026-06-25",
+            "to": "2026-09-23"
+          },
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "expires_at": "2026-09-24T10:00:00+03:30",
+          "revoked_at": null,
+          "views": 0,
+          "last_viewed_at": null,
+          "documents_count": 0,
+          "code": "<pattern:^[2-9A-HJKMNP-TV-Z]{4}-[2-9A-HJKMNP-TV-Z]{4}$>",
+          "token": "<pattern:^[A-Za-z0-9_-]{43}$>",
+          "qr_path": "<pattern:^/fa/shared/report/[A-Za-z0-9_-]{43}$>",
+          "qr_url": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/shared-reports/hpaDd777AyVnXY1PDxFdHTAtBSjnNly96nvihfMG_5I",
+        "persona": "anon",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "30",
+        "x-ratelimit-remaining": "29"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "version": 1,
+          "kind": "summary",
+          "locale": "fa",
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "range": {
+            "key": "3m",
+            "from": "2026-06-25",
+            "to": "2026-09-23",
+            "days": 91
+          },
+          "record": {
+            "audience": "share",
+            "date": "2026-09-23",
+            "updated_at": "2026-09-23T05:30:00.000000Z",
+            "person": {
+              "name": "Contract regular",
+              "age": 30,
+              "gender": null,
+              "life_mode": "cycle"
+            },
+            "sections": [
+              {
+                "key": "basics",
+                "editable": false,
+                "empty": false,
+                "data": {
+                  "height_cm": 165,
+                  "weight_kg": 60.5,
+                  "bmi": {
+                    "value": 22.2,
+                    "category": "normal"
+                  },
+                  "blood_type": null,
+                  "blood_type_source": null
+                }
+              },
+              {
+                "key": "medications",
+                "editable": false,
+                "empty": true,
+                "data": {
+                  "items": [],
+                  "profile_medications": null
+                }
+              },
+              {
+                "key": "cycle",
+                "editable": false,
+                "empty": false,
+                "data": {
+                  "range": {
+                    "key": "3m",
+                    "from": "2026-06-25",
+                    "to": "2026-09-23",
+                    "days": 91
+                  },
+                  "based_on": 2,
+                  "median_cycle": 28,
+                  "variation": null,
+                  "median_period": 5,
+                  "regularity": "not_enough_data",
+                  "cycle_status": "normal",
+                  "period_status": "normal",
+                  "last_period_start": "2026-09-14",
+                  "current_day": 10,
+                  "top_symptoms": [
+                    {
+                      "key": "pain.location.abdomen",
+                      "label": "گرفتگی",
+                      "days": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "question": null,
+          "documents": [],
+          "expires_at": "2026-09-24T10:00:00+03:30"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shared-reports/code",
+        "persona": "anon",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "code": "{{code}}"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "10",
+        "x-ratelimit-remaining": "9"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "version": 1,
+          "kind": "summary",
+          "locale": "fa",
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "range": {
+            "key": "3m",
+            "from": "2026-06-25",
+            "to": "2026-09-23",
+            "days": 91
+          },
+          "record": {
+            "audience": "share",
+            "date": "2026-09-23",
+            "updated_at": "2026-09-23T05:30:00.000000Z",
+            "person": {
+              "name": "Contract regular",
+              "age": 30,
+              "gender": null,
+              "life_mode": "cycle"
+            },
+            "sections": [
+              {
+                "key": "basics",
+                "editable": false,
+                "empty": false,
+                "data": {
+                  "height_cm": 165,
+                  "weight_kg": 60.5,
+                  "bmi": {
+                    "value": 22.2,
+                    "category": "normal"
+                  },
+                  "blood_type": null,
+                  "blood_type_source": null
+                }
+              },
+              {
+                "key": "medications",
+                "editable": false,
+                "empty": true,
+                "data": {
+                  "items": [],
+                  "profile_medications": null
+                }
+              },
+              {
+                "key": "cycle",
+                "editable": false,
+                "empty": false,
+                "data": {
+                  "range": {
+                    "key": "3m",
+                    "from": "2026-06-25",
+                    "to": "2026-09-23",
+                    "days": 91
+                  },
+                  "based_on": 2,
+                  "median_cycle": 28,
+                  "variation": null,
+                  "median_period": 5,
+                  "regularity": "not_enough_data",
+                  "cycle_status": "normal",
+                  "period_status": "normal",
+                  "last_period_start": "2026-09-14",
+                  "current_day": 10,
+                  "top_symptoms": [
+                    {
+                      "key": "pain.location.abdomen",
+                      "label": "گرفتگی",
+                      "days": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "question": null,
+          "documents": [],
+          "expires_at": "2026-09-24T10:00:00+03:30"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/share-access",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "items": [
+            {
+              "id": 2,
+              "link_id": 1,
+              "kind": "summary",
+              "label": "دکتر احمدی",
+              "via": "code",
+              "client": {
+                "device": "unknown",
+                "browser": "other"
+              },
+              "viewed_at": "2026-09-23T10:00:00+03:30",
+              "link_status": "active"
+            },
+            {
+              "id": 1,
+              "link_id": 1,
+              "kind": "summary",
+              "label": "دکتر احمدی",
+              "via": "link",
+              "client": {
+                "device": "mobile",
+                "browser": "safari"
+              },
+              "viewed_at": "2026-09-23T10:00:00+03:30",
+              "link_status": "active"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/sharing",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "doctor": {
+            "available": true,
+            "ttl_hours": 24,
+            "active_count": 1,
+            "max_active": 5,
+            "items": [
+              {
+                "id": 1,
+                "kind": "summary",
+                "label": "دکتر احمدی",
+                "status": "active",
+                "sections": [
+                  "basics",
+                  "medications",
+                  "cycle"
+                ],
+                "range": {
+                  "from": "2026-06-25",
+                  "to": "2026-09-23"
+                },
+                "created_at": "2026-09-23T10:00:00+03:30",
+                "expires_at": "2026-09-24T10:00:00+03:30",
+                "revoked_at": null,
+                "views": 2,
+                "last_viewed_at": "2026-09-23T10:00:00+03:30"
+              }
+            ]
+          },
+          "family": [],
+          "access_log": [
+            {
+              "id": 2,
+              "link_id": 1,
+              "kind": "summary",
+              "label": "دکتر احمدی",
+              "via": "code",
+              "client": {
+                "device": "unknown",
+                "browser": "other"
+              },
+              "viewed_at": "2026-09-23T10:00:00+03:30",
+              "link_status": "active"
+            },
+            {
+              "id": 1,
+              "link_id": 1,
+              "kind": "summary",
+              "label": "دکتر احمدی",
+              "via": "link",
+              "client": {
+                "device": "mobile",
+                "browser": "safari"
+              },
+              "viewed_at": "2026-09-23T10:00:00+03:30",
+              "link_status": "active"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/share-access?link_id=1",
+        "persona": "no_profile",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این لینک گزارش پیدا نشد",
+        "error_code": "share_link_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/health-record/share-codes/1",
+        "persona": "no_profile",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "این کد یا لینک معتبر نیست",
+        "error_code": "share_code_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/health-record/share-codes/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "کد پزشک لغو شد",
+        "data": {
+          "id": 1,
+          "kind": "summary",
+          "label": "دکتر احمدی",
+          "status": "revoked",
+          "sections": [
+            "basics",
+            "medications",
+            "cycle"
+          ],
+          "range": {
+            "from": "2026-06-25",
+            "to": "2026-09-23"
+          },
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "expires_at": "2026-09-24T10:00:00+03:30",
+          "revoked_at": "2026-09-23T10:00:00+03:30",
+          "views": 2,
+          "last_viewed_at": "2026-09-23T10:00:00+03:30"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/shared-reports/hpaDd777AyVnXY1PDxFdHTAtBSjnNly96nvihfMG_5I",
+        "persona": "anon",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "30",
+        "x-ratelimit-remaining": "28"
+      },
+      "body": {
+        "success": false,
+        "message": "این لینک گزارش پیدا نشد",
+        "error_code": "share_link_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shared-reports/code",
+        "persona": "anon",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "code": "{{code}}"
+        }
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "10",
+        "x-ratelimit-remaining": "8"
+      },
+      "body": {
+        "success": false,
+        "message": "این کد یا لینک معتبر نیست",
+        "error_code": "share_code_not_found"
+      }
+    }
+  ]
+}

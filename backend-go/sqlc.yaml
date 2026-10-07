@@ -254,6 +254,12 @@ sql:
         <<: *go
         out: internal/sharelinks/store
   - <<: *pkg
+    queries: db/queries/emergency
+    gen:
+      go:
+        <<: *go
+        out: internal/emergency/store
+  - <<: *pkg
     queries: db/queries/todo
     gen:
       go:

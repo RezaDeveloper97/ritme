@@ -50,6 +50,8 @@ type Config struct {
 	LabFiles LabFiles
 	// Files is the key of the generic encrypted file storage (CB-CORE-05, internal/files).
 	Files Files
+	// Sharing is the 24h doctor code pepper and the QR origin (CB-REC-03, internal/sharelinks).
+	Sharing Sharing
 	// StoragePath is the mounted Laravel storage/ directory (backend-storage volume):
 	// Passport keys, translations, public uploads.
 	StoragePath string
@@ -607,6 +609,7 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 		}
 		cfg.Files.PreviousKeys = append(cfg.Files.PreviousKeys, key)
 	}
+	cfg.Sharing = loadSharing(e, cfg.App)
 	if cfg.App.IsProduction() && cfg.App.Debug {
 		e.fail("APP_DEBUG must be false when APP_ENV=production")
 	}

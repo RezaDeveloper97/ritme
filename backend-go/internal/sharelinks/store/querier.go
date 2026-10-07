@@ -11,16 +11,33 @@ import (
 
 type Querier interface {
 	CountActiveShareLinks(ctx context.Context, arg CountActiveShareLinksParams) (int64, error)
+	CountActiveSummaryLinks(ctx context.Context, arg CountActiveSummaryLinksParams) (int64, error)
 	CountShareLinkView(ctx context.Context, arg CountShareLinkViewParams) error
 	DeleteStaleShareLinks(ctx context.Context, before sql.NullTime) (int64, error)
+	GetShareLinkByCode(ctx context.Context, codeHash sql.NullString) (GetShareLinkByCodeRow, error)
 	GetShareLinkByHash(ctx context.Context, tokenHash string) (GetShareLinkByHashRow, error)
+	GetShareLinkForOpen(ctx context.Context, tokenHash string) (GetShareLinkForOpenRow, error)
 	GetShareLinkMeta(ctx context.Context, arg GetShareLinkMetaParams) (GetShareLinkMetaRow, error)
+	GetSummaryLinkMeta(ctx context.Context, arg GetSummaryLinkMetaParams) (GetSummaryLinkMetaRow, error)
 	// Doctor report share links (bloom B-N6-04; internal/sharelinks, D-65). Owner queries are scoped by user_id in the
 	// query itself (IDOR); the public read goes by the token's SHA-256 only. `payload` is ciphertext (token-derived key).
 	InsertShareLink(ctx context.Context, arg InsertShareLinkParams) (int64, error)
+	InsertShareLinkView(ctx context.Context, arg InsertShareLinkViewParams) error
+	// Record sharing (canvas-build CB-REC-03, D-71): the 24h summary links with a short code (kind = 'summary') and the
+	// access log of every link kind. Owner queries are scoped by user_id in the query itself (IDOR); the public reads go
+	// by the token's SHA-256 or the code's HMAC only. `payload` / `code_payload` are ciphertext.
+	InsertSummaryLink(ctx context.Context, arg InsertSummaryLinkParams) (int64, error)
+	// The owner's access log «سابقه دسترسی», newest first, with the link it went through.
+	ListShareAccess(ctx context.Context, arg ListShareAccessParams) ([]ListShareAccessRow, error)
+	// The access log of one link of the owner.
+	ListShareLinkAccess(ctx context.Context, arg ListShareLinkAccessParams) ([]ListShareLinkAccessRow, error)
 	ListShareLinks(ctx context.Context, arg ListShareLinksParams) ([]ListShareLinksRow, error)
+	ListSummaryLinks(ctx context.Context, arg ListSummaryLinksParams) ([]ListSummaryLinksRow, error)
 	PurgeExpiredShareLinks(ctx context.Context, arg PurgeExpiredShareLinksParams) (int64, error)
 	RevokeShareLink(ctx context.Context, arg RevokeShareLinkParams) (int64, error)
+	RevokeSummaryLink(ctx context.Context, arg RevokeSummaryLinkParams) (int64, error)
+	// Whether the link (either kind) belongs to the owner.
+	ShareLinkOwned(ctx context.Context, arg ShareLinkOwnedParams) (int64, error)
 }
 
 var _ Querier = (*Queries)(nil)

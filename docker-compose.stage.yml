@@ -124,6 +124,11 @@ services:
       COMPANION_SMS_PROVIDER: ${COMPANION_SMS_PROVIDER:-fake}
       COMPANION_CODE_PEPPER: ${COMPANION_CODE_PEPPER:-}
       KAVENEGAR_TEMPLATE_COMPANION_INVITE: ${KAVENEGAR_TEMPLATE_COMPANION_INVITE:-companion-invite}
+      # Record sharing (CB-REC-03): HMAC pepper of the 24h doctor codes — a secret from the server .env only (stage is
+      # not APP_ENV=production, so empty falls back to the dev pepper; set one anyway). SHARE_WEB_URL = the web app
+      # origin the QR points at (empty = the client prefixes its own origin to qr_path).
+      SHARE_CODE_PEPPER: ${SHARE_CODE_PEPPER:-}
+      SHARE_WEB_URL: ${SHARE_WEB_URL:-}
       # Loss path private notes (CB-LOSS-01): AES-256-GCM key, a secret from the server .env only (base64 of 32 bytes,
       # openssl rand -base64 32). The public dev key exists only for APP_ENV local/testing: empty here = the note
       # routes answer 503 on stage (the rest of the app is unaffected). Optional PRIVATE_NOTE_KEY_PREVIOUS

@@ -1,0 +1,76 @@
+# Emergency card (/api/v1/health-record/emergency-card*, /api/v1/emergency-cards/{token}) — Go only (canvas-build
+# CB-REC-03, deviations.md D-72): no Laravel route, so these goldens were recorded from the Go server and reviewed by
+# hand (new-endpoint skill, step 8). The fixture dump carries the empty emergency_cards table (goose 00044 / Laravel
+# 2026_10_06_000044), added by hand. The public token is random per run (pattern only). Allergies flag, pregnancy
+# week, permanent meds, rotation, throttling and user isolation are covered by the internal/http integration tests.
+# Fixture day 2026-09-23; `regular` (1004) has a profile, `no_profile` (1001) is the other user.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: emergency
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: emergency_anon
+    persona: anon
+    method: GET
+    path: /api/v1/health-record/emergency-card
+    status: 401
+  - name: emergency_show
+    doc: nbl_Rec_Emergency before anything was set
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/health-record/emergency-card
+    status: 200
+  - name: emergency_invalid
+    doc: a phone that is not one and a full insurance number → 422
+    locales: [en]
+    method: PUT
+    path: /api/v1/health-record/emergency-card
+    body: {emergency_contact: {name: Ali, phone: "call me"}}
+    status: 422
+  - name: emergency_insurance_invalid
+    locales: [fa]
+    method: PUT
+    path: /api/v1/health-record/emergency-card
+    body: {insurance: {label: "تکمیلی", last4: "6037991234564821"}}
+    status: 422
+  - name: emergency_flow
+    doc: save settings → public link on → anyone with it reads the minimal card → another user's card is her own → off → 404
+    locales: [fa]
+    steps:
+      - method: PUT
+        path: /api/v1/health-record/emergency-card
+        body:
+          show_on_lock_screen: true
+          show_pregnancy: true
+          emergency_contact: {name: "علی", relation: "همسر", phone: "۰۹۱۲ ۰۰۰ ۰۰۰۰"}
+          insurance: {label: "بیمه تکمیلی", last4: "۴۸۲۱"}
+        status: 200
+      - method: POST
+        path: /api/v1/health-record/emergency-card/public-link
+        status: 201
+        patterns:
+          data.token: "^[A-Za-z0-9_-]{43}$"
+          data.path: "^/fa/emergency/[A-Za-z0-9_-]{43}$"
+        capture: {token: data.token}
+      - method: GET
+        path: "/api/v1/emergency-cards/{{token}}"
+        as: anon
+        status: 200
+      - method: GET
+        path: /api/v1/health-record/emergency-card
+        as: no_profile
+        status: 200
+      - method: DELETE
+        path: /api/v1/health-record/emergency-card/public-link
+        status: 200
+      - method: GET
+        path: "/api/v1/emergency-cards/{{token}}"
+        as: anon
+        status: 404
+  - name: emergency_public_unknown
+    persona: anon
+    locales: [en]
+    method: GET
+    path: /api/v1/emergency-cards/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    status: 404

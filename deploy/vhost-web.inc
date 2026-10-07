@@ -12,6 +12,13 @@ location ~ ^/[A-Za-z-]+/shared/report/ {
     include /etc/nginx/conf.d/proxy-params.inc;
 }
 
+# Public emergency card page (CB-REC-03): the token in the path is a bearer secret — no access log.
+location ~ ^/[A-Za-z-]+/emergency/ {
+    access_log off;
+    proxy_pass http://frontend_upstream;
+    include /etc/nginx/conf.d/proxy-params.inc;
+}
+
 location / {
     proxy_pass http://frontend_upstream;
     include /etc/nginx/conf.d/proxy-params.inc;

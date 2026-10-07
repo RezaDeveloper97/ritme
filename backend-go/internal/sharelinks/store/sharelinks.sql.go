@@ -15,7 +15,7 @@ import (
 
 const countActiveShareLinks = `-- name: CountActiveShareLinks :one
 SELECT COUNT(*) FROM ` + "`" + `health_share_links` + "`" + `
-WHERE user_id = ? AND revoked_at IS NULL AND expires_at > ?
+WHERE user_id = ? AND kind = 'report' AND revoked_at IS NULL AND expires_at > ?
 `
 
 type CountActiveShareLinksParams struct {
@@ -92,7 +92,7 @@ func (q *Queries) GetShareLinkByHash(ctx context.Context, tokenHash string) (Get
 const getShareLinkMeta = `-- name: GetShareLinkMeta :one
 SELECT id, sections, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
 FROM ` + "`" + `health_share_links` + "`" + `
-WHERE id = ? AND user_id = ? LIMIT 1
+WHERE id = ? AND user_id = ? AND kind = 'report' LIMIT 1
 `
 
 type GetShareLinkMetaParams struct {
@@ -170,7 +170,7 @@ func (q *Queries) InsertShareLink(ctx context.Context, arg InsertShareLinkParams
 const listShareLinks = `-- name: ListShareLinks :many
 SELECT id, sections, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
 FROM ` + "`" + `health_share_links` + "`" + `
-WHERE user_id = ? AND created_at >= ?
+WHERE user_id = ? AND kind = 'report' AND created_at >= ?
 ORDER BY created_at DESC, id DESC
 LIMIT 50
 `
@@ -227,8 +227,8 @@ func (q *Queries) ListShareLinks(ctx context.Context, arg ListShareLinksParams) 
 
 const purgeExpiredShareLinks = `-- name: PurgeExpiredShareLinks :execrows
 UPDATE ` + "`" + `health_share_links` + "`" + `
-SET payload = NULL, updated_at = ?
-WHERE expires_at <= ? AND payload IS NOT NULL
+SET payload = NULL, code_payload = NULL, updated_at = ?
+WHERE expires_at <= ? AND (payload IS NOT NULL OR code_payload IS NOT NULL)
 `
 
 type PurgeExpiredShareLinksParams struct {
@@ -245,8 +245,8 @@ func (q *Queries) PurgeExpiredShareLinks(ctx context.Context, arg PurgeExpiredSh
 
 const revokeShareLink = `-- name: RevokeShareLink :execrows
 UPDATE ` + "`" + `health_share_links` + "`" + `
-SET revoked_at = COALESCE(revoked_at, ?), payload = NULL, updated_at = ?
-WHERE id = ? AND user_id = ?
+SET revoked_at = COALESCE(revoked_at, ?), payload = NULL, code_payload = NULL, updated_at = ?
+WHERE id = ? AND user_id = ? AND kind = 'report'
 `
 
 type RevokeShareLinkParams struct {

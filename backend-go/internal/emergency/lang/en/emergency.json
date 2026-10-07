@@ -1,0 +1,24 @@
+{
+    "messages": {
+        "saved": "Emergency card saved",
+        "validation_failed": "Validation failed",
+        "public_enabled": "Public emergency card link created",
+        "public_disabled": "Public emergency card link turned off",
+        "not_found": "This emergency card was not found"
+    },
+    "validation": {
+        "phone": "The emergency contact's phone number is not valid.",
+        "last4": "Enter only the last 4 digits of the insurance number."
+    },
+    "attributes": {
+        "show_on_lock_screen": "show on lock screen",
+        "show_pregnancy": "show pregnancy status",
+        "emergency_contact": "emergency contact",
+        "emergency_contact.name": "contact name",
+        "emergency_contact.relation": "relation",
+        "emergency_contact.phone": "contact phone",
+        "insurance": "insurance",
+        "insurance.label": "insurer",
+        "insurance.last4": "last 4 digits"
+    }
+}

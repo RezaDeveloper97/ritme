@@ -1,0 +1,114 @@
+# Record sharing (/api/v1/health-record/sharing, /health-record/share-access, /health-record/share-codes*,
+# /api/v1/shared-reports/code) — Go only (canvas-build CB-REC-03, deviations.md D-71): no Laravel route, so these goldens
+# were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The fixture dump carries the new
+# health_share_links columns and the empty health_share_link_views table (goose 00044 / Laravel 2026_10_06_000044),
+# added by hand. Code and token are random per run (patterns only). Encryption at rest, expiry, purge, the cap, the
+# brute-force guards (per-IP throttle + global breaker), documents and the family scope are covered by the
+# internal/sharelinks and internal/http integration tests. Fixture day 2026-09-23; `regular` (1004) has a profile and
+# cycle logs, `no_profile` (1001) is the other user.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: recordsharing
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: sharing_anon
+    persona: anon
+    method: GET
+    path: /api/v1/health-record/sharing
+    status: 401
+  - name: sharing_empty
+    doc: nbl_Rec_Share with nothing shared yet
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/health-record/sharing
+    status: 200
+  - name: share_code_anon
+    persona: anon
+    method: POST
+    path: /api/v1/health-record/share-codes
+    body: {}
+    status: 401
+  - name: share_code_invalid
+    doc: a label over 60 characters and document_ids that is not a list → 422
+    locales: [en]
+    method: POST
+    path: /api/v1/health-record/share-codes
+    body: {label: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", document_ids: "all"}
+    status: 422
+  - name: share_code_foreign_document
+    doc: a document id that is not the caller's → 422 on document_ids.0
+    locales: [fa]
+    method: POST
+    path: /api/v1/health-record/share-codes
+    body: {document_ids: [987654]}
+    status: 422
+  - name: share_access_invalid
+    locales: [en]
+    method: GET
+    path: /api/v1/health-record/share-access
+    query: {limit: "0"}
+    status: 422
+  - name: share_code_flow
+    doc: «ساخت کد» → QR open (iPhone) → typed code → access log → another user cannot see / revoke → revoke → uniform 404
+    locales: [fa]
+    steps:
+      - method: POST
+        path: /api/v1/health-record/share-codes
+        body: {label: "دکتر احمدی", range: 3m, sections: [basics, medications, cycle]}
+        status: 201
+        patterns:
+          data.code: "^[2-9A-HJKMNP-TV-Z]{4}-[2-9A-HJKMNP-TV-Z]{4}$"
+          data.token: "^[A-Za-z0-9_-]{43}$"
+          data.qr_path: "^/fa/shared/report/[A-Za-z0-9_-]{43}$"
+        capture: {id: data.id, token: data.token, code: data.code}
+      - method: GET
+        path: "/api/v1/shared-reports/{{token}}"
+        as: anon
+        headers: {User-Agent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"}
+        status: 200
+      - method: POST
+        path: /api/v1/shared-reports/code
+        as: anon
+        body: {code: "{{code}}"}
+        status: 200
+      - method: GET
+        path: /api/v1/health-record/share-access
+        status: 200
+      - method: GET
+        path: /api/v1/health-record/sharing
+        status: 200
+      - method: GET
+        path: "/api/v1/health-record/share-access?link_id={{id}}"
+        as: no_profile
+        status: 404
+      - method: DELETE
+        path: "/api/v1/health-record/share-codes/{{id}}"
+        as: no_profile
+        status: 404
+      - method: DELETE
+        path: "/api/v1/health-record/share-codes/{{id}}"
+        status: 200
+      - method: GET
+        path: "/api/v1/shared-reports/{{token}}"
+        as: anon
+        status: 404
+      - method: POST
+        path: /api/v1/shared-reports/code
+        as: anon
+        body: {code: "{{code}}"}
+        status: 404
+  - name: shared_code_unknown
+    persona: anon
+    locales: [en]
+    method: POST
+    path: /api/v1/shared-reports/code
+    body: {code: "2222-2222"}
+    status: 404
+  - name: shared_code_missing
+    persona: anon
+    locales: [en]
+    method: POST
+    path: /api/v1/shared-reports/code
+    body: {}
+    status: 422

@@ -65,7 +65,9 @@ func accessLog(logger *slog.Logger) fiber.Handler {
 			slog.String("path", httpx.LogPath(c.Path())),
 			slog.Int("status", status),
 			slog.Float64("duration_ms", float64(time.Since(start).Microseconds())/1000),
-			slog.String("ip", c.IP()),
+		}
+		if !httpx.Sensitive(c.Path()) { // CB-REC-03: no viewer IP next to a public share / emergency read
+			attrs = append(attrs, slog.String("ip", c.IP()))
 		}
 		if err != nil && status >= fiber.StatusInternalServerError {
 			attrs = append(attrs, slog.String("error", err.Error()))

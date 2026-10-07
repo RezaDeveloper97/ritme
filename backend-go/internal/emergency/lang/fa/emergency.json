@@ -1,0 +1,24 @@
+{
+    "messages": {
+        "saved": "کارت اضطراری ذخیره شد",
+        "validation_failed": "اطلاعات واردشده معتبر نیست",
+        "public_enabled": "لینک عمومی کارت اضطراری ساخته شد",
+        "public_disabled": "لینک عمومی کارت اضطراری خاموش شد",
+        "not_found": "این کارت اضطراری پیدا نشد"
+    },
+    "validation": {
+        "phone": "شماره تماس اضطراری معتبر نیست.",
+        "last4": "فقط ۴ رقم آخر شماره بیمه را وارد کن."
+    },
+    "attributes": {
+        "show_on_lock_screen": "نمایش روی صفحه قفل",
+        "show_pregnancy": "نمایش وضعیت بارداری",
+        "emergency_contact": "تماس اضطراری",
+        "emergency_contact.name": "نام تماس اضطراری",
+        "emergency_contact.relation": "نسبت",
+        "emergency_contact.phone": "شماره تماس اضطراری",
+        "insurance": "بیمه",
+        "insurance.label": "بیمه‌گر",
+        "insurance.last4": "۴ رقم آخر"
+    }
+}

@@ -198,6 +198,17 @@ location ^~ /api/v1/shared-reports/ {
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host  $host;
 }
+# Public emergency card (CB-REC-03): the path token is the bearer secret, never logged.
+location ^~ /api/v1/emergency-cards/ {
+    access_log off;
+    proxy_pass $stage_backend_go_target;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $ritme_client_xff;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host  $host;
+}
 location /storage/   { proxy_pass $stage_backend_go_target; include /etc/nginx/conf.d/proxy-params.inc; }
 location ^~ /docs    { proxy_pass $stage_backend_go_target; include /etc/nginx/conf.d/proxy-params.inc; }
 
@@ -227,6 +238,12 @@ location ^~ /admin/ {
 }
 
 location ~ ^/[A-Za-z-]+/shared/report/ {
+    access_log off;
+    proxy_pass http://stage_frontend_upstream;
+    include /etc/nginx/conf.d/proxy-params.inc;
+}
+# Public emergency card page (CB-REC-03): bearer token in the path, never logged.
+location ~ ^/[A-Za-z-]+/emergency/ {
     access_log off;
     proxy_pass http://stage_frontend_upstream;
     include /etc/nginx/conf.d/proxy-params.inc;

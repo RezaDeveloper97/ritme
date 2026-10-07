@@ -1,0 +1,48 @@
+{
+  "case": "emergency/emergency_show.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/emergency-card",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "card": {
+            "name": "Contract regular",
+            "blood_type": null,
+            "allergies": [],
+            "conditions": {
+              "chronic_illnesses": [],
+              "gyn_conditions": []
+            },
+            "medications": [],
+            "pregnancy": null,
+            "emergency_contact": null,
+            "profile_medications": [],
+            "insurance": null
+          },
+          "settings": {
+            "show_on_lock_screen": false,
+            "show_pregnancy": false,
+            "allergies_on_card": true
+          },
+          "public_link": {
+            "enabled": false,
+            "enabled_at": null,
+            "views": 0,
+            "last_viewed_at": null
+          }
+        }
+      }
+    }
+  ]
+}

@@ -8,24 +8,24 @@ VALUES (sqlc.arg(user_id), sqlc.arg(token_hash), sqlc.arg(payload), sqlc.arg(sec
 
 -- name: CountActiveShareLinks :one
 SELECT COUNT(*) FROM `health_share_links`
-WHERE user_id = sqlc.arg(user_id) AND revoked_at IS NULL AND expires_at > sqlc.arg(now);
+WHERE user_id = sqlc.arg(user_id) AND kind = 'report' AND revoked_at IS NULL AND expires_at > sqlc.arg(now);
 
 -- name: ListShareLinks :many
 SELECT id, sections, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
 FROM `health_share_links`
-WHERE user_id = sqlc.arg(user_id) AND created_at >= sqlc.arg(since)
+WHERE user_id = sqlc.arg(user_id) AND kind = 'report' AND created_at >= sqlc.arg(since)
 ORDER BY created_at DESC, id DESC
 LIMIT 50;
 
 -- name: GetShareLinkMeta :one
 SELECT id, sections, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
 FROM `health_share_links`
-WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id) LIMIT 1;
+WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id) AND kind = 'report' LIMIT 1;
 
 -- name: RevokeShareLink :execrows
 UPDATE `health_share_links`
-SET revoked_at = COALESCE(revoked_at, sqlc.arg(now)), payload = NULL, updated_at = sqlc.arg(now)
-WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id);
+SET revoked_at = COALESCE(revoked_at, sqlc.arg(now)), payload = NULL, code_payload = NULL, updated_at = sqlc.arg(now)
+WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id) AND kind = 'report';
 
 -- name: GetShareLinkByHash :one
 SELECT id, payload, expires_at, revoked_at, created_at, range_from, range_to
@@ -39,8 +39,8 @@ WHERE id = sqlc.arg(id);
 
 -- name: PurgeExpiredShareLinks :execrows
 UPDATE `health_share_links`
-SET payload = NULL, updated_at = sqlc.arg(now)
-WHERE expires_at <= sqlc.arg(now) AND payload IS NOT NULL;
+SET payload = NULL, code_payload = NULL, updated_at = sqlc.arg(now)
+WHERE expires_at <= sqlc.arg(now) AND (payload IS NOT NULL OR code_payload IS NOT NULL);
 
 -- name: DeleteStaleShareLinks :execrows
 DELETE FROM `health_share_links` WHERE expires_at < sqlc.arg(before);

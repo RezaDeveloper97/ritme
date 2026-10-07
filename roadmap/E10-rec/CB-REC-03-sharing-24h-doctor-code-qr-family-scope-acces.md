@@ -3,7 +3,7 @@ id: CB-REC-03
 title: Sharing: 24h doctor code + QR, family scope, access log, emergency card
 epic: REC
 type: backend
-status: todo
+status: done
 depends_on: [CB-REC-01, B-N6-04, B-N4-02]
 parallel_group: REC-B
 touches: [backend-go/internal/sharelinks, backend-go/internal/healthrecord, backend-go/internal/http/routes_healthrecord.go, backend-go/db/migrations, backend/database/migrations, backend-go/api/openapi.yaml]

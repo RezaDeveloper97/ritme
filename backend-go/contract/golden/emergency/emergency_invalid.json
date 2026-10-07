@@ -1,0 +1,35 @@
+{
+  "case": "emergency/emergency_invalid",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/health-record/emergency-card",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "emergency_contact": {
+            "name": "Ali",
+            "phone": "call me"
+          }
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errors": {
+          "emergency_contact.phone": [
+            "The emergency contact's phone number is not valid."
+          ]
+        }
+      }
+    }
+  ]
+}

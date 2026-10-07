@@ -5,6 +5,24 @@
         "not_found": "This report link was not found",
         "expired": "This report link has expired",
         "revoked_link": "This report link was revoked by its owner",
-        "limit": "You can have at most :max active share links. Revoke one first."
+        "limit": "You can have at most :max active share links. Revoke one first.",
+        "validation_failed": "Validation failed",
+        "code_created": "Doctor code created. It works for 24 hours.",
+        "code_revoked": "Doctor code revoked",
+        "code_not_found": "This code or link is not valid",
+        "code_limit": "You can have at most :max active doctor codes. Revoke one first.",
+        "code_unavailable": "Doctor codes are not available right now",
+        "too_many_attempts": "Too many attempts. Please try again later."
+    },
+    "attributes": {
+        "label": "recipient",
+        "document_ids": "documents",
+        "document_ids.*": "document",
+        "code": "code",
+        "link_id": "link",
+        "limit": "limit"
+    },
+    "validation": {
+        "document_not_found": "This document was not found in your record."
     }
 }

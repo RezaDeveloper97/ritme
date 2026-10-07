@@ -122,7 +122,8 @@ func (h *Handlers) Show(c fiber.Ctx) error {
 	c.Set(fiber.HeaderCacheControl, "no-store")
 	c.Set("X-Robots-Tag", "noindex, nofollow")
 	c.Set(fiber.HeaderReferrerPolicy, "no-referrer")
-	opened, err := h.svc.Open(c, c.Params("token"), now)
+	// CB-REC-03: every open writes the access log (coarse client class only); a 24h summary that stopped working is 404.
+	opened, err := h.svc.OpenAs(c, c.Params("token"), now, ViewerOf(ViaLink, c.Get(fiber.HeaderUserAgent)))
 	switch {
 	case errors.Is(err, ErrNotFound):
 		return notFound(locale)

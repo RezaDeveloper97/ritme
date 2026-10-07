@@ -38,6 +38,10 @@ type Service struct {
 	reports Reports
 	rand    io.Reader
 	logger  *slog.Logger
+	// CB-REC-03 (summary.go): the 24h code pepper, the owner's picked documents and their file links.
+	coder *Coder
+	docs  DocumentSource
+	files FileLinker
 }
 
 // NewService wires the service.
@@ -45,7 +49,7 @@ func NewService(q store.Querier, reports Reports, logger *slog.Logger) *Service 
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &Service{q: q, reports: reports, rand: rand.Reader, logger: logger}
+	return &Service{q: q, reports: reports, rand: rand.Reader, logger: logger} // coder nil = codes off until WithCodes (fail closed)
 }
 
 // WithRand replaces the token / nonce source (tests).
@@ -215,37 +219,10 @@ type Opened struct {
 }
 
 // Open decrypts the report behind token and counts the view: ErrNotFound for an unknown token, ErrRevoked /
-// ErrExpired for a link that stopped working.
+// ErrExpired for a report link that stopped working (a 24h summary link answers ErrNotFound then, CB-REC-03). The
+// access log entry carries no client class; handlers call OpenAs.
 func (s *Service) Open(ctx context.Context, token string, now time.Time) (Opened, error) {
-	if !ValidToken(token) {
-		return Opened{}, ErrNotFound
-	}
-	r, err := s.q.GetShareLinkByHash(ctx, HashToken(token))
-	if errors.Is(err, sql.ErrNoRows) {
-		return Opened{}, ErrNotFound
-	}
-	if err != nil {
-		return Opened{}, fmt.Errorf("sharelinks: lookup: %w", err)
-	}
-	switch {
-	case r.RevokedAt.Valid:
-		return Opened{}, ErrRevoked
-	case !r.ExpiresAt.Valid || !now.Before(r.ExpiresAt.Time) || !r.Payload.Valid:
-		return Opened{}, ErrExpired
-	}
-	plain, err := Open(token, r.Payload.String)
-	if err != nil {
-		return Opened{}, ErrNotFound
-	}
-	v, err := phpval.Decode(plain)
-	m, isMap := v.(phpval.Map)
-	if err != nil || !isMap {
-		return Opened{}, ErrNotFound
-	}
-	if err := s.q.CountShareLinkView(ctx, store.CountShareLinkViewParams{ID: r.ID, Now: stamp(now)}); err != nil {
-		return Opened{}, fmt.Errorf("sharelinks: count view: %w", err)
-	}
-	return Opened{Report: m, ExpiresAt: r.ExpiresAt.Time}, nil
+	return s.OpenAs(ctx, token, now, Viewer{Via: ViaLink, Device: DeviceUnknown, Browser: BrowserOther})
 }
 
 // Purge wipes the reports of expired links and deletes rows RetainAfterExpiry after expiry.

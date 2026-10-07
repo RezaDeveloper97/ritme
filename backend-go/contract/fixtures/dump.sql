@@ -1249,6 +1249,36 @@ INSERT INTO `daily_health_logs` VALUES
 (101801,1018,'2026-09-23',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'[\"happy\"]',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'high',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `daily_health_logs` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `emergency_cards`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `emergency_cards` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `show_on_lock_screen` tinyint(1) NOT NULL DEFAULT 0,
+  `show_pregnancy` tinyint(1) NOT NULL DEFAULT 0,
+  `contact_name` varchar(60) DEFAULT NULL,
+  `contact_relation` varchar(30) DEFAULT NULL,
+  `contact_phone` varchar(20) DEFAULT NULL,
+  `insurance_label` varchar(60) DEFAULT NULL,
+  `insurance_last4` char(4) DEFAULT NULL,
+  `public_token_hash` char(64) DEFAULT NULL,
+  `public_enabled_at` timestamp NULL DEFAULT NULL,
+  `public_view_count` int(10) unsigned NOT NULL DEFAULT 0,
+  `public_last_viewed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `emergency_cards_user_id_unique` (`user_id`),
+  UNIQUE KEY `emergency_cards_public_token_hash_unique` (`public_token_hash`),
+  CONSTRAINT `emergency_cards_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `emergency_cards` WRITE;
+/*!40000 ALTER TABLE `emergency_cards` DISABLE KEYS */;
+/*!40000 ALTER TABLE `emergency_cards` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `epds_checks`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -1583,13 +1613,40 @@ LOCK TABLES `health_records` WRITE;
 /*!40000 ALTER TABLE `health_records` DISABLE KEYS */;
 /*!40000 ALTER TABLE `health_records` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `health_share_link_views`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `health_share_link_views` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `share_link_id` bigint(20) unsigned NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `via` varchar(8) NOT NULL,
+  `device` varchar(16) NOT NULL,
+  `browser` varchar(16) NOT NULL,
+  `viewed_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `health_share_link_views_user_id_viewed_at_index` (`user_id`,`viewed_at`),
+  KEY `health_share_link_views_share_link_id_viewed_at_index` (`share_link_id`,`viewed_at`),
+  CONSTRAINT `health_share_link_views_share_link_id_foreign` FOREIGN KEY (`share_link_id`) REFERENCES `health_share_links` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `health_share_link_views_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `health_share_link_views` WRITE;
+/*!40000 ALTER TABLE `health_share_link_views` DISABLE KEYS */;
+/*!40000 ALTER TABLE `health_share_link_views` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `health_share_links`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `health_share_links` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint(20) unsigned NOT NULL,
+  `kind` varchar(16) NOT NULL DEFAULT 'report',
+  `label` varchar(60) DEFAULT NULL,
   `token_hash` char(64) NOT NULL,
+  `code_hash` char(64) DEFAULT NULL,
+  `code_payload` text DEFAULT NULL,
   `payload` mediumtext DEFAULT NULL,
   `sections` json NOT NULL,
   `range_from` date NOT NULL,
@@ -1602,8 +1659,10 @@ CREATE TABLE `health_share_links` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `health_share_links_token_hash_unique` (`token_hash`),
+  UNIQUE KEY `health_share_links_code_hash_unique` (`code_hash`),
   KEY `health_share_links_user_id_created_at_index` (`user_id`,`created_at`),
   KEY `health_share_links_expires_at_index` (`expires_at`),
+  KEY `health_share_links_user_id_kind_index` (`user_id`,`kind`),
   CONSTRAINT `health_share_links_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

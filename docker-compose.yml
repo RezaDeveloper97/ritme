@@ -140,6 +140,10 @@ services:
       # empty in production = invites answer 503). COMPANION_SMS_PROVIDER: empty = fake outside production, none in it.
       COMPANION_CODE_PEPPER: ${COMPANION_CODE_PEPPER:-}
       COMPANION_SMS_PROVIDER: ${COMPANION_SMS_PROVIDER:-}
+      # Record sharing (CB-REC-03). SHARE_CODE_PEPPER is a secret (server .env only, ≥ 32 bytes in production; empty in
+      # production = 24h doctor codes answer 503). SHARE_WEB_URL: web app origin for the QR (optional).
+      SHARE_CODE_PEPPER: ${SHARE_CODE_PEPPER:-}
+      SHARE_WEB_URL: ${SHARE_WEB_URL:-}
       # Loss path private notes (CB-LOSS-01): AES-256-GCM key, a secret (server .env only, base64 of 32 bytes; empty =
       # the note routes answer 503). PRIVATE_NOTE_KEY_PREVIOUS (comma-separated) still opens notes after a rotation.
       PRIVATE_NOTE_KEY: ${PRIVATE_NOTE_KEY:-}

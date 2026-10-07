@@ -454,6 +454,24 @@ type DailyHealthLog struct {
 	UpdatedAt                  sql.NullTime
 }
 
+type EmergencyCard struct {
+	ID                 uint64
+	UserID             uint64
+	ShowOnLockScreen   bool
+	ShowPregnancy      bool
+	ContactName        sql.NullString
+	ContactRelation    sql.NullString
+	ContactPhone       sql.NullString
+	InsuranceLabel     sql.NullString
+	InsuranceLast4     sql.NullString
+	PublicTokenHash    sql.NullString
+	PublicEnabledAt    sql.NullTime
+	PublicViewCount    uint32
+	PublicLastViewedAt sql.NullTime
+	CreatedAt          sql.NullTime
+	UpdatedAt          sql.NullTime
+}
+
 type EpdsCheck struct {
 	ID        uint64
 	UserID    uint64
@@ -591,6 +609,20 @@ type HealthShareLink struct {
 	LastViewedAt sql.NullTime
 	CreatedAt    sql.NullTime
 	UpdatedAt    sql.NullTime
+	Kind         string
+	Label        sql.NullString
+	CodeHash     sql.NullString
+	CodePayload  sql.NullString
+}
+
+type HealthShareLinkView struct {
+	ID          uint64
+	ShareLinkID uint64
+	UserID      uint64
+	Via         string
+	Device      string
+	Browser     string
+	ViewedAt    sql.NullTime
 }
 
 type HotFlash struct {
