@@ -411,16 +411,20 @@ function Treatment({ items }: { items: MenopauseTreatment[] }) {
           </button>
         )}
         {sorted.map((item) => {
+          // CB-MENO-13: a weekly goal (brisk walk 150 min) is not a daily dose — «۳۰ از ۱۵۰ دقیقه این هفته», no «امروز …».
+          const goal = item.goal;
           const parts = [
-            t('week', { taken: formatNumber(item.daysTaken, locale), days: formatNumber(item.days, locale) }),
+            goal
+              ? t('goalWeek', { amount: formatNumber(goal.amount, locale), goal: formatNumber(goal.target, locale), unit: goal.unit })
+              : t('week', { taken: formatNumber(item.daysTaken, locale), days: formatNumber(item.days, locale) }),
             item.reviewOn ? t('review', { month: monthName(toParts(fromApiDate(item.reviewOn), locale).month, locale) }) : null,
           ].filter(Boolean);
           return (
             <div key={item.id} className="mh-row">
-              <IconCircle icon="pill" tone="data" size="md" />
+              <IconCircle icon={item.kind === 'lifestyle' ? 'run' : 'pill'} tone="data" size="md" />
               <span className="mh-row-text">
                 <b className="mh-row-title">
-                  {item.name} · {item.takenToday ? t('takenToday') : t('notToday')}
+                  {goal ? item.name : `${item.name} · ${item.takenToday ? t('takenToday') : t('notToday')}`}
                 </b>
                 <span className="mh-row-sub">{parts.join(' · ')}</span>
               </span>

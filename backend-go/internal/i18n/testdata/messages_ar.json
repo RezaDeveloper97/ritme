@@ -6256,6 +6256,7 @@
      "takenToday": "امروز مصرف شد",
      "notToday": "امروز هنوز ثبت نشده",
      "week": "{taken} از {days} روز این هفته",
+     "goalWeek": "{amount} از {goal} {unit, select, minutes {دقیقه} other {بار}} این هفته",
      "review": "بازبینی با پزشک: {month}"
     },
     "messages": {
@@ -6471,7 +6472,7 @@
       "bloating": "نفخ",
       "mood_change": "تغییر خلق"
      },
-     "lifestyleValue": "{name} · {value} بار در هفته"
+     "lifestyleValue": "{name} · {value} {unit, select, minutes {دقیقه} other {بار}} در هفته"
     }
    }
   },

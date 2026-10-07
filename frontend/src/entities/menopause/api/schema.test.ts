@@ -29,6 +29,18 @@ describe('menopause schemas (CB-MENO-02 / CB-MENO-12 goldens)', () => {
     expect(today.treatment).toEqual([]);
   });
 
+  it('reads a lifestyle weekly goal on the home treatment card (CB-MENO-13)', () => {
+    const row = { taken_today: false, days_taken: 0, days: 7, review_on: null };
+    const today = menopauseTodaySchema.parse({
+      ...(TODAY_EMPTY as Record<string, unknown>),
+      treatment: [
+        { ...row, id: 1, kind: 'hrt', name: 'Gel', weekly_goal: null, goal_unit: null, amount: 0 },
+        { ...row, id: 2, kind: 'lifestyle', name: 'Walk', weekly_goal: 150, goal_unit: 'minutes', amount: 30 },
+      ],
+    });
+    expect(today.treatment.map((x) => x.goal)).toEqual([null, { target: 150, unit: 'minutes', amount: 30 }]);
+  });
+
   it('keeps the stored answer apart from the effective stage', () => {
     const profile = menopauseProfileSchema.parse(PROFILE_PERI);
     expect(profile).toMatchObject({ stage: 'peri', storedStage: 'peri', suggestedStage: 'meno', lastPeriod: '2025-08-01' });

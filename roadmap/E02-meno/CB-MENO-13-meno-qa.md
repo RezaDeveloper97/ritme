@@ -3,7 +3,7 @@ id: CB-MENO-13
 title: MENO QA
 epic: MENO
 type: qa
-status: todo
+status: done
 depends_on: [CB-MENO-04, CB-MENO-06, CB-MENO-07, CB-MENO-08, CB-MENO-09, CB-MENO-10, CB-MENO-11, CB-MENO-12]
 parallel_group: MENO-E
 touches: [docs/qa/canvas]

@@ -6256,6 +6256,7 @@
      "takenToday": "Taken today",
      "notToday": "Not logged today",
      "week": "{taken} of {days} days this week",
+     "goalWeek": "{amount} of {goal} {unit, select, minutes {min} other {times}} this week",
      "review": "Doctor review: {month}"
     },
     "messages": {
@@ -6471,7 +6472,7 @@
       "bloating": "Bloating",
       "mood_change": "Mood change"
      },
-     "lifestyleValue": "{name} · {value} times a week"
+     "lifestyleValue": "{name} · {unit, select, minutes {{value} min} other {{value} times}} a week"
     }
    }
   },

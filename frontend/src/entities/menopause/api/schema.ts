@@ -119,6 +119,9 @@ const treatmentSchema = z
     taken_today: z.boolean().catch(false),
     days_taken: z.number().int().catch(0),
     days: z.number().int().catch(7),
+    weekly_goal: nullableInt.optional(),
+    goal_unit: nullableText.optional(),
+    amount: z.number().int().catch(0).optional(),
     review_on: nullableDate,
   })
   .transform((d) => ({
@@ -128,6 +131,8 @@ const treatmentSchema = z
     takenToday: d.taken_today,
     daysTaken: d.days_taken,
     days: d.days,
+    // weekly goals (lifestyle minutes / sessions) report this week's amount against the goal instead of days
+    goal: d.weekly_goal != null ? { target: d.weekly_goal, unit: d.goal_unit ?? 'sessions', amount: d.amount ?? 0 } : null,
     reviewOn: d.review_on,
   }));
 

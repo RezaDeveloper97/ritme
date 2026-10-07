@@ -77,7 +77,12 @@ export const menopauseSectionSchema = z
     topSymptoms: d.symptoms.top,
     hrtAdherencePct: d.treatment.hrt_adherence_pct,
     items: d.treatment.items,
-    lifestyle: d.treatment.lifestyle.map((l) => ({ name: l.name, weeklyGoal: l.weekly_goal, perWeek: l.per_week })),
+    lifestyle: d.treatment.lifestyle.map((l) => ({
+      name: l.name,
+      weeklyGoal: l.weekly_goal,
+      goalUnit: l.goal_unit,
+      perWeek: l.per_week,
+    })),
     sideEffects: d.side_effects.map((e) => ({ code: e.code, days: e.days, firstOn: e.first_on })),
     supplements: d.supplements,
   }));

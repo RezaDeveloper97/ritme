@@ -412,3 +412,10 @@ TODO (ask user):
 - security-auditor: no high/critical; M1 (lock screen read the owner card) + L1 → D-73 endpoint; M2 (silent fallback to the regular invite template) fixed; L2 contact label; L3 prod compose vars.
 - Verify (agent on 62329dae: full chain, contract all 1707/0); on stage after the bloom N7/N8 batch: vet, go test ./..., golangci-lint 0, OpenAPI, tsc, vitest subset, lint:styles, lint:dark, steiger.
 - TODO (ask user): D-73 OK; register a neutral invite template at Kavenegar + set the env on stage/prod; board neutral copy replaces «یادآور ریتمی».
+
+## CB-MENO-13 — MENO QA
+- Fresh-user journey (09900002131 on a DB copy): switch to menopause → stage → log → hot-flash timer → score → checkups → treatment → spotting alert → report → PDF → share (Plus gate, then 7-day link + shared page). All 9 boards ✔ light + dark (docs/qa/canvas/meno.md `## CB-MENO-13`, shots in meno/CB-MENO-13/).
+- Fixes: home treatment card shows weekly lifestyle goals as «x از y دقیقه این هفته» (not as a daily pill); doctor report/PDF/shared page lifestyle unit (minutes vs sessions). New key `menopause.home.treatment.goalWeek`, `report.paper.lifestyleValue` unit-aware (+ Go copy, goldens).
+- Follow-up: CB-MENO-13b (treatment adherence counted from the day an item was added when no start date).
+- Verify (agent): full frontend chain + build (1577 tests), i18n tests; on stage: tsc, vitest subset, i18n tests.
+- TODO (ask user): default «تاریخ شروع» to today?; night-sweats extrapolation from few days OK?; onboarding period didn't trigger the bleeding alert after switching (CB-MENO-02 open question). Notes: hot-flash count on home is timer-only; bloom PWA install banner reappears in dev.

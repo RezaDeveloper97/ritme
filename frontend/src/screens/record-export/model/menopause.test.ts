@@ -41,6 +41,22 @@ describe('menopause doctor report', () => {
     expect(plain.blocks.length).toBeLessThan(paper.blocks.length);
   });
 
+  it('passes the lifestyle goal unit so a minutes goal is not read as sessions (CB-MENO-13)', () => {
+    const data = steps('report_flow').at(-1)?.body.data as { report: { treatment: { lifestyle: unknown[] } } };
+    const lifestyle = [
+      { name: 'Brisk walk', weekly_goal: 150, goal_unit: 'minutes', per_week: 90 },
+      { name: 'Strength', weekly_goal: 2, goal_unit: 'sessions', per_week: 1.5 },
+      { name: 'Yoga', weekly_goal: null, goal_unit: null, per_week: 1 },
+    ];
+    const section = menopauseSectionSchema.parse({ ...data.report, treatment: { ...data.report.treatment, lifestyle } });
+    const rows = buildMenopauseModel(section, t, 'en').treatment.filter((r) => r.label === 'rows.lifestyle');
+    expect(rows.map((r) => r.value)).toEqual([
+      'lifestyleValue(Brisk walk,90,minutes)',
+      'lifestyleValue(Strength,1.5,sessions)',
+      'lifestyleValue(Yoga,1,sessions)',
+    ]);
+  });
+
   it('draws an empty section as one muted line', () => {
     const data = steps('report_flow').at(-1)?.body.data as { report: unknown };
     const section = menopauseSectionSchema.parse(data.report);

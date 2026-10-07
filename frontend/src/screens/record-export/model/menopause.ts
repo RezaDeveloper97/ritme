@@ -123,7 +123,8 @@ export function buildMenopauseModel(m: MenopauseSection, t: Translate, loc: Loca
     treatment.push({
       key: `life-${l.name}`,
       label: t('rows.lifestyle'),
-      value: l.perWeek !== null ? t('lifestyleValue', { name: l.name, value: d(l.perWeek) }) : l.name,
+      // minutes goals (e.g. 150 min walking) read «… دقیقه در هفته», session goals «… بار در هفته»
+      value: l.perWeek !== null ? t('lifestyleValue', { name: l.name, value: d(l.perWeek), unit: l.goalUnit ?? 'sessions' }) : l.name,
     });
   }
 

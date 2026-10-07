@@ -107,6 +107,8 @@ export interface MenopauseTreatment {
   takenToday: boolean;
   daysTaken: number;
   days: number;
+  /** A weekly goal (lifestyle): this week's amount against the target, in minutes or sessions; null for doses. */
+  goal: { target: number; unit: string; amount: number } | null;
   reviewOn: string | null;
 }
 

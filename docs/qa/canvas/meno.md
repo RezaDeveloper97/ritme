@@ -52,3 +52,61 @@ spotting logged 1405-07-09 for the alert shot). Colours are checked against the 
 | Board | Route | Light | Dark | Verdict | Fix / note |
 |---|---|---|---|---|---|
 | `nbl_Meno_Report` | `/menopause/report` (home «گزارش ۳ ماه برای پزشک», alert «آماده کردن گزارش برای پزشک» → `?from=alert`) | [page](meno/CB-MENO-11/fa_menopause_report.light.png) · [en](meno/CB-MENO-11/en_menopause_report.light.png) · [share sheet](meno/CB-MENO-11/fa_menopause_report.share.light.png) · [home entry](meno/CB-MENO-11/fa_home.light.png) · [alert entry](meno/CB-MENO-11/fa_menopause_alert.light.png) | [page](meno/CB-MENO-11/fa_menopause_report.dark.png) · [en](meno/CB-MENO-11/en_menopause_report.dark.png) · [home](meno/CB-MENO-11/fa_home.dark.png) · [alert](meno/CB-MENO-11/fa_menopause_alert.dark.png) | ✔ | CB-MENO-11, test user 09120005055 (profile stage meno / last period 2025-08-01 / HRT, two scores, 20 log days with hot flashes·insomnia·night sweats·anxiety·fatigue + sleep duration, one spotting day, 3 BP readings re-seeded through the API — the earlier profile/logs were gone; treatment items are CB-MENO-10's). Same order and copy: back header «گزارش برای پزشک / ۱۶ تیر ۱۴۰۵ تا ۱۵ مهر ۱۴۰۵» (the window of GET /menopause/report), «۱ ماه · ۳ ماه · ۶ ماه» chips (3 default), «خلاصه» card of 7 label/value rows (مرحله · امتیاز علائم «۲۲ ← ۲۰ از ۴۴» · گرگرفتگی · تعریق شبانه · خواب · خونریزی یا لکه‌بینی · فشار خون), «شایع‌ترین علائم» bars (top 5, «٪ روزها»; fills brand/data/bloom/warm/brand-2 tokens — never period red, board's crimson is not used), «دارو و درمان» rows (HRT per item «نام · از مرداد · ٪ مصرف منظم», side effects, supplements, lifestyle), «سؤال‌هایم از پزشک» textarea (≤300, bloom's limit), shield note, sticky «دانلود PDF و ارسال به پزشک». Deliberate differences: the header's end slot is a share icon opening bloom's 7-day link sheet (Plus gate for this free user, as in the shot); the PDF and the link are bloom's builder (B-N6-04) with `range=custom&from=<window start>&sections=menopause` — one PDF renderer, and the same rows are drawn on bloom's paper (also in the doctor's shared view); HRT rows carry the item name; lifestyle rows are extra (API data). No bottom nav (back header). |
+
+## CB-MENO-13 — epic QA
+
+Worktree Go API :8261 (on `ritme_meno13`, a copy of `ritme_dev` at goose 00044 — `ritme_dev` itself was not touched) +
+Next dev :3119, 390 px, fa. The journey ran through the Playwright browser on a **fresh user**; board states were then
+shot with `bloom/bin/shot.mjs --token` (light + dark) next to the board renders in [`boards/`](boards/). Screens in
+[`meno/CB-MENO-13/`](meno/CB-MENO-13/).
+
+**Test data (`ritme_meno13` only, all through the UI except one row):** new user **`09900002131`** «پروین» (sign-up →
+name → female → goal «پیگیری سیکل» → last period ۲ مهر ۱۴۰۵, 5 d / 28 d → conditions / health skipped), then the journey
+below. One manual row: a 30-day `plus_subscriptions` grant (source `admin`) to exercise the 7-day share link after the
+Plus gate had been checked. Earlier MENO users (`09120005055`) were not touched.
+
+### Journey
+
+| # | Step | Result |
+|---|---|---|
+| 1 | cycle user → `/profile/mode` → «یائسگی» | ✔ toast «حالت «یائسگی» فعال شد»; `/home` = menopause home in the needs-stage state («مرحله‌ات را مشخص کن» + «انتخاب مرحله»), nav امروز · علائم · + · خدمات · من ([shot](meno/CB-MENO-13/j01-home-after-switch.light.png)) |
+| 2 | «انتخاب مرحله» → `/menopause/stage`: یائسگی, last period ‹ ×14 → «حدود مرداد ۱۴۰۴», surgical نه, HRT بله → «شروع» | ✔ `PUT /menopause/profile`, back on `/home`: hero «بدون پریود / ۱۴ ماه» + chip «یائسگی» + stage tip ([form](meno/CB-MENO-13/j02-stage-filled.light.png)) |
+| 3 | «ثبت علائم امروز» → `/menopause/log`: گرگرفتگی متوسط, تعریق خفیف, بی‌خوابی شدید, اضطراب خفیف, خستگی متوسط, قهوه + استرس → «ذخیره» | ✔ footer «۷ مورد ثبت شده», `PUT /logs/days/2026-10-07`, back on `/home` with «تعریق شبانه ۱» ([shot](meno/CB-MENO-13/j03-log-filled.light.png)) |
+| 4 | «گرگرفتگی الان» → `/menopause/hot-flash`: tap the ring, شدید + گرما, tap again after 44 s | ✔ timer runs server-side («الان دارم ۰۰:۰۵», today «۱ بار … در جریان»); stop → «ثبت شد ۰۰:۴۴», row «۱۰:۲۴ · شدید · ۴۴ ثانیه / گرما» ([running](meno/CB-MENO-13/j04-hot-flash-running.light.png) · [stopped](meno/CB-MENO-13/j05-hot-flash-stopped.light.png)) |
+| 5 | `/menopause/score` (empty) → «پرسشنامه این ماه را پر کن» → 11 answers → «ثبت پرسشنامه» | ✔ empty state, then «مهر ۱۴۰۵ · ۱۹ از ۴۴ · شدید», domains ۹/۱۶ · ۷/۱۶ · ۳/۱۲, one point on the 6-month chart, patterns «need more logs (۱ روز از ۲۰)» ([empty](meno/CB-MENO-13/j06-score-empty.light.png) · [scored](meno/CB-MENO-13/j07-score-submitted.light.png)) |
+| 6 | `/checkups` (menopause body) → «فشار خون» → «انجام دادم» → نرمال → «ثبت» | ✔ record saved, next due «۱۶ آبان ۱۴۰۵»; the list row becomes «موعد: آبان ۱۴۰۵ · نزدیک» ([shot](meno/CB-MENO-13/j08-checkups-bp-done.light.png)) |
+| 7 | `/menopause/treatment`: «افزودن» HRT «استروژن ژل» ۲ پمپ, شب → «ثبت» today → side effect سردرد → suggestion «پیاده‌روی تند» «افزودن» → «ذخیره» | ✔ HRT row «مصرف شد», today's week dot, side-effect chip on, lifestyle row «۰ از ۱۵۰» ([shot](meno/CB-MENO-13/j09-treatment-added.light.png)). ⚠ «۱ از ۵ روز»: the days before the item existed count as missed (no start date given) → **CB-MENO-13b** |
+| 8 | home «خونریزی یا لکه» | ✔ → `/menopause/alert` ([shot](meno/CB-MENO-13/j10-alert-from-home-tile.light.png)) |
+| 9 | `/menopause/log` «لکه‌بینی» → «راهنمایی» | ✔ saves the day, then `/menopause/alert`; home shows the bleeding `UrgentCard` «آخرین ثبت: ۱۵ مهر» |
+| 10 | alert «آماده کردن گزارش برای پزشک» → `/menopause/report?from=alert`, question typed → «دانلود PDF و ارسال به پزشک» | ✔ preview from `GET /menopause/report?months=3`; PDF from bloom's builder (`range=custom&from=2026-07-07&sections=menopause`), one A4 page with the menopause section and «سؤال بیمار» ([PDF page](meno/CB-MENO-13/j11-report-pdf.png)). In the automation browser the system share sheet opened (`navigator.share`) and waits for the user, so the PDF was captured with share disabled (download path) |
+| 11 | header share icon (free user) | ✔ bloom's Plus gate «اشتراک لینک بخشی از ریتمی پلاس است» ([shot](meno/CB-MENO-13/j12-report-share-plus-gate.light.png)) |
+| 12 | same with Plus | ✔ 7-day link «تا ۲۲ مهر ۱۴۰۵» with copy / share / manage; `/fa/shared/report/<token>` shows the same menopause rows read-only with «دانلود PDF» ([sheet](meno/CB-MENO-13/j13-report-share-link.light.png)) |
+
+### Fidelity (390 px, light + dark)
+
+| Board | Route | Light | Dark | Verdict | Fix / note |
+|---|---|---|---|---|---|
+| `nbl_Meno_Home` ([board](boards/nbl_Meno_Home.png)) | `/home` (mode menopause) | [home](meno/CB-MENO-13/fa_home.light.png) | [home](meno/CB-MENO-13/fa_home.dark.png) | ✔ | Same hierarchy as CB-MENO-05/10/11 (shared Today header kept; the bleeding `UrgentCard` and a menopause message sit above the board's sections because this user has a spotting day and a due Pap test). **Fixed drift:** the «درمان» card printed a weekly lifestyle goal as a daily dose («پیاده‌روی تند · امروز هنوز ثبت نشده / ۰ از ۷ روز این هفته», pill icon) → now «پیاده‌روی تند / ۰ از ۱۵۰ دقیقه این هفته» with the run icon (the API already sent `weekly_goal` / `goal_unit` / `amount`; `entities/menopause` now parses them). HRT «۱ از ۷ روز» for an item added today → CB-MENO-13b. |
+| `nbl_Meno_Stage` ([board](boards/nbl_Meno_Stage.png)) | `/menopause/stage` | [saved](meno/CB-MENO-13/fa_menopause_stage.light.png) | [saved](meno/CB-MENO-13/fa_menopause_stage.dark.png) | ✔ | Matches the board (cards, «حدود مرداد ۱۴۰۴», surgical / HRT pills, solid CTA — «ذخیره» once stored). Unchanged since CB-MENO-05. |
+| `nbl_Meno_Log` ([board](boards/nbl_Meno_Log.png)) | `/menopause/log` | [saved day](meno/CB-MENO-13/fa_menopause_log.light.png) | [saved day](meno/CB-MENO-13/fa_menopause_log.dark.png) | ✔ | Same five groups / 13 rows / bleeding / trigger chips as the board; bloom's summary footer (save disabled until something changes — the shot is the saved day). Unchanged since CB-MENO-06. |
+| `nbl_Meno_HotFlash` ([board](boards/nbl_Meno_HotFlash.png)) | `/menopause/hot-flash` | [idle + today](meno/CB-MENO-13/fa_menopause_hot-flash.light.png) · [running](meno/CB-MENO-13/j04-hot-flash-running.light.png) | [idle + today](meno/CB-MENO-13/fa_menopause_hot-flash.dark.png) | ✔ | Ring, severity, «با تعریق» + trigger chips, today tiles + list, breathing note — as CB-MENO-07 (idle state and extra chips are deliberate). |
+| `nbl_Meno_Alert` ([board](boards/nbl_Meno_Alert.png)) | `/menopause/alert` | [alert](meno/CB-MENO-13/fa_menopause_alert.light.png) | [alert](meno/CB-MENO-13/fa_menopause_alert.dark.png) | ✔ | Same order and copy as the board, incl. «آماده کردن گزارش برای پزشک» (CB-MENO-11); `tel:115` pill on the chest-pain item. The report button label is `--brand` (shared outline button) where the board prints it dark — design-system button, left as is. |
+| `nbl_Meno_Score` ([board](boards/nbl_Meno_Score.png)) | `/menopause/score` | [scored](meno/CB-MENO-13/fa_menopause_score.light.png) | [scored](meno/CB-MENO-13/fa_menopause_score.dark.png) | ✔ | Header card, 4-band bar with her marker at 19/44, domains, 6-month chart (one point — her first month), «need more logs» patterns, outlined refill CTA, «علائم» tab active. Band labels sit evenly under proportional segments, as on the board. |
+| `nbl_Meno_Checkups` ([board](boards/nbl_Meno_Checkups.png)) | `/checkups` (mode menopause) | [after BP record](meno/CB-MENO-13/fa_checkups.light.png) | [after BP record](meno/CB-MENO-13/fa_checkups.dark.png) | ✔ | Four catalog groups + «موارد دیگر برنامه»; the recorded blood pressure moves to «موعد: آبان ۱۴۰۵ · نزدیک» (the board's mammography pattern). Icons come from the checkup catalog rather than the board's per-row glyphs — as accepted in CB-MENO-09. |
+| `nbl_Meno_Treatment` ([board](boards/nbl_Meno_Treatment.png)) | `/menopause/treatment` | [HRT + walk](meno/CB-MENO-13/fa_menopause_treatment.light.png) | [HRT + walk](meno/CB-MENO-13/fa_menopause_treatment.dark.png) | ✔ | Sections, HRT row «مصرف شد», week dots, side-effect chips, lifestyle pill «۰ از ۱۵۰», suggestions, doctor-only note — as CB-MENO-10. Without a start date there is no «شروع: …» subtitle and no review card, and the week counts the days before the item was added («۱ از ۵ روز») → **CB-MENO-13b** (data semantics, not layout). |
+| `nbl_Meno_Report` ([board](boards/nbl_Meno_Report.png)) | `/menopause/report` | [3 months](meno/CB-MENO-13/fa_menopause_report.light.png) · [PDF](meno/CB-MENO-13/j11-report-pdf.png) | [3 months](meno/CB-MENO-13/fa_menopause_report.dark.png) | ✔ | Same order and copy as CB-MENO-11. **Fixed drift:** a minutes goal printed as sessions («پیاده‌روی تند · ۰ بار در هفته») — `lifestyleValue` now selects on `goal_unit` («… دقیقه در هفته» / «… بار در هفته») in the preview, the PDF and the doctor's shared page (unit test added). «۷ شب در هفته» from one logged day and «۱٪ مصرف منظم» for an item added today are data definitions (CB-MENO-03 open item / CB-MENO-13b), not layout. |
+
+**Verdicts:** 9 boards ✔, no ✘. Code changes: `entities/menopause` (`api/schema.ts`, `model/types.ts`, schema test —
+home treatment `goal`), `screens/home/ui/MenopauseHome.tsx` (treatment rows: weekly-goal line + run icon),
+`entities/health-record/api/menopause-section.ts` (+ `goalUnit`), `screens/record-export/model/menopause.ts` (+ test),
+messages `menopause.home.treatment.goalWeek` (new) and `menopause.report.paper.lifestyleValue` (unit select) in fa/en +
+Go copies + i18n goldens.
+
+**Follow-up:** CB-MENO-13b — treatment adherence counts from the day an item was added (week dots, home card, report %),
+plus whether the add sheet should prefill «تاریخ شروع» with today (question for the user).
+
+**Other notes (not drift):** switching a cycle user to menopause keeps her onboarding period (۲ مهر) out of the stage
+maths (the stage answer wins: «۱۴ ماه بدون پریود») and that period did not raise the bleeding alert — CB-MENO-02's open
+question; the home «گرگرفتگی تا الان» counts timer flashes only, so a hot flash logged with a severity in the day log
+does not raise it; the PWA install banner re-opens on every client navigation in the dev build even after «بستن» (bloom
+`shared/pwa`, not MENO).
