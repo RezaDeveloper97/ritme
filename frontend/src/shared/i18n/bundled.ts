@@ -29,6 +29,7 @@ import enTodo from '../../../messages/en/todo.json'; // B-N6-08
 import enLogTaxonomy from '../../../messages/en/log-taxonomy.json';
 import enHealthRecord from '../../../messages/en/health-record.json';
 import enRecordExport from '../../../messages/en/record-export.json';
+import enRecord from '../../../messages/en/record.json';
 import enLoss from '../../../messages/en/loss.json';
 import enMe from '../../../messages/en/me.json';
 import enIvf from '../../../messages/en/ivf.json'; // CB-IVF-02
@@ -84,6 +85,7 @@ import faTodo from '../../../messages/fa/todo.json'; // B-N6-08
 import faLogTaxonomy from '../../../messages/fa/log-taxonomy.json';
 import faHealthRecord from '../../../messages/fa/health-record.json';
 import faRecordExport from '../../../messages/fa/record-export.json';
+import faRecord from '../../../messages/fa/record.json';
 import faLoss from '../../../messages/fa/loss.json';
 import faMe from '../../../messages/fa/me.json';
 import faIvf from '../../../messages/fa/ivf.json'; // CB-IVF-02
@@ -165,6 +167,7 @@ const bundled = {
     labConsent: faLabConsent,
     healthRecord: faHealthRecord, // B-N6-03 /record
     recordExport: faRecordExport, // B-N6-04 /record/export, /shared/report
+    record: faRecord, // CB-REC-04 /record extras, /record/timeline, /record/documents/[id]
     loss: faLoss,
     me: faMe,
     menopause: faMenopause,
@@ -222,6 +225,7 @@ const bundled = {
     labConsent: enLabConsent,
     healthRecord: enHealthRecord, // B-N6-03 /record
     recordExport: enRecordExport, // B-N6-04 /record/export, /shared/report
+    record: enRecord, // CB-REC-04 /record extras, /record/timeline, /record/documents/[id]
     loss: enLoss,
     me: enMe,
     menopause: enMenopause,

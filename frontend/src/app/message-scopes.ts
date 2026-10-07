@@ -120,7 +120,9 @@ export const ROUTE_NAMESPACES = {
   lossNext: ['common', 'loss'], // CB-LOSS-02 /loss/next (Loss_Next)
   recordExport: ['common', 'healthRecord', 'menopause', 'plus', 'recordExport'], // B-N6-04 /record/export + /record/export/preview (CB-MENO-11: menopause = the paper's menopause section)
   sharedReport: ['common', 'healthRecord', 'menopause', 'plus', 'recordExport'], // B-N6-04 public /shared/report/[token] (CB-MENO-11: menopause = the paper's menopause section)
-  healthRecord: ['common', 'healthRecord', 'profileEdit'], // B-N6-03 /record (Record_Summary; profileEdit = the height/weight QuickEditSheet)
+  healthRecord: ['common', 'healthRecord', 'profileEdit', 'record'], // B-N6-03 /record (Record_Summary; profileEdit = the height/weight QuickEditSheet); CB-REC-04 record = home extras + upload sheet
+  recordTimeline: ['common', 'record'], // CB-REC-04 /record/timeline (nbl_Rec_Timeline, back header, no nav)
+  recordDocument: ['common', 'record'], // CB-REC-04 /record/documents/[id] (nbl_Rec_Doc, back header, no nav)
   ivfMeds: ['common', 'ivf', 'nav'], // CB-IVF-03 /ivf/meds (nbl_IVF_Meds, IVF stage tab «درمان»)
   ivfMedForm: ['common', 'ivf', 'nav'], // CB-IVF-03 /ivf/meds/new, /ivf/meds/[id] (form, no nav; same screen slice as /ivf/meds)
   ivfCycle: ['common', 'ivf'], // CB-IVF-06b /ivf/cycle/new (setup) + /ivf/cycle (stage + dates editor); forms, no nav

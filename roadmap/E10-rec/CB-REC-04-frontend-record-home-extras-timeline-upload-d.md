@@ -3,7 +3,7 @@ id: CB-REC-04
 title: Frontend: record home extras, timeline, upload, document detail
 epic: REC
 type: frontend
-status: todo
+status: done
 depends_on: [CB-REC-02, B-N6-03]
 parallel_group: REC-C
 touches: [frontend/src/screens/health-record, frontend/src/screens/record-timeline, frontend/src/screens/record-document, frontend/src/entities/health-record, frontend/messages/fa/record.json, frontend/messages/en/record.json, frontend/src/app/[locale]/record, frontend/src/app/message-scopes.ts]

@@ -65,6 +65,12 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // CB-REC-04 record documents (upload sheet + record-home additions): consumed by screens/health-record and
+    // screens/record-timeline — references coming FROM `screens` are invisible to steiger (same reason as above).
+    files: ['./src/features/record-documents/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // Checkups foundation (M4, T-M4-05). Consumed by the checkups screens and
     // the home card (T-M4-06…09) — references coming FROM `screens` are
     // invisible to steiger (same reason as the blocks above).

@@ -12,6 +12,7 @@ import {
   useHealthRecord,
 } from '@/entities/health-record';
 import { QuickEditSheet, type QuickEditField } from '@/features/edit-profile';
+import { RecordHomeExtras, RecordHomeSheets } from '@/features/record-documents';
 import { type Locale, useRouter } from '@/shared/i18n';
 import {
   formatDayMonth,
@@ -102,6 +103,7 @@ export function HealthRecordPage() {
       </div>
       {/* Sheets sit outside the scroller: AppSheet is positioned against the screen, not the scrolled content. */}
       {query.data ? <RecordSheets record={query.data} sheet={sheet} onSheet={setSheet} /> : null}
+      <RecordHomeSheets />
     </div>
   );
 }
@@ -137,6 +139,9 @@ function RecordContent({ record, onSheet }: { record: HealthRecord; onSheet: (s:
           <p className="hrec-person-meta">{meta.join(' · ')}</p>
         </div>
       </Card>
+
+      {/* CB-REC-04 (canvas nbl_Rec_Home): allergy card, category grid, needs-review card, «افزودن سند». */}
+      <RecordHomeExtras />
 
       <BasicsCard record={r} onEdit={() => onSheet('basics')} />
       <ConditionsCard record={r} onEdit={() => onSheet('conditions')} />
