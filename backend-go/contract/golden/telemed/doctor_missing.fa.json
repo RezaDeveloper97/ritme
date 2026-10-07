@@ -1,0 +1,23 @@
+{
+  "case": "telemed/doctor_missing.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/telemed/doctors/999999",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این پزشک پیدا نشد",
+        "error_code": "doctor_not_found"
+      }
+    }
+  ]
+}

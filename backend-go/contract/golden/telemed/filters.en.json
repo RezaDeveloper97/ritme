@@ -1,0 +1,67 @@
+{
+  "case": "telemed/filters.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/telemed/doctors/filters",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "total": 0,
+          "modes": [
+            "video",
+            "phone",
+            "in_person"
+          ],
+          "kinds": [
+            "doctor",
+            "midwife"
+          ],
+          "specialties": [
+            {
+              "code": "gynecology",
+              "title": "Obstetrics & gynaecology",
+              "count": 0
+            },
+            {
+              "code": "midwifery",
+              "title": "Midwife",
+              "count": 0
+            },
+            {
+              "code": "dermatology",
+              "title": "Dermatology",
+              "count": 0
+            },
+            {
+              "code": "nutrition",
+              "title": "Nutrition",
+              "count": 0
+            },
+            {
+              "code": "psychology",
+              "title": "Psychology",
+              "count": 0
+            },
+            {
+              "code": "general",
+              "title": "General practice",
+              "count": 0
+            }
+          ],
+          "cities": [],
+          "insurers": []
+        }
+      }
+    }
+  ]
+}

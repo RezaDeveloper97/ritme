@@ -1,0 +1,33 @@
+{
+  "case": "telemed/doctors_invalid.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/telemed/doctors?mode=fax&kind=nurse&today=maybe",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "The given data was invalid",
+        "errors": {
+          "mode": [
+            "The selected visit type is invalid."
+          ],
+          "kind": [
+            "The selected kind is invalid."
+          ],
+          "today": [
+            "The available today field must be true or false."
+          ]
+        }
+      }
+    }
+  ]
+}

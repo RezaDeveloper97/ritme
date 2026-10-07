@@ -1,0 +1,73 @@
+# Doctors directory (/api/v1/telemed/*) — Go only (bloom B-N7-02, deviations.md D-67): there is no Laravel route, so these
+# goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The fixture dump carries the
+# empty telemed_* tables and the six telemed_specialties catalog rows (goose 00045 / Laravel 2026_10_07_000045), added by
+# hand; it has no doctors (the Laravel seeder knows nothing of them and a reseed would drop hand-written rows), so the
+# directory, profile, slot grid, review hook, moderation and the IDOR matrix are covered by the internal/telemed
+# integration tests. Fixture day 2026-09-23. Case format: backend-go/cmd/contract/cases.go.
+group: telemed
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: doctors_anon
+    persona: anon
+    method: GET
+    path: /api/v1/telemed/doctors
+    status: 401
+  - name: doctors_empty
+    doc: nbl_v17_Doctors — nobody listed yet
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/telemed/doctors?today=1&mode=video
+    status: 200
+  - name: doctors_invalid
+    doc: unknown mode and kind, a non-boolean today
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/telemed/doctors?mode=fax&kind=nurse&today=maybe
+    status: 422
+  - name: filters
+    doc: the seeded specialty chips with zero doctors; no cities or insurers yet
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/telemed/doctors/filters
+    status: 200
+  - name: doctor_missing
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/telemed/doctors/999999
+    status: 404
+  - name: slots_missing
+    locales: [en]
+    method: GET
+    path: /api/v1/telemed/doctors/999999/slots?mode=video
+    status: 404
+  - name: slots_invalid
+    locales: [en]
+    method: GET
+    path: /api/v1/telemed/doctors/999999/slots?days=40&from=tomorrow
+    status: 422
+  - name: reviews_missing
+    locales: [en]
+    method: GET
+    path: /api/v1/telemed/doctors/999999/reviews
+    status: 404
+  - name: review_invalid
+    doc: rating out of range is a 422 before the doctor is looked up
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/telemed/doctors/999999/reviews
+    body: {rating: 9}
+    status: 422
+  - name: review_missing_doctor
+    locales: [fa]
+    method: POST
+    path: /api/v1/telemed/doctors/999999/reviews
+    body: {rating: 5, body: "Clear and kind"}
+    status: 404
+  - name: review_delete_foreign
+    doc: any review that is not the caller's is a uniform 404
+    locales: [fa]
+    method: DELETE
+    path: /api/v1/telemed/doctors/1/reviews/1
+    status: 404

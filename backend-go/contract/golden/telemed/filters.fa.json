@@ -1,0 +1,67 @@
+{
+  "case": "telemed/filters.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/telemed/doctors/filters",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "total": 0,
+          "modes": [
+            "video",
+            "phone",
+            "in_person"
+          ],
+          "kinds": [
+            "doctor",
+            "midwife"
+          ],
+          "specialties": [
+            {
+              "code": "gynecology",
+              "title": "زنان و زایمان",
+              "count": 0
+            },
+            {
+              "code": "midwifery",
+              "title": "ماما",
+              "count": 0
+            },
+            {
+              "code": "dermatology",
+              "title": "پوست",
+              "count": 0
+            },
+            {
+              "code": "nutrition",
+              "title": "تغذیه",
+              "count": 0
+            },
+            {
+              "code": "psychology",
+              "title": "روان‌شناسی",
+              "count": 0
+            },
+            {
+              "code": "general",
+              "title": "پزشک عمومی",
+              "count": 0
+            }
+          ],
+          "cities": [],
+          "insurers": []
+        }
+      }
+    }
+  ]
+}

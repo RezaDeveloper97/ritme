@@ -1,0 +1,24 @@
+{
+    "messages": {
+        "validation_failed": "The given data was invalid",
+        "doctor_not_found": "Doctor not found",
+        "review_not_found": "Review not found",
+        "review_not_allowed": "You can review a doctor after a completed visit",
+        "review_exists": "You have already reviewed this visit",
+        "review_saved": "Thanks for your review",
+        "review_deleted": "Review deleted"
+    },
+    "attributes": {
+        "mode": "visit type",
+        "kind": "kind",
+        "specialty": "specialty",
+        "city": "city",
+        "insurance": "insurance",
+        "today": "available today",
+        "q": "search",
+        "from": "start date",
+        "days": "days",
+        "rating": "rating",
+        "body": "review"
+    }
+}

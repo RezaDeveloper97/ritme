@@ -3,7 +3,7 @@ id: B-N7-02
 title: Doctors directory backend
 milestone: N7
 type: backend
-status: todo
+status: done
 depends_on: [B-N7-01]
 parallel_group: N7-B
 touches: [backend-go/db,backend-go/internal/telemed,backend-go/api]

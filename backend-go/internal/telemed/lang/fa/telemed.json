@@ -1,0 +1,24 @@
+{
+    "messages": {
+        "validation_failed": "اطلاعات واردشده معتبر نیست",
+        "doctor_not_found": "این پزشک پیدا نشد",
+        "review_not_found": "این نظر پیدا نشد",
+        "review_not_allowed": "بعد از انجام ویزیت می‌توانی برای این پزشک نظر بنویسی",
+        "review_exists": "برای این ویزیت قبلاً نظر داده‌ای",
+        "review_saved": "ممنون از نظرت",
+        "review_deleted": "نظر حذف شد"
+    },
+    "attributes": {
+        "mode": "نوع ویزیت",
+        "kind": "نوع",
+        "specialty": "تخصص",
+        "city": "شهر",
+        "insurance": "بیمه",
+        "today": "آزاد امروز",
+        "q": "جست‌وجو",
+        "from": "تاریخ شروع",
+        "days": "تعداد روز",
+        "rating": "امتیاز",
+        "body": "متن نظر"
+    }
+}

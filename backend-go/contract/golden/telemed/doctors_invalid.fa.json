@@ -1,0 +1,33 @@
+{
+  "case": "telemed/doctors_invalid.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/telemed/doctors?mode=fax&kind=nurse&today=maybe",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست",
+        "errors": {
+          "mode": [
+            "نوع ویزیت انتخاب‌شده معتبر نیست."
+          ],
+          "kind": [
+            "نوع انتخاب‌شده معتبر نیست."
+          ],
+          "today": [
+            "فیلد آزاد امروز باید درست یا نادرست باشد."
+          ]
+        }
+      }
+    }
+  ]
+}
