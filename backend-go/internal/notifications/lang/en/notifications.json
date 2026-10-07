@@ -4,8 +4,8 @@
         "saved": "Notification settings saved"
     },
     "push": {
-        "neutral_title": "Ritme reminder",
-        "neutral_body": "You have a new reminder. Open Ritme to see it."
+        "neutral_title": "Today's reminder",
+        "neutral_body": "You have a reminder for today."
     },
     "attributes": {
         "categories": "categories",

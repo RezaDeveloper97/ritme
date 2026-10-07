@@ -11377,3 +11377,38 @@ button.rec-doc-thumb { inline-size: 64px; }
 .rec-danger-btn.nb-btn.is-primary { background: var(--danger-soft); color: var(--danger-deep); box-shadow: none; }
 .rec-confirm-body { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
 /* ═══ end CB-REC-04 ═══ */
+
+/* ═══ CB-PRIV-01 privacy settings restyle (nbl_Priv_Settings) + emergency card on the lock screen (nbl_Priv_Lock, nbl_Rec_Emergency) ═══ */
+.prv-list .nb-list-rows > .prv-timeout { border-top: 0; padding-top: 0; }
+.prv-delete-row .nb-row-title { color: var(--danger-deep); }
+.prv-promise { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; }
+.prv-promise p { margin: 0; font-size: 12.5px; font-weight: 700; line-height: 1.9; color: var(--text-2); }
+.prv-promise-icon { flex-shrink: 0; margin-top: 3px; color: var(--data-deep); }
+.lk-ec-link {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 48px; margin-top: 4px; padding: 6px 16px;
+  border: 1px solid var(--danger-line); border-radius: 999px; background: var(--danger-soft);
+  font: inherit; color: var(--danger-deep); cursor: pointer; text-align: start;
+}
+.lk-ec-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+.lk-ec-link-text { display: flex; flex-direction: column; }
+.lk-ec-link-title { font-size: 13px; font-weight: 800; }
+.lk-ec-link-hint { font-size: 11px; font-weight: 600; color: var(--text-2); }
+.lk-ec { display: flex; flex-direction: column; gap: 14px; padding: 0 var(--gutter) 24px; }
+.lk-ec-note { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; }
+.lk-ec-note p { margin: 0; font-size: 12.5px; font-weight: 700; line-height: 1.9; color: var(--text-2); }
+.lk-ec-note-icon { flex-shrink: 0; margin-top: 3px; color: var(--data-deep); }
+.ecard { padding: 16px 18px; border: 1.5px solid var(--danger-line); }
+.ecard-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 6px; }
+.ecard-name { margin: 0; font-size: 17px; font-weight: 800; color: var(--text-1); }
+.ecard-blood {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 30px; padding: 0 10px;
+  border: 1px solid var(--danger-line); border-radius: 999px; font-size: 13px; font-weight: 800; color: var(--danger-deep);
+}
+.ecard-rows { margin: 0; display: flex; flex-direction: column; }
+.ecard-row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-block: 14px; }
+.ecard-row + .ecard-row { border-top: 1px solid var(--line); }
+.ecard-label { flex-shrink: 0; font-size: 13px; font-weight: 700; color: var(--text-2); }
+.ecard-value { margin: 0; font-size: 13.5px; font-weight: 800; color: var(--text-1); text-align: end; overflow-wrap: anywhere; }
+.ecard-call { color: var(--brand); text-decoration: none; }
+.ecard-call:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+/* ═══ end CB-PRIV-01 ═══ */

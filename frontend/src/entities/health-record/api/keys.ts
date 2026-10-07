@@ -6,4 +6,8 @@ export const healthRecordKeys = {
   report: (params: Record<string, string>) => [...healthRecordKeys.all, 'report', params] as const,
   /** The owner's share links (B-N6-04). */
   shareLinks: () => [...healthRecordKeys.all, 'share-links'] as const,
+  /** The owner's emergency card (CB-REC-03). */
+  emergencyCard: () => [...healthRecordKeys.all, 'emergency-card'] as const,
+  /** The app-lock screen's minimal card (CB-PRIV-01). */
+  emergencyCardLock: () => [...healthRecordKeys.all, 'emergency-card-lock'] as const,
 };

@@ -35,12 +35,41 @@
     "lengthLabel": "Passcode length",
     "digits": "{count, plural, one {# digit} other {# digits}}",
     "localNote": "The passcode is kept only on this phone, encrypted, and is never sent to the server.",
-    "lockedOut": "Too many wrong passcodes. To protect your data you are being signed out; sign in again with the SMS code."
+    "lockedOut": "Too many wrong passcodes. To protect your data you are being signed out; sign in again with the SMS code.",
+    "emergency": "Emergency card",
+    "emergencyHint": "No passcode needed",
+    "emergencyBack": "Back to lock",
+    "emergencyNote": "Only what is on this card is shown; the rest of your record stays locked."
   },
   "onbFrame": {
     "back": "Back",
     "skip": "Skip",
     "progress": "Step {step, number} of {total, number}",
     "privacy": "Your information stays confidential with Ritme and is never shared with anyone."
+  },
+  "emergencyCard": {
+    "title": "Emergency card",
+    "bloodType": "Blood type",
+    "allergies": "Allergies",
+    "conditions": "Conditions",
+    "medications": "Regular medication",
+    "status": "Status",
+    "pregnant": "Pregnant · week {week}",
+    "insurance": "Insurance",
+    "contact": "Emergency contact",
+    "none": "Not recorded",
+    "unnamed": "No name",
+    "call": "Call {name}",
+    "chronic": {
+      "diabetes": "Diabetes",
+      "hypertension": "High blood pressure",
+      "thyroid": "Thyroid condition",
+      "asthma": "Asthma",
+      "anemia": "Anemia",
+      "migraine": "Migraine",
+      "other": "Other illness"
+    },
+    "separator": ", ",
+    "callGeneric": "Call"
   }
 }

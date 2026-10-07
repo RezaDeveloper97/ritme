@@ -298,6 +298,9 @@ type Companion struct {
 	// InviteTemplate (KAVENEGAR_TEMPLATE_COMPANION_INVITE, default companion-invite) is the gateway template whose
 	// single token is the invite code.
 	InviteTemplate string
+	// InviteTemplateNeutral (KAVENEGAR_TEMPLATE_COMPANION_INVITE_NEUTRAL, default empty) is the neutral-wording
+	// variant sent when the inviting owner has «اعلان‌های محرمانه» on (CB-PRIV-01); empty = such invites are not sent.
+	InviteTemplateNeutral string
 }
 
 // Learning holds the courses settings (B-N8-01).
@@ -473,9 +476,10 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			},
 		},
 		Companion: Companion{
-			CodePepper:     e.str("COMPANION_CODE_PEPPER", ""),
-			SMSProvider:    strings.ToLower(e.str("COMPANION_SMS_PROVIDER", "")),
-			InviteTemplate: e.str("KAVENEGAR_TEMPLATE_COMPANION_INVITE", "companion-invite"),
+			CodePepper:            e.str("COMPANION_CODE_PEPPER", ""),
+			SMSProvider:           strings.ToLower(e.str("COMPANION_SMS_PROVIDER", "")),
+			InviteTemplate:        e.str("KAVENEGAR_TEMPLATE_COMPANION_INVITE", "companion-invite"),
+			InviteTemplateNeutral: e.str("KAVENEGAR_TEMPLATE_COMPANION_INVITE_NEUTRAL", ""),
 		},
 		Learning: Learning{
 			SMSProvider:    strings.ToLower(e.str("LEARNING_SMS_PROVIDER", "")),

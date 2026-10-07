@@ -8,6 +8,9 @@
 //	    …
 //	}
 //
+// «متن خنثی» is also CB-PRIV-01's discreet flag (Preferences.Discreet): SMS senders go through RenderSMS (free text)
+// or SMSTemplate (gateway templates, e.g. internal/sms's companion invite).
+//
 // Rows live in `notification_preferences` (goose 00011); queries are in db/queries/profile (profile store).
 package notifications
 
@@ -135,6 +138,17 @@ func Load(ctx context.Context, q Getter, userID uint64) (Preferences, error) {
 		return Preferences{}, fmt.Errorf("notifications: load: %w", err)
 	}
 	return FromRow(row), nil
+}
+
+// Discreet is whether userID's notifications must be neutral (Preferences.Discreet). It fails safe: when the
+// preferences cannot be read the answer is true (with the error), so a sender never leaks health data because of a
+// DB error.
+func Discreet(ctx context.Context, q Getter, userID uint64) (bool, error) {
+	p, err := Load(ctx, q, userID)
+	if err != nil {
+		return true, err
+	}
+	return p.Discreet(), nil
 }
 
 // FromRow decodes a stored row; unreadable values fall back to the defaults (a push must never fail on them).

@@ -34,6 +34,15 @@ export { addAllergy, removeAllergy, toggleCode } from './model/edit';
 export { healthRecordKeys } from './api/keys';
 export { healthRecordSchema, pregnancyEntrySchema } from './api/schema';
 export {
+  emergencyCardSchema,
+  lockEmergencyCardSchema,
+  useEmergencyCard,
+  useLockEmergencyCard,
+  type EmergencyCard,
+  type OwnerEmergencyCard,
+} from './api/emergency';
+export { EmergencyCardView } from './ui/EmergencyCardView';
+export {
   fetchHealthRecord,
   useDeleteRecordPregnancy,
   useHealthRecord,

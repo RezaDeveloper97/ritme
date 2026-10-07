@@ -218,6 +218,26 @@ func (h *Handlers) DisablePublic(c fiber.Ctx) error {
 	return httpx.OK(c, body, T("messages.public_disabled", locale))
 }
 
+// Lock is GET /health-record/emergency-card/lock (CB-PRIV-01, D-73), what the app-lock screen reads: {enabled:false}
+// with no data while the lock-screen flag is off, else {enabled:true, card} with the minimal (public) card. Not
+// cached.
+func (h *Handlers) Lock(c fiber.Ctx) error {
+	userID, err := user(c)
+	if err != nil {
+		return err
+	}
+	c.Set(fiber.HeaderCacheControl, "no-store")
+	now := h.now(c)
+	card, err := h.svc.Lock(c, userID, civildate.InTehran(now), i18n.Locale(c), i18n.LanguagesOf(c).DefaultCode())
+	if err != nil {
+		return err
+	}
+	if card == nil {
+		return httpx.OK(c, jsonx.Obj("enabled", false))
+	}
+	return httpx.OK(c, jsonx.Obj("enabled", true, "card", card))
+}
+
 // Public is GET /emergency-cards/{token}: the minimal card (404 for an unknown or disabled token). Never cached or
 // indexed.
 func (h *Handlers) Public(c fiber.Ctx) error {

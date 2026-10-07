@@ -1,0 +1,141 @@
+{
+  "case": "emergency/emergency_lock",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/emergency-card/lock",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/health-record/emergency-card",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "show_on_lock_screen": true,
+          "emergency_contact": {
+            "name": "علی",
+            "relation": "همسر",
+            "phone": "09120000000"
+          },
+          "insurance": {
+            "label": "بیمه تکمیلی",
+            "last4": "4821"
+          }
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "کارت اضطراری ذخیره شد",
+        "data": {
+          "card": {
+            "name": "Contract regular",
+            "blood_type": null,
+            "allergies": [],
+            "conditions": {
+              "chronic_illnesses": [],
+              "gyn_conditions": []
+            },
+            "medications": [],
+            "pregnancy": null,
+            "emergency_contact": {
+              "name": "علی",
+              "relation": "همسر",
+              "phone": "09120000000"
+            },
+            "profile_medications": [],
+            "insurance": {
+              "label": "بیمه تکمیلی",
+              "last4": "4821",
+              "masked": "•••• 4821"
+            }
+          },
+          "settings": {
+            "show_on_lock_screen": true,
+            "show_pregnancy": false,
+            "allergies_on_card": true
+          },
+          "public_link": {
+            "enabled": false,
+            "enabled_at": null,
+            "views": 0,
+            "last_viewed_at": null
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/emergency-card/lock",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "enabled": true,
+          "card": {
+            "name": "Contract",
+            "blood_type": null,
+            "allergies": [],
+            "conditions": {
+              "chronic_illnesses": []
+            },
+            "medications": [],
+            "pregnancy": null,
+            "emergency_contact": {
+              "name": "علی",
+              "relation": "همسر",
+              "phone": "09120000000"
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-record/emergency-card/lock",
+        "persona": "anon",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 401,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Unauthenticated.",
+        "error_code": "unauthenticated"
+      }
+    }
+  ]
+}

@@ -3,7 +3,7 @@ id: CB-PRIV-01
 title: Discreet notifications + emergency card from the lock screen
 epic: PRIV
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N1-12, B-N1-11, CB-REC-03]
 parallel_group: PRIV-A
 touches: [frontend/src/screens/privacy, frontend/src/features/app-lock, backend-go/internal/notify, backend-go/internal/profile, backend-go/api/openapi.yaml, backend-go/db/migrations, backend/database/migrations]

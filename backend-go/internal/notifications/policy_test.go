@@ -91,8 +91,8 @@ func TestRender_NeutralCopyHidesHealthData(t *testing.T) {
 		assert.NotEmpty(t, push.Title, loc)
 		assert.Equal(t, "/calendar", push.URL)
 	}
-	assert.Equal(t, "یادآور ریتمی", Render(Defaults(), msg, "fa").Title)
-	assert.Equal(t, "Ritme reminder", Render(Defaults(), msg, "de").Title, "unknown language falls back to English")
+	assert.Equal(t, "یادآور امروز", Render(Defaults(), msg, "fa").Title)
+	assert.Equal(t, "Today's reminder", Render(Defaults(), msg, "de").Title, "unknown language falls back to English")
 
 	p := Defaults()
 	p.NeutralCopy = false

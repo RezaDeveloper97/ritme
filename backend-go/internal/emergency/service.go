@@ -346,6 +346,24 @@ func (s *Service) DisablePublic(ctx context.Context, userID uint64, now time.Tim
 	return nil
 }
 
+// Lock is the lock-screen view of the owner's own card (CB-PRIV-01, D-73): nil while «نمایش روی صفحه قفل» is off —
+// then no health data is read at all — else the same minimal card the public link shows (first name, chronic
+// illnesses only, no profile medications, no insurance). The lock screen never reads the owner view.
+func (s *Service) Lock(ctx context.Context, userID uint64, today civildate.Date, locale, def string) (*jsonx.OrderedMap, error) {
+	row, err := s.settings(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if !row.ShowOnLockScreen {
+		return nil, nil
+	}
+	card, err := s.Build(ctx, userID, today, locale, def)
+	if err != nil {
+		return nil, err
+	}
+	return card.Public, nil
+}
+
 // Public is the minimal card behind a public token (ErrNotFound for an unknown, malformed or disabled token); the
 // view is counted.
 func (s *Service) Public(ctx context.Context, token string, today civildate.Date, now time.Time, locale, def string,

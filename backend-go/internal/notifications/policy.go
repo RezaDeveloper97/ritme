@@ -94,3 +94,30 @@ func Render(p Preferences, m Message, locale string) Push {
 	}
 	return Push{Title: T("push.neutral_title", locale), Body: T("push.neutral_body", locale), URL: m.URL}
 }
+
+// Discreet is the CB-PRIV-01 «اعلان‌های محرمانه» flag (discreet_notifications). It is the same stored preference as
+// B-N1-11's «متن خنثی» (NeutralCopy) — one switch, shown on both the notification and the privacy screens — and it
+// covers every channel that can reach a lock screen: push and web push (Render) and SMS (RenderSMS, SMSTemplate).
+func (p Preferences) Discreet() bool { return p.NeutralCopy }
+
+// RenderSMS is the text of a free-text SMS about the user (e.g. a reminder by SMS): Render's title and body on two
+// lines, so with the discreet flag on it is the neutral «یادآور امروز» copy and carries no health data. An SMS has
+// no deep link, so the URL is dropped.
+func RenderSMS(p Preferences, m Message, locale string) string {
+	push := Render(p, m, locale)
+	if push.Body == "" {
+		return push.Title
+	}
+	return push.Title + "\n" + push.Body
+}
+
+// SMSTemplate picks the gateway (Kavenegar lookup) template of a templated SMS whose wording lives at the gateway:
+// with the discreet flag on (Preferences.Discreet / Discreet), the deployment's neutral variant; off, the regular
+// template. ok is false when the flag is on and no neutral variant is configured: the sender must then NOT send
+// (no silent fallback to the regular wording).
+func SMSTemplate(discreet bool, template, neutral string) (string, bool) {
+	if !discreet {
+		return template, true
+	}
+	return neutral, neutral != ""
+}

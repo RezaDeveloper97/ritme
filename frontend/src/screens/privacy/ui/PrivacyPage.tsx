@@ -18,6 +18,7 @@ import { DeleteAccountConfirm, useExportData, useExportPdf } from '@/features/ma
 import { type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatLongDate, formatNumber, today } from '@/shared/lib/date';
 import {
+  Icon,
   ListGroup,
   ListRow,
   ScreenHeader,
@@ -30,6 +31,7 @@ import {
 } from '@/shared/ui';
 
 import { useConsents, useUpdateConsent } from '../api/consents';
+import { useDiscreetNotifications, useSetDiscreetNotifications } from '../api/discreet';
 import { ShareLinksSection } from './ShareLinksSection';
 
 function SectionLabel({ id, children }: { id: string; children: string }) {
@@ -72,9 +74,13 @@ function DoctorsRow() {
   );
 }
 
-/** «قفل اپ»: passcode on/off (sheet), lock delay, biometrics, hide preview. */
+/**
+ * «قفل اپ» (nbl_Priv_Settings): passcode on/off (sheet), «روش باز کردن» (passcode length + biometrics) and
+ * «قفل خودکار» (lock delay).
+ */
 function LockSection() {
   const t = useTranslations('me.privacy');
+  const loc = useLocale() as Locale;
   const lock = useAppLock();
   const [sheet, setSheet] = useState<'create' | 'verify' | null>(null);
   const [bioAvailable, setBioAvailable] = useState(false);
@@ -101,6 +107,8 @@ function LockSection() {
     else setBioError(true);
   };
 
+  const passcode = t('lock.methodPasscode', { digits: formatNumber(lock?.length ?? 4, loc) });
+
   return (
     <section className="prv-sec" aria-labelledby="prv-g-lock">
       <SectionLabel id="prv-g-lock">{t('groups.lock')}</SectionLabel>
@@ -108,7 +116,6 @@ function LockSection() {
         <ListRow
           id="prv-lock"
           title={t('lock.title')}
-          description={enabled ? t('lock.on') : t('lock.off')}
           trailing={
             <Switch
               checked={enabled}
@@ -119,18 +126,13 @@ function LockSection() {
           }
         />
         {enabled && lock ? (
-          <div className="prv-timeout">
-            <span id="prv-timeout-l" className="prv-timeout-label">
-              {t('lock.after')}
-            </span>
-            <SegmentedTabs
-              label={t('lock.after')}
-              tabs={LOCK_TIMEOUTS.map((m) => ({ value: String(m), label: t('lock.timeout', { minutes: m }) }))}
-              value={String(lock.timeoutMin)}
-              onChange={(v) => c?.setTimeoutMin(Number(v) as LockTimeout)}
-              className="prv-timeout-tabs"
-            />
-          </div>
+          <ListRow
+            id="prv-method"
+            icon="user"
+            iconTone="brand"
+            title={t('lock.method')}
+            description={lock.biometric ? t('lock.methodBiometric', { method: passcode }) : passcode}
+          />
         ) : null}
         {enabled && lock && bioAvailable ? (
           <ListRow
@@ -142,8 +144,76 @@ function LockSection() {
             }
           />
         ) : null}
+        {enabled && lock ? (
+          <>
+            <ListRow
+              id="prv-auto"
+              icon="clock"
+              iconTone="data"
+              title={t('lock.auto')}
+              description={t('lock.autoSub', { minutes: lock.timeoutMin })}
+            />
+            <div className="prv-timeout">
+              <SegmentedTabs
+                label={t('lock.after')}
+                tabs={LOCK_TIMEOUTS.map((m) => ({ value: String(m), label: t('lock.timeout', { minutes: m }) }))}
+                value={String(lock.timeoutMin)}
+                onChange={(v) => c?.setTimeoutMin(Number(v) as LockTimeout)}
+                className="prv-timeout-tabs"
+              />
+            </div>
+          </>
+        ) : null}
+      </ListGroup>
+      <PasscodeSheet
+        open={sheet !== null}
+        mode={sheet ?? 'create'}
+        onClose={() => setSheet(null)}
+        onDone={() => {
+          if (sheet === 'verify') c?.disable();
+          setSheet(null);
+        }}
+      />
+    </section>
+  );
+}
+
+/**
+ * «پنهان ماندن» (nbl_Priv_Settings, CB-PRIV-01): «اعلان‌های محرمانه» = the server-side neutral-copy preference
+ * (every push / SMS sender), and «مخفی در صفحه برنامه‌های اخیر» = the device-local hide-preview blur (B-N1-12; on
+ * the web screenshots cannot be blocked, so the copy promises only the blur). The board's «آیکون و نام اپ» row is
+ * native-only and dropped (DECISIONS #5).
+ */
+function HideSection() {
+  const t = useTranslations('me.privacy');
+  const lock = useAppLock();
+  const c = getLockController();
+  const discreet = useDiscreetNotifications();
+  const setDiscreet = useSetDiscreetNotifications();
+
+  return (
+    <section className="prv-sec" aria-labelledby="prv-g-hide">
+      <SectionLabel id="prv-g-hide">{t('groups.hide')}</SectionLabel>
+      <ListGroup className="prv-list">
+        <ListRow
+          id="prv-discreet"
+          icon="bell"
+          iconTone="brand"
+          title={t('hide.discreet')}
+          description={t('hide.discreetSub')}
+          trailing={
+            <Switch
+              checked={discreet.data ?? true}
+              disabled={discreet.data === undefined}
+              labelledBy="prv-discreet-title"
+              onCheckedChange={(next) => setDiscreet.mutate(next)}
+            />
+          }
+        />
         <ListRow
           id="prv-veil"
+          icon="eye"
+          iconTone="data"
           title={t('lock.hidePreview')}
           description={t('lock.hidePreviewSub')}
           trailing={
@@ -156,15 +226,11 @@ function LockSection() {
           }
         />
       </ListGroup>
-      <PasscodeSheet
-        open={sheet !== null}
-        mode={sheet ?? 'create'}
-        onClose={() => setSheet(null)}
-        onDone={() => {
-          if (sheet === 'verify') c?.disable();
-          setSheet(null);
-        }}
-      />
+      {setDiscreet.isError || discreet.isError ? (
+        <p className="prv-error" role="alert">
+          {t('hide.discreetError')}
+        </p>
+      ) : null}
     </section>
   );
 }
@@ -330,6 +396,7 @@ export function PrivacyPage() {
         <ScreenHeader title={t('title')} onBack={() => router.push('/profile')} backLabel={t('back')} />
 
         <LockSection />
+        <HideSection />
         <ConsentSection />
 
         <section className="prv-sec" aria-labelledby="prv-g-access">
@@ -369,6 +436,14 @@ export function PrivacyPage() {
               description={t('mine.backupSub')}
               trailing={<StatusPill tone="neutral">{soon}</StatusPill>}
             />
+            <ListRow
+              icon="trash"
+              iconTone="danger"
+              title={t('mine.delete')}
+              description={t('mine.deleteSub')}
+              className="prv-delete-row"
+              onClick={() => setDeleteOpen(true)}
+            />
           </ListGroup>
           {json.isError || pdf.isError ? (
             <p className="prv-error" role="alert">
@@ -377,10 +452,10 @@ export function PrivacyPage() {
           ) : null}
         </section>
 
-        <button type="button" className="prv-delete" onClick={() => setDeleteOpen(true)}>
-          {t('mine.delete')}
-        </button>
-        <p className="prv-note">{t('mine.deleteNote')}</p>
+        <aside className="nb-card prv-promise">
+          <Icon name="shield" size={18} className="prv-promise-icon" />
+          <p>{t('mine.promise')}</p>
+        </aside>
       </div>
       <DeleteAccountConfirm open={deleteOpen} onClose={() => setDeleteOpen(false)} />
     </div>

@@ -68,6 +68,27 @@ cases:
         path: "/api/v1/emergency-cards/{{token}}"
         as: anon
         status: 404
+  - name: emergency_lock
+    doc: "CB-PRIV-01 (D-73): the app-lock card — {enabled:false} while the flag is off, the minimal card once it is on"
+    locales: [fa]
+    steps:
+      - method: GET
+        path: /api/v1/health-record/emergency-card/lock
+        status: 200
+      - method: PUT
+        path: /api/v1/health-record/emergency-card
+        body:
+          show_on_lock_screen: true
+          emergency_contact: {name: "علی", relation: "همسر", phone: "09120000000"}
+          insurance: {label: "بیمه تکمیلی", last4: "4821"}
+        status: 200
+      - method: GET
+        path: /api/v1/health-record/emergency-card/lock
+        status: 200
+      - method: GET
+        path: /api/v1/health-record/emergency-card/lock
+        as: anon
+        status: 401
   - name: emergency_public_unknown
     persona: anon
     locales: [en]

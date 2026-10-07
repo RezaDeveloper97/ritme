@@ -194,7 +194,7 @@
     },
     "neutral": {
       "title": "Neutral text",
-      "on": "Notification text is neutral — e.g. “Ritme reminder” instead of “Your period is close” — so nothing shows on the lock screen.",
+      "on": "Notification text is neutral — e.g. “Today's reminder” instead of “Your period is close” — so nothing shows on the lock screen.",
       "off": "Full reminder text shows on the lock screen. Turn on “Neutral text” to keep it private."
     },
     "saveError": "Couldn't save. Check your connection and try again.",
@@ -209,16 +209,17 @@
     }
   },
   "privacy": {
-    "title": "Privacy & security",
+    "title": "Privacy & lock",
     "back": "Back to Me",
     "groups": {
       "lock": "App lock",
       "data": "Data & AI",
       "access": "Who can see my data",
-      "mine": "My data"
+      "mine": "My data",
+      "hide": "Staying hidden"
     },
     "lock": {
-      "title": "Lock with fingerprint or passcode",
+      "title": "Lock when opening the app",
       "off": "When opening Ritme",
       "on": "On · asks for the passcode when you come back",
       "after": "Lock after",
@@ -226,8 +227,13 @@
       "biometric": "Unlock with fingerprint or face",
       "biometricSub": "Instead of typing the passcode",
       "biometricFailed": "Fingerprint or face wasn't set up. Try again.",
-      "hidePreview": "Hide preview",
-      "hidePreviewSub": "Blur the app in the recent-apps list"
+      "hidePreview": "Hidden in recent apps",
+      "hidePreviewSub": "The app preview is blurred in the recent-apps screen",
+      "method": "Unlock method",
+      "methodPasscode": "{digits}-digit passcode",
+      "methodBiometric": "{method} + fingerprint",
+      "auto": "Auto-lock",
+      "autoSub": "{minutes, plural, =0 {As soon as you leave} one {After # minute away} other {After # minutes away}}"
     },
     "consents": {
       "ai_lab_analysis": {
@@ -255,8 +261,8 @@
       "doctorsSub": "You haven't created a report link yet"
     },
     "mine": {
-      "export": "Download all my data",
-      "exportSub": "JSON or PDF file",
+      "export": "Get a copy of all my data",
+      "exportSub": "Readable file (JSON or PDF)",
       "exporting": "Preparing…",
       "exportJson": "JSON file",
       "exportPdf": "PDF file",
@@ -266,8 +272,15 @@
       "pdfFooter": "Ritme · page {page} of {pages}",
       "backup": "Backup & sync",
       "backupSub": "Your data is kept on Ritme's server",
-      "delete": "Delete all my data",
-      "deleteNote": "Everything is deleted from this phone and the server, and it can't be undone."
+      "delete": "Delete account and all data",
+      "deleteNote": "Everything is deleted from this phone and the server, and it can't be undone.",
+      "deleteSub": "Can't be undone",
+      "promise": "Your health data is never sold and never shared with anyone without your permission."
+    },
+    "hide": {
+      "discreet": "Discreet notifications",
+      "discreetSub": "Show only “Today's reminder” instead of “Your period starts in 2 days”",
+      "discreetError": "Notification setting not saved. Try again."
     }
   },
   "support": {

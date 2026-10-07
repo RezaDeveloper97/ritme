@@ -404,3 +404,11 @@ TODO (ask user):
 - Omitted: insurance links (CB-INS), emergency-card / share-with-doctor buttons (CB-REC-03 frontend → CB-REC-05).
 - Verify (agent, on 62329dae): full frontend chain + build, 1593 tests; on stage after B-N7-01: tsc, vitest subset, lint:styles, lint:dark, steiger, eslint, i18n tests.
 - TODO (ask user): hospital stay counts admission + discharge days (4–6 Esfand = 3) or nights?; needs-review card goes to the timeline (categories has no document id).
+
+## CB-PRIV-01 — Discreet notifications + emergency card from the lock screen
+- Discreet = bloom B-N1-11's `neutral_copy` (no new column). `internal/notifications`: `Preferences.Discreet()`, fail-safe `Discreet()` (DB error ⇒ neutral), `RenderSMS`, `SMSTemplate` (never falls back: discreet + no neutral template ⇒ not sent). Neutral copy per board «یادآور امروز / یک یادآور برای امروز داری.». Companion invite SMS follows the owner's flag via `KAVENEGAR_TEMPLATE_COMPANION_INVITE_NEUTRAL` (empty ⇒ `sms_sent:false`, owner shares the code). Planners (reminders, vitals, todo, children, pill) go through `Render`; OTP, Telegram admin, in-app inbox deliberately excluded.
+- D-73: `GET /health-record/emergency-card/lock` (owner, no-store): `{enabled:false}` without data unless show_on_lock_screen, else the minimal public card (first name, chronic illnesses, contact; no gyn conditions, onboarding meds or insurance). Lock screen pill «کارت اضطراری» opens it inside the lock overlay (app tree stays unmounted). `entities/health-record`: `useEmergencyCard`, `useLockEmergencyCard`, `EmergencyCardView` (owner/lock).
+- Privacy screen restyled to nbl_Priv_Settings («پنهان ماندن» group with discreet switch + bloom's recents blur, delete row, promise card; icon row dropped). Prod + stage compose pass the invite template vars (empty defaults).
+- security-auditor: no high/critical; M1 (lock screen read the owner card) + L1 → D-73 endpoint; M2 (silent fallback to the regular invite template) fixed; L2 contact label; L3 prod compose vars.
+- Verify (agent on 62329dae: full chain, contract all 1707/0); on stage after the bloom N7/N8 batch: vet, go test ./..., golangci-lint 0, OpenAPI, tsc, vitest subset, lint:styles, lint:dark, steiger.
+- TODO (ask user): D-73 OK; register a neutral invite template at Kavenegar + set the env on stage/prod; board neutral copy replaces «یادآور ریتمی».

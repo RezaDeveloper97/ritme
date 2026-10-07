@@ -3,11 +3,12 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
+import { type EmergencyCard, EmergencyCardView, useLockEmergencyCard } from '@/entities/health-record';
 import { apiClient } from '@/shared/api';
 import { type Locale, localizeHref } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
-import { clearAuthToken } from '@/shared/session';
-import { Icon, IconCircle, PrimaryButton, SecondaryButton, SkyLayer } from '@/shared/ui';
+import { clearAuthToken, isAuthenticated } from '@/shared/session';
+import { Icon, IconCircle, PrimaryButton, ScreenHeader, SecondaryButton, SkyLayer } from '@/shared/ui';
 
 import type { LockSnapshot } from '../model/controller';
 import { getLockController } from '../model/store';
@@ -42,9 +43,37 @@ async function endLockedSession(loc: Locale): Promise<void> {
   window.location.replace(localizeHref('/signup', loc));
 }
 
+/**
+ * «کارت اضطراری» from the lock screen (CB-PRIV-01): only the emergency card is fetched and shown — the app's tree
+ * stays unmounted behind the lock, so no other data is reachable from here. The link appears only when the owner
+ * switched on «نمایش روی صفحه قفل» (CB-REC-03 `show_on_lock_screen`). It reads only
+ * `GET /health-record/emergency-card/lock` (D-73) — the minimal card — never the owner view.
+ */
+function EmergencyCardPanel({ card, onBack }: { card: EmergencyCard; onBack: () => void }) {
+  const t = useTranslations('common.appLock');
+  return (
+    <div className="view lk-page" role="dialog" aria-modal="true" aria-labelledby="lk-ec-title">
+      <SkyLayer />
+      <div className="scroll lk-ec">
+        <ScreenHeader title={<span id="lk-ec-title">{t('emergency')}</span>} onBack={onBack} backLabel={t('emergencyBack')} />
+        <EmergencyCardView card={card} variant="lock" />
+        <aside className="nb-card lk-ec-note">
+          <Icon name="shield" size={16} className="lk-ec-note-icon" />
+          <p>{t('emergencyNote')}</p>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
 export function LockScreen({ state }: { state: LockSnapshot }) {
   const t = useTranslations('common.appLock');
   const loc = useLocale() as Locale;
+  const [showCard, setShowCard] = useState(false);
+  // The lock-screen route answers no data unless the owner enabled it; no fetch once the session is ending.
+  const emergency = useLockEmergencyCard({ enabled: !state.lockedOut && isAuthenticated() });
+  const lockCard = state.lockedOut ? null : (emergency.data ?? null);
+  const emergencyOn = lockCard !== null;
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
@@ -82,6 +111,8 @@ export function LockScreen({ state }: { state: LockSnapshot }) {
   useEffect(() => {
     if (state.lockedOut) void endLockedSession(loc);
   }, [state.lockedOut, loc]);
+
+  if (showCard && lockCard) return <EmergencyCardPanel card={lockCard} onBack={() => setShowCard(false)} />;
 
   const title = <h1 id="lk-title" className="lk-title">{t('title')}</h1>;
 
@@ -142,6 +173,15 @@ export function LockScreen({ state }: { state: LockSnapshot }) {
             <button type="button" className="lk-link" onClick={() => setForgot(true)}>
               {t('forgot')}
             </button>
+            {emergencyOn ? (
+              <button type="button" className="lk-ec-link" onClick={() => setShowCard(true)}>
+                <Icon name="card" size={18} />
+                <span className="lk-ec-link-text">
+                  <span className="lk-ec-link-title">{t('emergency')}</span>
+                  <span className="lk-ec-link-hint">{t('emergencyHint')}</span>
+                </span>
+              </button>
+            ) : null}
           </>
         )}
       </div>

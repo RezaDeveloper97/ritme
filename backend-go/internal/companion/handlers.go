@@ -12,12 +12,14 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
+	"github.com/ritme/backend-go/internal/notifications"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
+	profilestore "github.com/ritme/backend-go/internal/profile/store"
 )
 
 // Error codes of the controller-style failures.
@@ -43,7 +45,8 @@ const MaxAuditEntries = 200
 // InviteSMS delivers an invite code (internal/sms implements it).
 type InviteSMS interface {
 	Delivers() bool
-	SendInvite(ctx context.Context, mobile, code string) error
+	// SendInvite texts the code; discreet is the owner's «اعلان‌های محرمانه» flag (CB-PRIV-01).
+	SendInvite(ctx context.Context, mobile, code string, discreet bool) error
 }
 
 // SectionReader builds the access-filtered view of one section of an owner's data (internal/companion/shared). The
@@ -576,7 +579,13 @@ func (h *Handlers) sendInvite(c fiber.Ctx, inv CreatedInvite) bool {
 	if !h.smsAllowed(c, inv) {
 		return false
 	}
-	if err := h.opt.SMS.SendInvite(c.Context(), inv.Phone, inv.Code); err != nil {
+	// CB-PRIV-01: the owner's «اعلان‌های محرمانه» picks the neutral wording; a read error fails safe (neutral).
+	discreet, err := notifications.Discreet(c.Context(), profilestore.New(h.conn), inv.Link.OwnerID)
+	if err != nil {
+		h.logger.WarnContext(c.Context(), "companion invite SMS: notification preferences unreadable, sending neutral",
+			slog.String("error", err.Error()))
+	}
+	if err := h.opt.SMS.SendInvite(c.Context(), inv.Phone, inv.Code, discreet); err != nil {
 		h.logger.WarnContext(c.Context(), "companion invite SMS failed",
 			slog.String("mobile", MaskMobile(inv.Phone)), slog.String("error", err.Error()))
 		return false

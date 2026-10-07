@@ -35,6 +35,7 @@ func init() {
 
 		const p = "/api/v1/health-record/emergency-card"
 		r.Get(p, locale, guard, h.Show)
+		r.Get(p+"/lock", locale, guard, h.Lock) // CB-PRIV-01 (D-73): the app-lock screen's minimal card
 		r.Put(p, locale, guard, writes, h.Update)
 		r.Post(p+"/public-link", locale, guard, writes, h.EnablePublic)
 		r.Delete(p+"/public-link", locale, guard, writes, h.DisablePublic)

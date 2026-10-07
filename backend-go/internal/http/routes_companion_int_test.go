@@ -50,6 +50,12 @@ type companionEnv struct {
 // in-memory Redis, so the throttles and the care delegation are the production wiring.
 func newCompanionEnv(t *testing.T) *companionEnv {
 	t.Helper()
+	return newCompanionEnvWithLogger(t, slog.New(slog.NewJSONHandler(io.Discard, nil)))
+}
+
+// newCompanionEnvWithLogger is newCompanionEnv with the app's logger (CB-PRIV-01 reads the fake SMS provider's log).
+func newCompanionEnvWithLogger(t *testing.T, logger *slog.Logger) *companionEnv {
+	t.Helper()
 	db := testdb.New(t)
 	keysPath, err := filepath.Abs(keysDir)
 	require.NoError(t, err)
@@ -73,7 +79,7 @@ func newCompanionEnv(t *testing.T) *companionEnv {
 		},
 		DB:     db,
 		Cache:  cache.NewFromClient(rdb, "ritme-go-b4n2:"),
-		Logger: slog.New(slog.NewJSONHandler(io.Discard, nil)),
+		Logger: logger,
 	})
 	return &companionEnv{t: t, db: db, app: app, iss: passport.NewIssuer(keys.Private, authstore.New(db), clock.Real{}, 365), ids: map[string]uint64{}, mr: mr}
 }

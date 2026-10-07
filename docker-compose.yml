@@ -140,6 +140,10 @@ services:
       # empty in production = invites answer 503). COMPANION_SMS_PROVIDER: empty = fake outside production, none in it.
       COMPANION_CODE_PEPPER: ${COMPANION_CODE_PEPPER:-}
       COMPANION_SMS_PROVIDER: ${COMPANION_SMS_PROVIDER:-}
+      # Invite templates (CB-PRIV-01): empty _INVITE = the Go default companion-invite; empty _NEUTRAL = a discreet
+      # owner's invite is not sent by SMS (she shares the code herself).
+      KAVENEGAR_TEMPLATE_COMPANION_INVITE: ${KAVENEGAR_TEMPLATE_COMPANION_INVITE:-}
+      KAVENEGAR_TEMPLATE_COMPANION_INVITE_NEUTRAL: ${KAVENEGAR_TEMPLATE_COMPANION_INVITE_NEUTRAL:-}
       # Record sharing (CB-REC-03). SHARE_CODE_PEPPER is a secret (server .env only, ≥ 32 bytes in production; empty in
       # production = 24h doctor codes answer 503). SHARE_WEB_URL: web app origin for the QR (optional).
       SHARE_CODE_PEPPER: ${SHARE_CODE_PEPPER:-}

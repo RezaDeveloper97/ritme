@@ -13122,7 +13122,9 @@ paths:
       description: |
         Go only (B-N1-11). The categories a push may be sent for (grouped cycle · health · other, screen order),
         the quiet-hours window (Tehran wall-clock, `start` > `end` wraps midnight) and `neutral_copy` («متن خنثی»:
-        push title/body never carry health data). A user who never saved gets the defaults (fertile window, vitals
+        push title/body never carry health data; CB-PRIV-01: it is also the «اعلان‌های محرمانه» discreet flag of the
+        privacy screen and covers SMS — free-text SMS get the neutral line, templated SMS such as the companion invite
+        the neutral gateway template). A user who never saved gets the defaults (fertile window, vitals
         and articles off; quiet 23:00–08:00; neutral copy on).
       operationId: getNotificationSettings
       security:
@@ -17301,6 +17303,37 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/EmergencyValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/health-record/emergency-card/lock:
+    get:
+      tags: [EmergencyCard]
+      summary: The app-lock screen's minimal emergency card (only when the lock-screen flag is on)
+      description: |
+        CB-PRIV-01 (D-73), Go only. Owner-scoped, read by the app-lock screen instead of the owner view.
+        `{enabled: false}` with no data while `show_on_lock_screen` is off; otherwise `{enabled: true, card}` with
+        the minimal card the public link shows (first name, chronic illnesses, ongoing medications, emergency
+        contact; never the full name, `gyn_conditions`, `profile_medications` or insurance). `Cache-Control: no-store`.
+      operationId: showLockEmergencyCard
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [enabled]
+                    properties:
+                      enabled: {type: boolean}
+                      card: {$ref: "#/components/schemas/EmergencyCard"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/health-record/emergency-card/public-link:
     post:
       tags: [EmergencyCard]
@@ -23690,7 +23723,7 @@ components:
             enabled: {type: boolean}
             start: {type: string, pattern: "^[0-2][0-9]:[0-5][0-9]$"}
             end: {type: string, pattern: "^[0-2][0-9]:[0-5][0-9]$"}
-        neutral_copy: {type: boolean}
+        neutral_copy: {type: boolean, description: "«متن خنثی» = discreet notifications (CB-PRIV-01): push, web push and SMS copy is neutral («یادآور امروز»)."}
     ContraceptionMethodCode:
       type: string
       enum: [combined_pill, progestin_pill, copper_iud, hormonal_iud, injection, implant, condom, other]
