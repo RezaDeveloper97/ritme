@@ -678,3 +678,47 @@ Money is integer **rials** (`price_rials`; clients show toman).
 A doctor is listed publicly only while `is_active` and with at least one active visit type. Slots come from the
 availability grid (a visit must end inside its window, start ≥ 30 min from now, within 60 days) minus time off and the
 booked intervals B-N7-03 reports through `telemed.Busy`.
+
+## 20. Instructors & courses moderation — «مدرسین و دوره‌ها» (B-N8-08)
+
+Package `internal/admin/learning`, routes `routes_admin_learning.go`, queries `db/queries/admin/learning.sql`, over the
+B-N8-01 courses domain (`internal/learning`, goose 00046) and goose **00054** (+ Laravel twin
+`2026_10_07_000054_add_review_to_learning_lessons.php`): `learning_lessons.review_status|reviewed_at|reviewed_by|
+review_note` and the `learning_moderation_log` table. **A** = editor or super, **S** = super only. Every write passes
+the CSRF check (419) and writes one `learning_moderation_log` row (admin id, action, target, instructor id, note) plus the
+slog `admin audit` line `learning.<action>` (ids only — never notes, phone numbers or lesson text).
+
+**No health data.** Students are only counted; completion is aggregated per course; grant phone numbers are never
+selected; the instructor's own mobile is masked (`0912•••4567`, the full number stays on `/users/:id`).
+
+**Review state** of a lesson (`review.state`, what B-N9-10's safety queue consumes): `pending` (never reviewed — every
+existing and new lesson), `approved`, `changed` (approved, then edited: `updated_at > reviewed_at`; the instructor code
+does not reset anything — an edit or a B-N8-02 media replacement bumps `updated_at`), `flagged` (needs attention, with
+the admin's note). `open` = pending + changed + flagged. The queue holds published lessons plus flagged ones (also after
+a takedown). Approve / flag write only the review fields (not `updated_at`); unpublish sets `status=draft` +
+`flagged` and bumps `updated_at`.
+
+| Method | Path | Role | Body / query | `data` |
+|---|---|---|---|---|
+| GET | `/learning/stats` | A | — | `{instructors{all, pending, approved, revoked}, courses{all, draft, published}, lessons{all, published}, review{open, pending, changed, flagged, approved}, grants{all, active, pending, expired, revoked, new_30d}, students{with_access (distinct users with a running grant), active_30d (opened a lesson)}, completion{percent (mean course % over enrolments), enrolments (course × student with access), completed (at 100 %), lessons_completed}, active_days: 30}` |
+| GET | `/learning/instructors` | A | `status=all\|pending\|approved\|revoked` (unknown → all), `q` (display name, account name, part of the mobile; Persian digits ok), `page`, `per_page` | list, pending first then newest; items `Instructor` + `filters{status, q}` + `counts{all, pending, approved, revoked}` + `statuses[]` |
+| GET | `/learning/instructors/:id` | A | — | `{instructor: Instructor, history: [{id, action, target_type, target_id, admin{id, name}\|null, note, created_at}] (last 20, newest first: status changes and reviews of her lessons)}` |
+| POST | `/learning/instructors/:id/approve` | S | `note?` (≤ 300) | `{instructor, changed}` — pending / revoked → approved (`approved_by` = the admin): she reaches `/api/instructor/v1` and students see her published courses. Already approved → `changed: false`, message `No change.`, no log row |
+| POST | `/learning/instructors/:id/revoke` | S | `note?` (≤ 300) | `{instructor, changed}` — approved / pending (= rejecting an application) → revoked: her panel answers 403 `instructor_required`, students stop seeing her courses; nothing is deleted (she may re-apply → pending) |
+| GET | `/learning/courses` | A | `status=all\|draft\|published`, `instructor_id?`, `q` (title), `page`, `per_page` | list, newest first; items `{id, title, kind, status, instructor{id, display_name, status}, chapters_count, lessons_count, published_lessons, review_open, flagged_count, students_count, completion_percent, completed_count, published_at, created_at, updated_at}` + `filters{status, q, instructor_id}` + `counts{all, draft, published}` + `statuses[]` |
+| GET | `/learning/courses/:id` | A | — | `{course: {id, title, description, kind, status, instructor{id, display_name, title, status}, chapters[{id, title, sort_order, unlock_at}], lessons[Lesson + sort_order] (drafts included), grants{all, active, pending, expired, revoked} (direct + through groups), usage{students_count, completion_percent, completed_count}, published_at, created_at, updated_at}}` |
+| GET | `/learning/reviews` | A | `state=open\|pending\|changed\|flagged\|approved\|all` (default / unknown → open), `page`, `per_page` | list of `Lesson + course{id, title, kind, status} + instructor{id, display_name, status}`; open states oldest change first (a queue), approved / all newest first; + `filters{state}`, `counts{open, pending, changed, flagged, approved}`, `states[]` |
+| POST | `/learning/lessons/:id/approve` | A | — | `{lesson}` — clears a flag and its note; publication status unchanged |
+| POST | `/learning/lessons/:id/flag` | A | `note` (req, 3–300) | `{lesson}` — still visible to students |
+| POST | `/learning/lessons/:id/unpublish` | A | `note` (req, 3–300) | `{lesson}` — takedown: `status=draft` (students stop seeing it at once), flagged |
+
+`Instructor` = `{id, display_name, title, bio, status, user{id, name, mobile (masked)}, courses_count, published_courses,
+students_count, approved_at, approved_by{id, name}|null, revoked_at, created_at, updated_at}`.
+`Lesson` = `{id, chapter_id, kind, title, description, duration_seconds, page_count, size_bytes, media_status, status,
+published_at, review{state, status, reviewed_at, reviewed_by{id, name}|null, note}, created_at, updated_at}`.
+
+Completion per (course, student) is the student app's own formula (`learning.CoursePercent`: summed lesson percent —
+a completed lesson counts 100 — over the course's published lessons); a course's `completion_percent` is the rounded
+mean over the students with a running grant (students who never opened it count 0). Media playback for reviewers comes
+with the B-N8-02 media pipeline; the queue shows the metadata and `media_status`. Moderation log actions:
+`instructor.approve|revoke`, `lesson.approve|flag|unpublish`.

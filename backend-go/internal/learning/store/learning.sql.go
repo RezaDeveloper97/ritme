@@ -543,7 +543,7 @@ func (q *Queries) GetInstructorGrant(ctx context.Context, arg GetInstructorGrant
 }
 
 const getLesson = `-- name: GetLesson :one
-SELECT id, course_id, chapter_id, kind, title, description, duration_seconds, page_count, size_bytes, media_id, media_status, status, published_at, sort_order, created_at, updated_at FROM ` + "`" + `learning_lessons` + "`" + ` WHERE id = ? AND course_id = ? LIMIT 1
+SELECT id, course_id, chapter_id, kind, title, description, duration_seconds, page_count, size_bytes, media_id, media_status, status, published_at, sort_order, created_at, updated_at, review_status, reviewed_at, reviewed_by, review_note FROM ` + "`" + `learning_lessons` + "`" + ` WHERE id = ? AND course_id = ? LIMIT 1
 `
 
 type GetLessonParams struct {
@@ -571,12 +571,16 @@ func (q *Queries) GetLesson(ctx context.Context, arg GetLessonParams) (LearningL
 		&i.SortOrder,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ReviewStatus,
+		&i.ReviewedAt,
+		&i.ReviewedBy,
+		&i.ReviewNote,
 	)
 	return i, err
 }
 
 const getLessonByID = `-- name: GetLessonByID :one
-SELECT id, course_id, chapter_id, kind, title, description, duration_seconds, page_count, size_bytes, media_id, media_status, status, published_at, sort_order, created_at, updated_at FROM ` + "`" + `learning_lessons` + "`" + ` WHERE id = ? LIMIT 1
+SELECT id, course_id, chapter_id, kind, title, description, duration_seconds, page_count, size_bytes, media_id, media_status, status, published_at, sort_order, created_at, updated_at, review_status, reviewed_at, reviewed_by, review_note FROM ` + "`" + `learning_lessons` + "`" + ` WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) GetLessonByID(ctx context.Context, id uint64) (LearningLesson, error) {
@@ -599,6 +603,10 @@ func (q *Queries) GetLessonByID(ctx context.Context, id uint64) (LearningLesson,
 		&i.SortOrder,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ReviewStatus,
+		&i.ReviewedAt,
+		&i.ReviewedBy,
+		&i.ReviewNote,
 	)
 	return i, err
 }
@@ -1538,7 +1546,7 @@ func (q *Queries) ListInstructorGrants(ctx context.Context, arg ListInstructorGr
 
 const listLessons = `-- name: ListLessons :many
 
-SELECT id, course_id, chapter_id, kind, title, description, duration_seconds, page_count, size_bytes, media_id, media_status, status, published_at, sort_order, created_at, updated_at FROM ` + "`" + `learning_lessons` + "`" + ` WHERE course_id = ? ORDER BY sort_order, id
+SELECT id, course_id, chapter_id, kind, title, description, duration_seconds, page_count, size_bytes, media_id, media_status, status, published_at, sort_order, created_at, updated_at, review_status, reviewed_at, reviewed_by, review_note FROM ` + "`" + `learning_lessons` + "`" + ` WHERE course_id = ? ORDER BY sort_order, id
 `
 
 // ───────────── lessons ─────────────
@@ -1568,6 +1576,10 @@ func (q *Queries) ListLessons(ctx context.Context, courseID uint64) ([]LearningL
 			&i.SortOrder,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ReviewStatus,
+			&i.ReviewedAt,
+			&i.ReviewedBy,
+			&i.ReviewNote,
 		); err != nil {
 			return nil, err
 		}
@@ -1692,7 +1704,7 @@ func (q *Queries) ListProgressForUsersCourses(ctx context.Context, arg ListProgr
 }
 
 const listPublishedLessonsForCourses = `-- name: ListPublishedLessonsForCourses :many
-SELECT id, course_id, chapter_id, kind, title, description, duration_seconds, page_count, size_bytes, media_id, media_status, status, published_at, sort_order, created_at, updated_at FROM ` + "`" + `learning_lessons` + "`" + `
+SELECT id, course_id, chapter_id, kind, title, description, duration_seconds, page_count, size_bytes, media_id, media_status, status, published_at, sort_order, created_at, updated_at, review_status, reviewed_at, reviewed_by, review_note FROM ` + "`" + `learning_lessons` + "`" + `
 WHERE course_id IN (/*SLICE:course_ids*/?) AND status = 'published'
 ORDER BY course_id, sort_order, id
 `
@@ -1733,6 +1745,10 @@ func (q *Queries) ListPublishedLessonsForCourses(ctx context.Context, courseIds 
 			&i.SortOrder,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ReviewStatus,
+			&i.ReviewedAt,
+			&i.ReviewedBy,
+			&i.ReviewNote,
 		); err != nil {
 			return nil, err
 		}

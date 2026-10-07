@@ -3,7 +3,7 @@ id: CB-COND-02
 title: Frontend: programs hub (real programs behind bloom's services tiles)
 epic: COND
 type: frontend
-status: todo
+status: in_progress
 depends_on: [CB-COND-01, B-N7-01, CB-COND-06b]
 parallel_group: COND-B
 touches: [frontend/src/screens/conditions, frontend/src/entities/condition, frontend/messages/fa/conditions.json, frontend/messages/en/conditions.json, frontend/src/app/[locale]/programs, frontend/src/app/message-scopes.ts, frontend/src/screens/services]

@@ -2289,12 +2289,17 @@ CREATE TABLE `learning_lessons` (
   `media_status` varchar(12) NOT NULL DEFAULT 'none',
   `status` varchar(10) NOT NULL DEFAULT 'draft',
   `published_at` datetime DEFAULT NULL,
+  `review_status` varchar(10) NOT NULL DEFAULT 'pending',
+  `reviewed_at` datetime DEFAULT NULL,
+  `reviewed_by` bigint(20) unsigned DEFAULT NULL,
+  `review_note` varchar(300) DEFAULT NULL,
   `sort_order` smallint(5) unsigned NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `learning_lessons_course_id_sort_order_index` (`course_id`,`sort_order`),
   KEY `learning_lessons_chapter_id_index` (`chapter_id`),
+  KEY `learning_lessons_review_status_index` (`review_status`),
   CONSTRAINT `learning_lessons_chapter_id_foreign` FOREIGN KEY (`chapter_id`) REFERENCES `learning_chapters` (`id`) ON DELETE SET NULL,
   CONSTRAINT `learning_lessons_course_id_foreign` FOREIGN KEY (`course_id`) REFERENCES `learning_courses` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -2303,6 +2308,60 @@ CREATE TABLE `learning_lessons` (
 LOCK TABLES `learning_lessons` WRITE;
 /*!40000 ALTER TABLE `learning_lessons` DISABLE KEYS */;
 /*!40000 ALTER TABLE `learning_lessons` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `learning_media`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `learning_media` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `instructor_id` bigint(20) unsigned NOT NULL,
+  `lesson_id` bigint(20) unsigned DEFAULT NULL,
+  `kind` varchar(8) NOT NULL,
+  `mime` varchar(40) DEFAULT NULL,
+  `size_bytes` bigint(20) unsigned NOT NULL,
+  `offset_bytes` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `path` varchar(120) NOT NULL,
+  `status` varchar(12) NOT NULL DEFAULT 'uploading',
+  `upload_expires_at` datetime DEFAULT NULL,
+  `completed_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `learning_media_instructor_id_status_index` (`instructor_id`,`status`),
+  KEY `learning_media_lesson_id_index` (`lesson_id`),
+  KEY `learning_media_status_upload_expires_at_index` (`status`,`upload_expires_at`),
+  CONSTRAINT `learning_media_instructor_id_foreign` FOREIGN KEY (`instructor_id`) REFERENCES `learning_instructors` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `learning_media_lesson_id_foreign` FOREIGN KEY (`lesson_id`) REFERENCES `learning_lessons` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `learning_media` WRITE;
+/*!40000 ALTER TABLE `learning_media` DISABLE KEYS */;
+/*!40000 ALTER TABLE `learning_media` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `learning_moderation_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `learning_moderation_log` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `admin_id` bigint(20) unsigned DEFAULT NULL,
+  `action` varchar(32) NOT NULL,
+  `target_type` varchar(16) NOT NULL,
+  `target_id` bigint(20) unsigned NOT NULL,
+  `instructor_id` bigint(20) unsigned DEFAULT NULL,
+  `note` varchar(300) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `learning_moderation_log_target_type_target_id_index` (`target_type`,`target_id`),
+  KEY `learning_moderation_log_instructor_id_index` (`instructor_id`),
+  KEY `learning_moderation_log_created_at_index` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `learning_moderation_log` WRITE;
+/*!40000 ALTER TABLE `learning_moderation_log` DISABLE KEYS */;
+/*!40000 ALTER TABLE `learning_moderation_log` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `learning_progress`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

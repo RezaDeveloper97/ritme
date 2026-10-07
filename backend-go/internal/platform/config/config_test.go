@@ -187,11 +187,15 @@ func TestLoad_PaymentProvider(t *testing.T) {
 	env["APP_URL"] = "https://stage.example"
 	env["PLUS_CALLBACK_URL"] = "https://stage.example/plus/return"
 	env["PAYMENT_RETURN_URLS"] = "https://stage.example/shop/return"
+	env["TELEMED_CALLBACK_URL"] = "https://stage.example/services/bookings/return" // B-N7-03: always allowed
 	cfg, err = LoadFrom(lookup(env))
 	require.NoError(t, err)
 	assert.Equal(t, PaymentProviderFake, cfg.Payment.Provider)
 	assert.Equal(t, "https://stage.example", cfg.Payment.CallbackBaseURL)
-	assert.Equal(t, []string{"https://stage.example/plus/return", "https://stage.example/shop/return"}, cfg.Payment.ReturnURLs)
+	assert.Equal(t, []string{"https://stage.example/plus/return", "https://stage.example/shop/return",
+		"https://stage.example/services/bookings/return"}, cfg.Payment.ReturnURLs)
+	assert.Equal(t, 10*time.Minute, cfg.Telemed.HoldTTL)
+	assert.Equal(t, 20, cfg.Telemed.PlusDiscountPercent)
 
 	// The fake is refused in production, at start-up.
 	env = minimal()

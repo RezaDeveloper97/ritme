@@ -209,6 +209,36 @@ location ^~ /api/v1/emergency-cards/ {
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host  $host;
 }
+# Lesson media (B-N8-02). Upload chunks (≤ 16 MiB, under client_max_body_size 25m): streamed to Go without an nginx
+# temp file, longer timeouts for slow uplinks.
+location ^~ /api/instructor/v1/media {
+    proxy_pass $stage_backend_go_target;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $ritme_client_xff;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host  $host;
+    proxy_request_buffering off;
+    proxy_read_timeout 300s;
+    proxy_send_timeout 300s;
+}
+# Signed playback stream: the HMAC token is in the query string, so no access log; Range / If-Range pass through and
+# the response is not buffered to disk (2 GB files).
+location ^~ /api/v1/media/ {
+    access_log off;
+    proxy_pass $stage_backend_go_target;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $ritme_client_xff;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host  $host;
+    proxy_set_header Range             $http_range;
+    proxy_set_header If-Range          $http_if_range;
+    proxy_buffering off;
+    proxy_read_timeout 300s;
+}
 location /storage/   { proxy_pass $stage_backend_go_target; include /etc/nginx/conf.d/proxy-params.inc; }
 location ^~ /docs    { proxy_pass $stage_backend_go_target; include /etc/nginx/conf.d/proxy-params.inc; }
 

@@ -3,7 +3,7 @@ id: CB-REC-05
 title: Frontend: sharing screen, public doctor page, emergency card
 epic: REC
 type: frontend
-status: todo
+status: in_progress
 depends_on: [CB-REC-03, CB-REC-04]
 parallel_group: REC-D
 touches: [frontend/src/screens/record-share, frontend/src/screens/record-emergency, frontend/src/screens/doctor-view, frontend/src/app/[locale]/record/share, frontend/src/app/[locale]/record/emergency, frontend/src/app/[locale]/(web)/d]

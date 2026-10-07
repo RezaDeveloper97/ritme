@@ -936,6 +936,38 @@ type LearningLesson struct {
 	SortOrder       uint16
 	CreatedAt       sql.NullTime
 	UpdatedAt       sql.NullTime
+	ReviewStatus    string
+	ReviewedAt      sql.NullTime
+	ReviewedBy      sql.NullInt64
+	ReviewNote      sql.NullString
+}
+
+type LearningMedium struct {
+	ID              uint64
+	InstructorID    uint64
+	LessonID        sql.NullInt64
+	Kind            string
+	Mime            sql.NullString
+	SizeBytes       uint64
+	OffsetBytes     uint64
+	Path            string
+	Status          string
+	UploadExpiresAt sql.NullTime
+	CompletedAt     sql.NullTime
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
+type LearningModerationLog struct {
+	ID           uint64
+	AdminID      sql.NullInt64
+	Action       string
+	TargetType   string
+	TargetID     uint64
+	InstructorID sql.NullInt64
+	Note         sql.NullString
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
 }
 
 type LearningProgress struct {
@@ -1707,6 +1739,54 @@ type TelemedAvailabilityRule struct {
 	Modes       db.NullRawJSON
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+}
+
+type TelemedBooking struct {
+	ID              uint64
+	Reference       string
+	UserID          uint64
+	DoctorID        uint64
+	Mode            string
+	DurationMinutes uint16
+	StartsAt        time.Time
+	EndsAt          time.Time
+	Status          string
+	SlotKey         sql.NullString
+	HoldExpiresAt   sql.NullTime
+	ForWhom         string
+	ChildID         sql.NullInt64
+	PatientName     sql.NullString
+	Reason          sql.NullString
+	Note            sql.NullString
+	PriceRials      uint64
+	DiscountRials   uint64
+	DiscountSource  sql.NullString
+	TotalRials      uint64
+	PaymentStatus   string
+	Gateway         sql.NullString
+	Authority       sql.NullString
+	RefID           sql.NullString
+	CardPan         sql.NullString
+	PaidAt          sql.NullTime
+	RefundID        sql.NullString
+	RefundedRials   uint64
+	RefundedAt      sql.NullTime
+	AppointmentID   sql.NullInt64
+	Reschedules     uint8
+	CancelledAt     sql.NullTime
+	CompletedAt     sql.NullTime
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
+type TelemedBookingConsent struct {
+	ID        uint64
+	BookingID uint64
+	Scope     string
+	GrantedAt time.Time
+	RevokedAt sql.NullTime
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
 }
 
 type TelemedDoctor struct {

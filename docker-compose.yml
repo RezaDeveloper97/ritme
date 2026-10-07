@@ -156,6 +156,11 @@ services:
       # from the server .env only (openssl rand -base64 32). Empty = LAB_FILE_KEY is used; no key at all = 503.
       FILE_KEY: ${FILE_KEY:-}
       FILE_KEY_PREVIOUS: ${FILE_KEY_PREVIOUS:-}
+      # Lesson media (B-N8-02, internal/media): HMAC key of the 30-minute playback URLs, a secret from the server .env
+      # only (openssl rand -base64 32); empty outside local/testing = playback 503. Files live on the media-storage
+      # volume below (2 GB videos — kept off backend-storage so it can move to a bigger disk on its own).
+      MEDIA_URL_KEY: ${MEDIA_URL_KEY:-}
+      MEDIA_STORAGE_PATH: /var/lib/ritme-media
     # uid 33 = www-data in the PHP image: the Passport keys on backend-storage
     # are 0600 www-data. (The image already runs as 33; pinned here too so an
     # image change can't silently break key access.)
@@ -165,6 +170,9 @@ services:
       # the Go admin API (T-M2-21) writes uploads (app/public), DB-edited
       # translations (app/translations) and admin-created lang files (app/lang).
       - backend-storage:/var/www/html/storage
+      # Lesson media uploads / playback files (B-N8-02). The image creates /var/lib/ritme-media owned by 33:33, so
+      # Docker initialises the empty named volume with that owner.
+      - media-storage:/var/lib/ritme-media
     healthcheck:
       test: ["CMD", "/app/api", "healthcheck"]
       interval: 10s
@@ -210,3 +218,4 @@ volumes:
   mysql-data:
   redis-data:
   backend-storage:
+  media-storage:

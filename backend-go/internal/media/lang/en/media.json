@@ -1,0 +1,38 @@
+{
+    "messages": {
+        "validation_failed": "The given data was invalid.",
+        "created": "Upload started",
+        "chunk_saved": "Chunk saved",
+        "ready": "Upload complete",
+        "deleted": "Deleted",
+        "not_found": "This file was not found",
+        "lesson_not_found": "This lesson was not found",
+        "not_ready": "This lesson has no playable file yet",
+        "offset_mismatch": "The upload offset does not match; resume from the server offset",
+        "busy": "Another part of this file is still being saved",
+        "not_uploading": "This upload is already finished",
+        "upload_expired": "This upload has expired; start it again",
+        "too_large": "The file is too large",
+        "chunk_too_large": "This part is too large",
+        "beyond_size": "This part goes past the declared file size",
+        "type_not_accepted": "This file type is not accepted for this lesson",
+        "content_type": "Send the part as application/offset+octet-stream without content encoding",
+        "rejected": "This file was rejected by the security check",
+        "link_invalid": "This link is not valid",
+        "link_expired": "This link has expired",
+        "range_not_satisfiable": "The requested range is not available",
+        "unavailable": "File storage is temporarily unavailable"
+    },
+    "validation": {
+        "mime_not_allowed": "This file type does not match the lesson kind.",
+        "too_many_uploads": "Finish or cancel your other uploads first.",
+        "quota": "Your storage space is full.",
+        "upload_offset": "The Upload-Offset header must be a whole number."
+    },
+    "attributes": {
+        "lesson_id": "lesson",
+        "size": "file size",
+        "mime": "file type",
+        "upload_offset": "upload offset"
+    }
+}

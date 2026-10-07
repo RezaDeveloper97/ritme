@@ -20,8 +20,8 @@ import (
 
 // Services hub «خدمات» (bloom B-N7-01), Go only — no Laravel counterpart (deviations.md D-69). auth:api, localized by
 // Accept-Language. Sections, care tiles and programs come from the catalog groups services_sections / services_care
-// / services_programs (cached reader, flushed by admin writes). The upcoming booking is nil until the telemedicine
-// domain plugs a services.BookingSource in here (B-N7-03).
+// / services_programs (cached reader, flushed by admin writes). The upcoming booking is the user's next confirmed
+// visit from the telemedicine domain (telemed.Bookings as services.BookingSource, B-N7-03).
 func init() {
 	Register("services", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
@@ -31,7 +31,7 @@ func init() {
 		mode := func(ctx context.Context, userID uint64) (enums.LifeMode, error) {
 			return checkups.UserLifeMode(ctx, checkupsQ, userID)
 		}
-		svc := services.NewService(cat, healthrecordstore.New(d.DB), mode, nil)
+		svc := services.NewService(cat, healthrecordstore.New(d.DB), mode, telemedBookings(d, false)) // B-N7-03 card
 		h := services.NewHandlers(svc, clock.Real{})
 
 		r.Get("/api/v1/services", locale, guard, h.Show)

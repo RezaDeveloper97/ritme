@@ -18,6 +18,9 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
 # dev machines), Docker Hub does not. tzdata is embedded in the binary (time/tzdata).
 FROM alpine:3.22
 RUN apk add --no-cache ca-certificates
+# Mount point of the media-storage volume (B-N8-02 lesson media): owned by 33:33 so Docker initialises the empty named
+# volume with that owner, 0700 like the rest of the private storage.
+RUN mkdir -p /var/lib/ritme-media && chown 33:33 /var/lib/ritme-media && chmod 0700 /var/lib/ritme-media
 COPY --from=build /out/api /app/api
 # uid/gid 33 = www-data in the PHP image: the Passport keys on the shared
 # backend-storage volume are 0600 www-data, so any other uid cannot read them.

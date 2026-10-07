@@ -3,7 +3,7 @@ id: B-N8-05
 title: instructor-web — new app scaffold, auth, deploy (instructor.ritmeapp.ir / instructor.ritme.app)
 milestone: N8
 type: fullstack
-status: todo
+status: in_progress
 depends_on: [B-N8-01]
 parallel_group: N8-E
 touches: [instructor-web,deploy,docker-compose.stage.yml,docker-compose.prod.yml,deploy.sh,deploy-stage.sh,backend-go/internal/auth]

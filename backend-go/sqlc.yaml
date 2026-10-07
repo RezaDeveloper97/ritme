@@ -283,3 +283,9 @@ sql:
       go:
         <<: *go
         out: internal/learning/store
+  - <<: *pkg
+    queries: db/queries/media
+    gen:
+      go:
+        <<: *go
+        out: internal/media/store

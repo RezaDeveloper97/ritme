@@ -3,7 +3,7 @@ id: B-N8-08
 title: Admin — instructors & courses moderation
 milestone: N8
 type: fullstack
-status: todo
+status: in_progress
 depends_on: [B-N8-01]
 parallel_group: N8-H
 touches: [admin-web/src,backend-go/internal/admin,backend-go/api]

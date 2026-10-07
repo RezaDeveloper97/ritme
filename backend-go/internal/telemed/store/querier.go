@@ -6,9 +6,16 @@ package store
 
 import (
 	"context"
+	"database/sql"
+	"time"
 )
 
 type Querier interface {
+	// held/confirmed → cancelled | expired | failed: the slot is released.
+	CloseBooking(ctx context.Context, arg CloseBookingParams) error
+	CompleteBooking(ctx context.Context, arg CompleteBookingParams) (int64, error)
+	// Paid (or free): the hold becomes a confirmed booking; slot_key is (re)claimed for a hold that lapsed meanwhile.
+	ConfirmBooking(ctx context.Context, arg ConfirmBookingParams) error
 	// ---------------------------------------------------------------------------
 	// Admin
 	CountAdminDoctors(ctx context.Context, arg CountAdminDoctorsParams) (int64, error)
@@ -17,6 +24,8 @@ type Querier interface {
 	CountListedByCity(ctx context.Context) ([]CountListedByCityRow, error)
 	CountListedByInsurer(ctx context.Context) ([]CountListedByInsurerRow, error)
 	CountListedBySpecialty(ctx context.Context) ([]CountListedBySpecialtyRow, error)
+	// Active bookings (confirmed, or held and not lapsed) of the doctor overlapping [starts_at, ends_at), except one id.
+	CountOverlappingBookings(ctx context.Context, arg CountOverlappingBookingsParams) (int64, error)
 	CountVisibleReviews(ctx context.Context, doctorID uint64) (int64, error)
 	DeleteDoctor(ctx context.Context, id uint64) (int64, error)
 	DeleteDoctorInsurers(ctx context.Context, doctorID uint64) error
@@ -24,11 +33,23 @@ type Querier interface {
 	DeleteTimeOff(ctx context.Context, arg DeleteTimeOffParams) (int64, error)
 	DeleteUserReview(ctx context.Context, arg DeleteUserReviewParams) (int64, error)
 	DeleteVisitType(ctx context.Context, arg DeleteVisitTypeParams) error
+	// Frees the slots of the doctor's lapsed holds (status expired, slot_key released) before a new hold is placed.
+	ExpireDoctorHolds(ctx context.Context, arg ExpireDoctorHoldsParams) error
+	ExpireHold(ctx context.Context, arg ExpireHoldParams) (int64, error)
+	// The active consent of one scope on a booking of this doctor (the doctor-side share check).
+	GetActiveConsent(ctx context.Context, arg GetActiveConsentParams) (TelemedBookingConsent, error)
+	// Unscoped read by id for internal callers that already checked the actor (doctor side, sweeper).
+	GetBooking(ctx context.Context, id uint64) (TelemedBooking, error)
 	GetDoctor(ctx context.Context, id uint64) (TelemedDoctor, error)
 	// One active doctor with at least one active visit type (the public profile; anything else is a 404).
 	GetListedDoctor(ctx context.Context, id uint64) (TelemedDoctor, error)
+	// A child of the user (the «برای چه کسی؟» chip); spouse-shared children are not bookable by the spouse.
+	GetOwnedChild(ctx context.Context, arg GetOwnedChildParams) (GetOwnedChildRow, error)
 	GetReview(ctx context.Context, id uint64) (TelemedReview, error)
+	GetUserBooking(ctx context.Context, arg GetUserBookingParams) (TelemedBooking, error)
 	GetUserReview(ctx context.Context, arg GetUserReviewParams) (GetUserReviewRow, error)
+	IncrementDoctorVisits(ctx context.Context, id uint64) error
+	InsertBooking(ctx context.Context, arg InsertBookingParams) (int64, error)
 	InsertDoctor(ctx context.Context, arg InsertDoctorParams) (int64, error)
 	InsertDoctorInsurer(ctx context.Context, arg InsertDoctorInsurerParams) error
 	InsertReview(ctx context.Context, arg InsertReviewParams) (int64, error)
@@ -37,6 +58,9 @@ type Querier interface {
 	ListActiveVisitTypesByDoctors(ctx context.Context, doctorIds []uint64) ([]TelemedVisitType, error)
 	ListAdminDoctors(ctx context.Context, arg ListAdminDoctorsParams) ([]TelemedDoctor, error)
 	ListAdminReviews(ctx context.Context, arg ListAdminReviewsParams) ([]TelemedReview, error)
+	ListBookingConsents(ctx context.Context, bookingID uint64) ([]TelemedBookingConsent, error)
+	// The intervals booked or held (not lapsed) for the given doctors overlapping [from_at, to_at), except one id.
+	ListBusyBookings(ctx context.Context, arg ListBusyBookingsParams) ([]ListBusyBookingsRow, error)
 	// Doctors directory (bloom B-N7-02; internal/telemed): doctors / midwives, accepted insurers, visit types, weekly
 	// availability, time off and reviews. Public reads only see active doctors with at least one active visit type; the
 	// only user-owned rows are reviews, always scoped by user_id in the query itself (IDOR).
@@ -51,20 +75,49 @@ type Querier interface {
 	ListDoctorTimeOff(ctx context.Context, arg ListDoctorTimeOffParams) ([]TelemedTimeOff, error)
 	// Every visit type of a doctor, inactive ones included (admin).
 	ListDoctorVisitTypes(ctx context.Context, doctorID uint64) ([]TelemedVisitType, error)
+	// Confirmed visits that ended (the sweeper completes them).
+	ListEndedConfirmed(ctx context.Context, now time.Time) ([]ListEndedConfirmedRow, error)
 	ListInsurersByDoctors(ctx context.Context, doctorIds []uint64) ([]TelemedDoctorInsurer, error)
+	// Holds whose payment window ended (the sweeper expires them).
+	ListLapsedHolds(ctx context.Context, now sql.NullTime) ([]ListLapsedHoldsRow, error)
+	ListOwnedChildrenForBooking(ctx context.Context, ownerID uint64) ([]ListOwnedChildrenForBookingRow, error)
 	ListRulesByDoctors(ctx context.Context, doctorIds []uint64) ([]TelemedAvailabilityRule, error)
 	// Absences overlapping [from, to).
 	ListTimeOffByDoctors(ctx context.Context, arg ListTimeOffByDoctorsParams) ([]TelemedTimeOff, error)
+	// The user's bookings that matter to her (no lapsed holds or failed payments), soonest first.
+	ListUserBookings(ctx context.Context, userID uint64) ([]TelemedBooking, error)
 	// ---------------------------------------------------------------------------
 	// Reviews
 	// A doctor's visible reviews, newest first, with the reviewer's name (only its first letter leaves the server).
 	ListVisibleReviews(ctx context.Context, arg ListVisibleReviewsParams) ([]ListVisibleReviewsRow, error)
+	// Visit bookings (bloom B-N7-03, goose 00050). Every user-facing read and write is scoped by user_id in the query;
+	// doctor-wide reads (busy intervals, overlaps, sweeper) never return user data beyond the booked interval.
+	// Serialises bookings of one doctor: hold, reschedule and settlement take this row lock first.
+	LockDoctor(ctx context.Context, id uint64) (uint64, error)
+	LockUserBooking(ctx context.Context, arg LockUserBookingParams) (TelemedBooking, error)
+	LockUserBookingByReference(ctx context.Context, arg LockUserBookingByReferenceParams) (TelemedBooking, error)
+	// A declined or mismatched payment of a hold: the hold closes as failed.
+	MarkPaymentFailed(ctx context.Context, arg MarkPaymentFailedParams) error
 	NextDoctorSortOrder(ctx context.Context) (int64, error)
+	// The user's next confirmed visit that has not ended yet (the services hub card).
+	NextUserBooking(ctx context.Context, arg NextUserBookingParams) (TelemedBooking, error)
 	// Recomputes the denormalised rating of a doctor from its visible reviews (same transaction as the review write).
 	RefreshDoctorRating(ctx context.Context, id uint64) error
+	RescheduleBooking(ctx context.Context, arg RescheduleBookingParams) error
+	// The user's oldest completed visit with the doctor that has no review yet.
+	ReviewableBooking(ctx context.Context, arg ReviewableBookingParams) (uint64, error)
+	RevokeAllConsents(ctx context.Context, arg RevokeAllConsentsParams) error
+	RevokeConsent(ctx context.Context, arg RevokeConsentParams) error
+	SetBookingAppointment(ctx context.Context, arg SetBookingAppointmentParams) error
+	SetBookingAuthority(ctx context.Context, arg SetBookingAuthorityParams) error
+	// Paid but not confirmable (slot gone, booking closed): the payment is recorded before it is refunded.
+	SetBookingPaid(ctx context.Context, arg SetBookingPaidParams) error
+	SetBookingRefund(ctx context.Context, arg SetBookingRefundParams) error
 	SetDoctorPhoto(ctx context.Context, arg SetDoctorPhotoParams) error
 	SetReviewVisibility(ctx context.Context, arg SetReviewVisibilityParams) error
 	UpdateDoctor(ctx context.Context, arg UpdateDoctorParams) error
+	// Grant (again): a revoked scope becomes active with a fresh granted_at.
+	UpsertConsent(ctx context.Context, arg UpsertConsentParams) error
 	UpsertVisitType(ctx context.Context, arg UpsertVisitTypeParams) error
 }
 

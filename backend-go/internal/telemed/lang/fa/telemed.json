@@ -6,7 +6,28 @@
         "review_not_allowed": "بعد از انجام ویزیت می‌توانی برای این پزشک نظر بنویسی",
         "review_exists": "برای این ویزیت قبلاً نظر داده‌ای",
         "review_saved": "ممنون از نظرت",
-        "review_deleted": "نظر حذف شد"
+        "review_deleted": "نظر حذف شد",
+        "booking_not_found": "این نوبت پیدا نشد",
+        "slot_unavailable": "این وقت دیگر آزاد نیست؛ وقت دیگری انتخاب کن",
+        "payment_unavailable": "درگاه پرداخت در دسترس نیست؛ کمی بعد دوباره امتحان کن",
+        "payment_failed": "پرداخت انجام نشد",
+        "amount_mismatch": "مبلغ پرداخت با مبلغ نوبت یکی نیست",
+        "authority_mismatch": "اطلاعات پرداخت با این نوبت یکی نیست",
+        "booking_closed": "این نوبت دیگر قابل تغییر نیست",
+        "booking_refunded": "این وقت دیگر آزاد نبود؛ مبلغ پرداختی برگشت داده شد",
+        "cancel_window_closed": "لغو یا جابه‌جایی رایگان فقط تا ۲ ساعت قبل از ویزیت ممکن است",
+        "consent_not_allowed": "اشتراک داده‌های ریتمی فقط برای ویزیت خودت ممکن است",
+        "booking_held": "وقت برایت نگه داشته شد؛ پرداخت را کامل کن",
+        "booking_confirmed": "نوبتت ثبت شد",
+        "booking_cancelled": "نوبت لغو شد",
+        "booking_rescheduled": "زمان نوبت تغییر کرد",
+        "consent_saved": "تنظیمات اشتراک داده ذخیره شد",
+        "consent_revoked": "اشتراک داده با پزشک قطع شد"
+    },
+    "appointment_titles": {
+        "video": "ویزیت ویدیویی",
+        "phone": "مشاوره تلفنی",
+        "in_person": "ویزیت حضوری"
     },
     "attributes": {
         "mode": "نوع ویزیت",
@@ -19,6 +40,20 @@
         "from": "تاریخ شروع",
         "days": "تعداد روز",
         "rating": "امتیاز",
-        "body": "متن نظر"
+        "body": "متن نظر",
+        "doctor_id": "پزشک",
+        "starts_at": "زمان ویزیت",
+        "for_whom": "برای چه کسی",
+        "child_id": "فرزند",
+        "patient_name": "نام مراجعه‌کننده",
+        "reason": "دلیل مراجعه",
+        "note": "توضیح برای پزشک",
+        "share": "اشتراک داده",
+        "cycle_summary": "خلاصه سیکل‌ها",
+        "bbt_lh": "دمای پایه و تست LH",
+        "assistant_summaries": "گفت‌وگو با دستیار سلامت",
+        "reference": "شناسه پرداخت",
+        "authority": "کد پرداخت",
+        "scope": "بازه"
     }
 }

@@ -164,3 +164,7 @@
 2026-10-07T07:32Z B-N7-01 -> done
 2026-10-07T07:32Z B-N7-02 -> done
 2026-10-07T07:32Z B-N8-01 -> done
+2026-10-07T07:33Z B-N7-03 -> in_progress
+2026-10-07T07:33Z B-N8-02 -> in_progress
+2026-10-07T07:33Z B-N8-05 -> in_progress
+2026-10-07T07:33Z B-N8-08 -> in_progress

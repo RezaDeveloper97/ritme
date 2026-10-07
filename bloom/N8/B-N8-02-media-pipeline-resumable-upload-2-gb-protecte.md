@@ -3,7 +3,7 @@ id: B-N8-02
 title: Media pipeline — resumable upload (≤2 GB), protected streaming
 milestone: N8
 type: backend
-status: todo
+status: in_progress
 depends_on: [B-N8-01]
 parallel_group: N8-B
 touches: [backend-go/internal/media,backend-go/internal/learning,backend-go/api,docker-compose.yml,docker-compose.stage.yml,docker-compose.prod.yml]

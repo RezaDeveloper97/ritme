@@ -3,7 +3,7 @@ id: B-N7-03
 title: Booking with payment, cancellation rules and data-share consent
 milestone: N7
 type: backend
-status: todo
+status: in_progress
 depends_on: [B-N7-02,B-N2-05]
 parallel_group: N7-C
 touches: [backend-go/internal/telemed,backend-go/internal/payments,backend-go/internal/care,backend-go/api]

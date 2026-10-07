@@ -65,6 +65,9 @@ type AppointmentMeta struct {
 	// shown to a companion (companion/shared, «ثبت برای …» show/update answer 404). Set by internal/loss, never by a
 	// request; kept across the owner's edits. Omitted when false, so other rows stay byte-identical.
 	Private bool `json:"private,omitempty"`
+	// BookingID links a visit booked and paid through the telemedicine domain (bloom B-N7-03, care.ScheduleVisit).
+	// Set by internal/telemed, never by a request; kept across the owner's edits. Omitted when unset.
+	BookingID *uint64 `json:"booking_id,omitempty"`
 }
 
 // Subtitle is the legacy reminders.subtitle "with · specialty" (the parts that are set);

@@ -52,8 +52,12 @@ type Config struct {
 	LabFiles LabFiles
 	// Files is the key of the generic encrypted file storage (CB-CORE-05, internal/files).
 	Files Files
+	// Media is the lesson media pipeline (bloom B-N8-02, internal/media): signed playback URL key and media root.
+	Media Media
 	// Sharing is the 24h doctor code pepper and the QR origin (CB-REC-03, internal/sharelinks).
 	Sharing Sharing
+	// Telemed is the visit booking (bloom B-N7-03, internal/telemed): hold TTL, gateway return page, Plus discount.
+	Telemed Telemed
 	// StoragePath is the mounted Laravel storage/ directory (backend-storage volume):
 	// Passport keys, translations, public uploads.
 	StoragePath string
@@ -158,6 +162,13 @@ type Plus struct {
 	TrialDays   int           // PLUS_TRIAL_DAYS, 1–90 (default 7)
 	InvoiceTTL  time.Duration // PLUS_INVOICE_TTL_MINUTES (default 30): how long a pending checkout holds a discount
 	CallbackURL string        // PLUS_CALLBACK_URL: where the gateway sends the user back (the web app's return page)
+}
+
+// Telemed holds the visit-booking settings (bloom B-N7-03). Amounts are rials.
+type Telemed struct {
+	HoldTTL             time.Duration // TELEMED_HOLD_MINUTES (default 10, 2–60): how long a picked slot is held for payment
+	CallbackURL         string        // TELEMED_CALLBACK_URL: the web app's booking return page (default {PLUS_CALLBACK_URL origin}/services/bookings/return; always on the payment allow-list)
+	PlusDiscountPercent int           // TELEMED_PLUS_DISCOUNT_PERCENT (default 20, 0–90): Plus «تخفیف ویزیت» on the visit price
 }
 
 // Payment provider ids accepted by PAYMENT_PROVIDER (internal/payments implements them).
@@ -387,6 +398,41 @@ func (f Files) Resolve(app App, labs LabFiles) (current []byte, previous [][]byt
 	return current, previous, dev, missing
 }
 
+// MediaURLKeyLen is the decoded length of MEDIA_URL_KEY.
+const MediaURLKeyLen = 32
+
+// Media holds the lesson media pipeline settings (bloom B-N8-02, internal/media, D-81).
+type Media struct {
+	// URLKey is the decoded MEDIA_URL_KEY (base64 of 32 random bytes, a secret from the server .env only): the HMAC
+	// key of the short-lived playback URLs. Empty → a public development key only for APP_ENV local / testing /
+	// contract; anywhere else playback answers 503 (fail closed). Uploads do not need it.
+	URLKey []byte
+	// StoragePath (MEDIA_STORAGE_PATH) is the media root (its own volume in the compose files); empty →
+	// STORAGE_PATH/app/private/media.
+	StoragePath string
+}
+
+// ResolveKey picks the playback URL key: dev = no key and a local / testing / contract environment (the caller uses
+// the public development key); missing = no key anywhere else.
+func (m Media) ResolveKey(app App) (key []byte, dev, missing bool) {
+	if len(m.URLKey) > 0 {
+		return m.URLKey, false, false
+	}
+	dev = devLabFileEnvs[app.Env]
+	return nil, dev, !dev
+}
+
+// Root is the media root directory ("" when neither MEDIA_STORAGE_PATH nor STORAGE_PATH is set).
+func (m Media) Root(storagePath string) string {
+	if m.StoragePath != "" {
+		return m.StoragePath
+	}
+	if storagePath == "" {
+		return ""
+	}
+	return strings.TrimRight(storagePath, "/") + "/app/private/media"
+}
+
 // Load reads the process environment.
 func Load() (*Config, error) { return LoadFrom(os.LookupEnv) }
 
@@ -485,6 +531,11 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			SMSProvider:    strings.ToLower(e.str("LEARNING_SMS_PROVIDER", "")),
 			UnlockTemplate: e.str("KAVENEGAR_TEMPLATE_COURSE_UNLOCKED", "course-unlocked"),
 		},
+		Telemed: Telemed{
+			HoldTTL:             time.Duration(e.integer("TELEMED_HOLD_MINUTES", 10)) * time.Minute,
+			CallbackURL:         e.str("TELEMED_CALLBACK_URL", ""), // default: PLUS_CALLBACK_URL's origin (below)
+			PlusDiscountPercent: e.integer("TELEMED_PLUS_DISCOUNT_PERCENT", 20),
+		},
 		StoragePath:   strings.TrimRight(e.required("STORAGE_PATH"), "/"),
 		RunMigrations: e.boolean("RUN_MIGRATIONS", false),
 	}
@@ -511,6 +562,20 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	cfg.Payment.Provider = DefaultPaymentProvider(cfg.Payment.Provider, cfg.App)
 	cfg.Payment.CallbackBaseURL = strings.TrimRight(e.str("PAYMENT_CALLBACK_BASE_URL", cfg.App.URL), "/")
 	cfg.Payment.ReturnURLs = append([]string{cfg.Plus.CallbackURL}, e.list("PAYMENT_RETURN_URLS", nil)...)
+	if cfg.Telemed.CallbackURL == "" { // B-N7-03: same web origin as the Plus return page
+		if u, err := url.Parse(cfg.Plus.CallbackURL); err == nil && u.Host != "" {
+			cfg.Telemed.CallbackURL = u.Scheme + "://" + u.Host + "/services/bookings/return"
+		}
+	}
+	if cfg.Telemed.CallbackURL != "" { // the booking return page is always allowed
+		cfg.Payment.ReturnURLs = append(cfg.Payment.ReturnURLs, cfg.Telemed.CallbackURL)
+	}
+	if cfg.Telemed.HoldTTL < 2*time.Minute || cfg.Telemed.HoldTTL > time.Hour {
+		e.fail("TELEMED_HOLD_MINUTES: must be between 2 and 60")
+	}
+	if cfg.Telemed.PlusDiscountPercent < 0 || cfg.Telemed.PlusDiscountPercent > 90 {
+		e.fail("TELEMED_PLUS_DISCOUNT_PERCENT: must be between 0 and 90")
+	}
 	switch cfg.Payment.Provider {
 	case PaymentProviderNone, PaymentProviderZarinpal:
 	case PaymentProviderFake:
@@ -639,6 +704,15 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 		}
 		cfg.Files.PreviousKeys = append(cfg.Files.PreviousKeys, key)
 	}
+	if raw := e.str("MEDIA_URL_KEY", ""); raw != "" {
+		key, err := base64.StdEncoding.DecodeString(raw)
+		if err != nil || len(key) != MediaURLKeyLen {
+			e.fail("MEDIA_URL_KEY: must be the base64 encoding of %d bytes", MediaURLKeyLen)
+		} else {
+			cfg.Media.URLKey = key
+		}
+	}
+	cfg.Media.StoragePath = e.str("MEDIA_STORAGE_PATH", "")
 	cfg.Sharing = loadSharing(e, cfg.App)
 	if cfg.App.IsProduction() && cfg.App.Debug {
 		e.fail("APP_DEBUG must be false when APP_ENV=production")

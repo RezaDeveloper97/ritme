@@ -131,6 +131,12 @@ func instructor(c fiber.Ctx) store.LearningInstructor {
 	return ins
 }
 
+// CurrentInstructor is the approved instructor RequireInstructor let through (zero row otherwise; B-N8-02 media).
+func CurrentInstructor(c fiber.Ctx) store.LearningInstructor { return instructor(c) }
+
+// Fail maps a learning service error (OpenLesson's 403 / 404) to its response (B-N8-02 media playback).
+func Fail(err error, locale string) error { return fail(err, locale) }
+
 // Me is GET /api/instructor/v1/me: the caller's instructor profile and status (null when she never applied), so
 // instructor-web can route between «درخواست»، «در انتظار تأیید» and the panel.
 func (h *Handlers) Me(c fiber.Ctx) error {

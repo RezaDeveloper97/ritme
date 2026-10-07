@@ -19,6 +19,9 @@ RUN set -eux; \
 COPY deploy/betatest/php.ini /usr/local/etc/php/conf.d/zz-ritme.ini
 COPY deploy/betatest/apache.conf /etc/apache2/sites-available/000-default.conf
 RUN sed -ri 's/^ServerTokens .*/ServerTokens Prod/; s/^ServerSignature .*/ServerSignature Off/' /etc/apache2/conf-available/security.conf
+# Debian's mod_alias ships a global `Alias /icons/ /usr/share/apache2/icons/` that shadows public/icons/
+# (favicon, PWA icons → 404). Drop it.
+RUN sed -ri 's|^(\s*Alias\s+/icons/)|#\1|' /etc/apache2/mods-available/alias.conf
 
 WORKDIR /var/www/html
 COPY --chown=www-data:www-data release/ /var/www/html/

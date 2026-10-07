@@ -3,7 +3,7 @@ id: CB-NAV-03
 title: IA alignment: bloom shell vs canvas-v1 IA rules
 epic: NAV
 type: frontend
-status: todo
+status: in_progress
 depends_on: [B-N1-04, B-N2-03, B-N3-03, B-N1-10, B-N7-01, CB-NAV-02]
 parallel_group: NAV-C
 touches: [frontend/src/widgets/bottom-nav, frontend/src/screens/services, frontend/src/screens/hub, frontend/src/screens/mode, frontend/src/screens/log, frontend/src/screens/home, frontend/src/widgets/quick-access]

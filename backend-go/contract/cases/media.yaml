@@ -1,0 +1,55 @@
+# Lesson media pipeline (/api/instructor/v1/media*, /api/v1/learning/lessons/{id}/playback, /api/v1/media/{id}/stream)
+# — Go only (bloom B-N8-02, deviations.md D-81): there is no Laravel route, so these goldens were recorded from the Go
+# server and reviewed by hand (new-endpoint skill, step 8). The fixture dump carries the empty learning_media table
+# (goose 00053 / Laravel 2026_10_07_000053), added by hand. `engaged` (1018) is the approved instructor of the learning
+# fixtures, `regular` (1004) a student. Only the deterministic answers are pinned here (guards, validation, missing
+# rows, a forged stream link); uploads write random file names, so resume / 409 / 413 / 415 / ranges / expiry / IDOR
+# are covered by the internal/media integration tests. Case format: backend-go/cmd/contract/cases.go.
+group: media
+defaults:
+  persona: engaged
+  locales: none
+cases:
+  - name: create_anon
+    persona: anon
+    method: POST
+    path: /api/instructor/v1/media
+    body: {lesson_id: 1, size: 100}
+    status: 401
+  - name: create_student_forbidden
+    doc: a student on the instructor upload API — 403 instructor_required, never 401
+    persona: regular
+    method: POST
+    path: /api/instructor/v1/media
+    body: {lesson_id: 1, size: 100}
+    status: 403
+  - name: create_invalid
+    locales: [fa, en]
+    method: POST
+    path: /api/instructor/v1/media
+    body: {size: 0, mime: image/png}
+    status: 422
+  - name: create_lesson_not_found
+    doc: a lesson that is not the caller's — the same 404 as a missing one
+    locales: [fa, en]
+    method: POST
+    path: /api/instructor/v1/media
+    body: {lesson_id: 999999, size: 100}
+    status: 404
+  - name: show_not_found
+    method: GET
+    path: /api/instructor/v1/media/999999
+    status: 404
+  - name: playback_no_access
+    doc: the lesson's own 404 for a student without access
+    persona: regular
+    method: GET
+    path: /api/v1/learning/lessons/999999/playback
+    status: 404
+  - name: stream_forged_link
+    doc: no bearer; a link that does not verify is 403 link_invalid
+    persona: anon
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/media/1/stream?u=1004&expires=1790000000&signature=AAAA
+    status: 403

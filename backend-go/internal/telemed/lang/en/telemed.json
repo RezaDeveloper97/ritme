@@ -6,7 +6,28 @@
         "review_not_allowed": "You can review a doctor after a completed visit",
         "review_exists": "You have already reviewed this visit",
         "review_saved": "Thanks for your review",
-        "review_deleted": "Review deleted"
+        "review_deleted": "Review deleted",
+        "booking_not_found": "Booking not found",
+        "slot_unavailable": "This time is no longer free; please pick another",
+        "payment_unavailable": "The payment gateway is unavailable; please try again later",
+        "payment_failed": "The payment did not go through",
+        "amount_mismatch": "The paid amount does not match the booking",
+        "authority_mismatch": "The payment does not belong to this booking",
+        "booking_closed": "This booking can no longer be changed",
+        "booking_refunded": "This time was no longer free; your payment was refunded",
+        "cancel_window_closed": "Free cancellation or rescheduling is only possible up to 2 hours before the visit",
+        "consent_not_allowed": "Ritme data can only be shared for your own visit",
+        "booking_held": "The time is held for you; complete the payment",
+        "booking_confirmed": "Your visit is booked",
+        "booking_cancelled": "Booking cancelled",
+        "booking_rescheduled": "Booking moved",
+        "consent_saved": "Data sharing saved",
+        "consent_revoked": "Data sharing with the doctor stopped"
+    },
+    "appointment_titles": {
+        "video": "Video visit",
+        "phone": "Phone consultation",
+        "in_person": "In-person visit"
     },
     "attributes": {
         "mode": "visit type",
@@ -19,6 +40,20 @@
         "from": "start date",
         "days": "days",
         "rating": "rating",
-        "body": "review"
+        "body": "review",
+        "doctor_id": "doctor",
+        "starts_at": "visit time",
+        "for_whom": "patient",
+        "child_id": "child",
+        "patient_name": "patient name",
+        "reason": "reason",
+        "note": "note for the doctor",
+        "share": "data sharing",
+        "cycle_summary": "cycle summary",
+        "bbt_lh": "BBT and LH tests",
+        "assistant_summaries": "assistant conversations",
+        "reference": "payment reference",
+        "authority": "payment code",
+        "scope": "scope"
     }
 }

@@ -73,6 +73,8 @@ services:
       # from the server .env only (openssl rand -base64 32). Empty = LAB_FILE_KEY is used; no key at all = 503.
       FILE_KEY: ${FILE_KEY:-}
       FILE_KEY_PREVIOUS: ${FILE_KEY_PREVIOUS:-}
+      # Lesson media playback URLs (B-N8-02): HMAC key, a secret from the server .env only; empty = playback 503.
+      MEDIA_URL_KEY: ${MEDIA_URL_KEY:-}
     ports: !override
       - "127.0.0.1:8081:80"
 

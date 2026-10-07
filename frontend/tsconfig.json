@@ -34,10 +34,21 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    ".next-b604/types/**/*.ts",
+    ".next-bn303/types/**/*.ts",
+    ".next-bn306/types/**/*.ts",
+    ".next-bn603/types/**/*.ts",
+    ".next-cb02b/types/**/*.ts",
+    ".next-dev/types/**/*.ts",
+    ".next-todo/types/**/*.ts",
+    ".next-verify-bn310/types/**/*.ts",
+    ".next-verify-bn405/types/**/*.ts",
+    ".next-verify-bn507/types/**/*.ts",
+    ".next-verify/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
     "src/global.d.ts",
-    ".next-dev/types/**/*.ts"
+    ".next-b701/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

@@ -1,0 +1,25 @@
+{
+  "case": "media/stream_forged_link.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/media/1/stream?u=1004&expires=1790000000&signature=AAAA",
+        "persona": "anon",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 403,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "600",
+        "x-ratelimit-remaining": "598"
+      },
+      "body": {
+        "success": false,
+        "message": "This link is not valid",
+        "error_code": "link_invalid"
+      }
+    }
+  ]
+}

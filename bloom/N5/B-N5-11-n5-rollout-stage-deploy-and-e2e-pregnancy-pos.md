@@ -3,7 +3,7 @@ id: B-N5-11
 title: N5 rollout — stage deploy and e2e (pregnancy → postpartum → child)
 milestone: N5
 type: release
-status: todo
+status: in_progress
 depends_on: [B-N5-09,B-N5-10]
 parallel_group: N5-K
 touches: [docs/qa/bloom,bloom/PROGRESS.md]

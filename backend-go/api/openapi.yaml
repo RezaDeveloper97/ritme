@@ -70,6 +70,7 @@ tags:
   - {name: Todo, description: "To-do list «کارهای من» (Go only, bloom B-N6-08, D-66): tasks with a category (shopping / work / personal / health), optional due date, time and reminder; list items (shopping list); board grouped today / tomorrow / later + recently done; one cycle suggestion from the predicted period (admin-editable copy). Owner only; never logged"}
   - {name: Telemed, description: "Doctors directory «پزشکان و ماماها» (Go only, bloom B-N7-02, D-67): admin-managed doctors / midwives, visit types (video / phone / in person; price in integer rials, clients show toman), free slots generated from weekly availability minus time off and booked intervals, reviews from users with a completed visit. Specialty / city / insurer labels are catalog_items (telemed_specialties / telemed_cities / telemed_insurers)"}
   - {name: Learning, description: "Courses «دوره‌های من» for students (Go only, bloom B-N8-01, D-68): courses / standalone items opened by an instructor's grant (by phone; pending until that number signs up), chapters with scheduled unlock, per-lesson progress, the unlocked screen. Media references are filled by the B-N8-02 pipeline"}
+  - {name: Media, description: "Lesson media pipeline (Go only, bloom B-N8-02, D-81): resumable tus-style uploads for approved instructors (/api/instructor/v1/media) and short-lived signed, range-capable playback URLs"}
   - {name: Instructor, description: "Instructor panel API /api/instructor/v1 (Go only, bloom B-N8-01, D-68; instructor-web B-N8-05..07): apply / profile, courses → chapters → lessons (draft / published), groups, grants by phone with duration unlimited / 30 / 90 / until a date. Approved instructors only (403 otherwise); everything scoped to the instructor"}
 paths:
   /api/v1/account:
@@ -19209,6 +19210,244 @@ paths:
         '403': {$ref: "#/components/responses/LearningForbidden"}
         '404': {$ref: "#/components/responses/LearningNotFound"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/instructor/v1/media:
+    post:
+      tags: [Media]
+      summary: Start a resumable lesson media upload
+      description: |
+        Bloom B-N8-02 (D-81). Opens an upload of `size` bytes for one of the caller's lessons; the kind (video / audio /
+        pdf) is the lesson's. Limits: video 2 GiB, audio 500 MiB, pdf 100 MiB (413 `media_too_large` above);
+        at most 5 unfinished uploads and 100 GiB per instructor (422). `mime` is optional and only checked against
+        the lesson kind — the stored type is sniffed from the first chunk's bytes. An earlier unfinished upload of the
+        same lesson is cancelled; its ready media stays playable until the new one is ready. Then send the bytes with
+        PATCH in chunks of `upload.chunk_size` (≤ `upload.max_chunk_bytes`). Unfinished uploads expire after 24 h.
+        Response headers `Upload-Offset` / `Upload-Length` mirror the body.
+      operationId: instructorCreateMedia
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lesson_id, size]
+              properties:
+                lesson_id: {type: integer, minimum: 1}
+                size: {type: integer, minimum: 1, maximum: 2147483648, description: "Upload-Length in bytes"}
+                mime: {type: [string, 'null'], enum: [video/mp4, video/quicktime, video/webm, audio/mpeg, audio/mp4, audio/aac, audio/ogg, audio/wav, audio/flac, audio/webm, application/pdf, null]}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: object, required: [media, upload], properties: {media: {$ref: "#/components/schemas/MediaUpload"}, upload: {type: object, required: [chunk_size, max_chunk_bytes, content_type], properties: {chunk_size: {type: integer}, max_chunk_bytes: {type: integer}, content_type: {type: string, const: application/offset+octet-stream}}}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/MediaError"}
+        '413': {$ref: "#/components/responses/MediaError"}
+        '422': {$ref: "#/components/responses/LearningValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/MediaError"}
+  /api/instructor/v1/media/{id}:
+    get:
+      tags: [Media]
+      summary: One of the caller's uploads (the resume point)
+      description: "`offset_bytes` (and the `Upload-Offset` header) is where the next PATCH continues after an interruption."
+      operationId: instructorShowMedia
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/MediaId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: object, required: [media], properties: {media: {$ref: "#/components/schemas/MediaUpload"}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/MediaError"}
+    patch:
+      tags: [Media]
+      summary: Send the next chunk
+      description: |
+        tus-style: header `Upload-Offset` = the stored offset, `Content-Type: application/offset+octet-stream`, no
+        Content-Encoding, body = the next ≤ 16 MiB. A chunk is applied whole or not at all, so an interrupted request
+        changes nothing — resume from GET's offset. 409 `media_offset_mismatch` (with `offset` and the
+        `Upload-Offset` header) when the header is not the stored offset; 409 `media_upload_busy` while another
+        chunk of the same upload is written; 409 `media_not_uploading` after completion; 410 `media_upload_expired`;
+        413 `media_chunk_too_large` / `media_beyond_size`; 415 `media_type_not_accepted` when the first chunk's
+        bytes are not a file of the lesson kind (mp4 / mov / webm video; mp3 / m4a / aac / ogg / wav / flac / webm
+        audio; pdf), 415 `media_content_type` for another Content-Type or an encoding; 422 for a malformed
+        Upload-Offset. The last chunk runs the virus-scan hook and answers `status: ready` (the lesson's media) or
+        422 `media_rejected`.
+      operationId: instructorPatchMedia
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/MediaId"}
+        - {name: Upload-Offset, in: header, required: true, schema: {type: integer, minimum: 0}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/offset+octet-stream:
+            schema: {type: string, format: binary, maxLength: 16777216}
+      responses:
+        '200':
+          description: OK (chunk saved, or upload complete)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: object, required: [media], properties: {media: {$ref: "#/components/schemas/MediaUpload"}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/MediaError"}
+        '409': {$ref: "#/components/responses/MediaError"}
+        '410': {$ref: "#/components/responses/MediaError"}
+        '413': {$ref: "#/components/responses/MediaError"}
+        '415': {$ref: "#/components/responses/MediaError"}
+        '422': {$ref: "#/components/responses/MediaError"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Media]
+      summary: Cancel an upload or remove a file
+      description: The lesson follows (back to its previous ready media, or `none`).
+      operationId: instructorDestroyMedia
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/MediaId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: 'null'}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/MediaError"}
+        '409': {$ref: "#/components/responses/MediaError"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/instructor/v1/media/{id}/playback:
+    get:
+      tags: [Media]
+      summary: Signed playback URL of one of the caller's ready files (preview)
+      operationId: instructorMediaPlayback
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/MediaId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: object, required: [playback], properties: {playback: {$ref: "#/components/schemas/MediaPlayback"}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/MediaError"}
+        '503': {$ref: "#/components/responses/MediaError"}
+  /api/v1/learning/lessons/{id}/playback:
+    get:
+      tags: [Media]
+      summary: Signed playback URL of a lesson's media
+      description: "Same access rules as GET /learning/lessons/{id} (404 without access, 403 learning_access_expired / learning_chapter_locked); 404 `media_not_ready` while the lesson has no ready file. The URL lives 30 minutes; mint a new one on 410."
+      operationId: learningLessonPlayback
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LearningLessonId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: object, required: [playback], properties: {playback: {$ref: "#/components/schemas/MediaPlayback"}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
+        '404': {$ref: "#/components/responses/MediaError"}
+        '503': {$ref: "#/components/responses/MediaError"}
+  /api/v1/media/{id}/stream:
+    get:
+      tags: [Media]
+      summary: Stream a lesson file through its signed URL
+      description: |
+        No bearer: the link is the credential. `signature` = HMAC-SHA256(MEDIA_URL_KEY) over the media id, the viewer
+        `u` and `expires` (unix seconds, at most 1 hour ahead), so a link opens one file for one viewer for a short
+        time. 403 `link_invalid` (wrong / tampered / unknown), 410 `link_expired`, 404 when the file is gone, 503
+        without a key outside local / testing / contract. One `Range: bytes=` range answers 206 with Content-Range
+        (multi-range / malformed headers are ignored → 200); an unsatisfiable range 416 with `Content-Range:
+        bytes */<size>`. Headers: `Accept-Ranges: bytes`, `Cache-Control: private, no-store`, `ETag`, `If-Range`
+        honoured, `X-Content-Type-Options: nosniff`, `Content-Disposition: inline`. IP-throttled. The token is in the
+        query string, which the API never logs.
+      operationId: streamMedia
+      security: []
+      parameters:
+        - {$ref: "#/components/parameters/MediaId"}
+        - {name: u, in: query, required: true, schema: {type: string, pattern: "^[1-9][0-9]*$"}}
+        - {name: expires, in: query, required: true, schema: {type: string, pattern: "^[1-9][0-9]*$"}}
+        - {name: signature, in: query, required: true, schema: {type: string}}
+        - {name: Range, in: header, required: false, schema: {type: string, example: "bytes=0-1048575"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The whole file
+          content:
+            video/mp4: {schema: {type: string, format: binary}}
+            audio/mpeg: {schema: {type: string, format: binary}}
+            application/pdf: {schema: {type: string, format: binary}}
+        '206':
+          description: One byte range
+          headers:
+            Content-Range: {schema: {type: string, example: "bytes 0-1048575/52428800"}}
+          content:
+            video/mp4: {schema: {type: string, format: binary}}
+        '403': {$ref: "#/components/responses/MediaError"}
+        '404': {$ref: "#/components/responses/MediaError"}
+        '410': {$ref: "#/components/responses/MediaError"}
+        '416': {$ref: "#/components/responses/MediaError"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '503': {$ref: "#/components/responses/MediaError"}
 components:
   securitySchemes:
     bearerAuth:
@@ -19217,6 +19456,12 @@ components:
       bearerFormat: JWT
       description: "Passport access token from `POST /api/v1/auth/verify-otp`."
   parameters:
+    MediaId:
+      name: id
+      in: path
+      required: true
+      description: Lesson media id (bloom B-N8-02)
+      schema: {type: integer, minimum: 1}
     LearningCourseId:
       name: id
       in: path
@@ -19369,6 +19614,18 @@ components:
       description: "Overrides `Accept-Language`. Some endpoints clamp to the languages they have content for."
       schema: {type: string}
   responses:
+    MediaError:
+      description: "Bloom B-N8-02 media pipeline error `{success: false, message, error_code}` (409 media_offset_mismatch also carries `offset`)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [media_not_found, learning_lesson_not_found, media_not_ready, media_offset_mismatch, media_upload_busy, media_not_uploading, media_upload_expired, media_too_large, media_chunk_too_large, media_beyond_size, media_type_not_accepted, media_content_type, media_rejected, link_invalid, link_expired, range_not_satisfiable, media_unavailable]}
+              offset: {type: integer, minimum: 0}
     LearningValidationFailed:
       description: "Courses validation failed (controller 422 `{success: false, message, errors}`)."
       content:
@@ -20508,6 +20765,32 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    MediaUpload:
+      type: object
+      description: "One lesson media upload / file as its instructor sees it (bloom B-N8-02)."
+      required: [id, lesson_id, kind, mime, status, size_bytes, offset_bytes, upload_expires_at, completed_at, created_at]
+      properties:
+        id: {type: integer}
+        lesson_id: {type: [integer, 'null']}
+        kind: {type: string, enum: [video, audio, pdf]}
+        mime: {type: [string, 'null'], description: "Sniffed from the first chunk; null before it"}
+        status: {type: string, enum: [uploading, processing, ready, failed]}
+        size_bytes: {type: integer}
+        offset_bytes: {type: integer, description: "Bytes received — the resume point"}
+        upload_expires_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: 'null'}]}
+        completed_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: 'null'}]}
+        created_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: 'null'}]}
+    MediaPlayback:
+      type: object
+      description: "A short-lived signed URL (30 min) of a ready lesson file; GET it with Range requests."
+      required: [media_id, kind, mime, size_bytes, url, expires_at]
+      properties:
+        media_id: {type: integer}
+        kind: {type: string, enum: [video, audio, pdf]}
+        mime: {type: string}
+        size_bytes: {type: integer}
+        url: {type: string, format: uri, description: "<APP_URL>/api/v1/media/{id}/stream?u=&expires=&signature="}
+        expires_at: {$ref: "#/components/schemas/IsoDateTime"}
     LearningIsoOrNull:
       anyOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]
     LearningMedia:

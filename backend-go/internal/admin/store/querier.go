@@ -68,6 +68,7 @@ type Querier interface {
 	AdminUpdatePlusDiscount(ctx context.Context, arg AdminUpdatePlusDiscountParams) error
 	AdminUpdatePlusPlan(ctx context.Context, arg AdminUpdatePlusPlanParams) error
 	AnyDefaultLanguage(ctx context.Context) (bool, error)
+	ApproveLearningInstructor(ctx context.Context, arg ApproveLearningInstructorParams) error
 	// unique:articles,slug (->ignore($article) when except_id > 0).
 	ArticleSlugTaken(ctx context.Context, arg ArticleSlugTakenParams) (bool, error)
 	ChallengeExists(ctx context.Context, id uint64) (bool, error)
@@ -117,6 +118,29 @@ type Querier interface {
 	CountAdmins(ctx context.Context) (int64, error)
 	CountCompanionLinksByTypeStatus(ctx context.Context) ([]CountCompanionLinksByTypeStatusRow, error)
 	CountCompletionsOn(ctx context.Context, completionDate civildate.Date) (int64, error)
+	// Distinct students who opened a lesson since `since` (activity, not access).
+	CountLearningActiveStudents(ctx context.Context, since sql.NullTime) (int64, error)
+	CountLearningCompletedLessons(ctx context.Context) (int64, error)
+	// A course's grants by stored status (direct or through a group that opens it); expired = active past expires_at.
+	CountLearningCourseGrants(ctx context.Context, arg CountLearningCourseGrantsParams) ([]CountLearningCourseGrantsRow, error)
+	// ───────────── courses ─────────────
+	CountLearningCourses(ctx context.Context, arg CountLearningCoursesParams) (int64, error)
+	CountLearningCoursesByStatus(ctx context.Context) ([]CountLearningCoursesByStatusRow, error)
+	CountLearningGrantsByState(ctx context.Context, now sql.NullTime) ([]CountLearningGrantsByStateRow, error)
+	CountLearningGrantsSince(ctx context.Context, since sql.NullTime) (int64, error)
+	// Admin moderation of courses «مدرسین و دوره‌ها» (bloom B-N8-08; internal/admin/learning, admin-api.md §20).
+	// Read-mostly over the B-N8-01 tables (00046) plus the review state and moderation log of 00054. Filters are LIKE
+	// patterns ('%' = all) like the other admin lists. No health data: courses are instructor content, progress is only
+	// aggregated (percent per student × course), phone numbers are never selected here.
+	// ───────────── instructors ─────────────
+	CountLearningInstructors(ctx context.Context, arg CountLearningInstructorsParams) (int64, error)
+	CountLearningInstructorsByStatus(ctx context.Context) ([]CountLearningInstructorsByStatusRow, error)
+	CountLearningLessons(ctx context.Context) (CountLearningLessonsRow, error)
+	// Review queue counts over published lessons + flagged ones (an unpublished lesson stays flagged).
+	CountLearningLessonsByState(ctx context.Context) ([]CountLearningLessonsByStateRow, error)
+	CountLearningPublishedLessons(ctx context.Context) ([]CountLearningPublishedLessonsRow, error)
+	// ───────────── review queue ─────────────
+	CountLearningReviewQueue(ctx context.Context, arg CountLearningReviewQueueParams) (int64, error)
 	// Admin support reports inbox (B-N1-12b): «گزارش مشکل» rows from POST /api/v1/support/reports, newest first.
 	// The status filter is a LIKE pattern ('%' = all, 'open' / 'resolved' = exact), like the other admin lists.
 	CountSupportReports(ctx context.Context, status string) (int64, error)
@@ -173,6 +197,11 @@ type Querier interface {
 	GetChallenge(ctx context.Context, id uint64) (Challenge, error)
 	GetInfoSection(ctx context.Context, id uint64) (InfoSection, error)
 	GetLanguage(ctx context.Context, id uint64) (Language, error)
+	GetLearningCourse(ctx context.Context, id uint64) (GetLearningCourseRow, error)
+	GetLearningInstructorAdmin(ctx context.Context, arg GetLearningInstructorAdminParams) (GetLearningInstructorAdminRow, error)
+	GetLearningInstructorForUpdate(ctx context.Context, id uint64) (GetLearningInstructorForUpdateRow, error)
+	GetLearningLessonForUpdate(ctx context.Context, id uint64) (GetLearningLessonForUpdateRow, error)
+	GetLearningReviewLesson(ctx context.Context, id uint64) (GetLearningReviewLessonRow, error)
 	GetMessageContent(ctx context.Context, id uint64) (MessageContent, error)
 	GetPhaseContentByID(ctx context.Context, id uint64) (PhaseContent, error)
 	GetPregnancyWeek(ctx context.Context, id uint64) (PregnancyWeeklyContent, error)
@@ -183,6 +212,8 @@ type Querier interface {
 	// unique:info_sections,key per group (the (group, key) unique index; NULL keys never collide).
 	InfoSectionKeyTaken(ctx context.Context, arg InfoSectionKeyTakenParams) (bool, error)
 	InsertCompanionTipRow(ctx context.Context, arg InsertCompanionTipRowParams) error
+	// ───────────── moderation log ─────────────
+	InsertLearningModeration(ctx context.Context, arg InsertLearningModerationParams) error
 	// ---------------------------------------------------------------------------
 	// Ledger
 	InsertPlusAdminAction(ctx context.Context, arg InsertPlusAdminActionParams) error
@@ -211,6 +242,18 @@ type Querier interface {
 	// anything of the owner's health records. Status / type filters are LIKE patterns ('%' = all).
 	ListCompanionTipRows(ctx context.Context) ([]MessageContent, error)
 	ListCompletions(ctx context.Context, arg ListCompletionsParams) ([]ListCompletionsRow, error)
+	// ───────────── usage aggregates (completion) ─────────────
+	// (course, student) pairs with a running grant for the given courses: the denominator of «completion».
+	ListLearningAccessPairs(ctx context.Context, arg ListLearningAccessPairsParams) ([]ListLearningAccessPairsRow, error)
+	ListLearningAllAccessPairs(ctx context.Context, now sql.NullTime) ([]ListLearningAllAccessPairsRow, error)
+	ListLearningCourseChapters(ctx context.Context, courseID uint64) ([]ListLearningCourseChaptersRow, error)
+	ListLearningCourseLessons(ctx context.Context, courseID uint64) ([]ListLearningCourseLessonsRow, error)
+	ListLearningCourses(ctx context.Context, arg ListLearningCoursesParams) ([]ListLearningCoursesRow, error)
+	// Pending applications first (what needs an answer), then newest.
+	ListLearningInstructors(ctx context.Context, arg ListLearningInstructorsParams) ([]ListLearningInstructorsRow, error)
+	ListLearningModeration(ctx context.Context, arg ListLearningModerationParams) ([]ListLearningModerationRow, error)
+	// Published lessons (and flagged ones, also after a takedown) in the given review states. Open states come oldest-change first (a queue), the rest newest first.
+	ListLearningReviewQueue(ctx context.Context, arg ListLearningReviewQueueParams) ([]ListLearningReviewQueueRow, error)
 	// ---------------------------------------------------------------------------
 	// Smart messages (message_contents). group/locale patterns: '%' = all.
 	ListMessageGroups(ctx context.Context) ([]string, error)
@@ -232,6 +275,9 @@ type Querier interface {
 	PregnancyWeekTaken(ctx context.Context, arg PregnancyWeekTakenParams) (bool, error)
 	// User::latest()->take(8).
 	RecentUsers(ctx context.Context, limit int32) ([]RecentUsersRow, error)
+	// approve / flag: the review fields only — updated_at stays, so «changed since review» keeps meaning the instructor.
+	ReviewLearningLesson(ctx context.Context, arg ReviewLearningLessonParams) error
+	RevokeLearningInstructor(ctx context.Context, arg RevokeLearningInstructorParams) error
 	SetArticlePublished(ctx context.Context, arg SetArticlePublishedParams) error
 	// An editor save makes the row live again (active + approved): the tips page is the copy the panel shows.
 	SetCompanionTipRow(ctx context.Context, arg SetCompanionTipRowParams) error
@@ -240,6 +286,9 @@ type Querier interface {
 	SetSupportReportStatus(ctx context.Context, arg SetSupportReportStatusParams) (sql.Result, error)
 	// forceFill(['blocked_at' => now()|null])->save().
 	SetUserBlockedAt(ctx context.Context, arg SetUserBlockedAtParams) error
+	SumAllLearningProgress(ctx context.Context) ([]SumAllLearningProgressRow, error)
+	// Per (course, student): the summed effective percent over published lessons (a completed lesson counts 100).
+	SumLearningProgress(ctx context.Context, courseIds []uint64) ([]SumLearningProgressRow, error)
 	TaskTemplateKeyTaken(ctx context.Context, arg TaskTemplateKeyTakenParams) (bool, error)
 	ToggleAffirmation(ctx context.Context, arg ToggleAffirmationParams) error
 	ToggleBanner(ctx context.Context, arg ToggleBannerParams) error
@@ -251,6 +300,8 @@ type Querier interface {
 	ToggleTaskTemplate(ctx context.Context, arg ToggleTaskTemplateParams) error
 	// forceFill(['last_login_at' => now()])->save().
 	TouchAdminLastLogin(ctx context.Context, arg TouchAdminLastLoginParams) error
+	// A takedown: back to draft (students stop seeing it at once) and flagged with the admin's reason.
+	UnpublishLearningLesson(ctx context.Context, arg UnpublishLearningLessonParams) error
 	UpdateAdmin(ctx context.Context, arg UpdateAdminParams) error
 	UpdateAdminPassword(ctx context.Context, arg UpdateAdminPasswordParams) error
 	UpdateAffirmation(ctx context.Context, arg UpdateAffirmationParams) error

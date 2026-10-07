@@ -1,0 +1,25 @@
+{
+  "case": "media/stream_forged_link.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/media/1/stream?u=1004&expires=1790000000&signature=AAAA",
+        "persona": "anon",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 403,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "600",
+        "x-ratelimit-remaining": "599"
+      },
+      "body": {
+        "success": false,
+        "message": "این لینک معتبر نیست",
+        "error_code": "link_invalid"
+      }
+    }
+  ]
+}
