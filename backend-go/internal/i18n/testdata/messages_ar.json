@@ -6358,6 +6358,78 @@
      "add": "افزودن",
      "empty": "هنوز درمان یا مکملی ثبت نکرده‌ای."
     }
+   },
+   "report": {
+    "title": "گزارش برای پزشک",
+    "back": "بازگشت",
+    "range": "{from} تا {to}",
+    "rangeLabel": "بازه گزارش",
+    "months": "{n} ماه",
+    "summary": "خلاصه",
+    "empty": "در این بازه هنوز چیزی ثبت نکرده‌ای؛ گزارش با ثبت علائم کامل‌تر می‌شود.",
+    "noSymptoms": "در این بازه علامتی ثبت نشده.",
+    "noTreatment": "دارو یا درمانی ثبت نشده.",
+    "questions": "سؤال‌هایم از پزشک",
+    "questionsPlaceholder": "مثلاً: آیا این خونریزی بررسی بیشتری لازم دارد؟",
+    "questionsCount": "{count} از {max}",
+    "note": "گزارش فقط با انتخاب خودت ساخته و فرستاده می‌شود.",
+    "download": "دانلود PDF و ارسال به پزشک",
+    "downloading": "در حال ساخت PDF…",
+    "downloadError": "PDF ساخته نشد. دوباره امتحان کن.",
+    "shareLink": "لینک اشتراک برای پزشک",
+    "loading": "در حال آماده کردن گزارش",
+    "loadError": "گزارش بارگذاری نشد.",
+    "retry": "تلاش دوباره",
+    "homeCta": "گزارش ۳ ماه برای پزشک",
+    "alertCta": "آماده کردن گزارش برای پزشک",
+    "paper": {
+     "title": "یائسگی",
+     "empty": "در این بازه ثبتی نیست.",
+     "symptomsTitle": "شایع‌ترین علائم",
+     "treatmentTitle": "دارو و درمان",
+     "none": "ثبت نشده",
+     "rows": {
+      "stage": "مرحله",
+      "score": "امتیاز علائم",
+      "hotFlashes": "گرگرفتگی",
+      "nightSweats": "تعریق شبانه",
+      "sleep": "خواب",
+      "bleeding": "خونریزی یا لکه‌بینی",
+      "bp": "فشار خون",
+      "hrt": "هورمون‌درمانی",
+      "sideEffects": "عوارض ثبت‌شده",
+      "supplements": "مکمل‌ها",
+      "lifestyle": "سبک زندگی"
+     },
+     "stage": {
+      "peri": "پیش‌یائسگی",
+      "meno": "یائسگی",
+      "post": "پس از یائسگی",
+      "unsure": "مطمئن نیستم"
+     },
+     "stageValue": "{stage} · {months} ماه بدون پریود",
+     "scoreChange": "{first} ← {last} از {max}",
+     "scoreValue": "{last} از {max}",
+     "perDay": "میانگین {value} بار در روز",
+     "perWeek": "{value} شب در هفته",
+     "sleepValue": "میانگین {value} ساعت",
+     "bleedingValue": "{count, plural, other {# بار}} · آخرین: {date}",
+     "bleedingNone": "ثبت نشده",
+     "bpValue": "میانگین {value}",
+     "share": "{percent}٪ روزها",
+     "since": "از {month}",
+     "adherence": "{pct}٪ مصرف منظم",
+     "stopped": "قطع شده",
+     "effectDays": "{effect} ({days, plural, other {# روز}})",
+     "effect": {
+      "breast_tenderness": "حساسیت پستان",
+      "spotting": "لکه‌بینی",
+      "headache": "سردرد",
+      "bloating": "نفخ",
+      "mood_change": "تغییر خلق"
+     },
+     "lifestyleValue": "{name} · {value} بار در هفته"
+    }
    }
   },
   "nav": {

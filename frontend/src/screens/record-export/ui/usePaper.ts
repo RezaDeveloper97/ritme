@@ -14,9 +14,10 @@ import { buildPaper, paperPdfBlocks, type PaperModel, type Translate } from '../
 export function usePaperModel(report: HealthReport | undefined, question: string | null): PaperModel | null {
   const t = useTranslations('recordExport.paper');
   const hr = useTranslations('healthRecord');
+  const tm = useTranslations('menopause.report.paper');
   const loc = useLocale() as Locale;
   if (!report) return null;
-  return buildPaper(report, question, t as unknown as Translate, hr as unknown as Translate, loc);
+  return buildPaper(report, question, t as unknown as Translate, hr as unknown as Translate, loc, tm as unknown as Translate);
 }
 
 /** Pages the PDF will take, roughly (A4, the renderer's line heights) — for «۲ صفحه» on the export card. */

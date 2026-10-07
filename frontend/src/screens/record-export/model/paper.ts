@@ -3,6 +3,8 @@ import type { Locale } from '@/shared/i18n';
 import { formatDecimal, formatLongDate, formatMonthLabel, formatNumber, fromApiDate, toParts } from '@/shared/lib/date';
 import type { PdfBlock } from '@/shared/lib/pdf';
 
+import { menopausePaperBlocks } from './menopause';
+
 /**
  * One description of the doctor report «گزارش سلامت» (nbl_Record_Preview) that both the on-screen paper and the
  * on-device PDF render, so the two never drift. Pure: the caller passes translators (`recordExport.paper.*` and the
@@ -43,8 +45,18 @@ function valueRange(v: ValueSummary, unit: string, n: (x: number) => string): st
   return `${n(v.avg)}${unit} (${n(v.min)} – ${n(v.max)})`;
 }
 
-/** Builds the paper of `report` (only its present sections) with the patient's optional question. */
-export function buildPaper(report: HealthReport, question: string | null, t: Translate, hr: Translate, loc: Locale): PaperModel {
+/**
+ * Builds the paper of `report` (only its present sections) with the patient's optional question. `tm`
+ * (`menopause.report.paper`) draws the CB-MENO-11 `menopause` section when the report has one.
+ */
+export function buildPaper(
+  report: HealthReport,
+  question: string | null,
+  t: Translate,
+  hr: Translate,
+  loc: Locale,
+  tm?: Translate,
+): PaperModel {
   const n = (x: number) => formatNumber(x, loc);
   const d = (x: number) => formatDecimal(x, loc);
   const p = report.person;
@@ -177,6 +189,10 @@ export function buildPaper(report: HealthReport, question: string | null, t: Tra
           : t('labAttention', { count: l.attentionCount });
       blocks.push({ kind: 'row', cells: [l.title, monthYear(l.date, loc), status], weights: [3, 2, 3] });
     }
+  }
+
+  if (report.menopause && tm) {
+    blocks.push(...menopausePaperBlocks(report.menopause.data, report.menopause.empty, tm, loc));
   }
 
   return {

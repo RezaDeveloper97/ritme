@@ -103,6 +103,7 @@ export const ROUTE_NAMESPACES = {
   menopauseLog: ['common', 'logSheet', 'menopause', 'plus', 'voiceLog'], // CB-MENO-06 /menopause/log (log sheet v2 menopause preset as a page, no nav)
   menopauseScore: ['common', 'menopause', 'nav'], // CB-MENO-08 /menopause/score (menopause tab «علائم», bottom nav)
   menopauseScoreQuestionnaire: ['common', 'menopause', 'nav'], // CB-MENO-08 /menopause/score/questionnaire (form, no nav; same screen slice as /menopause/score)
+  menopauseReport: ['common', 'healthRecord', 'menopause', 'plus', 'recordExport'], // CB-MENO-11 /menopause/report (doctor report on bloom's builder, back header, no nav)
   postpartum: ['children', 'common', 'logSheet', 'nav', 'plus', 'postpartum'], // B-N5-04 /postpartum (v15_Main; mood chips save through features/log-day); B-N5-05 hero children row + child vaccines (entities/child)
   postpartumSetup: ['children', 'common', 'logSheet', 'nav', 'plus', 'postpartum'], // B-N5-04 /postpartum/setup (same screen slice as /postpartum)
   postpartumRecovery: ['common', 'postpartum'], // B-N5-04 /postpartum/recovery (v15_Recovery, back header)
@@ -117,8 +118,8 @@ export const ROUTE_NAMESPACES = {
   lossStart: ['common', 'companions', 'loss'], // CB-LOSS-02 /loss (Loss_Start, full screen, no nav; companions = entities/companion barrel)
   lossCare: ['common', 'loss'], // CB-LOSS-02 /loss/care (Loss_Care; «ثبت» opens the shell's log sheet)
   lossNext: ['common', 'loss'], // CB-LOSS-02 /loss/next (Loss_Next)
-  recordExport: ['common', 'healthRecord', 'plus', 'recordExport'], // B-N6-04 /record/export + /record/export/preview
-  sharedReport: ['common', 'healthRecord', 'plus', 'recordExport'], // B-N6-04 public /shared/report/[token]
+  recordExport: ['common', 'healthRecord', 'menopause', 'plus', 'recordExport'], // B-N6-04 /record/export + /record/export/preview (CB-MENO-11: menopause = the paper's menopause section)
+  sharedReport: ['common', 'healthRecord', 'menopause', 'plus', 'recordExport'], // B-N6-04 public /shared/report/[token] (CB-MENO-11: menopause = the paper's menopause section)
   healthRecord: ['common', 'healthRecord', 'profileEdit'], // B-N6-03 /record (Record_Summary; profileEdit = the height/weight QuickEditSheet)
   ivfMeds: ['common', 'ivf', 'nav'], // CB-IVF-03 /ivf/meds (nbl_IVF_Meds, IVF stage tab «درمان»)
   ivfMedForm: ['common', 'ivf', 'nav'], // CB-IVF-03 /ivf/meds/new, /ivf/meds/[id] (form, no nav; same screen slice as /ivf/meds)

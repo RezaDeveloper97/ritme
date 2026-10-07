@@ -20,6 +20,7 @@ import type {
   VitalsSummary,
 } from '../model/types';
 import { healthRecordKeys } from './keys';
+import { type MenopauseSection, menopauseSectionSchema } from './menopause-section';
 import { rawSection, SECTION_SCHEMAS, type SectionKey } from './schema';
 
 /*
@@ -43,13 +44,16 @@ export const REPORT_SECTIONS = [
   'labs',
 ] as const satisfies readonly SectionKey[];
 export type ReportSection = (typeof REPORT_SECTIONS)[number];
+/** Sections other domains plug into the builder (CB-MENO-03 `menopause`); requested on their own screens. */
+export const REPORT_PROVIDER_SECTIONS = ['menopause'] as const;
+export type ReportProviderSection = (typeof REPORT_PROVIDER_SECTIONS)[number];
 export const MAX_REPORT_QUESTION = 300;
 
 /** What the owner picked on «گزارش برای پزشک». `from` (Gregorian `YYYY-MM-DD`) only for `custom`. */
 export interface ReportSelection {
   range: ReportRange;
   from: string | null;
-  sections: ReportSection[];
+  sections: (ReportSection | ReportProviderSection)[];
   question: string;
 }
 
@@ -74,6 +78,8 @@ export interface HealthReport {
   pregnancies?: Section<Pregnancies>;
   checkups?: Section<{ items: RecordCheckup[] }>;
   labs?: Section<{ items: RecordLab[] }>;
+  /** CB-MENO-11: present only when requested, for a user in menopause mode. */
+  menopause?: Section<MenopauseSection>;
 }
 
 /** The frozen report behind a share link (public view). */
@@ -99,6 +105,10 @@ function toReport(range: z.output<typeof windowSchema>, rec: z.output<typeof rec
   };
   const target = out as unknown as Record<string, unknown>;
   for (const s of rec.sections) {
+    if (s.key === 'menopause') {
+      out.menopause = { editable: false, empty: s.empty, data: menopauseSectionSchema.parse(s.data) };
+      continue;
+    }
     if (!(REPORT_SECTIONS as readonly string[]).includes(s.key)) continue; // a later provider section: ignored here
     const key = s.key as ReportSection;
     target[key] = { editable: false, empty: s.empty, data: SECTION_SCHEMAS[key].parse(s.data) };

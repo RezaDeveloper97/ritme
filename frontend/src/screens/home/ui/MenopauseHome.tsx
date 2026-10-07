@@ -37,6 +37,7 @@ import { BottomNav } from '@/widgets/bottom-nav';
 import { LinkedTeenCards } from '@/widgets/linked-teen-card';
 
 import { flashElapsedSeconds, listedMessages, routedLink, scoreTrend } from '../model/menopause';
+import { MenopauseReportLink } from './MenopauseReportLink';
 import { PlusTrialOffer } from './PlusTrialOffer';
 
 const STATUS_TONE: Record<CheckupStatus, Tone> = {
@@ -147,6 +148,7 @@ function HomeBody({ data, fetchedAt }: { data: MenopauseToday; fetchedAt: number
       <ScoreCard data={data} />
       {checkups.length ? <Checkups items={checkups.slice(0, 3)} /> : null}
       <Treatment items={data.treatment} />
+      <MenopauseReportLink />
     </>
   );
 }

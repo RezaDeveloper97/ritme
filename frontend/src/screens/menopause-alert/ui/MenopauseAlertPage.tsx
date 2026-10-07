@@ -28,13 +28,13 @@ const BOOK_HREF = '/reminders/appointment/new?kind=in_person';
  * appointment (M3 form), and the other warning signs to report early, with a
  * one-tap 115 call on the emergency one. Reached from the home's bleeding card
  * and the `postmenopausal_bleeding` message. A back-header screen: no bottom
- * nav. The «آماده کردن گزارش برای پزشک» CTA waits for the doctor report
- * (CB-MENO-11) — not rendered until that route exists.
+ * nav. «آماده کردن گزارش برای پزشک» opens the doctor report (CB-MENO-11).
  * Copy is catalog content ([needs clinical review]); the strings here are only
  * the fallback when the catalog can't be read.
  */
 export function MenopauseAlertPage() {
   const t = useTranslations('menopause.alert');
+  const tr = useTranslations('menopause.report');
   const locale = useLocale() as Locale;
   const router = useRouter();
   const query = useMenoAlerts(locale);
@@ -60,6 +60,11 @@ export function MenopauseAlertPage() {
             <Link href={BOOK_HREF} className="nb-btn is-primary is-block mal-book">
               <Icon name="stetho" size={20} />
               {t('book')}
+            </Link>
+            {/* CB-MENO-11: «آماده کردن گزارش برای پزشک» → the doctor report (back returns here). */}
+            <Link href="/menopause/report?from=alert" className="nb-btn is-outline is-block mal-report">
+              <Icon name="fileDoc" size={20} />
+              {tr('alertCta')}
             </Link>
           </div>
 

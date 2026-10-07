@@ -358,5 +358,77 @@
       "add": "Add",
       "empty": "No treatments or supplements yet."
     }
+  },
+  "report": {
+    "title": "Report for your doctor",
+    "back": "Back",
+    "range": "{from} to {to}",
+    "rangeLabel": "Report period",
+    "months": "{count, plural, one {{n} month} other {{n} months}}",
+    "summary": "Summary",
+    "empty": "Nothing logged in this period yet; the report fills in as you log symptoms.",
+    "noSymptoms": "No symptoms logged in this period.",
+    "noTreatment": "No medication or treatment logged.",
+    "questions": "My questions for the doctor",
+    "questionsPlaceholder": "e.g. Does this bleeding need more tests?",
+    "questionsCount": "{count} of {max}",
+    "note": "The report is only made and sent when you choose to.",
+    "download": "Download PDF and send to doctor",
+    "downloading": "Making the PDF…",
+    "downloadError": "The PDF couldn't be made. Try again.",
+    "shareLink": "Share link for the doctor",
+    "loading": "Preparing the report",
+    "loadError": "The report couldn't be loaded.",
+    "retry": "Try again",
+    "homeCta": "3-month report for your doctor",
+    "alertCta": "Prepare a report for the doctor",
+    "paper": {
+      "title": "Menopause",
+      "empty": "Nothing logged in this period.",
+      "symptomsTitle": "Most common symptoms",
+      "treatmentTitle": "Medication & treatment",
+      "none": "Not logged",
+      "rows": {
+        "stage": "Stage",
+        "score": "Symptom score",
+        "hotFlashes": "Hot flashes",
+        "nightSweats": "Night sweats",
+        "sleep": "Sleep",
+        "bleeding": "Bleeding or spotting",
+        "bp": "Blood pressure",
+        "hrt": "Hormone therapy",
+        "sideEffects": "Logged side effects",
+        "supplements": "Supplements",
+        "lifestyle": "Lifestyle"
+      },
+      "stage": {
+        "peri": "Perimenopause",
+        "meno": "Menopause",
+        "post": "Postmenopause",
+        "unsure": "Not sure"
+      },
+      "stageValue": "{stage} · {months} months without a period",
+      "scoreChange": "{first} → {last} of {max}",
+      "scoreValue": "{last} of {max}",
+      "perDay": "Average {value} a day",
+      "perWeek": "{value} nights a week",
+      "sleepValue": "Average {value} hours",
+      "bleedingValue": "{count, plural, one {# time} other {# times}} · last: {date}",
+      "bleedingNone": "Not logged",
+      "bpValue": "Average {value}",
+      "share": "{percent}% of days",
+      "since": "since {month}",
+      "adherence": "{pct}% taken as planned",
+      "stopped": "stopped",
+      "effectDays": "{effect} ({days, plural, one {# day} other {# days}})",
+      "effect": {
+        "breast_tenderness": "Breast tenderness",
+        "spotting": "Spotting",
+        "headache": "Headache",
+        "bloating": "Bloating",
+        "mood_change": "Mood change"
+      },
+      "lifestyleValue": "{name} · {value} times a week"
+    }
   }
 }

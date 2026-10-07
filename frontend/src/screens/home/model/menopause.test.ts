@@ -9,7 +9,8 @@ describe('menopause home helpers', () => {
     expect(routedLink('/menopause/score')).toBe('/menopause/score');
     expect(routedLink('/menopause/alert')).toBe('/menopause/alert');
     expect(routedLink('/menopause/treatment')).toBe('/menopause/treatment');
-    expect(routedLink('/menopause/report')).toBeNull();
+    expect(routedLink('/menopause/report')).toBe('/menopause/report');
+    expect(routedLink('/menopause/nope')).toBeNull();
     expect(routedLink('https://example.com/checkups/3')).toBeNull();
     expect(routedLink(null)).toBeNull();
   });

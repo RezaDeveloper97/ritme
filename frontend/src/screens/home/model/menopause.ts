@@ -6,7 +6,7 @@ import type { MenopauseMessage } from '@/entities/menopause';
 
 /**
  * In-app links the API may hand the home that have a screen today. Everything
- * else (/report until CB-MENO-11) is dropped so the home never links to a 404.
+ * else is dropped so the home never links to a 404.
  */
 const ROUTED = [
   /^\/checkups$/,
@@ -16,6 +16,7 @@ const ROUTED = [
   /^\/menopause\/hot-flash$/,
   /^\/menopause\/log$/,
   /^\/menopause\/treatment$/,
+  /^\/menopause\/report$/, // CB-MENO-11
 ];
 
 export function routedLink(link: string | null): string | null {

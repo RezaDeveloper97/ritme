@@ -65,3 +65,6 @@ export {
   type ShareLinks,
   type ShareLinkStatus,
 } from './api/report';
+// CB-MENO-11: the `menopause` provider section of the doctor report (GET /health-record/report, GET /menopause/report).
+export { REPORT_PROVIDER_SECTIONS, type ReportProviderSection } from './api/report';
+export { menopauseSectionSchema, type MenopauseSection } from './api/menopause-section';

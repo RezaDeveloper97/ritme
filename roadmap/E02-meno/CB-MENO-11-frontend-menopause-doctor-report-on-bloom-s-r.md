@@ -3,7 +3,7 @@ id: CB-MENO-11
 title: Frontend: menopause doctor report (on bloom's report builder)
 epic: MENO
 type: frontend
-status: todo
+status: done
 depends_on: [CB-MENO-03, CB-MENO-05, B-N6-04]
 parallel_group: MENO-D
 touches: [frontend/src/screens/menopause-report, frontend/src/app/[locale]/menopause/report, frontend/src/screens/record-export]
