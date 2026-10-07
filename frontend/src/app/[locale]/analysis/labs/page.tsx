@@ -13,7 +13,7 @@ export default async function AnalysisLabsRoute({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   return (
-    <RouteMessages route="analysis">
+    <RouteMessages route="analysisLabs">
       <AnalysisLabsPage />
     </RouteMessages>
   );

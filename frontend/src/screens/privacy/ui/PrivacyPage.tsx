@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { companionName, sharedSections, useCompanions } from '@/entities/companion';
+import { useShareLinks } from '@/entities/health-record';
 import {
   getLockController,
   isBiometricAvailable,
@@ -36,6 +37,38 @@ function SectionLabel({ id, children }: { id: string; children: string }) {
     <h2 id={id} className="prv-label">
       {children}
     </h2>
+  );
+}
+
+/**
+ * «پزشکانی که گزارش دیده‌اند» (Me_Privacy): the doctor-report share links in one line — «فعال تا ۲۱ مهر» while one
+ * is live (opens the links list below), the latest one's state once they all ended, else the empty line leading
+ * to the report builder.
+ */
+function DoctorsRow() {
+  const t = useTranslations('me.privacy');
+  const tl = useTranslations('recordExport.links');
+  const loc = useLocale() as Locale;
+  const router = useRouter();
+  const links = useShareLinks();
+  const items = links.data?.items ?? [];
+  const active = items.filter((l) => l.status === 'active');
+  const toLinks = () => document.getElementById('prv-g-links')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  let description = t('access.doctorsSub');
+  if (active.length) {
+    const last = active.reduce((a, b) => (Date.parse(b.expiresAt) > Date.parse(a.expiresAt) ? b : a));
+    description = tl('active', { date: formatDayMonth(new Date(last.expiresAt), loc) });
+  } else if (items.length) {
+    description = tl(items[0].status);
+  }
+  return (
+    <ListRow
+      icon="stetho"
+      iconTone="brand"
+      title={t('access.doctors')}
+      description={description}
+      onClick={links.isSuccess ? (items.length ? toLinks : () => router.push('/record/export')) : undefined}
+    />
   );
 }
 
@@ -303,13 +336,7 @@ export function PrivacyPage() {
           <SectionLabel id="prv-g-access">{t('groups.access')}</SectionLabel>
           <ListGroup className="prv-list">
             <CompanionRows />
-            <ListRow
-              icon="stetho"
-              iconTone="brand"
-              title={t('access.doctors')}
-              description={t('access.doctorsSub')}
-              trailing={<StatusPill tone="neutral">{soon}</StatusPill>}
-            />
+            <DoctorsRow />
           </ListGroup>
         </section>
 

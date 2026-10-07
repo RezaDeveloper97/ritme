@@ -4,7 +4,7 @@ title: N6 rollout — stage deploy and e2e
 milestone: N6
 type: release
 status: todo
-depends_on: [B-N6-09]
+depends_on: [B-N6-09,B-N6-04b]
 parallel_group: N6-J
 touches: [docs/qa/bloom,bloom/PROGRESS.md]
 skills: [verify-all,deploy-stage]

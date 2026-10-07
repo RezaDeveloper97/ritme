@@ -126,6 +126,7 @@ export const ROUTE_NAMESPACES = {
   labs: ['common', 'labs', 'plus'], // B-N6-07 /labs + /labs/new (Lab_Intro / Lab_Upload; back header, no nav; plus = PlusFeatureGate copy)
   labDetail: ['common', 'labs'], // B-N6-07 /labs/[id], /labs/[id]/{processing,verify}, /labs/[id]/markers/[mid] (Lab_Result / _Processing / _Verify / _Marker)
   analysis: ['analysis', 'common', 'nav', 'plus'], // B-N3-08 /analysis hub + /analysis/* stubs (one screen slice; PlusGate copy = plus.gate)
+  analysisLabs: ['analysis', 'common', 'labs', 'nav', 'plus'], // B-N6-09 /analysis/labs (An_Labs rows: «مرجع: …» = labs.result.reference)
   analysisHub: ['analysis', 'analysisPostpartum', 'analysisPregnancy', 'babyLog', 'children', 'common', 'nav', 'plus'], // B-N3-12 /analysis itself: + the pregnancy hub (screens/analysis-pregnancy); B-N5-07 + the postpartum hub (screens/analysis-postpartum, features/baby-log, entities/child)
   analysisPregnancyWeight: ['analysisPregnancy', 'common', 'nav', 'plus'], // B-N3-12 /analysis/pregnancy-weight (An_PregWeight; the slice's hub cards carry plus.gate)
   analysisReport: ['analysis', 'common', 'nav'], // B-N3-09 /analysis/{cycle,period,symptoms,body} (no Plus gate; correlations keeps `analysis`)

@@ -10974,3 +10974,23 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .td-save:focus-visible { outline: none; box-shadow: var(--ring); }
 .td-cal { display: flex; flex-direction: column; gap: 12px; }
 /* ═══ end B-N6-08 ═══ */
+
+/* ═══ B-N6-09 — N6 design-fidelity fixes (docs/night-bloom/audit-n6.md) ═══ */
+/* V1 — the hub's last «ثبت‌های اخیر» row ended under the sticky add bar (the nav reserve won over the hub's 72px);
+   reserve nav + bar + a 12px gap. */
+.view.vt-hub-screen:has(> .nbnav) > .scroll::after { height: calc(var(--h-nav) + var(--h-btn) + 26px); }
+/* V3 — the BP class scale reads like the board in every locale: normal on the left, stage 2 on the right. */
+.vt-scale { direction: ltr; }
+/* V4 — an empty morning / night cell is a quiet line, not a big display number. */
+.vt-mvn-empty { font-size: var(--fs-md); font-weight: 700; line-height: var(--lh-body); color: var(--text-3); }
+/* A1 — An_Labs rows: name + «مرجع» · sparkline · value + state pill on one line. */
+.alb-row { display: grid; grid-template-columns: minmax(0, 1fr) 120px auto; align-items: center; gap: 12px; flex-direction: unset; }
+.alb-row-main { display: flex; flex-direction: column; gap: 4px; min-inline-size: 0; }
+.alb-row-name { flex: none; }
+.alb-row-ref { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.alb-row-trend { display: block; inline-size: 120px; }
+.alb-row-trend .axc-fig { margin: 0; }
+.alb-row-trend .axc-line { vector-effect: non-scaling-stroke; stroke-width: 2.4; }
+.alb-row-trend .axc-line-end { r: 9px; stroke-width: 4; }
+.alb-row-end { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+/* ═══ end B-N6-09 ═══ */

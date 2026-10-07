@@ -13,6 +13,7 @@ import {
   vitalReportPath,
   useVitalFormat,
   useVitalsHub,
+  type GlucoseUnit,
   type PlanWeek,
   type VitalReading,
   type VitalType,
@@ -73,7 +74,7 @@ export function VitalsHubPage() {
           ))}
         </div>
         <PlanCard week={h.plan} onEdit={() => setPlanOpen(true)} />
-        <RecentCard readings={h.recent} />
+        <RecentCard readings={h.recent} glucoseUnit={h.latest.glucose?.glucose?.unit} />
       </div>
     );
   }
@@ -196,7 +197,8 @@ function PlanCard({ week, onEdit }: { week: PlanWeek; onEdit: () => void }) {
   );
 }
 
-function RecentCard({ readings }: { readings: readonly VitalReading[] }) {
+/** `glucoseUnit` = the unit of the latest glucose card, so the list shows every glucose value in it. */
+function RecentCard({ readings, glucoseUnit }: { readings: readonly VitalReading[]; glucoseUnit?: GlucoseUnit }) {
   const t = useTranslations('vitals');
   return (
     <Card as="section" className="vt-card vt-list-card" aria-labelledby="vt-recent-title">
@@ -213,7 +215,7 @@ function RecentCard({ readings }: { readings: readonly VitalReading[] }) {
       {readings.length ? (
         <ul className="vt-rows">
           {readings.map((r, i) => (
-            <ReadingRow key={r.id ?? `log-${r.type}-${r.date}-${i}`} reading={r} withType />
+            <ReadingRow key={r.id ?? `log-${r.type}-${r.date}-${i}`} reading={r} withType glucoseUnit={glucoseUnit} />
           ))}
         </ul>
       ) : (

@@ -32,6 +32,7 @@ export function AnalysisLabsPage() {
   const t = useTranslations('analysis.reports');
   const tl = useTranslations('analysis.reports.labs');
   const tPlus = useTranslations('plus.gate');
+  const tLab = useTranslations('labs');
   const locale = useLocale() as Locale;
   const router = useRouter();
   const summary = useAnalysisSummary(DEFAULT_RANGE);
@@ -91,26 +92,34 @@ export function AnalysisLabsPage() {
                           className="alb-row"
                           onClick={() => router.push(`/labs/${s.latest.labId}/markers/${s.latest.markerId}`)}
                         >
-                          <span className="alb-row-top">
+                          <span className="alb-row-main">
                             <span className="alb-row-name">{s.name}</span>
+                            {s.referenceText ? (
+                              <span className="alb-row-ref">
+                                {tLab('result.reference', { ref: formatDecimal(s.referenceText, locale) })}
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className="alb-row-trend">
+                            {values.length >= minPoints ? (
+                              <TrendLine
+                                label={tl('trendLabel', {
+                                  name: s.name,
+                                  values: values.map((v) => formatDecimal(trimNumber(v), locale)).join('، '),
+                                })}
+                                values={values}
+                                tone={stateTone(s.latest.state)}
+                                height={110}
+                              />
+                            ) : null}
+                          </span>
+                          <span className="alb-row-end">
                             <span className={`alb-row-value nb-tone-${stateTone(s.latest.state)}`}>
                               {formatLabValue(s.latest, locale)}
                               {s.unit ? <span className="alb-row-unit">{s.unit}</span> : null}
                             </span>
                             <MarkerStatePill state={s.latest.state} label={s.latest.stateLabel} />
                           </span>
-                          {values.length >= minPoints ? (
-                            <TrendLine
-                              label={tl('trendLabel', {
-                                name: s.name,
-                                values: values.map((v) => formatDecimal(trimNumber(v), locale)).join('، '),
-                              })}
-                              values={values}
-                              tone={stateTone(s.latest.state)}
-                              height={56}
-                            />
-                          ) : null}
-                          {s.trend.sentence ? <span className="alb-row-sub">{s.trend.sentence}</span> : null}
                         </button>
                       </li>
                     );

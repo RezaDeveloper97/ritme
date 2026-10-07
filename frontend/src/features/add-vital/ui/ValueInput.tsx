@@ -97,6 +97,10 @@ export function ValueInput({
         setText(e.target.value);
         onChange(parseLocaleNumber(e.target.value, decimals));
       }}
+      // Typed Latin digits («185») settle into the locale's digits («۱۸۵») once she leaves the field.
+      onBlur={() => {
+        if (value !== null) setText(show(value, decimals, locale));
+      }}
     />
   );
   return (

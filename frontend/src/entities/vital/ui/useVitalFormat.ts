@@ -32,24 +32,28 @@ export function useVitalFormat() {
       r.time ? t('common.at', { day: day(r.date), time: clock(r.time) }) : `${day(r.date)}${t('common.separator')}${t('common.fromLog')}`;
     const classLabel = (type: VitalType, code: string) => t(`classes.${type}.${code}` as 'classes.bp.normal');
 
-    /** Main number of a reading («۱۱۸/۷۶», «۹۴», «۷۲»), without the unit. */
-    const value = (r: VitalReading): string => {
+    /** A glucose reading in `display` (the screen's one unit), else in the unit it was typed in. */
+    const glucoseOf = (g: NonNullable<VitalReading['glucose']>, display?: GlucoseUnit): [number, GlucoseUnit] =>
+      display ? [display === 'mmol_l' ? g.mmolL : g.mgDl, display] : [g.value, g.unit];
+
+    /** Main number of a reading («۱۱۸/۷۶», «۹۴», «۷۲»), without the unit; `display` fixes the glucose unit. */
+    const value = (r: VitalReading, display?: GlucoseUnit): string => {
       if (r.bloodPressure) return bp(r.bloodPressure.systolic, r.bloodPressure.diastolic);
-      if (r.glucose) return glucose(r.glucose.value, r.glucose.unit);
+      if (r.glucose) return glucose(...glucoseOf(r.glucose, display));
       if (r.heartRate) return num(r.heartRate.bpm);
       return '';
     };
-    const unit = (r: VitalReading): string =>
-      r.glucose ? unitSymbol(r.glucose.unit) : r.type === 'bp' ? t('units.mmhg') : t('units.bpm');
+    const unit = (r: VitalReading, display?: GlucoseUnit): string =>
+      r.glucose ? unitSymbol(glucoseOf(r.glucose, display)[1]) : r.type === 'bp' ? t('units.mmhg') : t('units.bpm');
 
     /** The list title: «۱۱۸/۷۶ · نبض ۷۰», «۹۴ mg/dL», «۷۲ bpm». */
-    const title = (r: VitalReading): string => {
+    const title = (r: VitalReading, display?: GlucoseUnit): string => {
       const sep = t('common.separator');
       if (r.bloodPressure) {
         const p = r.bloodPressure.pulse;
         return p ? `${value(r)}${sep}${t('common.pulseValue', { n: num(p) })}` : value(r);
       }
-      return `${value(r)} ${unit(r)}`;
+      return `${value(r, display)} ${unit(r, display)}`;
     };
 
     /** Conditions of a reading («دست چپ، نشسته», «ناشتا · گلوکومتر», «در حال استراحت»). */

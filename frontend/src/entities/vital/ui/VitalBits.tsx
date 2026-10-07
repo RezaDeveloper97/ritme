@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
 import { IconCircle, StatusPill, type IconName, type Tone } from '@/shared/ui';
 
 import { uiTone } from '../model/classify';
-import type { VitalClass, VitalReading, VitalType } from '../model/types';
+import type { GlucoseUnit, VitalClass, VitalReading, VitalType } from '../model/types';
 import { useVitalFormat } from './useVitalFormat';
 
 /** Icon + accent of each type (nbl_Vitals_Hub: BP violet dial, heart rate rose, glucose amber drop). */
@@ -42,11 +42,14 @@ export function ReadingRow({
   withType,
   action,
   className,
+  glucoseUnit,
 }: {
   reading: VitalReading;
   withType: boolean;
   action?: ReactNode;
   className?: string;
+  /** The screen's glucose unit, so one list never mixes mg/dL and mmol/L. */
+  glucoseUnit?: GlucoseUnit;
 }) {
   const f = useVitalFormat();
   const t = useTranslations('vitals');
@@ -55,7 +58,7 @@ export function ReadingRow({
       <VitalIcon type={reading.type} />
       <div className="vt-row-text">
         <b className="vt-row-title">
-          <bdi dir="ltr">{f.value(reading)}</bdi>
+          <bdi dir="ltr">{f.value(reading, glucoseUnit)}</bdi>
           {reading.bloodPressure?.pulse ? (
             <>
               {t('common.separator')}
@@ -64,7 +67,7 @@ export function ReadingRow({
           ) : reading.bloodPressure ? null : (
             <>
               {' '}
-              <bdi dir="ltr">{f.unit(reading)}</bdi>
+              <bdi dir="ltr">{f.unit(reading, glucoseUnit)}</bdi>
             </>
           )}
         </b>

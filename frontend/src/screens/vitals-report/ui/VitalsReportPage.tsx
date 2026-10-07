@@ -122,7 +122,7 @@ export function VitalsReportPage({ type }: { type: VitalType }) {
     body = (
       <div className={clsx('vt-report', report.isPlaceholderData && 'is-stale')} aria-busy={report.isFetching || undefined}>
         {r.type === 'bp' ? <BpBody r={r} /> : r.type === 'glucose' ? <GlucoseBody r={r} /> : <HrBody r={r} />}
-        <ReadingsList type={type} from={r.range.from} to={r.range.to} />
+        <ReadingsList type={type} from={r.range.from} to={r.range.to} glucoseUnit={r.type === 'glucose' ? displayUnit(r) : undefined} />
         {r.type === 'glucose' ? <p className="vt-foot-note">{t('report.generalNote')}</p> : null}
       </div>
     );
@@ -229,15 +229,23 @@ function MorningNight({ morning, night, note }: { morning: string | null; night:
         <div className="vt-mvn">
           <div className="vt-mvn-cell is-morning">
             <span className="vt-mvn-label">{t('report.morning')}</span>
-            <bdi dir="ltr" className="vt-mvn-value">
-              {morning ?? t('report.noReadings')}
-            </bdi>
+            {morning ? (
+              <bdi dir="ltr" className="vt-mvn-value">
+                {morning}
+              </bdi>
+            ) : (
+              <span className="vt-mvn-empty">{t('report.noReadings')}</span>
+            )}
           </div>
           <div className="vt-mvn-cell is-night">
             <span className="vt-mvn-label">{t('report.night')}</span>
-            <bdi dir="ltr" className="vt-mvn-value">
-              {night ?? t('report.noReadings')}
-            </bdi>
+            {night ? (
+              <bdi dir="ltr" className="vt-mvn-value">
+                {night}
+              </bdi>
+            ) : (
+              <span className="vt-mvn-empty">{t('report.noReadings')}</span>
+            )}
           </div>
         </div>
       </Card>
@@ -399,8 +407,8 @@ function GlucoseBody({ r }: { r: GlucoseReport }) {
       </Card>
       <Tiles
         tiles={[
-          { key: 'min', label: t('report.min'), value: r.min?.glucose ? f.glucose(r.min.glucose.value, r.min.glucose.unit) : '—', sub: r.min ? f.day(r.min.date) : undefined },
-          { key: 'max', label: t('report.max'), value: r.max?.glucose ? f.glucose(r.max.glucose.value, r.max.glucose.unit) : '—', sub: r.max ? f.day(r.max.date) : undefined },
+          { key: 'min', label: t('report.min'), value: r.min?.glucose ? g(r.min.glucose.mgDl) : '—', sub: r.min ? f.day(r.min.date) : undefined },
+          { key: 'max', label: t('report.max'), value: r.max?.glucose ? g(r.max.glucose.mgDl) : '—', sub: r.max ? f.day(r.max.date) : undefined },
         ]}
       />
       {r.morningVsNight.morning && r.morningVsNight.night ? (
@@ -476,7 +484,7 @@ function HrBody({ r }: { r: HrReport }) {
   );
 }
 
-function ReadingsList({ type, from, to }: { type: VitalType; from: string; to: string }) {
+function ReadingsList({ type, from, to, glucoseUnit }: { type: VitalType; from: string; to: string; glucoseUnit?: GlucoseUnit }) {
   const t = useTranslations('vitals');
   const f = useVitalFormat();
   const readings = useVitalReadings(type, from, to);
@@ -510,9 +518,10 @@ function ReadingsList({ type, from, to }: { type: VitalType; from: string; to: s
               key={r.id ?? `log-${r.date}-${i}`}
               reading={r}
               withType={false}
+              glucoseUnit={glucoseUnit}
               action={
                 r.editable ? (
-                  <button type="button" className="vt-icon-btn" aria-label={t('common.deleteAria', { value: f.title(r) })} disabled={del.isPending} onClick={() => remove(r)}>
+                  <button type="button" className="vt-icon-btn" aria-label={t('common.deleteAria', { value: f.title(r, glucoseUnit) })} disabled={del.isPending} onClick={() => remove(r)}>
                     <Icon name="trash" size={16} />
                   </button>
                 ) : null

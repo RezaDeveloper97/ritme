@@ -1034,3 +1034,12 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   list or creates a task due the day before). Uniform 404 for foreign ids, caps 1000 tasks / 100 items. D-66 proposed.
 - Frontend: `entities/todo`, screens `todo`, `todo-list`, `todo-add` (sheet `?sheet=todo-add`), routes `/todo`,
   `/todo/lists/[id]`; «من» row «لیست کارها» live. Screenshots `docs/qa/bloom/B-N6-08/`. QUESTIONS #115.
+
+## B-N6-09 — N6 design-fidelity audit and fixes
+
+- `docs/night-bloom/audit-n6.md`: 0 high, 7 med fixed (V1 vitals hub last row hidden under sticky add bar; V2 mixed
+  glucose units on one screen → one unit per screen; V3 BP class bar LTR as artboard; V4 «ثبتی نیست» styled as a value;
+  V5 Latin digits normalised to Persian on blur; P1 privacy «پزشکانی که گزارش دیده‌اند» row now reflects active links;
+  A1 compact `/analysis/labs` rows per An_Labs), 17 low open. T1: local API served stale `todo.progressShort` /
+  missing `vitals.weekdays.*` (DB translation copy older than the seed — resyncs on restart/deploy).
+- Side-by-side shots `docs/qa/bloom/B-N6-09/side-by-side/`.
