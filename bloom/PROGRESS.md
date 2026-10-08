@@ -1085,3 +1085,15 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   lazy claim on student endpoints. In-app notification + SMS outbox loop via `notifications.Decide` (quiet hours,
   category `learning`), caps 3/phone/day and 300/instructor/day, fake provider outside production. D-68 proposed.
   QUESTIONS #121.
+
+## B-N8-02 — Media pipeline (resumable upload ≤2 GB, protected streaming)
+
+- Most files landed in the user's bulk commit 38f5181a ("many feats", made while bloom was paused); the compose media
+  volume follows with B-N8-05's compose edits.
+- `internal/media` (not internal/files: course video is published instructor content, unencrypted on its own volume,
+  streamed with Range): migration **00053** `learning_media`; tus-style `POST/GET/PATCH/DELETE
+  /api/instructor/v1/media[/{id}]` (approved + owner, `Upload-Offset`, 409/413/415/410), magic-byte sniffing, scanner
+  hook (no-op), finalize → lesson `ready`; playback via 30-min HMAC URLs (`/api/v1/learning/lessons/{id}/playback` with
+  `OpenLesson` access rules, `/api/v1/media/{id}/stream` 200/206/416, forged 403, expired 410); hourly sweep. Env
+  `MEDIA_URL_KEY` (503 for playback without it), `MEDIA_STORAGE_PATH`; stage vhost upload/stream locations. D-81
+  proposed; HLS documented for later. QUESTIONS #122.
