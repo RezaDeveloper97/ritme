@@ -115,7 +115,11 @@
     "childMilestones": "نقاط عطف رشد",
     "childLearn": "آموزش کودک",
     "childWho": "جدول‌های رشد WHO",
-    "postpartumContent": "محتوای پس از زایمان"
+    "postpartumContent": "محتوای پس از زایمان",
+    "groupLearning": "مدرسین و دوره‌ها",
+    "learningInstructors": "مدرسین",
+    "learningCourses": "دوره‌ها",
+    "learningReviews": "بازبینی محتوا"
   },
   "dashboard": {
     "title": "داشبورد",
@@ -1600,6 +1604,184 @@
         "title": "پیام‌های ایمنی",
         "body": "پیام‌های نتیجهٔ EPDS (فوری، توصیه، غربالگری کوتاه) و توضیح غیرتشخیصی."
       }
+    }
+  },
+  "learning": {
+    "percent": "{value}٪",
+    "reviewState": {
+      "pending": "در انتظار بازبینی",
+      "changed": "تغییر کرده",
+      "flagged": "علامت‌خورده",
+      "approved": "تأییدشده"
+    },
+    "instructorStatus": {
+      "pending": "در انتظار تأیید",
+      "approved": "تأییدشده",
+      "revoked": "لغوشده"
+    },
+    "publication": {
+      "draft": "پیش‌نویس",
+      "published": "منتشرشده"
+    },
+    "lessonKind": {
+      "video": "ویدیو",
+      "audio": "صوت",
+      "pdf": "PDF"
+    },
+    "note": {
+      "label": "توضیح (اختیاری)",
+      "labelRequired": "دلیل",
+      "hint": "حداکثر {max} نویسه؛ فقط مدیران می‌بینند.",
+      "error": {
+        "required": "دلیل را بنویسید.",
+        "min": "دلیل خیلی کوتاه است.",
+        "max": "حداکثر {max} نویسه."
+      }
+    },
+    "lessonActions": {
+      "approve": "تأیید",
+      "flag": "علامت‌گذاری",
+      "unpublish": "توقف انتشار",
+      "approveToast": "درس تأیید شد.",
+      "flagToast": "درس علامت خورد.",
+      "unpublishToast": "انتشار درس متوقف شد.",
+      "flagTitle": "علامت‌گذاری درس",
+      "flagMessage": "«{title}» برای بررسی بیشتر علامت می‌خورد؛ هنوز برای شاگردان نمایش داده می‌شود.",
+      "unpublishTitle": "توقف انتشار درس",
+      "unpublishMessage": "«{title}» به پیش‌نویس برمی‌گردد و فوراً از دید شاگردان خارج می‌شود."
+    },
+    "history": {
+      "title": "سابقهٔ بررسی",
+      "empty": "هنوز اقدامی ثبت نشده است.",
+      "action": {
+        "instructor": {
+          "approve": "تأیید مدرس",
+          "revoke": "لغو مدرس"
+        },
+        "lesson": {
+          "approve": "تأیید درس",
+          "flag": "علامت‌گذاری درس",
+          "unpublish": "توقف انتشار درس"
+        }
+      }
+    },
+    "instructors": {
+      "title": "مدرسین",
+      "tabs": {
+        "all": "همه",
+        "pending": "در انتظار تأیید",
+        "approved": "تأییدشده",
+        "revoked": "لغوشده"
+      },
+      "searchPlaceholder": "نام مدرس، نام حساب یا بخشی از موبایل",
+      "intro": "درخواست‌های مدرسی اول نمایش داده می‌شوند. با تأیید، مدرس به پنل مدرس دسترسی پیدا می‌کند و دوره‌های منتشرشده‌اش برای شاگردان نمایش داده می‌شود.",
+      "introEditor": "تأیید یا لغو مدرس فقط با مدیر ارشد است.",
+      "name": "مدرس",
+      "account": "حساب کاربری",
+      "noName": "بدون نام",
+      "status": "وضعیت",
+      "courses": "دوره‌ها",
+      "coursesCount": "{published} منتشرشده از {total}",
+      "students": "شاگردان فعال",
+      "appliedAt": "تاریخ درخواست",
+      "actions": "عملیات",
+      "details": "جزئیات",
+      "close": "بستن",
+      "noBio": "معرفی‌ای ننوشته است.",
+      "approvedBy": "تأیید توسط {name} در {date}",
+      "approve": "تأیید",
+      "reject": "رد درخواست",
+      "revoke": "لغو دسترسی",
+      "approveTitle": "تأیید {name}",
+      "rejectTitle": "رد درخواست {name}",
+      "revokeTitle": "لغو دسترسی {name}",
+      "approveMessage": "مدرس به پنل مدرس دسترسی پیدا می‌کند و دوره‌های منتشرشده‌اش برای شاگردانش باز می‌شود.",
+      "revokeMessage": "پنل مدرس بسته می‌شود و دوره‌هایش از دید شاگردان خارج می‌شود. چیزی حذف نمی‌شود.",
+      "approvedToast": "مدرس تأیید شد.",
+      "revokedToast": "دسترسی مدرس لغو شد.",
+      "empty": "هنوز درخواست مدرسی نرسیده است.",
+      "emptyFiltered": "مدرسی با این فیلتر پیدا نشد."
+    },
+    "courses": {
+      "title": "دوره‌ها",
+      "intro": "تکمیل = میانگین پیشرفت شاگردانی که دسترسی فعال دارند (فقط عدد کلی؛ نام و شمارهٔ شاگردان نمایش داده نمی‌شود).",
+      "searchPlaceholder": "عنوان دوره",
+      "course": "دوره",
+      "kind": {
+        "course": "دوره",
+        "standalone": "محتوای مستقل"
+      },
+      "instructor": "مدرس",
+      "status": "وضعیت",
+      "filter": {
+        "all": "همه",
+        "draft": "پیش‌نویس",
+        "published": "منتشرشده"
+      },
+      "clearInstructor": "همهٔ مدرسین",
+      "lessons": "درس‌ها",
+      "lessonsCount": "{published} از {total}",
+      "review": "بازبینی",
+      "reviewOpen": "{count} مانده",
+      "students": "شاگردان",
+      "completion": "تکمیل",
+      "createdAt": "تاریخ ایجاد",
+      "empty": "هنوز دوره‌ای ساخته نشده است.",
+      "emptyFiltered": "دوره‌ای با این فیلتر پیدا نشد."
+    },
+    "stats": {
+      "percent": "{value}٪",
+      "instructors": "مدرسین تأییدشده",
+      "instructorsSub": "{pending} در انتظار تأیید",
+      "courses": "دوره‌های منتشرشده",
+      "coursesSub": "{draft} پیش‌نویس",
+      "grants": "دسترسی‌های فعال",
+      "grantsSub": "{pending} در انتظار ثبت‌نام · {recent} در ۳۰ روز",
+      "students": "شاگردان با دسترسی",
+      "studentsSub": "{active} فعال در {days} روز",
+      "completion": "میانگین تکمیل",
+      "completionSub": "{completed} از {total} ثبت‌نام کامل",
+      "review": "در صف بازبینی",
+      "reviewSub": "{flagged} علامت‌خورده"
+    },
+    "course": {
+      "title": "دوره",
+      "back": "بازگشت به دوره‌ها",
+      "createdOn": "ساخته‌شده در {date}",
+      "percent": "{value}٪",
+      "stat": {
+        "students": "شاگردان با دسترسی",
+        "completion": "میانگین تکمیل",
+        "completed": "تکمیل‌کرده",
+        "grantsActive": "دسترسی فعال",
+        "grantsPending": "در انتظار ثبت‌نام",
+        "grantsExpired": "منقضی"
+      },
+      "description": "توضیح دوره",
+      "lessons": "درس‌ها ({count})",
+      "lessonsNote": "پیش‌نویس‌ها هم نمایش داده می‌شوند؛ پخش رسانه با خط لوله رسانه (B-N8-02) اضافه می‌شود.",
+      "noLessons": "این دوره هنوز درسی ندارد.",
+      "reviewNote": "یادداشت بازبینی: {note}"
+    },
+    "reviews": {
+      "title": "صف بازبینی محتوا",
+      "tabs": {
+        "open": "باز",
+        "pending": "بازبینی‌نشده",
+        "changed": "تغییرکرده",
+        "flagged": "علامت‌خورده",
+        "approved": "تأییدشده",
+        "all": "همه"
+      },
+      "intro": "درس‌های منتشرشده‌ای که هنوز بازبینی نشده‌اند، بعد از تأیید تغییر کرده‌اند یا علامت خورده‌اند؛ قدیمی‌ترین تغییر اول.",
+      "lesson": "درس",
+      "course": "دوره و مدرس",
+      "state": "وضعیت",
+      "updatedAt": "آخرین تغییر",
+      "actions": "عملیات",
+      "note": "یادداشت: {note}",
+      "empty": "موردی در این بخش نیست.",
+      "emptyOpen": "صف خالی است؛ همهٔ درس‌ها بازبینی شده‌اند."
     }
   }
 }

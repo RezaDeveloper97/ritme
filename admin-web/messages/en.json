@@ -115,7 +115,11 @@
     "childMilestones": "Milestones",
     "childLearn": "Child learn",
     "childWho": "WHO growth tables",
-    "postpartumContent": "Postpartum content"
+    "postpartumContent": "Postpartum content",
+    "groupLearning": "Instructors & courses",
+    "learningInstructors": "Instructors",
+    "learningCourses": "Courses",
+    "learningReviews": "Content review"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1600,6 +1604,184 @@
         "title": "Safety messages",
         "body": "The EPDS result messages (urgent, advice, short screen) and the non-diagnostic note."
       }
+    }
+  },
+  "learning": {
+    "percent": "{value}%",
+    "reviewState": {
+      "pending": "Not reviewed",
+      "changed": "Changed",
+      "flagged": "Flagged",
+      "approved": "Approved"
+    },
+    "instructorStatus": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "revoked": "Revoked"
+    },
+    "publication": {
+      "draft": "Draft",
+      "published": "Published"
+    },
+    "lessonKind": {
+      "video": "Video",
+      "audio": "Audio",
+      "pdf": "PDF"
+    },
+    "note": {
+      "label": "Note (optional)",
+      "labelRequired": "Reason",
+      "hint": "Up to {max} characters; admins only.",
+      "error": {
+        "required": "Write a reason.",
+        "min": "The reason is too short.",
+        "max": "Up to {max} characters."
+      }
+    },
+    "lessonActions": {
+      "approve": "Approve",
+      "flag": "Flag",
+      "unpublish": "Unpublish",
+      "approveToast": "Lesson approved.",
+      "flagToast": "Lesson flagged.",
+      "unpublishToast": "Lesson unpublished.",
+      "flagTitle": "Flag lesson",
+      "flagMessage": "“{title}” is flagged for a closer look; students still see it.",
+      "unpublishTitle": "Unpublish lesson",
+      "unpublishMessage": "“{title}” goes back to draft and students stop seeing it at once."
+    },
+    "history": {
+      "title": "Moderation history",
+      "empty": "No actions yet.",
+      "action": {
+        "instructor": {
+          "approve": "Instructor approved",
+          "revoke": "Instructor revoked"
+        },
+        "lesson": {
+          "approve": "Lesson approved",
+          "flag": "Lesson flagged",
+          "unpublish": "Lesson unpublished"
+        }
+      }
+    },
+    "instructors": {
+      "title": "Instructors",
+      "tabs": {
+        "all": "All",
+        "pending": "Pending",
+        "approved": "Approved",
+        "revoked": "Revoked"
+      },
+      "searchPlaceholder": "Instructor, account name or part of the mobile",
+      "intro": "Applications come first. Approving opens the instructor panel and shows her published courses to students.",
+      "introEditor": "Only super admins approve or revoke instructors.",
+      "name": "Instructor",
+      "account": "Account",
+      "noName": "No name",
+      "status": "Status",
+      "courses": "Courses",
+      "coursesCount": "{published} published of {total}",
+      "students": "Active students",
+      "appliedAt": "Applied",
+      "actions": "Actions",
+      "details": "Details",
+      "close": "Close",
+      "noBio": "No bio yet.",
+      "approvedBy": "Approved by {name} on {date}",
+      "approve": "Approve",
+      "reject": "Reject",
+      "revoke": "Revoke",
+      "approveTitle": "Approve {name}",
+      "rejectTitle": "Reject {name}",
+      "revokeTitle": "Revoke {name}",
+      "approveMessage": "She gets the instructor panel and her published courses open to her students.",
+      "revokeMessage": "The instructor panel closes and her courses are hidden from students. Nothing is deleted.",
+      "approvedToast": "Instructor approved.",
+      "revokedToast": "Instructor revoked.",
+      "empty": "No instructor applications yet.",
+      "emptyFiltered": "No instructors match these filters."
+    },
+    "courses": {
+      "title": "Courses",
+      "intro": "Completion = mean progress of the students with running access (totals only; students are never listed).",
+      "searchPlaceholder": "Course title",
+      "course": "Course",
+      "kind": {
+        "course": "Course",
+        "standalone": "Standalone"
+      },
+      "instructor": "Instructor",
+      "status": "Status",
+      "filter": {
+        "all": "All",
+        "draft": "Draft",
+        "published": "Published"
+      },
+      "clearInstructor": "All instructors",
+      "lessons": "Lessons",
+      "lessonsCount": "{published} of {total}",
+      "review": "Review",
+      "reviewOpen": "{count} open",
+      "students": "Students",
+      "completion": "Completion",
+      "createdAt": "Created",
+      "empty": "No courses yet.",
+      "emptyFiltered": "No courses match these filters."
+    },
+    "stats": {
+      "percent": "{value}%",
+      "instructors": "Approved instructors",
+      "instructorsSub": "{pending} pending",
+      "courses": "Published courses",
+      "coursesSub": "{draft} drafts",
+      "grants": "Active grants",
+      "grantsSub": "{pending} awaiting sign-up · {recent} in 30 days",
+      "students": "Students with access",
+      "studentsSub": "{active} active in {days} days",
+      "completion": "Mean completion",
+      "completionSub": "{completed} of {total} enrolments complete",
+      "review": "In review queue",
+      "reviewSub": "{flagged} flagged"
+    },
+    "course": {
+      "title": "Course",
+      "back": "Back to courses",
+      "createdOn": "Created {date}",
+      "percent": "{value}%",
+      "stat": {
+        "students": "Students with access",
+        "completion": "Mean completion",
+        "completed": "Completed",
+        "grantsActive": "Active grants",
+        "grantsPending": "Awaiting sign-up",
+        "grantsExpired": "Expired"
+      },
+      "description": "Description",
+      "lessons": "Lessons ({count})",
+      "lessonsNote": "Drafts are listed too; media playback comes with the media pipeline (B-N8-02).",
+      "noLessons": "This course has no lessons yet.",
+      "reviewNote": "Review note: {note}"
+    },
+    "reviews": {
+      "title": "Content review queue",
+      "tabs": {
+        "open": "Open",
+        "pending": "Not reviewed",
+        "changed": "Changed",
+        "flagged": "Flagged",
+        "approved": "Approved",
+        "all": "All"
+      },
+      "intro": "Published lessons never reviewed, changed after approval or flagged; oldest change first.",
+      "lesson": "Lesson",
+      "course": "Course & instructor",
+      "state": "State",
+      "updatedAt": "Last change",
+      "actions": "Actions",
+      "note": "Note: {note}",
+      "empty": "Nothing here.",
+      "emptyOpen": "The queue is empty; every lesson is reviewed."
     }
   }
 }

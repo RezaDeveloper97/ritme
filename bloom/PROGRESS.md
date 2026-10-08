@@ -1097,3 +1097,14 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `OpenLesson` access rules, `/api/v1/media/{id}/stream` 200/206/416, forged 403, expired 410); hourly sweep. Env
   `MEDIA_URL_KEY` (503 for playback without it), `MEDIA_STORAGE_PATH`; stage vhost upload/stream locations. D-81
   proposed; HLS documented for later. QUESTIONS #122.
+
+## B-N8-08 — Admin: instructors & courses moderation
+
+- Backend landed in 38f5181a: migration **00054** (lesson `review_status` pending|approved|flagged, `reviewed_at/by`,
+  `review_note`; `learning_moderation_log`), `internal/admin/learning` under `/api/admin/v1/learning/*` — stats,
+  instructors (+history), courses (+detail), review queue (`open|pending|changed|flagged|approved|all`; approved then
+  edited → `changed`, consumable by B-N9-10); approve/revoke instructor super-only, lesson approve/flag/unpublish
+  (reason required) any admin; every action logged; no health data, grant phones never selected, instructor mobile
+  masked. admin-api §20.
+- admin-web `screens/learning`: `/learning/instructors`, `/learning/courses[/id]`, `/learning/reviews`, sidebar group.
+  Light/dark screenshots not taken (low-effort mode) — covered by the N8 audit (B-N8-09). QUESTIONS #123.

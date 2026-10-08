@@ -51,6 +51,15 @@ export const NAV: readonly NavGroup[] = [
     ],
   },
   {
+    // «مدرسین و دوره‌ها» (B-N8-08): every admin reads and reviews content; approve / revoke instructors is super-only.
+    key: 'groupLearning',
+    items: [
+      { key: 'learningInstructors', href: '/learning/instructors', icon: 'users', ready: true },
+      { key: 'learningCourses', href: '/learning/courses', icon: 'article', ready: true },
+      { key: 'learningReviews', href: '/learning/reviews', icon: 'shieldCheck', ready: true },
+    ],
+  },
+  {
     key: 'groupContent',
     items: [
       { key: 'articles', href: '/articles', icon: 'article', ready: true },

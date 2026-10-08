@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react';
 
 import { formatNumber } from '@/shared/lib';
 import { Badge, Button, TextArea, toast, useNotifyError } from '@/shared/ui';
@@ -35,7 +35,7 @@ export function Completion({ percent, students }: { percent: number; students: n
     <span className="flex min-w-24 flex-col gap-1">
       <span className="tabular-nums">{t('percent', { value: formatNumber(clamped, locale) })}</span>
       <span className="meter" role="img" aria-label={t('percent', { value: formatNumber(clamped, locale) })}>
-        <span style={{ inlineSize: `${clamped}%` }} />
+        <span className="meter-fill" style={{ '--meter-value': `${clamped}%` } as CSSProperties} />
       </span>
     </span>
   );

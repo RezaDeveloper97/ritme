@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [B-N8-04,B-N8-07]
 parallel_group: N8-I
-touches: [docs/night-bloom/audit-n8.md,frontend/src,instructor-web/src,frontend/messages]
+touches: [docs/night-bloom/audit-n8.md,admin-web/src/screens/learning,frontend/src,instructor-web/src,frontend/messages]
 skills: [verify-all]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build && cd .. && cd instructor-web && npm run typecheck && npm run lint && npm run test && npm run build
 ---

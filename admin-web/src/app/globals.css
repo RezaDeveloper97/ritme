@@ -830,3 +830,6 @@ body {
 
 /* Keyboard focus on the visually hidden file input shows on its dropzone. */
 .field:has(input[type="file"]:focus-visible) .dropzone { border-color: var(--brand); outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* B-N8-08: data-driven meter width (course completion). */
+.meter > .meter-fill { inline-size: var(--meter-value, 0%); }
