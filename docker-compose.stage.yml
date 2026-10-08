@@ -176,6 +176,15 @@ services:
       ritme-edge:
         aliases: [stage-admin-web]
 
+  # Instructor panel (B-N8-05) on its own stage host, instructor.ritmeapp.ir
+  # (deploy/vhost-instructor-stage.inc, same Basic-auth gate). Stage-only alias.
+  instructor-web:
+    container_name: ritme-stage-instructor-web-1
+    networks:
+      default:
+      ritme-edge:
+        aliases: [stage-instructor-web]
+
 networks:
   # Created once by the deploy scripts; production's proxy joins it too.
   ritme-edge:

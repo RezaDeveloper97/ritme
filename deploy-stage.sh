@@ -285,6 +285,23 @@ else
   echo "  note  set STAGE_BASIC_AUTH='user:pass' to also verify behind the gate"
 fi
 
+# Instructor panel (B-N8-05) on its own stage host — checked only once
+# INSTRUCTOR_STAGE_CONF is switched on (DNS + certificate: docs/night-bloom/instructor-web-deploy.md).
+INSTRUCTOR_HOST="${INSTRUCTOR_STAGE_HOST:-instructor.ritmeapp.ir}"
+if ssh_run "cd ${PROD_DIR} && grep -q '^INSTRUCTOR_STAGE_CONF=./deploy/instructor-stage-ssl.conf' .env"; then
+  # Gated like stage.ritmeapp.ir: no credentials => 401, /up stays public.
+  check 200 "https://${INSTRUCTOR_HOST}/up"
+  check 401 "https://${INSTRUCTOR_HOST}/login"
+  if [[ -n "${STAGE_BASIC_AUTH:-}" ]]; then
+    check 200 "https://${INSTRUCTOR_HOST}/login" -u "$STAGE_BASIC_AUTH"
+    # 401 from Go (JSON), not nginx: the instructor API is wired.
+    check_go "https://${INSTRUCTOR_HOST}/api/instructor/v1/me" -u "$STAGE_BASIC_AUTH" -H 'Accept: application/json'
+    check 404 "https://${INSTRUCTOR_HOST}/api/admin/v1/auth/me" -u "$STAGE_BASIC_AUTH"
+  fi
+else
+  echo "  note  ${INSTRUCTOR_HOST} not switched on yet (INSTRUCTOR_STAGE_CONF) — skipped"
+fi
+
 if (( failures > 0 )); then
   echo "❌ Staging deploy finished but ${failures} check(s) failed — see above." >&2
   exit 1

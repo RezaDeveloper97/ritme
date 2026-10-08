@@ -604,6 +604,7 @@ h1, h2, h3, p { margin: 0; }
   .shell__tabs { display: grid; grid-template-columns: 1fr; block-size: auto; gap: 4px; padding: 0; }
   .shell__tab {
     display: flex;
+    align-items: center;
     justify-content: flex-start;
     gap: 12px;
     block-size: 48px;

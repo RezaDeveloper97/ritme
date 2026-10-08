@@ -214,6 +214,21 @@ services:
     expose:
       - "3000"
 
+  # Instructor panel (bloom B-N8-05): its own host (instructor.ritmeapp.ir /
+  # instructor.ritme.app). nginx proxies `/` here and `/api/` to backend-go, so the
+  # browser sees one origin (deploy/vhost-instructor*.inc). NEXT_PUBLIC_* are build-time.
+  instructor-web:
+    build:
+      context: ./instructor-web
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${INSTRUCTOR_WEB_PUBLIC_API_BASE_URL:-/api/v1}
+        NEXT_PUBLIC_INSTRUCTOR_API_BASE_URL: ${INSTRUCTOR_WEB_API_BASE_URL:-/api/instructor/v1}
+    restart: unless-stopped
+    depends_on:
+      - backend-go
+    expose:
+      - "3000"
+
 volumes:
   mysql-data:
   redis-data:

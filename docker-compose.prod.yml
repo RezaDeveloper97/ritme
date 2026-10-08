@@ -60,6 +60,12 @@ services:
     profiles: [go]
     container_name: ritme-admin-web-1
 
+  # Instructor panel (B-N8-05): needs backend-go (the learning API is Go-only),
+  # so it is inert behind the same `go` profile until T-M2-26.
+  instructor-web:
+    profiles: [go]
+    container_name: ritme-instructor-web-1
+
   backend-go:
     profiles: [go]
     container_name: ritme-backend-go-1
@@ -125,6 +131,15 @@ services:
       # Same selector trick: empty placeholder by default; laravel-site/deploy-betatest.sh
       # sets SITE_CONF=./deploy/site-ssl.conf in the server .env.
       - ${SITE_CONF:-./deploy/site-off.conf}:/etc/nginx/conf.d/zz-site.conf:ro
+      # ── instructor hosts (B-N8-05, instructor-web) ──
+      # Same selector trick, one per environment: empty placeholder until DNS +
+      # certificate exist (docs/night-bloom/instructor-web-deploy.md). Stage:
+      # INSTRUCTOR_STAGE_CONF=./deploy/instructor-stage-{http,ssl}.conf, prod:
+      # INSTRUCTOR_CONF=./deploy/instructor-{http,ssl}.conf.
+      - ${INSTRUCTOR_STAGE_CONF:-./deploy/instructor-off.conf}:/etc/nginx/conf.d/zz-instructor-stage.conf:ro
+      - ${INSTRUCTOR_CONF:-./deploy/instructor-off.conf}:/etc/nginx/conf.d/zz-instructor.conf:ro
+      - ./deploy/vhost-instructor-stage.inc:/etc/nginx/conf.d/vhost-instructor-stage.inc:ro
+      - ./deploy/vhost-instructor.inc:/etc/nginx/conf.d/vhost-instructor.inc:ro
       # Server-only file (never rsynced); deploy.sh touches it so a fresh
       # server can't have Docker create a DIRECTORY here instead.
       - ./stage.htpasswd:/etc/nginx/stage.htpasswd:ro

@@ -1108,3 +1108,16 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   masked. admin-api §20.
 - admin-web `screens/learning`: `/learning/instructors`, `/learning/courses[/id]`, `/learning/reviews`, sidebar group.
   Light/dark screenshots not taken (low-effort mode) — covered by the N8 audit (B-N8-09). QUESTIONS #123.
+
+## B-N8-05 — instructor-web scaffold, auth, deploy
+
+- First cut landed in 38f5181a; rest here. New `instructor-web/` (Next 15.5 / React 19 like admin-web, FSD, steiger,
+  vitest, Night & Bloom light/dark/system tokens copied, fa RTL, mobile nav ↔ desktop rail): OTP login
+  (`/api/v1/auth/send-otp|verify-otp`), `/api/instructor/v1/me` routing → `/apply` (none/revoked), `/pending`, panel;
+  403 instructor_* re-reads `/me`; Basic-auth 401 doesn't wipe the session. Dashboard + tabs are real empty states
+  (B-N8-06/07 fill them). Standalone Dockerfile, CSP + frame DENY.
+- Compose service (prod behind `profiles: [go]` until T-M2-26), proxy selectors `INSTRUCTOR_STAGE_CONF` /
+  `INSTRUCTOR_CONF` default `deploy/instructor-off.conf` (nothing changes on the server until the manual steps),
+  vhosts `vhost-instructor{,-stage}.inc`, `enable-https-instructor.sh stage|prod`, deploy scripts check the host only
+  when ssl is selected. Steps for the user: `docs/night-bloom/instructor-web-deploy.md`. Screenshots
+  `docs/qa/bloom/B-N8-05/` (390 + 1280, light + dark). QUESTIONS #124.

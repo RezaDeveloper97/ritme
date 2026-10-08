@@ -225,6 +225,14 @@ if [[ -n "$ORIGIN_IP" ]]; then
   check 307 "https://web.ritme.app/" --resolve "web.ritme.app:443:${ORIGIN_IP}"
 fi
 
+# Instructor panel (B-N8-05) — only once INSTRUCTOR_CONF is on HTTPS AND prod runs Go
+# (instructor-web and backend-go are behind the `go` profile until T-M2-26).
+if [[ "$GO_ACTIVE" == "1" ]] && ssh_run "cd ${REMOTE_DIR} && grep -q '^INSTRUCTOR_CONF=./deploy/instructor-ssl.conf' .env"; then
+  check 200 "https://instructor.ritme.app/login"
+  check 401 "https://instructor.ritme.app/api/instructor/v1/me" -H 'Accept: application/json'
+  check 404 "https://instructor.ritme.app/api/admin/v1/auth/me"
+fi
+
 if (( failures > 0 )); then
   echo "❌ Deploy finished but ${failures} check(s) failed — see above." >&2
   exit 1
