@@ -46,9 +46,19 @@ func ftypBrand(head []byte) string {
 	return string(head[8:12])
 }
 
-// webm reports whether head is an EBML file whose DocType is webm (Matroska .mkv is refused: browsers do not play it).
+// webm reports whether head is an EBML file whose DocType element (ID 0x4282) is exactly "webm" (Matroska .mkv is
+// refused: browsers do not play it). The element size must be the 1-byte vint 0x84 (4 bytes), which is what muxers
+// write; a "webm" anywhere else in the header no longer passes.
 func webm(head []byte) bool {
-	return bytes.HasPrefix(head, ebmlMagic) && bytes.Contains(head, []byte("webm"))
+	if !bytes.HasPrefix(head, ebmlMagic) {
+		return false
+	}
+	i := bytes.Index(head[len(ebmlMagic):], []byte{0x42, 0x82})
+	if i < 0 {
+		return false
+	}
+	rest := head[len(ebmlMagic)+i+2:]
+	return len(rest) >= 5 && rest[0] == 0x84 && string(rest[1:5]) == "webm"
 }
 
 func sniffVideo(head []byte) string {

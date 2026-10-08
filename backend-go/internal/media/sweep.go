@@ -6,15 +6,21 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
+
+	"github.com/ritme/backend-go/internal/media/store"
 )
 
 // SweepInterval is how often SweepLoop runs.
 const SweepInterval = time.Hour
 
+// StuckProcessingAfter is how long a row may stay in `processing` (a finalize that crashed mid-scan) before the sweep
+// fails and removes it (B-N8-02b L4).
+const StuckProcessingAfter = time.Hour
+
 // strayMinAge keeps a file that was just created (its row is inserted right after) out of the stray sweep.
 const strayMinAge = time.Hour
 
-// Sweep removes expired unfinished uploads, media of deleted lessons, directories of deleted instructors (account
+// Sweep removes expired unfinished uploads, rows stuck in processing, media of deleted lessons, directories of deleted instructors (account
 // deletion cascades the rows) and files no row points at. It returns the number of rows / files removed.
 func (s *Service) Sweep(ctx context.Context, now time.Time) (int, error) {
 	removed := 0
@@ -25,6 +31,27 @@ func (s *Service) Sweep(ctx context.Context, now time.Time) (int, error) {
 	}
 	for _, m := range expired {
 		if err := s.remove(ctx, m); err != nil {
+			errs = append(errs, err)
+			continue
+		}
+		removed++
+		errs = append(errs, s.restoreLesson(ctx, m, now))
+	}
+	stuck, err := s.q.ListStuckProcessing(ctx, nt(now.Add(-StuckProcessingAfter)))
+	if err != nil {
+		return removed, fmt.Errorf("media: stuck: %w", err)
+	}
+	for _, m := range stuck {
+		unlock, ok := s.lock(m.ID)
+		if !ok {
+			continue // a finalize is running right now
+		}
+		_, err := s.q.SetMediaStatus(ctx, store.SetMediaStatusParams{Status: StatusFailed, Now: nt(now), ID: m.ID, FromStatus: StatusProcessing})
+		if err == nil {
+			err = s.remove(ctx, m)
+		}
+		unlock()
+		if err != nil {
 			errs = append(errs, err)
 			continue
 		}

@@ -74,3 +74,14 @@ SELECT path FROM `learning_media` WHERE instructor_id = sqlc.arg(instructor_id);
 
 -- name: ExistingInstructors :many
 SELECT id FROM `learning_instructors` WHERE id IN (sqlc.slice(ids));
+
+-- name: LockInstructor :one
+-- Serializes POST /media of one instructor (B-N8-02b M1): count + sum + insert run under this row lock.
+SELECT id FROM `learning_instructors` WHERE id = sqlc.arg(id) LIMIT 1 FOR UPDATE;
+
+-- name: SumPendingBytes :one
+-- Bytes every unfinished upload may still write (all instructors) — reserved against the free disk space (M2).
+SELECT CAST(COALESCE(SUM(size_bytes - offset_bytes), 0) AS SIGNED) FROM `learning_media` WHERE status = 'uploading';
+
+-- name: ListStuckProcessing :many
+SELECT * FROM `learning_media` WHERE status = 'processing' AND updated_at < sqlc.arg(before) ORDER BY id LIMIT 200;

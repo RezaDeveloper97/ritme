@@ -1121,3 +1121,13 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   vhosts `vhost-instructor{,-stage}.inc`, `enable-https-instructor.sh stage|prod`, deploy scripts check the host only
   when ssl is selected. Steps for the user: `docs/night-bloom/instructor-web-deploy.md`. Screenshots
   `docs/qa/bloom/B-N8-05/` (390 + 1280, light + dark). QUESTIONS #124.
+
+## B-N8-02b — Media security fixes
+
+- M1 `insertLocked`: count + sum + disk check + insert + lesson status in one tx with `FOR UPDATE` on the instructor row
+  (race test: 9 parallel POSTs → exactly 5 × 201). M2 `Disk.CheckSpace` (Statfs) keeps min(10 GiB, 10 %) free counting
+  all pending uploads → 503 `media_unavailable`; separate filesystem recommended (D-81). L1 URL TTL 10 min. L2 prod
+  `vhost-api.inc` `^~ /api/v1/media/` + `/api/instructor/v1/media` with `access_log off` (go-routes.inc only a note —
+  stage already has the locations). L3 stream CSP sandbox + CORP same-site, strict WebM DocType. L4 sweep of rows stuck
+  in `processing` > 1 h; `Create` clears processing priors (409 if finalizing). L5 single-replica assumption documented.
+  Doc text in openapi / .env.stage.example / D-81 ships with the next backend commit (shared hunks).

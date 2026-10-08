@@ -75,6 +75,12 @@ const (
 	MaxActiveUploads = 5
 	// QuotaBytes bounds what one instructor stores (uploads in flight included).
 	QuotaBytes = 100 * gib
+	// DiskReserveBytes / DiskReservePercent: an upload is refused when the media filesystem would keep less free
+	// space than the smaller of the two after every unfinished upload (all instructors) is written (B-N8-02b M2).
+	// MEDIA_STORAGE_PATH should be its own filesystem / volume so lesson uploads can never fill the disk the
+	// database, logs and health documents live on.
+	DiskReserveBytes   = 10 * gib
+	DiskReservePercent = 10
 )
 
 // MaxBytes is the largest upload per kind.
@@ -112,6 +118,7 @@ var (
 	ErrMimeMismatch   = errors.New("media: declared type not accepted for the lesson kind")
 	ErrTooManyUploads = errors.New("media: too many unfinished uploads")
 	ErrQuota          = errors.New("media: storage quota exceeded")
+	ErrStorageFull    = errors.New("media: disk reserve reached")
 	ErrBusy           = errors.New("media: another chunk is being written")
 	ErrNotUploading   = errors.New("media: upload already finished")
 	ErrUploadExpired  = errors.New("media: upload expired")

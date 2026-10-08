@@ -42,6 +42,10 @@
 ## (only X-Forwarded-For differs).
 ##
 ## The group list must match ROUTE_GROUPS in deploy/switch-go-route.sh.
+##
+## Lesson media (/api/instructor/v1/media, /api/v1/media/ — signed stream, token in the query string, access_log
+## off) is NOT a group here: each vhost has its own `^~` blocks (vhost-stage.inc → Go, vhost-api.inc → Go at
+## T-M2-26), because a `^~` location in this shared file would duplicate stage's and fail `nginx -t` (B-N8-02b L2).
 
 # content — languages, info, privacy, banners, articles, phase content and the
 # public uploads (/storage stays with whichever backend serves content).

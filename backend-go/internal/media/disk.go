@@ -12,18 +12,55 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
 
 // Disk is the media root: <root>/<instructor id>/<40 hex>.part while uploading, .bin once ready. Directories 0700,
 // files 0600, created with O_EXCL; every relative path is validated, so a stored path can never leave the root.
 type Disk struct {
-	root string
-	rand io.Reader
+	root  string
+	rand  io.Reader
+	space func(root string) (free, total uint64, err error)
 }
 
 // NewDisk returns the media root at root ("" = disabled).
-func NewDisk(root string) *Disk { return &Disk{root: strings.TrimRight(root, "/"), rand: rand.Reader} }
+func NewDisk(root string) *Disk {
+	return &Disk{root: strings.TrimRight(root, "/"), rand: rand.Reader, space: statfs}
+}
+
+// SetSpaceFunc replaces the free / total space probe of the root (tests).
+func (d *Disk) SetSpaceFunc(f func(root string) (free, total uint64, err error)) { d.space = f }
+
+// statfs reads the free (for unprivileged users) and total bytes of the filesystem holding root.
+func statfs(root string) (free, total uint64, err error) {
+	var st syscall.Statfs_t
+	if err := syscall.Statfs(root, &st); err != nil {
+		return 0, 0, fmt.Errorf("media: statfs: %w", pathless(err))
+	}
+	bs := uint64(st.Bsize) //nolint:gosec,unconvert // G115: block size is positive; int64 on linux, uint32 on darwin
+	return st.Bavail * bs, st.Blocks * bs, nil
+}
+
+// CheckSpace refuses (ErrStorageFull) when writing need more bytes would leave less than the reserve free:
+// min(DiskReserveBytes, DiskReservePercent of the filesystem).
+func (d *Disk) CheckSpace(need int64) error {
+	if !d.Enabled() {
+		return ErrDisabled
+	}
+	free, total, err := d.space(d.root)
+	if err != nil {
+		return err
+	}
+	reserve := min(uint64(DiskReserveBytes), total/100*DiskReservePercent)
+	if need < 0 {
+		need = 0
+	}
+	if free < reserve || free-reserve < uint64(need) {
+		return ErrStorageFull
+	}
+	return nil
+}
 
 // Enabled reports whether a root is configured.
 func (d *Disk) Enabled() bool { return d != nil && d.root != "" }

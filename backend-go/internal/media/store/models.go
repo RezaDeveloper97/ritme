@@ -887,6 +887,7 @@ type LearningGrant struct {
 	RevokedAt    sql.NullTime
 	CreatedAt    sql.NullTime
 	UpdatedAt    sql.NullTime
+	SeenAt       sql.NullTime
 }
 
 type LearningGroup struct {
@@ -994,6 +995,14 @@ type LearningSmsOutbox struct {
 	SentAt     sql.NullTime
 	CreatedAt  sql.NullTime
 	UpdatedAt  sql.NullTime
+}
+
+type LearningSmsSuppression struct {
+	ID        uint64
+	Phone     string
+	Source    string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
 }
 
 type MenopauseScore struct {

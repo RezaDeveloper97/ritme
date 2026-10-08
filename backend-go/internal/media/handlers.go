@@ -93,7 +93,7 @@ func fail(err error, locale string) error {
 	switch {
 	case errors.As(err, &mismatch):
 		return failCode(fiber.StatusConflict, locale, "offset_mismatch", ErrorCodeOffsetMismatch, "offset", mismatch.Offset)
-	case errors.Is(err, ErrDisabled):
+	case errors.Is(err, ErrDisabled), errors.Is(err, ErrStorageFull):
 		return failCode(fiber.StatusServiceUnavailable, locale, "unavailable", ErrorCodeUnavailable)
 	case errors.Is(err, ErrNotFound):
 		return failCode(fiber.StatusNotFound, locale, "not_found", ErrorCodeNotFound)
@@ -395,6 +395,9 @@ func (h *Handlers) Stream(c fiber.Ctx) error {
 	c.Set(fiber.HeaderCacheControl, "private, no-store")
 	c.Set(fiber.HeaderXContentTypeOptions, "nosniff")
 	c.Set(fiber.HeaderReferrerPolicy, "no-referrer")
+	// The bytes are an instructor's upload: never let a browser run them as a document of the API origin (L3).
+	c.Set(fiber.HeaderContentSecurityPolicy, "sandbox; default-src 'none'")
+	c.Set(fiber.HeaderCrossOriginResourcePolicy, "same-site")
 	c.Set(fiber.HeaderETag, etag)
 	header := c.Get(fiber.HeaderRange)
 	if ir := c.Get(fiber.HeaderIfRange); ir != "" && ir != etag {

@@ -396,6 +396,59 @@ func (q *Queries) ListOrphanMedia(ctx context.Context) ([]LearningMedium, error)
 	return items, nil
 }
 
+const listStuckProcessing = `-- name: ListStuckProcessing :many
+SELECT id, instructor_id, lesson_id, kind, mime, size_bytes, offset_bytes, path, status, upload_expires_at, completed_at, created_at, updated_at FROM ` + "`" + `learning_media` + "`" + ` WHERE status = 'processing' AND updated_at < ? ORDER BY id LIMIT 200
+`
+
+func (q *Queries) ListStuckProcessing(ctx context.Context, before sql.NullTime) ([]LearningMedium, error) {
+	rows, err := q.db.QueryContext(ctx, listStuckProcessing, before)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []LearningMedium{}
+	for rows.Next() {
+		var i LearningMedium
+		if err := rows.Scan(
+			&i.ID,
+			&i.InstructorID,
+			&i.LessonID,
+			&i.Kind,
+			&i.Mime,
+			&i.SizeBytes,
+			&i.OffsetBytes,
+			&i.Path,
+			&i.Status,
+			&i.UploadExpiresAt,
+			&i.CompletedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lockInstructor = `-- name: LockInstructor :one
+SELECT id FROM ` + "`" + `learning_instructors` + "`" + ` WHERE id = ? LIMIT 1 FOR UPDATE
+`
+
+// Serializes POST /media of one instructor (B-N8-02b M1): count + sum + insert run under this row lock.
+func (q *Queries) LockInstructor(ctx context.Context, id uint64) (uint64, error) {
+	row := q.db.QueryRowContext(ctx, lockInstructor, id)
+	var id_2 uint64
+	err := row.Scan(&id_2)
+	return id_2, err
+}
+
 const markMediaReady = `-- name: MarkMediaReady :execrows
 UPDATE ` + "`" + `learning_media` + "`" + `
 SET status = 'ready', path = ?, completed_at = ?, upload_expires_at = NULL, updated_at = ?
@@ -494,6 +547,18 @@ WHERE instructor_id = ? AND status IN ('uploading', 'processing', 'ready')
 
 func (q *Queries) SumInstructorBytes(ctx context.Context, instructorID uint64) (int64, error) {
 	row := q.db.QueryRowContext(ctx, sumInstructorBytes, instructorID)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const sumPendingBytes = `-- name: SumPendingBytes :one
+SELECT CAST(COALESCE(SUM(size_bytes - offset_bytes), 0) AS SIGNED) FROM ` + "`" + `learning_media` + "`" + ` WHERE status = 'uploading'
+`
+
+// Bytes every unfinished upload may still write (all instructors) — reserved against the free disk space (M2).
+func (q *Queries) SumPendingBytes(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, sumPendingBytes)
 	var column_1 int64
 	err := row.Scan(&column_1)
 	return column_1, err

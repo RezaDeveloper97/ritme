@@ -29,7 +29,13 @@ type Options struct {
 }
 
 // Service is the media data access and rules.
+//
+// Single replica (B-N8-02b L5): the per-upload chunk locks below live in this process, so the API runs as ONE
+// replica (compose: one backend-go container per environment). Quota / active-upload limits are DB-locked (Create
+// holds the instructor row FOR UPDATE) and hold across replicas; a second replica would additionally need a DB lock
+// around WriteChunk / remove (e.g. SELECT … FOR UPDATE on the media row) before it is scaled out.
 type Service struct {
+	db      *sql.DB
 	q       *store.Queries
 	disk    *Disk
 	signer  *Signer
@@ -50,9 +56,12 @@ func NewService(o Options) *Service {
 	if o.Disk == nil {
 		o.Disk = NewDisk("")
 	}
-	return &Service{q: store.New(o.DB), disk: o.Disk, signer: o.Signer, scanner: o.Scanner,
+	return &Service{db: o.DB, q: store.New(o.DB), disk: o.Disk, signer: o.Signer, scanner: o.Scanner,
 		baseURL: strings.TrimRight(o.BaseURL, "/"), logger: o.Logger}
 }
+
+// Disk exposes the media root (tests).
+func (s *Service) Disk() *Disk { return s.disk }
 
 // Queries exposes the store (tests).
 func (s *Service) Queries() *store.Queries { return s.q }
@@ -105,48 +114,88 @@ func (s *Service) Create(ctx context.Context, instructor uint64, in CreateInput,
 	if in.Mime != "" && !Accepts(l.Kind, in.Mime) {
 		return store.LearningMedium{}, ErrMimeMismatch
 	}
-	// Earlier unfinished uploads of this lesson make way (before the limits are counted).
+	// Earlier unfinished uploads of this lesson make way (before the limits are counted); a processing one too,
+	// unless its finalize is running right now (then the caller retries).
 	prior, err := s.q.ListLessonMedia(ctx, nid(l.ID))
 	if err != nil {
 		return store.LearningMedium{}, fmt.Errorf("media: lesson media: %w", err)
 	}
 	for _, m := range prior {
-		if m.Status == StatusUploading || m.Status == StatusFailed {
-			if err := s.remove(ctx, m); err != nil {
-				return store.LearningMedium{}, err
-			}
+		if m.Status != StatusUploading && m.Status != StatusFailed && m.Status != StatusProcessing {
+			continue
 		}
-	}
-	active, err := s.q.CountActiveUploads(ctx, instructor)
-	if err != nil {
-		return store.LearningMedium{}, fmt.Errorf("media: count: %w", err)
-	}
-	if active >= MaxActiveUploads {
-		return store.LearningMedium{}, ErrTooManyUploads
-	}
-	used, err := s.q.SumInstructorBytes(ctx, instructor)
-	if err != nil {
-		return store.LearningMedium{}, fmt.Errorf("media: quota: %w", err)
-	}
-	if used+in.Size > QuotaBytes {
-		return store.LearningMedium{}, ErrQuota
+		unlock, ok := s.lock(m.ID)
+		if !ok {
+			return store.LearningMedium{}, ErrBusy
+		}
+		err := s.remove(ctx, m)
+		unlock()
+		if err != nil {
+			return store.LearningMedium{}, err
+		}
 	}
 	rel, err := s.disk.Create(instructor)
 	if err != nil {
 		return store.LearningMedium{}, err
 	}
-	id, err := s.q.InsertMedia(ctx, store.InsertMediaParams{
-		InstructorID: instructor, LessonID: nid(l.ID), Kind: l.Kind, SizeBytes: uint64(in.Size), //nolint:gosec // G115: validated ≥ 1
+	id, err := s.insertLocked(ctx, instructor, l.ID, l.Kind, in.Size, rel, now)
+	if err != nil {
+		_ = s.disk.Remove(instructor, rel)
+		return store.LearningMedium{}, err
+	}
+	return s.get(ctx, id)
+}
+
+// insertLocked counts the instructor's active uploads and stored bytes, checks the disk reserve and inserts the row in
+// one transaction holding the instructor row FOR UPDATE, so parallel POSTs cannot pass the limits together (M1).
+func (s *Service) insertLocked(ctx context.Context, instructor, lesson uint64, kind string, size int64, rel string, now time.Time) (uint64, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, fmt.Errorf("media: tx: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	q := s.q.WithTx(tx)
+	if _, err := q.LockInstructor(ctx, instructor); err != nil {
+		return 0, fmt.Errorf("media: lock: %w", err)
+	}
+	active, err := q.CountActiveUploads(ctx, instructor)
+	if err != nil {
+		return 0, fmt.Errorf("media: count: %w", err)
+	}
+	if active >= MaxActiveUploads {
+		return 0, ErrTooManyUploads
+	}
+	used, err := q.SumInstructorBytes(ctx, instructor)
+	if err != nil {
+		return 0, fmt.Errorf("media: quota: %w", err)
+	}
+	if used+size > QuotaBytes {
+		return 0, ErrQuota
+	}
+	pending, err := q.SumPendingBytes(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("media: pending: %w", err)
+	}
+	if err := s.disk.CheckSpace(pending + size); err != nil {
+		if errors.Is(err, ErrStorageFull) {
+			s.logger.WarnContext(ctx, "media: disk reserve reached, upload refused", slog.Int64("size", size))
+		}
+		return 0, err
+	}
+	id, err := q.InsertMedia(ctx, store.InsertMediaParams{
+		InstructorID: instructor, LessonID: nid(lesson), Kind: kind, SizeBytes: uint64(size), //nolint:gosec // G115: validated ≥ 1
 		Path: rel, UploadExpiresAt: nt(now.Add(UploadTTL)), Now: nt(now),
 	})
 	if err != nil {
-		_ = s.disk.Remove(instructor, rel)
-		return store.LearningMedium{}, fmt.Errorf("media: insert: %w", err)
+		return 0, fmt.Errorf("media: insert: %w", err)
 	}
-	if err := s.q.SetLessonMediaStatus(ctx, store.SetLessonMediaStatusParams{MediaStatus: StatusUploading, Now: nt(now), ID: l.ID}); err != nil {
-		return store.LearningMedium{}, fmt.Errorf("media: lesson status: %w", err)
+	if err := q.SetLessonMediaStatus(ctx, store.SetLessonMediaStatusParams{MediaStatus: StatusUploading, Now: nt(now), ID: lesson}); err != nil {
+		return 0, fmt.Errorf("media: lesson status: %w", err)
 	}
-	return s.get(ctx, uint64(id)) //nolint:gosec // G115: auto-increment id
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("media: commit: %w", err)
+	}
+	return uint64(id), nil //nolint:gosec // G115: auto-increment id
 }
 
 func (s *Service) get(ctx context.Context, id uint64) (store.LearningMedium, error) {

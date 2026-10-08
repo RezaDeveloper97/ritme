@@ -86,7 +86,9 @@ func setup(t *testing.T, signer *media.Signer) *env {
 	lh := learning.NewHandlers(lsvc, clk)
 	root := t.TempDir()
 	scan := &scanner{}
-	svc := media.NewService(media.Options{DB: db, Disk: media.NewDisk(root), Signer: signer, Scanner: scan,
+	disk := media.NewDisk(root)
+	disk.SetSpaceFunc(func(string) (uint64, uint64, error) { return 1 << 50, 1 << 50, nil }) // the host's free space must not decide
+	svc := media.NewService(media.Options{DB: db, Disk: disk, Signer: signer, Scanner: scan,
 		BaseURL: "https://api.example.test", Logger: quiet})
 	h := media.NewHandlers(svc, lsvc, clk)
 
@@ -361,7 +363,7 @@ func TestResumableUploadAndProtectedStreaming(t *testing.T) {
 	link := pb["url"].(string)
 	assert.True(t, strings.HasPrefix(link, fmt.Sprintf("https://api.example.test/api/v1/media/%d/stream?", id)), link)
 	assert.Contains(t, link, "u="+strconv.FormatUint(studentID, 10))
-	assert.Equal(t, "2026-10-07T10:30:00+03:30", pb["expires_at"])
+	assert.Equal(t, "2026-10-07T10:10:00+03:30", pb["expires_at"])
 
 	// Whole file.
 	r = e.get(t, link, "")
@@ -371,6 +373,8 @@ func TestResumableUploadAndProtectedStreaming(t *testing.T) {
 	assert.Equal(t, "bytes", r.header.Get("Accept-Ranges"))
 	assert.Equal(t, "private, no-store", r.header.Get("Cache-Control"))
 	assert.Equal(t, "nosniff", r.header.Get("X-Content-Type-Options"))
+	assert.Equal(t, "sandbox; default-src 'none'", r.header.Get("Content-Security-Policy"))
+	assert.Equal(t, "same-site", r.header.Get("Cross-Origin-Resource-Policy"))
 
 	// Range 206.
 	r = e.get(t, link, "bytes=100-199")
@@ -412,7 +416,7 @@ func TestResumableUploadAndProtectedStreaming(t *testing.T) {
 	}
 
 	// Expired: 410 link_expired.
-	e.clock.Set(t0.Add(31 * time.Minute))
+	e.clock.Set(t0.Add(media.DefaultURLTTL + time.Minute))
 	r = e.get(t, link, "")
 	require.Equal(t, 410, r.status, r.raw)
 	assert.Equal(t, "link_expired", r.body["error_code"])
@@ -678,4 +682,99 @@ func TestSweep(t *testing.T) {
 	var rows int
 	require.NoError(t, e.db.QueryRow("SELECT COUNT(*) FROM learning_media").Scan(&rows))
 	assert.Equal(t, 0, rows)
+}
+
+// B-N8-02b M1: parallel POSTs of one instructor cannot get past the active-upload limit together.
+func TestActiveUploadLimitUnderRace(t *testing.T) {
+	e := setup(t, media.NewSigner(media.DevKey()))
+	itok := e.instructor(t, "09120000001", true)
+	const n = media.MaxActiveUploads + 4
+	lessons := make([]int, n)
+	for i := range lessons {
+		_, lessons[i] = e.lesson(t, itok, "video")
+	}
+	statuses := make([]int, n)
+	var wg sync.WaitGroup
+	for i, lid := range lessons {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			b, _ := json.Marshal(map[string]any{"lesson_id": lid, "size": 100})
+			req := httptest.NewRequest(http.MethodPost, "/api/instructor/v1/media", bytes.NewReader(b))
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Accept", "application/json")
+			req.Header.Set("Authorization", "Bearer "+itok)
+			resp, err := e.app.Test(req, fiber.TestConfig{Timeout: 30 * time.Second})
+			if err != nil {
+				return
+			}
+			_ = resp.Body.Close()
+			statuses[i] = resp.StatusCode
+		}()
+	}
+	wg.Wait()
+	created := 0
+	for _, st := range statuses {
+		if st == 201 {
+			created++
+		} else {
+			assert.Equal(t, 422, st)
+		}
+	}
+	assert.Equal(t, media.MaxActiveUploads, created)
+	var rows int
+	require.NoError(t, e.db.QueryRow("SELECT COUNT(*) FROM learning_media").Scan(&rows))
+	assert.Equal(t, media.MaxActiveUploads, rows)
+	assert.Len(t, e.files(t), media.MaxActiveUploads, "refused uploads leave no file")
+}
+
+// B-N8-02b M2: an upload that would eat into the disk reserve is refused (503), counting unfinished uploads.
+func TestDiskReserve(t *testing.T) {
+	e := setup(t, media.NewSigner(media.DevKey()))
+	free := uint64(media.DiskReserveBytes) + 1000
+	e.svc.Disk().SetSpaceFunc(func(string) (uint64, uint64, error) { return free, 1 << 50, nil })
+	itok := e.instructor(t, "09120000001", true)
+	_, lid := e.lesson(t, itok, "video")
+	_, lid2 := e.lesson(t, itok, "video")
+	e.create(t, itok, lid, 600) // 600 of the 1000 spare bytes are now reserved for it
+	r := e.do(t, http.MethodPost, "/api/instructor/v1/media", itok, map[string]any{"lesson_id": lid2, "size": 500})
+	require.Equal(t, 503, r.status, r.raw)
+	assert.Equal(t, "media_unavailable", r.body["error_code"])
+	assert.Len(t, e.files(t), 1)
+	e.create(t, itok, lid2, 400)
+}
+
+// B-N8-02b L4: a row left in processing (crashed finalize) is failed and removed by the sweep after an hour, and a
+// new upload of the lesson clears it right away.
+func TestSweepStuckProcessing(t *testing.T) {
+	e := setup(t, media.NewSigner(media.DevKey()))
+	itok := e.instructor(t, "09120000001", true)
+	_, lid := e.lesson(t, itok, "video")
+	_, lid2 := e.lesson(t, itok, "video")
+	stuck := e.create(t, itok, lid, 1000)
+	other := e.create(t, itok, lid2, 1000)
+	for _, id := range []int{stuck, other} {
+		_, err := e.db.Exec("UPDATE learning_media SET status = 'processing', updated_at = ? WHERE id = ?", t0.Format(time.DateTime), id)
+		require.NoError(t, err)
+	}
+	_, err := e.db.Exec("UPDATE learning_lessons SET media_status = 'processing' WHERE id IN (?, ?)", lid, lid2)
+	require.NoError(t, err)
+
+	n, err := e.svc.Sweep(context.Background(), t0.Add(30*time.Minute))
+	require.NoError(t, err)
+	assert.Equal(t, 0, n, "not stuck yet")
+
+	// A new upload of the lesson clears its processing prior.
+	e.create(t, itok, lid2, 500)
+	r := e.do(t, http.MethodGet, fmt.Sprintf("/api/instructor/v1/media/%d", other), itok, nil)
+	assert.Equal(t, 404, r.status)
+
+	n, err = e.svc.Sweep(context.Background(), t0.Add(media.StuckProcessingAfter+time.Minute))
+	require.NoError(t, err)
+	assert.Equal(t, 1, n)
+	r = e.do(t, http.MethodGet, fmt.Sprintf("/api/instructor/v1/media/%d", stuck), itok, nil)
+	assert.Equal(t, 404, r.status)
+	_, status := e.lessonMedia(t, lid)
+	assert.Equal(t, "none", status)
+	assert.Len(t, e.files(t), 1)
 }

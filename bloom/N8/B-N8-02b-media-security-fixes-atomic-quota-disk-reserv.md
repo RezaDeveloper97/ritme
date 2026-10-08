@@ -3,7 +3,7 @@ id: B-N8-02b
 title: Media security fixes — atomic quota, disk reserve, stuck processing sweep, stream headers, prod log hygiene
 milestone: N8
 type: backend
-status: in_progress
+status: done
 depends_on: [B-N8-02]
 parallel_group: N8-B2
 touches: [backend-go/internal/media,backend-go/db,deploy]

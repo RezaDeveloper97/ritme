@@ -25,11 +25,16 @@ type Querier interface {
 	ListInstructorMediaPaths(ctx context.Context, instructorID uint64) ([]string, error)
 	ListLessonMedia(ctx context.Context, lessonID sql.NullInt64) ([]LearningMedium, error)
 	ListOrphanMedia(ctx context.Context) ([]LearningMedium, error)
+	ListStuckProcessing(ctx context.Context, before sql.NullTime) ([]LearningMedium, error)
+	// Serializes POST /media of one instructor (B-N8-02b M1): count + sum + insert run under this row lock.
+	LockInstructor(ctx context.Context, id uint64) (uint64, error)
 	MarkMediaReady(ctx context.Context, arg MarkMediaReadyParams) (int64, error)
 	SetLessonMedia(ctx context.Context, arg SetLessonMediaParams) error
 	SetLessonMediaStatus(ctx context.Context, arg SetLessonMediaStatusParams) error
 	SetMediaStatus(ctx context.Context, arg SetMediaStatusParams) (int64, error)
 	SumInstructorBytes(ctx context.Context, instructorID uint64) (int64, error)
+	// Bytes every unfinished upload may still write (all instructors) — reserved against the free disk space (M2).
+	SumPendingBytes(ctx context.Context) (int64, error)
 }
 
 var _ Querier = (*Queries)(nil)

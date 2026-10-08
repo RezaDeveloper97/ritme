@@ -3,6 +3,7 @@ package media
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -28,6 +29,7 @@ func TestSniff(t *testing.T) {
 		{KindVideo, ftyp("qt  "), "video/quicktime"},
 		{KindVideo, webmHead, "video/webm"},
 		{KindVideo, mkvHead, ""},
+		{KindVideo, append(append([]byte{}, mkvHead...), []byte("webm")...), ""}, // "webm" outside the DocType
 		{KindVideo, ftyp("M4A "), ""},
 		{KindVideo, []byte("%PDF-1.7\n"), ""},
 		{KindVideo, []byte("MZ\x90\x00 an exe"), ""},
@@ -60,7 +62,7 @@ func TestSigner(t *testing.T) {
 	s := NewSigner(DevKey())
 	exp := now.Add(DefaultURLTTL)
 	sig := s.Sign(7, 42, exp)
-	es := "1790001800"
+	es := strconv.FormatInt(exp.Unix(), 10)
 
 	viewer, err := s.Verify(7, "42", es, sig, now)
 	require.NoError(t, err)

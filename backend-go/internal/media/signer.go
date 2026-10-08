@@ -11,7 +11,7 @@ import (
 // URL lifetimes. A player keeps issuing range requests while it plays, so the link has to outlive a typical
 // viewing session's start; when it does expire mid-lesson the stream answers 410 and the client mints a new one.
 const (
-	DefaultURLTTL = 30 * time.Minute
+	DefaultURLTTL = 10 * time.Minute // B-N8-02b L1: short; the player re-mints on 410 and resumes
 	MaxURLTTL     = time.Hour
 )
 

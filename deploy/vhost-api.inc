@@ -20,6 +20,28 @@ set $ritme_env        prod;
 set $ritme_client_xff $proxy_add_x_forwarded_for;
 include /etc/nginx/conf.d/go-routes.inc;
 
+# Lesson media (B-N8-02 / B-N8-02b L2) — prefixes (^~) so they win over the go-routes.inc regexes; the same
+# blocks stage has in vhost-stage.inc (they are not in go-routes.inc because stage defines its own, and two
+# identical locations in one server fail `nginx -t`). The signed stream carries its HMAC token in the query
+# string, so it is never written to an access log. Laravel has no such routes (404) — T-M2-26 points both at Go
+# (backend-go upstream) at cutover.
+location ^~ /api/instructor/v1/media {
+    proxy_pass http://backend_upstream;
+    include /etc/nginx/conf.d/proxy-params.inc;
+    proxy_request_buffering off;
+    proxy_read_timeout 300s;
+    proxy_send_timeout 300s;
+}
+location ^~ /api/v1/media/ {
+    access_log off;
+    proxy_pass http://backend_upstream;
+    include /etc/nginx/conf.d/proxy-params.inc;
+    proxy_set_header Range    $http_range;
+    proxy_set_header If-Range $http_if_range;
+    proxy_buffering off;
+    proxy_read_timeout 300s;
+}
+
 # Everything no route group claims (/oauth, /docs, /up, unported /api paths).
 location / {
     proxy_pass http://backend_upstream;
