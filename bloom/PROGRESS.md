@@ -1131,3 +1131,17 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   stage already has the locations). L3 stream CSP sandbox + CORP same-site, strict WebM DocType. L4 sweep of rows stuck
   in `processing` > 1 h; `Create` clears processing priors (409 if finalizing). L5 single-replica assumption documented.
   Doc text in openapi / .env.stage.example / D-81 ships with the next backend commit (shared hunks).
+
+## B-N7-03 — Booking with payment, cancellation rules and data-share consent
+
+- Core landed in 38f5181a; tests/goldens/env here; OpenAPI + dump + D-80 ship with the next joint backend commit.
+  Migration **00050** (`telemed_bookings`, `telemed_booking_consents`, 5 `telemed_visit_reasons` catalog rows).
+  `/api/v1/telemed/bookings`: list (upcoming|past|all), quote (Plus discount `TELEMED_PLUS_DISCOUNT_PERCENT`=20, children,
+  reasons, consent scopes), POST hold 10 min + payment via the payments adapter (free → confirmed at once), POST
+  /verify server-side idempotent (stored amount only, one bank reference per booking, late payment → auto refund 409
+  `booking_refunded`), show, cancel / reschedule (free until 2 h before, else 409 `cancel_window_closed`; cancel refunds,
+  cancels the care visit, revokes consents), PUT/DELETE consent. Double booking: doctor row `FOR UPDATE` + overlap check
+  + unique `slot_key` (12-goroutine race test). Confirmed → care appointment with reminder (1 h online/phone, 1 day
+  in person). Telemed `Busy` / `VisitChecker` implemented; sweeper expires holds, completes past visits, bumps
+  `visits_count`; `services.BookingSource` wired. `AuthorizeShare` (consent, own doctor, ≤72 h after) for B-N7-04/08.
+  QUESTIONS #125.

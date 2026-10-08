@@ -156,7 +156,7 @@ func (h *Handlers) UpdateAppointment(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	in.Meta.Private = a.Meta.Private // never changed by a request (CB-LOSS-01)
+	in.Meta.Private = a.Meta.Private     // never changed by a request (CB-LOSS-01)
 	in.Meta.BookingID = a.Meta.BookingID // set by a telemed booking only (B-N7-03)
 	// A cancelled visit keeps its reminder off (D-29); the other fields stay editable.
 	if on, sent := body.Get("is_active"); sent && a.Meta.Status == StatusCancelled && phpval.Truthy(on) {

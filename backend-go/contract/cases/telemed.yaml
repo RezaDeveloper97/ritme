@@ -71,3 +71,33 @@ cases:
     method: DELETE
     path: /api/v1/telemed/doctors/1/reviews/1
     status: 404
+  # Visit booking (bloom B-N7-03, D-80) — Go only, goldens recorded from Go. The fixture has no doctors, so holds,
+  # payment, cancel window, consent, the race and the IDOR matrix live in internal/telemed/booking_int_test.go.
+  - name: bookings_anon
+    persona: anon
+    method: GET
+    path: /api/v1/telemed/bookings
+    status: 401
+  - name: bookings_empty
+    doc: no bookings yet
+    locales: [fa]
+    method: GET
+    path: /api/v1/telemed/bookings?scope=all
+    status: 200
+  - name: booking_invalid
+    doc: empty body — every required field
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/telemed/bookings
+    body: {}
+    status: 422
+  - name: booking_missing
+    locales: [fa]
+    method: GET
+    path: /api/v1/telemed/bookings/999999
+    status: 404
+  - name: booking_quote_missing_doctor
+    locales: [fa]
+    method: GET
+    path: /api/v1/telemed/bookings/quote?doctor_id=999999&mode=video
+    status: 404
