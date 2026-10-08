@@ -419,3 +419,9 @@ TODO (ask user):
 - Follow-up: CB-MENO-13b (treatment adherence counted from the day an item was added when no start date).
 - Verify (agent): full frontend chain + build (1577 tests), i18n tests; on stage: tsc, vitest subset, i18n tests.
 - TODO (ask user): default «تاریخ شروع» to today?; night-sweats extrapolation from few days OK?; onboarding period didn't trigger the bleeding alert after switching (CB-MENO-02 open question). Notes: hot-flash count on home is timer-only; bloom PWA install banner reappears in dev.
+
+## CB-COND-02 — Frontend: programs hub (real programs behind bloom's services tiles)
+- `/programs` (`screens/conditions`, `entities/condition`): program cards (icon/tone, «ثبت می‌کنی: …» line, active pill), half sheet with join / «active since» / open diary / leave (logs kept), not-a-diagnosis InfoNote, PCOS → `/analysis/cycle`, soft nudge card from `GET /messages/nudges`. Bottom nav visible with Services active. Services tiles pain_endometriosis / pmdd / heavy_bleeding route to `/programs` unless admin sets an href (screens/services/ui/sections.tsx, target only).
+- New `conditions` namespace (+ Go copy, goldens, bundled, global.d.ts); scope `programs`; steiger override for entities/condition; CSS block CB-COND-02.
+- Verify (agent on 38f5181a): full chain + build (1615 tests); on stage: tsc, vitest subset, lint:styles, steiger, i18n tests.
+- Open: diary links `/programs/pain|pmdd|bleeding` 404 until CB-COND-03/04/05; home nudge slot → CB-COND-07; nudges not dismissible; copy needs clinical review. TODO (ask user): PCOS card target `/analysis/cycle` OK?

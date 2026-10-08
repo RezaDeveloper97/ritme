@@ -2421,6 +2421,67 @@
     "viewOnly": "You can only view this section, so changes can't be saved."
    }
   },
+  "conditions": {
+   "hub": {
+    "title": "Care programs",
+    "back": "Back to services",
+    "heading": "For conditions you live with",
+    "intro": "Each program has its own daily log, and it all comes together in your doctor report.",
+    "listLabel": "Programs",
+    "active": "Active",
+    "logs": "You log: {logs}",
+    "openLabel": "{title}, {state}",
+    "stateActive": "active",
+    "stateInactive": "not active",
+    "loading": "Loading programs",
+    "loadError": "Couldn't load the programs",
+    "retry": "Try again",
+    "empty": "No programs to show yet.",
+    "note": "These programs don't diagnose; they help you see your doctor with accurate data.",
+    "noteJoin": "{title}. {body}"
+   },
+   "programs": {
+    "endo": {
+     "title": "Endometriosis",
+     "sub": "A pain diary with location and intensity",
+     "logs": "pain location, intensity, type of pain, painkiller effect"
+    },
+    "pmdd": {
+     "title": "Premenstrual dysphoric disorder (PMDD)",
+     "sub": "A daily mood questionnaire for 2 cycles",
+     "logs": "mood, anxiety, irritability, concentration"
+    },
+    "heavy_bleeding": {
+     "title": "Heavy bleeding",
+     "sub": "A bleeding score chart and anaemia risk",
+     "logs": "number of pads and how soaked they are, clots"
+    },
+    "pcos": {
+     "title": "Polycystic ovary syndrome (PCOS)",
+     "sub": "Cycle regularity, skin and hair, weight and blood sugar",
+     "logs": "time between periods, acne, unwanted hair, weight"
+    }
+   },
+   "sheet": {
+    "activeSince": "Active since {date}",
+    "inactive": "You haven't started this program yet.",
+    "join": "Start the program",
+    "joinHint": "Starting the program opens its daily log for you. You can leave it any time.",
+    "pcosHint": "This program has no form of its own; it uses what you already log (periods, skin and hair, weight).",
+    "leave": "Leave the program",
+    "leaveHint": "Leaving the program doesn't delete what you've logged.",
+    "open": {
+     "endo": "Open the pain diary",
+     "pmdd": "Today's questionnaire",
+     "heavy_bleeding": "Open the bleeding chart",
+     "pcos": "See the cycle analysis"
+    },
+    "saveError": "Couldn't save. Please try again."
+   },
+   "nudge": {
+    "label": "A suggestion for this cycle"
+   }
+  },
   "contraception": {
    "setup": {
     "title": "Contraception method",

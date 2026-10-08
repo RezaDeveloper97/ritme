@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 
+import { isConditionServiceTile, PROGRAMS_HUB_PATH } from '@/entities/condition';
 import { bookingWhen, type ServiceSection, type ServiceTile, type UpcomingBooking } from '@/entities/service-hub';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber, monthName, toParts } from '@/shared/lib/date';
@@ -133,6 +134,11 @@ export function CheckupsLink({ section }: { section: ServiceSection }) {
   );
 }
 
+/** CB-COND-02: a condition-program tile the admin left without a screen opens the programs hub. */
+function programsHubTile(tile: ServiceTile): ServiceTile {
+  return !tile.href && isConditionServiceTile(tile.code) ? { ...tile, href: PROGRAMS_HUB_PATH, status: 'live' } : tile;
+}
+
 export function ProgramsRow({ section, tiles }: { section: ServiceSection; tiles: ServiceTile[] }) {
   const t = useTranslations('services');
   return (
@@ -145,7 +151,7 @@ export function ProgramsRow({ section, tiles }: { section: ServiceSection; tiles
       </div>
       <ul className="svc-programs">
         {tiles.map((tile) => (
-          <Tile key={tile.code} tile={tile} className="svc-tile svc-program" />
+          <Tile key={tile.code} tile={programsHubTile(tile)} className="svc-tile svc-program" />
         ))}
       </ul>
     </section>

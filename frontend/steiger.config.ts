@@ -326,6 +326,12 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // CB-COND-02: `entities/condition` (the CB-COND-01 / -06b API) is consumed by screens/conditions and
+    // screens/services — references FROM `screens` are invisible to steiger.
+    files: ['./src/entities/condition/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // CB-TEEN-03: `widgets/linked-teen-card` is mounted by screens/home, screens/companion-home and
     // screens/companion-list — references FROM `screens` are invisible to steiger.
     files: ['./src/widgets/linked-teen-card/**'],

@@ -118,3 +118,4 @@
 2026-10-07T07:38Z CB-NAV-03 -> in_progress
 2026-10-07T07:38Z CB-COND-02 -> in_progress
 2026-10-07T07:38Z CB-MENO-13b -> in_progress
+2026-10-08T05:42Z CB-COND-02 -> done
