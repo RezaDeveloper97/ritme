@@ -47,6 +47,7 @@ import {
   UrgentCard,
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+import { ModeChip } from '@/widgets/mode-chip';
 
 import { durationKey, headlineWeek, homeAlerts, sixWeekVisitDue, splitScheduled, tileSummary } from '../model/home';
 import { MOOD_CHIPS, type MoodChip, pressedChips, toggleChip } from '../model/mood';
@@ -79,7 +80,8 @@ function TopBar({ t }: { t: T }) {
       <HeaderButton variant="soft" icon="bell" label={t('home.notifications')} onClick={() => openSheet('notifications')} />
       <div className="pp-brand">
         <span className="pp-brand-name">{t('home.brand')}</span>
-        <span className="pp-brand-mode">{t('home.modeLabel')}</span>
+        {/* CB-NAV-03 (nbd_Nav_Today): the static mode label is now the mode chip → /profile/mode. */}
+        <ModeChip />
       </div>
       <HeaderButton variant="soft" icon="user" label={t('home.profile')} onClick={() => router.push('/profile')} />
     </header>

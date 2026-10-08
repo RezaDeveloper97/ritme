@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
 import { usePlusLocked } from '@/entities/plus';
 import { useRouter, type Locale } from '@/shared/i18n';
@@ -81,6 +81,11 @@ export interface LogDayProps {
   onSaved?: () => void;
   /** Pregnancy preset: the «ثبت روزانه بارداری» row (`null` hides it — the day log links back itself). */
   pregnancyDayHref?: string | null;
+  /**
+   * CB-NAV-03 (nbd_Nav_Plus): rows the host adds under the manual tab's list — the + sheet's «برای بعد» and
+   * «ثبت برای <child>» (widgets/log-later, composed by screens/log; a feature can't import a widget).
+   */
+  extra?: ReactNode;
 }
 
 function validDate(value: string | null | undefined): string {
@@ -109,6 +114,7 @@ export function LogDay({
   pageHeader,
   dateStrip = true,
   pregnancyDayHref = PREGNANCY_DAY_LOG_HREF,
+  extra,
 }: LogDayProps) {
   const t = useTranslations('logSheet');
   const router = useRouter();
@@ -317,6 +323,7 @@ export function LogDay({
             )}
           </section>
         )}
+        {extra}
       </>
     );
   }

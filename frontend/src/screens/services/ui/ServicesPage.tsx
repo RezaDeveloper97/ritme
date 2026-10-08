@@ -3,7 +3,7 @@
 import { Fragment } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { type ServiceSection, type ServicesHub, useServicesHub } from '@/entities/service-hub';
+import { iaOrderedSections, type ServiceSection, type ServicesHub, useServicesHub } from '@/entities/service-hub';
 import { type Locale } from '@/shared/i18n';
 import { openSheet } from '@/shared/sheet';
 import {
@@ -106,7 +106,8 @@ function HubSections({ hub }: { hub: ServicesHub }) {
 
   return (
     <>
-      {hub.sections.map((section) => {
+      {/* CB-NAV-03: shop last (own frame), emergency card at the very end — whatever the catalog order. */}
+      {iaOrderedSections(hub.sections).map((section) => {
         switch (section.code) {
           case 'search':
             return <SearchLink key={section.code} section={section} />;

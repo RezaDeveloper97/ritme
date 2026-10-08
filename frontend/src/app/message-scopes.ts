@@ -25,6 +25,7 @@ export const SHELL_NAMESPACES = [
   'articles',
   'care',
   'checkups',
+  'children', // CB-NAV-03: the log sheet's «ثبت برای <child>» row (widgets/log-later → entities/child barrel)
   'common',
   'notifications',
   'phaseDetails',
@@ -50,9 +51,9 @@ const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly Mes
 
 /** Per route: the namespaces its screen (and everything it imports) uses. */
 export const ROUTE_NAMESPACES = {
-  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'fertility', 'home', 'log', 'logPeriod', 'loss', 'menopause', 'nav', 'plus', 'profileEdit', 'search', 'teen'], // B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
+  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'fertility', 'home', 'log', 'logPeriod', 'loss', 'menopause', 'nav', 'plus', 'profileEdit', 'search', 'teen', 'todo'], // CB-NAV-03 «برای امروز» to-do row (entities/todo barrel); B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav'],
-  log: ['common', 'logSheet', 'nav', 'plus', 'voiceLog'], // B-N3-03: /log renders the log sheet v2 as a page
+  log: ['children', 'common', 'logSheet', 'nav', 'plus', 'voiceLog'], // CB-NAV-03: children = widgets/log-later via screens/log; // B-N3-03: /log renders the log sheet v2 as a page
   logCustomize: ['common', 'logCustomize', 'logSheet', 'plus'], // B-N3-04 /log/customize (the log sheet's gear; categoryLook comes via features/log-day)
   cycle: ['common', 'cycle', 'logPeriod'], // B-N1-08 cycle history (back header, no nav)
   cycleSymptoms: ['common', 'cycle', 'logPeriod'], // B-N1-08 /cycle/symptoms (screen slice shares the editor)

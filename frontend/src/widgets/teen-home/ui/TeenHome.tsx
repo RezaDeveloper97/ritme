@@ -2,7 +2,7 @@
 
 import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect } from 'react';
+import { type ReactNode, useEffect } from 'react';
 
 import { type TeenKit, type TeenParentLink, type TeenToday, useTeenToday, useToggleTeenKit } from '@/entities/teen';
 import { useUserProfile } from '@/entities/user';
@@ -33,7 +33,10 @@ import { signsCard } from '../model/signs';
  * no fertility copy (CB-TEEN-01 `allows`). Without onboarding answers she is
  * sent to `/teen/onboarding`.
  */
-export function TeenHome() {
+/**
+ * `modeChip` (CB-NAV-03): the Today header mode chip, composed in by screens/home (a widget can't import a widget).
+ */
+export function TeenHome({ modeChip }: { modeChip?: ReactNode } = {}) {
   const t = useTranslations('teen.home');
   const router = useRouter();
   const query = useTeenToday();
@@ -70,23 +73,31 @@ export function TeenHome() {
 
   return (
     <div className="tnh-page">
-      <TeenHeader />
+      <TeenHeader modeChip={modeChip} />
       {body}
     </div>
   );
 }
 
-function TeenHeader() {
+function TeenHeader({ modeChip }: { modeChip?: ReactNode }) {
   const t = useTranslations('teen.home');
+  const tSearch = useTranslations('search');
   const profile = useUserProfile();
   const first = profile.data?.name?.trim().split(/\s+/)[0] ?? '';
   return (
     <header className="tnh-hdr">
       <div className="tnh-hdr-text">
+        {modeChip}
         <span className="tnh-eyebrow">{t('eyebrow')}</span>
         <h1 className="tnh-hello">{first ? t('hello', { name: first }) : t('helloNoName')}</h1>
       </div>
-      <IconCircle icon="sprout" tone="data" size="lg" />
+      <span className="tnh-hdr-actions">
+        {/* CB-NAV-03: the global search of every Today header (CB-NAV-02) — the teen home had none. */}
+        <Link href="/search" className="home-hdr-btn" aria-label={tSearch('open')}>
+          <Icon name="search" size={20} strokeWidth={1.8} />
+        </Link>
+        <IconCircle icon="sprout" tone="data" size="lg" />
+      </span>
     </header>
   );
 }

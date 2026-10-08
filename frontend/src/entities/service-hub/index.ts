@@ -12,6 +12,7 @@ export {
   type UpcomingBooking,
 } from './model/types';
 export { bookingWhen, type BookingWhen } from './model/booking';
+export { iaOrderedSections } from './model/ia-order'; // CB-NAV-03
 export { serviceHubKeys } from './api/keys';
 export { servicesHubSchema } from './api/schema';
 export { fetchServicesHub, useServicesHub } from './api/queries';

@@ -200,9 +200,23 @@ export function ProfilePage() {
                 onClick={() => router.push(teen ? '/teen/parent' : '/companions')}
               />
             ) : null}
-            {FAMILY_SOON.map((row) => (
-              <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
-            ))}
+            {/* CB-NAV-03 (nbd_Nav_Me «فرزندان»): /children shipped with B-N5-05 — the row is live for an owner
+                (a teen has no children row; a companion keeps the «به‌زودی» row). */}
+            {navMode === 'companion'
+              ? FAMILY_SOON.map((row) => (
+                  <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
+                ))
+              : teen
+                ? null
+                : FAMILY_SOON.map((row) => (
+                    <ListRow
+                      key={row.key}
+                      icon={row.icon}
+                      iconTone={row.tone}
+                      title={t(`rows.${row.key}`)}
+                      onClick={() => router.push('/children')}
+                    />
+                  ))}
           </ListGroup>
         </section>
 

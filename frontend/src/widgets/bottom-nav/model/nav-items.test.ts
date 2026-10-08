@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { isNavRootPath } from '@/shared/config';
 
-import { activeTabKey, navConfig, resolveNavMode, type NavMode } from './nav-items';
+import { activeTabKey, isRootRetap, navConfig, resolveNavMode, type NavMode } from './nav-items';
 
 const READY = { postpartum: true, children: true, analysis: true, ivfMeds: false };
 const keys = (mode: NavMode, childIds?: string[], ready: Partial<typeof READY> = READY) => {
@@ -107,6 +107,45 @@ describe('isNavRootPath', () => {
     }
     for (const p of ['/pregnancy/alerts', '/pregnancy/log', '/reminders', '/checkups', '/fertility/log', '/onboarding/name']) {
       expect(isNavRootPath(p)).toBe(false);
+    }
+  });
+});
+
+describe('CB-NAV-03 IA_Nav rules', () => {
+  it('hides the nav on the log screen and the pregnancy calendar (back headers)', () => {
+    expect(isNavRootPath('/log')).toBe(false);
+    expect(isNavRootPath('/pregnancy/calendar')).toBe(false);
+    for (const p of ['/loss', '/loss/care', '/plus/checkout', '/reminders/appointment/new', '/teen/onboarding']) {
+      expect(isNavRootPath(p)).toBe(false);
+    }
+  });
+
+  it('re-tap on the active tab root scrolls; from a sub-screen the link goes to the root', () => {
+    const cal = navConfig('cycle').before[1]!;
+    expect(isRootRetap(cal, '/calendar')).toBe(true);
+    expect(isRootRetap(cal, '/calendar/')).toBe(true);
+    expect(isRootRetap(cal, '/analysis/symptoms')).toBe(false);
+    expect(activeTabKey(navConfig('cycle'), '/analysis/symptoms')).toBe('calendar');
+    expect(cal.href).toBe('/calendar');
+  });
+
+  it('keeps the stage tab in the second slot with the mode label/icon (IVF «درمان», menopause «علائم»)', () => {
+    const second = (mode: NavMode, ivf = false) => {
+      const t = navConfig(mode, { ivf }).before[1]!;
+      return `${t.key}/${t.icon}`;
+    };
+    expect(second('cycle')).toBe('calendar/calendar');
+    expect(second('teen')).toBe('calendar/calendar');
+    expect(second('ttc')).toBe('fertility/fertility');
+    expect(second('ttc', true)).toBe('treatment/treatment');
+    expect(second('pregnancy')).toBe('pregnancy/pregnancy');
+    expect(second('postpartum')).toBe('child/child');
+    expect(second('menopause')).toBe('symptoms/symptoms');
+  });
+
+  it('the FAB is present in every owner mode (it always opens the log sheet)', () => {
+    for (const m of ['cycle', 'ttc', 'pregnancy', 'postpartum', 'menopause', 'teen'] as const) {
+      expect(navConfig(m).fab).toBe(true);
     }
   });
 });

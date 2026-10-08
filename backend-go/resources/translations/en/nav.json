@@ -26,5 +26,58 @@
     "pregMovement": { "title": "Baby movements", "sub": "Count the kicks" },
     "checkup": { "title": "Checkup", "sub": "Record a visit" },
     "reminder": { "title": "Reminder", "sub": "Medication or visit" }
+  },
+  "modeChip": {
+    "label": "App mode: {mode} — change mode",
+    "modes": {
+      "cycle": "Cycle",
+      "ttc": "Trying to conceive",
+      "ivf": "IVF / IUI",
+      "pregnancy": "Pregnancy",
+      "postpartum": "Postpartum",
+      "menopause": "Menopause",
+      "teen": "Teen"
+    }
+  },
+  "forToday": {
+    "title": "For today",
+    "todo": "{count, plural, one {# task today} other {# tasks today}}",
+    "todoNone": "Nothing on your list today",
+    "todoSub": "To-do list"
+  },
+  "quickAccess": {
+    "title": "Quick access",
+    "subtitle": "Choose what you want here",
+    "edit": "Edit",
+    "editTitle": "Edit quick access",
+    "editLead": "Pick up to {max} shortcuts; they are saved on this phone only.",
+    "count": "{count} of {max}",
+    "save": "Save",
+    "reset": "Back to default",
+    "items": {
+      "record": "Record",
+      "doctor": "Doctor",
+      "painDiary": "Pain diary",
+      "courses": "Courses",
+      "checkups": "Checkups",
+      "reminders": "Reminders",
+      "vitals": "Vitals",
+      "labs": "Labs",
+      "analysis": "Analysis",
+      "todo": "To-do list",
+      "contraception": "Contraception",
+      "children": "Children",
+      "search": "Search",
+      "hotFlash": "Hot flash",
+      "ivfMeds": "Injections",
+      "kicks": "Kicks"
+    }
+  },
+  "later": {
+    "title": "For later",
+    "appointment": "Appointment or visit",
+    "task": "New task",
+    "child": "Log for {name}",
+    "childSub": "Feeding, sleep, diapers"
   }
 }

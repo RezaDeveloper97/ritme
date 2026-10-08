@@ -39,6 +39,8 @@ import {
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 import { PregnancyCareChecklist } from '@/widgets/pregnancy-care-checklist';
+import { ModeChip } from '@/widgets/mode-chip';
+import { QuickAccess } from '@/widgets/quick-access';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
 import { WeekRing } from './WeekRing';
@@ -65,7 +67,13 @@ function Header({ unread, t }: { unread: number; t: T }) {
   return (
     <HubHeader
       className="pgn-hub"
-      date={formatWeekdayDayMonth(todayDate(), locale)}
+      date={
+        <>
+          {/* CB-NAV-03 (nbd_Nav_Today): mode chip → /profile/mode. */}
+          <ModeChip className="is-stacked" />
+          {formatWeekdayDayMonth(todayDate(), locale)}
+        </>
+      }
       greeting={t('common.title')}
       actions={
         <>
@@ -372,6 +380,8 @@ export function PregnancyPage() {
       {/* The «ویزیت بعدی» card below already shows this appointment. */}
       <TodayRemindersCard hideAppointmentId={data.nextVisit?.appointmentId ?? null} />
       {data.nextVisit && <NextVisitCard visit={data.nextVisit} t={t} />}
+      {/* CB-NAV-03 (IA_Map Today): the user-picked «دسترسی سریع». */}
+      <QuickAccess />
       {data.tip && <TipCard tip={data.tip} week={data.progress.week} t={t} />}
       <PregnancyCareChecklist week={data.progress.week} tasks={data.tasks} />
       {data.progress.week >= DELIVERED_FROM_WEEK && <DeliveredCard t={t} />}

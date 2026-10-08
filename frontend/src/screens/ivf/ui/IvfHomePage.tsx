@@ -36,6 +36,7 @@ import {
   type TimelineStep,
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+import { ModeChip } from '@/widgets/mode-chip';
 
 import {
   clockOf,
@@ -68,7 +69,13 @@ function Header({ cycle, t }: { cycle: IvfCycle | null; t: T }) {
   return (
     <HubHeader
       className="ivf-hub"
-      date={t('home.eyebrow')}
+      date={
+        <>
+          {/* CB-NAV-03 (nbd_Nav_Today / IA_Nav IVF): mode chip → /profile/mode. */}
+          <ModeChip className="is-stacked" />
+          {t('home.eyebrow')}
+        </>
+      }
       greeting={
         cycle
           ? t('home.title', { cycle: t('home.cycle', { n: cycle.number, num: formatNumber(cycle.number, locale) }) })

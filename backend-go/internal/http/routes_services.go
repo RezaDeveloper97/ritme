@@ -10,6 +10,7 @@ import (
 	catalogstore "github.com/ritme/backend-go/internal/catalog/store"
 	"github.com/ritme/backend-go/internal/checkups"
 	checkupsstore "github.com/ritme/backend-go/internal/checkups/store"
+	"github.com/ritme/backend-go/internal/companion"
 	"github.com/ritme/backend-go/internal/enums"
 	healthrecordstore "github.com/ritme/backend-go/internal/healthrecord/store"
 	"github.com/ritme/backend-go/internal/i18n"
@@ -31,7 +32,20 @@ func init() {
 		mode := func(ctx context.Context, userID uint64) (enums.LifeMode, error) {
 			return checkups.UserLifeMode(ctx, checkupsQ, userID)
 		}
-		svc := services.NewService(cat, healthrecordstore.New(d.DB), mode, telemedBookings(d, false)) // B-N7-03 card
+		// CB-NAV-03: a teen's doctor / lab tiles need an active parent link (companion type parent, CB-TEEN-01).
+		parentLinked := func(ctx context.Context, userID uint64) (bool, error) {
+			links, err := companion.NewService(d.DB, clock.Real{}, companion.Options{}).ListForOwner(ctx, userID)
+			if err != nil {
+				return false, err
+			}
+			for _, l := range links {
+				if l.Type == companion.TypeParent && l.Status == companion.StatusActive {
+					return true, nil
+				}
+			}
+			return false, nil
+		}
+		svc := services.NewService(cat, healthrecordstore.New(d.DB), mode, telemedBookings(d, false)).WithTeenParent(parentLinked) // B-N7-03 card
 		h := services.NewHandlers(svc, clock.Real{})
 
 		r.Get("/api/v1/services", locale, guard, h.Show)

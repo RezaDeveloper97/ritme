@@ -225,3 +225,12 @@ export function activeTabKey(config: NavConfig, pathname: string): NavKey | null
   const also = tabs.find((tab) => tab.alsoActive?.some((p) => matches(p, path)));
   return also?.key ?? null;
 }
+
+/**
+ * CB-NAV-03 (IA_Nav «بازگشت»): re-tapping the active tab returns to that tab's root. From a sub-screen
+ * the tab's link already goes there; on the root itself the tap has nowhere to go, so the screen
+ * scrolls back to the top instead. `true` = the tap is on the root of the active tab (scroll to top).
+ */
+export function isRootRetap(tab: NavTab, pathname: string): boolean {
+  return stripSlash(pathname) === tab.href.split('#')[0];
+}

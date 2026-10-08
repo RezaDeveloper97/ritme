@@ -107,12 +107,45 @@ type BookingSource interface {
 	NextBooking(ctx context.Context, userID uint64, now time.Time) (*Booking, error)
 }
 
+// ParentLinked reports whether a teen has an active parent link (companion type parent, CB-TEEN-01).
+type ParentLinked func(ctx context.Context, userID uint64) (bool, error)
+
+// TeenParentOnlyCare are the care tiles a teen sees only with a linked parent (CB-NAV-03, IA_Nav «نوجوان»:
+// «خدمات بدون فروشگاه؛ پزشک و آزمایش فقط با همراهی والد»).
+var TeenParentOnlyCare = map[string]bool{"doctors": true, "labs": true}
+
 // Service builds the hub.
 type Service struct {
 	cat      CatalogReader
 	docs     DocumentCounter
 	mode     ModeReader
 	bookings BookingSource
+	parent   ParentLinked
+}
+
+// WithTeenParent plugs the parent-link check (CB-NAV-03). Without it a teen never sees the TeenParentOnlyCare tiles.
+func (s *Service) WithTeenParent(fn ParentLinked) *Service {
+	s.parent = fn
+	return s
+}
+
+// teenCareHidden: the care tile code is parent-only and the teen has no active parent link. Looked up once per hub.
+func (s *Service) teenCareHidden(ctx context.Context, userID uint64, code string, linked **bool) (bool, error) {
+	if !TeenParentOnlyCare[code] {
+		return false, nil
+	}
+	if *linked == nil {
+		v := false
+		if s.parent != nil {
+			ok, err := s.parent(ctx, userID)
+			if err != nil {
+				return false, fmt.Errorf("services: parent link: %w", err)
+			}
+			v = ok
+		}
+		*linked = &v
+	}
+	return !**linked, nil
 }
 
 // NewService wires the hub. bookings may be nil (no telemedicine yet): upcoming_booking is then always null.
@@ -292,9 +325,19 @@ func (s *Service) care(ctx context.Context, userID uint64, mode enums.LifeMode, 
 	}
 	out := make([]*jsonx.OrderedMap, 0, len(items))
 	var docs *int64
+	var parentLinked *bool
 	for _, it := range items {
 		if !it.For(string(mode)) {
 			continue
+		}
+		if mode == enums.LifeModeTeen {
+			hidden, err := s.teenCareHidden(ctx, userID, it.Code, &parentLinked)
+			if err != nil {
+				return nil, err
+			}
+			if hidden {
+				continue
+			}
 		}
 		m := metaOf(it)
 		var count any

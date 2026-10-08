@@ -27,12 +27,8 @@ export const NAV_ROOT_PATHS: readonly string[] = [
   '/programs', // CB-COND-02: «برنامه‌های مراقبت» hub (nbl_Cond_Hub, خدمات tab)
   '/todo', // B-N6-08: «کارهای من» (nbl_Todo_Home, من tab)
   '/learn', // B-N8-03: «دوره‌های من» (nbl_Learn_Hub, من tab)
-  // Transitional (B-N1-04): these screens have no back button yet, so hiding
-  // the nav would strand the user. Their restyle tasks add a ScreenHeader and
-  // drop them from this list: /log (B-N3-03),
-  // /pregnancy/calendar (B-N1-14).
-  '/log',
-  '/pregnancy/calendar',
+  // CB-NAV-03 (IA_Nav «نوار تب»: hidden on forms / log): the transitional `/log` (B-N3-03) and
+  // `/pregnancy/calendar` (B-N1-14) entries are gone — both screens now have a back/close header.
 ];
 
 /** Prefixes whose sub-paths also show the nav (`/pregnancy/weeks/12`, `/analysis/symptoms`). */

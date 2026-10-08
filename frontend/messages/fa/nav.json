@@ -26,5 +26,58 @@
     "pregMovement": { "title": "حرکات جنین", "sub": "شمارش ضربه‌ها" },
     "checkup": { "title": "چکاپ", "sub": "ثبت مراجعه" },
     "reminder": { "title": "یادآور", "sub": "دارو یا ویزیت" }
+  },
+  "modeChip": {
+    "label": "حالت اپ: {mode} — تغییر حالت",
+    "modes": {
+      "cycle": "چرخه",
+      "ttc": "اقدام به بارداری",
+      "ivf": "IVF / IUI",
+      "pregnancy": "بارداری",
+      "postpartum": "پس از زایمان",
+      "menopause": "یائسگی",
+      "teen": "نوجوان"
+    }
+  },
+  "forToday": {
+    "title": "برای امروز",
+    "todo": "{count, plural, other {# کار امروز}}",
+    "todoNone": "کاری برای امروز نداری",
+    "todoSub": "لیست کارها"
+  },
+  "quickAccess": {
+    "title": "دسترسی سریع",
+    "subtitle": "خودت انتخاب کن چه چیزی اینجا باشد",
+    "edit": "ویرایش",
+    "editTitle": "ویرایش دسترسی سریع",
+    "editLead": "تا {max} میانبر انتخاب کن؛ فقط روی همین گوشی ذخیره می‌شود.",
+    "count": "{count} از {max}",
+    "save": "ذخیره",
+    "reset": "برگشت به پیش‌فرض",
+    "items": {
+      "record": "پرونده",
+      "doctor": "پزشک",
+      "painDiary": "دفترچه درد",
+      "courses": "دوره‌ها",
+      "checkups": "چکاپ‌ها",
+      "reminders": "یادآورها",
+      "vitals": "علائم حیاتی",
+      "labs": "آزمایش",
+      "analysis": "تحلیل",
+      "todo": "لیست کارها",
+      "contraception": "پیشگیری",
+      "children": "فرزندان",
+      "search": "جست‌وجو",
+      "hotFlash": "گرگرفتگی",
+      "ivfMeds": "تزریق‌ها",
+      "kicks": "حرکات جنین"
+    }
+  },
+  "later": {
+    "title": "برای بعد",
+    "appointment": "نوبت یا ویزیت",
+    "task": "کار جدید",
+    "child": "ثبت برای {name}",
+    "childSub": "شیر، خواب، پوشک"
   }
 }

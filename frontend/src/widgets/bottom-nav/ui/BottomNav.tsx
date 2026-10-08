@@ -2,6 +2,7 @@
 
 import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
+import type { MouseEvent } from 'react';
 
 import { isNavRootPath } from '@/shared/config';
 import { Link, usePathname, type Locale } from '@/shared/i18n';
@@ -11,6 +12,7 @@ import { openSheet } from '@/shared/sheet';
 
 import {
   activeTabKey,
+  isRootRetap,
   navConfig,
   type NavKey,
   type NavMode,
@@ -34,6 +36,15 @@ export interface BottomNavProps {
    * — postpartum «کودک» then opens the only child directly; otherwise the list.
    */
   childIds?: readonly number[];
+}
+
+/** Re-tap on a tab root: scroll the screen's scroller (`.view > .scroll`) to the top instead of a no-op navigation. */
+function scrollToTop(event: MouseEvent<HTMLAnchorElement>) {
+  event.preventDefault();
+  const view = event.currentTarget.closest('.view');
+  const scroller = view?.querySelector<HTMLElement>(':scope > .scroll');
+  const reduce = document.documentElement.dataset.motion === 'reduce';
+  scroller?.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
 }
 
 /**
@@ -83,6 +94,9 @@ export function BottomNav({ badges, mode: forcedMode, ivf: forcedIvf, childIds }
         href={tab.href}
         className={clsx('nbnav-tab', on && 'is-on')}
         aria-current={on ? 'page' : undefined}
+        // CB-NAV-03 (IA_Nav «بازگشت»): re-tapping the active tab on its root scrolls the screen back up
+        // (from a sub-screen the link itself returns to the root).
+        onClick={on && isRootRetap(tab, pathname) ? scrollToTop : undefined}
       >
         <span className="nbnav-ic-wrap">
           <NavIcon name={tab.icon} />

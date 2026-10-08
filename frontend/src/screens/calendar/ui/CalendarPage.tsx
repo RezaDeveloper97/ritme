@@ -82,8 +82,8 @@ const EXTEND_GAP_DAYS = 7;
 const NEW_PERIOD_MIN_GAP_DAYS = 21;
 
 type View = 'month' | 'year';
-/** Segment values: the two views + the analysis link (B-N3-08). */
-type Segment = View | 'analysis';
+/** Segment values: the two views + the analysis link (B-N3-08) + the history link (CB-NAV-03). */
+type Segment = View | 'analysis' | 'history';
 
 const isSameDay = (a: Date, b: Date) => diffInDays(a, b) === 0;
 
@@ -541,10 +541,17 @@ export function CalendarPage() {
               { value: 'year', label: tn('year') },
               // B-N3-08: «تحلیل» is the calendar's entry into /analysis (QUESTIONS #3) — a link, not a view.
               { value: 'analysis', label: tn('analysis') },
+              // CB-NAV-03 (nbd_Nav_Stage «تقویم · تحلیل · تاریخچه»): the period history `/cycle` lives in the
+              // stage tab too (it keeps the tab lit); it was reachable only from the home predictions card.
+              { value: 'history', label: tn('history') },
             ]}
             onChange={(v) => {
               if (v === 'analysis') {
                 router.push('/analysis');
+                return;
+              }
+              if (v === 'history') {
+                router.push('/cycle');
                 return;
               }
               if (v === 'year') setYearShown(anchor.year);

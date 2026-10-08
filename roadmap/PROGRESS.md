@@ -425,3 +425,11 @@ TODO (ask user):
 - New `conditions` namespace (+ Go copy, goldens, bundled, global.d.ts); scope `programs`; steiger override for entities/condition; CSS block CB-COND-02.
 - Verify (agent on 38f5181a): full chain + build (1615 tests); on stage: tsc, vitest subset, lint:styles, steiger, i18n tests.
 - Open: diary links `/programs/pain|pmdd|bleeding` 404 until CB-COND-03/04/05; home nudge slot → CB-COND-07; nudges not dismissible; copy needs clinical review. TODO (ask user): PCOS card target `/analysis/cycle` OK?
+
+## CB-NAV-03 — IA alignment: bloom shell vs canvas-v1 IA rules
+- Check table in docs/qa/canvas/nav.md `## CB-NAV-03` (all ✔). Fixes: `/log` + `/pregnancy/calendar` dropped from the transitional nav list (both have back headers); re-tap on an active tab root scrolls to top (`isRootRetap`); cycle stage tab gains «تاریخچه» → `/cycle`; Services `iaOrderedSections` keeps shop last before 115; backend `services.WithTeenParent` hides doctors/labs tiles for teens without an active parent link (+ unit test); Me «فرزندان» row → `/children` (not teen).
+- New widgets: `mode-chip` (→ /profile/mode on every Today header; teen header gets search), `for-today` (M3 reminders + «N کار امروز»; companion row hidden — no API), `quick-access` (≤9 shortcuts, device-local per README §8 Q3, wiped at sign-out; edit sheet `?sheet=quick-access`), `log-later` (+ sheet «برای بعد» appointment/todo, «ثبت برای <child>») via optional `extra` prop on bloom's LogDay.
+- Shared: CSS block CB-NAV-03, sheets registry, scopes (shell +children, home +todo, log +children), steiger (4 widgets insignificant-slice off; widgets excessive-slicing off), nav.json keys + calendar.nb.history (+ Go copy, goldens).
+- Follow-up CB-NAV-03b (quick access / for-today on postpartum + IVF, shortcut targets when screens exist, companion row, server storage, unused postpartum key).
+- Verify (agent on 8e48054c): full frontend chain + build (1633), go vet, lint, services/i18n tests; on stage: vitest 276 (widgets/config/home/services), lint:styles, lint:dark, services/i18n go tests. tsc/steiger on the main tree only fail on bloom's untracked B-N8-03 learn WIP.
+- TODO (ask user): quick access device-only vs server pref; steiger excessive-slicing exemption for widgets; teens w/o parent: hide vs disabled tiles.

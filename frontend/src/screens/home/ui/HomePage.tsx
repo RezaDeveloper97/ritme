@@ -72,6 +72,9 @@ import {
 } from '@/shared/ui';
 import { BannerSlideshow } from '@/widgets/banner-slideshow';
 import { BottomNav } from '@/widgets/bottom-nav';
+import { ForToday } from '@/widgets/for-today';
+import { ModeChip } from '@/widgets/mode-chip';
+import { QuickAccess } from '@/widgets/quick-access';
 import { CheckupsCard } from '@/widgets/checkups-card';
 import { LinkedTeenCards } from '@/widgets/linked-teen-card';
 import {
@@ -114,6 +117,8 @@ function HomeHeader({ t, loc }: { t: T; loc: Locale }) {
   return (
     <header className="home-hdr">
       <div>
+        {/* CB-NAV-03 (nbd_Nav_Today): mode chip → /profile/mode, above bloom's date + greeting. */}
+        <ModeChip className="is-stacked" />
         <div className="home-hdr-date">{formatWeekdayDayMonth(today(), loc)}</div>
         <div className="home-hdr-greet">{t(`greeting.${greetingKey(currentHour())}`)}</div>
       </div>
@@ -1139,7 +1144,10 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
             {!teen && <BannerSlideshow position="home_top" />}
             {/* «یادآورهای امروز» — today's doses + next appointment (M3, /care/today),
                 right under the hero like the reminders artboard (T-M3-10 audit L-6). */}
-            <TodayRemindersCard />
+            {/* CB-NAV-03 (nbd_Nav_Today): «برای امروز» = the M3 reminders card + today's to-do count,
+                then the user-picked «دسترسی سریع». */}
+            <ForToday reminders={<TodayRemindersCard />} />
+            <QuickAccess />
             {/* «ثبت امروز» + streak (nbl_Cycle_Home). The TTC home logs through its tiles. */}
             {!noPeriodData && !loadFailed && !isTtc && <TodayLogCard streakDays={overview?.streakDays ?? null} />}
             {!noPeriodData && !loadFailed && (
@@ -1286,7 +1294,7 @@ export function HomePage() {
       <div className="view">
         <div className="home-grad home-grad-fill" />
         <div className="scroll page-scroll">
-          <TeenHome />
+          <TeenHome modeChip={<ModeChip className="is-stacked" />} />
           <div className="page-tail" />
         </div>
         <BottomNav />

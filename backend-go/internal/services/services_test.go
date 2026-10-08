@@ -106,6 +106,34 @@ func TestHub_TeenNeverSeesTheShop(t *testing.T) {
 	assert.Equal(t, []string{"learning", "emergency"}, codes(m["sections"]))
 }
 
+// CB-NAV-03 (IA_Nav «نوجوان»): doctor & lab tiles only with a linked parent; other modes never ask.
+func TestHub_TeenDoctorAndLabsOnlyWithParent(t *testing.T) {
+	cat := fakeCatalog{GroupCare: {item("doctors", "D", ""), item("record", "R", ""), item("labs", "L", ""), item("vitals", "V", "")}}
+	calls := 0
+	linked := func(v bool) ParentLinked {
+		return func(context.Context, uint64) (bool, error) { calls++; return v, nil }
+	}
+	m := hub(t, NewService(cat, &fakeDocs{}, modeOf(enums.LifeModeTeen), nil).WithTeenParent(linked(false)))
+	assert.Equal(t, []string{"record", "vitals"}, codes(m["care"]))
+	assert.Equal(t, 1, calls, "looked up once per hub")
+
+	m = hub(t, NewService(cat, &fakeDocs{}, modeOf(enums.LifeModeTeen), nil).WithTeenParent(linked(true)))
+	assert.Equal(t, []string{"doctors", "record", "labs", "vitals"}, codes(m["care"]))
+
+	m = hub(t, NewService(cat, &fakeDocs{}, modeOf(enums.LifeModeTeen), nil))
+	assert.Equal(t, []string{"record", "vitals"}, codes(m["care"]), "no checker wired → hidden")
+
+	calls = 0
+	m = hub(t, NewService(cat, &fakeDocs{}, modeOf(enums.LifeModeCycle), nil).WithTeenParent(linked(false)))
+	assert.Equal(t, []string{"doctors", "record", "labs", "vitals"}, codes(m["care"]))
+	assert.Zero(t, calls)
+
+	failing := func(context.Context, uint64) (bool, error) { return false, errors.New("db down") }
+	_, err := NewService(cat, &fakeDocs{}, modeOf(enums.LifeModeTeen), nil).WithTeenParent(failing).
+		Hub(context.Background(), 7, time.Now(), loc)
+	require.Error(t, err)
+}
+
 func TestHub_EmergencyPhoneValidated(t *testing.T) {
 	for meta, want := range map[string]string{`{"phone":"112"}`: "112", `{"phone":"javascript:x"}`: "115", `not json`: "115"} {
 		cat := fakeCatalog{GroupSections: {item("emergency", "SOS", meta)}}

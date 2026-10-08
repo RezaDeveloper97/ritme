@@ -224,6 +224,13 @@ export const SHEET_REGISTRY: Record<string, SheetDefinition> = {
     Title: dynamic(() => import('@/screens/todo-add').then((m) => m.TodoAddTitle), { ssr: false }),
     Component: dynamic(() => import('@/screens/todo-add').then((m) => m.TodoAddSheet), { ssr: false }),
   },
+
+  /** CB-NAV-03: Today «دسترسی سریع» edit sheet (pick shortcuts; saved on this device). Strings: `nav` (shell). */
+  'quick-access': {
+    size: 'half',
+    Title: dynamic(() => import('@/widgets/quick-access').then((m) => m.QuickAccessSheetTitle), { ssr: false }),
+    Component: dynamic(() => import('@/widgets/quick-access').then((m) => m.QuickAccessSheet), { ssr: false }),
+  },
 };
 
 export function sheetDefinition(id: string): SheetDefinition | null {
