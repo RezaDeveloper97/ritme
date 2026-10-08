@@ -135,8 +135,8 @@ DELETE FROM `learning_lessons` WHERE id = sqlc.arg(id) AND course_id = sqlc.arg(
 
 -- name: ListGroups :many
 SELECT g.*,
-  CAST((SELECT COUNT(*) FROM `learning_grants` a WHERE a.group_id = g.id AND a.status = 'active') AS SIGNED) AS active_members,
-  CAST((SELECT COUNT(*) FROM `learning_grants` a WHERE a.group_id = g.id AND a.status = 'pending') AS SIGNED) AS pending_members
+  CAST((SELECT COUNT(*) FROM `learning_grants` a WHERE a.group_id = g.id AND a.status = 'active' AND a.seen_at IS NOT NULL) AS SIGNED) AS active_members,
+  CAST((SELECT COUNT(*) FROM `learning_grants` a WHERE a.group_id = g.id AND (a.status = 'pending' OR (a.status = 'active' AND a.seen_at IS NULL))) AS SIGNED) AS pending_members
 FROM `learning_groups` g
 WHERE g.instructor_id = sqlc.arg(instructor_id)
 ORDER BY g.id DESC;
@@ -173,9 +173,10 @@ INSERT IGNORE INTO `learning_group_courses` (group_id, course_id, created_at, up
 VALUES (sqlc.arg(group_id), sqlc.arg(course_id), sqlc.arg(now), sqlc.arg(now));
 
 -- name: ListCourseGroups :many
--- The groups that open one course (Ins_Course «چه کسانی دسترسی دارند»), with their active member counts.
+-- The groups that open one course (Ins_Course «چه کسانی دسترسی دارند»), with their active member counts (a grant
+-- counts once its student opened a course: seen_at, B-N8-01b H1).
 SELECT g.id, g.name,
-  CAST((SELECT COUNT(*) FROM `learning_grants` a WHERE a.group_id = g.id AND a.status = 'active') AS SIGNED) AS active_members
+  CAST((SELECT COUNT(*) FROM `learning_grants` a WHERE a.group_id = g.id AND a.status = 'active' AND a.seen_at IS NOT NULL) AS SIGNED) AS active_members
 FROM `learning_group_courses` gc
 JOIN `learning_groups` g ON g.id = gc.group_id
 WHERE gc.course_id = sqlc.arg(course_id) AND g.instructor_id = sqlc.arg(instructor_id)
@@ -183,7 +184,7 @@ ORDER BY g.id;
 
 -- name: CountDirectCourseGrants :one
 SELECT COUNT(*) FROM `learning_grants`
-WHERE course_id = sqlc.arg(course_id) AND instructor_id = sqlc.arg(instructor_id) AND status = 'active';
+WHERE course_id = sqlc.arg(course_id) AND instructor_id = sqlc.arg(instructor_id) AND status = 'active' AND seen_at IS NOT NULL;
 
 -- ───────────── grants ─────────────
 
@@ -219,7 +220,8 @@ SET user_id = sqlc.narg(user_id), duration = sqlc.arg(duration), duration_days =
 WHERE id = sqlc.arg(id) AND instructor_id = sqlc.arg(instructor_id);
 
 -- name: ListPendingGrantsByPhone :many
-SELECT * FROM `learning_grants` WHERE phone = sqlc.arg(phone) AND status = 'pending' ORDER BY id;
+-- Bounded (B-N8-01b L6): the rest are claimed on the next student request.
+SELECT * FROM `learning_grants` WHERE phone = sqlc.arg(phone) AND status = 'pending' ORDER BY id LIMIT 100;
 
 -- name: ActivateGrant :execrows
 -- Signup claim: only a still-pending grant flips (two concurrent claims activate it once).
@@ -227,6 +229,20 @@ UPDATE `learning_grants`
 SET user_id = sqlc.arg(user_id), status = 'active', activated_at = sqlc.arg(activated_at),
     expires_at = sqlc.narg(expires_at), updated_at = sqlc.arg(activated_at)
 WHERE id = sqlc.arg(id) AND status = 'pending' AND phone = sqlc.arg(phone);
+
+-- name: CountGrantsCreatedSince :one
+-- Daily cap on new grants per instructor (B-N8-01b H1/M2).
+SELECT COUNT(*) FROM `learning_grants` WHERE instructor_id = sqlc.arg(instructor_id) AND created_at >= sqlc.arg(since);
+
+-- name: CountRecentlyRevokedForPhone :one
+-- Revoke / re-add cooldown (B-N8-01b M3): any grant of this instructor to this phone revoked since `since`.
+SELECT COUNT(*) FROM `learning_grants`
+WHERE instructor_id = sqlc.arg(instructor_id) AND phone = sqlc.arg(phone) AND revoked_at >= sqlc.arg(since);
+
+-- name: MarkGrantsSeen :exec
+-- The student opened a course of this instructor: her name / progress become visible to the instructor (H1).
+UPDATE `learning_grants` SET seen_at = sqlc.arg(now)
+WHERE user_id = sqlc.arg(user_id) AND instructor_id = sqlc.arg(instructor_id) AND status = 'active' AND seen_at IS NULL;
 
 -- name: GetInstructorGrant :one
 SELECT * FROM `learning_grants` WHERE id = sqlc.arg(id) AND instructor_id = sqlc.arg(instructor_id) LIMIT 1;
@@ -319,9 +335,17 @@ INSERT INTO `learning_sms_outbox` (grant_id, status, due_at, attempts, created_a
 VALUES (sqlc.arg(grant_id), 'pending', sqlc.arg(due_at), 0, sqlc.arg(now), sqlc.arg(now));
 
 -- name: ListDueSMS :many
-SELECT id FROM `learning_sms_outbox`
-WHERE status = 'pending' AND due_at <= sqlc.arg(due_before) AND (lease_until IS NULL OR lease_until < sqlc.arg(lease_before))
-ORDER BY due_at, id
+-- Fair pick (B-N8-01b M2): round-robin over instructors (each one's oldest row first), so one instructor's backlog
+-- never starves the others.
+SELECT t.id FROM (
+  SELECT o.id, o.due_at,
+    ROW_NUMBER() OVER (PARTITION BY a.instructor_id ORDER BY o.due_at, o.id) AS rn
+  FROM `learning_sms_outbox` o
+  JOIN `learning_grants` a ON a.id = o.grant_id
+  WHERE o.status = 'pending' AND o.due_at <= sqlc.arg(due_before)
+    AND (o.lease_until IS NULL OR o.lease_until < sqlc.arg(lease_before))
+) t
+ORDER BY t.rn, t.due_at, t.id
 LIMIT ?;
 
 -- name: ClaimSMS :execrows
@@ -330,9 +354,12 @@ WHERE id = sqlc.arg(id) AND status = 'pending' AND due_at <= sqlc.arg(due_before
   AND (lease_until IS NULL OR lease_until < sqlc.arg(lease_before));
 
 -- name: GetSMSJob :one
-SELECT o.id, o.attempts, a.id AS grant_id, a.phone, a.user_id, a.instructor_id, a.status AS grant_status
+SELECT o.id, o.attempts, a.id AS grant_id, a.phone, a.user_id, a.instructor_id, a.status AS grant_status,
+  i.status AS instructor_status,
+  CAST(EXISTS(SELECT 1 FROM `learning_sms_suppressions` x WHERE x.phone = a.phone) AS SIGNED) AS suppressed
 FROM `learning_sms_outbox` o
 JOIN `learning_grants` a ON a.id = o.grant_id
+JOIN `learning_instructors` i ON i.id = a.instructor_id
 WHERE o.id = sqlc.arg(id) LIMIT 1;
 
 -- name: FinishSMS :exec
@@ -356,6 +383,17 @@ WHERE a.phone = sqlc.arg(phone) AND o.status = 'sent' AND o.sent_at >= sqlc.arg(
 SELECT COUNT(*) FROM `learning_sms_outbox` o
 JOIN `learning_grants` a ON a.id = o.grant_id
 WHERE a.instructor_id = sqlc.arg(instructor_id) AND o.status = 'sent' AND o.sent_at >= sqlc.arg(since);
+
+-- name: CountSMSQueuedByInstructor :one
+-- Enqueue cap (B-N8-01b M2): the instructor's outbox rows of the last 24 h that are pending or sent.
+SELECT COUNT(*) FROM `learning_sms_outbox` o
+JOIN `learning_grants` a ON a.id = o.grant_id
+WHERE a.instructor_id = sqlc.arg(instructor_id) AND o.status IN ('pending', 'sent') AND o.created_at >= sqlc.arg(since);
+
+-- name: InsertSMSSuppression :exec
+-- A number that answered STOP (M3): never sent the course SMS again.
+INSERT IGNORE INTO `learning_sms_suppressions` (phone, source, created_at, updated_at)
+VALUES (sqlc.arg(phone), sqlc.arg(source), sqlc.arg(now), sqlc.arg(now));
 
 -- name: CountPendingSMSForGrant :one
 SELECT COUNT(*) FROM `learning_sms_outbox` WHERE grant_id = sqlc.arg(grant_id) AND status = 'pending';

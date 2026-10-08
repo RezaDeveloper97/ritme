@@ -21,6 +21,15 @@ const NotificationType = "learning"
 // UnlockedPath is the web-app screen a notice opens (Learn_Unlocked), followed by the grant id.
 const UnlockedPath = "/learn/unlocked/"
 
+// Abuse guards of POST /grants (B-N8-01b H1 / M2 / M3).
+const (
+	// MaxNewGrantsPerDay caps the grants (new or renewed numbers) one instructor creates in 24 h.
+	MaxNewGrantsPerDay = 500
+	// ReaddCooldown: a number revoked and re-added by the same instructor within this window gets no new inbox notice
+	// or SMS (the grant itself still opens).
+	ReaddCooldown = 7 * 24 * time.Hour
+)
+
 // GrantInput is a validated POST /grants: normalised, de-duplicated phones, one target and a duration.
 type GrantInput struct {
 	Phones   []string
@@ -62,7 +71,7 @@ func GrantState(status string, expires sql.NullTime, now time.Time) string {
 	return status
 }
 
-// target checks that the group / course belongs to the instructor.
+// target checks that the group / course belongs to the instructor (ErrTargetInvalid otherwise).
 func (s *Service) target(ctx context.Context, q *store.Queries, instructorID uint64, scope string, id uint64) (sql.NullInt64, sql.NullInt64, error) {
 	switch scope {
 	case ScopeGroup:
@@ -100,20 +109,36 @@ func (s *Service) CreateGrants(ctx context.Context, ins store.LearningInstructor
 		if err != nil {
 			return fmt.Errorf("learning: grant courses: %w", err)
 		}
+		if len(courses) == 0 {
+			return ErrTargetEmpty // nothing to open: no SMS / notice to a number for an empty target
+		}
+		today, err := q.CountGrantsCreatedSince(ctx, store.CountGrantsCreatedSinceParams{InstructorID: ins.ID, Since: nt(now.Add(-24 * time.Hour))})
+		if err != nil {
+			return fmt.Errorf("learning: grant cap: %w", err)
+		}
+		if int(today)+len(in.Phones) > MaxNewGrantsPerDay {
+			return ErrGrantDailyCap
+		}
 		dur := in.Duration
 		for _, phone := range in.Phones {
+			recent, err := q.CountRecentlyRevokedForPhone(ctx, store.CountRecentlyRevokedForPhoneParams{
+				InstructorID: ins.ID, Phone: phone, Since: nt(now.Add(-ReaddCooldown)),
+			})
+			if err != nil {
+				return fmt.Errorf("learning: grant cooldown: %w", err)
+			}
 			res, err := s.grantOne(ctx, q, ins, phone, groupID, courseID, dur, now)
 			if err != nil {
 				return err
 			}
-			fresh := !res.Renewed || res.reopened
-			if fresh && res.Registered && len(courses) > 0 {
+			fresh := (!res.Renewed || res.reopened) && recent == 0
+			if fresh && res.Registered {
 				if err := s.notice(ctx, q, ins, res.Grant, courses, langs, now); err != nil {
 					return err
 				}
 			}
-			if fresh && len(courses) > 0 {
-				if err := s.queueSMS(ctx, q, res.Grant.ID, now); err != nil {
+			if fresh {
+				if err := s.queueSMS(ctx, q, ins.ID, res.Grant.ID, now); err != nil {
 					return err
 				}
 			}
@@ -181,13 +206,21 @@ func (s *Service) grantOne(ctx context.Context, q *store.Queries, ins store.Lear
 	return grantOutcome{GrantResult: GrantResult{Grant: g, Registered: user.Valid}}, nil
 }
 
-// queueSMS adds the grant's SMS to the outbox (once while one is pending); the dispatcher applies the policy.
-func (s *Service) queueSMS(ctx context.Context, q *store.Queries, grantID uint64, now time.Time) error {
+// queueSMS adds the grant's SMS to the outbox (once while one is pending); the dispatcher applies the policy. An
+// instructor whose last-24 h outbox rows (pending + sent) reached SMSPerInstructorPerDay queues nothing more (M2).
+func (s *Service) queueSMS(ctx context.Context, q *store.Queries, instructorID, grantID uint64, now time.Time) error {
 	n, err := q.CountPendingSMSForGrant(ctx, grantID)
 	if err != nil {
 		return fmt.Errorf("learning: pending sms: %w", err)
 	}
 	if n > 0 {
+		return nil
+	}
+	queued, err := q.CountSMSQueuedByInstructor(ctx, store.CountSMSQueuedByInstructorParams{InstructorID: instructorID, Since: nt(now.Add(-24 * time.Hour))})
+	if err != nil {
+		return fmt.Errorf("learning: sms queue cap: %w", err)
+	}
+	if queued >= SMSPerInstructorPerDay {
 		return nil
 	}
 	if err := q.InsertSMSOutbox(ctx, store.InsertSMSOutboxParams{GrantID: grantID, DueAt: nt(now).Time, Now: nt(now)}); err != nil {
@@ -292,6 +325,19 @@ func (s *Service) noticeFor(ctx context.Context, g store.LearningGrant, langs []
 		return fmt.Errorf("learning: notice courses: %w", err)
 	}
 	return s.notice(ctx, s.q, ins, g, courses, langs, now)
+}
+
+// SuppressPhone records a STOP for phone (M3): the course SMS is never sent to it again. source is support (recorded
+// by support from a user's request) or sms (a future inbound-SMS hook).
+func (s *Service) SuppressPhone(ctx context.Context, phone, source string, now time.Time) error {
+	p, ok := NormalizePhone(phone)
+	if !ok {
+		return fmt.Errorf("learning: suppress: invalid phone")
+	}
+	if err := s.q.InsertSMSSuppression(ctx, store.InsertSMSSuppressionParams{Phone: p, Source: source, Now: nt(now)}); err != nil {
+		return fmt.Errorf("learning: suppress: %w", err)
+	}
+	return nil
 }
 
 // RevokeGrant ends one of the instructor's grants at once.

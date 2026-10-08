@@ -1145,3 +1145,15 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   in person). Telemed `Busy` / `VisitChecker` implemented; sweeper expires holds, completes past visits, bumps
   `visits_count`; `services.BookingSource` wired. `AuthorizeShare` (consent, own doctor, ≤72 h after) for B-N7-04/08.
   QUESTIONS #125.
+
+## B-N8-01b — Courses security fixes
+
+- H1: grant response uniform (`{id, phone, renewed, duration}`, summary `{total}`); lists mask status/name/dates/progress
+  until the student opened one of the instructor's courses (`learning_grants.seen_at`, migration **00055**); 422
+  `target_unpublished` for groups/courses without a published course; 500 grants / instructor / 24 h. M2: no enqueue
+  past 300 SMS / instructor / 24 h; `ListDueSMS` round-robins instructors. M3: revoke→re-add within 7 days re-opens access
+  silently; STOP list `learning_sms_suppressions` (support inserts via `Service.SuppressPhone`). L4 rename of
+  display_name/title → pending. L5 SMS of non-approved instructors skipped. L6 claim LIMIT 100 + 3 s timeout. L7
+  `httpx.PageParam` clamps to 1 000 000. L8 `media.Optimizer.Strict` → 422 instead of storing an un-re-encoded photo
+  (telemed doctor photos). Instructor gate allow-list (approved only). Joint commit also carries B-N7-03 / B-N8-02b
+  OpenAPI + dump + D-80/D-81 text and B-N8-06's instructor dashboard endpoint.

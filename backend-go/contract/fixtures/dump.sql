@@ -623,7 +623,12 @@ INSERT INTO `catalog_items` VALUES
 (716,'services_programs','pmdd',2,1,NULL,'{\"fa\":\"PMDD و خلق\",\"en\":\"PMDD & mood\"}','{\"fa\":\"پرسشنامه ماهانه\",\"en\":\"Monthly questionnaire\"}','{\"icon\":\"smile\",\"tone\":\"brand\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (717,'services_programs','heavy_bleeding',3,1,NULL,'{\"fa\":\"خونریزی زیاد\",\"en\":\"Heavy bleeding\"}','{\"fa\":\"جدول خونریزی\",\"en\":\"Bleeding chart\"}','{\"icon\":\"drop\",\"tone\":\"period\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (718,'services_programs','pelvic_floor',4,1,NULL,'{\"fa\":\"کف لگن\",\"en\":\"Pelvic floor\"}','{\"fa\":\"برنامه ۸ هفته‌ای\",\"en\":\"8-week program\"}','{\"icon\":\"target\",\"tone\":\"data\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
-(719,'services_programs','contraception',5,1,'[\"cycle\",\"postpartum\",\"menopause\"]','{\"fa\":\"پیشگیری\",\"en\":\"Contraception\"}','{\"fa\":\"قرص و روش‌ها\",\"en\":\"Pill and methods\"}','{\"icon\":\"pill\",\"tone\":\"brand\",\"href\":\"/contraception\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+(719,'services_programs','contraception',5,1,'[\"cycle\",\"postpartum\",\"menopause\"]','{\"fa\":\"پیشگیری\",\"en\":\"Contraception\"}','{\"fa\":\"قرص و روش‌ها\",\"en\":\"Pill and methods\"}','{\"icon\":\"pill\",\"tone\":\"brand\",\"href\":\"/contraception\"}',0,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(720,'telemed_visit_reasons','ttc',1,1,NULL,'{\"fa\":\"اقدام به بارداری\",\"en\":\"Trying to conceive\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(721,'telemed_visit_reasons','irregular_period',2,1,NULL,'{\"fa\":\"پریود نامنظم\",\"en\":\"Irregular periods\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(722,'telemed_visit_reasons','pelvic_pain',3,1,NULL,'{\"fa\":\"درد لگن\",\"en\":\"Pelvic pain\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(723,'telemed_visit_reasons','lab_followup',4,1,NULL,'{\"fa\":\"پیگیری آزمایش\",\"en\":\"Lab result follow-up\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(724,'telemed_visit_reasons','other',5,1,NULL,'{\"fa\":\"سایر\",\"en\":\"Other\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
 /*!40000 ALTER TABLE `catalog_items` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `challenges`;
@@ -2185,6 +2190,7 @@ CREATE TABLE `learning_grants` (
   `activated_at` datetime DEFAULT NULL,
   `expires_at` datetime DEFAULT NULL,
   `revoked_at` datetime DEFAULT NULL,
+  `seen_at` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -2193,6 +2199,7 @@ CREATE TABLE `learning_grants` (
   KEY `learning_grants_instructor_id_status_index` (`instructor_id`,`status`),
   KEY `learning_grants_group_id_index` (`group_id`),
   KEY `learning_grants_course_id_index` (`course_id`),
+  KEY `learning_grants_instructor_id_created_at_index` (`instructor_id`,`created_at`),
   CONSTRAINT `learning_grants_course_id_foreign` FOREIGN KEY (`course_id`) REFERENCES `learning_courses` (`id`) ON DELETE CASCADE,
   CONSTRAINT `learning_grants_group_id_foreign` FOREIGN KEY (`group_id`) REFERENCES `learning_groups` (`id`) ON DELETE CASCADE,
   CONSTRAINT `learning_grants_instructor_id_foreign` FOREIGN KEY (`instructor_id`) REFERENCES `learning_instructors` (`id`) ON DELETE CASCADE,
@@ -2416,6 +2423,24 @@ CREATE TABLE `learning_sms_outbox` (
 LOCK TABLES `learning_sms_outbox` WRITE;
 /*!40000 ALTER TABLE `learning_sms_outbox` DISABLE KEYS */;
 /*!40000 ALTER TABLE `learning_sms_outbox` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `learning_sms_suppressions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `learning_sms_suppressions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `phone` varchar(11) NOT NULL,
+  `source` varchar(16) NOT NULL DEFAULT 'support',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `learning_sms_suppressions_phone_unique` (`phone`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `learning_sms_suppressions` WRITE;
+/*!40000 ALTER TABLE `learning_sms_suppressions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `learning_sms_suppressions` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `menopause_scores`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4073,6 +4098,86 @@ CREATE TABLE `telemed_availability_rules` (
 LOCK TABLES `telemed_availability_rules` WRITE;
 /*!40000 ALTER TABLE `telemed_availability_rules` DISABLE KEYS */;
 /*!40000 ALTER TABLE `telemed_availability_rules` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `telemed_booking_consents`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `telemed_booking_consents` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `booking_id` bigint(20) unsigned NOT NULL,
+  `scope` varchar(32) NOT NULL,
+  `granted_at` datetime NOT NULL,
+  `revoked_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `telemed_booking_consents_booking_id_scope_unique` (`booking_id`,`scope`),
+  CONSTRAINT `telemed_booking_consents_booking_id_foreign` FOREIGN KEY (`booking_id`) REFERENCES `telemed_bookings` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `telemed_booking_consents` WRITE;
+/*!40000 ALTER TABLE `telemed_booking_consents` DISABLE KEYS */;
+/*!40000 ALTER TABLE `telemed_booking_consents` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `telemed_bookings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `telemed_bookings` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `reference` varchar(24) NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `doctor_id` bigint(20) unsigned NOT NULL,
+  `mode` varchar(12) NOT NULL,
+  `duration_minutes` smallint(5) unsigned NOT NULL,
+  `starts_at` datetime NOT NULL,
+  `ends_at` datetime NOT NULL,
+  `status` varchar(12) NOT NULL,
+  `slot_key` varchar(48) DEFAULT NULL,
+  `hold_expires_at` datetime DEFAULT NULL,
+  `for_whom` varchar(8) NOT NULL,
+  `child_id` bigint(20) unsigned DEFAULT NULL,
+  `patient_name` varchar(64) DEFAULT NULL,
+  `reason` varchar(64) DEFAULT NULL,
+  `note` varchar(1000) DEFAULT NULL,
+  `price_rials` bigint(20) unsigned NOT NULL,
+  `discount_rials` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `discount_source` varchar(16) DEFAULT NULL,
+  `total_rials` bigint(20) unsigned NOT NULL,
+  `payment_status` varchar(16) NOT NULL DEFAULT 'none',
+  `gateway` varchar(32) DEFAULT NULL,
+  `authority` varchar(191) DEFAULT NULL,
+  `ref_id` varchar(191) DEFAULT NULL,
+  `card_pan` varchar(32) DEFAULT NULL,
+  `paid_at` datetime DEFAULT NULL,
+  `refund_id` varchar(191) DEFAULT NULL,
+  `refunded_rials` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `refunded_at` datetime DEFAULT NULL,
+  `appointment_id` bigint(20) unsigned DEFAULT NULL,
+  `reschedules` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `cancelled_at` datetime DEFAULT NULL,
+  `completed_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `telemed_bookings_reference_unique` (`reference`),
+  UNIQUE KEY `telemed_bookings_gateway_ref_id_unique` (`gateway`,`ref_id`),
+  UNIQUE KEY `telemed_bookings_slot_key_unique` (`slot_key`),
+  KEY `telemed_bookings_child_id_foreign` (`child_id`),
+  KEY `telemed_bookings_appointment_id_foreign` (`appointment_id`),
+  KEY `telemed_bookings_user_id_starts_at_index` (`user_id`,`starts_at`),
+  KEY `telemed_bookings_doctor_id_starts_at_index` (`doctor_id`,`starts_at`),
+  KEY `telemed_bookings_status_hold_expires_at_index` (`status`,`hold_expires_at`),
+  CONSTRAINT `telemed_bookings_appointment_id_foreign` FOREIGN KEY (`appointment_id`) REFERENCES `reminders` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `telemed_bookings_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `telemed_bookings_doctor_id_foreign` FOREIGN KEY (`doctor_id`) REFERENCES `telemed_doctors` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `telemed_bookings_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `telemed_bookings` WRITE;
+/*!40000 ALTER TABLE `telemed_bookings` DISABLE KEYS */;
+/*!40000 ALTER TABLE `telemed_bookings` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `telemed_doctor_insurers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

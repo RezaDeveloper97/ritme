@@ -18494,6 +18494,281 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/TelemedReviewNotFound"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/telemed/bookings:
+    get:
+      tags: [Telemed]
+      summary: My visit bookings
+      description: "Bloom B-N7-03 (D-80). `scope` upcoming (default, soonest first) | past (newest first) | all. Lapsed holds and failed payments are not listed."
+      operationId: listTelemedBookings
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: scope, in: query, required: false, schema: {type: string, enum: [upcoming, past, all]}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: object, required: [items], properties: {items: {type: array, items: {$ref: "#/components/schemas/TelemedBooking"}}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/TelemedBookingError"}
+    post:
+      tags: [Telemed]
+      summary: Hold a slot and start the payment
+      description: "nbl_v17_ReviewBook «پرداخت و رزرو». Holds the free slot for TELEMED_HOLD_MINUTES (409 `slot_unavailable` when taken; race-safe), prices it server-side (visit price − Plus «تخفیف ویزیت»), registers the payment with the payments adapter and returns `payment.redirect_url`. Nothing to charge → confirmed at once and `payment` null. No provider → 503 `payment_unavailable`. `share` grants consent scopes for this visit (own visits only, else 422 `consent_not_allowed`)."
+      operationId: storeTelemedBooking
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [doctor_id, mode, starts_at, for_whom]
+              properties:
+                doctor_id: {type: integer, minimum: 1}
+                mode: {type: string, enum: [video, phone, in_person]}
+                starts_at: {type: string, description: "Tehran wall clock `Y-m-d H:i` (a free slot)", example: "2030-01-08 16:00"}
+                for_whom: {type: string, enum: [self, child, other]}
+                child_id: {type: [integer, "null"], description: "required for child: one of the caller's children"}
+                patient_name: {type: [string, "null"], maxLength: 64, description: "required for other"}
+                reason: {type: [string, "null"], description: "catalog code of telemed_visit_reasons"}
+                note: {type: [string, "null"], maxLength: 1000}
+                share: {type: [array, "null"], items: {type: string, enum: [cycle_summary, bbt_lh, assistant_summaries]}}
+      responses:
+        '201':
+          description: Created (held, or confirmed when free)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [booking, payment]
+                    properties:
+                      booking: {$ref: "#/components/schemas/TelemedBooking"}
+                      payment:
+                        oneOf:
+                          - {type: "null"}
+                          - {type: object, required: [authority, redirect_url], properties: {authority: {type: string}, redirect_url: {type: string}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedBookingError"}
+        '409': {$ref: "#/components/responses/TelemedBookingError"}
+        '422': {$ref: "#/components/responses/TelemedBookingError"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/TelemedBookingError"}
+  /api/v1/telemed/bookings/quote:
+    get:
+      tags: [Telemed]
+      summary: Price and options of the review screen
+      description: "The visit type, the caller's price with the Plus discount, the cancel window, the caller's children, the visit reasons (catalog) and the consent scopes."
+      operationId: quoteTelemedBooking
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: doctor_id, in: query, required: true, schema: {type: integer, minimum: 1}}
+        - {name: mode, in: query, required: false, schema: {type: string, enum: [video, phone, in_person]}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [doctor, visit_type, price, plus, plus_discount_percent, payments_available, cancel_window_hours, hold_minutes, for_whom, children, reasons, consent_scopes]
+                    properties:
+                      doctor: {type: object}
+                      visit_type: {type: object}
+                      price: {$ref: "#/components/schemas/TelemedPrice"}
+                      plus: {type: boolean}
+                      plus_discount_percent: {type: [integer, "null"]}
+                      payments_available: {type: boolean}
+                      cancel_window_hours: {type: integer}
+                      hold_minutes: {type: integer}
+                      for_whom: {type: array, items: {type: string}}
+                      children: {type: array, items: {type: object, properties: {id: {type: integer}, name: {type: string}, birth_date: {type: string}}}}
+                      reasons: {type: array, items: {type: object, properties: {code: {type: string}, title: {type: [string, "null"]}}}}
+                      consent_scopes: {type: array, items: {type: string}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedBookingError"}
+        '422': {$ref: "#/components/responses/TelemedBookingError"}
+  /api/v1/telemed/bookings/verify:
+    post:
+      tags: [Telemed]
+      summary: Settle the payment and confirm
+      description: "Called by the gateway return page. Server-to-server verify with the stored total (never a client amount); idempotent (`already_paid`). Declined → 422 `payment_failed`; amount differs → 422 `amount_mismatch`; wrong authority → 422 `authority_mismatch`; paid for a slot that is gone or a closed booking → refunded, 409 `booking_refunded`."
+      operationId: verifyTelemedBooking
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reference, authority]
+              properties:
+                reference: {type: string, maxLength: 24}
+                authority: {type: string, maxLength: 191}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: object, required: [booking, already_paid], properties: {booking: {$ref: "#/components/schemas/TelemedBooking"}, already_paid: {type: boolean}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedBookingError"}
+        '409': {$ref: "#/components/responses/TelemedBookingError"}
+        '422': {$ref: "#/components/responses/TelemedBookingError"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/TelemedBookingError"}
+  /api/v1/telemed/bookings/{id}:
+    get:
+      tags: [Telemed]
+      summary: One of my bookings
+      operationId: showTelemedBooking
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TelemedBookingId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/TelemedBookingEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedBookingError"}
+  /api/v1/telemed/bookings/{id}/cancel:
+    post:
+      tags: [Telemed]
+      summary: Cancel a booking
+      description: "A hold is released; a confirmed booking until 2 h before the visit (409 `cancel_window_closed` after), fully refunded, its care appointment cancelled and every consent revoked. Anything else 409 `booking_closed`."
+      operationId: cancelTelemedBooking
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TelemedBookingId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/TelemedBookingEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedBookingError"}
+        '409': {$ref: "#/components/responses/TelemedBookingError"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/telemed/bookings/{id}/reschedule:
+    post:
+      tags: [Telemed]
+      summary: Move a confirmed booking
+      description: "Another free slot of the same doctor and mode, until 2 h before the current time. The care appointment moves along."
+      operationId: rescheduleTelemedBooking
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TelemedBookingId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [starts_at]
+              properties:
+                starts_at: {type: string, example: "2030-01-08 16:30"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/TelemedBookingEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedBookingError"}
+        '409': {$ref: "#/components/responses/TelemedBookingError"}
+        '422': {$ref: "#/components/responses/TelemedBookingError"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/telemed/bookings/{id}/consent:
+    put:
+      tags: [Telemed]
+      summary: Grant or revoke data-share scopes
+      description: "Only the scopes sent change. Granting needs an own-visit booking that is held or confirmed (422 `consent_not_allowed` / 409 `booking_closed`). Shared data is readable by this booking's doctor only, until 72 h after the visit."
+      operationId: updateTelemedBookingConsent
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TelemedBookingId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cycle_summary: {type: [boolean, "null"]}
+                bbt_lh: {type: [boolean, "null"]}
+                assistant_summaries: {type: [boolean, "null"]}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/TelemedBookingEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedBookingError"}
+        '409': {$ref: "#/components/responses/TelemedBookingError"}
+        '422': {$ref: "#/components/responses/TelemedBookingError"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Telemed]
+      summary: Revoke every data-share scope
+      operationId: destroyTelemedBookingConsent
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TelemedBookingId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/TelemedBookingEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedBookingError"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/learning/courses:
     get:
       tags: [Learning]
@@ -18685,6 +18960,29 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/LearningValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/instructor/v1/dashboard:
+    get:
+      tags: [Instructor]
+      summary: The instructor's dashboard (Ins_Dashboard)
+      description: "Owner-scoped stat tiles, courses and recent activity (bloom B-N8-06). Counts only: no phone, name or registration state. watch_seconds_week sums the playback position of progress rows touched in the last 7 days (approximation)."
+      operationId: instructorDashboard
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/InstructorDashboard"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/LearningForbidden"}
   /api/instructor/v1/courses:
     get:
       tags: [Instructor]
@@ -19157,7 +19455,7 @@ paths:
     post:
       tags: [Instructor]
       summary: Open a group / course to phone numbers
-      description: "Ins_AddUser: a number with an account gets an active grant now (inbox notice), an unknown number a pending one that activates when it signs up. Re-adding a number to the same target renews that grant. New / re-opened grants queue the «دوره برایت باز شد» SMS (notification policy + daily caps)."
+      description: "Ins_AddUser: a number with an account gets an active grant now (inbox notice), an unknown number a pending one that activates when it signs up. Re-adding a number to the same target renews that grant. New / re-opened grants queue the «دوره برایت باز شد» SMS (notification policy + daily caps). The response is identical whether a number has an account or not (no status / registered / dates; B-N8-01b H1). 422 on `target_id` (`target_invalid`, or `target_unpublished` when the group / course has no published course) and on `phones` when the instructor would exceed 500 grants in 24 h. A number revoked and re-added by the same instructor within 7 days gets no new notice / SMS; at most 300 SMS are queued per instructor per 24 h; numbers on the STOP list are never texted."
       operationId: instructorStoreGrants
       security:
         - {bearerAuth: []}
@@ -19385,7 +19683,7 @@ paths:
     get:
       tags: [Media]
       summary: Signed playback URL of a lesson's media
-      description: "Same access rules as GET /learning/lessons/{id} (404 without access, 403 learning_access_expired / learning_chapter_locked); 404 `media_not_ready` while the lesson has no ready file. The URL lives 30 minutes; mint a new one on 410."
+      description: "Same access rules as GET /learning/lessons/{id} (404 without access, 403 learning_access_expired / learning_chapter_locked); 404 `media_not_ready` while the lesson has no ready file. The URL lives 10 minutes; mint a new one on 410."
       operationId: learningLessonPlayback
       security:
         - {bearerAuth: []}
@@ -19456,6 +19754,12 @@ components:
       bearerFormat: JWT
       description: "Passport access token from `POST /api/v1/auth/verify-otp`."
   parameters:
+    TelemedBookingId:
+      name: id
+      in: path
+      required: true
+      description: "Booking id (the caller's own; anything else 404 `booking_not_found`)"
+      schema: {type: integer, minimum: 1}
     MediaId:
       name: id
       in: path
@@ -19614,6 +19918,18 @@ components:
       description: "Overrides `Accept-Language`. Some endpoints clamp to the languages they have content for."
       schema: {type: string}
   responses:
+    TelemedBookingError:
+      description: "Bloom B-N7-03 booking errors: 404 booking_not_found / doctor_not_found, 409 slot_unavailable / booking_closed / booking_refunded / cancel_window_closed, 422 payment_failed / amount_mismatch / authority_mismatch / consent_not_allowed or field errors, 503 payment_unavailable."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string}
+              errors: {type: object}
     MediaError:
       description: "Bloom B-N8-02 media pipeline error `{success: false, message, error_code}` (409 media_offset_mismatch also carries `offset`)."
       content:
@@ -20765,6 +21081,52 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    TelemedPrice:
+      type: object
+      required: [price_rials, discount_rials, discount_source, total_rials, currency]
+      properties:
+        price_rials: {type: integer}
+        discount_rials: {type: integer}
+        discount_source: {type: [string, "null"], enum: [plus, null]}
+        total_rials: {type: integer}
+        currency: {type: string, const: IRR}
+    TelemedBooking:
+      type: object
+      description: "Bloom B-N7-03 visit booking (nbl_v17_ReviewBook / nbl_v17_Booked). Times are Tehran ISO-8601."
+      required: [id, reference, status, mode, starts_at, ends_at, date, time, duration_minutes, hold_expires_at, doctor, for_whom, child, patient_name, reason, note, price, payment_status, cancel_deadline, can_cancel, can_reschedule, appointment_id, consent, href, created_at]
+      properties:
+        id: {type: integer}
+        reference: {type: string}
+        status: {type: string, enum: [held, confirmed, completed, cancelled, expired, failed]}
+        mode: {type: string, enum: [video, phone, in_person]}
+        starts_at: {type: string}
+        ends_at: {type: string}
+        date: {type: string}
+        time: {type: string}
+        duration_minutes: {type: integer}
+        hold_expires_at: {type: [string, "null"]}
+        doctor: {type: object}
+        for_whom: {type: string, enum: [self, child, other]}
+        child: {type: [object, "null"]}
+        patient_name: {type: [string, "null"]}
+        reason: {type: [object, "null"]}
+        note: {type: [string, "null"]}
+        price: {$ref: "#/components/schemas/TelemedPrice"}
+        payment_status: {type: string, enum: [none, pending, paid, free, refunded, refund_pending]}
+        cancel_deadline: {type: [string, "null"]}
+        can_cancel: {type: boolean}
+        can_reschedule: {type: boolean}
+        appointment_id: {type: [integer, "null"]}
+        consent: {type: object, properties: {cycle_summary: {type: boolean}, bbt_lh: {type: boolean}, assistant_summaries: {type: boolean}}}
+        href: {type: string}
+        created_at: {type: [string, "null"]}
+    TelemedBookingEnvelope:
+      type: object
+      required: [success, data]
+      properties:
+        success: {type: boolean}
+        message: {type: string}
+        data: {type: object, required: [booking], properties: {booking: {$ref: "#/components/schemas/TelemedBooking"}}}
     MediaUpload:
       type: object
       description: "One lesson media upload / file as its instructor sees it (bloom B-N8-02)."
@@ -20782,7 +21144,7 @@ components:
         created_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: 'null'}]}
     MediaPlayback:
       type: object
-      description: "A short-lived signed URL (30 min) of a ready lesson file; GET it with Range requests."
+      description: "A short-lived signed URL (10 min) of a ready lesson file; GET it with Range requests."
       required: [media_id, kind, mime, size_bytes, url, expires_at]
       properties:
         media_id: {type: integer}
@@ -20982,6 +21344,44 @@ components:
         published_lessons: {type: integer}
         duration_seconds: {type: integer}
         created_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+    InstructorDashboard:
+      type: object
+      required: [stats, courses, activity]
+      properties:
+        stats:
+          type: object
+          required: [active_students, new_students_week, courses, drafts, watch_seconds_week, groups, group_members]
+          properties:
+            active_students: {type: integer}
+            new_students_week: {type: integer}
+            courses: {type: integer}
+            drafts: {type: integer}
+            watch_seconds_week: {type: integer}
+            groups: {type: integer}
+            group_members: {type: integer}
+        courses:
+          type: array
+          description: "The instructor's course list rows plus lesson_kinds (the kinds of its lessons, for the Ins_Content filter)."
+          items:
+            allOf:
+              - {$ref: "#/components/schemas/InstructorCourse"}
+              - type: object
+                required: [lesson_kinds]
+                properties:
+                  lesson_kinds: {type: array, items: {type: string, enum: [video, audio, pdf]}}
+        activity:
+          type: array
+          maxItems: 6
+          items:
+            type: object
+            required: [type, at, lesson, course, group, count]
+            properties:
+              type: {type: string, enum: [lesson_published, students_added]}
+              at: {$ref: "#/components/schemas/LearningIsoOrNull"}
+              lesson: {type: [object, "null"]}
+              course: {type: [object, "null"]}
+              group: {type: [object, "null"]}
+              count: {type: [integer, "null"]}
     InstructorCourseList:
       type: object
       required: [courses]
@@ -21095,6 +21495,7 @@ components:
         course_ids: {type: [array, "null"], items: {type: integer, minimum: 1}, description: "Replaces the group's courses when sent"}
     InstructorGrant:
       type: object
+      description: "Until the student has opened one of the instructor's courses (B-N8-01b H1) the grant shows status `pending`, registered false and null student_name / activated_at / expires_at / days_left / progress_percent, whether or not the number has an account."
       required: [id, phone, status, registered, duration]
       properties:
         id: {type: integer}
@@ -21153,17 +21554,13 @@ components:
           type: array
           items:
             type: object
-            required: [id, phone, status, registered, renewed]
+            required: [id, phone, renewed, duration]
             properties:
               id: {type: integer}
               phone: {type: string}
-              status: {type: string, enum: [pending, active, expired]}
-              registered: {type: boolean}
-              renewed: {type: boolean}
+              renewed: {type: boolean, description: "The instructor had already given this number the same target"}
               duration: {type: object}
-              activated_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
-              expires_at: {$ref: "#/components/schemas/LearningIsoOrNull"}
-        summary: {type: object, required: [active, pending], properties: {active: {type: integer}, pending: {type: integer}}}
+        summary: {type: object, required: [total], properties: {total: {type: integer}}}
     TelemedPageMeta:
       type: object
       required: [current_page, last_page, per_page, total]

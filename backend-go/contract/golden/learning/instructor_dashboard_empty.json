@@ -1,0 +1,33 @@
+{
+  "case": "learning/instructor_dashboard_empty",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/instructor/v1/dashboard",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "stats": {
+            "active_students": 0,
+            "new_students_week": 0,
+            "courses": 0,
+            "drafts": 0,
+            "watch_seconds_week": 0,
+            "groups": 0,
+            "group_members": 0
+          },
+          "courses": [],
+          "activity": []
+        }
+      }
+    }
+  ]
+}

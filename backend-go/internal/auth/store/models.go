@@ -887,6 +887,7 @@ type LearningGrant struct {
 	RevokedAt    sql.NullTime
 	CreatedAt    sql.NullTime
 	UpdatedAt    sql.NullTime
+	SeenAt       sql.NullTime
 }
 
 type LearningGroup struct {
@@ -994,6 +995,14 @@ type LearningSmsOutbox struct {
 	SentAt     sql.NullTime
 	CreatedAt  sql.NullTime
 	UpdatedAt  sql.NullTime
+}
+
+type LearningSmsSuppression struct {
+	ID        uint64
+	Phone     string
+	Source    string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
 }
 
 type MenopauseScore struct {
@@ -1815,6 +1824,33 @@ type TelemedDoctor struct {
 type TelemedDoctorInsurer struct {
 	DoctorID uint64
 	Insurer  string
+}
+
+type TelemedMessage struct {
+	ID        uint64
+	BookingID uint64
+	Sender    string
+	AdminID   sql.NullInt64
+	Body      string
+	FileID    sql.NullInt64
+	ReadAt    sql.NullTime
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type TelemedPrescriptionItem struct {
+	ID           uint64
+	BookingID    uint64
+	Drug         string
+	Dose         sql.NullString
+	Form         string
+	Times        string
+	DurationDays sql.NullInt16
+	Instructions sql.NullString
+	ReminderID   sql.NullInt64
+	AddedAt      sql.NullTime
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
 }
 
 type TelemedReview struct {

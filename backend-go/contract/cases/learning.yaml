@@ -52,6 +52,12 @@ cases:
       - method: GET
         path: /api/instructor/v1/courses
         status: 403
+  - name: instructor_dashboard_empty
+    doc: nbl_Ins_Dashboard (B-N8-06) — an approved instructor without content, groups or students
+    persona: engaged
+    method: GET
+    path: /api/instructor/v1/dashboard
+    status: 200
   - name: course_invalid
     persona: engaged
     locales: [fa, en]

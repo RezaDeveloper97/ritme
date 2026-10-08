@@ -169,6 +169,12 @@ func (s *Service) StudentCourse(ctx context.Context, userID, courseID uint64, no
 	}
 	for _, c := range all {
 		if c.Access.CourseID == courseID {
+			// Opening a course (or one of its lessons) is what lets the instructor see this student (B-N8-01b H1).
+			if err := s.q.MarkGrantsSeen(ctx, store.MarkGrantsSeenParams{
+				Now: nt(now), UserID: nid(userID), InstructorID: c.Access.InstructorID,
+			}); err != nil {
+				return nil, fmt.Errorf("learning: grant seen: %w", err)
+			}
 			return c, nil
 		}
 	}

@@ -99,6 +99,7 @@ func setup(t *testing.T) *env {
 	ins := h.RequireInstructor
 	app.Get(p+"/me", locale, guard, h.Me)
 	app.Post(p+"/apply", locale, guard, h.Apply)
+	app.Get(p+"/dashboard", locale, guard, ins, h.Dashboard)
 	app.Get(p+"/courses", locale, guard, ins, h.Courses)
 	app.Post(p+"/courses", locale, guard, ins, h.StoreCourse)
 	app.Get(p+"/courses/:id", locale, guard, ins, h.ShowCourse)
@@ -227,10 +228,8 @@ func TestPendingGrantActivatesOnSignup(t *testing.T) {
 	})
 	require.Equal(t, 201, r.status, r.raw)
 	g := r.data()["grants"].([]any)[0].(map[string]any)
-	assert.Equal(t, "pending", g["status"])
 	assert.Equal(t, "09129990099", g["phone"])
-	assert.Equal(t, false, g["registered"])
-	assert.Nil(t, g["expires_at"])
+	assert.NotContains(t, g, "status") // uniform for every number (B-N8-01b H1)
 	grantID := idOf(t, g["id"])
 	assert.Equal(t, 1, e.count(t, "SELECT COUNT(*) FROM learning_sms_outbox WHERE grant_id = ? AND status = 'pending'", grantID))
 
@@ -272,11 +271,11 @@ func TestPendingGrantActivatesOnSignup(t *testing.T) {
 	require.Equal(t, 200, r.status, r.raw)
 	assert.Equal(t, "Leila M", r.data()["instructor"].(map[string]any)["name"])
 
-	// The instructor now sees the student by name.
+	// Listing her courses is not enough for the instructor to see her (B-N8-01b H1).
 	r = e.do(t, http.MethodGet, "/api/instructor/v1/students?status=active", itok, nil)
 	require.Equal(t, 200, r.status, r.raw)
-	require.Len(t, r.data()["students"].([]any), 1)
-	assert.EqualValues(t, 1, r.data()["counts"].(map[string]any)["active"])
+	assert.Empty(t, r.data()["students"])
+	assert.EqualValues(t, 1, r.data()["counts"].(map[string]any)["pending"])
 
 	// Progress: position + derived percent, never down, completion sticks.
 	path := fmt.Sprintf("/api/v1/learning/lessons/%d/progress", lessons[0])
@@ -294,6 +293,13 @@ func TestPendingGrantActivatesOnSignup(t *testing.T) {
 	assert.EqualValues(t, 540, k["remaining_seconds"])
 	r = e.do(t, http.MethodPut, path, tok, map[string]any{"position_seconds": 590})
 	assert.Equal(t, true, r.data()["progress"].(map[string]any)["completed"])
+
+	// She opened a lesson: the instructor now sees the student by name.
+	r = e.do(t, http.MethodGet, "/api/instructor/v1/students?status=active", itok, nil)
+	require.Equal(t, 200, r.status, r.raw)
+	require.Len(t, r.data()["students"].([]any), 1)
+	assert.EqualValues(t, 1, r.data()["counts"].(map[string]any)["active"])
+	assert.Equal(t, true, r.data()["students"].([]any)[0].(map[string]any)["registered"])
 }
 
 func TestSignupClaim_LazyAndOnlyOnce(t *testing.T) {
@@ -324,8 +330,8 @@ func TestRegisteredStudent_ActiveAtOnceAndRenewal(t *testing.T) {
 	r := e.do(t, http.MethodPost, "/api/instructor/v1/grants", itok, grant)
 	require.Equal(t, 201, r.status, r.raw)
 	g := r.data()["grants"].([]any)[0].(map[string]any)
-	assert.Equal(t, "active", g["status"])
-	assert.EqualValues(t, 1, r.data()["summary"].(map[string]any)["active"])
+	assert.EqualValues(t, 1, r.data()["summary"].(map[string]any)["total"])
+	assert.Equal(t, 1, e.count(t, "SELECT COUNT(*) FROM learning_grants WHERE status = 'active'"))
 	assert.Equal(t, 1, e.count(t, "SELECT COUNT(*) FROM user_notifications WHERE type = 'learning'"))
 
 	r = e.do(t, http.MethodPost, "/api/instructor/v1/grants", itok, grant) // same target again: renewal, no new row
@@ -374,7 +380,7 @@ func TestGroupGrant_LockedChapterAndDrafts(t *testing.T) {
 	// A course added to the group later is open to its members at once.
 	r = e.do(t, http.MethodPut, fmt.Sprintf("/api/instructor/v1/groups/%d", gid), itok, map[string]any{"course_ids": []int{c1, c2}})
 	require.Equal(t, 200, r.status, r.raw)
-	assert.EqualValues(t, 1, r.data()["pending_signups"])
+	assert.EqualValues(t, 2, r.data()["pending_signups"]) // the registered member has not opened a course yet (H1)
 	require.Len(t, r.data()["members"].([]any), 2)
 	r = e.do(t, http.MethodGet, "/api/v1/learning/courses", stok, nil)
 	require.Len(t, r.data()["courses"].([]any), 2)

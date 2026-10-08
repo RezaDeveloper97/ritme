@@ -88,7 +88,7 @@ func (q *Queries) CountChapters(ctx context.Context, courseID uint64) (int64, er
 
 const countDirectCourseGrants = `-- name: CountDirectCourseGrants :one
 SELECT COUNT(*) FROM ` + "`" + `learning_grants` + "`" + `
-WHERE course_id = ? AND instructor_id = ? AND status = 'active'
+WHERE course_id = ? AND instructor_id = ? AND status = 'active' AND seen_at IS NOT NULL
 `
 
 type CountDirectCourseGrantsParams struct {
@@ -98,6 +98,23 @@ type CountDirectCourseGrantsParams struct {
 
 func (q *Queries) CountDirectCourseGrants(ctx context.Context, arg CountDirectCourseGrantsParams) (int64, error) {
 	row := q.db.QueryRowContext(ctx, countDirectCourseGrants, arg.CourseID, arg.InstructorID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countGrantsCreatedSince = `-- name: CountGrantsCreatedSince :one
+SELECT COUNT(*) FROM ` + "`" + `learning_grants` + "`" + ` WHERE instructor_id = ? AND created_at >= ?
+`
+
+type CountGrantsCreatedSinceParams struct {
+	InstructorID uint64
+	Since        sql.NullTime
+}
+
+// Daily cap on new grants per instructor (B-N8-01b H1/M2).
+func (q *Queries) CountGrantsCreatedSince(ctx context.Context, arg CountGrantsCreatedSinceParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countGrantsCreatedSince, arg.InstructorID, arg.Since)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -169,6 +186,44 @@ SELECT COUNT(*) FROM ` + "`" + `learning_sms_outbox` + "`" + ` WHERE grant_id = 
 
 func (q *Queries) CountPendingSMSForGrant(ctx context.Context, grantID uint64) (int64, error) {
 	row := q.db.QueryRowContext(ctx, countPendingSMSForGrant, grantID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countRecentlyRevokedForPhone = `-- name: CountRecentlyRevokedForPhone :one
+SELECT COUNT(*) FROM ` + "`" + `learning_grants` + "`" + `
+WHERE instructor_id = ? AND phone = ? AND revoked_at >= ?
+`
+
+type CountRecentlyRevokedForPhoneParams struct {
+	InstructorID uint64
+	Phone        string
+	Since        sql.NullTime
+}
+
+// Revoke / re-add cooldown (B-N8-01b M3): any grant of this instructor to this phone revoked since `since`.
+func (q *Queries) CountRecentlyRevokedForPhone(ctx context.Context, arg CountRecentlyRevokedForPhoneParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countRecentlyRevokedForPhone, arg.InstructorID, arg.Phone, arg.Since)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countSMSQueuedByInstructor = `-- name: CountSMSQueuedByInstructor :one
+SELECT COUNT(*) FROM ` + "`" + `learning_sms_outbox` + "`" + ` o
+JOIN ` + "`" + `learning_grants` + "`" + ` a ON a.id = o.grant_id
+WHERE a.instructor_id = ? AND o.status IN ('pending', 'sent') AND o.created_at >= ?
+`
+
+type CountSMSQueuedByInstructorParams struct {
+	InstructorID uint64
+	Since        sql.NullTime
+}
+
+// Enqueue cap (B-N8-01b M2): the instructor's outbox rows of the last 24 h that are pending or sent.
+func (q *Queries) CountSMSQueuedByInstructor(ctx context.Context, arg CountSMSQueuedByInstructorParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countSMSQueuedByInstructor, arg.InstructorID, arg.Since)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -314,7 +369,7 @@ func (q *Queries) DeleteLesson(ctx context.Context, arg DeleteLessonParams) (int
 }
 
 const findGrantForTarget = `-- name: FindGrantForTarget :one
-SELECT id, instructor_id, phone, user_id, group_id, course_id, duration, duration_days, until_date, status, activated_at, expires_at, revoked_at, created_at, updated_at FROM ` + "`" + `learning_grants` + "`" + `
+SELECT id, instructor_id, phone, user_id, group_id, course_id, duration, duration_days, until_date, status, activated_at, expires_at, revoked_at, created_at, updated_at, seen_at FROM ` + "`" + `learning_grants` + "`" + `
 WHERE instructor_id = ? AND phone = ?
   AND group_id <=> ? AND course_id <=> ?
 ORDER BY id DESC
@@ -353,6 +408,7 @@ func (q *Queries) FindGrantForTarget(ctx context.Context, arg FindGrantForTarget
 		&i.RevokedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SeenAt,
 	)
 	return i, err
 }
@@ -511,7 +567,7 @@ func (q *Queries) GetInstructorCourse(ctx context.Context, arg GetInstructorCour
 }
 
 const getInstructorGrant = `-- name: GetInstructorGrant :one
-SELECT id, instructor_id, phone, user_id, group_id, course_id, duration, duration_days, until_date, status, activated_at, expires_at, revoked_at, created_at, updated_at FROM ` + "`" + `learning_grants` + "`" + ` WHERE id = ? AND instructor_id = ? LIMIT 1
+SELECT id, instructor_id, phone, user_id, group_id, course_id, duration, duration_days, until_date, status, activated_at, expires_at, revoked_at, created_at, updated_at, seen_at FROM ` + "`" + `learning_grants` + "`" + ` WHERE id = ? AND instructor_id = ? LIMIT 1
 `
 
 type GetInstructorGrantParams struct {
@@ -538,6 +594,7 @@ func (q *Queries) GetInstructorGrant(ctx context.Context, arg GetInstructorGrant
 		&i.RevokedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SeenAt,
 	)
 	return i, err
 }
@@ -639,20 +696,25 @@ func (q *Queries) GetProgress(ctx context.Context, arg GetProgressParams) (Learn
 }
 
 const getSMSJob = `-- name: GetSMSJob :one
-SELECT o.id, o.attempts, a.id AS grant_id, a.phone, a.user_id, a.instructor_id, a.status AS grant_status
+SELECT o.id, o.attempts, a.id AS grant_id, a.phone, a.user_id, a.instructor_id, a.status AS grant_status,
+  i.status AS instructor_status,
+  CAST(EXISTS(SELECT 1 FROM ` + "`" + `learning_sms_suppressions` + "`" + ` x WHERE x.phone = a.phone) AS SIGNED) AS suppressed
 FROM ` + "`" + `learning_sms_outbox` + "`" + ` o
 JOIN ` + "`" + `learning_grants` + "`" + ` a ON a.id = o.grant_id
+JOIN ` + "`" + `learning_instructors` + "`" + ` i ON i.id = a.instructor_id
 WHERE o.id = ? LIMIT 1
 `
 
 type GetSMSJobRow struct {
-	ID           uint64
-	Attempts     uint8
-	GrantID      uint64
-	Phone        string
-	UserID       sql.NullInt64
-	InstructorID uint64
-	GrantStatus  string
+	ID               uint64
+	Attempts         uint8
+	GrantID          uint64
+	Phone            string
+	UserID           sql.NullInt64
+	InstructorID     uint64
+	GrantStatus      string
+	InstructorStatus string
+	Suppressed       int64
 }
 
 func (q *Queries) GetSMSJob(ctx context.Context, id uint64) (GetSMSJobRow, error) {
@@ -666,12 +728,14 @@ func (q *Queries) GetSMSJob(ctx context.Context, id uint64) (GetSMSJobRow, error
 		&i.UserID,
 		&i.InstructorID,
 		&i.GrantStatus,
+		&i.InstructorStatus,
+		&i.Suppressed,
 	)
 	return i, err
 }
 
 const getUserGrant = `-- name: GetUserGrant :one
-SELECT a.id, a.instructor_id, a.phone, a.user_id, a.group_id, a.course_id, a.duration, a.duration_days, a.until_date, a.status, a.activated_at, a.expires_at, a.revoked_at, a.created_at, a.updated_at, i.display_name AS instructor_name, i.title AS instructor_title, g.name AS group_name
+SELECT a.id, a.instructor_id, a.phone, a.user_id, a.group_id, a.course_id, a.duration, a.duration_days, a.until_date, a.status, a.activated_at, a.expires_at, a.revoked_at, a.created_at, a.updated_at, a.seen_at, i.display_name AS instructor_name, i.title AS instructor_title, g.name AS group_name
 FROM ` + "`" + `learning_grants` + "`" + ` a
 JOIN ` + "`" + `learning_instructors` + "`" + ` i ON i.id = a.instructor_id
 LEFT JOIN ` + "`" + `learning_groups` + "`" + ` g ON g.id = a.group_id
@@ -700,6 +764,7 @@ type GetUserGrantRow struct {
 	RevokedAt       sql.NullTime
 	CreatedAt       sql.NullTime
 	UpdatedAt       sql.NullTime
+	SeenAt          sql.NullTime
 	InstructorName  string
 	InstructorTitle sql.NullString
 	GroupName       sql.NullString
@@ -724,6 +789,7 @@ func (q *Queries) GetUserGrant(ctx context.Context, arg GetUserGrantParams) (Get
 		&i.RevokedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SeenAt,
 		&i.InstructorName,
 		&i.InstructorTitle,
 		&i.GroupName,
@@ -1037,6 +1103,28 @@ func (q *Queries) InsertSMSOutbox(ctx context.Context, arg InsertSMSOutboxParams
 	return err
 }
 
+const insertSMSSuppression = `-- name: InsertSMSSuppression :exec
+INSERT IGNORE INTO ` + "`" + `learning_sms_suppressions` + "`" + ` (phone, source, created_at, updated_at)
+VALUES (?, ?, ?, ?)
+`
+
+type InsertSMSSuppressionParams struct {
+	Phone  string
+	Source string
+	Now    sql.NullTime
+}
+
+// A number that answered STOP (M3): never sent the course SMS again.
+func (q *Queries) InsertSMSSuppression(ctx context.Context, arg InsertSMSSuppressionParams) error {
+	_, err := q.db.ExecContext(ctx, insertSMSSuppression,
+		arg.Phone,
+		arg.Source,
+		arg.Now,
+		arg.Now,
+	)
+	return err
+}
+
 const insertUserNotification = `-- name: InsertUserNotification :exec
 
 INSERT INTO ` + "`" + `user_notifications` + "`" + ` (user_id, type, title, body, action_url, data, created_at, updated_at)
@@ -1154,7 +1242,7 @@ func (q *Queries) ListChaptersForCourses(ctx context.Context, courseIds []uint64
 
 const listCourseGroups = `-- name: ListCourseGroups :many
 SELECT g.id, g.name,
-  CAST((SELECT COUNT(*) FROM ` + "`" + `learning_grants` + "`" + ` a WHERE a.group_id = g.id AND a.status = 'active') AS SIGNED) AS active_members
+  CAST((SELECT COUNT(*) FROM ` + "`" + `learning_grants` + "`" + ` a WHERE a.group_id = g.id AND a.status = 'active' AND a.seen_at IS NOT NULL) AS SIGNED) AS active_members
 FROM ` + "`" + `learning_group_courses` + "`" + ` gc
 JOIN ` + "`" + `learning_groups` + "`" + ` g ON g.id = gc.group_id
 WHERE gc.course_id = ? AND g.instructor_id = ?
@@ -1172,7 +1260,8 @@ type ListCourseGroupsRow struct {
 	ActiveMembers int64
 }
 
-// The groups that open one course (Ins_Course «چه کسانی دسترسی دارند»), with their active member counts.
+// The groups that open one course (Ins_Course «چه کسانی دسترسی دارند»), with their active member counts (a grant
+// counts once its student opened a course: seen_at, B-N8-01b H1).
 func (q *Queries) ListCourseGroups(ctx context.Context, arg ListCourseGroupsParams) ([]ListCourseGroupsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listCourseGroups, arg.CourseID, arg.InstructorID)
 	if err != nil {
@@ -1197,9 +1286,15 @@ func (q *Queries) ListCourseGroups(ctx context.Context, arg ListCourseGroupsPara
 }
 
 const listDueSMS = `-- name: ListDueSMS :many
-SELECT id FROM ` + "`" + `learning_sms_outbox` + "`" + `
-WHERE status = 'pending' AND due_at <= ? AND (lease_until IS NULL OR lease_until < ?)
-ORDER BY due_at, id
+SELECT t.id FROM (
+  SELECT o.id, o.due_at,
+    ROW_NUMBER() OVER (PARTITION BY a.instructor_id ORDER BY o.due_at, o.id) AS rn
+  FROM ` + "`" + `learning_sms_outbox` + "`" + ` o
+  JOIN ` + "`" + `learning_grants` + "`" + ` a ON a.id = o.grant_id
+  WHERE o.status = 'pending' AND o.due_at <= ?
+    AND (o.lease_until IS NULL OR o.lease_until < ?)
+) t
+ORDER BY t.rn, t.due_at, t.id
 LIMIT ?
 `
 
@@ -1209,6 +1304,8 @@ type ListDueSMSParams struct {
 	Limit       int32
 }
 
+// Fair pick (B-N8-01b M2): round-robin over instructors (each one's oldest row first), so one instructor's backlog
+// never starves the others.
 func (q *Queries) ListDueSMS(ctx context.Context, arg ListDueSMSParams) ([]uint64, error) {
 	rows, err := q.db.QueryContext(ctx, listDueSMS, arg.DueBefore, arg.LeaseBefore, arg.Limit)
 	if err != nil {
@@ -1340,8 +1437,8 @@ func (q *Queries) ListGroupCourses(ctx context.Context, groupIds []uint64) ([]Li
 const listGroups = `-- name: ListGroups :many
 
 SELECT g.id, g.instructor_id, g.name, g.created_at, g.updated_at,
-  CAST((SELECT COUNT(*) FROM ` + "`" + `learning_grants` + "`" + ` a WHERE a.group_id = g.id AND a.status = 'active') AS SIGNED) AS active_members,
-  CAST((SELECT COUNT(*) FROM ` + "`" + `learning_grants` + "`" + ` a WHERE a.group_id = g.id AND a.status = 'pending') AS SIGNED) AS pending_members
+  CAST((SELECT COUNT(*) FROM ` + "`" + `learning_grants` + "`" + ` a WHERE a.group_id = g.id AND a.status = 'active' AND a.seen_at IS NOT NULL) AS SIGNED) AS active_members,
+  CAST((SELECT COUNT(*) FROM ` + "`" + `learning_grants` + "`" + ` a WHERE a.group_id = g.id AND (a.status = 'pending' OR (a.status = 'active' AND a.seen_at IS NULL))) AS SIGNED) AS pending_members
 FROM ` + "`" + `learning_groups` + "`" + ` g
 WHERE g.instructor_id = ?
 ORDER BY g.id DESC
@@ -1457,7 +1554,7 @@ func (q *Queries) ListInstructorCourses(ctx context.Context, instructorID uint64
 }
 
 const listInstructorGrants = `-- name: ListInstructorGrants :many
-SELECT a.id, a.instructor_id, a.phone, a.user_id, a.group_id, a.course_id, a.duration, a.duration_days, a.until_date, a.status, a.activated_at, a.expires_at, a.revoked_at, a.created_at, a.updated_at, u.name AS user_name, g.name AS group_name, c.title AS course_title
+SELECT a.id, a.instructor_id, a.phone, a.user_id, a.group_id, a.course_id, a.duration, a.duration_days, a.until_date, a.status, a.activated_at, a.expires_at, a.revoked_at, a.created_at, a.updated_at, a.seen_at, u.name AS user_name, g.name AS group_name, c.title AS course_title
 FROM ` + "`" + `learning_grants` + "`" + ` a
 LEFT JOIN ` + "`" + `users` + "`" + ` u ON u.id = a.user_id
 LEFT JOIN ` + "`" + `learning_groups` + "`" + ` g ON g.id = a.group_id
@@ -1490,6 +1587,7 @@ type ListInstructorGrantsRow struct {
 	RevokedAt    sql.NullTime
 	CreatedAt    sql.NullTime
 	UpdatedAt    sql.NullTime
+	SeenAt       sql.NullTime
 	UserName     sql.NullString
 	GroupName    sql.NullString
 	CourseTitle  sql.NullString
@@ -1527,6 +1625,7 @@ func (q *Queries) ListInstructorGrants(ctx context.Context, arg ListInstructorGr
 			&i.RevokedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.SeenAt,
 			&i.UserName,
 			&i.GroupName,
 			&i.CourseTitle,
@@ -1595,9 +1694,10 @@ func (q *Queries) ListLessons(ctx context.Context, courseID uint64) ([]LearningL
 }
 
 const listPendingGrantsByPhone = `-- name: ListPendingGrantsByPhone :many
-SELECT id, instructor_id, phone, user_id, group_id, course_id, duration, duration_days, until_date, status, activated_at, expires_at, revoked_at, created_at, updated_at FROM ` + "`" + `learning_grants` + "`" + ` WHERE phone = ? AND status = 'pending' ORDER BY id
+SELECT id, instructor_id, phone, user_id, group_id, course_id, duration, duration_days, until_date, status, activated_at, expires_at, revoked_at, created_at, updated_at, seen_at FROM ` + "`" + `learning_grants` + "`" + ` WHERE phone = ? AND status = 'pending' ORDER BY id LIMIT 100
 `
 
+// Bounded (B-N8-01b L6): the rest are claimed on the next student request.
 func (q *Queries) ListPendingGrantsByPhone(ctx context.Context, phone string) ([]LearningGrant, error) {
 	rows, err := q.db.QueryContext(ctx, listPendingGrantsByPhone, phone)
 	if err != nil {
@@ -1623,6 +1723,7 @@ func (q *Queries) ListPendingGrantsByPhone(ctx context.Context, phone string) ([
 			&i.RevokedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.SeenAt,
 		); err != nil {
 			return nil, err
 		}
@@ -1891,6 +1992,23 @@ func (q *Queries) ListUserProgressForCourses(ctx context.Context, arg ListUserPr
 		return nil, err
 	}
 	return items, nil
+}
+
+const markGrantsSeen = `-- name: MarkGrantsSeen :exec
+UPDATE ` + "`" + `learning_grants` + "`" + ` SET seen_at = ?
+WHERE user_id = ? AND instructor_id = ? AND status = 'active' AND seen_at IS NULL
+`
+
+type MarkGrantsSeenParams struct {
+	Now          sql.NullTime
+	UserID       sql.NullInt64
+	InstructorID uint64
+}
+
+// The student opened a course of this instructor: her name / progress become visible to the instructor (H1).
+func (q *Queries) MarkGrantsSeen(ctx context.Context, arg MarkGrantsSeenParams) error {
+	_, err := q.db.ExecContext(ctx, markGrantsSeen, arg.Now, arg.UserID, arg.InstructorID)
+	return err
 }
 
 const maxChapterSort = `-- name: MaxChapterSort :one

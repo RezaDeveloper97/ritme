@@ -14,6 +14,8 @@ import (
 
 	"github.com/gen2brain/webp"
 	xdraw "golang.org/x/image/draw"
+
+	"github.com/ritme/backend-go/internal/platform/httpx"
 )
 
 // Formats the admin accepts (Laravel `mimes:jpeg,jpg,png,webp`).
@@ -120,6 +122,15 @@ func Inspect(data []byte) (Image, error) {
 // decoded (decompression-bomb guard) and are stored as uploaded.
 type Optimizer struct {
 	MaxWidth, MaxHeight, Quality, MaxPixels int
+	// StrictField, when set, makes Store refuse (422 on that form field) an image it cannot re-encode instead of
+	// keeping the original bytes — the re-encode is what strips EXIF / GPS metadata (B-N8-01b L8: doctor photos).
+	StrictField string
+}
+
+// Strict returns o refusing images it cannot re-encode (422 on field).
+func (o Optimizer) Strict(field string) Optimizer {
+	o.StrictField = field
+	return o
 }
 
 // DefaultOptimizer is ImageOptimizer's configuration.
@@ -192,6 +203,11 @@ func toNRGBA(src image.Image) *image.NRGBA {
 func (d *Disk) Store(o Optimizer, dir string, img Image) (string, error) {
 	out, err := o.Optimize(img)
 	if err != nil {
+		if o.StrictField != "" {
+			v := httpx.NewValidationError()
+			v.Add(o.StrictField, "The "+o.StrictField+" could not be processed. Upload a smaller JPEG, PNG or WebP image.")
+			return "", v
+		}
 		return d.StoreOriginal(dir, img)
 	}
 	rel := NewPath(dir, "webp")

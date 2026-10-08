@@ -18,7 +18,7 @@ func init() {
 		kit := httpadmin.Wire(d.Config.App.Env, d.DB, d.Cache, d.Logger)
 		reader := catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger)
 		svc := telemed.NewService(d.DB, reader, nil, nil)
-		telemed.NewAdmin(svc, media.NewDisk(d.Config.StoragePath), media.DefaultOptimizer, d.Config.App.URL, d.Logger).
+		telemed.NewAdmin(svc, media.NewDisk(d.Config.StoragePath), media.DefaultOptimizer.Strict("photo"), d.Config.App.URL, d.Logger).
 			Routes(func(method, path string, chain httpadmin.Chain) {
 				httpadmin.Handle(r, method, httpadmin.Prefix+path, chain)
 			}, kit)

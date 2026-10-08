@@ -98,6 +98,10 @@ func fail(err error, locale string) error {
 		return fieldFail(locale, "target_id", "target_invalid")
 	case errors.Is(err, ErrCourseIDsInvalid):
 		return fieldFail(locale, "course_ids", "course_ids_invalid")
+	case errors.Is(err, ErrTargetEmpty):
+		return fieldFail(locale, "target_id", "target_unpublished")
+	case errors.Is(err, ErrGrantDailyCap):
+		return fieldFail(locale, "phones", "grant_daily_cap")
 	}
 	return err
 }
@@ -116,11 +120,13 @@ func (h *Handlers) RequireInstructor(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	switch {
-	case !ok || ins.Status == InstructorRevoked:
+	// Allow-list: only an approved instructor passes; a pending one gets instructor_pending, anything else
+	// (no row, revoked, an unknown status) instructor_required.
+	if !ok || ins.Status != InstructorApproved {
+		if ok && ins.Status == InstructorPending {
+			return fail(ErrInstructorPending, locale)
+		}
 		return fail(ErrNotInstructor, locale)
-	case ins.Status == InstructorPending:
-		return fail(ErrInstructorPending, locale)
 	}
 	c.Locals(instructorLocal, ins)
 	return c.Next()
@@ -470,7 +476,7 @@ func (h *Handlers) groupDetail(c fiber.Ctx, g store.LearningGroup, courses []sto
 		if v, ok := progress[uid(m.UserID)]; ok {
 			p = &v
 		}
-		if m.Status == GrantPending {
+		if VisibleGrantState(m, now) == GrantPending {
 			pending++
 		}
 		list = append(list, GrantJSON(m, p, now))
@@ -581,7 +587,7 @@ func (h *Handlers) Students(c fiber.Ctx) error {
 	out := make([]any, 0, len(rows))
 	counts := map[string]int{GrantActive: 0, GrantPending: 0, GrantExpired: 0}
 	for _, r := range rows {
-		st := GrantState(r.Status, r.ExpiresAt, now)
+		st := VisibleGrantState(r, now)
 		counts[st]++
 		if status == "" || st == status {
 			out = append(out, GrantJSON(r, nil, now))
@@ -594,7 +600,7 @@ func (h *Handlers) Students(c fiber.Ctx) error {
 }
 
 // StoreGrants is POST /api/instructor/v1/grants {phones, scope, target_id, duration, until?} (Ins_AddUser): 201 with
-// one result per phone (registered → active now, else pending until signup).
+// one result per phone. The response is the same whether a number has an account or not (B-N8-01b H1).
 func (h *Handlers) StoreGrants(c fiber.Ctx) error {
 	now, locale := h.now(c), i18n.Locale(c)
 	in, err := ValidateGrants(validation.Input(c), locale, now)
@@ -606,16 +612,10 @@ func (h *Handlers) StoreGrants(c fiber.Ctx) error {
 		return fail(err, locale)
 	}
 	out := make([]any, 0, len(res))
-	active, pending := 0, 0
 	for _, r := range res {
-		if r.Registered {
-			active++
-		} else {
-			pending++
-		}
-		out = append(out, GrantResultJSON(r, now))
+		out = append(out, GrantResultJSON(r))
 	}
-	return httpx.Created(c, jsonx.Obj("grants", out, "summary", jsonx.Obj("active", active, "pending", pending)),
+	return httpx.Created(c, jsonx.Obj("grants", out, "summary", jsonx.Obj("total", len(out))),
 		T("messages.granted", locale))
 }
 

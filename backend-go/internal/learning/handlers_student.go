@@ -1,7 +1,9 @@
 package learning
 
 import (
+	"context"
 	"log/slog"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -12,6 +14,9 @@ import (
 	"github.com/ritme/backend-go/internal/platform/validation"
 )
 
+// claimTimeout bounds the lazy claim so a slow database never stalls a student request (B-N8-01b L6).
+const claimTimeout = 3 * time.Second
+
 // claim activates the caller's pending grants (safety net for accounts the signup hook missed). It never fails the
 // request: the grants stay pending and the next call retries.
 func (h *Handlers) claim(c fiber.Ctx, userID uint64) {
@@ -19,7 +24,9 @@ func (h *Handlers) claim(c fiber.Ctx, userID uint64) {
 	if u == nil || !u.Mobile.Valid {
 		return
 	}
-	if _, err := h.svc.ClaimPending(c, userID, u.Mobile.String, h.now(c)); err != nil {
+	ctx, cancel := context.WithTimeout(c, claimTimeout)
+	defer cancel()
+	if _, err := h.svc.ClaimPending(ctx, userID, u.Mobile.String, h.now(c)); err != nil {
 		h.svc.logger.ErrorContext(c, "learning: lazy claim failed", slog.Uint64("user_id", userID), slog.String("error", err.Error()))
 	}
 }

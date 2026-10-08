@@ -15,6 +15,8 @@ import (
 	"github.com/gen2brain/webp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ritme/backend-go/internal/platform/httpx"
 )
 
 func solid(w, h int) *image.NRGBA {
@@ -137,6 +139,21 @@ func TestOptimizeSkipsHugeImages(t *testing.T) {
 	b, err := os.ReadFile(filepath.Join(d.Root(), rel))
 	require.NoError(t, err)
 	assert.Equal(t, src.Data, b, "stored as uploaded")
+}
+
+func TestStrictStoreRefusesWhatItCannotReencode(t *testing.T) {
+	o := DefaultOptimizer.Strict("photo")
+	o.MaxPixels = 100
+	src, err := Inspect(encPNG(t, solid(20, 20)))
+	require.NoError(t, err)
+	d := NewDisk(t.TempDir())
+	rel, err := d.Store(o, "doctors", src)
+	assert.Empty(t, rel)
+	var v *httpx.ValidationError
+	require.ErrorAs(t, err, &v)
+	assert.NotEmpty(t, v.Messages("photo"))
+	entries, _ := os.ReadDir(filepath.Join(d.Root(), "doctors"))
+	assert.Empty(t, entries, "nothing stored")
 }
 
 func TestDiskPaths(t *testing.T) {

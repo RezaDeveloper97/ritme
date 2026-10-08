@@ -66,6 +66,7 @@ func init() {
 		ins := h.RequireInstructor
 		r.Get(p+"/me", locale, guard, h.Me)
 		r.Post(p+"/apply", locale, guard, writes, h.Apply)
+		r.Get(p+"/dashboard", locale, guard, ins, h.Dashboard)
 		r.Get(p+"/courses", locale, guard, ins, h.Courses)
 		r.Post(p+"/courses", locale, guard, ins, writes, h.StoreCourse)
 		r.Get(p+"/courses/:id", locale, guard, ins, h.ShowCourse)

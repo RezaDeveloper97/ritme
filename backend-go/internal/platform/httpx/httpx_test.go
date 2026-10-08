@@ -306,6 +306,7 @@ func TestPageParam(t *testing.T) {
 	for q, want := range map[string]string{
 		"": "1", "?page=3": "3", "?page=0": "1", "?page=-2": "1", "?page=abc": "1",
 		"?page=2.5": "1", "?page=+4": "4", "?page=07": "1", "?page=%207": "7",
+		"?page=9223372036854775807": "1000000", "?page=1000001": "1000000",
 	} {
 		r := do(t, app, "GET", "/"+q)
 		assert.Equal(t, want, r.body, q)

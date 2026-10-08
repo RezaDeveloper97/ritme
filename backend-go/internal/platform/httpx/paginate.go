@@ -160,8 +160,12 @@ func (p Page) elements() [][]int {
 	}
 }
 
+// MaxPage caps ?page= so (page-1)*perPage can never overflow into a negative offset (an out-of-range page is just
+// an empty page; B-N8-01b L7).
+const MaxPage = 1_000_000
+
 // PageParam is the paginator's current-page resolver: ?page= when it is an integer
-// ≥ 1 (filter_var FILTER_VALIDATE_INT), else 1.
+// ≥ 1 (filter_var FILTER_VALIDATE_INT), else 1; clamped to MaxPage.
 func PageParam(c fiber.Ctx) int {
 	s := strings.TrimSpace(c.Query("page"))
 	if s == "" {
@@ -172,7 +176,7 @@ func PageParam(c fiber.Ctx) int {
 	if err != nil || n < 1 || (len(s) > 1 && s[0] == '0') {
 		return 1
 	}
-	return n
+	return min(n, MaxPage)
 }
 
 // RequestURL is $request->url() behind the trusted nginx proxy: scheme and host from

@@ -187,8 +187,22 @@ func durationJSON(kind string, days sql.NullInt16, until civildate.NullDate) *js
 	return jsonx.Obj("type", kind, "days", intN16(days), "until", u)
 }
 
-// GrantJSON is one grant as its instructor sees it (the phone she typed, the student's name once registered).
+// VisibleGrantState is the status the instructor sees: an active grant whose student has not opened any of her courses
+// yet (seen_at NULL) still shows «pending», so a grant never reveals whether a number has a Ritme account (H1).
+func VisibleGrantState(r store.ListInstructorGrantsRow, now time.Time) string {
+	if !r.SeenAt.Valid && r.Status != GrantRevoked {
+		return GrantPending
+	}
+	return GrantState(r.Status, r.ExpiresAt, now)
+}
+
+// GrantJSON is one grant as its instructor sees it: the phone she typed; the student's name, registration, dates and
+// progress only once the student has opened one of her courses (seen_at, B-N8-01b H1).
 func GrantJSON(r store.ListInstructorGrantsRow, progress *int, now time.Time) *jsonx.OrderedMap {
+	if !r.SeenAt.Valid {
+		r.UserID, r.UserName, r.ActivatedAt, r.ExpiresAt = sql.NullInt64{}, sql.NullString{}, sql.NullTime{}, sql.NullTime{}
+		progress = nil
+	}
 	var group, course any
 	if r.GroupID.Valid {
 		group = jsonx.Obj("id", r.GroupID.Int64, "name", strN(r.GroupName))
@@ -203,7 +217,7 @@ func GrantJSON(r store.ListInstructorGrantsRow, progress *int, now time.Time) *j
 	return jsonx.Obj(
 		"id", r.ID,
 		"phone", r.Phone,
-		"status", GrantState(r.Status, r.ExpiresAt, now),
+		"status", VisibleGrantState(r, now),
 		"registered", r.UserID.Valid,
 		"student_name", strN(r.UserName),
 		"group", group,
@@ -217,18 +231,15 @@ func GrantJSON(r store.ListInstructorGrantsRow, progress *int, now time.Time) *j
 	)
 }
 
-// GrantResultJSON is one phone's outcome of POST /grants.
-func GrantResultJSON(r GrantResult, now time.Time) *jsonx.OrderedMap {
+// GrantResultJSON is one phone's outcome of POST /grants: identical for a number with or without an account (no
+// status / registered / dates — B-N8-01b H1).
+func GrantResultJSON(r GrantResult) *jsonx.OrderedMap {
 	g := r.Grant
 	return jsonx.Obj(
 		"id", g.ID,
 		"phone", g.Phone,
-		"status", GrantState(g.Status, g.ExpiresAt, now),
-		"registered", r.Registered,
 		"renewed", r.Renewed,
 		"duration", durationJSON(g.Duration, g.DurationDays, g.UntilDate),
-		"activated_at", isoN(g.ActivatedAt),
-		"expires_at", isoN(g.ExpiresAt),
 	)
 }
 

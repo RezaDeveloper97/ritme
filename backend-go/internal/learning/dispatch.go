@@ -25,6 +25,8 @@ const (
 	ReasonPhoneCap    = "phone_cap"
 	ReasonSenderCap   = "instructor_cap"
 	ReasonNoCourses   = "no_courses"
+	ReasonInstructor  = "instructor_inactive"
+	ReasonSuppressed  = "suppressed"
 )
 
 // Dispatcher settings.
@@ -101,6 +103,12 @@ func (s *Service) dispatchOne(ctx context.Context, id uint64, now time.Time) (bo
 	}
 	if job.GrantStatus == GrantRevoked {
 		return false, s.finish(ctx, id, smsSkipped, ReasonRevoked, job.Attempts, now)
+	}
+	if job.InstructorStatus != InstructorApproved {
+		return false, s.finish(ctx, id, smsSkipped, ReasonInstructor, job.Attempts, now)
+	}
+	if job.Suppressed != 0 {
+		return false, s.finish(ctx, id, smsSkipped, ReasonSuppressed, job.Attempts, now)
 	}
 	if !s.sms.Delivers() {
 		return false, s.finish(ctx, id, smsSkipped, ReasonSMSDisabled, job.Attempts, now)

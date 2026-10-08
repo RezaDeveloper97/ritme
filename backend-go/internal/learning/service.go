@@ -30,6 +30,8 @@ var (
 	ErrChapterInvalid    = errors.New("learning: chapter of another course")
 	ErrTargetInvalid     = errors.New("learning: group or course of another instructor")
 	ErrCourseIDsInvalid  = errors.New("learning: course of another instructor")
+	ErrTargetEmpty       = errors.New("learning: group or course has no published course")
+	ErrGrantDailyCap     = errors.New("learning: daily grant cap reached")
 )
 
 // ChapterLockedError is a lesson of a chapter that opens later («فصل ۳ از ۱۵ مهر توسط مدرس باز می‌شود»).
@@ -168,7 +170,10 @@ func (s *Service) Apply(ctx context.Context, userID uint64, in ApplyInput, now t
 	}); err != nil {
 		return cur, false, fmt.Errorf("learning: profile: %w", err)
 	}
-	if cur.Status == InstructorRevoked {
+	// A revoked applicant re-applies; an approved instructor who renames herself (display_name / title — what students
+	// and the admin approved) goes back to review (B-N8-01b L4). A bio edit keeps the approval.
+	renamed := cur.Status == InstructorApproved && (cur.DisplayName != in.DisplayName || cur.Title.String != in.Title)
+	if cur.Status == InstructorRevoked || renamed {
 		if _, err := s.q.SetInstructorStatus(ctx, store.SetInstructorStatusParams{
 			Status: InstructorPending, Now: nt(now), ID: cur.ID,
 		}); err != nil {

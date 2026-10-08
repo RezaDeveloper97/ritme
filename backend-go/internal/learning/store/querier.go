@@ -15,13 +15,29 @@ type Querier interface {
 	ClaimSMS(ctx context.Context, arg ClaimSMSParams) (int64, error)
 	CountChapters(ctx context.Context, courseID uint64) (int64, error)
 	CountDirectCourseGrants(ctx context.Context, arg CountDirectCourseGrantsParams) (int64, error)
+	// Daily cap on new grants per instructor (B-N8-01b H1/M2).
+	CountGrantsCreatedSince(ctx context.Context, arg CountGrantsCreatedSinceParams) (int64, error)
 	CountGroups(ctx context.Context, instructorID uint64) (int64, error)
 	CountInstructorCourses(ctx context.Context, instructorID uint64) (int64, error)
 	CountInstructorCoursesIn(ctx context.Context, arg CountInstructorCoursesInParams) (int64, error)
 	CountLessons(ctx context.Context, courseID uint64) (int64, error)
 	CountPendingSMSForGrant(ctx context.Context, grantID uint64) (int64, error)
+	// Revoke / re-add cooldown (B-N8-01b M3): any grant of this instructor to this phone revoked since `since`.
+	CountRecentlyRevokedForPhone(ctx context.Context, arg CountRecentlyRevokedForPhoneParams) (int64, error)
+	// Enqueue cap (B-N8-01b M2): the instructor's outbox rows of the last 24 h that are pending or sent.
+	CountSMSQueuedByInstructor(ctx context.Context, arg CountSMSQueuedByInstructorParams) (int64, error)
 	CountSMSSentByInstructor(ctx context.Context, arg CountSMSSentByInstructorParams) (int64, error)
 	CountSMSSentToPhone(ctx context.Context, arg CountSMSSentToPhoneParams) (int64, error)
+	// The lesson kinds of each course (Ins_Content kind filter).
+	DashboardLessonKinds(ctx context.Context, instructorID uint64) ([]DashboardLessonKindsRow, error)
+	// New grants per target and day (counts only: no phone, name or registration state).
+	DashboardRecentGrants(ctx context.Context, arg DashboardRecentGrantsParams) ([]DashboardRecentGrantsRow, error)
+	DashboardRecentLessons(ctx context.Context, arg DashboardRecentLessonsParams) ([]DashboardRecentLessonsRow, error)
+	// Ins_Dashboard (bloom B-N8-06): owner-scoped aggregates of one instructor. Student counts follow the H1 rule of
+	// B-N8-01b — a grant counts as an active student only once she opened one of the instructor's courses (seen_at).
+	DashboardStudentCounts(ctx context.Context, arg DashboardStudentCountsParams) (DashboardStudentCountsRow, error)
+	// Approximation: the playback position of every progress row touched since `since` (no per-session watch log yet).
+	DashboardWatchSeconds(ctx context.Context, arg DashboardWatchSecondsParams) (int64, error)
 	DeferSMS(ctx context.Context, arg DeferSMSParams) error
 	DeleteChapter(ctx context.Context, arg DeleteChapterParams) (int64, error)
 	DeleteCourse(ctx context.Context, arg DeleteCourseParams) (int64, error)
@@ -56,14 +72,19 @@ type Querier interface {
 	InsertInstructor(ctx context.Context, arg InsertInstructorParams) (int64, error)
 	InsertLesson(ctx context.Context, arg InsertLessonParams) (int64, error)
 	InsertSMSOutbox(ctx context.Context, arg InsertSMSOutboxParams) error
+	// A number that answered STOP (M3): never sent the course SMS again.
+	InsertSMSSuppression(ctx context.Context, arg InsertSMSSuppressionParams) error
 	// ───────────── notifications ─────────────
 	// Student inbox row «دوره برایت باز شد»: title/body are {lang: text} JSON.
 	InsertUserNotification(ctx context.Context, arg InsertUserNotificationParams) error
 	// ───────────── chapters ─────────────
 	ListChapters(ctx context.Context, courseID uint64) ([]LearningChapter, error)
 	ListChaptersForCourses(ctx context.Context, courseIds []uint64) ([]LearningChapter, error)
-	// The groups that open one course (Ins_Course «چه کسانی دسترسی دارند»), with their active member counts.
+	// The groups that open one course (Ins_Course «چه کسانی دسترسی دارند»), with their active member counts (a grant
+	// counts once its student opened a course: seen_at, B-N8-01b H1).
 	ListCourseGroups(ctx context.Context, arg ListCourseGroupsParams) ([]ListCourseGroupsRow, error)
+	// Fair pick (B-N8-01b M2): round-robin over instructors (each one's oldest row first), so one instructor's backlog
+	// never starves the others.
 	ListDueSMS(ctx context.Context, arg ListDueSMSParams) ([]uint64, error)
 	// The published courses one grant opens (its course, or every course of its group).
 	ListGrantCourses(ctx context.Context, arg ListGrantCoursesParams) ([]LearningCourse, error)
@@ -77,6 +98,7 @@ type Querier interface {
 	ListInstructorGrants(ctx context.Context, arg ListInstructorGrantsParams) ([]ListInstructorGrantsRow, error)
 	// ───────────── lessons ─────────────
 	ListLessons(ctx context.Context, courseID uint64) ([]LearningLesson, error)
+	// Bounded (B-N8-01b L6): the rest are claimed on the next student request.
 	ListPendingGrantsByPhone(ctx context.Context, phone string) ([]LearningGrant, error)
 	// Group member progress (Ins_Group): rows of the given students in the given courses.
 	ListProgressForUsersCourses(ctx context.Context, arg ListProgressForUsersCoursesParams) ([]ListProgressForUsersCoursesRow, error)
@@ -86,6 +108,8 @@ type Querier interface {
 	// the service keeps the best grant per course.
 	ListUserCourseAccess(ctx context.Context, userID sql.NullInt64) ([]ListUserCourseAccessRow, error)
 	ListUserProgressForCourses(ctx context.Context, arg ListUserProgressForCoursesParams) ([]LearningProgress, error)
+	// The student opened a course of this instructor: her name / progress become visible to the instructor (H1).
+	MarkGrantsSeen(ctx context.Context, arg MarkGrantsSeenParams) error
 	MaxChapterSort(ctx context.Context, courseID uint64) (int64, error)
 	MaxLessonSort(ctx context.Context, courseID uint64) (int64, error)
 	RenewGrant(ctx context.Context, arg RenewGrantParams) error

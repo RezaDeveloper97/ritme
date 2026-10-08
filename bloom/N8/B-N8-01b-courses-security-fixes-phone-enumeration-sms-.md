@@ -3,7 +3,7 @@ id: B-N8-01b
 title: Courses security fixes — phone enumeration, SMS flood caps, re-add cooldown, rename re-review, paging clamp
 milestone: N8
 type: backend
-status: todo
+status: done
 depends_on: [B-N8-01,B-N8-08]
 parallel_group: N8-A2
 touches: [backend-go/internal/learning,backend-go/internal/telemed,backend-go/internal/platform/httpx,backend-go/db,backend-go/api]
