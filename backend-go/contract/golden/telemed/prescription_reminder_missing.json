@@ -1,0 +1,25 @@
+{
+  "case": "telemed/prescription_reminder_missing",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/telemed/bookings/999999/prescription/1/reminder",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "این نوبت پیدا نشد",
+        "error_code": "booking_not_found"
+      }
+    }
+  ]
+}

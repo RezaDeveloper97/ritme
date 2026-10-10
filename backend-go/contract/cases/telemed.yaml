@@ -101,3 +101,37 @@ cases:
     method: GET
     path: /api/v1/telemed/bookings/quote?doctor_id=999999&mode=video
     status: 404
+  # Doctor chat, e-prescription and video link (bloom B-N7-04, D-82) — Go only, goldens recorded from Go. The fixture
+  # has no bookings: threads, encryption, attachments, the video window and prescription → reminder live in
+  # internal/telemed/chat_int_test.go.
+  - name: messages_anon
+    persona: anon
+    method: GET
+    path: /api/v1/telemed/bookings/1/messages
+    status: 401
+  - name: messages_missing
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/telemed/bookings/999999/messages
+    status: 404
+  - name: message_send_missing
+    locales: [fa]
+    method: POST
+    path: /api/v1/telemed/bookings/999999/messages
+    body: {body: "x"}
+    status: 404
+  - name: prescription_missing
+    locales: [fa]
+    method: GET
+    path: /api/v1/telemed/bookings/999999/prescription
+    status: 404
+  - name: prescription_reminder_missing
+    locales: [fa]
+    method: POST
+    path: /api/v1/telemed/bookings/999999/prescription/1/reminder
+    status: 404
+  - name: video_missing
+    locales: [fa]
+    method: GET
+    path: /api/v1/telemed/bookings/999999/video
+    status: 404

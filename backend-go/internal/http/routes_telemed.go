@@ -9,8 +9,10 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/catalog"
 	catalogstore "github.com/ritme/backend-go/internal/catalog/store"
+	"github.com/ritme/backend-go/internal/files"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/loss"
 	"github.com/ritme/backend-go/internal/payments"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
@@ -57,7 +59,35 @@ func init() {
 		r.Post(b+"/:id/reschedule", locale, guard, writes, bh.Reschedule)
 		r.Put(b+"/:id/consent", locale, guard, writes, bh.UpdateConsent)
 		r.Delete(b+"/:id/consent", locale, guard, writes, bh.DestroyConsent)
+
+		// B-N7-04: chat, e-prescription → medication reminder, video link.
+		ch := telemed.NewChatHandlers(telemedChat(d, bookings), clock.Real{})
+		r.Get(b+"/:id/messages", locale, guard, ch.Messages)
+		r.Post(b+"/:id/messages", locale, guard, writes, ch.SendMessage)
+		r.Get(b+"/:id/prescription", locale, guard, ch.Prescription)
+		r.Post(b+"/:id/prescription/:item/reminder", locale, guard, writes, ch.AddReminder)
+		r.Get(b+"/:id/video", locale, guard, ch.Video)
 	})
+}
+
+// telemedChat builds the chat (B-N7-04) on bookings: message bodies sealed with the PRIVATE_NOTE_KEY box (development
+// key only in local / testing, otherwise fail closed → 503), attachments through the encrypted file storage
+// (FILE_KEY / LAB_FILE_KEY, same policy as routes_files.go), the video adapter of TELEMED_VIDEO_PROVIDER.
+func telemedChat(d *Deps, bookings *telemed.Bookings) *telemed.Chat {
+	box, err := loss.NewNoteBox(d.Config.PrivateNotes.Key, d.Config.PrivateNotes.PreviousKeys, d.Config.PrivateNotes.Missing(d.Config.App))
+	if err != nil {
+		panic(err) // config.Load already checked the key length
+	}
+	current, previous, dev, missing := d.Config.Files.Resolve(d.Config.App, d.Config.LabFiles)
+	if dev {
+		current = files.DevKey("ritme-file-dev-key")
+	}
+	vault, err := files.NewVault(d.Config.StoragePath, current, previous, missing)
+	if err != nil {
+		panic(err)
+	}
+	att := files.NewService(files.Options{DB: d.DB, Vault: vault, BaseURL: d.Config.App.URL})
+	return telemed.NewChat(bookings, box, att, telemed.NewVideo(d.Config.Telemed.VideoProvider))
 }
 
 // telemedBookings builds the booking service (routes_services.go reuses it read-only for the upcoming card). With

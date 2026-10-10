@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	rootdb "github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/care/store"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
 // Public API for other domains: a visit booked through the telemedicine domain (bloom B-N7-03) becomes an ordinary
@@ -103,4 +105,58 @@ func updateVisit(ctx context.Context, q *store.Queries, userID, id uint64, now t
 		return fmt.Errorf("care: update visit: %w", err)
 	}
 	return nil
+}
+
+// PrescribedMedication is one e-prescription line (bloom B-N7-04) the user turns into a medication reminder with one
+// tap: every day at Times, from StartsOn for DurationDays days (0 = ongoing). The caller validated the fields with
+// the medication limits (title ≤ 255, dose ≤ 50, Forms, 1–4 "HH:MM" times).
+type PrescribedMedication struct {
+	Title        string
+	Dose         string // optional
+	Form         string // one of Forms
+	Times        []string
+	DurationDays int
+	Notes        string // the doctor's instructions (optional)
+	StartsOn     civildate.Date
+}
+
+// ErrMedicationLimit: the user already keeps MaxMedications medication reminders.
+var ErrMedicationLimit = errors.New("care: medication limit reached")
+
+// AddPrescribedMedication inserts the medication reminder of a prescription line and returns its id. subtitleLocale
+// is the default language (the legacy subtitle column, like POST /care/medications).
+func AddPrescribedMedication(ctx context.Context, q *store.Queries, userID uint64, m PrescribedMedication, subtitleLocale string, now time.Time) (uint64, error) {
+	rows, err := q.ListMedications(ctx, userID)
+	if err != nil {
+		return 0, fmt.Errorf("care: count medications: %w", err)
+	}
+	if len(rows) >= MaxMedications {
+		return 0, ErrMedicationLimit
+	}
+	times := slices.Clone(m.Times)
+	slices.Sort(times)
+	times = slices.Compact(times)
+	meta := MedicationMeta{V: MetaVersion, Dose: optionalText(m.Dose), Form: m.Form, Times: times,
+		Weekdays: slices.Clone(AllWeekdays), Amount: 1, Duration: DurationOngoing, Notify: true}
+	ends := civildate.NullDate{}
+	if m.DurationDays > 0 {
+		meta.Duration = DurationUntilDate
+		ends = civildate.NullDate{Date: m.StartsOn.AddDays(m.DurationDays - 1), Valid: true}
+	}
+	raw, err := json.Marshal(meta)
+	if err != nil {
+		return 0, fmt.Errorf("care: medication meta: %w", err)
+	}
+	notes := sql.NullString{String: m.Notes, Valid: m.Notes != ""}
+	stamp := sql.NullTime{Time: now, Valid: true}
+	id, err := q.InsertMedication(ctx, store.InsertMedicationParams{
+		UserID: userID, Title: m.Title, Subtitle: meta.Subtitle(subtitleLocale), Notes: notes,
+		Recurrence: meta.Recurrence(), RecurrenceTime: meta.RecurrenceTime(),
+		StartsOn: civildate.NullDate{Date: m.StartsOn, Valid: true}, EndsOn: ends, IsActive: true,
+		Meta: rootdb.NullRawJSON{V: raw, Valid: true}, CreatedAt: stamp, UpdatedAt: stamp,
+	})
+	if err != nil || id <= 0 {
+		return 0, fmt.Errorf("care: insert prescribed medication (id %d): %w", id, err)
+	}
+	return uint64(id), nil
 }

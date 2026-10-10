@@ -22,5 +22,10 @@ func init() {
 			Routes(func(method, path string, chain httpadmin.Chain) {
 				httpadmin.Handle(r, method, httpadmin.Prefix+path, chain)
 			}, kit)
+		// B-N7-04: the doctor's side of chat / prescription / video (admin linked by telemed_doctors.admin_id).
+		telemed.NewDoctorAdmin(telemedChat(d, telemedBookings(d, false))).
+			Routes(func(method, path string, chain httpadmin.Chain) {
+				httpadmin.Handle(r, method, httpadmin.Prefix+path, chain)
+			}, kit)
 	})
 }

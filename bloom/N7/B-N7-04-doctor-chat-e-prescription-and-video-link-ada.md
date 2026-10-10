@@ -3,7 +3,7 @@ id: B-N7-04
 title: Doctor chat, e-prescription and video link adapter
 milestone: N7
 type: backend
-status: todo
+status: done
 depends_on: [B-N7-03]
 parallel_group: N7-D
 touches: [backend-go/internal/telemed,backend-go/internal/care,backend-go/api]

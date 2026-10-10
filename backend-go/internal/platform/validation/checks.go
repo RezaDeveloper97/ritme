@@ -28,6 +28,8 @@ func (v *Validator) check(r Rule, attr string, value any, params []string) bool 
 		return !phpval.Has(v.data, attr) || validateRequired(value)
 	case "RequiredIf":
 		return v.validateRequiredIf(value, params)
+	case "RequiredWithout":
+		return v.validateRequiredWithout(value, params)
 	case "Accepted":
 		return validateRequired(value) && isAccepted(value)
 	case "String":
@@ -218,6 +220,21 @@ func inArrayLoose(s string, params []string) bool {
 		}
 	}
 	return false
+}
+
+// validateRequiredWithout is required_without:a,b — required when any of the other fields is missing or empty
+// (anyFailingRequired).
+func (v *Validator) validateRequiredWithout(value any, params []string) bool {
+	if len(params) < 1 {
+		panic("validation: required_without needs at least 1 parameter")
+	}
+	for _, p := range params {
+		other, _ := phpval.Get(v.data, p)
+		if !validateRequired(other) {
+			return validateRequired(value)
+		}
+	}
+	return true
 }
 
 func (v *Validator) validateRequiredIf(value any, params []string) bool {

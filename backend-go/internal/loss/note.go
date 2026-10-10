@@ -82,17 +82,28 @@ func noteAD(userID, lossID uint64) []byte {
 
 // Seal encrypts plain for (userID, lossID) with the current key.
 func (b *NoteBox) Seal(plain string, userID, lossID uint64) (string, error) {
+	return b.SealWith(plain, noteAD(userID, lossID))
+}
+
+// SealWith encrypts plain bound to the caller's additional data. Other domains reuse the PRIVATE_NOTE_KEY box this
+// way (internal/telemed chat, bloom B-N7-04); their ad must carry their own prefix (never "loss-note:").
+func (b *NoteBox) SealWith(plain string, ad []byte) (string, error) {
 	k := b.keys[0]
 	nonce := make([]byte, k.aead.NonceSize())
 	if _, err := io.ReadFull(b.rand, nonce); err != nil {
 		return "", fmt.Errorf("loss: note nonce: %w", err)
 	}
-	sealed := k.aead.Seal(nonce, nonce, []byte(plain), noteAD(userID, lossID))
+	sealed := k.aead.Seal(nonce, nonce, []byte(plain), ad)
 	return noteVersion + ":" + k.id + ":" + base64.StdEncoding.EncodeToString(sealed), nil
 }
 
 // Open decrypts a stored note of (userID, lossID) with the key named in it.
 func (b *NoteBox) Open(stored string, userID, lossID uint64) (string, error) {
+	return b.OpenWith(stored, noteAD(userID, lossID))
+}
+
+// OpenWith decrypts what SealWith sealed under the same additional data.
+func (b *NoteBox) OpenWith(stored string, ad []byte) (string, error) {
 	parts := strings.SplitN(stored, ":", 3)
 	if len(parts) != 3 || parts[0] != noteVersion {
 		return "", ErrNoteUnreadable
@@ -106,7 +117,7 @@ func (b *NoteBox) Open(stored string, userID, lossID uint64) (string, error) {
 		if err != nil || len(sealed) < n {
 			return "", ErrNoteUnreadable
 		}
-		plain, err := k.aead.Open(nil, sealed[:n], sealed[n:], noteAD(userID, lossID))
+		plain, err := k.aead.Open(nil, sealed[:n], sealed[n:], ad)
 		if err != nil {
 			return "", ErrNoteUnreadable
 		}

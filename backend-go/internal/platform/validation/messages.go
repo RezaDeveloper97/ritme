@@ -141,6 +141,12 @@ func (v *Validator) makeReplacements(msg, attr, rule string, params []string) st
 		msg = strings.ReplaceAll(msg, ":max", param(params, 0))
 	case "Size":
 		msg = strings.ReplaceAll(msg, ":size", param(params, 0))
+	case "RequiredWithout": // replaceRequiredWith: the other attributes joined by " / "
+		names := make([]string, len(params))
+		for i, p := range params {
+			names[i] = v.displayableAttribute(p)
+		}
+		msg = strings.ReplaceAll(msg, ":values", strings.Join(names, " / "))
 	case "RequiredIf", "AcceptedIf":
 		otherValue, _ := phpval.Get(v.data, param(params, 0))
 		value := v.displayableValue(param(params, 0), otherValue)
