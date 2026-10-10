@@ -143,7 +143,12 @@ func (b *Bookings) Create(ctx context.Context, userID uint64, in BookInput, loc 
 		if err := q.ExpireDoctorHolds(ctx, store.ExpireDoctorHoldsParams{Stamp: nt(now), DoctorID: doctor.ID, Now: nt(now)}); err != nil {
 			return fmt.Errorf("telemed: expire holds: %w", err)
 		}
-		vt, err := b.slotOffered(ctx, doctor, in.Mode, in.StartsAt, now)
+		closed, err := b.holdCaps(ctx, q, userID, doctor.ID, now)
+		if err != nil {
+			return err
+		}
+		// Busy reads outside this transaction: ignore the user's own hold that holdCaps just closed.
+		vt, err := b.slotOffered(withoutBooking(ctx, closed), doctor, in.Mode, in.StartsAt, now)
 		if err != nil {
 			return err
 		}
@@ -222,6 +227,39 @@ func (b *Bookings) Create(ctx context.Context, userID uint64, in BookInput, loc 
 		return Created{}, fmt.Errorf("telemed: booking: %w", err)
 	}
 	return out, nil
+}
+
+// holdCaps limits holds (doctor lock held): MaxHoldsPerHour per rolling hour (ErrTooManyHolds), one active hold per
+// user (her older holds lapse), MaxUpcomingPerDoctor with this doctor and MaxUpcomingTotal overall (ErrTooManyBookings).
+// It returns the id of the hold it closed (0 = none).
+func (b *Bookings) holdCaps(ctx context.Context, q *store.Queries, userID, doctorID uint64, now time.Time) (uint64, error) {
+	n, err := q.CountUserHoldsSince(ctx, store.CountUserHoldsSinceParams{UserID: userID, Since: nt(now.Add(-time.Hour))})
+	if err != nil {
+		return 0, fmt.Errorf("telemed: recent holds: %w", err)
+	}
+	if n >= MaxHoldsPerHour {
+		return 0, ErrTooManyHolds
+	}
+	closed, err := q.GetUserActiveHold(ctx, userID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return 0, fmt.Errorf("telemed: active hold: %w", err)
+	}
+	if err := q.CloseUserHolds(ctx, store.CloseUserHoldsParams{Now: nt(now), UserID: userID}); err != nil {
+		return 0, fmt.Errorf("telemed: close holds: %w", err)
+	}
+	for _, c := range []struct {
+		doctor uint64
+		max    int64
+	}{{doctorID, MaxUpcomingPerDoctor}, {0, MaxUpcomingTotal}} {
+		n, err := q.CountUserUpcoming(ctx, store.CountUserUpcomingParams{UserID: userID, DoctorID: c.doctor, Now: now, HoldNow: nt(now)})
+		if err != nil {
+			return 0, fmt.Errorf("telemed: upcoming bookings: %w", err)
+		}
+		if n >= c.max {
+			return 0, ErrTooManyBookings
+		}
+	}
+	return closed, nil
 }
 
 var errDuplicateRef = errors.New("telemed: bank reference already used")
@@ -347,59 +385,63 @@ func (b *Bookings) locked(ctx context.Context, q *store.Queries, userID, id uint
 
 // Verify settles the payment of the user's booking reference server to server (the amount is the booking's stored
 // total, never a client value). Idempotent: a confirmed booking is returned unchanged (AlreadyPaid) without asking
-// the gateway again. A payment that arrives for a slot that is gone (the hold lapsed and someone else booked it) or a
-// closed booking is refunded (ErrBookingRefunded). A declined payment closes the hold (ErrPaymentFailed).
+// the gateway again. The gateway is asked before the doctor lock is taken (a slow bank never blocks the doctor's
+// bookings). A payment that arrives for a slot that is gone (the hold lapsed and the slot was taken, left the
+// schedule or is in the past), a doctor no longer listed, or a closed booking is recorded and refunded after the
+// commit (ErrBookingRefunded). A declined payment closes the hold (ErrPaymentFailed).
 func (b *Bookings) Verify(ctx context.Context, userID uint64, reference, authority string, loc catalog.Localizer) (Settled, error) {
 	now := b.now(ctx)
+	pre, err := b.q.LockUserBookingByReference(ctx, store.LockUserBookingByReferenceParams{Reference: reference, UserID: userID})
+	if errors.Is(err, sql.ErrNoRows) {
+		return Settled{}, ErrBookingNotFound
+	}
+	if err != nil {
+		return Settled{}, fmt.Errorf("telemed: booking: %w", err)
+	}
+	if paid, err := b.verifiable(pre, authority); err != nil || paid {
+		return Settled{Booking: pre, AlreadyPaid: paid}, err
+	}
+	res, err := b.opts.Gateway.Verify(ctx, payments.VerifyRequest{Authority: authority, AmountRials: pre.TotalRials})
+	if err != nil {
+		b.opts.Logger.WarnContext(ctx, "telemed: gateway verify failed", "gateway", b.opts.Gateway.Name(), "reference", reference, "error", err.Error())
+		return Settled{}, fmt.Errorf("%w: %w", ErrPaymentUnavailable, err)
+	}
 	var out Settled
 	var outcome error // business failures that still commit
-	err := b.inTx(ctx, func(tx *sql.Tx, q *store.Queries) error {
+	var refund *store.TelemedBooking
+	err = b.inTx(ctx, func(tx *sql.Tx, q *store.Queries) error {
 		bk, err := b.lockedByReference(ctx, q, userID, reference)
 		if err != nil {
 			return err
 		}
 		out.Booking = bk
-		switch {
-		case bk.PaymentStatus == PaymentFree || (bk.PaymentStatus == PaymentPaid && (bk.Status == StatusConfirmed || bk.Status == StatusCompleted)):
-			out.AlreadyPaid = true
-			return nil
-		case bk.PaymentStatus != PaymentPending:
-			return ErrBookingClosed
-		case !bk.Authority.Valid || bk.Authority.String != authority:
-			return ErrAuthorityMismatch
-		case b.opts.Gateway == nil || bk.Gateway.String != b.opts.Gateway.Name():
-			return ErrPaymentUnavailable
-		}
-		res, err := b.opts.Gateway.Verify(ctx, payments.VerifyRequest{Authority: authority, AmountRials: bk.TotalRials})
-		if err != nil {
-			b.opts.Logger.WarnContext(ctx, "telemed: gateway verify failed", "gateway", b.opts.Gateway.Name(), "reference", reference, "error", err.Error())
-			return fmt.Errorf("%w: %w", ErrPaymentUnavailable, err)
+		if paid, err := b.verifiable(bk, authority); err != nil || paid {
+			out.AlreadyPaid = paid // a concurrent verify settled it meanwhile
+			return err
 		}
 		holdOpen := bk.Status == StatusHeld || bk.Status == StatusExpired
-		switch {
-		case !res.Paid:
-			outcome = ErrPaymentFailed
+		failHold := func() error {
 			if holdOpen {
 				return q.MarkPaymentFailed(ctx, store.MarkPaymentFailedParams{Now: nt(now), ID: bk.ID})
 			}
-			return nil
+			return q.DeclinePendingPayment(ctx, store.DeclinePendingPaymentParams{Now: nt(now), ID: bk.ID})
+		}
+		switch {
+		case !res.Paid:
+			outcome = ErrPaymentFailed
+			return failHold()
 		case res.AmountRials != bk.TotalRials:
 			b.opts.Logger.ErrorContext(ctx, "telemed: settled amount differs from booking", "gateway", b.opts.Gateway.Name(),
 				"reference", reference, "total", bk.TotalRials, "settled", res.AmountRials)
 			outcome = ErrAmountMismatch
-			if holdOpen {
-				return q.MarkPaymentFailed(ctx, store.MarkPaymentFailedParams{Now: nt(now), ID: bk.ID})
-			}
-			return nil
+			return failHold()
 		}
 		if holdOpen {
-			n, err := q.CountOverlappingBookings(ctx, store.CountOverlappingBookingsParams{
-				DoctorID: bk.DoctorID, ExceptID: bk.ID, EndsAt: bk.EndsAt, StartsAt: bk.StartsAt, Now: nt(now),
-			})
+			ok, err := b.confirmable(ctx, q, bk, now)
 			if err != nil {
-				return fmt.Errorf("telemed: overlaps: %w", err)
+				return err
 			}
-			if n == 0 {
+			if ok {
 				err := b.confirm(ctx, tx, q, bk, PaymentPaid, &res, loc, now)
 				switch {
 				case err == nil:
@@ -413,12 +455,12 @@ func (b *Bookings) Verify(ctx context.Context, userID uint64, reference, authori
 				}
 			}
 		}
-		// Paid, but the booking cannot be confirmed: record the payment, close the booking, refund.
+		// Paid, but the booking cannot be confirmed: record the payment, close the booking, refund after the commit.
 		outcome = ErrBookingRefunded
 		if err := q.SetBookingPaid(ctx, store.SetBookingPaidParams{RefID: ns(res.RefID), CardPan: ns(res.CardPAN), PaidAt: nt(now), Now: nt(now), ID: bk.ID}); err != nil {
 			if isDuplicate(err) {
 				outcome = ErrPaymentFailed
-				return q.MarkPaymentFailed(ctx, store.MarkPaymentFailedParams{Now: nt(now), ID: bk.ID})
+				return failHold()
 			}
 			return fmt.Errorf("telemed: booking paid: %w", err)
 		}
@@ -427,10 +469,15 @@ func (b *Bookings) Verify(ctx context.Context, userID uint64, reference, authori
 				return fmt.Errorf("telemed: close booking: %w", err)
 			}
 		}
-		return b.refund(ctx, q, bk.ID, authority, res.RefID, bk.TotalRials, now)
+		bk.RefID = ns(res.RefID)
+		refund = &bk
+		return b.queueRefund(ctx, q, bk.ID, now)
 	})
 	if err != nil {
 		return Settled{}, err
+	}
+	if refund != nil {
+		b.settleRefund(ctx, *refund)
 	}
 	if out.Booking, err = b.q.GetBooking(ctx, out.Booking.ID); err != nil {
 		return Settled{}, fmt.Errorf("telemed: booking: %w", err)
@@ -438,22 +485,95 @@ func (b *Bookings) Verify(ctx context.Context, userID uint64, reference, authori
 	return out, outcome
 }
 
-// refund returns amount of a paid booking through the gateway. A provider that cannot refund through the adapter (or
-// fails) leaves payment_status refund_pending for the admins; the booking change itself still commits.
-func (b *Bookings) refund(ctx context.Context, q *store.Queries, id uint64, authority, refID string, amount uint64, now time.Time) error {
-	p := store.SetBookingRefundParams{PaymentStatus: PaymentRefundPending, Now: nt(now), ID: id}
-	if b.opts.Gateway != nil && amount > 0 {
-		r, err := b.opts.Gateway.Refund(ctx, payments.RefundRequest{Authority: authority, RefID: refID, AmountRials: amount, Reason: "telemed booking"})
-		if err == nil {
-			p.PaymentStatus, p.RefundID, p.RefundedRials, p.RefundedAt = PaymentRefunded, ns(r.RefundID), r.AmountRials, nt(now)
-		} else {
-			b.opts.Logger.WarnContext(ctx, "telemed: refund needs an admin", "gateway", b.opts.Gateway.Name(), "booking", id, "error", err.Error())
+// verifiable reports whether bk is already settled (paid) or why its payment cannot be verified now.
+func (b *Bookings) verifiable(bk store.TelemedBooking, authority string) (bool, error) {
+	switch {
+	case bk.PaymentStatus == PaymentFree || (bk.PaymentStatus == PaymentPaid && (bk.Status == StatusConfirmed || bk.Status == StatusCompleted)):
+		return true, nil
+	case bk.PaymentStatus != PaymentPending:
+		return false, ErrBookingClosed
+	case !bk.Authority.Valid || bk.Authority.String != authority:
+		return false, ErrAuthorityMismatch
+	case b.opts.Gateway == nil || bk.Gateway.String != b.opts.Gateway.Name():
+		return false, ErrPaymentUnavailable
+	}
+	return false, nil
+}
+
+// confirmable reports whether the paid hold bk can still become a visit at now (doctor lock held): the visit is
+// ahead, the doctor is listed, a lapsed hold's slot is still offered, and nothing else overlaps it.
+func (b *Bookings) confirmable(ctx context.Context, q *store.Queries, bk store.TelemedBooking, now time.Time) (bool, error) {
+	if !wall(bk.StartsAt).After(now) {
+		return false, nil
+	}
+	doctor, err := b.listed(ctx, bk.DoctorID)
+	if errors.Is(err, ErrDoctorNotFound) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	lapsed := bk.Status == StatusExpired || !bk.HoldExpiresAt.Valid || !wall(bk.HoldExpiresAt.Time).After(now)
+	if lapsed {
+		_, err := b.slotOffered(withoutBooking(ctx, bk.ID), doctor, bk.Mode, wall(bk.StartsAt), now)
+		switch {
+		case errors.Is(err, ErrSlotUnavailable), errors.Is(err, ErrModeNotOffered):
+			return false, nil
+		case err != nil:
+			return false, err
 		}
 	}
-	if err := q.SetBookingRefund(ctx, p); err != nil {
+	n, err := q.CountOverlappingBookings(ctx, store.CountOverlappingBookingsParams{
+		DoctorID: bk.DoctorID, ExceptID: bk.ID, EndsAt: bk.EndsAt, StartsAt: bk.StartsAt, Now: nt(now),
+	})
+	if err != nil {
+		return false, fmt.Errorf("telemed: overlaps: %w", err)
+	}
+	return n == 0, nil
+}
+
+// queueRefund puts a paid booking in the refund outbox (payment_status refund_pending) inside the booking change's
+// transaction; settleRefund pays it out after the commit.
+func (b *Bookings) queueRefund(ctx context.Context, q *store.Queries, id uint64, now time.Time) error {
+	if err := q.SetBookingRefund(ctx, store.SetBookingRefundParams{PaymentStatus: PaymentRefundPending, Now: nt(now), ID: id}); err != nil {
 		return fmt.Errorf("telemed: booking refund: %w", err)
 	}
 	return nil
+}
+
+// settleRefund refunds a refund_pending booking through the gateway once (MarkRefunded only moves refund_pending).
+// A provider that cannot refund through the adapter (Zarinpal) or fails leaves it refund_pending for the admins
+// (ListRefundPendingBookings) and logs an error with the booking and reference. Paid telemed must stay off in
+// production until the admin refund list ships (B-N7-08).
+func (b *Bookings) settleRefund(ctx context.Context, bk store.TelemedBooking) {
+	gw := "none"
+	if b.opts.Gateway != nil {
+		gw = b.opts.Gateway.Name()
+	}
+	if b.opts.Gateway == nil || bk.TotalRials == 0 {
+		b.opts.Logger.ErrorContext(ctx, "telemed: refund needs an admin", "gateway", gw, "booking", bk.ID, "reference", bk.Reference)
+		return
+	}
+	r, err := b.opts.Gateway.Refund(ctx, payments.RefundRequest{
+		Authority: bk.Authority.String, RefID: bk.RefID.String, AmountRials: bk.TotalRials, Reason: "telemed booking",
+	})
+	if err != nil {
+		b.opts.Logger.ErrorContext(ctx, "telemed: refund needs an admin", "gateway", gw, "booking", bk.ID, "reference", bk.Reference, "error", err.Error())
+		return
+	}
+	now := b.now(ctx)
+	if _, err := b.q.MarkRefunded(ctx, store.MarkRefundedParams{RefundID: ns(r.RefundID), RefundedRials: r.AmountRials, Now: nt(now), ID: bk.ID}); err != nil {
+		b.opts.Logger.ErrorContext(ctx, "telemed: refund done but not recorded", "gateway", gw, "booking", bk.ID, "reference", bk.Reference, "refund_id", r.RefundID, "error", err.Error())
+	}
+}
+
+// RefundPending lists the paid bookings an admin still has to refund (newest first).
+func (b *Bookings) RefundPending(ctx context.Context, limit, offset int32) ([]store.TelemedBooking, error) {
+	rows, err := b.q.ListRefundPendingBookings(ctx, store.ListRefundPendingBookingsParams{Limit: limit, Offset: offset})
+	if err != nil {
+		return nil, fmt.Errorf("telemed: refund pending: %w", err)
+	}
+	return rows, nil
 }
 
 // CancelDeadline is the last moment a confirmed booking can be cancelled or moved for free.
@@ -468,6 +588,7 @@ func Changeable(bk store.TelemedBooking, now time.Time) bool {
 // (ErrCancelWindowClosed after), with a full refund, its care appointment cancelled and every consent revoked.
 func (b *Bookings) Cancel(ctx context.Context, userID, id uint64) (store.TelemedBooking, error) {
 	now := b.now(ctx)
+	var refund *store.TelemedBooking
 	err := b.inTx(ctx, func(tx *sql.Tx, q *store.Queries) error {
 		bk, err := b.locked(ctx, q, userID, id)
 		if err != nil {
@@ -492,12 +613,16 @@ func (b *Bookings) Cancel(ctx context.Context, userID, id uint64) (store.Telemed
 			}
 		}
 		if bk.PaymentStatus == PaymentPaid {
-			return b.refund(ctx, q, bk.ID, bk.Authority.String, bk.RefID.String, bk.TotalRials, now)
+			refund = &bk
+			return b.queueRefund(ctx, q, bk.ID, now)
 		}
 		return nil
 	})
 	if err != nil {
 		return store.TelemedBooking{}, err
+	}
+	if refund != nil {
+		b.settleRefund(ctx, *refund)
 	}
 	return b.q.GetBooking(ctx, id)
 }
@@ -516,6 +641,8 @@ func (b *Bookings) Reschedule(ctx context.Context, userID, id uint64, start time
 			return ErrBookingClosed
 		case !Changeable(bk, now):
 			return ErrCancelWindowClosed
+		case bk.Reschedules >= MaxReschedules:
+			return ErrRescheduleLimit
 		case start.Equal(wall(bk.StartsAt)):
 			return ErrSlotUnavailable
 		}
@@ -618,7 +745,18 @@ func (b *Bookings) List(ctx context.Context, userID uint64, scope string) ([]sto
 // call it). It reports whether the booking changed.
 func (b *Bookings) Complete(ctx context.Context, id uint64, now time.Time) (bool, error) {
 	changed := false
-	err := b.inTx(ctx, func(_ *sql.Tx, q *store.Queries) error {
+	pre, err := b.q.GetBooking(ctx, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("telemed: booking: %w", err)
+	}
+	err = b.inTx(ctx, func(_ *sql.Tx, q *store.Queries) error {
+		// The doctor lock first, like every other booking write (no lock-order deadlock with holds/settlement).
+		if _, err := q.LockDoctor(ctx, pre.DoctorID); err != nil {
+			return fmt.Errorf("telemed: lock doctor: %w", err)
+		}
 		n, err := q.CompleteBooking(ctx, store.CompleteBookingParams{Now: nt(now), Stamp: nt(now), ID: id})
 		if err != nil {
 			return fmt.Errorf("telemed: complete booking: %w", err)

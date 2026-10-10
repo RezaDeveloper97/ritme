@@ -28,6 +28,9 @@ const (
 	ErrorCodeBookingRefunded    = "booking_refunded"
 	ErrorCodeCancelWindowClosed = "cancel_window_closed"
 	ErrorCodeConsentNotAllowed  = "consent_not_allowed"
+	ErrorCodeTooManyBookings    = "too_many_bookings"
+	ErrorCodeTooManyHolds       = "too_many_holds"
+	ErrorCodeRescheduleLimit    = "reschedule_limit"
 )
 
 // BookingHandlers are the /api/v1/telemed/bookings actions. Mount them behind the locale middleware and auth
@@ -74,6 +77,12 @@ func failBooking(err error, locale string) error {
 		return coded(fiber.StatusConflict, "cancel_window_closed", ErrorCodeCancelWindowClosed, locale)
 	case errors.Is(err, ErrConsentNotAllowed):
 		return coded(fiber.StatusUnprocessableEntity, "consent_not_allowed", ErrorCodeConsentNotAllowed, locale)
+	case errors.Is(err, ErrTooManyBookings):
+		return coded(fiber.StatusConflict, "too_many_bookings", ErrorCodeTooManyBookings, locale)
+	case errors.Is(err, ErrTooManyHolds):
+		return coded(fiber.StatusTooManyRequests, "too_many_holds", ErrorCodeTooManyHolds, locale)
+	case errors.Is(err, ErrRescheduleLimit):
+		return coded(fiber.StatusConflict, "reschedule_limit", ErrorCodeRescheduleLimit, locale)
 	case errors.Is(err, ErrChildNotFound):
 		msg := lang.Default().Trans("validation.in", map[string]string{"attribute": T("attributes.child_id", locale)}, locale)
 		return failValidation(locale, jsonx.Obj("child_id", []string{msg}))

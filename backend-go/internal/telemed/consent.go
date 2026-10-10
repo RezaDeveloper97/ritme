@@ -88,11 +88,16 @@ func (b *Bookings) RevokeConsent(ctx context.Context, userID, id uint64) (store.
 	return bk, nil
 }
 
+// ShareWindowBegin is the first moment a doctor may read what was shared on bk.
+func ShareWindowBegin(bk store.TelemedBooking) time.Time {
+	return wall(bk.StartsAt).Add(-ShareWindowStart)
+}
+
 // ShareWindowEnd is the last moment a doctor may read what was shared on bk.
 func ShareWindowEnd(bk store.TelemedBooking) time.Time { return wall(bk.EndsAt).Add(ConsentGrace) }
 
 // AuthorizeShare is the doctor-side gate: doctorID may read scope of booking bookingID at now only when the booking
-// is this doctor's, confirmed or completed, inside its visit window (until ShareWindowEnd) and the user's consent
+// is this doctor's, confirmed or completed, inside its visit window (ShareWindowBegin..ShareWindowEnd) and the user's consent
 // for scope is active. Anything else — unknown booking, another doctor, a hold, a cancelled visit, a revoked or
 // never-given consent, a past window — is ErrConsentRequired (no detail leaks to the caller).
 func (b *Bookings) AuthorizeShare(ctx context.Context, doctorID, bookingID uint64, scope string, now time.Time) (store.TelemedBooking, error) {
@@ -111,7 +116,7 @@ func (b *Bookings) AuthorizeShare(ctx context.Context, doctorID, bookingID uint6
 		return store.TelemedBooking{}, ErrConsentRequired
 	case bk.Status != StatusConfirmed && bk.Status != StatusCompleted:
 		return store.TelemedBooking{}, ErrConsentRequired
-	case now.After(ShareWindowEnd(bk)):
+	case now.Before(ShareWindowBegin(bk)), now.After(ShareWindowEnd(bk)):
 		return store.TelemedBooking{}, ErrConsentRequired
 	}
 	_, err = b.q.GetActiveConsent(ctx, store.GetActiveConsentParams{BookingID: bookingID, DoctorID: doctorID, Scope: scope})

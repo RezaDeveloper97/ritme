@@ -182,3 +182,43 @@ JOIN `telemed_bookings` b ON b.id = c.booking_id
 WHERE c.booking_id = sqlc.arg(booking_id) AND b.doctor_id = sqlc.arg(doctor_id) AND c.scope = sqlc.arg(scope)
   AND c.revoked_at IS NULL
 LIMIT 1;
+
+-- B-N7-03b (booking security): hold caps, refund outbox on payment_status, terminal declined payments.
+
+-- name: CloseUserHolds :exec
+-- One active hold per user: her older holds lapse (slot released) when she places a new one.
+UPDATE `telemed_bookings`
+SET status = 'expired', slot_key = NULL, updated_at = sqlc.arg(now)
+WHERE user_id = sqlc.arg(user_id) AND status = 'held';
+
+-- name: GetUserActiveHold :one
+-- The user's newest hold (at most one is active); CloseUserHolds closes it in the same transaction.
+SELECT id FROM `telemed_bookings` WHERE user_id = ? AND status = 'held' ORDER BY id DESC LIMIT 1;
+
+-- name: CountUserUpcoming :one
+-- The user's active bookings (confirmed and not ended, or held and not lapsed); doctor_id 0 = every doctor.
+SELECT COUNT(*) FROM `telemed_bookings`
+WHERE user_id = sqlc.arg(user_id) AND (sqlc.arg(doctor_id) = 0 OR doctor_id = sqlc.arg(doctor_id))
+  AND ((status = 'confirmed' AND ends_at > sqlc.arg(now)) OR (status = 'held' AND hold_expires_at > sqlc.arg(hold_now)));
+
+-- name: CountUserHoldsSince :one
+-- Holds the user placed since a moment (the hourly hold throttle).
+SELECT COUNT(*) FROM `telemed_bookings` WHERE user_id = sqlc.arg(user_id) AND created_at >= sqlc.arg(since);
+
+-- name: MarkRefunded :execrows
+-- Refund outbox: a refund_pending booking is settled once (the conditional update claims it).
+UPDATE `telemed_bookings`
+SET payment_status = 'refunded', refund_id = sqlc.narg(refund_id), refunded_rials = sqlc.arg(refunded_rials),
+    refunded_at = sqlc.arg(now), updated_at = sqlc.arg(now)
+WHERE id = sqlc.arg(id) AND payment_status = 'refund_pending';
+
+-- name: ListRefundPendingBookings :many
+-- Paid bookings whose refund an admin still has to make (newest first; the admin list of B-N7-08).
+SELECT * FROM `telemed_bookings` WHERE payment_status = 'refund_pending'
+ORDER BY id DESC
+LIMIT ? OFFSET ?;
+
+-- name: DeclinePendingPayment :exec
+-- A declined payment of a booking that is no longer a hold (cancelled meanwhile): the payment ends as declined.
+UPDATE `telemed_bookings` SET payment_status = 'declined', updated_at = sqlc.arg(now)
+WHERE id = sqlc.arg(id) AND payment_status = 'pending';

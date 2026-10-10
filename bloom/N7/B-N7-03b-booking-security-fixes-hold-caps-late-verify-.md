@@ -3,7 +3,7 @@ id: B-N7-03b
 title: Booking security fixes — hold caps, late-verify slot recheck, refund ledger, gateway outside lock, consent start bound
 milestone: N7
 type: backend
-status: in_progress
+status: done
 depends_on: [B-N7-03]
 parallel_group: N7-C2
 touches: [backend-go/internal/telemed,backend-go/internal/payments,backend-go/db,backend-go/api]

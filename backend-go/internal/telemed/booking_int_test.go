@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -46,6 +47,7 @@ type benv struct {
 	plMu  sync.Mutex
 	a     uint64
 	other uint64
+	guard fiber.Handler // RequireUser (chat tests mount more routes)
 }
 
 const returnURL = "https://web.ritme.test/services/bookings/return"
@@ -94,6 +96,7 @@ func setupBooking(t *testing.T, withGateway bool) *benv {
 	e.App.Delete(b+"/:id/consent", locale, guard, bh.DestroyConsent)
 	telemed.NewAdmin(be.bk.Directory(), media.NewDisk(e.Storage), media.DefaultOptimizer, appURL, admintest.Quiet).Routes(e.Route(), e.Kit)
 	be.env = &env{Env: e, iss: passport.NewIssuer(key, q, clock.Real{}, 365)}
+	be.guard = guard
 	be.a, be.other, _, _ = be.seed(t)
 	return be
 }

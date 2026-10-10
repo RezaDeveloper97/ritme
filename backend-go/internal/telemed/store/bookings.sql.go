@@ -39,6 +39,25 @@ func (q *Queries) CloseBooking(ctx context.Context, arg CloseBookingParams) erro
 	return err
 }
 
+const closeUserHolds = `-- name: CloseUserHolds :exec
+
+UPDATE ` + "`" + `telemed_bookings` + "`" + `
+SET status = 'expired', slot_key = NULL, updated_at = ?
+WHERE user_id = ? AND status = 'held'
+`
+
+type CloseUserHoldsParams struct {
+	Now    sql.NullTime
+	UserID uint64
+}
+
+// B-N7-03b (booking security): hold caps, refund outbox on payment_status, terminal declined payments.
+// One active hold per user: her older holds lapse (slot released) when she places a new one.
+func (q *Queries) CloseUserHolds(ctx context.Context, arg CloseUserHoldsParams) error {
+	_, err := q.db.ExecContext(ctx, closeUserHolds, arg.Now, arg.UserID)
+	return err
+}
+
 const completeBooking = `-- name: CompleteBooking :execrows
 UPDATE ` + "`" + `telemed_bookings` + "`" + `
 SET status = 'completed', slot_key = NULL, completed_at = ?, updated_at = ?
@@ -117,6 +136,66 @@ func (q *Queries) CountOverlappingBookings(ctx context.Context, arg CountOverlap
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const countUserHoldsSince = `-- name: CountUserHoldsSince :one
+SELECT COUNT(*) FROM ` + "`" + `telemed_bookings` + "`" + ` WHERE user_id = ? AND created_at >= ?
+`
+
+type CountUserHoldsSinceParams struct {
+	UserID uint64
+	Since  sql.NullTime
+}
+
+// Holds the user placed since a moment (the hourly hold throttle).
+func (q *Queries) CountUserHoldsSince(ctx context.Context, arg CountUserHoldsSinceParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUserHoldsSince, arg.UserID, arg.Since)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countUserUpcoming = `-- name: CountUserUpcoming :one
+SELECT COUNT(*) FROM ` + "`" + `telemed_bookings` + "`" + `
+WHERE user_id = ? AND (? = 0 OR doctor_id = ?)
+  AND ((status = 'confirmed' AND ends_at > ?) OR (status = 'held' AND hold_expires_at > ?))
+`
+
+type CountUserUpcomingParams struct {
+	UserID   uint64
+	DoctorID uint64
+	Now      time.Time
+	HoldNow  sql.NullTime
+}
+
+// The user's active bookings (confirmed and not ended, or held and not lapsed); doctor_id 0 = every doctor.
+func (q *Queries) CountUserUpcoming(ctx context.Context, arg CountUserUpcomingParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUserUpcoming,
+		arg.UserID,
+		arg.DoctorID,
+		arg.DoctorID,
+		arg.Now,
+		arg.HoldNow,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const declinePendingPayment = `-- name: DeclinePendingPayment :exec
+UPDATE ` + "`" + `telemed_bookings` + "`" + ` SET payment_status = 'declined', updated_at = ?
+WHERE id = ? AND payment_status = 'pending'
+`
+
+type DeclinePendingPaymentParams struct {
+	Now sql.NullTime
+	ID  uint64
+}
+
+// A declined payment of a booking that is no longer a hold (cancelled meanwhile): the payment ends as declined.
+func (q *Queries) DeclinePendingPayment(ctx context.Context, arg DeclinePendingPaymentParams) error {
+	_, err := q.db.ExecContext(ctx, declinePendingPayment, arg.Now, arg.ID)
+	return err
 }
 
 const expireDoctorHolds = `-- name: ExpireDoctorHolds :exec
@@ -256,6 +335,18 @@ func (q *Queries) GetOwnedChild(ctx context.Context, arg GetOwnedChildParams) (G
 	var i GetOwnedChildRow
 	err := row.Scan(&i.ID, &i.Name, &i.BirthDate)
 	return i, err
+}
+
+const getUserActiveHold = `-- name: GetUserActiveHold :one
+SELECT id FROM ` + "`" + `telemed_bookings` + "`" + ` WHERE user_id = ? AND status = 'held' ORDER BY id DESC LIMIT 1
+`
+
+// The user's newest hold (at most one is active); CloseUserHolds closes it in the same transaction.
+func (q *Queries) GetUserActiveHold(ctx context.Context, userID uint64) (uint64, error) {
+	row := q.db.QueryRowContext(ctx, getUserActiveHold, userID)
+	var id uint64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const getUserBooking = `-- name: GetUserBooking :one
@@ -589,6 +680,77 @@ func (q *Queries) ListOwnedChildrenForBooking(ctx context.Context, ownerID uint6
 	return items, nil
 }
 
+const listRefundPendingBookings = `-- name: ListRefundPendingBookings :many
+SELECT id, reference, user_id, doctor_id, mode, duration_minutes, starts_at, ends_at, status, slot_key, hold_expires_at, for_whom, child_id, patient_name, reason, note, price_rials, discount_rials, discount_source, total_rials, payment_status, gateway, authority, ref_id, card_pan, paid_at, refund_id, refunded_rials, refunded_at, appointment_id, reschedules, cancelled_at, completed_at, created_at, updated_at FROM ` + "`" + `telemed_bookings` + "`" + ` WHERE payment_status = 'refund_pending'
+ORDER BY id DESC
+LIMIT ? OFFSET ?
+`
+
+type ListRefundPendingBookingsParams struct {
+	Limit  int32
+	Offset int32
+}
+
+// Paid bookings whose refund an admin still has to make (newest first; the admin list of B-N7-08).
+func (q *Queries) ListRefundPendingBookings(ctx context.Context, arg ListRefundPendingBookingsParams) ([]TelemedBooking, error) {
+	rows, err := q.db.QueryContext(ctx, listRefundPendingBookings, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []TelemedBooking{}
+	for rows.Next() {
+		var i TelemedBooking
+		if err := rows.Scan(
+			&i.ID,
+			&i.Reference,
+			&i.UserID,
+			&i.DoctorID,
+			&i.Mode,
+			&i.DurationMinutes,
+			&i.StartsAt,
+			&i.EndsAt,
+			&i.Status,
+			&i.SlotKey,
+			&i.HoldExpiresAt,
+			&i.ForWhom,
+			&i.ChildID,
+			&i.PatientName,
+			&i.Reason,
+			&i.Note,
+			&i.PriceRials,
+			&i.DiscountRials,
+			&i.DiscountSource,
+			&i.TotalRials,
+			&i.PaymentStatus,
+			&i.Gateway,
+			&i.Authority,
+			&i.RefID,
+			&i.CardPan,
+			&i.PaidAt,
+			&i.RefundID,
+			&i.RefundedRials,
+			&i.RefundedAt,
+			&i.AppointmentID,
+			&i.Reschedules,
+			&i.CancelledAt,
+			&i.CompletedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUserBookings = `-- name: ListUserBookings :many
 SELECT id, reference, user_id, doctor_id, mode, duration_minutes, starts_at, ends_at, status, slot_key, hold_expires_at, for_whom, child_id, patient_name, reason, note, price_rials, discount_rials, discount_source, total_rials, payment_status, gateway, authority, ref_id, card_pan, paid_at, refund_id, refunded_rials, refunded_at, appointment_id, reschedules, cancelled_at, completed_at, created_at, updated_at FROM ` + "`" + `telemed_bookings` + "`" + `
 WHERE user_id = ? AND status IN ('held', 'confirmed', 'completed', 'cancelled')
@@ -790,6 +952,35 @@ type MarkPaymentFailedParams struct {
 func (q *Queries) MarkPaymentFailed(ctx context.Context, arg MarkPaymentFailedParams) error {
 	_, err := q.db.ExecContext(ctx, markPaymentFailed, arg.Now, arg.ID)
 	return err
+}
+
+const markRefunded = `-- name: MarkRefunded :execrows
+UPDATE ` + "`" + `telemed_bookings` + "`" + `
+SET payment_status = 'refunded', refund_id = ?, refunded_rials = ?,
+    refunded_at = ?, updated_at = ?
+WHERE id = ? AND payment_status = 'refund_pending'
+`
+
+type MarkRefundedParams struct {
+	RefundID      sql.NullString
+	RefundedRials uint64
+	Now           sql.NullTime
+	ID            uint64
+}
+
+// Refund outbox: a refund_pending booking is settled once (the conditional update claims it).
+func (q *Queries) MarkRefunded(ctx context.Context, arg MarkRefundedParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, markRefunded,
+		arg.RefundID,
+		arg.RefundedRials,
+		arg.Now,
+		arg.Now,
+		arg.ID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const nextUserBooking = `-- name: NextUserBooking :one

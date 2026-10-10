@@ -55,7 +55,8 @@ const (
 	PaymentPaid          = "paid"
 	PaymentFree          = "free"
 	PaymentRefunded      = "refunded"
-	PaymentRefundPending = "refund_pending" // the provider cannot refund through the adapter: admins refund by hand
+	PaymentRefundPending = "refund_pending" // refund outbox: settled after the commit, or by an admin when the provider cannot
+	PaymentDeclined      = "declined"       // declined after the booking was already closed (terminal)
 )
 
 // For whom the visit is (telemed_bookings.for_whom), in display order.
@@ -93,6 +94,15 @@ const (
 	// MaxPatientNameLen / MaxBookingNoteLen: characters.
 	MaxPatientNameLen = 64
 	MaxBookingNoteLen = 1000
+	// MaxUpcomingPerDoctor / MaxUpcomingTotal: active (held or confirmed, not ended) bookings of one user.
+	MaxUpcomingPerDoctor = 2
+	MaxUpcomingTotal     = 5
+	// MaxHoldsPerHour: holds a user may place per rolling hour.
+	MaxHoldsPerHour = 10
+	// MaxReschedules: free moves of one booking.
+	MaxReschedules = 2
+	// ShareWindowStart: a doctor may read what the user shared from this long before the visit.
+	ShareWindowStart = 24 * time.Hour
 	// SweepEvery: how often lapsed holds are expired and ended visits completed.
 	SweepEvery = time.Minute
 )
@@ -111,6 +121,9 @@ var (
 	ErrConsentNotAllowed  = errors.New("telemed: consent only for one's own visit")
 	ErrConsentRequired    = errors.New("telemed: no active consent for this share")
 	ErrChildNotFound      = errors.New("telemed: child not found")
+	ErrTooManyBookings    = errors.New("telemed: too many upcoming bookings")
+	ErrTooManyHolds       = errors.New("telemed: too many holds in the last hour")
+	ErrRescheduleLimit    = errors.New("telemed: reschedule limit reached")
 )
 
 // PaymentGateway is the payments adapter the booking charges through (payments.Gateway implements it).
