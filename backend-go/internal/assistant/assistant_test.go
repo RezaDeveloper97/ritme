@@ -73,3 +73,44 @@ func TestWithoutLosses_NeverSendsALoss(t *testing.T) {
 	assert.NotContains(t, raw, "loss")
 	assert.Nil(t, withoutLosses(map[string]any{"items": []any{map[string]any{"outcome": "ended"}}}), "only losses → nothing")
 }
+
+// B-N7-06b M3: evasions of the emergency keywords still match.
+func TestTerms_EmergencyNormalisation(t *testing.T) {
+	var none Terms
+	for _, s := range []string{
+		"I can\u2019t breathe", // curly apostrophe
+		"i cant breathe",       // apostrophe dropped
+		"خود\u200dکشی",         // ZWJ
+		"خودکـــشی",            // tatweel
+		"خُودکُشی",             // harakat
+		"ｓｕｉｃｉｄｅ",              // full-width
+		"ＣＨＥＳＴ ＰＡＩＮ",           // full-width with space
+		"chest\u2003pain",      // em space
+		"heavy\u00a0bleeding",  // no-break space
+		"خونریزی\u202fشدید",    // narrow no-break space
+		"chest\u200bpain",      // zero-width space
+		"overdose", "I want to end my life", "تنگی نفس دارم",
+	} {
+		assert.True(t, none.IsEmergency(s), "%q", s)
+	}
+	assert.False(t, none.IsEmergency("how can I breathe better while running"))
+}
+
+// B-N7-06b M5: a link split across deltas never reaches the stream.
+func TestStreamFilter_StripsLinksAcrossDeltas(t *testing.T) {
+	answer := "Read https://evil.example/path?q=1 or www.bad.example now.[[triage:soon]]"
+	var f streamFilter
+	var out strings.Builder
+	for _, r := range answer {
+		out.WriteString(f.push(string(r)))
+	}
+	out.WriteString(f.flush())
+	assert.Equal(t, "Read  or  now.", out.String())
+	var g streamFilter
+	out.Reset()
+	for _, r := range "Done here. Visit https://x.example" {
+		out.WriteString(g.push(string(r)))
+	}
+	out.WriteString(g.flush())
+	assert.Equal(t, "Done here. Visit ", out.String())
+}

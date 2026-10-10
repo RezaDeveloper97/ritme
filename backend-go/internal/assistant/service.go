@@ -51,6 +51,8 @@ type Options struct {
 	Profile  ProfileBuilder
 	Photos   PhotoStore
 	Bookings BookingSource
+	// Box seals message bodies and summaries at rest (PRIVATE_NOTE_KEY, B-N7-06b H1). Required.
+	Box Sealer
 	// BookingNotFound tells BookingSource's "not yours / unknown" error apart (telemed.ErrBookingNotFound).
 	BookingNotFound error
 	Logger          *slog.Logger
@@ -237,7 +239,33 @@ func (s *Service) Conversation(ctx context.Context, userID, id uint64) (store.As
 	if err != nil {
 		return c, fmt.Errorf("assistant: conversation: %w", err)
 	}
+	titles, err := s.titles(ctx, userID, id)
+	if err != nil {
+		return c, err
+	}
+	s.reveal(&c, titles)
 	return c, nil
+}
+
+// titles are the conversation titles of the user (one conversation when id > 0) from the sealed first user turns.
+func (s *Service) titles(ctx context.Context, userID, id uint64) (map[uint64]string, error) {
+	rows, err := s.q.FirstUserMessages(ctx, store.FirstUserMessagesParams{UserID: userID, ConversationID: id})
+	if err != nil {
+		return nil, fmt.Errorf("assistant: titles: %w", err)
+	}
+	out := make(map[uint64]string, len(rows))
+	for _, r := range rows {
+		out[r.ConversationID] = title(s.open(r.Body, messageAD(userID, r.ConversationID, r.ID)))
+	}
+	return out, nil
+}
+
+// reveal replaces the stored title (unused since B-N7-06b) and the sealed summary with their plaintext.
+func (s *Service) reveal(c *store.AssistantConversation, titles map[uint64]string) {
+	c.Title = ns(titles[c.ID])
+	if c.Summary.Valid {
+		c.Summary.String = s.open(c.Summary.String, summaryAD(c.UserID, c.ID))
+	}
 }
 
 // DepartmentOf is the department of a conversation (active or not).
@@ -249,11 +277,14 @@ func (s *Service) DepartmentOf(ctx context.Context, c store.AssistantConversatio
 	return d, nil
 }
 
-// Messages are the turns of a conversation (the caller checked ownership).
-func (s *Service) Messages(ctx context.Context, conversationID uint64) ([]store.AssistantMessage, error) {
-	rows, err := s.q.ListMessages(ctx, conversationID)
+// Messages are the turns of conversation c (the caller checked ownership), bodies decrypted.
+func (s *Service) Messages(ctx context.Context, c store.AssistantConversation) ([]store.AssistantMessage, error) {
+	rows, err := s.q.ListMessages(ctx, c.ID)
 	if err != nil {
 		return nil, fmt.Errorf("assistant: messages: %w", err)
+	}
+	for i := range rows {
+		rows[i].Body = s.open(rows[i].Body, messageAD(c.UserID, c.ID, rows[i].ID))
 	}
 	return rows, nil
 }
@@ -281,44 +312,89 @@ func (s *Service) List(ctx context.Context, userID, departmentID uint64) ([]stor
 	if err != nil {
 		return nil, fmt.Errorf("assistant: list: %w", err)
 	}
+	titles, err := s.titles(ctx, userID, 0)
+	if err != nil {
+		return nil, err
+	}
+	for i := range rows {
+		s.reveal(&rows[i], titles)
+	}
 	return rows, nil
 }
 
-// Delete hard-deletes the user's conversation id (or every conversation when id = 0): rows, handoffs and photos.
-// Returns ErrConversationNotFound when id names nothing of hers.
+// Delete hard-deletes the user's conversation id (or every conversation when id = 0): rows, handoffs and photos — for
+// id = 0 every assistant photo file of hers, attached or not (B-N7-06b M4). Rows go in one transaction; the files
+// after it commits. Returns ErrConversationNotFound when id names nothing of hers.
 func (s *Service) Delete(ctx context.Context, userID, id uint64) error {
-	photos, err := s.q.ListUserPhotoIDs(ctx, store.ListUserPhotoIDsParams{UserID: userID, ConversationID: id})
-	if err != nil {
-		return fmt.Errorf("assistant: photos: %w", err)
-	}
-	var n int64
-	if id > 0 {
-		n, err = s.q.DeleteConversation(ctx, store.DeleteConversationParams{ID: id, UserID: userID})
-	} else {
-		_, err = s.q.DeleteAllConversations(ctx, userID)
-		n = 1
-	}
+	tx, err := s.o.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("assistant: delete: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	q := s.q.WithTx(tx)
+	var (
+		photos []uint64
+		n      int64
+	)
+	if id > 0 {
+		ids, err := q.ListUserPhotoIDs(ctx, store.ListUserPhotoIDsParams{UserID: userID, ConversationID: id})
+		if err != nil {
+			return fmt.Errorf("assistant: photos: %w", err)
+		}
+		for _, p := range ids {
+			if p.Valid {
+				photos = append(photos, uint64(p.Int64)) //nolint:gosec // G115: file ids are positive
+			}
+		}
+		n, err = q.DeleteConversation(ctx, store.DeleteConversationParams{ID: id, UserID: userID})
+		if err != nil {
+			return fmt.Errorf("assistant: delete: %w", err)
+		}
+	} else {
+		if photos, err = q.ListUserAssistantPhotos(ctx, sql.NullInt64{Int64: int64(userID), Valid: true}); err != nil { //nolint:gosec // G115: user ids fit int64
+			return fmt.Errorf("assistant: photos: %w", err)
+		}
+		if _, err = q.DeleteAllConversations(ctx, userID); err != nil {
+			return fmt.Errorf("assistant: delete: %w", err)
+		}
+		n = 1
 	}
 	if n == 0 {
 		return ErrConversationNotFound
 	}
-	for _, p := range photos {
-		if p.Valid && s.o.Photos != nil {
-			if err := s.o.Photos.Delete(ctx, userID, uint64(p.Int64)); err != nil && !errors.Is(err, files.ErrNotFound) { //nolint:gosec // G115: file ids are positive
-				s.o.Logger.LogAttrs(ctx, slog.LevelWarn, "assistant: photo delete failed", slog.String("error", err.Error()))
-			}
-		}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("assistant: delete: %w", err)
 	}
+	s.deletePhotos(ctx, userID, photos)
 	return nil
 }
 
-// SavePhoto stores a photo for a later message (sniffed, re-encoded, encrypted; files errors pass through).
+func (s *Service) deletePhotos(ctx context.Context, userID uint64, ids []uint64) {
+	if s.o.Photos == nil {
+		return
+	}
+	for _, p := range ids {
+		if err := s.o.Photos.Delete(ctx, userID, p); err != nil && !errors.Is(err, files.ErrNotFound) {
+			s.o.Logger.LogAttrs(ctx, slog.LevelWarn, "assistant: photo delete failed", slog.String("error", err.Error()))
+		}
+	}
+}
+
+// PhotoTTL is how long an uploaded photo may stay unattached before it is swept (B-N7-06b M4).
+const PhotoTTL = 24 * time.Hour
+
+// SavePhoto stores a photo for a later message (sniffed, re-encoded, encrypted; files errors pass through). The
+// user's photos left unattached for more than PhotoTTL are swept first.
 func (s *Service) SavePhoto(ctx context.Context, userID uint64, data []byte, now time.Time) (files.File, error) {
 	if s.o.Photos == nil {
 		return files.File{}, files.ErrDisabled
 	}
+	stale, err := s.q.ListStaleAssistantPhotos(ctx, store.ListStaleAssistantPhotosParams{
+		UserID: sql.NullInt64{Int64: int64(userID), Valid: true}, Before: nt(now.Add(-PhotoTTL))}) //nolint:gosec // G115: user ids fit int64
+	if err != nil {
+		return files.File{}, fmt.Errorf("assistant: stale photos: %w", err)
+	}
+	s.deletePhotos(ctx, userID, stale)
 	return s.o.Photos.Put(ctx, userID, files.PurposeAssistantPhoto, data, now)
 }
 
@@ -342,8 +418,18 @@ func (s *Service) CheckPhoto(ctx context.Context, userID, photoID uint64) error 
 	if photoID == 0 {
 		return nil
 	}
-	_, err := s.photo(ctx, userID, photoID)
-	return err
+	if _, err := s.photo(ctx, userID, photoID); err != nil {
+		return err
+	}
+	// One photo, one message (B-N7-06b M4): a reused id would outlive the delete of its first conversation.
+	uses, err := s.q.CountPhotoUses(ctx, sql.NullInt64{Int64: int64(photoID), Valid: true}) //nolint:gosec // G115: file ids fit int64
+	if err != nil {
+		return fmt.Errorf("assistant: photo uses: %w", err)
+	}
+	if uses > 0 {
+		return ErrPhotoNotFound
+	}
+	return nil
 }
 
 // Turn is one stored message.
@@ -353,13 +439,23 @@ type Turn struct {
 	Chips                                       []string
 }
 
-// AddTurns stores turns in order and updates the conversation (title from the first user text, triage, counters).
+// AddTurns stores turns in order — each body sealed with its row id (B-N7-06b H1) — and updates the conversation
+// (triage, emergency, counters), all in one transaction.
 func (s *Service) AddTurns(ctx context.Context, c store.AssistantConversation, now time.Time, turns ...Turn) ([]uint64, error) {
+	if s.o.Box == nil || s.o.Box.Disabled() {
+		return nil, ErrSealUnavailable
+	}
+	tx, err := s.o.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("assistant: insert message: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	q := s.q.WithTx(tx)
 	ids := make([]uint64, 0, len(turns))
-	var titleText, triage string
+	var triage string
 	emergency := false
 	for _, t := range turns {
-		p := store.InsertMessageParams{ConversationID: c.ID, Role: t.Role, Body: t.Body, Card: ns(t.Card), TriageLevel: ns(t.Triage),
+		p := store.InsertMessageParams{ConversationID: c.ID, Role: t.Role, Body: "", Card: ns(t.Card), TriageLevel: ns(t.Triage),
 			Guardrail: ns(t.Guardrail), Status: t.Status, Now: nt(now)}
 		if p.Status == "" {
 			p.Status = StatusComplete
@@ -371,23 +467,33 @@ func (s *Service) AddTurns(ctx context.Context, c store.AssistantConversation, n
 			raw, _ := json.Marshal(t.Chips)
 			p.Chips = ns(string(raw))
 		}
-		id, err := s.q.InsertMessage(ctx, p)
+		raw, err := q.InsertMessage(ctx, p)
 		if err != nil {
 			return nil, fmt.Errorf("assistant: insert message: %w", err)
 		}
-		ids = append(ids, uint64(id)) //nolint:gosec // G115: auto-increment id
-		if t.Role == RoleUser && titleText == "" {
-			titleText = title(t.Body)
+		id := uint64(raw) //nolint:gosec // G115: auto-increment id
+		sealed, err := s.seal(t.Body, messageAD(c.UserID, c.ID, id))
+		if err != nil {
+			return nil, err
 		}
+		if sealed != "" {
+			if err := q.SetMessageBody(ctx, store.SetMessageBodyParams{Body: sealed, ID: id}); err != nil {
+				return nil, fmt.Errorf("assistant: seal message: %w", err)
+			}
+		}
+		ids = append(ids, id)
 		if t.Triage != "" {
 			triage = t.Triage
 		}
 		emergency = emergency || t.Card == CardEmergency
 	}
-	err := s.q.TouchConversation(ctx, store.TouchConversationParams{Title: ns(titleText), TriageLevel: ns(triage), Emergency: emergency,
+	err = q.TouchConversation(ctx, store.TouchConversationParams{TriageLevel: ns(triage), Emergency: emergency,
 		Added: uint32(len(turns)), Now: nt(now), ID: c.ID, UserID: c.UserID}) //nolint:gosec // G115: a handful of turns
 	if err != nil {
 		return nil, fmt.Errorf("assistant: touch conversation: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("assistant: insert message: %w", err)
 	}
 	return ids, nil
 }
@@ -414,6 +520,8 @@ func systemPrompt(d store.AssistantDepartment, locale string, diagnosis bool, pr
 		b.WriteString("\n\n## Department guardrails\n")
 		b.WriteString(strings.TrimSpace(d.Guardrails.String))
 	}
+	b.WriteString("\n\n")
+	b.WriteString(safetyPrecedence)
 	if diagnosis {
 		b.WriteString("\n\n## Note\n")
 		b.WriteString(diagnosisNote)
@@ -439,7 +547,7 @@ func (s *Service) Prepare(ctx context.Context, c store.AssistantConversation, te
 		return Prepared{}, err
 	}
 	diagnosis := terms.AsksDiagnosis(text)
-	history, err := s.Messages(ctx, c.ID)
+	history, err := s.Messages(ctx, c)
 	if err != nil {
 		return Prepared{}, err
 	}
@@ -492,9 +600,17 @@ func (s *Service) Summarise(ctx context.Context, userID, id uint64, locale strin
 	if c.Summary.Valid && c.SummaryMessageCount == c.MessageCount {
 		return c, nil
 	}
-	msgs, err := s.Messages(ctx, c.ID)
+	msgs, err := s.Messages(ctx, c)
 	if err != nil {
 		return c, err
+	}
+	// B-N7-06b M2: a model call only for model turns — a summary needs at least one answer, and is rewritten only when
+	// an answer came after it (emergency cards and user turns alone never buy a free call).
+	if !answered(msgs, 0) {
+		return c, ErrSummaryEmpty
+	}
+	if c.Summary.Valid && !answered(msgs, int(c.SummaryMessageCount)) {
+		return c, nil
 	}
 	type line struct {
 		From  string `json:"from"`
@@ -528,7 +644,11 @@ func (s *Service) Summarise(ctx context.Context, userID, id uint64, locale strin
 	if visible == "" {
 		return c, ErrNoSummary
 	}
-	if err := s.q.SaveSummary(ctx, store.SaveSummaryParams{Summary: ns(visible), Now: nt(now), ID: c.ID, UserID: userID}); err != nil {
+	sealed, err := s.seal(visible, summaryAD(userID, c.ID))
+	if err != nil {
+		return c, err
+	}
+	if err := s.q.SaveSummary(ctx, store.SaveSummaryParams{Summary: ns(sealed), Now: nt(now), ID: c.ID, UserID: userID}); err != nil {
 		return c, fmt.Errorf("assistant: save summary: %w", err)
 	}
 	if ctl.Triage != "" && !c.Emergency {
@@ -537,6 +657,16 @@ func (s *Service) Summarise(ctx context.Context, userID, id uint64, locale strin
 		}
 	}
 	return s.Conversation(ctx, userID, id)
+}
+
+// answered reports whether an assistant (model) turn exists from index from on.
+func answered(msgs []store.AssistantMessage, from int) bool {
+	for i := max(from, 0); i < len(msgs); i++ {
+		if msgs[i].Role == RoleAssistant {
+			return true
+		}
+	}
+	return false
 }
 
 // collect reads a whole chat stream (bounded by summaryTimeout, always closed).
@@ -591,8 +721,12 @@ func (s *Service) Handoff(ctx context.Context, userID, id, bookingID uint64, now
 	if !slices.Contains(scopes, scopeAssistantSummaries) {
 		return store.AssistantHandoff{}, ErrShareConsent
 	}
+	sealed, err := s.seal(c.Summary.String, handoffAD(userID, c.ID, bk.ID))
+	if err != nil {
+		return store.AssistantHandoff{}, err
+	}
 	err = s.q.UpsertHandoff(ctx, store.UpsertHandoffParams{ConversationID: c.ID, UserID: userID, BookingID: bk.ID,
-		Summary: c.Summary.String, TriageLevel: c.TriageLevel, Now: nt(now)})
+		Summary: sealed, TriageLevel: c.TriageLevel, Now: nt(now)})
 	if err != nil {
 		return store.AssistantHandoff{}, fmt.Errorf("assistant: handoff: %w", err)
 	}
@@ -620,6 +754,9 @@ func (s *Service) SharedSummaries(ctx context.Context, doctorID, bookingID uint6
 	rows, err := s.q.ListBookingHandoffs(ctx, bookingID)
 	if err != nil {
 		return nil, fmt.Errorf("assistant: shared summaries: %w", err)
+	}
+	for i := range rows {
+		rows[i].Summary = s.open(rows[i].Summary, handoffAD(rows[i].UserID, rows[i].ConversationID, rows[i].BookingID))
 	}
 	return rows, nil
 }

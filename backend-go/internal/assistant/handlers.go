@@ -153,7 +153,7 @@ func fail(err error, locale string) error {
 		return fieldFail(locale, "photo", "photo_too_large")
 	case errors.Is(err, files.ErrQuota):
 		return fieldFail(locale, "photo", "photo_quota")
-	case errors.Is(err, files.ErrDisabled), errors.Is(err, files.ErrBusy):
+	case errors.Is(err, files.ErrDisabled), errors.Is(err, files.ErrBusy), errors.Is(err, ErrSealUnavailable):
 		return failf(fiber.StatusServiceUnavailable, "storage_unavailable", CodeStorage, locale)
 	}
 	return access.Error(err, locale)
@@ -489,7 +489,7 @@ func (h *Handlers) showConversation(c fiber.Ctx, cv store.AssistantConversation,
 	if err != nil {
 		return err
 	}
-	msgs, err := h.svc.Messages(c, cv.ID)
+	msgs, err := h.svc.Messages(c, cv)
 	if err != nil {
 		return err
 	}
@@ -704,9 +704,18 @@ func (h *Handlers) PrepareMessage(c fiber.Ctx) error {
 	})
 }
 
+// StreamTimeout bounds one streamed answer end to end (B-N7-06b M1): the provider call is cancelled after it and
+// the in-flight slot is released. requestSlack bounds the DB work around a model call (L4).
+const (
+	StreamTimeout = 90 * time.Second
+	requestSlack  = 10 * time.Second
+)
+
 // StreamMessage is the model answer of POST /assistant/conversations/{id}/messages, after the AI gate (consent, Plus
-// quota reserved, budgets). SSE events: meta {conversation_id, user_message_id}, delta {text}…, then done {message,
-// triage_level, emergency} or error {error_code, message}. Control lines are stripped from the stream.
+// quota reserved, budgets). SSE events: meta {conversation_id, user_message_id}, delta {text}…, card {message} when
+// the model rated the turn an emergency, then done {message, triage_level, emergency} or error {error_code, message}.
+// Control lines and links are stripped from the stream. The AI gate's in-flight slot is held until the stream writer
+// ends (not the handler), and the whole answer is bounded by StreamTimeout.
 func (h *Handlers) StreamMessage(c fiber.Ctx) error {
 	in, ok := c.Locals(inputKey{}).(*messageInput)
 	if !ok {
@@ -714,26 +723,40 @@ func (h *Handlers) StreamMessage(c fiber.Ctx) error {
 	}
 	now := h.now(c)
 	locale := i18n.Locale(c)
-	prep, err := h.svc.Prepare(c.Context(), in.conv, in.text, in.photoID, in.terms, locale, now)
+	release := access.DetachRelease(c.Context())
+	streamCtx, cancel := context.WithTimeout(context.WithoutCancel(c.Context()), StreamTimeout)
+	started := false
+	defer func() {
+		if !started {
+			cancel()
+			release()
+		}
+	}()
+	prep, err := h.svc.Prepare(streamCtx, in.conv, in.text, in.photoID, in.terms, locale, now)
 	if err != nil {
 		return err
 	}
-	stream, err := h.svc.AI().Chat(c.Context(), ai.FeatureAssistant, prep.Request)
+	stream, err := h.svc.AI().Chat(streamCtx, ai.FeatureAssistant, prep.Request)
 	if err != nil {
 		return access.Error(err, locale)
 	}
-	ids, err := h.svc.AddTurns(c, in.conv, now, Turn{Role: RoleUser, Body: in.text, PhotoID: in.photoID})
+	ids, err := h.svc.AddTurns(streamCtx, in.conv, now, Turn{Role: RoleUser, Body: in.text, PhotoID: in.photoID})
 	if err != nil {
 		stream.Close()
-		return err
+		return fail(err, locale)
 	}
-	ctx := context.WithoutCancel(c.Context())
 	res := access.ReservationFrom(c.Context())
 	conv := in.conv
 	clk := clock.FromContext(c, h.clock)
 	sseHeaders(c)
+	started = true
 	return c.SendStreamWriter(func(w *bufio.Writer) {
+		defer release()
+		defer cancel()
 		defer stream.Close()
+		// Writes after the stream: off the (possibly expired) stream deadline, but bounded.
+		ctx, done := context.WithTimeout(context.WithoutCancel(streamCtx), requestSlack)
+		defer done()
 		gone := sse(w, "meta", map[string]any{"conversation_id": conv.ID, "user_message_id": ids[0]}) != nil
 		var (
 			f       streamFilter
@@ -742,6 +765,15 @@ func (h *Handlers) StreamMessage(c fiber.Ctx) error {
 			finish  string
 			endedOK bool
 		)
+		emit := func(out string) {
+			if out == "" || gone {
+				return
+			}
+			if sse(w, "delta", map[string]any{"text": out}) != nil {
+				gone = true
+				stream.Close() // the client went away: stop the provider now
+			}
+		}
 		for ev := range stream.Events {
 			if ev.Err != nil {
 				failed = ev.Err
@@ -749,18 +781,17 @@ func (h *Handlers) StreamMessage(c fiber.Ctx) error {
 			}
 			if ev.Delta != "" {
 				got = true
-				if out := f.push(ev.Delta); out != "" && !gone {
-					if sse(w, "delta", map[string]any{"text": out}) != nil {
-						gone = true
-						stream.Close() // the client went away: stop the provider now
-					}
-				}
+				emit(f.push(ev.Delta))
 			}
 			if ev.Done {
 				finish, endedOK = ev.Finish, true
 				break
 			}
 		}
+		if failed == nil && !endedOK {
+			failed = context.DeadlineExceeded // the stream ended without Done: timed out / cancelled
+		}
+		emit(f.flush())
 		visible, ctl := splitControls(f.text())
 		if !got || (failed != nil && visible == "") {
 			if !got {
@@ -772,15 +803,19 @@ func (h *Handlers) StreamMessage(c fiber.Ctx) error {
 			return
 		}
 		status := StatusComplete
-		if !endedOK || failed != nil {
+		if failed != nil {
 			status = StatusPartial
 		}
 		if finish == ai.FinishSafety && visible == "" {
 			visible = T("safety_fallback", locale)
 		}
 		at := clk.Now().In(civildate.Tehran).Truncate(time.Second)
-		turn := Turn{Role: RoleAssistant, Body: visible, Triage: ctl.Triage, Guardrail: prep.Guardrail, Chips: ctl.Chips, Status: status}
-		mids, err := h.svc.AddTurns(ctx, conv, at, turn)
+		turns := []Turn{{Role: RoleAssistant, Body: visible, Triage: ctl.Triage, Guardrail: prep.Guardrail, Chips: ctl.Chips, Status: status}}
+		emergency := conv.Emergency || ctl.Triage == TriageEmergency
+		if ctl.Triage == TriageEmergency { // M3: the model rated it an emergency → the 115 card too
+			turns = append(turns, Turn{Role: RoleCard, Body: T("emergency_body", locale), Card: CardEmergency, Triage: TriageEmergency})
+		}
+		mids, err := h.svc.AddTurns(ctx, conv, at, turns...)
 		if err != nil || gone {
 			return
 		}
@@ -790,8 +825,13 @@ func (h *Handlers) StreamMessage(c fiber.Ctx) error {
 			raw, _ := json.Marshal(ctl.Chips)
 			msg.Chips = ns(string(raw))
 		}
+		if len(mids) > 1 {
+			card := store.AssistantMessage{ID: mids[1], Role: RoleCard, Body: T("emergency_body", locale), Card: ns(CardEmergency),
+				TriageLevel: ns(TriageEmergency), Status: StatusComplete, CreatedAt: nt(at)}
+			_ = sse(w, "card", map[string]any{"message": messageJSON(card, locale)})
+		}
 		_ = sse(w, "done", map[string]any{"message": messageJSON(msg, locale), "triage_level": nullText(msg.TriageLevel),
-			"emergency": conv.Emergency})
+			"emergency": emergency})
 	})
 }
 
@@ -804,7 +844,9 @@ func (h *Handlers) Summary(c fiber.Ctx) error {
 		return err
 	}
 	l := locOf(c)
-	cv, err := h.svc.Summarise(c.Context(), userID, idParam(c), l.locale, h.now(c))
+	ctx, cancel := context.WithTimeout(c.Context(), summaryTimeout+requestSlack) // L4: per-request deadline
+	defer cancel()
+	cv, err := h.svc.Summarise(ctx, userID, idParam(c), l.locale, h.now(c))
 	if err != nil {
 		return fail(err, l.locale)
 	}
@@ -813,7 +855,7 @@ func (h *Handlers) Summary(c fiber.Ctx) error {
 		return err
 	}
 	photos := 0
-	msgs, err := h.svc.Messages(c, cv.ID)
+	msgs, err := h.svc.Messages(c, cv)
 	if err != nil {
 		return err
 	}

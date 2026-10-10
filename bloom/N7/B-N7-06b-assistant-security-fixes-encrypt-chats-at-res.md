@@ -3,7 +3,7 @@ id: B-N7-06b
 title: Assistant security fixes — encrypt chats at rest, SSE in-flight cap, summary throttles, emergency normalisation, photo deletion
 milestone: N7
 type: backend
-status: todo
+status: done
 depends_on: [B-N7-06]
 parallel_group: N7-F2
 touches: [backend-go/internal/assistant,backend-go/internal/ai,backend-go/db,backend-go/api]

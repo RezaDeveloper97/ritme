@@ -43,10 +43,12 @@ import (
 	"github.com/ritme/backend-go/internal/healthrecord"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/loss"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
+	"github.com/ritme/backend-go/internal/platform/ratelimit"
 	"github.com/ritme/backend-go/internal/plus"
 	"github.com/ritme/backend-go/internal/telemed"
 )
@@ -62,14 +64,53 @@ type spyChat struct {
 	*ai.Fake
 	mu  sync.Mutex
 	got []ai.ChatRequest
+	// reply, when set, is streamed rune by rune instead of the fake fixture (B-N7-06b); block holds the stream
+	// before its first delta until closed, started is signalled when a call begins.
+	reply   string
+	block   chan struct{}
+	started chan struct{}
 }
 
 func (s *spyChat) ChatStream(ctx context.Context, req ai.ChatRequest) (<-chan ai.ChatChunk, error) {
 	s.mu.Lock()
 	s.got = append(s.got, req)
+	reply, block, started := s.reply, s.block, s.started
 	s.mu.Unlock()
-	return s.Fake.ChatStream(ctx, req)
+	if started != nil {
+		started <- struct{}{}
+	}
+	if reply == "" && block == nil {
+		return s.Fake.ChatStream(ctx, req)
+	}
+	if reply == "" {
+		reply = "ok"
+	}
+	out := make(chan ai.ChatChunk)
+	go func() {
+		defer close(out)
+		if block != nil {
+			select {
+			case <-block:
+			case <-ctx.Done():
+				return
+			}
+		}
+		for _, r := range reply {
+			select {
+			case out <- ai.ChatChunk{Delta: string(r)}:
+			case <-ctx.Done():
+				return
+			}
+		}
+		select {
+		case out <- ai.ChatChunk{Done: true, Finish: ai.FinishStop}:
+		case <-ctx.Done():
+		}
+	}()
+	return out, nil
 }
+
+func (s *spyChat) set(f func(s *spyChat)) { s.mu.Lock(); defer s.mu.Unlock(); f(s) }
 
 func (s *spyChat) calls() int { s.mu.Lock(); defer s.mu.Unlock(); return len(s.got) }
 
@@ -84,7 +125,11 @@ type env struct {
 	consents *consent.Service
 }
 
-func setup(t *testing.T) *env {
+func setup(t *testing.T) *env { t.Helper(); return setupWith(t, 0, nil) }
+
+// setupWith: maxConcurrent overrides the gate's per-user in-flight cap (0 = default); limiter adds the feature
+// throttles (nil = none).
+func setupWith(t *testing.T, maxConcurrent int, limiter *ratelimit.Limiter) *env {
 	t.Helper()
 	quiet := slog.New(slog.NewTextHandler(io.Discard, nil))
 	db := testdb.New(t)
@@ -103,14 +148,17 @@ func setup(t *testing.T) *env {
 	spy := &spyChat{Fake: ai.NewFake()}
 	client := ai.NewClientWith(ai.Options{Provider: "fake", Chatter: spy, Recorder: usage.NewRecorder(db, clock.Real{}, quiet), Limiter: budget})
 	consents := consent.NewService(db)
-	g := access.NewGuard(access.Options{Client: client, Consents: consents, Budget: budget, Gate: gate, Plus: plusSvc, Logger: quiet})
+	g := access.NewGuard(access.Options{Client: client, Consents: consents, Budget: budget, Gate: gate, Plus: plusSvc, Logger: quiet,
+		MaxConcurrent: maxConcurrent, Limiter: limiter})
+	box, err := loss.NewNoteBox(nil, nil, false)
+	require.NoError(t, err)
 
 	vault, err := files.NewVault(t.TempDir(), files.DevKey("assistant-test"), nil, false)
 	require.NoError(t, err)
 	bookings := telemed.NewBookings(db, catalog.NewReader(catalogstore.New(db), nil, 0, quiet), telemed.BookingOptions{Clock: clock.Real{}, Logger: quiet})
 	svc := assistant.NewService(assistant.Options{DB: db, AI: client, Consents: consents,
 		Profile: assistant.RecordProfile(healthrecord.NewService(db, nil)), Photos: files.NewService(files.Options{DB: db, Vault: vault}),
-		Bookings: bookings, BookingNotFound: telemed.ErrBookingNotFound, Logger: quiet})
+		Bookings: bookings, BookingNotFound: telemed.ErrBookingNotFound, Logger: quiet, Box: box})
 	h := assistant.NewHandlers(svc, plusSvc, clock.Real{})
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
@@ -127,7 +175,7 @@ func setup(t *testing.T) *env {
 	app.Get(p+"/conversations/:id", locale, guard, h.Show)
 	app.Delete(p+"/conversations/:id", locale, guard, h.Destroy)
 	app.Post(p+"/conversations/:id/messages", locale, append(append([]any{guard, h.PrepareMessage}, g.Chain(ai.FeatureAssistant)...), h.StreamMessage)...)
-	app.Post(p+"/conversations/:id/summary", locale, guard, g.Require(ai.FeatureAssistant), h.Summary)
+	app.Post(p+"/conversations/:id/summary", locale, append(append([]any{guard}, g.Gate(ai.FeatureAssistant)...), h.Summary)...)
 	app.Post(p+"/conversations/:id/handoff", locale, guard, h.Handoff)
 	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), spy: spy, svc: svc, consents: consents}
 }
@@ -463,7 +511,11 @@ func TestAssistant_IDORPhotosSummaryHandoffDelete(t *testing.T) {
 	at := time.Date(2030, 1, 8, 18, 0, 0, 0, time.Local)
 	shared, err := e.svc.SharedSummaries(context.Background(), 900, 501, at)
 	require.NoError(t, err)
-	assert.Len(t, shared, 1)
+	require.Len(t, shared, 1)
+	assert.Equal(t, r0summary(t, e, conv), shared[0].Summary, "the doctor reads the plaintext summary")
+	var rawHandoff string
+	require.NoError(t, e.db.QueryRow(`SELECT summary FROM assistant_handoffs WHERE booking_id = 501`).Scan(&rawHandoff))
+	assert.True(t, strings.HasPrefix(rawHandoff, "v1:"), "the handoff summary is sealed at rest")
 	_, err = e.svc.SharedSummaries(context.Background(), 901, 501, at)
 	require.ErrorIs(t, err, assistant.ErrShareConsent, "another doctor")
 

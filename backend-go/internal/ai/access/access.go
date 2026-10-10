@@ -40,6 +40,7 @@ import (
 	"log/slog"
 	"path"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -177,16 +178,7 @@ func NewGuard(o Options) *Guard {
 // gate is wired), Require(feature) and the Plus reservation (when a plus.Service is wired).
 func (g *Guard) Chain(feature ai.Feature) []any {
 	p := mustPolicy(feature)
-	var out []any
-	if g.limiter != nil {
-		reject := g.rejects[feature]
-		if reject == nil {
-			reject = Throttled
-		}
-		for _, th := range p.Throttles {
-			out = append(out, g.limiter.NamedWith(th.Name, th.Max, th.Window, auth.ThrottleIdentity, reject))
-		}
-	}
+	out := g.throttles(p)
 	if p.Plus != "" && g.gate != nil {
 		out = append(out, g.gate.Require(p.Plus))
 	}
@@ -195,6 +187,28 @@ func (g *Guard) Chain(feature ai.Feature) []any {
 		out = append(out, g.reserve(p))
 	}
 	return out
+}
+
+func (g *Guard) throttles(p Policy) []any {
+	var out []any
+	if g.limiter != nil {
+		reject := g.rejects[p.Feature]
+		if reject == nil {
+			reject = Throttled
+		}
+		for _, th := range p.Throttles {
+			out = append(out, g.limiter.NamedWith(th.Name, th.Max, th.Window, auth.ThrottleIdentity, reject))
+		}
+	}
+	return out
+}
+
+// Gate is Chain without the Plus check and reservation: the feature's throttles and Require. For calls that do not
+// count against the quota but must not run unbounded (assistant summaries, B-N7-06b M2).
+func (g *Guard) Gate(feature ai.Feature) []any {
+	p := mustPolicy(feature)
+	out := g.throttles(p)
+	return append(out, g.Require(feature))
 }
 
 // Throttled is the default 429 of an AI feature's throttles (localized, with the throttle headers).
@@ -231,6 +245,31 @@ func (f *inflight) release(id uint64) {
 		return
 	}
 	f.n[id]--
+}
+
+// slot is one in-flight unit of a request. A streaming handler whose writer outlives the handler takes it over
+// (DetachRelease) and releases it when the stream really ends (B-N7-06b M1); otherwise Require releases it on return.
+type slot struct {
+	f        *inflight
+	id       uint64
+	once     sync.Once
+	detached atomic.Bool
+}
+
+func (s *slot) release() { s.once.Do(func() { s.f.release(s.id) }) }
+
+type slotKey struct{}
+
+// DetachRelease hands the request's in-flight slot to the caller: Require no longer releases it when the handler
+// returns, the returned func does (idempotent). Call it right before SendStreamWriter and defer the func inside the
+// stream writer; any return path that never starts the writer must call it too. A no-op func without a slot.
+func DetachRelease(ctx context.Context) func() {
+	s, _ := ctx.Value(slotKey{}).(*slot)
+	if s == nil {
+		return func() {}
+	}
+	s.detached.Store(true)
+	return s.release
 }
 
 // Reservation is one Plus use counted before the provider ran (reserve-first). Refund gives it back once.
@@ -330,7 +369,13 @@ func (g *Guard) Require(feature ai.Feature) fiber.Handler {
 		if !g.inflight.acquire(user.ID) {
 			return httpx.Fail(fiber.StatusTooManyRequests, T(CodeBusy, locale), "error_code", CodeBusy).WithHeader("Retry-After", "5")
 		}
-		defer g.inflight.release(user.ID)
+		sl := &slot{f: g.inflight, id: user.ID}
+		defer func() {
+			if !sl.detached.Load() {
+				sl.release()
+			}
+		}()
+		c.SetContext(context.WithValue(c.Context(), slotKey{}, sl))
 		s := ai.Subject{UserID: user.ID}
 		if user.Name.Valid {
 			s.Names = []string{user.Name.String}

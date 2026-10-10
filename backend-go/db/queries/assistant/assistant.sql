@@ -40,7 +40,7 @@ ORDER BY COALESCE(last_message_at, created_at) DESC, id DESC LIMIT 100;
 
 -- name: TouchConversation :exec
 UPDATE `assistant_conversations`
-SET title = COALESCE(title, sqlc.narg(title)),
+SET title = NULL, -- B-N7-06b: the title is derived from the sealed first message; a legacy plaintext title is cleared
     triage_level = COALESCE(sqlc.narg(triage_level), triage_level),
     emergency = emergency OR sqlc.arg(emergency),
     message_count = message_count + sqlc.arg(added),
@@ -63,6 +63,17 @@ INSERT INTO `assistant_messages` (conversation_id, role, body, photo_file_id, ca
 VALUES (sqlc.arg(conversation_id), sqlc.arg(role), sqlc.arg(body), sqlc.narg(photo_file_id), sqlc.narg(card), sqlc.narg(triage_level),
         sqlc.narg(guardrail), sqlc.narg(chips), sqlc.arg(status), sqlc.arg(now), sqlc.arg(now));
 
+-- name: SetMessageBody :exec
+-- B-N7-06b: the body is sealed with the row id in its additional data, so it is written right after the insert (same tx).
+UPDATE `assistant_messages` SET body = sqlc.arg(body) WHERE id = sqlc.arg(id);
+
+-- name: FirstUserMessages :many
+-- The first user turn of each of the user's conversations (the sealed source of the title).
+SELECT m.id, m.conversation_id, m.body FROM `assistant_messages` m
+JOIN `assistant_conversations` c ON c.id = m.conversation_id
+WHERE c.user_id = sqlc.arg(user_id) AND (sqlc.arg(conversation_id) = 0 OR c.id = sqlc.arg(conversation_id)) AND m.role = 'user'
+  AND m.id = (SELECT MIN(m2.id) FROM `assistant_messages` m2 WHERE m2.conversation_id = m.conversation_id AND m2.role = 'user');
+
 -- name: ListMessages :many
 SELECT * FROM `assistant_messages` WHERE conversation_id = ? ORDER BY id;
 
@@ -72,6 +83,17 @@ SELECT m.photo_file_id FROM `assistant_messages` m
 JOIN `assistant_conversations` c ON c.id = m.conversation_id
 WHERE c.user_id = sqlc.arg(user_id) AND (sqlc.arg(conversation_id) = 0 OR c.id = sqlc.arg(conversation_id))
   AND m.photo_file_id IS NOT NULL;
+
+-- name: ListUserAssistantPhotos :many
+-- Every assistant photo file of the user, attached or not (delete-all, B-N7-06b M4).
+SELECT id FROM `files` WHERE user_id = sqlc.arg(user_id) AND purpose = 'assistant_photo';
+
+-- name: ListStaleAssistantPhotos :many
+-- Uploaded photos never attached to a message and older than the cut-off (swept, B-N7-06b M4).
+SELECT f.id FROM `files` f
+WHERE f.user_id = sqlc.arg(user_id) AND f.purpose = 'assistant_photo' AND f.created_at < sqlc.arg(before)
+  AND NOT EXISTS (SELECT 1 FROM `assistant_messages` m WHERE m.photo_file_id = f.id)
+LIMIT 50;
 
 -- name: CountPhotoUses :one
 SELECT COUNT(*) FROM `assistant_messages` WHERE photo_file_id = ?;
