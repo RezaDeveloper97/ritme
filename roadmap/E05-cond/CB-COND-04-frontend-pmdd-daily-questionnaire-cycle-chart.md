@@ -3,7 +3,7 @@ id: CB-COND-04
 title: Frontend: PMDD daily questionnaire + cycle chart
 epic: COND
 type: frontend
-status: todo
+status: done
 depends_on: [CB-COND-02, CB-CORE-02]
 parallel_group: COND-C
 touches: [frontend/src/screens/pmdd, frontend/src/app/[locale]/programs/pmdd]

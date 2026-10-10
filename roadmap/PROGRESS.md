@@ -465,3 +465,8 @@ TODO (ask user):
 ## CB-NAV-03b — IA follow-ups (partial)
 - Done: «برای امروز» + «دسترسی سریع» on `/postpartum` and `/ivf` (pregnancy's reminders card now wrapped in ForToday too); + sheet «برای بعد» moved under the quick tiles (LogDay `extra` slot); dead `postpartum.home.modeLabel` removed (fe + Go copy + goldens) with its `.pp-brand-mode` CSS. QA table in docs/qa/canvas/nav.md `## CB-NAV-03b`.
 - Open: doctor / pain diary / courses shortcut hrefs (screens not shipped), companion suggestion row (no API), server-side quick-access storage (user decision). Screenshots pending (docker MariaDB hung during the run).
+
+## CB-COND-04 — Frontend: PMDD daily questionnaire + cycle chart
+- `/programs/pmdd` (screens/condition-pmdd, nbl_Cond_PMDD): six 1–6 NumericScale items from `/catalog/pmdd_items` prefilled from today, «N of 6 answered», sticky save, join card when not enrolled, crisis note with tel: 1480 / 123 (+ fallback copy); SVG cycle chart (period band `--period-soft`, last-10-days brand band, RTL-mirrored, legend, pattern sentence; needs-two-cycles message). `entities/condition` pmdd model/api (+ tests). Key `conditions.pmdd` (+ Go copy, goldens), scope programsPmdd, CSS block CB-COND-04.
+- Verify (agent on 7384808b): full chain + build (1642 tests), i18n; screenshots against a contract-shaped mock API (Docker/MariaDB hung). On stage: vitest 187, lint:styles, steiger, i18n (tsc fails only on bloom's untracked shared/pwa/offline-media.ts).
+- Open: two-tone bands + legend vs the board's single band; copy needs clinical review.

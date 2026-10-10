@@ -2572,6 +2572,43 @@
     "scaleNote": "0 means no pain and 10 the worst pain possible. Tell a doctor the same day about severe or sudden pain, fever or fainting.",
     "save": "Save",
     "saveError": "Couldn't save. Try again."
+   },
+   "pmdd": {
+    "title": "Daily mood questionnaire",
+    "subtitle": "PMDD · cycle day {day}",
+    "subtitleNoCycle": "PMDD",
+    "back": "Back to programs",
+    "scaleHint": "1 means not at all, 6 means extreme",
+    "progress": "{done} of {total} answered today",
+    "save": "Save",
+    "saved": "Saved",
+    "saveError": "Couldn't save. Try again.",
+    "loading": "Loading the questionnaire",
+    "loadError": "Couldn't load the questionnaire",
+    "retry": "Try again",
+    "joinTitle": "The PMDD program isn't active yet",
+    "joinBody": "Once you start, you answer 6 short questions about your mood each day and see how it moves across your cycle.",
+    "join": "Start the program",
+    "chartTitle": "This cycle",
+    "chartLabel": "Chart of your average symptoms across this cycle, {days} days logged",
+    "chartError": "Couldn't load the chart",
+    "chartEmpty": "You haven't rated any day of this cycle yet.",
+    "noCycle": "Log the start of your period to see the chart.",
+    "axisPeriod": "Period",
+    "axisMid": "Mid-cycle",
+    "axisLate": "Last 10 days",
+    "legendPeriod": "Period",
+    "legendLate": "Last 10 days of the cycle",
+    "patternJoin": "{title}: {body}",
+    "needsTwo": "Two fully logged cycles are needed for a summary.",
+    "crisisTitle": "If you are thinking about hurting yourself",
+    "crisisBody": "Call the counselling line 1480 or social emergency 123 right now.",
+    "hotlinesLabel": "Help lines",
+    "hotline": {
+     "1480": "Counselling line",
+     "123": "Social emergency"
+    },
+    "note": "This questionnaire doesn't diagnose; it keeps your ratings for a talk with your doctor or counsellor."
    }
   },
   "contraception": {

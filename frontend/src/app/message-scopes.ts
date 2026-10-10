@@ -101,6 +101,7 @@ export const ROUTE_NAMESPACES = {
   pelvicKegel: ['common', 'pelvic'], // CB-PELV-02 /programs/pelvic/kegel (nbl_Pelvic_Kegel, full-screen flow, no nav)
   programsBleeding: ['common', 'conditions'], // CB-COND-05 /programs/bleeding (nbl_Cond_Bleed, PBAC form, no nav)
   programsPain: ['common', 'conditions'], // CB-COND-03 /programs/pain (nbl_Cond_Endo, form, no nav)
+  programsPmdd: ['common', 'conditions'], // CB-COND-04 /programs/pmdd (nbl_Cond_PMDD, form, no nav)
   search: ['common', 'search'], // CB-NAV-02 /search (global search, flow — no nav)
   menopauseStage: ['common', 'menopause'], // CB-MENO-05 /menopause/stage (stage form, no nav)
   menopauseHotFlash: ['common', 'menopause'], // CB-MENO-07 /menopause/hot-flash (timer flow, no nav)
