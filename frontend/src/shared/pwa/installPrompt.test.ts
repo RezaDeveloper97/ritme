@@ -9,5 +9,11 @@ describe('install prompt visibility', () => {
     expect(hidesInstallPrompt('/sharedx')).toBe(false);
     expect(hidesInstallPrompt('/record/export')).toBe(false);
     expect(hidesInstallPrompt('/')).toBe(false);
+    // CB-REC-05
+    expect(hidesInstallPrompt('/d')).toBe(true);
+    expect(hidesInstallPrompt('/d/abc')).toBe(true);
+    expect(hidesInstallPrompt('/emergency/abc')).toBe(true);
+    expect(hidesInstallPrompt('/dashboard')).toBe(false);
+    expect(hidesInstallPrompt('/record/emergency')).toBe(false);
   });
 });

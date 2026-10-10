@@ -82,6 +82,15 @@ export function RecordHomeExtras() {
           {t('home.addDocument')}
         </SecondaryButton>
       </div>
+      {/* CB-REC-05 (nbl_Rec_Home → Rec_Emergency, Rec_Share): the emergency card and «who sees my record». */}
+      <div className="rec-home-actions">
+        <SecondaryButton icon="qr" onClick={() => router.push('/record/emergency')}>
+          {t('home.emergencyCard')}
+        </SecondaryButton>
+        <SecondaryButton icon="lock" onClick={() => router.push('/record/share')}>
+          {t('home.share')}
+        </SecondaryButton>
+      </div>
     </>
   );
 }

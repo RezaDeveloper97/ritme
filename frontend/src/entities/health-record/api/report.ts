@@ -4,6 +4,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { z } from 'zod';
 
 import { type ApiEnvelope, apiClient } from '@/shared/api';
+import { env } from '@/shared/config';
 import { isAuthenticated } from '@/shared/session';
 
 import type {
@@ -19,6 +20,7 @@ import type {
   Section,
   VitalsSummary,
 } from '../model/types';
+import { safeFileUrl } from '../model/documents-lib';
 import { healthRecordKeys } from './keys';
 import { type MenopauseSection, menopauseSectionSchema } from './menopause-section';
 import { rawSection, SECTION_SCHEMAS, type SectionKey } from './schema';
@@ -82,12 +84,53 @@ export interface HealthReport {
   menopause?: Section<MenopauseSection>;
 }
 
+/** CB-REC-03/05: a record document the owner added to a 24h doctor summary; file links are signed for 5 minutes. */
+export interface SharedDocument {
+  kind: string;
+  title: string | null;
+  date: string | null;
+  endedOn: string | null;
+  centre: string | null;
+  doctor: string | null;
+  files: { mime: string; sizeBytes: number; url: string }[];
+}
+
 /** The frozen report behind a share link (public view). */
 export interface SharedReport extends HealthReport {
   question: string | null;
   createdAt: string;
   expiresAt: string;
+  /** CB-REC-05: `summary` = a 24h doctor code (expired / revoked answer 404, never 410); `report` = bloom's 7-day link. */
+  kind: 'report' | 'summary';
+  /** Only on a summary: the documents the owner chose. */
+  documents: SharedDocument[];
 }
+
+const sharedDocumentSchema = z
+  .object({
+    kind: z.string(),
+    title: z.string().nullable().catch(null),
+    date: z.string().nullable().catch(null),
+    ended_on: z.string().nullable().catch(null),
+    centre: z.string().nullable().catch(null),
+    doctor: z.string().nullable().catch(null),
+    files: z.array(z.object({ mime: z.string(), size_bytes: z.number(), url: z.string() })).catch([]),
+  })
+  .transform(
+    (d): SharedDocument => ({
+      kind: d.kind,
+      title: d.title,
+      date: d.date,
+      endedOn: d.ended_on,
+      centre: d.centre,
+      doctor: d.doctor,
+      // only https (or dev http) links on the API origin's /files/ path survive (CB-REC-04 L1)
+      files: d.files.flatMap((f) => {
+        const url = safeFileUrl(f.url, env.apiBaseUrl);
+        return url ? [{ mime: f.mime, sizeBytes: f.size_bytes, url }] : [];
+      }),
+    }),
+  );
 
 const windowSchema = z.object({ key: z.string(), from: z.string(), to: z.string(), days: z.number() });
 
@@ -127,12 +170,16 @@ export const sharedReportSchema = z
     question: z.string().nullable(),
     created_at: z.string(),
     expires_at: z.string(),
+    kind: z.literal('summary').optional().catch(undefined),
+    documents: z.array(sharedDocumentSchema).optional().catch(undefined),
   })
   .transform((d): SharedReport => ({
     ...toReport(d.range, d.record),
     question: d.question,
     createdAt: d.created_at,
     expiresAt: d.expires_at,
+    kind: d.kind === 'summary' ? 'summary' : 'report',
+    documents: d.documents ?? [],
   }));
 
 function reportParams(sel: Pick<ReportSelection, 'range' | 'from' | 'sections'>): Record<string, string> {
@@ -163,10 +210,12 @@ export async function fetchSharedReport(token: string): Promise<SharedReport> {
   return sharedReportSchema.parse(data.data);
 }
 
-export function useSharedReport(token: string) {
+/** `enabled: false` (CB-REC-05) once a public page dropped what it showed on `pagehide` — no silent re-fetch. */
+export function useSharedReport(token: string, enabled = true) {
   return useQuery({
     queryKey: ['shared-report', token] as const,
     queryFn: () => fetchSharedReport(token),
+    enabled,
     retry: false,
     staleTime: Infinity,
     gcTime: 0,

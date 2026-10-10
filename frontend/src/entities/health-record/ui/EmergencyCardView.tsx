@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
+import type { ReactNode } from 'react';
 
 import type { Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
@@ -19,7 +20,16 @@ function isChronic(code: string): code is (typeof CHRONIC_ILLNESSES)[number] {
  * `variant="lock"` is the app-lock view (CB-PRIV-01): the server already sends only the minimal card (first name,
  * no insurance) and the view never renders insurance either.
  */
-export function EmergencyCardView({ card, variant = 'owner' }: { card: EmergencyCard; variant?: 'owner' | 'lock' }) {
+export function EmergencyCardView({
+  card,
+  variant = 'owner',
+  children,
+}: {
+  card: EmergencyCard;
+  variant?: 'owner' | 'lock';
+  /** CB-REC-05: extra content at the card's end (the owner's public-link QR). */
+  children?: ReactNode;
+}) {
   const t = useTranslations('common.emergencyCard');
   const loc = useLocale() as Locale;
   const none = t('none');
@@ -82,6 +92,7 @@ export function EmergencyCardView({ card, variant = 'owner' }: { card: Emergency
           </dd>
         </div>
       </dl>
+      {children}
     </article>
   );
 }

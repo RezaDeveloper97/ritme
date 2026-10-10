@@ -41,6 +41,17 @@ export {
   type EmergencyCard,
   type OwnerEmergencyCard,
 } from './api/emergency';
+// CB-REC-05: owner edits, public link, public card.
+export {
+  createdEmergencyLinkSchema,
+  publicEmergencyCardSchema,
+  useDisableEmergencyLink,
+  useEnableEmergencyLink,
+  usePublicEmergencyCard,
+  useSaveEmergencyCard,
+  type CreatedEmergencyLink,
+  type EmergencyCardInput,
+} from './api/emergency';
 export { EmergencyCardView } from './ui/EmergencyCardView';
 export {
   fetchHealthRecord,
@@ -69,6 +80,7 @@ export {
   type ReportSection,
   type ReportSelection,
   type ReportWindow,
+  type SharedDocument,
   type SharedReport,
   type ShareLink,
   type ShareLinks,
@@ -163,3 +175,21 @@ export {
 } from './api/documents';
 export { CATEGORY_LOOK, KIND_LOOK } from './ui/document-look';
 export { RecordDateField } from './ui/RecordDateField';
+// CB-REC-05: «چه کسی پرونده‌ات را می‌بیند؟» — 24h doctor codes, family scope, access history, code entry.
+export {
+  MAX_SHARE_DOCUMENTS,
+  createdShareCodeSchema,
+  recordSharingSchema,
+  useCreateShareCode,
+  useOpenSharedReportByCode,
+  useRecordSharing,
+  useRevokeShareCode,
+  type CreatedShareCode,
+  type FamilyAccess,
+  type FamilyLevel,
+  type RecordSharing,
+  type ShareAccessEntry,
+  type ShareCode,
+  type ShareCodeInput,
+  type ShareCodeStatus,
+} from './api/sharing';

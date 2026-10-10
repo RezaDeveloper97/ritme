@@ -401,3 +401,8 @@ export function addDays(date: Date, days: number): Date {
 export function diffInDays(a: Date, b: Date): number {
   return dayjs(a).startOf('day').diff(dayjs(b).startOf('day'), 'day');
 }
+
+/** Wall-clock time of an instant on this device, `HH:mm` in the locale's digits (CB-REC-05: code expiry, access log). */
+export function formatTimeOfDay(date: Date, locale: Locale): string {
+  return localizeDigits(dayjs(date).format('HH:mm'), locale);
+}

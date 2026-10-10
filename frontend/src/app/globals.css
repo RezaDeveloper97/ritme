@@ -11768,3 +11768,89 @@ button.rec-doc-thumb { inline-size: 64px; }
 .nb-wdot.is-off .nb-wdot-disc { border-style: dashed; border-color: var(--line); background: transparent; }
 .nb-wdot.is-off .nb-wdot-day { color: var(--text-3); }
 /* ═══ end CB-MENO-13b ═══ */
+
+/* ═══ CB-REC-05 record sharing (nbl_Rec_Share), emergency card editor (nbl_Rec_Emergency), public /d + /emergency ═══ */
+/* QR: always dark modules on a light quiet zone — scanners misread inverted codes, so the dark theme swaps the pair. */
+.nb-qr { display: block; inline-size: 168px; block-size: 168px; margin-inline: auto; }
+.nb-qr-bg { fill: var(--surface); }
+.nb-qr-ink { fill: var(--text-1); }
+[data-theme="dark"] .nb-qr-bg { fill: var(--text-1); }
+[data-theme="dark"] .nb-qr-ink { fill: var(--page); }
+
+.rsh-page, .rem-page { background: var(--page); }
+.rsh-scroll, .rem-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 14px; padding-block-end: 28px; }
+.rsh-scroll > :not(.nb-hdr), .rem-scroll > :not(.nb-hdr) { margin-inline: var(--gutter); }
+.rsh-skel, .rem-skel { display: flex; flex-direction: column; gap: 12px; }
+.rsh-skel-card { block-size: 150px; border-radius: var(--r-card); }
+.rem-skel-card { block-size: 360px; border-radius: var(--r-card); }
+.rem-skel-row { block-size: 120px; border-radius: var(--r-card); }
+.rsh-scroll > .nb-sect { margin-block-start: 6px; }
+.rsh-doctor { display: flex; flex-direction: column; gap: 14px; padding: 16px; }
+.rsh-doctor-head { display: flex; align-items: center; gap: 12px; }
+.rsh-doctor-text { display: flex; flex-direction: column; gap: 4px; min-inline-size: 0; }
+.rsh-doctor-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.rsh-doctor-body { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.rsh-hint, .rem-hint { margin: 0; font-size: var(--fs-sm); font-weight: 600; line-height: var(--lh-body); color: var(--text-3); }
+.rsh-error, .rem-error { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--danger-deep); }
+.rsh-codes { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.rsh-code { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 12px; border-top: 1px solid var(--line); }
+.rsh-code-text { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
+.rsh-code-title { margin: 0; font-size: var(--fs-md); font-weight: 800; color: var(--text-1); }
+.rsh-code-meta { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); }
+.rsh-revoke {
+  min-block-size: 36px; padding: 0 14px; border: 1px solid var(--danger-line); border-radius: 999px;
+  background: var(--danger-soft); font: inherit; font-size: var(--fs-sm); font-weight: 800; color: var(--danger-deep); cursor: pointer;
+}
+.rsh-revoke:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.rsh-revoke:disabled { opacity: .55; cursor: default; }
+.rsh-list .nb-row-desc, .rem-list .nb-row-desc { line-height: var(--lh-body); }
+.rsh-sheet-btns, .rem-sheet-btns { display: flex; flex-direction: column; gap: 6px; }
+.rsh-form, .rem-form { display: flex; flex-direction: column; gap: 18px; }
+.rsh-field { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+.rsh-label { padding: 0; font-size: var(--fs-md); font-weight: 800; color: var(--text-1); }
+.rsh-docs { display: flex; flex-direction: column; gap: 4px; }
+.rsh-result { display: flex; flex-direction: column; gap: 16px; align-items: stretch; }
+.rsh-result-body { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.rsh-code-box {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px;
+  border: 1.5px dashed var(--line-strong); border-radius: var(--r-card); background: var(--surface-2);
+}
+.rsh-code-label { font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); }
+.rsh-code-value { font-size: 30px; font-weight: 800; letter-spacing: .12em; color: var(--brand); }
+.rsh-qr { inline-size: 196px; block-size: 196px; }
+.rsh-enter-at { margin: 0; text-align: center; font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); overflow-wrap: anywhere; }
+
+.rem-qr { margin-block-start: 8px; }
+.rem-link { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+.rem-link-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.rem-link-body { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.rem-link-hint { margin: 0; font-size: var(--fs-sm); font-weight: 600; line-height: var(--lh-body); color: var(--text-3); }
+.rem-link-url {
+  display: block; padding: 10px 12px; border-radius: var(--r-md); background: var(--surface-2);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); overflow-wrap: anywhere; text-align: start;
+}
+.rem-link-btns { display: flex; flex-direction: column; gap: 6px; }
+.rem-field { display: flex; flex-direction: column; gap: 8px; }
+.rem-public-head { padding: 24px var(--gutter) 0; text-align: center; }
+.rem-public-title { margin: 0; font-family: var(--font-display); font-size: 26px; font-weight: 400; color: var(--text-1); }
+.rem-public-sub { margin: 4px 0 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); }
+
+.rx-docs { display: flex; flex-direction: column; gap: 10px; }
+.rx-docs-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.rx-docs-list { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.rx-doc { display: flex; flex-direction: column; gap: 10px; padding: 14px; }
+.rx-doc-head { display: flex; align-items: center; gap: 10px; }
+.rx-doc-text { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
+.rx-doc-title { margin: 0; font-size: var(--fs-md); font-weight: 800; color: var(--text-1); }
+.rx-doc-meta { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); }
+.rx-doc-files { display: flex; flex-wrap: wrap; gap: 8px; }
+.rx-doc-file {
+  min-block-size: 40px; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: 999px;
+  background: var(--surface); font: inherit; font-size: var(--fs-sm); font-weight: 800; color: var(--brand); cursor: pointer;
+}
+.rx-doc-file:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.rx-doc-file:disabled { opacity: .55; cursor: default; }
+.rx-code-form { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+.rx-code-sub { margin: 0 0 4px; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.rx-code-input { text-align: center; font-size: 20px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+/* ═══ end CB-REC-05 ═══ */

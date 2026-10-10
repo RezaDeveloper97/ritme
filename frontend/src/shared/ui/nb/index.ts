@@ -31,3 +31,5 @@ export { SeverityScale, severityTone, type SeverityOption } from './SeverityScal
 export { StepTimeline, type StepState, type TimelineStep } from './StepTimeline';
 export { formatClock, timerProgress, useTimer } from './timer';
 export { WeekDots, type WeekDotState } from './WeekDots';
+// CB-REC-05: on-device QR code (doctor code, emergency card link).
+export { QrCode } from './QrCode';

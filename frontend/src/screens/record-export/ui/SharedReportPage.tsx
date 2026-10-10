@@ -1,37 +1,56 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
+import { type ReactNode, useEffect, useState } from 'react';
 
-import { useSharedReport } from '@/entities/health-record';
+import { type SharedReport, useSharedReport } from '@/entities/health-record';
 import { ApiError } from '@/shared/api';
 import type { Locale } from '@/shared/i18n';
 import { formatLongDate } from '@/shared/lib/date';
+import { replaceUrlPath, usePageHide } from '@/shared/lib/page-hide';
 import { EmptyState, InfoNote, PrimaryButton, SecondaryButton, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 import { ReportPaper } from './ReportPaper';
+import { SharedDocuments } from './SharedDocuments';
 import { usePaperModel, usePdfDownload } from './usePaper';
 
 /**
  * The public, read-only doctor report behind a share link (bloom B-N6-04): no session, no navigation into the app,
- * not indexed (route metadata). 410 → the link expired or was revoked; 404 → unknown.
+ * not indexed (route metadata). 410 → the link expired or was revoked; 404 → unknown (CB-REC-05: also an expired /
+ * revoked 24h summary). A summary (`kind: summary`) also lists the documents the owner chose.
  */
-export function SharedReportPage({ token }: { token: string }) {
+export function SharedReportPage({ token, scrubTo }: { token: string; scrubTo?: string }) {
   const t = useTranslations('recordExport.shared');
-  const tp = useTranslations('recordExport.paper');
-  const tr = useTranslations('recordExport');
-  const loc = useLocale() as Locale;
-  const query = useSharedReport(token);
-  const model = usePaperModel(query.data, query.data?.question ?? null);
-  const pdf = usePdfDownload();
+  const td = useTranslations('record.doctor');
+  const queryClient = useQueryClient();
+  // CB-REC-05 `/d/[token]`: once closed (pagehide) the report is dropped and never silently re-fetched.
+  const [closed, setClosed] = useState(false);
+  const query = useSharedReport(token, !closed);
+  const opened = query.isSuccess;
+
+  // CB-REC-05 `/d/[token]`: after the first successful open, the token leaves the address bar (a refresh then lands
+  // on the code page). bloom's `/shared/report/[token]` passes no `scrubTo` and keeps its behaviour.
+  useEffect(() => {
+    if (opened && scrubTo) replaceUrlPath(scrubTo);
+  }, [opened, scrubTo]);
+
+  usePageHide(() => {
+    if (!scrubTo) return;
+    setClosed(true);
+    queryClient.removeQueries({ queryKey: ['shared-report', token] });
+  });
 
   let body;
-  if (query.isPending) {
+  if (closed) {
+    body = <EmptyState icon="lock" title={td('closedTitle')} body={td('closedBody')} />;
+  } else if (query.isPending) {
     body = (
       <SkeletonGroup label={t('loading')} className="rx-skel">
         <Skeleton shape="card" className="rx-skel-paper" />
       </SkeletonGroup>
     );
-  } else if (query.isError || !model || !query.data) {
+  } else if (query.isError || !query.data) {
     const status = query.error instanceof ApiError ? query.error.response?.status : undefined;
     const data = query.error instanceof ApiError ? (query.error.response?.data as { error_code?: string } | undefined) : undefined;
     if (status === 410) {
@@ -59,34 +78,53 @@ export function SharedReportPage({ token }: { token: string }) {
       );
     }
   } else {
-    body = (
-      <>
-        <InfoNote icon="clock">{t('expires', { date: formatLongDate(new Date(query.data.expiresAt), loc) })}</InfoNote>
-        <ReportPaper model={model} questionLabel={tp('question')} />
-        <div className="rx-actions is-inline">
-          <SecondaryButton icon="download" loading={pdf.busy} onClick={() => void pdf.run(model)}>
-            {tr('download')}
-          </SecondaryButton>
-        </div>
-        {pdf.failed ? (
-          <p className="rx-error" role="alert">
-            {tr('downloadError')}
-          </p>
-        ) : null}
-      </>
-    );
+    body = <SharedReportBody report={query.data} />;
   }
 
+  return <SharedReportShell>{body}</SharedReportShell>;
+}
+
+/** The public page frame: sky, title, «read only» — no header buttons, no nav (CB-REC-05 reuses it for `/d`). */
+export function SharedReportShell({ children, title }: { children: ReactNode; title?: string }) {
+  const t = useTranslations('recordExport.shared');
   return (
     <div className="view rx-page is-public">
       <SkyLayer />
       <div className="scroll rx-scroll">
         <header className="rx-public-head">
-          <h1 className="rx-public-title">{t('title')}</h1>
+          <h1 className="rx-public-title">{title ?? t('title')}</h1>
           <p className="rx-public-sub">{t('readOnly')}</p>
         </header>
-        {body}
+        {children}
       </div>
     </div>
+  );
+}
+
+/** One opened report: expiry note, the paper, a summary's documents, the on-device PDF. */
+export function SharedReportBody({ report }: { report: SharedReport }) {
+  const t = useTranslations('recordExport.shared');
+  const tp = useTranslations('recordExport.paper');
+  const tr = useTranslations('recordExport');
+  const loc = useLocale() as Locale;
+  const model = usePaperModel(report, report.question ?? null);
+  const pdf = usePdfDownload();
+  if (!model) return null;
+  return (
+    <>
+      <InfoNote icon="clock">{t('expires', { date: formatLongDate(new Date(report.expiresAt), loc) })}</InfoNote>
+      <ReportPaper model={model} questionLabel={tp('question')} />
+      {report.kind === 'summary' && report.documents.length ? <SharedDocuments documents={report.documents} /> : null}
+      <div className="rx-actions is-inline">
+        <SecondaryButton icon="download" loading={pdf.busy} onClick={() => void pdf.run(model)}>
+          {tr('download')}
+        </SecondaryButton>
+      </div>
+      {pdf.failed ? (
+        <p className="rx-error" role="alert">
+          {tr('downloadError')}
+        </p>
+      ) : null}
+    </>
   );
 }

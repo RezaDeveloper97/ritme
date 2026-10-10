@@ -29,7 +29,8 @@ export type IconName =
   | 'gauge' | 'glucose'
   | 'image' | 'fileDoc' // B-N6-07
   | 'bag' | 'briefcase' | 'moreH' // B-N6-08
-  | 'play' | 'pause' | 'music' | 'rewind' | 'forward' | 'expand'; // B-N8-03
+  | 'play' | 'pause' | 'music' | 'rewind' | 'forward' | 'expand' // B-N8-03
+  | 'qr'; // CB-REC-05
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -188,6 +189,8 @@ const PATHS: Record<IconName, string> = {
   rewind:       '<path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/>',
   forward:      '<path d="M13 17l5-5-5-5M6 17l5-5-5-5"/>',
   expand:       '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+  // CB-REC-05 (nbl_Rec_Share, nbl_Rec_Emergency): doctor code / emergency card QR.
+  qr:           '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17.5 20.5h3v-3"/>',
 };
 
 interface IconProps {

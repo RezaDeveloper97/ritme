@@ -26,6 +26,7 @@ export {
   formatWeekdayDayMonth,
   formatWeekday,
   formatDecimal,
+  formatTimeOfDay,
   currentHour,
   WEEKDAY_KEYS,
   addDays,

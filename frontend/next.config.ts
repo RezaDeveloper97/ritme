@@ -143,8 +143,20 @@ const nextConfig: NextConfig = {
         // A doctor's shared report (B-N6-04): never stored, never restored from
         // bfcache on a shared clinic PC. Must follow the HTML rule above.
         source: '/:locale/shared/:path*',
-        headers: [{ key: 'Cache-Control', value: 'no-store' }],
+        headers: [
+          { key: 'Cache-Control', value: 'no-store' },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+        ],
       },
+      // CB-REC-05: the doctor code page, its token alias and the public emergency card — same rules (the token is in
+      // the URL; the broad HTML rule above would otherwise win over the route's force-dynamic).
+      ...['/:locale/d', '/:locale/d/:path*', '/:locale/emergency', '/:locale/emergency/:path*'].map((source) => ({
+        source,
+        headers: [
+          { key: 'Cache-Control', value: 'no-store' },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+        ],
+      })),
       {
         // Update-detection source of truth — a cached copy would hide releases.
         source: '/version.json',

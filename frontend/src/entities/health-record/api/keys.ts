@@ -10,4 +10,6 @@ export const healthRecordKeys = {
   emergencyCard: () => [...healthRecordKeys.all, 'emergency-card'] as const,
   /** The app-lock screen's minimal card (CB-PRIV-01). */
   emergencyCardLock: () => [...healthRecordKeys.all, 'emergency-card-lock'] as const,
+  /** «چه کسی پرونده‌ات را می‌بیند؟» — doctor codes, family scope, access history (CB-REC-05). */
+  sharing: () => [...healthRecordKeys.all, 'sharing'] as const,
 };

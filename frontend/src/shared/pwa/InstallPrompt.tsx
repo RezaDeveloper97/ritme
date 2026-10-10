@@ -109,7 +109,8 @@ function isInAppBrowser(): boolean {
  * اپ» there. `pathname` is locale-free.
  */
 export function hidesInstallPrompt(pathname: string): boolean {
-  return pathname === '/shared' || pathname.startsWith('/shared/');
+  // CB-REC-05: the doctor code page `/d` (+ `/d/<token>`) and the public emergency card `/emergency/<token>` too.
+  return ['/shared', '/d', '/emergency'].some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 /**

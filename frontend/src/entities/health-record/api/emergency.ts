@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
 import { type ApiEnvelope, apiClient } from '@/shared/api';
@@ -56,11 +56,42 @@ export const emergencyCardSchema = z
   .object({
     card: z.object({
       ...cardFields,
-      insurance: z.object({ label: nullableString, masked: z.string() }).passthrough().nullable().catch(null),
+      insurance: z
+        .object({ label: nullableString, masked: z.string(), last4: z.string().catch('') })
+        .passthrough()
+        .nullable()
+        .catch(null),
     }),
-    settings: z.object({ show_on_lock_screen: z.boolean().catch(false) }).passthrough(),
+    settings: z
+      .object({
+        show_on_lock_screen: z.boolean().catch(false),
+        // CB-REC-05: the owner screen's switches + the allergy flag (edited through PUT /health-record/extras).
+        show_pregnancy: z.boolean().catch(false),
+        allergies_on_card: z.boolean().catch(false),
+      })
+      .passthrough(),
+    public_link: z
+      .object({
+        enabled: z.boolean().catch(false),
+        enabled_at: nullableString,
+        views: z.number().catch(0),
+        last_viewed_at: nullableString,
+      })
+      .catch({ enabled: false, enabled_at: null, views: 0, last_viewed_at: null }),
   })
-  .transform((raw) => ({ ...toCard(raw.card), showOnLockScreen: raw.settings.show_on_lock_screen }));
+  .transform((raw) => ({
+    ...toCard(raw.card),
+    showOnLockScreen: raw.settings.show_on_lock_screen,
+    showPregnancy: raw.settings.show_pregnancy,
+    allergiesOnCard: raw.settings.allergies_on_card,
+    insuranceLast4: raw.card.insurance?.last4 ?? null,
+    publicLink: {
+      enabled: raw.public_link.enabled,
+      enabledAt: raw.public_link.enabled_at,
+      views: raw.public_link.views,
+      lastViewedAt: raw.public_link.last_viewed_at,
+    },
+  }));
 
 export type OwnerEmergencyCard = z.output<typeof emergencyCardSchema>;
 
@@ -97,5 +128,83 @@ export function useLockEmergencyCard({ enabled = true }: { enabled?: boolean } =
     enabled: enabled && isAuthenticated(),
     staleTime: 60_000,
     retry: 1,
+  });
+}
+
+/* ── CB-REC-05: the owner's edit screen + the public card ─────────────────────────────────────────────────────────── */
+
+/** PUT /health-record/emergency-card — partial: an absent key keeps its part, `null` clears contact / insurance. */
+export interface EmergencyCardInput {
+  show_on_lock_screen?: boolean;
+  show_pregnancy?: boolean;
+  emergency_contact?: { name: string; relation: string | null; phone: string } | null;
+  insurance?: { label: string | null; last4: string } | null;
+}
+
+export function useSaveEmergencyCard() {
+  const queryClient = useQueryClient();
+  return useMutation<OwnerEmergencyCard, unknown, EmergencyCardInput>({
+    mutationFn: async (input) => {
+      const { data } = await apiClient.put<ApiEnvelope<unknown>>('/health-record/emergency-card', input);
+      return emergencyCardSchema.parse(data.data);
+    },
+    onSuccess: (card) => {
+      queryClient.setQueryData(healthRecordKeys.emergencyCard(), card);
+      void queryClient.invalidateQueries({ queryKey: healthRecordKeys.emergencyCardLock() });
+    },
+  });
+}
+
+/** The public link's answer to POST …/public-link: the token and path come back once (kept in mutation memory only). */
+export const createdEmergencyLinkSchema = z
+  .object({
+    token: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
+    path: z.string().regex(/^\/[a-z]{2,3}\/emergency\/[A-Za-z0-9_-]{43}$/),
+  })
+  .passthrough()
+  .transform((raw) => ({ token: raw.token, path: raw.path, card: emergencyCardSchema.parse(raw) }));
+
+export type CreatedEmergencyLink = z.output<typeof createdEmergencyLinkSchema>;
+
+/** POST /health-record/emergency-card/public-link (201) — a fresh link; the previous one stops working. */
+export function useEnableEmergencyLink() {
+  const queryClient = useQueryClient();
+  return useMutation<CreatedEmergencyLink, unknown, void>({
+    mutationFn: async () => {
+      const { data } = await apiClient.post<ApiEnvelope<unknown>>('/health-record/emergency-card/public-link');
+      return createdEmergencyLinkSchema.parse(data.data);
+    },
+    onSuccess: (created) => queryClient.setQueryData(healthRecordKeys.emergencyCard(), created.card),
+  });
+}
+
+/** DELETE /health-record/emergency-card/public-link — the link answers 404 from now on. */
+export function useDisableEmergencyLink() {
+  const queryClient = useQueryClient();
+  return useMutation<OwnerEmergencyCard, unknown, void>({
+    mutationFn: async () => {
+      const { data } = await apiClient.delete<ApiEnvelope<unknown>>('/health-record/emergency-card/public-link');
+      return emergencyCardSchema.parse(data.data);
+    },
+    onSuccess: (card) => queryClient.setQueryData(healthRecordKeys.emergencyCard(), card),
+  });
+}
+
+export const publicEmergencyCardSchema = z
+  .object(cardFields)
+  .transform((raw): EmergencyCard => ({ ...toCard(raw), insurance: null }));
+
+/** GET /emergency-cards/{token} — public, minimal card; 404 unknown / turned off. Memory only (`gcTime: 0`). */
+export function usePublicEmergencyCard(token: string, enabled = true) {
+  return useQuery({
+    enabled,
+    queryKey: ['public-emergency-card', token] as const,
+    queryFn: async (): Promise<EmergencyCard> => {
+      const { data } = await apiClient.get<ApiEnvelope<unknown>>(`/emergency-cards/${encodeURIComponent(token)}`);
+      return publicEmergencyCardSchema.parse(data.data);
+    },
+    retry: false,
+    staleTime: Infinity,
+    gcTime: 0,
   });
 }
