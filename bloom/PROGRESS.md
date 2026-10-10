@@ -1171,3 +1171,13 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
 - App screenshots not taken (Docker was down) — to be covered by the N8 audit (B-N8-09); artboards rendered in
   `docs/qa/bloom/B-N8-03/artboards/`. Services `learning` section href still NULL → admin sets `/learn` in the
   catalog. QUESTIONS #126.
+
+## B-N8-06 — instructor-web dashboard, content, course, upload
+
+- Dashboard (stats tiles, quick actions, my courses, recent activity — counts only, H1 rule) on the committed
+  `GET /api/instructor/v1/dashboard`; `/content` (all/video/audio/pdf filter, new course), `/content/[id]` (signed preview,
+  chapters CRUD + scheduled unlock, lesson reorder/publish/draft/upload/delete, publish/delete course, access card),
+  `/content/upload` (course+chapter or standalone, draft until media ready, chunked upload with progress, pause/resume,
+  auto-retry on 409 offset / network, resume after reload by re-picking the file — media id kept 24 h in localStorage).
+  Per-lesson visibility (groups/people) not in the backend → shown «به‌زودی». Watch hours approximate (7-day progress
+  positions). Screenshots against a mock API (Docker down) in `docs/qa/bloom/B-N8-06/`; real-API run in the N8 audit.

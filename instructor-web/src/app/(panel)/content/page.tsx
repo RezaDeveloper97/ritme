@@ -1,5 +1,5 @@
-import { ComingSoonScreen } from '@/screens/coming-soon';
+import { ContentScreen } from '@/screens/content';
 
 export default function Page() {
-  return <ComingSoonScreen section="content" />;
+  return <ContentScreen />;
 }

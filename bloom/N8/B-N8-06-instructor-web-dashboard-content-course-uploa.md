@@ -3,7 +3,7 @@ id: B-N8-06
 title: instructor-web — dashboard, content, course, upload
 milestone: N8
 type: frontend
-status: todo
+status: done
 depends_on: [B-N8-05,B-N8-02]
 parallel_group: N8-F
 touches: [instructor-web/src,backend-go/internal/learning,backend-go/api]

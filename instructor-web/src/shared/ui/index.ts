@@ -7,3 +7,4 @@ export { Skeleton } from './Skeleton';
 export { ErrorState } from './ErrorState';
 export { TextField } from './TextField';
 export { ThemeToggle } from './ThemeToggle';
+export { QueryError } from './QueryError';
