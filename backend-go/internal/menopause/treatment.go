@@ -22,9 +22,22 @@ const (
 	AdherenceDays = 7
 )
 
-// activeOn: started on or before day (or no start date) and not stopped by then.
+// startOf is the first day an item counts: its started_on, else the day it was added (created_at on the Tehran wall
+// clock) — an item without a start date must not count the days before she added it as missed (CB-MENO-13b). ok is
+// false only for a row with neither (never written by the API).
+func startOf(it store.TreatmentItem) (civildate.Date, bool) {
+	if it.StartedOn.Valid {
+		return it.StartedOn.Date, true
+	}
+	if it.CreatedAt.Valid {
+		return civildate.InTehran(it.CreatedAt.Time), true
+	}
+	return civildate.Date{}, false
+}
+
+// activeOn: started on or before day (see startOf) and not stopped by then.
 func activeOn(it store.TreatmentItem, day civildate.Date) bool {
-	if it.StartedOn.Valid && it.StartedOn.Date.After(day) {
+	if start, ok := startOf(it); ok && start.After(day) {
 		return false
 	}
 	return !it.StoppedOn.Valid || it.StoppedOn.Date.After(day)
@@ -34,8 +47,8 @@ func activeOn(it store.TreatmentItem, day civildate.Date) bool {
 type TreatmentToday struct {
 	Item       store.TreatmentItem
 	TakenToday bool
-	// DaysTaken of Days: intake days in the last AdherenceDays days (Days shrinks for an item started inside the
-	// window). Daily items only; weekly and lifestyle items report Amount against their weekly goal instead.
+	// DaysTaken of Days: intake days in the last AdherenceDays days (Days shrinks for an item started — or, without a
+	// start date, added — inside the window). Daily items only; weekly and lifestyle items report Amount against their weekly goal instead.
 	DaysTaken, Days int
 	// Amount is the window's total: minutes (goal_unit minutes) or sessions.
 	Amount int
@@ -73,10 +86,13 @@ func (s *Service) Treatment(ctx context.Context, userID uint64, today civildate.
 			continue
 		}
 		t := TreatmentToday{Item: it, Days: AdherenceDays}
-		if it.StartedOn.Valid && it.StartedOn.Date.After(from) {
-			t.Days = it.StartedOn.Date.DiffDays(today) + 1
+		if start, ok := startOf(it); ok && start.After(from) {
+			t.Days = start.DiffDays(today) + 1
 		}
 		for day, amount := range intakes[it.ID] {
+			if !activeOn(it, day) { // a care tick before she added the item doesn't count either
+				continue
+			}
 			t.DaysTaken++
 			if day == today {
 				t.TakenToday = true

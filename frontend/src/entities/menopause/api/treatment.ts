@@ -46,7 +46,14 @@ const itemSchema = z
     active: z.boolean().catch(true),
     taken_today: z.boolean().catch(false),
     week: z
-      .array(z.object({ date: z.string(), taken: z.boolean().catch(false), amount: nullableInt }))
+      .array(
+        z.object({
+          date: z.string(),
+          taken: z.boolean().catch(false),
+          amount: nullableInt,
+          scheduled: z.boolean().optional().catch(undefined),
+        }),
+      )
       .catch([]),
     days_taken: z.number().int().catch(0),
     days: z.number().int().catch(0),

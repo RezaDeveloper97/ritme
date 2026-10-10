@@ -49,37 +49,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
@@ -274,37 +281,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
@@ -336,41 +350,48 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-23",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
-                "days": 5,
+                "days": 1,
                 "adherence_pct": 0,
                 "goal": null,
                 "reminder": {
@@ -561,37 +582,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
@@ -623,41 +651,48 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-23",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
-                "days": 5,
+                "days": 1,
                 "adherence_pct": 0,
                 "goal": null,
                 "reminder": {
@@ -685,37 +720,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
@@ -902,37 +944,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": true,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 1,
@@ -964,41 +1013,48 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-23",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
-                "days": 5,
+                "days": 1,
                 "adherence_pct": 0,
                 "goal": null,
                 "reminder": {
@@ -1026,37 +1082,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
@@ -1243,37 +1306,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": true,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": true,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 1,
@@ -1299,48 +1369,55 @@
                 "started_on": null,
                 "review_on": null,
                 "stopped_on": null,
-                "active": true,
+                "active": false,
                 "taken_today": false,
                 "week": [
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-23",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
-                "days": 4,
-                "adherence_pct": 0,
+                "days": 0,
+                "adherence_pct": null,
                 "goal": null,
                 "reminder": {
                   "id": 101806,
@@ -1367,37 +1444,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
@@ -1587,37 +1671,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": true,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": true,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 2,
@@ -1649,41 +1740,48 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-23",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
-                "days": 5,
+                "days": 1,
                 "adherence_pct": 0,
                 "goal": null,
                 "reminder": {
@@ -1711,37 +1809,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": true,
-                    "amount": 30
+                    "amount": 30,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 1,
@@ -1935,37 +2040,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": true,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": true,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 2,
@@ -1997,41 +2109,48 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-23",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
-                "days": 5,
+                "days": 1,
                 "adherence_pct": 0,
                 "goal": null,
                 "reminder": {
@@ -2059,37 +2178,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": true,
-                    "amount": 30
+                    "amount": 30,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 1,
@@ -2289,37 +2415,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": true,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": true,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 2,
@@ -2351,41 +2484,48 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-23",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
-                "days": 5,
+                "days": 1,
                 "adherence_pct": 0,
                 "goal": null,
                 "reminder": {
@@ -2413,37 +2553,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": true,
-                    "amount": 30
+                    "amount": 30,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 1,
@@ -2636,37 +2783,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": true,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
@@ -2692,48 +2846,55 @@
                 "started_on": null,
                 "review_on": null,
                 "stopped_on": null,
-                "active": true,
+                "active": false,
                 "taken_today": false,
                 "week": [
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": false
                   },
                   {
                     "date": "2026-09-23",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
-                "days": 4,
-                "adherence_pct": 0,
+                "days": 0,
+                "adherence_pct": null,
                 "goal": null,
                 "reminder": {
                   "id": 101806,
@@ -2760,37 +2921,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": true,
-                    "amount": 30
+                    "amount": 30,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 0,
@@ -2980,37 +3148,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": true,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 1,
@@ -3043,37 +3218,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": true,
-                    "amount": 30
+                    "amount": 30,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 1,
@@ -3263,37 +3445,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": true,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 1,
@@ -3326,37 +3515,44 @@
                   {
                     "date": "2026-09-19",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-20",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-21",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-22",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-23",
                     "taken": true,
-                    "amount": 30
+                    "amount": 30,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-24",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   },
                   {
                     "date": "2026-09-25",
                     "taken": false,
-                    "amount": null
+                    "amount": null,
+                    "scheduled": true
                   }
                 ],
                 "days_taken": 1,

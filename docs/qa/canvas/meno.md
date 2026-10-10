@@ -110,3 +110,15 @@ maths (the stage answer wins: «۱۴ ماه بدون پریود») and that peri
 question; the home «گرگرفتگی تا الان» counts timer flashes only, so a hot flash logged with a severity in the day log
 does not raise it; the PWA install banner re-opens on every client navigation in the dev build even after «بستن» (bloom
 `shared/pwa`, not MENO).
+
+## CB-MENO-13b — adherence from the day an item was added
+
+Worktree Go API :8281 on `ritme_meno13b` (a copy of `ritme_dev` at goose 00047; `ritme_dev` untouched) + Next dev :3121,
+390 px, fa. Fresh user 09900002139: profile → menopause mode (peri) → «استروژن ژل» (morning, **no start date**) added on
+Wednesday 15 Mehr 1405 → «مصرف شد» today.
+
+| Board | Route | Light | Dark | Verdict | Fix / note |
+|---|---|---|---|---|---|
+| `nbl_Meno_Treatment` | `/menopause/treatment` | [page](meno/CB-MENO-13b/treatment-light.png) | [page](meno/CB-MENO-13b/treatment-dark.png) | ✔ | «این هفته · ۱ از ۱ روز» (was «۱ از ۵»). ش…س (before she added it) are dashed «برنامه‌ای نداشت» (`WeekDots` state `off`), not «ثبت نشده»; چ done + ringed; پ/ج future. Per-day `scheduled` from the API. |
+| `nbl_Meno_Home` | `/home` (menopause) treatment card | [card](meno/CB-MENO-13b/home-light.png) | [card](meno/CB-MENO-13b/home-dark.png) | ✔ | «۱ از ۱ روز این هفته» (was «۱ از ۷»), adherence 100%. |
+| `nbl_Meno_Report` | `/menopause/report` (3 months) | [page](meno/CB-MENO-13b/report-light.png) | [page](meno/CB-MENO-13b/report-dark.png) | ✔ | «استروژن ژل ۱ پمپ · ۱۰۰٪ مصرف منظم» (was ۱٪ over the 3-month window). No «از <ماه>» since there is no start date. The review card still doesn't appear without a start date (scope 2 — user decision). |

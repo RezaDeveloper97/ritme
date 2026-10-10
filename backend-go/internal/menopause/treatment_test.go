@@ -214,3 +214,44 @@ func TestTreatmentReview(t *testing.T) {
 	assert.Equal(t, day("2026-09-26"), WeekOf(day("2026-10-01"))[0])
 	assert.Equal(t, []string{"breast_tenderness", "headache", "zz"}, ordered([]string{"zz", "headache", "breast_tenderness"}, SideEffectCodes))
 }
+
+// An item without started_on counts from the day it was added, on the Tehran wall clock (CB-MENO-13b).
+func TestStartOfCreatedAt(t *testing.T) {
+	added := item(KindHRT, "", "")
+	// 23:50 UTC on 30 Sep is 03:20 on 1 Oct in Tehran.
+	added.CreatedAt = sql.NullTime{Time: time.Date(2026, 9, 30, 23, 50, 0, 0, time.UTC), Valid: true}
+	start, ok := startOf(added)
+	require.True(t, ok)
+	assert.Equal(t, day("2026-10-01"), start)
+	assert.False(t, activeOn(added, day("2026-09-30")), "before she added it")
+	assert.True(t, activeOn(added, day("2026-10-01")))
+	assert.False(t, overlaps(added, day("2026-09-01"), day("2026-09-30")))
+	assert.True(t, overlaps(added, day("2026-09-01"), day("2026-10-01")))
+
+	taken := map[civildate.Date]sql.NullInt16{day("2026-10-01"): {}, day("2026-09-29"): {}}
+	a := adherenceOf(added, nil, taken, day("2026-07-02"), day("2026-10-01"))
+	assert.Equal(t, 1, a.Days, "a 3-month window counts only the day it was added")
+	assert.Equal(t, 1, a.DaysTaken, "a care tick before it was added does not count")
+	assert.Equal(t, 100, *a.AdherencePct())
+
+	// An explicit started_on wins over created_at.
+	past := item(KindHRT, "2026-09-27", "")
+	past.CreatedAt = added.CreatedAt
+	start, _ = startOf(past)
+	assert.Equal(t, day("2026-09-27"), start)
+	assert.Equal(t, 5, adherenceOf(past, nil, taken, day("2026-09-01"), day("2026-10-01")).Days)
+
+	// Week view: days before it existed are not scheduled and not in the denominator.
+	week := WeekOf(day("2026-10-01")) // Sat 26 Sep … Fri 2 Oct
+	v := ItemView{Item: added, Day: day("2026-10-01"), Week: week, Taken: taken}
+	assert.Equal(t, 1, v.WeekDays())
+	assert.Equal(t, 1, v.DaysTaken())
+	assert.Equal(t, 100, *v.AdherencePct())
+	raw, err := jsonx.Marshal(ItemJSON(v), 0)
+	require.NoError(t, err)
+	assert.Contains(t, string(raw), `{"date":"2026-09-30","taken":false,"amount":null,"scheduled":false}`)
+	assert.Contains(t, string(raw), `{"date":"2026-10-01","taken":true,"amount":null,"scheduled":true}`)
+
+	// Legacy rows with neither date stay active every day.
+	assert.True(t, activeOn(item(KindHRT, "", ""), day("2020-01-01")))
+}

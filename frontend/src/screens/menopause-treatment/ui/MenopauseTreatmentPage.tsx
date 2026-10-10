@@ -204,7 +204,7 @@ function HrtSection({ screen, onAdd, onEdit }: { screen: TreatmentScreen; onAdd:
               days={inLocaleOrder(dots, locale)}
               locale={locale}
               label={t('thisWeek')}
-              stateLabels={{ done: t('dot.done'), missed: t('dot.missed'), future: t('dot.future') }}
+              stateLabels={{ done: t('dot.done'), missed: t('dot.missed'), future: t('dot.future'), off: t('dot.off') }}
               todayIndex={todayIndex >= 0 ? todayIndex : undefined}
             />
           </div>

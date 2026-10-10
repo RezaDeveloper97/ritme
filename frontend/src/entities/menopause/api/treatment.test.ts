@@ -28,7 +28,7 @@ const SCREEN = {
         stopped_on: null,
         active: true,
         taken_today: true,
-        week: week(['2026-09-23']),
+        week: week(['2026-09-23']).map((d) => ({ ...d, scheduled: d.date !== '2026-09-19' })),
         days_taken: 1,
         days: 5,
         adherence_pct: 20,
@@ -84,6 +84,8 @@ describe('treatment screen schema (CB-MENO-10)', () => {
     expect(s.items.hrt).toHaveLength(1);
     expect(s.items.hrt[0]).toMatchObject({ id: 1, startedOn: '2026-08-01', takenToday: true, adherencePct: 20 });
     expect(s.items.hrt[0]?.reminder?.notify).toBe(true);
+    expect(s.items.hrt[0]?.week.map((d) => d.scheduled)).toEqual([false, true, true, true, true, true, true]);
+    expect(s.items.lifestyle[0]?.week[0]?.scheduled).toBeUndefined(); // an older API without the flag
     expect(s.items.lifestyle[0]?.goal).toEqual({ target: 150, unit: 'minutes', amount: 30, done: false });
     expect(s.review).toEqual({ on: '2026-11-21', itemId: 1, suggested: false });
     expect(s.sideEffects.today).toEqual(['breast_tenderness', 'spotting']);

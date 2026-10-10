@@ -60,6 +60,20 @@ describe('treatment screen helpers (CB-MENO-10)', () => {
     expect(dotsSummary(dots)).toEqual({ done: 3, days: 4 });
   });
 
+  it('draws the days before an item existed as not scheduled, not missed (CB-MENO-13b)', () => {
+    // added on Wednesday without a start date: the API marks Sat … Tue `scheduled: false`
+    const gel = item(1, {
+      week: DATES.map((date) => ({ date, taken: date === '2026-10-07', amount: null, scheduled: date >= '2026-10-07' })),
+    });
+    const dots = groupWeekDots([gel], DATES, '2026-10-07');
+    expect(dots).toEqual(['off', 'off', 'off', 'off', 'done', 'future', 'future']);
+    expect(dotsSummary(dots)).toEqual({ done: 1, days: 1 });
+    // a day only one of two items was due on counts that item alone
+    const old = item(2, { taken: ['2026-10-06'] });
+    expect(groupWeekDots([gel, old], DATES, '2026-10-07').slice(3, 5)).toEqual(['done', 'missed']);
+    expect(groupWeekDots([], DATES, '2026-10-07')[0]).toBe('off');
+  });
+
   it('reorders the Saturday week for a Sunday-first calendar', () => {
     expect(inLocaleOrder(DATES, 'fa')[0]).toBe('2026-10-03');
     expect(inLocaleOrder(DATES, 'en')[0]).toBe('2026-10-04');

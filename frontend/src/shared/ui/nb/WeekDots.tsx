@@ -6,7 +6,8 @@ import { weekdayLabels } from '@/shared/lib/date';
 import { Icon } from '../Icon';
 import { toneClass, type Tone } from './tone';
 
-export type WeekDotState = 'done' | 'missed' | 'future';
+/** `off`: nothing was scheduled that day (e.g. before the item existed) — dashed, not counted as missed. */
+export type WeekDotState = 'done' | 'missed' | 'future' | 'off';
 
 interface WeekDotsProps {
   /** Seven states in locale week order (Saturday → Friday in fa). */
@@ -14,8 +15,8 @@ interface WeekDotsProps {
   locale: Locale;
   /** Accessible name, e.g. «این هفته». */
   label: string;
-  /** Spoken state per day, e.g. { done: 'مصرف شد', missed: 'ثبت نشده', future: 'هنوز نرسیده' }. */
-  stateLabels: Record<WeekDotState, string>;
+  /** Spoken state per day, e.g. { done: 'مصرف شد', missed: 'ثبت نشده', future: 'هنوز نرسیده' }; `off` falls back to `future`. */
+  stateLabels: Record<Exclude<WeekDotState, 'off'>, string> & { off?: string };
   /** Index (0–6) of today — outlined in the brand. */
   todayIndex?: number;
   tone?: Tone;
@@ -35,7 +36,7 @@ export function WeekDots({ days, locale, label, stateLabels, todayIndex, tone = 
         <li
           key={index}
           className={clsx('nb-wdot', `is-${state}`, index === todayIndex && 'is-today')}
-          aria-label={`${names[index]}: ${stateLabels[state]}`}
+          aria-label={`${names[index]}: ${state === 'off' ? (stateLabels.off ?? stateLabels.future) : stateLabels[state]}`}
         >
           <span className="nb-wdot-disc" aria-hidden>
             {state === 'done' ? <Icon name="check" size={16} strokeWidth={2.6} /> : null}

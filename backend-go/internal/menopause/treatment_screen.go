@@ -293,7 +293,9 @@ func ItemJSON(v ItemView) *jsonx.OrderedMap {
 		if a.Valid {
 			amount = int(a.Int16)
 		}
-		week[i] = jsonx.Obj("date", d, "taken", taken, "amount", amount)
+		// scheduled: the item was running and due that day — false before it started (or, without a start date, before
+		// she added it) and after it stopped, so the client draws those days as «not scheduled», not missed.
+		week[i] = jsonx.Obj("date", d, "taken", taken, "amount", amount, "scheduled", activeOn(it, d) && v.scheduledOn(d))
 	}
 	_, today := v.Taken[v.Day]
 	var form any

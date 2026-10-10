@@ -3,7 +3,7 @@ id: CB-MENO-13b
 title: Treatment adherence from the day an item was added
 epic: MENO
 type: backend
-status: in_progress
+status: done
 depends_on: [CB-MENO-13]
 parallel_group: MENO-E
 touches: [backend-go/internal/menopause,frontend/src/screens/menopause-treatment]

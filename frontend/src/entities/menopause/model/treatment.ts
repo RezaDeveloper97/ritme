@@ -34,6 +34,12 @@ export interface TreatmentDay {
   taken: boolean;
   /** Lifestyle minutes / sessions of the day. */
   amount: number | null;
+  /**
+   * The item was running and due that day — false before it started (without
+   * a start date: before the day it was added) and after it stopped
+   * (CB-MENO-13b). Absent from an older API.
+   */
+  scheduled?: boolean;
 }
 
 export interface TreatmentGoal {

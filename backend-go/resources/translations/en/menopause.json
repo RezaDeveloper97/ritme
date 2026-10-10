@@ -265,7 +265,8 @@
     "dot": {
       "done": "Taken",
       "missed": "Not logged",
-      "future": "Not yet"
+      "future": "Not yet",
+      "off": "Not scheduled"
     },
     "review": {
       "title": "Review with your doctor · {date}",

@@ -299,6 +299,53 @@ func TestReport(t *testing.T) {
 	assert.Equal(t, http.StatusUnprocessableEntity, r.status, r.raw)
 }
 
+// An item added today without a start date counts from today: «۱ از ۱ روز» on the screen, 100% on the home card and
+// in the report — not the days before she added it as missed (CB-MENO-13b).
+func TestTreatmentCountsFromTheDayAdded(t *testing.T) {
+	e := setup(t)
+	_, tok := e.user(t, "09120000106")
+
+	r := e.do(t, http.MethodPost, "/api/v1/menopause/treatment/items", tok, "en",
+		`{"kind":"hrt","name":"Estrogen gel","schedule":"morning"}`)
+	require.Equal(t, http.StatusCreated, r.status, r.raw)
+	id := num(first(r, "hrt")["id"])
+	r = e.do(t, http.MethodPut, fmt.Sprintf("/api/v1/menopause/treatment/items/%d/intakes/2026-10-01", id), tok, "en", `{}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	hrt := first(r, "hrt")
+	assert.Nil(t, hrt["started_on"])
+	assert.Equal(t, 1, num(hrt["days_taken"]))
+	assert.Equal(t, 1, num(hrt["days"]), "only Thursday, the day it was added")
+	assert.Equal(t, 100, num(hrt["adherence_pct"]))
+	week := hrt["week"].([]any)
+	require.Len(t, week, 7)
+	assert.Equal(t, false, week[4].(map[string]any)["scheduled"], "Wednesday: before she added it")
+	assert.Equal(t, true, week[5].(map[string]any)["scheduled"])
+
+	// a day before she added it can't be logged (as before a start date)
+	r = e.do(t, http.MethodPut, fmt.Sprintf("/api/v1/menopause/treatment/items/%d/intakes/2026-09-30", id), tok, "en", `{}`)
+	assert.Equal(t, http.StatusUnprocessableEntity, r.status, r.raw)
+
+	r = e.do(t, http.MethodGet, "/api/v1/menopause/today", tok, "en", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	tr := r.data()["treatment"].([]any)
+	require.Len(t, tr, 1)
+	assert.Equal(t, 1, num(tr[0].(map[string]any)["days"]))
+	assert.Equal(t, 100, num(tr[0].(map[string]any)["adherence_pct"]))
+
+	r = e.do(t, http.MethodGet, "/api/v1/menopause/report?months=3", tok, "en", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	rep := r.data()["report"].(map[string]any)
+	assert.Equal(t, 100, num(rep["treatment"].(map[string]any)["hrt_adherence_pct"]))
+
+	// an explicit past start date still counts from that date
+	r = e.do(t, http.MethodPut, fmt.Sprintf("/api/v1/menopause/treatment/items/%d", id), tok, "en",
+		`{"name":"Estrogen gel","schedule":"morning","started_on":"2026-09-27"}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	hrt = first(r, "hrt")
+	assert.Equal(t, 5, num(hrt["days"]), "Sunday … Thursday")
+	assert.Equal(t, 20, num(hrt["adherence_pct"]))
+}
+
 func phpvalMap(t *testing.T, kv map[string]any) phpval.Map {
 	t.Helper()
 	m := phpval.NewMap()

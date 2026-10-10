@@ -25309,13 +25309,16 @@ components:
           type: array
           items:
             type: object
-            required: [date, taken, amount]
+            required: [date, taken, amount, scheduled]
             properties:
               date: {$ref: "#/components/schemas/Date"}
               taken: {type: boolean}
               amount: {type: [integer, "null"]}
+              scheduled:
+                type: boolean
+                description: "Running and due that day: false before started_on (without one, before the day the item was added — created_at, Tehran) and from stopped_on; such days are «not scheduled», not missed (CB-MENO-13b)"
         days_taken: {type: integer}
-        days: {type: integer, description: "Scheduled active days of the week up to the screen's date"}
+        days: {type: integer, description: "Scheduled active days of the week up to the screen's date (from started_on, else from the day the item was added)"}
         adherence_pct: {type: [integer, "null"], description: "hrt / supplement only"}
         goal:
           oneOf:

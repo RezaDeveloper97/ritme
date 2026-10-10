@@ -11763,3 +11763,8 @@ button.rec-doc-thumb { inline-size: 64px; }
 .lrn-unl-access > svg { color: var(--data-deep); flex-shrink: 0; }
 .lrn-unl-access.is-expired { background: var(--danger-soft); }
 /* ═══ end B-N8-03 ═══ */
+
+/* ═══ CB-MENO-13b — WeekDots «not scheduled» (before the item existed): dashed, faded, never «missed» ═══ */
+.nb-wdot.is-off .nb-wdot-disc { border-style: dashed; border-color: var(--line); background: transparent; }
+.nb-wdot.is-off .nb-wdot-day { color: var(--text-3); }
+/* ═══ end CB-MENO-13b ═══ */

@@ -16,24 +16,35 @@ export function inLocaleOrder<T>(saturdayFirst: readonly T[], locale: Locale): T
 }
 
 /**
+ * Whether the item was running on `date`: the API's per-day `scheduled`
+ * (false before the start — or, without a start date, before the day she
+ * added it — CB-MENO-13b), else its start date.
+ */
+function runningOn(item: TreatmentItem, date: string): boolean {
+  const scheduled = item.week.find((d) => d.date === date)?.scheduled;
+  if (scheduled !== undefined) return scheduled;
+  return !item.startedOn || item.startedOn <= date;
+}
+
+/**
  * The HRT card's «این هفته» dots: a day is done when every daily HRT item
  * running that day was taken (weekly ones don't count per day), future after
- * `today`. Saturday → Friday.
+ * `today`, `off` (dashed, not missed) when none was running. Saturday → Friday.
  */
 export function groupWeekDots(items: readonly TreatmentItem[], weekDates: readonly string[], today: string): WeekDotState[] {
   const daily = items.filter((it) => it.schedule !== 'weekly');
   return weekDates.map((date) => {
     if (date > today) return 'future';
-    const running = daily.filter((it) => !it.startedOn || it.startedOn <= date);
-    if (!running.length) return 'missed';
+    const running = daily.filter((it) => runningOn(it, date));
+    if (!running.length) return 'off';
     const done = running.every((it) => it.week.some((d) => d.date === date && d.taken));
     return done ? 'done' : 'missed';
   });
 }
 
-/** «۶ از ۷ روز»: done dots over the days that have come. */
+/** «۶ از ۷ روز»: done dots over the days that have come with something scheduled. */
 export function dotsSummary(dots: readonly WeekDotState[]): { done: number; days: number } {
-  return { done: dots.filter((d) => d === 'done').length, days: dots.filter((d) => d !== 'future').length };
+  return { done: dots.filter((d) => d === 'done').length, days: dots.filter((d) => d === 'done' || d === 'missed').length };
 }
 
 /** The seven dates of the screen's week, Saturday first. */

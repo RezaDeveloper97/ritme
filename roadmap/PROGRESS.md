@@ -433,3 +433,9 @@ TODO (ask user):
 - Follow-up CB-NAV-03b (quick access / for-today on postpartum + IVF, shortcut targets when screens exist, companion row, server storage, unused postpartum key).
 - Verify (agent on 8e48054c): full frontend chain + build (1633), go vet, lint, services/i18n tests; on stage: vitest 276 (widgets/config/home/services), lint:styles, lint:dark, services/i18n go tests. tsc/steiger on the main tree only fail on bloom's untracked B-N8-03 learn WIP.
 - TODO (ask user): quick access device-only vs server pref; steiger excessive-slicing exemption for widgets; teens w/o parent: hide vs disabled tiles.
+
+## CB-MENO-13b — Treatment adherence from the day an item was added
+- Backend: `startOf(it)` (started_on, else created_at in Tehran wall clock; legacy rows unchanged) used by activeOn, overlaps, adherenceOf, the home 7-day window and the treatment week; intakes before the start no longer count; `week[].scheduled` added (OpenAPI); `LogIntake` before the item existed → 422 `ErrItemInactive`. Unit + int tests; contract `menopause` goldens re-recorded from Go (treatment_flow, treatment_stop, treatment_intake_invalid, report_flow — new `scheduled` key, supplement days 5→1).
+- Frontend: WeekDots `off` state (dashed, «برنامه‌ای نداشت»); groupWeekDots uses `scheduled`; dotsSummary counts done/missed only. CSS block CB-MENO-13b; key `menopause.treatment.dot.off` (+ Go copy, goldens).
+- Verify (agent): vet, go test, int menopause/healthrecord, contract menopause 55/0, full frontend chain + build; on stage: menopause/i18n go tests, tsc, vitest subset, lint:styles. The stage OpenAPI test fails only on bloom's in-flight B-N7-04 telemed routes.
+- TODO (ask user): prefill «تاریخ شروع» with today / suggest review from day added?; 422 for intakes before the item was added OK?

@@ -141,9 +141,9 @@ func (r Report) HRTAdherencePct() *int {
 	return &p
 }
 
-// overlaps: the item ran some day of [from, to].
+// overlaps: the item ran some day of [from, to] (from its start, see startOf).
 func overlaps(it store.TreatmentItem, from, to civildate.Date) bool {
-	if it.StartedOn.Valid && it.StartedOn.Date.After(to) {
+	if start, ok := startOf(it); ok && start.After(to) {
 		return false
 	}
 	return !it.StoppedOn.Valid || it.StoppedOn.Date.After(from)
