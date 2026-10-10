@@ -4,7 +4,7 @@ title: N9 rollout — stage deploy and admin e2e
 milestone: N9
 type: release
 status: todo
-depends_on: [B-N9-12]
+depends_on: [B-N9-12,B-N9-02b]
 parallel_group: N9-M
 touches: [docs/qa/bloom,bloom/PROGRESS.md]
 skills: [verify-all,deploy-stage]
