@@ -181,7 +181,7 @@ export const ROUTE_NAMESPACES = {
   assistantChat: ['common', 'assistant'], // B-N7-07 /assistant/chat/[id]
   assistantSummary: ['common', 'assistant'], // B-N7-07 /assistant/chat/[id]/summary
   assistantHandoff: ['common', 'assistant', 'doctors'], // B-N7-07 /assistant/chat/[id]/handoff (own bookings use the doctors copy)
-  assistantHistory: ['common', 'assistant'], // B-N7-07 /assistant/history
+  assistantHistory: ['common', 'assistant', 'doctors'], // B-N7-07 /assistant/history
   assistantProfile: ['common', 'assistant'], // B-N7-07 /assistant/profile
 } as const satisfies Record<string, readonly MessageNamespace[]>;
 
