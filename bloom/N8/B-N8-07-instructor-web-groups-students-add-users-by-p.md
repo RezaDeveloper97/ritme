@@ -3,7 +3,7 @@ id: B-N8-07
 title: instructor-web — groups, students, add users by phone/CSV
 milestone: N8
 type: frontend
-status: todo
+status: done
 depends_on: [B-N8-06]
 parallel_group: N8-G
 touches: [instructor-web/src,backend-go/internal/learning,backend-go/api]

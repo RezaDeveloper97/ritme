@@ -1181,3 +1181,13 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   auto-retry on 409 offset / network, resume after reload by re-picking the file — media id kept 24 h in localStorage).
   Per-lesson visibility (groups/people) not in the backend → shown «به‌زودی». Watch hours approximate (7-day progress
   positions). Screenshots against a mock API (Docker down) in `docs/qa/bloom/B-N8-06/`; real-API run in the N8 audit.
+
+## B-N8-07 — instructor-web groups, students, add by phone/CSV
+
+- `entities/student` (GrantRow, status pill, two-step revoke), `features/grant-access` (normalise Persian digits /
+  +98 / 0098, dedupe, browser CSV parse ≤1 MB with valid/duplicate/invalid preview, 200-phone chunks, until-date
+  validation), `features/group-form`; screens `/groups`, `/groups/[id]` (courses, members + progress, revoke, add
+  member with preset target, delete), `/students` (all/active/pending/expired), `/students/add` (group/course/standalone
+  target, unlimited/30/90/until, student preview, chunked submit with partial-progress errors). Results uniform (count +
+  renewed only — H1); daily cap / target_unpublished 422 messages. No re-invite SMS (no endpoint), no Excel (CSV only).
+  Screenshots against the mock API in `docs/qa/bloom/B-N8-07/`.

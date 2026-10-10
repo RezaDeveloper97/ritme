@@ -812,3 +812,36 @@ video.preview { background: var(--text-1); }
   .stat-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .dash-cols { grid-template-columns: 3fr 2fr; align-items: start; }
 }
+
+/* ── B-N8-07: groups, students, add users (nbl_/nbd_ Ins_Groups, Ins_Group, Ins_Students, Ins_AddUser) ── */
+.chips--tight { gap: 6px; padding-block: 4px; }
+.chips--tight .access-chip { padding: 2px 12px; }
+.access-chip--warm { color: var(--warm-deep); background: var(--warm-soft); }
+.avatar--sm { inline-size: 44px; block-size: 44px; font-size: 20px; }
+.avatar--ghost { background: var(--surface-2); color: var(--text-3); border: 1.5px dashed var(--line-strong); }
+.person { flex-wrap: wrap; }
+.person .pill-btn { min-block-size: 36px; padding-inline: 12px; font-size: var(--fs-md); }
+.person .row__body { min-inline-size: 140px; }
+.revoke-confirm { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.grant-status {
+  flex: none; padding: 4px 12px; border-radius: var(--r-pill); border: 1.5px solid currentColor;
+  font-size: var(--fs-md); font-weight: 800; white-space: nowrap;
+}
+.grant-status--active { color: var(--data-deep); background: var(--data-soft); }
+.grant-status--pending { color: var(--warm-deep); background: var(--warm-soft); }
+.grant-status--expired { color: var(--text-3); background: var(--surface-2); }
+.note-card {
+  margin: 0; padding: 12px 14px; border-radius: var(--r-lg); background: var(--warm-soft);
+  color: var(--warm-deep); font-size: var(--fs-md); font-weight: 700;
+}
+.success-note {
+  margin: 0; padding: 12px 14px; border-radius: var(--r-lg); background: var(--data-soft);
+  color: var(--data-deep); font-weight: 800;
+}
+.dropzone--sm { padding: 16px; }
+.preview-box { display: grid; gap: 8px; padding: 12px; border-radius: var(--r-lg); background: var(--surface-2); }
+.preview-quote { margin: 0; padding: 12px 14px; border-radius: var(--r-lg); background: var(--brand-soft); color: var(--brand-ink); font-weight: 700; }
+.check-group { display: grid; gap: 4px; margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+.check-row { display: flex; align-items: center; gap: 10px; min-block-size: var(--tap); font-weight: 700; }
+.check-row input { inline-size: 22px; block-size: 22px; accent-color: var(--brand); }
+.add-users { padding-block-start: 0; }

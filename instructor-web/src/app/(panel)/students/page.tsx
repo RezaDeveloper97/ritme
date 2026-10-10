@@ -1,5 +1,5 @@
-import { ComingSoonScreen } from '@/screens/coming-soon';
+import { StudentsScreen } from '@/screens/students';
 
 export default function Page() {
-  return <ComingSoonScreen section="students" />;
+  return <StudentsScreen />;
 }
