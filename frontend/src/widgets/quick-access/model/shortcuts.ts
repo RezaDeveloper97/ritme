@@ -24,8 +24,8 @@ export const SHORTCUTS: readonly Shortcut[] = [
   { id: 'record', href: '/record', icon: 'fileDoc', tone: 'brand' },
   // IA_Nav «نوجوان»: doctor & labs only with a parent — the teen home has no quick access, and the list is adult-only.
   { id: 'doctor', href: null, icon: 'stetho', tone: 'data', modes: ADULT },
-  { id: 'painDiary', href: null, icon: 'flame', tone: 'period', modes: ['cycle', 'ttc', 'postpartum', 'menopause'] },
-  { id: 'courses', href: null, icon: 'gradCap', tone: 'warm' },
+  { id: 'painDiary', href: '/programs/pain', icon: 'flame', tone: 'period', modes: ['cycle', 'ttc', 'postpartum', 'menopause'] },
+  { id: 'courses', href: '/learn', icon: 'gradCap', tone: 'warm' },
   { id: 'checkups', href: '/checkups', icon: 'clock', tone: 'data' },
   { id: 'reminders', href: '/reminders', icon: 'bellRing', tone: 'brand' },
   { id: 'vitals', href: '/vitals', icon: 'heartLine', tone: 'period' },

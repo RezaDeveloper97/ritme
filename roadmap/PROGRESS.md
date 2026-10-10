@@ -491,3 +491,9 @@ TODO (ask user):
 ## CB-COND-07b — Home condition nudge card
 - Hub nudge card extracted to `entities/condition/ui/ConditionNudgeCard.tsx` (hub unchanged); `HomeConditionNudge` on bloom's home (one commented additive line after QuickAccess, not for teens) shows only when `/messages/nudges` has a hit; pure `homeNudges()` drops programs she's enrolled in (+ test). Scopes: `conditions` added to home + services. No new keys.
 - Shots fa/en light/dark + enrolled state in docs/qa/canvas/cond/CB-COND-07b/. Verify (agent): full chain + build (1762 tests); on stage: vitest subset, steiger.
+
+## CB-NAV-04 — NAV QA
+- 70 shots light + dark (docs/qa/canvas/nav/CB-NAV-04/): every mode (cycle, TTC, IVF, pregnancy, postpartum, menopause, teen) Today / stage tab / Services / Me / + sheet «برای بعد», plus /search and /profile/mode; covers CB-NAV-03b's missing postpartum + IVF shots. `## CB-NAV-04` table, no open ✘.
+- Fix: quick-access «دفترچه درد» → `/programs/pain`, «دوره‌ها» → `/learn` (screens exist now; test updated).
+- Follow-up CB-NAV-04b: doctor shortcut (no route yet), companion suggestion row (no API), quick-access server storage (user decision), «برای امروز» / «دسترسی سریع» missing on the teen home.
+- Verify (agent): typecheck, eslint, steiger, styles, dark, build; widgets vitest 98 (re-run on stage).

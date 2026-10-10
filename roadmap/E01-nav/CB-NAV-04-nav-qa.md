@@ -3,7 +3,7 @@ id: CB-NAV-04
 title: NAV QA
 epic: NAV
 type: qa
-status: todo
+status: done
 depends_on: [CB-NAV-03]
 parallel_group: NAV-D
 touches: [docs/qa/canvas]

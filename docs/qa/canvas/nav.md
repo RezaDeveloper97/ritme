@@ -68,3 +68,44 @@ Verify: tsc, eslint, steiger, lint:styles, lint:dark, vitest (widgets/app/postpa
 `go test ./internal/i18n`. Screenshots (`nav/CB-NAV-03b/`) not taken: the docker test-stack MariaDB stopped
 responding mid-run (API ping timeout on the `ritme_nav03b` copy), so postpartum (`09900005501`) / IVF
 (`09900002021`) shots are pending a re-run.
+
+## CB-NAV-04 — epic QA
+
+Walk of every life-stage mode's tab bar (امروز · mode tab · + · خدمات · من) against `nbd_Nav_Today / _Stage / _Plus /
+_Services / _Me / _Mode / _Search` (board renders in `boards/`). Screens: 390 px, fa, light + dark, headless Chrome over
+CDP, Go API :8361 on a private copy `nav04_dev` (contract fixture dump `contract/fixtures/dump.sql` migrated to goose 55;
+`ritme_dev` untouched) + Next dev :3129. Personas (contract fixtures + life-profile rows inserted in the copy): cycle
+`09900000004`, TTC `09900000012`, IVF `09900000013` (+ open cycle, stim day 5), pregnancy `09900000014`, postpartum
+`09900000006` (+ child «کیان»), menopause `09900000007`, teen `09900000005`. Shots in `nav/CB-NAV-04/<mode>-<screen>.<theme>.png`
+(mode ∈ cycle · ttc · ivf · preg · pp · meno · teen; screen ∈ today · stage · services · me · plus; cycle also search · mode).
+These include the shots CB-NAV-03b could not take: **postpartum and IVF homes with «برای امروز» / «دسترسی سریع»** and the
+**+ sheet with «برای بعد»** for every mode.
+
+| Board | Route | Light | Dark | Verdict | Fix / note |
+|---|---|---|---|---|---|
+| `nbd_Nav_Today` | `/home` (cycle) | [light](nav/CB-NAV-04/cycle-today.light.png) | [dark](nav/CB-NAV-04/cycle-today.dark.png) | ✔ | Chip, search, «برای امروز», «دسترسی سریع» (4 defaults + «ویرایش») in board order. |
+| `nbd_Nav_Today` (TTC) | `/home` | [light](nav/CB-NAV-04/ttc-today.light.png) | [dark](nav/CB-NAV-04/ttc-today.dark.png) | ✔ | Tab «باروری»; same widgets. |
+| `nbd_Nav_Today` (IVF) | `/ivf` | [light](nav/CB-NAV-04/ivf-today.light.png) | [dark](nav/CB-NAV-04/ivf-today.dark.png) | ✔ | Chip «IVF / IUI», tab «درمان»; «برای امروز» + «دسترسی سریع» (injections, record, labs, reminders) under the quick actions (closes 03b). |
+| `nbd_Nav_Today` (pregnancy) | `/pregnancy` | [light](nav/CB-NAV-04/preg-today.light.png) | [dark](nav/CB-NAV-04/preg-today.dark.png) | ✔ | Tab «بارداری»; reminders card wrapped in «برای امروز» + quick access. |
+| `nbd_Nav_Today` (postpartum) | `/postpartum` | [light](nav/CB-NAV-04/pp-today.light.png) | [dark](nav/CB-NAV-04/pp-today.dark.png) | ✔ | Tab «کودک»; «برای امروز» + «دسترسی سریع» (children, record, checkups, reminders) after the tiles, before «ویزیت‌ها» (closes 03b). |
+| `nbd_Nav_Today` (menopause) | `/home` | [light](nav/CB-NAV-04/meno-today.light.png) | [dark](nav/CB-NAV-04/meno-today.dark.png) | ✔ | Tab «علائم»; quick access starts with «گرگرفتگی». |
+| `nbd_Nav_Today` (teen) | `/home` | [light](nav/CB-NAV-04/teen-today.light.png) | [dark](nav/CB-NAV-04/teen-today.dark.png) | ✔ | Teen header with search + mode chip (CB-TEEN-02 layout). Deliberate gap: no «برای امروز» / «دسترسی سریع» block on the teen home (the widgets support `teen`, the screen doesn't mount them) → CB-NAV-04b. |
+| `nbd_Nav_Stage` | `/calendar` (cycle) | [light](nav/CB-NAV-04/cycle-stage.light.png) | [dark](nav/CB-NAV-04/cycle-stage.dark.png) | ✔ | ماه · سال · تحلیل · تاریخچه (CB-NAV-03). |
+| `nbd_Nav_Stage` (TTC / teen) | `/calendar` | [ttc](nav/CB-NAV-04/ttc-stage.light.png) · [teen](nav/CB-NAV-04/teen-stage.light.png) | [ttc](nav/CB-NAV-04/ttc-stage.dark.png) · [teen](nav/CB-NAV-04/teen-stage.dark.png) | ✔ | Same calendar; stage tab lit. |
+| `nbd_Nav_Stage` (IVF) | `/ivf/meds` | [light](nav/CB-NAV-04/ivf-stage.light.png) | [dark](nav/CB-NAV-04/ivf-stage.dark.png) | ✔ | «درمان» tab lit. |
+| `nbd_Nav_Stage` (pregnancy) | `/pregnancy/weeks` | [light](nav/CB-NAV-04/preg-stage.light.png) | [dark](nav/CB-NAV-04/preg-stage.dark.png) | ✔ | «بارداری» tab lit. |
+| `nbd_Nav_Stage` (postpartum) | `/children` | [light](nav/CB-NAV-04/pp-stage.light.png) | [dark](nav/CB-NAV-04/pp-stage.dark.png) | ✔ | «کودک» tab lit. |
+| `nbd_Nav_Stage` (menopause) | `/menopause/score` | [light](nav/CB-NAV-04/meno-stage.light.png) | [dark](nav/CB-NAV-04/meno-stage.dark.png) | ✔ | «علائم» tab lit. |
+| `nbd_Nav_Plus` | `?sheet=log` (cycle) | [light](nav/CB-NAV-04/cycle-plus.light.png) | [dark](nav/CB-NAV-04/cycle-plus.dark.png) | ✔ | «ثبت سریع» tiles → «برای بعد» (نوبت یا ویزیت · کار جدید) → «همه موارد». |
+| `nbd_Nav_Plus` (other modes) | `?sheet=log` | [ivf](nav/CB-NAV-04/ivf-plus.light.png) · [preg](nav/CB-NAV-04/preg-plus.light.png) · [pp](nav/CB-NAV-04/pp-plus.light.png) · [meno](nav/CB-NAV-04/meno-plus.light.png) | [ivf](nav/CB-NAV-04/ivf-plus.dark.png) · [preg](nav/CB-NAV-04/preg-plus.dark.png) · [pp](nav/CB-NAV-04/pp-plus.dark.png) · [meno](nav/CB-NAV-04/meno-plus.dark.png) | ✔ | «برای بعد» sits right under the mode's quick tiles in every mode (postpartum: after the mother/newborn groups); «ثبت برای <child>» only with children and not in postpartum (03b). |
+| `nbd_Nav_Services` | `/services` | [cycle](nav/CB-NAV-04/cycle-services.light.png) · [ttc](nav/CB-NAV-04/ttc-services.light.png) · [ivf](nav/CB-NAV-04/ivf-services.light.png) · [preg](nav/CB-NAV-04/preg-services.light.png) · [pp](nav/CB-NAV-04/pp-services.light.png) · [meno](nav/CB-NAV-04/meno-services.light.png) · [teen](nav/CB-NAV-04/teen-services.light.png) | [cycle](nav/CB-NAV-04/cycle-services.dark.png) · [ttc](nav/CB-NAV-04/ttc-services.dark.png) · [ivf](nav/CB-NAV-04/ivf-services.dark.png) · [preg](nav/CB-NAV-04/preg-services.dark.png) · [pp](nav/CB-NAV-04/pp-services.dark.png) · [meno](nav/CB-NAV-04/meno-services.dark.png) · [teen](nav/CB-NAV-04/teen-services.dark.png) | ✔ | IA order held: health care → programmes → mother & child → learning → dashed shop frame → 115 card; teen has no shop. |
+| `nbd_Nav_Me` | `/profile` | [cycle](nav/CB-NAV-04/cycle-me.light.png) · [ttc](nav/CB-NAV-04/ttc-me.light.png) · [ivf](nav/CB-NAV-04/ivf-me.light.png) · [preg](nav/CB-NAV-04/preg-me.light.png) · [pp](nav/CB-NAV-04/pp-me.light.png) · [meno](nav/CB-NAV-04/meno-me.light.png) · [teen](nav/CB-NAV-04/teen-me.light.png) | [cycle](nav/CB-NAV-04/cycle-me.dark.png) · [ttc](nav/CB-NAV-04/ttc-me.dark.png) · [ivf](nav/CB-NAV-04/ivf-me.dark.png) · [preg](nav/CB-NAV-04/preg-me.dark.png) · [pp](nav/CB-NAV-04/pp-me.dark.png) · [meno](nav/CB-NAV-04/meno-me.dark.png) · [teen](nav/CB-NAV-04/teen-me.dark.png) | ✔ | Groups: me & family · tasks & purchases (to-dos, courses, bookings/orders «به‌زودی») · data & device · settings · support; «فرزندان» live. |
+| `nbd_Nav_Mode` | `/profile/mode` | [light](nav/CB-NAV-04/cycle-mode.light.png) | [dark](nav/CB-NAV-04/cycle-mode.dark.png) | ✔ | Bloom B-N2-03 screen, reached from the chip and «حالت اپ». |
+| `nbd_Nav_Search` | `/search` | [light](nav/CB-NAV-04/cycle-search.light.png) | [dark](nav/CB-NAV-04/cycle-search.dark.png) | ✔ | Start state (recents/empty); results states are in `nav/CB-NAV-02/`. No bottom nav (flow). |
+
+Fix made during QA (small, canvas-owned): `widgets/quick-access/model/shortcuts.ts` — «دفترچه درد» → `/programs/pain` (CB-COND-03
+shipped) and «دوره‌ها» → `/learn` (B-N8-03 shipped); both now appear in the edit sheet and in the cycle defaults (record · pain diary · courses · checkups = the board's picks minus the doctor tile). «پزشک» stays hidden (no doctor directory
+route). No open ✘.
+
+Follow-up [CB-NAV-04b](../../../roadmap/E01-nav/CB-NAV-04b-nav-leftovers-doctor-shortcut-companion-row-q.md): doctor shortcut,
+companion suggestion row (no owner API), quick-access server storage (user decision, README §8 Q3), and mounting «برای امروز» / «دسترسی سریع» on the teen home.
