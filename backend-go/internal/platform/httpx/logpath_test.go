@@ -17,6 +17,10 @@ func TestLogPath(t *testing.T) {
 		"/api/v1/emergency-cards/abcDEF_-0123456789abcdefghijklmnopqrstuvwxyz": "/api/v1/emergency-cards/*",
 		"/API/V1/Shared-Reports/abc":                                           "/api/v1/shared-reports/*",
 		"//api/v1//emergency-cards/x":                                          "/api/v1/emergency-cards/*",
+		"/api/v1/files/42/download":                                            "/api/v1/files/*",
+		"/API/v1/Files/42/download":                                            "/api/v1/files/*",
+		"/api/v1/files":                                                        "/api/v1/files/*",
+		"/api/v1/filesystem":                                                   "/api/v1/filesystem",
 		"/api/v1/home":                                                         "/api/v1/home",
 	} {
 		assert.Equal(t, want, LogPath(in), in)

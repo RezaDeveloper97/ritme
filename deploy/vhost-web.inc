@@ -5,15 +5,10 @@
 
 client_max_body_size 25m;
 
-# Doctor share links (B-N6-04): the token in the path is a bearer secret — no access log.
-location ~ ^/[A-Za-z-]+/shared/report/ {
-    access_log off;
-    proxy_pass http://frontend_upstream;
-    include /etc/nginx/conf.d/proxy-params.inc;
-}
-
-# Public emergency card page (CB-REC-03): the token in the path is a bearer secret — no access log.
-location ~ ^/[A-Za-z-]+/emergency/ {
+# Public record pages with a bearer token in the path — doctor share links (B-N6-04), the 24h doctor page `/d/<token>`
+# (CB-REC-05) and the emergency card (CB-REC-03), with or without the locale prefix: never written to the access log
+# (CB-REC-06 L1).
+location ~ ^/(?:[A-Za-z-]+/)?(?:shared/report|d|emergency)/ {
     access_log off;
     proxy_pass http://frontend_upstream;
     include /etc/nginx/conf.d/proxy-params.inc;

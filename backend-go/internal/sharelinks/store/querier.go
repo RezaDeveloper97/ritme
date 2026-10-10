@@ -37,6 +37,9 @@ type Querier interface {
 	// active-link count that follows and the insert cannot race past the cap (B-N6-04b, same as LockRecordOwner).
 	LockShareLinkOwner(ctx context.Context, id uint64) (uint64, error)
 	PurgeExpiredShareLinks(ctx context.Context, arg PurgeExpiredShareLinksParams) (int64, error)
+	// CB-REC-06 (L3): the same viewer (via, device, browser) already logged on this link since `since` — a reload or a
+	// re-render then neither counts nor logs again.
+	RecentShareLinkView(ctx context.Context, arg RecentShareLinkViewParams) (bool, error)
 	RevokeShareLink(ctx context.Context, arg RevokeShareLinkParams) (int64, error)
 	RevokeSummaryLink(ctx context.Context, arg RevokeSummaryLinkParams) (int64, error)
 	// Whether the link (either kind) belongs to the owner.

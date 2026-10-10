@@ -20,7 +20,17 @@ import { usePaperModel, usePdfDownload } from './usePaper';
  * not indexed (route metadata). 410 → the link expired or was revoked; 404 → unknown (CB-REC-05: also an expired /
  * revoked 24h summary). A summary (`kind: summary`) also lists the documents the owner chose.
  */
-export function SharedReportPage({ token, scrubTo }: { token: string; scrubTo?: string }) {
+export function SharedReportPage({
+  token,
+  scrubTo,
+  summaryScrubTo,
+}: {
+  token: string;
+  /** Always scrub the token + drop the report on pagehide (`/d/[token]`). */
+  scrubTo?: string;
+  /** CB-REC-06 (M1): the same, but only once the opened report is a 24h summary (`/shared/report/[token]`). */
+  summaryScrubTo?: string;
+}) {
   const t = useTranslations('recordExport.shared');
   const td = useTranslations('record.doctor');
   const queryClient = useQueryClient();
@@ -28,15 +38,18 @@ export function SharedReportPage({ token, scrubTo }: { token: string; scrubTo?: 
   const [closed, setClosed] = useState(false);
   const query = useSharedReport(token, !closed);
   const opened = query.isSuccess;
+  // CB-REC-06 (M1): a summary opened through bloom's `/shared/report/[token]` (the server's QR path) gets the `/d`
+  // treatment too; bloom's 7-day report links keep their behaviour (no scrub, no pagehide reset).
+  const scrub = scrubTo ?? (query.data?.kind === 'summary' ? summaryScrubTo : undefined);
 
   // CB-REC-05 `/d/[token]`: after the first successful open, the token leaves the address bar (a refresh then lands
-  // on the code page). bloom's `/shared/report/[token]` passes no `scrubTo` and keeps its behaviour.
+  // on the code page).
   useEffect(() => {
-    if (opened && scrubTo) replaceUrlPath(scrubTo);
-  }, [opened, scrubTo]);
+    if (opened && scrub) replaceUrlPath(scrub);
+  }, [opened, scrub]);
 
   usePageHide(() => {
-    if (!scrubTo) return;
+    if (!scrub) return;
     setClosed(true);
     queryClient.removeQueries({ queryKey: ['shared-report', token] });
   });

@@ -346,21 +346,43 @@ func (s *Service) openPayload(ctx context.Context, r store.GetShareLinkForOpenRo
 	}
 	if r.Kind == KindSummary {
 		raw, _ := m.Get("documents")
-		docs, err := s.publicDocuments(ctx, r.UserID, raw, now)
+		docs, err := s.publicDocuments(ctx, r.UserID, raw, now, r.ExpiresAt.Time)
 		if err != nil {
 			return Opened{}, err
 		}
 		m.Set("documents", docs)
 	}
+	if err := s.logView(ctx, r, now, v); err != nil {
+		return Opened{}, err
+	}
+	return Opened{Report: m, ExpiresAt: r.ExpiresAt.Time}, nil
+}
+
+// ViewDedupWindow: a viewer (via, device, browser) already logged on a link within it is neither counted nor logged
+// again (CB-REC-06 L3) — a reload, a re-render or a scripted loop does not flood the owner's access log.
+const ViewDedupWindow = 10 * time.Minute
+
+// logView counts the view and writes the access log row, unless the same viewer was logged in the last
+// ViewDedupWindow.
+func (s *Service) logView(ctx context.Context, r store.GetShareLinkForOpenRow, now time.Time, v Viewer) error {
+	seen, err := s.q.RecentShareLinkView(ctx, store.RecentShareLinkViewParams{
+		ShareLinkID: r.ID, Via: v.Via, Device: v.Device, Browser: v.Browser, Since: stamp(now.Add(-ViewDedupWindow)),
+	})
+	if err != nil {
+		return fmt.Errorf("sharelinks: recent view: %w", err)
+	}
+	if seen {
+		return nil
+	}
 	if err := s.q.CountShareLinkView(ctx, store.CountShareLinkViewParams{ID: r.ID, Now: stamp(now)}); err != nil {
-		return Opened{}, fmt.Errorf("sharelinks: count view: %w", err)
+		return fmt.Errorf("sharelinks: count view: %w", err)
 	}
 	if err := s.q.InsertShareLinkView(ctx, store.InsertShareLinkViewParams{
 		ShareLinkID: r.ID, UserID: r.UserID, Via: v.Via, Device: v.Device, Browser: v.Browser, ViewedAt: stamp(now),
 	}); err != nil {
-		return Opened{}, fmt.Errorf("sharelinks: access log: %w", err)
+		return fmt.Errorf("sharelinks: access log: %w", err)
 	}
-	return Opened{Report: m, ExpiresAt: r.ExpiresAt.Time}, nil
+	return nil
 }
 
 // AccessEntry is one row of the owner's access log «سابقه دسترسی».

@@ -32,6 +32,15 @@ type TrackedPregnancies struct {
 	ManualRows []store.HealthRecordPregnancy
 }
 
+// ForAudience drops what a third party must not see: for AudienceShare no loss-derived «ended» rows (CB-REC-06 M2,
+// privacy default — an «ended» pregnancy with no type or date still tells a reader that a loss happened).
+func (t TrackedPregnancies) ForAudience(aud Audience) TrackedPregnancies {
+	if aud != AudienceOwner {
+		t.LossCount = 0
+	}
+	return t
+}
+
 // Entries are the section rows: an ongoing pregnancy first, then dated rows newest first, undated rows last.
 func (t TrackedPregnancies) Entries() []PregnancyEntry {
 	var out []PregnancyEntry

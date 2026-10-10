@@ -289,6 +289,18 @@ func TestHealthRecord_LossPrivacy(t *testing.T) {
 	assert.Nil(t, ended["date"])
 	assert.Nil(t, ended["id"])
 	assert.Equal(t, false, ended["editable"])
+
+	// CB-REC-06 (M2): a share (doctor report / summary / emergency) carries no loss-derived row at all
+	rec, err := e.svc.Build(context.Background(), uid, healthrecord.AudienceShare,
+		healthrecord.Options{Today: civildate.InTehran(fixed), Locale: "en", DefaultLocale: "fa"})
+	require.NoError(t, err)
+	b, err := json.Marshal(rec.JSON())
+	require.NoError(t, err)
+	assert.NotContains(t, string(b), `"ended"`)
+	shared, ok := rec.Section(healthrecord.SectionPregnancies)
+	require.True(t, ok)
+	cnt, _ := shared.Data.Get("pregnancies_count")
+	assert.EqualValues(t, 1, cnt)
 }
 
 func TestHealthRecord_BasicsEditAndValidation(t *testing.T) {

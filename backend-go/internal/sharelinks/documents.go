@@ -121,8 +121,14 @@ func snapshotDocuments(docs []SharedDocument) []*jsonx.OrderedMap {
 }
 
 // publicDocuments turns the snapshot's documents into the viewer's form: file ids replaced by fresh signed links
-// of the owner's files that still exist.
-func (s *Service) publicDocuments(ctx context.Context, ownerID uint64, raw any, now time.Time) ([]*jsonx.OrderedMap, error) {
+// of the owner's record-document files that still exist. CB-REC-06 (L4): a file of any other purpose never signs,
+// and a signed link never outlives the share link (TTL = min(DefaultLinkTTL, linkExpires − now)).
+func (s *Service) publicDocuments(ctx context.Context, ownerID uint64, raw any, now, linkExpires time.Time,
+) ([]*jsonx.OrderedMap, error) {
+	ttl := files.DefaultLinkTTL
+	if !linkExpires.IsZero() {
+		ttl = min(ttl, linkExpires.Sub(now).Truncate(time.Second))
+	}
 	_, docs := phpval.Entries(raw)
 	out := make([]*jsonx.OrderedMap, 0, len(docs))
 	for _, d := range docs {
@@ -134,7 +140,7 @@ func (s *Service) publicDocuments(ctx context.Context, ownerID uint64, raw any, 
 		fileList := []*jsonx.OrderedMap{}
 		_, ids := phpval.Entries(get("file_ids"))
 		for _, idv := range ids {
-			if s.files == nil {
+			if s.files == nil || ttl < time.Second {
 				break
 			}
 			id, ok := toUint(idv)
@@ -148,7 +154,10 @@ func (s *Service) publicDocuments(ctx context.Context, ownerID uint64, raw any, 
 			if err != nil {
 				return nil, fmt.Errorf("sharelinks: document file: %w", err)
 			}
-			link, err := s.files.Link(f, now, files.DefaultLinkTTL)
+			if f.Purpose != files.PurposeRecordDocument {
+				continue
+			}
+			link, err := s.files.Link(f, now, ttl)
 			if err != nil { // storage disabled: the document stays listed without its file
 				continue
 			}

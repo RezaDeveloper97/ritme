@@ -40,6 +40,15 @@ SELECT id, user_id, code_payload, expires_at, revoked_at
 FROM `health_share_links`
 WHERE code_hash = sqlc.arg(code_hash) AND kind = 'summary' LIMIT 1;
 
+-- name: RecentShareLinkView :one
+-- CB-REC-06 (L3): the same viewer (via, device, browser) already logged on this link since `since` — a reload or a
+-- re-render then neither counts nor logs again.
+SELECT EXISTS (
+  SELECT 1 FROM `health_share_link_views`
+  WHERE share_link_id = sqlc.arg(share_link_id) AND via = sqlc.arg(via) AND device = sqlc.arg(device)
+    AND browser = sqlc.arg(browser) AND viewed_at > sqlc.arg(since)
+) AS seen;
+
 -- name: InsertShareLinkView :exec
 INSERT INTO `health_share_link_views` (share_link_id, user_id, via, device, browser, viewed_at)
 VALUES (sqlc.arg(share_link_id), sqlc.arg(user_id), sqlc.arg(via), sqlc.arg(device), sqlc.arg(browser), sqlc.arg(viewed_at));

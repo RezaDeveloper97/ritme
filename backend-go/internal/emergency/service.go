@@ -35,6 +35,7 @@ type Records interface {
 
 // Service reads and edits the card. Every owner query is scoped by the user id it is given.
 type Service struct {
+	db      *sql.DB
 	q       *store.Queries
 	care    carestore.Querier
 	preg    pregstore.Querier
@@ -44,7 +45,7 @@ type Service struct {
 
 // NewService wires the service on db.
 func NewService(db *sql.DB, records Records) *Service {
-	return &Service{q: store.New(db), care: carestore.New(db), preg: pregstore.New(db), records: records, rand: rand.Reader}
+	return &Service{db: db, q: store.New(db), care: carestore.New(db), preg: pregstore.New(db), records: records, rand: rand.Reader}
 }
 
 // WithRand replaces the token source (tests).
@@ -273,14 +274,22 @@ type Input struct {
 	Insurance                 *Insurance // nil = clear
 }
 
-// Save applies in to the owner's card (created on first save).
+// Save applies in to the owner's card (created on first save). CB-REC-06 (L7): the read-modify-write runs in one
+// transaction under a row lock (SELECT … FOR UPDATE), so concurrent partial PUTs serialize instead of the later one
+// overwriting the earlier one's fields with stale values.
 func (s *Service) Save(ctx context.Context, userID uint64, in Input, now time.Time) error {
-	if err := s.q.EnsureEmergencyCard(ctx, store.EnsureEmergencyCardParams{UserID: userID, Now: stamp(now)}); err != nil {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("emergency: begin: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	q := store.New(tx)
+	if err := q.EnsureEmergencyCard(ctx, store.EnsureEmergencyCardParams{UserID: userID, Now: stamp(now)}); err != nil {
 		return fmt.Errorf("emergency: ensure: %w", err)
 	}
-	row, err := s.settings(ctx, userID)
+	row, err := q.LockEmergencyCard(ctx, userID)
 	if err != nil {
-		return err
+		return fmt.Errorf("emergency: lock: %w", err)
 	}
 	p := store.UpdateEmergencyCardParams{
 		UserID: userID, ShowOnLockScreen: row.ShowOnLockScreen, ShowPregnancy: row.ShowPregnancy,
@@ -305,8 +314,11 @@ func (s *Service) Save(ctx context.Context, userID uint64, in Input, now time.Ti
 			p.InsuranceLabel, p.InsuranceLast4 = nstr(i.Label), nstr(i.Last4)
 		}
 	}
-	if err := s.q.UpdateEmergencyCard(ctx, p); err != nil {
+	if err := q.UpdateEmergencyCard(ctx, p); err != nil {
 		return fmt.Errorf("emergency: save: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("emergency: commit: %w", err)
 	}
 	return nil
 }

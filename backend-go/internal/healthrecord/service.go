@@ -560,11 +560,16 @@ func (s *Service) pregnanciesSection(ctx context.Context, userID uint64, f facts
 		return Section{}, nil, fmt.Errorf("healthrecord: birth: %w", err)
 	}
 	t.Birth = birth
-	losses, err := s.q.CountRecordLosses(ctx, userID)
-	if err != nil {
-		return Section{}, nil, fmt.Errorf("healthrecord: losses: %w", err)
+	// CB-REC-06 (M2): loss-derived «ended» rows are the owner's only — a share (doctor report, summary, emergency
+	// card) carries none by default (an opt-in is a later product decision).
+	if aud == AudienceOwner {
+		losses, err := s.q.CountRecordLosses(ctx, userID)
+		if err != nil {
+			return Section{}, nil, fmt.Errorf("healthrecord: losses: %w", err)
+		}
+		t.LossCount = int(losses)
 	}
-	t.LossCount = int(losses)
+	t = t.ForAudience(aud)
 	if t.ManualRows, err = s.q.ListManualPregnancies(ctx, userID); err != nil {
 		return Section{}, nil, fmt.Errorf("healthrecord: pregnancies: %w", err)
 	}

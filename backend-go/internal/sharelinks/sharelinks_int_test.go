@@ -278,7 +278,7 @@ func TestShareLinks_CreateOpenRevoke(t *testing.T) {
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	items, _ := r.data()["items"].([]any)
 	require.Len(t, items, 1)
-	assert.EqualValues(t, 2, items[0].(map[string]any)["views"])
+	assert.EqualValues(t, 1, items[0].(map[string]any)["views"], "CB-REC-06 L3: the same viewer's reopen within 10 min counts once")
 	assert.NotContains(t, r.raw, token)
 	assert.NotContains(t, r.raw, "Levothyroxine")
 	assert.EqualValues(t, 1, r.data()["active_count"])

@@ -62,6 +62,23 @@ func TestTrackedPregnancies_EntriesOrderAndLossOnlyEnded(t *testing.T) {
 	assert.NotContains(t, string(share), `"editable":true`)
 }
 
+func TestTrackedPregnancies_ShareDropsLosses(t *testing.T) {
+	tr := TrackedPregnancies{
+		Birth:     &store.GetRecordBirthRow{BirthDate: d("2024-06-10"), BabyCount: 1},
+		LossCount: 2,
+	}
+	assert.Equal(t, 2, tr.ForAudience(AudienceOwner).LossCount, "owner keeps the neutral «ended» rows")
+	share := tr.ForAudience(AudienceShare)
+	assert.Equal(t, 0, share.LossCount)
+	es := share.Entries()
+	require.Len(t, es, 1)
+	assert.Equal(t, OutcomeBirth, es[0].Outcome)
+	b, err := json.Marshal(pregnanciesSection(es, AudienceShare))
+	require.NoError(t, err)
+	assert.NotContains(t, string(b), OutcomeEnded)
+	assert.Contains(t, string(b), `"pregnancies_count":1`)
+}
+
 func TestVitalsSummary(t *testing.T) {
 	from, to := d("2026-09-07"), d("2026-10-06")
 	rs := []vitals.Reading{

@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -14,6 +15,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -21,6 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ritme/backend-go/internal/emergency"
 	"github.com/ritme/backend-go/internal/platform/clock"
 )
 
@@ -441,4 +444,36 @@ func TestEmergencyCard_OwnerAndPublic(t *testing.T) {
 		require.Equal(t, fiber.StatusNotFound, e.do(fiber.MethodGet, pub+fake, "", nil).Status, i)
 	}
 	assert.Equal(t, fiber.StatusTooManyRequests, e.do(fiber.MethodGet, pub+fake, "", nil).Status)
+}
+
+// CB-REC-06 (L7): concurrent partial saves serialize under the row lock — neither one's fields are lost.
+func TestEmergencyCard_ConcurrentSavesKeepBothFields(t *testing.T) {
+	e := newCompanionEnv(t)
+	e.user("Sara", "09120009311")
+	uid := e.ids["Sara"]
+	svc := emergency.NewService(e.db, nil)
+	now := time.Date(2026, 10, 6, 9, 0, 0, 0, time.UTC)
+	for round := range 10 {
+		var wg sync.WaitGroup
+		errs := make([]error, 2)
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			errs[0] = svc.Save(context.Background(), uid, emergency.Input{SetContact: true,
+				Contact: &emergency.Contact{Name: fmt.Sprintf("Ali %d", round), Phone: "09120000000"}}, now)
+		}()
+		go func() {
+			defer wg.Done()
+			errs[1] = svc.Save(context.Background(), uid, emergency.Input{SetInsurance: true,
+				Insurance: &emergency.Insurance{Label: fmt.Sprintf("Plan %d", round), Last4: "1234"}}, now)
+		}()
+		wg.Wait()
+		require.NoError(t, errs[0])
+		require.NoError(t, errs[1])
+		var name, label string
+		require.NoError(t, e.db.QueryRow(`SELECT contact_name, insurance_label FROM emergency_cards WHERE user_id = ?`, uid).
+			Scan(&name, &label))
+		assert.Equal(t, fmt.Sprintf("Ali %d", round), name)
+		assert.Equal(t, fmt.Sprintf("Plan %d", round), label)
+	}
 }

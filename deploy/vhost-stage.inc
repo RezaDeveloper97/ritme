@@ -209,6 +209,22 @@ location ^~ /api/v1/emergency-cards/ {
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host  $host;
 }
+# Signed file download (CB-REC-06 L2): the HMAC exp+sig ride in the query string (shared summary documents), so no
+# access log. A regex location (beats the plain `/api/` prefix, which it otherwise mirrors exactly).
+location ~ ^/api/v1/files/[0-9]+/download$ {
+    access_log off;
+    proxy_pass $stage_backend_go_target;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $ritme_client_xff;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host  $host;
+    proxy_set_header Upgrade           $http_upgrade;
+    proxy_set_header Connection        "upgrade";
+    proxy_read_timeout 120s;
+    proxy_send_timeout 120s;
+}
 # Lesson media (B-N8-02). Upload chunks (≤ 16 MiB, under client_max_body_size 25m): streamed to Go without an nginx
 # temp file, longer timeouts for slow uplinks.
 location ^~ /api/instructor/v1/media {
@@ -267,13 +283,9 @@ location ^~ /admin/ {
     return 301 /panel/;
 }
 
-location ~ ^/[A-Za-z-]+/shared/report/ {
-    access_log off;
-    proxy_pass http://stage_frontend_upstream;
-    include /etc/nginx/conf.d/proxy-params.inc;
-}
-# Public emergency card page (CB-REC-03): bearer token in the path, never logged.
-location ~ ^/[A-Za-z-]+/emergency/ {
+# Public record pages with a bearer token in the path — doctor share links (B-N6-04), the 24h doctor page `/d/<token>`
+# (CB-REC-05) and the emergency card (CB-REC-03), with or without the locale prefix: never logged (CB-REC-06 L1).
+location ~ ^/(?:[A-Za-z-]+/)?(?:shared/report|d|emergency)/ {
     access_log off;
     proxy_pass http://stage_frontend_upstream;
     include /etc/nginx/conf.d/proxy-params.inc;

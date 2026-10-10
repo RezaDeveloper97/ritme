@@ -4,6 +4,11 @@
 -- name: GetEmergencyCard :one
 SELECT * FROM `emergency_cards` WHERE user_id = sqlc.arg(user_id) LIMIT 1;
 
+-- name: LockEmergencyCard :one
+-- CB-REC-06 (L7): the owner's row under a row lock, so two concurrent PUTs cannot each read the old row and the later
+-- write silently drop the earlier one's fields (read-modify-write in one transaction).
+SELECT * FROM `emergency_cards` WHERE user_id = sqlc.arg(user_id) LIMIT 1 FOR UPDATE;
+
 -- name: EnsureEmergencyCard :exec
 INSERT INTO `emergency_cards` (user_id, created_at, updated_at)
 VALUES (sqlc.arg(user_id), sqlc.arg(now), sqlc.arg(now))

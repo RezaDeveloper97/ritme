@@ -111,6 +111,35 @@ func (q *Queries) GetEmergencyCardByToken(ctx context.Context, tokenHash sql.Nul
 	return i, err
 }
 
+const lockEmergencyCard = `-- name: LockEmergencyCard :one
+SELECT id, user_id, show_on_lock_screen, show_pregnancy, contact_name, contact_relation, contact_phone, insurance_label, insurance_last4, public_token_hash, public_enabled_at, public_view_count, public_last_viewed_at, created_at, updated_at FROM ` + "`" + `emergency_cards` + "`" + ` WHERE user_id = ? LIMIT 1 FOR UPDATE
+`
+
+// CB-REC-06 (L7): the owner's row under a row lock, so two concurrent PUTs cannot each read the old row and the later
+// write silently drop the earlier one's fields (read-modify-write in one transaction).
+func (q *Queries) LockEmergencyCard(ctx context.Context, userID uint64) (EmergencyCard, error) {
+	row := q.db.QueryRowContext(ctx, lockEmergencyCard, userID)
+	var i EmergencyCard
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ShowOnLockScreen,
+		&i.ShowPregnancy,
+		&i.ContactName,
+		&i.ContactRelation,
+		&i.ContactPhone,
+		&i.InsuranceLabel,
+		&i.InsuranceLast4,
+		&i.PublicTokenHash,
+		&i.PublicEnabledAt,
+		&i.PublicViewCount,
+		&i.PublicLastViewedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const setEmergencyPublicToken = `-- name: SetEmergencyPublicToken :exec
 UPDATE ` + "`" + `emergency_cards` + "`" + `
 SET public_token_hash = ?, public_enabled_at = ?, public_view_count = 0,

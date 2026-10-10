@@ -18,6 +18,9 @@ type Querier interface {
 	// user_id in the query itself; the public card goes by the SHA-256 of its token only.
 	GetEmergencyCard(ctx context.Context, userID uint64) (EmergencyCard, error)
 	GetEmergencyCardByToken(ctx context.Context, tokenHash sql.NullString) (EmergencyCard, error)
+	// CB-REC-06 (L7): the owner's row under a row lock, so two concurrent PUTs cannot each read the old row and the later
+	// write silently drop the earlier one's fields (read-modify-write in one transaction).
+	LockEmergencyCard(ctx context.Context, userID uint64) (EmergencyCard, error)
 	// Turns the public card on with a new token (the old one stops working) or off (NULL).
 	SetEmergencyPublicToken(ctx context.Context, arg SetEmergencyPublicTokenParams) error
 	UpdateEmergencyCard(ctx context.Context, arg UpdateEmergencyCardParams) error

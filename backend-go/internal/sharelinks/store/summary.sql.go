@@ -386,6 +386,37 @@ func (q *Queries) ListSummaryLinks(ctx context.Context, arg ListSummaryLinksPara
 	return items, nil
 }
 
+const recentShareLinkView = `-- name: RecentShareLinkView :one
+SELECT EXISTS (
+  SELECT 1 FROM ` + "`" + `health_share_link_views` + "`" + `
+  WHERE share_link_id = ? AND via = ? AND device = ?
+    AND browser = ? AND viewed_at > ?
+) AS seen
+`
+
+type RecentShareLinkViewParams struct {
+	ShareLinkID uint64
+	Via         string
+	Device      string
+	Browser     string
+	Since       sql.NullTime
+}
+
+// CB-REC-06 (L3): the same viewer (via, device, browser) already logged on this link since `since` — a reload or a
+// re-render then neither counts nor logs again.
+func (q *Queries) RecentShareLinkView(ctx context.Context, arg RecentShareLinkViewParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, recentShareLinkView,
+		arg.ShareLinkID,
+		arg.Via,
+		arg.Device,
+		arg.Browser,
+		arg.Since,
+	)
+	var seen bool
+	err := row.Scan(&seen)
+	return seen, err
+}
+
 const revokeSummaryLink = `-- name: RevokeSummaryLink :execrows
 UPDATE ` + "`" + `health_share_links` + "`" + `
 SET revoked_at = COALESCE(revoked_at, ?), payload = NULL, code_payload = NULL, updated_at = ?

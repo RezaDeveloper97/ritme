@@ -15,6 +15,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
+	"github.com/ritme/backend-go/internal/sharelinks/store"
 )
 
 func TestCodeLangFilesLoad(t *testing.T) {
@@ -118,7 +119,10 @@ func (f fakeFiles) Get(_ context.Context, owner, id uint64) (files.File, error) 
 	if owner != f.owner || id == 99 {
 		return files.File{}, files.ErrNotFound
 	}
-	return files.File{ID: id, MIME: "image/png", Size: 120}, nil
+	if id == 66 { // a file of another purpose (e.g. an avatar) behind a tampered snapshot id
+		return files.File{ID: id, Purpose: files.PurposeClaimDocument, MIME: "image/png", Size: 120}, nil
+	}
+	return files.File{ID: id, Purpose: files.PurposeRecordDocument, MIME: "image/png", Size: 120}, nil
 }
 
 func (fakeFiles) Link(f files.File, now time.Time, ttl time.Duration) (files.Link, error) {
@@ -128,7 +132,7 @@ func (fakeFiles) Link(f files.File, now time.Time, ttl time.Duration) (files.Lin
 
 func TestPublicDocuments_SignsOwnFilesAndDropsIDs(t *testing.T) {
 	snap := snapshotDocuments([]SharedDocument{{Kind: "imaging", Title: "Scan", Date: civildate.MustParse("2026-09-20"),
-		FileIDs: []uint64{5, 99}}})
+		FileIDs: []uint64{5, 99, 66}}})
 	raw, err := jsonx.Marshal(jsonx.Obj("documents", snap), 0)
 	require.NoError(t, err)
 	decoded, err := phpval.Decode(raw)
@@ -137,21 +141,85 @@ func TestPublicDocuments_SignsOwnFilesAndDropsIDs(t *testing.T) {
 
 	now := time.Date(2026, 10, 6, 9, 0, 0, 0, civildate.Tehran)
 	s := (&Service{}).WithDocuments(nil, fakeFiles{owner: 7})
-	out, err := s.publicDocuments(context.Background(), 7, docs, now)
+	far := now.Add(24 * time.Hour)
+	out, err := s.publicDocuments(context.Background(), 7, docs, now, far)
 	require.NoError(t, err)
 	require.Len(t, out, 1)
 	body, err := jsonx.Marshal(out[0], jsonx.UnescapedSlashes)
 	require.NoError(t, err)
 	assert.JSONEq(t, `{"kind":"imaging","title":"Scan","date":"2026-09-20","ended_on":null,"centre":null,"doctor":null,
 		"files":[{"mime":"image/png","size_bytes":120,"url":"https://api.test/api/v1/files/1/download?sig=x",
-		"url_expires_at":"2026-10-06T09:05:00+03:30"}]}`, string(body), "file 99 is gone; no file ids")
+		"url_expires_at":"2026-10-06T09:05:00+03:30"}]}`, string(body), "file 99 is gone, file 66 is not a record document; no file ids")
 
-	out, err = s.publicDocuments(context.Background(), 8, docs, now)
+	// CB-REC-06 (L4): the signed link never outlives the share link
+	out, err = s.publicDocuments(context.Background(), 7, docs, now, now.Add(90*time.Second))
+	require.NoError(t, err)
+	f0, _ := out[0].Get("files")
+	require.Len(t, f0, 1)
+	fb, err := jsonx.Marshal(f0, 0)
+	require.NoError(t, err)
+	assert.Contains(t, string(fb), `"url_expires_at":"2026-10-06T09:01:30+03:30"`)
+	out, err = s.publicDocuments(context.Background(), 7, docs, now, now.Add(500*time.Millisecond))
+	require.NoError(t, err)
+	f0, _ = out[0].Get("files")
+	assert.Empty(t, f0, "a link about to expire signs nothing")
+
+	out, err = s.publicDocuments(context.Background(), 8, docs, now, far)
 	require.NoError(t, err)
 	f, _ := out[0].Get("files")
 	assert.Empty(t, f, "files of another owner never sign")
-	out, err = (&Service{}).publicDocuments(context.Background(), 7, docs, now)
+	out, err = (&Service{}).publicDocuments(context.Background(), 7, docs, now, far)
 	require.NoError(t, err)
 	f, _ = out[0].Get("files")
 	assert.Empty(t, f, "no file service: listed without files")
+}
+
+// viewLog is a store.Querier that only knows the access log (CB-REC-06 L3); any other call panics.
+type viewLog struct {
+	store.Querier
+	rows   []store.InsertShareLinkViewParams
+	counts int
+}
+
+func (q *viewLog) RecentShareLinkView(_ context.Context, a store.RecentShareLinkViewParams) (bool, error) {
+	for _, r := range q.rows {
+		if r.ShareLinkID == a.ShareLinkID && r.Via == a.Via && r.Device == a.Device && r.Browser == a.Browser &&
+			r.ViewedAt.Time.After(a.Since.Time) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (q *viewLog) CountShareLinkView(context.Context, store.CountShareLinkViewParams) error {
+	q.counts++
+	return nil
+}
+
+func (q *viewLog) InsertShareLinkView(_ context.Context, a store.InsertShareLinkViewParams) error {
+	q.rows = append(q.rows, a)
+	return nil
+}
+
+func TestLogView_SameViewerWithinTenMinutesOnce(t *testing.T) {
+	q := &viewLog{}
+	s := &Service{q: q}
+	link := store.GetShareLinkForOpenRow{ID: 3, UserID: 7}
+	phone := Viewer{Via: ViaLink, Device: DeviceMobile, Browser: BrowserChrome}
+	t0 := time.Date(2026, 10, 6, 9, 0, 0, 0, civildate.Tehran)
+	ctx := context.Background()
+
+	require.NoError(t, s.logView(ctx, link, t0, phone))
+	require.NoError(t, s.logView(ctx, link, t0.Add(time.Minute), phone))
+	require.NoError(t, s.logView(ctx, link, t0.Add(9*time.Minute), phone))
+	assert.Equal(t, 1, q.counts, "reloads within the window count once")
+
+	require.NoError(t, s.logView(ctx, link, t0.Add(2*time.Minute), Viewer{Via: ViaCode, Device: DeviceMobile, Browser: BrowserChrome}))
+	require.NoError(t, s.logView(ctx, link, t0.Add(2*time.Minute), Viewer{Via: ViaLink, Device: DeviceDesktop, Browser: BrowserChrome}))
+	require.NoError(t, s.logView(ctx, store.GetShareLinkForOpenRow{ID: 4, UserID: 7}, t0.Add(2*time.Minute), phone))
+	assert.Equal(t, 4, q.counts, "another via, device or link is a new view")
+
+	require.NoError(t, s.logView(ctx, link, t0.Add(10*time.Minute+time.Second), phone))
+	assert.Equal(t, 5, q.counts, "after the window the same viewer counts again")
+	assert.Len(t, q.rows, 5)
 }

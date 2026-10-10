@@ -82,6 +82,9 @@ func TestSummary_ReportLinksLogAccess(t *testing.T) {
 	require.NoError(t, err)
 	_, err = e.svc.OpenAs(ctx, created.Token, fixed, sharelinks.ViewerOf("", "Mozilla/5.0 (Windows NT 10.0) Chrome/126.0 Safari/537.36"))
 	require.NoError(t, err)
+	// CB-REC-06 (L3): the same viewer reopening within 10 minutes is not logged again
+	_, err = e.svc.OpenAs(ctx, created.Token, fixed.Add(3*time.Minute), sharelinks.ViewerOf("", "Mozilla/5.0 (Windows NT 10.0) Chrome/126.0 Safari/537.36"))
+	require.NoError(t, err)
 	entries, err := e.svc.Access(ctx, uid, 0, 10)
 	require.NoError(t, err)
 	require.Len(t, entries, 1)
