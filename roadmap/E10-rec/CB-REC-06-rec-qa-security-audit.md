@@ -3,7 +3,7 @@ id: CB-REC-06
 title: REC QA + security audit
 epic: REC
 type: qa
-status: todo
+status: done
 depends_on: [CB-REC-05]
 parallel_group: REC-E
 touches: [docs/qa/canvas, docs/security]

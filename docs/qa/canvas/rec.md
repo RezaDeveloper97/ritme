@@ -33,3 +33,38 @@ carry a token (`*_token.*`).
 | — (public) | `/d` | [code entry](rec/CB-REC-05/fa_d.light.png) | [code entry](rec/CB-REC-05/fa_d.dark.png) | ✔ | No board. Public `(web)` page (noindex, no-referrer, dynamic): bloom's public shell «خلاصه پرونده بیمار / فقط خواندنی», code field, «نمایش پرونده» → POST /shared-reports/code → bloom's paper (+ the chosen documents, blob download only), «کد دیگر». 404/422 → «کد درست نیست یا منقضی شده», 429 → wait. |
 | — (public) | `/d/[token]` | [summary](rec/CB-REC-05/fa_d_token.light.png) | [summary](rec/CB-REC-05/fa_d_token.dark.png) | ✔ | Short alias of bloom's `/shared/report/[token]` (same screen; the server's QR path still points at `/shared/report/…`). A summary lists its documents under the paper. |
 | `nbl_Rec_Emergency` (public) | `/emergency/[token]` | [card](rec/CB-REC-05/fa_emergency_token.light.png) | [card](rec/CB-REC-05/fa_emergency_token.dark.png) | ✔ | Minimal card (`variant="lock"`: first name, no insurance), title + «اطلاعاتی که صاحب کارت…», «جای ارزیابی پزشکی را نمی‌گیرد» note. No nav, no install prompt, noindex, no-referrer; 404 → «کارت پیدا نشد». |
+
+## CB-REC-06 — epic QA
+
+Run on `stage` at `5eb70d21` (with the CB-REC-06 security fixes): worktree Go API :8391 (own DB copy, migrated to 55) + Next dev :3132, fresh
+test user «مریم» (09120006006, test OTP from the DB): onboarding steps → name/gender/goal/health, blood type A+, allergies
+«پنی‌سیلین، لاتکس», one surgery + one family-history row, Plus trial, `ai_documents` consent. 390 px, light + dark, `fa`.
+Security result: [docs/security/canvas-record-review.md](../../security/canvas-record-review.md) (no open high findings).
+Live tokens never appear in file names or images' URLs; the DB copy and every code/link were throw-away and are dead.
+
+Journey (all ✔):
+
+1. **Record home** — hero, allergy card with the emergency-card switch, 3×3 category grid with counts (1 imaging, 1 visit, 1 prescription, 1 surgery, 1 family history, 3 files), «needs review» card, actions row incl. «کارت اضطراری» / «اشتراک پرونده».
+2. **Upload** — PNG (prescription) + PDF (imaging, visit) uploaded as `record_document` files and attached to three documents; (sheet screenshots: CB-REC-04).
+3. **AI extract (fake provider)** → `needs_review` with fields + 2 medication rows → review → **confirmed** (`review_state=confirmed`, «تأییدشده» on the detail page).
+4. **Timeline** — Jalali month groups, kind chips, «منتظر بررسی» badge on the unreviewed imaging doc.
+5. **Document detail** — confirmed extraction table + «مشخصات سند» + where-used + delete. The file preview shows «پیش‌نمایش در دسترس نیست» only because the local API's `APP_URL` has no port, so `safeFileUrl` rejects the signed link (dev-env artefact, not a bug; previews were fine in the CB-REC-04 run).
+6. **Sharing** — 24 h code created (9-char code, QR path, 1 document picked); opened via the `/d` code API (POST /shared-reports/code, iPhone UA) → summary payload with the picked document; access history row «پزشک خلاصه پرونده را با کد دید · موبایل» and «۱ بار دیده شد»; `/d/<token>` opens the summary and **the token disappears from the address bar** (`/fa/d` after load; same for `/emergency/<token>` → `/fa/emergency`); IP/UA detail not stored.
+7. **Emergency card** — edited (contact, insurance ••••4821, lock-screen on), public link created; `/emergency/<token>` answers `Cache-Control: no-store`, `X-Robots-Tag: noindex, nofollow`, `Referrer-Policy: no-referrer`.
+8. **Lock screen** — with a device passcode set, «کارت اضطراری · بدون نیاز به رمز» opens only the minimal card (`GET /emergency-card/lock`).
+
+| Board | Route | Light | Dark | Verdict | Fix / note |
+|---|---|---|---|---|---|
+| `nbl_Rec_Home` | `/record` | [home](rec/CB-REC-06/home.light.png) | [home](rec/CB-REC-06/home.dark.png) | ✔ | none |
+| `nbl_Rec_Timeline` | `/record/timeline` | [timeline](rec/CB-REC-06/timeline.light.png) | [timeline](rec/CB-REC-06/timeline.dark.png) | ✔ | none |
+| `nbl_Rec_Doc` | `/record/documents/[id]` | [confirmed](rec/CB-REC-06/doc.light.png) · [imaging](rec/CB-REC-06/doc_imaging.light.png) | [confirmed](rec/CB-REC-06/doc.dark.png) | ✔ | preview placeholder = local APP_URL artefact (above) |
+| `nbl_Rec_Share` | `/record/share` | [share](rec/CB-REC-06/share.light.png) | [share](rec/CB-REC-06/share.dark.png) | ✔ | none |
+| `nbl_Rec_Emergency` | `/record/emergency` | [card](rec/CB-REC-06/emergency.light.png) | [card](rec/CB-REC-06/emergency.dark.png) | ✔ | none |
+| — (public) | `/d` code entry | [entry](rec/CB-REC-06/d_code.light.png) | [entry](rec/CB-REC-06/d_code.dark.png) | ✔ | automated typing into the code field did not enable the button in headless Chrome; the open-by-code path was verified through the API instead |
+| — (public) | `/d/[token]` | [summary](rec/CB-REC-06/d_token.light.png) | [summary](rec/CB-REC-06/d_token.dark.png) | ✔ | token scrubbed from the URL |
+| `nbl_Rec_Emergency` (public) | `/emergency/[token]` | [card](rec/CB-REC-06/emergency_public.light.png) | [card](rec/CB-REC-06/emergency_public.dark.png) | ✔ | token scrubbed |
+| — (lock) | app lock → emergency | [lock](rec/CB-REC-06/lock.light.png) · [card](rec/CB-REC-06/lock_emergency.light.png) | [lock](rec/CB-REC-06/lock.dark.png) · [card](rec/CB-REC-06/lock_emergency.dark.png) | ✔ | none |
+
+Observations (no ✘): with an app-lock set, the public `/d` page on the same device stays hidden behind the lock (pre-paint
+lock attribute) — irrelevant for a doctor's own device. The public emergency card also carries blood type and the emergency
+contact (CB-PRIV-01 scope), beyond the minimal CB-REC-03 description.
