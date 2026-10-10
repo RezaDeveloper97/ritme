@@ -3,7 +3,7 @@ id: CB-PELV-03
 title: PELV QA
 epic: PELV
 type: qa
-status: todo
+status: done
 depends_on: [CB-PELV-02]
 parallel_group: PELV-C
 touches: [docs/qa/canvas]
