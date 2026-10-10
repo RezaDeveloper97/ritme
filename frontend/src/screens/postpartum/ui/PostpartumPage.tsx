@@ -47,7 +47,10 @@ import {
   UrgentCard,
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+import { ForToday } from '@/widgets/for-today';
 import { ModeChip } from '@/widgets/mode-chip';
+import { QuickAccess } from '@/widgets/quick-access';
+import { TodayRemindersCard } from '@/widgets/today-reminders';
 
 import { durationKey, headlineWeek, homeAlerts, sixWeekVisitDue, splitScheduled, tileSummary } from '../model/home';
 import { MOOD_CHIPS, type MoodChip, pressedChips, toggleChip } from '../model/mood';
@@ -172,6 +175,9 @@ export function PostpartumPage() {
         <AlertList alerts={homeAlerts(data.alerts, data.today)} t={t} />
         <MoodCard t={t} />
         <Tiles data={data} t={t} />
+        {/* CB-NAV-03b (nbd_Nav_Today / IA_Map Today): «برای امروز» + the user-picked «دسترسی سریع». */}
+        <ForToday reminders={<TodayRemindersCard />} />
+        <QuickAccess />
         <VisitsCard status={data.status} birthDate={data.profile.birthDate} t={t} />
         <CallWhenCard data={data} t={t} />
         {data.weekTip && (data.weekTip.title || data.weekTip.body) && (

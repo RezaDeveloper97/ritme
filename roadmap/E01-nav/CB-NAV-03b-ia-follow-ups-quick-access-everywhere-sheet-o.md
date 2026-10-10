@@ -3,7 +3,7 @@ id: CB-NAV-03b
 title: IA follow-ups: quick access everywhere, sheet order, board copy
 epic: NAV
 type: frontend
-status: todo
+status: done
 depends_on: [CB-NAV-03]
 parallel_group: NAV-C
 touches: [frontend/src/widgets/quick-access,frontend/src/widgets/log-later,frontend/src/screens/postpartum,frontend/src/screens/ivf,frontend/src/features/log-day]

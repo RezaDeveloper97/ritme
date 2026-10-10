@@ -82,7 +82,7 @@ export interface LogDayProps {
   /** Pregnancy preset: the «ثبت روزانه بارداری» row (`null` hides it — the day log links back itself). */
   pregnancyDayHref?: string | null;
   /**
-   * CB-NAV-03 (nbd_Nav_Plus): rows the host adds under the manual tab's list — the + sheet's «برای بعد» and
+   * CB-NAV-03 (nbd_Nav_Plus): rows the host adds under the manual tab's quick tiles (CB-NAV-03b, above the full list) — the + sheet's «برای بعد» and
    * «ثبت برای <child>» (widgets/log-later, composed by screens/log; a feature can't import a widget).
    */
   extra?: ReactNode;
@@ -280,6 +280,8 @@ export function LogDay({
             dailyHref={pregnancyDayHref}
           />
         ) : null}
+        {/* CB-NAV-03b (nbd_Nav_Plus): «برای بعد» sits right under the quick tiles / preset, above the full list. */}
+        {extra}
         {/* The full page (/menopause/log) is the board alone; the sheet keeps every category below the preset. */}
         {menopause && pageHeader ? null : (
           <section className="lday-all" aria-labelledby="lday-all-title">
@@ -323,7 +325,6 @@ export function LogDay({
             )}
           </section>
         )}
-        {extra}
       </>
     );
   }

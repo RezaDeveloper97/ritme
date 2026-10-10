@@ -47,3 +47,24 @@ IVF `09900002021`. Shots in `nav/CB-NAV-03/`.
 | `nbd_Nav_Stage` | `/calendar` | [light](nav/CB-NAV-03/fa_calendar.light.png) | [dark](nav/CB-NAV-03/fa_calendar.dark.png) | ✔ | Segments ماه · سال · تحلیل · تاریخچه (board: تقویم · تحلیل · تاریخچه; bloom keeps its month/year split). |
 | `nbd_Nav_Me` | `/profile` | [light](nav/CB-NAV-03/fa_profile.light.png) | [dark](nav/CB-NAV-03/fa_profile.dark.png) | ✔ | Bloom B-N1-10 groups; «فرزندان» live. |
 | `nbd_Nav_Mode` | `/profile/mode` | — | — | ✔ | Bloom B-N2-03 screen unchanged (now also reached from the chip). |
+
+## CB-NAV-03b
+
+IA follow-ups of CB-NAV-03 (boards `nbd_Nav_Today`, `nbd_Nav_Plus`). No new CSS (the CB-NAV-03 block styles the
+reused widgets); the dead `.pp-brand-mode` rule was removed.
+
+| Item | Status | Change / note |
+|---|---|---|
+| «برای امروز» + «دسترسی سریع» on the postpartum home | ✔ | `/postpartum`: `ForToday` (M3 reminders + to-do row) + `QuickAccess` after the tiles, before «ویزیت‌ها» (defaults: children, record, checkups, reminders); scopes `postpartum` / `postpartumSetup` + `care`, `todo` |
+| … on the IVF home | ✔ | `/ivf`: both after the IVF quick actions (defaults: ivfMeds, record, labs, reminders); scope `ivf` + `care`, `todo` |
+| … on the pregnancy home | ✔ | had quick access only; the reminders card is now wrapped in `ForToday` (adds the to-do row); scope `pregnancy` + `todo` |
+| + sheet «برای بعد» position | ✔ | `LogDay` `extra` slot moved from after the full category list to right under the quick tiles / mode preset (board order) |
+| Dead key `postpartum.home.modeLabel` | ✔ | removed from frontend fa/en, Go copy fa/en and i18n goldens ar/en/fa; `go test ./internal/i18n` green |
+| Shortcut targets «پزشک» / «دفترچه درد» / «دوره‌ها» | open | still no screens: no doctor directory route, `/programs` is only the CB-COND-02 hub (no pain diary), `/learn` is only registered in the nav list (B-N8-03 page not shipped) — `href` stays `null` |
+| Companion suggestion row in «برای امروز» | open | no owner-facing companion-suggestion API in bloom N4 |
+| Quick-access server persistence (README §8 Q3) | open | awaiting the user's choice; stays on-device |
+
+Verify: tsc, eslint, steiger, lint:styles, lint:dark, vitest (widgets/app/postpartum/ivf/pregnancy/log-day: 385),
+`go test ./internal/i18n`. Screenshots (`nav/CB-NAV-03b/`) not taken: the docker test-stack MariaDB stopped
+responding mid-run (API ping timeout on the `ritme_nav03b` copy), so postpartum (`09900005501`) / IVF
+(`09900002021`) shots are pending a re-run.

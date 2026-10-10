@@ -78,7 +78,7 @@ export const ROUTE_NAMESPACES = {
   plusCheckout: ['common', 'nav', 'plus'], // B-N2-07 /plus/checkout
   plusSuccess: ['common', 'plus'], // B-N2-07 /plus/success + gateway return /plus/return
   plusManage: ['common', 'plus'], // B-N2-07 /plus/manage
-  pregnancy: ['care', 'common', 'loss', 'nav', 'pregnancyV2', 'search'], // CB-NAV-02 header search button; B-N5-10 post-loss care row (entities/loss)
+  pregnancy: ['care', 'common', 'loss', 'nav', 'pregnancyV2', 'search', 'todo'], // CB-NAV-03b «برای امروز» to-do row (widgets/for-today); CB-NAV-02 header search button; B-N5-10 post-loss care row (entities/loss)
   pregnancyLog: [...PREGNANCY, 'logSheet', 'plus', 'pregnancyV2', 'voiceLog'], // B-N3-06: default tab = log sheet v2 (pregnancy preset)
   pregnancyWeek: ['common', 'nav', 'pregnancyV2'],
   pregnancyAlerts: ['common', 'nav', 'pregnancyV2'],
@@ -110,8 +110,8 @@ export const ROUTE_NAMESPACES = {
   menopauseScore: ['common', 'menopause', 'nav'], // CB-MENO-08 /menopause/score (menopause tab «علائم», bottom nav)
   menopauseScoreQuestionnaire: ['common', 'menopause', 'nav'], // CB-MENO-08 /menopause/score/questionnaire (form, no nav; same screen slice as /menopause/score)
   menopauseReport: ['common', 'healthRecord', 'menopause', 'plus', 'record', 'recordExport'], // CB-MENO-11 /menopause/report (doctor report on bloom's builder, back header, no nav; record: the record-export barrel's CB-REC-05 code page)
-  postpartum: ['children', 'common', 'logSheet', 'nav', 'plus', 'postpartum'], // B-N5-04 /postpartum (v15_Main; mood chips save through features/log-day); B-N5-05 hero children row + child vaccines (entities/child)
-  postpartumSetup: ['children', 'common', 'logSheet', 'nav', 'plus', 'postpartum'], // B-N5-04 /postpartum/setup (same screen slice as /postpartum)
+  postpartum: ['care', 'children', 'common', 'logSheet', 'nav', 'plus', 'postpartum', 'todo'], // CB-NAV-03b «برای امروز» (widgets/today-reminders → care, widgets/for-today → todo) + «دسترسی سریع»; B-N5-04 /postpartum (v15_Main; mood chips save through features/log-day); B-N5-05 hero children row + child vaccines (entities/child)
+  postpartumSetup: ['care', 'children', 'common', 'logSheet', 'nav', 'plus', 'postpartum', 'todo'], // CB-NAV-03b same screen slice as /postpartum; B-N5-04 /postpartum/setup (same screen slice as /postpartum)
   postpartumRecovery: ['common', 'postpartum'], // B-N5-04 /postpartum/recovery (v15_Recovery, back header)
   postpartumMood: ['common', 'postpartum'], // B-N5-04 /postpartum/mood (v15_MoodCheck, EPDS + safety)
   children: ['children', 'common', 'nav'], // B-N5-05 /children (v15_Children; «کودک» tab for 0 / ≥2 children)
@@ -119,7 +119,7 @@ export const ROUTE_NAMESPACES = {
   childHome: ['babyLog', 'children', 'common', 'nav'], // B-N5-05 /children/[id] (v16_ChildHome, «کودک» tab root); B-N5-07 «امروز» rows (features/baby-log)
   logFeed: ['babyLog', 'children', 'common'], // B-N5-07 /children/[id]/feeding + /children/feeding (nbl_Log_Feed, close header, no nav; children = entities/child barrel)
   childSection: ['children', 'common'], // B-N5-06 /children/[id]/{growth,vaccines,milestones,learn} (v16_Growth / _Vaccines / _Milestones / _Learn; back header, no nav)
-  ivf: ['common', 'ivf', 'nav'], // CB-IVF-02 /ivf (nbl_IVF_Home, TTC IVF sub-mode home)
+  ivf: ['care', 'common', 'ivf', 'nav', 'todo'], // CB-NAV-03b «برای امروز» (care reminders + to-do row) + «دسترسی سریع»; CB-IVF-02 /ivf (nbl_IVF_Home, TTC IVF sub-mode home)
   ivfScan: ['common', 'ivf'], // CB-IVF-04 /ivf/scan (nbl_IVF_Scan, back header, no nav)
   lossStart: ['common', 'companions', 'loss'], // CB-LOSS-02 /loss (Loss_Start, full screen, no nav; companions = entities/companion barrel)
   lossCare: ['common', 'loss'], // CB-LOSS-02 /loss/care (Loss_Care; «ثبت» opens the shell's log sheet)

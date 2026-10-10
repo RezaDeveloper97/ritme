@@ -8623,7 +8623,6 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .pp-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px var(--gutter) 10px; }
 .pp-brand { display: flex; flex-direction: column; align-items: center; min-inline-size: 0; }
 .pp-brand-name { font-family: var(--font-display); font-size: 26px; line-height: 1.1; color: var(--text-1); }
-.pp-brand-mode { font-size: 12px; font-weight: 700; color: var(--text-2); }
 
 /* Hero card (rounded bottom, hero tint) */
 .pp-hero {

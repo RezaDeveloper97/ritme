@@ -38,8 +38,9 @@ import {
   type Tone,
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
-import { PregnancyCareChecklist } from '@/widgets/pregnancy-care-checklist';
+import { ForToday } from '@/widgets/for-today';
 import { ModeChip } from '@/widgets/mode-chip';
+import { PregnancyCareChecklist } from '@/widgets/pregnancy-care-checklist';
 import { QuickAccess } from '@/widgets/quick-access';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
@@ -378,7 +379,8 @@ export function PregnancyPage() {
       {data.due && <DueDateCard due={data.due} t={t} />}
       <QuickTiles data={data} t={t} />
       {/* The «ویزیت بعدی» card below already shows this appointment. */}
-      <TodayRemindersCard hideAppointmentId={data.nextVisit?.appointmentId ?? null} />
+      {/* CB-NAV-03b: «برای امروز» = reminders + to-do row, like the other homes. */}
+      <ForToday reminders={<TodayRemindersCard hideAppointmentId={data.nextVisit?.appointmentId ?? null} />} />
       {data.nextVisit && <NextVisitCard visit={data.nextVisit} t={t} />}
       {/* CB-NAV-03 (IA_Map Today): the user-picked «دسترسی سریع». */}
       <QuickAccess />

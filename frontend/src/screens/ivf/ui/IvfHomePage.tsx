@@ -36,7 +36,10 @@ import {
   type TimelineStep,
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+import { ForToday } from '@/widgets/for-today';
 import { ModeChip } from '@/widgets/mode-chip';
+import { QuickAccess } from '@/widgets/quick-access';
+import { TodayRemindersCard } from '@/widgets/today-reminders';
 
 import {
   clockOf,
@@ -148,6 +151,9 @@ export function IvfHomePage() {
         {home.nextAppointment ? <NextAppointment next={home.nextAppointment} t={t} /> : null}
         {home.companion.linked ? <CompanionCard companion={home.companion} t={t} /> : null}
         <QuickActions t={t} />
+        {/* CB-NAV-03b (nbd_Nav_Today / IA_Map Today): «برای امروز» + the user-picked «دسترسی سریع». */}
+        <ForToday reminders={<TodayRemindersCard />} />
+        <QuickAccess />
       </div>
     </Shell>
   );
