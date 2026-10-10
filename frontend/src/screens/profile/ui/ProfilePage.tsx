@@ -228,6 +228,8 @@ export function ProfilePage() {
               <ListRow icon="todo" iconTone="brand" title={t('rows.todo')} onClick={() => router.push('/todo')} />
               {/* B-N8-03: «دوره‌های من» → /learn. */}
               <ListRow icon="gradCap" iconTone="bloom" title={t('rows.courses')} onClick={() => router.push('/learn')} />
+              {/* B-N8-04: «دانلودها» → /learn/downloads (offline lessons). */}
+              <ListRow icon="download" iconTone="data" title={t('rows.downloads')} onClick={() => router.push('/learn/downloads')} />
               {TASK_ROWS.map((row) => (
                 <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
               ))}

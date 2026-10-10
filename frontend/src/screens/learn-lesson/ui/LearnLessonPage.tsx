@@ -12,6 +12,7 @@ import {
   useLesson,
   useLessonMeta,
   usePlayback,
+  useLessonDownload,
   useSaveLessonProgress,
   type CourseOutline,
   type LessonDetail,
@@ -19,6 +20,7 @@ import {
 } from '@/entities/course';
 import { Link, useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { useOfflineBlobUrl } from '@/shared/pwa/offline';
 import { Card, EmptyState, HeaderButton, Icon, PrimaryButton, ScreenHeader, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { useLessonMedia } from '../model/use-media';
@@ -97,11 +99,49 @@ function Plain({ title, onBack, backLabel, children }: { title: string; onBack: 
   );
 }
 
-/** The signed URL of a ready lesson, plus the «not ready» / failure states. */
+/**
+ * The signed URL of a ready lesson, plus the «not ready» / failure states. A
+ * downloaded lesson (B-N8-04) plays from its decrypted local copy instead.
+ */
 function useLessonUrl(lesson: StudentLesson) {
+  const local = useOfflineBlobUrl(lesson.id);
   const ready = lesson.media?.status === 'ready';
-  const pb = usePlayback(lesson.id, ready);
-  return { ready, pb, url: pb.data?.url ?? null };
+  const pb = usePlayback(lesson.id, ready && local.checked && !local.url);
+  return { ready: ready || !!local.url, pb, url: local.url ?? pb.data?.url ?? null, offline: !!local.url };
+}
+
+/** «دانلود» pill (B-N8-04): download for offline / progress + cancel / remove. */
+function DownloadPill({ detail }: { detail: LessonDetail }) {
+  const t = useTranslations('learn');
+  const locale = useLocale() as Locale;
+  const { lesson, course } = detail;
+  const dl = useLessonDownload({ lessonId: lesson.id, courseId: course.id, courseTitle: course.title, title: lesson.title, kind: lesson.kind });
+  if (dl.state === 'unsupported' || dl.state === 'checking' || lesson.media?.status !== 'ready') return null;
+  return (
+    <>
+      {dl.state === 'downloading' ? (
+        <button type="button" className="lrn-pill" aria-busy onClick={dl.cancel} aria-label={t('download.cancel')}>
+          <Icon name="x" size={16} />
+          {dl.percent != null ? t('download.progress', { percent: formatNumber(dl.percent, locale) }) : t('download.downloading')}
+        </button>
+      ) : dl.state === 'saved' ? (
+        <button type="button" className="lrn-pill is-saved" onClick={() => void dl.remove()} aria-label={t('download.remove')}>
+          <Icon name="check" size={16} />
+          {t('download.saved')}
+        </button>
+      ) : (
+        <button type="button" className="lrn-pill" onClick={() => void dl.start()}>
+          <Icon name="download" size={16} />
+          {t('download.action')}
+        </button>
+      )}
+      {dl.error ? (
+        <p className="lrn-dl-error" role="alert">
+          {t(`download.errors.${dl.error}`)}
+        </p>
+      ) : null}
+    </>
+  );
 }
 
 function MediaUnavailable({ ready, failed, onRetry }: { ready: boolean; failed: boolean; onRetry: () => void }) {
@@ -311,6 +351,7 @@ function VideoLesson({ detail, outline, onBack, onAudio }: { detail: LessonDetai
               <Icon name="music" size={16} />
               {t('player.audioOnly')}
             </button>
+            <DownloadPill detail={detail} />
             <button type="button" className="lrn-pill" onClick={() => setTab('notes')}>
               <Icon name="note" size={16} />
               {t('player.note')}
@@ -421,6 +462,7 @@ function AudioLesson({ detail, outline, onBack, onVideo }: { detail: LessonDetai
               <Icon name="filterLines" size={16} />
               {t('player.transcript')}
             </button>
+            <DownloadPill detail={detail} />
           </div>
           {transcript ? (
             <Card className="lrn-transcript">
@@ -444,7 +486,7 @@ function PdfLesson({ detail, onBack }: { detail: LessonDetail; onBack: () => voi
   const t = useTranslations('learn');
   const locale = useLocale() as Locale;
   const { lesson, course } = detail;
-  const { ready, pb, url } = useLessonUrl(lesson);
+  const { ready, pb, url, offline } = useLessonUrl(lesson);
   const save = useSaveLessonProgress();
   const done = (lesson.progress?.completed ?? false) || save.isSuccess;
   return (
@@ -460,10 +502,15 @@ function PdfLesson({ detail, onBack }: { detail: LessonDetail; onBack: () => voi
           {url ? (
             <>
               <iframe className="lrn-pdf" src={url} title={lesson.title} />
-              <a className="lrn-pill lrn-pdf-open" href={url} target="_blank" rel="noopener noreferrer">
-                <Icon name="export" size={16} />
-                {t('pdf.openTab')}
-              </a>
+              <div className="lrn-pills">
+                {offline ? null : (
+                  <a className="lrn-pill lrn-pdf-open" href={url} target="_blank" rel="noopener noreferrer">
+                    <Icon name="export" size={16} />
+                    {t('pdf.openTab')}
+                  </a>
+                )}
+                <DownloadPill detail={detail} />
+              </div>
             </>
           ) : (
             <MediaUnavailable ready={ready} failed={pb.isError} onRetry={() => void pb.refetch()} />

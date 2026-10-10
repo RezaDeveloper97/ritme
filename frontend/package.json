@@ -43,6 +43,7 @@
     "tailwindcss": "^4.0.0",
     "@tailwindcss/postcss": "^4.0.0",
     "vitest": "^3.0.0",
+    "fake-indexeddb": "^6.2.5",
     "steiger": "^0.5.0",
     "@feature-sliced/steiger-plugin": "^0.5.0"
   }

@@ -3,7 +3,7 @@ id: B-N8-04
 title: Offline downloads for lessons
 milestone: N8
 type: frontend
-status: todo
+status: done
 depends_on: [B-N8-03]
 parallel_group: N8-D
 touches: [frontend/src/screens/learn-downloads,frontend/src/shared/pwa,frontend/scripts]

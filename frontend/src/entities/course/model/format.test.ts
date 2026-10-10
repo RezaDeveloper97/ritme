@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { myCoursesSchema } from '../api/schema';
-import { filterCourses, formatClock, groupByInstructor, minutesOf, newCourses, percentAt } from './format';
+import { filterCourses, formatClock, groupByInstructor, minutesOf, newCourses, percentAt, stillAccessible } from './format';
 import type { StudentCourse } from './types';
 
 function course(id: number, over: Partial<StudentCourse> = {}): StudentCourse {
@@ -73,5 +73,16 @@ describe('course format', () => {
     });
     expect(parsed.courses).toHaveLength(1);
     expect(parsed.courses[0]?.access.daysLeft).toBe(73);
+  });
+});
+
+describe('stillAccessible (B-N8-04 purge)', () => {
+  it('keeps live access only', () => {
+    const live = course(1);
+    const gone = course(2, { access: { ...course(2).access, expired: true } });
+    const mine = { continue: null, courses: [live, gone] };
+    expect(stillAccessible(mine, 1)).toBe(true);
+    expect(stillAccessible(mine, 2)).toBe(false);
+    expect(stillAccessible(mine, 3)).toBe(false);
   });
 });

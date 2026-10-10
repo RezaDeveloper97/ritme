@@ -66,6 +66,10 @@ const csp = [
   // Admin-uploaded banners/articles come from the API's /storage.
   "img-src 'self' data: blob: https:",
   `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ''}${isProd ? '' : ' ws: wss:'}`,
+  // B-N8-04: lessons play from the API's signed stream URL or, offline, from a
+  // blob: URL of the decrypted local copy (video/audio, PDF in an iframe).
+  `media-src 'self' blob:${apiOrigin ? ` ${apiOrigin}` : ''}`,
+  `frame-src 'self' blob:${apiOrigin ? ` ${apiOrigin}` : ''}`,
   "worker-src 'self'",
   "manifest-src 'self'",
   "object-src 'none'",

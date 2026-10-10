@@ -13,8 +13,10 @@
  *  - /_next/static/* (content-hashed, immutable): cache-first.
  *  - Other static assets (icons, fonts, images): stale-while-revalidate.
  *  - Runtime cache is capped at RUNTIME_MAX_ENTRIES (oldest evicted first).
+ *  - /{locale}/learn/downloads (B-N8-04): network-first, last good copy kept
+ *    for offline playback of downloaded lessons.
  *  - NEVER cached: /api/* (health data — privacy, CLAUDE.md §11), version.json
- *    (update source of truth), sw.js itself, and HTML documents.
+ *    (update source of truth), sw.js itself, and other HTML documents.
  */
 
 const APP_VERSION = '__APP_VERSION__';
@@ -29,6 +31,12 @@ const OFFLINE_URL = '/offline.html';
 // A stalled connection (VPN / filtering) must end on the offline page, not a
 // blank screen that spins forever.
 const NAVIGATION_TIMEOUT_MS = 10000;
+// B-N8-04 offline lessons: the downloads screen document (per locale). The
+// downloaded media itself lives encrypted in IndexedDB (shared/pwa/offline/offline-media.ts),
+// never in Cache Storage, so a worker update can't purge it. This cache is not
+// per build, so the activate cleanup below keeps it.
+const OFFLINE_PAGES = 'ritme-offline-pages-v1';
+const DOWNLOADS_PAGE = /^\/[a-z]{2,3}(?:-[A-Za-z]{2,4})?\/learn\/downloads\/?$/;
 
 const PRECACHE_URLS = [
   OFFLINE_URL,
@@ -58,7 +66,7 @@ self.addEventListener('activate', (event) => {
       // cache belongs to an older worker: drop it.
       const keys = await caches.keys();
       await Promise.all(
-        keys.filter((key) => key !== PRECACHE && key !== RUNTIME).map((key) => caches.delete(key)),
+        keys.filter((key) => key !== PRECACHE && key !== RUNTIME && key !== OFFLINE_PAGES).map((key) => caches.delete(key)),
       );
       if (self.registration.navigationPreload) {
         await self.registration.navigationPreload.enable().catch(() => undefined);
@@ -144,6 +152,32 @@ self.addEventListener('fetch', (event) => {
     url.pathname === '/version.json' ||
     url.pathname === '/sw.js'
   ) {
+    return;
+  }
+
+  // B-N8-04: the «دانلودها» screen is the one document kept for offline use,
+  // so downloaded lessons stay playable without a connection. Its HTML is the
+  // client shell only (no session, no health data — everything is rendered on
+  // the client from IndexedDB). Network-first; a redirect/error is never stored.
+  if (request.mode === 'navigate' && DOWNLOADS_PAGE.test(url.pathname)) {
+    event.respondWith(
+      (async () => {
+        try {
+          const network = (async () => (await event.preloadResponse) || fetch(request))();
+          const response = await withTimeout(network, NAVIGATION_TIMEOUT_MS);
+          if (response.ok && !response.redirected && response.type === 'basic') {
+            const copy = response.clone();
+            event.waitUntil(
+              caches.open(OFFLINE_PAGES).then((cache) => cache.put(url.pathname, copy)).catch(() => undefined),
+            );
+          }
+          return response;
+        } catch {
+          const cached = await caches.match(url.pathname, { cacheName: OFFLINE_PAGES });
+          return cached ?? offlineResponse();
+        }
+      })(),
+    );
     return;
   }
 

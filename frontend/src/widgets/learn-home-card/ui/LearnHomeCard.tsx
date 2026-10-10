@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 
-import { KindThumb, minutesOf, newCourses, useCourseMeta, useMyCourses, type ContinueCard, type StudentCourse } from '@/entities/course';
+import { KindThumb, minutesOf, newCourses, useCourseMeta, useMyCourses, useOfflinePurge, type ContinueCard, type StudentCourse } from '@/entities/course';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { formatDayMonth, formatNumber } from '@/shared/lib/date';
 import { Card, Icon, SectionTitle } from '@/shared/ui';
@@ -16,6 +16,8 @@ import { Card, Icon, SectionTitle } from '@/shared/ui';
  */
 export function LearnHomeCard() {
   const q = useMyCourses();
+  // B-N8-04: on app start (home), drop offline downloads whose access ended.
+  useOfflinePurge();
   if (!q.data) return null;
   if (q.data.continue) return <ContinueVariant item={q.data.continue} courses={q.data.courses} />;
   const fresh = newCourses(q.data.courses);

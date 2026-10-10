@@ -26,6 +26,7 @@ export {
   minutesOf,
   newCourses,
   percentAt,
+  stillAccessible,
   type InstructorGroup,
 } from './model/format';
 export { courseKeys } from './api/keys';
@@ -40,3 +41,4 @@ export {
   type ProgressInput,
 } from './api/queries';
 export { CourseCard, KindThumb, useAccessLabel, useCourseMeta, useLessonMeta } from './ui/CourseBits';
+export { useLessonDownload, useOfflinePurge, type DownloadState, type DownloadTarget } from './api/offline';

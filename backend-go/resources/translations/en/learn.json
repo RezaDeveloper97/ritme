@@ -143,5 +143,45 @@
     "later": "Later — go to my courses",
     "toHub": "My courses",
     "notFound": "This access wasn't found"
+  },
+  "download": {
+    "action": "Download",
+    "saved": "Downloaded",
+    "downloading": "Downloading…",
+    "progress": "Downloading {percent}%",
+    "cancel": "Cancel download",
+    "remove": "Remove download",
+    "offline": "Playing from your phone",
+    "errors": {
+      "tooLarge": "This file is too large to download.",
+      "quota": "Not enough space on your phone — remove some downloads.",
+      "network": "The download didn't finish — try again.",
+      "unsupported": "This browser doesn't support offline downloads.",
+      "corrupt": "The downloaded file is damaged — remove it and download again."
+    }
+  },
+  "downloads": {
+    "title": "Downloads",
+    "subtitle": "For use without internet",
+    "edit": "Edit",
+    "done": "Done",
+    "used": "Storage used",
+    "usedOf": "{used} of {quota}",
+    "listLabel": "Downloaded lessons",
+    "note": "Files play only inside Ritme and are removed from your phone when your access ends.",
+    "emptyTitle": "Nothing downloaded yet",
+    "emptyBody": "Tap «Download» on any lesson to watch it without internet.",
+    "loadError": "Couldn't read your downloads",
+    "unsupported": "This browser doesn't support offline downloads.",
+    "play": "Play {title}",
+    "remove": "Remove {title}",
+    "close": "Close",
+    "meta": "{course} · {size}",
+    "metaPdf": "{course} · {size} · PDF",
+    "size": {
+      "kb": "{n} KB",
+      "mb": "{n} MB",
+      "gb": "{n} GB"
+    }
   }
 }

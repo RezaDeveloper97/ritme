@@ -1,6 +1,6 @@
 import type { IconName, Tone } from '@/shared/ui';
 
-import type { CourseFilter, LessonKind, StudentCourse } from './types';
+import type { CourseFilter, LessonKind, MyCourses, StudentCourse } from './types';
 
 /** Thumb look of a lesson kind (Learn_Hub: video = pink, audio = purple, PDF = amber). */
 export const KIND_LOOK: Record<LessonKind, { icon: IconName; tone: Tone }> = {
@@ -66,4 +66,10 @@ export function newCourses(courses: readonly StudentCourse[], now: Date = new Da
 export function percentAt(position: number, duration: number): number {
   if (!duration || !Number.isFinite(duration)) return 0;
   return Math.max(0, Math.min(100, Math.round((position / duration) * 100)));
+}
+
+/** B-N8-04: a download stays only while «دوره‌های من» still lists its course with live access. */
+export function stillAccessible(mine: MyCourses, courseId: number): boolean {
+  const c = mine.courses.find((x) => x.id === courseId);
+  return !!c && !c.access.expired;
 }
