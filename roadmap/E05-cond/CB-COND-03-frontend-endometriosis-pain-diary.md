@@ -3,7 +3,7 @@ id: CB-COND-03
 title: Frontend: endometriosis pain diary
 epic: COND
 type: frontend
-status: todo
+status: done
 depends_on: [CB-COND-02, B-N3-03, CB-CORE-02]
 parallel_group: COND-C
 touches: [frontend/src/screens/pain-diary, frontend/src/app/[locale]/programs/pain]

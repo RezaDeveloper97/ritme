@@ -108,5 +108,45 @@
       "action": "Start the program",
       "error": "Couldn't start the program. Try again."
     }
+  },
+  "pain": {
+    "title": "Pain diary",
+    "subtitle": "Endometriosis · today",
+    "back": "Back to programs",
+    "loading": "Loading the pain diary",
+    "loadError": "The pain diary didn't load",
+    "retry": "Try again",
+    "joinTitle": "This diary is part of the endometriosis program",
+    "joinBody": "Start the program to log your pain. You can leave it whenever you like.",
+    "join": "Start the program",
+    "whereQ": "Where does it hurt?",
+    "whereHint": "You can pick more than one",
+    "whereNoPain": "No pain today — no location needed.",
+    "noLocations": "The pain locations didn't load.",
+    "needLocations": "For pain above 0, pick where it hurts.",
+    "howBad": "How bad is it?",
+    "none": "No pain",
+    "worst": "Worst pain possible",
+    "needScore": "Pick how bad the pain is.",
+    "typeQ": "What kind of pain?",
+    "withQ": "Along with",
+    "chipsError": "The options didn't load.",
+    "impactQ": "Effect on your day & medication",
+    "missed": "I couldn't go to work or school",
+    "analgesicQ": "Did you take a painkiller?",
+    "analgesicEmpty": "If you took one, add its name and time",
+    "analgesicSummary": "{name} · at {time}",
+    "analgesicName": "Painkiller",
+    "analgesicPlaceholder": "e.g. Ibuprofen",
+    "analgesicTime": "Time taken",
+    "effectLabel": "Did the painkiller help?",
+    "effect": {
+      "helped": "It helped",
+      "a_little": "A little",
+      "no": "It didn't"
+    },
+    "scaleNote": "0 means no pain and 10 the worst pain possible. Tell a doctor the same day about severe or sudden pain, fever or fainting.",
+    "save": "Save",
+    "saveError": "Couldn't save. Try again."
   }
 }

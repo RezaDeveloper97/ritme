@@ -47,3 +47,13 @@ export {
   type PbacPeriod,
 } from './model/pbac';
 export { pbacDaySchema, pbacKeys, usePbacDay, useSavePbacDay } from './api/pbac';
+// CB-COND-03: endometriosis pain diary.
+export {
+  PAIN_ANALGESIC_EFFECTS,
+  PAIN_CATALOG_GROUPS,
+  type PainAnalgesicEffect,
+  type PainCatalogGroup,
+  type PainDay,
+  type PainDayInput,
+} from './model/pain';
+export { painDaySchema, painKeys, usePainCatalog, usePainDay, useSavePainDay } from './api/pain';

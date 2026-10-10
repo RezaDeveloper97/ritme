@@ -457,3 +457,8 @@ TODO (ask user):
 - `/programs/bleeding` (screens/condition-bleeding, nbl_Cond_Bleed): three pad rows (picture, label, points, 0–50 stepper), clot chips, leak-through switch, live today / period score tiles, ≥100 warning card (server `pbac_over_100` copy or local text while editing), sticky save (enabled on change → back to /programs), join card when not enrolled; `clots` sent only when changed. `entities/condition` model/api pbac (+ tests). Key `conditions.bleeding` (+ Go copy, goldens), scope programsBleeding, CSS block CB-COND-05.
 - Verify (agent on 7384808b): full chain + build (1640 tests), i18n; on stage: tsc, vitest 178, lint:styles, steiger, i18n.
 - Open: board shows «small clot» with total 71 (inconsistent; seed uses none); copy needs clinical review.
+
+## CB-COND-03 — Frontend: endometriosis pain diary
+- `/programs/pain` (screens/condition-pain, nbl_Cond_Endo): `GET|PUT /conditions/pain/{today}`; location chips from bloom's log taxonomy (`pain.location` for her mode), 0–10 NumericScale, type + associated chips from catalog `pain_types` / `pain_associated`, missed-activity switch, painkiller name/time/effect, `condition_alerts/pain_scale` note, score↔location validation, join card when not enrolled; relief left untouched. `entities/condition` pain model/api (+ tests). Key `conditions.pain` (+ Go copy, goldens), scope programsPain, CSS block CB-COND-03.
+- Verify (agent on 7f0e8021): full chain + build; on stage: tsc, vitest 183, lint:styles, steiger, i18n.
+- Open: board's finer locations not in bloom's taxonomy; chips instead of body map (matches board); today only; copy needs clinical review.
