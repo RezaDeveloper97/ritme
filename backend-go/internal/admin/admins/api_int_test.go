@@ -367,7 +367,10 @@ func TestUsers_ListFiltersAndShow(t *testing.T) {
 	u := s.data()["user"].(map[string]any)
 	assert.Equal(t, "premium", u["subscription_type"])
 	assert.Equal(t, "2026-09-20T10:00:00+03:30", u["created_at"])
-	assert.EqualValues(t, 28, s.data()["profile"].(map[string]any)["cycle_duration"])
+	// B-N9-02 (D-84): health fields stay null without an approved health-access request.
+	assert.Nil(t, s.data()["profile"].(map[string]any)["cycle_duration"])
+	assert.Equal(t, "premium", s.data()["profile"].(map[string]any)["subscription_type"])
+	assert.Equal(t, false, s.data()["health_access"].(map[string]any)["granted"])
 	assert.Nil(t, c.do(fiber.MethodGet, "/users/12", nil).data()["profile"])
 	assert.Contains(t, s.data(), "stats")
 	assert.Equal(t, 404, c.do(fiber.MethodGet, "/users/999", nil).status)

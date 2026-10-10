@@ -2,7 +2,6 @@ package httpadmin
 
 import (
 	"database/sql"
-	"log/slog"
 	"strconv"
 	"strings"
 	"time"
@@ -112,21 +111,6 @@ func Bool(data phpval.Map, key string) bool {
 		return false
 	}
 	return phpval.Truthy(v)
-}
-
-// Audit writes one audit line for an admin mutation: who (admin id), what (action,
-// e.g. "user.block"), on what (target type + id) and from where. Never pass secrets.
-func Audit(c fiber.Ctx, logger *slog.Logger, action, targetType string, targetID uint64, extra ...slog.Attr) {
-	attrs := []slog.Attr{
-		slog.String("audit", action),
-		slog.String("target_type", targetType),
-		slog.Uint64("target_id", targetID),
-		slog.String("ip", c.IP()),
-	}
-	if a := CurrentAdmin(c); a != nil {
-		attrs = append(attrs, slog.Uint64("admin_id", a.ID))
-	}
-	logger.LogAttrs(c.Context(), slog.LevelInfo, "admin audit", append(attrs, extra...)...)
 }
 
 // DBTime is a Carbon value as Eloquent writes it: whole seconds, Asia/Tehran wall-clock.

@@ -1279,3 +1279,17 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   ReadableStream SSE with auth header, abort, retry; 402 plus / 403 consent states; chips, photo attach), screens hub,
   dept intro, chat, summary, handoff (own upcoming bookings), history (delete one / all), profile toggles; `/assistant/*`
   routes. Screenshots against a mock SSE API in `docs/qa/bloom/B-N7-07/` (spot-checked).
+
+## B-N9-02 — Roles, permissions, audit log, temporary health-data access
+
+- Migration **00060** (`admin_roles`, `admin_audit_logs`, `admin_health_access_requests`). `httpadmin/permissions.go`: 9
+  roles per artboard (product manager, medical advisor, support, clinical support, analyst, marketing, engineering,
+  doctor, instructor-moderator) × capabilities at `view` (GET) or `manage`; `RequirePermission` in the `kit.Admin` chain
+  maps every admin route to a capability (403 `forbidden`; unmapped → super/editor only; test asserts full coverage);
+  editor keeps everything except health data; login + `/auth/me` return `permissions`. `httpadmin.Audit` now also writes
+  `admin_audit_logs` (detail: scalars ≤64 chars only). `internal/admin/rbac` (admin-api §21): roles (super-only edit /
+  reset), audit logs + CSV export (`export` cap, audited), health access request (clinical-support `health` cap, reason
+  + ticket) → approval by another super → 30 min, `GET /health-access/users/:id` (403 `health_access_required`); every
+  read audited. `/users/:id` hides birthday / cycle fields / pregnancy intention without active access. D-84 proposed.
+- admin-web `screens/access-control` (`/roles` matrix, `/audit-logs` filters + CSV, `/health-access` requests / approval
+  queue / no-cache viewer); nav filtered by `permissions`. Screenshots `docs/qa/bloom/B-N9-02/`. QUESTIONS #128.

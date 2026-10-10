@@ -9,6 +9,74 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
+DROP TABLE IF EXISTS `admin_audit_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `admin_audit_logs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `admin_id` bigint(20) unsigned DEFAULT NULL,
+  `action` varchar(64) NOT NULL,
+  `target_type` varchar(64) NOT NULL,
+  `target_id` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `ip` varchar(45) NOT NULL DEFAULT '',
+  `detail` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `admin_audit_logs_created_at_index` (`created_at`),
+  KEY `admin_audit_logs_admin_id_created_at_index` (`admin_id`,`created_at`),
+  KEY `admin_audit_logs_target_type_target_id_index` (`target_type`,`target_id`),
+  KEY `admin_audit_logs_action_index` (`action`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `admin_audit_logs` WRITE;
+/*!40000 ALTER TABLE `admin_audit_logs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `admin_audit_logs` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `admin_health_access_requests`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `admin_health_access_requests` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `admin_id` bigint(20) unsigned NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `reason` varchar(500) NOT NULL,
+  `ticket` varchar(64) NOT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'pending',
+  `decided_by` bigint(20) unsigned DEFAULT NULL,
+  `decided_at` timestamp NULL DEFAULT NULL,
+  `expires_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `admin_health_access_requests_admin_id_user_id_status_index` (`admin_id`,`user_id`,`status`),
+  KEY `admin_health_access_requests_status_created_at_index` (`status`,`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `admin_health_access_requests` WRITE;
+/*!40000 ALTER TABLE `admin_health_access_requests` DISABLE KEYS */;
+/*!40000 ALTER TABLE `admin_health_access_requests` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `admin_roles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `admin_roles` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `role` varchar(32) NOT NULL,
+  `permissions` text NOT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `admin_roles_role_unique` (`role`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `admin_roles` WRITE;
+/*!40000 ALTER TABLE `admin_roles` DISABLE KEYS */;
+/*!40000 ALTER TABLE `admin_roles` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `admins`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;

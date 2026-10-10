@@ -1,9 +1,13 @@
 import { z } from 'zod';
 
-import { adminSchema } from '@/entities/admin';
+import { adminSchema, permissionsSchema } from '@/entities/admin';
 import { api, setCsrfToken } from '@/shared/api';
 
-const sessionSchema = z.object({ admin: adminSchema, csrf_token: z.string() });
+const sessionSchema = z.object({
+  admin: adminSchema,
+  csrf_token: z.string(),
+  permissions: permissionsSchema.optional().transform((p) => p ?? {}),
+});
 export type Session = z.infer<typeof sessionSchema>;
 
 export interface LoginInput {

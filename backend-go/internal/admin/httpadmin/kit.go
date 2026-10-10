@@ -25,9 +25,6 @@ const (
 	RoleEditor = "editor"
 )
 
-// Roles lists the valid roles.
-var Roles = []string{RoleSuper, RoleEditor}
-
 // CSRFHeader carries the session's CSRF token on every mutating request.
 const CSRFHeader = "X-CSRF-Token"
 
@@ -43,6 +40,8 @@ type Kit struct {
 	admins   AdminLoader
 	locale   fiber.Handler // i18n.DefaultMiddleware (setlocale:default)
 	logger   *slog.Logger
+	rbac     RBACStore   // admin_roles (nil = code defaults only)
+	audit    AuditWriter // admin_audit_logs (nil = slog only)
 }
 
 // NewKit wires the chains. locale pins the request locale (i18n.DefaultMiddleware); nil
@@ -57,7 +56,14 @@ func NewKit(opts Options, sessions *Sessions, admins AdminLoader, locale fiber.H
 	if !opts.Dev && len(opts.Hosts) == 0 {
 		logger.Error("admin API disabled: ADMIN_HOSTS is not set (required outside APP_ENV=local/testing)")
 	}
-	return &Kit{opts: opts, sessions: sessions, admins: admins, locale: locale, logger: logger}
+	k := &Kit{opts: opts, sessions: sessions, admins: admins, locale: locale, logger: logger}
+	if r, ok := admins.(RBACStore); ok {
+		k.rbac = r
+	}
+	if w, ok := admins.(AuditWriter); ok {
+		k.audit = w
+	}
+	return k
 }
 
 // Sessions returns the session store.
@@ -86,12 +92,13 @@ func (k *Kit) Public(h fiber.Handler) Chain {
 }
 
 // Admin is the chain for any active admin: host guard, CORS, Origin check, default
-// locale, RequireAdmin and CSRF (no JSON requirement: uploads are multipart).
+// locale, RequireAdmin, CSRF and RequirePermission (the route's capability for the admin's role, B-N9-02; no
+// JSON requirement: uploads are multipart).
 func (k *Kit) Admin(h fiber.Handler) Chain {
-	return Chain{k.edge, k.locale, k.RequireAdmin, k.RequireCSRF, h}
+	return Chain{k.edge, k.locale, k.RequireAdmin, k.RequireCSRF, k.RequirePermission, h}
 }
 
-// Super is Admin plus RequireSuper.
+// Super is the any-admin chain plus RequireSuper (super admins hold every capability).
 func (k *Kit) Super(h fiber.Handler) Chain {
 	return Chain{k.edge, k.locale, k.RequireAdmin, k.RequireCSRF, RequireSuper, h}
 }
@@ -146,6 +153,7 @@ func (k *Kit) setCORS(c fiber.Ctx, origin string) {
 }
 
 func (k *Kit) edge(c fiber.Ctx) error {
+	c.Locals(kitKey, k) // Audit writes the DB row through it
 	if !k.hostAllowed(c) {
 		return httpx.RouteNotFound(string(c.Request().URI().PathOriginal()))
 	}
@@ -195,6 +203,8 @@ type localsKey int
 const (
 	adminKey localsKey = iota
 	sessionKey
+	permsKey
+	kitKey
 )
 
 // CurrentAdmin is the authenticated admin (nil outside RequireAdmin).

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { RequireSuper, useCurrentAdmin } from '@/features/auth';
-import type { Admin } from '@/entities/admin';
+import { ADMIN_ROLES, type Admin } from '@/entities/admin';
 import { fieldError } from '@/shared/api';
 import { FormPage, LoadGate, PageHeader, Select, Switch, TextInput, toast, useNotifyError } from '@/shared/ui';
 
@@ -115,10 +115,15 @@ function AdminForm({ id, row }: { id: number | null; row: Admin | null }) {
           value={role}
           disabled={isSelf}
           onChange={(e) => setRole(e.target.value)}
-          options={[
-            { value: 'editor', label: `${tr('editor')} (${t('editorScope')})` },
-            { value: 'super', label: `${tr('super')} (${t('superScope')})` },
-          ]}
+          options={ADMIN_ROLES.map((r) => ({
+            value: r,
+            label:
+              r === 'editor'
+                ? `${tr('editor')} (${t('editorScope')})`
+                : r === 'super'
+                  ? `${tr('super')} (${t('superScope')})`
+                  : tr(r),
+          }))}
           error={err('role')}
         />
         <Switch

@@ -1,4 +1,4 @@
-import type { AdminRole } from '@/entities/admin';
+import { can, type AdminRole, type Permissions } from '@/entities/admin';
 import type { IconName } from '@/shared/ui';
 
 /**
@@ -12,6 +12,8 @@ export interface NavItem {
   href: string;
   icon: IconName;
   role?: AdminRole;
+  /** B-N9-02: the capability the screen reads (admin-api.md §21); hidden when the role lacks its `view`. */
+  cap?: string;
   ready: boolean;
   devOnly?: boolean;
 }
@@ -28,11 +30,15 @@ export const NAV: readonly NavGroup[] = [
     // The design's main list (B-N9-01): dashboard, users, messages, challenges, roles (super-only).
     key: 'groupMain',
     items: [
-      { key: 'dashboard', href: '/', icon: 'dashboard', ready: true },
-      { key: 'users', href: '/users', icon: 'users', ready: true },
-      { key: 'messages', href: '/messages', icon: 'message', ready: true },
-      { key: 'challenges', href: '/challenges', icon: 'flag', ready: true },
+      { key: 'dashboard', href: '/', icon: 'dashboard', cap: 'dashboard', ready: true },
+      { key: 'users', href: '/users', icon: 'users', cap: 'users', ready: true },
+      { key: 'messages', href: '/messages', icon: 'message', cap: 'messages', ready: true },
+      { key: 'challenges', href: '/challenges', icon: 'flag', cap: 'challenges', ready: true },
       { key: 'admins', href: '/admins', icon: 'shield', role: 'super', ready: true },
+      // B-N9-02 «نقش‌ها و ممیزی»: the matrix (super), the audit log and temporary health-data access.
+      { key: 'roles', href: '/roles', icon: 'shieldCheck', role: 'super', ready: true },
+      { key: 'auditLog', href: '/audit-logs', icon: 'listOrdered', cap: 'audit', ready: true },
+      { key: 'healthAccess', href: '/health-access', icon: 'key', cap: 'health', ready: true },
     ],
   },
   {
@@ -40,7 +46,7 @@ export const NAV: readonly NavGroup[] = [
     other: true,
     items: [
       // Any active admin, like /users (B-N1-12b).
-      { key: 'supportReports', href: '/support-reports', icon: 'inbox', ready: true },
+      { key: 'supportReports', href: '/support-reports', icon: 'inbox', cap: 'support', ready: true },
     ],
   },
   {
@@ -48,11 +54,11 @@ export const NAV: readonly NavGroup[] = [
     key: 'groupPlus',
     other: true,
     items: [
-      { key: 'plusSubscriptions', href: '/plus/subscriptions', icon: 'users', ready: true },
-      { key: 'plusPayments', href: '/plus/payments', icon: 'card', ready: true },
-      { key: 'plusPlans', href: '/plus/plans', icon: 'crown', ready: true },
-      { key: 'plusDiscounts', href: '/plus/discount-codes', icon: 'tag', ready: true },
-      { key: 'plusSettings', href: '/plus/settings', icon: 'gear', ready: true },
+      { key: 'plusSubscriptions', href: '/plus/subscriptions', icon: 'users', cap: 'billing', ready: true },
+      { key: 'plusPayments', href: '/plus/payments', icon: 'card', cap: 'billing', ready: true },
+      { key: 'plusPlans', href: '/plus/plans', icon: 'crown', cap: 'billing', ready: true },
+      { key: 'plusDiscounts', href: '/plus/discount-codes', icon: 'tag', cap: 'billing', ready: true },
+      { key: 'plusSettings', href: '/plus/settings', icon: 'gear', cap: 'billing', ready: true },
     ],
   },
   {
@@ -60,8 +66,8 @@ export const NAV: readonly NavGroup[] = [
     key: 'groupCompanions',
     other: true,
     items: [
-      { key: 'companionTips', href: '/companions/tips', icon: 'heart', ready: true },
-      { key: 'companionLinks', href: '/companions/links', icon: 'link', ready: true },
+      { key: 'companionTips', href: '/companions/tips', icon: 'heart', cap: 'content', ready: true },
+      { key: 'companionLinks', href: '/companions/links', icon: 'link', cap: 'content', ready: true },
     ],
   },
   {
@@ -69,9 +75,9 @@ export const NAV: readonly NavGroup[] = [
     key: 'groupLearning',
     other: true,
     items: [
-      { key: 'learningInstructors', href: '/learning/instructors', icon: 'users', ready: true },
-      { key: 'learningCourses', href: '/learning/courses', icon: 'article', ready: true },
-      { key: 'learningReviews', href: '/learning/reviews', icon: 'shieldCheck', ready: true },
+      { key: 'learningInstructors', href: '/learning/instructors', icon: 'users', cap: 'learning', ready: true },
+      { key: 'learningCourses', href: '/learning/courses', icon: 'article', cap: 'learning', ready: true },
+      { key: 'learningReviews', href: '/learning/reviews', icon: 'shieldCheck', cap: 'learning', ready: true },
     ],
   },
   {
@@ -80,10 +86,10 @@ export const NAV: readonly NavGroup[] = [
     key: 'groupTelemed',
     other: true,
     items: [
-      { key: 'telemedDoctors', href: '/telemed/doctors', icon: 'users', ready: true },
-      { key: 'telemedBookings', href: '/telemed/bookings', icon: 'calendar', ready: true },
-      { key: 'telemedReviews', href: '/telemed/reviews', icon: 'heart', ready: true },
-      { key: 'telemedInbox', href: '/telemed/inbox', icon: 'message', ready: true },
+      { key: 'telemedDoctors', href: '/telemed/doctors', icon: 'users', cap: 'telemed', ready: true },
+      { key: 'telemedBookings', href: '/telemed/bookings', icon: 'calendar', cap: 'telemed', ready: true },
+      { key: 'telemedReviews', href: '/telemed/reviews', icon: 'heart', cap: 'telemed', ready: true },
+      { key: 'telemedInbox', href: '/telemed/inbox', icon: 'message', cap: 'telemed_doctor', ready: true },
       { key: 'assistantDepartments', href: '/assistant/departments', icon: 'idea', role: 'super', ready: true },
     ],
   },
@@ -91,26 +97,26 @@ export const NAV: readonly NavGroup[] = [
     key: 'groupContent',
     other: true,
     items: [
-      { key: 'articles', href: '/articles', icon: 'article', ready: true },
-      { key: 'affirmations', href: '/affirmations', icon: 'sparkle', ready: true },
-      { key: 'challengeCompletions', href: '/challenge-completions', icon: 'check', ready: true },
-      { key: 'taskTemplates', href: '/task-templates', icon: 'task', ready: true },
-      { key: 'phaseContents', href: '/phase-contents', icon: 'moon', ready: true },
-      { key: 'recommendations', href: '/recommendations', icon: 'idea', ready: true },
-      { key: 'checkupTypes', href: '/checkup-types', icon: 'shieldCheck', ready: true },
-      { key: 'banners', href: '/banners', icon: 'banner', ready: true },
-      { key: 'infoSections', href: '/info-sections', icon: 'lifeRing', ready: true },
+      { key: 'articles', href: '/articles', icon: 'article', cap: 'content', ready: true },
+      { key: 'affirmations', href: '/affirmations', icon: 'sparkle', cap: 'content', ready: true },
+      { key: 'challengeCompletions', href: '/challenge-completions', icon: 'check', cap: 'challenges', ready: true },
+      { key: 'taskTemplates', href: '/task-templates', icon: 'task', cap: 'content', ready: true },
+      { key: 'phaseContents', href: '/phase-contents', icon: 'moon', cap: 'content', ready: true },
+      { key: 'recommendations', href: '/recommendations', icon: 'idea', cap: 'content', ready: true },
+      { key: 'checkupTypes', href: '/checkup-types', icon: 'shieldCheck', cap: 'clinical', ready: true },
+      { key: 'banners', href: '/banners', icon: 'banner', cap: 'content', ready: true },
+      { key: 'infoSections', href: '/info-sections', icon: 'lifeRing', cap: 'content', ready: true },
       // Editor + super (the content permission); switch to B-N9-02's content role once it lands.
-      { key: 'catalog', href: '/catalog', icon: 'listBullet', ready: true },
+      { key: 'catalog', href: '/catalog', icon: 'listBullet', cap: 'clinical', ready: true },
     ],
   },
   {
     key: 'groupPregnancy',
     other: true,
     items: [
-      { key: 'pregnancyWeeks', href: '/pregnancy-weeks', icon: 'baby', ready: true },
-      { key: 'pregnancyCarePlan', href: '/pregnancy-care-plan', icon: 'calendar', ready: true },
-      { key: 'pregnancyAlertRules', href: '/pregnancy-alert-rules', icon: 'alert', ready: true },
+      { key: 'pregnancyWeeks', href: '/pregnancy-weeks', icon: 'baby', cap: 'clinical', ready: true },
+      { key: 'pregnancyCarePlan', href: '/pregnancy-care-plan', icon: 'calendar', cap: 'clinical', ready: true },
+      { key: 'pregnancyAlertRules', href: '/pregnancy-alert-rules', icon: 'alert', cap: 'clinical', ready: true },
     ],
   },
   {
@@ -118,11 +124,11 @@ export const NAV: readonly NavGroup[] = [
     key: 'groupChildren',
     other: true,
     items: [
-      { key: 'childVaccines', href: '/children-content/vaccines', icon: 'shieldCheck', ready: true },
-      { key: 'childMilestones', href: '/children-content/milestones', icon: 'flag', ready: true },
-      { key: 'childLearn', href: '/children-content/learn', icon: 'article', ready: true },
-      { key: 'childWho', href: '/children-content/who', icon: 'listOrdered', ready: true },
-      { key: 'postpartumContent', href: '/postpartum-content', icon: 'heart', ready: true },
+      { key: 'childVaccines', href: '/children-content/vaccines', icon: 'shieldCheck', cap: 'clinical', ready: true },
+      { key: 'childMilestones', href: '/children-content/milestones', icon: 'flag', cap: 'clinical', ready: true },
+      { key: 'childLearn', href: '/children-content/learn', icon: 'article', cap: 'clinical', ready: true },
+      { key: 'childWho', href: '/children-content/who', icon: 'listOrdered', cap: 'clinical', ready: true },
+      { key: 'postpartumContent', href: '/postpartum-content', icon: 'heart', cap: 'clinical', ready: true },
     ],
   },
   {
@@ -142,12 +148,18 @@ export const NAV: readonly NavGroup[] = [
   },
 ];
 
-/** Groups visible to `role`; empty groups are dropped. */
-export function navFor(role: AdminRole, opts: { dev: boolean }): NavGroup[] {
+/**
+ * Groups visible to `role`; empty groups are dropped. With `permissions` (B-N9-02) an item with a `cap` also needs
+ * that capability's `view`; without them only `role` gates (super / editor see what they always saw).
+ */
+export function navFor(role: AdminRole, opts: { dev: boolean; permissions?: Permissions }): NavGroup[] {
+  const capOk = (item: NavItem) =>
+    !item.cap || (opts.permissions ? can(role, opts.permissions, item.cap) : role === 'super' || item.cap !== 'health');
   return NAV.map((group) => ({
     ...group,
     items: group.items.filter(
-      (item) => (!item.role || item.role === role || role === 'super') && (!item.devOnly || opts.dev),
+      (item) =>
+        (!item.role || item.role === role || role === 'super') && (!item.devOnly || opts.dev) && capOk(item),
     ),
   })).filter((group) => group.items.length > 0);
 }

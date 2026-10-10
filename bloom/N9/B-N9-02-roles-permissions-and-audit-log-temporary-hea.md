@@ -3,7 +3,7 @@ id: B-N9-02
 title: Roles, permissions and audit log (temporary health-data access)
 milestone: N9
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N9-01]
 parallel_group: N9-B
 touches: [backend-go/internal/admin,backend-go/db,backend-go/api,admin-web/src]

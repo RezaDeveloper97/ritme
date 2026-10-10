@@ -13,6 +13,8 @@ import (
 )
 
 type Querier interface {
+	// The admin's live grant for this user (approved and not expired), newest first.
+	ActiveHealthAccess(ctx context.Context, arg ActiveHealthAccessParams) (ActiveHealthAccessRow, error)
 	// ---------------------------------------------------------------------------
 	// Discount codes
 	AdminCountPlusDiscounts(ctx context.Context, arg AdminCountPlusDiscountsParams) (int64, error)
@@ -96,6 +98,7 @@ type Querier interface {
 	// ---------------------------------------------------------------------------
 	// Articles
 	CountAdminArticles(ctx context.Context) (int64, error)
+	CountAdminAuditLogs(ctx context.Context, arg CountAdminAuditLogsParams) (int64, error)
 	// ---------------------------------------------------------------------------
 	// Banners
 	CountAdminBanners(ctx context.Context) (int64, error)
@@ -116,8 +119,10 @@ type Querier interface {
 	// Task templates
 	CountAdminTaskTemplates(ctx context.Context) (int64, error)
 	CountAdmins(ctx context.Context) (int64, error)
+	CountAdminsByRole(ctx context.Context) ([]CountAdminsByRoleRow, error)
 	CountCompanionLinksByTypeStatus(ctx context.Context) ([]CountCompanionLinksByTypeStatusRow, error)
 	CountCompletionsOn(ctx context.Context, completionDate civildate.Date) (int64, error)
+	CountHealthAccessRequests(ctx context.Context, arg CountHealthAccessRequestsParams) (int64, error)
 	// Distinct students who opened a lesson since `since` (activity, not access).
 	CountLearningActiveStudents(ctx context.Context, since sql.NullTime) (int64, error)
 	CountLearningCompletedLessons(ctx context.Context) (int64, error)
@@ -158,6 +163,9 @@ type Querier interface {
 	CreateArticle(ctx context.Context, arg CreateArticleParams) (sql.Result, error)
 	CreateBanner(ctx context.Context, arg CreateBannerParams) (sql.Result, error)
 	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (sql.Result, error)
+	// ---------------------------------------------------------------------------
+	// Temporary health-data access
+	CreateHealthAccessRequest(ctx context.Context, arg CreateHealthAccessRequestParams) (sql.Result, error)
 	CreateInfoSection(ctx context.Context, arg CreateInfoSectionParams) (sql.Result, error)
 	CreateLanguage(ctx context.Context, arg CreateLanguageParams) (sql.Result, error)
 	CreatePhaseContent(ctx context.Context, arg CreatePhaseContentParams) (sql.Result, error)
@@ -168,7 +176,10 @@ type Querier interface {
 	// ---------------------------------------------------------------------------
 	// Dashboard (DashboardController::index)
 	DashboardCounts(ctx context.Context, arg DashboardCountsParams) (DashboardCountsRow, error)
+	// Only a pending request changes (approve / reject); a concurrent second decision affects 0 rows.
+	DecideHealthAccessRequest(ctx context.Context, arg DecideHealthAccessRequestParams) (int64, error)
 	DeleteAdmin(ctx context.Context, id uint64) (sql.Result, error)
+	DeleteAdminRole(ctx context.Context, role string) error
 	DeleteAffirmation(ctx context.Context, id uint64) (sql.Result, error)
 	DeleteArticle(ctx context.Context, id uint64) (sql.Result, error)
 	DeleteBanner(ctx context.Context, id uint64) (sql.Result, error)
@@ -191,10 +202,12 @@ type Querier interface {
 	// ---------------------------------------------------------------------------
 	// Admins
 	GetAdminByID(ctx context.Context, id uint64) (Admin, error)
+	GetAdminRolePermissions(ctx context.Context, role string) (string, error)
 	GetAffirmation(ctx context.Context, id uint64) (Affirmation, error)
 	GetArticle(ctx context.Context, id uint64) (Article, error)
 	GetBanner(ctx context.Context, id uint64) (Banner, error)
 	GetChallenge(ctx context.Context, id uint64) (Challenge, error)
+	GetHealthAccessRequest(ctx context.Context, id uint64) (GetHealthAccessRequestRow, error)
 	GetInfoSection(ctx context.Context, id uint64) (InfoSection, error)
 	GetLanguage(ctx context.Context, id uint64) (Language, error)
 	GetLearningCourse(ctx context.Context, id uint64) (GetLearningCourseRow, error)
@@ -211,6 +224,9 @@ type Querier interface {
 	GetUserDetail(ctx context.Context, id uint64) (GetUserDetailRow, error)
 	// unique:info_sections,key per group (the (group, key) unique index; NULL keys never collide).
 	InfoSectionKeyTaken(ctx context.Context, arg InfoSectionKeyTakenParams) (bool, error)
+	// ---------------------------------------------------------------------------
+	// Audit log
+	InsertAdminAuditLog(ctx context.Context, arg InsertAdminAuditLogParams) error
 	InsertCompanionTipRow(ctx context.Context, arg InsertCompanionTipRowParams) error
 	// ───────────── moderation log ─────────────
 	InsertLearningModeration(ctx context.Context, arg InsertLearningModerationParams) error
@@ -221,12 +237,18 @@ type Querier interface {
 	ListAdminAffirmations(ctx context.Context, arg ListAdminAffirmationsParams) ([]Affirmation, error)
 	// Article::orderBy('sort_order')->orderByDesc('id')->paginate(20).
 	ListAdminArticles(ctx context.Context, arg ListAdminArticlesParams) ([]Article, error)
+	// Filters are optional: 0 / '' / NULL = no filter. action matches a prefix ("article." → every article action).
+	ListAdminAuditLogs(ctx context.Context, arg ListAdminAuditLogsParams) ([]ListAdminAuditLogsRow, error)
 	ListAdminBanners(ctx context.Context, arg ListAdminBannersParams) ([]Banner, error)
 	ListAdminChallenges(ctx context.Context, arg ListAdminChallengesParams) ([]Challenge, error)
 	ListAdminCompanionLinks(ctx context.Context, arg ListAdminCompanionLinksParams) ([]ListAdminCompanionLinksRow, error)
 	ListAdminInfoSections(ctx context.Context, arg ListAdminInfoSectionsParams) ([]InfoSection, error)
 	ListAdminMessages(ctx context.Context, arg ListAdminMessagesParams) ([]MessageContent, error)
 	ListAdminRecommendations(ctx context.Context, arg ListAdminRecommendationsParams) ([]Recommendation, error)
+	// Admin roles & permissions, DB audit log, temporary health-data access (bloom B-N9-02, migration 00060).
+	// ---------------------------------------------------------------------------
+	// Roles
+	ListAdminRoles(ctx context.Context) ([]AdminRole, error)
 	ListAdminTaskTemplates(ctx context.Context, arg ListAdminTaskTemplatesParams) ([]TaskTemplate, error)
 	// Admin::orderByDesc('id')->paginate(20).
 	ListAdmins(ctx context.Context, arg ListAdminsParams) ([]Admin, error)
@@ -242,6 +264,8 @@ type Querier interface {
 	// anything of the owner's health records. Status / type filters are LIKE patterns ('%' = all).
 	ListCompanionTipRows(ctx context.Context) ([]MessageContent, error)
 	ListCompletions(ctx context.Context, arg ListCompletionsParams) ([]ListCompletionsRow, error)
+	// admin_id = 0 → every admin's requests (super); an empty status → every status.
+	ListHealthAccessRequests(ctx context.Context, arg ListHealthAccessRequestsParams) ([]ListHealthAccessRequestsRow, error)
 	// ───────────── usage aggregates (completion) ─────────────
 	// (course, student) pairs with a running grant for the given courses: the denominator of «completion».
 	ListLearningAccessPairs(ctx context.Context, arg ListLearningAccessPairsParams) ([]ListLearningAccessPairsRow, error)
@@ -277,6 +301,7 @@ type Querier interface {
 	RecentUsers(ctx context.Context, limit int32) ([]RecentUsersRow, error)
 	// approve / flag: the review fields only — updated_at stays, so «changed since review» keeps meaning the instructor.
 	ReviewLearningLesson(ctx context.Context, arg ReviewLearningLessonParams) error
+	RevokeHealthAccessRequest(ctx context.Context, arg RevokeHealthAccessRequestParams) (int64, error)
 	RevokeLearningInstructor(ctx context.Context, arg RevokeLearningInstructorParams) error
 	SetArticlePublished(ctx context.Context, arg SetArticlePublishedParams) error
 	// An editor save makes the row live again (active + approved): the tips page is the copy the panel shows.
@@ -319,6 +344,7 @@ type Querier interface {
 	// $user->update(['name' => …]): updated_at only moves when the name changed (Eloquent dirty check).
 	// MariaDB evaluates SET left to right, so updated_at is compared against the old name.
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error
+	UpsertAdminRole(ctx context.Context, arg UpsertAdminRoleParams) error
 	UserExists(ctx context.Context, id uint64) (bool, error)
 	UserStats(ctx context.Context, arg UserStatsParams) (UserStatsRow, error)
 }

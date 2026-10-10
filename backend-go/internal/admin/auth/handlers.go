@@ -139,9 +139,12 @@ func (h *Handlers) Login(c fiber.Ctx) error {
 	admin.LastLoginAt, admin.UpdatedAt = stamp, stamp
 
 	h.kit.SetCookies(c, sess)
-	h.logger.InfoContext(c.Context(), "admin audit", slog.String("audit", "auth.login"),
-		slog.Uint64("admin_id", admin.ID), slog.Bool("remember", sess.Remember), slog.String("ip", c.IP()))
-	return httpadmin.OK(c, sessionJSON(&admin, sess), "Logged in.")
+	httpadmin.AuditAs(c, h.logger, admin.ID, "auth.login", "admin", admin.ID, slog.Bool("remember", sess.Remember))
+	out := sessionJSON(&admin, sess)
+	if err := h.withPermissions(c, out, &admin); err != nil {
+		return err
+	}
+	return httpadmin.OK(c, out, "Logged in.")
 }
 
 func (h *Handlers) failed(c fiber.Ctx) error {
@@ -163,7 +166,11 @@ func (h *Handlers) Logout(c fiber.Ctx) error {
 
 // Me is GET /auth/me: the admin and the session's CSRF token.
 func (h *Handlers) Me(c fiber.Ctx) error {
-	return httpadmin.OK(c, sessionJSON(httpadmin.CurrentAdmin(c), httpadmin.CurrentSession(c)))
+	out := sessionJSON(httpadmin.CurrentAdmin(c), httpadmin.CurrentSession(c))
+	if err := h.withPermissions(c, out, httpadmin.CurrentAdmin(c)); err != nil {
+		return err
+	}
+	return httpadmin.OK(c, out)
 }
 
 // ChangePassword is PUT /auth/password {current_password, password, password_confirmation}
@@ -217,4 +224,14 @@ func Unconfirmed(c fiber.Ctx, get func(string) (any, bool)) (string, bool) {
 
 func sessionJSON(a *store.Admin, s *httpadmin.Session) *jsonx.OrderedMap {
 	return jsonx.Obj("admin", httpadmin.AdminJSON(a), "csrf_token", s.CSRF)
+}
+
+// Me's permissions: the admin's capability matrix (B-N9-02), so admin-web gates its nav like the API does.
+func (h *Handlers) withPermissions(c fiber.Ctx, out *jsonx.OrderedMap, a *store.Admin) error {
+	perms, err := h.kit.PermissionsFor(c.Context(), a.Role)
+	if err != nil {
+		return err
+	}
+	out.Set("permissions", httpadmin.PermissionsJSON(perms))
+	return nil
 }

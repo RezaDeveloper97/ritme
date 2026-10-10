@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 
-import { AuthGate, useCurrentAdmin } from '@/features/auth';
+import { AuthGate, useCurrentAdmin, useCurrentPermissions } from '@/features/auth';
 
 import { activeItem, navFor } from '../model/nav';
 import { CommandPalette } from './CommandPalette';
@@ -24,6 +24,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 function ShellFrame({ children }: { children: ReactNode }) {
   const admin = useCurrentAdmin();
+  const permissions = useCurrentPermissions();
   const pathname = usePathname();
   const t = useTranslations('nav');
   const [open, setOpen] = useState(false);
@@ -49,7 +50,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
   }, [open]);
 
   if (!admin) return null;
-  const groups = navFor(admin.role, { dev: IS_DEV });
+  const groups = navFor(admin.role, { dev: IS_DEV, permissions });
   const active = activeItem(pathname, groups);
 
   return (

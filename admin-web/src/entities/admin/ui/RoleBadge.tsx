@@ -8,5 +8,5 @@ import type { AdminRole } from '../model/admin';
 
 export function RoleBadge({ role }: { role: AdminRole }) {
   const t = useTranslations('roles');
-  return <Badge tone={role === 'super' ? 'brand' : 'neutral'}>{t(role)}</Badge>;
+  return <Badge tone={role === 'super' ? 'brand' : role === 'clinical_support' ? 'green' : 'neutral'}>{t(role)}</Badge>;
 }

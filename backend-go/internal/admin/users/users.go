@@ -165,17 +165,35 @@ func (h *Handlers) detail(c fiber.Ctx, id uint64) (*jsonx.OrderedMap, error) {
 	if err != nil {
 		return nil, err
 	}
+	// B-N9-02 (D-84): the health fields are null unless the admin holds a live, approved access request for this
+	// user; every read that returns them is audited.
+	grant, err := httpadmin.HealthGrant(c, h.q, id)
+	if err != nil {
+		return nil, err
+	}
 	var profile any
 	if u.ProfileID.Valid {
+		hidden := grant == nil
+		pick := func(v any) any {
+			if hidden {
+				return nil
+			}
+			return v
+		}
 		profile = jsonx.Obj(
-			"birthday", nullDate(u.Birthday),
-			"last_period_start", nullDate(u.LastPeriodStart),
-			"cycle_duration", nullInt(u.CycleDuration),
-			"period_duration", nullInt(u.PeriodDuration),
+			"birthday", pick(nullDate(u.Birthday)),
+			"last_period_start", pick(nullDate(u.LastPeriodStart)),
+			"cycle_duration", pick(nullInt(u.CycleDuration)),
+			"period_duration", pick(nullInt(u.PeriodDuration)),
 			"subscription_type", httpadmin.NullString(u.SubscriptionType),
 			"user_goal", httpadmin.NullString(u.UserGoal),
-			"pregnancy_intention", httpadmin.NullString(u.PregnancyIntention),
+			"pregnancy_intention", pick(httpadmin.NullString(u.PregnancyIntention)),
 		)
+	}
+	access := jsonx.Obj("granted", grant != nil, "expires_at", nil)
+	if grant != nil {
+		access.Set("expires_at", httpadmin.Time(grant.ExpiresAt))
+		httpadmin.Audit(c, h.logger, "health_access.read", "user", id, slog.Uint64("request_id", grant.ID))
 	}
 	locale := i18n.Locale(c)
 	return jsonx.Obj(
@@ -193,6 +211,7 @@ func (h *Handlers) detail(c fiber.Ctx, id uint64) (*jsonx.OrderedMap, error) {
 			"updated_at", httpadmin.Time(u.UpdatedAt),
 		),
 		"profile", profile,
+		"health_access", access,
 		"stats", jsonx.Obj(
 			"health_logs", stats.HealthLogs,
 			"reminders", stats.Reminders,

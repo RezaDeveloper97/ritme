@@ -26,6 +26,40 @@ type Admin struct {
 	UpdatedAt     sql.NullTime
 }
 
+type AdminAuditLog struct {
+	ID         uint64
+	AdminID    sql.NullInt64
+	Action     string
+	TargetType string
+	TargetID   uint64
+	Ip         string
+	Detail     sql.NullString
+	CreatedAt  sql.NullTime
+}
+
+type AdminHealthAccessRequest struct {
+	ID        uint64
+	AdminID   uint64
+	UserID    uint64
+	Reason    string
+	Ticket    string
+	Status    string
+	DecidedBy sql.NullInt64
+	DecidedAt sql.NullTime
+	ExpiresAt sql.NullTime
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type AdminRole struct {
+	ID          uint64
+	Role        string
+	Permissions string
+	UpdatedBy   sql.NullInt64
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
 type Affirmation struct {
 	ID         uint64
 	Text       json.RawMessage

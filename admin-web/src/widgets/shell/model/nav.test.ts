@@ -17,6 +17,25 @@ describe('navFor', () => {
   });
 });
 
+describe('navFor with permissions (B-N9-02)', () => {
+  it('shows only the capabilities the role grants', () => {
+    const items = navFor('marketing', { dev: false, permissions: { dashboard: 'manage', content: 'manage' } }).flatMap(
+      (g) => g.items.map((i) => i.key),
+    );
+    expect(items).toEqual(expect.arrayContaining(['dashboard', 'articles', 'password']));
+    expect(items).not.toContain('users');
+    expect(items).not.toContain('auditLog');
+    expect(items).not.toContain('healthAccess');
+    expect(items).not.toContain('roles');
+  });
+  it('health access only with the health capability', () => {
+    const clinical = navFor('clinical_support', { dev: false, permissions: { health: 'manage', users: 'manage' } });
+    expect(clinical.flatMap((g) => g.items.map((i) => i.key))).toContain('healthAccess');
+    expect(keys('editor')).not.toContain('healthAccess');
+    expect(keys('super')).toEqual(expect.arrayContaining(['roles', 'auditLog', 'healthAccess']));
+  });
+});
+
 describe('activeItem', () => {
   it('matches the section, / only exactly', () => {
     expect(activeItem('/')?.key).toBe('dashboard');

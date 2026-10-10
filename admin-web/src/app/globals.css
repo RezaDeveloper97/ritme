@@ -868,3 +868,11 @@ body {
 
 /* B-N8-08: data-driven meter width (course completion). */
 .meter > .meter-fill { inline-size: var(--meter-value, 0%); }
+
+/* B-N9-02: permission matrix marks (● full · ○ view · — none) and the customized-role dot. */
+.access-matrix td, .access-matrix th { padding-block: .6rem; }
+.access-mark { font-size: 15px; line-height: 1; }
+.access-mark[data-level="manage"] { color: var(--brand); }
+.access-mark[data-level="view"] { color: var(--data-deep); }
+.access-mark[data-level="none"] { color: var(--muted-soft); }
+.access-dot { display: inline-block; inline-size: 6px; block-size: 6px; margin-inline-start: 6px; border-radius: 999px; background: var(--amber); vertical-align: middle; }

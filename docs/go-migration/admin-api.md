@@ -116,6 +116,9 @@ form posts).
 ```
 
 Roles: `super` (everything) and `editor` (everything except admin accounts and languages).
+B-N9-02 adds nine capability-based roles (`product_manager`, `medical_advisor`, `support`, `clinical_support`,
+`analyst`, `marketing`, `engineering`, `doctor`, `instructor_moderator`) — see §21. Login and `/auth/me` also return
+`permissions` (`{capability: "view"|"manage"}`).
 
 ## 5. Lists, filters, pagination
 
@@ -756,3 +759,38 @@ a completed lesson counts 100 — over the course's published lessons); a course
 mean over the students with a running grant (students who never opened it count 0). Media playback for reviewers comes
 with the B-N8-02 media pipeline; the queue shows the metadata and `media_status`. Moderation log actions:
 `instructor.approve|revoke`, `lesson.approve|flag|unpublish`.
+
+## 21. Roles & permissions, audit log, temporary health-data access (B-N9-02, D-84)
+
+Package `internal/admin/rbac` (+ `httpadmin/{permissions,audit,health}.go`), routes `routes_admin_rbac.go`, queries
+`db/queries/admin/rbac.sql`, goose **00060** (+ Laravel twin `2026_10_10_000060_create_admin_rbac_audit_tables.php`).
+
+**Permission check.** `kit.Admin` routes now run `RequirePermission`: the route path maps to one capability
+(`httpadmin.capabilityOf`; GET = `view`, other methods = `manage`), the admin's role must grant it → else **403**
+`{"error_code":"forbidden","permission":"<capability>"}` (never 401). `super` passes everything; `editor` holds every
+capability except `health`, so pre-B-N9-02 accounts keep their reach. Paths not in the map are super/editor only.
+`kit.Super` routes are unchanged. Capabilities: `dashboard, users, health (manage), messages, clinical, challenges,
+config, export (view), content, billing, support, learning, telemed, telemed_doctor (manage), audit (view)`.
+
+**Audit log.** `httpadmin.Audit(...)` (every module) and the login write the slog line **and** an
+`admin_audit_logs` row: admin, action, target type + id, ip, time, `detail` = the scalar extras only (numbers, flags,
+strings ≤ 64 chars). Never pass free text or health values to `Audit`.
+
+**Health data.** `/users/:id` returns the profile's health fields (`birthday`, `last_period_start`,
+`cycle_duration`, `period_duration`, `pregnancy_intention`) as null unless the caller has a live grant, plus
+`health_access: {granted, expires_at}`. A grant = role with `health` (clinical support) + a request for that user
+approved by another super admin, valid **30 minutes**. Super admins need one too.
+
+| Method | Path | Role | Body / query | `data` |
+| --- | --- | --- | --- | --- |
+| GET | `/roles` | S | — | `{capabilities:[{key, levels}], roles:[{key, editable, customized, admins, permissions}]}` |
+| PUT | `/roles/:role` | S | `permissions: {capability: view\|manage\|none}` | `{role}`; 422 `role_locked` (super/editor), 404 unknown, 422 bad capability/level; audit `role.update` |
+| POST | `/roles/:role/reset` | S | — | `{role}` back to the code defaults; audit `role.reset` |
+| GET | `/audit-logs` | audit | `admin_id, action` (prefix), `target_type, target_id, from, to` (YYYY-MM-DD, Tehran), `page, per_page` | list of `{id, admin {id,name,role}\|null, action, target_type, target_id, ip, detail, created_at}` |
+| GET | `/audit-logs/export` | audit + export | same filters | `text/csv` (≤ 10 000 rows, formula-safe); audit `audit_log.export` |
+| GET | `/health-access` | health | `status?, page` | own requests (super: all) `{id, admin, user_id, reason, ticket, status pending\|approved\|rejected\|revoked\|expired, decided_by, decided_at, expires_at, created_at}` |
+| POST | `/health-access` | health | `user_id, reason` (10–500), `ticket` (≤ 64) | 201 `{request}`; audit `health_access.request` |
+| POST | `/health-access/:id/approve` | S | — | `{request}` approved for 30 min; 422 `self_approval`, 409 `not_pending`; audit `health_access.approve` |
+| POST | `/health-access/:id/reject` | S | — | `{request}`; 409 `not_pending`; audit `health_access.reject` |
+| POST | `/health-access/:id/revoke` | health | — | requester or super (else 404); 409 `not_active`; audit `health_access.revoke` |
+| GET | `/health-access/users/:id` | health + grant | — | `{user_id, expires_at, profile, stats}`; 403 `health_access_required`; audit `health_access.read` |
