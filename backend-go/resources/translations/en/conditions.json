@@ -57,5 +57,11 @@
   },
   "nudge": {
     "label": "A suggestion for this cycle"
+  },
+  "pelvicCard": {
+    "title": "Pelvic floor & bladder",
+    "sub": "8-week Kegel program",
+    "logs": "daily exercise, leaks and night waking",
+    "openLabel": "{title}, open the program"
   }
 }

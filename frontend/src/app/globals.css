@@ -11854,3 +11854,69 @@ button.rec-doc-thumb { inline-size: 64px; }
 .rx-code-sub { margin: 0 0 4px; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
 .rx-code-input { text-align: center; font-size: 20px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 /* ═══ end CB-REC-05 ═══ */
+
+/* ═══ CB-PELV-02 pelvic floor plan, bladder diary, Kegel trainer (nbl_Pelvic_Plan, nbl_Pelvic_Kegel) ═══ */
+a.nb-card.cnd-card { color: inherit; text-decoration: none; }
+.pv-page { background: var(--page); }
+.pv-scroll { position: relative; z-index: 1; }
+.pv-body { display: flex; flex-direction: column; gap: 16px; padding: 4px var(--gutter) 24px; text-align: start; }
+.pv-skel { display: flex; flex-direction: column; gap: 16px; }
+.pv-skel-plan { height: 210px; }
+.pv-skel-card { height: 150px; }
+.nb-card.pv-plan { display: flex; flex-direction: column; gap: 16px; padding: 18px 16px; }
+.pv-plan-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.pv-plan-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pv-plan-kicker { margin: 0; font-size: 12.5px; font-weight: 700; color: var(--text-2); }
+.pv-plan-title { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 26px; line-height: 1.3; color: var(--text-1); }
+.pv-plan-title.is-join { font-family: inherit; font-size: 16px; font-weight: 800; line-height: 1.6; }
+.pv-streak { flex-shrink: 0; margin-top: 4px; }
+.pv-plan-line { margin: 0; font-size: 13px; font-weight: 700; line-height: 1.8; color: var(--text-2); }
+.pv-plan-line.is-done { color: var(--success); }
+.pv-join-head { display: flex; align-items: center; gap: 12px; }
+.pv-join-body { margin: 0; font-size: 13.5px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+.pv-sec { display: flex; flex-direction: column; gap: 10px; }
+.pv-sec .nb-sect-title { margin: 0; }
+.nb-card.pv-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+.pv-q { margin: 0; font-size: 14.5px; font-weight: 800; color: var(--text-1); }
+.pv-rule { margin: 2px 0; border: 0; border-top: 1px solid var(--line); }
+.nb-stepper.pv-voids .nb-stepper-label { font-size: 13.5px; }
+.nb-stepper.pv-voids .nb-stepper-value { min-width: 36px; }
+.nb-stepper.pv-voids .nb-stepper-num { font-size: 22px; }
+.pv-uti-hint { margin: 0; font-size: 12.5px; font-weight: 700; line-height: 1.8; color: var(--text-2); }
+.pv-error { margin: 0; font-size: 13px; font-weight: 700; color: var(--danger-deep); }
+.pkg-page { background: var(--page); }
+.pkg-scroll { position: relative; z-index: 1; }
+.pkg-body {
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+  padding: 8px var(--gutter) 32px; text-align: center;
+}
+.pkg-skel { display: flex; justify-content: center; padding-top: 24px; }
+.pkg-skel-ring { inline-size: 252px; block-size: 252px; }
+.pkg-ring { display: flex; justify-content: center; transition: transform .6s ease; }
+.pkg-ring.is-hold { transform: scale(1.03); }
+.pkg-ring.is-relax { transform: scale(.97); }
+.pkg-ring .nb-countdown-caption { font-size: 26px; }
+.pkg-ring.is-idle .nb-countdown-value { color: var(--text-2); }
+.pkg-reps {
+  display: flex; justify-content: center; gap: 6px; inline-size: 100%; max-inline-size: 300px;
+  margin: 0; padding: 0; list-style: none;
+}
+.pkg-rep { flex: 1 1 0; max-inline-size: 24px; block-size: 8px; border-radius: 99px; background: var(--track); }
+.pkg-rep.is-done { background: var(--brand-fill); }
+.pkg-line { margin: 0; min-height: 24px; font-size: 13.5px; font-weight: 800; line-height: 1.8; color: var(--text-2); }
+.pkg-round {
+  display: inline-flex; align-items: center; justify-content: center;
+  inline-size: 72px; block-size: 72px; border: 0; border-radius: 50%;
+  background: var(--brand-fill); color: var(--on-brand); box-shadow: var(--shadow-cta);
+  font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer;
+}
+.pkg-round:active { transform: scale(.96); }
+.pkg-round:focus-visible { outline: none; box-shadow: var(--ring); }
+.pkg-end { display: flex; flex-direction: column; gap: 8px; inline-size: 100%; }
+.pkg-error { margin: 0; font-size: 13px; font-weight: 700; color: var(--danger-deep); }
+.pkg-note { inline-size: 100%; text-align: start; }
+@media (prefers-reduced-motion: reduce) {
+  .pkg-ring, .pkg-ring.is-hold, .pkg-ring.is-relax { transition: none; transform: none; }
+  .pkg-round:active { transform: none; }
+}
+/* ═══ end CB-PELV-02 ═══ */

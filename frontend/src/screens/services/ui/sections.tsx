@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 
 import { isConditionServiceTile, PROGRAMS_HUB_PATH } from '@/entities/condition';
+import { PELVIC_PATH, PELVIC_SERVICE_TILE } from '@/entities/pelvic';
 import { bookingWhen, type ServiceSection, type ServiceTile, type UpcomingBooking } from '@/entities/service-hub';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber, monthName, toParts } from '@/shared/lib/date';
@@ -136,6 +137,7 @@ export function CheckupsLink({ section }: { section: ServiceSection }) {
 
 /** CB-COND-02: a condition-program tile the admin left without a screen opens the programs hub. */
 function programsHubTile(tile: ServiceTile): ServiceTile {
+  if (!tile.href && tile.code === PELVIC_SERVICE_TILE) return { ...tile, href: PELVIC_PATH, status: 'live' }; // CB-PELV-02
   return !tile.href && isConditionServiceTile(tile.code) ? { ...tile, href: PROGRAMS_HUB_PATH, status: 'live' } : tile;
 }
 

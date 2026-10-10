@@ -118,7 +118,7 @@ export const NAV_READY: NavReady = { postpartum: true, children: true, analysis:
 export const IVF_TREATMENT_FALLBACK = '/ivf#ivf-doses';
 
 // B-N6-02: the vitals hub is a services hub (nbl_Vitals_Hub marks «خدمات» active).
-const SERVICES: NavTab = { key: 'services', href: '/services', icon: 'services', alsoActive: ['/vitals', '/programs'] };
+const SERVICES: NavTab = { key: 'services', href: '/services', icon: 'services', alsoActive: ['/vitals', '/programs', '/programs/pelvic'] };
 // B-N6-08: «کارهای من» lives under «من» (nav.md: Todo_Home → من).
 const ME: NavTab = { key: 'me', href: '/profile', icon: 'me', alsoActive: ['/todo', '/learn'] };
 

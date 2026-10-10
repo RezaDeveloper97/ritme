@@ -446,3 +446,9 @@ TODO (ask user):
 - security-auditor: no high/critical; M1 (no `no-store` on /d, /emergency → bfcache) fixed with next.config headers + pagehide state reset; L1 `Referrer-Policy: no-referrer` header (also /shared); L2 QR target must be same-origin https; L3 token scrubbed from the URL after first fetch; L4 429 cooldown from Retry-After.
 - Verify (agent on 7384808b): full chain + build (1675 tests), i18n; on stage after B-N8-03 shared files: tsc, vitest 315, lint:styles, lint:dark, steiger, i18n.
 - TODO (ask user): server qr_path → `/d/{token}`?; insurer rows as status pills OK?; set SHARE_WEB_URL on stage/prod.
+
+## CB-PELV-02 — Frontend: plan, bladder diary, Kegel trainer
+- `/programs/pelvic` (screens/pelvic, nbl_Pelvic_Plan): plan card (week · level, streak, week dots, start trainer), join card, bladder diary (leak chips, night-waking stepper; per-key saves), UTI chips with urgent note on `uti_alert`, suitability note; nav with Services active. `/programs/pelvic/kegel` (screens/pelvic-kegel, nbl_Pelvic_Kegel): full-screen CountdownRing hold/relax, rep bar, set/rep counters, start/stop; saves finished sessions (stopped ones only after ≥1 full set); Wake Lock (released on stop/unmount); reduced-motion ticks. `entities/pelvic` (zod + hooks). Services `pelvic_floor` tile → `/programs/pelvic` unless admin href; hub pelvic card.
+- New `pelvic` namespace (+ Go copy, goldens, bundled, global.d.ts), `conditions.pelvicCard`, scopes pelvic/pelvicKegel, steiger override, CSS block CB-PELV-02.
+- Verify (agent on 7384808b): full chain + build (1649 tests), i18n; on stage: tsc, vitest 196, lint:styles, steiger, i18n.
+- Open: Kegel screenshots pending (Docker hung) → CB-PELV-03; copy needs clinical review; en week dots on Saturday include days outside the API week.

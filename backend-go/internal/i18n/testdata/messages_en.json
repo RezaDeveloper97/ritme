@@ -2481,6 +2481,12 @@
    },
    "nudge": {
     "label": "A suggestion for this cycle"
+   },
+   "pelvicCard": {
+    "title": "Pelvic floor & bladder",
+    "sub": "8-week Kegel program",
+    "logs": "daily exercise, leaks and night waking",
+    "openLabel": "{title}, open the program"
    }
   },
   "contraception": {
@@ -7031,6 +7037,85 @@
      "enter": "Open the companion panel",
      "loading": "Preparing the companion panel"
     }
+   }
+  },
+  "pelvic": {
+   "plan": {
+    "title": "Pelvic floor & bladder",
+    "back": "Back",
+    "loading": "Loading the pelvic floor program",
+    "loadError": "Couldn't load the pelvic floor program",
+    "retry": "Try again",
+    "programLabel": "8-week program",
+    "programWeeks": "{weeks}-week program",
+    "weekLevel": "Week {week} · Level {level}",
+    "weekOnly": "Week {week}",
+    "streak": "{days} days in a row",
+    "weekDotsLabel": "This week's sessions",
+    "dot": {
+     "done": "trained",
+     "missed": "not trained",
+     "future": "not yet"
+    },
+    "start": "Start today's session · {minutes} min",
+    "again": "One more round · {minutes} min",
+    "todayDone": "Today's session is done",
+    "completed": "You've finished the 8 weeks. You can keep going at this level.",
+    "join": {
+     "title": "8-week pelvic floor program",
+     "body": "A few minutes of guided, timed Kegel exercises a day; the level gets a little harder every two weeks.",
+     "action": "Start the program",
+     "error": "Couldn't start the program. Try again."
+    }
+   },
+   "diary": {
+    "title": "Today's bladder diary",
+    "leak": {
+     "question": "Did you leak urine?",
+     "none": "No",
+     "cough": "On coughing or sneezing",
+     "urgency": "Urgent, didn't make it",
+     "unexplained": "For no reason"
+    },
+    "nightVoids": "Waking at night to urinate",
+    "nightVoidsLess": "Fewer",
+    "nightVoidsMore": "More",
+    "saveError": "Not saved. Try again."
+   },
+   "uti": {
+    "title": "Urinary infection",
+    "label": "Urinary infection symptoms",
+    "burning": "Burning when peeing",
+    "frequency": "Peeing often",
+    "cloudy_odor": "Cloudy or smelly urine",
+    "warning": "If you have a fever, chills or pain in your side, see a doctor soon."
+   },
+   "suitability": "Suited to after childbirth, menopause and any time you leak urine. If you have pelvic pain or heaviness, talk to a doctor or pelvic physiotherapist first.",
+   "kegel": {
+    "title": "Pelvic floor exercise",
+    "back": "Close",
+    "subtitle": "Level {level} · Set {set} of {sets}",
+    "ringLabel": "Exercise time",
+    "hold": "Squeeze",
+    "relax": "Relax",
+    "ofSeconds": "of {seconds} seconds",
+    "repsLabel": "Reps in this set",
+    "repLineHold": "Rep {rep} of {reps} · then relax for {seconds} seconds",
+    "repLineRelax": "Rep {rep} of {reps} · rest",
+    "ready": "Ready?",
+    "readyLine": "{sets} sets · {reps} reps each",
+    "begin": "Start",
+    "stop": "Stop",
+    "instruction": "Squeeze the muscles you use to stop the flow of urine. Keep your belly, buttocks and thighs relaxed and don't hold your breath.",
+    "doneTitle": "Well done, today's session is complete",
+    "doneLine": "{sets} sets done",
+    "stoppedTitle": "Session stopped",
+    "backToPlan": "Back to the plan",
+    "saving": "Saving",
+    "saveError": "The session wasn't saved.",
+    "retrySave": "Save again",
+    "noProgram": "Start the pelvic floor program first",
+    "openPlan": "Go to the program"
    }
   },
   "phase-details": {

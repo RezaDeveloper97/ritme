@@ -3,7 +3,7 @@ id: CB-PELV-02
 title: Frontend: plan, bladder diary, Kegel trainer
 epic: PELV
 type: frontend
-status: todo
+status: done
 depends_on: [CB-PELV-01, CB-COND-02, CB-CORE-02]
 parallel_group: PELV-B
 touches: [backend-go/resources/translations, frontend/src/screens/pelvic, frontend/src/screens/pelvic-kegel, frontend/src/entities/pelvic, frontend/messages/fa/pelvic.json, frontend/messages/en/pelvic.json, frontend/src/app/[locale]/programs/pelvic, frontend/src/app/message-scopes.ts]

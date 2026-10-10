@@ -33,6 +33,7 @@ import enRecordExport from '../../../messages/en/record-export.json';
 import enRecord from '../../../messages/en/record.json';
 import enLoss from '../../../messages/en/loss.json';
 import enConditions from '../../../messages/en/conditions.json';
+import enPelvic from '../../../messages/en/pelvic.json'; // CB-PELV-02
 import enMe from '../../../messages/en/me.json';
 import enIvf from '../../../messages/en/ivf.json'; // CB-IVF-02
 import enMenopause from '../../../messages/en/menopause.json';
@@ -91,6 +92,7 @@ import faRecordExport from '../../../messages/fa/record-export.json';
 import faRecord from '../../../messages/fa/record.json';
 import faLoss from '../../../messages/fa/loss.json';
 import faConditions from '../../../messages/fa/conditions.json';
+import faPelvic from '../../../messages/fa/pelvic.json'; // CB-PELV-02
 import faMe from '../../../messages/fa/me.json';
 import faIvf from '../../../messages/fa/ivf.json'; // CB-IVF-02
 import faMenopause from '../../../messages/fa/menopause.json';
@@ -174,6 +176,7 @@ const bundled = {
     record: faRecord, // CB-REC-04 /record extras, /record/timeline, /record/documents/[id]
     loss: faLoss,
     conditions: faConditions,
+    pelvic: faPelvic,
     me: faMe,
     menopause: faMenopause,
     ivf: faIvf,
@@ -234,6 +237,7 @@ const bundled = {
     record: enRecord, // CB-REC-04 /record extras, /record/timeline, /record/documents/[id]
     loss: enLoss,
     conditions: enConditions,
+    pelvic: enPelvic,
     me: enMe,
     menopause: enMenopause,
     ivf: enIvf,

@@ -31,6 +31,7 @@ import type enRecordExport from '../messages/en/record-export.json';
 import type enRecord from '../messages/en/record.json';
 import type enLoss from '../messages/en/loss.json';
 import type enConditions from '../messages/en/conditions.json';
+import type enPelvic from '../messages/en/pelvic.json'; // CB-PELV-02
 import type enMe from '../messages/en/me.json';
 import type enIvf from '../messages/en/ivf.json'; // CB-IVF-02
 import type enMenopause from '../messages/en/menopause.json';
@@ -85,6 +86,7 @@ type Messages = {
   record: typeof enRecord; // CB-REC-04 record documents (features/record-documents, screens/record-timeline, screens/record-document)
   loss: typeof enLoss;
   conditions: typeof enConditions;
+  pelvic: typeof enPelvic;
   me: typeof enMe;
   menopause: typeof enMenopause;
   ivf: typeof enIvf;

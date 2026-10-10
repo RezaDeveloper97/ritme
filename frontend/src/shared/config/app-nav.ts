@@ -25,6 +25,7 @@ export const NAV_ROOT_PATHS: readonly string[] = [
   '/ivf/meds', // CB-IVF-03: IVF stage tab «درمان» (nbl_IVF_Meds)
   '/vitals', // B-N6-02: «علائم حیاتی» hub (nbl_Vitals_Hub, خدمات tab)
   '/programs', // CB-COND-02: «برنامه‌های مراقبت» hub (nbl_Cond_Hub, خدمات tab)
+  '/programs/pelvic', // CB-PELV-02: «کف لگن و مثانه» (nbl_Pelvic_Plan, خدمات tab)
   '/todo', // B-N6-08: «کارهای من» (nbl_Todo_Home, من tab)
   '/learn', // B-N8-03: «دوره‌های من» (nbl_Learn_Hub, من tab)
   // CB-NAV-03 (IA_Nav «نوار تب»: hidden on forms / log): the transitional `/log` (B-N3-03) and

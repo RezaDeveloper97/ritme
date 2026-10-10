@@ -338,6 +338,12 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // CB-PELV-02: `entities/pelvic` (the CB-PELV-01 API) is consumed by screens/pelvic, screens/pelvic-kegel,
+    // screens/conditions and screens/services — references FROM `screens` are invisible to steiger.
+    files: ['./src/entities/pelvic/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // CB-TEEN-03: `widgets/linked-teen-card` is mounted by screens/home, screens/companion-home and
     // screens/companion-list — references FROM `screens` are invisible to steiger.
     files: ['./src/widgets/linked-teen-card/**'],

@@ -12,6 +12,7 @@ import {
   useConditionNudges,
   useConditions,
 } from '@/entities/condition';
+import { PELVIC_PATH } from '@/entities/pelvic';
 import { Link, useDirection, useRouter } from '@/shared/i18n';
 import {
   EmptyState,
@@ -97,6 +98,7 @@ export function ConditionsHubPage() {
           </div>
           {nudges.data?.map((nudge) => <NudgeCard key={nudge.key} nudge={nudge} />)}
           {body}
+          <PelvicCard />
           <InfoNote className="cnd-note">
             {note ? (note.body ? t('noteJoin', { title: note.title, body: note.body }) : note.title) : t('note')}
           </InfoNote>
@@ -139,6 +141,26 @@ function ProgramCardButton({ card, onOpen }: { card: ProgramCard; onOpen: () => 
       </span>
       <span className="cnd-card-logs">{t('hub.logs', { logs })}</span>
     </button>
+  );
+}
+
+/** CB-PELV-02: the pelvic floor program (its own API, not an enrolment) — a card straight to its plan. */
+function PelvicCard() {
+  const t = useTranslations('conditions');
+  const rtl = useDirection() === 'rtl';
+  const title = t('pelvicCard.title');
+  return (
+    <Link href={PELVIC_PATH} className="nb-card cnd-card" aria-label={t('pelvicCard.openLabel', { title })}>
+      <span className="cnd-card-head">
+        <IconCircle icon="target" tone="data" size="lg" />
+        <span className="cnd-card-titles">
+          <b className="cnd-card-title">{title}</b>
+          <span className="cnd-card-sub">{t('pelvicCard.sub')}</span>
+        </span>
+        <Icon name={rtl ? 'chevronLeft' : 'chevronRight'} size={18} strokeWidth={2} className="cnd-card-chev" />
+      </span>
+      <span className="cnd-card-logs">{t('hub.logs', { logs: t('pelvicCard.logs') })}</span>
+    </Link>
   );
 }
 
