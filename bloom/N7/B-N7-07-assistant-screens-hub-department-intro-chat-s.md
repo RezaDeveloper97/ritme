@@ -3,7 +3,7 @@ id: B-N7-07
 title: Assistant screens — hub, department intro, chat, summary, handoff, history, profile
 milestone: N7
 type: frontend
-status: todo
+status: done
 depends_on: [B-N7-06,B-N7-05]
 parallel_group: N7-G
 touches: [frontend/src/screens/assistant*,frontend/src/entities/assistant,frontend/src/features/assistant-chat]

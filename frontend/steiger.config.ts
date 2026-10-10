@@ -65,6 +65,18 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // B-N7-05 doctors: entities/doctor + features/book-visit are consumed only by screens/doctor* — references coming
+    // FROM `screens` are invisible to steiger (same reason as the blocks above).
+    files: ['./src/entities/doctor/**', './src/features/book-visit/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // B-N7-07 assistant: entities/assistant + features/assistant-chat are consumed only by screens/assistant* —
+    // references coming FROM `screens` are invisible to steiger (same reason as the blocks above).
+    files: ['./src/entities/assistant/**', './src/features/assistant-chat/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // B-N7-01 services hub: consumed only by screens/services — references coming FROM `screens` are invisible to
     // steiger (same reason as the blocks above).
     files: ['./src/entities/service-hub/**'],
@@ -397,5 +409,11 @@ export default defineConfig([
     // invisible to steiger.
     files: ['./src/entities/todo/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // B-N8-04: `shared/pwa/offline` is the offline-downloads entry of the pwa segment, kept apart from
+    // `shared/pwa` so the update/install UI (and its `pwa` messages) isn't pulled into every learn screen.
+    files: ['./src/entities/course/api/offline.ts'],
+    rules: { 'fsd/no-public-api-sidestep': 'off' },
   },
 ]);

@@ -25,6 +25,8 @@ import type enVoiceLog from '../messages/en/voice-log.json';
 import type enVitals from '../messages/en/vitals.json'; // B-N6-02
 import type enTodo from '../messages/en/todo.json'; // B-N6-08
 import type enLearn from '../messages/en/learn.json'; // B-N8-03
+import type enDoctors from '../messages/en/doctors.json'; // B-N7-05
+import type enAssistant from '../messages/en/assistant.json'; // B-N7-07
 import type enLogTaxonomy from '../messages/en/log-taxonomy.json';
 import type enHealthRecord from '../messages/en/health-record.json';
 import type enRecordExport from '../messages/en/record-export.json';
@@ -113,6 +115,8 @@ type Messages = {
   vitals: typeof enVitals; // B-N6-02 entities/vital, features/add-vital, screens/vitals-*
   todo: typeof enTodo; // B-N6-08 entities/todo, screens/todo*
   learn: typeof enLearn; // B-N8-03 entities/course, widgets/learn-home-card, screens/learn*
+  doctors: typeof enDoctors; // B-N7-05 entities/doctor, screens/doctor*
+  assistant: typeof enAssistant; // B-N7-07 entities/assistant, screens/assistant*
   logTaxonomy: typeof enLogTaxonomy;
   teen: typeof enTeen;
   welcome: typeof enWelcome;

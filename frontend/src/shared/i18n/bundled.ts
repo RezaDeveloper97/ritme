@@ -27,6 +27,8 @@ import enVoiceLog from '../../../messages/en/voice-log.json';
 import enVitals from '../../../messages/en/vitals.json'; // B-N6-02
 import enTodo from '../../../messages/en/todo.json'; // B-N6-08
 import enLearn from '../../../messages/en/learn.json'; // B-N8-03
+import enDoctors from '../../../messages/en/doctors.json'; // B-N7-05
+import enAssistant from '../../../messages/en/assistant.json'; // B-N7-07
 import enLogTaxonomy from '../../../messages/en/log-taxonomy.json';
 import enHealthRecord from '../../../messages/en/health-record.json';
 import enRecordExport from '../../../messages/en/record-export.json';
@@ -86,6 +88,8 @@ import faVoiceLog from '../../../messages/fa/voice-log.json';
 import faVitals from '../../../messages/fa/vitals.json'; // B-N6-02
 import faTodo from '../../../messages/fa/todo.json'; // B-N6-08
 import faLearn from '../../../messages/fa/learn.json'; // B-N8-03
+import faDoctors from '../../../messages/fa/doctors.json'; // B-N7-05
+import faAssistant from '../../../messages/fa/assistant.json'; // B-N7-07
 import faLogTaxonomy from '../../../messages/fa/log-taxonomy.json';
 import faHealthRecord from '../../../messages/fa/health-record.json';
 import faRecordExport from '../../../messages/fa/record-export.json';
@@ -207,6 +211,8 @@ const bundled = {
     vitals: faVitals,
     todo: faTodo, // B-N6-08 /todo
     learn: faLearn, // B-N8-03 /learn*
+    doctors: faDoctors, // B-N7-05 /services/doctors*, /services/bookings*
+    assistant: faAssistant, // B-N7-07 /assistant*
     logTaxonomy: faLogTaxonomy,
     teen: faTeen,
     welcome: faWelcome,
@@ -268,6 +274,8 @@ const bundled = {
     vitals: enVitals,
     todo: enTodo, // B-N6-08 /todo
     learn: enLearn, // B-N8-03 /learn*
+    doctors: enDoctors, // B-N7-05 /services/doctors*, /services/bookings*
+    assistant: enAssistant, // B-N7-07 /assistant*
     logTaxonomy: enLogTaxonomy,
     teen: enTeen,
     welcome: enWelcome,

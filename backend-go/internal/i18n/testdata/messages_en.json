@@ -925,6 +925,184 @@
     }
    }
   },
+  "assistant": {
+   "common": {
+    "back": "Back",
+    "retry": "Try again",
+    "loading": "Loading…",
+    "loadError": "Couldn't load",
+    "cancel": "Cancel",
+    "disclaimer": "The Ritme assistant does not diagnose and is not a substitute for a doctor. In an emergency call 115."
+   },
+   "hub": {
+    "title": "Ritme assistant clinic",
+    "subtitle": "Smart guidance · no medical diagnosis",
+    "greeting": "Hi, how can I help today?",
+    "placeholder": "e.g. “the spots on my face got darker after pregnancy”",
+    "quota": "{remaining, number} of {limit, number} free chats left this month",
+    "quotaSpent": "This month's free chats are used up; go unlimited with Plus",
+    "plus": "Ritme Plus",
+    "knows": "The assistant uses your profile",
+    "knowsNone": "The assistant knows nothing from your profile for now; turn sharing on whenever you like.",
+    "edit": "Edit",
+    "departments": "Clinic departments",
+    "recent": "Recent chats",
+    "all": "All",
+    "emptyTitle": "No chats yet",
+    "emptyBody": "Pick a department or type your question.",
+    "urgent": "Is it an emergency?"
+   },
+   "emergency": {
+    "title": "This may be an emergency",
+    "body": "What you wrote may be a sign of an emergency. Call 115 now or go to the nearest emergency department. The Ritme assistant does not replace emergency care.",
+    "call": "Call emergency",
+    "line": "Emergency"
+   },
+   "triage": {
+    "self_care": "Self-care",
+    "non_urgent": "Non-urgent visit",
+    "soon": "See a doctor soon",
+    "emergency": "Emergency"
+   },
+   "dept": {
+    "subtitle": "Health assistant",
+    "askLab": "I'd like to understand my lab result better.",
+    "notFound": "This department was not found",
+    "knows": "What does it know about you?",
+    "previous": "Earlier chats in this department",
+    "count": "{count, plural, one {# chat} other {# chats}}",
+    "switchHint": "You can turn any item off; the guidance becomes more general.",
+    "doesNot": "What this department does not do",
+    "start": "Start chat"
+   },
+   "chat": {
+    "thread": "Chat with the assistant",
+    "subtitle": "Ritme smart assistant · profile active",
+    "summary": "Chat summary",
+    "notFound": "This chat was not found",
+    "typing": "The assistant is typing",
+    "partial": "The answer was cut off. You can ask again.",
+    "photoAttached": "Photo attached",
+    "removePhoto": "Remove photo",
+    "attach": "Add a photo",
+    "placeholder": "Write your message…",
+    "send": "Send",
+    "stop": "Stop"
+   },
+   "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "ai_unavailable": "The assistant is unavailable right now.",
+    "ai_failed": "The assistant's answer was cut off. Please try again.",
+    "ai_budget_exhausted": "The assistant reached today's capacity; try again tomorrow.",
+    "ai_user_budget_exhausted": "You've used today's assistant share; try again tomorrow.",
+    "ai_busy": "The assistant is busy with another answer; wait a moment.",
+    "too_many_requests": "Too many requests; try again in a moment.",
+    "summary_empty": "There is nothing to summarise yet.",
+    "summary_failed": "The summary could not be prepared. Please try again later.",
+    "share_consent_required": "To send the summary, turn on sharing «Assistant conversations» for this visit.",
+    "booking_closed": "This visit is no longer active.",
+    "booking_not_found": "This visit was not found.",
+    "assistant_photo_not_found": "This photo was not found.",
+    "storage_unavailable": "Photos cannot be stored right now. Please try again later.",
+    "photo_type": "Only JPG, PNG or WebP photos are accepted.",
+    "photo_too_large": "The photo must be smaller than 5 MB."
+   },
+   "paywall": {
+    "locked": "This opens with Ritme Plus.",
+    "quota": "This month's free chats ({limit}) are used up. Ask without limits with Ritme Plus.",
+    "cta": "See Ritme Plus"
+   },
+   "consent": {
+    "accept": "I agree, continue"
+   },
+   "summary": {
+    "title": "Chat summary",
+    "emptyTitle": "Nothing to summarise yet",
+    "emptyBody": "Exchange a few messages with the assistant and the summary will be ready.",
+    "backToChat": "Back to chat",
+    "failedTitle": "The summary could not be prepared",
+    "suggestion": "Assistant's suggestion",
+    "scale": "Suggested level",
+    "said": "What you said and the guidance",
+    "photos": "{count, plural, one {# photo attached} other {# photos attached}}",
+    "stale": "New messages came after this summary; reopen it to update.",
+    "connect": "Connect with a doctor",
+    "consentNote": "This summary is sent to the doctor only with your consent.",
+    "send": "Choose a doctor and send the summary",
+    "footnote": "This summary was prepared by the smart assistant and is not a medical diagnosis."
+   },
+   "handoff": {
+    "title": "Send to a doctor",
+    "subtitle": "Your upcoming visits",
+    "sentTitle": "Summary sent",
+    "sentBody": "The doctor sees the summary before the visit. You can revoke access after the visit.",
+    "noSummary": "Prepare the chat summary first",
+    "preview": "Summary preview",
+    "pick": "Which visit?",
+    "noBookingTitle": "No upcoming visit",
+    "noBookingBody": "To send the summary, book a visit with a doctor first.",
+    "findDoctor": "Find a doctor",
+    "alreadySent": "Sent",
+    "consent": "Send the chat summary only to the doctor of this visit",
+    "revoke": "You can revoke access after the visit.",
+    "openBooking": "Open the visit",
+    "send": "Send summary",
+    "allDoctors": "All doctors"
+   },
+   "history": {
+    "title": "My health history",
+    "subtitle": "Assistant chats",
+    "untitled": "Untitled chat",
+    "emptyTitle": "No history",
+    "emptyBody": "Your chats with the assistant appear here.",
+    "delete": "Delete chat",
+    "confirmTitle": "Delete this chat?",
+    "confirmAllTitle": "Delete all chats?",
+    "confirmBody": "Messages, photos and the summary are erased for good and cannot be restored.",
+    "confirmYes": "Yes, delete",
+    "deleteAll": "Delete all chats",
+    "profile": "The health profile the assistant sees",
+    "editData": "Edit and control data"
+   },
+   "profile": {
+    "title": "Health profile",
+    "subtitle": "What you share with the assistant",
+    "group": {
+     "basic": "Basics",
+     "ritme": "From Ritme (automatic)"
+    },
+    "keys": {
+     "age": "Age",
+     "life_mode": "Life mode",
+     "basics": "Basic details",
+     "cycle": "Cycle mode and phase",
+     "pregnancies": "Pregnancy and birth history",
+     "conditions": "Checkups and conditions",
+     "medications": "Medications and supplements",
+     "allergies": "Allergies"
+    },
+    "hint": {
+     "age": "From your birth date",
+     "life_mode": "Trying to conceive, pregnancy, …",
+     "basics": "Height, weight and basic traits",
+     "cycle": "Cycle length and symptoms of the last 6 cycles",
+     "pregnancies": "Births only; no pregnancy ending is ever sent",
+     "conditions": "Checkups and results",
+     "medications": "From your reminders",
+     "allergies": "Recorded allergies"
+    },
+    "note": "The data is used only to personalise guidance and is never sent to a doctor without your consent. You can erase your chat history at any time.",
+    "save": "Save",
+    "saved": "Saved."
+   },
+   "when": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "days": "{count, plural, one {# day ago} other {# days ago}}",
+    "weeks": "{count, plural, one {# week ago} other {# weeks ago}}",
+    "months": "{count, plural, one {# month ago} other {# months ago}}"
+   }
+  },
   "auth": {
    "splash": {
     "brand": "Ritme",
@@ -2927,6 +3105,203 @@
    "delete": "Delete",
    "error": "That didn't work; please try again."
   },
+  "doctors": {
+   "common": {
+    "loading": "Loading…",
+    "loadError": "Couldn't load",
+    "retry": "Try again",
+    "back": "Back"
+   },
+   "title": {
+    "doctor": "Dr. {name}",
+    "midwife": "{name}"
+   },
+   "mode": {
+    "video": "Video",
+    "phone": "Phone",
+    "in_person": "In person"
+   },
+   "errors": {
+    "generic": "Something went wrong. Try again.",
+    "slot_unavailable": "This time is no longer free. Pick another one.",
+    "payment_unavailable": "Online payment is unavailable right now. Try again shortly.",
+    "payment_failed": "The payment didn't go through. If you were charged it is returned within a few hours.",
+    "amount_mismatch": "The amount paid doesn't match the booking. Contact support.",
+    "authority_mismatch": "The payment details don't match the booking.",
+    "booking_closed": "This booking has expired.",
+    "booking_refunded": "The payment came in late and is being refunded.",
+    "cancel_window_closed": "Less than 2 hours to the visit — cancelling or moving it is no longer free.",
+    "consent_not_allowed": "Data sharing is only possible for your own visits.",
+    "too_many_bookings": "You've reached your active bookings limit.",
+    "too_many_holds": "You have several bookings awaiting payment. Finish them or wait for them to expire.",
+    "reschedule_limit": "This visit can't be moved again.",
+    "chat_closed": "This visit's chat is closed.",
+    "chat_unavailable": "Chat isn't available for this booking.",
+    "message_limit": "Too many messages — send again in a moment.",
+    "prescription_already_added": "This medication is already in your reminders.",
+    "medication_limit": "You've reached your medication reminders limit.",
+    "video_unavailable": "The visit link isn't active yet."
+   },
+   "status": {
+    "confirmed": "Confirmed",
+    "held": "Awaiting payment",
+    "completed": "Done",
+    "cancelled": "Cancelled",
+    "expired": "Expired",
+    "failed": "Failed"
+   },
+   "list": {
+    "title": "Doctors & midwives",
+    "count": "{count} people",
+    "all": "All",
+    "modeLabel": "Visit type",
+    "today": "Free today",
+    "specialty": "Specialty",
+    "city": "City",
+    "insurer": "Insurance",
+    "emptyTitle": "No doctors found",
+    "emptyBody": "Loosen the filters or check back later.",
+    "pages": "Pages",
+    "prev": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {last}",
+    "askTitle": "Not sure which specialty?",
+    "askBody": "The health assistant helps with a few questions.",
+    "ask": "Ask"
+   },
+   "card": {
+    "noSlot": "No free time",
+    "today": "today",
+    "tomorrow": "tomorrow",
+    "dayAfter": "day after tomorrow",
+    "firstSlot": "First slot: {when}",
+    "years": "{count} years' experience",
+    "from": "From {price} toman"
+   },
+   "profile": {
+    "title": "Doctor",
+    "notFound": "This doctor wasn't found",
+    "backToList": "Doctors list",
+    "licence": "Licence {no}",
+    "reviewsCount": "{count} reviews",
+    "visits": "Visits",
+    "visitsValue": "{count}+",
+    "response": "Response",
+    "responseValue": "Under {count} min",
+    "satisfaction": "Satisfaction",
+    "satisfactionValue": "{count}%",
+    "visitTypes": "Visit type",
+    "noVisitTypes": "No visit types to book yet",
+    "inPerson": "In person · {address}",
+    "minutes": "{count} min",
+    "reviews": "Reviews",
+    "all": "All",
+    "noReviews": "No reviews yet.",
+    "book": "Book {mode} visit · {when}",
+    "pickSlot": "Pick a time"
+   },
+   "slots": {
+    "title": "Free times",
+    "days": "Days",
+    "free": "{date} · {count} free",
+    "none": "No free times this week.",
+    "prev": "Previous week",
+    "next": "Next week"
+   },
+   "book": {
+    "title": "Review & book",
+    "secure": "Secure",
+    "invalidTitle": "The chosen time isn't valid",
+    "invalidBody": "Pick a time again from the doctor's page.",
+    "pickAgain": "Pick another time",
+    "self": "Myself",
+    "child": "My child",
+    "other": "Someone else",
+    "forWhom": "Who is it for?",
+    "patientName": "Patient name",
+    "reason": "Reason for the visit",
+    "note": "Note for the doctor",
+    "notePlaceholder": "e.g. trying for 6 months without result…",
+    "share": "Share Ritme data with the doctor",
+    "shareNote": "Only for this visit and this doctor; stop any time.",
+    "price": "Price",
+    "visitLine": "{minutes}-minute visit",
+    "discount": "Ritme subscription discount",
+    "total": "Total to pay",
+    "toman": "{price} toman",
+    "pay": "Pay & book",
+    "confirm": "Confirm booking",
+    "cancelNote": "Cancel or move for free up to {hours} hours before the visit."
+   },
+   "consent": {
+    "cycle_summary": {
+     "title": "Last 6 cycles summary",
+     "hint": "Cycle length, period, symptoms"
+    },
+    "bbt_lh": {
+     "title": "Basal temperature & LH tests",
+     "hint": "This cycle"
+    },
+    "assistant_summaries": {
+     "title": "Health assistant chats",
+     "hint": "Summary of the last 2 chats"
+    }
+   },
+   "return": {
+    "invalidTitle": "Invalid payment return",
+    "invalidBody": "The payment details were missing from the link. Check your bookings.",
+    "toDoctors": "Doctors",
+    "failedTitle": "Booking wasn't confirmed",
+    "verifying": "Verifying the payment…"
+   },
+   "booked": {
+    "header": "Booking",
+    "notFound": "This booking wasn't found",
+    "created": "Your appointment is booked",
+    "with": "{mode} visit with {name}",
+    "forWho": "For {name}",
+    "reminders": "Add to calendar & reminders",
+    "chat": "Message the doctor",
+    "videoNote": "The visit link activates here and by SMS 10 minutes before. Check your connection and a quiet spot ahead of time.",
+    "heldNote": "This booking isn't paid yet and is held for a few minutes.",
+    "closedNote": "This booking is no longer active.",
+    "home": "Back to home"
+   },
+   "manage": {
+    "title": "Manage appointment",
+    "reschedule": "Reschedule",
+    "cancel": "Cancel appointment",
+    "cancelConfirm": "The appointment is cancelled and the payment refunded. Sure?",
+    "cancelYes": "Yes, cancel",
+    "keep": "Never mind",
+    "moveConfirm": "Confirm new time"
+   },
+   "bookings": {
+    "title": "My appointments",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "emptyUpcoming": "No upcoming appointments",
+    "emptyPast": "No past visits yet",
+    "find": "Find a doctor"
+   },
+   "chat": {
+    "unavailable": "Chat isn't available for this booking",
+    "attachment": "Attachment · {kb} KB",
+    "join": "Join the video visit",
+    "open": "Chat is open",
+    "closed": "Chat is closed",
+    "details": "Details",
+    "empty": "No messages yet. Send the first one.",
+    "rx": "E-prescription",
+    "perDay": "{count} a day",
+    "added": "Added",
+    "addReminder": "Add to reminders",
+    "encrypted": "Messages are encrypted. Don't use this chat for emergencies.",
+    "placeholder": "Message the doctor…",
+    "closedNote": "Chat is closed",
+    "send": "Send"
+   }
+  },
   "fertility": {
    "title": "Fertility",
    "back": "Back",
@@ -4520,6 +4895,46 @@
     "later": "Later — go to my courses",
     "toHub": "My courses",
     "notFound": "This access wasn't found"
+   },
+   "download": {
+    "action": "Download",
+    "saved": "Downloaded",
+    "downloading": "Downloading…",
+    "progress": "Downloading {percent}%",
+    "cancel": "Cancel download",
+    "remove": "Remove download",
+    "offline": "Playing from your phone",
+    "errors": {
+     "tooLarge": "This file is too large to download.",
+     "quota": "Not enough space on your phone — remove some downloads.",
+     "network": "The download didn't finish — try again.",
+     "unsupported": "This browser doesn't support offline downloads.",
+     "corrupt": "The downloaded file is damaged — remove it and download again."
+    }
+   },
+   "downloads": {
+    "title": "Downloads",
+    "subtitle": "For use without internet",
+    "edit": "Edit",
+    "done": "Done",
+    "used": "Storage used",
+    "usedOf": "{used} of {quota}",
+    "listLabel": "Downloaded lessons",
+    "note": "Files play only inside Ritme and are removed from your phone when your access ends.",
+    "emptyTitle": "Nothing downloaded yet",
+    "emptyBody": "Tap «Download» on any lesson to watch it without internet.",
+    "loadError": "Couldn't read your downloads",
+    "unsupported": "This browser doesn't support offline downloads.",
+    "play": "Play {title}",
+    "remove": "Remove {title}",
+    "close": "Close",
+    "meta": "{course} · {size}",
+    "metaPdf": "{course} · {size} · PDF",
+    "size": {
+     "kb": "{n} KB",
+     "mb": "{n} MB",
+     "gb": "{n} GB"
+    }
    }
   },
   "log": {
@@ -5921,6 +6336,7 @@
     "companions": "Companions & family",
     "children": "Children",
     "courses": "My courses",
+    "downloads": "Downloads",
     "todo": "To-do list",
     "bookings": "Bookings",
     "orders": "Orders",

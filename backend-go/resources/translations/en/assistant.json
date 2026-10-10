@@ -1,0 +1,178 @@
+{
+  "common": {
+    "back": "Back",
+    "retry": "Try again",
+    "loading": "Loading…",
+    "loadError": "Couldn't load",
+    "cancel": "Cancel",
+    "disclaimer": "The Ritme assistant does not diagnose and is not a substitute for a doctor. In an emergency call 115."
+  },
+  "hub": {
+    "title": "Ritme assistant clinic",
+    "subtitle": "Smart guidance · no medical diagnosis",
+    "greeting": "Hi, how can I help today?",
+    "placeholder": "e.g. “the spots on my face got darker after pregnancy”",
+    "quota": "{remaining, number} of {limit, number} free chats left this month",
+    "quotaSpent": "This month's free chats are used up; go unlimited with Plus",
+    "plus": "Ritme Plus",
+    "knows": "The assistant uses your profile",
+    "knowsNone": "The assistant knows nothing from your profile for now; turn sharing on whenever you like.",
+    "edit": "Edit",
+    "departments": "Clinic departments",
+    "recent": "Recent chats",
+    "all": "All",
+    "emptyTitle": "No chats yet",
+    "emptyBody": "Pick a department or type your question.",
+    "urgent": "Is it an emergency?"
+  },
+  "emergency": {
+    "title": "This may be an emergency",
+    "body": "What you wrote may be a sign of an emergency. Call 115 now or go to the nearest emergency department. The Ritme assistant does not replace emergency care.",
+    "call": "Call emergency",
+    "line": "Emergency"
+  },
+  "triage": {
+    "self_care": "Self-care",
+    "non_urgent": "Non-urgent visit",
+    "soon": "See a doctor soon",
+    "emergency": "Emergency"
+  },
+  "dept": {
+    "subtitle": "Health assistant",
+    "askLab": "I'd like to understand my lab result better.",
+    "notFound": "This department was not found",
+    "knows": "What does it know about you?",
+    "previous": "Earlier chats in this department",
+    "count": "{count, plural, one {# chat} other {# chats}}",
+    "switchHint": "You can turn any item off; the guidance becomes more general.",
+    "doesNot": "What this department does not do",
+    "start": "Start chat"
+  },
+  "chat": {
+    "thread": "Chat with the assistant",
+    "subtitle": "Ritme smart assistant · profile active",
+    "summary": "Chat summary",
+    "notFound": "This chat was not found",
+    "typing": "The assistant is typing",
+    "partial": "The answer was cut off. You can ask again.",
+    "photoAttached": "Photo attached",
+    "removePhoto": "Remove photo",
+    "attach": "Add a photo",
+    "placeholder": "Write your message…",
+    "send": "Send",
+    "stop": "Stop"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "ai_unavailable": "The assistant is unavailable right now.",
+    "ai_failed": "The assistant's answer was cut off. Please try again.",
+    "ai_budget_exhausted": "The assistant reached today's capacity; try again tomorrow.",
+    "ai_user_budget_exhausted": "You've used today's assistant share; try again tomorrow.",
+    "ai_busy": "The assistant is busy with another answer; wait a moment.",
+    "too_many_requests": "Too many requests; try again in a moment.",
+    "summary_empty": "There is nothing to summarise yet.",
+    "summary_failed": "The summary could not be prepared. Please try again later.",
+    "share_consent_required": "To send the summary, turn on sharing «Assistant conversations» for this visit.",
+    "booking_closed": "This visit is no longer active.",
+    "booking_not_found": "This visit was not found.",
+    "assistant_photo_not_found": "This photo was not found.",
+    "storage_unavailable": "Photos cannot be stored right now. Please try again later.",
+    "photo_type": "Only JPG, PNG or WebP photos are accepted.",
+    "photo_too_large": "The photo must be smaller than 5 MB."
+  },
+  "paywall": {
+    "locked": "This opens with Ritme Plus.",
+    "quota": "This month's free chats ({limit}) are used up. Ask without limits with Ritme Plus.",
+    "cta": "See Ritme Plus"
+  },
+  "consent": {
+    "accept": "I agree, continue"
+  },
+  "summary": {
+    "title": "Chat summary",
+    "emptyTitle": "Nothing to summarise yet",
+    "emptyBody": "Exchange a few messages with the assistant and the summary will be ready.",
+    "backToChat": "Back to chat",
+    "failedTitle": "The summary could not be prepared",
+    "suggestion": "Assistant's suggestion",
+    "scale": "Suggested level",
+    "said": "What you said and the guidance",
+    "photos": "{count, plural, one {# photo attached} other {# photos attached}}",
+    "stale": "New messages came after this summary; reopen it to update.",
+    "connect": "Connect with a doctor",
+    "consentNote": "This summary is sent to the doctor only with your consent.",
+    "send": "Choose a doctor and send the summary",
+    "footnote": "This summary was prepared by the smart assistant and is not a medical diagnosis."
+  },
+  "handoff": {
+    "title": "Send to a doctor",
+    "subtitle": "Your upcoming visits",
+    "sentTitle": "Summary sent",
+    "sentBody": "The doctor sees the summary before the visit. You can revoke access after the visit.",
+    "noSummary": "Prepare the chat summary first",
+    "preview": "Summary preview",
+    "pick": "Which visit?",
+    "noBookingTitle": "No upcoming visit",
+    "noBookingBody": "To send the summary, book a visit with a doctor first.",
+    "findDoctor": "Find a doctor",
+    "alreadySent": "Sent",
+    "consent": "Send the chat summary only to the doctor of this visit",
+    "revoke": "You can revoke access after the visit.",
+    "openBooking": "Open the visit",
+    "send": "Send summary",
+    "allDoctors": "All doctors"
+  },
+  "history": {
+    "title": "My health history",
+    "subtitle": "Assistant chats",
+    "untitled": "Untitled chat",
+    "emptyTitle": "No history",
+    "emptyBody": "Your chats with the assistant appear here.",
+    "delete": "Delete chat",
+    "confirmTitle": "Delete this chat?",
+    "confirmAllTitle": "Delete all chats?",
+    "confirmBody": "Messages, photos and the summary are erased for good and cannot be restored.",
+    "confirmYes": "Yes, delete",
+    "deleteAll": "Delete all chats",
+    "profile": "The health profile the assistant sees",
+    "editData": "Edit and control data"
+  },
+  "profile": {
+    "title": "Health profile",
+    "subtitle": "What you share with the assistant",
+    "group": {
+      "basic": "Basics",
+      "ritme": "From Ritme (automatic)"
+    },
+    "keys": {
+      "age": "Age",
+      "life_mode": "Life mode",
+      "basics": "Basic details",
+      "cycle": "Cycle mode and phase",
+      "pregnancies": "Pregnancy and birth history",
+      "conditions": "Checkups and conditions",
+      "medications": "Medications and supplements",
+      "allergies": "Allergies"
+    },
+    "hint": {
+      "age": "From your birth date",
+      "life_mode": "Trying to conceive, pregnancy, …",
+      "basics": "Height, weight and basic traits",
+      "cycle": "Cycle length and symptoms of the last 6 cycles",
+      "pregnancies": "Births only; no pregnancy ending is ever sent",
+      "conditions": "Checkups and results",
+      "medications": "From your reminders",
+      "allergies": "Recorded allergies"
+    },
+    "note": "The data is used only to personalise guidance and is never sent to a doctor without your consent. You can erase your chat history at any time.",
+    "save": "Save",
+    "saved": "Saved."
+  },
+  "when": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "days": "{count, plural, one {# day ago} other {# days ago}}",
+    "weeks": "{count, plural, one {# week ago} other {# weeks ago}}",
+    "months": "{count, plural, one {# month ago} other {# months ago}}"
+  }
+}

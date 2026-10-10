@@ -1254,3 +1254,28 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   palette (`<dialog>` + combobox/listbox, role-filtered, arrows/Enter/Esc) and user chip with role badge. Role gating
   unchanged. Design items without pages (message engine, KPI, OKR, safety, config) come with N9 tasks. Screenshots
   (mock API) in `docs/qa/bloom/B-N9-01/`; ⌘K keyboard run left for the N9 audit.
+
+## B-N8-04 — Offline downloads for lessons
+
+- `shared/pwa/offline` (fresh signed URL → 4 MB chunks AES-GCM with a non-extractable IndexedDB key, chunks bound to
+  lesson + index, 1 GB cap, `storage.estimate` check, no partial leftovers; playback via `blob:` only),
+  `entities/course` `useLessonDownload` / `useOfflinePurge` (purge on app start when access ended; offline → keep until
+  next online check), `/learn/downloads` (usage meter, edit/delete, in-sheet player, unsupported state), download
+  button on video/audio/pdf lessons (plays local copy). SW template: network-first cached shell for the downloads page
+  (`ritme-offline-pages-v1`); media never in Cache Storage. CSP `media-src`/`frame-src` gained `blob:` + API origin.
+  Devdep `fake-indexeddb`. Screenshots (empty state) `docs/qa/bloom/B-N8-04/`.
+
+## B-N7-05 — Doctor screens
+
+- `entities/doctor`, `features/book-visit`, screens doctors (filters), doctor-profile (SlotPicker), doctor-book (for-whom,
+  consent default off, self only), doctor-return (verify), doctor-booked, doctor-bookings (cancel/reschedule, localised
+  error codes), doctor-chat (prescription → reminder, video button in window); routes under `/services/doctors` and
+  `/services/bookings`. Full `next build` compile passed but the run was cut by machine load; screenshots unverified →
+  N7 audit (B-N7-09). Admin must set `services_care.doctors` meta.href = `/services/doctors`.
+
+## B-N7-07 — Assistant screens
+
+- `entities/assistant` (115 card with tel:, triage pill, consent card), `features/assistant-chat` (fetch +
+  ReadableStream SSE with auth header, abort, retry; 402 plus / 403 consent states; chips, photo attach), screens hub,
+  dept intro, chat, summary, handoff (own upcoming bookings), history (delete one / all), profile toggles; `/assistant/*`
+  routes. Screenshots against a mock SSE API in `docs/qa/bloom/B-N7-07/` (spot-checked).

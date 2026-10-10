@@ -28,6 +28,8 @@ export const NAV_ROOT_PATHS: readonly string[] = [
   '/programs/pelvic', // CB-PELV-02: «کف لگن و مثانه» (nbl_Pelvic_Plan, خدمات tab)
   '/todo', // B-N6-08: «کارهای من» (nbl_Todo_Home, من tab)
   '/learn', // B-N8-03: «دوره‌های من» (nbl_Learn_Hub, من tab)
+  '/learn/downloads', // B-N8-04: «دانلودها» (nbl_Learn_Downloads, من tab)
+  '/assistant', // B-N7-07: «کلینیک دستیار» hub (nbl_v18_AssistantHub, خدمات tab)
   // CB-NAV-03 (IA_Nav «نوار تب»: hidden on forms / log): the transitional `/log` (B-N3-03) and
   // `/pregnancy/calendar` (B-N1-14) entries are gone — both screens now have a back/close header.
 ];
