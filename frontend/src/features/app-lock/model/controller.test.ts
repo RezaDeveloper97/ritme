@@ -177,7 +177,7 @@ describe('app lock — failures across tabs and the lock-out', () => {
     expect(reloaded.getSnapshot().lockedOut).toBe(true);
     t.advance(10 * 60_000);
     expect(await reloaded.unlockWithPasscode('9999')).toBe('lockedOut');
-  });
+  }, 30_000); // ~12 real PBKDF2 runs: 5 s is too tight on a loaded machine
 
   it('wrong passcodes while turning the lock off count too, and lock the app out', async () => {
     const storage = memory();

@@ -1293,3 +1293,10 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   read audited. `/users/:id` hides birthday / cycle fields / pregnancy intention without active access. D-84 proposed.
 - admin-web `screens/access-control` (`/roles` matrix, `/audit-logs` filters + CSV, `/health-access` requests / approval
   queue / no-cache viewer); nav filtered by `permissions`. Screenshots `docs/qa/bloom/B-N9-02/`. QUESTIONS #128.
+
+## B-N7-09 — N7 design-fidelity audit and fixes
+
+- Real-data audit (fresh DB, fake providers, seeded doctors/bookings/chat/assistant incl. emergency) in
+  `docs/night-bloom/audit-n7.md`: 0 high, 3 med (doctor chat bubble sides + header order fixed; assistant history
+  tabs/timeline/PDF → **B-N7-07b**), 13 low open. Env before release: admin sets `services_care` meta.href for
+  assistant / doctors; `telemed_specialties` titles. app-lock passcode test timeout 30 s. Shots `docs/qa/bloom/B-N7-09/`.

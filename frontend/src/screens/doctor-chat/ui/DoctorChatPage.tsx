@@ -107,6 +107,12 @@ export function DoctorChatPage({ bookingId }: { bookingId: number }) {
   return (
     <div className="view dr-view dr-chat">
       <header className="dr-chat-head">
+        <HeaderButton label={t('common.back')} icon="arrowR" onClick={back} />
+        <DoctorAvatar name={b.doctor.name} photoUrl={b.doctor.photo_url} size="sm" />
+        <div className="dr-chat-id">
+          <strong>{title(b.doctor)}</strong>
+          <span>{open ? t('chat.open') : t('chat.closed')}</span>
+        </div>
         {video.data?.active && video.data.url ? (
           <a className="dr-join" href={video.data.url} target="_blank" rel="noopener noreferrer" aria-label={t('chat.join')}>
             <Icon name="video" size={20} />
@@ -114,12 +120,6 @@ export function DoctorChatPage({ bookingId }: { bookingId: number }) {
         ) : (
           <span className="dr-join is-off" aria-hidden><Icon name="video" size={20} /></span>
         )}
-        <div className="dr-chat-id">
-          <strong>{title(b.doctor)}</strong>
-          <span>{open ? t('chat.open') : t('chat.closed')}</span>
-        </div>
-        <DoctorAvatar name={b.doctor.name} photoUrl={b.doctor.photo_url} size="sm" />
-        <HeaderButton label={t('common.back')} icon="arrowR" onClick={back} />
       </header>
 
       <div className="scroll dr-thread">

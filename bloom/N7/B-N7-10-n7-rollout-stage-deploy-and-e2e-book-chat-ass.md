@@ -4,7 +4,7 @@ title: N7 rollout — stage deploy and e2e (book, chat, assistant)
 milestone: N7
 type: release
 status: todo
-depends_on: [B-N7-08,B-N7-09,B-N7-03b,B-N7-06b]
+depends_on: [B-N7-08,B-N7-09,B-N7-03b,B-N7-06b,B-N7-07b]
 parallel_group: N7-J
 touches: [docs/qa/bloom,bloom/PROGRESS.md]
 skills: [verify-all,deploy-stage]
