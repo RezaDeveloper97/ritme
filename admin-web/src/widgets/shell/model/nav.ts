@@ -60,6 +60,18 @@ export const NAV: readonly NavGroup[] = [
     ],
   },
   {
+    // «پزشکان و تله‌مدیسین» (B-N7-08): directory + bookings for every admin; refunds and the department editor are
+    // super-only; the inbox answers 403 doctor_required for admins not linked to a doctor.
+    key: 'groupTelemed',
+    items: [
+      { key: 'telemedDoctors', href: '/telemed/doctors', icon: 'users', ready: true },
+      { key: 'telemedBookings', href: '/telemed/bookings', icon: 'calendar', ready: true },
+      { key: 'telemedReviews', href: '/telemed/reviews', icon: 'heart', ready: true },
+      { key: 'telemedInbox', href: '/telemed/inbox', icon: 'message', ready: true },
+      { key: 'assistantDepartments', href: '/assistant/departments', icon: 'idea', role: 'super', ready: true },
+    ],
+  },
+  {
     key: 'groupContent',
     items: [
       { key: 'articles', href: '/articles', icon: 'article', ready: true },

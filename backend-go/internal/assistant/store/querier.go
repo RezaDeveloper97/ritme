@@ -10,18 +10,26 @@ import (
 )
 
 type Querier interface {
+	ApproveDepartment(ctx context.Context, arg ApproveDepartmentParams) (int64, error)
+	CountDepartmentCode(ctx context.Context, code string) (int64, error)
 	CountDepartmentConversations(ctx context.Context, userID uint64) ([]CountDepartmentConversationsRow, error)
 	CountPhotoUses(ctx context.Context, photoFileID sql.NullInt64) (int64, error)
 	DeleteAllConversations(ctx context.Context, userID uint64) (int64, error)
 	DeleteConversation(ctx context.Context, arg DeleteConversationParams) (int64, error)
+	// The first user turn of each of the user's conversations (the sealed source of the title).
+	FirstUserMessages(ctx context.Context, arg FirstUserMessagesParams) ([]FirstUserMessagesRow, error)
 	GetActiveDepartmentByCode(ctx context.Context, code string) (AssistantDepartment, error)
+	GetAdminDepartment(ctx context.Context, id uint64) (AssistantDepartment, error)
 	GetConversation(ctx context.Context, arg GetConversationParams) (AssistantConversation, error)
 	GetDepartment(ctx context.Context, id uint64) (AssistantDepartment, error)
 	GetProfileSettings(ctx context.Context, userID uint64) (string, error)
 	InsertConversation(ctx context.Context, arg InsertConversationParams) (int64, error)
+	InsertDepartment(ctx context.Context, arg InsertDepartmentParams) (int64, error)
 	InsertMessage(ctx context.Context, arg InsertMessageParams) (int64, error)
 	// AI assistant clinic (bloom B-N7-06, goose 00052). Every user-facing read and write is scoped by user_id in the query.
 	ListActiveDepartments(ctx context.Context) ([]AssistantDepartment, error)
+	// B-N7-08 admin console: department editor (super only). Reads and writes never touch the code-held emergency floor.
+	ListAdminDepartments(ctx context.Context) ([]AssistantDepartment, error)
 	// Doctor side: only after telemed AuthorizeShare(doctor, booking, assistant_summaries) passed.
 	ListBookingHandoffs(ctx context.Context, bookingID uint64) ([]ListBookingHandoffsRow, error)
 	ListConversationHandoffs(ctx context.Context, arg ListConversationHandoffsParams) ([]AssistantHandoff, error)
@@ -29,10 +37,17 @@ type Querier interface {
 	ListDepartmentConversations(ctx context.Context, arg ListDepartmentConversationsParams) ([]AssistantConversation, error)
 	ListMessages(ctx context.Context, conversationID uint64) ([]AssistantMessage, error)
 	ListSafetyTerms(ctx context.Context) ([]ListSafetyTermsRow, error)
+	// Uploaded photos never attached to a message and older than the cut-off (swept, B-N7-06b M4).
+	ListStaleAssistantPhotos(ctx context.Context, arg ListStaleAssistantPhotosParams) ([]uint64, error)
+	// Every assistant photo file of the user, attached or not (delete-all, B-N7-06b M4).
+	ListUserAssistantPhotos(ctx context.Context, userID sql.NullInt64) ([]uint64, error)
 	// Photos of the user's conversations (one, or all when conversation_id = 0), removed with them (hard delete).
 	ListUserPhotoIDs(ctx context.Context, arg ListUserPhotoIDsParams) ([]sql.NullInt64, error)
 	SaveSummary(ctx context.Context, arg SaveSummaryParams) error
+	// B-N7-06b: the body is sealed with the row id in its additional data, so it is written right after the insert (same tx).
+	SetMessageBody(ctx context.Context, arg SetMessageBodyParams) error
 	TouchConversation(ctx context.Context, arg TouchConversationParams) error
+	UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) error
 	UpsertHandoff(ctx context.Context, arg UpsertHandoffParams) error
 	UpsertProfileSettings(ctx context.Context, arg UpsertProfileSettingsParams) error
 }

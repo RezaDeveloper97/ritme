@@ -5,6 +5,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
 	"github.com/ritme/backend-go/internal/admin/media"
+	"github.com/ritme/backend-go/internal/assistant"
 	"github.com/ritme/backend-go/internal/catalog"
 	catalogstore "github.com/ritme/backend-go/internal/catalog/store"
 	"github.com/ritme/backend-go/internal/telemed"
@@ -27,5 +28,13 @@ func init() {
 			Routes(func(method, path string, chain httpadmin.Chain) {
 				httpadmin.Handle(r, method, httpadmin.Prefix+path, chain)
 			}, kit)
+		// B-N7-08: bookings list, manual refund queue (admin-api §19c).
+		telemed.NewBookingsAdmin(svc, d.Logger).Routes(func(method, path string, chain httpadmin.Chain) {
+			httpadmin.Handle(r, method, httpadmin.Prefix+path, chain)
+		}, kit)
+		// B-N7-08: assistant department editor, super only.
+		assistant.NewDepartmentsAdmin(d.DB, d.Logger).Routes(func(method, path string, chain httpadmin.Chain) {
+			httpadmin.Handle(r, method, httpadmin.Prefix+path, chain)
+		}, kit)
 	})
 }

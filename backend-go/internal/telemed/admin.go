@@ -542,6 +542,15 @@ func (h *Admin) Destroy(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	// B-N7-08 guard: the FK cascades bookings, so a doctor with live or paid visits is never deleted (deactivate).
+	live, err := h.q.CountDoctorLiveBookings(c.Context(), cur.ID)
+	if err != nil {
+		return err
+	}
+	if live > 0 {
+		return httpadmin.Fail(fiber.StatusConflict, ErrorCodeDoctorHasBookings,
+			"This doctor has bookings; deactivate the doctor instead of deleting.")
+	}
 	n, err := h.q.DeleteDoctor(c.Context(), cur.ID)
 	if err != nil {
 		return err

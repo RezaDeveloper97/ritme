@@ -1222,3 +1222,26 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
 - Security audit → **B-N7-06b** (H1 encrypt messages/titles/summaries at rest; M1 SSE in-flight limit; M2 summary /
   emergency throttles; M3 emergency normalisation + model `[[triage:emergency]]` → card; M4 orphan photo deletion; M5
   URL strip on the live stream; L1/L4).
+
+## B-N7-06b — Assistant security fixes
+
+- H1 messages, conversation summary and handoff summary sealed with the loss NoteBox (`PRIVATE_NOTE_KEY`, AAD table +
+  row/unique key + user); title column kept NULL (derived from the first sealed user message); legacy `v1:`-less
+  rows read as plaintext; open failure → empty text; no key outside local/testing → 503. M1 `access.DetachRelease`
+  keeps the in-flight slot until the stream ends, 90 s stream cap, per-step deadlines (L4). M2 `/summary` behind the
+  policy throttles (`Guard.Gate`), regenerated only after a new model reply, emergency-only → 422 `summary_empty`;
+  `assistant-messages` 20/min throttle on every message. M3 NFKC + apostrophe folding + strip Cf/Mn/U+0640 + Unicode
+  spaces, more floor terms, model `[[triage:emergency]]` → 115 card + `emergency`. M4 delete-all removes every
+  `assistant_photo`, unattached photos > 24 h swept on the next upload, photo single-use (422), row deletes in a tx.
+  M5 URLs stripped from the live stream (partial word buffered). L1 safety-precedence line after department text.
+
+## B-N7-08 — Admin: doctors & telemedicine console, assistant departments
+
+- Backend: `/api/admin/v1/telemed/bookings` (filters, masked mobile, no notes/reasons), `/refunds` queue, super-only
+  `POST …/{id}/refunded` (409 `not_refund_pending`, audit `telemed_booking.mark_refunded`); doctor delete guarded (409
+  `doctor_has_bookings`); assistant departments editor super-only (length caps, new = inactive + needs_review, prompt
+  edits re-flag review, activation requires approval, audit without prompt text, code-held emergency floor not
+  editable). admin-api §19c.
+- admin-web `screens/telemed` (doctors list/form/photo/visit types toman/schedule/time off, bookings + refund queue,
+  reviews, doctor inbox chat/prescription/video) and `screens/assistant-departments`; nav group «پزشکان و تله‌مدیسین».
+  Light/dark screenshots deferred to the N7 audit (B-N7-09). QUESTIONS #127.

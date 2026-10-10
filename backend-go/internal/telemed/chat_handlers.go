@@ -31,6 +31,7 @@ const (
 	ErrorCodeVideoUnavailable     = "video_unavailable"
 	ErrorCodeMedicationLimit      = "medication_limit"
 	ErrorCodeDoctorRequired       = "doctor_required"
+	ErrorCodeDoctorHasBookings    = "doctor_has_bookings"
 )
 
 // ChatHandlers are the user's /api/v1/telemed/bookings/{id}/{messages,prescription,video} actions (auth RequireUser,

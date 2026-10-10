@@ -3,7 +3,7 @@ id: B-N7-08
 title: Admin — doctors & telemedicine console, assistant departments
 milestone: N7
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N7-04,B-N7-06]
 parallel_group: N7-H
 touches: [admin-web/src,backend-go/internal/admin,backend-go/api]

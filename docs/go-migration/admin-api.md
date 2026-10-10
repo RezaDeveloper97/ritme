@@ -695,6 +695,24 @@ response only and never logged.
 | DELETE | `/telemed/doctor/bookings/{id}/prescription/{item}` | A | — | `{id}` (a reminder the user made stays) |
 | GET | `/telemed/doctor/bookings/{id}/video` | A | — | `{video:{active, opens_at, closes_at, url}}` |
 
+### 19c. Bookings console, refund queue, assistant departments (B-N7-08)
+
+`internal/telemed/admin_bookings.go`, `internal/assistant/admin.go`, registered in `routes_admin_telemed.go`. No notes,
+reasons or message text is exposed; the patient mobile is masked (`0912•••0001`). Audit lines carry ids only.
+
+| Method | Path | Role | Body / query | `data` |
+|---|---|---|---|---|
+| GET | `/telemed/bookings` | A | `status`, `payment_status`, `doctor_id`, `q` (reference), `page`, `per_page` (unknown values = all) | `{items:[{id, reference, user_id, user_mobile, doctor{id,name{}}, mode, status, payment_status, starts_at, ends_at, total_rials, refunded_rials, refund_ref, refunded_at, paid_at, gateway, created_at}], meta, filters, counts{refund_pending}, statuses[], payment_statuses[]}` |
+| GET | `/telemed/bookings/refunds` | A | as above | the `refund_pending` queue (newest first) |
+| POST | `/telemed/bookings/{id}/refunded` | S | `refund_ref?` (≤ 64) | `{id, payment_status:"refunded"}`; 409 `not_refund_pending` when not pending; audit `telemed_booking.mark_refunded` |
+| DELETE | `/telemed/doctors/{id}` | S | — | now 409 `doctor_has_bookings` when the doctor has held / confirmed / completed bookings or paid / refund_pending money; deactivate instead |
+| GET/POST | `/assistant/departments` | S | POST: `code` (a-z0-9_, ≤ 32, unique), `name{}`, `tagline{}?`, `intro{}?`, `does_not_do{lang:[]}?`, `quick_replies{lang:[]}?` (≤ 10 × 120), `icon?`, `sort_order?`, `system_prompt` (≤ 4000), `guardrails?` (≤ 2000) | list `{items, limits}`; create → 201 `{department}`, always inactive + `needs_review` |
+| GET/PUT | `/assistant/departments/{id}` | S | PUT = full form + `is_active?` | `{department}`; changing `system_prompt` / `guardrails` sets `needs_review`; switching an unreviewed department on is a 422 on `is_active` |
+| POST | `/assistant/departments/{id}/approve` | S | — | `{department}` (needs_review → false); audit `assistant_department.approve` |
+
+The emergency floor (keywords → 115 card, diagnosis guard, base system guard) is code-held and not editable here. Updates
+are audited as `assistant_department.update` with the changed-field flags, never the prompt text.
+
 ## 20. Instructors & courses moderation — «مدرسین و دوره‌ها» (B-N8-08)
 
 Package `internal/admin/learning`, routes `routes_admin_learning.go`, queries `db/queries/admin/learning.sql`, over the

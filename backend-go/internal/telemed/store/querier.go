@@ -19,10 +19,14 @@ type Querier interface {
 	CompleteBooking(ctx context.Context, arg CompleteBookingParams) (int64, error)
 	// Paid (or free): the hold becomes a confirmed booking; slot_key is (re)claimed for a hold that lapsed meanwhile.
 	ConfirmBooking(ctx context.Context, arg ConfirmBookingParams) error
+	// B-N7-08 admin console: bookings list / refund queue and the doctor-delete guard.
+	CountAdminBookings(ctx context.Context, arg CountAdminBookingsParams) (int64, error)
 	// ---------------------------------------------------------------------------
 	// Admin
 	CountAdminDoctors(ctx context.Context, arg CountAdminDoctorsParams) (int64, error)
 	CountAdminReviews(ctx context.Context, arg CountAdminReviewsParams) (int64, error)
+	// Visits the FK cascade would destroy: open, done, or with money still to settle.
+	CountDoctorLiveBookings(ctx context.Context, doctorID uint64) (int64, error)
 	CountDoctorTimeOff(ctx context.Context, arg CountDoctorTimeOffParams) (int64, error)
 	CountListedByCity(ctx context.Context) ([]CountListedByCityRow, error)
 	CountListedByInsurer(ctx context.Context) ([]CountListedByInsurerRow, error)
@@ -31,6 +35,7 @@ type Querier interface {
 	// Active bookings (confirmed, or held and not lapsed) of the doctor overlapping [starts_at, ends_at), except one id.
 	CountOverlappingBookings(ctx context.Context, arg CountOverlappingBookingsParams) (int64, error)
 	CountPrescriptionItems(ctx context.Context, bookingID uint64) (int64, error)
+	CountRefundPendingBookings(ctx context.Context) (int64, error)
 	// Holds the user placed since a moment (the hourly hold throttle).
 	CountUserHoldsSince(ctx context.Context, arg CountUserHoldsSinceParams) (int64, error)
 	// The user's active bookings (confirmed and not ended, or held and not lapsed); doctor_id 0 = every doctor.
@@ -78,6 +83,8 @@ type Querier interface {
 	InsertRule(ctx context.Context, arg InsertRuleParams) error
 	InsertTimeOff(ctx context.Context, arg InsertTimeOffParams) (int64, error)
 	ListActiveVisitTypesByDoctors(ctx context.Context, doctorIds []uint64) ([]TelemedVisitType, error)
+	// Newest first. The patient's mobile is returned so the handler can mask it; no notes, reasons or health data.
+	ListAdminBookings(ctx context.Context, arg ListAdminBookingsParams) ([]ListAdminBookingsRow, error)
 	ListAdminDoctors(ctx context.Context, arg ListAdminDoctorsParams) ([]TelemedDoctor, error)
 	ListAdminReviews(ctx context.Context, arg ListAdminReviewsParams) ([]TelemedReview, error)
 	ListBookingConsents(ctx context.Context, bookingID uint64) ([]TelemedBookingConsent, error)

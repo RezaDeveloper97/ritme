@@ -82,6 +82,48 @@ func (q *Queries) DeleteConversation(ctx context.Context, arg DeleteConversation
 	return result.RowsAffected()
 }
 
+const firstUserMessages = `-- name: FirstUserMessages :many
+SELECT m.id, m.conversation_id, m.body FROM ` + "`" + `assistant_messages` + "`" + ` m
+JOIN ` + "`" + `assistant_conversations` + "`" + ` c ON c.id = m.conversation_id
+WHERE c.user_id = ? AND (? = 0 OR c.id = ?) AND m.role = 'user'
+  AND m.id = (SELECT MIN(m2.id) FROM ` + "`" + `assistant_messages` + "`" + ` m2 WHERE m2.conversation_id = m.conversation_id AND m2.role = 'user')
+`
+
+type FirstUserMessagesParams struct {
+	UserID         uint64
+	ConversationID uint64
+}
+
+type FirstUserMessagesRow struct {
+	ID             uint64
+	ConversationID uint64
+	Body           string
+}
+
+// The first user turn of each of the user's conversations (the sealed source of the title).
+func (q *Queries) FirstUserMessages(ctx context.Context, arg FirstUserMessagesParams) ([]FirstUserMessagesRow, error) {
+	rows, err := q.db.QueryContext(ctx, firstUserMessages, arg.UserID, arg.ConversationID, arg.ConversationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FirstUserMessagesRow{}
+	for rows.Next() {
+		var i FirstUserMessagesRow
+		if err := rows.Scan(&i.ID, &i.ConversationID, &i.Body); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getActiveDepartmentByCode = `-- name: GetActiveDepartmentByCode :one
 SELECT id, code, icon, sort_order, is_active, name, tagline, intro, does_not_do, quick_replies, system_prompt, guardrails, needs_review, created_at, updated_at FROM ` + "`" + `assistant_departments` + "`" + ` WHERE code = ? AND is_active = 1 LIMIT 1
 `
@@ -543,6 +585,70 @@ func (q *Queries) ListSafetyTerms(ctx context.Context) ([]ListSafetyTermsRow, er
 	return items, nil
 }
 
+const listStaleAssistantPhotos = `-- name: ListStaleAssistantPhotos :many
+SELECT f.id FROM ` + "`" + `files` + "`" + ` f
+WHERE f.user_id = ? AND f.purpose = 'assistant_photo' AND f.created_at < ?
+  AND NOT EXISTS (SELECT 1 FROM ` + "`" + `assistant_messages` + "`" + ` m WHERE m.photo_file_id = f.id)
+LIMIT 50
+`
+
+type ListStaleAssistantPhotosParams struct {
+	UserID sql.NullInt64
+	Before sql.NullTime
+}
+
+// Uploaded photos never attached to a message and older than the cut-off (swept, B-N7-06b M4).
+func (q *Queries) ListStaleAssistantPhotos(ctx context.Context, arg ListStaleAssistantPhotosParams) ([]uint64, error) {
+	rows, err := q.db.QueryContext(ctx, listStaleAssistantPhotos, arg.UserID, arg.Before)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uint64{}
+	for rows.Next() {
+		var id uint64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUserAssistantPhotos = `-- name: ListUserAssistantPhotos :many
+SELECT id FROM ` + "`" + `files` + "`" + ` WHERE user_id = ? AND purpose = 'assistant_photo'
+`
+
+// Every assistant photo file of the user, attached or not (delete-all, B-N7-06b M4).
+func (q *Queries) ListUserAssistantPhotos(ctx context.Context, userID sql.NullInt64) ([]uint64, error) {
+	rows, err := q.db.QueryContext(ctx, listUserAssistantPhotos, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uint64{}
+	for rows.Next() {
+		var id uint64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUserPhotoIDs = `-- name: ListUserPhotoIDs :many
 SELECT m.photo_file_id FROM ` + "`" + `assistant_messages` + "`" + ` m
 JOIN ` + "`" + `assistant_conversations` + "`" + ` c ON c.id = m.conversation_id
@@ -603,9 +709,24 @@ func (q *Queries) SaveSummary(ctx context.Context, arg SaveSummaryParams) error 
 	return err
 }
 
+const setMessageBody = `-- name: SetMessageBody :exec
+UPDATE ` + "`" + `assistant_messages` + "`" + ` SET body = ? WHERE id = ?
+`
+
+type SetMessageBodyParams struct {
+	Body string
+	ID   uint64
+}
+
+// B-N7-06b: the body is sealed with the row id in its additional data, so it is written right after the insert (same tx).
+func (q *Queries) SetMessageBody(ctx context.Context, arg SetMessageBodyParams) error {
+	_, err := q.db.ExecContext(ctx, setMessageBody, arg.Body, arg.ID)
+	return err
+}
+
 const touchConversation = `-- name: TouchConversation :exec
 UPDATE ` + "`" + `assistant_conversations` + "`" + `
-SET title = COALESCE(title, ?),
+SET title = NULL, -- B-N7-06b: the title is derived from the sealed first message; a legacy plaintext title is cleared
     triage_level = COALESCE(?, triage_level),
     emergency = emergency OR ?,
     message_count = message_count + ?,
@@ -614,7 +735,6 @@ WHERE id = ? AND user_id = ?
 `
 
 type TouchConversationParams struct {
-	Title       sql.NullString
 	TriageLevel sql.NullString
 	Emergency   bool
 	Added       uint32
@@ -625,7 +745,6 @@ type TouchConversationParams struct {
 
 func (q *Queries) TouchConversation(ctx context.Context, arg TouchConversationParams) error {
 	_, err := q.db.ExecContext(ctx, touchConversation,
-		arg.Title,
 		arg.TriageLevel,
 		arg.Emergency,
 		arg.Added,
