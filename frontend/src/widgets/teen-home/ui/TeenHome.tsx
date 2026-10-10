@@ -35,8 +35,9 @@ import { signsCard } from '../model/signs';
  */
 /**
  * `modeChip` (CB-NAV-03): the Today header mode chip, composed in by screens/home (a widget can't import a widget).
+ * `today` (CB-NAV-04b): «برای امروز» + «دسترسی سریع», composed in the same way, under the signs card.
  */
-export function TeenHome({ modeChip }: { modeChip?: ReactNode } = {}) {
+export function TeenHome({ modeChip, today }: { modeChip?: ReactNode; today?: ReactNode } = {}) {
   const t = useTranslations('teen.home');
   const router = useRouter();
   const query = useTeenToday();
@@ -68,7 +69,7 @@ export function TeenHome({ modeChip }: { modeChip?: ReactNode } = {}) {
       />
     );
   } else {
-    body = <TeenBody data={query.data} />;
+    body = <TeenBody data={query.data} today={today} />;
   }
 
   return (
@@ -102,11 +103,12 @@ function TeenHeader({ modeChip }: { modeChip?: ReactNode }) {
   );
 }
 
-function TeenBody({ data }: { data: TeenToday }) {
+function TeenBody({ data, today }: { data: TeenToday; today?: ReactNode }) {
   const t = useTranslations('teen.home');
   return (
     <>
       <SignsCardView data={data} />
+      {today}
       <KitCard kit={data.kit} />
       {data.faq.length ? (
         <section className="tnh-sec" aria-labelledby="tnh-faq">

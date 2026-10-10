@@ -1300,7 +1300,16 @@ export function HomePage() {
       <div className="view">
         <div className="home-grad home-grad-fill" />
         <div className="scroll page-scroll">
-          <TeenHome modeChip={<ModeChip className="is-stacked" />} />
+          <TeenHome
+            modeChip={<ModeChip className="is-stacked" />}
+            // CB-NAV-04b: same Today sections as every home; the doctor/labs tiles need a parent link (no shop/ads).
+            today={
+              <>
+                <ForToday reminders={<TodayRemindersCard />} />
+                <QuickAccess />
+              </>
+            }
+          />
           <div className="page-tail" />
         </div>
         <BottomNav />

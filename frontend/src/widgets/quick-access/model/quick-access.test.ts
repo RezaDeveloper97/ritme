@@ -21,8 +21,15 @@ describe('quick access shortcuts (CB-NAV-03)', () => {
   it('never offers a shortcut whose screen has not shipped', () => {
     for (const mode of ['cycle', 'ttc', 'ivf', 'pregnancy', 'postpartum', 'menopause', 'teen'] as const) {
       expect(availableShortcuts(mode).every((s) => s.href && s.href.startsWith('/'))).toBe(true);
-      expect(ids(availableShortcuts(mode))).not.toContain('doctor');
     }
+  });
+
+  it('offers the doctor directory, and hides it from a teen without a parent link (CB-NAV-04b)', () => {
+    expect(availableShortcuts('cycle').find((s) => s.id === 'doctor')?.href).toBe('/services/doctors');
+    expect(ids(availableShortcuts('teen'))).not.toContain('doctor');
+    expect(ids(availableShortcuts('teen', true))).toContain('doctor');
+    expect(ids(visibleShortcuts('teen', ['doctor', 'search']))).toEqual(['search']);
+    expect(ids(visibleShortcuts('teen', null, true))).toContain('doctor');
   });
 
   it('keeps mode-only shortcuts in their mode, and doctor/labs out of teen', () => {
@@ -30,11 +37,12 @@ describe('quick access shortcuts (CB-NAV-03)', () => {
     expect(ids(availableShortcuts('cycle'))).not.toContain('hotFlash');
     expect(ids(availableShortcuts('ivf'))).toContain('ivfMeds');
     expect(ids(availableShortcuts('teen'))).not.toContain('labs');
+    expect(ids(availableShortcuts('teen', true))).toContain('labs');
     expect(ids(availableShortcuts('teen'))).not.toContain('contraception');
   });
 
   it('defaults to four of the board picks the app can open', () => {
-    expect(ids(visibleShortcuts('cycle', null))).toEqual(['record', 'painDiary', 'courses', 'checkups']);
+    expect(ids(visibleShortcuts('cycle', null))).toEqual(['record', 'doctor', 'painDiary', 'courses']);
     expect(ids(visibleShortcuts('menopause', null))[0]).toBe('hotFlash');
   });
 

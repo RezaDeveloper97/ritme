@@ -16,20 +16,22 @@ export interface Shortcut {
   icon: IconName;
   tone: Tone;
   modes?: readonly QuickMode[];
+  /** Teen only with an active parent link (IA_Nav «نوجوان»: doctor & labs ride on the mother; CB-NAV-04b). */
+  teenNeedsParent?: boolean;
 }
 
 const ADULT: readonly QuickMode[] = ['cycle', 'ttc', 'ivf', 'pregnancy', 'postpartum', 'menopause'];
 
 export const SHORTCUTS: readonly Shortcut[] = [
   { id: 'record', href: '/record', icon: 'fileDoc', tone: 'brand' },
-  // IA_Nav «نوجوان»: doctor & labs only with a parent — the teen home has no quick access, and the list is adult-only.
-  { id: 'doctor', href: null, icon: 'stetho', tone: 'data', modes: ADULT },
+  // IA_Nav «نوجوان»: doctor & labs only with a parent link (CB-NAV-04b) — hidden from a teen without one.
+  { id: 'doctor', href: '/services/doctors', icon: 'stetho', tone: 'data', modes: [...ADULT, 'teen'], teenNeedsParent: true },
   { id: 'painDiary', href: '/programs/pain', icon: 'flame', tone: 'period', modes: ['cycle', 'ttc', 'postpartum', 'menopause'] },
   { id: 'courses', href: '/learn', icon: 'gradCap', tone: 'warm' },
   { id: 'checkups', href: '/checkups', icon: 'clock', tone: 'data' },
   { id: 'reminders', href: '/reminders', icon: 'bellRing', tone: 'brand' },
   { id: 'vitals', href: '/vitals', icon: 'heartLine', tone: 'period' },
-  { id: 'labs', href: '/labs', icon: 'flask', tone: 'period', modes: ADULT },
+  { id: 'labs', href: '/labs', icon: 'flask', tone: 'period', modes: [...ADULT, 'teen'], teenNeedsParent: true },
   { id: 'analysis', href: '/analysis', icon: 'chart', tone: 'data' },
   { id: 'todo', href: '/todo', icon: 'todo', tone: 'brand' },
   { id: 'contraception', href: '/contraception', icon: 'pill', tone: 'brand', modes: ['cycle', 'postpartum', 'menopause'] },
@@ -51,23 +53,28 @@ const DEFAULTS: Record<QuickMode, readonly string[]> = {
   pregnancy: ['kicks', 'record', 'doctor', 'courses', 'checkups', 'reminders'],
   postpartum: ['children', 'record', 'doctor', 'courses', 'checkups', 'reminders'],
   menopause: ['hotFlash', 'record', 'doctor', 'painDiary', 'checkups', 'reminders'],
-  teen: ['reminders', 'analysis', 'search'],
+  teen: ['reminders', 'doctor', 'analysis', 'search'],
 };
 
 /** How many defaults show (the board's single row of four + «ویرایش»). */
 const DEFAULT_COUNT = 4;
 
 /** Shortcuts that can be offered in `mode` (screen shipped + mode allowed), in catalogue order. */
-export function availableShortcuts(mode: QuickMode): Shortcut[] {
-  return SHORTCUTS.filter((s) => s.href !== null && (!s.modes || s.modes.includes(mode)));
+export function availableShortcuts(mode: QuickMode, parentLinked = false): Shortcut[] {
+  return SHORTCUTS.filter(
+    (s) =>
+      s.href !== null &&
+      (!s.modes || s.modes.includes(mode)) &&
+      !(mode === 'teen' && s.teenNeedsParent && !parentLinked),
+  );
 }
 
 /**
  * What the Today row shows: the stored picks that are still available in `mode` (in the stored order),
  * else the mode's defaults. An empty stored list is a choice (show only «ویرایش»); `null` = never edited.
  */
-export function visibleShortcuts(mode: QuickMode, stored: readonly string[] | null): Shortcut[] {
-  const available = new Map(availableShortcuts(mode).map((s) => [s.id, s]));
+export function visibleShortcuts(mode: QuickMode, stored: readonly string[] | null, parentLinked = false): Shortcut[] {
+  const available = new Map(availableShortcuts(mode, parentLinked).map((s) => [s.id, s]));
   const pick = (ids: readonly string[]) =>
     ids.map((id) => available.get(id)).filter((s): s is Shortcut => Boolean(s));
   if (stored !== null) {

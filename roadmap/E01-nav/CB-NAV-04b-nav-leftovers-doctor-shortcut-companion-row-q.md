@@ -3,7 +3,7 @@ id: CB-NAV-04b
 title: NAV leftovers: doctor shortcut, companion row, quick-access server storage
 epic: NAV
 type: frontend
-status: todo
+status: done
 depends_on: [CB-NAV-04]
 parallel_group: NAV-D
 touches: [frontend/src/widgets/quick-access,frontend/src/widgets/for-today]

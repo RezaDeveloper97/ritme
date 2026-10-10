@@ -497,3 +497,8 @@ TODO (ask user):
 - Fix: quick-access «دفترچه درد» → `/programs/pain`, «دوره‌ها» → `/learn` (screens exist now; test updated).
 - Follow-up CB-NAV-04b: doctor shortcut (no route yet), companion suggestion row (no API), quick-access server storage (user decision), «برای امروز» / «دسترسی سریع» missing on the teen home.
 - Verify (agent): typecheck, eslint, steiger, styles, dark, build; widgets vitest 98 (re-run on stage).
+
+## CB-NAV-04b — NAV leftovers
+- Teen home: «برای امروز» + «دسترسی سریع» under the signs card (TeenHome optional `today` slot filled from HomePage; no shop/ads). «پزشک» shortcut → `/services/doctors` (bloom's doctor directory), in adult defaults; for teens doctor/labs tiles only with an active parent link (home row + edit sheet; parentLinks from useTeenToday). Scopes: `teen` added to layout/pregnancy/postpartum/postpartumSetup/ivf.
+- Shots (teen with/without parent link, home + edit sheet) in docs/qa/canvas/nav/CB-NAV-04b/. Verify (agent): typecheck, lint, fsd, styles, dark, vitest; build skipped. On stage: tsc, vitest 300, steiger. A stray `.next-nav04b/trace` from the agent commit was kept out of the repo.
+- Open (user decision / no API): companion suggestion row; quick-access server storage.

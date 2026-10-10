@@ -109,3 +109,15 @@ route). No open ✘.
 
 Follow-up [CB-NAV-04b](../../../roadmap/E01-nav/CB-NAV-04b-nav-leftovers-doctor-shortcut-companion-row-q.md): doctor shortcut,
 companion suggestion row (no owner API), quick-access server storage (user decision, README §8 Q3), and mounting «برای امروز» / «دسترسی سریع» on the teen home.
+
+## CB-NAV-04b
+
+Shots in `nav/CB-NAV-04b/` (390 wide, fa, RTL). Teen with a parent link = user 1007, without = 1005.
+
+| Board | Route | Light | Dark | Verdict | Fix |
+|---|---|---|---|---|---|
+| `nbd_Nav_Today` (teen) | `/home` | [parent](nav/CB-NAV-04b/teen-home-parent.light.png) · [no parent](nav/CB-NAV-04b/teen-home-no-parent.light.png) | [parent](nav/CB-NAV-04b/teen-home-parent.dark.png) · [no parent](nav/CB-NAV-04b/teen-home-no-parent.dark.png) | ✔ | «برای امروز» + «دسترسی سریع» under the signs card (`TeenHome` `today` slot, composed by screens/home). No shop/ads. «پزشک» tile only with an active parent link. |
+| quick-access edit sheet (teen) | `/home?sheet=quick-access` | [parent](nav/CB-NAV-04b/teen-quick-edit-parent.light.png) · [no parent](nav/CB-NAV-04b/teen-quick-edit-no-parent.light.png) | [parent](nav/CB-NAV-04b/teen-quick-edit-parent.dark.png) · [no parent](nav/CB-NAV-04b/teen-quick-edit-no-parent.dark.png) | ✔ | Doctor (and labs) offered only with a parent link. |
+
+- Doctor shortcut now `href: '/services/doctors'` (B-N7 directory); also a default for adult modes. Teen: doctor + labs need `parentLinked` (`/teen/today` `parentLinks` with status active).
+- Dropped/open: companion suggestion row (no owner API) and server-side quick-access storage (user decision) stay open.
