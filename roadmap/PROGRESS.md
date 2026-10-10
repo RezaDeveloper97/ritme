@@ -487,3 +487,7 @@ TODO (ask user):
 - Real-API journey (user enrolled in endo, PMDD, heavy bleeding; 3 days each: pain 5/6/7, PBAC 26/32/83; two backfilled cycles → PMDD chart `complete_cycles` 2, pattern luteal — redoes CB-COND-04's mock shots). 11 shots light + dark in docs/qa/canvas/cond/CB-COND-07/; `## CB-COND-07 — epic QA` all ✔ (Hub, Endo, PMDD, Bleed), no code drift.
 - Nudges fire only for users not enrolled in that program (by design); bloom's home has no condition-nudge slot → follow-up CB-COND-07b (home nudge card).
 - Verify (agent): full frontend chain + build (1726 tests). Docs-only commit.
+
+## CB-COND-07b — Home condition nudge card
+- Hub nudge card extracted to `entities/condition/ui/ConditionNudgeCard.tsx` (hub unchanged); `HomeConditionNudge` on bloom's home (one commented additive line after QuickAccess, not for teens) shows only when `/messages/nudges` has a hit; pure `homeNudges()` drops programs she's enrolled in (+ test). Scopes: `conditions` added to home + services. No new keys.
+- Shots fa/en light/dark + enrolled state in docs/qa/canvas/cond/CB-COND-07b/. Verify (agent): full chain + build (1762 tests); on stage: vitest subset, steiger.

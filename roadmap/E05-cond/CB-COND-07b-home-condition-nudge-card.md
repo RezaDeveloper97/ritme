@@ -3,7 +3,7 @@ id: CB-COND-07b
 title: Home condition nudge card
 epic: COND
 type: frontend
-status: todo
+status: done
 depends_on: [CB-COND-07]
 parallel_group: COND-E
 touches: [frontend/src/screens/home,frontend/src/entities/condition]

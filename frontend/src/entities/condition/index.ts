@@ -79,3 +79,8 @@ export {
   usePmddItems,
   useSavePmddDay,
 } from './api/pmdd';
+
+// CB-COND-07b — soft nudge card (hub + cycle home).
+export { homeNudges } from './model/home-nudges';
+export { ConditionNudgeCard } from './ui/ConditionNudgeCard';
+export { HomeConditionNudge } from './ui/HomeConditionNudge';

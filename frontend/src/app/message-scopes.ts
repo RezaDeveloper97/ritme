@@ -51,7 +51,7 @@ const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly Mes
 
 /** Per route: the namespaces its screen (and everything it imports) uses. */
 export const ROUTE_NAMESPACES = {
-  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'fertility', 'home', 'log', 'logPeriod', 'loss', 'menopause', 'nav', 'plus', 'profileEdit', 'search', 'teen', 'todo', 'learn'], // B-N8-03 widgets/learn-home-card; CB-NAV-03 «برای امروز» to-do row (entities/todo barrel); B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
+  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'conditions', 'fertility', 'home', 'log', 'logPeriod', 'loss', 'menopause', 'nav', 'plus', 'profileEdit', 'search', 'teen', 'todo', 'learn'], // B-N8-03 widgets/learn-home-card; CB-NAV-03 «برای امروز» to-do row (entities/todo barrel); B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav'],
   log: ['children', 'common', 'logSheet', 'nav', 'plus', 'voiceLog'], // CB-NAV-03: children = widgets/log-later via screens/log; // B-N3-03: /log renders the log sheet v2 as a page
   logCustomize: ['common', 'logCustomize', 'logSheet', 'plus'], // B-N3-04 /log/customize (the log sheet's gear; categoryLook comes via features/log-day)
@@ -95,7 +95,7 @@ export const ROUTE_NAMESPACES = {
   contraceptionMissed: ['common', 'contraception'], // CB-CONTRA-03 /contraception/missed
   contraceptionOther: ['common', 'contraception'], // CB-CONTRA-03 /contraception/other
   uiKit: ['common'], // dev-only /dev/ui-kit showcase (B-N1-03)
-  services: ['common', 'nav', 'services'], // «خدمات» tab (B-N1-04, hub B-N7-01)
+  services: ['common', 'conditions', 'nav', 'services'], // «خدمات» tab (B-N1-04, hub B-N7-01); CB-COND-07b: entities/condition barrel ships the nudge card
   programs: ['common', 'conditions', 'nav'], // CB-COND-02 /programs (nbl_Cond_Hub, services hub, bottom nav)
   pelvic: ['common', 'nav', 'pelvic'], // CB-PELV-02 /programs/pelvic (nbl_Pelvic_Plan, bottom nav) + /kegel below
   pelvicKegel: ['common', 'pelvic'], // CB-PELV-02 /programs/pelvic/kegel (nbl_Pelvic_Kegel, full-screen flow, no nav)

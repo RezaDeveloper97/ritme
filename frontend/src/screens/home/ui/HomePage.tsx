@@ -30,6 +30,7 @@ import {
   type CycleSchedule,
 } from '@/entities/cycle';
 import { useFertilityToday } from '@/entities/fertility';
+import { HomeConditionNudge } from '@/entities/condition';
 import { LossCareReturn } from '@/entities/loss';
 import { useDailyMessage, useUserMode, type DailyMessage } from '@/entities/message';
 import {
@@ -1149,6 +1150,8 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
                 then the user-picked «دسترسی سریع». */}
             <ForToday reminders={<TodayRemindersCard />} />
             <QuickAccess />
+            {/* CB-COND-07b: soft condition suggestion (heavy pain / flow) — nothing unless /messages/nudges hits. */}
+            {!teen && <HomeConditionNudge />}
             {/* B-N8-03 (Option A): «ادامه یادگیری» / «جدید · از مدرس» — nothing without a course. */}
             {!teen && <LearnHomeCard />}
             {/* «ثبت امروز» + streak (nbl_Cycle_Home). The TTC home logs through its tiles. */}

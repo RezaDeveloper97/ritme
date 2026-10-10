@@ -84,3 +84,12 @@ Bloom's home has **no** condition-nudge slot (its only nudge is the profile-vs-r
 `HomePage.tsx`, shown in [home](cond/CB-COND-07/fa_home.nonudge.light.png) for a user with heavy flow: nothing about
 bleeding). So the condition nudge is visible only on `/programs`. Follow-up task **CB-COND-07b** (home condition nudge
 card) is queued in `roadmap/E05-cond/`.
+
+## CB-COND-07b
+
+Worktree Go API :8401 + Next dev :3133 against `cond07b_dev` (copy of the CB-COND-07 DB). User **`09120002308`** (not
+enrolled, heavy flow on 3 days this cycle, so `GET /messages/nudges` returns `heavy_bleeding`). 390 px.
+
+| Board | Route | Light | Dark | Verdict | Fix / note |
+|---|---|---|---|---|---|
+| `nbl_Cond_Hub` (nudge card) | `/home` (cycle mode) | [fa](cond/CB-COND-07b/fa_home.light.png) · [en](cond/CB-COND-07b/en_home.light.png) · [enrolled: card gone](cond/CB-COND-07b/fa_home.enrolled.light.png) | [fa](cond/CB-COND-07b/fa_home.dark.png) · [en](cond/CB-COND-07b/en_home.dark.png) | ✔ | Same card as the hub (`ConditionNudgeCard`, now in `entities/condition/ui`), placed right under «دسترسی سریع», hidden for teens. Shown only when `/messages/nudges` has a hit; the action link opens `/programs/bleeding`. After enrolling (POST `/conditions/enrolments`) the nudge list is empty and the card is gone (`homeNudges` also drops hits for enrolled programs). Unit test `home-nudges.test.ts`. No new message keys (reuses `conditions.nudge`); `conditions` added to the `home` and `services` scopes. |
