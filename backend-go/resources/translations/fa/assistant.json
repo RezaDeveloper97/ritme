@@ -135,7 +135,31 @@
     "confirmYes": "بله، حذف کن",
     "deleteAll": "حذف همهٔ گفت‌وگوها",
     "profile": "پروفایل سلامتی که دستیار می‌بیند",
-    "editData": "ویرایش و کنترل داده‌ها"
+    "editData": "ویرایش و کنترل داده‌ها",
+    "tabs": {
+      "all": "همه",
+      "assistant": "دستیار",
+      "doctor": "پزشک"
+    },
+    "tabsLabel": "فیلتر سابقه",
+    "subtitle2": "گفت‌وگوها و ویزیت‌ها",
+    "visit": "ویزیت",
+    "emptyTab": "موردی نیست",
+    "exportPdf": "خروجی PDF برای پزشک",
+    "exporting": "در حال ساخت PDF…",
+    "exportError": "ساخت PDF انجام نشد. دوباره تلاش کن.",
+    "pdfNote": "فقط فهرست؛ متن پیام‌ها در PDF نیست و فایل روی همین دستگاه ساخته می‌شود.",
+    "pdf": {
+      "title": "سابقه سلامت من",
+      "subtitle": "{count} مورد · {date}",
+      "filename": "ritme-health-history.pdf",
+      "footer": "ریتمی · صفحه {page} از {pages}",
+      "kind": {
+        "assistant": "دستیار",
+        "visit": "ویزیت"
+      },
+      "notice": "این فهرست فقط عنوان و تاریخ را دارد؛ متن گفت‌وگوها در آن نیست."
+    }
   },
   "profile": {
     "title": "پروفایل سلامت",

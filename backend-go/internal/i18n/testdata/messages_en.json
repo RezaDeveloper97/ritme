@@ -1062,7 +1062,31 @@
     "confirmYes": "Yes, delete",
     "deleteAll": "Delete all chats",
     "profile": "The health profile the assistant sees",
-    "editData": "Edit and control data"
+    "editData": "Edit and control data",
+    "tabs": {
+     "all": "All",
+     "assistant": "Assistant",
+     "doctor": "Doctor"
+    },
+    "tabsLabel": "History filter",
+    "subtitle2": "Chats and visits",
+    "visit": "Visit",
+    "emptyTab": "Nothing here",
+    "exportPdf": "PDF for my doctor",
+    "exporting": "Building the PDF…",
+    "exportError": "Could not build the PDF. Try again.",
+    "pdfNote": "List only; message text is not in the PDF and the file is built on this device.",
+    "pdf": {
+     "title": "My health history",
+     "subtitle": "{count} items · {date}",
+     "filename": "ritme-health-history.pdf",
+     "footer": "Ritme · page {page} of {pages}",
+     "kind": {
+      "assistant": "Assistant",
+      "visit": "Visit"
+     },
+     "notice": "This list has titles and dates only; chat text is not included."
+    }
    },
    "profile": {
     "title": "Health profile",

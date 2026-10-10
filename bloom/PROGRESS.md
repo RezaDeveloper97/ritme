@@ -1300,3 +1300,10 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `docs/night-bloom/audit-n7.md`: 0 high, 3 med (doctor chat bubble sides + header order fixed; assistant history
   tabs/timeline/PDF → **B-N7-07b**), 13 low open. Env before release: admin sets `services_care` meta.href for
   assistant / doctors; `telemed_specialties` titles. app-lock passcode test timeout 30 s. Shots `docs/qa/bloom/B-N7-09/`.
+
+## B-N7-07b — Assistant history: tabs, combined timeline, PDF
+
+- Client-side feed from assistant conversations + telemed bookings (`scope=all`; expired/failed/held dropped), tabs
+  همه / دستیار / پزشک, visit rows link to `/services/bookings/:id`, on-device PDF export (titles, department/doctor,
+  date, status/triage only — never message bodies or summaries, stated in the PDF). No backend change. Shots (mock)
+  `docs/qa/bloom/B-N7-07b/`.

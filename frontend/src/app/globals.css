@@ -12373,3 +12373,7 @@ a.nb-card.cnd-card { color: inherit; text-decoration: none; }
 [dir="rtl"] .as-attached { padding: 4px 12px 4px 4px; }
 .as-x { display: inline-flex; align-items: center; justify-content: center; inline-size: 44px; block-size: 44px; margin-block: -10px; border: 0; background: none; color: inherit; cursor: pointer; }
 /* ═══ end B-N7-07 ═══ */
+
+/* B-N7-07b — assistant history: PDF export block */
+.as-pdf { display: flex; flex-direction: column; gap: 8px; }
+.as-icon-gap { inline-size: 44px; flex-shrink: 0; }

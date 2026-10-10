@@ -3,7 +3,7 @@ id: B-N7-07b
 title: Assistant history — tabs all/assistant/doctor, combined timeline with visits, PDF export
 milestone: N7
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N7-07,B-N7-05]
 parallel_group: N7-G2
 touches: [frontend/src/screens/assistant-history,frontend/src/entities/assistant,backend-go/internal/assistant]
