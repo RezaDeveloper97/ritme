@@ -452,3 +452,8 @@ TODO (ask user):
 - New `pelvic` namespace (+ Go copy, goldens, bundled, global.d.ts), `conditions.pelvicCard`, scopes pelvic/pelvicKegel, steiger override, CSS block CB-PELV-02.
 - Verify (agent on 7384808b): full chain + build (1649 tests), i18n; on stage: tsc, vitest 196, lint:styles, steiger, i18n.
 - Open: Kegel screenshots pending (Docker hung) → CB-PELV-03; copy needs clinical review; en week dots on Saturday include days outside the API week.
+
+## CB-COND-05 — Frontend: heavy bleeding (PBAC)
+- `/programs/bleeding` (screens/condition-bleeding, nbl_Cond_Bleed): three pad rows (picture, label, points, 0–50 stepper), clot chips, leak-through switch, live today / period score tiles, ≥100 warning card (server `pbac_over_100` copy or local text while editing), sticky save (enabled on change → back to /programs), join card when not enrolled; `clots` sent only when changed. `entities/condition` model/api pbac (+ tests). Key `conditions.bleeding` (+ Go copy, goldens), scope programsBleeding, CSS block CB-COND-05.
+- Verify (agent on 7384808b): full chain + build (1640 tests), i18n; on stage: tsc, vitest 178, lint:styles, steiger, i18n.
+- Open: board shows «small clot» with total 71 (inconsistent; seed uses none); copy needs clinical review.

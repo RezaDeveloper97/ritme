@@ -3,7 +3,7 @@ id: CB-COND-05
 title: Frontend: heavy bleeding (PBAC) chart
 epic: COND
 type: frontend
-status: todo
+status: done
 depends_on: [CB-COND-02]
 parallel_group: COND-C
 touches: [frontend/src/screens/pbac, frontend/src/app/[locale]/programs/bleeding]

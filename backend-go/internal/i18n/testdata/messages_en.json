@@ -2487,6 +2487,51 @@
     "sub": "8-week Kegel program",
     "logs": "daily exercise, leaks and night waking",
     "openLabel": "{title}, open the program"
+   },
+   "bleeding": {
+    "title": "Bleeding chart",
+    "back": "Back to programs",
+    "periodDay": "Period day {day}",
+    "today": "Today",
+    "loading": "Loading the bleeding chart",
+    "loadError": "The bleeding chart didn't load.",
+    "retry": "Try again",
+    "pads": {
+     "title": "Today's pads",
+     "hint": "Log each pad after changing it, by how soaked it was"
+    },
+    "levels": {
+     "light": "Lightly soaked",
+     "medium": "Half soaked",
+     "heavy": "Fully soaked"
+    },
+    "points": "{count, plural, one {{points} point} other {{points} points}} each",
+    "decrement": "One fewer: {label}",
+    "increment": "One more: {label}",
+    "clots": {
+     "title": "Clots",
+     "none": "None",
+     "small": "Small (coin-sized)",
+     "large": "Large"
+    },
+    "flooding": "Leaked through to clothes",
+    "scores": {
+     "label": "Bleeding score",
+     "today": "Today's score",
+     "period": "This period's score"
+    },
+    "alert": {
+     "title": "This period's score is over {threshold}",
+     "body": "This usually means heavy bleeding. Tell your doctor and ask about an anaemia test (haemoglobin and ferritin)."
+    },
+    "save": "Save",
+    "saveError": "Couldn't save. Try again.",
+    "join": {
+     "title": "Heavy bleeding program",
+     "body": "To log the bleeding chart, start this program first. Your data is only for you and your doctor's report.",
+     "action": "Start the program",
+     "error": "Couldn't start the program. Try again."
+    }
    }
   },
   "contraception": {

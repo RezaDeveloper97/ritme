@@ -29,3 +29,21 @@ export {
   useEnrolCondition,
   useLeaveCondition,
 } from './api/queries';
+
+// CB-COND-05 — heavy-bleeding (PBAC) chart.
+export {
+  PBAC_CLOT_POINTS,
+  PBAC_CLOTS,
+  PBAC_FLOODING_POINTS,
+  PBAC_LEVEL_POINTS,
+  PBAC_LEVELS,
+  PBAC_MAX_PADS,
+  pbacScore,
+  type PbacAlert,
+  type PbacClots,
+  type PbacDay,
+  type PbacEntry,
+  type PbacLevel,
+  type PbacPeriod,
+} from './model/pbac';
+export { pbacDaySchema, pbacKeys, usePbacDay, useSavePbacDay } from './api/pbac';
