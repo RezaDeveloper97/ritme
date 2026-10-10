@@ -1157,3 +1157,17 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `httpx.PageParam` clamps to 1 000 000. L8 `media.Optimizer.Strict` → 422 instead of storing an un-re-encoded photo
   (telemed doctor photos). Instructor gate allow-list (approved only). Joint commit also carries B-N7-03 / B-N8-02b
   OpenAPI + dump + D-80/D-81 text and B-N8-06's instructor dashboard endpoint.
+
+## B-N8-03 — Learning screens (user)
+
+- Shared files in 7f0e8021 (learn namespace, icons, styles, goldens); screens here. `entities/course` (zod, hooks:
+  courses / course / lesson / playback / progress / unlocked), `widgets/learn-home-card` on Home after QuickAccess
+  (continue | «جدید · از مدرس» = untouched course opened in the last 14 days; hidden for teens / no courses),
+  `/learn` hub (continue, filters, by instructor, access days, expired dimmed), `/learn/[course]` (chapters, progress,
+  locked chapter note, expired banner, lessons/about/files tabs), `/learn/[course]/[lesson]` (native video with speed,
+  ±15 s, fullscreen, device-only notes, files, next, done; audio + `?audio=1` with sleep timer, transcript, Media
+  Session; PDF iframe + open in new tab; resume position, progress PUT every 15 s / pause / hide / leave, signed URL
+  re-minted on expiry; 403 expired/locked + 404 screens), `/learn/unlocked/[grant]`; «دوره‌های من» row in «من».
+- App screenshots not taken (Docker was down) — to be covered by the N8 audit (B-N8-09); artboards rendered in
+  `docs/qa/bloom/B-N8-03/artboards/`. Services `learning` section href still NULL → admin sets `/learn` in the
+  catalog. QUESTIONS #126.

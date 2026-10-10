@@ -3,7 +3,7 @@ id: B-N8-03
 title: Learning screens (user) — home card, my courses, course, players, unlocked
 milestone: N8
 type: frontend
-status: todo
+status: done
 depends_on: [B-N8-01,B-N8-02]
 parallel_group: N8-C
 touches: [frontend/src/screens/learn*,frontend/src/entities/course,frontend/src/widgets/learn-home-card]

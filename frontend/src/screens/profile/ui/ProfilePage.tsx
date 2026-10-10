@@ -46,7 +46,6 @@ const FAMILY_SOON: readonly SoonRow[] = [
   { key: 'children', icon: 'user', tone: 'bloom' }, // B-N5
 ];
 const TASK_ROWS: readonly SoonRow[] = [
-  { key: 'courses', icon: 'gradCap', tone: 'bloom' }, // B-N8-03
   { key: 'bookings', icon: 'calendar', tone: 'data' }, // B-N7
   { key: 'orders', icon: 'box', tone: 'brand' }, // B-N10
 ];
@@ -227,6 +226,8 @@ export function ProfilePage() {
             <ListGroup>
               {/* B-N6-08: «کارهای من» → /todo. */}
               <ListRow icon="todo" iconTone="brand" title={t('rows.todo')} onClick={() => router.push('/todo')} />
+              {/* B-N8-03: «دوره‌های من» → /learn. */}
+              <ListRow icon="gradCap" iconTone="bloom" title={t('rows.courses')} onClick={() => router.push('/learn')} />
               {TASK_ROWS.map((row) => (
                 <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
               ))}

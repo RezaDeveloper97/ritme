@@ -76,6 +76,7 @@ import { ForToday } from '@/widgets/for-today';
 import { ModeChip } from '@/widgets/mode-chip';
 import { QuickAccess } from '@/widgets/quick-access';
 import { CheckupsCard } from '@/widgets/checkups-card';
+import { LearnHomeCard } from '@/widgets/learn-home-card';
 import { LinkedTeenCards } from '@/widgets/linked-teen-card';
 import {
   FertilityChanceCard,
@@ -1148,6 +1149,8 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
                 then the user-picked «دسترسی سریع». */}
             <ForToday reminders={<TodayRemindersCard />} />
             <QuickAccess />
+            {/* B-N8-03 (Option A): «ادامه یادگیری» / «جدید · از مدرس» — nothing without a course. */}
+            {!teen && <LearnHomeCard />}
             {/* «ثبت امروز» + streak (nbl_Cycle_Home). The TTC home logs through its tiles. */}
             {!noPeriodData && !loadFailed && !isTtc && <TodayLogCard streakDays={overview?.streakDays ?? null} />}
             {!noPeriodData && !loadFailed && (
