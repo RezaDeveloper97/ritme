@@ -679,6 +679,22 @@ A doctor is listed publicly only while `is_active` and with at least one active 
 availability grid (a visit must end inside its window, start ≥ 30 min from now, within 60 days) minus time off and the
 booked intervals B-N7-03 reports through `telemed.Busy`.
 
+### 19b. Doctor console — chat, prescription, video (B-N7-04)
+
+For the admin account linked to a doctor by `telemed_doctors.admin_id` (any role; 403 `doctor_required` otherwise).
+Only that doctor's confirmed / completed bookings exist here (anything else 404). Message bodies are decrypted for the
+response only and never logged.
+
+| Method | Path | Role | Input | Output |
+|---|---|---|---|---|
+| GET | `/telemed/doctor/bookings` | A | — | `{items:[{id, reference, mode, status, starts_at, ends_at, for_whom, chat_open}]}` |
+| GET | `/telemed/doctor/bookings/{id}/messages` | A | `after_id?` | `{items:[message], chat:{open, closes_at}}` — marks the user's lines read |
+| POST | `/telemed/doctor/bookings/{id}/messages` | A | `body` (required, ≤2000) | 201 `{message}`; 409 `chat_closed` / `message_limit` |
+| GET | `/telemed/doctor/bookings/{id}/prescription` | A | — | `{items}` |
+| POST | `/telemed/doctor/bookings/{id}/prescription` | A | `drug`, `dose?`, `form` (care forms), `times[1–4]` H:i, `duration_days?` 1–365, `instructions?` | 201 `{item}`; 409 `prescription_limit` (10) |
+| DELETE | `/telemed/doctor/bookings/{id}/prescription/{item}` | A | — | `{id}` (a reminder the user made stays) |
+| GET | `/telemed/doctor/bookings/{id}/video` | A | — | `{video:{active, opens_at, closes_at, url}}` |
+
 ## 20. Instructors & courses moderation — «مدرسین و دوره‌ها» (B-N8-08)
 
 Package `internal/admin/learning`, routes `routes_admin_learning.go`, queries `db/queries/admin/learning.sql`, over the

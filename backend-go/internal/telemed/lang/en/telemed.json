@@ -17,12 +17,25 @@
         "booking_refunded": "This time was no longer free; your payment was refunded",
         "cancel_window_closed": "Free cancellation or rescheduling is only possible up to 2 hours before the visit",
         "consent_not_allowed": "Ritme data can only be shared for your own visit",
+        "too_many_bookings": "You have reached the limit of upcoming bookings",
+        "too_many_holds": "You have held too many times in the last hour; please try again later",
+        "reschedule_limit": "A booking can only be moved twice",
         "booking_held": "The time is held for you; complete the payment",
         "booking_confirmed": "Your visit is booked",
         "booking_cancelled": "Booking cancelled",
         "booking_rescheduled": "Booking moved",
         "consent_saved": "Data sharing saved",
-        "consent_revoked": "Data sharing with the doctor stopped"
+        "consent_revoked": "Data sharing with the doctor stopped",
+        "chat_unavailable": "Chat is unavailable right now; please try again later",
+        "chat_closed": "Messaging for this visit is closed",
+        "message_limit": "This visit has reached its message limit",
+        "message_sent": "Message sent",
+        "prescription_item_not_found": "Prescription item not found",
+        "prescription_already_added": "This medicine is already in your reminders",
+        "prescription_added": "Added to your medication reminders",
+        "not_video_visit": "This visit is not a video visit",
+        "video_unavailable": "The video link is unavailable right now",
+        "medication_limit": "You have reached the maximum number of medication reminders"
     },
     "appointment_titles": {
         "video": "Video visit",
@@ -40,7 +53,7 @@
         "from": "start date",
         "days": "days",
         "rating": "rating",
-        "body": "review",
+        "body": "message",
         "doctor_id": "doctor",
         "starts_at": "visit time",
         "for_whom": "patient",
@@ -54,6 +67,7 @@
         "assistant_summaries": "assistant conversations",
         "reference": "payment reference",
         "authority": "payment code",
-        "scope": "scope"
+        "scope": "scope",
+        "file_id": "attachment"
     }
 }

@@ -1,0 +1,80 @@
+# AI assistant clinic (/api/v1/assistant/*) — Go only (bloom B-N7-06, deviations.md D-83): there is no Laravel route, so
+# these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The fixture dump
+# carries the assistant_* tables with the six seeded departments and the safety terms (goose 00052 / Laravel
+# 2026_10_08_000052), added by hand. The SSE message route is covered by the internal/assistant integration tests
+# (streams are not JSON goldens). Fixture day 2026-09-23. Case format: backend-go/cmd/contract/cases.go.
+group: assistant
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: hub_anon
+    persona: anon
+    method: GET
+    path: /api/v1/assistant
+    status: 401
+  - name: hub
+    doc: nbl_v18_AssistantHub — six departments, free quota 5, no conversations yet
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/assistant
+    status: 200
+  - name: department
+    doc: nbl_v18_DeptIntro — skin & beauty intro, «what it doesn't do», starter chips
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/assistant/departments/skin_beauty
+    status: 200
+  - name: department_missing
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/assistant/departments/astrology
+    status: 404
+  - name: profile_update
+    doc: nbl_v18_Profile — share age + cycle (no assistant_profile consent yet), then an invalid key
+    locales: [fa, en]
+    steps:
+      - method: PUT
+        path: /api/v1/assistant/profile
+        body: {shared: [cycle, age]}
+        status: 200
+      - method: PUT
+        path: /api/v1/assistant/profile
+        body: {shared: [horoscope]}
+        status: 422
+  - name: conversation_flow
+    doc: start a gynecology conversation, read it, list it, handoff without a summary (409), delete
+    locales: [fa]
+    steps:
+      - method: POST
+        path: /api/v1/assistant/conversations
+        body: {department: gynecology}
+        status: 201
+        capture: {id: data.conversation.id}
+      - method: GET
+        path: "/api/v1/assistant/conversations/{{id}}"
+        status: 200
+      - method: GET
+        path: /api/v1/assistant/conversations?department=gynecology
+        status: 200
+      - method: POST
+        path: "/api/v1/assistant/conversations/{{id}}/handoff"
+        body: {booking_id: 1}
+        status: 409
+      - method: DELETE
+        path: "/api/v1/assistant/conversations/{{id}}"
+        status: 200
+      - method: GET
+        path: "/api/v1/assistant/conversations/{{id}}"
+        status: 404
+  - name: conversation_invalid
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/assistant/conversations
+    body: {}
+    status: 422
+  - name: conversation_missing
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/assistant/conversations/999999
+    status: 404

@@ -169,7 +169,14 @@ type Telemed struct {
 	HoldTTL             time.Duration // TELEMED_HOLD_MINUTES (default 10, 2–60): how long a picked slot is held for payment
 	CallbackURL         string        // TELEMED_CALLBACK_URL: the web app's booking return page (default {PLUS_CALLBACK_URL origin}/services/bookings/return; always on the payment allow-list)
 	PlusDiscountPercent int           // TELEMED_PLUS_DISCOUNT_PERCENT (default 20, 0–90): Plus «تخفیف ویزیت» on the visit price
+	VideoProvider       string        // TELEMED_VIDEO_PROVIDER none | fake (B-N7-04): unset → fake outside production, none in production; fake refused in production
 }
+
+// Video room providers accepted by TELEMED_VIDEO_PROVIDER (internal/telemed video.go implements them).
+const (
+	VideoProviderNone = "none" // no provider: the video link stays empty (503 video_unavailable)
+	VideoProviderFake = "fake" // a fake room URL for local / stage testing; never in production
+)
 
 // Payment provider ids accepted by PAYMENT_PROVIDER (internal/payments implements them).
 const (
@@ -535,6 +542,7 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			HoldTTL:             time.Duration(e.integer("TELEMED_HOLD_MINUTES", 10)) * time.Minute,
 			CallbackURL:         e.str("TELEMED_CALLBACK_URL", ""), // default: PLUS_CALLBACK_URL's origin (below)
 			PlusDiscountPercent: e.integer("TELEMED_PLUS_DISCOUNT_PERCENT", 20),
+			VideoProvider:       strings.ToLower(e.str("TELEMED_VIDEO_PROVIDER", "")),
 		},
 		StoragePath:   strings.TrimRight(e.required("STORAGE_PATH"), "/"),
 		RunMigrations: e.boolean("RUN_MIGRATIONS", false),
@@ -572,6 +580,20 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	}
 	if cfg.Telemed.HoldTTL < 2*time.Minute || cfg.Telemed.HoldTTL > time.Hour {
 		e.fail("TELEMED_HOLD_MINUTES: must be between 2 and 60")
+	}
+	switch cfg.Telemed.VideoProvider { // B-N7-04
+	case "":
+		cfg.Telemed.VideoProvider = VideoProviderFake
+		if cfg.App.IsProduction() {
+			cfg.Telemed.VideoProvider = VideoProviderNone
+		}
+	case VideoProviderNone:
+	case VideoProviderFake:
+		if cfg.App.IsProduction() {
+			e.fail("TELEMED_VIDEO_PROVIDER=fake is not allowed when APP_ENV=production")
+		}
+	default:
+		e.fail("TELEMED_VIDEO_PROVIDER: %q is not one of none, fake", cfg.Telemed.VideoProvider)
 	}
 	if cfg.Telemed.PlusDiscountPercent < 0 || cfg.Telemed.PlusDiscountPercent > 90 {
 		e.fail("TELEMED_PLUS_DISCOUNT_PERCENT: must be between 0 and 90")

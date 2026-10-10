@@ -1,0 +1,23 @@
+{
+  "case": "assistant/department_missing.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/assistant/departments/astrology",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "This department was not found.",
+        "error_code": "assistant_department_not_found"
+      }
+    }
+  ]
+}

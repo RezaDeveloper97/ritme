@@ -71,6 +71,84 @@ type Article struct {
 	UpdatedAt       sql.NullTime
 }
 
+type AssistantConversation struct {
+	ID                  uint64
+	UserID              uint64
+	DepartmentID        uint64
+	Title               sql.NullString
+	TriageLevel         sql.NullString
+	Emergency           bool
+	MessageCount        uint32
+	Summary             sql.NullString
+	SummaryAt           sql.NullTime
+	SummaryMessageCount uint32
+	LastMessageAt       sql.NullTime
+	CreatedAt           sql.NullTime
+	UpdatedAt           sql.NullTime
+}
+
+type AssistantDepartment struct {
+	ID           uint64
+	Code         string
+	Icon         sql.NullString
+	SortOrder    int32
+	IsActive     bool
+	Name         string
+	Tagline      sql.NullString
+	Intro        sql.NullString
+	DoesNotDo    sql.NullString
+	QuickReplies sql.NullString
+	SystemPrompt string
+	Guardrails   sql.NullString
+	NeedsReview  bool
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+}
+
+type AssistantHandoff struct {
+	ID             uint64
+	ConversationID uint64
+	UserID         uint64
+	BookingID      uint64
+	Summary        string
+	TriageLevel    sql.NullString
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+}
+
+type AssistantMessage struct {
+	ID             uint64
+	ConversationID uint64
+	Role           string
+	Body           string
+	PhotoFileID    sql.NullInt64
+	Card           sql.NullString
+	TriageLevel    sql.NullString
+	Guardrail      sql.NullString
+	Chips          sql.NullString
+	Status         string
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+}
+
+type AssistantProfileSetting struct {
+	ID        uint64
+	UserID    uint64
+	Shared    string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type AssistantSafetyTerm struct {
+	ID        uint64
+	Kind      string
+	Locale    string
+	Term      string
+	IsActive  bool
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
 type BabyDiaper struct {
 	ID        uint64
 	ChildID   uint64

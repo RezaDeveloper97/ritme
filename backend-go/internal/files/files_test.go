@@ -40,7 +40,7 @@ func pngBytes(t *testing.T) []byte {
 }
 
 func TestRegistry(t *testing.T) {
-	for _, name := range []string{PurposeRecordDocument, PurposeClaimDocument, PurposePlacePhoto, PurposePlaceLicence, PurposeProductImage} {
+	for _, name := range []string{PurposeRecordDocument, PurposeClaimDocument, PurposePlacePhoto, PurposePlaceLicence, PurposeProductImage, PurposeTelemedAttachment} {
 		p, ok := Lookup(name)
 		require.True(t, ok, name)
 		assert.Equal(t, "app/private/files/"+name, p.Dir())

@@ -1,0 +1,29 @@
+{
+  "case": "assistant/conversation_invalid.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/assistant/conversations",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {}
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "message": "فیلد department الزامی است.",
+        "errors": {
+          "department": [
+            "فیلد department الزامی است."
+          ]
+        }
+      }
+    }
+  ]
+}

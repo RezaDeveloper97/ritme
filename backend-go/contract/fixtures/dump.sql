@@ -123,6 +123,214 @@ INSERT INTO `articles` VALUES
 (6,'cycle-nutrition-basics','{\"fa\":\"\\u062a\\u063a\\u0630\\u06cc\\u0647 \\u0645\\u062a\\u0646\\u0627\\u0633\\u0628 \\u0628\\u0627 \\u0686\\u0631\\u062e\\u0647 \\u0642\\u0627\\u0639\\u062f\\u06af\\u06cc\",\"en\":\"Eating in sync with your cycle\"}','{\"fa\":\"\\u062f\\u0631 \\u0647\\u0631 \\u0641\\u0627\\u0632 \\u0686\\u0647 \\u0628\\u062e\\u0648\\u0631\\u06cc\\u0645 \\u062a\\u0627 \\u062d\\u0627\\u0644 \\u0628\\u0647\\u062a\\u0631\\u06cc \\u062f\\u0627\\u0634\\u062a\\u0647 \\u0628\\u0627\\u0634\\u06cc\\u0645\",\"en\":\"What to eat in each phase to feel your best\"}',NULL,NULL,'nutrition',6,NULL,NULL,1,'2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `articles` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `assistant_conversations`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `assistant_conversations` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `department_id` bigint(20) unsigned NOT NULL,
+  `title` varchar(120) DEFAULT NULL,
+  `triage_level` varchar(16) DEFAULT NULL,
+  `emergency` tinyint(1) NOT NULL DEFAULT 0,
+  `message_count` int(10) unsigned NOT NULL DEFAULT 0,
+  `summary` text DEFAULT NULL,
+  `summary_at` datetime DEFAULT NULL,
+  `summary_message_count` int(10) unsigned NOT NULL DEFAULT 0,
+  `last_message_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `assistant_conversations_department_id_foreign` (`department_id`),
+  KEY `assistant_conversations_user_id_last_message_at_index` (`user_id`,`last_message_at`),
+  CONSTRAINT `assistant_conversations_department_id_foreign` FOREIGN KEY (`department_id`) REFERENCES `assistant_departments` (`id`),
+  CONSTRAINT `assistant_conversations_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `assistant_conversations` WRITE;
+/*!40000 ALTER TABLE `assistant_conversations` DISABLE KEYS */;
+/*!40000 ALTER TABLE `assistant_conversations` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `assistant_departments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `assistant_departments` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(32) NOT NULL,
+  `icon` varchar(32) DEFAULT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `name` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`name`)),
+  `tagline` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`tagline`)),
+  `intro` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`intro`)),
+  `does_not_do` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`does_not_do`)),
+  `quick_replies` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`quick_replies`)),
+  `system_prompt` text NOT NULL,
+  `guardrails` text DEFAULT NULL,
+  `needs_review` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `assistant_departments_code_unique` (`code`),
+  KEY `assistant_departments_is_active_sort_order_index` (`is_active`,`sort_order`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `assistant_departments` WRITE;
+/*!40000 ALTER TABLE `assistant_departments` DISABLE KEYS */;
+INSERT INTO `assistant_departments` VALUES
+(1,'general','stethoscope',1,1,'{\"fa\":\"مشاور پزشکی عمومی\",\"en\":\"General health advisor\"}','{\"fa\":\"علائم، دارو، آزمایش\",\"en\":\"Symptoms, medicines, lab tests\"}','{\"fa\":\"راهنمایی کلی درباره علائم روزمره، داروهایی که مصرف می‌کنی و معنای ساده نتایج آزمایش. کمک می‌کند بفهمی چه زمانی باید به پزشک مراجعه کنی.\",\"en\":\"General guidance on everyday symptoms, the medicines you take and what lab results mean in plain words. Helps you decide when to see a doctor.\"}','{\"fa\":[\"تشخیص بیماری\",\"تجویز دارو یا تعیین دوز\",\"جایگزین ویزیت پزشک\"],\"en\":[\"Diagnosing a disease\",\"Prescribing medicines or doses\",\"Replacing a doctor\'s visit\"]}','{\"fa\":[\"سردرد\",\"تب\",\"سرماخوردگی\",\"تفسیر آزمایش\",\"چیز دیگر\"],\"en\":[\"Headache\",\"Fever\",\"Cold\",\"Lab results\",\"Something else\"]}','You are the general health advisor of the Ritme women\'s health app. Help with everyday symptoms, how common medicines are usually used, and what lab values mean in plain words. Ask one or two short clarifying questions before giving guidance. Suggest when a doctor visit is sensible and how soon.','Never name a diagnosis as a fact; describe patterns as possibilities. Never give a medicine dose or start/stop advice for prescription drugs. Pregnancy or breastfeeding changes medicine safety: always say so when relevant.',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(2,'gynecology','flower',2,1,'{\"fa\":\"مشاوره زنان\",\"en\":\"Gynecology advisor\"}','{\"fa\":\"سیکل، باروری، بارداری، یائسگی\",\"en\":\"Cycle, fertility, pregnancy, menopause\"}','{\"fa\":\"پاسخ به پرسش‌هایت درباره سیکل قاعدگی، لکه‌بینی، باروری، بارداری و یائسگی با در نظر گرفتن داده‌هایی که خودت اجازه داده‌ای.\",\"en\":\"Answers about your menstrual cycle, spotting, fertility, pregnancy and menopause, taking into account the data you chose to share.\"}','{\"fa\":[\"تشخیص بیماری یا بارداری\",\"تجویز دارو یا هورمون\",\"تفسیر قطعی سونوگرافی\"],\"en\":[\"Diagnosing a disease or a pregnancy\",\"Prescribing medicines or hormones\",\"Definitive ultrasound readings\"]}','{\"fa\":[\"پریود نامنظم\",\"لکه‌بینی\",\"درد پریود\",\"اقدام به بارداری\",\"چیز دیگر\"],\"en\":[\"Irregular period\",\"Spotting\",\"Period pain\",\"Trying to conceive\",\"Something else\"]}','You are the gynecology advisor of the Ritme women\'s health app. Help with menstrual cycle questions, spotting, period pain, fertility, pregnancy and menopause. Use the shared cycle and life-stage data when relevant. Ask short clarifying questions (cycle day, duration, severity) before guidance.','Heavy bleeding, severe one-sided pelvic pain, fever with pelvic pain, or bleeding in pregnancy need urgent care: say so clearly. Never confirm or exclude a pregnancy; suggest a test. Never recommend hormones or contraceptive brands.',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(3,'sexual_health','heart',3,1,'{\"fa\":\"مشاوره جنسی\",\"en\":\"Sexual health advisor\"}','{\"fa\":\"رابطه، میل، درد، پیشگیری\",\"en\":\"Intimacy, desire, pain, contraception\"}','{\"fa\":\"فضایی امن و بدون قضاوت برای پرسش درباره میل جنسی، درد هنگام رابطه، پیشگیری و عفونت‌ها.\",\"en\":\"A safe, non-judgemental space for questions about desire, pain during sex, contraception and infections.\"}','{\"fa\":[\"تشخیص عفونت\",\"تجویز دارو یا روش پیشگیری\",\"قضاوت درباره رابطه‌ات\"],\"en\":[\"Diagnosing an infection\",\"Prescribing medicines or a contraceptive method\",\"Judging your relationship\"]}','{\"fa\":[\"درد هنگام رابطه\",\"کاهش میل\",\"پیشگیری\",\"ترشحات\",\"چیز دیگر\"],\"en\":[\"Pain during sex\",\"Low desire\",\"Contraception\",\"Discharge\",\"Something else\"]}','You are the sexual health advisor of the Ritme women\'s health app. Be warm, respectful and non-judgemental. Help with desire, pain during intercourse, contraception options in general terms, and signs of infection that need a check-up.','Never ask for explicit details beyond what is medically useful. Sexual violence or coercion: respond with care and point to professional help. Possible infection: recommend testing, never a specific drug.',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(4,'skin_beauty','sparkle',4,1,'{\"fa\":\"زیبایی و پوست\",\"en\":\"Skin & beauty\"}','{\"fa\":\"آکنه، لک، مراقبت پوست و مو\",\"en\":\"Acne, dark spots, skin and hair care\"}','{\"fa\":\"راهنمایی روتین مراقبت، آکنه، لک، خشکی، ریزش مو و اثر هورمون‌ها و سیکل روی پوست. با عکس هم می‌توانی توضیح بدهی.\",\"en\":\"Guidance on care routines, acne, dark spots, dryness, hair loss and how hormones and your cycle affect your skin. You can also explain with a photo.\"}','{\"fa\":[\"تشخیص بیماری پوستی\",\"تجویز دارو\",\"تفسیر قطعی عکس\"],\"en\":[\"Diagnosing a skin disease\",\"Prescribing medicines\",\"Definitive photo readings\"]}','{\"fa\":[\"آکنه\",\"لک و تیرگی\",\"خشکی\",\"ریزش مو\",\"چیز دیگر\"],\"en\":[\"Acne\",\"Dark spots\",\"Dryness\",\"Hair loss\",\"Something else\"]}','You are the skin and beauty advisor of the Ritme women\'s health app. Help with skincare routines, acne, pigmentation, dryness and hair loss, and how the cycle, pregnancy and hormones affect skin. A photo may be attached: describe only what is visible and say a photo is not a diagnosis.','If the user is pregnant, trying to conceive or breastfeeding, warn against retinoids, hydroquinone and other ingredients unsafe in pregnancy unless a doctor approves. A changing mole, a bleeding lesion or a fast-spreading rash needs a doctor soon.',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(5,'nutrition','leaf',5,1,'{\"fa\":\"تغذیه\",\"en\":\"Nutrition\"}','{\"fa\":\"رژیم، مکمل، وزن\",\"en\":\"Diet, supplements, weight\"}','{\"fa\":\"پیشنهادهای ساده برای تغذیه سالم در هر مرحله از زندگی: سیکل، اقدام به بارداری، بارداری، شیردهی و یائسگی.\",\"en\":\"Simple ideas for healthy eating at every life stage: cycle, trying to conceive, pregnancy, breastfeeding and menopause.\"}','{\"fa\":[\"رژیم درمانی برای بیماری\",\"تعیین دوز مکمل\",\"برنامه کاهش وزن شدید\"],\"en\":[\"Therapeutic diets for a disease\",\"Supplement doses\",\"Extreme weight-loss plans\"]}','{\"fa\":[\"تغذیه در بارداری\",\"آهن و کم‌خونی\",\"کاهش وزن\",\"مکمل‌ها\",\"چیز دیگر\"],\"en\":[\"Pregnancy nutrition\",\"Iron and anaemia\",\"Weight loss\",\"Supplements\",\"Something else\"]}','You are the nutrition advisor of the Ritme women\'s health app. Give practical, culturally familiar (Iranian) food suggestions for the user\'s life stage. Keep advice balanced and sustainable.','Never give supplement doses; say a doctor or dietitian should set them. Signs of an eating disorder: respond with care and suggest professional help. No diets below safe energy intake.',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(6,'mental_health','moon',6,1,'{\"fa\":\"سلامت روان\",\"en\":\"Mental health\"}','{\"fa\":\"خلق، خواب، استرس\",\"en\":\"Mood, sleep, stress\"}','{\"fa\":\"گفت‌وگویی آرام درباره خلق، استرس، خواب و ارتباط آن‌ها با سیکل و مراحل زندگی، همراه با تمرین‌های ساده.\",\"en\":\"A calm conversation about mood, stress and sleep and how they relate to your cycle and life stage, with simple exercises.\"}','{\"fa\":[\"تشخیص اختلال روانی\",\"تجویز دارو\",\"جایگزین روان‌درمانگر یا اورژانس\"],\"en\":[\"Diagnosing a mental disorder\",\"Prescribing medicines\",\"Replacing a therapist or emergency care\"]}','{\"fa\":[\"استرس\",\"بی‌خوابی\",\"نوسان خلق قبل از پریود\",\"غم بعد از زایمان\",\"چیز دیگر\"],\"en\":[\"Stress\",\"Insomnia\",\"Mood swings before my period\",\"Sadness after birth\",\"Something else\"]}','You are the mental health companion of the Ritme women\'s health app. Listen first, reflect feelings, and offer simple evidence-based coping exercises (breathing, sleep hygiene, journaling). Consider cycle-related mood changes, postpartum mood and menopause.','Any sign of self-harm or suicidal thoughts: respond with empathy, urge contacting emergency services (115) or a trusted person right now, and do not continue with routine advice. Never name a psychiatric diagnosis or a medicine.',1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+/*!40000 ALTER TABLE `assistant_departments` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `assistant_handoffs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `assistant_handoffs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `conversation_id` bigint(20) unsigned NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `booking_id` bigint(20) unsigned NOT NULL,
+  `summary` text NOT NULL,
+  `triage_level` varchar(16) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `assistant_handoffs_conversation_id_booking_id_unique` (`conversation_id`,`booking_id`),
+  KEY `assistant_handoffs_user_id_foreign` (`user_id`),
+  KEY `assistant_handoffs_booking_id_foreign` (`booking_id`),
+  CONSTRAINT `assistant_handoffs_booking_id_foreign` FOREIGN KEY (`booking_id`) REFERENCES `telemed_bookings` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `assistant_handoffs_conversation_id_foreign` FOREIGN KEY (`conversation_id`) REFERENCES `assistant_conversations` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `assistant_handoffs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `assistant_handoffs` WRITE;
+/*!40000 ALTER TABLE `assistant_handoffs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `assistant_handoffs` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `assistant_messages`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `assistant_messages` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `conversation_id` bigint(20) unsigned NOT NULL,
+  `role` varchar(16) NOT NULL,
+  `body` text NOT NULL,
+  `photo_file_id` bigint(20) unsigned DEFAULT NULL,
+  `card` varchar(16) DEFAULT NULL,
+  `triage_level` varchar(16) DEFAULT NULL,
+  `guardrail` varchar(16) DEFAULT NULL,
+  `chips` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`chips`)),
+  `status` varchar(12) NOT NULL DEFAULT 'complete',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `assistant_messages_conversation_id_foreign` (`conversation_id`),
+  KEY `assistant_messages_photo_file_id_foreign` (`photo_file_id`),
+  CONSTRAINT `assistant_messages_conversation_id_foreign` FOREIGN KEY (`conversation_id`) REFERENCES `assistant_conversations` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `assistant_messages_photo_file_id_foreign` FOREIGN KEY (`photo_file_id`) REFERENCES `files` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `assistant_messages` WRITE;
+/*!40000 ALTER TABLE `assistant_messages` DISABLE KEYS */;
+/*!40000 ALTER TABLE `assistant_messages` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `assistant_profile_settings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `assistant_profile_settings` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `shared` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`shared`)),
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `assistant_profile_settings_user_id_unique` (`user_id`),
+  CONSTRAINT `assistant_profile_settings_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `assistant_profile_settings` WRITE;
+/*!40000 ALTER TABLE `assistant_profile_settings` DISABLE KEYS */;
+/*!40000 ALTER TABLE `assistant_profile_settings` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `assistant_safety_terms`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `assistant_safety_terms` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `kind` varchar(16) NOT NULL,
+  `locale` varchar(8) NOT NULL,
+  `term` varchar(100) NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `assistant_safety_terms_kind_locale_term_unique` (`kind`,`locale`,`term`)
+) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `assistant_safety_terms` WRITE;
+/*!40000 ALTER TABLE `assistant_safety_terms` DISABLE KEYS */;
+INSERT INTO `assistant_safety_terms` VALUES
+(1,'emergency','fa','خونریزی شدید',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(2,'emergency','fa','خونریزی زیاد در بارداری',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(3,'emergency','fa','بیهوش',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(4,'emergency','fa','از هوش رفتم',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(5,'emergency','fa','تشنج',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(6,'emergency','fa','درد قفسه سینه',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(7,'emergency','fa','درد سینه شدید',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(8,'emergency','fa','نفس نمی‌کشم',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(9,'emergency','fa','تنگی نفس شدید',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(10,'emergency','fa','خودکشی',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(11,'emergency','fa','خودم را بکشم',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(12,'emergency','fa','خودمو بکشم',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(13,'emergency','fa','درد شدید شکم',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(14,'emergency','fa','مسمومیت',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(15,'emergency','fa','اوردوز',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(16,'emergency','fa','حرکت جنین را حس نمی‌کنم',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(17,'emergency','fa','کیسه آب پاره',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(18,'emergency','en','heavy bleeding',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(19,'emergency','en','unconscious',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(20,'emergency','en','fainted',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(21,'emergency','en','seizure',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(22,'emergency','en','chest pain',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(23,'emergency','en','can\'t breathe',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(24,'emergency','en','cannot breathe',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(25,'emergency','en','suicide',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(26,'emergency','en','kill myself',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(27,'emergency','en','severe abdominal pain',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(28,'emergency','en','overdose',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(29,'emergency','en','poisoning',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(30,'emergency','en','baby stopped moving',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(31,'emergency','en','water broke',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(32,'diagnosis','fa','تشخیص بده',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(33,'diagnosis','fa','تشخیص بدی',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(34,'diagnosis','fa','چه بیماری',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(35,'diagnosis','fa','چه مریضی',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(36,'diagnosis','fa','چه دارویی',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(37,'diagnosis','fa','چه قرصی',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(38,'diagnosis','fa','نسخه بنویس',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(39,'diagnosis','fa','دوز',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(40,'diagnosis','fa','چند میلی',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(41,'diagnosis','en','diagnose',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(42,'diagnosis','en','what disease',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(43,'diagnosis','en','what illness',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(44,'diagnosis','en','which medicine',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(45,'diagnosis','en','what medicine',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(46,'diagnosis','en','prescribe',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(47,'diagnosis','en','prescription',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(48,'diagnosis','en','dosage',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(49,'diagnosis','en','what dose',1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+/*!40000 ALTER TABLE `assistant_safety_terms` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `baby_diapers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -4231,6 +4439,61 @@ CREATE TABLE `telemed_doctors` (
 LOCK TABLES `telemed_doctors` WRITE;
 /*!40000 ALTER TABLE `telemed_doctors` DISABLE KEYS */;
 /*!40000 ALTER TABLE `telemed_doctors` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `telemed_messages`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `telemed_messages` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `booking_id` bigint(20) unsigned NOT NULL,
+  `sender` varchar(8) NOT NULL,
+  `admin_id` bigint(20) unsigned DEFAULT NULL,
+  `body` text NOT NULL,
+  `file_id` bigint(20) unsigned DEFAULT NULL,
+  `read_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `telemed_messages_admin_id_foreign` (`admin_id`),
+  KEY `telemed_messages_file_id_foreign` (`file_id`),
+  KEY `telemed_messages_booking_id_id_index` (`booking_id`,`id`),
+  CONSTRAINT `telemed_messages_admin_id_foreign` FOREIGN KEY (`admin_id`) REFERENCES `admins` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `telemed_messages_booking_id_foreign` FOREIGN KEY (`booking_id`) REFERENCES `telemed_bookings` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `telemed_messages_file_id_foreign` FOREIGN KEY (`file_id`) REFERENCES `files` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `telemed_messages` WRITE;
+/*!40000 ALTER TABLE `telemed_messages` DISABLE KEYS */;
+/*!40000 ALTER TABLE `telemed_messages` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `telemed_prescription_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `telemed_prescription_items` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `booking_id` bigint(20) unsigned NOT NULL,
+  `drug` varchar(120) NOT NULL,
+  `dose` varchar(50) DEFAULT NULL,
+  `form` varchar(16) NOT NULL,
+  `times` varchar(32) NOT NULL,
+  `duration_days` smallint(5) unsigned DEFAULT NULL,
+  `instructions` varchar(500) DEFAULT NULL,
+  `reminder_id` bigint(20) unsigned DEFAULT NULL,
+  `added_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `telemed_prescription_items_booking_id_foreign` (`booking_id`),
+  KEY `telemed_prescription_items_reminder_id_foreign` (`reminder_id`),
+  CONSTRAINT `telemed_prescription_items_booking_id_foreign` FOREIGN KEY (`booking_id`) REFERENCES `telemed_bookings` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `telemed_prescription_items_reminder_id_foreign` FOREIGN KEY (`reminder_id`) REFERENCES `reminders` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `telemed_prescription_items` WRITE;
+/*!40000 ALTER TABLE `telemed_prescription_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `telemed_prescription_items` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `telemed_reviews`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

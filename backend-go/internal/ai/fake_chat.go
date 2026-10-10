@@ -30,6 +30,11 @@ var FakeChatReplies = map[string]map[string]string{
 		"fa": "تصویرت را دیدم. برای نظر دقیق\u200cتر بهتر است پزشک آن را از نزدیک ببیند.",
 		"en": "I can see your photo. For a precise opinion it is best that a doctor looks at it in person.",
 	},
+	// B-N7-06: an assistant clinic answer with its trailing control lines (triage level + quick-reply chips).
+	"triage": {
+		"fa": "بهتر است طی چند روز آینده پزشک تو را ببیند. تا آن زمان استراحت کن و آب کافی بنوش.\n[[triage:soon]]\n[[chips:تب دارم|درد بیشتر شد|ممنون]]",
+		"en": "It is best that a doctor sees you within the next few days. Until then rest and drink enough water.\n[[triage:soon]]\n[[chips:I have a fever|The pain got worse|Thanks]]",
+	},
 	"summary": {
 		"fa": "خلاصه گفت\u200cوگو: درد خفیف شکم از دو روز پیش، بدون تب. پیشنهاد: استراحت و پیگیری؛ در صورت تشدید مراجعه به پزشک.",
 		"en": "Conversation summary: mild abdominal pain for two days, no fever. Suggestion: rest and follow up; see a doctor if it gets worse.",

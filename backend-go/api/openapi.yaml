@@ -22,6 +22,7 @@ info:
     **Auth.** Passport-compatible RS256 Bearer tokens, 365-day lifetime; see `POST /api/v1/auth/refresh-session`.
 servers: [{url: /, description: Same origin}]
 tags:
+  - {name: Assistant, description: "AI assistant clinic (B-N7-06): departments, shared profile, SSE chat, triage, summary, handoff to a booked doctor"}
   - {name: Auth, description: OTP sign-in and the 365-day session token}
   - {name: Profile, description: "User profile, data export and account deletion"}
   - {name: Consents, description: "Versioned consents (B-N6-05): texts per version, accept / withdraw; the AI feature gate answers 403 consent_required"}
@@ -17875,7 +17876,7 @@ paths:
               type: object
               required: [purpose, file]
               properties:
-                purpose: {type: string, enum: [record_document, claim_document]}
+                purpose: {type: string, enum: [record_document, claim_document, telemed_attachment]}
                 file: {type: string, format: binary}
       responses:
         '201':
@@ -18521,7 +18522,7 @@ paths:
     post:
       tags: [Telemed]
       summary: Hold a slot and start the payment
-      description: "nbl_v17_ReviewBook «پرداخت و رزرو». Holds the free slot for TELEMED_HOLD_MINUTES (409 `slot_unavailable` when taken; race-safe), prices it server-side (visit price − Plus «تخفیف ویزیت»), registers the payment with the payments adapter and returns `payment.redirect_url`. Nothing to charge → confirmed at once and `payment` null. No provider → 503 `payment_unavailable`. `share` grants consent scopes for this visit (own visits only, else 422 `consent_not_allowed`)."
+      description: "nbl_v17_ReviewBook «پرداخت و رزرو». Holds the free slot for TELEMED_HOLD_MINUTES (409 `slot_unavailable` when taken; race-safe), prices it server-side (visit price − Plus «تخفیف ویزیت»), registers the payment with the payments adapter and returns `payment.redirect_url`. Nothing to charge → confirmed at once and `payment` null. No provider → 503 `payment_unavailable`. One active hold per user (an older hold lapses); 409 `too_many_bookings` beyond 2 upcoming with the doctor or 5 overall, 429 `too_many_holds` beyond 10 holds per hour (B-N7-03b). `share` grants consent scopes for this visit (own visits only, else 422 `consent_not_allowed`)."
       operationId: storeTelemedBooking
       security:
         - {bearerAuth: []}
@@ -18769,6 +18770,172 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/TelemedBookingError"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/telemed/bookings/{id}/messages:
+    get:
+      tags: [Telemed]
+      summary: Doctor chat thread of a booking
+      description: "Bloom B-N7-04 (D-82): oldest first, at most 200 after `after_id`; lists the doctor's lines as read. Only the booking's user (here) and its doctor (admin API) reach a thread; bodies are AES-256-GCM encrypted at rest (PRIVATE_NOTE_KEY; without it outside local / testing → 503 `chat_unavailable`). `body` is null when a stored line no longer decrypts. Attachment links are signed for 5 minutes. `chat.open` = messages may be sent (confirmed visit, until 72 h after it ends)."
+      operationId: telemedBookingMessages
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TelemedBookingId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: after_id, in: query, required: false, schema: {type: integer, minimum: 0}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [items, chat]
+                    properties:
+                      items: {type: array, items: {$ref: "#/components/schemas/TelemedMessage"}}
+                      chat:
+                        type: object
+                        required: [open, closes_at]
+                        properties:
+                          open: {type: boolean}
+                          closes_at: {type: string, format: date-time}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedChatError"}
+        '503': {$ref: "#/components/responses/TelemedChatError"}
+    post:
+      tags: [Telemed]
+      summary: Send a message to the doctor
+      description: "A `body` (≤ 2000) or a `file_id` (the caller's own file of purpose telemed_attachment, uploaded through POST /api/v1/files) is required. 409 `chat_closed` outside the window, 409 `message_limit` after 300 messages."
+      operationId: sendTelemedBookingMessage
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TelemedBookingId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                body: {type: [string, "null"], maxLength: 2000}
+                file_id: {type: [integer, "null"]}
+      responses:
+        '201':
+          description: Sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    properties:
+                      message: {$ref: "#/components/schemas/TelemedMessage"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedChatError"}
+        '409': {$ref: "#/components/responses/TelemedChatError"}
+        '422': {$ref: "#/components/responses/TelemedChatError"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/TelemedChatError"}
+  /api/v1/telemed/bookings/{id}/prescription:
+    get:
+      tags: [Telemed]
+      summary: The doctor's e-prescription lines
+      operationId: telemedBookingPrescription
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TelemedBookingId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    properties:
+                      items: {type: array, items: {$ref: "#/components/schemas/TelemedPrescriptionItem"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedChatError"}
+  /api/v1/telemed/bookings/{id}/prescription/{item}/reminder:
+    post:
+      tags: [Telemed]
+      summary: Add a prescription line as a medication reminder
+      description: "One tap: creates a care medication reminder (every day at the line's times, from today for `duration_days` days, else ongoing) and links it. 409 `prescription_already_added` while the linked reminder exists, 422 `medication_limit` at 100 medications."
+      operationId: addTelemedPrescriptionReminder
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TelemedBookingId"}
+        - {name: item, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '201':
+          description: Added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    properties:
+                      item: {$ref: "#/components/schemas/TelemedPrescriptionItem"}
+                      medication_id: {type: integer}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedChatError"}
+        '409': {$ref: "#/components/responses/TelemedChatError"}
+        '422': {$ref: "#/components/responses/TelemedChatError"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/telemed/bookings/{id}/video:
+    get:
+      tags: [Telemed]
+      summary: Video room link of a video visit
+      description: "Active from 10 minutes before the visit until it ends (confirmed visits); `url` only while active. Provider adapter TELEMED_VIDEO_PROVIDER (fake outside production; none → 503 `video_unavailable` while active). 409 `not_video_visit` for phone / in-person visits."
+      operationId: telemedBookingVideo
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/TelemedBookingId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    properties:
+                      video:
+                        type: object
+                        required: [active, opens_at, closes_at, url]
+                        properties:
+                          active: {type: boolean}
+                          opens_at: {type: string, format: date-time}
+                          closes_at: {type: string, format: date-time}
+                          url: {type: [string, "null"]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TelemedChatError"}
+        '409': {$ref: "#/components/responses/TelemedChatError"}
+        '503': {$ref: "#/components/responses/TelemedChatError"}
   /api/v1/learning/courses:
     get:
       tags: [Learning]
@@ -19746,6 +19913,385 @@ paths:
         '416': {$ref: "#/components/responses/MediaError"}
         '429': {$ref: "#/components/responses/TooManyAttempts"}
         '503': {$ref: "#/components/responses/MediaError"}
+  /api/v1/assistant:
+    get:
+      tags: [Assistant]
+      summary: Assistant clinic hub
+      description: "«کلینیک دستیار ریتمی» (bloom B-N7-06, D-83): active departments, the monthly quota of `plus.assistant_unlimited` (free 5 model answers, Plus unlimited; null without the Plus service), the 5 newest conversations, the profile sharing state and the emergency number."
+      operationId: assistantHub
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  data:
+                    type: object
+                    required: [departments, quota, recent, profile, emergency]
+                    properties:
+                      departments: {type: array, items: {$ref: "#/components/schemas/AssistantDepartment"}}
+                      quota:
+                        type: [object, "null"]
+                        properties:
+                          unlimited: {type: boolean}
+                          allowed: {type: boolean}
+                          limit: {type: integer}
+                          used: {type: integer}
+                          remaining: {type: integer}
+                      recent: {type: array, items: {$ref: "#/components/schemas/AssistantConversation"}}
+                      profile: {$ref: "#/components/schemas/AssistantProfile"}
+                      emergency: {type: object, properties: {phone: {type: string}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/assistant/departments/{code}:
+    get:
+      tags: [Assistant]
+      summary: One department (intro, what it doesn't do, starter chips)
+      description: "The admin-authored system prompt and guardrails are never returned. 404 `assistant_department_not_found` for an unknown or inactive code."
+      operationId: assistantDepartment
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: code, in: path, required: true, schema: {type: string}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  data:
+                    type: object
+                    required: [department, profile]
+                    properties:
+                      department: {$ref: "#/components/schemas/AssistantDepartment"}
+                      profile: {$ref: "#/components/schemas/AssistantProfile"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/AssistantError"}
+  /api/v1/assistant/profile:
+    get:
+      tags: [Assistant]
+      summary: Health profile shared with the assistant
+      description: "Keys age, life_mode, basics, cycle, pregnancies, conditions, medications, allergies (default age, life_mode, cycle). `data` is what the model may see for a shared key (health record, share audience; pregnancy losses are never included). Nothing reaches the model without the `assistant_profile` consent (`consent.granted`)."
+      operationId: assistantProfile
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/AssistantProfileEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    put:
+      tags: [Assistant]
+      summary: Choose which profile parts are shared
+      operationId: updateAssistantProfile
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [shared]
+              properties:
+                shared: {type: array, items: {type: string, enum: [age, life_mode, basics, cycle, pregnancies, conditions, medications, allergies]}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/AssistantProfileEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/assistant/photos:
+    post:
+      tags: [Assistant]
+      summary: Upload a photo for a later message
+      description: "Multipart `photo`: JPEG / PNG / WebP ≤ 5 MB (sniffed), re-encoded to WebP (EXIF / GPS dropped) and stored encrypted (files purpose `assistant_photo`, 200 photos / 200 MB per user). Send its id as `photo_id` with a message; removed with its conversation."
+      operationId: storeAssistantPhoto
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [photo]
+              properties:
+                photo: {type: string, format: binary}
+      responses:
+        '201':
+          description: Stored
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  data:
+                    type: object
+                    properties:
+                      photo: {type: object, properties: {id: {type: integer}, mime: {type: string}, size: {type: integer}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/AssistantError"}
+  /api/v1/assistant/conversations:
+    get:
+      tags: [Assistant]
+      summary: Conversation history
+      description: "Newest first, at most 100; `department` filters by code (404 for an unknown one)."
+      operationId: assistantConversations
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: department, in: query, required: false, schema: {type: string}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  data:
+                    type: object
+                    properties:
+                      conversations: {type: array, items: {$ref: "#/components/schemas/AssistantConversation"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/AssistantError"}
+    post:
+      tags: [Assistant]
+      summary: Start a conversation in a department
+      operationId: storeAssistantConversation
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [department]
+              properties:
+                department: {type: string}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/AssistantConversationEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/AssistantError"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Assistant]
+      summary: Delete the whole history (hard delete)
+      description: "Every conversation, message, handoff and photo of the user is removed."
+      operationId: destroyAssistantConversations
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/AssistantDeleted"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/assistant/conversations/{id}:
+    get:
+      tags: [Assistant]
+      summary: One conversation with its messages, summary and handoffs
+      operationId: assistantConversation
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AssistantConversationId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/AssistantConversationEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/AssistantError"}
+    delete:
+      tags: [Assistant]
+      summary: Delete a conversation (hard delete)
+      operationId: destroyAssistantConversation
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AssistantConversationId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/AssistantDeleted"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/AssistantError"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/assistant/conversations/{id}/messages:
+    post:
+      tags: [Assistant]
+      summary: Send a message — streamed answer (SSE)
+      description: |
+        Body `{text (≤ 2000), photo_id?}` (an own `assistant_photo`). Validation and ownership are checked first (422 /
+        404). The text is then checked server-side against the emergency terms (admin-editable `assistant_safety_terms`
+        plus a built-in floor): a match stores the message and the 115 card and streams `meta`, `card`, `done` — no model
+        call, no consent and no quota needed. Otherwise the AI gate runs (throttles 10/minute 120/hour, Plus
+        `plus.assistant_unlimited` 402/429, consent `ai_assistant` 403, cost caps, 2 running requests) and one use is
+        reserved (given back when the model fails before its first word).
+
+        Response `text/event-stream` (200). Events, each `data:` a JSON object:
+        `meta` {conversation_id, user_message_id}; `delta` {text} (repeated; the model's control lines
+        `[[triage:…]]` / `[[chips:…]]` are stripped); `card` {message} (emergency only); then `done` {message
+        (AssistantMessage: triage_level, guardrail `diagnosis` when a diagnosis / prescription was asked, chips),
+        triage_level, emergency} or `error` {error_code `ai_failed`, message}. History sent to the model is rebuilt
+        server-side from stored turns; the shared profile goes in as a fenced JSON data block. Prompts and replies are
+        never logged.
+      operationId: sendAssistantMessage
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AssistantConversationId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: {type: string, maxLength: 2000}
+                photo_id: {type: [integer, "null"]}
+      responses:
+        '200':
+          description: Server-sent events (see the description)
+          content:
+            text/event-stream:
+              schema: {type: string}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '402': {$ref: "#/components/responses/PlusRequired"}
+        '403': {$ref: "#/components/responses/ConsentRequired"}
+        '404': {$ref: "#/components/responses/AssistantError"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429':
+          description: Throttled, the monthly free quota spent (`plus_quota_exceeded`), the per-user AI cost cap or another AI request running.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, enum: [too_many_requests, plus_quota_exceeded, ai_user_budget_exhausted, ai_busy]}
+        '503': {$ref: "#/components/responses/AIUnavailable"}
+  /api/v1/assistant/conversations/{id}/summary:
+    post:
+      tags: [Assistant]
+      summary: Write the conversation summary document
+      description: "Non-streaming model call (does not count against the free quota; consent `ai_assistant` and cost caps apply). Returns the stored summary when no message was added since. The transcript goes to the model as a fenced JSON data block. 422 `summary_empty` without a user message, 503 `summary_failed` / AI errors."
+      operationId: assistantSummary
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AssistantConversationId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  data:
+                    type: object
+                    required: [conversation, summary, photos_count, triage_levels]
+                    properties:
+                      conversation: {$ref: "#/components/schemas/AssistantConversation"}
+                      summary: {$ref: "#/components/schemas/AssistantSummary"}
+                      photos_count: {type: integer}
+                      triage_levels: {type: array, items: {type: string}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ConsentRequired"}
+        '404': {$ref: "#/components/responses/AssistantError"}
+        '422': {$ref: "#/components/responses/AssistantError"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/AIUnavailable"}
+  /api/v1/assistant/conversations/{id}/handoff:
+    post:
+      tags: [Assistant]
+      summary: Send the summary to the doctor of a booking
+      description: "Body `{booking_id}`: one of the user's own visits (404 `booking_not_found`), held or confirmed (409 `booking_closed`), with the active `assistant_summaries` share consent on that booking (403 `share_consent_required`, set it with PUT /telemed/bookings/{id}/consent). A summary must exist (409 `summary_required`). The doctor reads it only through the telemed share gate (visit window, consent)."
+      operationId: assistantHandoff
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AssistantConversationId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [booking_id]
+              properties:
+                booking_id: {type: integer}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  message: {type: string}
+                  data:
+                    type: object
+                    properties:
+                      handoff: {$ref: "#/components/schemas/AssistantHandoff"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/AssistantError"}
+        '404': {$ref: "#/components/responses/AssistantError"}
+        '409': {$ref: "#/components/responses/AssistantError"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
 components:
   securitySchemes:
     bearerAuth:
@@ -19754,6 +20300,12 @@ components:
       bearerFormat: JWT
       description: "Passport access token from `POST /api/v1/auth/verify-otp`."
   parameters:
+    AssistantConversationId:
+      name: id
+      in: path
+      required: true
+      description: "Conversation id (the caller's own; anything else 404 `assistant_conversation_not_found`)"
+      schema: {type: integer, minimum: 1}
     TelemedBookingId:
       name: id
       in: path
@@ -19918,8 +20470,42 @@ components:
       description: "Overrides `Accept-Language`. Some endpoints clamp to the languages they have content for."
       schema: {type: string}
   responses:
+    AssistantError:
+      description: "Bloom B-N7-06 assistant errors: 404 assistant_department_not_found / assistant_conversation_not_found / booking_not_found, 403 share_consent_required, 409 summary_required / booking_closed, 422 summary_empty, 503 summary_failed / storage_unavailable."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string}
+    AssistantDeleted:
+      description: Deleted
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, data]
+            properties:
+              success: {type: boolean, const: true}
+              message: {type: string}
+              data: {type: object, properties: {deleted: {type: boolean}}}
+    TelemedChatError:
+      description: "Bloom B-N7-04 chat errors: 404 booking_not_found / prescription_item_not_found, 409 chat_closed / message_limit / prescription_already_added / not_video_visit, 422 medication_limit or field errors, 503 chat_unavailable / video_unavailable."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string}
+              errors: {type: object}
     TelemedBookingError:
-      description: "Bloom B-N7-03 booking errors: 404 booking_not_found / doctor_not_found, 409 slot_unavailable / booking_closed / booking_refunded / cancel_window_closed, 422 payment_failed / amount_mismatch / authority_mismatch / consent_not_allowed or field errors, 503 payment_unavailable."
+      description: "Bloom B-N7-03 booking errors: 404 booking_not_found / doctor_not_found, 409 slot_unavailable / booking_closed / booking_refunded / cancel_window_closed / too_many_bookings / reschedule_limit (max 2 moves), 429 too_many_holds, 422 payment_failed / amount_mismatch / authority_mismatch / consent_not_allowed or field errors, 503 payment_unavailable."
       content:
         application/json:
           schema:
@@ -21081,6 +21667,104 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    AssistantDepartment:
+      type: object
+      required: [code, icon, name, tagline]
+      properties:
+        code: {type: string}
+        icon: {type: [string, "null"]}
+        name: {type: [string, "null"]}
+        tagline: {type: [string, "null"]}
+        intro: {type: [string, "null"]}
+        does_not_do: {type: array, items: {type: string}}
+        quick_replies: {type: array, items: {type: string}}
+        conversations_count: {type: integer}
+    AssistantConversation:
+      type: object
+      required: [id, department, title, triage_level, emergency, message_count, has_summary, last_message_at, created_at]
+      properties:
+        id: {type: integer}
+        department: {$ref: "#/components/schemas/AssistantDepartment"}
+        title: {type: [string, "null"]}
+        triage_level: {type: [string, "null"], enum: [self_care, non_urgent, soon, emergency, null]}
+        emergency: {type: boolean}
+        message_count: {type: integer}
+        has_summary: {type: boolean}
+        last_message_at: {anyOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]}
+        created_at: {anyOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]}
+    AssistantMessage:
+      type: object
+      required: [id, role, text, photo, card, triage_level, guardrail, chips, status, created_at]
+      properties:
+        id: {type: integer}
+        role: {type: string, enum: [user, assistant, card]}
+        text: {type: string}
+        photo: {type: [object, "null"], properties: {id: {type: integer}}}
+        card:
+          type: [object, "null"]
+          properties:
+            type: {type: string, const: emergency}
+            phone: {type: string}
+            title: {type: string}
+            body: {type: string}
+            call_label: {type: string}
+        triage_level: {type: [string, "null"]}
+        guardrail: {type: [string, "null"]}
+        chips: {type: array, items: {type: string}}
+        status: {type: string, enum: [complete, partial]}
+        created_at: {anyOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]}
+    AssistantSummary:
+      type: [object, "null"]
+      properties:
+        text: {type: string}
+        triage_level: {type: [string, "null"]}
+        created_at: {anyOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]}
+        up_to_date: {type: boolean}
+    AssistantHandoff:
+      type: object
+      properties:
+        id: {type: integer}
+        booking_id: {type: integer}
+        triage_level: {type: [string, "null"]}
+        created_at: {anyOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]}
+        updated_at: {anyOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]}
+    AssistantProfile:
+      type: object
+      required: [consent, shared, items]
+      properties:
+        consent: {type: object, properties: {code: {type: string}, granted: {type: boolean}}}
+        shared: {type: array, items: {type: string}}
+        items:
+          type: array
+          items:
+            type: object
+            required: [key, shared, empty, data]
+            properties:
+              key: {type: string}
+              shared: {type: boolean}
+              empty: {type: boolean}
+              data: {}
+    AssistantProfileEnvelope:
+      type: object
+      required: [success, data]
+      properties:
+        success: {type: boolean, const: true}
+        message: {type: string}
+        data: {type: object, required: [profile], properties: {profile: {$ref: "#/components/schemas/AssistantProfile"}}}
+    AssistantConversationEnvelope:
+      type: object
+      required: [success, data]
+      properties:
+        success: {type: boolean, const: true}
+        data:
+          type: object
+          required: [conversation, department, messages, summary, handoffs]
+          properties:
+            conversation: {$ref: "#/components/schemas/AssistantConversation"}
+            department: {$ref: "#/components/schemas/AssistantDepartment"}
+            messages: {type: array, items: {$ref: "#/components/schemas/AssistantMessage"}}
+            summary: {$ref: "#/components/schemas/AssistantSummary"}
+            handoffs: {type: array, items: {$ref: "#/components/schemas/AssistantHandoff"}}
     TelemedPrice:
       type: object
       required: [price_rials, discount_rials, discount_source, total_rials, currency]
@@ -21852,13 +22536,47 @@ components:
         title: {type: string, maxLength: 120}
         due_date: {type: [string, "null"], format: date}
         done: {type: boolean}
+    TelemedMessage:
+      type: object
+      description: "B-N7-04: one chat line (decrypted for the two parties only)."
+      required: [id, sender, mine, body, attachment, read_at, created_at]
+      properties:
+        id: {type: integer}
+        sender: {type: string, enum: [user, doctor]}
+        mine: {type: boolean}
+        body: {type: [string, "null"]}
+        attachment:
+          type: [object, "null"]
+          properties:
+            id: {type: integer}
+            mime: {type: string}
+            size_bytes: {type: integer}
+            url: {type: string}
+            url_expires_at: {type: [string, "null"], format: date-time}
+        read_at: {type: [string, "null"], format: date-time}
+        created_at: {type: string, format: date-time}
+    TelemedPrescriptionItem:
+      type: object
+      description: "B-N7-04: one e-prescription line; reminder_id = the care medication created from it."
+      required: [id, drug, dose, form, times, duration_days, instructions, reminder_id, added_at, created_at]
+      properties:
+        id: {type: integer}
+        drug: {type: string}
+        dose: {type: [string, "null"]}
+        form: {type: string, enum: [tablet, capsule, syrup, injection, drops]}
+        times: {type: array, items: {type: string, pattern: "^[0-2][0-9]:[0-5][0-9]$"}}
+        duration_days: {type: [integer, "null"]}
+        instructions: {type: [string, "null"]}
+        reminder_id: {type: [integer, "null"]}
+        added_at: {type: [string, "null"], format: date-time}
+        created_at: {type: string, format: date-time}
     StoredFile:
       type: object
       description: "CB-CORE-05: a stored file (no storage path, no owner)."
       required: [id, purpose, visibility, mime, size_bytes, sha256, url, url_expires_at, created_at]
       properties:
         id: {type: integer}
-        purpose: {type: string, enum: [record_document, claim_document, place_photo, place_licence, product_image]}
+        purpose: {type: string, enum: [record_document, claim_document, telemed_attachment, place_photo, place_licence, product_image]}
         visibility: {type: string, enum: [private, public]}
         mime: {type: string, enum: [image/webp, application/pdf]}
         size_bytes: {type: integer, description: Stored size (after photo re-encoding)}

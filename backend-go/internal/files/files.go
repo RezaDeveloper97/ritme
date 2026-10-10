@@ -45,6 +45,12 @@ const (
 	PurposePlacePhoto     = "place_photo"
 	PurposePlaceLicence   = "place_licence"
 	PurposeProductImage   = "product_image"
+	// PurposeTelemedAttachment: a report the user attaches to a doctor chat message (bloom B-N7-04); the booked
+	// doctor reads it through a signed link issued by internal/telemed after its booking check.
+	PurposeTelemedAttachment = "telemed_attachment"
+	// PurposeAssistantPhoto: a photo the user attaches to an AI assistant message (bloom B-N7-06); written by
+	// internal/assistant only, removed with its conversation.
+	PurposeAssistantPhoto = "assistant_photo"
 )
 
 // Purpose is one kind of stored file: where its blobs live, how they are sealed, what they may contain and how much
@@ -113,6 +119,10 @@ var Registry = map[string]Purpose{
 		Kinds: []string{KindImage, KindPDF}, MaxBytes: 10 * mb, QuotaFiles: 300, QuotaBytes: 500 * mb}),
 	PurposeClaimDocument: purpose(Purpose{Name: PurposeClaimDocument, UserUpload: true,
 		Kinds: []string{KindImage, KindPDF}, MaxBytes: 10 * mb, QuotaFiles: 200, QuotaBytes: 300 * mb}),
+	PurposeTelemedAttachment: purpose(Purpose{Name: PurposeTelemedAttachment, UserUpload: true,
+		Kinds: []string{KindImage, KindPDF}, MaxBytes: 10 * mb, QuotaFiles: 200, QuotaBytes: 300 * mb}),
+	PurposeAssistantPhoto: purpose(Purpose{Name: PurposeAssistantPhoto,
+		Kinds: []string{KindImage}, MaxBytes: 5 * mb, QuotaFiles: 200, QuotaBytes: 200 * mb}),
 	PurposePlaceLicence: purpose(Purpose{Name: PurposePlaceLicence,
 		Kinds: []string{KindImage, KindPDF}, MaxBytes: 10 * mb, QuotaFiles: 20, QuotaBytes: 100 * mb}),
 	PurposePlacePhoto: purpose(Purpose{Name: PurposePlacePhoto, Public: true,

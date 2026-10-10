@@ -3,7 +3,7 @@ id: B-N7-06
 title: AI assistant clinic backend — departments, profile, chat, triage, summary, handoff
 milestone: N7
 type: backend
-status: todo
+status: done
 depends_on: [B-N6-05,B-N7-03,B-N6-05b]
 parallel_group: N7-F
 touches: [backend-go/internal/assistant,backend-go/internal/ai,backend-go/db,backend-go/api]

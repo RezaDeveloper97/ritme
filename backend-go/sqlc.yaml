@@ -289,3 +289,9 @@ sql:
       go:
         <<: *go
         out: internal/media/store
+  - <<: *pkg
+    queries: db/queries/assistant
+    gen:
+      go:
+        <<: *go
+        out: internal/assistant/store

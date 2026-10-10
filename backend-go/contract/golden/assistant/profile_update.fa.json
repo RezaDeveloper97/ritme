@@ -1,0 +1,143 @@
+{
+  "case": "assistant/profile_update.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/assistant/profile",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "shared": [
+            "cycle",
+            "age"
+          ]
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "ذخیره شد.",
+        "data": {
+          "profile": {
+            "consent": {
+              "code": "assistant_profile",
+              "granted": false
+            },
+            "shared": [
+              "age",
+              "cycle"
+            ],
+            "items": [
+              {
+                "key": "age",
+                "shared": true,
+                "empty": false,
+                "data": 30
+              },
+              {
+                "key": "life_mode",
+                "shared": false,
+                "empty": false,
+                "data": null
+              },
+              {
+                "key": "basics",
+                "shared": false,
+                "empty": false,
+                "data": null
+              },
+              {
+                "key": "cycle",
+                "shared": true,
+                "empty": false,
+                "data": {
+                  "based_on": 5,
+                  "current_day": 10,
+                  "cycle_status": "normal",
+                  "last_period_start": "2026-09-14",
+                  "median_cycle": 28,
+                  "median_period": 5,
+                  "period_status": "normal",
+                  "range": {
+                    "days": 182,
+                    "from": "2026-03-26",
+                    "key": "6m",
+                    "to": "2026-09-23"
+                  },
+                  "regularity": "regular",
+                  "top_symptoms": [
+                    {
+                      "days": 1,
+                      "key": "pain.location.abdomen",
+                      "label": "pain.location.abdomen"
+                    }
+                  ],
+                  "variation": 0
+                }
+              },
+              {
+                "key": "pregnancies",
+                "shared": false,
+                "empty": false,
+                "data": null
+              },
+              {
+                "key": "conditions",
+                "shared": false,
+                "empty": false,
+                "data": null
+              },
+              {
+                "key": "medications",
+                "shared": false,
+                "empty": false,
+                "data": null
+              },
+              {
+                "key": "allergies",
+                "shared": false,
+                "empty": false,
+                "data": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/assistant/profile",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "shared": [
+            "horoscope"
+          ]
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "message": "shared.0 انتخاب‌شده معتبر نیست.",
+        "errors": {
+          "shared.0": [
+            "shared.0 انتخاب‌شده معتبر نیست."
+          ]
+        }
+      }
+    }
+  ]
+}

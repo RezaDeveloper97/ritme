@@ -1,0 +1,221 @@
+{
+  "case": "assistant/conversation_flow",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/assistant/conversations",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "department": "gynecology"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "conversation": {
+            "id": 1,
+            "department": {
+              "code": "gynecology",
+              "icon": "flower",
+              "name": "مشاوره زنان",
+              "tagline": "سیکل، باروری، بارداری، یائسگی"
+            },
+            "title": null,
+            "triage_level": null,
+            "emergency": false,
+            "message_count": 0,
+            "has_summary": false,
+            "last_message_at": null,
+            "created_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "department": {
+            "code": "gynecology",
+            "icon": "flower",
+            "name": "مشاوره زنان",
+            "tagline": "سیکل، باروری، بارداری، یائسگی",
+            "intro": "پاسخ به پرسش‌هایت درباره سیکل قاعدگی، لکه‌بینی، باروری، بارداری و یائسگی با در نظر گرفتن داده‌هایی که خودت اجازه داده‌ای.",
+            "does_not_do": [
+              "تشخیص بیماری یا بارداری",
+              "تجویز دارو یا هورمون",
+              "تفسیر قطعی سونوگرافی"
+            ],
+            "quick_replies": [
+              "پریود نامنظم",
+              "لکه‌بینی",
+              "درد پریود",
+              "اقدام به بارداری",
+              "چیز دیگر"
+            ]
+          },
+          "messages": [],
+          "summary": null,
+          "handoffs": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/assistant/conversations/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "conversation": {
+            "id": 1,
+            "department": {
+              "code": "gynecology",
+              "icon": "flower",
+              "name": "مشاوره زنان",
+              "tagline": "سیکل، باروری، بارداری، یائسگی"
+            },
+            "title": null,
+            "triage_level": null,
+            "emergency": false,
+            "message_count": 0,
+            "has_summary": false,
+            "last_message_at": null,
+            "created_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "department": {
+            "code": "gynecology",
+            "icon": "flower",
+            "name": "مشاوره زنان",
+            "tagline": "سیکل، باروری، بارداری، یائسگی",
+            "intro": "پاسخ به پرسش‌هایت درباره سیکل قاعدگی، لکه‌بینی، باروری، بارداری و یائسگی با در نظر گرفتن داده‌هایی که خودت اجازه داده‌ای.",
+            "does_not_do": [
+              "تشخیص بیماری یا بارداری",
+              "تجویز دارو یا هورمون",
+              "تفسیر قطعی سونوگرافی"
+            ],
+            "quick_replies": [
+              "پریود نامنظم",
+              "لکه‌بینی",
+              "درد پریود",
+              "اقدام به بارداری",
+              "چیز دیگر"
+            ]
+          },
+          "messages": [],
+          "summary": null,
+          "handoffs": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/assistant/conversations?department=gynecology",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "conversations": [
+            {
+              "id": 1,
+              "department": {
+                "code": "gynecology",
+                "icon": "flower",
+                "name": "مشاوره زنان",
+                "tagline": "سیکل، باروری، بارداری، یائسگی"
+              },
+              "title": null,
+              "triage_level": null,
+              "emergency": false,
+              "message_count": 0,
+              "has_summary": false,
+              "last_message_at": null,
+              "created_at": "2026-09-23T06:30:00.000000Z"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/assistant/conversations/1/handoff",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "booking_id": 1
+        }
+      },
+      "status": 409,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": false,
+        "message": "اول خلاصه گفت‌وگو را آماده کن.",
+        "error_code": "summary_required"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/assistant/conversations/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "گفت‌وگو پاک شد.",
+        "data": {
+          "deleted": true
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/assistant/conversations/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این گفت‌وگو پیدا نشد.",
+        "error_code": "assistant_conversation_not_found"
+      }
+    }
+  ]
+}

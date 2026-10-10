@@ -13,6 +13,9 @@ import (
 type Querier interface {
 	// held/confirmed → cancelled | expired | failed: the slot is released.
 	CloseBooking(ctx context.Context, arg CloseBookingParams) error
+	// B-N7-03b (booking security): hold caps, refund outbox on payment_status, terminal declined payments.
+	// One active hold per user: her older holds lapse (slot released) when she places a new one.
+	CloseUserHolds(ctx context.Context, arg CloseUserHoldsParams) error
 	CompleteBooking(ctx context.Context, arg CompleteBookingParams) (int64, error)
 	// Paid (or free): the hold becomes a confirmed booking; slot_key is (re)claimed for a hold that lapsed meanwhile.
 	ConfirmBooking(ctx context.Context, arg ConfirmBookingParams) error
@@ -24,12 +27,21 @@ type Querier interface {
 	CountListedByCity(ctx context.Context) ([]CountListedByCityRow, error)
 	CountListedByInsurer(ctx context.Context) ([]CountListedByInsurerRow, error)
 	CountListedBySpecialty(ctx context.Context) ([]CountListedBySpecialtyRow, error)
+	CountMessages(ctx context.Context, bookingID uint64) (int64, error)
 	// Active bookings (confirmed, or held and not lapsed) of the doctor overlapping [starts_at, ends_at), except one id.
 	CountOverlappingBookings(ctx context.Context, arg CountOverlappingBookingsParams) (int64, error)
+	CountPrescriptionItems(ctx context.Context, bookingID uint64) (int64, error)
+	// Holds the user placed since a moment (the hourly hold throttle).
+	CountUserHoldsSince(ctx context.Context, arg CountUserHoldsSinceParams) (int64, error)
+	// The user's active bookings (confirmed and not ended, or held and not lapsed); doctor_id 0 = every doctor.
+	CountUserUpcoming(ctx context.Context, arg CountUserUpcomingParams) (int64, error)
 	CountVisibleReviews(ctx context.Context, doctorID uint64) (int64, error)
+	// A declined payment of a booking that is no longer a hold (cancelled meanwhile): the payment ends as declined.
+	DeclinePendingPayment(ctx context.Context, arg DeclinePendingPaymentParams) error
 	DeleteDoctor(ctx context.Context, id uint64) (int64, error)
 	DeleteDoctorInsurers(ctx context.Context, doctorID uint64) error
 	DeleteDoctorRules(ctx context.Context, doctorID uint64) error
+	DeletePrescriptionItem(ctx context.Context, arg DeletePrescriptionItemParams) (int64, error)
 	DeleteTimeOff(ctx context.Context, arg DeleteTimeOffParams) (int64, error)
 	DeleteUserReview(ctx context.Context, arg DeleteUserReviewParams) (int64, error)
 	DeleteVisitType(ctx context.Context, arg DeleteVisitTypeParams) error
@@ -41,17 +53,27 @@ type Querier interface {
 	// Unscoped read by id for internal callers that already checked the actor (doctor side, sweeper).
 	GetBooking(ctx context.Context, id uint64) (TelemedBooking, error)
 	GetDoctor(ctx context.Context, id uint64) (TelemedDoctor, error)
+	GetDoctorBooking(ctx context.Context, arg GetDoctorBookingParams) (TelemedBooking, error)
+	// Doctor chat, e-prescription and the doctor's own bookings (bloom B-N7-04, goose 00051). Callers resolve the actor
+	// first (the user's own booking, or the booking of the doctor linked to the admin); message bodies are ciphertext.
+	GetDoctorByAdmin(ctx context.Context, adminID sql.NullInt64) (TelemedDoctor, error)
 	// One active doctor with at least one active visit type (the public profile; anything else is a 404).
 	GetListedDoctor(ctx context.Context, id uint64) (TelemedDoctor, error)
+	GetMessage(ctx context.Context, arg GetMessageParams) (TelemedMessage, error)
 	// A child of the user (the «برای چه کسی؟» chip); spouse-shared children are not bookable by the spouse.
 	GetOwnedChild(ctx context.Context, arg GetOwnedChildParams) (GetOwnedChildRow, error)
+	GetPrescriptionItem(ctx context.Context, arg GetPrescriptionItemParams) (TelemedPrescriptionItem, error)
 	GetReview(ctx context.Context, id uint64) (TelemedReview, error)
+	// The user's newest hold (at most one is active); CloseUserHolds closes it in the same transaction.
+	GetUserActiveHold(ctx context.Context, userID uint64) (uint64, error)
 	GetUserBooking(ctx context.Context, arg GetUserBookingParams) (TelemedBooking, error)
 	GetUserReview(ctx context.Context, arg GetUserReviewParams) (GetUserReviewRow, error)
 	IncrementDoctorVisits(ctx context.Context, id uint64) error
 	InsertBooking(ctx context.Context, arg InsertBookingParams) (int64, error)
 	InsertDoctor(ctx context.Context, arg InsertDoctorParams) (int64, error)
 	InsertDoctorInsurer(ctx context.Context, arg InsertDoctorInsurerParams) error
+	InsertMessage(ctx context.Context, arg InsertMessageParams) (int64, error)
+	InsertPrescriptionItem(ctx context.Context, arg InsertPrescriptionItemParams) (int64, error)
 	InsertReview(ctx context.Context, arg InsertReviewParams) (int64, error)
 	InsertRule(ctx context.Context, arg InsertRuleParams) error
 	InsertTimeOff(ctx context.Context, arg InsertTimeOffParams) (int64, error)
@@ -69,6 +91,8 @@ type Querier interface {
 	// Every listed doctor matching the filters (empty string = no filter; insurer 'any' = accepts at least one insurer),
 	// in display order, capped by the limit. The "today" filter and the next free slot are computed in Go.
 	ListDirectoryDoctors(ctx context.Context, arg ListDirectoryDoctorsParams) ([]TelemedDoctor, error)
+	// The doctor's confirmed and completed visits, newest first.
+	ListDoctorBookings(ctx context.Context, doctorID uint64) ([]TelemedBooking, error)
 	ListDoctorInsurers(ctx context.Context, doctorID uint64) ([]string, error)
 	ListDoctorRules(ctx context.Context, doctorID uint64) ([]TelemedAvailabilityRule, error)
 	// A doctor's absences that end after since (the admin list hides past ones).
@@ -80,7 +104,12 @@ type Querier interface {
 	ListInsurersByDoctors(ctx context.Context, doctorIds []uint64) ([]TelemedDoctorInsurer, error)
 	// Holds whose payment window ended (the sweeper expires them).
 	ListLapsedHolds(ctx context.Context, now sql.NullTime) ([]ListLapsedHoldsRow, error)
+	// Messages of a booking after an id (0 = from the start), oldest first.
+	ListMessages(ctx context.Context, arg ListMessagesParams) ([]TelemedMessage, error)
 	ListOwnedChildrenForBooking(ctx context.Context, ownerID uint64) ([]ListOwnedChildrenForBookingRow, error)
+	ListPrescriptionItems(ctx context.Context, bookingID uint64) ([]TelemedPrescriptionItem, error)
+	// Paid bookings whose refund an admin still has to make (newest first; the admin list of B-N7-08).
+	ListRefundPendingBookings(ctx context.Context, arg ListRefundPendingBookingsParams) ([]TelemedBooking, error)
 	ListRulesByDoctors(ctx context.Context, doctorIds []uint64) ([]TelemedAvailabilityRule, error)
 	// Absences overlapping [from, to).
 	ListTimeOffByDoctors(ctx context.Context, arg ListTimeOffByDoctorsParams) ([]TelemedTimeOff, error)
@@ -94,10 +123,16 @@ type Querier interface {
 	// doctor-wide reads (busy intervals, overlaps, sweeper) never return user data beyond the booked interval.
 	// Serialises bookings of one doctor: hold, reschedule and settlement take this row lock first.
 	LockDoctor(ctx context.Context, id uint64) (uint64, error)
+	LockPrescriptionItem(ctx context.Context, arg LockPrescriptionItemParams) (TelemedPrescriptionItem, error)
 	LockUserBooking(ctx context.Context, arg LockUserBookingParams) (TelemedBooking, error)
 	LockUserBookingByReference(ctx context.Context, arg LockUserBookingByReferenceParams) (TelemedBooking, error)
+	// The other party's unread messages of a booking become read.
+	MarkMessagesRead(ctx context.Context, arg MarkMessagesReadParams) error
 	// A declined or mismatched payment of a hold: the hold closes as failed.
 	MarkPaymentFailed(ctx context.Context, arg MarkPaymentFailedParams) error
+	MarkPrescriptionAdded(ctx context.Context, arg MarkPrescriptionAddedParams) error
+	// Refund outbox: a refund_pending booking is settled once (the conditional update claims it).
+	MarkRefunded(ctx context.Context, arg MarkRefundedParams) (int64, error)
 	NextDoctorSortOrder(ctx context.Context) (int64, error)
 	// The user's next confirmed visit that has not ended yet (the services hub card).
 	NextUserBooking(ctx context.Context, arg NextUserBookingParams) (TelemedBooking, error)

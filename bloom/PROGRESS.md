@@ -1191,3 +1191,34 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   target, unlimited/30/90/until, student preview, chunked submit with partial-progress errors). Results uniform (count +
   renewed only — H1); daily cap / target_unpublished 422 messages. No re-invite SMS (no endpoint), no Excel (CSV only).
   Screenshots against the mock API in `docs/qa/bloom/B-N8-07/`.
+
+## B-N7-03b — Booking security fixes
+
+- M1 ≤1 active hold per user (older closed in the tx; slot check excludes the closed hold), ≤2 upcoming per doctor / ≤5
+  total (409 `too_many_bookings`), 10 holds / rolling hour (429 `too_many_holds`). M2+L3 `confirmable` on verify (start
+  in future, doctor listed, `slotOffered` again for expired holds, no overlap) else record-paid + refund. M3+L1 gateway
+  Verify before the doctor lock; refunds after commit, once (`payment_status='refund_pending'` outbox + `MarkRefunded`),
+  Error log on failure, `ListRefundPendingBookings` for admin; paid telemed must stay off in production until B-N7-08.
+  L2 consent from 24 h before the visit. L4 reschedule cap 2. L5 declined on cancelled hold → `declined`. L6 Complete
+  locks the doctor first. Integration suite green.
+
+## B-N7-04 — Doctor chat, e-prescription, video link
+
+- Migration **00051** (`telemed_messages`, `telemed_prescription_items`). User `/api/v1/telemed/bookings/{id}/messages`
+  (body ≤2000 or `file_id` purpose `telemed_attachment`, `after_id` polling, read marks), prescription list +
+  «add as reminder» (201, 409 duplicate), video `{active, opens_at, closes_at, url}` (10 min before start → end, fake
+  provider `TELEMED_VIDEO_PROVIDER`). Doctor side `/api/admin/v1/telemed/doctor/bookings…` for admins linked via
+  `telemed_doctors.admin_id` (403 `doctor_required`). Writes from confirmation to 72 h after (409 `chat_closed`).
+  Messages AES-GCM via loss NoteBox (`PRIVATE_NOTE_KEY`, AAD booking+sender; 503 without key outside local/testing);
+  never logged. Platform validation gained `required_without`. D-82 proposed, admin-api §19b.
+
+## B-N7-06 — AI assistant clinic backend
+
+- `internal/assistant`, migration **00052** (6 departments with admin-editable prompts/guardrails, emergency +
+  diagnosis keywords fa/en). `/api/v1/assistant`: hub, departments, profile (consent `assistant_profile`, fenced JSON,
+  pregnancy losses never sent), photos (WebP re-encode, purpose `assistant_photo`), conversations CRUD (hard delete),
+  SSE messages (emergency → 115 card before the AI gate, diagnosis guardrail, control lines triage/chips parsed out,
+  free 5/month vs Plus), summary, handoff to a booking with `assistant_summaries` consent. D-83 proposed.
+- Security audit → **B-N7-06b** (H1 encrypt messages/titles/summaries at rest; M1 SSE in-flight limit; M2 summary /
+  emergency throttles; M3 emergency normalisation + model `[[triage:emergency]]` → card; M4 orphan photo deletion; M5
+  URL strip on the live stream; L1/L4).

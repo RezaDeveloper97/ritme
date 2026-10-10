@@ -1,0 +1,156 @@
+{
+  "case": "assistant/hub.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/assistant",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "departments": [
+            {
+              "code": "general",
+              "icon": "stethoscope",
+              "name": "General health advisor",
+              "tagline": "Symptoms, medicines, lab tests"
+            },
+            {
+              "code": "gynecology",
+              "icon": "flower",
+              "name": "Gynecology advisor",
+              "tagline": "Cycle, fertility, pregnancy, menopause"
+            },
+            {
+              "code": "sexual_health",
+              "icon": "heart",
+              "name": "Sexual health advisor",
+              "tagline": "Intimacy, desire, pain, contraception"
+            },
+            {
+              "code": "skin_beauty",
+              "icon": "sparkle",
+              "name": "Skin & beauty",
+              "tagline": "Acne, dark spots, skin and hair care"
+            },
+            {
+              "code": "nutrition",
+              "icon": "leaf",
+              "name": "Nutrition",
+              "tagline": "Diet, supplements, weight"
+            },
+            {
+              "code": "mental_health",
+              "icon": "moon",
+              "name": "Mental health",
+              "tagline": "Mood, sleep, stress"
+            }
+          ],
+          "quota": {
+            "unlimited": false,
+            "allowed": true,
+            "limit": 5,
+            "used": 0,
+            "remaining": 5
+          },
+          "recent": [],
+          "profile": {
+            "consent": {
+              "code": "assistant_profile",
+              "granted": false
+            },
+            "shared": [
+              "age",
+              "life_mode",
+              "cycle"
+            ],
+            "items": [
+              {
+                "key": "age",
+                "shared": true,
+                "empty": false,
+                "data": 30
+              },
+              {
+                "key": "life_mode",
+                "shared": true,
+                "empty": false,
+                "data": "cycle"
+              },
+              {
+                "key": "basics",
+                "shared": false,
+                "empty": false,
+                "data": null
+              },
+              {
+                "key": "cycle",
+                "shared": true,
+                "empty": false,
+                "data": {
+                  "based_on": 5,
+                  "current_day": 10,
+                  "cycle_status": "normal",
+                  "last_period_start": "2026-09-14",
+                  "median_cycle": 28,
+                  "median_period": 5,
+                  "period_status": "normal",
+                  "range": {
+                    "days": 182,
+                    "from": "2026-03-26",
+                    "key": "6m",
+                    "to": "2026-09-23"
+                  },
+                  "regularity": "regular",
+                  "top_symptoms": [
+                    {
+                      "days": 1,
+                      "key": "pain.location.abdomen",
+                      "label": "pain.location.abdomen"
+                    }
+                  ],
+                  "variation": 0
+                }
+              },
+              {
+                "key": "pregnancies",
+                "shared": false,
+                "empty": false,
+                "data": null
+              },
+              {
+                "key": "conditions",
+                "shared": false,
+                "empty": false,
+                "data": null
+              },
+              {
+                "key": "medications",
+                "shared": false,
+                "empty": false,
+                "data": null
+              },
+              {
+                "key": "allergies",
+                "shared": false,
+                "empty": false,
+                "data": null
+              }
+            ]
+          },
+          "emergency": {
+            "phone": "115"
+          }
+        }
+      }
+    }
+  ]
+}

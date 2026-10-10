@@ -1,0 +1,127 @@
+{
+  "case": "assistant/department.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/assistant/departments/skin_beauty",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "department": {
+            "code": "skin_beauty",
+            "icon": "sparkle",
+            "name": "زیبایی و پوست",
+            "tagline": "آکنه، لک، مراقبت پوست و مو",
+            "intro": "راهنمایی روتین مراقبت، آکنه، لک، خشکی، ریزش مو و اثر هورمون‌ها و سیکل روی پوست. با عکس هم می‌توانی توضیح بدهی.",
+            "does_not_do": [
+              "تشخیص بیماری پوستی",
+              "تجویز دارو",
+              "تفسیر قطعی عکس"
+            ],
+            "quick_replies": [
+              "آکنه",
+              "لک و تیرگی",
+              "خشکی",
+              "ریزش مو",
+              "چیز دیگر"
+            ],
+            "conversations_count": 0
+          },
+          "profile": {
+            "consent": {
+              "code": "assistant_profile",
+              "granted": false
+            },
+            "shared": [
+              "age",
+              "life_mode",
+              "cycle"
+            ],
+            "items": [
+              {
+                "key": "age",
+                "shared": true,
+                "empty": false,
+                "data": 30
+              },
+              {
+                "key": "life_mode",
+                "shared": true,
+                "empty": false,
+                "data": "cycle"
+              },
+              {
+                "key": "basics",
+                "shared": false,
+                "empty": false,
+                "data": null
+              },
+              {
+                "key": "cycle",
+                "shared": true,
+                "empty": false,
+                "data": {
+                  "based_on": 5,
+                  "current_day": 10,
+                  "cycle_status": "normal",
+                  "last_period_start": "2026-09-14",
+                  "median_cycle": 28,
+                  "median_period": 5,
+                  "period_status": "normal",
+                  "range": {
+                    "days": 182,
+                    "from": "2026-03-26",
+                    "key": "6m",
+                    "to": "2026-09-23"
+                  },
+                  "regularity": "regular",
+                  "top_symptoms": [
+                    {
+                      "days": 1,
+                      "key": "pain.location.abdomen",
+                      "label": "pain.location.abdomen"
+                    }
+                  ],
+                  "variation": 0
+                }
+              },
+              {
+                "key": "pregnancies",
+                "shared": false,
+                "empty": false,
+                "data": null
+              },
+              {
+                "key": "conditions",
+                "shared": false,
+                "empty": false,
+                "data": null
+              },
+              {
+                "key": "medications",
+                "shared": false,
+                "empty": false,
+                "data": null
+              },
+              {
+                "key": "allergies",
+                "shared": false,
+                "empty": false,
+                "data": null
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
