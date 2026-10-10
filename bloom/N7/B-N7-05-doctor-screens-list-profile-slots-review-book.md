@@ -3,7 +3,7 @@ id: B-N7-05
 title: Doctor screens — list, profile & slots, review & book, booked, chat
 milestone: N7
 type: frontend
-status: todo
+status: done
 depends_on: [B-N7-02,B-N7-03,B-N7-04]
 parallel_group: N7-E
 touches: [frontend/src/screens/doctor*,frontend/src/entities/doctor,frontend/src/features/book-visit]

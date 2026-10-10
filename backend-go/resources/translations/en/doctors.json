@@ -1,0 +1,197 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "loadError": "Couldn't load",
+    "retry": "Try again",
+    "back": "Back"
+  },
+  "title": {
+    "doctor": "Dr. {name}",
+    "midwife": "{name}"
+  },
+  "mode": {
+    "video": "Video",
+    "phone": "Phone",
+    "in_person": "In person"
+  },
+  "errors": {
+    "generic": "Something went wrong. Try again.",
+    "slot_unavailable": "This time is no longer free. Pick another one.",
+    "payment_unavailable": "Online payment is unavailable right now. Try again shortly.",
+    "payment_failed": "The payment didn't go through. If you were charged it is returned within a few hours.",
+    "amount_mismatch": "The amount paid doesn't match the booking. Contact support.",
+    "authority_mismatch": "The payment details don't match the booking.",
+    "booking_closed": "This booking has expired.",
+    "booking_refunded": "The payment came in late and is being refunded.",
+    "cancel_window_closed": "Less than 2 hours to the visit — cancelling or moving it is no longer free.",
+    "consent_not_allowed": "Data sharing is only possible for your own visits.",
+    "too_many_bookings": "You've reached your active bookings limit.",
+    "too_many_holds": "You have several bookings awaiting payment. Finish them or wait for them to expire.",
+    "reschedule_limit": "This visit can't be moved again.",
+    "chat_closed": "This visit's chat is closed.",
+    "chat_unavailable": "Chat isn't available for this booking.",
+    "message_limit": "Too many messages — send again in a moment.",
+    "prescription_already_added": "This medication is already in your reminders.",
+    "medication_limit": "You've reached your medication reminders limit.",
+    "video_unavailable": "The visit link isn't active yet."
+  },
+  "status": {
+    "confirmed": "Confirmed",
+    "held": "Awaiting payment",
+    "completed": "Done",
+    "cancelled": "Cancelled",
+    "expired": "Expired",
+    "failed": "Failed"
+  },
+  "list": {
+    "title": "Doctors & midwives",
+    "count": "{count} people",
+    "all": "All",
+    "modeLabel": "Visit type",
+    "today": "Free today",
+    "specialty": "Specialty",
+    "city": "City",
+    "insurer": "Insurance",
+    "emptyTitle": "No doctors found",
+    "emptyBody": "Loosen the filters or check back later.",
+    "pages": "Pages",
+    "prev": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {last}",
+    "askTitle": "Not sure which specialty?",
+    "askBody": "The health assistant helps with a few questions.",
+    "ask": "Ask"
+  },
+  "card": {
+    "noSlot": "No free time",
+    "today": "today",
+    "tomorrow": "tomorrow",
+    "dayAfter": "day after tomorrow",
+    "firstSlot": "First slot: {when}",
+    "years": "{count} years' experience",
+    "from": "From {price} toman"
+  },
+  "profile": {
+    "title": "Doctor",
+    "notFound": "This doctor wasn't found",
+    "backToList": "Doctors list",
+    "licence": "Licence {no}",
+    "reviewsCount": "{count} reviews",
+    "visits": "Visits",
+    "visitsValue": "{count}+",
+    "response": "Response",
+    "responseValue": "Under {count} min",
+    "satisfaction": "Satisfaction",
+    "satisfactionValue": "{count}%",
+    "visitTypes": "Visit type",
+    "noVisitTypes": "No visit types to book yet",
+    "inPerson": "In person · {address}",
+    "minutes": "{count} min",
+    "reviews": "Reviews",
+    "all": "All",
+    "noReviews": "No reviews yet.",
+    "book": "Book {mode} visit · {when}",
+    "pickSlot": "Pick a time"
+  },
+  "slots": {
+    "title": "Free times",
+    "days": "Days",
+    "free": "{date} · {count} free",
+    "none": "No free times this week.",
+    "prev": "Previous week",
+    "next": "Next week"
+  },
+  "book": {
+    "title": "Review & book",
+    "secure": "Secure",
+    "invalidTitle": "The chosen time isn't valid",
+    "invalidBody": "Pick a time again from the doctor's page.",
+    "pickAgain": "Pick another time",
+    "self": "Myself",
+    "child": "My child",
+    "other": "Someone else",
+    "forWhom": "Who is it for?",
+    "patientName": "Patient name",
+    "reason": "Reason for the visit",
+    "note": "Note for the doctor",
+    "notePlaceholder": "e.g. trying for 6 months without result…",
+    "share": "Share Ritme data with the doctor",
+    "shareNote": "Only for this visit and this doctor; stop any time.",
+    "price": "Price",
+    "visitLine": "{minutes}-minute visit",
+    "discount": "Ritme subscription discount",
+    "total": "Total to pay",
+    "toman": "{price} toman",
+    "pay": "Pay & book",
+    "confirm": "Confirm booking",
+    "cancelNote": "Cancel or move for free up to {hours} hours before the visit."
+  },
+  "consent": {
+    "cycle_summary": {
+      "title": "Last 6 cycles summary",
+      "hint": "Cycle length, period, symptoms"
+    },
+    "bbt_lh": {
+      "title": "Basal temperature & LH tests",
+      "hint": "This cycle"
+    },
+    "assistant_summaries": {
+      "title": "Health assistant chats",
+      "hint": "Summary of the last 2 chats"
+    }
+  },
+  "return": {
+    "invalidTitle": "Invalid payment return",
+    "invalidBody": "The payment details were missing from the link. Check your bookings.",
+    "toDoctors": "Doctors",
+    "failedTitle": "Booking wasn't confirmed",
+    "verifying": "Verifying the payment…"
+  },
+  "booked": {
+    "header": "Booking",
+    "notFound": "This booking wasn't found",
+    "created": "Your appointment is booked",
+    "with": "{mode} visit with {name}",
+    "forWho": "For {name}",
+    "reminders": "Add to calendar & reminders",
+    "chat": "Message the doctor",
+    "videoNote": "The visit link activates here and by SMS 10 minutes before. Check your connection and a quiet spot ahead of time.",
+    "heldNote": "This booking isn't paid yet and is held for a few minutes.",
+    "closedNote": "This booking is no longer active.",
+    "home": "Back to home"
+  },
+  "manage": {
+    "title": "Manage appointment",
+    "reschedule": "Reschedule",
+    "cancel": "Cancel appointment",
+    "cancelConfirm": "The appointment is cancelled and the payment refunded. Sure?",
+    "cancelYes": "Yes, cancel",
+    "keep": "Never mind",
+    "moveConfirm": "Confirm new time"
+  },
+  "bookings": {
+    "title": "My appointments",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "emptyUpcoming": "No upcoming appointments",
+    "emptyPast": "No past visits yet",
+    "find": "Find a doctor"
+  },
+  "chat": {
+    "unavailable": "Chat isn't available for this booking",
+    "attachment": "Attachment · {kb} KB",
+    "join": "Join the video visit",
+    "open": "Chat is open",
+    "closed": "Chat is closed",
+    "details": "Details",
+    "empty": "No messages yet. Send the first one.",
+    "rx": "E-prescription",
+    "perDay": "{count} a day",
+    "added": "Added",
+    "addReminder": "Add to reminders",
+    "encrypted": "Messages are encrypted. Don't use this chat for emergencies.",
+    "placeholder": "Message the doctor…",
+    "closedNote": "Chat is closed",
+    "send": "Send"
+  }
+}
