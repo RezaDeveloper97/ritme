@@ -28,7 +28,8 @@ export type IconName =
   | 'ruler'
   | 'gauge' | 'glucose'
   | 'image' | 'fileDoc' // B-N6-07
-  | 'bag' | 'briefcase' | 'moreH'; // B-N6-08
+  | 'bag' | 'briefcase' | 'moreH' // B-N6-08
+  | 'play' | 'pause' | 'music' | 'rewind' | 'forward' | 'expand'; // B-N8-03
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -181,6 +182,12 @@ const PATHS: Record<IconName, string> = {
   bag:          '<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 016 0v2"/>',
   briefcase:    '<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M3 13h18"/>',
   moreH:        '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
+  play:         '<path d="M7 4.5v15l12.5-7.5z"/>',
+  pause:        '<path d="M8 5v14M16 5v14"/>',
+  music:        '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
+  rewind:       '<path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/>',
+  forward:      '<path d="M13 17l5-5-5-5M6 17l5-5-5-5"/>',
+  expand:       '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
 };
 
 interface IconProps {

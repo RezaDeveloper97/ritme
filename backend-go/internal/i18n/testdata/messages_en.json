@@ -4247,6 +4247,153 @@
     "between": "{low} to {high}"
    }
   },
+  "learn": {
+   "common": {
+    "loading": "Loading…",
+    "loadError": "Couldn't load your courses",
+    "retry": "Try again",
+    "back": "Back"
+   },
+   "kinds": {
+    "video": "Video",
+    "audio": "Audio",
+    "pdf": "PDF"
+   },
+   "meta": {
+    "lessonsKind": "{count} lessons · {kind}",
+    "audioMinutes": "Audio · {minutes} min",
+    "pdfPages": "PDF · {pages} pages",
+    "minutes": "{minutes} min",
+    "pages": "{pages} pages",
+    "minutesLeft": "{minutes} min left"
+   },
+   "access": {
+    "expired": "Access ended",
+    "unlimited": "Unlimited",
+    "until": "Until {date}",
+    "daysLeft": "{days} days of access"
+   },
+   "home": {
+    "continueTitle": "Keep learning",
+    "allCourses": "All courses",
+    "courseLeft": "{title} · {count} lessons left",
+    "open": {
+     "video": "Watch",
+     "audio": "Listen",
+     "pdf": "Read"
+    },
+    "audioOnly": "Audio only",
+    "newLabel": "New course",
+    "newFrom": "New · from {name}",
+    "accessUntil": "access until {date}",
+    "more": "+{count} more"
+   },
+   "hub": {
+    "title": "My courses",
+    "resume": "Pick up where you left off",
+    "lessonTitle": "Lesson {number} · {title}",
+    "filtersLabel": "Filter courses",
+    "filters": {
+     "learning": "In progress",
+     "done": "Finished",
+     "all": "All"
+    },
+    "from": "From {name}",
+    "watched": "{percent}% watched",
+    "expiredNote": "Contact your instructor to renew access.",
+    "emptyTitle": "No courses yet",
+    "emptyBody": "Instructors open courses for your mobile number — just sign in to Ritme with that same number.",
+    "noneLearning": "No courses in progress",
+    "noneDone": "You haven't finished a course yet"
+   },
+   "course": {
+    "play": "Play next lesson",
+    "progress": "{done} of {total} lessons",
+    "percent": "{percent}%",
+    "continue": "Continue · lesson {number}",
+    "expired": "Your access to this course has ended. Contact your instructor to renew it.",
+    "tabsLabel": "Course sections",
+    "tabs": {
+     "lessons": "Lessons",
+     "about": "About",
+     "files": "Files"
+    },
+    "chapter": "Chapter {number} · {title}",
+    "lessonsCount": "{count} lessons",
+    "chapterUnlocks": "Your instructor opens chapter {chapter} on {date}.",
+    "new": "New",
+    "noLessons": "No lessons published yet",
+    "noDescription": "No description for this course.",
+    "noFiles": "No files in this course",
+    "notFound": "This course wasn't found or you don't have access"
+   },
+   "lesson": {
+    "blocked": {
+     "expired": {
+      "title": "Access ended",
+      "body": "Contact your instructor to renew access."
+     },
+     "locked": {
+      "title": "This chapter isn't open yet",
+      "body": "Your instructor opens it on the scheduled date."
+     },
+     "notFound": {
+      "title": "Lesson not found",
+      "body": "It may have been removed, or you don't have access."
+     }
+    },
+    "backToCourse": "Back to course",
+    "notReady": "This lesson's file isn't ready yet.",
+    "mediaError": "Couldn't play the file.",
+    "numberChapter": "Lesson {number} of {total} · chapter {chapter}",
+    "number": "Lesson {number} of {total}",
+    "session": "{name} · session {number} of {total}",
+    "tabsLabel": "Lesson sections",
+    "tabs": {
+     "about": "About this lesson",
+     "notes": "My notes",
+     "files": "Files"
+    },
+    "noDescription": "No description for this lesson.",
+    "noTranscript": "No transcript for this lesson.",
+    "notesHint": "Notes are saved on this phone only.",
+    "notesPlaceholder": "Write a note about this lesson…",
+    "next": "Next lesson",
+    "markDone": "I've finished this lesson",
+    "doneAlready": "Lesson finished"
+   },
+   "player": {
+    "seek": "Playback position",
+    "play": "Play",
+    "pause": "Pause",
+    "back15": "Back 15 seconds",
+    "fwd15": "Forward 15 seconds",
+    "speed": "Playback speed",
+    "fullscreen": "Full screen",
+    "audioOnly": "Audio",
+    "video": "Show video",
+    "note": "Note",
+    "sleep": "Sleep timer",
+    "sleepIn": "Stops in {minutes} min",
+    "transcript": "Transcript",
+    "background": "Keeps playing with the screen locked or in the background."
+   },
+   "pdf": {
+    "pages": "{pages} pages",
+    "openTab": "Open in a new tab",
+    "markRead": "I've read this file"
+   },
+   "unlocked": {
+    "fromInstructor": "From your instructor",
+    "title": "{count, plural, one {A course is open for you} other {{n} courses are open for you}}",
+    "until": "Access until {date}",
+    "accessVia": "{until} · via {group}",
+    "start": "Start the course",
+    "later": "Later — go to my courses",
+    "toHub": "My courses",
+    "notFound": "This access wasn't found"
+   }
+  },
   "log": {
    "title": "Daily log",
    "subtitle": "Record what you felt today so Ritme gets to know you better.",

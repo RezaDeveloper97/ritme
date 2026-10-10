@@ -59,6 +59,12 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // B-N8-03 learning: entities/course is consumed by screens/learn* and widgets/learn-home-card, the widget by
+    // screens/home — references coming FROM `screens` are invisible to steiger (same reason as the blocks above).
+    files: ['./src/entities/course/**', './src/widgets/learn-home-card/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // B-N7-01 services hub: consumed only by screens/services — references coming FROM `screens` are invisible to
     // steiger (same reason as the blocks above).
     files: ['./src/entities/service-hub/**'],

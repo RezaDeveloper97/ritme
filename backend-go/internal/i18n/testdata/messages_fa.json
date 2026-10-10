@@ -4247,6 +4247,153 @@
     "between": "{low} تا {high}"
    }
   },
+  "learn": {
+   "common": {
+    "loading": "در حال بارگذاری…",
+    "loadError": "دوره‌ها بارگذاری نشد",
+    "retry": "تلاش دوباره",
+    "back": "بازگشت"
+   },
+   "kinds": {
+    "video": "ویدیو",
+    "audio": "صوتی",
+    "pdf": "PDF"
+   },
+   "meta": {
+    "lessonsKind": "{count} درس · {kind}",
+    "audioMinutes": "صوتی · {minutes} دقیقه",
+    "pdfPages": "PDF · {pages} صفحه",
+    "minutes": "{minutes} دقیقه",
+    "pages": "{pages} صفحه",
+    "minutesLeft": "{minutes} دقیقه مانده"
+   },
+   "access": {
+    "expired": "دسترسی تمام شد",
+    "unlimited": "نامحدود",
+    "until": "تا {date}",
+    "daysLeft": "{days} روز دسترسی"
+   },
+   "home": {
+    "continueTitle": "ادامه یادگیری",
+    "allCourses": "همه دوره‌ها",
+    "courseLeft": "{title} · {count} درس مانده",
+    "open": {
+     "video": "تماشا",
+     "audio": "گوش دادن",
+     "pdf": "خواندن"
+    },
+    "audioOnly": "فقط صدا",
+    "newLabel": "دوره جدید",
+    "newFrom": "جدید · از {name}",
+    "accessUntil": "دسترسی تا {date}",
+    "more": "+{count} دوره دیگر"
+   },
+   "hub": {
+    "title": "دوره‌های من",
+    "resume": "ادامه از جایی که ماندی",
+    "lessonTitle": "درس {number} · {title}",
+    "filtersLabel": "فیلتر دوره‌ها",
+    "filters": {
+     "learning": "در حال یادگیری",
+     "done": "تمام‌شده",
+     "all": "همه"
+    },
+    "from": "از {name}",
+    "watched": "٪{percent} دیده‌شده",
+    "expiredNote": "برای تمدید دسترسی با مدرس تماس بگیر.",
+    "emptyTitle": "هنوز دوره‌ای نداری",
+    "emptyBody": "دوره‌ها از طرف مدرس با شماره موبایلت برایت باز می‌شوند؛ کافی است با همان شماره وارد ریتمی شده باشی.",
+    "noneLearning": "دوره‌ی در حال یادگیری نداری",
+    "noneDone": "هنوز دوره‌ای را تمام نکرده‌ای"
+   },
+   "course": {
+    "play": "پخش درس بعدی",
+    "progress": "{done} از {total} درس",
+    "percent": "٪{percent}",
+    "continue": "ادامه · درس {number}",
+    "expired": "دسترسی به این دوره تمام شده است. برای تمدید با مدرس تماس بگیر.",
+    "tabsLabel": "بخش‌های دوره",
+    "tabs": {
+     "lessons": "درس‌ها",
+     "about": "درباره دوره",
+     "files": "فایل‌ها"
+    },
+    "chapter": "فصل {number} · {title}",
+    "lessonsCount": "{count} درس",
+    "chapterUnlocks": "فصل {chapter} از {date} توسط مدرس باز می‌شود.",
+    "new": "جدید",
+    "noLessons": "هنوز درسی منتشر نشده است",
+    "noDescription": "توضیحی برای این دوره ثبت نشده است.",
+    "noFiles": "فایلی برای این دوره نیست",
+    "notFound": "این دوره پیدا نشد یا به آن دسترسی نداری"
+   },
+   "lesson": {
+    "blocked": {
+     "expired": {
+      "title": "دسترسی تمام شد",
+      "body": "برای تمدید دسترسی با مدرس تماس بگیر."
+     },
+     "locked": {
+      "title": "این فصل هنوز باز نشده",
+      "body": "مدرس این فصل را در تاریخ مشخص‌شده باز می‌کند."
+     },
+     "notFound": {
+      "title": "این درس پیدا نشد",
+      "body": "شاید حذف شده باشد یا به آن دسترسی نداری."
+     }
+    },
+    "backToCourse": "بازگشت به دوره",
+    "notReady": "فایل این درس هنوز آماده نیست.",
+    "mediaError": "پخش فایل ممکن نشد.",
+    "numberChapter": "درس {number} از {total} · فصل {chapter}",
+    "number": "درس {number} از {total}",
+    "session": "{name} · جلسه {number} از {total}",
+    "tabsLabel": "بخش‌های درس",
+    "tabs": {
+     "about": "درباره این درس",
+     "notes": "یادداشت‌های من",
+     "files": "فایل‌ها"
+    },
+    "noDescription": "توضیحی برای این درس ثبت نشده است.",
+    "noTranscript": "متنی برای این درس ثبت نشده است.",
+    "notesHint": "یادداشت‌ها فقط روی همین گوشی ذخیره می‌شوند.",
+    "notesPlaceholder": "نکته‌ای از این درس بنویس…",
+    "next": "درس بعدی",
+    "markDone": "این درس را تمام کردم",
+    "doneAlready": "این درس تمام شده"
+   },
+   "player": {
+    "seek": "موقعیت پخش",
+    "play": "پخش",
+    "pause": "توقف",
+    "back15": "۱۵ ثانیه عقب",
+    "fwd15": "۱۵ ثانیه جلو",
+    "speed": "سرعت پخش",
+    "fullscreen": "تمام‌صفحه",
+    "audioOnly": "صوتی",
+    "video": "نمایش ویدیو",
+    "note": "یادداشت",
+    "sleep": "تایمر خواب",
+    "sleepIn": "توقف تا {minutes} دقیقه",
+    "transcript": "متن",
+    "background": "با قفل صفحه و در پس‌زمینه هم پخش می‌شود."
+   },
+   "pdf": {
+    "pages": "{pages} صفحه",
+    "openTab": "باز کردن در صفحه جدید",
+    "markRead": "این فایل را خواندم"
+   },
+   "unlocked": {
+    "fromInstructor": "از طرف مدرس",
+    "title": "{count, plural, one {یک دوره برایت باز شد} other {{n} دوره برایت باز شد}}",
+    "until": "دسترسی تا {date}",
+    "accessVia": "{until} · از طریق {group}",
+    "start": "شروع دوره",
+    "later": "بعداً، رفتن به دوره‌های من",
+    "toHub": "دوره‌های من",
+    "notFound": "این دسترسی پیدا نشد"
+   }
+  },
   "log": {
    "title": "ثبت روزانه",
    "subtitle": "هرچی امروز تجربه کردی رو ثبت کن تا ریتمی بهتر بشناسدت.",

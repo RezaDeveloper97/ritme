@@ -51,7 +51,7 @@ const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly Mes
 
 /** Per route: the namespaces its screen (and everything it imports) uses. */
 export const ROUTE_NAMESPACES = {
-  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'fertility', 'home', 'log', 'logPeriod', 'loss', 'menopause', 'nav', 'plus', 'profileEdit', 'search', 'teen', 'todo'], // CB-NAV-03 «برای امروز» to-do row (entities/todo barrel); B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
+  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'fertility', 'home', 'log', 'logPeriod', 'loss', 'menopause', 'nav', 'plus', 'profileEdit', 'search', 'teen', 'todo', 'learn'], // B-N8-03 widgets/learn-home-card; CB-NAV-03 «برای امروز» to-do row (entities/todo barrel); B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav'],
   log: ['children', 'common', 'logSheet', 'nav', 'plus', 'voiceLog'], // CB-NAV-03: children = widgets/log-later via screens/log; // B-N3-03: /log renders the log sheet v2 as a page
   logCustomize: ['common', 'logCustomize', 'logSheet', 'plus'], // B-N3-04 /log/customize (the log sheet's gear; categoryLook comes via features/log-day)
@@ -161,6 +161,10 @@ export const ROUTE_NAMESPACES = {
   vitalsReport: ['common', 'vitals'], // B-N6-02 /vitals/{bp,glucose,heart-rate} reports
   todo: ['common', 'nav', 'todo'], // B-N6-08 /todo (Todo_Home / Todo_Empty; bottom nav)
   todoList: ['common', 'todo'], // B-N6-08 /todo/lists/[id] (Todo_List; CalendarPicker of the add sheet = common)
+  learn: ['common', 'learn', 'nav'], // B-N8-03 /learn (Learn_Hub; bottom nav)
+  learnCourse: ['common', 'learn'], // B-N8-03 /learn/[course]
+  learnLesson: ['common', 'learn'], // B-N8-03 /learn/[course]/[lesson] (video / audio / PDF)
+  learnUnlocked: ['common', 'learn'], // B-N8-03 /learn/unlocked/[grant]
 } as const satisfies Record<string, readonly MessageNamespace[]>;
 
 export type MessageRoute = keyof typeof ROUTE_NAMESPACES;
