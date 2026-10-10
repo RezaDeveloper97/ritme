@@ -482,3 +482,8 @@ TODO (ask user):
 - Accepted deltas: Kegel header back arrow vs board glyph; boards drawn at level 2 / 5 s.
 - Verify (agent): typecheck, lint, fsd, styles, dark, 1726 tests; build compiled but was killed during type-check on a loaded machine (typecheck passes separately). Docs-only commit.
 - QA part: fresh-user journey (record home, PNG + PDF upload, fake-provider extract → review → confirm, timeline, document detail, 24h code + access history, `/d/<token>` and `/emergency/<token>` scrub the token, emergency edit + public link + lock-screen link; public card no-store/noindex/no-referrer). 21 shots light + dark in docs/qa/canvas/rec/CB-REC-06/, `## CB-REC-06 — epic QA` all ✔, no follow-up. Caveats: `/d` code entry exercised via API only (automated typing didn't enable submit); local doc preview placeholder (dev APP_URL without port). Agent verify: typecheck, lint, fsd, styles, dark, build; vitest 1725/1 — bloom's app-lock "10 wrong passcodes" PBKDF2 test times out on a loaded machine.
+
+## CB-COND-07 — COND QA
+- Real-API journey (user enrolled in endo, PMDD, heavy bleeding; 3 days each: pain 5/6/7, PBAC 26/32/83; two backfilled cycles → PMDD chart `complete_cycles` 2, pattern luteal — redoes CB-COND-04's mock shots). 11 shots light + dark in docs/qa/canvas/cond/CB-COND-07/; `## CB-COND-07 — epic QA` all ✔ (Hub, Endo, PMDD, Bleed), no code drift.
+- Nudges fire only for users not enrolled in that program (by design); bloom's home has no condition-nudge slot → follow-up CB-COND-07b (home nudge card).
+- Verify (agent): full frontend chain + build (1726 tests). Docs-only commit.

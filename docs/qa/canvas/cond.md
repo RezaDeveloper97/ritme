@@ -41,3 +41,46 @@ returns `pattern: luteal` with 2 complete cycles.
 | Board | Route | Light | Dark | Verdict | Fix / note |
 |---|---|---|---|---|---|
 | `nbl_Cond_PMDD` | `/programs/pmdd` | [fa](cond/CB-COND-04/fa_pmdd.light.png) · [en](cond/CB-COND-04/en_pmdd.light.png) | [fa](cond/CB-COND-04/fa_pmdd.dark.png) | ✔ | Same order: back header «پرسشنامه خلق روزانه» / «PMDD · روز N سیکل» (→ `/programs`), card with the «۱ یعنی اصلاً، ۶ یعنی خیلی شدید» hint and six `NumericScale` 1–6 (soft, brand); questions come from catalog `pmdd_items` and are prefilled from today's `GET /conditions/pmdd/{date}`; «این سیکل» chart card (daily mean line over the current cycle, period band + last-10-days band, day 1 at the reading start, axis پریود / وسط سیکل / ۱۰ روز آخر) with the pattern sentence from `condition_alerts` (`pmdd_pattern_*` + `pmdd_needs_two_cycles`); the crisis note (`UrgentCard` note from `pmdd_crisis`, tel: 1480 / 123, fallback copy if the alert is missing); sticky «ذخیره» footer (PUT today). No bottom nav (form). Deviations: the board paints a single pink band. Here the last-10-days band is a brand tint and the period band is `--period-soft`, so the two can be told apart, with a small legend. Also added: a «not a diagnosis» InfoNote and a progress line «N از ۶ مورد امروز». If she isn't enrolled, a join card («شروع برنامه», POST `/conditions/enrolments`) replaces the form and the chart still shows. |
+
+## CB-COND-07 — epic QA
+
+Real stack, no mocks: worktree Go API :8371 on `cond07_dev` (a copy of a goose-00055 dev DB, `RUN_MIGRATIONS=false`) +
+Next dev :3130 with `NEXT_PUBLIC_API_BASE_URL=http://localhost:8371/api/v1`, headless Chrome over CDP, 390 px, fa.
+Test users: **`09120002307`** (onboarded نیلا / female / cycle, profile with last period 2026-10-01; enrolled in `endo`,
+`pmdd` and `heavy_bleeding` through the API; 3 days 10-08 → 10-10 logged in each: pain score 5/6/7 pelvis + ovary,
+PMDD six items, PBAC 26 / 32 / 83; two earlier 28-day cycles back-filled with PMDD scores low then high in the last
+10 days so the chart has 2 complete cycles) and **`09120002308`** (same onboarding, not enrolled, heavy flow logged on
+3 days). This replaces CB-COND-04's mock-based PMDD shots: the PMDD screen now runs on the real API.
+
+### Journey
+
+1. Fresh user finishes onboarding and the profile → `/programs` lists the four programs, none active.
+2. Enrol in each program through `POST /conditions/enrolments` (the hub's sheet does the same call; checked in
+   CB-COND-02) → `GET /conditions` returns all three `enrolled` (200 each).
+3. Log three days in each: `PUT /conditions/pain/{date}` (200, «دفترچه درد ذخیره شد»), `PUT /conditions/pmdd/{date}`
+   (200), `PUT /conditions/pbac/{date}` (200, scores 26 / 32 / 83).
+4. Summaries: the pain diary shows today's saved score, locations, types, associated and the painkiller; the PMDD
+   screen shows today's six answers (6 of 6), the cycle chart and the pattern sentence «علائم در ۱۰ روز آخر سیکل بالا
+   می‌رود و با شروع پریود کم می‌شود» (`GET /conditions/pmdd/chart`: `complete_cycles` 2, `pattern` luteal); the bleeding
+   screen shows «روز ۳ پریود», today 83, period 141 and the ≥ 100 warning.
+5. Nudges: they fire only for users **not** enrolled in the program. `…308` (3 heavy-flow days, not enrolled) gets
+   `heavy_bleeding` from `GET /messages/nudges` and the hub shows the card with «باز کردن جدول خونریزی»; `…307`
+   (enrolled) gets `[]`, by design (CB-COND-06).
+
+### Boards
+
+| Board | Route | Light | Dark | Verdict | Fix / note |
+|---|---|---|---|---|---|
+| `nbl_Cond_Hub` | `/programs` | [enrolled](cond/CB-COND-07/fa_programs.light.png) · [with nudge](cond/CB-COND-07/fa_programs.nudge.light.png) | [enrolled](cond/CB-COND-07/fa_programs.dark.png) · [with nudge](cond/CB-COND-07/fa_programs.nudge.dark.png) | ✔ | Matches CB-COND-02: four program cards, enrolled ones with the ring and «فعال» pill; the nudge card sits above the list in the period tint, readable in dark. |
+| `nbl_Cond_Endo` | `/programs/pain` | [fa](cond/CB-COND-07/fa_pain.light.png) | [fa](cond/CB-COND-07/fa_pain.dark.png) | ✔ | Saved day round-trips from the API (score 7, pelvis + ovary, cramping, bloating, Ibuprofen 08:00 «کمی»). |
+| `nbl_Cond_PMDD` | `/programs/pmdd` | [fa](cond/CB-COND-07/fa_pmdd.light.png) | [fa](cond/CB-COND-07/fa_pmdd.dark.png) | ✔ | Now on the real API: prefilled answers, chart with the period band (right, RTL) and last-10-days band (left), legend, pattern sentence, crisis note. With only 3 logged days in the open cycle the daily line is a short stroke; the older cycles feed the pattern. |
+| `nbl_Cond_Bleed` | `/programs/bleeding` | [fa](cond/CB-COND-07/fa_bleeding.light.png) | [fa](cond/CB-COND-07/fa_bleeding.dark.png) | ✔ | Real PBAC numbers (83 today / 141 period) and the ≥ 100 warning; save is disabled until something changes. |
+
+No drift fixed: nothing needed changing in the canvas-owned condition slices.
+
+### CB-COND-02 open item — home nudge slot
+
+Bloom's home has **no** condition-nudge slot (its only nudge is the profile-vs-recent-cycles sync nudge in
+`HomePage.tsx`, shown in [home](cond/CB-COND-07/fa_home.nonudge.light.png) for a user with heavy flow: nothing about
+bleeding). So the condition nudge is visible only on `/programs`. Follow-up task **CB-COND-07b** (home condition nudge
+card) is queued in `roadmap/E05-cond/`.

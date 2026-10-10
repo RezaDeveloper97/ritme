@@ -3,7 +3,7 @@ id: CB-COND-07
 title: COND QA
 epic: COND
 type: qa
-status: todo
+status: done
 depends_on: [CB-COND-03, CB-COND-04, CB-COND-05, CB-COND-06, CB-COND-06b]
 parallel_group: COND-D
 touches: [docs/qa/canvas]
