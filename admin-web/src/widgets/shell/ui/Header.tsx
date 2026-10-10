@@ -10,11 +10,13 @@ export function Header({
   admin,
   menuOpen,
   onMenu,
+  onSearch,
 }: {
   title: string;
   admin: Admin;
   menuOpen: boolean;
   onMenu: () => void;
+  onSearch: () => void;
 }) {
   const t = useTranslations('shell');
   return (
@@ -31,19 +33,19 @@ export function Header({
         <Icon name="menu" />
       </Button>
       <h1 className="m-0 min-w-0 flex-1 truncate text-[17px] font-bold">{title}</h1>
+      <button type="button" className="search-trigger" onClick={onSearch} aria-label={t('search')} aria-keyshortcuts="Control+K Meta+K">
+        <Icon name="search" />
+        <span className="search-trigger-label">{t('search')}</span>
+        <kbd dir="ltr" aria-hidden="true">⌘K</kbd>
+      </button>
       <UiLocaleSelect />
       <ThemeToggle />
       <div className="flex shrink-0 items-center gap-2 border-s border-line ps-3">
         <span className="avatar" aria-hidden="true">
           {adminInitial(admin.name)}
         </span>
-        <span className="hidden flex-col leading-tight sm:flex">
-          <span className="text-[13px] font-semibold">{admin.name}</span>
-          <span className="text-[11.5px] text-muted" dir="ltr">
-            {admin.email}
-          </span>
-        </span>
-        <span className="hidden md:inline-flex">
+        <span className="hidden flex-col items-start gap-0.5 leading-tight sm:flex">
+          <span className="text-[13px] font-bold">{admin.name}</span>
           <RoleBadge role={admin.role} />
         </span>
       </div>

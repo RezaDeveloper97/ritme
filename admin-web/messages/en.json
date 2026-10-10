@@ -70,9 +70,17 @@
     "themeLight": "Light mode",
     "themeDark": "Dark mode",
     "language": "Panel language",
-    "soon": "Soon"
+    "soon": "Soon",
+    "themeSystem": "System mode",
+    "search": "Search or command",
+    "searchPlaceholder": "Search sections…",
+    "noResults": "No match",
+    "palette": "Command palette",
+    "sections": "Sections"
   },
   "nav": {
+    "groupOther": "Other modules",
+    "groupMain": "Main",
     "groupGeneral": "General",
     "groupContent": "Content",
     "groupMessages": "Smart messages",

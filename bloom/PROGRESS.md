@@ -1245,3 +1245,12 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
 - admin-web `screens/telemed` (doctors list/form/photo/visit types toman/schedule/time off, bookings + refund queue,
   reviews, doctor inbox chat/prescription/video) and `screens/assistant-departments`; nav group «پزشکان و تله‌مدیسین».
   Light/dark screenshots deferred to the N7 audit (B-N7-09). QUESTIONS #127.
+
+## B-N9-01 — admin-web Night & Bloom theme and shell
+
+- Night & Bloom light/dark tokens from the admin artboards (+ system mode; toggle cycles light → dark → system, init
+  script + live system preference), solid «ر» mark (`--mark-bg/--mark-ink`); sidebar main group (dashboard, users,
+  messages, challenges, admins super-only) + collapsible «سایر ماژول‌ها» (open when active); header ⌘K / Ctrl+K command
+  palette (`<dialog>` + combobox/listbox, role-filtered, arrows/Enter/Esc) and user chip with role badge. Role gating
+  unchanged. Design items without pages (message engine, KPI, OKR, safety, config) come with N9 tasks. Screenshots
+  (mock API) in `docs/qa/bloom/B-N9-01/`; ⌘K keyboard run left for the N9 audit.

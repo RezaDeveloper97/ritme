@@ -9,18 +9,25 @@ import { DEFAULT_THEME as FALLBACK_THEME, THEME_KEY as STORAGE_KEY } from './sto
  * (frontend/CLAUDE.md §10.3): one attribute, <html data-theme>, flips every
  * token in globals.css; nothing else branches on the theme.
  */
-export type ThemePreference = 'light' | 'dark';
+export type ThemePreference = 'light' | 'dark' | 'system';
 
 export const THEME_KEY = STORAGE_KEY;
 export const DEFAULT_THEME: ThemePreference = FALLBACK_THEME;
 
 export function isThemePreference(value: unknown): value is ThemePreference {
-  return value === 'light' || value === 'dark';
+  return value === 'light' || value === 'dark' || value === 'system';
+}
+
+/** `system` follows the OS (prefers-color-scheme); the attribute is always light or dark. */
+export function resolveTheme(theme: ThemePreference): 'light' | 'dark' {
+  if (theme !== 'system') return theme;
+  if (typeof window === 'undefined' || !window.matchMedia) return 'light';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 export function applyTheme(theme: ThemePreference): void {
   if (typeof document === 'undefined') return;
-  document.documentElement.dataset.theme = theme;
+  document.documentElement.dataset.theme = resolveTheme(theme);
 }
 
 function readStored(): ThemePreference {
@@ -50,5 +57,15 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
     applyTheme(theme);
     set({ theme });
   },
-  toggle: () => get().setTheme(get().theme === 'dark' ? 'light' : 'dark'),
+  toggle: () => {
+    const order: ThemePreference[] = ['light', 'dark', 'system'];
+    get().setTheme(order[(order.indexOf(get().theme) + 1) % order.length] ?? 'light');
+  },
 }));
+
+// While on `system`, follow OS changes live.
+if (typeof window !== 'undefined' && window.matchMedia) {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (useThemeStore.getState().theme === 'system') applyTheme('system');
+  });
+}

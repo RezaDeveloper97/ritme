@@ -3,7 +3,7 @@ id: B-N9-01
 title: admin-web Night & Bloom theme and shell (sidebar, ⌘K, light/dark)
 milestone: N9
 type: frontend
-status: todo
+status: done
 depends_on: [B-N8-10]
 parallel_group: N9-A
 touches: [admin-web/src]

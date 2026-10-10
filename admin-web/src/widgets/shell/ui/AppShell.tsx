@@ -7,6 +7,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { AuthGate, useCurrentAdmin } from '@/features/auth';
 
 import { activeItem, navFor } from '../model/nav';
+import { CommandPalette } from './CommandPalette';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 
@@ -26,6 +27,18 @@ function ShellFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const t = useTranslations('nav');
   const [open, setOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   // Escape closes the mobile drawer — never trap the admin inside the menu.
   useEffect(() => {
@@ -49,9 +62,11 @@ function ShellFrame({ children }: { children: ReactNode }) {
           admin={admin}
           menuOpen={open}
           onMenu={() => setOpen((v) => !v)}
+          onSearch={() => setPaletteOpen(true)}
         />
         <main className="mx-auto w-full max-w-[1200px] flex-1 p-4 sm:p-6">{children}</main>
       </div>
+      <CommandPalette groups={groups} open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   );
 }

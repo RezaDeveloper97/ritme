@@ -70,9 +70,17 @@
     "themeLight": "حالت روشن",
     "themeDark": "حالت تیره",
     "language": "زبان پنل",
-    "soon": "به‌زودی"
+    "soon": "به‌زودی",
+    "themeSystem": "حالت سیستم",
+    "search": "جست‌وجو یا دستور",
+    "searchPlaceholder": "جست‌وجو در بخش‌ها…",
+    "noResults": "موردی پیدا نشد",
+    "palette": "پالت دستور",
+    "sections": "بخش‌ها"
   },
   "nav": {
+    "groupOther": "سایر ماژول‌ها",
+    "groupMain": "اصلی",
     "groupGeneral": "عمومی",
     "groupContent": "محتوا",
     "groupMessages": "پیام‌های هوشمند",

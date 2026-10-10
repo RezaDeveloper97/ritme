@@ -15,11 +15,13 @@ export function ThemeToggle() {
   // The stored theme is only known on the client; show its state after mount.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const dark = mounted && theme === 'dark';
-  const label = dark ? t('themeLight') : t('themeDark');
+  const current = mounted ? theme : 'light';
+  // The button names what the NEXT click selects (light → dark → system → light).
+  const label = current === 'light' ? t('themeDark') : current === 'dark' ? t('themeSystem') : t('themeLight');
+  const icon = current === 'light' ? 'sun' : current === 'dark' ? 'darkMode' : 'system';
   return (
     <Button variant="ghost" icon onClick={toggle} aria-label={label} title={label}>
-      <Icon name={dark ? 'sun' : 'darkMode'} />
+      <Icon name={icon} />
     </Button>
   );
 }

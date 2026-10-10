@@ -18,15 +18,27 @@ export interface NavItem {
 
 export interface NavGroup {
   key: string; // messages key under `nav`
+  /** Modules the Night & Bloom admin design does not draw sit under «سایر ماژول‌ها». */
+  other?: boolean;
   items: NavItem[];
 }
 
 export const NAV: readonly NavGroup[] = [
   {
-    key: 'groupGeneral',
+    // The design's main list (B-N9-01): dashboard, users, messages, challenges, roles (super-only).
+    key: 'groupMain',
     items: [
       { key: 'dashboard', href: '/', icon: 'dashboard', ready: true },
       { key: 'users', href: '/users', icon: 'users', ready: true },
+      { key: 'messages', href: '/messages', icon: 'message', ready: true },
+      { key: 'challenges', href: '/challenges', icon: 'flag', ready: true },
+      { key: 'admins', href: '/admins', icon: 'shield', role: 'super', ready: true },
+    ],
+  },
+  {
+    key: 'groupGeneral',
+    other: true,
+    items: [
       // Any active admin, like /users (B-N1-12b).
       { key: 'supportReports', href: '/support-reports', icon: 'inbox', ready: true },
     ],
@@ -34,6 +46,7 @@ export const NAV: readonly NavGroup[] = [
   {
     // «اشتراک‌ها و پرداخت» (B-N2-09): every admin reads; writes are super-only (API 403 + hidden buttons).
     key: 'groupPlus',
+    other: true,
     items: [
       { key: 'plusSubscriptions', href: '/plus/subscriptions', icon: 'users', ready: true },
       { key: 'plusPayments', href: '/plus/payments', icon: 'card', ready: true },
@@ -45,6 +58,7 @@ export const NAV: readonly NavGroup[] = [
   {
     // «همدم» (B-N4-07): tips are content (editor + super); the links overview is masked and read-only.
     key: 'groupCompanions',
+    other: true,
     items: [
       { key: 'companionTips', href: '/companions/tips', icon: 'heart', ready: true },
       { key: 'companionLinks', href: '/companions/links', icon: 'link', ready: true },
@@ -53,6 +67,7 @@ export const NAV: readonly NavGroup[] = [
   {
     // «مدرسین و دوره‌ها» (B-N8-08): every admin reads and reviews content; approve / revoke instructors is super-only.
     key: 'groupLearning',
+    other: true,
     items: [
       { key: 'learningInstructors', href: '/learning/instructors', icon: 'users', ready: true },
       { key: 'learningCourses', href: '/learning/courses', icon: 'article', ready: true },
@@ -63,6 +78,7 @@ export const NAV: readonly NavGroup[] = [
     // «پزشکان و تله‌مدیسین» (B-N7-08): directory + bookings for every admin; refunds and the department editor are
     // super-only; the inbox answers 403 doctor_required for admins not linked to a doctor.
     key: 'groupTelemed',
+    other: true,
     items: [
       { key: 'telemedDoctors', href: '/telemed/doctors', icon: 'users', ready: true },
       { key: 'telemedBookings', href: '/telemed/bookings', icon: 'calendar', ready: true },
@@ -73,10 +89,10 @@ export const NAV: readonly NavGroup[] = [
   },
   {
     key: 'groupContent',
+    other: true,
     items: [
       { key: 'articles', href: '/articles', icon: 'article', ready: true },
       { key: 'affirmations', href: '/affirmations', icon: 'sparkle', ready: true },
-      { key: 'challenges', href: '/challenges', icon: 'flag', ready: true },
       { key: 'challengeCompletions', href: '/challenge-completions', icon: 'check', ready: true },
       { key: 'taskTemplates', href: '/task-templates', icon: 'task', ready: true },
       { key: 'phaseContents', href: '/phase-contents', icon: 'moon', ready: true },
@@ -90,6 +106,7 @@ export const NAV: readonly NavGroup[] = [
   },
   {
     key: 'groupPregnancy',
+    other: true,
     items: [
       { key: 'pregnancyWeeks', href: '/pregnancy-weeks', icon: 'baby', ready: true },
       { key: 'pregnancyCarePlan', href: '/pregnancy-care-plan', icon: 'calendar', ready: true },
@@ -99,6 +116,7 @@ export const NAV: readonly NavGroup[] = [
   {
     // «کودک و پس از زایمان» (B-N5-09): clinical content — every admin reads, super admins write (API 403 + hidden buttons).
     key: 'groupChildren',
+    other: true,
     items: [
       { key: 'childVaccines', href: '/children-content/vaccines', icon: 'shieldCheck', ready: true },
       { key: 'childMilestones', href: '/children-content/milestones', icon: 'flag', ready: true },
@@ -108,11 +126,8 @@ export const NAV: readonly NavGroup[] = [
     ],
   },
   {
-    key: 'groupMessages',
-    items: [{ key: 'messages', href: '/messages', icon: 'message', ready: true }],
-  },
-  {
     key: 'groupSettings',
+    other: true,
     items: [
       { key: 'languages', href: '/languages', icon: 'language', role: 'super', ready: true },
       { key: 'uiKit', href: '/ui-kit', icon: 'sparkle', ready: true, devOnly: true },
@@ -120,9 +135,9 @@ export const NAV: readonly NavGroup[] = [
   },
   {
     key: 'groupAccount',
+    other: true,
     items: [
       { key: 'password', href: '/account/password', icon: 'key', ready: true },
-      { key: 'admins', href: '/admins', icon: 'shield', role: 'super', ready: true },
     ],
   },
 ];
