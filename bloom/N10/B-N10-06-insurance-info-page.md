@@ -17,7 +17,9 @@ verify: cd backend-go && go vet ./... && go test ./... && make lint && cd .. && 
 «بیمه» tile.
 
 ## Scope
-- Admin content page (coverage, claims how-to, partner link); no health data sent.
+- Read-only admin-edited content page `/insurance` (coverage overview, how to file a claim, documents checklist, FAQ, optional partner link-out), fa/en/ar via the existing content mechanism, admin editor with published flag; the services tile hides while unpublished.
+- No personal or health data collected or sent; no insurer API. CB-INS-01 keeps this page as the «how it works» page and adds self-tracking separately.
+- Full detail: `docs/night-bloom/extras.md` §5.
 
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.

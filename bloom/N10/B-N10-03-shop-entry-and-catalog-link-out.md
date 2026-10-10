@@ -20,7 +20,10 @@ verify: cd backend-go && go vet ./... && go test ./... && make lint && cd .. && 
 - `docs/design/night-bloom/d-doctor-assistant/nbl_v17_Main.dc.html` (+ `nbd_v17_Main`)
 
 ## Scope
-- Categories (sismooni & baby, cosmetics & hygiene), admin-managed products with partner link-out via adapter; «سفارش‌ها» row in Me shows partner orders when the adapter supports it, else hidden.
+- `internal/shop`: admin-managed categories («سیسمونی و نوزاد», «آرایشی و بهداشتی») and products (title, image, price text, badge, nullable `external_url`, partner label, order/active); no cart/payment (CB-SHOP-01 extends this schema; link-out products must keep rendering).
+- Services «فروشگاه» entry → categories → product list → external link-out with an interstitial line; keeps the design's «فروشگاه از داده سلامت تو جداست…» disclosure; shop tables/code never join or import health data; no per-user browsing history; link carries no user identifiers.
+- `ShopOrders` adapter stub (`fake` = unsupported). The Me «سفارش‌ها» partner-orders row stays hidden (DECISIONS #15: internal COD orders arrive in CB-SHOP-08 at `/profile/orders`).
+- Full detail: `docs/night-bloom/extras.md` §2.
 
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.

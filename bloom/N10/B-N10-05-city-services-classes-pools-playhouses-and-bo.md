@@ -20,7 +20,9 @@ verify: cd backend-go && go vet ./... && go test ./... && make lint && cd .. && 
 - `docs/design/night-bloom/d-doctor-assistant/nbl_v17_Main.dc.html` (+ `nbd_v17_Main`)
 
 ## Scope
-- Admin-managed listings by city and category, detail, booking link or request, my bookings list.
+- `internal/cityservices`: admin-managed cities, categories (class / pool / playhouse) and listings (name, city, district, address, phone, description, price text, photos, hours, `booking_mode` link | request | phone, booking URL); list with city + category filter, detail, booking via link-out or a request (name, phone, preferred date, optional child age range, note) landing in an admin queue with user-visible status; thin «رزروها» list over the same table (CB-DIR-09 later supersedes it at `/profile/bookings`).
+- No map, no online payment, no slots/reviews (CB-DIR). `BookingNotifier` adapter (`fake` = log). Nothing health-related (child medical data, cycle/pregnancy state) is sent to venues.
+- Full detail: `docs/night-bloom/extras.md` §4.
 
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.

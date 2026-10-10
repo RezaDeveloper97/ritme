@@ -20,7 +20,10 @@ verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && 
 - `docs/design/night-bloom/g-me-settings/nbl_Me_Hub.dc.html` (+ `nbd_Me_Hub`)
 
 ## Scope
-- Backup: last server sync time, manual export. Devices: honest «به‌زودی» state + interest capture (web can't pair most wearables); document what a real integration would need.
+- Frontend only. Backup: last server sync time (latest successful server write/sync signal), explanation that data lives in her account, manual export reusing the JSON export (B-N1-12) and the record export (`/record/export`, B-N6-04); no cloud-drive upload.
+- Devices: honest «به‌زودی» state with device kinds and an interest button sent via the existing analytics/support-event path ({device kind, locale}, no health data); if that cannot carry it, add one small endpoint and extend `touches`.
+- Document in code comments what a real integration needs (web can't pair most wearables; native HealthKit/Health Connect out of scope; vendor cloud OAuth + `DeviceProvider` adapter, token vault, per-metric consent, vitals import, revoke).
+- Full detail: `docs/night-bloom/extras.md` §6.
 
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.

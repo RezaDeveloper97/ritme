@@ -3,7 +3,7 @@ id: B-N10-01
 title: Extras scoping — partners and data sources
 milestone: N10
 type: investigate
-status: todo
+status: done
 depends_on: [B-N9-13]
 parallel_group: N10-A
 touches: [docs/night-bloom/extras.md]

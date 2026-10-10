@@ -1307,3 +1307,11 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   همه / دستیار / پزشک, visit rows link to `/services/bookings/:id`, on-device PDF export (titles, department/doctor,
   date, status/triage only — never message bodies or summaries, stated in the PDF). No backend change. Shots (mock)
   `docs/qa/bloom/B-N7-07b/`.
+
+## B-N10-01 — Extras scoping
+
+- `docs/night-bloom/extras.md`: per extra (ad slots on banners `kind=ad`, shop link-out catalog with nullable
+  `external_url` for CB-SHOP, home lab/screening requests, city services + simple bookings for CB-DIR, insurance info
+  page, devices & backup frontend-only) — design, MVP, fake-default adapter, privacy (no health targeting/payloads; ads
+  mode-only, never teen/loss/emergency paths, daily counters without user id), data owner, open questions (QUESTIONS
+  #129). N10-02..07 scopes updated; B-N10-04 now also depends on B-N6-06.
