@@ -3,7 +3,7 @@ id: CB-SHOP-06
 title: Frontend: shop homes (baby + beauty)
 epic: SHOP
 type: frontend
-status: todo
+status: done
 depends_on: [CB-SHOP-02, B-N7-01]
 parallel_group: SHOP-E
 touches: [frontend/src/screens/shop, frontend/src/screens/shop-beauty, frontend/src/entities/shop, frontend/messages/fa/shop.json, frontend/messages/en/shop.json, frontend/src/app/[locale]/services/shop, frontend/src/app/message-scopes.ts]

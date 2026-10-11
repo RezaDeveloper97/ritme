@@ -10168,6 +10168,43 @@
     "line": "You're going to the seller's site. Buying and payment happen there, and nothing from your health logs goes with you.",
     "go": "Continue",
     "cancel": "Cancel"
+   },
+   "price": {
+    "plain": "{n} toman",
+    "thousand": "{n}k toman",
+    "million": "{n}M toman"
+   },
+   "home": {
+    "rootsLabel": "Shop sections",
+    "categories": "Categories",
+    "bestOf": "Best sellers in {name}",
+    "all": "All",
+    "outOfStock": "Out of stock",
+    "ircTitle": "Health code on every product",
+    "ircBody": "Every beauty and hygiene product shows its IRC code and full ingredient list. Items without a code are not sold on Ritme.",
+    "trustLabel": "Buying with confidence",
+    "trust": {
+     "genuine": {
+      "title": "Genuine goods",
+      "body": "Verified sellers only"
+     },
+     "returns": {
+      "title": "7-day returns",
+      "body": "No questions asked, for unopened items"
+     },
+     "fast": {
+      "title": "Fast delivery",
+      "body": "See the free-shipping terms"
+     },
+     "discreet": {
+      "title": "Plain packaging",
+      "body": "No product name on the box"
+     }
+    },
+    "cod": "You pay on delivery.",
+    "separation": "The shop is separate from the health section. Your health data is not used to suggest products unless you separately allow it.",
+    "teenTitle": "The shop isn't available in this mode",
+    "teenBody": "Shopping is not available for a teen account."
    }
   },
   "teen": {

@@ -12687,3 +12687,42 @@ a.nb-card.cnd-card { color: inherit; text-decoration: none; }
 .ins-tile-n { font-family: var(--font-display); font-size: var(--fs-xl); color: var(--brand); line-height: 1.2; }
 .ins-tile-t { font-size: 12px; font-weight: 700; line-height: 1.6; color: var(--text-2); }
 /* ═══ end CB-INS-03 ═══ */
+
+/* ═══ CB-SHOP-06 — shop homes (baby + beauty) ═══ */
+.shp-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.shp-chip {
+  display: inline-flex; align-items: center; min-block-size: 40px; padding-inline: 14px; border-radius: 20px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text-1);
+  font-size: 12.5px; font-weight: 700; text-decoration: none;
+}
+.shp-chip:focus-visible, .shp-sec-all:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.shp-irc { display: flex; align-items: flex-start; gap: 12px; color: var(--data-deep); }
+.shp-irc-title { margin: 0 0 4px; font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+.shp-irc-body { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+.shp-sec { display: flex; flex-direction: column; gap: 10px; }
+.shp-sec-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.shp-sec-title { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); }
+.shp-sec-all { min-block-size: 44px; display: inline-flex; align-items: center; font-size: 12.5px; font-weight: 800; color: var(--brand); text-decoration: none; }
+.shp-tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.shp-tile { display: flex; flex-direction: column; gap: 4px; padding: 8px 8px 12px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); min-inline-size: 0; }
+.shp-tile-art {
+  position: relative; display: flex; align-items: center; justify-content: center; aspect-ratio: 1 / 1; overflow: hidden;
+  border-radius: 16px; background: var(--surface-2); color: var(--text-3); margin-block-end: 4px;
+}
+.shp-tile-art img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+.shp-tile-badge {
+  position: absolute; inset-block-start: 8px; inset-inline-start: 8px; padding: 2px 8px; border-radius: 999px;
+  background: var(--brand-soft); color: var(--brand-ink); font-size: var(--fs-2xs); font-weight: 800;
+}
+.shp-tile-title { font-size: 13px; font-weight: 800; line-height: 1.6; color: var(--text-1); }
+.shp-tile-seller { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+.shp-tile-rating { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 700; color: var(--warm-deep); }
+.shp-tile-count { color: var(--text-3); font-weight: 600; }
+.shp-tile-prices { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+.shp-was { font-size: 11.5px; font-weight: 600; color: var(--text-3); }
+.shp-tile-out { font-size: 11.5px; font-weight: 800; color: var(--danger-deep); }
+.shp-trust { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.shp-trust-item { display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: 16px; background: var(--surface-2); }
+.shp-trust-title { font-size: 12.5px; font-weight: 800; color: var(--text-1); }
+.shp-trust-body { font-size: 11.5px; font-weight: 600; line-height: 1.7; color: var(--text-2); }
+/* ═══ end CB-SHOP-06 ═══ */

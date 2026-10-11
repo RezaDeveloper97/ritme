@@ -3,4 +3,5 @@ export const shopKeys = {
   all: ['shop'] as const,
   categories: () => [...shopKeys.all, 'categories'] as const,
   products: (category: string, page: number) => [...shopKeys.all, 'products', category, page] as const,
+  catalogHome: (root: string) => [...shopKeys.all, 'catalog-home', root] as const, // CB-SHOP-06
 };
