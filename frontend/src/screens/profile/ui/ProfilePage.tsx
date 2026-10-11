@@ -44,9 +44,8 @@ interface SoonRow {
 const FAMILY_SOON: readonly SoonRow[] = [
   { key: 'children', icon: 'user', tone: 'bloom' }, // B-N5
 ];
-const TASK_ROWS: readonly SoonRow[] = [
-  { key: 'orders', icon: 'box', tone: 'brand' }, // B-N10
-];
+// «سفارش‌ها» (B-N10) is live since CB-SHOP-08 — its row is rendered directly below.
+const TASK_ROWS: readonly SoonRow[] = [];
 
 /**
  * «من» hub (B-N1-10, `nbl_Me_Hub` / `nbd_Me_Hub`): profile header (masked
@@ -229,6 +228,8 @@ export function ProfilePage() {
               <ListRow icon="download" iconTone="data" title={t('rows.downloads')} onClick={() => router.push('/learn/downloads')} />
               {/* B-N10-05: «رزروها» → /profile/bookings (my city-service requests; CB-DIR-09 supersedes later). */}
               <ListRow icon="calendar" iconTone="data" title={t('rows.bookings')} onClick={() => router.push('/profile/bookings')} />
+              {/* CB-SHOP-08: «سفارش‌ها» → /profile/orders (internal COD shop; supersedes the B-N10-03 partner row). */}
+              <ListRow icon="box" iconTone="brand" title={t('rows.orders')} onClick={() => router.push('/profile/orders')} />
               {TASK_ROWS.map((row) => (
                 <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
               ))}

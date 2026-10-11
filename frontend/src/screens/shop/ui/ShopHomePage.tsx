@@ -8,6 +8,7 @@ import { getApiErrorStatus } from '@/shared/api';
 import { Link, useRouter } from '@/shared/i18n';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SegmentedTabs, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
+import { CartButton } from './CartButton';
 import { ProductTile } from './ProductTile';
 import { ShopPage as ShopLinkOutPage } from './ShopPage';
 import { ChecklistCard, SupplyReminderCard } from './ShopHomeCards';
@@ -135,7 +136,13 @@ export function ShopHomePage() {
     <div className="view shp-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('title')} subtitle={t('tag')} onBack={() => router.push('/services')} backLabel={t('back')} />
+        <ScreenHeader
+          title={t('title')}
+          subtitle={t('tag')}
+          onBack={() => router.push('/services')}
+          backLabel={t('back')}
+          action={<CartButton />}
+        />
         <div className="shp-body">
           {body}
           <p className="shp-note">{t('home.separation')}</p>

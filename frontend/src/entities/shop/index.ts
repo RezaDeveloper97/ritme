@@ -52,3 +52,38 @@ export {
   useSupplyReminder,
   useUpdateCustomItem,
 } from './api/checklist';
+
+// CB-SHOP-08: cart, addresses, COD checkout, orders, returns.
+export {
+  RETURN_REASONS,
+  type ReturnReason,
+  type ShopAddress,
+  type ShopAddressInput,
+  type ShopCart,
+  type ShopCartLine,
+  type ShopCheckout,
+  type ShopOrder,
+  type ShopOrderItem,
+  type ShopOrderSummary,
+} from './api/order-schema';
+export {
+  shopErrorCode,
+  shopCodeKey,
+  shopErrorKey,
+  useAddToCart,
+  useApplyDiscount,
+  useCancelOrder,
+  useDeleteAddress,
+  usePlaceOrder,
+  useRemoveCartItem,
+  useRemoveDiscount,
+  useRequestReturn,
+  useSaveAddress,
+  useSetCartQuantity,
+  useShopCart,
+  useShopCheckout,
+  useShopOrder,
+  useShopOrders,
+} from './api/order';
+export { useShopPrice } from './model/use-price';
+export { useSlotText } from './model/use-slot';

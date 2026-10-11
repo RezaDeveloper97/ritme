@@ -4,6 +4,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
 import {
+  shopErrorKey,
+  useAddToCart,
   useShopCatalogProduct,
   useShopCatalogReviews,
   type ShopCatalogProduct,
@@ -28,6 +30,7 @@ import {
   SkyLayer,
 } from '@/shared/ui';
 
+import { CartButton } from './CartButton';
 import { ProductTile, usePrice, useRatingText, useSkinLabel } from './ProductTile';
 
 type Dim = 'size' | 'color' | 'volume';
@@ -113,6 +116,8 @@ function Reviews({ product }: { product: ShopCatalogProduct }) {
 function ProductBody({ product }: { product: ShopCatalogProduct }) {
   const t = useTranslations('shop');
   const locale = useLocale() as Locale;
+  const router = useRouter();
+  const addCart = useAddToCart();
   const price = usePrice();
   const ratingText = useRatingText();
   const skinLabel = useSkinLabel();
@@ -321,19 +326,33 @@ function ProductBody({ product }: { product: ShopCatalogProduct }) {
 
       <p className="shp-note">{t('home.cod')}</p>
 
-      {/* Sticky add-to-cart bar. TODO(CB-SHOP-08): the cart API (CB-SHOP-03) and cart screens land separately; wire
-          `variant.id` to POST /shop/cart/items there. Until then the button is disabled and says so. */}
+      {/* Sticky add-to-cart bar (CB-SHOP-08): POST /shop/cart/items with the chosen variant; then «دیدن سبد». */}
       <div className="shp-buybar">
         <div className="shp-buy-info">
           <span className="shp-buy-variant">{[shown?.size, shown?.color, shown?.volume].filter(Boolean).join(' · ') || product.title}</span>
           <span className="shp-price">{price(shownPrice)}</span>
-          <span id="shp-buy-hint" className="shp-buy-hint">
-            {inStock ? t('product.cartSoon') : t('product.outHint')}
+          <span id="shp-buy-hint" className="shp-buy-hint" role="status">
+            {addCart.isError
+              ? t(`errors.${shopErrorKey(addCart.error)}`)
+              : addCart.isSuccess
+                ? t('product.addedToCart')
+                : inStock
+                  ? t('product.codHint')
+                  : t('product.outHint')}
           </span>
         </div>
-        <PrimaryButton disabled aria-describedby="shp-buy-hint">
-          {inStock ? t('product.addToCart') : t('home.outOfStock')}
-        </PrimaryButton>
+        {addCart.isSuccess ? (
+          <PrimaryButton onClick={() => router.push('/shop/cart')}>{t('product.viewCart')}</PrimaryButton>
+        ) : (
+          <PrimaryButton
+            disabled={!inStock || !shown}
+            loading={addCart.isPending}
+            aria-describedby="shp-buy-hint"
+            onClick={() => shown && addCart.mutate({ variantId: shown.id })}
+          >
+            {inStock ? t('product.addToCart') : t('home.outOfStock')}
+          </PrimaryButton>
+        )}
       </div>
     </>
   );
@@ -398,6 +417,7 @@ export function ShopProductPage({ id }: { id: number }) {
           title={t('product.title')}
           onBack={() => router.push(q.data ? `/shop/${q.data.category}` : '/shop')}
           backLabel={t('back')}
+          action={<CartButton />}
         />
         <div className="shp-body shp-pbody">{body}</div>
         <div className="page-tail" />

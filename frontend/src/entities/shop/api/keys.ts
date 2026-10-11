@@ -11,4 +11,9 @@ export const shopKeys = {
   checklistAll: () => [...shopKeys.all, 'checklist'] as const,
   checklist: (forUserId: number | null) => [...shopKeys.all, 'checklist', forUserId ?? 'me'] as const,
   supplyReminder: () => [...shopKeys.all, 'supply-reminder'] as const,
+  // CB-SHOP-08
+  cart: () => [...shopKeys.all, 'cart'] as const,
+  checkout: () => [...shopKeys.all, 'checkout'] as const,
+  orders: () => [...shopKeys.all, 'orders'] as const,
+  order: (id: number) => [...shopKeys.all, 'order', id] as const,
 };

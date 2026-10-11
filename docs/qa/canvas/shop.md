@@ -35,3 +35,16 @@ Shots at 390 wide, Persian, API mocked at the network layer (shapes from `GET /s
 | `nbd_Shop_Checklist` (`docs/qa/canvas/boards/nbd_Shop_Checklist.png`) | `/shop/checklist` | `CB-SHOP-09/fa_shop-checklist.light.png` | `CB-SHOP-09/fa_shop-checklist.dark.png` | matches: progress ring, due date + weeks left, family share, add item, filter chips, per-group rows with state lines and «see» links, safe-sleep note on the row, "general list, more stuff is not more ready" note | state/qty edit via sheet (pen icon); family view (`?for=`) is read only |
 | `nbd_Shop_Home` | `/shop` (baby) | `CB-SHOP-09/fa_shop-baby-card.light.png` | `CB-SHOP-09/fa_shop-baby-card.dark.png` | layette-checklist card with progress | none |
 | `nbd_Shop_Beauty` | `/shop` (beauty) | `CB-SHOP-09/fa_shop-beauty-reminder.light.png` | `CB-SHOP-09/fa_shop-beauty-reminder.dark.png` | discreet supply-reminder toggle (copy never names the reason; opt-in, off by default) | none |
+
+## CB-SHOP-08
+
+Shots at 390 wide, Persian, API mocked at the network layer (shapes of `GET /shop/cart`, `/shop/checkout`, `/shop/orders[/:id]`).
+The PWA install prompt on the cart shot is the app shell, not this screen. Pay on delivery only: no bank-gateway row
+(DECISIONS #13); the board's «درگاه بانکی» is intentionally left out.
+
+| board | route | light | dark | verdict | fix |
+|---|---|---|---|---|---|
+| `nbd_Shop_Cart` | `/shop/cart` | `CB-SHOP-08/fa_cart.light.png` | `CB-SHOP-08/fa_cart.dark.png` | matches: per-seller groups with ship days, free-shipping hint, qty stepper, discount code, totals («محاسبه در مرحله بعد» for shipping), sticky total + continue | product images are placeholders until uploaded |
+| `nbd_Shop_Checkout` | `/shop/checkout` | `CB-SHOP-08/fa_checkout.light.png` | `CB-SHOP-08/fa_checkout.dark.png` | matches: stepper, address (sheet to pick/add/edit), masked recipient phone, slot chips per seller, plain packaging switch, COD card, totals, place order | gateway option removed (COD only); one idempotency key per attempt, reused on retry |
+| `nbd_Shop_Order` | `/shop/order/[id]?placed=1` | `CB-SHOP-08/fa_order-placed.light.png` | `CB-SHOP-08/fa_order-placed.dark.png` | matches: code + discreet SMS note, per-seller timeline (confirm / ship / deliver), checklist «on the way» link, returns after delivery | cancel (sheet) while nothing is confirmed |
+| Me → orders | `/profile/orders` | `CB-SHOP-08/fa_my-orders.light.png` | `CB-SHOP-08/fa_my-orders.dark.png` | order cards (code, sellers, count, date, total) | none |
