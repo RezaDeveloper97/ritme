@@ -185,6 +185,8 @@ func capabilityOf(path string) string {
 		return CapContent
 	case "insurance": // CB-INS-01: insurer catalog + contracted centres (admin content, no user data)
 		return CapContent
+	case "city-service-applications": // CB-DIR-05: directory join review queue (contact details also need «support»)
+		return CapContent
 	case "plus":
 		return CapBilling
 	case "support-reports", "partners", "city-service-bookings":

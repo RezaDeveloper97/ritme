@@ -43,6 +43,8 @@ type Admin struct {
 	opt    media.Optimizer
 	appURL string
 	logger *slog.Logger
+	files  AdminFiles     // CB-DIR-05: licence links + rejected photos (nil = not wired)
+	status StatusNotifier // CB-DIR-05: discreet confirm / decline notice to the mother
 }
 
 // NewAdmin builds the admin handlers.
@@ -53,7 +55,8 @@ func NewAdmin(db *sql.DB, disk *media.Disk, appURL string, logger *slog.Logger) 
 	if disk == nil {
 		disk = media.NewDisk("")
 	}
-	return &Admin{store: NewStore(db), disk: disk, opt: media.DefaultOptimizer, appURL: appURL, logger: logger}
+	return &Admin{store: NewStore(db), disk: disk, opt: media.DefaultOptimizer, appURL: appURL, logger: logger,
+		status: FakeStatusNotifier{Logger: logger}} // CB-DIR-05
 }
 
 // Routes registers the endpoints; static paths before :id.
@@ -79,6 +82,7 @@ func (a *Admin) Routes(route Route, kit *httpadmin.Kit) {
 	route(fiber.MethodGet, "/city-service-bookings", k(a.ListBookings))
 	route(fiber.MethodGet, "/city-service-bookings/:id", k(a.ShowBooking))
 	route(fiber.MethodPut, "/city-service-bookings/:id", k(a.UpdateBooking))
+	a.dirRoutes(route, kit) // CB-DIR-05: directory fields, services, slots, reviews, reports, applications (admin_dir.go)
 }
 
 func (a *Admin) now(c fiber.Ctx) sql.NullTime { return httpadmin.DBTime(httpadmin.Now(c)) }
@@ -123,7 +127,7 @@ func (a *Admin) listingJSON(l Listing) *jsonx.OrderedMap {
 	if photos == nil {
 		photos = []string{}
 	}
-	return jsonx.Obj("id", l.ID, "category_id", l.CategoryID, "city_id", l.CityID,
+	o := jsonx.Obj("id", l.ID, "category_id", l.CategoryID, "city_id", l.CityID,
 		"category", jsonx.Obj("slug", l.CatSlug, "name", form.Raw(l.CatName)),
 		"city", jsonx.Obj("slug", l.CitySlug, "name", form.Raw(l.CityName)),
 		"name", l.Name, "district", httpadmin.NullString(l.District), "address", httpadmin.NullString(l.Address),
@@ -133,6 +137,8 @@ func (a *Admin) listingJSON(l Listing) *jsonx.OrderedMap {
 		"booking_mode", l.BookingMode, "booking_url", httpadmin.NullString(l.BookingURL),
 		"sort_order", l.SortOrder, "is_active", l.IsActive,
 		"created_at", httpadmin.Time(l.CreatedAt), "updated_at", httpadmin.Time(l.UpdatedAt))
+	a.listingDirJSON(o, l) // CB-DIR-05: directory columns appended (shape kept)
+	return o
 }
 
 // Options is GET /city-services/options: every city and category (any state) plus the enums and limits.
@@ -152,9 +158,13 @@ func (a *Admin) Options(c fiber.Ctx) error {
 	for _, t := range cats {
 		kj = append(kj, a.taxonJSON(t, true))
 	}
-	return httpadmin.OK(c, jsonx.Obj("cities", cj, "categories", kj, "booking_modes", Modes, "statuses", Statuses,
+	o := jsonx.Obj("cities", cj, "categories", kj, "booking_modes", Modes, "statuses", Statuses,
 		"max_photos", MaxPhotos, "image", jsonx.Obj("max_kb", photoMaxKB, "min_width", photoMinDim, "min_height", photoMinDim,
-			"types", []string{"jpeg", "png", "webp"})))
+			"types", []string{"jpeg", "png", "webp"}))
+	if err := a.directoryOptions(c, o); err != nil { // CB-DIR-05
+		return err
+	}
+	return httpadmin.OK(c, o)
 }
 
 // ---------------------------------------------------------------------------
@@ -256,11 +266,17 @@ func (a *Admin) deleteTaxon(c fiber.Ctx, table string) error {
 // ListListings is GET /city-services/listings?city_id=&category_id=&status=&q=&page=&per_page=.
 func (a *Admin) ListListings(c fiber.Ctx) error {
 	f := AdminListingFilter{Query: c.Query("q"), Status: c.Query("status")}
+	if s := c.Query("listing_status"); slices.Contains(ListingStatuses, s) { // CB-DIR-05
+		f.ListingStatus = s
+	}
 	f.CityID, _ = parseUint(c.Query("city_id"))
 	f.CategoryID, _ = parseUint(c.Query("category_id"))
 	p := httpadmin.PageOf(c)
 	rows, total, err := a.store.AdminListings(c, f, p.PerPage, p.Offset())
 	if err != nil {
+		return err
+	}
+	if err := a.filePhotos(c, rows); err != nil { // CB-DIR-05
 		return err
 	}
 	items := make([]*jsonx.OrderedMap, 0, len(rows))
@@ -288,7 +304,11 @@ func (a *Admin) ShowListing(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return httpadmin.OK(c, jsonx.Obj("listing", a.listingJSON(l)))
+	ls := []Listing{l}
+	if err := a.filePhotos(c, ls); err != nil { // CB-DIR-05
+		return err
+	}
+	return httpadmin.OK(c, jsonx.Obj("listing", a.listingJSON(ls[0])))
 }
 
 func (a *Admin) validateListing(c fiber.Ctx) (ListingInput, error) {
@@ -302,7 +322,7 @@ func (a *Admin) validateListing(c fiber.Ctx) (ListingInput, error) {
 		validation.F("description", "nullable|string|max:5000"),
 		validation.F("price_text", "nullable|string|max:120"),
 		validation.F("hours_text", "nullable|string|max:200"),
-		validation.F("booking_mode", "required", validation.In(Modes...)),
+		validation.F("booking_mode", "required", validation.In(AdminModes...)), // CB-DIR-05: + online
 		validation.F("booking_url", "nullable|string|max:1000"),
 		validation.F("sort_order", "nullable|integer"),
 		validation.F("is_active", "nullable"),
@@ -502,7 +522,7 @@ func (a *Admin) RemovePhoto(c fiber.Ctx) error {
 // Booking queue (capability support)
 
 func (a *Admin) bookingJSON(b Booking) *jsonx.OrderedMap {
-	return jsonx.Obj("id", b.ID, "status", b.Status, "status_note", httpadmin.NullString(b.StatusNote),
+	o := jsonx.Obj("id", b.ID, "status", b.Status, "status_note", httpadmin.NullString(b.StatusNote),
 		"contact_name", b.ContactName, "contact_phone", b.ContactPhone, "preferred_date", b.PreferredDate.String(),
 		"child_age_range", httpadmin.NullString(b.ChildAgeRange), "note", httpadmin.NullString(b.Note),
 		"allowed_statuses", transitions[b.Status],
@@ -510,6 +530,8 @@ func (a *Admin) bookingJSON(b Booking) *jsonx.OrderedMap {
 			"category", jsonx.Obj("slug", b.Listing.CatSlug, "name", form.Raw(b.Listing.CatName)),
 			"city", jsonx.Obj("slug", b.Listing.CitySlug, "name", form.Raw(b.Listing.CityName))),
 		"created_at", httpadmin.Time(b.CreatedAt), "updated_at", httpadmin.Time(b.UpdatedAt))
+	a.bookingDirJSON(o, b) // CB-DIR-05: code, service, slot, child, price, status history, review (shape kept)
+	return o
 }
 
 // ListBookings is GET /city-service-bookings?status=&listing_id=&page=&per_page= (open requests first).
@@ -577,6 +599,7 @@ func (a *Admin) UpdateBooking(c fiber.Ctx) error {
 		return httpadmin.Fail(fiber.StatusUnprocessableEntity, CodeBadTransition, "This status change is not allowed.")
 	}
 	httpadmin.Audit(c, a.logger, "city_service_booking.status", "city_service_booking", cur.ID, slog.String("to", to))
+	a.notifyStatus(c, cur, to) // CB-DIR-05: discreet notice on confirm / decline
 	b, err := a.store.AdminBooking(c, cur.ID)
 	if err != nil {
 		return err

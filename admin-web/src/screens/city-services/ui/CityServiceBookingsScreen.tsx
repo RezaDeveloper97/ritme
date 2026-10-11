@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { useLocalized } from '@/shared/i18n';
-import { formatDateTime, useListParams } from '@/shared/lib';
+import { formatDateTime, formatNumber, useListParams } from '@/shared/lib';
 import { Badge, Button, DataTable, PageHeader, Pagination, Panel, Select, TextInput, toast, useNotifyError, type BadgeTone, type Column } from '@/shared/ui';
 
 import { bookingsApi, useCityServiceOptions, type CityBooking } from '../api/city-services';
@@ -19,6 +19,7 @@ const TONE: Record<string, BadgeTone> = { requested: 'amber', confirmed: 'green'
  */
 export function CityServiceBookingsScreen() {
   const t = useTranslations('cityServices.queue');
+  const tb = useTranslations('cityServices.dir.booking');
   const locale = useLocale();
   const localize = useLocalized();
   const list = useListParams({ status: 'requested' });
@@ -58,6 +59,10 @@ export function CityServiceBookingsScreen() {
       cell: (b) => (
         <span className="flex flex-col text-xs">
           <span>{b.preferred_date}</span>
+          {b.code ? <span dir="ltr">{tb('code', { code: b.code })}</span> : null}
+          {b.service?.name ? <span className="text-muted">{tb('service', { name: b.service.name })}</span> : null}
+          {b.slot?.starts_at ? <span className="text-muted">{tb('slot', { time: formatDateTime(b.slot.starts_at, locale) })}</span> : null}
+          {b.child ? <span className="text-muted">{tb('child', { name: b.child.name, months: formatNumber(b.child.age_months, locale) })}</span> : null}
           {b.child_age_range ? <span className="text-muted">{t('age', { age: b.child_age_range })}</span> : null}
           {b.note ? <span className="text-muted">{b.note}</span> : null}
         </span>

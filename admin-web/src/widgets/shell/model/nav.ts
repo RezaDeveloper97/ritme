@@ -116,6 +116,9 @@ export const NAV: readonly NavGroup[] = [
       { key: 'shop', href: '/shop', icon: 'banner', cap: 'content', ready: true }, // B-N10-03 link-out catalog
       { key: 'cityServices', href: '/city-services', icon: 'banner', cap: 'content', ready: true }, // B-N10-05 city services listings
       { key: 'cityServiceBookings', href: '/city-service-bookings', icon: 'inbox', cap: 'support', ready: true }, // B-N10-05 booking request queue
+      { key: 'cityServiceApplications', href: '/city-services/applications', icon: 'inbox', cap: 'content', ready: true }, // CB-DIR-05 join review queue
+      { key: 'cityServiceReviews', href: '/city-services/reviews', icon: 'heart', cap: 'content', ready: true }, // CB-DIR-05 review moderation
+      { key: 'cityServiceReports', href: '/city-services/reports', icon: 'alert', cap: 'content', ready: true }, // CB-DIR-05 wrong-information reports
       { key: 'insuranceCenters', href: '/insurance-centers', icon: 'shieldCheck', cap: 'content', ready: true }, // CB-INS-02 insurers + centres
       { key: 'infoSections', href: '/info-sections', icon: 'lifeRing', cap: 'content', ready: true },
       // Editor + super (the content permission); switch to B-N9-02's content role once it lands.

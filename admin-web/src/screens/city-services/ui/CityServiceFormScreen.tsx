@@ -11,6 +11,8 @@ import { Button, FormPage, ImageUpload, LoadGate, PageHeader, Panel, Select, Swi
 
 import { listingsApi, useAddPhoto, useCityServiceOptions, useRemovePhoto, type CityServiceOptions, type Listing } from '../api/city-services';
 
+import { ListingDirectoryPanels } from './ListingDirectoryPanels';
+
 /** /city-services/new and /city-services/:id — one venue (B-N10-05). */
 export function CityServiceFormScreen({ id }: { id: number | null }) {
   const t = useTranslations('cityServices');
@@ -104,7 +106,7 @@ function ListingForm({ id, row, options }: { id: number | null; row: Listing | n
             hint={t('bookingModeHint')}
             value={mode}
             onChange={(e) => setMode(e.target.value)}
-            options={options.booking_modes.map((m) => ({ value: m, label: t(`modes.${m}` as 'modes.link') }))}
+            options={(options.admin_booking_modes.length > 0 ? options.admin_booking_modes : options.booking_modes).map((m) => ({ value: m, label: t(`modes.${m}` as 'modes.link') }))}
             error={err('booking_mode')}
           />
           {mode === 'link' ? (
@@ -115,6 +117,7 @@ function ListingForm({ id, row, options }: { id: number | null; row: Listing | n
         </div>
       </FormPage>
       {row ? <PhotosPanel listing={row} options={options} /> : <p className="panel-note">{t('photosAfterSave')}</p>}
+      {row ? <ListingDirectoryPanels listing={row} options={options} /> : null /* CB-DIR-05 */}
     </div>
   );
 }

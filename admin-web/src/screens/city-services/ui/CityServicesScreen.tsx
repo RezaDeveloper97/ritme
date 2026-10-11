@@ -13,6 +13,7 @@ import { listingsApi, useCityServiceOptions, type Listing } from '../api/city-se
 /** /city-services — the venue listings (B-N10-05); cities, categories and the request queue are linked from here. */
 export function CityServicesScreen() {
   const t = useTranslations('cityServices');
+  const td = useTranslations('cityServices.dir');
   const tc = useTranslations('crud');
   const locale = useLocale();
   const router = useRouter();
@@ -35,7 +36,7 @@ export function CityServicesScreen() {
       key: 'photo',
       header: t('photo'),
       // eslint-disable-next-line @next/next/no-img-element -- API-hosted upload
-      cell: (l) => (l.photo_urls[0] ? <img src={l.photo_urls[0]} alt="" className="thumb" loading="lazy" /> : '—'),
+      cell: (l) => ((l.file_photo_urls[0] ?? l.photo_urls[0]) ? <img src={l.file_photo_urls[0] ?? l.photo_urls[0]} alt="" className="thumb" loading="lazy" /> : '—'),
     },
     { key: 'name', header: t('name'), cell: (l) => l.name },
     { key: 'category', header: t('category'), cell: (l) => localize(l.category.name) || l.category.slug, className: 'whitespace-nowrap' },
@@ -44,7 +45,13 @@ export function CityServicesScreen() {
     {
       key: 'status',
       header: tc('status'),
-      cell: (l) => (l.is_active ? <Badge tone="green">{tc('active')}</Badge> : <Badge tone="amber">{tc('inactive')}</Badge>),
+      cell: (l) => (
+        <span className="flex flex-wrap gap-1">
+          {l.is_active ? <Badge tone="green">{tc('active')}</Badge> : <Badge tone="amber">{tc('inactive')}</Badge>}
+          {l.status !== 'published' ? <Badge tone="neutral">{td(`placeStatus.${l.status}` as 'placeStatus.published')}</Badge> : null}
+          {l.verified ? <Badge tone="brand">{td('verified')}</Badge> : null}
+        </span>
+      ),
     },
     {
       key: 'actions',
@@ -62,6 +69,15 @@ export function CityServicesScreen() {
         <>
           <Link href="/city-service-bookings" className="btn btn-sm">
             {t('queueLink')}
+          </Link>
+          <Link href="/city-services/applications" className="btn btn-sm">
+            {td('applicationsLink')}
+          </Link>
+          <Link href="/city-services/reviews" className="btn btn-sm">
+            {td('reviewsLink')}
+          </Link>
+          <Link href="/city-services/reports" className="btn btn-sm">
+            {td('reportsLink')}
           </Link>
           <Link href="/city-services/cities" className="btn btn-sm">
             {t('cities')}

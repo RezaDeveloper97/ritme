@@ -13,6 +13,18 @@ type Querier interface {
 	ActiveCatalogCodes(ctx context.Context, group string) ([]string, error)
 	ActiveCategorySlugs(ctx context.Context) ([]string, error)
 	ActiveCityExists(ctx context.Context, id uint64) (bool, error)
+	AdminApproveApplication(ctx context.Context, arg AdminApproveApplicationParams) (int64, error)
+	AdminClearApplicationPhotos(ctx context.Context, arg AdminClearApplicationPhotosParams) error
+	// CB-DIR-05 — the Ritme team's review queue of business applications (admin API /api/admin/v1/city-service-applications,
+	// capability content). NOT owner-scoped on purpose: these run only behind the admin session + capability chain. Drafts
+	// are never shown to the team (they are the applicant's private work in progress).
+	AdminCountApplications(ctx context.Context, arg AdminCountApplicationsParams) (int64, error)
+	AdminGetApplication(ctx context.Context, id uint64) (CityServiceApplication, error)
+	// Open work first (submitted, in_review, needs_info), oldest submission first; decided ones after, newest first.
+	AdminListApplications(ctx context.Context, arg AdminListApplicationsParams) ([]CityServiceApplication, error)
+	AdminLockApplication(ctx context.Context, id uint64) (CityServiceApplication, error)
+	// Compare-and-set on the status read under the lock (a concurrent resubmission or second reviewer loses).
+	AdminReviewApplication(ctx context.Context, arg AdminReviewApplicationParams) (int64, error)
 	// Business applications — the 4-step «ثبت مجموعه» join (canvas CB-DIR-04, table city_service_applications of goose
 	// 00081_directory). Every applicant query is scoped by user_id in the SQL itself (IDOR): another account's row
 	// behaves exactly like a missing one. Kept apart from bloom's raw-SQL cityservices store and from the public listing

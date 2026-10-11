@@ -138,6 +138,7 @@ type AdminListingFilter struct {
 	CityID, CategoryID uint64
 	Status             string // all | active | inactive
 	Query              string
+	ListingStatus      string // CB-DIR-05: "" = any, else one of ListingStatuses (draft | pending | published | suspended)
 }
 
 // AdminListings is one page of listings (any state) and the total.
@@ -156,6 +157,10 @@ func (s *Store) AdminListings(ctx context.Context, f AdminListingFilter, limit, 
 		where += " AND l.is_active = 1"
 	case "inactive":
 		where += " AND l.is_active = 0"
+	}
+	if f.ListingStatus != "" { // CB-DIR-05
+		where += " AND l.status = ?"
+		args = append(args, f.ListingStatus)
 	}
 	if q := strings.TrimSpace(f.Query); q != "" {
 		like := "%" + strings.NewReplacer(`\`, `\\`, "%", `\%`, "_", `\_`).Replace(q) + "%"

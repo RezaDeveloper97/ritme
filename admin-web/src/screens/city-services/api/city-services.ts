@@ -25,6 +25,19 @@ const optionsSchema = z.object({
   statuses: z.array(z.string()),
   max_photos: z.number(),
   image: z.object({ max_kb: z.number(), min_width: z.number(), min_height: z.number(), types: z.array(z.string()) }),
+  // CB-DIR-05: directory enums and catalog chips.
+  admin_booking_modes: z.array(z.string()).default([]),
+  listing_statuses: z.array(z.string()).default([]),
+  review_statuses: z.array(z.string()).default([]),
+  report_statuses: z.array(z.string()).default([]),
+  report_reasons: z.array(z.string()).default([]),
+  slot_statuses: z.array(z.string()).default([]),
+  service_kinds: z.array(z.string()).default([]),
+  service_formats: z.array(z.string()).default([]),
+  application_statuses: z.array(z.string()).default([]),
+  document_slots: z.array(z.string()).default([]),
+  age_ranges: z.array(z.object({ code: z.string(), name: translationsSchema })).default([]),
+  amenities: z.array(z.object({ code: z.string(), name: translationsSchema })).default([]),
 });
 export type CityServiceOptions = z.infer<typeof optionsSchema>;
 
@@ -49,6 +62,23 @@ export const listingSchema = z.object({
   booking_url: z.string().nullable(),
   sort_order: z.number(),
   is_active: z.boolean(),
+  // CB-DIR-05: directory columns.
+  status: z.string().default('published'),
+  verified: z.boolean().default(false),
+  lat: z.number().nullable().default(null),
+  lng: z.number().nullable().default(null),
+  about: z.string().nullable().default(null),
+  age_ranges: z.array(z.string()).default([]),
+  amenities: z.array(z.string()).default([]),
+  weekly_hours: z.array(z.object({ day: z.number(), open: z.string(), close: z.string() })).default([]),
+  photo_file_ids: z.array(z.number()).default([]),
+  file_photo_urls: z.array(z.string()).default([]),
+  website_url: z.string().nullable().default(null),
+  cancel_free_hours: z.number().nullable().default(null),
+  cancel_policy: z.string().nullable().default(null),
+  rules: z.string().nullable().default(null),
+  rating_avg: z.number().nullable().default(null),
+  rating_count: z.number().default(0),
 });
 export type Listing = z.infer<typeof listingSchema>;
 
@@ -64,6 +94,15 @@ export const bookingSchema = z.object({
   allowed_statuses: z.array(z.string()).nullable().transform((v) => v ?? []),
   listing: z.object({ id: z.number(), name: z.string(), phone: z.string().nullable(), category: nameRef, city: nameRef }),
   created_at: z.string().nullable(),
+  // CB-DIR-05: directory booking fields (child = first name + age in months only).
+  code: z.string().nullable().default(null),
+  service: z.object({ id: z.number(), name: z.string().nullable() }).nullable().default(null),
+  slot: z.object({ id: z.number(), starts_at: z.string().nullable(), ends_at: z.string().nullable() }).nullable().default(null),
+  child: z.object({ name: z.string(), age_months: z.number() }).nullable().default(null),
+  price_toman: z.number().nullable().default(null),
+  confirmed_at: z.string().nullable().default(null),
+  completed_at: z.string().nullable().default(null),
+  cancelled_by: z.string().nullable().default(null),
 });
 export type CityBooking = z.infer<typeof bookingSchema>;
 

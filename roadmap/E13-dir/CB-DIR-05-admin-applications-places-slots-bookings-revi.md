@@ -3,7 +3,7 @@ id: CB-DIR-05
 title: Admin: applications, places, slots, bookings, reviews
 epic: DIR
 type: fullstack
-status: in_progress
+status: done
 depends_on: [CB-DIR-03, CB-DIR-04, CB-CORE-04]
 parallel_group: DIR-D
 touches: [backend-go/internal/cityservices/admin, backend-go/internal/http/routes_admin_cityservices.go, backend-go/api/openapi.yaml, admin-web/src/screens/city-services, admin-web/src/app/(panel)/city-services, admin-web/src/widgets/shell/model/nav.ts, admin-web/messages]
