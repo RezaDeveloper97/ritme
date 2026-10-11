@@ -555,3 +555,10 @@ TODO (ask user):
 - Shared: files/handlers.go additive exports; sqlc.yaml entry; 00081 bookings code unique key moved to `CREATE UNIQUE INDEX IF NOT EXISTS` (sqlc parse fix, same index); models.go regen; openapi (tag CityServiceApplications, 11 ops); dump.sql empty applications table; contract group city-services-join (6 goldens; 22/0); D-DIR-04 deviation; directory.md §4.
 - On stage: sqlc regen (querier sort only), build, http CityServ|OpenAPI|Files|Shop|Insurance int green. Known: db/migrations suite has 6 order-dependent failures (`restore shop_categories: Unknown column 'parent_id'`) — to fix.
 - TODO (ask user): Kavenegar template for application SMS (fake notifier now); photos public before review — private until approved? commission/subscription terms undecided.
+
+## CB-DIR-02 — Directory public API
+- Extends bloom's internal/cityservices + its routes (no /places): options, listings, listings/{id} and new GET listings/{id}/slots are public (guest OK; 120/min/IP; Cache-Control public|private max-age=60 + Vary); bookings stay authed. Only `published` listings everywhere (incl. booking path); never owner_user_id/applications/licences/bookings; only public `place_photo` files. Options drop categories with no published listing; + amenities, age ranges (cached catalog), sorts.
+- Listings params q, age_months, open_now (weekly_hours, day 0 = Sat, Tehran), amenities, lat/lng/radius_km, bbox, sort rank|distance|rating (distance + age fit + Bayesian rating, no paid signal). Card/detail fields added (bloom shape kept); reviews show first name only.
+- openapi, dump.sql fixtures (listings w/ 00081 cols, services, slots, catalog 9101–9113), contract city-services 26 cases (30/0 with services), services/hub goldens (mother_child live), directory.md §5.
+- Landing: openapi conflict with DIR-04 resolved by hand (DIR-02 detail fields + DIR-04 application schemas); on stage build/vet, http Directory|CityServ|OpenAPI|Services int green.
+- TODO (ask user): raw SQL in cityservices (bloom pattern) vs sqlc-only rule; D-92 deviation still says these routes are auth:api — update?

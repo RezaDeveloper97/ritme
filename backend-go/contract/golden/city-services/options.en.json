@@ -11,12 +11,20 @@
       },
       "status": 200,
       "headers": {
-        "content-type": "application/json"
+        "content-type": "application/json",
+        "x-ratelimit-limit": "120",
+        "x-ratelimit-remaining": "119"
       },
       "body": {
         "success": true,
         "data": {
-          "cities": [],
+          "cities": [
+            {
+              "id": 1,
+              "slug": "tehran",
+              "name": "Tehran"
+            }
+          ],
           "categories": [
             {
               "id": 1,
@@ -44,7 +52,112 @@
             "6-12",
             "12+"
           ],
-          "max_advance_days": 365
+          "max_advance_days": 365,
+          "amenities": [
+            {
+              "code": "nursing_room",
+              "name": "Nursing room",
+              "meta": {
+                "icon": "heart"
+              }
+            },
+            {
+              "code": "changing_table",
+              "name": "Changing table",
+              "meta": {
+                "icon": "box"
+              }
+            },
+            {
+              "code": "female_instructor",
+              "name": "Female instructor",
+              "meta": {
+                "icon": "female"
+              }
+            },
+            {
+              "code": "stroller_parking",
+              "name": "Stroller parking",
+              "meta": {
+                "icon": "home"
+              }
+            },
+            {
+              "code": "parking",
+              "name": "Parking",
+              "meta": {
+                "icon": "mapPin"
+              }
+            },
+            {
+              "code": "elevator",
+              "name": "Elevator",
+              "meta": {
+                "icon": "arrowR"
+              }
+            },
+            {
+              "code": "wheelchair_access",
+              "name": "Wheelchair access",
+              "meta": {
+                "icon": "user"
+              }
+            }
+          ],
+          "place_age_ranges": [
+            {
+              "code": "pregnancy",
+              "name": "Pregnancy",
+              "meta": {
+                "pregnancy": true
+              }
+            },
+            {
+              "code": "m0_6",
+              "name": "0–6 months",
+              "meta": {
+                "min_months": 0,
+                "max_months": 6
+              }
+            },
+            {
+              "code": "m6_12",
+              "name": "6–12 months",
+              "meta": {
+                "min_months": 6,
+                "max_months": 12
+              }
+            },
+            {
+              "code": "y1_2",
+              "name": "1–2 years",
+              "meta": {
+                "min_months": 12,
+                "max_months": 24
+              }
+            },
+            {
+              "code": "y2_4",
+              "name": "2–4 years",
+              "meta": {
+                "min_months": 24,
+                "max_months": 48
+              }
+            },
+            {
+              "code": "y4_6",
+              "name": "4–6 years",
+              "meta": {
+                "min_months": 48,
+                "max_months": 72
+              }
+            }
+          ],
+          "sorts": [
+            "rank",
+            "distance",
+            "rating"
+          ]
         }
       }
     }

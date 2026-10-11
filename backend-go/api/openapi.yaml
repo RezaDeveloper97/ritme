@@ -14315,13 +14315,16 @@ paths:
   /api/v1/city-services/options:
     get:
       tags: [CityServices]
-      summary: City-service filters
+      summary: City-service / directory filters
       description: |
-        Go only (bloom B-N10-05, D-92). Active cities that have at least one visible listing, the active categories
-        (class / pool / playhouse by default, admin-editable), the child age ranges a request may carry and the booking
-        horizon. The user's city choice lives on the device.
+        Go only (bloom B-N10-05, D-92; CB-DIR-02). Public since CB-DIR-02 (browse without login), IP-throttled
+        (120/min), `Cache-Control: public|private, max-age=60`. Active cities and categories that have at least one
+        visible (active + published) listing — CB-DIR-02 hides empty categories too —, bloom's child age ranges a
+        request may carry, the booking horizon, and the directory filter sheet: amenities (catalog `dir_amenities`),
+        place age ranges (catalog `dir_age_ranges`, meta {min_months, max_months} or {pregnancy}) and the sort orders.
       operationId: getCityServiceOptions
       security:
+        - {}
         - {bearerAuth: []}
       parameters:
         - {$ref: "#/components/parameters/AcceptLanguage"}
@@ -14337,7 +14340,7 @@ paths:
                   success: {type: boolean}
                   data:
                     type: object
-                    required: [cities, categories, age_ranges, max_advance_days]
+                    required: [cities, categories, age_ranges, max_advance_days, amenities, place_age_ranges, sorts]
                     properties:
                       cities:
                         type: array
@@ -14347,18 +14350,42 @@ paths:
                         items: {$ref: "#/components/schemas/CityServiceTaxon"}
                       age_ranges: {type: array, items: {type: string}}
                       max_advance_days: {type: integer}
-        '401': {$ref: "#/components/responses/Unauthenticated"}
+                      amenities:
+                        type: array
+                        items: {$ref: "#/components/schemas/CityServiceCatalogOption"}
+                      place_age_ranges:
+                        type: array
+                        items: {$ref: "#/components/schemas/CityServiceCatalogOption"}
+                      sorts: {type: array, items: {type: string, enum: [rank, distance, rating]}}
+        '429': {description: Rate limited}
   /api/v1/city-services/listings:
     get:
       tags: [CityServices]
-      summary: City-service listings (city + category filter)
-      description: Go only (B-N10-05). Active listings of active cities and categories, display order, paged. `city` is a city id, `category` a category slug.
+      summary: Directory search (city, category, q, child age, open now, amenities, radius, bbox)
+      description: |
+        Go only (B-N10-05; CB-DIR-02). Public, IP-throttled (120/min), `Cache-Control: max-age=60`. Published + active
+        listings of active cities and categories, paged. `city` is a city id, `category` a category slug. CB-DIR-02:
+        `q` (name / district / description / about), `age_months` (child age; keeps places whose age ranges or
+        services fit, and places without age data), `open_now` (weekly hours, Tehran time), `amenities` (comma list
+        of `dir_amenities` codes, all required), `lat` + `lng` (distance, `distance_km`) with optional `radius_km`
+        (≤ 100), `bbox` = `min_lng,min_lat,max_lng,max_lat` (map viewport), `sort` = `rank` (default: distance + age
+        fit + rating, never paid) | `distance` (needs lat/lng, else rank) | `rating`. Ties keep the admin order.
       operationId: listCityServiceListings
       security:
+        - {}
         - {bearerAuth: []}
       parameters:
         - {name: city, in: query, required: false, schema: {type: integer, minimum: 1}}
         - {name: category, in: query, required: false, schema: {type: string}}
+        - {name: q, in: query, required: false, schema: {type: string, maxLength: 80}}
+        - {name: age_months, in: query, required: false, schema: {type: integer, minimum: 0, maximum: 216}}
+        - {name: open_now, in: query, required: false, schema: {type: string, enum: ["0", "1", "true", "false"]}}
+        - {name: amenities, in: query, required: false, schema: {type: string}, description: "comma list of dir_amenities codes (max 10)"}
+        - {name: lat, in: query, required: false, schema: {type: number, minimum: -90, maximum: 90}}
+        - {name: lng, in: query, required: false, schema: {type: number, minimum: -180, maximum: 180}}
+        - {name: radius_km, in: query, required: false, schema: {type: number, minimum: 0.1, maximum: 100}}
+        - {name: bbox, in: query, required: false, schema: {type: string}, description: "min_lng,min_lat,max_lng,max_lat"}
+        - {name: sort, in: query, required: false, schema: {type: string, enum: [rank, distance, rating]}}
         - {name: page, in: query, required: false, schema: {type: integer, minimum: 1}}
         - {name: per_page, in: query, required: false, schema: {type: integer, minimum: 1, maximum: 50}}
         - {$ref: "#/components/parameters/AcceptLanguage"}
@@ -14374,24 +14401,74 @@ paths:
                   success: {type: boolean}
                   data:
                     type: object
-                    required: [listings, meta]
+                    required: [listings, meta, sort]
                     properties:
                       listings:
                         type: array
                         items: {$ref: "#/components/schemas/CityServiceCard"}
                       meta: {type: object, additionalProperties: true}
-        '401': {$ref: "#/components/responses/Unauthenticated"}
+                      sort: {type: string, enum: [rank, distance, rating], description: the order applied}
         '422': {$ref: "#/components/responses/ValidationFailed"}
-  /api/v1/city-services/listings/{id}:
+        '429': {description: Rate limited}
+  /api/v1/city-services/listings/{id}/slots:
     get:
       tags: [CityServices]
-      summary: One city-service listing
-      description: Go only (B-N10-05). 404 for an unknown or inactive listing (or one whose city / category is inactive). `booking_url` is set only in `link` mode.
-      operationId: getCityServiceListing
+      summary: A place's open times
+      description: |
+        Go only (CB-DIR-02). Public, IP-throttled (120/min). Open slots of a published place from `from` (default
+        today, Tehran) for `days` days (default 14, max 31), earliest first, future only; full ones are included with
+        `is_full` («پر شد»). `service_id` keeps that service's slots plus the place-wide ones (422 if it is not an
+        active service of the place). 404 for an unknown / unpublished place.
+      operationId: listCityServiceSlots
       security:
+        - {}
         - {bearerAuth: []}
       parameters:
         - {name: id, in: path, required: true, schema: {type: integer}}
+        - {name: service_id, in: query, required: false, schema: {type: integer, minimum: 1}}
+        - {name: from, in: query, required: false, schema: {type: string, format: date}}
+        - {name: days, in: query, required: false, schema: {type: integer, minimum: 1, maximum: 31}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [slots, from, days]
+                    properties:
+                      slots:
+                        type: array
+                        items: {$ref: "#/components/schemas/CityServiceSlot"}
+                      from: {type: string, format: date}
+                      days: {type: integer}
+        '404': {$ref: "#/components/responses/CityServiceNotFound"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429': {description: Rate limited}
+  /api/v1/city-services/listings/{id}:
+    get:
+      tags: [CityServices]
+      summary: One city-service listing (directory place page)
+      description: |
+        Go only (B-N10-05; CB-DIR-02). Public, IP-throttled (120/min). 404 for an unknown, inactive or unpublished
+        listing (or one whose city / category is inactive). `booking_url` is set only in `link` mode. CB-DIR-02 adds
+        the place page: about, weekly hours, rules, cancel policy, active services (prices as the venue declared
+        them), the next slots (31 days, up to 8) and the published reviews summary (authors as a first name only).
+        Optional `lat` + `lng` fill `distance_km`. Never: owner, applications, licence files.
+      operationId: getCityServiceListing
+      security:
+        - {}
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {name: lat, in: query, required: false, schema: {type: number, minimum: -90, maximum: 90}}
+        - {name: lng, in: query, required: false, schema: {type: number, minimum: -180, maximum: 180}}
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
         '200':
@@ -14408,8 +14485,9 @@ paths:
                     required: [listing]
                     properties:
                       listing: {$ref: "#/components/schemas/CityServiceDetail"}
-        '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CityServiceNotFound"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429': {description: Rate limited}
   /api/v1/city-services/bookings:
     get:
       tags: [CityServices]
@@ -24073,34 +24151,125 @@ components:
         icon: {type: string, nullable: true, description: "categories only"}
     CityServiceCard:
       type: object
-      required: [id, name, category, city, district, price_text, booking_mode, photo_url]
+      required: [id, name, category, city, district, price_text, booking_mode, photo_url, lat, lng, distance_km, verified,
+        rating_avg, rating_count, age_ranges, amenities, price_from_toman, open_now, next_slot_at, age_fit]
       properties:
         id: {type: integer}
         name: {type: string}
         category:
           type: object
           required: [slug, name, icon]
-          properties: {slug: {type: string}, name: {type: string}, icon: {type: string, nullable: true}}
+          properties: {slug: {type: string}, name: {type: string}, icon: {type: [string, "null"]}}
         city:
           type: object
           required: [id, slug, name]
           properties: {id: {type: integer}, slug: {type: string}, name: {type: string}}
-        district: {type: string, nullable: true}
-        price_text: {type: string, nullable: true}
-        booking_mode: {type: string, enum: [link, request, phone]}
-        photo_url: {type: string, nullable: true}
+        district: {type: [string, "null"]}
+        price_text: {type: [string, "null"]}
+        booking_mode: {type: string, enum: [link, request, phone, online], description: "online (CB-DIR-01) = pick a slot; still a request the team confirms"}
+        photo_url: {type: [string, "null"], description: "first place photo (public file) or bloom's photo"}
+        lat: {type: [number, "null"]}
+        lng: {type: [number, "null"]}
+        distance_km: {type: [number, "null"], description: "only when lat/lng were sent and the place has a pin"}
+        verified: {type: boolean, description: "«مدارک بررسی شد» — documents checked by the team"}
+        rating_avg: {type: [number, "null"]}
+        rating_count: {type: integer}
+        age_ranges: {type: array, items: {type: string}, description: dir_age_ranges codes}
+        amenities: {type: array, items: {type: string}, description: dir_amenities codes}
+        price_from_toman: {type: [integer, "null"], description: lowest active service price (display only)}
+        open_now: {type: [boolean, "null"], description: "null when the weekly hours are unknown"}
+        next_slot_at: {type: [string, "null"], description: next open slot with a free seat (Tehran time)}
+        age_fit: {type: [boolean, "null"], description: "only with age_months; null when the place has no age data"}
     CityServiceDetail:
       allOf:
         - {$ref: "#/components/schemas/CityServiceCard"}
         - type: object
-          required: [address, phone, description, hours_text, photos, booking_url]
+          required: [address, phone, description, hours_text, photos, booking_url, about, website_url, weekly_hours, rules,
+            cancel_free_hours, cancel_policy, services, next_slots, reviews]
           properties:
-            address: {type: string, nullable: true}
-            phone: {type: string, nullable: true}
-            description: {type: string, nullable: true}
-            hours_text: {type: string, nullable: true}
+            address: {type: [string, "null"]}
+            phone: {type: [string, "null"]}
+            description: {type: [string, "null"]}
+            hours_text: {type: [string, "null"]}
             photos: {type: array, items: {type: string}}
-            booking_url: {type: string, nullable: true, description: "only in link mode"}
+            booking_url: {type: [string, "null"], description: "only in link mode"}
+            about: {type: [string, "null"]}
+            website_url: {type: [string, "null"]}
+            weekly_hours:
+              type: array
+              description: day 0 = Saturday; a missing day = closed; empty = unknown (see hours_text)
+              items:
+                type: object
+                required: [day, open, close]
+                properties: {day: {type: integer, minimum: 0, maximum: 6}, open: {type: string}, close: {type: string}}
+            rules: {type: [string, "null"]}
+            cancel_free_hours: {type: [integer, "null"]}
+            cancel_policy: {type: [string, "null"]}
+            services:
+              type: array
+              items: {$ref: "#/components/schemas/CityServiceService"}
+            next_slots:
+              type: array
+              items: {$ref: "#/components/schemas/CityServiceSlot"}
+            reviews:
+              type: object
+              required: [rating_avg, rating_count, scores, latest]
+              properties:
+                rating_avg: {type: [number, "null"]}
+                rating_count: {type: integer}
+                scores:
+                  type: object
+                  required: [cleanliness, instructor, amenities]
+                  properties:
+                    cleanliness: {type: [number, "null"]}
+                    instructor: {type: [number, "null"]}
+                    amenities: {type: [number, "null"]}
+                latest:
+                  type: array
+                  items:
+                    type: object
+                    required: [id, rating, body, author_first_name, created_at]
+                    properties:
+                      id: {type: integer}
+                      rating: {type: integer}
+                      body: {type: [string, "null"]}
+                      author_first_name: {type: [string, "null"]}
+                      created_at: {type: [string, "null"]}
+    CityServiceService:
+      type: object
+      required: [id, kind, name, description, format, duration_minutes, age_min_months, age_max_months, capacity, price_toman,
+        package_sessions, package_validity_days]
+      properties:
+        id: {type: integer}
+        kind: {type: string, enum: [session, package]}
+        name: {type: string}
+        description: {type: [string, "null"]}
+        format: {type: [string, "null"], enum: [group, private, null]}
+        duration_minutes: {type: [integer, "null"]}
+        age_min_months: {type: [integer, "null"]}
+        age_max_months: {type: [integer, "null"]}
+        capacity: {type: [integer, "null"]}
+        price_toman: {type: [integer, "null"]}
+        package_sessions: {type: [integer, "null"]}
+        package_validity_days: {type: [integer, "null"]}
+    CityServiceSlot:
+      type: object
+      required: [id, service_id, starts_at, ends_at, capacity, seats_left, is_full]
+      properties:
+        id: {type: integer}
+        service_id: {type: [integer, "null"]}
+        starts_at: {type: string, description: Tehran time}
+        ends_at: {type: [string, "null"]}
+        capacity: {type: integer}
+        seats_left: {type: integer}
+        is_full: {type: boolean}
+    CityServiceCatalogOption:
+      type: object
+      required: [code, name, meta]
+      properties:
+        code: {type: string}
+        name: {type: [string, "null"]}
+        meta: {description: "catalog meta, translations picked (icon; min_months / max_months / pregnancy)"}
     CityServiceApplicationSummary:
       type: object
       required: [id, status, step, tracking_code, business_name, editable, submitted_at, updated_at]

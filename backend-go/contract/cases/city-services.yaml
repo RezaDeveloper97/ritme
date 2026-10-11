@@ -1,8 +1,13 @@
 # City services (/api/v1/city-services/*) — Go only (bloom B-N10-05, deviations.md D-92): there is no Laravel route, so
 # these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8).
-# The fixture has the three seeded categories and no cities or listings (they are admin data). Listings with rows,
-# the link / request / phone modes, the booking life cycle, IDOR, the privacy rules and the admin CRUD + request queue
-# are covered by internal/http/city_services_int_test.go and internal/cityservices/admin_int_test.go.
+# CB-DIR-02 (mother & child directory): options / listings / listing / slots are public, IP-throttled (X-RateLimit-*
+# headers, hence `reset: true` so every case starts from an empty Redis keyspace) and gained the directory params and
+# fields. Fixture (dump.sql): city tehran (1); listings 1 Abpari pool (online, verified, hours, services, slots), 2
+# Ghoncheh class (request, no hours), 3 Taab-Taab playhouse (phone, open every day), 4 a DRAFT playhouse (never
+# public), 5 a bloom-era link-mode pool with no directory data; slots of listing 1: one past, one closed, one of an
+# inactive service, one full. The clock is pinned at 2026-09-23 10:00 Tehran (a Wednesday = weekly_hours day 4).
+# The booking life cycle, IDOR, reviews and the privacy rules are covered by internal/http/city_services_int_test.go
+# and internal/cityservices/admin_int_test.go.
 # Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
 group: city-services
 defaults:
@@ -10,29 +15,150 @@ defaults:
   locales: none
 cases:
   - name: options
-    doc: No city has a visible listing yet; the three seeded categories
+    doc: Tehran; only the categories with a published listing (class, pool, playhouse); amenities, place age ranges, sorts
     locales: [none, en]
+    reset: true
     method: GET
     path: /api/v1/city-services/options
     status: 200
   - name: options_anon
+    doc: Public since CB-DIR-02 (browse without login)
     persona: anon
+    reset: true
     method: GET
     path: /api/v1/city-services/options
-    status: 401
+    status: 200
   - name: listings_empty
+    reset: true
     method: GET
     path: /api/v1/city-services/listings
-    query: {category: pool}
+    query: {category: music_art}
+    status: 200
+  - name: listings_all
+    doc: Default rank without position or age = smoothed rating; the draft never shows
+    persona: anon
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings
+    status: 200
+  - name: listings_pool
+    doc: bloom's city + category filter keeps working
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings
+    query: {city: "1", category: pool}
+    status: 200
+  - name: listings_near
+    doc: Distance sort within 5 km of Vanak; the pool without a pin is out of the radius
+    persona: anon
+    locales: [en]
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings
+    query: {lat: "35.7576", lng: "51.4099", radius_km: "5", sort: distance}
+    status: 200
+  - name: listings_filtered
+    doc: 14-month-old, open now, female instructor → Abpari only (Ghoncheh has no weekly hours)
+    persona: anon
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings
+    query: {age_months: "14", open_now: "1", amenities: female_instructor, lat: "35.7576", lng: "51.4099"}
+    status: 200
+  - name: listings_bbox
+    doc: Map viewport around Vanak / Jordan
+    persona: anon
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings
+    query: {bbox: "51.40,35.75,51.42,35.78", per_page: "50"}
+    status: 200
+  - name: listings_q
+    persona: anon
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings
+    query: {q: pool}
     status: 200
   - name: listings_bad_city
+    reset: true
     method: GET
     path: /api/v1/city-services/listings
     query: {city: abc}
     status: 422
+  - name: listings_bad_bbox
+    persona: anon
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings
+    query: {bbox: "51.42,35.75,51.40"}
+    status: 422
+  - name: listings_bad_amenity
+    persona: anon
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings
+    query: {amenities: "sauna"}
+    status: 422
+  - name: listings_radius_without_point
+    persona: anon
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings
+    query: {radius_km: "5"}
+    status: 422
+  - name: listing_place
+    doc: The place page — services (the inactive one hidden), next slots (past / closed / inactive-service ones hidden), reviews summary
+    persona: anon
+    locales: [none, en]
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings/1
+    query: {lat: "35.7700", lng: "51.4200"}
+    status: 200
+  - name: listing_legacy
+    doc: A bloom-era link-mode row renders with empty directory fields
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings/5
+    status: 200
+  - name: listing_draft
+    persona: anon
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings/4
+    status: 404
   - name: listing_missing
+    reset: true
     method: GET
     path: /api/v1/city-services/listings/999
+    status: 404
+  - name: slots
+    persona: anon
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings/1/slots
+    status: 200
+  - name: slots_service
+    persona: anon
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings/1/slots
+    query: {service_id: "2", from: "2026-09-24", days: "2"}
+    status: 200
+  - name: slots_foreign_service
+    doc: A service of another place is a field error
+    persona: anon
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings/1/slots
+    query: {service_id: "6"}
+    status: 422
+  - name: slots_draft
+    persona: anon
+    reset: true
+    method: GET
+    path: /api/v1/city-services/listings/4/slots
     status: 404
   - name: bookings_empty
     method: GET

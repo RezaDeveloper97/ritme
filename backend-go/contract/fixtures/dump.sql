@@ -949,7 +949,20 @@ INSERT INTO `catalog_items` VALUES
 (721,'telemed_visit_reasons','irregular_period',2,1,NULL,'{\"fa\":\"پریود نامنظم\",\"en\":\"Irregular periods\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (722,'telemed_visit_reasons','pelvic_pain',3,1,NULL,'{\"fa\":\"درد لگن\",\"en\":\"Pelvic pain\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (723,'telemed_visit_reasons','lab_followup',4,1,NULL,'{\"fa\":\"پیگیری آزمایش\",\"en\":\"Lab result follow-up\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
-(724,'telemed_visit_reasons','other',5,1,NULL,'{\"fa\":\"سایر\",\"en\":\"Other\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+(724,'telemed_visit_reasons','other',5,1,NULL,'{\"fa\":\"سایر\",\"en\":\"Other\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(9101,'dir_amenities','nursing_room',1,1,NULL,'{\"fa\":\"اتاق شیردهی\",\"en\":\"Nursing room\"}',NULL,'{\"icon\":\"heart\"}',0,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(9102,'dir_amenities','changing_table',2,1,NULL,'{\"fa\":\"میز تعویض\",\"en\":\"Changing table\"}',NULL,'{\"icon\":\"box\"}',0,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(9103,'dir_amenities','female_instructor',3,1,NULL,'{\"fa\":\"مربی خانم\",\"en\":\"Female instructor\"}',NULL,'{\"icon\":\"female\"}',0,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(9104,'dir_amenities','stroller_parking',4,1,NULL,'{\"fa\":\"جای کالسکه\",\"en\":\"Stroller parking\"}',NULL,'{\"icon\":\"home\"}',0,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(9105,'dir_amenities','parking',5,1,NULL,'{\"fa\":\"پارکینگ\",\"en\":\"Parking\"}',NULL,'{\"icon\":\"mapPin\"}',0,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(9106,'dir_amenities','elevator',6,1,NULL,'{\"fa\":\"آسانسور\",\"en\":\"Elevator\"}',NULL,'{\"icon\":\"arrowR\"}',0,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(9107,'dir_amenities','wheelchair_access',7,1,NULL,'{\"fa\":\"دسترسی ویلچر\",\"en\":\"Wheelchair access\"}',NULL,'{\"icon\":\"user\"}',0,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(9108,'dir_age_ranges','pregnancy',1,1,NULL,'{\"fa\":\"بارداری\",\"en\":\"Pregnancy\"}',NULL,'{\"pregnancy\":true}',0,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(9109,'dir_age_ranges','m0_6',2,1,NULL,'{\"fa\":\"۰ تا ۶ ماه\",\"en\":\"0–6 months\"}',NULL,'{\"min_months\":0,\"max_months\":6}',0,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(9110,'dir_age_ranges','m6_12',3,1,NULL,'{\"fa\":\"۶ تا ۱۲ ماه\",\"en\":\"6–12 months\"}',NULL,'{\"min_months\":6,\"max_months\":12}',0,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(9111,'dir_age_ranges','y1_2',4,1,NULL,'{\"fa\":\"۱ تا ۲ سال\",\"en\":\"1–2 years\"}',NULL,'{\"min_months\":12,\"max_months\":24}',0,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(9112,'dir_age_ranges','y2_4',5,1,NULL,'{\"fa\":\"۲ تا ۴ سال\",\"en\":\"2–4 years\"}',NULL,'{\"min_months\":24,\"max_months\":48}',0,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(9113,'dir_age_ranges','y4_6',6,1,NULL,'{\"fa\":\"۴ تا ۶ سال\",\"en\":\"4–6 years\"}',NULL,'{\"min_months\":48,\"max_months\":72}',0,'2026-10-11 09:00:00','2026-10-11 09:00:00');
 /*!40000 ALTER TABLE `catalog_items` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `challenge_enrollments`;
@@ -1398,7 +1411,12 @@ LOCK TABLES `city_service_categories` WRITE;
 INSERT INTO `city_service_categories` VALUES
 (1,'class','{\"fa\":\"کلاس\",\"en\":\"Classes\"}','book',1,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
 (2,'pool','{\"fa\":\"استخر\",\"en\":\"Pools\"}','drop',2,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
-(3,'playhouse','{\"fa\":\"خانه بازی\",\"en\":\"Playhouses\"}','home',3,1,'2026-10-11 09:00:00','2026-10-11 09:00:00');
+(3,'playhouse','{\"fa\":\"خانه بازی\",\"en\":\"Playhouses\"}','home',3,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(4,'music_art','{\"fa\":\"موسیقی و هنر\",\"en\":\"Music & art\"}','mic',4,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(5,'postpartum_fitness','{\"fa\":\"ورزش پس از زایمان\",\"en\":\"Postpartum fitness\"}','walk',5,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(6,'baby_massage','{\"fa\":\"ماساژ نوزاد\",\"en\":\"Baby massage\"}','hand',6,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(7,'parenting_workshop','{\"fa\":\"کارگاه فرزندپروری\",\"en\":\"Parenting workshops\"}','users',7,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(8,'other','{\"fa\":\"دیگر\",\"en\":\"Other\"}','grid',8,1,'2026-10-11 09:00:00','2026-10-11 09:00:00');
 /*!40000 ALTER TABLE `city_service_categories` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `city_service_cities`;
@@ -1420,6 +1438,8 @@ CREATE TABLE `city_service_cities` (
 
 LOCK TABLES `city_service_cities` WRITE;
 /*!40000 ALTER TABLE `city_service_cities` DISABLE KEYS */;
+INSERT INTO `city_service_cities` VALUES
+(1,'tehran','{\"fa\":\"تهران\",\"en\":\"Tehran\"}',1,1,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `city_service_cities` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `city_service_listings`;
@@ -1443,17 +1463,145 @@ CREATE TABLE `city_service_listings` (
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'published',
+  `verified_at` timestamp NULL DEFAULT NULL,
+  `owner_user_id` bigint(20) unsigned DEFAULT NULL,
+  `lat` decimal(9,6) DEFAULT NULL,
+  `lng` decimal(9,6) DEFAULT NULL,
+  `about` text DEFAULT NULL,
+  `age_ranges` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`age_ranges`)),
+  `amenities` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`amenities`)),
+  `weekly_hours` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`weekly_hours`)),
+  `photo_file_ids` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`photo_file_ids`)),
+  `website_url` varchar(1000) DEFAULT NULL,
+  `cancel_free_hours` smallint(5) unsigned DEFAULT NULL,
+  `cancel_policy` varchar(300) DEFAULT NULL,
+  `rules` text DEFAULT NULL,
+  `rating_avg` decimal(3,2) DEFAULT NULL,
+  `rating_count` int(10) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `city_service_listings_category_id_foreign` (`category_id`),
   KEY `city_service_listings_city_id_category_id_is_active_index` (`city_id`,`category_id`,`is_active`),
+  KEY `city_service_listings_owner_user_id_foreign` (`owner_user_id`),
+  KEY `city_service_listings_status_city_id_category_id_index` (`status`,`city_id`,`category_id`),
+  KEY `city_service_listings_lat_lng_index` (`lat`,`lng`),
   CONSTRAINT `city_service_listings_category_id_foreign` FOREIGN KEY (`category_id`) REFERENCES `city_service_categories` (`id`),
-  CONSTRAINT `city_service_listings_city_id_foreign` FOREIGN KEY (`city_id`) REFERENCES `city_service_cities` (`id`)
+  CONSTRAINT `city_service_listings_city_id_foreign` FOREIGN KEY (`city_id`) REFERENCES `city_service_cities` (`id`),
+  CONSTRAINT `city_service_listings_owner_user_id_foreign` FOREIGN KEY (`owner_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `city_service_listings` WRITE;
 /*!40000 ALTER TABLE `city_service_listings` DISABLE KEYS */;
+INSERT INTO `city_service_listings` VALUES
+(1,2,1,'Abpari mother & baby pool','Vanak','[Full address] Vanak','02188001122','Warm indoor pool for mother and baby.',NULL,NULL,NULL,'online',NULL,1,1,'2026-09-23 09:00:00','2026-09-23 09:00:00','published','2026-09-01 10:00:00',NULL,35.757600,51.409900,'Indoor warm-water pool with small group classes of at most six mothers and babies.','[\"m6_12\",\"y1_2\",\"y2_4\"]','[\"nursing_room\",\"changing_table\",\"female_instructor\"]','[{\"day\":0,\"open\":\"09:00\",\"close\":\"20:00\"},{\"day\":1,\"open\":\"09:00\",\"close\":\"20:00\"},{\"day\":2,\"open\":\"09:00\",\"close\":\"20:00\"},{\"day\":3,\"open\":\"09:00\",\"close\":\"20:00\"},{\"day\":4,\"open\":\"09:00\",\"close\":\"20:00\"},{\"day\":5,\"open\":\"09:00\",\"close\":\"14:00\"}]',NULL,'https://abpari.example',24,NULL,'Swim cap and swim diaper required.',4.80,126),
+(2,1,1,'Ghoncheh movement & play class','Jordan',NULL,NULL,'Movement and play for toddlers.',NULL,'Sat-Wed 10-18',NULL,'request',NULL,2,1,'2026-09-23 09:00:00','2026-09-23 09:00:00','published',NULL,NULL,35.772000,51.418000,NULL,'[\"y1_2\",\"y2_4\"]','[\"female_instructor\"]',NULL,NULL,NULL,NULL,NULL,NULL,4.90,52),
+(3,3,1,'Taab-Taab playhouse','Yousefabad',NULL,'02188776655',NULL,NULL,NULL,NULL,'phone',NULL,3,1,'2026-09-23 09:00:00','2026-09-23 09:00:00','published',NULL,NULL,35.733000,51.405000,NULL,'[\"y1_2\",\"y2_4\",\"y4_6\"]','[\"stroller_parking\"]','[{\"day\":0,\"open\":\"10:00\",\"close\":\"21:00\"},{\"day\":1,\"open\":\"10:00\",\"close\":\"21:00\"},{\"day\":2,\"open\":\"10:00\",\"close\":\"21:00\"},{\"day\":3,\"open\":\"10:00\",\"close\":\"21:00\"},{\"day\":4,\"open\":\"10:00\",\"close\":\"21:00\"},{\"day\":5,\"open\":\"10:00\",\"close\":\"21:00\"},{\"day\":6,\"open\":\"10:00\",\"close\":\"21:00\"}]',NULL,NULL,NULL,NULL,NULL,4.60,84),
+(4,3,1,'Draft playhouse','Vanak',NULL,NULL,NULL,NULL,NULL,NULL,'online',NULL,4,1,'2026-09-23 09:00:00','2026-09-23 09:00:00','draft',NULL,NULL,35.757000,51.410000,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0),
+(5,2,1,'Legacy pool','Valiasr',NULL,'02112345678',NULL,'300',NULL,NULL,'link','https://legacy.example/book',5,1,'2026-09-23 09:00:00','2026-09-23 09:00:00','published',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 /*!40000 ALTER TABLE `city_service_listings` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `city_service_reviews`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `city_service_reviews` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `listing_id` bigint(20) unsigned NOT NULL,
+  `booking_id` bigint(20) unsigned NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `rating` tinyint(3) unsigned NOT NULL,
+  `score_cleanliness` tinyint(3) unsigned DEFAULT NULL,
+  `score_instructor` tinyint(3) unsigned DEFAULT NULL,
+  `score_amenities` tinyint(3) unsigned DEFAULT NULL,
+  `body` varchar(1000) DEFAULT NULL,
+  `status` varchar(12) NOT NULL DEFAULT 'published',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `city_service_reviews_booking_id_unique` (`booking_id`),
+  KEY `city_service_reviews_user_id_foreign` (`user_id`),
+  KEY `city_service_reviews_listing_id_status_created_at_index` (`listing_id`,`status`,`created_at`),
+  CONSTRAINT `city_service_reviews_booking_id_foreign` FOREIGN KEY (`booking_id`) REFERENCES `city_service_bookings` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `city_service_reviews_listing_id_foreign` FOREIGN KEY (`listing_id`) REFERENCES `city_service_listings` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `city_service_reviews_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `city_service_reviews` WRITE;
+/*!40000 ALTER TABLE `city_service_reviews` DISABLE KEYS */;
+/*!40000 ALTER TABLE `city_service_reviews` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `city_service_services`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `city_service_services` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `listing_id` bigint(20) unsigned NOT NULL,
+  `kind` varchar(12) NOT NULL DEFAULT 'session',
+  `name` varchar(160) NOT NULL,
+  `description` varchar(300) DEFAULT NULL,
+  `format` varchar(12) DEFAULT NULL,
+  `duration_minutes` smallint(5) unsigned DEFAULT NULL,
+  `age_min_months` smallint(5) unsigned DEFAULT NULL,
+  `age_max_months` smallint(5) unsigned DEFAULT NULL,
+  `capacity` smallint(5) unsigned DEFAULT NULL,
+  `price_toman` int(10) unsigned DEFAULT NULL,
+  `package_sessions` smallint(5) unsigned DEFAULT NULL,
+  `package_validity_days` smallint(5) unsigned DEFAULT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `city_service_services_listing_id_is_active_sort_order_index` (`listing_id`,`is_active`,`sort_order`),
+  CONSTRAINT `city_service_services_listing_id_foreign` FOREIGN KEY (`listing_id`) REFERENCES `city_service_listings` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `city_service_services` WRITE;
+/*!40000 ALTER TABLE `city_service_services` DISABLE KEYS */;
+INSERT INTO `city_service_services` VALUES
+(1,1,'session','Water intro','First steps in the water','group',45,6,18,6,320000,NULL,NULL,1,1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(2,1,'session','Mother & baby swim',NULL,'group',45,18,48,6,350000,NULL,NULL,2,1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(3,1,'package','8-session pack',NULL,NULL,NULL,NULL,NULL,NULL,2400000,8,60,3,1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(4,1,'session','Private session','With one instructor','private',30,NULL,NULL,1,650000,NULL,NULL,4,1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(5,1,'session','Retired class',NULL,'group',45,NULL,NULL,6,100000,NULL,NULL,5,0,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(6,2,'session','Move & play',NULL,'group',60,12,36,8,240000,NULL,NULL,1,1,'2026-09-23 09:00:00','2026-09-23 09:00:00');
+/*!40000 ALTER TABLE `city_service_services` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `city_service_slots`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `city_service_slots` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `listing_id` bigint(20) unsigned NOT NULL,
+  `service_id` bigint(20) unsigned DEFAULT NULL,
+  `starts_at` datetime NOT NULL,
+  `ends_at` datetime DEFAULT NULL,
+  `capacity` smallint(5) unsigned NOT NULL DEFAULT 1,
+  `booked_count` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `status` varchar(12) NOT NULL DEFAULT 'open',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `city_service_slots_listing_id_starts_at_index` (`listing_id`,`starts_at`),
+  KEY `city_service_slots_service_id_starts_at_index` (`service_id`,`starts_at`),
+  CONSTRAINT `city_service_slots_listing_id_foreign` FOREIGN KEY (`listing_id`) REFERENCES `city_service_listings` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `city_service_slots_service_id_foreign` FOREIGN KEY (`service_id`) REFERENCES `city_service_services` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `city_service_slots` WRITE;
+/*!40000 ALTER TABLE `city_service_slots` DISABLE KEYS */;
+INSERT INTO `city_service_slots` VALUES
+(1,1,1,'2026-09-23 17:00:00','2026-09-23 17:45:00',6,2,'open','2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(2,1,1,'2026-09-24 10:30:00','2026-09-24 11:15:00',6,6,'open','2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(3,1,2,'2026-09-24 17:00:00','2026-09-24 17:45:00',6,0,'open','2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(4,1,NULL,'2026-09-22 17:00:00',NULL,6,0,'open','2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(5,1,1,'2026-09-26 09:00:00',NULL,6,0,'closed','2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(6,1,5,'2026-09-25 09:00:00',NULL,6,0,'open','2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(7,2,6,'2026-09-24 10:30:00','2026-09-24 11:30:00',8,1,'open','2026-09-23 09:00:00','2026-09-23 09:00:00');
+/*!40000 ALTER TABLE `city_service_slots` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `clinical_config_approvals`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

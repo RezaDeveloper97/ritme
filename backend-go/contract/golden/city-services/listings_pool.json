@@ -1,0 +1,101 @@
+{
+  "case": "city-services/listings_pool",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/city-services/listings?city=1&category=pool",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "120",
+        "x-ratelimit-remaining": "119"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "listings": [
+            {
+              "id": 1,
+              "name": "Abpari mother & baby pool",
+              "category": {
+                "slug": "pool",
+                "name": "استخر",
+                "icon": "drop"
+              },
+              "city": {
+                "id": 1,
+                "slug": "tehran",
+                "name": "تهران"
+              },
+              "district": "Vanak",
+              "price_text": null,
+              "booking_mode": "online",
+              "photo_url": null,
+              "lat": 35.7576,
+              "lng": 51.4099,
+              "distance_km": null,
+              "verified": true,
+              "rating_avg": 4.8,
+              "rating_count": 126,
+              "age_ranges": [
+                "m6_12",
+                "y1_2",
+                "y2_4"
+              ],
+              "amenities": [
+                "nursing_room",
+                "changing_table",
+                "female_instructor"
+              ],
+              "price_from_toman": 320000,
+              "open_now": true,
+              "next_slot_at": "2026-09-23T17:00:00+03:30",
+              "age_fit": null
+            },
+            {
+              "id": 5,
+              "name": "Legacy pool",
+              "category": {
+                "slug": "pool",
+                "name": "استخر",
+                "icon": "drop"
+              },
+              "city": {
+                "id": 1,
+                "slug": "tehran",
+                "name": "تهران"
+              },
+              "district": "Valiasr",
+              "price_text": "300",
+              "booking_mode": "link",
+              "photo_url": null,
+              "lat": null,
+              "lng": null,
+              "distance_km": null,
+              "verified": false,
+              "rating_avg": null,
+              "rating_count": 0,
+              "age_ranges": [],
+              "amenities": [],
+              "price_from_toman": null,
+              "open_now": null,
+              "next_slot_at": null,
+              "age_fit": null
+            }
+          ],
+          "meta": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 20,
+            "total": 2
+          },
+          "sort": "rank"
+        }
+      }
+    }
+  ]
+}

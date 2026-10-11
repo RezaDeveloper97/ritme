@@ -38,9 +38,11 @@ func TestCityServices_PublicAndBookings(t *testing.T) {
 	sara := e.user("Sara", "09120009001")
 	omid := e.user("Omid", "09120009002")
 
-	for _, p := range []string{"/api/v1/city-services/options", "/api/v1/city-services/listings", "/api/v1/city-services/listings/1", "/api/v1/city-services/bookings"} {
-		assert.Equal(t, fiber.StatusUnauthorized, e.do(fiber.MethodGet, p, "", nil).Status, p)
-	}
+	// CB-DIR-02: the reads are public; only the bookings need a session.
+	assert.Equal(t, fiber.StatusOK, e.do(fiber.MethodGet, "/api/v1/city-services/options", "", nil).Status)
+	assert.Equal(t, fiber.StatusOK, e.do(fiber.MethodGet, "/api/v1/city-services/listings", "", nil).Status)
+	assert.Equal(t, fiber.StatusNotFound, e.do(fiber.MethodGet, "/api/v1/city-services/listings/1", "", nil).Status)
+	assert.Equal(t, fiber.StatusUnauthorized, e.do(fiber.MethodGet, "/api/v1/city-services/bookings", "", nil).Status)
 	assert.Equal(t, fiber.StatusUnauthorized, e.do(fiber.MethodPost, "/api/v1/city-services/bookings", "", nil).Status)
 	assert.Equal(t, fiber.StatusUnauthorized, e.do(fiber.MethodPost, "/api/v1/city-services/bookings/1/cancel", "", nil).Status)
 
@@ -49,7 +51,7 @@ func TestCityServices_PublicAndBookings(t *testing.T) {
 	r := e.do(fiber.MethodGet, "/api/v1/city-services/options", sara, nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	assert.Len(t, r.data()["cities"], 1)
-	assert.Len(t, r.data()["categories"], 3+5) // + the five directory categories seeded by CB-DIR-01 (00081)
+	assert.Len(t, r.data()["categories"], 1, "CB-DIR-02: only categories with a visible listing (pool)")
 
 	r = e.do(fiber.MethodGet, "/api/v1/city-services/listings?city="+itoa(city)+"&category=pool", sara, nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)

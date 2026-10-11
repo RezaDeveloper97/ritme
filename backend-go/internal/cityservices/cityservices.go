@@ -129,6 +129,7 @@ type Listing struct {
 	CatIcon     sql.NullString
 	CityName    json.RawMessage
 	CitySlug    string
+	Dir         // CB-DIR-01 directory columns (directory.go), additive
 }
 
 // Booking is one booking request joined with its listing.
@@ -150,7 +151,7 @@ type Booking struct {
 
 const listingSelect = `SELECT l.id, l.category_id, l.city_id, l.name, l.district, l.address, l.phone, l.description,
 	l.price_text, l.hours_text, l.photos, l.booking_mode, l.booking_url, l.sort_order, l.is_active, l.created_at,
-	l.updated_at, c.slug, c.name, c.icon, t.name, t.slug
+	l.updated_at, c.slug, c.name, c.icon, t.name, t.slug` + dirColumns + `
 	FROM city_service_listings l
 	JOIN city_service_categories c ON c.id = l.category_id
 	JOIN city_service_cities t ON t.id = l.city_id`
@@ -159,11 +160,13 @@ type scanner interface{ Scan(dest ...any) error }
 
 func scanListing(s scanner, l *Listing) error {
 	var photos sql.NullString
-	if err := s.Scan(&l.ID, &l.CategoryID, &l.CityID, &l.Name, &l.District, &l.Address, &l.Phone, &l.Description,
+	var dir dirScan
+	if err := s.Scan(append([]any{&l.ID, &l.CategoryID, &l.CityID, &l.Name, &l.District, &l.Address, &l.Phone, &l.Description,
 		&l.PriceText, &l.HoursText, &photos, &l.BookingMode, &l.BookingURL, &l.SortOrder, &l.IsActive, &l.CreatedAt,
-		&l.UpdatedAt, &l.CatSlug, &l.CatName, &l.CatIcon, &l.CityName, &l.CitySlug); err != nil {
+		&l.UpdatedAt, &l.CatSlug, &l.CatName, &l.CatIcon, &l.CityName, &l.CitySlug}, l.targets(&dir)...)...); err != nil {
 		return err
 	}
+	l.apply(dir)
 	l.Photos = nil
 	if photos.Valid && photos.String != "" {
 		_ = json.Unmarshal([]byte(photos.String), &l.Photos) // a malformed column reads as no photos
@@ -174,17 +177,20 @@ func scanListing(s scanner, l *Listing) error {
 // ---------------------------------------------------------------------------
 // Public reads
 
-// ActiveTaxa returns the active cities (that have an active listing) and the active categories.
+// ActiveTaxa returns the active cities and categories that have a visible (active + published, CB-DIR-02) listing.
+// CB-DIR-02: a category with no visible listing is hidden too (bloom listed every active category).
 func (s *Store) ActiveTaxa(ctx context.Context) (cities, categories []Taxon, err error) {
 	cities, err = s.taxa(ctx, `SELECT t.id, t.slug, t.name, NULL, t.sort_order, t.is_active, 0 FROM city_service_cities t
 		WHERE t.is_active = 1 AND EXISTS (SELECT 1 FROM city_service_listings l JOIN city_service_categories c ON c.id = l.category_id
-			WHERE l.city_id = t.id AND l.is_active = 1 AND c.is_active = 1)
+			WHERE l.city_id = t.id AND l.is_active = 1 AND l.status = 'published' AND c.is_active = 1)
 		ORDER BY t.sort_order, t.id`)
 	if err != nil {
 		return nil, nil, err
 	}
 	categories, err = s.taxa(ctx, `SELECT c.id, c.slug, c.name, c.icon, c.sort_order, c.is_active, 0 FROM city_service_categories c
-		WHERE c.is_active = 1 ORDER BY c.sort_order, c.id`)
+		WHERE c.is_active = 1 AND EXISTS (SELECT 1 FROM city_service_listings l JOIN city_service_cities t ON t.id = l.city_id
+			WHERE l.category_id = c.id AND l.is_active = 1 AND l.status = 'published' AND t.is_active = 1)
+		ORDER BY c.sort_order, c.id`)
 	return cities, categories, err
 }
 
@@ -211,45 +217,11 @@ type ListFilter struct {
 	Category string // slug
 }
 
-// PublicListings is one page of active listings (active city and category too) and the total.
-func (s *Store) PublicListings(ctx context.Context, f ListFilter, page, perPage int) ([]Listing, int, error) {
-	where := " WHERE l.is_active = 1 AND c.is_active = 1 AND t.is_active = 1"
-	var args []any
-	if f.CityID > 0 {
-		where += " AND l.city_id = ?"
-		args = append(args, f.CityID)
-	}
-	if f.Category != "" {
-		where += " AND c.slug = ?"
-		args = append(args, f.Category)
-	}
-	var total int
-	if err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM city_service_listings l
-		JOIN city_service_categories c ON c.id = l.category_id JOIN city_service_cities t ON t.id = l.city_id`+where, args...).Scan(&total); err != nil {
-		return nil, 0, fmt.Errorf("cityservices: count: %w", err)
-	}
-	rows, err := s.db.QueryContext(ctx, listingSelect+where+" ORDER BY l.sort_order, l.id LIMIT ? OFFSET ?",
-		append(args, perPage, (page-1)*perPage)...)
-	if err != nil {
-		return nil, 0, fmt.Errorf("cityservices: list: %w", err)
-	}
-	defer func() { _ = rows.Close() }()
-	out := []Listing{}
-	for rows.Next() {
-		var l Listing
-		if err := scanListing(rows, &l); err != nil {
-			return nil, 0, err
-		}
-		out = append(out, l)
-	}
-	return out, total, rows.Err()
-}
-
 // PublicListing is one active listing (ErrNotFound otherwise, also when its city or category is inactive).
 func (s *Store) PublicListing(ctx context.Context, id uint64) (Listing, error) {
 	var l Listing
 	err := scanListing(s.db.QueryRowContext(ctx, listingSelect+
-		" WHERE l.id = ? AND l.is_active = 1 AND c.is_active = 1 AND t.is_active = 1", id), &l)
+		publicWhere+" AND l.id = ?", id), &l) // CB-DIR-02: + status = published
 	if errors.Is(err, sql.ErrNoRows) {
 		return l, ErrNotFound
 	}
@@ -261,7 +233,7 @@ func (s *Store) HasActive(ctx context.Context) (bool, error) {
 	var one int
 	err := s.db.QueryRowContext(ctx, `SELECT 1 FROM city_service_listings l
 		JOIN city_service_categories c ON c.id = l.category_id JOIN city_service_cities t ON t.id = l.city_id
-		WHERE l.is_active = 1 AND c.is_active = 1 AND t.is_active = 1 LIMIT 1`).Scan(&one)
+		WHERE l.is_active = 1 AND l.status = 'published' AND c.is_active = 1 AND t.is_active = 1 LIMIT 1`).Scan(&one)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
@@ -436,30 +408,32 @@ func (l Labeler) place(x Listing) (cat, city *jsonx.OrderedMap) {
 	return cat, city
 }
 
-// CardJSON is a listing in the list.
-func (l Labeler) CardJSON(x Listing) *jsonx.OrderedMap {
+// CardJSON is a listing in the list. CB-DIR-02 appends the directory fields after bloom's (shape kept): coordinates,
+// distance, verified badge, rating, age ranges, amenities, «از … تومان», open-now, next free slot and age fit; the
+// photo prefers the structured place photos over bloom's public-disk ones.
+func (l Labeler) CardJSON(x Listing, ci CardInfo) *jsonx.OrderedMap {
 	cat, city := l.place(x)
-	var photo any
-	if ps := l.photos(x.Photos); len(ps) > 0 {
-		photo = ps[0]
-	}
-	return jsonx.Obj("id", x.ID, "name", x.Name, "category", cat, "city", city, "district", nullStr(x.District),
-		"price_text", nullStr(x.PriceText), "booking_mode", x.BookingMode, "photo_url", photo)
+	o := jsonx.Obj("id", x.ID, "name", x.Name, "category", cat, "city", city, "district", nullStr(x.District),
+		"price_text", nullStr(x.PriceText), "booking_mode", x.BookingMode, "photo_url", firstOrNil(l.listingPhotos(x)))
+	l.directoryCard(o, x, ci)
+	return o
 }
 
-// DetailJSON is the listing detail. booking_url is only present in `link` mode.
-func (l Labeler) DetailJSON(x Listing) *jsonx.OrderedMap {
-	o := l.CardJSON(x)
+// DetailJSON is the listing detail. booking_url is only present in `link` mode. CB-DIR-02 appends the place page
+// (about, weekly hours, rules, cancel policy, services, next slots, reviews summary).
+func (l Labeler) DetailJSON(x Listing, ci CardInfo, d PlaceDetail) *jsonx.OrderedMap {
+	o := l.CardJSON(x, ci)
 	o.Set("address", nullStr(x.Address))
 	o.Set("phone", nullStr(x.Phone))
 	o.Set("description", nullStr(x.Description))
 	o.Set("hours_text", nullStr(x.HoursText))
-	o.Set("photos", l.photos(x.Photos))
+	o.Set("photos", l.listingPhotos(x))
 	var link any
 	if x.BookingMode == ModeLink {
 		link = nullStr(x.BookingURL)
 	}
 	o.Set("booking_url", link)
+	l.directoryDetail(o, x, d)
 	return o
 }
 

@@ -1,0 +1,71 @@
+{
+  "case": "city-services/listings_filtered",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/city-services/listings?age_months=14&open_now=1&amenities=female_instructor&lat=35.7576&lng=51.4099",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "120",
+        "x-ratelimit-remaining": "119"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "listings": [
+            {
+              "id": 1,
+              "name": "Abpari mother & baby pool",
+              "category": {
+                "slug": "pool",
+                "name": "استخر",
+                "icon": "drop"
+              },
+              "city": {
+                "id": 1,
+                "slug": "tehran",
+                "name": "تهران"
+              },
+              "district": "Vanak",
+              "price_text": null,
+              "booking_mode": "online",
+              "photo_url": null,
+              "lat": 35.7576,
+              "lng": 51.4099,
+              "distance_km": 0,
+              "verified": true,
+              "rating_avg": 4.8,
+              "rating_count": 126,
+              "age_ranges": [
+                "m6_12",
+                "y1_2",
+                "y2_4"
+              ],
+              "amenities": [
+                "nursing_room",
+                "changing_table",
+                "female_instructor"
+              ],
+              "price_from_toman": 320000,
+              "open_now": true,
+              "next_slot_at": "2026-09-23T17:00:00+03:30",
+              "age_fit": true
+            }
+          ],
+          "meta": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 20,
+            "total": 1
+          },
+          "sort": "rank"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "case": "city-services/listing_legacy",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/city-services/listings/5",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "120",
+        "x-ratelimit-remaining": "119"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "listing": {
+            "id": 5,
+            "name": "Legacy pool",
+            "category": {
+              "slug": "pool",
+              "name": "استخر",
+              "icon": "drop"
+            },
+            "city": {
+              "id": 1,
+              "slug": "tehran",
+              "name": "تهران"
+            },
+            "district": "Valiasr",
+            "price_text": "300",
+            "booking_mode": "link",
+            "photo_url": null,
+            "lat": null,
+            "lng": null,
+            "distance_km": null,
+            "verified": false,
+            "rating_avg": null,
+            "rating_count": 0,
+            "age_ranges": [],
+            "amenities": [],
+            "price_from_toman": null,
+            "open_now": null,
+            "next_slot_at": null,
+            "age_fit": null,
+            "address": null,
+            "phone": "02112345678",
+            "description": null,
+            "hours_text": null,
+            "photos": [],
+            "booking_url": "https://legacy.example/book",
+            "about": null,
+            "website_url": null,
+            "weekly_hours": [],
+            "rules": null,
+            "cancel_free_hours": null,
+            "cancel_policy": null,
+            "services": [],
+            "next_slots": [],
+            "reviews": {
+              "rating_avg": null,
+              "rating_count": 0,
+              "scores": {
+                "cleanliness": null,
+                "instructor": null,
+                "amenities": null
+              },
+              "latest": []
+            }
+          }
+        }
+      }
+    }
+  ]
+}

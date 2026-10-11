@@ -143,3 +143,32 @@ All under `/api/v1/city-services/applications`, auth:api, owner-only (a foreign 
 - **Logs** carry ids only (no name, phone, address or tracking code).
 - **Open**: a real SMS template for the submit confirmation (the notifier is fake); photos are public from upload
   (before review) — the board allows adding them after submit.
+
+## 5. Public API (CB-DIR-02)
+
+bloom's `/api/v1/city-services/{options,listings,listings/{id}}` are extended in place (code:
+`internal/cityservices/directory*.go`) and `GET /listings/{id}/slots` is added. These reads are **public** (no login,
+for web SEO), throttled to 120 requests per minute per IP (`city-services-public`) and sent with
+`Cache-Control: public|private, max-age=60` + `Vary: Accept-Language, Authorization`. The bookings routes still need a session.
+
+- **Visibility.** A place is only ever read when `is_active = 1 AND status = 'published'` and its city and category are
+  active. Draft, pending and suspended places return 404 everywhere, including when booking. `owner_user_id`,
+  applications, licence files and booking rows are never selected. Only public `place_photo` files resolve to URLs.
+- **Options** add `amenities` / `place_age_ranges` (catalog, picked labels + meta) and `sorts`. **Categories with no
+  visible listing are hidden** (bloom listed every active category), the same rule bloom already used for cities.
+- **List params**: `q`, `age_months` (0–216), `open_now`, `amenities` (comma list, all required), `lat`+`lng` (+
+  `radius_km` ≤ 100), `bbox=min_lng,min_lat,max_lng,max_lat`, `sort=rank|distance|rating`. SQL narrows the results by
+  city, category, q, amenities, the bounding box and the radius box (up to 1000 rows). Go then checks the exact radius,
+  age fit (catalog ranges or an active service with age bounds; places with no age data stay), and open-now
+  (`weekly_hours`, Tehran time, day 0 = Saturday).
+- **Ranking** (`rank`) = 0.5 distance (`1/(1+km/2)`, when a position is sent) + 0.25 age fit (when an age is sent)
+  + 0.25 Bayesian rating (prior 4.0 × 5 votes), with the weights renormalised to the signals in play. No paid
+  signal exists. bloom's `sort_order`, then `id`, only break exact ties.
+- **Card fields** (added after bloom's): `lat`, `lng`, `distance_km`, `verified`, `rating_avg`, `rating_count`, `age_ranges`,
+  `amenities`, `price_from_toman`, `open_now` (null = unknown), `next_slot_at` (next open slot with a free seat),
+  `age_fit`. The **place page** adds `about`, `website_url` (http/https only), `weekly_hours`, `rules`,
+  `cancel_free_hours`, `cancel_policy`, `services`, `next_slots` (31 days, up to 8, full slots flagged), and
+  `reviews {rating_avg, rating_count, scores, latest[3]}`. Only published reviews are used, and each author is shown
+  by first name only.
+- **Slots**: `?service_id=&from=Y-m-d&days=1..31` (14 by default). Results are future, `open` slots of active services
+  (or of the whole place), and include `seats_left` / `is_full`.

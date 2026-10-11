@@ -1,0 +1,28 @@
+{
+  "case": "city-services/listings_bad_bbox",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/city-services/listings?bbox=51.42%2C35.75%2C51.40",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "120",
+        "x-ratelimit-remaining": "119"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست.",
+        "errors": {
+          "bbox": [
+            "اطلاعات واردشده معتبر نیست."
+          ]
+        }
+      }
+    }
+  ]
+}

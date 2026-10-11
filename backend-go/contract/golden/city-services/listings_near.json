@@ -1,0 +1,143 @@
+{
+  "case": "city-services/listings_near",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/city-services/listings?lat=35.7576&lng=51.4099&radius_km=5&sort=distance",
+        "persona": "anon",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "120",
+        "x-ratelimit-remaining": "119"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "listings": [
+            {
+              "id": 1,
+              "name": "Abpari mother & baby pool",
+              "category": {
+                "slug": "pool",
+                "name": "Pools",
+                "icon": "drop"
+              },
+              "city": {
+                "id": 1,
+                "slug": "tehran",
+                "name": "Tehran"
+              },
+              "district": "Vanak",
+              "price_text": null,
+              "booking_mode": "online",
+              "photo_url": null,
+              "lat": 35.7576,
+              "lng": 51.4099,
+              "distance_km": 0,
+              "verified": true,
+              "rating_avg": 4.8,
+              "rating_count": 126,
+              "age_ranges": [
+                "m6_12",
+                "y1_2",
+                "y2_4"
+              ],
+              "amenities": [
+                "nursing_room",
+                "changing_table",
+                "female_instructor"
+              ],
+              "price_from_toman": 320000,
+              "open_now": true,
+              "next_slot_at": "2026-09-23T17:00:00+03:30",
+              "age_fit": null
+            },
+            {
+              "id": 2,
+              "name": "Ghoncheh movement & play class",
+              "category": {
+                "slug": "class",
+                "name": "Classes",
+                "icon": "book"
+              },
+              "city": {
+                "id": 1,
+                "slug": "tehran",
+                "name": "Tehran"
+              },
+              "district": "Jordan",
+              "price_text": null,
+              "booking_mode": "request",
+              "photo_url": null,
+              "lat": 35.772,
+              "lng": 51.418,
+              "distance_km": 1.8,
+              "verified": false,
+              "rating_avg": 4.9,
+              "rating_count": 52,
+              "age_ranges": [
+                "y1_2",
+                "y2_4"
+              ],
+              "amenities": [
+                "female_instructor"
+              ],
+              "price_from_toman": 240000,
+              "open_now": null,
+              "next_slot_at": "2026-09-24T10:30:00+03:30",
+              "age_fit": null
+            },
+            {
+              "id": 3,
+              "name": "Taab-Taab playhouse",
+              "category": {
+                "slug": "playhouse",
+                "name": "Playhouses",
+                "icon": "home"
+              },
+              "city": {
+                "id": 1,
+                "slug": "tehran",
+                "name": "Tehran"
+              },
+              "district": "Yousefabad",
+              "price_text": null,
+              "booking_mode": "phone",
+              "photo_url": null,
+              "lat": 35.733,
+              "lng": 51.405,
+              "distance_km": 2.8,
+              "verified": false,
+              "rating_avg": 4.6,
+              "rating_count": 84,
+              "age_ranges": [
+                "y1_2",
+                "y2_4",
+                "y4_6"
+              ],
+              "amenities": [
+                "stroller_parking"
+              ],
+              "price_from_toman": null,
+              "open_now": true,
+              "next_slot_at": null,
+              "age_fit": null
+            }
+          ],
+          "meta": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 20,
+            "total": 3
+          },
+          "sort": "distance"
+        }
+      }
+    }
+  ]
+}

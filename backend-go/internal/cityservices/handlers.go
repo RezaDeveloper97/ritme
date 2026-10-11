@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/catalog"
 	"github.com/ritme/backend-go/internal/content"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
@@ -23,13 +24,15 @@ import (
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 )
 
-// Handlers serve /api/v1/city-services/* (auth:api; localized). Every booking query is scoped to the caller.
+// Handlers serve /api/v1/city-services/* (localized). The bookings routes are auth:api and every booking query is
+// scoped to the caller; options / listings / listing / slots are public since CB-DIR-02 (directory_handlers.go).
 type Handlers struct {
 	store    *Store
 	notifier BookingNotifier
 	appURL   string
 	clock    clock.Clock
 	logger   *slog.Logger
+	catalog  *catalog.Reader // CB-DIR-02: dir_amenities / dir_age_ranges (WithCatalog), nil = none
 }
 
 // NewHandlers wires the handlers; notifier may be nil (fake), clock nil (real).
@@ -108,79 +111,6 @@ func fieldFail(c fiber.Ctx, field, text string) error {
 func parseID(s string) (uint64, bool) {
 	n, err := strconv.ParseUint(s, 10, 64)
 	return n, err == nil && n > 0 && len(s) < 20
-}
-
-// Options is GET /city-services/options → {cities, categories, age_ranges, max_note}. Cities are the active ones
-// that have at least one visible listing; the app keeps the user's choice on the device.
-func (h *Handlers) Options(c fiber.Ctx) error {
-	if _, err := h.user(c); err != nil {
-		return err
-	}
-	cities, cats, err := h.store.ActiveTaxa(c)
-	if err != nil {
-		return fmt.Errorf("cityservices: options: %w", err)
-	}
-	lb := h.labeler(c)
-	cj, kj := make([]*jsonx.OrderedMap, 0, len(cities)), make([]*jsonx.OrderedMap, 0, len(cats))
-	for _, t := range cities {
-		cj = append(cj, lb.TaxonJSON(t, false))
-	}
-	for _, t := range cats {
-		kj = append(kj, lb.TaxonJSON(t, true))
-	}
-	return httpx.OK(c, jsonx.Obj("cities", cj, "categories", kj, "age_ranges", AgeRanges, "max_advance_days", MaxAdvanceDays))
-}
-
-// Listings is GET /city-services/listings?city=<id>&category=<slug>&page=&per_page=.
-func (h *Handlers) Listings(c fiber.Ctx) error {
-	if _, err := h.user(c); err != nil {
-		return err
-	}
-	f := ListFilter{Category: strings.TrimSpace(c.Query("category"))}
-	if s := strings.TrimSpace(c.Query("city")); s != "" {
-		id, ok := parseID(s)
-		if !ok {
-			return fieldFail(c, "city", msg("validation_failed", i18n.Locale(c)))
-		}
-		f.CityID = id
-	}
-	page, per := 1, DefaultPerPage
-	if n, err := strconv.Atoi(c.Query("page")); err == nil && n >= 1 && n <= 100000 {
-		page = n
-	}
-	if n, err := strconv.Atoi(c.Query("per_page")); err == nil && n >= 1 {
-		per = min(n, MaxPerPage)
-	}
-	rows, total, err := h.store.PublicListings(c, f, page, per)
-	if err != nil {
-		return fmt.Errorf("cityservices: listings: %w", err)
-	}
-	lb := h.labeler(c)
-	items := make([]*jsonx.OrderedMap, 0, len(rows))
-	for _, l := range rows {
-		items = append(items, lb.CardJSON(l))
-	}
-	pg := httpx.NewPage(items, total, per, page, "")
-	return httpx.OK(c, jsonx.Obj("listings", items, "meta", pg.Meta()))
-}
-
-// Listing is GET /city-services/listings/{id}.
-func (h *Handlers) Listing(c fiber.Ctx) error {
-	if _, err := h.user(c); err != nil {
-		return err
-	}
-	id, ok := parseID(c.Params("id"))
-	if !ok {
-		return notFound(c)
-	}
-	l, err := h.store.PublicListing(c, id)
-	if errors.Is(err, ErrNotFound) {
-		return notFound(c)
-	}
-	if err != nil {
-		return fmt.Errorf("cityservices: listing: %w", err)
-	}
-	return httpx.OK(c, jsonx.Obj("listing", h.labeler(c).DetailJSON(l)))
 }
 
 // persian digits → ASCII, then separators out; the phone is validated on the normalised value.
