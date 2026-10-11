@@ -3,7 +3,7 @@ id: CB-SHOP-08
 title: Frontend: cart, checkout, order placed, my orders
 epic: SHOP
 type: frontend
-status: todo
+status: done
 depends_on: [CB-SHOP-07, CB-SHOP-03]
 parallel_group: SHOP-G
 touches: [frontend/src/screens/shop-cart, frontend/src/screens/shop-checkout, frontend/src/screens/shop-order, frontend/src/screens/my-orders, frontend/src/app/[locale]/services/shop/cart, frontend/src/app/[locale]/services/shop/checkout, frontend/src/app/[locale]/profile/orders]

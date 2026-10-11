@@ -3,7 +3,7 @@ id: CB-SHOP-05
 title: Admin: sellers, catalog, stock, slots, orders, returns, reviews, layette template
 epic: SHOP
 type: fullstack
-status: todo
+status: done
 depends_on: [CB-SHOP-03, CB-SHOP-04, CB-CORE-04]
 parallel_group: SHOP-D
 touches: [backend-go/internal/shop/admin, backend-go/internal/http/routes_admin_shop.go, backend-go/api/openapi.yaml, admin-web/src/screens/shop, admin-web/src/app/(panel)/shop, admin-web/src/widgets/shell/model/nav.ts, admin-web/messages]
