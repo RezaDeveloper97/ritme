@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { formatDateTime, formatNumber, useListParams } from '@/shared/lib';
+import { formatDateTime, formatNumber, toLocaleDigits, useListParams } from '@/shared/lib';
 import { DataTable, LinkTabs, Pagination, Panel, type Column } from '@/shared/ui';
 
 import { reviewsApi, type ReviewItem } from '../api/learning';
@@ -32,7 +32,7 @@ export function LearningReviewsScreen() {
           </span>
           <span className="flex flex-wrap items-center gap-2 text-xs text-ink-3">
             <span>{tk.has(l.kind as 'video') ? tk(l.kind as 'video') : l.kind}</span>
-            {formatDuration(l.duration_seconds) ? <span dir="ltr">{formatDuration(l.duration_seconds)}</span> : null}
+            {formatDuration(l.duration_seconds) ? <span dir="ltr">{toLocaleDigits(formatDuration(l.duration_seconds) ?? '', locale)}</span> : null}
           </span>
           {l.review.note ? (
             <span className="text-xs text-ink-3" dir="auto">

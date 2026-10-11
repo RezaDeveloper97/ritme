@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 import {
   KIND_LOOK,
+  useLessonDownload,
   lessonBlock,
   useAccessLabel,
   useCourseOutline,
@@ -118,12 +119,12 @@ export function LearnCoursePage({ courseId }: { courseId: number }) {
         {tab === 'lessons' ? (
           <div className="lrn-chapters">
             {o.chapters.map((ch, i) => (
-              <ChapterBlock key={ch.id} chapter={ch} index={i + 1} courseId={c.id} currentId={currentId} />
+              <ChapterBlock key={ch.id} chapter={ch} index={i + 1} courseId={c.id} courseTitle={c.title} currentId={currentId} />
             ))}
             {o.lessons.length ? (
               <ul className="lrn-lessons">
                 {o.lessons.map((l) => (
-                  <LessonRow key={l.id} lesson={l} courseId={c.id} current={l.id === currentId} />
+                  <LessonRow key={l.id} lesson={l} courseId={c.id} courseTitle={c.title} current={l.id === currentId} />
                 ))}
               </ul>
             ) : null}
@@ -144,7 +145,7 @@ export function LearnCoursePage({ courseId }: { courseId: number }) {
         ) : files.length ? (
           <ul className="lrn-lessons">
             {files.map((l) => (
-              <LessonRow key={l.id} lesson={l} courseId={c.id} current={false} />
+              <LessonRow key={l.id} lesson={l} courseId={c.id} courseTitle={c.title} current={false} />
             ))}
           </ul>
         ) : (
@@ -186,7 +187,7 @@ function Shell({
   );
 }
 
-function ChapterBlock({ chapter, index, courseId, currentId }: { chapter: CourseChapter; index: number; courseId: number; currentId: number | null }) {
+function ChapterBlock({ chapter, index, courseId, courseTitle, currentId }: { chapter: CourseChapter; index: number; courseId: number; courseTitle: string; currentId: number | null }) {
   const t = useTranslations('learn');
   const locale = useLocale() as Locale;
   const id = `lrn-ch-${chapter.id}`;
@@ -200,14 +201,14 @@ function ChapterBlock({ chapter, index, courseId, currentId }: { chapter: Course
       </div>
       <ul className="lrn-lessons">
         {chapter.lessons.map((l) => (
-          <LessonRow key={l.id} lesson={l} courseId={courseId} current={l.id === currentId} />
+          <LessonRow key={l.id} lesson={l} courseId={courseId} courseTitle={courseTitle} current={l.id === currentId} />
         ))}
       </ul>
     </section>
   );
 }
 
-function LessonRow({ lesson, courseId, current }: { lesson: StudentLesson; courseId: number; current: boolean }) {
+function LessonRow({ lesson, courseId, courseTitle, current }: { lesson: StudentLesson; courseId: number; courseTitle: string; current: boolean }) {
   const t = useTranslations('learn');
   const locale = useLocale() as Locale;
   const meta = useLessonMeta();
@@ -234,7 +235,7 @@ function LessonRow({ lesson, courseId, current }: { lesson: StudentLesson; cours
       <span className="lrn-row-main">
         <span className="lrn-row-title">
           {lesson.title}
-          {lesson.isNew && !lesson.locked ? (
+          {lesson.isNew && !lesson.locked && !done ? (
             <StatusPill tone="bloom" className="lrn-new">
               {t('course.new')}
             </StatusPill>
@@ -248,7 +249,7 @@ function LessonRow({ lesson, courseId, current }: { lesson: StudentLesson; cours
     </>
   );
   return (
-    <li>
+    <li className="lrn-li">
       {lesson.locked ? (
         <div className="lrn-row is-locked" aria-disabled>
           {content}
@@ -258,6 +259,27 @@ function LessonRow({ lesson, courseId, current }: { lesson: StudentLesson; cours
           {content}
         </Link>
       )}
+      {lesson.locked ? null : <RowDownload lesson={lesson} courseId={courseId} courseTitle={courseTitle} />}
     </li>
+  );
+}
+
+/** Per-lesson offline download (the arrow beside each row on Learn_Course): tap to save, again to remove, cancel while running. */
+function RowDownload({ lesson, courseId, courseTitle }: { lesson: StudentLesson; courseId: number; courseTitle: string }) {
+  const t = useTranslations('learn');
+  const dl = useLessonDownload({ lessonId: lesson.id, courseId, courseTitle, title: lesson.title, kind: lesson.kind });
+  if (dl.state === 'unsupported' || dl.state === 'checking' || lesson.media?.status !== 'ready') return null;
+  const busy = dl.state === 'downloading';
+  const saved = dl.state === 'saved';
+  return (
+    <button
+      type="button"
+      className={clsx('lrn-row-dl', saved && 'is-saved')}
+      aria-busy={busy || undefined}
+      aria-label={busy ? t('download.cancel') : saved ? t('download.remove') : t('download.action')}
+      onClick={() => (busy ? dl.cancel() : saved ? void dl.remove() : void dl.start())}
+    >
+      {busy ? <span className="lrn-row-dl-pct">{dl.percent ?? '…'}</span> : <Icon name={saved ? 'check' : 'download'} size={18} />}
+    </button>
   );
 }

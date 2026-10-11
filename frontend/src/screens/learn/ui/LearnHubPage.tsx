@@ -104,8 +104,11 @@ export function LearnHubPage() {
     <div className="view lrn-view">
       <SkyLayer />
       <div className="scroll">
-        <header className="lrn-hub-head">
+        <header className="lrn-hub-head has-action">
           <h1 className="lrn-hub-title">{t('hub.title')}</h1>
+          <Link href="/learn/downloads" className="nb-hbtn" aria-label={t('downloads.title')}>
+            <Icon name="download" size={20} />
+          </Link>
         </header>
         {body}
         <div className="page-tail" />

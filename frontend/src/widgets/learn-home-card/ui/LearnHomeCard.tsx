@@ -80,16 +80,19 @@ function NewVariant({ course, more }: { course: StudentCourse; more: number }) {
   return (
     <section className="lrn-home" aria-label={t('home.newLabel')}>
       <Link href={`/learn/${course.id}`} className="lrn-home-new">
-        <KindThumb kind={course.primaryKind} />
-        <span className="lrn-home-main">
-          <span className="lrn-home-kicker">{t('home.newFrom', { name: course.instructor.name })}</span>
-          <span className="lrn-home-lesson">{course.title}</span>
+        <span className="lrn-home-new-art" aria-hidden>
+          <span className="lrn-home-new-chip">{t('home.newFrom', { name: course.instructor.name })}</span>
+          <span className="lrn-play-disc">
+            <Icon name="play" size={22} fill="currentColor" />
+          </span>
+          <span className="lrn-home-new-title">{course.title}</span>
+        </span>
+        <span className="lrn-home-new-foot">
           <span className="lrn-home-meta">
             {meta(course)} · {until}
           </span>
           {more > 0 ? <span className="lrn-home-more">{t('home.more', { count: formatNumber(more, locale) })}</span> : null}
         </span>
-        <Icon name="chevronLeft" size={20} className="lrn-chev" />
       </Link>
     </section>
   );

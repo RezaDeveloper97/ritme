@@ -50,6 +50,8 @@ const csp = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Local only: NEXT_DIST_DIR=.next-dev keeps a dev server alive while `npm run build` runs.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   ...(basePath ? { basePath } : {}),
   output: 'standalone',
   // admin-web is its own npm project; don't let a lockfile higher up become the trace root.

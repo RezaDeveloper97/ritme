@@ -3,7 +3,7 @@ id: B-N8-09
 title: N8 design-fidelity audit and fixes (app + instructor-web)
 milestone: N8
 type: frontend
-status: todo
+status: done
 depends_on: [B-N8-04,B-N8-07]
 parallel_group: N8-I
 touches: [docs/night-bloom/audit-n8.md,admin-web/src/screens/learning,frontend/src,instructor-web/src,frontend/messages]

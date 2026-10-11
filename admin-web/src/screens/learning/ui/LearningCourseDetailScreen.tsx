@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 
-import { formatDate, formatNumber } from '@/shared/lib';
+import { formatDate, formatNumber, toLocaleDigits } from '@/shared/lib';
 import { ErrorState, PageHeader, Panel, Skeleton } from '@/shared/ui';
 
 import { coursesApi, type Course } from '../api/learning';
@@ -98,7 +98,7 @@ function CourseDetail({ course }: { course: Course }) {
                   </span>
                   <span className="flex flex-wrap items-center gap-2 text-xs text-ink-3">
                     <span>{tk.has(l.kind as 'video') ? tk(l.kind as 'video') : l.kind}</span>
-                    {formatDuration(l.duration_seconds) ? <span dir="ltr">{formatDuration(l.duration_seconds)}</span> : null}
+                    {formatDuration(l.duration_seconds) ? <span dir="ltr">{toLocaleDigits(formatDuration(l.duration_seconds) ?? '', locale)}</span> : null}
                     {l.chapter_id && chapterTitle.get(l.chapter_id) ? <span dir="auto">{chapterTitle.get(l.chapter_id)}</span> : null}
                     <PublicationBadge status={l.status} />
                     <ReviewBadge state={l.review.state} />
