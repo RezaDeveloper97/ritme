@@ -10,10 +10,14 @@ import { Badge, CrudRowActions, DataTable, Icon, Panel, useRowCommands, type Col
 
 import { shopCategoriesApi, type ShopCategory } from '../api/shop';
 
+import { CategoryParentCell } from './CategoryParentCell';
+import { ShopTabs } from './ShopTabs';
+
 /** /shop/categories — «سیسمونی و نوزاد», «آرایشی و بهداشتی», … (B-N10-03). A category with products can't be deleted. */
 export function ShopCategoriesScreen() {
   const t = useTranslations('shop');
   const tc = useTranslations('crud');
+  const tp = useTranslations('shopAdmin.categories'); // CB-SHOP-05
   const locale = useLocale();
   const router = useRouter();
   const localize = useLocalized();
@@ -24,6 +28,8 @@ export function ShopCategoriesScreen() {
     { key: 'id', header: '#', cell: (c) => formatNumber(c.id, locale), className: 'cell-num w-14 text-muted' },
     { key: 'title', header: t('titleShort'), cell: (c) => localize(c.title) || '—' },
     { key: 'slug', header: t('slug'), cell: (c) => <span dir="ltr">{c.slug}</span> },
+    // CB-SHOP-05: the sub-category tree (parent root).
+    { key: 'parent', header: tp('parent'), cell: (c) => <CategoryParentCell id={c.id} /> },
     { key: 'products', header: t('productsCount'), cell: (c) => formatNumber(c.products_count, locale), className: 'cell-num' },
     {
       key: 'status',
@@ -40,6 +46,9 @@ export function ShopCategoriesScreen() {
   ];
 
   return (
+    // CB-SHOP-05: the section tabs above bloom's list.
+    <div className="flex flex-col gap-4">
+      <ShopTabs />
     <Panel
       title={t('categories')}
       bodyClassName=""
@@ -67,5 +76,6 @@ export function ShopCategoriesScreen() {
         caption={t('categories')}
       />
     </Panel>
+    </div>
   );
 }

@@ -114,3 +114,24 @@ Package `backend-go/internal/shop/order` (sqlc queries `db/queries/shop/order_ap
 - **SMS**: `order.Notifier` adapter, fake provider only (logs the order id). The copy is discreet: order code + «پرداخت
   هنگام تحویل», never a product name. No phone number or address reaches a log line.
 - Open: encryption at rest for `shop_addresses` / order recipient snapshots; a real SMS provider for shop messages.
+
+## Admin (CB-SHOP-05)
+
+Package `backend-go/internal/shop/admin` (sqlc queries `db/queries/shop/admin.sql`), registered in
+`routes_admin_shop.go` after bloom's link-out CRUD (one `/shop` section). admin-web: `/shop` (products, with a
+«commerce» tab per product for seller, fields, gallery and variants), `/shop/sellers`, `/shop/stock`, `/shop/slots`,
+`/shop/shipments` (+ `/shop/orders/:id`), `/shop/returns`, `/shop/reviews`, `/shop/discount-codes`, `/shop/layette`.
+API reference: `docs/go-migration/admin-api.md` §25.
+
+- **Capabilities**: catalog, reviews, discount codes and the layette template are `content`; the shipment queue, order
+  detail and returns show the recipient's name, phone and address, so `httpadmin.capabilityOf` maps
+  `/shop/shipments|orders|returns` to `support`. Audit lines carry ids and statuses only.
+- **Shipment machine**: `awaiting_seller → confirmed → shipped → delivered` (confirmed may go straight to delivered).
+  Delivered calls `order.Service.MarkShipmentDelivered`; other moves write an order event with the shipment id.
+- **Admin cancel**: `order.Service.CancelByAdmin` — placed and no shipment shipped/delivered (the user's own cancel
+  still needs every shipment awaiting the seller).
+- **Returns**: `requested → approved | rejected`; approve may restock the variant. Cash is settled offline (COD).
+- **Reviews**: moderation and delete refresh `rating_avg` / `rating_count`.
+- **Slots**: generated from a weekly template (weekdays + windows) over ≤ 62 days; existing rows are kept
+  (`INSERT IGNORE` on the seller/day/start key); booked slots cannot be deleted or shrunk below the bookings.
+

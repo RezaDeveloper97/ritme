@@ -10,6 +10,8 @@ import { Badge, CrudRowActions, DataTable, Icon, Pagination, Panel, useRowComman
 
 import { shopProductsApi, type ShopProduct } from '../api/shop';
 
+import { ShopTabs } from './ShopTabs';
+
 /** /shop — the link-out products (B-N10-03); categories live under /shop/categories. */
 export function ShopProductsScreen() {
   const t = useTranslations('shop');
@@ -59,6 +61,9 @@ export function ShopProductsScreen() {
   ];
 
   return (
+    // CB-SHOP-05: the section tabs (sellers, stock, slots, …) above bloom's list.
+    <div className="flex flex-col gap-4">
+      <ShopTabs />
     <Panel
       title={t('title')}
       bodyClassName=""
@@ -87,5 +92,6 @@ export function ShopProductsScreen() {
       />
       <Pagination meta={query.data?.meta} onPage={list.setPage} />
     </Panel>
+    </div>
   );
 }

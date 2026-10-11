@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -41,6 +42,7 @@ export function ShopProductFormScreen({ id }: { id: number | null }) {
 function ProductForm({ id, row, options }: { id: number | null; row: ShopProduct | null; options: ShopOptions }) {
   const t = useTranslations('shop');
   const tc = useTranslations('crud');
+  const ta = useTranslations('shopAdmin.commerce'); // CB-SHOP-05
   const locale = useLocale();
   const router = useRouter();
   const localize = useLocalized();
@@ -92,6 +94,14 @@ function ProductForm({ id, row, options }: { id: number | null; row: ShopProduct
       onSubmit={submit}
       submitLabel={id === null ? t('create') : tc('saveChanges')}
       saving={save.isPending}
+      headerActions={
+        // CB-SHOP-05: seller, gallery, variants and stock of this product.
+        id !== null ? (
+          <Link href={`/shop/${id}/commerce`} className="btn btn-sm">
+            {ta('commerceLink')}
+          </Link>
+        ) : null
+      }
     >
       <ImageUpload
         label={t('image')}

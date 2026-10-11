@@ -40,6 +40,8 @@ const (
 	StatusCancelled      = "cancelled"
 	StatusDelivered      = "delivered"
 	ShipmentAwaiting     = "awaiting_seller"
+	ShipmentConfirmed    = "confirmed" // CB-SHOP-05 admin: the seller accepted the shipment
+	ShipmentShipped      = "shipped"   // CB-SHOP-05 admin: handed to the courier
 	EventReturnRequested = "return_requested"
 )
 
@@ -865,6 +867,36 @@ func (s *Service) Orders(ctx context.Context, userID uint64) ([]Summary, map[uin
 // Cancel cancels one of her orders while every shipment still awaits the seller: stock, slots and the discount use
 // are given back, checklist rows set «در راه» by this order go back to «todo».
 func (s *Service) Cancel(ctx context.Context, userID, id uint64, now time.Time) error {
+	return s.cancel(ctx, userID, id, now, (*Detail).CanCancel)
+}
+
+// CancelByAdmin cancels an order from the admin queue (CB-SHOP-05): allowed while it is placed and no shipment has
+// left the seller (awaiting or confirmed); stock, slots, the code use and checklist rows are given back like Cancel.
+func (s *Service) CancelByAdmin(ctx context.Context, id uint64, now time.Time) error {
+	o, err := s.q.AdminGetOrder(ctx, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return fail(404, "not_found", "")
+	}
+	if err != nil {
+		return fmt.Errorf("order: get: %w", err)
+	}
+	return s.cancel(ctx, o.UserID, id, now, (*Detail).CanAdminCancel)
+}
+
+// CanAdminCancel: placed and no shipment shipped or delivered yet (CB-SHOP-05).
+func (d *Detail) CanAdminCancel() bool {
+	if d.Order.Status != StatusPlaced {
+		return false
+	}
+	for _, s := range d.Shipments {
+		if s.Status != ShipmentAwaiting && s.Status != ShipmentConfirmed {
+			return false
+		}
+	}
+	return true
+}
+
+func (s *Service) cancel(ctx context.Context, userID, id uint64, now time.Time, allowed func(*Detail) bool) error {
 	return s.inTx(ctx, func(q *store.Queries) error {
 		o, err := q.LockOrderForUser(ctx, store.LockOrderForUserParams{ID: id, UserID: userID})
 		if errors.Is(err, sql.ErrNoRows) {
@@ -878,7 +910,7 @@ func (s *Service) Cancel(ctx context.Context, userID, id uint64, now time.Time) 
 			return fmt.Errorf("order: shipments: %w", err)
 		}
 		d := &Detail{Order: o, Shipments: ships}
-		if !d.CanCancel() {
+		if !allowed(d) {
 			return fail(422, "not_cancellable", "")
 		}
 		if n, err := q.CancelOrderForUser(ctx, store.CancelOrderForUserParams{CancelledAt: nt(now), UpdatedAt: nt(now), ID: o.ID, UserID: userID}); err != nil {

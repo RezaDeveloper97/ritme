@@ -114,6 +114,10 @@ export const NAV: readonly NavGroup[] = [
       { key: 'checkupTypes', href: '/checkup-types', icon: 'shieldCheck', cap: 'clinical', ready: true },
       { key: 'banners', href: '/banners', icon: 'banner', cap: 'content', ready: true },
       { key: 'shop', href: '/shop', icon: 'banner', cap: 'content', ready: true }, // B-N10-03 link-out catalog
+      // CB-SHOP-05: the internal shop's order queue + returns (recipient PII → support) and the layette template.
+      { key: 'shopOrders', href: '/shop/shipments', icon: 'inbox', cap: 'support', ready: true },
+      { key: 'shopReturns', href: '/shop/returns', icon: 'undo', cap: 'support', ready: true },
+      { key: 'shopLayette', href: '/shop/layette', icon: 'baby', cap: 'content', ready: true },
       { key: 'cityServices', href: '/city-services', icon: 'banner', cap: 'content', ready: true }, // B-N10-05 city services listings
       { key: 'cityServiceBookings', href: '/city-service-bookings', icon: 'inbox', cap: 'support', ready: true }, // B-N10-05 booking request queue
       { key: 'cityServiceApplications', href: '/city-services/applications', icon: 'inbox', cap: 'content', ready: true }, // CB-DIR-05 join review queue

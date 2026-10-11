@@ -11,6 +11,70 @@ import (
 
 type Querier interface {
 	AddProductPurchases(ctx context.Context, arg AddProductPurchasesParams) error
+	AdminCountChildCategories(ctx context.Context, parentID sql.NullInt64) (int64, error)
+	AdminCountDiscountCodes(ctx context.Context) (int64, error)
+	AdminCountReturns(ctx context.Context, arg AdminCountReturnsParams) (int64, error)
+	AdminCountReviews(ctx context.Context, arg AdminCountReviewsParams) (int64, error)
+	AdminCountSellerShipments(ctx context.Context, sellerID uint64) (int64, error)
+	AdminCountShipments(ctx context.Context, arg AdminCountShipmentsParams) (int64, error)
+	AdminCountStock(ctx context.Context, arg AdminCountStockParams) (int64, error)
+	AdminCreateDiscountCode(ctx context.Context, arg AdminCreateDiscountCodeParams) (int64, error)
+	AdminCreateLayetteItem(ctx context.Context, arg AdminCreateLayetteItemParams) (int64, error)
+	AdminCreateSeller(ctx context.Context, arg AdminCreateSellerParams) (int64, error)
+	AdminCreateVariant(ctx context.Context, arg AdminCreateVariantParams) (int64, error)
+	AdminDecideReturn(ctx context.Context, arg AdminDecideReturnParams) (int64, error)
+	AdminDeleteDiscountCode(ctx context.Context, id uint64) (int64, error)
+	AdminDeleteLayetteItem(ctx context.Context, id uint64) (int64, error)
+	AdminDeleteReview(ctx context.Context, id uint64) (int64, error)
+	AdminDeleteSeller(ctx context.Context, id uint64) (int64, error)
+	AdminDeleteSlot(ctx context.Context, id uint64) (int64, error)
+	AdminDeleteVariant(ctx context.Context, id uint64) (int64, error)
+	AdminDiscountCodeTaken(ctx context.Context, arg AdminDiscountCodeTakenParams) (int64, error)
+	AdminGetCategory(ctx context.Context, id uint64) (AdminGetCategoryRow, error)
+	AdminGetLayetteItem(ctx context.Context, id uint64) (ShopLayetteItem, error)
+	AdminGetOrder(ctx context.Context, id uint64) (ShopOrder, error)
+	// ─── products (commerce fields) ────────────────────────────────────────────────────────────────────────────────────
+	AdminGetProduct(ctx context.Context, id uint64) (ShopProduct, error)
+	AdminGetReturn(ctx context.Context, id uint64) (AdminGetReturnRow, error)
+	AdminGetReview(ctx context.Context, id uint64) (ShopProductReview, error)
+	AdminGetSlot(ctx context.Context, id uint64) (ShopDeliverySlot, error)
+	AdminInsertSlot(ctx context.Context, arg AdminInsertSlotParams) (int64, error)
+	// ─── categories (sub-category parent) ──────────────────────────────────────────────────────────────────────────────
+	AdminListCategoryTree(ctx context.Context) ([]AdminListCategoryTreeRow, error)
+	// ─── discount codes ────────────────────────────────────────────────────────────────────────────────────────────────
+	AdminListDiscountCodes(ctx context.Context, arg AdminListDiscountCodesParams) ([]ShopDiscountCode, error)
+	// ─── layette template ──────────────────────────────────────────────────────────────────────────────────────────────
+	AdminListLayetteItems(ctx context.Context) ([]ShopLayetteItem, error)
+	// ─── returns (PII: support capability) ─────────────────────────────────────────────────────────────────────────────
+	AdminListReturns(ctx context.Context, arg AdminListReturnsParams) ([]AdminListReturnsRow, error)
+	AdminListReturnsByOrder(ctx context.Context, orderID uint64) ([]ShopReturn, error)
+	// ─── reviews ───────────────────────────────────────────────────────────────────────────────────────────────────────
+	AdminListReviews(ctx context.Context, arg AdminListReviewsParams) ([]AdminListReviewsRow, error)
+	// Shop admin (CB-SHOP-05): sellers, sub-category parents, commerce fields, variants and stock, delivery slots, the
+	// shipment queue, returns, review moderation, discount codes and the layette template. No query here joins a health
+	// table. Order rows carry recipient PII: the handlers serve them to the `support` capability only and never log them.
+	// ─── sellers ───────────────────────────────────────────────────────────────────────────────────────────────────────
+	AdminListSellers(ctx context.Context) ([]AdminListSellersRow, error)
+	// ─── shipment queue and orders (PII: support capability) ───────────────────────────────────────────────────────────
+	AdminListShipments(ctx context.Context, arg AdminListShipmentsParams) ([]AdminListShipmentsRow, error)
+	// ─── delivery slots ────────────────────────────────────────────────────────────────────────────────────────────────
+	AdminListSlots(ctx context.Context, arg AdminListSlotsParams) ([]ShopDeliverySlot, error)
+	AdminListStock(ctx context.Context, arg AdminListStockParams) ([]AdminListStockRow, error)
+	// ─── variants and stock ────────────────────────────────────────────────────────────────────────────────────────────
+	AdminListVariantsByProduct(ctx context.Context, productID uint64) ([]ShopProductVariant, error)
+	AdminMoveShipment(ctx context.Context, arg AdminMoveShipmentParams) (int64, error)
+	AdminSellerSlugTaken(ctx context.Context, arg AdminSellerSlugTakenParams) (int64, error)
+	AdminSetCategoryParent(ctx context.Context, arg AdminSetCategoryParentParams) error
+	AdminSetProductImages(ctx context.Context, arg AdminSetProductImagesParams) error
+	AdminSetReviewStatus(ctx context.Context, arg AdminSetReviewStatusParams) error
+	AdminSetVariantStock(ctx context.Context, arg AdminSetVariantStockParams) error
+	AdminSkuTaken(ctx context.Context, arg AdminSkuTakenParams) (int64, error)
+	AdminUpdateDiscountCode(ctx context.Context, arg AdminUpdateDiscountCodeParams) error
+	AdminUpdateLayetteItem(ctx context.Context, arg AdminUpdateLayetteItemParams) error
+	AdminUpdateProductCommerce(ctx context.Context, arg AdminUpdateProductCommerceParams) error
+	AdminUpdateSeller(ctx context.Context, arg AdminUpdateSellerParams) error
+	AdminUpdateSlot(ctx context.Context, arg AdminUpdateSlotParams) error
+	AdminUpdateVariant(ctx context.Context, arg AdminUpdateVariantParams) error
 	BookDeliverySlot(ctx context.Context, arg BookDeliverySlotParams) (int64, error)
 	CancelOrderForUser(ctx context.Context, arg CancelOrderForUserParams) (int64, error)
 	CancelOrderShipments(ctx context.Context, arg CancelOrderShipmentsParams) error

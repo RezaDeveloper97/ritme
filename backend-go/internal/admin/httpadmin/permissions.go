@@ -181,7 +181,14 @@ func capabilityOf(path string) string {
 	case "ai", "clinical-config":
 		return CapConfig
 	case "articles", "affirmations", "banners", "info-sections", "phase-contents", "recommendations",
-		"task-templates", "companions", "uploads", "media", "shop", "city-services":
+		"task-templates", "companions", "uploads", "media", "city-services":
+		return CapContent
+	case "shop":
+		// CB-SHOP-05: the shipment queue, order detail and returns hold the recipient's name, phone and address →
+		// support (the team that runs orders); the catalog, reviews, codes and layette template stay content (B-N10-03).
+		if sub, _, _ := strings.Cut(tail, "/"); sub == "shipments" || sub == "orders" || sub == "returns" {
+			return CapSupport
+		}
 		return CapContent
 	case "insurance": // CB-INS-01: insurer catalog + contracted centres (admin content, no user data)
 		return CapContent
