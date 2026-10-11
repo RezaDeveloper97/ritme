@@ -3,7 +3,7 @@ id: B-N9-03
 title: Overview dashboard and metrics aggregation
 milestone: N9
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N9-02]
 parallel_group: N9-C
 touches: [backend-go/internal/metrics,backend-go/internal/admin,backend-go/db,backend-go/api,admin-web/src]

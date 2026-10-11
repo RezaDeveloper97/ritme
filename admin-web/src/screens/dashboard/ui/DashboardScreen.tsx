@@ -4,9 +4,10 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { useCurrentAdmin } from '@/features/auth';
 import { formatDateTime, formatNumber } from '@/shared/lib';
-import { Badge, DataTable, ErrorState, Panel, Skeleton, type Column } from '@/shared/ui';
+import { Badge, DataTable, Panel, Skeleton, type Column } from '@/shared/ui';
 
-import { useDashboard, type Dashboard, type RecentUser } from '../api/dashboard';
+import { useDashboard, type RecentUser } from '../api/dashboard';
+import { Overview } from './OverviewPanels';
 
 /**
  * Reference implementation for T-M2-23 screens: one query hook in the screen's
@@ -58,15 +59,7 @@ export function DashboardScreen() {
         )}
       </div>
 
-      {query.error && !query.data ? (
-        <Panel>
-          <ErrorState error={query.error} onRetry={() => query.refetch()} />
-        </Panel>
-      ) : (
-        <Panel bodyClassName="">
-          <Ledger stats={query.data?.stats} format={n} />
-        </Panel>
-      )}
+      <Overview />
 
       <Panel title={t('recentUsers')} bodyClassName="">
         <DataTable
@@ -82,42 +75,5 @@ export function DashboardScreen() {
         />
       </Panel>
     </div>
-  );
-}
-
-function Ledger({ stats, format }: { stats: Dashboard['stats'] | undefined; format: (n: number) => string }) {
-  const t = useTranslations('dashboard');
-  const cells: { key: string; label: string; value: number | undefined; sub: string; alert?: boolean }[] = [
-    { key: 'users', label: t('users'), value: stats?.users, sub: t('usersSub', { blocked: stats?.users_blocked ?? 0 }) },
-    { key: 'articles', label: t('articles'), value: stats?.articles, sub: t('articlesSub') },
-    { key: 'challenges', label: t('challenges'), value: stats?.challenges, sub: t('challengesSub') },
-    { key: 'affirmations', label: t('affirmations'), value: stats?.affirmations, sub: t('affirmationsSub') },
-    { key: 'tasks', label: t('taskTemplates'), value: stats?.task_templates, sub: t('taskTemplatesSub') },
-    {
-      key: 'messages',
-      label: t('messages'),
-      value: stats?.messages,
-      sub: t('messagesSub', { pending: stats?.messages_pending ?? 0 }),
-      alert: (stats?.messages_pending ?? 0) > 0,
-    },
-  ];
-  return (
-    <dl className="ledger m-0">
-      {cells.map((c) => (
-        <div key={c.key} className="ledger-cell" data-alert={c.alert || undefined}>
-          <dt className="text-[13px] font-semibold text-ink-3">{c.label}</dt>
-          <dd className="m-0 mt-1">
-            {c.value === undefined ? (
-              <Skeleton className="h-8 w-20" />
-            ) : (
-              <span className="ledger-value">{format(c.value)}</span>
-            )}
-            <span className={c.alert ? 'mt-0.5 block text-xs font-semibold text-amber-deep' : 'mt-0.5 block text-xs text-muted'}>
-              {stats ? c.sub : ' '}
-            </span>
-          </dd>
-        </div>
-      ))}
-    </dl>
   );
 }
