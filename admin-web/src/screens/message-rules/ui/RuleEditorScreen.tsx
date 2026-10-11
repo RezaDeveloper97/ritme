@@ -1,10 +1,11 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { isApiError } from '@/shared/api';
+import { formatDate } from '@/shared/lib';
 import { Button, LoadGate, PageHeader, Panel, Select, Switch, TextArea, TextInput, confirm, toast, useNotifyError } from '@/shared/ui';
 
 import { KINDS, LEVELS, useCreateRule, useDeleteRule, useRule, useRuleEnums, useUpdateRule, type RuleEnums } from '../api/rules';
@@ -27,6 +28,7 @@ export function RuleEditorScreen({ id }: { id: number | null }) {
 
 function Editor({ id, detail, enums }: { id: number | null; detail: ReturnType<typeof useRule>['data']; enums: RuleEnums }) {
   const t = useTranslations('messageRules');
+  const locale = useLocale();
   const router = useRouter();
   const notifyError = useNotifyError();
   const [form, setForm] = useState<RuleForm>(() => (detail ? fromRule(detail.rule) : emptyForm()));
@@ -226,7 +228,7 @@ function Editor({ id, detail, enums }: { id: number | null; detail: ReturnType<t
                 {detail.versions.map((v) => (
                   <li key={v.version}>
                     {t('version', { n: v.version })}
-                    {v.created_at ? ` · ${v.created_at.slice(0, 10)}` : ''}
+                    {v.created_at ? ` · ${formatDate(v.created_at, locale)}` : ''}
                   </li>
                 ))}
               </ul>

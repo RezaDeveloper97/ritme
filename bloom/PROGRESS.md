@@ -1365,3 +1365,11 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
 - Integration pass: 00074 idempotent guards, multipart key order fixed in platform validation, schema-diff key/index
   order, services goldens re-recorded (insurance tile hidden), chat tests use a doctor-role admin. Full verify green
   (go test, test-int all packages, lint, schema-diff 182 tables, contract 1812 passed, frontend/admin-web/instructor-web).
+
+## B-N9-12 — N9 design-fidelity audit and fixes (admin)
+
+- Real-data audit of the 12 admin artboards (`docs/night-bloom/audit-n9.md`): 0 high, 9 med (8 fixed: distinct mode
+  colours in the overview bars, level badges + level/band tone cards in message rules, Jalali version dates, numbered
+  RTL engine pipeline + fixed-rules card, Persian digits in challenges, KPI/OKR footnotes moved to messages, safety
+  queue paged by 10), ~11 low open. Open: U1 engine-derived user columns need a snapshot table (QUESTIONS #130), U3
+  user detail shows the real name while lists/board show only RT-ids (QUESTIONS #134). Shots `docs/qa/bloom/B-N9-12/`.

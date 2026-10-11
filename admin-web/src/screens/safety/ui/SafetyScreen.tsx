@@ -11,6 +11,7 @@ import {
   Button,
   DataTable,
   ErrorState,
+  Pagination,
   Panel,
   Skeleton,
   toast,
@@ -20,6 +21,9 @@ import {
 
 import { SIGNALS, SOURCES, useClaim, useSafety, type ReviewItem, type SafetyData, type Source } from '../api/safety';
 import { ageParts, sourceHref } from '../lib/links';
+
+/** The review queue can hold hundreds of catalog items; show it ten rows at a time. */
+const QUEUE_PAGE_SIZE = 10;
 
 /**
  * /safety «ایمنی و محتوای بالینی» (nbl_Admin_Safety): 7-day urgent-signal counts (aggregates only, no user ids), the
@@ -102,7 +106,11 @@ function Queue({ data, loading }: { data: SafetyData | undefined; loading: boole
   const claim = useClaim();
   const notifyError = useNotifyError();
   const [source, setSource] = useState<Source | ''>('');
-  const items = (data?.queue.items ?? []).filter((i) => source === '' || i.source === source);
+  const [page, setPage] = useState(1);
+  const filtered = (data?.queue.items ?? []).filter((i) => source === '' || i.source === source);
+  const lastPage = Math.max(1, Math.ceil(filtered.length / QUEUE_PAGE_SIZE));
+  const current = Math.min(page, lastPage);
+  const items = filtered.slice((current - 1) * QUEUE_PAGE_SIZE, current * QUEUE_PAGE_SIZE);
   const num = (n: number) => formatNumber(n, locale);
 
   const act = (item: ReviewItem, action: 'claim' | 'release') =>
@@ -188,7 +196,10 @@ function Queue({ data, loading }: { data: SafetyData | undefined; loading: boole
             key={s || 'all'}
             type="button"
             aria-pressed={source === s}
-            onClick={() => setSource(s)}
+            onClick={() => {
+              setSource(s);
+              setPage(1);
+            }}
             className={cn('btn btn-sm min-h-11', source === s ? 'btn-primary' : 'btn-ghost')}
           >
             {t(`sources.${s || 'all'}`)}
@@ -207,6 +218,12 @@ function Queue({ data, loading }: { data: SafetyData | undefined; loading: boole
         emptyText={t('empty')}
         caption={t('queueTitle')}
       />
+      {filtered.length > QUEUE_PAGE_SIZE ? (
+        <Pagination
+          meta={{ current_page: current, last_page: lastPage, per_page: QUEUE_PAGE_SIZE, total: filtered.length }}
+          onPage={setPage}
+        />
+      ) : null}
     </Panel>
   );
 }

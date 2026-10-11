@@ -876,3 +876,18 @@ body {
 .access-mark[data-level="view"] { color: var(--data-deep); }
 .access-mark[data-level="none"] { color: var(--muted-soft); }
 .access-dot { display: inline-block; inline-size: 6px; block-size: 6px; margin-inline-start: 6px; border-radius: 999px; background: var(--amber); vertical-align: middle; }
+
+/* B-N9-12: tinted level / band / step cards (Admin_Messages, Admin_Engine boards). Tokens only, light + dark. */
+.tone-card { display: flex; flex-direction: column; gap: .25rem; padding: .75rem 1rem; border: 1px solid var(--tone-line, var(--line)); border-radius: 14px; background: var(--tone-bg, var(--surface-3)); }
+.tone-card[data-tone="data"] { --tone-bg: var(--data-soft); --tone-line: color-mix(in srgb, var(--data-deep) 35%, transparent); }
+.tone-card[data-tone="brand"] { --tone-bg: var(--pink-bg); --tone-line: var(--brand-line-soft); }
+.tone-card[data-tone="amber"] { --tone-bg: var(--amber-soft); --tone-line: color-mix(in srgb, var(--amber) 45%, transparent); }
+.tone-card[data-tone="red"] { --tone-bg: var(--danger-soft); --tone-line: var(--danger-line); }
+.tone-card[data-tone="neutral"] { --tone-bg: var(--surface); --tone-line: var(--line); }
+.tone-dot { display: inline-block; inline-size: 8px; block-size: 8px; margin-inline-end: 6px; border-radius: 999px; background: var(--dot, var(--brand)); }
+.tone-card[data-tone="data"] .tone-dot { --dot: var(--data-deep); }
+.tone-card[data-tone="amber"] .tone-dot { --dot: var(--amber); }
+.tone-card[data-tone="red"] .tone-dot { --dot: var(--danger); }
+.step-chip { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.5rem; block-size: 1.5rem; border-radius: 999px; background: var(--brand-fill); color: var(--on-accent); font-size: 12px; font-weight: 700; flex: none; }
+.step-arrow { color: var(--muted-3); align-self: center; }
+[dir="rtl"] .step-arrow { transform: scaleX(-1); }

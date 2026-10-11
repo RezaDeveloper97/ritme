@@ -242,6 +242,16 @@ function DauChart({ series }: { series: SeriesPoint[] | undefined }) {
   );
 }
 
+const MODE_BAR: Record<string, string> = {
+  cycle: 'bg-danger',
+  ttc: 'bg-amber',
+  pregnancy: 'bg-brand',
+  postpartum: 'bg-data-deep',
+  companion: 'bg-brand-deep',
+  menopause: 'bg-green',
+  teen: 'bg-amber',
+};
+
 function Modes({ m }: { m: OverviewMetrics | null }) {
   const t = useTranslations('overview');
   const locale = useLocale();
@@ -259,7 +269,7 @@ function Modes({ m }: { m: OverviewMetrics | null }) {
                 <span className="text-ink-3">{x.count == null ? t('suppressed') : formatNumber(x.count, locale)}</span>
               </div>
               <div className="h-2 rounded-full bg-track" aria-hidden="true">
-                <div className="h-2 w-(--w) rounded-full bg-data-deep" style={{ '--w': `${((x.count ?? 0) / max) * 100}%` } as React.CSSProperties} />
+                <div className={`h-2 w-(--w) rounded-full ${MODE_BAR[x.mode] ?? 'bg-data-deep'}`} style={{ '--w': `${((x.count ?? 0) / max) * 100}%` } as React.CSSProperties} />
               </div>
             </li>
           ))}

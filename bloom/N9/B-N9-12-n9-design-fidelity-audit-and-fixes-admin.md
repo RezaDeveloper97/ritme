@@ -3,7 +3,7 @@ id: B-N9-12
 title: N9 design-fidelity audit and fixes (admin)
 milestone: N9
 type: frontend
-status: todo
+status: done
 depends_on: [B-N9-04,B-N9-06,B-N9-07,B-N9-09,B-N9-10,B-N9-11]
 parallel_group: N9-L
 touches: [docs/night-bloom/audit-n9.md,admin-web/src]

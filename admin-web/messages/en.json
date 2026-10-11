@@ -2569,6 +2569,13 @@
       "cycle": "Cycle",
       "pregnancy": "Pregnancy",
       "postpartum": "Postpartum"
+    },
+    "fixedTitle": "Fixed rules",
+    "fixed": {
+      "safety": "A safety message is always first and immediate, regardless of caps, A/B and audience share.",
+      "ab": "The A/B assignment stays stable per user via hash(user_id + message_id).",
+      "events": "Every impression, click, dismissal and goal is logged in message_events.",
+      "versions": "Every message change makes a new version and the numbers stay tied to it."
     }
   },
   "messageRules": {
@@ -2850,7 +2857,10 @@
     "ocrCorrection": "OCR correction rate",
     "costPerAnalysis": "Cost per analysis",
     "assistantMsgs": "Assistant messages / day",
-    "referral": "Referral to a doctor"
+    "referral": "Referral to a doctor",
+    "noteEvents": "Counts start with the first product analytics event; earlier signups are not in the funnel or the cohorts. Only users who opted in to anonymous statistics are recorded.",
+    "noteSuppression": "Groups smaller than 10 users are hidden.",
+    "noteDataQuality": "Data quality and confidence are read from the same users' current engine output; buckets under 10 users are hidden."
   },
   "safety": {
     "title": "Safety & clinical content",
@@ -2962,7 +2972,8 @@
       "pct": "Percent",
       "toman": "Toman",
       "days": "Days"
-    }
+    },
+    "liveNote": "Live key results read the newest hourly aggregate snapshot; retention reads the weekly cohorts. A value is empty while it is suppressed (fewer than 10 users) or not computed yet."
   },
   "partnerLab": {
     "requests": {

@@ -55,7 +55,7 @@ export function KpiScreen() {
           {tab === 'retention' ? <Retention k={k} event={event} setEvent={setEvent} /> : null}
           {tab === 'engine' ? <Engine k={k} /> : null}
           {tab === 'ai' ? <Ai k={k} /> : null}
-          {k ? <p className="m-0 text-xs text-muted">{k.notes.events} {k.notes.suppression}</p> : null}
+          {k ? <p className="m-0 text-xs text-muted">{t('noteEvents')} {t('noteSuppression')}</p> : null}
         </>
       )}
     </div>
@@ -194,7 +194,7 @@ function Engine({ k }: { k: Kpi | undefined }) {
         </dl>
       </Panel>
       <Panel title={t('dataQualityTitle')}>
-        <p className="m-0 text-ink-3">{k.notes.data_quality}</p>
+        <p className="m-0 text-ink-3">{t('noteDataQuality')}</p>
       </Panel>
     </>
   );

@@ -55,7 +55,7 @@ export function ChallengesScreen() {
       cell: (c) =>
         c.program ? (
           <span className="whitespace-nowrap">
-            {t('program.durationDays', { count: c.program.duration_days })}
+            {t('program.durationDays', { count: formatNumber(c.program.duration_days, locale) })}
             {c.stats ? (
               <span className="text-muted">
                 {' · '}

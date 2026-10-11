@@ -10,6 +10,7 @@ import { useRuleList, type ListRule } from '../api/rules';
 import { summarize } from '../lib/rule-form';
 
 const KIND_TONE: Record<string, BadgeTone> = { safety: 'red', engine: 'data', clinical: 'amber', product: 'neutral' };
+const LEVEL_TONE: Record<string, BadgeTone> = { info: 'data', suggestion: 'brand', worth_followup: 'amber', follow_soon: 'red' };
 const LEVELS = ['info', 'suggestion', 'worth_followup', 'follow_soon'] as const;
 const KINDS = ['safety', 'engine', 'clinical', 'product'] as const;
 
@@ -36,7 +37,7 @@ export function RulesListScreen() {
     },
     { key: 'placement', header: t('placement'), cell: (r) => t(`placements.${r.placement}` as 'placements.smart_tip') },
     { key: 'kind', header: t('kind'), cell: (r) => <Badge tone={KIND_TONE[r.kind]}>{t(`kinds.${r.kind}` as 'kinds.safety')}</Badge> },
-    { key: 'level', header: t('level'), cell: (r) => t(`levels.${r.level}` as 'levels.info') },
+    { key: 'level', header: t('level'), cell: (r) => <Badge tone={LEVEL_TONE[r.level]}>{t(`levels.${r.level}` as 'levels.info')}</Badge> },
     {
       key: 'rule',
       header: t('ruleSummary'),
@@ -91,8 +92,11 @@ export function RulesListScreen() {
       <Panel title={t('levelsTitle')}>
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {LEVELS.map((l) => (
-            <li key={l} className="flex flex-col gap-1">
-              <strong>{t(`levels.${l}`)}</strong>
+            <li key={l} className="tone-card" data-tone={LEVEL_TONE[l]}>
+              <strong>
+                <span className="tone-dot" aria-hidden="true" />
+                {t(`levels.${l}`)}
+              </strong>
               <span className="text-[13px] text-ink-3">{t(`levelHints.${l}`)}</span>
             </li>
           ))}
@@ -103,7 +107,7 @@ export function RulesListScreen() {
           {KINDS.map((k) => {
             const b = enums?.bands[k];
             return (
-              <li key={k} className="flex flex-col gap-1">
+              <li key={k} className="tone-card" data-tone={KIND_TONE[k] === 'data' ? 'brand' : KIND_TONE[k] === 'neutral' ? 'neutral' : KIND_TONE[k]}>
                 <strong>
                   {t(`kinds.${k}`)}
                   {b ? ` · ${num(b.min)}${b.max !== b.min ? `–${num(b.max)}` : ''}` : ''}

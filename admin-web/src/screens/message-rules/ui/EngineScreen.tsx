@@ -47,13 +47,21 @@ export function EngineScreen() {
       <PageHeader title={t('title')} backHref="/messages/rules" backLabel={tr('backToList')} meta={t('subtitle')} />
 
       <Panel title={t('pipelineTitle')}>
-        <ol className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="m-0 flex list-none flex-wrap items-stretch gap-2 p-0">
           {PIPELINE.map((s, i) => (
-            <li key={s} className="flex flex-col gap-1">
-              <strong>
-                {num(i + 1)}. {t(`pipeline.${s}`)}
-              </strong>
-              <span className="text-[13px] text-ink-3">{t(`pipelineHints.${s}`)}</span>
+            <li key={s} className="flex items-stretch gap-2">
+              <div className="tone-card min-w-40 flex-1" data-tone="neutral">
+                <strong className="flex items-center gap-2">
+                  <span className="step-chip">{num(i + 1)}</span>
+                  {t(`pipeline.${s}`)}
+                </strong>
+                <span className="text-[13px] text-ink-3">{t(`pipelineHints.${s}`)}</span>
+              </div>
+              {i < PIPELINE.length - 1 ? (
+                <span className="step-arrow" aria-hidden="true">
+                  ←
+                </span>
+              ) : null}
             </li>
           ))}
         </ol>
@@ -180,6 +188,18 @@ export function EngineScreen() {
             ))}
           </div>
         )}
+      </Panel>
+      <Panel title={t('fixedTitle')}>
+        <ul className="m-0 grid list-none gap-2 p-0 text-[13px] text-ink-3 sm:grid-cols-2">
+          {(['safety', 'ab', 'events', 'versions'] as const).map((k) => (
+            <li key={k} className="flex items-start gap-2">
+              <span className="text-data-deep" aria-hidden="true">
+                ✓
+              </span>
+              {t(`fixed.${k}`)}
+            </li>
+          ))}
+        </ul>
       </Panel>
     </div>
   );

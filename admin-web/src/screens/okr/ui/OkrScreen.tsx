@@ -74,7 +74,7 @@ export function OkrScreen() {
           ) : (
             d.objectives.map((o) => <ObjectiveCard key={o.id} o={o} okr={d} canWrite={canWrite} onEdit={() => setEditing(o)} />)
           )}
-          {d ? <p className="m-0 text-xs text-muted">{d.notes.live}</p> : null}
+          {d ? <p className="m-0 text-xs text-muted">{t('liveNote')}</p> : null}
         </>
       )}
     </div>
