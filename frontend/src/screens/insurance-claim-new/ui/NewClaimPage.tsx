@@ -224,7 +224,7 @@ function Form({ memberOptions, ibanLast4, defaultMemberId }: { memberOptions: { 
       ) : null}
 
       <div className="ins-cta">
-        <PrimaryButton icon="send" loading={create.isPending} onClick={submit}>
+        <PrimaryButton icon="check" loading={create.isPending} onClick={submit}>
           {tn('submit')}
         </PrimaryButton>
       </div>
