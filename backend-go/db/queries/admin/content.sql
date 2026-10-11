@@ -226,17 +226,25 @@ SELECT * FROM `banners` WHERE id = ? LIMIT 1;
 
 -- name: CreateBanner :execresult
 INSERT INTO `banners` (title, image_path, position, link_url, link_type, starts_at, ends_at, is_active, sort_order,
-                       created_at, updated_at)
+                       kind, advertiser, cta_label, modes, created_at, updated_at)
 VALUES (sqlc.narg(title), sqlc.arg(image_path), sqlc.arg(position), sqlc.narg(link_url), sqlc.narg(link_type),
-        sqlc.narg(starts_at), sqlc.narg(ends_at), sqlc.arg(is_active), sqlc.arg(sort_order), sqlc.arg(now), sqlc.arg(now));
+        sqlc.narg(starts_at), sqlc.narg(ends_at), sqlc.arg(is_active), sqlc.arg(sort_order),
+        sqlc.arg(kind), sqlc.narg(advertiser), sqlc.narg(cta_label), sqlc.narg(modes), sqlc.arg(now), sqlc.arg(now));
 
 -- name: UpdateBanner :exec
 UPDATE `banners`
 SET title = sqlc.narg(title), image_path = sqlc.arg(image_path), position = sqlc.arg(position),
     link_url = sqlc.narg(link_url), link_type = sqlc.narg(link_type), starts_at = sqlc.narg(starts_at),
     ends_at = sqlc.narg(ends_at), is_active = sqlc.arg(is_active), sort_order = sqlc.arg(sort_order),
+    kind = sqlc.arg(kind), advertiser = sqlc.narg(advertiser), cta_label = sqlc.narg(cta_label), modes = sqlc.narg(modes),
     updated_at = sqlc.arg(now)
 WHERE id = sqlc.arg(id);
+
+-- name: ListBannerStats :many
+-- Daily impression / click counters of one banner (newest day first); aggregate only, no user data.
+SELECT day, impressions, clicks FROM `banner_daily_stats`
+WHERE banner_id = sqlc.arg(banner_id) AND day >= sqlc.arg(since)
+ORDER BY day DESC;
 
 -- name: ToggleBanner :exec
 UPDATE `banners` SET is_active = NOT is_active, updated_at = sqlc.arg(now) WHERE id = sqlc.arg(id);

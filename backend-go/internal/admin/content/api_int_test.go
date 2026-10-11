@@ -541,3 +541,43 @@ func TestChallengeFiltersAndCompletionsReport(t *testing.T) {
 	assert.Contains(t, r.Errors(), "challenge_id")
 	assert.Contains(t, r.Errors(), "from")
 }
+
+// B-N10-02 (D-93): sponsored slots in admin.
+func TestBannerAds(t *testing.T) {
+	e := newEnv(t)
+	c := e.As(admintest.EditorID)
+	img := admintest.File{Field: "image", Name: "a.png", Data: pngOf(t, 1080, 540)}
+	fields := map[string]string{"kind": "ad", "position": "ad_slider", "advertiser": "Acme", "cta_label[fa]": "بیشتر",
+		"modes[0]": "pregnancy", "modes[1]": "ttc", "is_active": "1"}
+
+	// An ad cannot sit in a home slot, nor a plain banner in an ad slot; modes are validated.
+	bad := map[string]string{"kind": "ad", "position": "home_top"}
+	assert.Contains(t, c.Multipart(fiber.MethodPost, "/banners", bad, img).Errors(), "position")
+	bad = map[string]string{"position": "ad_strip"}
+	assert.Contains(t, c.Multipart(fiber.MethodPost, "/banners", bad, img).Errors(), "position")
+	bad = map[string]string{"kind": "ad", "position": "ad_slider", "modes[0]": "nope"}
+	assert.Contains(t, c.Multipart(fiber.MethodPost, "/banners", bad, img).Errors(), "modes.0")
+
+	r := c.Multipart(fiber.MethodPost, "/banners", fields, img)
+	require.Equal(t, 201, r.Status, r.Body)
+	b := r.Obj("banner")
+	assert.Equal(t, "ad", b["kind"])
+	assert.Equal(t, "Acme", b["advertiser"])
+	assert.Equal(t, []any{"pregnancy", "ttc"}, b["modes"])
+	bid := id(t, b)
+
+	// Plain banners keep working and default to kind=banner with no modes.
+	r = c.Multipart(fiber.MethodPost, "/banners", map[string]string{"position": "home_top"}, img)
+	require.Equal(t, 201, r.Status, r.Body)
+	assert.Equal(t, "banner", r.Obj("banner")["kind"])
+	assert.Equal(t, []any{}, r.Obj("banner")["modes"])
+
+	// Stats: aggregate counters only.
+	_, err := e.DB.Exec(`INSERT INTO banner_daily_stats (banner_id, day, impressions, clicks) VALUES (?, CURDATE(), 10, 2)`, bid)
+	require.NoError(t, err)
+	r = c.Get("/banners/" + bid + "/stats")
+	require.Equal(t, 200, r.Status, r.Body)
+	tot := r.Obj("totals")
+	assert.EqualValues(t, 10, tot["impressions"])
+	assert.EqualValues(t, 2, tot["clicks"])
+}

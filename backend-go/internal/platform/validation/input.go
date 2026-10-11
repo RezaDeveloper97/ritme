@@ -1,8 +1,11 @@
 package validation
 
 import (
+	"cmp"
+	"maps"
 	"mime"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -101,9 +104,12 @@ func formBody(c fiber.Ctx) phpval.Map {
 		if err != nil {
 			return phpval.NewMap()
 		}
+		// form.Value is a Go map: walk its keys in a fixed (natural) order so indexed fields such as `modes[0]`,
+		// `modes[1]` rebuild as a list instead of a keyed map in random order.
+		keys := slices.SortedFunc(maps.Keys(form.Value), naturalCompare)
 		var parts []string
-		for k, vals := range form.Value {
-			for _, v := range vals {
+		for _, k := range keys {
+			for _, v := range form.Value[k] {
 				parts = append(parts, url.QueryEscape(k)+"="+url.QueryEscape(v))
 			}
 		}
@@ -243,4 +249,35 @@ func isTrimmable(r rune) bool {
 		return true
 	}
 	return false
+}
+
+// naturalCompare orders strings with their digit runs compared numerically (`a[2]` before `a[10]`).
+func naturalCompare(a, b string) int {
+	for a != "" && b != "" {
+		da, db := digitRun(a), digitRun(b)
+		if da > 0 && db > 0 {
+			na, nb := strings.TrimLeft(a[:da], "0"), strings.TrimLeft(b[:db], "0")
+			if c := cmp.Compare(len(na), len(nb)); c != 0 {
+				return c
+			}
+			if c := strings.Compare(na, nb); c != 0 {
+				return c
+			}
+			a, b = a[da:], b[db:]
+			continue
+		}
+		if a[0] != b[0] {
+			return cmp.Compare(a[0], b[0])
+		}
+		a, b = a[1:], b[1:]
+	}
+	return cmp.Compare(len(a), len(b))
+}
+
+func digitRun(s string) int {
+	n := 0
+	for n < len(s) && s[n] >= '0' && s[n] <= '9' {
+		n++
+	}
+	return n
 }

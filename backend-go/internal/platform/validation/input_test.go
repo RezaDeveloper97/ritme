@@ -2,6 +2,7 @@ package validation_test
 
 import (
 	"io"
+	"mime/multipart"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -45,4 +46,25 @@ func TestInput_AllMergesBodyAndQuery(t *testing.T) {
 	assert.JSONEq(t, `{"f":"v","list":["a","b"]}`, call("POST", "/", "application/x-www-form-urlencoded", `f=+v+&list[]=a&list[]=b`))
 	assert.JSONEq(t, `{"q":"1"}`, call("GET", "/?q=1", "", ""))
 	assert.JSONEq(t, `[]`, call("POST", "/", "", `{"a":1}`), "no content type: nothing parsed")
+}
+
+// Multipart fields come out of a Go map: indexed names must still rebuild as an ordered list, every time.
+func TestInput_MultipartIndexedFieldsAreAList(t *testing.T) {
+	app := fiber.New()
+	app.Post("/", func(c fiber.Ctx) error { return c.JSON(validation.Input(c)) })
+	for range 20 {
+		var buf strings.Builder
+		w := multipart.NewWriter(&buf)
+		for _, k := range []string{"m[10]", "m[2]", "m[1]", "m[0]", "m[3]", "m[4]", "m[5]", "m[6]", "m[7]", "m[8]", "m[9]"} {
+			require.NoError(t, w.WriteField(k, strings.Trim(k, "m[]")))
+		}
+		require.NoError(t, w.Close())
+		req := httptest.NewRequest(fiber.MethodPost, "/", strings.NewReader(buf.String()))
+		req.Header.Set("Content-Type", w.FormDataContentType())
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		b, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		assert.JSONEq(t, `{"m":["0","1","2","3","4","5","6","7","8","9","10"]}`, string(b))
+	}
 }

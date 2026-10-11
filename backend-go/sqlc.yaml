@@ -295,3 +295,21 @@ sql:
       go:
         <<: *go
         out: internal/assistant/store
+  - <<: *pkg
+    queries: db/queries/challenges
+    gen:
+      go:
+        <<: *go
+        out: internal/challenges/store
+  - <<: *pkg
+    queries: db/queries/safety
+    gen:
+      go:
+        <<: *go
+        out: internal/safety/store
+  - <<: *pkg
+    queries: db/queries/partners
+    gen:
+      go:
+        <<: *go
+        out: internal/partners/store

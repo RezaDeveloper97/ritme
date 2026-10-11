@@ -87,6 +87,16 @@ type AiUsageLog struct {
 	CreatedAt    sql.NullTime
 }
 
+type AnalyticsEvent struct {
+	ID         uint64
+	UserID     uint64
+	Name       string
+	Props      sql.NullString
+	OccurredOn civildate.Date
+	OccurredAt time.Time
+	CreatedAt  sql.NullTime
+}
+
 type Article struct {
 	ID              uint64
 	Slug            string
@@ -224,18 +234,29 @@ type BabySleep struct {
 }
 
 type Banner struct {
-	ID        uint64
-	Title     db.NullRawJSON
-	ImagePath string
-	Position  string
-	LinkUrl   sql.NullString
-	LinkType  sql.NullString
-	StartsAt  sql.NullTime
-	EndsAt    sql.NullTime
-	IsActive  bool
-	SortOrder int32
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
+	ID         uint64
+	Title      db.NullRawJSON
+	ImagePath  string
+	Position   string
+	LinkUrl    sql.NullString
+	LinkType   sql.NullString
+	StartsAt   sql.NullTime
+	EndsAt     sql.NullTime
+	IsActive   bool
+	SortOrder  int32
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+	Kind       string
+	Advertiser sql.NullString
+	CtaLabel   sql.NullString
+	Modes      sql.NullString
+}
+
+type BannerDailyStat struct {
+	BannerID    uint64
+	Day         civildate.Date
+	Impressions uint32
+	Clicks      uint32
 }
 
 type Cache struct {
@@ -277,6 +298,63 @@ type Challenge struct {
 	SortOrder    int32
 	CreatedAt    sql.NullTime
 	UpdatedAt    sql.NullTime
+}
+
+type ChallengeEnrollment struct {
+	ID          uint64
+	UserID      uint64
+	ChallengeID uint64
+	StartedOn   civildate.Date
+	Status      string
+	CompletedAt sql.NullTime
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type ChallengeProgram struct {
+	ChallengeID       uint64
+	DurationDays      uint16
+	StartRule         string
+	StartsOn          civildate.NullDate
+	ReminderTime      sql.NullString
+	Eligibility       db.NullRawJSON
+	RewardBadgeCode   sql.NullString
+	RewardBadgeTitle  db.NullRawJSON
+	RewardPlusDays    uint16
+	CompletionMinDays sql.NullInt16
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+}
+
+type ChallengeRewardGrant struct {
+	ID             uint64
+	UserID         uint64
+	ChallengeID    uint64
+	EnrollmentID   uint64
+	BadgeCode      sql.NullString
+	BadgeTitle     db.NullRawJSON
+	PlusDays       uint16
+	SubscriptionID sql.NullInt64
+	GrantedAt      sql.NullTime
+}
+
+type ChallengeTask struct {
+	ID          uint64
+	ChallengeID uint64
+	DayFrom     uint16
+	DayTo       uint16
+	Title       json.RawMessage
+	SortOrder   int32
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type ChallengeTaskCompletion struct {
+	ID           uint64
+	EnrollmentID uint64
+	TaskID       uint64
+	DayNumber    uint16
+	CompletedAt  sql.NullTime
 }
 
 type CheckupRecord struct {
@@ -365,6 +443,85 @@ type ChildVaccineDose struct {
 	Note      sql.NullString
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
+}
+
+type CityServiceBooking struct {
+	ID            uint64
+	UserID        uint64
+	ListingID     uint64
+	ContactName   string
+	ContactPhone  string
+	PreferredDate civildate.Date
+	ChildAgeRange sql.NullString
+	Note          sql.NullString
+	Status        string
+	StatusNote    sql.NullString
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
+type CityServiceCategory struct {
+	ID        uint64
+	Slug      string
+	Name      string
+	Icon      sql.NullString
+	SortOrder int32
+	IsActive  bool
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type CityServiceCity struct {
+	ID        uint64
+	Slug      string
+	Name      string
+	SortOrder int32
+	IsActive  bool
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type CityServiceListing struct {
+	ID          uint64
+	CategoryID  uint64
+	CityID      uint64
+	Name        string
+	District    sql.NullString
+	Address     sql.NullString
+	Phone       sql.NullString
+	Description sql.NullString
+	PriceText   sql.NullString
+	HoursText   sql.NullString
+	Photos      sql.NullString
+	BookingMode string
+	BookingUrl  sql.NullString
+	SortOrder   int32
+	IsActive    bool
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type ClinicalConfigApproval struct {
+	ID        uint64
+	VersionID uint64
+	AdminID   uint64
+	CreatedAt sql.NullTime
+}
+
+type ClinicalConfigVersion struct {
+	ID            uint64
+	ConfigKey     string
+	Version       uint32
+	Value         string
+	Source        string
+	Note          string
+	EffectiveFrom civildate.Date
+	Status        string
+	ProposedBy    sql.NullInt64
+	DecidedBy     sql.NullInt64
+	DecidedAt     sql.NullTime
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
 }
 
 type Companion struct {
@@ -1144,6 +1301,64 @@ type MessageContent struct {
 	UpdatedAt  sql.NullTime
 }
 
+type MessageEvent struct {
+	ID        uint64
+	RuleID    uint64
+	UserID    uint64
+	Variant   string
+	Event     string
+	CreatedAt sql.NullTime
+}
+
+type MessageRule struct {
+	ID              uint64
+	Title           string
+	Level           string
+	Kind            string
+	Priority        uint16
+	Placement       string
+	Content         string
+	VariantsEnabled bool
+	AbSplit         uint8
+	Conditions      string
+	Exceptions      string
+	CapCount        sql.NullInt16
+	CapPeriod       sql.NullString
+	CooldownDays    uint16
+	HoursFrom       sql.NullInt16
+	HoursTo         sql.NullInt16
+	StartsOn        civildate.NullDate
+	EndsOn          civildate.NullDate
+	AudiencePercent uint8
+	Goal            sql.NullString
+	Status          string
+	IsActive        bool
+	Version         uint32
+	ApprovedBy      sql.NullInt64
+	ApprovedAt      sql.NullTime
+	CreatedBy       sql.NullInt64
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
+type MessageRuleVersion struct {
+	ID        uint64
+	RuleID    uint64
+	Version   uint32
+	Snapshot  string
+	ChangedBy sql.NullInt64
+	CreatedAt sql.NullTime
+}
+
+type MetricSnapshot struct {
+	ID         uint64
+	Day        civildate.Date
+	Payload    string
+	ComputedAt time.Time
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
 type NotificationPreference struct {
 	ID                uint64
 	UserID            uint64
@@ -1211,6 +1426,33 @@ type OauthRefreshToken struct {
 	ExpiresAt     sql.NullTime
 }
 
+type OkrKeyResult struct {
+	ID          uint64
+	ObjectiveID uint64
+	Title       string
+	MetricKey   sql.NullString
+	Unit        string
+	Baseline    string
+	Target      string
+	ManualValue sql.NullString
+	Owner       sql.NullString
+	SortOrder   int32
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type OkrObjective struct {
+	ID        uint64
+	Title     string
+	Owner     sql.NullString
+	Period    string
+	StartsOn  civildate.Date
+	EndsOn    civildate.Date
+	SortOrder int32
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
 type OtpVerification struct {
 	ID         uint64
 	Mobile     string
@@ -1220,6 +1462,40 @@ type OtpVerification struct {
 	Attempts   uint8
 	CreatedAt  sql.NullTime
 	UpdatedAt  sql.NullTime
+}
+
+type PartnerLabRequest struct {
+	ID              uint64
+	Reference       string
+	UserID          uint64
+	ServiceID       uint64
+	Status          string
+	PartnerRef      sql.NullString
+	PartnerStatus   sql.NullString
+	PreferredDate   civildate.Date
+	PreferredWindow string
+	ConsentShare    bool
+	ConsentImport   bool
+	PayloadEnc      sql.NullString
+	ImportedLabID   sql.NullInt64
+	ClosedAt        sql.NullTime
+	PurgedAt        sql.NullTime
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
+type PartnerLabService struct {
+	ID          uint64
+	Code        string
+	Kind        string
+	Title       string
+	Description sql.NullString
+	PartnerName string
+	PartnerCode string
+	IsActive    bool
+	SortOrder   int32
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
 }
 
 type PasswordResetToken struct {
@@ -1794,6 +2070,38 @@ type Session struct {
 	UserAgent    sql.NullString
 	Payload      string
 	LastActivity int32
+}
+
+type ShopCategory struct {
+	ID        uint64
+	Slug      string
+	Title     string
+	Icon      sql.NullString
+	SortOrder int32
+	IsActive  bool
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type ShopClickCount struct {
+	ProductID uint64
+	Day       civildate.Date
+	Clicks    uint32
+}
+
+type ShopProduct struct {
+	ID           uint64
+	CategoryID   uint64
+	Title        string
+	ImagePath    sql.NullString
+	PriceText    sql.NullString
+	Badge        sql.NullString
+	ExternalUrl  sql.NullString
+	PartnerLabel sql.NullString
+	SortOrder    int32
+	IsActive     bool
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
 }
 
 type SideEffectLog struct {

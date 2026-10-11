@@ -1315,3 +1315,53 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   page, devices & backup frontend-only) — design, MVP, fake-default adapter, privacy (no health targeting/payloads; ads
   mode-only, never teen/loss/emergency paths, daily counters without user id), data owner, open questions (QUESTIONS
   #129). N10-02..07 scopes updated; B-N10-04 now also depends on B-N6-06.
+
+## B-N8-09 — N8 design-fidelity audit and fixes
+
+- Real-data audit (`docs/night-bloom/audit-n8.md`): 0 high, 8 med (7 fixed: «جدید · از مدرس» hero card, per-lesson
+  download, «جدید» badge on finished lessons, downloads in hub header, video speed pill + LTR scrub times,
+  instructor-web students search, admin note + Persian durations; open M3 admin can't preview lesson media → backlog),
+  11 low. Dev-only: CORP `same-site` breaks media when frontend and API hosts differ locally. Shots `docs/qa/bloom/B-N8-09/`.
+
+## B-N9-02b — Admin RBAC security fixes
+
+- Approver independence from admin_audit_logs (requester created/changed the approver in 30 d, or approver < 24 h →
+  422 `approver_not_independent`; requester lost `health` → 422 `requester_not_permitted`), WARN alert per approval;
+  `user_goal` is health data; analyst/engineering users view-only, unmapped routes super-only, editor editable
+  (default: all but health/audit/export/telemed_doctor); `no-store` on all admin responses; real clock for grants;
+  failed logins audited; pending requests expire after 24 h; audit view super-only, ip hidden for non-super; csvSafe on
+  every string column.
+
+## B-N9-03 / 04 / 05 / 06 / 07 / 08 / 09 / 10 / 11 — N9 admin modules
+
+- 03: `internal/metrics` hourly `metric_snapshots` (**00064**; DAU/MAU/stickiness/signups/Plus/trial→paid/MRR/modes/
+  engine backtest, k≥10 suppression), `GET /api/admin/v1/overview` + dashboard panels. D-85.
+- 04: users directory v2 (filters, masked mobile, churn risk, anonymised CSV export) + `/users/:id/overview` tabs;
+  health only via grant; engine-derived filters need a snapshot table (QUESTIONS #130).
+- 05: message rules (**00061**: rules, versions, events) — levels, priority bands, safety-first, A/B stable hash,
+  AND/OR + exceptions, caps/cooldown, medical approval (edit invalidates), preview, conflicts; `GET /messages/selected`,
+  `POST /messages/events`; admin editor. D-86. App not yet wired to `/messages/selected`.
+- 06: engine view + pure simulator with evaluation trace (`/messages/rules/engine|simulate`).
+- 07: challenges v2 (**00062**): program, tasks, enrolments, completions, reward grants (Plus days via
+  `plus.GrantDays`, exactly once); user `/api/v1/challenges*`; admin editor + stats. D-87. No user badge surface yet.
+- 08: analytics events (**00065**, allow-listed names/props, consent `anonymous_stats`, no health keys, 30/min), KPI
+  (funnel, weekly cohorts D0–D60, engine accuracy, AI metrics, k≥10), frontend emitter on 5 events. D-89.
+- 09: OKR (**00076**) bound to snapshot metrics, computed progress/status, overview summary. D-95.
+- 10: safety dashboard (7-day signal counts + delta), unified clinical review queue with claim/release (audit log),
+  urgent-path checks + nightly scenario test (`internal/safety`; optional `.github/workflows` file left uncommitted).
+- 11: versioned clinical config (**00063**): 20 keys, code-held v1, two distinct medical-advisor approvals, effective
+  dates; vitals/EPDS/FIGO/engine caps read the version valid at the target date (goldens unchanged). D-88.
+
+## B-N10-02..07 — Extras
+
+- 02 ad slots on banners (**00074**, `kind=ad`, mode-only targeting, never teen/loss/emergency/health paths, daily
+  counters without user id, «تبلیغ» label, cycle home only). D-93.
+- 03 shop link-out catalog (**00071**, nullable `external_url` for CB-SHOP, daily click counts, teen excluded). D-91.
+- 04 home-lab requests (**00075**, fake partner adapter, PII sealed with PRIVATE_NOTE_KEY and purged 30 d after close,
+  only form fields to partner, result import into labs with double consent). D-94.
+- 05 city services (**00072**, listings + owner-only booking requests, admin queue under support cap, «رزروها»). D-92.
+- 06 insurance info page from `info_sections` group `insurance` (admin content; tile hidden until content exists).
+- 07 devices (honest «به‌زودی», interest stored on device) and backup (last successful sync, JSON/PDF export).
+- Integration pass: 00074 idempotent guards, multipart key order fixed in platform validation, schema-diff key/index
+  order, services goldens re-recorded (insurance tile hidden), chat tests use a doctor-role admin. Full verify green
+  (go test, test-int all packages, lint, schema-diff 182 tables, contract 1812 passed, frontend/admin-web/instructor-web).

@@ -1285,7 +1285,9 @@
   },
   "banners": {
    "region": "Promotional banners",
-   "goToSlide": "Go to banner {n, number}"
+   "goToSlide": "Go to banner {n, number}",
+   "adLabel": "Ad",
+   "adRegion": "Sponsored"
   },
   "calendar": {
    "title": "Calendar",
@@ -2192,6 +2194,102 @@
     "close": "Close",
     "empty": "Nothing for this age and topic yet.",
     "showAll": "Show all"
+   }
+  },
+  "city-services": {
+   "title": "Mother & child",
+   "tag": "Classes, pools and play centres near you",
+   "back": "Back",
+   "loading": "Loading venues",
+   "loadError": "The venues didn't load. Check your connection and try again.",
+   "retry": "Try again",
+   "note": "Ritme never sends your health or cycle data to a venue. Only what you type in the request form reaches it.",
+   "list": {
+    "cityLabel": "City",
+    "categoryLabel": "Type",
+    "allCities": "All cities",
+    "allCategories": "All",
+    "bookings": "My bookings",
+    "emptyTitle": "No venues listed yet",
+    "emptyBody": "Try another city or type; new venues are added soon.",
+    "pages": "Venue pages",
+    "prev": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {last}",
+    "mode": {
+     "link": "Book on the venue's site",
+     "request": "Request a booking in Ritme",
+     "phone": "Book by phone"
+    }
+   },
+   "detail": {
+    "title": "Venue details",
+    "notFoundTitle": "This venue wasn't found",
+    "notFoundBody": "It may no longer be active.",
+    "backToList": "Back to the list",
+    "address": "Address",
+    "phone": "Phone",
+    "hours": "Opening hours",
+    "price": "Price",
+    "about": "About this venue",
+    "photo": "Photo {n} of {name}",
+    "linkCta": "Go to the venue's site to book",
+    "linkNote": "Booking happens on the venue's own site, and nothing from Ritme goes with you.",
+    "requestCta": "Request a booking",
+    "requestNote": "The Ritme team follows your request up with the venue and calls you.",
+    "phoneCta": "Call the venue",
+    "phoneNote": "This venue takes bookings by phone."
+   },
+   "form": {
+    "title": "Booking request",
+    "for": "Request for {name}",
+    "warn": "Don't write medical details, illnesses or health information here. Only your name, phone and preferred day reach the venue.",
+    "name": "Full name",
+    "phone": "Contact phone",
+    "day": "Preferred day",
+    "age": "Child's age range (optional)",
+    "ageNone": "Prefer not to say",
+    "note": "Note (optional)",
+    "notePlaceholder": "e.g. mornings preferred",
+    "submit": "Send request",
+    "submitting": "Sending…",
+    "saveError": "The request wasn't saved. Try again.",
+    "required": "This field is required.",
+    "phoneInvalid": "The phone number isn't valid.",
+    "notRequestable": "This venue doesn't take online requests."
+   },
+   "ages": {
+    "0-1": "Up to 1 year",
+    "1-3": "1 to 3 years",
+    "3-6": "3 to 6 years",
+    "6-12": "6 to 12 years",
+    "12+": "Over 12"
+   },
+   "bookings": {
+    "title": "Bookings",
+    "tag": "Your venue booking requests",
+    "loading": "Loading bookings",
+    "loadError": "Bookings didn't load. Check your connection and try again.",
+    "emptyTitle": "No requests yet",
+    "emptyBody": "Send a request for a class, pool or play centre; its status shows up here.",
+    "browse": "Browse venues",
+    "doctorBookings": "Doctor appointments",
+    "day": "Preferred day: {day}",
+    "age": "Child's age: {age}",
+    "teamNote": "Message from the team: {note}",
+    "cancel": "Cancel request",
+    "cancelling": "Cancelling…",
+    "cancelConfirm": "Cancel this request?",
+    "cancelYes": "Yes, cancel it",
+    "cancelNo": "No, keep it",
+    "cancelError": "It wasn't cancelled. Try again.",
+    "status": {
+     "requested": "Waiting for a call",
+     "confirmed": "Confirmed",
+     "rejected": "Declined",
+     "cancelled": "Cancelled",
+     "completed": "Done"
+    }
    }
   },
   "common": {
@@ -4066,6 +4164,101 @@
      "action": "Life stage"
     },
     "modeChip": "Life stage: {mode}"
+   }
+  },
+  "home-lab": {
+   "title": "Home lab test and checkup",
+   "tag": "Booking request",
+   "back": "Back",
+   "loading": "Loading",
+   "loadError": "Could not load. Check your connection and try again.",
+   "retry": "Try again",
+   "card": {
+    "label": "Suggestion",
+    "request": "Request",
+    "book": "Book",
+    "homeDrawSub": "Sample taken at home, the result right in Ritme",
+    "checkupSub": "Pap smear and periodic tests"
+   },
+   "list": {
+    "servicesTitle": "Available services",
+    "requestsTitle": "My requests",
+    "partner": "Provider: {name}",
+    "noServices": {
+     "title": "No service to book right now",
+     "body": "When a new service is switched on you will see it here."
+    },
+    "noRequests": {
+     "title": "No requests yet",
+     "body": "Pick a service and fill in the short form."
+    },
+    "maxOpen": "You can have at most {count} open requests."
+   },
+   "form": {
+    "title": "Request {service}",
+    "service": "Service",
+    "partnerLine": "Provider: {name}",
+    "warn": "Do not write illnesses or medical history; this text reaches the provider.",
+    "fullName": "Full name",
+    "phone": "Phone number",
+    "city": "City",
+    "address": "Address",
+    "day": "Preferred day",
+    "window": "Time window",
+    "note": "Note (optional)",
+    "notePlaceholder": "E.g. floor and unit, door bell",
+    "windows": {
+     "morning": "Morning (8 to 12)",
+     "noon": "Midday (12 to 16)",
+     "evening": "Evening (16 to 20)"
+    },
+    "consentShare": "I agree that my name, phone, address and preferred time are sent to {partner} to carry out this service. Nothing else from Ritme is sent.",
+    "consentImport": "If the result is ready, let me add it to my lab results (I will be asked again).",
+    "retention": "Your address and contact details are deleted {days} days after the request ends.",
+    "submit": "Send request",
+    "submitting": "Sending",
+    "required": "Fill in this field.",
+    "phoneInvalid": "The phone number is not valid.",
+    "consentRequired": "You need to agree to send the request.",
+    "saveError": "The request was not sent. Try again.",
+    "noService": "This service is no longer active."
+   },
+   "status": {
+    "requested": "Sent",
+    "accepted": "Accepted",
+    "sampled": "Sample taken",
+    "result_ready": "Result ready",
+    "rejected": "Declined",
+    "cancelled": "Cancelled"
+   },
+   "detail": {
+    "title": "Track request",
+    "reference": "Reference",
+    "steps": "Request steps",
+    "stateDone": "Done",
+    "stateCurrent": "Current step",
+    "stateTodo": "Next",
+    "when": "{day} · {window}",
+    "yourDetails": "What you sent",
+    "purged": "The contact details and address of this request were deleted.",
+    "cancel": "Cancel request",
+    "cancelling": "Cancelling",
+    "cancelError": "Could not cancel.",
+    "rejectedNote": "The provider did not accept this request. You can send a new one.",
+    "cancelledNote": "This request was cancelled.",
+    "newRequest": "New request",
+    "notFound": "This request was not found."
+   },
+   "result": {
+    "title": "Lab result",
+    "body": "The result is ready. If you want, it is added to your lab results and you review it like any other lab before it is analysed.",
+    "consent": "I agree that the result from {partner} is added to my lab results.",
+    "import": "Add to my lab results",
+    "importing": "Adding",
+    "importError": "Could not add. Try again.",
+    "noConsent": "You did not tick this when you sent the request; send a new request with this consent to add the result.",
+    "imported": "The result was added to your lab results.",
+    "open": "Open lab result"
    }
   },
   "ivf": {
@@ -6365,8 +6558,9 @@
     "bookings": "Bookings",
     "orders": "Orders",
     "devices": "Watches & gadgets",
+    "devicesSub": "No device connected · coming soon",
     "backup": "Backup & data export",
-    "backupSub": "Download all your data · JSON file",
+    "backupSub": "Last sync and a copy of your data",
     "exporting": "Preparing your export…",
     "exportError": "The export failed. Please try again.",
     "privacy": "Privacy & lock",
@@ -6816,6 +7010,67 @@
       "save": "That didn’t work. Please try again."
      }
     }
+   },
+   "devices": {
+    "title": "Watches & gadgets",
+    "back": "Back",
+    "soonTitle": "Connect devices",
+    "soonBody": "You can't connect a watch or gadget to Ritme yet. We're looking into it, and until then no device is connected.",
+    "kindsTitle": "Devices we're considering",
+    "notify": "I'm interested",
+    "interested": "Interested",
+    "localNote": "Your choice is kept on this device only and isn't sent anywhere.",
+    "manual": "Until then you can log blood pressure, glucose, weight and temperature by hand.",
+    "toVitals": "Go to vitals",
+    "kinds": {
+     "watch": "Smartwatch",
+     "watchSub": "Heart rate and sleep",
+     "band": "Health band",
+     "bandSub": "Steps and activity",
+     "scale": "Smart scale",
+     "scaleSub": "Weight",
+     "thermometer": "Body thermometer",
+     "thermometerSub": "Basal body temperature",
+     "pressure": "Blood pressure monitor",
+     "pressureSub": "Blood pressure",
+     "glucose": "Glucose meter",
+     "glucoseSub": "Blood glucose"
+    }
+   },
+   "backup": {
+    "title": "Backup & data export",
+    "back": "Back",
+    "lastSync": "Last sync with the server",
+    "loading": "Reading",
+    "syncToday": "Today · {time}",
+    "syncYesterday": "Yesterday · {time}",
+    "syncOn": "{date} · {time}",
+    "syncNone": "Nothing has been saved from this device yet",
+    "explain": "Your data is saved to your own account on Ritme's server the moment you log it, so there's no separate backup to run. If you like, take a copy.",
+    "exportTitle": "Take a copy",
+    "json": "JSON file",
+    "jsonSub": "All your account data",
+    "pdf": "PDF file",
+    "pdfSub": "Printable copy",
+    "report": "Doctor report",
+    "reportSub": "Health record summary and share link",
+    "privacy": "The file contains your health data and is created only for you, on this device. Keep it somewhere safe."
+   },
+   "insurance": {
+    "title": "Insurance",
+    "back": "Services",
+    "intro": "What your insurance covers, how to file a claim and which documents you need, in one place.",
+    "loading": "Loading insurance information",
+    "error": "Couldn't load the insurance information.",
+    "retry": "Try again",
+    "empty": "The insurance information hasn't been published yet.",
+    "updated": "Last updated: {date}",
+    "coverage": "Coverage",
+    "steps": "How to file a claim",
+    "documents": "Documents you need",
+    "faq": "Frequently asked questions",
+    "partnerLink": "Go to the insurer's website",
+    "privacy": "Ritme doesn't send your insurance information to any company."
    }
   },
   "menopause": {
@@ -9750,6 +10005,34 @@
     "title": "Is it an emergency?",
     "body": "Ritme is not a substitute for emergency care",
     "call": "Call {phone}"
+   }
+  },
+  "shop": {
+   "title": "Shop",
+   "tag": "Shop · enter",
+   "back": "Back",
+   "loading": "Loading the shop",
+   "loadError": "The shop didn't load. Check your connection and try again.",
+   "retry": "Try again",
+   "note": "The shop is separate from your health data and its suggestions are not based on your logs.",
+   "partner": "Seller: {name}",
+   "empty": {
+    "title": "No categories to show right now",
+    "body": "New categories will appear here soon."
+   },
+   "products": {
+    "emptyTitle": "No products in this category yet",
+    "emptyBody": "New products will be added soon.",
+    "pages": "Product pages",
+    "prev": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {last}"
+   },
+   "interstitial": {
+    "label": "Go to the seller's site for {title}",
+    "line": "You're going to the seller's site. Buying and payment happen there, and nothing from your health logs goes with you.",
+    "go": "Continue",
+    "cancel": "Cancel"
    }
   },
   "teen": {

@@ -57,6 +57,9 @@ import enReminders from '../../../messages/en/reminders.json';
 import enTeen from '../../../messages/en/teen.json'; // CB-TEEN-02
 import enWelcome from '../../../messages/en/welcome.json';
 import enServices from '../../../messages/en/services.json';
+import enShop from '../../../messages/en/shop.json'; // B-N10-03
+import enHomeLab from '../../../messages/en/home-lab.json'; // B-N10-04
+import enCityServices from '../../../messages/en/city-services.json'; // B-N10-05
 import enSearch from '../../../messages/en/search.json';
 import enPlus from '../../../messages/en/plus.json';
 import enCompanions from '../../../messages/en/companions.json';
@@ -118,6 +121,9 @@ import faReminders from '../../../messages/fa/reminders.json';
 import faTeen from '../../../messages/fa/teen.json'; // CB-TEEN-02
 import faWelcome from '../../../messages/fa/welcome.json';
 import faServices from '../../../messages/fa/services.json';
+import faShop from '../../../messages/fa/shop.json'; // B-N10-03
+import faHomeLab from '../../../messages/fa/home-lab.json'; // B-N10-04
+import faCityServices from '../../../messages/fa/city-services.json'; // B-N10-05
 import faSearch from '../../../messages/fa/search.json';
 import faPlus from '../../../messages/fa/plus.json';
 import faCompanions from '../../../messages/fa/companions.json';
@@ -217,6 +223,9 @@ const bundled = {
     teen: faTeen,
     welcome: faWelcome,
     services: faServices,
+    shop: faShop, // B-N10-03 /shop*
+    homeLab: faHomeLab, // B-N10-04 /services/home-lab*, home suggestion cards
+    cityServices: faCityServices, // B-N10-05 /city-services*, /profile/bookings
     search: faSearch,
     plus: faPlus,
     companions: faCompanions,
@@ -280,6 +289,9 @@ const bundled = {
     teen: enTeen,
     welcome: enWelcome,
     services: enServices,
+    shop: enShop, // B-N10-03 /shop*
+    homeLab: enHomeLab, // B-N10-04 /services/home-lab*, home suggestion cards
+    cityServices: enCityServices, // B-N10-05 /city-services*, /profile/bookings
     search: enSearch,
     plus: enPlus,
     companions: enCompanions,

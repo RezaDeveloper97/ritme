@@ -71,7 +71,9 @@ import {
   type IconName,
   type Tone,
 } from '@/shared/ui';
+import { AdSlot } from '@/widgets/ad-slot';
 import { BannerSlideshow } from '@/widgets/banner-slideshow';
+import { HomeLabCards } from '@/widgets/home-lab-cards';
 import { BottomNav } from '@/widgets/bottom-nav';
 import { ForToday } from '@/widgets/for-today';
 import { ModeChip } from '@/widgets/mode-chip';
@@ -1144,6 +1146,8 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
             {/* CB-TEEN-03: a parent's read-only teen cards (nothing for everyone else). */}
             {!teen && <LinkedTeenCards />}
             {!teen && <BannerSlideshow position="home_top" />}
+            {/* B-N10-02: sponsored slots, targeted by mode only; never teen (the slot also refuses loss/health paths). */}
+            {!teen && <AdSlot slot="ad_slider" mode={lifeMode} />}
             {/* «یادآورهای امروز» — today's doses + next appointment (M3, /care/today),
                 right under the hero like the reminders artboard (T-M3-10 audit L-6). */}
             {/* CB-NAV-03 (nbd_Nav_Today): «برای امروز» = the M3 reminders card + today's to-do count,
@@ -1176,12 +1180,15 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
               phase={todayPhase}
             />
             {!teen && <BannerSlideshow position="home_middle" />}
+            {!teen && <HomeLabCards />}
             <TodayChallengeCard />
             {!noPeriodData && !loadFailed && !teen && (
               <PmsInsightCard pms={toPrediction(pmsSlot)} basedOnCycles={overview?.cycleLength.basedOnCycles ?? null} />
             )}
             <Articles t={t} locale={loc} />
+            {!teen && <AdSlot slot="ad_square" mode={lifeMode} />}
             {!teen && <BannerSlideshow position="home_bottom" />}
+            {!teen && <AdSlot slot="ad_strip" mode={lifeMode} />}
           </div>
         )}
         <div className="page-tail" />

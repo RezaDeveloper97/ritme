@@ -10,6 +10,9 @@ import (
 )
 
 type Querier interface {
+	BumpBannerClick(ctx context.Context, arg BumpBannerClickParams) error
+	// Per-day aggregate only: banner id + Tehran calendar day. No user id, no device, no health context.
+	BumpBannerImpression(ctx context.Context, arg BumpBannerImpressionParams) error
 	// articles (App\Models\Article), read side of ArticleController.
 	//
 	// The list filters mirror ArticleController::listQuery(): the category filter applies
@@ -17,10 +20,14 @@ type Querier interface {
 	// `title->lang` / `excerpt->lang` for the request locale and fa, compiled the way
 	// Laravel's MySQL grammar does: json_unquote(json_extract(col, '$."<lang>"')) like ?.
 	CountPublishedArticles(ctx context.Context, arg CountPublishedArticlesParams) (int64, error)
+	GetActiveAdID(ctx context.Context, arg GetActiveAdIDParams) (uint64, error)
 	// phase_contents (App\Models\PhaseContent).
 	// PhaseContent::getByPhase($phase): where('phase', $phase)->first().
 	GetPhaseContent(ctx context.Context, phase string) (GetPhaseContentRow, error)
 	GetPublishedArticleBySlug(ctx context.Context, slug string) (GetPublishedArticleBySlugRow, error)
+	// Sponsored slots (kind = 'ad', B-N10-02): the same active window / ordering as ListActiveBanners. The advertiser
+	// label is deliberately not selected (admin-only). Mode targeting is applied by the caller.
+	ListActiveAds(ctx context.Context, arg ListActiveAdsParams) ([]ListActiveAdsRow, error)
 	// banners (App\Models\Banner), read side of BannerController.
 	// Banner::active(): is_active, inside the optional [starts_at, ends_at] window at `now`
 	// (bound as Tehran wall-clock 'Y-m-d H:i:s'), ordered sort_order, id DESC. The

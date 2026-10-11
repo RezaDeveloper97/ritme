@@ -65,6 +65,12 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // B-N10-02 sponsored home slots: widgets/ad-slot is consumed by screens/home only (references from `screens` are
+    // invisible to steiger, same reason as the blocks above).
+    files: ['./src/widgets/ad-slot/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // B-N7-05 doctors: entities/doctor + features/book-visit are consumed only by screens/doctor* — references coming
     // FROM `screens` are invisible to steiger (same reason as the blocks above).
     files: ['./src/entities/doctor/**', './src/features/book-visit/**'],
@@ -408,6 +414,23 @@ export default defineConfig([
     // B-N6-08: `entities/todo` is consumed by screens/todo, todo-list and todo-add — references FROM `screens` are
     // invisible to steiger.
     files: ['./src/entities/todo/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // B-N10-04: `entities/partner-lab` is consumed by screens/home-lab and widgets/home-lab-cards; `widgets/home-lab-cards`
+    // by screens/home — references FROM `screens` are invisible to steiger.
+    files: ['./src/entities/partner-lab/**', './src/widgets/home-lab-cards/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // B-N10-05: `entities/city-service` is consumed by screens/city-services (list, detail, request, bookings) —
+    // references FROM `screens` are invisible to steiger.
+    files: ['./src/entities/city-service/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // B-N10-03: `entities/shop` is consumed by screens/shop only — references FROM `screens` are invisible to steiger.
+    files: ['./src/entities/shop/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {

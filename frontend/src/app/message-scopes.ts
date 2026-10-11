@@ -52,7 +52,7 @@ const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly Mes
 
 /** Per route: the namespaces its screen (and everything it imports) uses. */
 export const ROUTE_NAMESPACES = {
-  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'conditions', 'fertility', 'home', 'log', 'logPeriod', 'loss', 'menopause', 'nav', 'plus', 'profileEdit', 'search', 'teen', 'todo', 'learn'], // B-N8-03 widgets/learn-home-card; CB-NAV-03 «برای امروز» to-do row (entities/todo barrel); B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
+  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'conditions', 'fertility', 'home', 'homeLab', 'log', 'logPeriod', 'loss', 'menopause', 'nav', 'plus', 'profileEdit', 'search', 'teen', 'todo', 'learn'], // B-N8-03 widgets/learn-home-card; CB-NAV-03 «برای امروز» to-do row (entities/todo barrel); B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav'],
   log: ['children', 'common', 'logSheet', 'nav', 'plus', 'voiceLog'], // CB-NAV-03: children = widgets/log-later via screens/log; // B-N3-03: /log renders the log sheet v2 as a page
   logCustomize: ['common', 'logCustomize', 'logSheet', 'plus'], // B-N3-04 /log/customize (the log sheet's gear; categoryLook comes via features/log-day)
@@ -62,6 +62,8 @@ export const ROUTE_NAMESPACES = {
   profile: ['account', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit', 'teen'], // B-N2-08: entities/plus (Me Plus card) carries the PlusFeatureGate copy; B-N4-04 entities/companion (Me row); CB-TEEN-04b entities/teen (teen's parent row)
   profileAccount: ['account', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit', 'teen'], // B-N1-10 /profile/account (+ plus: same Me hub slice; CB-TEEN-04b teen)
   profileAppearance: ['common', 'me'], // B-N1-10 /profile/appearance
+  profileDevices: ['common', 'me'], // B-N10-07 /profile/devices
+  profileBackup: ['account', 'common', 'me'], // B-N10-07 /profile/backup (export hooks reuse me.privacy.mine copy)
   profileLanguage: ['common', 'me'], // B-N1-10 /profile/language
   profileNotifications: ['common', 'me'], // B-N1-11 /profile/notifications
   profilePrivacy: ['account', 'common', 'companions', 'me', 'recordExport'], // B-N1-12 /profile/privacy (DeleteAccountConfirm = account; B-N4-04 companions section)
@@ -71,6 +73,7 @@ export const ROUTE_NAMESPACES = {
   companion: ['children', 'common', 'companionHome', 'companions', 'nav', 'teen'], // B-N4-05 /companion (Hamdam_Home, companion nav; companions = entities/companion barrel); CB-TEEN-03 linked teen cards
   companionLinks: ['children', 'common', 'companionHome', 'companions', 'nav', 'teen'], // B-N4-05 /companion/links (code entry + leave a link, Me «کد همدم»); CB-TEEN-03 same slice as /companion
   profileSupport: ['common', 'me'], // B-N1-12 /profile/support
+  insurance: ['common', 'me'], // B-N10-06 /insurance (copy under me.insurance)
   profileAbout: ['common', 'me'], // B-N1-12 /profile/about
   profileLegal: ['common', 'me'], // B-N1-12 /profile/legal
   profileMode: ['common', 'contraception', 'loss', 'me'], // B-N2-03 /profile/mode (copy under me.mode; CB-CONTRA-02 manage row; CB-LOSS-03b care re-entry row)
@@ -176,6 +179,9 @@ export const ROUTE_NAMESPACES = {
   learnLesson: ['common', 'learn'], // B-N8-03 /learn/[course]/[lesson] (video / audio / PDF)
   learnUnlocked: ['common', 'learn'], // B-N8-03 /learn/unlocked/[grant]
   learnDownloads: ['common', 'learn', 'nav'], // B-N8-04 /learn/downloads (Learn_Downloads; bottom nav, offline-capable)
+  homeLab: ['common', 'homeLab'], // B-N10-04 /services/home-lab, /services/home-lab/new, /services/home-lab/[id]
+  shop: ['common', 'shop'], // B-N10-03 /shop, /shop/[category] (categories, products, link-out interstitial)
+  cityServices: ['common', 'cityServices'], // B-N10-05 /city-services, /city-services/[id], /city-services/[id]/request, /profile/bookings
   doctors: ['common', 'doctors'], // B-N7-05 /services/doctors*, /services/bookings* (directory, profile, book, return, booked, chat)
   assistant: ['common', 'nav', 'assistant'], // B-N7-07 /assistant (hub; bottom nav)
   assistantDept: ['common', 'assistant'], // B-N7-07 /assistant/[dept]

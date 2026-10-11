@@ -35,6 +35,8 @@ type Querier interface {
 	// Quota features: count only while used < limit, atomically (1 = inserted, 2 = incremented, 0 = quota reached).
 	// updated_at is assigned first because MariaDB evaluates the SET list left to right with the new values.
 	IncrementUsageWithin(ctx context.Context, arg IncrementUsageWithinParams) (int64, error)
+	// A free period (challenge reward, B-N9-07): no plan, no invoice, auto-renew off.
+	InsertGrantedSubscription(ctx context.Context, arg InsertGrantedSubscriptionParams) (int64, error)
 	InsertInvoice(ctx context.Context, arg InsertInvoiceParams) (int64, error)
 	// UNIQUE(gateway, ref_id): a bank reference pays one invoice only (replay guard).
 	InsertReceipt(ctx context.Context, arg InsertReceiptParams) error

@@ -1,14 +1,22 @@
 package http
 
 import (
+	"context"
+	"time"
+
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/admin/admins"
 	adminauth "github.com/ritme/backend-go/internal/admin/auth"
 	"github.com/ritme/backend-go/internal/admin/dashboard"
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
+	"github.com/ritme/backend-go/internal/admin/overview"
 	"github.com/ritme/backend-go/internal/admin/store"
 	"github.com/ritme/backend-go/internal/admin/users"
+	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/metrics"
+	"github.com/ritme/backend-go/internal/okr"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
 )
@@ -44,8 +52,25 @@ func init() {
 
 		h(get, "/dashboard", kit.Admin(dash.Show))
 
+		// B-N9-03: overview metrics snapshot (hourly aggregation job; capability «dashboard»).
+		metricsSvc := metrics.New(d.DB, d.Logger)
+		// B-N9-09: OKRs bound to the live metrics; the overview `okr` block is their summary.
+		okrSvc := okr.New(d.DB, metricsSvc)
+		okr.NewAdmin(okrSvc, d.Logger).Routes(okr.Route(h), kit)
+		overview.New(metricsSvc, d.Logger).WithOKR(func(ctx context.Context, now time.Time) (any, error) {
+			return okrSvc.Summary(ctx, now)
+		}).Routes(overview.Route(h), kit)
+		if d.DB != nil {
+			ctx, cancel := context.WithCancel(context.Background())
+			now := func() time.Time { return time.Now().In(civildate.Tehran) }
+			auth.OnLifecycle(r, func() error { go metricsSvc.Loop(ctx, now); return nil }, cancel)
+		}
+
 		h(get, "/users", kit.Admin(usersH.List))
+		h(get, "/users/directory", kit.Admin(usersH.Directory)) // B-N9-04
+		h(get, "/users/directory/export", kit.Admin(usersH.ExportDirectory))
 		h(get, "/users/:id", kit.Admin(usersH.Show))
+		h(get, "/users/:id/overview", kit.Admin(usersH.Overview))
 		h(put, "/users/:id", kit.Admin(usersH.Update))
 		h(post, "/users/:id/block", kit.Admin(usersH.Block))
 		h(post, "/users/:id/unblock", kit.Admin(usersH.Unblock))

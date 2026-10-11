@@ -446,22 +446,27 @@ func (q *Queries) CreateArticle(ctx context.Context, arg CreateArticleParams) (s
 
 const createBanner = `-- name: CreateBanner :execresult
 INSERT INTO ` + "`" + `banners` + "`" + ` (title, image_path, position, link_url, link_type, starts_at, ends_at, is_active, sort_order,
-                       created_at, updated_at)
+                       kind, advertiser, cta_label, modes, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?,
+        ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?)
 `
 
 type CreateBannerParams struct {
-	Title     db.NullRawJSON
-	ImagePath string
-	Position  string
-	LinkUrl   sql.NullString
-	LinkType  sql.NullString
-	StartsAt  sql.NullTime
-	EndsAt    sql.NullTime
-	IsActive  bool
-	SortOrder int32
-	Now       sql.NullTime
+	Title      db.NullRawJSON
+	ImagePath  string
+	Position   string
+	LinkUrl    sql.NullString
+	LinkType   sql.NullString
+	StartsAt   sql.NullTime
+	EndsAt     sql.NullTime
+	IsActive   bool
+	SortOrder  int32
+	Kind       string
+	Advertiser sql.NullString
+	CtaLabel   sql.NullString
+	Modes      sql.NullString
+	Now        sql.NullTime
 }
 
 func (q *Queries) CreateBanner(ctx context.Context, arg CreateBannerParams) (sql.Result, error) {
@@ -475,6 +480,10 @@ func (q *Queries) CreateBanner(ctx context.Context, arg CreateBannerParams) (sql
 		arg.EndsAt,
 		arg.IsActive,
 		arg.SortOrder,
+		arg.Kind,
+		arg.Advertiser,
+		arg.CtaLabel,
+		arg.Modes,
 		arg.Now,
 		arg.Now,
 	)
@@ -872,7 +881,7 @@ func (q *Queries) GetArticle(ctx context.Context, id uint64) (Article, error) {
 }
 
 const getBanner = `-- name: GetBanner :one
-SELECT id, title, image_path, position, link_url, link_type, starts_at, ends_at, is_active, sort_order, created_at, updated_at FROM ` + "`" + `banners` + "`" + ` WHERE id = ? LIMIT 1
+SELECT id, title, image_path, position, link_url, link_type, starts_at, ends_at, is_active, sort_order, created_at, updated_at, kind, advertiser, cta_label, modes FROM ` + "`" + `banners` + "`" + ` WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) GetBanner(ctx context.Context, id uint64) (Banner, error) {
@@ -891,6 +900,10 @@ func (q *Queries) GetBanner(ctx context.Context, id uint64) (Banner, error) {
 		&i.SortOrder,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Kind,
+		&i.Advertiser,
+		&i.CtaLabel,
+		&i.Modes,
 	)
 	return i, err
 }
@@ -1209,7 +1222,7 @@ func (q *Queries) ListAdminArticles(ctx context.Context, arg ListAdminArticlesPa
 }
 
 const listAdminBanners = `-- name: ListAdminBanners :many
-SELECT id, title, image_path, position, link_url, link_type, starts_at, ends_at, is_active, sort_order, created_at, updated_at FROM ` + "`" + `banners` + "`" + ` ORDER BY position, sort_order, id DESC LIMIT ? OFFSET ?
+SELECT id, title, image_path, position, link_url, link_type, starts_at, ends_at, is_active, sort_order, created_at, updated_at, kind, advertiser, cta_label, modes FROM ` + "`" + `banners` + "`" + ` ORDER BY position, sort_order, id DESC LIMIT ? OFFSET ?
 `
 
 type ListAdminBannersParams struct {
@@ -1239,6 +1252,10 @@ func (q *Queries) ListAdminBanners(ctx context.Context, arg ListAdminBannersPara
 			&i.SortOrder,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Kind,
+			&i.Advertiser,
+			&i.CtaLabel,
+			&i.Modes,
 		); err != nil {
 			return nil, err
 		}
@@ -1557,6 +1574,47 @@ func (q *Queries) ListAllLanguages(ctx context.Context) ([]Language, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listBannerStats = `-- name: ListBannerStats :many
+SELECT day, impressions, clicks FROM ` + "`" + `banner_daily_stats` + "`" + `
+WHERE banner_id = ? AND day >= ?
+ORDER BY day DESC
+`
+
+type ListBannerStatsParams struct {
+	BannerID uint64
+	Since    civildate.Date
+}
+
+type ListBannerStatsRow struct {
+	Day         civildate.Date
+	Impressions uint32
+	Clicks      uint32
+}
+
+// Daily impression / click counters of one banner (newest day first); aggregate only, no user data.
+func (q *Queries) ListBannerStats(ctx context.Context, arg ListBannerStatsParams) ([]ListBannerStatsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listBannerStats, arg.BannerID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListBannerStatsRow{}
+	for rows.Next() {
+		var i ListBannerStatsRow
+		if err := rows.Scan(&i.Day, &i.Impressions, &i.Clicks); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -2133,22 +2191,27 @@ UPDATE ` + "`" + `banners` + "`" + `
 SET title = ?, image_path = ?, position = ?,
     link_url = ?, link_type = ?, starts_at = ?,
     ends_at = ?, is_active = ?, sort_order = ?,
+    kind = ?, advertiser = ?, cta_label = ?, modes = ?,
     updated_at = ?
 WHERE id = ?
 `
 
 type UpdateBannerParams struct {
-	Title     db.NullRawJSON
-	ImagePath string
-	Position  string
-	LinkUrl   sql.NullString
-	LinkType  sql.NullString
-	StartsAt  sql.NullTime
-	EndsAt    sql.NullTime
-	IsActive  bool
-	SortOrder int32
-	Now       sql.NullTime
-	ID        uint64
+	Title      db.NullRawJSON
+	ImagePath  string
+	Position   string
+	LinkUrl    sql.NullString
+	LinkType   sql.NullString
+	StartsAt   sql.NullTime
+	EndsAt     sql.NullTime
+	IsActive   bool
+	SortOrder  int32
+	Kind       string
+	Advertiser sql.NullString
+	CtaLabel   sql.NullString
+	Modes      sql.NullString
+	Now        sql.NullTime
+	ID         uint64
 }
 
 func (q *Queries) UpdateBanner(ctx context.Context, arg UpdateBannerParams) error {
@@ -2162,6 +2225,10 @@ func (q *Queries) UpdateBanner(ctx context.Context, arg UpdateBannerParams) erro
 		arg.EndsAt,
 		arg.IsActive,
 		arg.SortOrder,
+		arg.Kind,
+		arg.Advertiser,
+		arg.CtaLabel,
+		arg.Modes,
 		arg.Now,
 		arg.ID,
 	)

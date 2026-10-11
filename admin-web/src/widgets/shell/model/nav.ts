@@ -33,7 +33,13 @@ export const NAV: readonly NavGroup[] = [
       { key: 'dashboard', href: '/', icon: 'dashboard', cap: 'dashboard', ready: true },
       { key: 'users', href: '/users', icon: 'users', cap: 'users', ready: true },
       { key: 'messages', href: '/messages', icon: 'message', cap: 'messages', ready: true },
+      { key: 'kpi', href: '/kpi', icon: 'sparkle', cap: 'dashboard', ready: true }, // B-N9-08
+      { key: 'okr', href: '/okr', icon: 'flag', cap: 'dashboard', ready: true }, // B-N9-09
       { key: 'challenges', href: '/challenges', icon: 'flag', cap: 'challenges', ready: true },
+      // B-N9-10 «ایمنی و محتوای بالینی»: urgent-signal aggregates + the clinical review queue (clinical capability).
+      { key: 'safety', href: '/safety', icon: 'alert', cap: 'clinical', ready: true },
+      // B-N9-11 «آستانه‌ها و پیکربندی»: versioned clinical thresholds (config capability).
+      { key: 'clinicalConfig', href: '/clinical-config', icon: 'gear', cap: 'config', ready: true },
       { key: 'admins', href: '/admins', icon: 'shield', role: 'super', ready: true },
       // B-N9-02 «نقش‌ها و ممیزی»: the matrix (super), the audit log and temporary health-data access.
       { key: 'roles', href: '/roles', icon: 'shieldCheck', role: 'super', ready: true },
@@ -91,6 +97,8 @@ export const NAV: readonly NavGroup[] = [
       { key: 'telemedReviews', href: '/telemed/reviews', icon: 'heart', cap: 'telemed', ready: true },
       { key: 'telemedInbox', href: '/telemed/inbox', icon: 'message', cap: 'telemed_doctor', ready: true },
       { key: 'assistantDepartments', href: '/assistant/departments', icon: 'idea', role: 'super', ready: true },
+      { key: 'labRequests', href: '/lab-requests', icon: 'inbox', cap: 'support', ready: true }, // B-N10-04 home lab request queue
+      { key: 'labServices', href: '/lab-services', icon: 'listBullet', cap: 'support', ready: true }, // B-N10-04 orderable services
     ],
   },
   {
@@ -105,6 +113,9 @@ export const NAV: readonly NavGroup[] = [
       { key: 'recommendations', href: '/recommendations', icon: 'idea', cap: 'content', ready: true },
       { key: 'checkupTypes', href: '/checkup-types', icon: 'shieldCheck', cap: 'clinical', ready: true },
       { key: 'banners', href: '/banners', icon: 'banner', cap: 'content', ready: true },
+      { key: 'shop', href: '/shop', icon: 'banner', cap: 'content', ready: true }, // B-N10-03 link-out catalog
+      { key: 'cityServices', href: '/city-services', icon: 'banner', cap: 'content', ready: true }, // B-N10-05 city services listings
+      { key: 'cityServiceBookings', href: '/city-service-bookings', icon: 'inbox', cap: 'support', ready: true }, // B-N10-05 booking request queue
       { key: 'infoSections', href: '/info-sections', icon: 'lifeRing', cap: 'content', ready: true },
       // Editor + super (the content permission); switch to B-N9-02's content role once it lands.
       { key: 'catalog', href: '/catalog', icon: 'listBullet', cap: 'clinical', ready: true },

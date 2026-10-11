@@ -22,10 +22,13 @@ info:
     **Auth.** Passport-compatible RS256 Bearer tokens, 365-day lifetime; see `POST /api/v1/auth/refresh-session`.
 servers: [{url: /, description: Same origin}]
 tags:
+  - {name: Shop, description: "Shop catalog (B-N10-03): admin-managed categories and link-out products, per-day click counter, no health data"}
+  - {name: CityServices, description: "City services (Go only, B-N10-05, D-92): admin-managed classes / pools / playhouses per city, link-out / phone / request booking, the user's own requests. No health data goes to venues"}
   - {name: Assistant, description: "AI assistant clinic (B-N7-06): departments, shared profile, SSE chat, triage, summary, handoff to a booked doctor"}
   - {name: Auth, description: OTP sign-in and the 365-day session token}
   - {name: Profile, description: "User profile, data export and account deletion"}
   - {name: Consents, description: "Versioned consents (B-N6-05): texts per version, accept / withdraw; the AI feature gate answers 403 consent_required"}
+  - {name: Analytics, description: "First-party product analytics events (B-N9-08, D-89): batched, allow-listed, non-health, opt-in anonymous_stats"}
   - {name: Languages, description: Language list and UI string bundles (public)}
   - {name: Info, description: "Help, privacy, terms and about screens (public)"}
   - {name: Content, description: "Banners, articles and cycle phase content"}
@@ -69,6 +72,7 @@ tags:
   - {name: EmergencyCard, description: "Emergency card «کارت اضطراری» (Go only, canvas-build CB-REC-03, D-72): name, blood group, allergies (flag), conditions, permanent meds, optional pregnancy week, masked insurance placeholder, emergency contact; lock-screen flag; optional public minimal card by unguessable token (IP-throttled)"}
   - {name: Services, description: "Services hub «خدمات» (Go only, bloom B-N7-01, D-69): sections (order / toggles), health-care tiles and care programs from the catalog groups services_sections / services_care / services_programs; destinations without a screen are status soon; upcoming booking (null until telemedicine, B-N7-03); emergency card always present"}
   - {name: Todo, description: "To-do list «کارهای من» (Go only, bloom B-N6-08, D-66): tasks with a category (shopping / work / personal / health), optional due date, time and reminder; list items (shopping list); board grouped today / tomorrow / later + recently done; one cycle suggestion from the predicted period (admin-editable copy). Owner only; never logged"}
+  - {name: Challenges, description: "Multi-day challenges (Go only, bloom B-N9-07, D-87): per-day tasks, eligibility by life mode / cycle phase, start rule, completion rule and a once-only reward (badge + free Plus days). Every row scoped by the user"}
   - {name: Telemed, description: "Doctors directory «پزشکان و ماماها» (Go only, bloom B-N7-02, D-67): admin-managed doctors / midwives, visit types (video / phone / in person; price in integer rials, clients show toman), free slots generated from weekly availability minus time off and booked intervals, reviews from users with a completed visit. Specialty / city / insurer labels are catalog_items (telemed_specialties / telemed_cities / telemed_insurers)"}
   - {name: Learning, description: "Courses «دوره‌های من» for students (Go only, bloom B-N8-01, D-68): courses / standalone items opened by an instructor's grant (by phone; pending until that number signs up), chapters with scheduled unlock, per-lesson progress, the unlocked screen. Media references are filled by the B-N8-02 pipeline"}
   - {name: Media, description: "Lesson media pipeline (Go only, bloom B-N8-02, D-81): resumable tus-style uploads for approved instructors (/api/instructor/v1/media) and short-lived signed, range-capable playback URLs"}
@@ -1211,6 +1215,78 @@ paths:
                 required: [success, message]
                 properties: {success: {type: boolean}, message: {type: string}}
               example: {success: false, message: Too many attempts. Please request a new OTP.}
+  /api/v1/banners/ads:
+    get:
+      tags: [Content]
+      summary: Sponsored home slots (ads) for the current app mode
+      description: "Go-only (B-N10-02, D-93). Active, in-window `kind=ad` banners grouped by ad slot (`ad_slider` 342x170, `ad_square` 166x166, `ad_strip` 342x76). Targeting is by the app `mode` the client sends only (an ad with no modes shows in every mode); teen mode (query or stored account mode) gets every slot empty. The advertiser name is never returned and the «تبلیغ» label is rendered by the client. Not cached (`Cache-Control: no-store`)."
+      operationId: getBannerAds
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - name: mode
+          in: query
+          required: false
+          schema: {type: string, enum: [cycle, ttc, pregnancy, postpartum, menopause, teen, companion]}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Ads grouped by slot
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [positions]
+                    properties:
+                      positions:
+                        type: object
+                        properties:
+                          ad_slider: {$ref: "#/components/schemas/BannerAdList"}
+                          ad_square: {$ref: "#/components/schemas/BannerAdList"}
+                          ad_strip: {$ref: "#/components/schemas/BannerAdList"}
+        '401': {description: Unauthenticated}
+  /api/v1/banners/{id}/events:
+    post:
+      tags: [Content]
+      summary: Count an ad impression or click (per-day aggregate)
+      description: "Go-only (B-N10-02, D-93). Bumps the banner's per-Tehran-day impression/click counter. Stores no user id, device or health context (the identity is used by the rate limit only, 60/min). 404 for an unknown, inactive, out-of-window or non-ad banner."
+      operationId: postBannerEvent
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [event]
+              properties:
+                event: {type: string, enum: [impression, click]}
+      responses:
+        '200':
+          description: Counted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    properties:
+                      recorded: {type: boolean}
+        '401': {description: Unauthenticated}
+        '404': {description: Not an active ad}
+        '422': {description: Invalid event}
+        '429': {description: Rate limited}
   /api/v1/banners:
     get:
       tags: [Content]
@@ -9517,7 +9593,7 @@ paths:
           in: path
           description: Which screen to fetch.
           required: true
-          schema: {type: string, enum: [help, privacy, terms, about, support]}
+          schema: {type: string, enum: [help, privacy, terms, about, support, insurance]}
         - {$ref: "#/components/parameters/LocaleQuery"}
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
@@ -9565,7 +9641,7 @@ paths:
         Go only (B-N1-12): the Night & Bloom Support / About / Legal screens. Like `/info/{group}` (active boxes,
         display order, one locale) plus each box's stable `key` (seeded: `summary` in privacy/terms = the Legal
         «خلاصه در ۳ خط», one line per `\n`; `about/disclaimer` = the About footer; `support/email`) and the page's last edit day `updated_at` (null when
-        empty). `link_label` / `link_url` are both set or both null. `support` holds the support channels
+        empty). `link_label` / `link_url` are both set or both null. `insurance` (B-N10-06) is the admin-edited «بیمه» page: keys coverage / claim_steps / documents / faq / disclaimer, no personal data. `support` holds the support channels
         (`tel:` → phone line with the hours in `body`, `http(s):` / `mailto:` → the chat card). Public.
       operationId: getInfoPage
       security: []
@@ -9573,7 +9649,7 @@ paths:
         - name: group
           in: path
           required: true
-          schema: {type: string, enum: [help, privacy, terms, about, support]}
+          schema: {type: string, enum: [help, privacy, terms, about, support, insurance]}
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
         '200':
@@ -10011,6 +10087,139 @@ paths:
                       dates: ['2026-09-09', '2026-09-11']
                       needs_review: true
         '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/messages/selected:
+    get:
+      tags: [Messages]
+      summary: The smart message (v2 rule engine) for a placement
+      description: >-
+        Go-only (D-86, B-N9-05). Picks at most one admin-defined message rule for the placement: the highest priority
+        among the rules that are active (medical ones — levels «worth follow-up» / «follow up soon», safety and
+        clinical kinds — only while approved by the medical advisor), whose condition groups (AND across groups, each
+        AND/OR) hold for the user and none of whose exceptions hold, inside the start/end dates and the hours window
+        (Tehran), inside the audience share, past the cooldown and under the frequency cap (safety messages have
+        neither). Priority bands: safety 1000, engine 800–999, clinical 100–799, product 1–99. The A/B variant is a
+        stable hash of user and rule. A rule whose text needs a variable the user has no value for is skipped. Nothing
+        is recorded here; the client reports `impression` / `click` / `dismiss` / `goal` to `POST /messages/events`.
+        `seen`, `confidence` (levels worth_followup, follow_soon) and `contact` (follow_soon) are present only for
+        those levels. Companion accounts get 409.
+      operationId: getMessagesSelected
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: placement
+          in: query
+          required: true
+          schema: {type: string, enum: [status_banner, smart_tip, daily_advice, daily_challenge, push, modal, sms, alerts, urgent_modal]}
+      responses:
+        '200':
+          description: The selected message or null
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [placement, message]
+                    properties:
+                      placement: {type: string}
+                      message:
+                        oneOf:
+                          - type: 'null'
+                          - type: object
+                            required: [rule_id, variant, level, kind, placement, title, body, dismissible, cta]
+                            properties:
+                              rule_id: {type: integer}
+                              variant: {type: string, enum: [a, b]}
+                              level: {type: string, enum: [info, suggestion, worth_followup, follow_soon]}
+                              kind: {type: string, enum: [safety, engine, clinical, product]}
+                              placement: {type: string}
+                              title: {type: string}
+                              body: {type: string}
+                              dismissible: {type: boolean}
+                              cta:
+                                oneOf:
+                                  - type: 'null'
+                                  - type: object
+                                    required: [label, target]
+                                    properties:
+                                      label: {type: string}
+                                      target: {type: string}
+                              seen: {type: string}
+                              confidence: {type: string}
+                              contact: {type: string}
+              example:
+                success: true
+                data:
+                  placement: smart_tip
+                  message:
+                    rule_id: 12
+                    variant: a
+                    level: suggestion
+                    kind: product
+                    placement: smart_tip
+                    title: Sara, a small step today
+                    body: Log how you feel to complete your analysis.
+                    dismissible: true
+                    cta: {label: Open the log, target: 'ritme://log'}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/CompanionAccount"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/messages/events:
+    post:
+      tags: [Messages]
+      summary: Report a smart message event
+      description: >-
+        Go-only (D-86, B-N9-05). Records `impression`, `click`, `dismiss` or `goal` for a served message rule (404 for
+        a rule that does not exist or is not served). The row holds the user id, rule id, variant and event name only —
+        no health payload. Impressions feed the cooldown and the frequency caps of `GET /messages/selected`. Rate
+        limited to 120 per minute per user (429).
+      operationId: postMessagesEvents
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rule_id, event]
+              properties:
+                rule_id: {type: integer, minimum: 1}
+                variant: {type: string, enum: [a, b], default: a}
+                event: {type: string, enum: [impression, click, dismiss, goal]}
+      responses:
+        '201':
+          description: Recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [recorded]
+                    properties:
+                      recorded: {type: boolean}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404':
+          description: The rule does not exist or is not served
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/messages/menopause:
     get:
       tags: [Messages]
@@ -13537,6 +13746,396 @@ paths:
                   error_code: {type: string, const: consent_version_stale}
                   consent: {type: string}
                   version: {type: integer}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/shop/categories:
+    get:
+      tags: [Shop]
+      summary: Shop categories (active, display order)
+      description: |
+        Go only (bloom B-N10-03, D-91). Admin-managed shop categories with the number of active products. The shop is
+        separate from health data: nothing here depends on the user's logs, and a teen-mode account gets an empty list.
+      operationId: listShopCategories
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Categories
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [categories]
+                    properties:
+                      categories:
+                        type: array
+                        items: {$ref: "#/components/schemas/ShopCategory"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/shop/products:
+    get:
+      tags: [Shop]
+      summary: Shop products of a category
+      description: |
+        Go only (B-N10-03). Active products (optionally of one category, by slug), display order, paged. A product
+        without a link-out has `link_url: null` and still lists. 404 for an unknown or inactive category and for a
+        teen-mode account.
+      operationId: listShopProducts
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: category, in: query, required: false, schema: {type: string}}
+        - {name: page, in: query, required: false, schema: {type: integer, minimum: 1}}
+        - {name: per_page, in: query, required: false, schema: {type: integer, minimum: 1, maximum: 50}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Products
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [category, products, meta]
+                    properties:
+                      category:
+                        nullable: true
+                        allOf:
+                          - {$ref: "#/components/schemas/ShopCategory"}
+                      products:
+                        type: array
+                        items: {$ref: "#/components/schemas/ShopProduct"}
+                      meta: {type: object, additionalProperties: true}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ShopNotFound"}
+  /api/v1/shop/products/{id}:
+    get:
+      tags: [Shop]
+      summary: One shop product
+      description: Go only (B-N10-03). 404 when the product or its category is inactive, and for a teen-mode account.
+      operationId: getShopProduct
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The product
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [product]
+                    properties:
+                      product: {$ref: "#/components/schemas/ShopProduct"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ShopNotFound"}
+  /api/v1/shop/products/{id}/click:
+    post:
+      tags: [Shop]
+      summary: Count one link-out click
+      description: |
+        Go only (B-N10-03). Adds one to the product's per-day counter and returns the outgoing link
+        (`external_url` + static `utm_source=ritme`). Nothing user-specific is stored: no user id, no history. 404 for a
+        product without a link-out. Throttled per user (30 / minute, 429).
+      operationId: clickShopProduct
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Counted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [counted, link_url]
+                    properties:
+                      counted: {type: boolean}
+                      link_url: {type: string, format: uri}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ShopNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/city-services/options:
+    get:
+      tags: [CityServices]
+      summary: City-service filters
+      description: |
+        Go only (bloom B-N10-05, D-92). Active cities that have at least one visible listing, the active categories
+        (class / pool / playhouse by default, admin-editable), the child age ranges a request may carry and the booking
+        horizon. The user's city choice lives on the device.
+      operationId: getCityServiceOptions
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [cities, categories, age_ranges, max_advance_days]
+                    properties:
+                      cities:
+                        type: array
+                        items: {$ref: "#/components/schemas/CityServiceTaxon"}
+                      categories:
+                        type: array
+                        items: {$ref: "#/components/schemas/CityServiceTaxon"}
+                      age_ranges: {type: array, items: {type: string}}
+                      max_advance_days: {type: integer}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/city-services/listings:
+    get:
+      tags: [CityServices]
+      summary: City-service listings (city + category filter)
+      description: Go only (B-N10-05). Active listings of active cities and categories, display order, paged. `city` is a city id, `category` a category slug.
+      operationId: listCityServiceListings
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: city, in: query, required: false, schema: {type: integer, minimum: 1}}
+        - {name: category, in: query, required: false, schema: {type: string}}
+        - {name: page, in: query, required: false, schema: {type: integer, minimum: 1}}
+        - {name: per_page, in: query, required: false, schema: {type: integer, minimum: 1, maximum: 50}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [listings, meta]
+                    properties:
+                      listings:
+                        type: array
+                        items: {$ref: "#/components/schemas/CityServiceCard"}
+                      meta: {type: object, additionalProperties: true}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/city-services/listings/{id}:
+    get:
+      tags: [CityServices]
+      summary: One city-service listing
+      description: Go only (B-N10-05). 404 for an unknown or inactive listing (or one whose city / category is inactive). `booking_url` is set only in `link` mode.
+      operationId: getCityServiceListing
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [listing]
+                    properties:
+                      listing: {$ref: "#/components/schemas/CityServiceDetail"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CityServiceNotFound"}
+  /api/v1/city-services/bookings:
+    get:
+      tags: [CityServices]
+      summary: My city-service requests («رزروها»)
+      description: Go only (B-N10-05). The caller's own requests, newest first, with the user-visible status and the admin's note. Owner only.
+      operationId: listCityServiceBookings
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [bookings]
+                    properties:
+                      bookings:
+                        type: array
+                        items: {$ref: "#/components/schemas/CityServiceBooking"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    post:
+      tags: [CityServices]
+      summary: Request a booking
+      description: |
+        Go only (B-N10-05). A request for a `request`-mode listing lands in the admin queue (status `requested`). Only the
+        listed fields are read: contact name and phone (Persian digits, spaces and dashes are normalised), a preferred
+        day (today up to 365 days ahead), an optional child AGE RANGE from the fixed list and a short note. Nothing about
+        health, cycle or pregnancy is accepted, stored or sent to a venue. One open request per venue, at most 10 open
+        requests per user; 422 otherwise (also for a listing that is not in `request` mode).
+      operationId: createCityServiceBooking
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [listing_id, contact_name, contact_phone, preferred_date]
+              properties:
+                listing_id: {type: integer, minimum: 1}
+                contact_name: {type: string, maxLength: 120}
+                contact_phone: {type: string, description: "7-15 digits, optional leading +"}
+                preferred_date: {type: string, format: date}
+                child_age_range: {type: string, nullable: true, enum: ["0-1", "1-3", "3-6", "6-12", "12+"]}
+                note: {type: string, nullable: true, maxLength: 500}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [booking]
+                    properties:
+                      booking: {$ref: "#/components/schemas/CityServiceBooking"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/city-services/bookings/{id}/cancel:
+    post:
+      tags: [CityServices]
+      summary: Cancel my request
+      description: Go only (B-N10-05). Owner only (404 for anyone else's); 422 once the request is decided (rejected, cancelled, completed).
+      operationId: cancelCityServiceBooking
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [booking]
+                    properties:
+                      booking: {$ref: "#/components/schemas/CityServiceBooking"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CityServiceNotFound"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/analytics/events:
+    post:
+      tags: [Analytics]
+      summary: Product analytics events (batched, allow-listed, non-health)
+      description: |
+        Go only (bloom B-N9-08, D-89). First-party product analytics: up to 25 events per request, each
+        `{name, props?, occurred_at?}`. `name` must be on the allow-list (`app_open`, `onboarding_started`,
+        `onboarding_done`, `log_saved`, `plus_paywall_view`, `plus_purchase`, `assistant_message_sent`,
+        `lab_upload_started`, `telemed_booking_started`, `learning_lesson_started`); `props` only the enumerated keys of
+        that event (`log_saved.source` quick|full, `plus_paywall_view.surface`, `plus_purchase.plan_months` 1-12).
+        Anything else — an unknown name or key, a health-looking key, a free-text value — is a 422 and the whole batch is
+        dropped; no health payload is ever accepted. `occurred_at` (RFC 3339) must be within the last 72 hours and not in
+        the future (default: now). Recorded only for users who granted the opt-in `anonymous_stats` consent; otherwise
+        `{accepted: 0, tracking: false}` and the client stops sending. Throttled per user (30 requests / minute, 429).
+      operationId: ingestAnalyticsEvents
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [events]
+              properties:
+                events:
+                  type: array
+                  minItems: 1
+                  maxItems: 25
+                  items:
+                    type: object
+                    required: [name]
+                    properties:
+                      name: {type: string, example: log_saved}
+                      props: {type: object, additionalProperties: true, example: {source: quick}}
+                      occurred_at: {type: string, format: date-time}
+      responses:
+        '200':
+          description: Accepted (or ignored without consent)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [accepted, tracking]
+                    properties:
+                      accepted: {type: integer}
+                      tracking: {type: boolean}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '413': {description: Body larger than 16 KB}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/consents:
     get:
@@ -20292,6 +20891,290 @@ paths:
         '409': {$ref: "#/components/responses/AssistantError"}
         '422': {$ref: "#/components/responses/ValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/challenges:
+    get:
+      tags: [Challenges]
+      summary: Multi-day challenges the user may join or has joined
+      description: "Challenges v2 (B-N9-07, D-87): active challenges with a program (duration, start rule, per-day tasks, reward). A challenge the user is not eligible for (life mode / cycle phase include-exclude rules) and has not joined is left out. `enrollment` is the user's own run (null until joined)."
+      operationId: listChallenges
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: object, required: [challenges], properties: {challenges: {type: array, items: {$ref: "#/components/schemas/ChallengeRun"}}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/challenges/rewards:
+    get:
+      tags: [Challenges]
+      summary: Badges earned by finishing challenges
+      operationId: listChallengeRewards
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: object, required: [rewards], properties: {rewards: {type: array, items: {$ref: "#/components/schemas/ChallengeReward"}}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/challenges/{id}/join:
+    post:
+      tags: [Challenges]
+      summary: Join a challenge (idempotent)
+      description: "201 on the first join, 200 when already joined. 404 for a missing, inactive or legacy challenge; 403 `challenge_not_eligible` when the eligibility rules refuse the user; 409 `challenge_not_startable` when the start rule is not met yet."
+      operationId: joinChallenge
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Already joined
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: object, required: [challenge], properties: {challenge: {$ref: "#/components/schemas/ChallengeRun"}}}
+        '201':
+          description: Joined
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: object, required: [challenge], properties: {challenge: {$ref: "#/components/schemas/ChallengeRun"}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {description: "challenge_not_eligible"}
+        '404': {description: "challenge_not_found"}
+        '409': {description: "challenge_not_startable"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/challenges/{id}/tasks/{task}/complete:
+    post:
+      tags: [Challenges]
+      summary: Mark a task of the user's run done (idempotent)
+      description: "`day` (1-based day of the run, default today's day; never a future day) must be inside the task's day range. The call that satisfies the completion rule finishes the run and grants the reward exactly once (badge + free Plus days); `completed_now` is true only on that call. 409 `challenge_not_joined` / `challenge_run_ended`, 422 `challenge_bad_day`, 404 for an unknown task."
+      operationId: completeChallengeTask
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+        - {name: task, in: path, required: true, schema: {type: integer, minimum: 1}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: {type: object, properties: {day: {type: [integer, "null"], minimum: 1, maximum: 366}}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: object, required: [challenge, task_id, completed_now], properties: {challenge: {$ref: "#/components/schemas/ChallengeRun"}, task_id: {type: integer}, completed_now: {type: boolean}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {description: "challenge_not_found"}
+        '409': {description: "challenge_not_joined | challenge_run_ended"}
+        '422': {description: "challenge_bad_day | validation failed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/partners/lab-services:
+    get:
+      tags: [PartnerLab]
+      summary: Orderable home lab / screening services
+      description: |
+        B-N10-04 (Go only, D-94). The ACTIVE services of the admin catalog. The Today «پیشنهاد» cards (آزمایش در منزل /
+        چکاپ سالانه) are shown only when this list is not empty and are never computed from health data.
+      operationId: listPartnerLabServices
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/PartnerLabServices"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/partners/lab-requests:
+    get:
+      tags: [PartnerLab]
+      summary: My lab booking requests
+      description: "Owner-only, newest first, at most 50, without the personal details (GET one has them). `Cache-Control: no-store`."
+      operationId: listPartnerLabRequests
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: object, required: [requests], properties: {requests: {type: array, items: {$ref: "#/components/schemas/PartnerLabRequest"}}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    post:
+      tags: [PartnerLab]
+      summary: Book a home lab test or screening
+      description: |
+        B-N10-04. The personal fields (name, phone, city, address, note) are sealed at rest and purged 30 days after the
+        request closes; the partner receives the allow-listed form fields only, after `consent_share` (required, names
+        the partner in the client). `consent_import` lets her copy the result into her labs later. At most 3 open
+        requests (409 `lab_too_many_open`); partner unreachable 503 `lab_partner_unavailable`.
+      operationId: createPartnerLabRequest
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/PartnerLabRequestInput"}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/PartnerLabRequest"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/PartnerLabConflict"}
+        '422': {$ref: "#/components/responses/PartnerLabValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/PartnerLabUnavailable"}
+  /api/v1/partners/lab-requests/{id}:
+    get:
+      tags: [PartnerLab]
+      summary: One lab booking request
+      description: "Owner-only (another user's id is the same 404). `details` is null once the 30-day retention purge ran."
+      operationId: showPartnerLabRequest
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/PartnerLabRequest"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/PartnerLabNotFound"}
+  /api/v1/partners/lab-requests/{id}/cancel:
+    post:
+      tags: [PartnerLab]
+      summary: Cancel a lab booking request
+      description: "Only while `requested` or `accepted` (409 `lab_not_cancellable` after)."
+      operationId: cancelPartnerLabRequest
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      responses:
+        '200':
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/PartnerLabRequest"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/PartnerLabNotFound"}
+        '409': {$ref: "#/components/responses/PartnerLabConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/partners/lab-requests/{id}/import-result:
+    post:
+      tags: [PartnerLab]
+      summary: Copy the result into my labs
+      description: |
+        Needs `status = result_ready`, the import consent ticked on the request AND `consent: true` now (422
+        `lab_import_consent_required` otherwise). The sheet goes through the encrypted lab upload / verify flow (B-N6-06)
+        and becomes a normal user-owned lab. One import per request (409 `lab_already_imported`).
+      operationId: importPartnerLabResult
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [consent], properties: {consent: {type: boolean}}}
+      responses:
+        '200':
+          description: Imported
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: object, required: [lab_id], properties: {lab_id: {type: integer}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/PartnerLabNotFound"}
+        '409': {$ref: "#/components/responses/PartnerLabConflict"}
+        '422': {$ref: "#/components/responses/PartnerLabValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/PartnerLabUnavailable"}
 components:
   securitySchemes:
     bearerAuth:
@@ -21648,6 +22531,22 @@ components:
             required: [success, message]
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: چکاپ پیدا نشد}
+    ShopNotFound:
+      description: "Unknown or inactive category/product, a product without a link-out (click), or a teen-mode account"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [message]
+            properties: {message: {type: string}}
+    CityServiceNotFound:
+      description: "Unknown or inactive listing, or a booking that is not the caller's"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [message]
+            properties: {message: {type: string}}
     CareNotFound:
       description: "Not the user's medication (another user's id, another reminder type, or a malformed id)"
       content:
@@ -21666,7 +22565,150 @@ components:
             required: [success, message]
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
+    PartnerLabValidationFailed:
+      description: "Lab booking validation failed (controller 422 `{success: false, message, errors}`; the consent failure adds `error_code`)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string}
+              errors: {type: object, additionalProperties: {type: array, items: {type: string}}}
+    PartnerLabNotFound:
+      description: "Unknown request, or one that belongs to another user."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [lab_request_not_found]}
+    PartnerLabConflict:
+      description: "The request is not in a state that allows this."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [lab_too_many_open, lab_not_cancellable, lab_result_not_ready, lab_already_imported]}
+    PartnerLabUnavailable:
+      description: "The lab partner or the sealed storage is unavailable."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [lab_partner_unavailable, lab_storage_unavailable]}
   schemas:
+    BannerAdList:
+      type: array
+      items:
+        type: object
+        required: [id, title, image_url, position, cta_label, link_url, link_type]
+        properties:
+          id: {type: integer}
+          title: {type: string, nullable: true}
+          image_url: {type: string, nullable: true}
+          position: {type: string, enum: [ad_slider, ad_square, ad_strip]}
+          cta_label: {type: string, nullable: true}
+          link_url: {type: string, nullable: true}
+          link_type: {type: string, nullable: true, enum: [internal, external]}
+    CityServiceTaxon:
+      type: object
+      required: [id, slug, name]
+      properties:
+        id: {type: integer}
+        slug: {type: string}
+        name: {type: string}
+        icon: {type: string, nullable: true, description: "categories only"}
+    CityServiceCard:
+      type: object
+      required: [id, name, category, city, district, price_text, booking_mode, photo_url]
+      properties:
+        id: {type: integer}
+        name: {type: string}
+        category:
+          type: object
+          required: [slug, name, icon]
+          properties: {slug: {type: string}, name: {type: string}, icon: {type: string, nullable: true}}
+        city:
+          type: object
+          required: [id, slug, name]
+          properties: {id: {type: integer}, slug: {type: string}, name: {type: string}}
+        district: {type: string, nullable: true}
+        price_text: {type: string, nullable: true}
+        booking_mode: {type: string, enum: [link, request, phone]}
+        photo_url: {type: string, nullable: true}
+    CityServiceDetail:
+      allOf:
+        - {$ref: "#/components/schemas/CityServiceCard"}
+        - type: object
+          required: [address, phone, description, hours_text, photos, booking_url]
+          properties:
+            address: {type: string, nullable: true}
+            phone: {type: string, nullable: true}
+            description: {type: string, nullable: true}
+            hours_text: {type: string, nullable: true}
+            photos: {type: array, items: {type: string}}
+            booking_url: {type: string, nullable: true, description: "only in link mode"}
+    CityServiceBooking:
+      type: object
+      required: [id, status, status_note, preferred_date, child_age_range, note, contact_name, contact_phone, can_cancel, created_at, listing]
+      properties:
+        id: {type: integer}
+        status: {type: string, enum: [requested, confirmed, rejected, cancelled, completed]}
+        status_note: {type: string, nullable: true}
+        preferred_date: {type: string, format: date}
+        child_age_range: {type: string, nullable: true}
+        note: {type: string, nullable: true}
+        contact_name: {type: string}
+        contact_phone: {type: string}
+        can_cancel: {type: boolean}
+        created_at: {type: string, nullable: true}
+        listing:
+          type: object
+          required: [id, name, category, city, district, address, phone, photo_url]
+          properties:
+            id: {type: integer}
+            name: {type: string}
+            category: {type: object, additionalProperties: true}
+            city: {type: object, additionalProperties: true}
+            district: {type: string, nullable: true}
+            address: {type: string, nullable: true}
+            phone: {type: string, nullable: true}
+            photo_url: {type: string, nullable: true}
+    ShopCategory:
+      type: object
+      required: [id, slug, title, icon, product_count]
+      properties:
+        id: {type: integer}
+        slug: {type: string}
+        title: {type: string}
+        icon: {type: string, nullable: true}
+        product_count: {type: integer}
+    ShopProduct:
+      type: object
+      required: [id, category, title, image_url, price_text, badge, partner_label, link_url]
+      properties:
+        id: {type: integer}
+        category: {type: string, description: Category slug}
+        title: {type: string}
+        image_url: {type: string, nullable: true}
+        price_text: {type: string, nullable: true}
+        badge: {type: string, nullable: true}
+        partner_label: {type: string, nullable: true}
+        link_url: {type: string, nullable: true, description: "Outgoing link (external_url + utm_source=ritme); null = no link-out"}
     AssistantDepartment:
       type: object
       required: [code, icon, name, tagline]
@@ -26981,3 +28023,120 @@ components:
         taken: {type: boolean}
         taken_at:
           anyOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]
+    ChallengeRun:
+      type: object
+      description: "A multi-day challenge (B-N9-07) with the user's own run."
+      required: [id, title, duration_days, start_rule, reward, tasks, can_join, enrollment]
+      properties:
+        id: {type: integer}
+        title: {description: "Localized title (string)"}
+        description: {description: "Localized text or null"}
+        category: {type: [string, "null"]}
+        duration_days: {type: integer}
+        start_rule: {type: string, enum: [anytime, menstrual, fixed_date]}
+        starts_on: {anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        reminder_time: {type: [string, "null"], description: "HH:MM local reminder time"}
+        completion_min_days: {type: [integer, "null"], description: "null = every day"}
+        reward:
+          type: object
+          properties:
+            badge_code: {type: [string, "null"]}
+            badge_title: {description: "Localized badge title or null"}
+            plus_days: {type: integer}
+        tasks:
+          type: array
+          items:
+            type: object
+            required: [id, day_from, day_to, title]
+            properties: {id: {type: integer}, day_from: {type: integer}, day_to: {type: integer}, title: {description: "Localized string"}}
+        can_join: {type: boolean}
+        enrollment:
+          anyOf:
+            - type: object
+              required: [status, started_on, day, done_days, required_days, done_task_ids_today, reward_granted]
+              properties:
+                status: {type: string, enum: [active, completed, expired]}
+                started_on: {$ref: "#/components/schemas/Date"}
+                day: {type: integer}
+                done_days: {type: integer}
+                required_days: {type: integer}
+                done_task_ids_today: {type: array, items: {type: integer}}
+                completed_at: {type: [string, "null"]}
+                reward_granted: {type: boolean}
+            - {type: "null"}
+    ChallengeReward:
+      type: object
+      required: [challenge_id, challenge_title, plus_days]
+      properties:
+        challenge_id: {type: integer}
+        challenge_title: {description: "Localized string"}
+        badge_code: {type: [string, "null"]}
+        badge_title: {description: "Localized string or null"}
+        plus_days: {type: integer}
+        granted_at: {type: [string, "null"]}
+    PartnerLabServices:
+      type: object
+      required: [services, max_open, max_days_ahead, purge_days]
+      properties:
+        services:
+          type: array
+          items:
+            type: object
+            required: [id, code, kind, title, description, partner_name]
+            properties:
+              id: {type: integer}
+              code: {type: string}
+              kind: {type: string, enum: [home_draw, checkup]}
+              title: {type: string}
+              description: {type: string}
+              partner_name: {type: string}
+        max_open: {type: integer}
+        max_days_ahead: {type: integer}
+        purge_days: {type: integer}
+    PartnerLabRequestInput:
+      type: object
+      required: [service_id, full_name, phone, city, address, preferred_date, preferred_window, consent_share]
+      properties:
+        service_id: {type: integer}
+        full_name: {type: string, maxLength: 80}
+        phone: {type: string, maxLength: 24}
+        city: {type: string, maxLength: 60}
+        address: {type: string, maxLength: 300}
+        preferred_date: {type: string, format: date, description: "Today .. today + 60 days"}
+        preferred_window: {type: string, enum: [morning, noon, evening]}
+        note: {type: [string, "null"], maxLength: 300, description: "Free text; the form warns not to write medical details"}
+        consent_share: {type: boolean, description: "Must be true: consent to send the allow-listed fields to the named partner"}
+        consent_import: {type: boolean}
+    PartnerLabRequest:
+      type: object
+      required: [id, reference, status, service, preferred_date, preferred_window, consent_import, imported, can_cancel, can_import, purged, created_at, lab_id]
+      properties:
+        id: {type: integer}
+        reference: {type: string}
+        status: {type: string, enum: [requested, accepted, sampled, result_ready, rejected, cancelled]}
+        service:
+          type: object
+          required: [id, kind, title, partner_name]
+          properties:
+            id: {type: integer}
+            kind: {type: string}
+            title: {type: string}
+            partner_name: {type: string}
+        preferred_date: {type: string, format: date}
+        preferred_window: {type: string}
+        consent_import: {type: boolean}
+        imported: {type: boolean}
+        lab_id: {type: [integer, "null"]}
+        can_cancel: {type: boolean}
+        can_import: {type: boolean}
+        purged: {type: boolean}
+        created_at: {type: [string, "null"]}
+        details:
+          type: [object, "null"]
+          description: "Only on GET one / create / cancel; null after the retention purge"
+          properties:
+            full_name: {type: string}
+            phone: {type: string}
+            city: {type: string}
+            address: {type: string}
+            note: {type: string}

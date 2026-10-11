@@ -49,8 +49,9 @@
     "bookings": "Bookings",
     "orders": "Orders",
     "devices": "Watches & gadgets",
+    "devicesSub": "No device connected · coming soon",
     "backup": "Backup & data export",
-    "backupSub": "Download all your data · JSON file",
+    "backupSub": "Last sync and a copy of your data",
     "exporting": "Preparing your export…",
     "exportError": "The export failed. Please try again.",
     "privacy": "Privacy & lock",
@@ -500,5 +501,66 @@
         "save": "That didn’t work. Please try again."
       }
     }
+  },
+  "devices": {
+    "title": "Watches & gadgets",
+    "back": "Back",
+    "soonTitle": "Connect devices",
+    "soonBody": "You can't connect a watch or gadget to Ritme yet. We're looking into it, and until then no device is connected.",
+    "kindsTitle": "Devices we're considering",
+    "notify": "I'm interested",
+    "interested": "Interested",
+    "localNote": "Your choice is kept on this device only and isn't sent anywhere.",
+    "manual": "Until then you can log blood pressure, glucose, weight and temperature by hand.",
+    "toVitals": "Go to vitals",
+    "kinds": {
+      "watch": "Smartwatch",
+      "watchSub": "Heart rate and sleep",
+      "band": "Health band",
+      "bandSub": "Steps and activity",
+      "scale": "Smart scale",
+      "scaleSub": "Weight",
+      "thermometer": "Body thermometer",
+      "thermometerSub": "Basal body temperature",
+      "pressure": "Blood pressure monitor",
+      "pressureSub": "Blood pressure",
+      "glucose": "Glucose meter",
+      "glucoseSub": "Blood glucose"
+    }
+  },
+  "backup": {
+    "title": "Backup & data export",
+    "back": "Back",
+    "lastSync": "Last sync with the server",
+    "loading": "Reading",
+    "syncToday": "Today · {time}",
+    "syncYesterday": "Yesterday · {time}",
+    "syncOn": "{date} · {time}",
+    "syncNone": "Nothing has been saved from this device yet",
+    "explain": "Your data is saved to your own account on Ritme's server the moment you log it, so there's no separate backup to run. If you like, take a copy.",
+    "exportTitle": "Take a copy",
+    "json": "JSON file",
+    "jsonSub": "All your account data",
+    "pdf": "PDF file",
+    "pdfSub": "Printable copy",
+    "report": "Doctor report",
+    "reportSub": "Health record summary and share link",
+    "privacy": "The file contains your health data and is created only for you, on this device. Keep it somewhere safe."
+  },
+  "insurance": {
+    "title": "Insurance",
+    "back": "Services",
+    "intro": "What your insurance covers, how to file a claim and which documents you need, in one place.",
+    "loading": "Loading insurance information",
+    "error": "Couldn't load the insurance information.",
+    "retry": "Try again",
+    "empty": "The insurance information hasn't been published yet.",
+    "updated": "Last updated: {date}",
+    "coverage": "Coverage",
+    "steps": "How to file a claim",
+    "documents": "Documents you need",
+    "faq": "Frequently asked questions",
+    "partnerLink": "Go to the insurer's website",
+    "privacy": "Ritme doesn't send your insurance information to any company."
   }
 }

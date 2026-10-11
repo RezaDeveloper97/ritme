@@ -16,6 +16,7 @@ import (
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
 	"github.com/ritme/backend-go/internal/admin/media"
 	"github.com/ritme/backend-go/internal/admin/store"
+	chstore "github.com/ritme/backend-go/internal/challenges/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
@@ -33,6 +34,8 @@ type Deps struct {
 // Handlers serve the content endpoints.
 type Handlers struct {
 	q      *store.Queries
+	db     *sql.DB
+	cq     *chstore.Queries // challenges v2 (B-N9-07)
 	disk   *media.Disk
 	opt    media.Optimizer
 	appURL string
@@ -50,7 +53,7 @@ func New(d Deps) *Handlers {
 	if d.Disk == nil {
 		d.Disk = media.NewDisk("")
 	}
-	return &Handlers{q: store.New(d.DB), disk: d.Disk, opt: d.Optimizer, appURL: d.AppURL, logger: d.Logger}
+	return &Handlers{q: store.New(d.DB), db: d.DB, cq: chstore.New(d.DB), disk: d.Disk, opt: d.Optimizer, appURL: d.AppURL, logger: d.Logger}
 }
 
 // Route registers one endpoint (httpadmin.Handle with the prefix applied).
@@ -84,6 +87,7 @@ func (h *Handlers) Routes(route Route, kit *httpadmin.Kit) {
 	route(post, "/challenges", a(h.StoreChallenge))
 	route(get, "/challenges/:id", a(h.ShowChallenge))
 	route(put, "/challenges/:id", a(h.UpdateChallenge))
+	route(get, "/challenges/:id/stats", a(h.ChallengeStats))
 	route(del, "/challenges/:id", a(h.DestroyChallenge))
 	route(post, "/challenges/:id/toggle", a(h.ToggleChallenge))
 
@@ -103,6 +107,7 @@ func (h *Handlers) Routes(route Route, kit *httpadmin.Kit) {
 	route(post, "/banners/:id", a(h.UpdateBanner))
 	route(del, "/banners/:id", a(h.DestroyBanner))
 	route(post, "/banners/:id/toggle", a(h.ToggleBanner))
+	route(get, "/banners/:id/stats", a(h.BannerStats))
 
 	route(get, "/task-templates", a(h.ListTaskTemplates))
 	route(get, "/task-templates/options", a(h.TaskTemplateOptions))

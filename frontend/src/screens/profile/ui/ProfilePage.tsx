@@ -9,7 +9,6 @@ import { primaryParentLink, useTeenToday } from '@/entities/teen';
 import { useUserProfile } from '@/entities/user';
 import { useAppLock } from '@/features/app-lock';
 import { useLogout } from '@/features/auth';
-import { useExportData } from '@/features/manage-account';
 import { useSwitchLocale } from '@/features/switch-locale';
 import { APP_VERSION } from '@/shared/config';
 import { localizeHref, useDirection, useRouter, type Locale } from '@/shared/i18n';
@@ -46,7 +45,6 @@ const FAMILY_SOON: readonly SoonRow[] = [
   { key: 'children', icon: 'user', tone: 'bloom' }, // B-N5
 ];
 const TASK_ROWS: readonly SoonRow[] = [
-  { key: 'bookings', icon: 'calendar', tone: 'data' }, // B-N7
   { key: 'orders', icon: 'box', tone: 'brand' }, // B-N10
 ];
 
@@ -66,7 +64,6 @@ export function ProfilePage() {
   const isPlus = plusStatus ? plusStatus.isPlus : Boolean(userMode?.isPremium);
   const rtl = useDirection() === 'rtl';
   const logout = useLogout();
-  const { exportData, isPending: exporting, isError: exportFailed } = useExportData();
   const { locale, languages } = useSwitchLocale();
   const preference = useThemeStore((s) => s.preference);
   const appLock = useAppLock();
@@ -230,6 +227,8 @@ export function ProfilePage() {
               <ListRow icon="gradCap" iconTone="bloom" title={t('rows.courses')} onClick={() => router.push('/learn')} />
               {/* B-N8-04: «دانلودها» → /learn/downloads (offline lessons). */}
               <ListRow icon="download" iconTone="data" title={t('rows.downloads')} onClick={() => router.push('/learn/downloads')} />
+              {/* B-N10-05: «رزروها» → /profile/bookings (my city-service requests; CB-DIR-09 supersedes later). */}
+              <ListRow icon="calendar" iconTone="data" title={t('rows.bookings')} onClick={() => router.push('/profile/bookings')} />
               {TASK_ROWS.map((row) => (
                 <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
               ))}
@@ -270,20 +269,22 @@ export function ProfilePage() {
                 onClick={() => router.push('/record')}
               />
             ) : null}
-            <ListRow icon="watch" iconTone="data" title={t('rows.devices')} trailing={soon} />
-            {/* §11 — export is a first-class right: GET /profile/export as a JSON file. */}
+            {/* B-N10-07: honest «soon» devices screen (the web cannot pair watches). */}
+            <ListRow
+              icon="watch"
+              iconTone="data"
+              title={t('rows.devices')}
+              description={t('rows.devicesSub')}
+              onClick={() => router.push('/profile/devices')}
+            />
+            {/* B-N10-07: last server sync + manual export (JSON/PDF/doctor report). */}
             <ListRow
               icon="download"
               title={t('rows.backup')}
-              description={exporting ? t('rows.exporting') : t('rows.backupSub')}
-              onClick={() => (exporting ? undefined : exportData())}
+              description={t('rows.backupSub')}
+              onClick={() => router.push('/profile/backup')}
             />
           </ListGroup>
-          {exportFailed ? (
-            <p className="me-inline-error" role="alert">
-              {t('rows.exportError')}
-            </p>
-          ) : null}
         </section>
 
         <section className="me-sec" aria-labelledby="me-g-settings">

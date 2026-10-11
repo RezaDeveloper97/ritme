@@ -115,7 +115,7 @@ func TestProvisionNewLanguage(t *testing.T) {
 	assert.Equal(t, "fa", r.Data()["source"])
 	prov := r.Obj("provisioned")
 	assert.Positive(t, prov["messages"])
-	assert.EqualValues(t, 3, prov["lang_files"])
+	assert.EqualValues(t, 4, prov["lang_files"]) // resources/lang/fa: catalog, cycle, profile, validation
 	assert.EqualValues(t, 2, prov["smart_messages"])
 
 	// Caches flushed: Go's key is gone and so is Laravel's (DB 1).

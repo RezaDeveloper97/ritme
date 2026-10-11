@@ -10,6 +10,10 @@ import (
 )
 
 type Querier interface {
+	// Smart messages v2 (bloom B-N9-05, migration 00061): rule-based messages, versions, events.
+	CountMessageRules(ctx context.Context, arg CountMessageRulesParams) (int64, error)
+	CountUserMessageEvents(ctx context.Context, arg CountUserMessageEventsParams) (int64, error)
+	DeleteMessageRule(ctx context.Context, id uint64) error
 	// HealthDataEngine::dailyLogFor(): $user->dailyHealthLogs()->whereDate('log_date', $date)->first().
 	// Only the columns MessageManager::extractSymptoms can read exist here (see messages/manager).
 	GetMessageDailyLog(ctx context.Context, arg GetMessageDailyLogParams) (GetMessageDailyLogRow, error)
@@ -18,6 +22,14 @@ type Querier interface {
 	// $user->profile (hasOne: the first row in index order) — the columns the message system and
 	// the legacy HealthDataEngine read.
 	GetMessageProfile(ctx context.Context, userID uint64) (GetMessageProfileRow, error)
+	GetMessageRule(ctx context.Context, id uint64) (MessageRule, error)
+	GetMessageUserName(ctx context.Context, id uint64) (sql.NullString, error)
+	InsertMessageEvent(ctx context.Context, arg InsertMessageEventParams) error
+	InsertMessageRule(ctx context.Context, arg InsertMessageRuleParams) (sql.Result, error)
+	InsertMessageRuleVersion(ctx context.Context, arg InsertMessageRuleVersionParams) error
+	LastUserMessageEvent(ctx context.Context, arg LastUserMessageEventParams) (sql.NullTime, error)
+	// Active rules a user may be served: medical rules only when approved. Placement '' = every placement.
+	ListActiveMessageRules(ctx context.Context, arg ListActiveMessageRulesParams) ([]MessageRule, error)
 	// Queries of the smart-message system (backend/app/Services/MessageSystem, MessageController).
 	// MessageContentRepository::rows(): every live (active + approved) row of one locale.
 	ListLiveMessageContents(ctx context.Context, locale string) ([]ListLiveMessageContentsRow, error)
@@ -25,6 +37,13 @@ type Querier interface {
 	ListMessageCycleHistories(ctx context.Context, userID uint64) ([]ListMessageCycleHistoriesRow, error)
 	// MessageManager::buildContext(): the last 90 days of logs, newest first (PatternLayer input).
 	ListMessageRecentLogs(ctx context.Context, arg ListMessageRecentLogsParams) ([]ListMessageRecentLogsRow, error)
+	ListMessageRuleVersions(ctx context.Context, ruleID uint64) ([]MessageRuleVersion, error)
+	ListMessageRules(ctx context.Context, arg ListMessageRulesParams) ([]MessageRule, error)
+	MessageRuleEventStats(ctx context.Context, createdAt sql.NullTime) ([]MessageRuleEventStatsRow, error)
+	MessageRuleVariantStats(ctx context.Context, arg MessageRuleVariantStatsParams) ([]MessageRuleVariantStatsRow, error)
+	SetMessageRuleActive(ctx context.Context, arg SetMessageRuleActiveParams) error
+	SetMessageRuleStatus(ctx context.Context, arg SetMessageRuleStatusParams) error
+	UpdateMessageRule(ctx context.Context, arg UpdateMessageRuleParams) error
 }
 
 var _ Querier = (*Queries)(nil)

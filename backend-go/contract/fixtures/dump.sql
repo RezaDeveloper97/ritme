@@ -155,6 +155,29 @@ CREATE TABLE `ai_usage_logs` (
   CONSTRAINT `ai_usage_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `analytics_events`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `analytics_events` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `name` varchar(48) NOT NULL,
+  `props` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`props`)),
+  `occurred_on` date NOT NULL,
+  `occurred_at` datetime NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `analytics_events_occurred_on_user_id_index` (`occurred_on`,`user_id`),
+  KEY `analytics_events_name_occurred_on_index` (`name`,`occurred_on`),
+  KEY `analytics_events_user_id_name_occurred_on_index` (`user_id`,`name`,`occurred_on`),
+  CONSTRAINT `analytics_events_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `analytics_events` WRITE;
+/*!40000 ALTER TABLE `analytics_events` DISABLE KEYS */;
+/*!40000 ALTER TABLE `analytics_events` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `articles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -474,6 +497,23 @@ LOCK TABLES `baby_sleeps` WRITE;
 /*!40000 ALTER TABLE `baby_sleeps` DISABLE KEYS */;
 /*!40000 ALTER TABLE `baby_sleeps` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `banner_daily_stats`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `banner_daily_stats` (
+  `banner_id` bigint(20) unsigned NOT NULL,
+  `day` date NOT NULL,
+  `impressions` int(10) unsigned NOT NULL DEFAULT 0,
+  `clicks` int(10) unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY (`banner_id`,`day`),
+  CONSTRAINT `banner_daily_stats_banner_id_foreign` FOREIGN KEY (`banner_id`) REFERENCES `banners` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `banner_daily_stats` WRITE;
+/*!40000 ALTER TABLE `banner_daily_stats` DISABLE KEYS */;
+/*!40000 ALTER TABLE `banner_daily_stats` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `banners`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -490,17 +530,22 @@ CREATE TABLE `banners` (
   `sort_order` int(11) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `kind` varchar(16) NOT NULL DEFAULT 'banner',
+  `advertiser` varchar(120) DEFAULT NULL,
+  `cta_label` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`cta_label`)),
+  `modes` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`modes`)),
   PRIMARY KEY (`id`),
-  KEY `banners_position_is_active_starts_at_ends_at_index` (`position`,`is_active`,`starts_at`,`ends_at`)
+  KEY `banners_position_is_active_starts_at_ends_at_index` (`position`,`is_active`,`starts_at`,`ends_at`),
+  KEY `banners_kind_position_is_active_index` (`kind`,`position`,`is_active`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `banners` WRITE;
 /*!40000 ALTER TABLE `banners` DISABLE KEYS */;
 INSERT INTO `banners` VALUES
-(1,'{\"fa\":\"\\u0628\\u0646\\u0631 \\u0628\\u0627\\u0644\\u0627\\u06cc \\u062e\\u0627\\u0646\\u0647\",\"en\":\"Home top banner\"}','contract/banner-top.webp','home_top','/articles','internal','2026-08-24 00:00:00','2026-10-23 23:59:59',1,1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(2,'{\"fa\":\"\\u0628\\u0646\\u0631 \\u0645\\u06cc\\u0627\\u0646\\u06cc\",\"en\":\"Middle banner\"}','contract/banner-middle.webp','home_middle','https://ritme.app','external',NULL,NULL,1,2,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(3,'{\"fa\":\"\\u0628\\u0646\\u0631 \\u0645\\u0646\\u0642\\u0636\\u06cc\",\"en\":\"Expired banner\"}','contract/banner-expired.webp','home_top',NULL,NULL,'2026-07-25 00:00:00','2026-09-22 23:59:59',1,3,'2026-09-23 09:00:00','2026-09-23 09:00:00');
+(1,'{\"fa\":\"\\u0628\\u0646\\u0631 \\u0628\\u0627\\u0644\\u0627\\u06cc \\u062e\\u0627\\u0646\\u0647\",\"en\":\"Home top banner\"}','contract/banner-top.webp','home_top','/articles','internal','2026-08-24 00:00:00','2026-10-23 23:59:59',1,1,'2026-09-23 09:00:00','2026-09-23 09:00:00','banner',NULL,NULL,NULL),
+(2,'{\"fa\":\"\\u0628\\u0646\\u0631 \\u0645\\u06cc\\u0627\\u0646\\u06cc\",\"en\":\"Middle banner\"}','contract/banner-middle.webp','home_middle','https://ritme.app','external',NULL,NULL,1,2,'2026-09-23 09:00:00','2026-09-23 09:00:00','banner',NULL,NULL,NULL),
+(3,'{\"fa\":\"\\u0628\\u0646\\u0631 \\u0645\\u0646\\u0642\\u0636\\u06cc\",\"en\":\"Expired banner\"}','contract/banner-expired.webp','home_top',NULL,NULL,'2026-07-25 00:00:00','2026-09-22 23:59:59',1,3,'2026-09-23 09:00:00','2026-09-23 09:00:00','banner',NULL,NULL,NULL);
 /*!40000 ALTER TABLE `banners` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `cache`;
@@ -907,6 +952,125 @@ INSERT INTO `catalog_items` VALUES
 (724,'telemed_visit_reasons','other',5,1,NULL,'{\"fa\":\"سایر\",\"en\":\"Other\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
 /*!40000 ALTER TABLE `catalog_items` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `challenge_enrollments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `challenge_enrollments` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `challenge_id` bigint(20) unsigned NOT NULL,
+  `started_on` date NOT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'active',
+  `completed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `challenge_enrollments_user_id_challenge_id_unique` (`user_id`,`challenge_id`),
+  KEY `challenge_enrollments_challenge_id_status_index` (`challenge_id`,`status`),
+  CONSTRAINT `challenge_enrollments_challenge_id_foreign` FOREIGN KEY (`challenge_id`) REFERENCES `challenges` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `challenge_enrollments_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `challenge_enrollments` WRITE;
+/*!40000 ALTER TABLE `challenge_enrollments` DISABLE KEYS */;
+/*!40000 ALTER TABLE `challenge_enrollments` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `challenge_programs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `challenge_programs` (
+  `challenge_id` bigint(20) unsigned NOT NULL,
+  `duration_days` smallint(5) unsigned NOT NULL,
+  `start_rule` varchar(16) NOT NULL DEFAULT 'anytime',
+  `starts_on` date DEFAULT NULL,
+  `reminder_time` varchar(5) DEFAULT NULL,
+  `eligibility` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`eligibility`)),
+  `reward_badge_code` varchar(64) DEFAULT NULL,
+  `reward_badge_title` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`reward_badge_title`)),
+  `reward_plus_days` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `completion_min_days` smallint(5) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`challenge_id`),
+  CONSTRAINT `challenge_programs_challenge_id_foreign` FOREIGN KEY (`challenge_id`) REFERENCES `challenges` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `challenge_programs` WRITE;
+/*!40000 ALTER TABLE `challenge_programs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `challenge_programs` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `challenge_reward_grants`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `challenge_reward_grants` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `challenge_id` bigint(20) unsigned NOT NULL,
+  `enrollment_id` bigint(20) unsigned NOT NULL,
+  `badge_code` varchar(64) DEFAULT NULL,
+  `badge_title` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`badge_title`)),
+  `plus_days` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `subscription_id` bigint(20) unsigned DEFAULT NULL,
+  `granted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `challenge_reward_grants_user_id_challenge_id_unique` (`user_id`,`challenge_id`),
+  UNIQUE KEY `challenge_reward_grants_enrollment_id_unique` (`enrollment_id`),
+  KEY `challenge_reward_grants_challenge_id_foreign` (`challenge_id`),
+  CONSTRAINT `challenge_reward_grants_challenge_id_foreign` FOREIGN KEY (`challenge_id`) REFERENCES `challenges` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `challenge_reward_grants_enrollment_id_foreign` FOREIGN KEY (`enrollment_id`) REFERENCES `challenge_enrollments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `challenge_reward_grants_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `challenge_reward_grants` WRITE;
+/*!40000 ALTER TABLE `challenge_reward_grants` DISABLE KEYS */;
+/*!40000 ALTER TABLE `challenge_reward_grants` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `challenge_task_completions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `challenge_task_completions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `enrollment_id` bigint(20) unsigned NOT NULL,
+  `task_id` bigint(20) unsigned NOT NULL,
+  `day_number` smallint(5) unsigned NOT NULL,
+  `completed_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `challenge_task_completions_unique` (`enrollment_id`,`task_id`,`day_number`),
+  KEY `challenge_task_completions_task_id_foreign` (`task_id`),
+  CONSTRAINT `challenge_task_completions_enrollment_id_foreign` FOREIGN KEY (`enrollment_id`) REFERENCES `challenge_enrollments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `challenge_task_completions_task_id_foreign` FOREIGN KEY (`task_id`) REFERENCES `challenge_tasks` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `challenge_task_completions` WRITE;
+/*!40000 ALTER TABLE `challenge_task_completions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `challenge_task_completions` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `challenge_tasks`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `challenge_tasks` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `challenge_id` bigint(20) unsigned NOT NULL,
+  `day_from` smallint(5) unsigned NOT NULL DEFAULT 1,
+  `day_to` smallint(5) unsigned NOT NULL DEFAULT 1,
+  `title` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`title`)),
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `challenge_tasks_challenge_id_sort_order_index` (`challenge_id`,`sort_order`),
+  CONSTRAINT `challenge_tasks_challenge_id_foreign` FOREIGN KEY (`challenge_id`) REFERENCES `challenges` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `challenge_tasks` WRITE;
+/*!40000 ALTER TABLE `challenge_tasks` DISABLE KEYS */;
+/*!40000 ALTER TABLE `challenge_tasks` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `challenges`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -1131,6 +1295,159 @@ CREATE TABLE `children` (
 LOCK TABLES `children` WRITE;
 /*!40000 ALTER TABLE `children` DISABLE KEYS */;
 /*!40000 ALTER TABLE `children` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `city_service_bookings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `city_service_bookings` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `listing_id` bigint(20) unsigned NOT NULL,
+  `contact_name` varchar(120) NOT NULL,
+  `contact_phone` varchar(32) NOT NULL,
+  `preferred_date` date NOT NULL,
+  `child_age_range` varchar(16) DEFAULT NULL,
+  `note` varchar(500) DEFAULT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'requested',
+  `status_note` varchar(300) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `city_service_bookings_listing_id_foreign` (`listing_id`),
+  KEY `city_service_bookings_user_id_created_at_index` (`user_id`,`created_at`),
+  KEY `city_service_bookings_status_created_at_index` (`status`,`created_at`),
+  CONSTRAINT `city_service_bookings_listing_id_foreign` FOREIGN KEY (`listing_id`) REFERENCES `city_service_listings` (`id`),
+  CONSTRAINT `city_service_bookings_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `city_service_bookings` WRITE;
+/*!40000 ALTER TABLE `city_service_bookings` DISABLE KEYS */;
+/*!40000 ALTER TABLE `city_service_bookings` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `city_service_categories`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `city_service_categories` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `slug` varchar(64) NOT NULL,
+  `name` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`name`)),
+  `icon` varchar(32) DEFAULT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `city_service_categories_slug_unique` (`slug`),
+  KEY `city_service_categories_is_active_sort_order_index` (`is_active`,`sort_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `city_service_categories` WRITE;
+/*!40000 ALTER TABLE `city_service_categories` DISABLE KEYS */;
+INSERT INTO `city_service_categories` VALUES
+(1,'class','{\"fa\":\"کلاس\",\"en\":\"Classes\"}','book',1,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(2,'pool','{\"fa\":\"استخر\",\"en\":\"Pools\"}','drop',2,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(3,'playhouse','{\"fa\":\"خانه بازی\",\"en\":\"Playhouses\"}','home',3,1,'2026-10-11 09:00:00','2026-10-11 09:00:00');
+/*!40000 ALTER TABLE `city_service_categories` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `city_service_cities`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `city_service_cities` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `slug` varchar(64) NOT NULL,
+  `name` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`name`)),
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `city_service_cities_slug_unique` (`slug`),
+  KEY `city_service_cities_is_active_sort_order_index` (`is_active`,`sort_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `city_service_cities` WRITE;
+/*!40000 ALTER TABLE `city_service_cities` DISABLE KEYS */;
+/*!40000 ALTER TABLE `city_service_cities` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `city_service_listings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `city_service_listings` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `category_id` bigint(20) unsigned NOT NULL,
+  `city_id` bigint(20) unsigned NOT NULL,
+  `name` varchar(160) NOT NULL,
+  `district` varchar(120) DEFAULT NULL,
+  `address` varchar(300) DEFAULT NULL,
+  `phone` varchar(32) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `price_text` varchar(120) DEFAULT NULL,
+  `hours_text` varchar(200) DEFAULT NULL,
+  `photos` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`photos`)),
+  `booking_mode` varchar(12) NOT NULL DEFAULT 'phone',
+  `booking_url` varchar(1000) DEFAULT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `city_service_listings_category_id_foreign` (`category_id`),
+  KEY `city_service_listings_city_id_category_id_is_active_index` (`city_id`,`category_id`,`is_active`),
+  CONSTRAINT `city_service_listings_category_id_foreign` FOREIGN KEY (`category_id`) REFERENCES `city_service_categories` (`id`),
+  CONSTRAINT `city_service_listings_city_id_foreign` FOREIGN KEY (`city_id`) REFERENCES `city_service_cities` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `city_service_listings` WRITE;
+/*!40000 ALTER TABLE `city_service_listings` DISABLE KEYS */;
+/*!40000 ALTER TABLE `city_service_listings` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `clinical_config_approvals`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `clinical_config_approvals` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `version_id` bigint(20) unsigned NOT NULL,
+  `admin_id` bigint(20) unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `clinical_config_approvals_version_id_admin_id_unique` (`version_id`,`admin_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `clinical_config_approvals` WRITE;
+/*!40000 ALTER TABLE `clinical_config_approvals` DISABLE KEYS */;
+/*!40000 ALTER TABLE `clinical_config_approvals` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `clinical_config_versions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `clinical_config_versions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `config_key` varchar(64) NOT NULL,
+  `version` int(10) unsigned NOT NULL,
+  `value` text NOT NULL,
+  `source` varchar(255) NOT NULL DEFAULT '',
+  `note` varchar(500) NOT NULL DEFAULT '',
+  `effective_from` date NOT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'pending',
+  `proposed_by` bigint(20) unsigned DEFAULT NULL,
+  `decided_by` bigint(20) unsigned DEFAULT NULL,
+  `decided_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `clinical_config_versions_config_key_version_unique` (`config_key`,`version`),
+  KEY `clinical_config_versions_status_config_key_index` (`status`,`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `clinical_config_versions` WRITE;
+/*!40000 ALTER TABLE `clinical_config_versions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `clinical_config_versions` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `companion_audit_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2945,6 +3262,106 @@ INSERT INTO `message_contents` VALUES
 (176,'bmi_message','obese','en','bmi_message / obese','{\"message\":\"Based on the height and weight you entered, you fall in the obesity range. Over the long term this can affect heart health, blood pressure, blood sugar, and the menstrual cycle. If possible, talking to a doctor or a nutrition specialist can be very helpful. At Ritme we try to support your health journey with small, doable recommendations.\"}',1,1,0,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `message_contents` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `message_events`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `message_events` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `rule_id` bigint(20) unsigned NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `variant` varchar(1) NOT NULL DEFAULT 'a',
+  `event` varchar(12) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `message_events_rule_id_event_created_at_index` (`rule_id`,`event`,`created_at`),
+  KEY `message_events_user_id_rule_id_created_at_index` (`user_id`,`rule_id`,`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `message_events` WRITE;
+/*!40000 ALTER TABLE `message_events` DISABLE KEYS */;
+/*!40000 ALTER TABLE `message_events` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `message_rule_versions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `message_rule_versions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `rule_id` bigint(20) unsigned NOT NULL,
+  `version` int(10) unsigned NOT NULL,
+  `snapshot` text NOT NULL,
+  `changed_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `message_rule_versions_rule_id_version_unique` (`rule_id`,`version`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `message_rule_versions` WRITE;
+/*!40000 ALTER TABLE `message_rule_versions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `message_rule_versions` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `message_rules`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `message_rules` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(160) NOT NULL,
+  `level` varchar(16) NOT NULL DEFAULT 'info',
+  `kind` varchar(16) NOT NULL DEFAULT 'product',
+  `priority` smallint(5) unsigned NOT NULL DEFAULT 1,
+  `placement` varchar(32) NOT NULL DEFAULT 'smart_tip',
+  `content` text NOT NULL,
+  `variants_enabled` tinyint(1) NOT NULL DEFAULT 0,
+  `ab_split` tinyint(3) unsigned NOT NULL DEFAULT 50,
+  `conditions` text NOT NULL,
+  `exceptions` text NOT NULL,
+  `cap_count` smallint(5) unsigned DEFAULT NULL,
+  `cap_period` varchar(8) DEFAULT NULL,
+  `cooldown_days` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `hours_from` tinyint(3) unsigned DEFAULT NULL,
+  `hours_to` tinyint(3) unsigned DEFAULT NULL,
+  `starts_on` date DEFAULT NULL,
+  `ends_on` date DEFAULT NULL,
+  `audience_percent` tinyint(3) unsigned NOT NULL DEFAULT 100,
+  `goal` varchar(120) DEFAULT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'draft',
+  `is_active` tinyint(1) NOT NULL DEFAULT 0,
+  `version` int(10) unsigned NOT NULL DEFAULT 1,
+  `approved_by` bigint(20) unsigned DEFAULT NULL,
+  `approved_at` timestamp NULL DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `message_rules_placement_is_active_priority_index` (`placement`,`is_active`,`priority`),
+  KEY `message_rules_status_index` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `message_rules` WRITE;
+/*!40000 ALTER TABLE `message_rules` DISABLE KEYS */;
+/*!40000 ALTER TABLE `message_rules` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `metric_snapshots`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `metric_snapshots` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `day` date NOT NULL,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`payload`)),
+  `computed_at` datetime NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `metric_snapshots_day_unique` (`day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `metric_snapshots` WRITE;
+/*!40000 ALTER TABLE `metric_snapshots` DISABLE KEYS */;
+/*!40000 ALTER TABLE `metric_snapshots` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `migrations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -3148,6 +3565,54 @@ LOCK TABLES `oauth_refresh_tokens` WRITE;
 /*!40000 ALTER TABLE `oauth_refresh_tokens` DISABLE KEYS */;
 /*!40000 ALTER TABLE `oauth_refresh_tokens` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `okr_key_results`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `okr_key_results` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `objective_id` bigint(20) unsigned NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `metric_key` varchar(40) DEFAULT NULL,
+  `unit` varchar(16) NOT NULL DEFAULT 'count',
+  `baseline` decimal(16,2) NOT NULL DEFAULT 0.00,
+  `target` decimal(16,2) NOT NULL,
+  `manual_value` decimal(16,2) DEFAULT NULL,
+  `owner` varchar(120) DEFAULT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `okr_key_results_objective_id_sort_order_index` (`objective_id`,`sort_order`),
+  CONSTRAINT `okr_key_results_objective_id_foreign` FOREIGN KEY (`objective_id`) REFERENCES `okr_objectives` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `okr_key_results` WRITE;
+/*!40000 ALTER TABLE `okr_key_results` DISABLE KEYS */;
+/*!40000 ALTER TABLE `okr_key_results` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `okr_objectives`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `okr_objectives` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `owner` varchar(120) DEFAULT NULL,
+  `period` varchar(40) NOT NULL,
+  `starts_on` date NOT NULL,
+  `ends_on` date NOT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `okr_objectives_starts_on_ends_on_index` (`starts_on`,`ends_on`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `okr_objectives` WRITE;
+/*!40000 ALTER TABLE `okr_objectives` DISABLE KEYS */;
+/*!40000 ALTER TABLE `okr_objectives` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `otp_verifications`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -3168,6 +3633,71 @@ CREATE TABLE `otp_verifications` (
 LOCK TABLES `otp_verifications` WRITE;
 /*!40000 ALTER TABLE `otp_verifications` DISABLE KEYS */;
 /*!40000 ALTER TABLE `otp_verifications` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `partner_lab_requests`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `partner_lab_requests` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `reference` varchar(16) NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `service_id` bigint(20) unsigned NOT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'requested',
+  `partner_ref` varchar(64) DEFAULT NULL,
+  `partner_status` varchar(16) DEFAULT NULL,
+  `preferred_date` date NOT NULL,
+  `preferred_window` varchar(16) NOT NULL,
+  `consent_share` tinyint(1) NOT NULL DEFAULT 0,
+  `consent_import` tinyint(1) NOT NULL DEFAULT 0,
+  `payload_enc` longtext DEFAULT NULL,
+  `imported_lab_id` bigint(20) unsigned DEFAULT NULL,
+  `closed_at` datetime DEFAULT NULL,
+  `purged_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `partner_lab_requests_reference_unique` (`reference`),
+  KEY `partner_lab_requests_service_id_foreign` (`service_id`),
+  KEY `partner_lab_requests_user_id_created_at_index` (`user_id`,`created_at`),
+  KEY `partner_lab_requests_status_created_at_index` (`status`,`created_at`),
+  KEY `partner_lab_requests_closed_at_index` (`closed_at`),
+  CONSTRAINT `partner_lab_requests_service_id_foreign` FOREIGN KEY (`service_id`) REFERENCES `partner_lab_services` (`id`),
+  CONSTRAINT `partner_lab_requests_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `partner_lab_requests` WRITE;
+/*!40000 ALTER TABLE `partner_lab_requests` DISABLE KEYS */;
+/*!40000 ALTER TABLE `partner_lab_requests` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `partner_lab_services`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `partner_lab_services` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(40) NOT NULL,
+  `kind` varchar(24) NOT NULL,
+  `title` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`title`)),
+  `description` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`description`)),
+  `partner_name` varchar(120) NOT NULL,
+  `partner_code` varchar(40) NOT NULL DEFAULT 'fake',
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `partner_lab_services_code_unique` (`code`),
+  KEY `partner_lab_services_is_active_sort_order_index` (`is_active`,`sort_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `partner_lab_services` WRITE;
+/*!40000 ALTER TABLE `partner_lab_services` DISABLE KEYS */;
+INSERT INTO `partner_lab_services` VALUES
+(1,'home_blood_draw','home_draw','{\"fa\":\"آزمایش در منزل\",\"en\":\"Home blood draw\"}','{\"fa\":\"نمونه‌گیری در خانه، جواب مستقیم در ریتمی\",\"en\":\"Sample taken at home, the result right in Ritme\"}','آزمایشگاه نمونه','fake',1,1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(2,'annual_checkup','checkup','{\"fa\":\"چکاپ سالانه\",\"en\":\"Annual checkup\"}','{\"fa\":\"پاپ‌اسمیر و آزمایش‌های دوره‌ای\",\"en\":\"Pap smear and periodic tests\"}','آزمایشگاه نمونه','fake',1,2,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(3,'retired_panel','home_draw','{\"fa\":\"بستهٔ قدیمی\",\"en\":\"Retired panel\"}',NULL,'آزمایشگاه نمونه','fake',0,3,'2026-09-23 09:00:00','2026-09-23 09:00:00');
+/*!40000 ALTER TABLE `partner_lab_services` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `password_reset_tokens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4233,6 +4763,73 @@ CREATE TABLE `sessions` (
 LOCK TABLES `sessions` WRITE;
 /*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
 /*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_categories`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_categories` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `slug` varchar(64) NOT NULL,
+  `title` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`title`)),
+  `icon` varchar(32) DEFAULT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `shop_categories_slug_unique` (`slug`),
+  KEY `shop_categories_is_active_sort_order_index` (`is_active`,`sort_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_categories` WRITE;
+/*!40000 ALTER TABLE `shop_categories` DISABLE KEYS */;
+INSERT INTO `shop_categories` VALUES
+(1,'layette','{\"fa\":\"سیسمونی و نوزاد\",\"en\":\"Layette & baby\"}','bottle',1,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(2,'beauty','{\"fa\":\"آرایشی و بهداشتی\",\"en\":\"Beauty & hygiene\"}','sparkle',2,1,'2026-10-11 09:00:00','2026-10-11 09:00:00');
+/*!40000 ALTER TABLE `shop_categories` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_click_counts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_click_counts` (
+  `product_id` bigint(20) unsigned NOT NULL,
+  `day` date NOT NULL,
+  `clicks` int(10) unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY (`product_id`,`day`),
+  CONSTRAINT `shop_click_counts_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `shop_products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_click_counts` WRITE;
+/*!40000 ALTER TABLE `shop_click_counts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_click_counts` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_products`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_products` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `category_id` bigint(20) unsigned NOT NULL,
+  `title` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`title`)),
+  `image_path` varchar(255) DEFAULT NULL,
+  `price_text` varchar(80) DEFAULT NULL,
+  `badge` varchar(60) DEFAULT NULL,
+  `external_url` varchar(1000) DEFAULT NULL,
+  `partner_label` varchar(120) DEFAULT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `shop_products_category_id_is_active_sort_order_index` (`category_id`,`is_active`,`sort_order`),
+  CONSTRAINT `shop_products_category_id_foreign` FOREIGN KEY (`category_id`) REFERENCES `shop_categories` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_products` WRITE;
+/*!40000 ALTER TABLE `shop_products` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_products` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `side_effect_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

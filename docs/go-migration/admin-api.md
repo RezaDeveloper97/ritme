@@ -165,6 +165,36 @@ B-N9-02 adds nine capability-based roles (`product_manager`, `medical_advisor`, 
 change their own role, deactivate or delete themselves (422 `cannot_modify_self`; the form should disable those
 controls for the current admin).
 
+## 6c. Users list v2 and detail overview (B-N9-04)
+
+Capability `users` (view). `GET /users/directory?q=&status=&plan=free|plus|trial&activity=today|7d|30d|inactive&cohort=YYYY-MM&churn=low|medium|high&page=&per_page=`
+-> rows `{id, ref (RT-xxxx), mobile_masked, plan, is_blocked, last_activity_at, logged_days_30, churn_risk, created_at}`; no name,
+email or health value (422 on a bad filter). Churn = logged days of the last 14 days vs the 14 before (low >= 70 %, high < 30 %).
+`GET /users/directory/export` (same filters, also needs `export`): anonymised CSV (ref, plan, signup_month, logged_days_30, churn_risk,
+blocked), audited as `users.export`. `GET /users/:id/overview` -> `{ref, summary, events, messages, challenges, subscriptions, consents,
+support_reports (no text), health_access, health}`; `health` (`{user_goal}`) and message-rule titles are null without a live health
+grant (D-84). Saved segments are a client-side convenience (localStorage), not stored server-side.
+
+## 6c. KPI & cohorts (B-N9-08, D-89)
+
+`GET /kpi?days=30|60|90&event=any|log_saved` (capability `dashboard`; 422 on other values): computed on demand from `analytics_events` and existing tables.
+`{generated_at, events_since, funnel:{days, steps:[{key, pct, count, of, suppressed}]}, retention:{event, offsets:[0,1,7,14,30,60], cohorts:[{week_start, size, suppressed, cells[]}]}, engine, data_quality:null, ai:{...}, notes}`.
+Groups under 10 users are `null`/`suppressed`; cells not yet reached are `null`. Aggregates only, never a user id.
+
+## 6d. OKR (B-N9-09, D-95)
+
+Capability `dashboard` (view reads, manage writes; 403 without it). `GET /okr?period=` -> `{objectives:[{id, title, owner, period, starts_on, ends_on, progress_pct, status, key_results:[{id, title, metric_key|null, source live|manual, unit, baseline, target, manual_value, current|null, progress_pct|null, status on_track|at_risk|done|no_data, owner}]}], periods, summary|null, metrics:[{key, unit, current|null}], units, notes}`.
+`POST /okr/objectives` and `PUT /okr/objectives/:id` `{title, owner?, period, starts_on, ends_on (Y-m-d), sort_order?}`; `DELETE` cascades. `POST /okr/objectives/:id/key-results` and `PUT /okr/key-results/:id` `{title, metric_key? (catalogue), unit?, baseline, target (!= baseline), manual_value?, owner?}`; a bound key result takes the metric's unit and ignores `manual_value`. Progress is computed on every read from the newest snapshot (aggregates only); `/overview` `metrics.okr` is the summary of the objectives active today.
+
+## 6b. Overview metrics (B-N9-03, D-85)
+
+`GET /overview` (capability `dashboard`, any role with it): the newest hourly aggregate snapshot —
+`{day, computed_at, metrics}`; `metrics` is `null` before the first run. `metrics`: `dau|mau|stickiness_pct|signups_today|plus_active`
+`{value, prev}` (DAU = last full day, MAU = 30 days, prev = day before / 30 days before), `trial_to_paid {pct, count, of, suppressed}`,
+`mrr_toman`, `modes [{mode, count, suppressed}]`, `engine {status healthy|watch|null, mean_error_days, within_2_days_pct, users, samples,
+suppressed, confidence null}`, `alerts []`, `okr null`, `series` (90 days: `date, dau, loggers, signups`), `notes`. Aggregates only; groups
+under 10 are suppressed (null). Nullable = not available, never a fake number. The existing `/dashboard` stays (recent users).
+
 ## 7. Uploads (conventions for T-M2-21)
 
 - `multipart/form-data`, one file per field, field name = the column concept (`image`, `cover`), other fields as
@@ -261,12 +291,15 @@ the updated record.
 | POST · PUT | `/challenges` · `/challenges/:id` | A | `title` T req, `description` T, `cycle_day_from?`, `cycle_day_to?` (1–35, `gte:cycle_day_from` — fails without a `from`, as in Laravel), `category?`, `sort_order?`, `is_active?` | `{challenge}` |
 | GET · DELETE · POST | `/challenges/:id` · `/:id` · `/:id/toggle` | A | — | `{challenge}` · `{id}` · `{challenge}` |
 | GET | `/challenge-completions` | A | `challenge_id?` (exists), `q` (user name/mobile), `from?`, `to?` (dates, inclusive), `page`, `per_page` | list of `{id, completion_date, completed_at, user{id,name,mobile}, challenge{id,title}}` + `filters`, `stats{total,users,today}`, `per_challenge[{challenge_id,title,completions,users}]`, `challenges[{id,title}]` |
+| GET | `/challenges/:id/stats` | A | — | `{challenge_id, stats:{participants, completed, active, completion_rate (%), rewards_granted, plus_days_granted, per_day:[{day, users}]}}` (B-N9-07, D-87) |
+| POST · PUT | `/challenges` · `/challenges/:id` (v2, additive) | A | `duration_days?` (1–366; present = multi-day run, needs `tasks`), `start_rule?` (`anytime`\|`menstrual`\|`fixed_date`, the last needs `starts_on` Y-m-d), `reminder_time?` (H:i), `modes_include[]`, `modes_exclude[]` (life modes), `phases_include[]`, `phases_exclude[]` (main phases), `reward_badge_code?`, `reward_badge_title` T, `reward_plus_days?` (0–365), `completion_min_days?` (≤ duration), `tasks[]` = `{id?, day_from, day_to (≤ duration), title T, sort_order?}` — replaces the set: ids kept, others deleted/created | `{challenge}` now also `program` (null for a legacy challenge), `tasks`, `stats{participants, completed, completion_rate}`; list rows carry `program` + `stats` |
 | GET | `/recommendations` | A | `phase=general\|<phase>`, `type` | list + `filters` (phase-less last, then phase, sort_order, id) |
 | GET | `/recommendations/options` | A | — | `{phases, subphases, subphase_phases:{sub:phase}, types, triggers}` |
 | POST · PUT | `/recommendations` · `/:id` | A | `type` req, `title` T (≤255, all empty → null), `text` T req (≤2000), `cycle_phase?`, `cycle_subphases[]` (only those the phase reaches), `symptom_trigger?`, `sort_order?`, `is_active?` | `{recommendation}` |
 | GET · DELETE · POST | `/recommendations/:id` · `/:id` · `/:id/toggle` | A | — | `{recommendation}` · `{id}` · `{recommendation}` |
 | GET | `/banners` · `/banners/options` | A | — | list of `Banner` (position, sort_order, newest) · `{positions, link_types, image:{max_kb,min_width,min_height,recommended_width,recommended_height,types}}` |
-| POST | `/banners` | A | multipart: `image` **req** (jpeg/png/webp ≤ 4 MB, ≥ 800×400, stored as uploaded in `banners/`), `title` T (≤255), `position` req, `link_type?`, `link_url?` (required with `link_type`; `url` when external, a single leading `/` path when internal — D-16; empty drops both), `starts_at?`, `ends_at?` (≥ starts_at), `sort_order?`, `is_active?` | `{banner}` (`image_path`, `image_url`) |
+| GET | `/banners/:id/stats` | A | `?days=` (1–366, default 30) | B-N10-02 (D-93): `{banner_id, days, since, totals:{impressions,clicks,ctr}, items:[{day,impressions,clicks}]}` — per-Tehran-day aggregates, no user data |
+| POST | `/banners` | A | multipart: `image` **req** (jpeg/png/webp ≤ 4 MB, ≥ 800×400, stored as uploaded in `banners/`), `title` T (≤255), `position` req, `link_type?`, `link_url?` (required with `link_type`; `url` when external, a single leading `/` path when internal — D-16; empty drops both), `starts_at?`, `ends_at?` (≥ starts_at), `sort_order?`, `is_active?`; B-N10-02 additive: `kind?` (`banner`\|`ad`; an ad needs an `ad_slider\|ad_square\|ad_strip` position, a banner a `home_*` one), `advertiser?` (≤120, admin-only), `cta_label` T (≤60), `modes?` (list of life modes; empty = all) | `{banner}` (`image_path`, `image_url`, + `kind`, `advertiser`, `cta_label`, `modes`); `/banners/options` also returns `kinds`, `ad_slots`, `modes` |
 | PUT/POST | `/banners/:id` | A | as POST, `image` optional (replaces + deletes the old file) | `{banner}` |
 | GET · DELETE · POST | `/banners/:id` · `/:id` · `/:id/toggle` | A | — | `{banner}` · `{id}` (file deleted) · `{banner}` |
 | GET | `/task-templates` · `/task-templates/options` | A | — | list · `{phases, categories}` |
@@ -768,7 +801,7 @@ Package `internal/admin/rbac` (+ `httpadmin/{permissions,audit,health}.go`), rou
 **Permission check.** `kit.Admin` routes now run `RequirePermission`: the route path maps to one capability
 (`httpadmin.capabilityOf`; GET = `view`, other methods = `manage`), the admin's role must grant it → else **403**
 `{"error_code":"forbidden","permission":"<capability>"}` (never 401). `super` passes everything; `editor` holds every
-capability except `health`, so pre-B-N9-02 accounts keep their reach. Paths not in the map are super/editor only.
+capability except `health` (narrowed in B-N9-02b, below). Paths not in the map are super only (B-N9-02b).
 `kit.Super` routes are unchanged. Capabilities: `dashboard, users, health (manage), messages, clinical, challenges,
 config, export (view), content, billing, support, learning, telemed, telemed_doctor (manage), audit (view)`.
 
@@ -784,7 +817,7 @@ approved by another super admin, valid **30 minutes**. Super admins need one too
 | Method | Path | Role | Body / query | `data` |
 | --- | --- | --- | --- | --- |
 | GET | `/roles` | S | — | `{capabilities:[{key, levels}], roles:[{key, editable, customized, admins, permissions}]}` |
-| PUT | `/roles/:role` | S | `permissions: {capability: view\|manage\|none}` | `{role}`; 422 `role_locked` (super/editor), 404 unknown, 422 bad capability/level; audit `role.update` |
+| PUT | `/roles/:role` | S | `permissions: {capability: view\|manage\|none}` | `{role}`; 422 `role_locked` (super), 404 unknown, 422 bad capability/level; audit `role.update` |
 | POST | `/roles/:role/reset` | S | — | `{role}` back to the code defaults; audit `role.reset` |
 | GET | `/audit-logs` | audit | `admin_id, action` (prefix), `target_type, target_id, from, to` (YYYY-MM-DD, Tehran), `page, per_page` | list of `{id, admin {id,name,role}\|null, action, target_type, target_id, ip, detail, created_at}` |
 | GET | `/audit-logs/export` | audit + export | same filters | `text/csv` (≤ 10 000 rows, formula-safe); audit `audit_log.export` |
@@ -794,3 +827,110 @@ approved by another super admin, valid **30 minutes**. Super admins need one too
 | POST | `/health-access/:id/reject` | S | — | `{request}`; 409 `not_pending`; audit `health_access.reject` |
 | POST | `/health-access/:id/revoke` | health | — | requester or super (else 404); 409 `not_active`; audit `health_access.revoke` |
 | GET | `/health-access/users/:id` | health + grant | — | `{user_id, expires_at, profile, stats}`; 403 `health_access_required`; audit `health_access.read` |
+
+**Security follow-up (B-N9-02b).**
+- *Approver independence:* approve also answers 422 `approver_not_independent` when the approving super admin's account
+  is younger than 24 h, or the requester wrote an `admin.create` / `admin.update` audit row about the approver in the
+  last 30 days (derived from `admin_audit_logs`, no new column); 422 `requester_not_permitted` when the requester is
+  inactive or their role lost `health`. Every approval logs a WARN line `alert=health_access_approved`.
+- *Expiry & clock:* a request pending for 24 h reads `expired` and cannot be decided (409 `not_pending`); grants and
+  decisions use the real clock (X-Test-Now is ignored there).
+- *`user_goal` is health data:* null in the `/users` list and in `/users/:id` (`user` + `profile`) without a grant;
+  `PUT /users/:id` takes `user_goal` as nullable (absent / null = unchanged); the `user.update` audit carries only
+  `goal_set`.
+- *Least privilege:* analyst and engineering get `users: view`; product manager and engineering lose `audit`; unmapped
+  paths are **super only**; `editor` becomes editable (`PUT /roles/editor`) with the default "everything except
+  `health`, `audit`, `export`, `telemed_doctor`". **Migration path for existing editors:** they keep their content /
+  users / billing reach; if one still needs the audit log or exports, a super admin grants `audit` / `export` to
+  `editor` on the Roles screen (or moves that account to a narrower role).
+- *Audit log:* the `ip` is null (CSV: empty) for non-super viewers; every CSV string cell goes through the formula
+  guard after leading whitespace; failed logins write `auth.login_failed` (target = the account id when known, never
+  the email). All `/api/admin/v1` answers carry `Cache-Control: no-store`.
+
+## 22. Smart messages v2 — rules (B-N9-05, D-86)
+
+Capability `messages` (GET view, writes manage); the medical-approval actions additionally need `clinical` at manage.
+Rule shape: `{id, title, level, kind, priority, placement, content{a{title,body,cta_label,cta_target}, b?, seen?, confidence?,
+contact?}, variants_enabled, ab_split, conditions[{op:and|or, items[{fact,op,value}]}], exceptions[{fact,op,value}], cap_count,
+cap_period, cooldown_days, hours_from, hours_to, starts_on, ends_on, audience_percent, goal, status, is_active, version,
+needs_medical_approval, approved_by, approved_at, …}`.
+
+| Method + path | Notes |
+|---|---|
+| `GET /messages/rules?placement=&kind=&status=&page=` | items + `stats_7d`; `enums` (placements, levels, kinds, bands, ops, variables, cap_periods) |
+| `POST /messages/rules` | 422 per field (`priority` outside the kind's band, product without cap, follow_soon rules, unknown variable…) |
+| `GET /messages/rules/{id}` | rule, `versions`, `variant_stats_7d`, `conflicts` |
+| `PUT /messages/rules/{id}` | whole definition; version +1, snapshot, status → `draft` (approval withdrawn) |
+| `DELETE /messages/rules/{id}` | |
+| `POST /messages/rules/{id}/submit` | medical rules, draft → pending_approval (422 `approval_not_needed`, 409 `not_pending`) |
+| `POST /messages/rules/{id}/approve` · `/reject` | `clinical` manage; only from pending (409 `not_pending`) |
+| `POST /messages/rules/{id}/toggle` | publish / unpublish; 409 `approval_required` for an unapproved medical rule |
+| `POST /messages/rules/conflicts` `{rule\|rule_id}` | overlapping messages of the placement with the winner (`this` / `other` / `tie`) |
+| `POST /messages/rules/preview` `{rule\|rule_id, user_id?, facts?}` | `{eligible, reasons[], variant, title, body, cta_label, level}`; audited when a user id is used; fact values never returned |
+| `GET /messages/rules/engine` | `{placements[{placement, urgent, count, rules[{rule_id,title,kind,level,priority,served,unlimited,cap,cooldown_days,audience_percent,variants,conflicts}]}], bands}` — live rules per placement in engine order (B-N9-06) |
+| `POST /messages/rules/simulate` `{facts, at?, user_id?, placements?}` | `{at, placements[{placement, winner\|null, trace[{rule_id,title,kind,level,priority,eligible,reason,failed_groups[],variant,winner}]}]}` — pure engine over synthetic facts (no writes, no real user data; `user_id` only seeds A/B/audience buckets; empty history so caps never trigger); `messages` capability, manage level (POST) |
+
+Static `/messages/rules*` routes are registered before `/messages/{id}`. Audit actions: `message_rule.create|update|delete|submit|approve|reject|toggle|preview`.
+
+
+## 23. Clinical thresholds & config — «آستانه‌ها و پیکربندی» (B-N9-11, D-88)
+
+Package `internal/admin/clinicalcfg` (store side) + `internal/clinicalconfig` (leaf registry + cached lookup the
+engines call), routes `routes_admin_clinical_config.go`, queries `db/queries/admin/clinical_config.sql`, goose
+**00063** (+ Laravel twin `2026_10_11_000063_create_clinical_config_tables.php`). Capability `config` (GET = view,
+writes = manage); approve / reject additionally need role `medical_advisor` (403 `medical_advisor_required`).
+
+**Model.** Every key (`bp.crisis`, `glucose.fasting`, `epds.cutoff.likely`, `cycle.figo.frequency`,
+`engine.period_hard_cap`, `engine.fertile_window`, `lab.ferritin.low`, … — `clinicalconfig.Defs`) has a value
+(named numbers, e.g. `{"systolic":180,"diastolic":120}`), unit, source, version and effective date. **Version 1 is
+the code default** (the pre-B-N9-11 constants; never stored). A stored version is `pending` → `approved` after **two
+distinct medical advisors** approve (never the proposer) or `rejected`. The server reads the approved version with the
+latest `effective_from` ≤ the engine's target date (reading day, check day, cycle target, report day), so historic
+outputs keep their thresholds. Snapshot cached in-process, refreshed on approval and every minute; an empty or
+unreachable store answers the code defaults.
+
+| Method | Path | Who | Body / query | `data` |
+| --- | --- | --- | --- | --- |
+| GET | `/clinical-config` | config | `group?` (`engine\|vitals\|pregnancy\|lab`) | `{groups, keys:[{key, group, unit, fields:[{name, default, min, max}], current, upcoming, pending}], can_approve, required_approvals, today}`; a version = `{id, version, value, source, note, effective_from, status, proposed_by {id,name}, approvals:[{id,name,at}], required_approvals, decided_at, created_at}` (v1: `id`/`effective_from` null) |
+| GET | `/clinical-config/resolve` | config | `key, date` (Y-m-d) | `{key, date, version, value, effective_from}` — what the server reads |
+| GET | `/clinical-config/:key` | config | — | `{key, versions:[stored newest first…, v1], can_approve, required_approvals}`; 404 unknown key |
+| POST | `/clinical-config/:key/proposals` | config manage | `value {field: number}` (all fields, in range, ordered pairs increasing), `effective_from` (≥ today), `source?` (≤ 255, default the v1 source), `note?` (≤ 500) | 201 `{proposal}`; 409 `pending_exists` (one pending per key); 422 validation; audit `clinical_config.propose` |
+| POST | `/clinical-config/proposals/:id/approve` | medical advisor | — | `{proposal}` (approved on the 2nd distinct approval); 403 `self_approval`, 409 `already_approved` / `not_pending`, 422 `effective_date_passed`, 404 unknown; audit `clinical_config.approve` |
+| POST | `/clinical-config/proposals/:id/reject` | medical advisor or the proposer | — | `{proposal}`; 409 `not_pending`; audit `clinical_config.reject` |
+
+## 24. Safety & clinical content — «ایمنی و محتوای بالینی» (B-N9-10, D-90)
+
+Capability `clinical` (path segment `safety`). Aggregates and review metadata only: counts, titles, ids, ages and admin /
+instructor names — never a user id or a health value. Approve / reject stay on each source's own screen; the queue
+deep-links there. Claims are rows of `admin_audit_logs` (`safety.claim` / `safety.release`, target type
+`safety.<source>`, last 30 days) — no new table.
+
+| Method | Path | Who | Body | Response |
+|---|---|---|---|---|
+| GET | `/safety` | clinical:view | — | `{window_days: 7, today, signals[{key, count, previous, delta}] (bp_crisis, glucose_urgent_low, epds_q10, reduced_kicks, contractions_511, postpartum_heavy_bleeding — thresholds in force today), queue{pending, overdue, sla_hours: 72, by_source{message, threshold, lesson, assistant, catalog}, items[{source, id, title, ref, status (pending\|changed\|partially_approved), approvals, required_approvals, items, submitted_by, submitted_at, age_hours, overdue, claimed_by{id, name, at}\|null}]}, checks{modal_latency_p95_ms: null, call_115_ctr: null (not instrumented, D-90), text_parity{ok, unapproved, groups[]}, scenarios{ran_at, passed, total, failed[]}\|null}}` |
+| POST | `/safety/queue/:source/:id/claim` | clinical:manage | — | `{claimed_by}`; idempotent for the claimer; 409 `already_claimed`; 404 when the item is not in the queue; audit `safety.claim` |
+| POST | `/safety/queue/:source/:id/release` | clinical:manage (the claimer or super) | — | `{claimed_by: null}`; 403 `not_claimer`; audit `safety.release` |
+
+## 25. Shop catalog — «فروشگاه» (B-N10-03, D-91)
+
+Capability `content`. Categories: `GET|POST /shop/categories`, `GET|PUT|DELETE /shop/categories/:id` (body `slug` unique `[a-z0-9_-]`, translatable `title`, `icon`, `sort_order`, `is_active`; delete answers 422 `in_use` while products exist). Products: `GET /shop/products?category_id=&status=all|active|inactive&q=&page=`, `POST /shop/products` (JSON or multipart; optional `image` jpeg/png/webp ≤ 4 MB ≥ 200x200), `GET|PUT|DELETE /shop/products/:id` (`remove_image`), `POST /shop/products/:id/toggle`. Fields: `category_id`, translatable `title`, `price_text`, `badge`, `external_url` (nullable, http/https), `partner_label`, `sort_order`, `is_active`; reads add `image_url` and `clicks_30d`. `GET /shop/options` returns the categories and image limits.
+
+### City services (B-N10-05, D-92)
+
+Capability `content` for `/city-services/*`. Cities and categories: `GET|POST /city-services/cities|categories`, `PUT|DELETE /city-services/cities|categories/:id` (body `slug` unique `[a-z0-9_-]`, translatable `name`, `icon` (categories), `sort_order`, `is_active`; delete answers 422 `in_use` while listings use it). Listings: `GET /city-services/listings?city_id=&category_id=&status=all|active|inactive&q=&page=`, `POST /city-services/listings`, `GET|PUT|DELETE /city-services/listings/:id`, `POST /city-services/listings/:id/toggle`; fields `name`, `category_id`, `city_id`, `district`, `address`, `phone`, `description`, `price_text`, `hours_text`, `booking_mode` (`link` needs an http/https `booking_url`, `phone` needs `phone`), `sort_order`, `is_active`; delete answers 422 `in_use` once requests reference the listing. Photos: `POST /city-services/listings/:id/photos` (multipart `photo`, jpeg/png/webp ≤ 4 MB ≥ 200x200, at most 8) and `DELETE /city-services/listings/:id/photos/:index`. `GET /city-services/options` returns every city and category plus the enums and limits.
+
+Request queue, capability `support` (it holds contact details): `GET /city-service-bookings?status=&listing_id=&page=` (open requests first), `GET /city-service-bookings/:id`, `PUT /city-service-bookings/:id {status, status_note}` where the status machine allows requested → confirmed \| rejected \| cancelled and confirmed → completed \| cancelled (422 `invalid_transition` otherwise); `status_note` is shown to the user.
+
+## 26. Home lab requests — «آزمایش در منزل» (B-N10-04, D-94)
+
+Capability `support` (view = GET, manage = writes). Under `/api/admin/v1/partners/*`, cookie session + CSRF like every module.
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/partners/lab-services` | `{items[{id, code, kind, title{fa,en}, description, partner_name, partner_code, is_active, sort_order}], kinds, partners{codes}}`: every service, active or not |
+| POST | `/partners/lab-services` | `{code (a-z0-9_, unique), kind home_draw\|checkup, title{fa, en?}, description?{fa,en}, partner_name, partner_code? (default `fake`, must be a registered adapter), is_active?, sort_order?}` → 201 |
+| PUT | `/partners/lab-services/:id` | same body, full replace; `is_active:false` hides the Today cards |
+| GET | `/partners/lab-requests?status=&q=<reference>&page=` | paged queue, newest first: reference, masked account mobile, status, service, partner, preferred day + window, consent_import, imported, purged, `manual_status`. Never the name, address, note or a result |
+| POST | `/partners/lab-requests/:id/status` | `{status: accepted\|sampled\|result_ready\|rejected}` — the console plays the fake partner; 409 `lab_bad_transition` for a move the machine does not allow, 409 `lab_manual_status_unsupported` for real partners (they update their own statuses) |
+
+Every write is audited (`partner_lab_service.create|update`, `partner_lab_request.status`).

@@ -106,6 +106,9 @@ type Querier interface {
 	// Challenges (ChallengeController::filtered). day = 0: no cycle-day filter; otherwise
 	// Challenge::scopeForCycleDay (untargeted rows match every day).
 	CountAdminChallenges(ctx context.Context, arg CountAdminChallengesParams) (int64, error)
+	// B-N9-02b approver independence: admin.create / admin.update rows written by actor_id about target_id since since_at
+	// (creation, password, role or any other account change of the would-be approver by the requester).
+	CountAdminChangesBy(ctx context.Context, arg CountAdminChangesByParams) (int64, error)
 	CountAdminCompanionLinks(ctx context.Context, arg CountAdminCompanionLinksParams) (int64, error)
 	// ---------------------------------------------------------------------------
 	// Info sections (InfoSection::inGroup($group)->ordered())
@@ -146,6 +149,7 @@ type Querier interface {
 	CountLearningPublishedLessons(ctx context.Context) ([]CountLearningPublishedLessonsRow, error)
 	// ───────────── review queue ─────────────
 	CountLearningReviewQueue(ctx context.Context, arg CountLearningReviewQueueParams) (int64, error)
+	CountPendingClinicalConfig(ctx context.Context, configKey string) (int64, error)
 	// Admin support reports inbox (B-N1-12b): «گزارش مشکل» rows from POST /api/v1/support/reports, newest first.
 	// The status filter is a LIKE pattern ('%' = all, 'open' / 'resolved' = exact), like the other admin lists.
 	CountSupportReports(ctx context.Context, status string) (int64, error)
@@ -176,6 +180,7 @@ type Querier interface {
 	// ---------------------------------------------------------------------------
 	// Dashboard (DashboardController::index)
 	DashboardCounts(ctx context.Context, arg DashboardCountsParams) (DashboardCountsRow, error)
+	DecideClinicalConfigVersion(ctx context.Context, arg DecideClinicalConfigVersionParams) (int64, error)
 	// Only a pending request changes (approve / reject); a concurrent second decision affects 0 rows.
 	DecideHealthAccessRequest(ctx context.Context, arg DecideHealthAccessRequestParams) (int64, error)
 	DeleteAdmin(ctx context.Context, id uint64) (sql.Result, error)
@@ -207,6 +212,8 @@ type Querier interface {
 	GetArticle(ctx context.Context, id uint64) (Article, error)
 	GetBanner(ctx context.Context, id uint64) (Banner, error)
 	GetChallenge(ctx context.Context, id uint64) (Challenge, error)
+	GetClinicalConfigVersion(ctx context.Context, id uint64) (ClinicalConfigVersion, error)
+	GetClinicalConfigVersionForUpdate(ctx context.Context, id uint64) (ClinicalConfigVersion, error)
 	GetHealthAccessRequest(ctx context.Context, id uint64) (GetHealthAccessRequestRow, error)
 	GetInfoSection(ctx context.Context, id uint64) (InfoSection, error)
 	GetLanguage(ctx context.Context, id uint64) (Language, error)
@@ -227,6 +234,8 @@ type Querier interface {
 	// ---------------------------------------------------------------------------
 	// Audit log
 	InsertAdminAuditLog(ctx context.Context, arg InsertAdminAuditLogParams) error
+	InsertClinicalConfigApproval(ctx context.Context, arg InsertClinicalConfigApprovalParams) error
+	InsertClinicalConfigVersion(ctx context.Context, arg InsertClinicalConfigVersionParams) (int64, error)
 	InsertCompanionTipRow(ctx context.Context, arg InsertCompanionTipRowParams) error
 	// ───────────── moderation log ─────────────
 	InsertLearningModeration(ctx context.Context, arg InsertLearningModerationParams) error
@@ -256,8 +265,16 @@ type Querier interface {
 	// Languages (every write must flush the registry caches)
 	// Language::query()->ordered()->get() (active and inactive).
 	ListAllLanguages(ctx context.Context) ([]Language, error)
+	// Versioned clinical thresholds & config with two medical approvals (bloom B-N9-11, migration 00063, D-88).
+	// Every approved version (the internal/clinicalconfig snapshot; v1 is the code default and never stored).
+	ListApprovedClinicalConfigVersions(ctx context.Context) ([]ListApprovedClinicalConfigVersionsRow, error)
+	// Daily impression / click counters of one banner (newest day first); aggregate only, no user data.
+	ListBannerStats(ctx context.Context, arg ListBannerStatsParams) ([]ListBannerStatsRow, error)
 	// Challenge::orderBy('sort_order')->orderBy('id')->get(['id', 'title']) (report filter).
 	ListChallengeTitles(ctx context.Context) ([]ListChallengeTitlesRow, error)
+	ListClinicalConfigApprovals(ctx context.Context) ([]ListClinicalConfigApprovalsRow, error)
+	ListClinicalConfigVersions(ctx context.Context) ([]ListClinicalConfigVersionsRow, error)
+	ListClinicalConfigVersionsOfKey(ctx context.Context, configKey string) ([]ListClinicalConfigVersionsOfKeyRow, error)
 	// Admin companion «همدم» module (B-N4-07): the companion tips copy (message_contents group companion_tip, fixed slots
 	// of internal/admin/messages/registry) and a read-only overview of companion links. The overview selects link
 	// metadata and the people's name / mobile only (masked in Go): never an invite code hash, never grants' data, never
@@ -292,6 +309,7 @@ type Querier interface {
 	ListSupportReports(ctx context.Context, arg ListSupportReportsParams) ([]ListSupportReportsRow, error)
 	// User::with('profile')->…->latest()->paginate(20). The profile is the user's first row (hasOne).
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
+	MaxClinicalConfigVersion(ctx context.Context, configKey string) (int64, error)
 	MaxInfoSectionSortOrder(ctx context.Context, group string) (int64, error)
 	MaxLanguageSortOrder(ctx context.Context) (int64, error)
 	MessageLocaleExists(ctx context.Context, locale string) (bool, error)

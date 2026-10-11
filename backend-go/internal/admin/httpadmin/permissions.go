@@ -87,9 +87,10 @@ var Roles = []string{
 	RoleMarketing, RoleEngineering, RoleDoctor, RoleInstructorModerator,
 }
 
-// EditableRole reports whether a super admin may change role's matrix (super and editor are fixed).
+// EditableRole reports whether a super admin may change role's matrix (only super is fixed; editor became editable
+// in B-N9-02b).
 func EditableRole(role string) bool {
-	return role != RoleSuper && role != RoleEditor && slices.Contains(Roles, role)
+	return role != RoleSuper && slices.Contains(Roles, role)
 }
 
 func allPermissions(except ...string) Permissions {
@@ -109,10 +110,13 @@ func DefaultPermissions(role string) Permissions {
 	case RoleSuper:
 		return allPermissions()
 	case RoleEditor:
-		return allPermissions(CapHealth)
+		// B-N9-02b (least privilege): no health data, audit log, export or doctor inbox, and no unmapped routes.
+		// Existing editors keep everything else; a super admin who wants the old reach back grants audit / export on
+		// the Roles screen (PUT /roles/editor), or moves the account to a narrower role.
+		return allPermissions(CapHealth, CapAudit, CapExport, CapTelemedDoctor)
 	case RoleProductManager:
 		return Permissions{CapDashboard: m, CapUsers: m, CapMessages: m, CapChallenges: m, CapConfig: v, CapExport: v,
-			CapContent: m, CapBilling: v, CapSupport: v, CapLearning: v, CapTelemed: v, CapAudit: v}
+			CapContent: m, CapBilling: v, CapSupport: v, CapLearning: v, CapTelemed: v}
 	case RoleMedicalAdvisor:
 		return Permissions{CapDashboard: m, CapUsers: v, CapMessages: m, CapClinical: m, CapChallenges: v, CapConfig: m,
 			CapContent: v, CapLearning: v, CapTelemed: v}
@@ -121,11 +125,11 @@ func DefaultPermissions(role string) Permissions {
 	case RoleClinicalSupport:
 		return Permissions{CapDashboard: v, CapUsers: m, CapHealth: m, CapSupport: m, CapTelemed: v}
 	case RoleAnalyst:
-		return Permissions{CapDashboard: m, CapUsers: m, CapExport: v, CapBilling: v}
+		return Permissions{CapDashboard: m, CapUsers: v, CapExport: v, CapBilling: v}
 	case RoleMarketing:
 		return Permissions{CapDashboard: m, CapUsers: v, CapMessages: m, CapChallenges: m, CapContent: m, CapBilling: v}
 	case RoleEngineering:
-		return Permissions{CapDashboard: m, CapUsers: m, CapConfig: m, CapSupport: v, CapAudit: v}
+		return Permissions{CapDashboard: m, CapUsers: v, CapConfig: m, CapSupport: v}
 	case RoleDoctor:
 		return Permissions{CapDashboard: v, CapTelemedDoctor: m}
 	case RoleInstructorModerator:
@@ -154,14 +158,14 @@ func ParsePermissions(raw map[string]string) (Permissions, bool) {
 }
 
 // capabilityOf maps an admin route (path under Prefix) to its capability. "" = any active admin (auth/me, …);
-// unknown paths answer "?" (only super / editor pass) so a new module is closed until it is mapped here.
+// unknown paths answer "?" (super only, B-N9-02b) so a new module is closed until it is mapped here.
 func capabilityOf(path string) string {
 	rest := strings.TrimPrefix(path, Prefix+"/")
 	seg, tail, _ := strings.Cut(rest, "/")
 	switch seg {
 	case "auth":
 		return ""
-	case "dashboard":
+	case "dashboard", "overview", "kpi", "okr":
 		return CapDashboard
 	case "users":
 		return CapUsers
@@ -172,16 +176,16 @@ func capabilityOf(path string) string {
 	case "challenges", "challenge-completions":
 		return CapChallenges
 	case "pregnancy-weeks", "pregnancy-week-details", "pregnancy-care-items", "pregnancy-alert-rules",
-		"checkup-types", "catalog", "children", "assistant":
+		"checkup-types", "catalog", "children", "assistant", "safety":
 		return CapClinical
-	case "ai":
+	case "ai", "clinical-config":
 		return CapConfig
 	case "articles", "affirmations", "banners", "info-sections", "phase-contents", "recommendations",
-		"task-templates", "companions", "uploads", "media":
+		"task-templates", "companions", "uploads", "media", "shop", "city-services":
 		return CapContent
 	case "plus":
 		return CapBilling
-	case "support-reports":
+	case "support-reports", "partners", "city-service-bookings":
 		return CapSupport
 	case "learning":
 		return CapLearning
@@ -265,9 +269,6 @@ func (k *Kit) RequirePermission(c fiber.Ctx) error {
 	case "":
 		return c.Next()
 	case "?":
-		if a.Role == RoleEditor {
-			return c.Next()
-		}
 		return ForbiddenPermission(capability)
 	}
 	level := LevelManage
