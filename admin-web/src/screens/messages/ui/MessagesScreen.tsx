@@ -126,6 +126,11 @@ export function MessagesScreen() {
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex justify-end">
+        <Link href="/messages/rules" className="btn btn-sm">
+          {t('rulesLink')}
+        </Link>
+      </div>
       {creating ? <MessageCreatePanel target={creating} onClose={() => setCreating(null)} /> : null}
       {query.data ? (
         <MissingPanel

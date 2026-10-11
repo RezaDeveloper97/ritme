@@ -1,5 +1,5 @@
 # Smart messages: /messages/daily, /messages/mode, the condition nudges /messages/nudges (Go only, D-41) and the
-# menopause messages /messages/menopause (Go only, D-43).
+# menopause messages /messages/menopause (Go only, D-43) and the v2 rule engine (Go only, D-86).
 # Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
 group: messages
 defaults:
@@ -160,4 +160,51 @@ cases:
     locales: none
     method: GET
     path: /api/v1/messages/menopause
+    status: 401
+
+  # ---- smart messages v2 (Go only, B-N9-05, deviations.md D-86) ----
+  # No Laravel route: these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill,
+  # step 8). The fixture has no message_rules rows, so selection answers null; the engine (priority bands, A/B,
+  # caps, cooldown, approval) is covered by internal/messages/rules and internal/http/routes_messages_v2_int_test.go.
+  - name: selected
+    doc: No rules in the fixture → message null
+    persona: [regular, pregnant_lmp_w8, no_profile]
+    method: GET
+    path: /api/v1/messages/selected
+    query: {placement: smart_tip}
+    status: 200
+  - name: selected_invalid
+    persona: regular
+    locales: en
+    method: GET
+    path: /api/v1/messages/selected
+    query: {placement: nowhere}
+    status: 422
+  - name: selected_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/messages/selected
+    query: {placement: smart_tip}
+    status: 401
+  - name: events_invalid
+    persona: regular
+    locales: en
+    method: POST
+    path: /api/v1/messages/events
+    body: {rule_id: 1, event: bogus}
+    status: 422
+  - name: events_unknown_rule
+    persona: regular
+    locales: en
+    method: POST
+    path: /api/v1/messages/events
+    body: {rule_id: 99999, event: click}
+    status: 404
+  - name: events_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/messages/events
+    body: {rule_id: 1, event: click}
     status: 401

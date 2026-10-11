@@ -3,7 +3,7 @@ id: B-N9-05
 title: Messages v2 — levels, A/B, rule builder, medical approval, events
 milestone: N9
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N9-02]
 parallel_group: N9-E
 touches: [backend-go/internal/messages,backend-go/internal/admin,backend-go/db,backend-go/api,admin-web/src]

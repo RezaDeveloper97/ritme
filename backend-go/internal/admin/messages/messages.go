@@ -21,6 +21,9 @@ import (
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
 	"github.com/ritme/backend-go/internal/admin/messages/registry"
 	"github.com/ritme/backend-go/internal/admin/store"
+	"github.com/ritme/backend-go/internal/messages"
+	mstore "github.com/ritme/backend-go/internal/messages/store"
+	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
@@ -36,7 +39,9 @@ const (
 // Handlers serve /messages.
 type Handlers struct {
 	q      *store.Queries
-	pq     *pstore.Queries // message_contents writes of T-M7-06 (queries in db/queries/pregnancy/v2_admin.sql)
+	pq     *pstore.Queries    // message_contents writes of T-M7-06 (queries in db/queries/pregnancy/v2_admin.sql)
+	mq     *mstore.Queries    // smart messages v2 rules (B-N9-05, rules.go)
+	user   *messages.Handlers // the user-facing engine: facts of a real user for the preview
 	logger *slog.Logger
 }
 
@@ -45,11 +50,12 @@ func New(db *sql.DB, logger *slog.Logger) *Handlers {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &Handlers{q: store.New(db), pq: pstore.New(db), logger: logger}
+	return &Handlers{q: store.New(db), pq: pstore.New(db), mq: mstore.New(db), user: messages.NewHandlers(db, clock.Real{}), logger: logger}
 }
 
 // Routes registers the endpoints.
 func (h *Handlers) Routes(route func(method, path string, chain httpadmin.Chain), kit *httpadmin.Kit) {
+	h.rulesRoutes(route, kit) // B-N9-05: static /messages/rules* before /messages/:id
 	route(fiber.MethodGet, "/messages", kit.Admin(h.List))
 	route(fiber.MethodPost, "/messages", kit.Admin(h.Store))
 	route(fiber.MethodGet, "/messages/registry", kit.Admin(h.Registry))

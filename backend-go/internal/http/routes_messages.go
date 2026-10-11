@@ -1,6 +1,8 @@
 package http
 
 import (
+	"time"
+
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
@@ -13,6 +15,7 @@ import (
 	"github.com/ritme/backend-go/internal/messages/conditionnudges"
 	"github.com/ritme/backend-go/internal/messages/menomessages"
 	"github.com/ritme/backend-go/internal/platform/clock"
+	"github.com/ritme/backend-go/internal/platform/ratelimit"
 )
 
 // Smart messages (backend/routes/api.php, prefix messages, auth:api).
@@ -25,6 +28,15 @@ func init() {
 
 		r.Get(p+"/daily", locale, guard, h.Daily)
 		r.Get(p+"/mode", locale, guard, h.Mode)
+
+		// Smart messages v2 (B-N9-05, D-86): the rule engine's selection for a placement and the event log
+		// (impression / click / dismiss / goal; per-user rate limit, ids and the event name only).
+		r.Get(p+"/selected", locale, guard, h.Selected)
+		events := func(c fiber.Ctx) error { return c.Next() }
+		if d.Cache != nil {
+			events = ratelimit.New(d.Cache, clock.Real{}).Named("message-events", 120, time.Minute, auth.ThrottleIdentity)
+		}
+		r.Post(p+"/events", locale, guard, events, h.Event)
 
 		// Heavy pain / heavy bleeding nudges of the condition programs (CB-COND-06b): Go-only, D-41.
 		nudges := conditionnudges.NewHandlers(d.DB, clock.Real{})

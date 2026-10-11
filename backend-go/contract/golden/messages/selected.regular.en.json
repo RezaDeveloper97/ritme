@@ -1,0 +1,25 @@
+{
+  "case": "messages/selected.regular.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/selected?placement=smart_tip",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "placement": "smart_tip",
+          "message": null
+        }
+      }
+    }
+  ]
+}
