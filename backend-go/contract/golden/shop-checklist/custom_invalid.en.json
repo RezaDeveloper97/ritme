@@ -1,0 +1,39 @@
+{
+  "case": "shop-checklist/custom_invalid.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/checklist/custom",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "group": "nope",
+          "state": "bogus"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "The given data was invalid",
+        "errors": {
+          "title": [
+            "The title field is required."
+          ],
+          "group": [
+            "The selected group is invalid."
+          ],
+          "state": [
+            "The selected status is invalid."
+          ]
+        }
+      }
+    }
+  ]
+}

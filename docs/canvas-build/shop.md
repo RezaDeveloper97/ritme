@@ -66,3 +66,18 @@ Package `backend-go/internal/shop/catalog` (sqlc queries `db/queries/shop/catalo
   over at most 1000 products per subtree (MVP catalog size).
 - Bought-together = products sharing orders (`shop_order_items`, no user column read), topped up with the category's
   best sellers.
+## Layette checklist + supply reminder API (CB-SHOP-04)
+
+Package `internal/shop/checklist`, routes `internal/http/routes_shop_checklist.go` (group `shop_checklist`), contract
+group `shop-checklist`. auth:api, teen-mode → 404.
+
+| route | role |
+|---|---|
+| `GET /api/v1/shop/checklist[?for_user_id=]` | template (active) + her state + custom rows, grouped `clothing`/`sleep`/`feeding`/`bath`/`outing` (unknown template groups after); `ready` = `have`, `total` excludes `not_needed`; `due_date`/`weeks_left` from the active pregnancy. Family share: a companion with a live `pregnancy` grant reads it (`read_only: true`, audited) |
+| `PUT /api/v1/shop/checklist/items/:id` | her state (+quantity) on a template item (template rows are never deleted, only `not_needed`) |
+| `POST/PATCH/DELETE /api/v1/shop/checklist/custom[/:id]` | her own rows (≤ 200); a body naming another account is 403 (share is read only) |
+| `GET/PUT /api/v1/shop/supply-reminder` | opt-in, **off by default**. On: the predicted next period start (cycle engine, cycle/TTC/no life mode only) → one care reminder in `reminders` (type `custom`, `meta.source = shop_supply`, discreet title «نگاهی به وسایل شخصی‌ات بینداز», `lead_days` before at 09:00 Tehran, not before today, none when the period is due/late). Off → the row is deleted and none is ever created. GET re-syncs it to the current prediction (rolls to the next cycle) |
+
+Health inputs (due date, prediction) and the companion check are injected interfaces wired in the routes file; the
+package imports no health package and logs no health data. `Service.SyncSupply` is exported for a future daily job.
+The «in transit → have» moves on order / delivery belong to CB-SHOP-03.

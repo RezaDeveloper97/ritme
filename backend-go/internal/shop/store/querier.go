@@ -12,16 +12,25 @@ import (
 type Querier interface {
 	BookDeliverySlot(ctx context.Context, arg BookDeliverySlotParams) (int64, error)
 	ClearCart(ctx context.Context, cartID uint64) error
+	CountActiveProduct(ctx context.Context, id uint64) (int64, error)
 	CountActiveVariantsByProduct(ctx context.Context, productID uint64) (int64, error)
 	CountPublishedReviews(ctx context.Context, productID uint64) (int64, error)
+	CountCustomChecklistItems(ctx context.Context, userID uint64) (int64, error)
 	CreateCart(ctx context.Context, arg CreateCartParams) (int64, error)
 	CreateOrderEvent(ctx context.Context, arg CreateOrderEventParams) (int64, error)
 	DecrementVariantStock(ctx context.Context, arg DecrementVariantStockParams) (int64, error)
 	DeleteCartItem(ctx context.Context, arg DeleteCartItemParams) error
+	DeleteCustomChecklistItem(ctx context.Context, arg DeleteCustomChecklistItemParams) (int64, error)
+	DeleteSupplyCareReminders(ctx context.Context, userID uint64) error
+	// The care reminder the supply opt-in created (meta.source = shop_supply). It lives in `reminders` like any other
+	// custom reminder, so GET /reminders lists it and the user can switch it off or delete it there.
+	FindSupplyCareReminder(ctx context.Context, userID uint64) (Reminder, error)
+	GetActiveLayetteItem(ctx context.Context, id uint64) (ShopLayetteItem, error)
 	GetAddressForUser(ctx context.Context, arg GetAddressForUserParams) (ShopAddress, error)
 	// Cart, addresses, delivery slots and pay-on-delivery orders (CB-SHOP-01). COD only in the MVP; every order row carries
 	// a recipient/address and item-title SNAPSHOT. No query here joins a health table.
 	GetCartByUser(ctx context.Context, userID uint64) (ShopCart, error)
+	GetCustomChecklistItem(ctx context.Context, arg GetCustomChecklistItemParams) (ShopUserChecklistItem, error)
 	GetOrderByCodeForUser(ctx context.Context, arg GetOrderByCodeForUserParams) (ShopOrder, error)
 	GetOrderForUser(ctx context.Context, arg GetOrderForUserParams) (ShopOrder, error)
 	// Internal shop catalog (CB-SHOP-01, on bloom's 00071): sellers, sub-categories, variants and verified-purchase reviews.
@@ -33,6 +42,8 @@ type Querier interface {
 	// "Catalog product" = an internal product: active, in an active category, with at least one active variant, and no
 	// inactive seller. Link-out rows (no variants) stay on bloom's /shop/products (internal/shop). No health table here.
 	ListActiveCategories(ctx context.Context) ([]ShopCategory, error)
+	InsertCustomChecklistItem(ctx context.Context, arg InsertCustomChecklistItemParams) (int64, error)
+	InsertSupplyCareReminder(ctx context.Context, arg InsertSupplyCareReminderParams) (int64, error)
 	// Layette checklist template + the user's own checklist state, and the period-supply reminder opt-in (CB-SHOP-01).
 	// The reminder's timing comes from cycle predictions through a Go interface; no query here joins a health table.
 	ListActiveLayetteItems(ctx context.Context) ([]ShopLayetteItem, error)
@@ -45,6 +56,9 @@ type Querier interface {
 	ListCartItems(ctx context.Context, cartID uint64) ([]ShopCartItem, error)
 	ListCatalogProductsByIDs(ctx context.Context, ids []uint64) ([]ShopProduct, error)
 	ListCatalogProductsInCategories(ctx context.Context, arg ListCatalogProductsInCategoriesParams) ([]ShopProduct, error)
+	// ---------------------------------------------------------------- CB-SHOP-04: checklist API + supply reminder
+	// The active template with the slug of its «see» category (an inactive category → no link).
+	ListLayetteTemplate(ctx context.Context) ([]ListLayetteTemplateRow, error)
 	ListOpenDeliverySlots(ctx context.Context, arg ListOpenDeliverySlotsParams) ([]ShopDeliverySlot, error)
 	ListOrderEvents(ctx context.Context, orderID uint64) ([]ShopOrderEvent, error)
 	ListOrderItemsByOrder(ctx context.Context, orderID uint64) ([]ShopOrderItem, error)
@@ -58,6 +72,9 @@ type Querier interface {
 	ListUserChecklistItems(ctx context.Context, userID uint64) ([]ShopUserChecklistItem, error)
 	RefreshProductRating(ctx context.Context, id uint64) error
 	SetUserChecklistState(ctx context.Context, arg SetUserChecklistStateParams) error
+	UpdateCustomChecklistItem(ctx context.Context, arg UpdateCustomChecklistItemParams) (int64, error)
+	// Moves the reminder to the current prediction; the user's own switch (is_active) stays.
+	UpdateSupplyCareReminder(ctx context.Context, arg UpdateSupplyCareReminderParams) error
 	UpsertCartItem(ctx context.Context, arg UpsertCartItemParams) error
 	UpsertSupplyReminder(ctx context.Context, arg UpsertSupplyReminderParams) error
 }

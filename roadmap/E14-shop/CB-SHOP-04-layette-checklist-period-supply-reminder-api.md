@@ -3,7 +3,7 @@ id: CB-SHOP-04
 title: Layette checklist + period-supply reminder API
 epic: SHOP
 type: backend
-status: todo
+status: done
 depends_on: [CB-SHOP-01]
 parallel_group: SHOP-C
 touches: [backend-go/internal/shop/checklist, backend-go/internal/http/routes_shop.go, backend-go/db/queries/shop, backend-go/api/openapi.yaml]

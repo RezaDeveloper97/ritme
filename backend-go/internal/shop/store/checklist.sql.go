@@ -8,7 +8,140 @@ package store
 import (
 	"context"
 	"database/sql"
+
+	"github.com/ritme/backend-go/db"
 )
+
+const countActiveProduct = `-- name: CountActiveProduct :one
+SELECT COUNT(*) FROM ` + "`" + `shop_products` + "`" + ` WHERE id = ? AND is_active = 1
+`
+
+func (q *Queries) CountActiveProduct(ctx context.Context, id uint64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countActiveProduct, id)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countCustomChecklistItems = `-- name: CountCustomChecklistItems :one
+SELECT COUNT(*) FROM ` + "`" + `shop_user_checklist_items` + "`" + ` WHERE user_id = ? AND layette_item_id IS NULL
+`
+
+func (q *Queries) CountCustomChecklistItems(ctx context.Context, userID uint64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countCustomChecklistItems, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const deleteCustomChecklistItem = `-- name: DeleteCustomChecklistItem :execrows
+DELETE FROM ` + "`" + `shop_user_checklist_items` + "`" + ` WHERE id = ? AND user_id = ? AND layette_item_id IS NULL
+`
+
+type DeleteCustomChecklistItemParams struct {
+	ID     uint64
+	UserID uint64
+}
+
+func (q *Queries) DeleteCustomChecklistItem(ctx context.Context, arg DeleteCustomChecklistItemParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteCustomChecklistItem, arg.ID, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const deleteSupplyCareReminders = `-- name: DeleteSupplyCareReminders :exec
+DELETE FROM ` + "`" + `reminders` + "`" + `
+WHERE user_id = ? AND ` + "`" + `type` + "`" + ` = 'custom' AND JSON_UNQUOTE(JSON_EXTRACT(meta, '$.source')) = 'shop_supply'
+`
+
+func (q *Queries) DeleteSupplyCareReminders(ctx context.Context, userID uint64) error {
+	_, err := q.db.ExecContext(ctx, deleteSupplyCareReminders, userID)
+	return err
+}
+
+const findSupplyCareReminder = `-- name: FindSupplyCareReminder :one
+SELECT id, user_id, type, title, subtitle, notes, scheduled_at, recurrence, recurrence_time, starts_on, ends_on, is_active, meta, created_at, updated_at FROM ` + "`" + `reminders` + "`" + `
+WHERE user_id = ? AND ` + "`" + `type` + "`" + ` = 'custom' AND JSON_UNQUOTE(JSON_EXTRACT(meta, '$.source')) = 'shop_supply'
+ORDER BY id LIMIT 1
+`
+
+// The care reminder the supply opt-in created (meta.source = shop_supply). It lives in `reminders` like any other
+// custom reminder, so GET /reminders lists it and the user can switch it off or delete it there.
+func (q *Queries) FindSupplyCareReminder(ctx context.Context, userID uint64) (Reminder, error) {
+	row := q.db.QueryRowContext(ctx, findSupplyCareReminder, userID)
+	var i Reminder
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Type,
+		&i.Title,
+		&i.Subtitle,
+		&i.Notes,
+		&i.ScheduledAt,
+		&i.Recurrence,
+		&i.RecurrenceTime,
+		&i.StartsOn,
+		&i.EndsOn,
+		&i.IsActive,
+		&i.Meta,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getActiveLayetteItem = `-- name: GetActiveLayetteItem :one
+SELECT id, group_key, title, note, suggested_qty, is_essential, is_first_days, category_id, sort_order, is_active, created_at, updated_at FROM ` + "`" + `shop_layette_items` + "`" + ` WHERE id = ? AND is_active = 1 LIMIT 1
+`
+
+func (q *Queries) GetActiveLayetteItem(ctx context.Context, id uint64) (ShopLayetteItem, error) {
+	row := q.db.QueryRowContext(ctx, getActiveLayetteItem, id)
+	var i ShopLayetteItem
+	err := row.Scan(
+		&i.ID,
+		&i.GroupKey,
+		&i.Title,
+		&i.Note,
+		&i.SuggestedQty,
+		&i.IsEssential,
+		&i.IsFirstDays,
+		&i.CategoryID,
+		&i.SortOrder,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getCustomChecklistItem = `-- name: GetCustomChecklistItem :one
+SELECT id, user_id, layette_item_id, custom_title, group_key, state, quantity, sort_order, created_at, updated_at FROM ` + "`" + `shop_user_checklist_items` + "`" + ` WHERE id = ? AND user_id = ? AND layette_item_id IS NULL LIMIT 1
+`
+
+type GetCustomChecklistItemParams struct {
+	ID     uint64
+	UserID uint64
+}
+
+func (q *Queries) GetCustomChecklistItem(ctx context.Context, arg GetCustomChecklistItemParams) (ShopUserChecklistItem, error) {
+	row := q.db.QueryRowContext(ctx, getCustomChecklistItem, arg.ID, arg.UserID)
+	var i ShopUserChecklistItem
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.LayetteItemID,
+		&i.CustomTitle,
+		&i.GroupKey,
+		&i.State,
+		&i.Quantity,
+		&i.SortOrder,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
 
 const getSupplyReminder = `-- name: GetSupplyReminder :one
 SELECT user_id, is_enabled, lead_days, product_id, created_at, updated_at FROM ` + "`" + `shop_supply_reminders` + "`" + ` WHERE user_id = ? LIMIT 1
@@ -26,6 +159,68 @@ func (q *Queries) GetSupplyReminder(ctx context.Context, userID uint64) (ShopSup
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const insertCustomChecklistItem = `-- name: InsertCustomChecklistItem :execlastid
+INSERT INTO ` + "`" + `shop_user_checklist_items` + "`" + ` (` + "`" + `user_id` + "`" + `, ` + "`" + `layette_item_id` + "`" + `, ` + "`" + `custom_title` + "`" + `, ` + "`" + `group_key` + "`" + `, ` + "`" + `state` + "`" + `, ` + "`" + `quantity` + "`" + `,
+  ` + "`" + `sort_order` + "`" + `, ` + "`" + `created_at` + "`" + `, ` + "`" + `updated_at` + "`" + `)
+VALUES (?, NULL, ?, ?, ?, ?, 0,
+  ?, ?)
+`
+
+type InsertCustomChecklistItemParams struct {
+	UserID      uint64
+	CustomTitle sql.NullString
+	GroupKey    string
+	State       string
+	Quantity    sql.NullInt16
+	Now         sql.NullTime
+}
+
+func (q *Queries) InsertCustomChecklistItem(ctx context.Context, arg InsertCustomChecklistItemParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, insertCustomChecklistItem,
+		arg.UserID,
+		arg.CustomTitle,
+		arg.GroupKey,
+		arg.State,
+		arg.Quantity,
+		arg.Now,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
+const insertSupplyCareReminder = `-- name: InsertSupplyCareReminder :execlastid
+INSERT INTO ` + "`" + `reminders` + "`" + ` (user_id, ` + "`" + `type` + "`" + `, title, subtitle, notes, scheduled_at, recurrence, recurrence_time, starts_on,
+  ends_on, is_active, meta, created_at, updated_at)
+VALUES (?, 'custom', ?, NULL, NULL, ?, 'none', NULL, NULL, NULL, 1,
+  ?, ?, ?)
+`
+
+type InsertSupplyCareReminderParams struct {
+	UserID      uint64
+	Title       string
+	ScheduledAt sql.NullTime
+	Meta        db.NullRawJSON
+	Now         sql.NullTime
+}
+
+func (q *Queries) InsertSupplyCareReminder(ctx context.Context, arg InsertSupplyCareReminderParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, insertSupplyCareReminder,
+		arg.UserID,
+		arg.Title,
+		arg.ScheduledAt,
+		arg.Meta,
+		arg.Now,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
 const listActiveLayetteItems = `-- name: ListActiveLayetteItems :many
@@ -57,6 +252,63 @@ func (q *Queries) ListActiveLayetteItems(ctx context.Context) ([]ShopLayetteItem
 			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listLayetteTemplate = `-- name: ListLayetteTemplate :many
+
+SELECT l.id, l.group_key, l.title, l.note, l.suggested_qty, l.is_essential, l.is_first_days, l.sort_order,
+  c.slug AS category_slug
+FROM ` + "`" + `shop_layette_items` + "`" + ` l
+LEFT JOIN ` + "`" + `shop_categories` + "`" + ` c ON c.id = l.category_id AND c.is_active = 1
+WHERE l.is_active = 1
+ORDER BY l.group_key, l.sort_order, l.id
+`
+
+type ListLayetteTemplateRow struct {
+	ID           uint64
+	GroupKey     string
+	Title        string
+	Note         sql.NullString
+	SuggestedQty sql.NullInt16
+	IsEssential  bool
+	IsFirstDays  bool
+	SortOrder    int32
+	CategorySlug sql.NullString
+}
+
+// ---------------------------------------------------------------- CB-SHOP-04: checklist API + supply reminder
+// The active template with the slug of its «see» category (an inactive category → no link).
+func (q *Queries) ListLayetteTemplate(ctx context.Context) ([]ListLayetteTemplateRow, error) {
+	rows, err := q.db.QueryContext(ctx, listLayetteTemplate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListLayetteTemplateRow{}
+	for rows.Next() {
+		var i ListLayetteTemplateRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.GroupKey,
+			&i.Title,
+			&i.Note,
+			&i.SuggestedQty,
+			&i.IsEssential,
+			&i.IsFirstDays,
+			&i.SortOrder,
+			&i.CategorySlug,
 		); err != nil {
 			return nil, err
 		}
@@ -135,6 +387,64 @@ func (q *Queries) SetUserChecklistState(ctx context.Context, arg SetUserChecklis
 		arg.Quantity,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+	)
+	return err
+}
+
+const updateCustomChecklistItem = `-- name: UpdateCustomChecklistItem :execrows
+UPDATE ` + "`" + `shop_user_checklist_items` + "`" + `
+SET ` + "`" + `custom_title` + "`" + ` = ?, ` + "`" + `group_key` + "`" + ` = ?, ` + "`" + `state` + "`" + ` = ?,
+  ` + "`" + `quantity` + "`" + ` = ?, ` + "`" + `updated_at` + "`" + ` = ?
+WHERE id = ? AND user_id = ? AND layette_item_id IS NULL
+`
+
+type UpdateCustomChecklistItemParams struct {
+	CustomTitle sql.NullString
+	GroupKey    string
+	State       string
+	Quantity    sql.NullInt16
+	Now         sql.NullTime
+	ID          uint64
+	UserID      uint64
+}
+
+func (q *Queries) UpdateCustomChecklistItem(ctx context.Context, arg UpdateCustomChecklistItemParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateCustomChecklistItem,
+		arg.CustomTitle,
+		arg.GroupKey,
+		arg.State,
+		arg.Quantity,
+		arg.Now,
+		arg.ID,
+		arg.UserID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const updateSupplyCareReminder = `-- name: UpdateSupplyCareReminder :exec
+UPDATE ` + "`" + `reminders` + "`" + ` SET title = ?, scheduled_at = ?, updated_at = ?
+WHERE id = ? AND user_id = ?
+`
+
+type UpdateSupplyCareReminderParams struct {
+	Title       string
+	ScheduledAt sql.NullTime
+	Now         sql.NullTime
+	ID          uint64
+	UserID      uint64
+}
+
+// Moves the reminder to the current prediction; the user's own switch (is_active) stays.
+func (q *Queries) UpdateSupplyCareReminder(ctx context.Context, arg UpdateSupplyCareReminderParams) error {
+	_, err := q.db.ExecContext(ctx, updateSupplyCareReminder,
+		arg.Title,
+		arg.ScheduledAt,
+		arg.Now,
+		arg.ID,
+		arg.UserID,
 	)
 	return err
 }

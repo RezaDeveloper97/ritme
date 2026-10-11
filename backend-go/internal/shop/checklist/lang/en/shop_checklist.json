@@ -1,0 +1,36 @@
+{
+    "messages": {
+        "validation_failed": "The given data was invalid",
+        "item_not_found": "Item not found",
+        "saved": "Saved",
+        "item_added": "Item added",
+        "deleted": "Deleted",
+        "supply_on": "Reminder on",
+        "supply_off": "Reminder off",
+        "companion_forbidden": "You don't have permission to do this for that account."
+    },
+    "validation": {
+        "for_user_invalid": "The account is not valid.",
+        "too_many_items": "Your list holds at most 200 items of your own.",
+        "product_invalid": "This product is not available."
+    },
+    "attributes": {
+        "state": "status",
+        "quantity": "quantity",
+        "title": "title",
+        "group": "group",
+        "enabled": "reminder",
+        "lead_days": "days before",
+        "product_id": "product"
+    },
+    "groups": {
+        "clothing": "Clothing",
+        "sleep": "Sleep",
+        "feeding": "Feeding",
+        "bath": "Bath",
+        "outing": "Going out"
+    },
+    "reminder": {
+        "title": "Check your personal supplies"
+    }
+}

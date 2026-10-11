@@ -1,0 +1,59 @@
+# Layette checklist + period-supply reminder (/api/v1/shop/checklist*, /api/v1/shop/supply-reminder) — Go only
+# (CB-SHOP-04): there is no Laravel route, so these goldens were recorded from the Go server and reviewed by hand
+# (new-endpoint skill, step 8). The fixture has no layette template rows (admin data, CB-SHOP-05) and nobody opted in
+# to the supply reminder. Template states, custom rows, IDOR, the family share, the care reminder on / off and teen
+# exclusion are covered by internal/shop/checklist/checklist_int_test.go and internal/http/shop_checklist_int_test.go.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: shop-checklist
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: checklist
+    doc: Empty template, no pregnancy → no groups, zero counts, null due date
+    locales: [none, en]
+    method: GET
+    path: /api/v1/shop/checklist
+    status: 200
+  - name: checklist_anon
+    persona: anon
+    method: GET
+    path: /api/v1/shop/checklist
+    status: 401
+  - name: checklist_share_forbidden
+    doc: for_user_id of an account that granted the caller nothing → 403 companion_forbidden
+    method: GET
+    path: /api/v1/shop/checklist
+    query: {for_user_id: "1005"}
+    status: 403
+  - name: checklist_share_invalid
+    method: GET
+    path: /api/v1/shop/checklist
+    query: {for_user_id: abc}
+    status: 422
+  - name: item_missing
+    method: PUT
+    path: /api/v1/shop/checklist/items/999
+    body: {state: have}
+    status: 404
+  - name: custom_invalid
+    locales: [none, en]
+    method: POST
+    path: /api/v1/shop/checklist/custom
+    body: {group: nope, state: bogus}
+    status: 422
+  - name: custom_missing
+    method: PATCH
+    path: /api/v1/shop/checklist/custom/999
+    body: {state: have}
+    status: 404
+  - name: supply_reminder
+    doc: Off by default (no row) → default lead days, no reminder day
+    method: GET
+    path: /api/v1/shop/supply-reminder
+    status: 200
+  - name: supply_reminder_invalid
+    method: PUT
+    path: /api/v1/shop/supply-reminder
+    body: {lead_days: 9}
+    status: 422

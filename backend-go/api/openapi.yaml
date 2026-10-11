@@ -13879,6 +13879,243 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/ShopNotFound"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/shop/checklist:
+    get:
+      tags: [Shop]
+      summary: Layette checklist
+      description: |
+        Go only (CB-SHOP-04). The admin layette template (active items, grouped clothing / sleep / feeding / bath /
+        outing, then any other group) merged with the caller's own state per item, plus her custom rows. `ready` counts
+        `have`; `total` excludes `not_needed`. `due_date` / `weeks_left` come from the active pregnancy (null when not
+        pregnant or not dated). Family share: `for_user_id` names the owner; a companion with a live `pregnancy` grant
+        (view or edit) reads her list with `read_only: true` (audited); anyone else gets 403 companion_forbidden. 404
+        for a teen-mode account (no shop).
+      operationId: getShopChecklist
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: for_user_id, in: query, required: false, schema: {type: integer, minimum: 1}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [due_date, weeks_left, read_only, summary, groups]
+                    properties:
+                      due_date: {type: [string, "null"], format: date}
+                      weeks_left: {type: [integer, "null"]}
+                      read_only: {type: boolean}
+                      summary:
+                        type: object
+                        required: [ready, total, not_needed, percent]
+                        properties:
+                          ready: {type: integer}
+                          total: {type: integer}
+                          not_needed: {type: integer}
+                          percent: {type: integer}
+                      groups:
+                        type: array
+                        items:
+                          type: object
+                          required: [key, title, ready, total, items]
+                          properties:
+                            key: {type: string}
+                            title: {type: string}
+                            ready: {type: integer}
+                            total: {type: integer}
+                            items:
+                              type: array
+                              items: {$ref: "#/components/schemas/ShopChecklistItem"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/CompanionForbidden"}
+        '404': {$ref: "#/components/responses/ShopChecklistNotFound"}
+        '422': {$ref: "#/components/responses/ShopChecklistValidationFailed"}
+        '429': {$ref: "#/components/responses/CompanionThrottled"}
+  /api/v1/shop/checklist/custom:
+    post:
+      tags: [Shop]
+      summary: Add a custom checklist item
+      description: |
+        Go only (CB-SHOP-04). Her own row in one of the known groups (at most 200). `state` defaults to `todo`. The
+        family share is read only: a body naming another account in `for_user_id` is 403.
+      operationId: storeShopChecklistCustom
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ShopChecklistCustomInput"}
+      responses:
+        '201':
+          description: Added
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ShopChecklistItemEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/CompanionForbidden"}
+        '404': {$ref: "#/components/responses/ShopChecklistNotFound"}
+        '422': {$ref: "#/components/responses/ShopChecklistValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/shop/checklist/custom/{id}:
+    patch:
+      tags: [Shop]
+      summary: Update a custom checklist item
+      description: Go only (CB-SHOP-04). Partial update of her own row; someone else's row is 404.
+      operationId: updateShopChecklistCustom
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ShopChecklistCustomInput"}
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ShopChecklistItemEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/CompanionForbidden"}
+        '404': {$ref: "#/components/responses/ShopChecklistNotFound"}
+        '422': {$ref: "#/components/responses/ShopChecklistValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Shop]
+      summary: Delete a custom checklist item
+      description: Go only (CB-SHOP-04). Template items are not deleted, only marked `not_needed`.
+      operationId: deleteShopChecklistCustom
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ShopChecklistNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/shop/checklist/items/{id}:
+    put:
+      tags: [Shop]
+      summary: Set her state on a template item
+      description: Go only (CB-SHOP-04). `id` is the layette template item; an inactive or unknown item is 404.
+      operationId: setShopChecklistItemState
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [state]
+              properties:
+                state: {$ref: "#/components/schemas/ShopChecklistState"}
+                quantity: {type: [integer, "null"], minimum: 0, maximum: 99}
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [layette_item_id, state, quantity]
+                    properties:
+                      layette_item_id: {type: integer}
+                      state: {$ref: "#/components/schemas/ShopChecklistState"}
+                      quantity: {type: [integer, "null"]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/CompanionForbidden"}
+        '404': {$ref: "#/components/responses/ShopChecklistNotFound"}
+        '422': {$ref: "#/components/responses/ShopChecklistValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/shop/supply-reminder:
+    get:
+      tags: [Shop]
+      summary: Period-supply reminder opt-in
+      description: |
+        Go only (CB-SHOP-04, nbd_Shop_Beauty). Off by default. When on, the only health input is the predicted next
+        period start: one care reminder (`reminders`, type custom, discreet title) is kept `lead_days` before it at
+        09:00 Tehran, and this read re-syncs it to the current prediction. `remind_on` is its day (null when off or
+        without a prediction). Nothing reaches a seller. 404 for a teen-mode account.
+      operationId: getShopSupplyReminder
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The opt-in
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ShopSupplyReminderEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ShopChecklistNotFound"}
+    put:
+      tags: [Shop]
+      summary: Save the period-supply reminder opt-in
+      description: |
+        Go only (CB-SHOP-04). `enabled` is required; omitted `lead_days` / `product_id` keep their value. Off deletes
+        the care reminder it created and never creates one; on creates or moves exactly one.
+      operationId: updateShopSupplyReminder
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled: {type: boolean}
+                lead_days: {type: integer, minimum: 1, maximum: 7}
+                product_id: {type: [integer, "null"], minimum: 1}
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ShopSupplyReminderEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ShopChecklistNotFound"}
+        '422': {$ref: "#/components/responses/ShopChecklistValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   # CB-SHOP-02: internal catalog read API (Go only, on CB-SHOP-01's 00080 schema). bloom's link-out routes above are
   # unchanged except that /shop/categories lists root categories only.
   /api/v1/shop/catalog/home:
@@ -23309,6 +23546,29 @@ components:
             required: [success, message]
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: چکاپ پیدا نشد}
+    ShopChecklistNotFound:
+      description: "CB-SHOP-04: unknown / inactive template item, a custom row that is not the caller's, or a teen-mode account (no shop)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+    ShopChecklistValidationFailed:
+      description: "CB-SHOP-04 validation failed (controller 422 `{success: false, message, errors}`)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
     ShopNotFound:
       description: "Unknown or inactive category/product, a product without a link-out (click), or a teen-mode account"
       content:
@@ -23534,6 +23794,56 @@ components:
         title: {type: string}
         icon: {type: string, nullable: true}
         product_count: {type: integer}
+    ShopChecklistState:
+      type: string
+      enum: [todo, have, in_cart, on_the_way, not_needed, later]
+    ShopChecklistItem:
+      type: object
+      required: [id, layette_item_id, is_custom, title, note, suggested_qty, is_essential, is_first_days, category_slug, state, quantity]
+      properties:
+        id: {type: [integer, "null"], description: "Her row id (null for a template item she never touched)"}
+        layette_item_id: {type: [integer, "null"], description: "Template item id (null for a custom row)"}
+        is_custom: {type: boolean}
+        title: {type: string}
+        note: {type: [string, "null"]}
+        suggested_qty: {type: [integer, "null"]}
+        is_essential: {type: boolean}
+        is_first_days: {type: boolean}
+        category_slug: {type: [string, "null"], description: "The «see» shop category"}
+        state: {$ref: "#/components/schemas/ShopChecklistState"}
+        quantity: {type: [integer, "null"]}
+    ShopChecklistCustomInput:
+      type: object
+      properties:
+        title: {type: string, maxLength: 120}
+        group: {type: string, enum: [clothing, sleep, feeding, bath, outing]}
+        state: {$ref: "#/components/schemas/ShopChecklistState"}
+        quantity: {type: [integer, "null"], minimum: 0, maximum: 99}
+    ShopChecklistItemEnvelope:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: {type: boolean}
+        message: {type: string}
+        data:
+          type: object
+          required: [item]
+          properties:
+            item: {$ref: "#/components/schemas/ShopChecklistItem"}
+    ShopSupplyReminderEnvelope:
+      type: object
+      required: [success, data]
+      properties:
+        success: {type: boolean}
+        message: {type: string}
+        data:
+          type: object
+          required: [enabled, lead_days, product_id, remind_on]
+          properties:
+            enabled: {type: boolean}
+            lead_days: {type: integer}
+            product_id: {type: [integer, "null"]}
+            remind_on: {type: [string, "null"], format: date}
     ShopProduct:
       type: object
       required: [id, category, title, image_url, price_text, badge, partner_label, link_url]

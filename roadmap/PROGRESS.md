@@ -531,3 +531,9 @@ TODO (ask user):
 - OpenAPI (4 paths, 7 ShopCatalog* schemas), dump.sql (00080 tables + fixtures), contract 13 cases / 16 goldens (`make contract ROUTES=shop` 23/0), data shape for SHOP-05 in docs/canvas-build/shop.md.
 - Verify (agent): vet, golangci-lint, go test, int (shop/..., http Shop|Teen). On stage: go build OK.
 - TODO (ask user): permanent contract `record-go` mode? teen 403 on catalog vs bloom link-out 404/empty? invalid query params ignored (no 422)? TeenCommercialBlocked description still about Plus.
+
+## CB-SHOP-04 — Layette checklist + period-supply reminder API
+- New `internal/shop/checklist` + routes_shop_checklist.go: GET /shop/checklist[?for_user_id=], PUT /checklist/items/:id, custom items CRUD (≤200), GET/PUT /shop/supply-reminder. Template + own state + custom rows; groups clothing/sleep/feeding/bath/outing; due date/weeks left from active pregnancy; teen → 404. Family sharing reuses companion grants (`pregnancy` grant → read-only, audited; foreign writes 403).
+- Supply reminder: off by default; only input = predicted next period (cycle/TTC/no mode); one care reminder (`custom`, meta.source=shop_supply) lead_days (1–7, def 3) before at 09:00 Tehran; discreet title (tested); off deletes it; GET re-syncs. Package imports no health package (interfaces injected); nothing logged; IDOR-tested.
+- Landing: openapi.yaml union-merge broke YAML → rebuilt from stage + SHOP-04's added blocks; on stage `-run 'OpenAPI|TestShop'` int green, shop unit green, sqlc regen clean.
+- TODO (ask user): no layette template seed (admin, SHOP-05); no daily scheduler — `SyncSupply` exported for a job; reminder found via meta.source (deleted in reminders → recreated while opt-in on; FK column needs migration); auto "on the way"→"have" belongs to SHOP-03; product_id stored, unused.

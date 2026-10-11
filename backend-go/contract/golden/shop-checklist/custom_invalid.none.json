@@ -1,0 +1,38 @@
+{
+  "case": "shop-checklist/custom_invalid.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/checklist/custom",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "group": "nope",
+          "state": "bogus"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست",
+        "errors": {
+          "title": [
+            "فیلد عنوان الزامی است."
+          ],
+          "group": [
+            "دسته انتخاب‌شده معتبر نیست."
+          ],
+          "state": [
+            "وضعیت انتخاب‌شده معتبر نیست."
+          ]
+        }
+      }
+    }
+  ]
+}

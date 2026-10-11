@@ -1,0 +1,36 @@
+{
+    "messages": {
+        "validation_failed": "اطلاعات واردشده معتبر نیست",
+        "item_not_found": "این مورد پیدا نشد",
+        "saved": "ذخیره شد",
+        "item_added": "مورد اضافه شد",
+        "deleted": "حذف شد",
+        "supply_on": "یادآور روشن شد",
+        "supply_off": "یادآور خاموش شد",
+        "companion_forbidden": "اجازه انجام این کار برای این حساب را نداری."
+    },
+    "validation": {
+        "for_user_invalid": "حساب معتبر نیست.",
+        "too_many_items": "لیستت حداکثر ۲۰۰ مورد از خودت را جا می‌دهد.",
+        "product_invalid": "این کالا در دسترس نیست."
+    },
+    "attributes": {
+        "state": "وضعیت",
+        "quantity": "تعداد",
+        "title": "عنوان",
+        "group": "دسته",
+        "enabled": "یادآور",
+        "lead_days": "چند روز قبل",
+        "product_id": "کالا"
+    },
+    "groups": {
+        "clothing": "لباس",
+        "sleep": "خواب",
+        "feeding": "تغذیه",
+        "bath": "حمام",
+        "outing": "بیرون رفتن"
+    },
+    "reminder": {
+        "title": "نگاهی به وسایل شخصی‌ات بینداز"
+    }
+}
