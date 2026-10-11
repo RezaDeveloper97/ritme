@@ -302,5 +302,129 @@
       "empty": "You have no open claims.",
       "needsAction": "Waiting on documents from you"
     }
+  },
+  "claims": {
+    "title": "Claims",
+    "add": "Add a claim",
+    "loading": "Loading claims",
+    "error": "Couldn't load your claims.",
+    "statsLabel": "Claim totals this policy year",
+    "requested": "Requested",
+    "paid": "Paid",
+    "needsAction": "Needs action",
+    "needsActionCount": "{count, plural, =0 {None} one {1 claim} other {# claims}}",
+    "search": "Search your claims",
+    "clear": "Clear",
+    "filters": "Filter by status",
+    "filter": {
+      "all": "All",
+      "open": "In review",
+      "paid": "Paid",
+      "rejected": "Rejected"
+    },
+    "empty": "No claims yet",
+    "emptyHint": "Add any medical expense and follow it yourself, step by step.",
+    "noMatch": "No claim matches your search.",
+    "selfTrack": "These claims are your own record. Ritme doesn't send them to an insurer; follow each one up with the insurer itself."
+  },
+  "claimNew": {
+    "title": "Add a claim",
+    "who": "For whom?",
+    "costType": "Type of expense",
+    "details": "Expense details",
+    "centre": "Medical centre",
+    "centrePlaceholder": "Name of the centre or doctor",
+    "date": "Date",
+    "amount": "Invoice amount (toman)",
+    "docs": "Documents",
+    "fromRecord": "From my record",
+    "slots": {
+      "prescription": "Prescription",
+      "invoice": "Stamped invoice",
+      "report": "Report",
+      "other": "Other document"
+    },
+    "slotHints": {
+      "prescription": "From your record or a photo",
+      "invoice": "Take a photo of the stamped invoice",
+      "report": "From your health record"
+    },
+    "attached": "Attached",
+    "add": "Add",
+    "removeDoc": "Remove document",
+    "iban": "Payout account",
+    "ibanMask": "IR•• •••• {tail}",
+    "selfTrack": "This only records the claim for you to follow. Nothing is sent to an insurer. Send the documents to the insurer yourself.",
+    "submit": "Save the claim",
+    "cancel": "Cancel",
+    "done": "Done",
+    "saveError": "Couldn't save the claim. Try again.",
+    "noPolicy": "Add your policy first to record claims.",
+    "problems": {
+      "amount": "Enter the invoice amount."
+    }
+  },
+  "claim": {
+    "title": "Claim details",
+    "error": "Couldn't load this claim.",
+    "payableLabel": "Payable (estimate)",
+    "paidLabel": "Paid",
+    "invoice": "Invoice amount",
+    "overTariff": "Above the contract tariff",
+    "deductible": "Deductible {pct}%",
+    "yourShare": "Your share",
+    "estimateHint": "An estimate from the deductible you entered in your policy. The insurer decides the final amount.",
+    "cappedHint": "The estimate is limited by what's left of the cap in your policy.",
+    "unknownHint": "Add this cost type's deductible to your policy to see an estimate.",
+    "missingTitle": "Documents missing",
+    "docsTitle": "Documents",
+    "missingDefault": "Add the missing documents from your health record.",
+    "stepOn": "Your step on {date}:",
+    "pickFromRecord": "Pick from my health record",
+    "attachDoc": "Attach a document",
+    "detach": "Remove from this claim",
+    "labels": {
+      "prescription": "Prescription",
+      "invoice": "Invoice",
+      "report": "Report",
+      "other": "Other"
+    },
+    "flowTitle": "Progress",
+    "flowLabel": "Claim progress",
+    "state": {
+      "done": "Done",
+      "current": "Current step",
+      "todo": "Next"
+    },
+    "payHint": "Usually 7 working days after the documents are complete",
+    "deadlineUntil": "Deadline {date}",
+    "advance": "Record the next step",
+    "stepTitle": "Record a step",
+    "appealTitle": "Dispute the result",
+    "stepHint": "Record what the insurer told you. This is your own timeline and isn't sent anywhere.",
+    "stepStatus": "Step",
+    "paidAmount": "Amount paid (toman)",
+    "stepNote": "Note (optional)",
+    "appealNote": "Why you disagree (optional)",
+    "appeal": "Dispute the result",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saveError": "Couldn't save. Try again.",
+    "problems": {
+      "amount": "Enter the amount that was paid."
+    },
+    "delete": "Delete this claim",
+    "deleteAsk": "Delete this claim and its timeline? The documents stay in your health record.",
+    "deleteYes": "Delete",
+    "selfTrack": "You keep this timeline yourself. Ritme doesn't send anything to an insurer."
+  },
+  "docPicker": {
+    "title": "From my health record",
+    "hint": "Choose a document from your record or add a new one with the camera. It stays in your account.",
+    "camera": "Add with the camera",
+    "empty": "Your record has no documents yet.",
+    "error": "Couldn't load your documents.",
+    "retry": "Try again",
+    "taken": "Attached"
   }
 }

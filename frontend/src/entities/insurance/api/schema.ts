@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 import type {
   ClaimStatus,
+  ClaimDocLabel,
+  InsuranceClaimDetail,
   CoverageStatus,
   InsuranceClaimsSummary,
   InsuranceCentre,
@@ -139,35 +141,114 @@ export const insurersSchema = z
   .object({ insurers: z.array(z.object({ id: z.number(), name: z.string() })) })
   .transform((v): InsurerOption[] => v.insurers.map((i) => ({ id: i.id, name: i.name })));
 
+const statusEnum = z.enum(['submitted', 'reviewing', 'docs_requested', 'paid', 'rejected', 'appealed']).catch('submitted');
+
+const claimBase = z.object({
+  id: z.number(),
+  title: nstr,
+  cost_type: z.string(),
+  member: z.object({ name: z.string() }).nullish(),
+  centre_name: nstr,
+  service_date: z.string(),
+  amount: z.number(),
+  over_tariff: z.number().catch(0),
+  paid_amount: nint,
+  status: statusEnum,
+  needs_action: z.boolean().catch(false),
+  deadline_on: nstr,
+});
+
+const rowOf = (c: z.infer<typeof claimBase>) => ({
+  id: c.id,
+  title: c.title,
+  costType: c.cost_type,
+  memberName: c.member?.name ?? null,
+  serviceDate: c.service_date,
+  amount: c.amount,
+  paidAmount: c.paid_amount,
+  status: c.status as ClaimStatus,
+  needsAction: c.needs_action,
+});
+
 export const claimsSchema = z
   .object({
-    claims: z.array(
-      z.object({
-        id: z.number(),
-        title: nstr,
-        cost_type: z.string(),
-        member: z.object({ name: z.string() }).nullish(),
-        service_date: z.string(),
-        amount: z.number(),
-        paid_amount: nint,
-        status: z.enum(['submitted', 'reviewing', 'docs_requested', 'paid', 'rejected', 'appealed']).catch('submitted'),
-        needs_action: z.boolean().catch(false),
-      }),
-    ),
+    claims: z.array(claimBase),
+    totals: z
+      .object({ requested: z.number().catch(0), paid: z.number().catch(0), count: z.number().catch(0) })
+      .catch({ requested: 0, paid: 0, count: 0 }),
   })
   .transform(
     (v): InsuranceClaimsSummary => ({
       needsAction: v.claims.filter((c) => c.needs_action).length,
-      claims: v.claims.map((c) => ({
-        id: c.id,
-        title: c.title,
-        costType: c.cost_type,
-        memberName: c.member?.name ?? null,
-        serviceDate: c.service_date,
-        amount: c.amount,
-        paidAmount: c.paid_amount,
-        status: c.status as ClaimStatus,
-        needsAction: c.needs_action,
+      claims: v.claims.map(rowOf),
+      totals: v.totals,
+    }),
+  );
+
+export const claimDetailSchema = claimBase
+  .extend({
+    note: z.string().catch(''),
+    payable: z.object({
+      known: z.boolean().catch(false),
+      invoice: z.number().catch(0),
+      over_tariff: z.number().catch(0),
+      deductible_pct: z.number().catch(0),
+      deductible: z.number().catch(0),
+      payable: z.number().catch(0),
+      user_share: z.number().catch(0),
+      capped: z.boolean().catch(false),
+    }),
+    events: z.array(
+      z.object({
+        id: z.number(),
+        status: statusEnum,
+        occurred_on: z.string(),
+        deadline_on: nstr,
+        amount: nint,
+        note: z.string().catch(''),
+      }),
+    ),
+    documents: z.array(
+      z.object({
+        document_id: z.number(),
+        label: z.enum(['prescription', 'invoice', 'report', 'other']).nullish().catch(null),
+        kind: z.string().catch('other'),
+        title: nstr,
+        document_date: nstr,
+      }),
+    ),
+  })
+  .transform(
+    (c): InsuranceClaimDetail => ({
+      ...rowOf(c),
+      centreName: c.centre_name,
+      overTariff: c.over_tariff,
+      deadlineOn: c.deadline_on,
+      note: c.note,
+      payable: {
+        known: c.payable.known,
+        invoice: c.payable.invoice,
+        overTariff: c.payable.over_tariff,
+        deductiblePct: c.payable.deductible_pct,
+        deductible: c.payable.deductible,
+        payable: c.payable.payable,
+        userShare: c.payable.user_share,
+        capped: c.payable.capped,
+      },
+      events: c.events.map((e) => ({
+        id: e.id,
+        status: e.status as ClaimStatus,
+        occurredOn: e.occurred_on,
+        deadlineOn: e.deadline_on,
+        amount: e.amount,
+        note: e.note,
+      })),
+      documents: c.documents.map((d) => ({
+        documentId: d.document_id,
+        label: (d.label ?? null) as ClaimDocLabel | null,
+        kind: d.kind,
+        title: d.title,
+        documentDate: d.document_date,
       })),
     }),
   );

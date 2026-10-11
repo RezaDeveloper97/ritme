@@ -5,9 +5,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
-import type { PolicyPayload } from '../model/types';
+import type { ClaimEventPayload, ClaimPayload, PolicyPayload } from '../model/types';
 import { insuranceKeys } from './keys';
 import { centresSchema, claimsSchema, insurersSchema, policyStateSchema } from './schema';
+import { claimDetailSchema, claimsSchema, insurersSchema, policyStateSchema } from './schema';
 
 /*
  * `/api/v1/insurance` (CB-INS-01, Go only). Self-tracking: nothing here is sent to an insurer. Health and financial
@@ -85,6 +86,75 @@ export function useSaveInsurancePolicy() {
     onSuccess: (state) => {
       queryClient.setQueryData(insuranceKeys.policy(), state);
       void queryClient.invalidateQueries({ queryKey: insuranceKeys.recentClaims() });
+    },
+  });
+}
+
+/** GET /insurance/claims/{id} — payable breakdown, timeline and attached record documents. */
+export function useClaim(id: number) {
+  return useQuery({
+    queryKey: insuranceKeys.claim(id),
+    queryFn: async () => {
+      const { data } = await apiClient.get<ApiEnvelope<unknown>>(`/insurance/claims/${id}`);
+      return claimDetailSchema.parse(data.data);
+    },
+    enabled: isAuthenticated() && Number.isFinite(id) && id > 0,
+    staleTime: 30_000,
+    retry: 1,
+  });
+}
+
+/** A claim change refreshes the list, the home summary and the policy's usage / needs-action count. */
+function useClaimWrite<V>(call: (v: V) => Promise<unknown>, id?: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: V) => claimDetailSchema.parse(await call(v)),
+    onSuccess: (claim) => {
+      queryClient.setQueryData(insuranceKeys.claim(id ?? claim.id), claim);
+      void queryClient.invalidateQueries({ queryKey: insuranceKeys.recentClaims() });
+      void queryClient.invalidateQueries({ queryKey: insuranceKeys.policy() });
+    },
+  });
+}
+
+/** POST /insurance/claims — self-tracked, nothing is sent to the insurer. */
+export function useCreateClaim() {
+  return useClaimWrite<ClaimPayload>(async (payload) => (await apiClient.post<ApiEnvelope<unknown>>('/insurance/claims', payload)).data.data);
+}
+
+/** POST /insurance/claims/{id}/events — a step she maintains; the status follows the latest one. */
+export function useAddClaimEvent(id: number) {
+  return useClaimWrite<ClaimEventPayload>(
+    async (payload) => (await apiClient.post<ApiEnvelope<unknown>>(`/insurance/claims/${id}/events`, payload)).data.data,
+    id,
+  );
+}
+
+/** POST /insurance/claims/{id}/documents — one of her own record documents. */
+export function useAttachClaimDocument(id: number) {
+  return useClaimWrite<{ documentId: number; label?: string | null }>(
+    async (v) =>
+      (await apiClient.post<ApiEnvelope<unknown>>(`/insurance/claims/${id}/documents`, { document_id: v.documentId, label: v.label ?? null })).data.data,
+    id,
+  );
+}
+
+/** DELETE /insurance/claims/{id}/documents/{documentId}. */
+export function useDetachClaimDocument(id: number) {
+  return useClaimWrite<number>(async (documentId) => (await apiClient.delete<ApiEnvelope<unknown>>(`/insurance/claims/${id}/documents/${documentId}`)).data.data, id);
+}
+
+/** DELETE /insurance/claims/{id}. */
+export function useDeleteClaim(id: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await apiClient.delete(`/insurance/claims/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: insuranceKeys.claim(id) });
+      void queryClient.invalidateQueries({ queryKey: insuranceKeys.recentClaims() });
+      void queryClient.invalidateQueries({ queryKey: insuranceKeys.policy() });
     },
   });
 }

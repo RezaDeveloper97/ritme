@@ -26,3 +26,12 @@ Next dev :3151 with the `/api/v1/insurance/*` calls mocked at the Playwright net
 | nbl_Ins_Health (review) | `/insurance/questionnaire` (last step) | `CB-INS-05/fa_questionnaire.review.light.png` | `CB-INS-05/fa_questionnaire.review.dark.png` | New (no board): per-section summary, edit links, confirm | Confirm disabled while a question is unanswered |
 | nbl_Ins_Health (confirmed) | `/insurance/questionnaire` | `CB-INS-05/fa_questionnaire.done.light.png` | `CB-INS-05/fa_questionnaire.done.dark.png` | New: confirmation, on-device PDF export, link to status | PDF drawn on the device (shared/lib/pdf), never uploaded |
 | nbl_Ins_Status (`boards/nbl_Ins_Status.png`) | `/insurance/status` | `CB-INS-05/fa_status.light.png` | `CB-INS-05/fa_status.dark.png` | Matches: questionnaire card with 4-row timeline, open claims | Steps are recorded by her (sheet with step chips + date); no insurer ETA («۲ روز کاری») since nothing is fetched |
+## CB-INS-04
+
+Next dev :3144 with the API mocked at the Playwright network layer (no DB copy, no Go server): 3 members, 5 claims (one `docs_requested`, one `reviewing`, two `paid`, one `rejected`), 2 record documents. 390 px, fa, light + dark. Colours come from the app tokens, not the board hex. The PWA install card was removed from the shots.
+
+| Board | Route | Light | Dark | Verdict | Fix / note |
+| --- | --- | --- | --- | --- | --- |
+| nbl_Ins_Claims (`boards/nbl_Ins_Claims.png`) | `/insurance/claims` | `CB-INS-04/fa_claims.light.png` | `CB-INS-04/fa_claims.dark.png` | Matches: totals card, search, status chips, month groups, status pills | Add «+» in the header (board has none); self-track note added |
+| nbl_Ins_ClaimNew (`boards/nbl_Ins_ClaimNew.png`) | `/insurance/claims/new` | `CB-INS-04/fa_claim-new.light.png` | `CB-INS-04/fa_claim-new.dark.png` | Matches: member chips, cost-type chips, centre/date/amount, document slots + «از پرونده», masked IBAN (only when the policy has one), sticky save | Nine cost types per API; camera lives in the picker sheet |
+| nbl_Ins_ClaimDetail (`boards/nbl_Ins_ClaimDetail.png`) | `/insurance/claims/{id}` | `CB-INS-04/fa_claim-detail.light.png` | `CB-INS-04/fa_claim-detail.dark.png` | Matches: payable breakdown, missing-documents card with record picker, dot timeline she advances, appeal | Message card shows her own step note (no insurer sends one); detach/delete/step sheet added |

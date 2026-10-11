@@ -1,4 +1,16 @@
-import type { InsurancePolicy, PolicyCoverage } from './types';
+import type { Tone } from '@/shared/ui';
+
+import type { ClaimStatus, InsurancePolicy, PolicyCoverage } from './types';
+
+/** Pill tone of a claim status (home, list and detail agree). */
+export const CLAIM_TONE: Record<ClaimStatus, Tone> = {
+  submitted: 'neutral',
+  reviewing: 'data',
+  docs_requested: 'warm',
+  paid: 'success',
+  rejected: 'danger',
+  appealed: 'data',
+};
 
 export const TOMAN_THOUSAND = 1_000;
 export const TOMAN_MILLION = 1_000_000;

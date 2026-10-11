@@ -444,4 +444,9 @@ export default defineConfig([
     files: ['./src/entities/insurance/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // CB-INS-04: `widgets/claim-documents` is used by screens/insurance-claim* only — references FROM `screens` are invisible to steiger.
+    files: ['./src/widgets/claim-documents/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

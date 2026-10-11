@@ -78,6 +78,9 @@ export const ROUTE_NAMESPACES = {
   insuranceCenters: ['common', 'insurance'], // CB-INS-06 /insurance/centers (nbl_Ins_Centers, back header, no nav)
   insuranceQuestionnaire: ['common', 'insurance'], // CB-INS-05 /insurance/questionnaire (nbl_Ins_Health, stepper form, no nav)
   insuranceStatus: ['common', 'insurance'], // CB-INS-05 /insurance/status (nbl_Ins_Status, back header, no nav)
+  insuranceClaims: ['common', 'insurance'], // CB-INS-04 /insurance/claims (nbl_Ins_Claims, back header, no nav)
+  insuranceClaimNew: ['common', 'insurance', 'record'], // CB-INS-04 /insurance/claims/new (form; record = the document picker + camera upload sheet)
+  insuranceClaim: ['common', 'insurance', 'record'], // CB-INS-04 /insurance/claims/{id} (record = the document picker + camera upload sheet)
   profileAbout: ['common', 'me'], // B-N1-12 /profile/about
   profileLegal: ['common', 'me'], // B-N1-12 /profile/legal
   profileMode: ['common', 'contraception', 'loss', 'me'], // B-N2-03 /profile/mode (copy under me.mode; CB-CONTRA-02 manage row; CB-LOSS-03b care re-entry row)

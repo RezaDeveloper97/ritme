@@ -4,6 +4,18 @@ export {
   COVERAGE_CATEGORIES,
   type CentreType,
   type InsuranceCentre,
+  CLAIM_COST_TYPES,
+  CLAIM_DOC_LABELS,
+  COVERAGE_CATEGORIES,
+  type ClaimCostType,
+  type ClaimDocLabel,
+  type ClaimDocument,
+  type ClaimEvent,
+  type ClaimEventPayload,
+  type ClaimPayable,
+  type ClaimPayload,
+  type InsuranceClaimDetail,
+  type InsuranceClaimsSummary,
   type ClaimStatus,
   type CoverageCategory,
   type CoverageStatus,
@@ -19,6 +31,7 @@ export {
 export {
   type CompactAmount,
   capped,
+  CLAIM_TONE,
   categoryKey,
   costTypeKey,
   compactAmount,
@@ -60,3 +73,17 @@ export {
 } from './api/questionnaire-queries';
 export { insuranceKeys } from './api/keys';
 export { useCentres, useInsurancePolicy, useInsurers, useRecentClaims, useSaveInsurancePolicy } from './api/queries';
+export { useAmountFormat, useExactAmount } from './lib/use-amount';
+export { insuranceKeys } from './api/keys';
+export {
+  useAddClaimEvent,
+  useAttachClaimDocument,
+  useClaim,
+  useCreateClaim,
+  useDeleteClaim,
+  useDetachClaimDocument,
+  useInsurancePolicy,
+  useInsurers,
+  useRecentClaims,
+  useSaveInsurancePolicy,
+} from './api/queries';

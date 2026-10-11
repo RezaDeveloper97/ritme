@@ -81,6 +81,74 @@ export interface InsuranceClaimRow {
 export interface InsuranceClaimsSummary {
   claims: InsuranceClaimRow[];
   needsAction: number;
+  /** Policy-period totals (toman) from the server. */
+  totals: { requested: number; paid: number; count: number };
+}
+
+export const CLAIM_COST_TYPES = ['paraclinic', 'visit', 'drug', 'inpatient', 'delivery', 'dental', 'optical', 'infertility', 'other'] as const;
+export type ClaimCostType = (typeof CLAIM_COST_TYPES)[number];
+export const CLAIM_DOC_LABELS = ['prescription', 'invoice', 'report', 'other'] as const;
+export type ClaimDocLabel = (typeof CLAIM_DOC_LABELS)[number];
+
+export interface ClaimPayable {
+  /** false = the policy has no deductible for this cost type, so no estimate. */
+  known: boolean;
+  invoice: number;
+  overTariff: number;
+  deductiblePct: number;
+  deductible: number;
+  payable: number;
+  userShare: number;
+  capped: boolean;
+}
+
+export interface ClaimEvent {
+  id: number;
+  status: ClaimStatus;
+  occurredOn: string;
+  deadlineOn: string | null;
+  amount: number | null;
+  note: string;
+}
+
+export interface ClaimDocument {
+  documentId: number;
+  label: ClaimDocLabel | null;
+  kind: string;
+  title: string | null;
+  documentDate: string | null;
+}
+
+export interface InsuranceClaimDetail extends InsuranceClaimRow {
+  centreName: string | null;
+  overTariff: number;
+  deadlineOn: string | null;
+  note: string;
+  payable: ClaimPayable;
+  events: ClaimEvent[];
+  documents: ClaimDocument[];
+}
+
+/** POST / PUT /insurance/claims body. */
+export interface ClaimPayload {
+  member_id?: number | null;
+  cost_type: ClaimCostType;
+  title?: string | null;
+  centre_name?: string | null;
+  service_date: string;
+  amount: number;
+  over_tariff?: number | null;
+  note?: string | null;
+  documents?: { id: number; label?: ClaimDocLabel | null }[];
+}
+
+/** POST /insurance/claims/{id}/events body. */
+export interface ClaimEventPayload {
+  status: ClaimStatus;
+  occurred_on: string;
+  deadline_on?: string | null;
+  amount?: number | null;
+  note?: string | null;
 }
 
 /** Contracted centre types (backend `CentreTypes`, CB-INS-06). */
