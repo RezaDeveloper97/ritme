@@ -6,7 +6,6 @@ export {
   type InsuranceCentre,
   CLAIM_COST_TYPES,
   CLAIM_DOC_LABELS,
-  COVERAGE_CATEGORIES,
   type ClaimCostType,
   type ClaimDocLabel,
   type ClaimDocument,
@@ -42,7 +41,6 @@ export {
   remainingOf,
   TOMAN_MILLION,
 } from './model/display';
-export { useAmountFormat } from './lib/use-amount';
 export {
   buildTimeline,
   evidenceLabel,
@@ -71,11 +69,10 @@ export {
   useStartQuestionnaire,
   useUpdateQuestionnaire,
 } from './api/questionnaire-queries';
-export { insuranceKeys } from './api/keys';
-export { useCentres, useInsurancePolicy, useInsurers, useRecentClaims, useSaveInsurancePolicy } from './api/queries';
 export { useAmountFormat, useExactAmount } from './lib/use-amount';
 export { insuranceKeys } from './api/keys';
 export {
+  useCentres,
   useAddClaimEvent,
   useAttachClaimDocument,
   useClaim,

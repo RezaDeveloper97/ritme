@@ -7,8 +7,7 @@ import { isAuthenticated } from '@/shared/session';
 
 import type { ClaimEventPayload, ClaimPayload, PolicyPayload } from '../model/types';
 import { insuranceKeys } from './keys';
-import { centresSchema, claimsSchema, insurersSchema, policyStateSchema } from './schema';
-import { claimDetailSchema, claimsSchema, insurersSchema, policyStateSchema } from './schema';
+import { centresSchema, claimDetailSchema, claimsSchema, insurersSchema, policyStateSchema } from './schema';
 
 /*
  * `/api/v1/insurance` (CB-INS-01, Go only). Self-tracking: nothing here is sent to an insurer. Health and financial
