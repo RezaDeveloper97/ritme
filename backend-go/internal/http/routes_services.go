@@ -2,6 +2,8 @@ package http
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -17,6 +19,7 @@ import (
 	healthrecordstore "github.com/ritme/backend-go/internal/healthrecord/store"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	insurancestore "github.com/ritme/backend-go/internal/insurance/store"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/services"
 )
@@ -55,11 +58,22 @@ func init() {
 }
 
 // insurancePublished is B-N10-06's tile switch: the `insurance` info page has at least one active box.
+// CB-INS-03: the tile also shows once the user keeps her own policy (the tracker lives at the same /insurance route).
 func insurancePublished(d *Deps) services.InsurancePublished {
 	q := contentstore.New(d.DB)
-	return func(ctx context.Context) (bool, error) {
+	iq := insurancestore.New(d.DB)
+	return func(ctx context.Context, userID uint64) (bool, error) {
 		rows, err := q.ListActiveInfoPageSections(ctx, "insurance")
-		return len(rows) > 0, err
+		if err != nil || len(rows) > 0 {
+			return len(rows) > 0, err
+		}
+		if _, err := iq.GetUserPolicy(ctx, userID); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return false, nil
+			}
+			return false, err
+		}
+		return true, nil
 	}
 }
 

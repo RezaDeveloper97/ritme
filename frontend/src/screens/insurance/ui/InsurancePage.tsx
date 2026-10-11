@@ -1,13 +1,19 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
+import { useState } from 'react';
+
+import { useInsurancePolicy } from '@/entities/insurance'; // CB-INS-03
 
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { Accordion, EmptyState, Icon, PrimaryButton, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
+import { BottomNav } from '@/widgets/bottom-nav';
 
 import { useInsurancePage } from '../api/insurance';
 import { splitInsurance } from '../model/insurance';
+import { InsuranceHome } from './InsuranceHome';
+import { PolicySetup } from './PolicySetup';
 
 function InsuranceBody() {
   const t = useTranslations('me.insurance');
@@ -113,20 +119,62 @@ function InsuranceBody() {
   );
 }
 
+type View = 'home' | 'edit' | 'info';
+
 /**
- * Insurance info (B-N10-06) at `/insurance`: coverage, claim steps, documents checklist, FAQ and an optional
- * insurer link — all admin content (`info_sections` group `insurance`). Collects and sends nothing personal.
+ * Insurance at `/insurance`. B-N10-06 owns the read-only info (coverage, claim steps, documents checklist, FAQ, insurer
+ * link — admin content, `info_sections` group `insurance`); CB-INS-03 extends this same screen with her own tracker:
+ * no policy → the setup form (+ a link to the info), a policy → the home (policy card, remaining coverage, claims), the
+ * info staying one tap away. The info view collects and sends nothing personal; neither does the tracker (self-tracking
+ * only — nothing is sent to an insurer).
  */
 export function InsurancePage() {
   const t = useTranslations('me.insurance');
+  const ti = useTranslations('insurance');
   const router = useRouter();
+  const policy = useInsurancePolicy();
+  const [view, setView] = useState<View | null>(null);
+
+  const state = policy.data ?? null;
+  const hasPolicy = Boolean(state?.policy);
+  // Until the policy answers (or if the tracker API fails) the page behaves exactly as B-N10-06 did.
+  const trackerReady = policy.isSuccess;
+  const current: View = !trackerReady ? 'info' : view ?? (hasPolicy ? 'home' : 'edit');
+  const showNav = trackerReady && current === 'home';
+
+  let title = t('title');
+  let onBack = () => router.push('/services');
+  let backLabel = t('back');
+  if (trackerReady && current === 'home') {
+    title = ti('title');
+  } else if (trackerReady && current === 'edit') {
+    title = hasPolicy ? ti('setup.editTitle') : ti('setup.title');
+    onBack = hasPolicy ? () => setView('home') : () => router.push('/services');
+  } else if (trackerReady && current === 'info') {
+    title = ti('home.howTitle');
+    onBack = () => setView(hasPolicy ? 'home' : 'edit');
+    backLabel = ti('home.howBack');
+  }
+
   return (
     <div className="view ins-page">
       <SkyLayer />
       <div className="scroll ins-scroll">
-        <ScreenHeader title={t('title')} onBack={() => router.push('/services')} backLabel={t('back')} />
-        <InsuranceBody />
+        <ScreenHeader title={title} onBack={onBack} backLabel={backLabel} />
+        {!trackerReady && policy.isPending ? (
+          <SkeletonGroup label={ti('loading')} className="ins-skel">
+            <Skeleton shape="card" />
+            <Skeleton shape="card" />
+          </SkeletonGroup>
+        ) : current === 'home' && state ? (
+          <InsuranceHome state={state} onEdit={() => setView('edit')} onShowInfo={() => setView('info')} />
+        ) : current === 'edit' ? (
+          <PolicySetup policy={state?.policy ?? null} onDone={() => setView('home')} onShowInfo={() => setView('info')} />
+        ) : (
+          <InsuranceBody />
+        )}
       </div>
+      {showNav ? <BottomNav /> : null}
     </div>
   );
 }

@@ -12616,3 +12616,74 @@ a.nb-card.cnd-card { color: inherit; text-decoration: none; }
 }
 .lrn-home-new-title { font-family: var(--font-display); font-size: var(--fs-xl); font-weight: 400; color: var(--text-1); text-align: center; }
 .lrn-home-new-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; }
+
+/* ═══ CB-INS-03 — insurance home, setup form and coverage (nbl_Ins_Home / nbl_Ins_Coverage) ═══ */
+.ins-form { display: flex; flex-direction: column; gap: 14px; }
+.ins-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ins-hint { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.8; color: var(--text-3); }
+.ins-problem { margin: 0; font-size: 12px; font-weight: 700; color: var(--danger-deep, var(--danger)); }
+.ins-ltr { direction: ltr; text-align: start; }
+.ins-sheet-btns { display: flex; gap: 10px; }
+.ins-sheet-btns > * { flex: 1 1 0; }
+.ins-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ins-date {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 10px 12px; min-height: 64px;
+  border: 1.5px solid var(--line-strong); border-radius: 14px; background: var(--surface); color: var(--text-1);
+  font-family: inherit; text-align: start; cursor: pointer;
+}
+.ins-date:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.ins-date-l { font-size: 12px; font-weight: 700; color: var(--text-3); }
+.ins-date-v { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: var(--text-1); }
+.ins-member { display: flex; flex-direction: column; gap: 8px; padding-block-end: 12px; border-block-end: 1px solid var(--line); }
+.ins-member:last-of-type { border-block-end: 0; padding-block-end: 0; }
+.ins-member-row { display: flex; align-items: flex-end; gap: 8px; }
+.ins-member-name { flex: 1; }
+.ins-icon-btn {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  inline-size: var(--size-icon-btn); block-size: var(--size-icon-btn); border: 0; border-radius: 50%;
+  background: var(--surface-3); color: var(--text-2); cursor: pointer;
+}
+.ins-icon-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.ins-cov { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 12px 0 0; border: 0; border-block-start: 1px solid var(--line); }
+.ins-cov-t { padding: 0; font-size: 13px; font-weight: 800; color: var(--text-1); }
+.ins-cov-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.ins-sec-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ins-more { font-size: 12px; font-weight: 800; color: var(--brand); text-decoration: none; }
+.ins-more:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
+.ins-policy { display: flex; flex-direction: column; gap: 12px; padding: 16px; background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 15%, var(--surface)) 0%, var(--surface) 70%); }
+.ins-policy-top { display: flex; align-items: center; gap: 12px; }
+.ins-policy-ico { display: inline-flex; align-items: center; justify-content: center; inline-size: 44px; block-size: 44px; border-radius: 50%; background: var(--brand-soft); color: var(--brand-ink); flex-shrink: 0; }
+.ins-policy-t { margin: 0; font-size: 16px; font-weight: 800; color: var(--text-1); }
+.ins-policy-s { margin: 2px 0 0; font-size: 12px; font-weight: 600; color: var(--text-2); }
+.ins-policy-facts { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; color: var(--text-2); }
+.ins-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 10px; }
+.ins-action {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; text-align: center; text-decoration: none;
+  border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); color: var(--text-1);
+}
+.ins-action:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.ins-action-ico { display: inline-flex; align-items: center; justify-content: center; inline-size: 40px; block-size: 40px; border-radius: 50%; background: var(--brand-soft); color: var(--brand-ink); }
+.ins-action-t { font-size: 12px; font-weight: 800; line-height: 1.5; }
+.ins-attn {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px; text-decoration: none;
+  border: 1px solid var(--warm); border-radius: var(--r-card); background: var(--caution-soft); color: var(--text-1);
+}
+.ins-attn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.ins-attn-ico { flex-shrink: 0; color: var(--warm-deep); }
+.ins-attn-text { display: flex; flex-direction: column; gap: 2px; }
+.ins-attn-t { font-size: 14px; font-weight: 800; }
+.ins-attn-s { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.ins-claims { display: flex; flex-direction: column; gap: 10px; }
+.ins-claim { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; text-decoration: none; color: var(--text-1); }
+.ins-claim:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.ins-claim-text { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
+.ins-claim-t { font-size: 14px; font-weight: 800; }
+.ins-claim-s { font-size: 12px; font-weight: 600; color: var(--text-3); }
+.ins-claim-end { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.ins-claim-amt { font-size: 13px; font-weight: 800; color: var(--text-1); }
+.ins-empty { margin: 0; padding: 16px; font-size: 13px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+.ins-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 10px; }
+.ins-tile { display: flex; flex-direction: column; gap: 4px; padding: 12px; }
+.ins-tile-n { font-family: var(--font-display); font-size: var(--fs-xl); color: var(--brand); line-height: 1.2; }
+.ins-tile-t { font-size: 12px; font-weight: 700; line-height: 1.6; color: var(--text-2); }
+/* ═══ end CB-INS-03 ═══ */

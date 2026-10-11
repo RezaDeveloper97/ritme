@@ -30,6 +30,7 @@ export const NAV_ROOT_PATHS: readonly string[] = [
   '/learn', // B-N8-03: «دوره‌های من» (nbl_Learn_Hub, من tab)
   '/learn/downloads', // B-N8-04: «دانلودها» (nbl_Learn_Downloads, من tab)
   '/assistant', // B-N7-07: «کلینیک دستیار» hub (nbl_v18_AssistantHub, خدمات tab)
+  '/insurance', // CB-INS-03: insurance home (nbl_Ins_Home, خدمات tab) — the screen mounts the nav only in the home state, not on the setup form
   // CB-NAV-03 (IA_Nav «نوار تب»: hidden on forms / log): the transitional `/log` (B-N3-03) and
   // `/pregnancy/calendar` (B-N1-14) entries are gone — both screens now have a back/close header.
 ];

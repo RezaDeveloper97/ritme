@@ -36,6 +36,7 @@ import type enConditions from '../messages/en/conditions.json';
 import type enPelvic from '../messages/en/pelvic.json'; // CB-PELV-02
 import type enMe from '../messages/en/me.json';
 import type enIvf from '../messages/en/ivf.json'; // CB-IVF-02
+import type enInsurance from '../messages/en/insurance.json'; // CB-INS-03
 import type enMenopause from '../messages/en/menopause.json';
 import type enNav from '../messages/en/nav.json';
 import type enNotifications from '../messages/en/notifications.json';
@@ -95,6 +96,7 @@ type Messages = {
   me: typeof enMe;
   menopause: typeof enMenopause;
   ivf: typeof enIvf;
+  insurance: typeof enInsurance; // CB-INS-03 entities/insurance, screens/insurance
   nav: typeof enNav;
   calendar: typeof enCalendar;
   cycle: typeof enCycle;

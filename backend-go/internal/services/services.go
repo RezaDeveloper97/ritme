@@ -126,8 +126,8 @@ type Service struct {
 }
 
 // InsurancePublished reports whether the admin-edited insurance info page (B-N10-06, info group `insurance`) has at
-// least one active box.
-type InsurancePublished func(ctx context.Context) (bool, error)
+// least one active box, or (CB-INS-03) the user keeps her own policy — the tracker lives at the same route.
+type InsurancePublished func(ctx context.Context, userID uint64) (bool, error)
 
 // WithInsurancePage plugs the insurance-page check (B-N10-06): the `insurance` care tile links to /insurance while the
 // page is published and is hidden while it is not. Without it the tile keeps its catalog meta.
@@ -375,7 +375,7 @@ func (s *Service) care(ctx context.Context, userID uint64, mode enums.LifeMode, 
 		}
 		m := metaOf(it)
 		if it.Code == "insurance" && s.insured != nil {
-			ok, err := s.insured(ctx)
+			ok, err := s.insured(ctx, userID)
 			if err != nil {
 				return nil, fmt.Errorf("services: insurance page: %w", err)
 			}

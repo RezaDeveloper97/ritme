@@ -38,6 +38,7 @@ import enConditions from '../../../messages/en/conditions.json';
 import enPelvic from '../../../messages/en/pelvic.json'; // CB-PELV-02
 import enMe from '../../../messages/en/me.json';
 import enIvf from '../../../messages/en/ivf.json'; // CB-IVF-02
+import enInsurance from '../../../messages/en/insurance.json'; // CB-INS-03
 import enMenopause from '../../../messages/en/menopause.json';
 import enNav from '../../../messages/en/nav.json';
 import enNotifications from '../../../messages/en/notifications.json';
@@ -102,6 +103,7 @@ import faConditions from '../../../messages/fa/conditions.json';
 import faPelvic from '../../../messages/fa/pelvic.json'; // CB-PELV-02
 import faMe from '../../../messages/fa/me.json';
 import faIvf from '../../../messages/fa/ivf.json'; // CB-IVF-02
+import faInsurance from '../../../messages/fa/insurance.json'; // CB-INS-03
 import faMenopause from '../../../messages/fa/menopause.json';
 import faNav from '../../../messages/fa/nav.json';
 import faNotifications from '../../../messages/fa/notifications.json';
@@ -190,6 +192,7 @@ const bundled = {
     me: faMe,
     menopause: faMenopause,
     ivf: faIvf,
+    insurance: faInsurance,
     nav: faNav,
     calendar: faCalendar,
     cycle: faCycle,
@@ -256,6 +259,7 @@ const bundled = {
     me: enMe,
     menopause: enMenopause,
     ivf: enIvf,
+    insurance: enInsurance,
     nav: enNav,
     calendar: enCalendar,
     cycle: enCycle,

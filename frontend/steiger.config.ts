@@ -439,4 +439,9 @@ export default defineConfig([
     files: ['./src/entities/course/api/offline.ts'],
     rules: { 'fsd/no-public-api-sidestep': 'off' },
   },
+  {
+    // CB-INS-03: `entities/insurance` is consumed by screens/insurance* only — references FROM `screens` are invisible to steiger.
+    files: ['./src/entities/insurance/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

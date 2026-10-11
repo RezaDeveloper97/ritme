@@ -73,7 +73,8 @@ export const ROUTE_NAMESPACES = {
   companion: ['children', 'common', 'companionHome', 'companions', 'nav', 'teen'], // B-N4-05 /companion (Hamdam_Home, companion nav; companions = entities/companion barrel); CB-TEEN-03 linked teen cards
   companionLinks: ['children', 'common', 'companionHome', 'companions', 'nav', 'teen'], // B-N4-05 /companion/links (code entry + leave a link, Me «کد همدم»); CB-TEEN-03 same slice as /companion
   profileSupport: ['common', 'me'], // B-N1-12 /profile/support
-  insurance: ['common', 'me'], // B-N10-06 /insurance (copy under me.insurance)
+  insurance: ['common', 'insurance', 'me', 'nav'], // B-N10-06 /insurance (info copy under me.insurance); CB-INS-03 tracker home + setup (insurance namespace, nav for the home state)
+  insuranceCoverage: ['common', 'insurance'], // CB-INS-03 /insurance/coverage (nbl_Ins_Coverage, back header, no nav)
   profileAbout: ['common', 'me'], // B-N1-12 /profile/about
   profileLegal: ['common', 'me'], // B-N1-12 /profile/legal
   profileMode: ['common', 'contraception', 'loss', 'me'], // B-N2-03 /profile/mode (copy under me.mode; CB-CONTRA-02 manage row; CB-LOSS-03b care re-entry row)

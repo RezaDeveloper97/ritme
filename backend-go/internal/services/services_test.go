@@ -200,7 +200,7 @@ func TestHub_InsuranceTileFollowsPublishedPage(t *testing.T) {
 	cat := fakeCatalog{GroupCare: {item("insurance", "Insurance", `{"icon":"shield","tone":"data"}`), item("labs", "Labs", "")}}
 	codes := func(published bool) []string {
 		svc := NewService(cat, &fakeDocs{}, modeOf(enums.LifeModeCycle), nil).WithInsurancePage(
-			func(context.Context) (bool, error) { return published, nil })
+			func(context.Context, uint64) (bool, error) { return published, nil })
 		var out []string
 		for _, c := range hub(t, svc)["care"].([]any) {
 			out = append(out, c.(map[string]any)["code"].(string))
@@ -209,7 +209,7 @@ func TestHub_InsuranceTileFollowsPublishedPage(t *testing.T) {
 	}
 	assert.Equal(t, []string{"labs"}, codes(false), "tile hidden while the page is unpublished")
 	assert.Equal(t, []string{"insurance", "labs"}, codes(true))
-	svc := NewService(cat, &fakeDocs{}, modeOf(enums.LifeModeCycle), nil).WithInsurancePage(func(context.Context) (bool, error) { return true, nil })
+	svc := NewService(cat, &fakeDocs{}, modeOf(enums.LifeModeCycle), nil).WithInsurancePage(func(context.Context, uint64) (bool, error) { return true, nil })
 	tile := hub(t, svc)["care"].([]any)[0].(map[string]any)
 	assert.Equal(t, "/insurance", tile["href"])
 	assert.Equal(t, "live", tile["status"])
