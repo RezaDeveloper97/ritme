@@ -1,6 +1,8 @@
 import { bearerOf, clearAuthToken, endsSession, getAuthToken } from '@/shared/session';
 import { env } from '@/shared/config';
 
+import { markSynced } from './lastSync';
+
 /**
  * The single shared HTTP client for the whole app (CLAUDE.md §2). Slices import
  * `apiClient` from `@/shared/api`; they never call `fetch` for the API directly.
@@ -212,7 +214,10 @@ async function request<T>(
   } finally {
     clearTimeout(timer);
   }
-  if (result.status >= 200 && result.status < 300) return result as ApiResponse<T>;
+  if (result.status >= 200 && result.status < 300) {
+    if (typeof window !== 'undefined') markSynced(method, path);
+    return result as ApiResponse<T>;
+  }
 
   // On 401 the token may be gone — but only clear it when the API said so about
   // the token this request carried (`endsSession`, unit-tested in shared/session):

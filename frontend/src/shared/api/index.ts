@@ -15,3 +15,4 @@ export {
   getApiSaveErrorMessage,
   getApiThrottleMessage,
 } from './envelope';
+export { clearLastSync, readLastSync } from './lastSync';

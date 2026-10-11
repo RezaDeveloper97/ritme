@@ -3,7 +3,7 @@ id: B-N10-07
 title: Devices & backup screens
 milestone: N10
 type: frontend
-status: todo
+status: done
 depends_on: [B-N10-01]
 parallel_group: N10-G
 touches: [frontend/src/screens/devices,frontend/src/screens/backup]
