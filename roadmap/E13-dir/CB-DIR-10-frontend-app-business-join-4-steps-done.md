@@ -3,7 +3,7 @@ id: CB-DIR-10
 title: Frontend (app): business join 4 steps + done
 epic: DIR
 type: frontend
-status: in_progress
+status: done
 depends_on: [CB-DIR-04, CB-DIR-06]
 parallel_group: DIR-G
 touches: [frontend/src/screens/city-services-join, frontend/src/app/[locale]/services/mother-child/join]

@@ -3,7 +3,7 @@ id: CB-DIR-09
 title: Frontend: booking request, confirmation, my bookings
 epic: DIR
 type: frontend
-status: todo
+status: in_progress
 depends_on: [CB-DIR-08, CB-DIR-03]
 parallel_group: DIR-G
 touches: [frontend/src/screens/city-services-book, frontend/src/screens/city-services-booked, frontend/src/screens/my-bookings, frontend/src/app/[locale]/services/mother-child/book, frontend/src/app/[locale]/profile/bookings]
