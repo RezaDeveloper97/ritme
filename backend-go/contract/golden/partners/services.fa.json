@@ -1,0 +1,44 @@
+{
+  "case": "partners/services.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/partners/lab-services",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "services": [
+            {
+              "id": 1,
+              "code": "home_blood_draw",
+              "kind": "home_draw",
+              "title": "آزمایش در منزل",
+              "description": "نمونه‌گیری در خانه، جواب مستقیم در ریتمی",
+              "partner_name": "آزمایشگاه نمونه"
+            },
+            {
+              "id": 2,
+              "code": "annual_checkup",
+              "kind": "checkup",
+              "title": "چکاپ سالانه",
+              "description": "پاپ‌اسمیر و آزمایش‌های دوره‌ای",
+              "partner_name": "آزمایشگاه نمونه"
+            }
+          ],
+          "max_open": 3,
+          "max_days_ahead": 60,
+          "purge_days": 30
+        }
+      }
+    }
+  ]
+}

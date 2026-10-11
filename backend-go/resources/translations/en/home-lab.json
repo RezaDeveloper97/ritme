@@ -1,0 +1,95 @@
+{
+  "title": "Home lab test and checkup",
+  "tag": "Booking request",
+  "back": "Back",
+  "loading": "Loading",
+  "loadError": "Could not load. Check your connection and try again.",
+  "retry": "Try again",
+  "card": {
+    "label": "Suggestion",
+    "request": "Request",
+    "book": "Book",
+    "homeDrawSub": "Sample taken at home, the result right in Ritme",
+    "checkupSub": "Pap smear and periodic tests"
+  },
+  "list": {
+    "servicesTitle": "Available services",
+    "requestsTitle": "My requests",
+    "partner": "Provider: {name}",
+    "noServices": {
+      "title": "No service to book right now",
+      "body": "When a new service is switched on you will see it here."
+    },
+    "noRequests": {
+      "title": "No requests yet",
+      "body": "Pick a service and fill in the short form."
+    },
+    "maxOpen": "You can have at most {count} open requests."
+  },
+  "form": {
+    "title": "Request {service}",
+    "service": "Service",
+    "partnerLine": "Provider: {name}",
+    "warn": "Do not write illnesses or medical history; this text reaches the provider.",
+    "fullName": "Full name",
+    "phone": "Phone number",
+    "city": "City",
+    "address": "Address",
+    "day": "Preferred day",
+    "window": "Time window",
+    "note": "Note (optional)",
+    "notePlaceholder": "E.g. floor and unit, door bell",
+    "windows": {
+      "morning": "Morning (8 to 12)",
+      "noon": "Midday (12 to 16)",
+      "evening": "Evening (16 to 20)"
+    },
+    "consentShare": "I agree that my name, phone, address and preferred time are sent to {partner} to carry out this service. Nothing else from Ritme is sent.",
+    "consentImport": "If the result is ready, let me add it to my lab results (I will be asked again).",
+    "retention": "Your address and contact details are deleted {days} days after the request ends.",
+    "submit": "Send request",
+    "submitting": "Sending",
+    "required": "Fill in this field.",
+    "phoneInvalid": "The phone number is not valid.",
+    "consentRequired": "You need to agree to send the request.",
+    "saveError": "The request was not sent. Try again.",
+    "noService": "This service is no longer active."
+  },
+  "status": {
+    "requested": "Sent",
+    "accepted": "Accepted",
+    "sampled": "Sample taken",
+    "result_ready": "Result ready",
+    "rejected": "Declined",
+    "cancelled": "Cancelled"
+  },
+  "detail": {
+    "title": "Track request",
+    "reference": "Reference",
+    "steps": "Request steps",
+    "stateDone": "Done",
+    "stateCurrent": "Current step",
+    "stateTodo": "Next",
+    "when": "{day} · {window}",
+    "yourDetails": "What you sent",
+    "purged": "The contact details and address of this request were deleted.",
+    "cancel": "Cancel request",
+    "cancelling": "Cancelling",
+    "cancelError": "Could not cancel.",
+    "rejectedNote": "The provider did not accept this request. You can send a new one.",
+    "cancelledNote": "This request was cancelled.",
+    "newRequest": "New request",
+    "notFound": "This request was not found."
+  },
+  "result": {
+    "title": "Lab result",
+    "body": "The result is ready. If you want, it is added to your lab results and you review it like any other lab before it is analysed.",
+    "consent": "I agree that the result from {partner} is added to my lab results.",
+    "import": "Add to my lab results",
+    "importing": "Adding",
+    "importError": "Could not add. Try again.",
+    "noConsent": "You did not tick this when you sent the request; send a new request with this consent to add the result.",
+    "imported": "The result was added to your lab results.",
+    "open": "Open lab result"
+  }
+}

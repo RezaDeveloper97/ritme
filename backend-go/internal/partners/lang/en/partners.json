@@ -1,0 +1,46 @@
+{
+    "messages": {
+        "requested": "Your request was sent",
+        "cancelled": "Request cancelled",
+        "imported": "The result was added to your lab results",
+        "validation_failed": "The submitted data is not valid",
+        "not_found": "This request was not found",
+        "service_unavailable": "This service is not available right now",
+        "too_many_open": "You have several open requests; cancel one or wait for its result first",
+        "partner_unavailable": "The lab partner is not answering; try again in a little while",
+        "storage_unavailable": "Secure storage is not available right now",
+        "not_cancellable": "This request can no longer be cancelled",
+        "no_result": "The result is not ready yet",
+        "import_consent": "Confirm your consent to add the result to your lab results",
+        "already_imported": "This result was already added to your lab results",
+        "status_updated": "Request status updated",
+        "bad_transition": "This status change is not allowed",
+        "manual_unsupported": "This partner updates its own statuses",
+        "service_saved": "Service saved"
+    },
+    "validation": {
+        "phone": "The phone number is not valid.",
+        "date_range": "The preferred day must be between today and 60 days ahead."
+    },
+    "attributes": {
+        "service_id": "service",
+        "full_name": "full name",
+        "phone": "phone",
+        "city": "city",
+        "address": "address",
+        "preferred_date": "preferred day",
+        "preferred_window": "time window",
+        "note": "note",
+        "consent_share": "consent to share",
+        "consent_import": "consent to import the result",
+        "consent": "consent",
+        "status": "status",
+        "code": "code",
+        "kind": "kind",
+        "title": "title",
+        "description": "description",
+        "partner_name": "partner name",
+        "partner_code": "partner code",
+        "sort_order": "order"
+    }
+}

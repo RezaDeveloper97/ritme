@@ -1,0 +1,76 @@
+# Home lab / screening booking requests (/api/v1/partners/*) — Go only (bloom B-N10-04, deviations.md D-94): no Laravel
+# route, so these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The fixture
+# dump carries two active catalog services and one inactive one (goose 00075 / Laravel 2026_10_11_000075) and no
+# requests. The reference is random per run (pattern only). Status steps, the fake partner, retention purge, import
+# consent and user isolation are covered by internal/partners and internal/http integration tests.
+# Fixture day 2026-09-23; `regular` (1004) and `no_profile` (1001) are the users.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: partners
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: services_anon
+    persona: anon
+    method: GET
+    path: /api/v1/partners/lab-services
+    status: 401
+  - name: services
+    doc: only the active catalog services, localized
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/partners/lab-services
+    status: 200
+  - name: requests_empty
+    method: GET
+    path: /api/v1/partners/lab-requests
+    status: 200
+  - name: request_invalid
+    doc: missing consent, bad phone and a day out of range → 422
+    locales: [en]
+    method: POST
+    path: /api/v1/partners/lab-requests
+    body: {service_id: 1, full_name: Sara, phone: "call me", city: Tehran, address: "Valiasr St", preferred_date: "2027-01-01", preferred_window: morning}
+    status: 422
+  - name: request_inactive_service
+    locales: [fa]
+    method: POST
+    path: /api/v1/partners/lab-requests
+    body: {service_id: 3, full_name: "سارا", phone: "۰۹۱۲۰۰۰۰۰۰۰", city: "تهران", address: "خیابان ولیعصر", preferred_date: "2026-09-25", preferred_window: morning, consent_share: true}
+    status: 422
+  - name: request_missing
+    method: GET
+    path: /api/v1/partners/lab-requests/999
+    status: 404
+  - name: request_flow
+    doc: create → read back with her details → another user gets 404 → cancel → cancelled request cannot be cancelled again or imported
+    locales: [fa]
+    steps:
+      - method: POST
+        path: /api/v1/partners/lab-requests
+        body: {service_id: 1, full_name: "سارا", phone: "۰۹۱۲۰۰۰۰۰۰۰", city: "تهران", address: "خیابان ولیعصر", preferred_date: "2026-09-25", preferred_window: morning, note: "طبقه سوم", consent_share: true, consent_import: true}
+        status: 201
+        patterns:
+          data.reference: "^LR[A-Z2-7]{8}$"
+        capture: {id: data.id}
+      - method: GET
+        path: "/api/v1/partners/lab-requests/{{id}}"
+        status: 200
+        patterns:
+          data.reference: "^LR[A-Z2-7]{8}$"
+      - method: GET
+        path: "/api/v1/partners/lab-requests/{{id}}"
+        as: no_profile
+        status: 404
+      - method: POST
+        path: "/api/v1/partners/lab-requests/{{id}}/cancel"
+        status: 200
+        patterns:
+          data.reference: "^LR[A-Z2-7]{8}$"
+      - method: POST
+        path: "/api/v1/partners/lab-requests/{{id}}/cancel"
+        status: 409
+      - method: POST
+        path: "/api/v1/partners/lab-requests/{{id}}/import-result"
+        body: {consent: true}
+        status: 409

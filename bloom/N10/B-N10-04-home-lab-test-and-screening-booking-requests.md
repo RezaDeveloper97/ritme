@@ -3,7 +3,7 @@ id: B-N10-04
 title: Home lab test and screening booking requests
 milestone: N10
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N10-01, B-N6-06]
 parallel_group: N10-D
 touches: [backend-go/internal/partners,backend-go/api,admin-web/src,frontend/src/screens/home-lab]
