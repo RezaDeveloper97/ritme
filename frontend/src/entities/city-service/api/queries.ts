@@ -9,10 +9,15 @@ import { cityServiceKeys, type DirectoryParams } from './keys';
 import { type AgeRange, type CityServiceDetail, bookingOneSchema, bookingsSchema, listingOneSchema, listingsSchema, optionsSchema, slotsSchema } from './schema';
 
 /** GET /city-services/options — cities with a visible listing and the active categories. */
-export const useCityServiceOptions = (opts?: { anon?: boolean }) =>
+export const useCityServiceOptions = (opts?: { anon?: boolean; scope?: 'join' }) =>
   useQuery({
-    queryKey: cityServiceKeys.options(),
-    queryFn: async () => optionsSchema.parse((await apiClient.get<ApiEnvelope<unknown>>('/city-services/options')).data.data),
+    queryKey: cityServiceKeys.options(opts?.scope),
+    // CB-DIR-13: scope=join lists every active city (the business application), not only cities with a listing.
+    queryFn: async () =>
+      optionsSchema.parse(
+        (await apiClient.get<ApiEnvelope<unknown>>('/city-services/options', { params: opts?.scope ? { scope: opts.scope } : undefined })).data
+          .data,
+      ),
     // CB-DIR-11: the public desktop pages read this without a session (`anon`); the app screens still wait for one.
     enabled: opts?.anon === true || isAuthenticated(),
     staleTime: 60_000,

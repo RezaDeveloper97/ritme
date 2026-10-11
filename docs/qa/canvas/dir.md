@@ -74,3 +74,89 @@ Desktop web, 1440 wide (landing and login prompt 1x, wizard and done 2x), API mo
 | `W_Dir_Business` | `/fa/business` | [fa](dir/CB-DIR-12/fa_landing.light.png) · [en](dir/CB-DIR-12/en_landing.light.png) | [fa](dir/CB-DIR-12/fa_landing.dark.png) · [en](dir/CB-DIR-12/en_landing.dark.png) | Match: hero + CTA, why (3), 4 steps, requirements, cooperation terms, FAQ (accordion + FAQPage JSON-LD), closing CTA, SSR metadata. Gaps: the board's sample venue card is a neutral benefits panel (no invented venue); review time is not stated (team announces it). | Fix: H1 size. |
 | `W_Dir_Join` | `/fa/business/join` | [fa step 1](dir/CB-DIR-12/fa_1_intro.light.png) · [fa step 2](dir/CB-DIR-12/fa_2_place.light.png) · [fa step 4](dir/CB-DIR-12/fa_4_docs.light.png) · [en step 1](dir/CB-DIR-12/en_1_intro.light.png) · [login](dir/CB-DIR-12/fa_login.light.png) | [fa step 1](dir/CB-DIR-12/fa_1_intro.dark.png) · [fa step 2](dir/CB-DIR-12/fa_2_place.dark.png) · [fa step 4](dir/CB-DIR-12/fa_4_docs.dark.png) · [en step 1](dir/CB-DIR-12/en_1_intro.dark.png) · [login](dir/CB-DIR-12/fa_login.dark.png) | Match: step rail (done/current), save and exit, autosave hint, draft card preview, form column, previous step. Gaps: step forms are the app's single-column forms (no two-column desktop form). | n/a |
 | `W_Dir_JoinDone` | `/fa/business/join` (after submit) | [fa](dir/CB-DIR-12/fa_5_done.light.png) · [en](dir/CB-DIR-12/en_5_done.light.png) | [fa](dir/CB-DIR-12/fa_5_done.dark.png) · [en](dir/CB-DIR-12/en_5_done.dark.png) | Match: confirmation, tracking code + copy, review timeline, support link. Gaps: no «preview venue page» / «complete free slots» actions (page not published yet). | n/a |
+
+## CB-DIR-13
+
+Real end-to-end pass, no mocks: worktree Go API :8413 + frontend :3213 + admin-web :3214 against a private MariaDB copy `dir13_dev` (fresh goose to 00087, dropped afterwards). Users `09120013001` (business owner), `…002` (mother Sara, child Arian 14 months), `…003` (second mother), `…004` (third mother), `…005` (clean join form); admins `root` (super) and `mkt` (marketing role: content, no support). The headless browser is my own Chrome via Playwright with `bypassCSP` (the dev API is plain http, which the production CSP `img-src https:` blocks, so photos only render with it; the CSP itself was left untouched). Screenshots: `docs/qa/canvas/dir/CB-DIR-13/` (`<lang>_<screen>.<theme>.png`, mobile 390 at 2x, desktop and admin 1440 at 1x). Go integration tests were not run (shared test stack left alone); `go test` unit + openapi + i18n pass.
+
+### Journey
+
+| # | Step | Result | Evidence |
+| --- | --- | --- | --- |
+| 1 | Business applies in the app: step 1 (name, category chip, city chip, contact, owner confirmation), step 2 (pin by coordinates, address, 4 photos, about, age ranges, amenities, hours), step 3 (two sessions and one 8-session package), step 4 (booking mode, terms, licence + health certificate) | PASS after F1 (the city chip was missing for a city with no published place) | `fa_join_step1`, `fa_join_2_photos`, `fa_join_2_filled`, `fa_join_3_sheet`, `fa_join_3_filled`, `fa_join_4_empty` |
+| 2 | Submit with the licence missing | PASS: 422, «چند مورد هنوز کامل نیست» list with a jump to the step, status stays `draft` | `fa_join_4_missing` |
+| 3 | Submit with both documents | PASS: tracking code `XXXX-XXXX-XXXX`, status `submitted`, 4-state timeline | `fa_join_5_done` |
+| 4 | Admin (marketing role) opens the queue: contact name and phone hidden, documents hidden, `GET …/documents/licence` is 403 | PASS | `admin_mkt_application` |
+| 5 | Admin (super) opens it: contact visible, licence link (5-minute signed URL, `private, no-store`, fetch 200) | PASS | `admin_root_application` |
+| 6 | `needs_info` without a note | PASS: 422 on `note`. With a note: 200, applicant reopens at step 4 with the note banner | `fa_join_needs_info` |
+| 7 | Applicant resubmits | PASS: `submitted`, note cleared | `fa_join_resubmitted` |
+| 8 | Approve | PASS: listing `published` + 3 services copied; a second approve is 422 `invalid_transition`. Note F5: a content-only admin could approve too | `admin_root_places` |
+| 9 | Admin sets cancel window (24 h), generates 34 slots, adds a slot 5 h away and a capacity-1 slot | PASS | `admin_root_place` |
+| 10 | Mother: home (age fit, next booking), list, filters, search with no result, map (no Neshan key so list fallback), place page | PASS after F2 (age fit) | `*_home`, `*_list`, `*_filters`, `*_search_empty`, `*_map`, `*_place`, `*_place_end` |
+| 11 | Mother books a slot for her own child through the UI (first real POST booking) | PASS: 201, status `requested`, copy says «در انتظار تأیید» and «تا وقتی وضعیت تأیید شد نشده، رزرو قطعی نیست», price is «در محل پرداخت می‌شود» | `fa_book`, `fa_booked_requested` |
+| 12 | Admin confirms | PASS: booked page flips to «رزرو تأیید شد», list chip «تأیید شد» | `*_booked_confirmed` |
+| 13 | Cancel window: confirmed booking 5 h before the start | PASS: **422 `cancel_window_passed`** («مهلت لغو رایگان گذشته است…»), reschedule is 422 `not_reschedulable`; seat unchanged | API |
+| 14 | Reschedule a confirmed booking (window open) to the same service's slot | PASS: back to `requested`, `confirmed_at` cleared, old seat released, new seat held; other service's slot and a full slot are 422 | API, `*_reschedule` |
+| 15 | Cancel a requested booking | PASS: 200, seat released, a second cancel is 422 | API |
+| 16 | Admin completes the booking | PASS (also for a slot that has not started yet, F9) | `*_mybookings_past` |
+| 17 | Review (first real exercise): rating 4 + text through the UI | PASS: `pending`, mother sees «نظرت در انتظار بررسی است»; rating is not public yet (`rating_count` 0) | `fa_review_filled`, `fa_review_sent` |
+| 18 | Admin moderation queue | PASS: pending review listed with the first name only as author | `admin_root_reviews` |
+| 19 | Report wrong info through the UI; same user again; bad reason; second user | PASS: 201, then 422 `already_reported`, 422 on `reason`, 201; unknown place 404; admin reports queue shows reason and note, no reporter identity | `*_report`, `fa_report_sent`, `admin_root_reports` |
+
+### Matrix: every board screen, real data
+
+fa and en, light and dark, 390 px: `<lang>_<screen>.<theme>.png`. Desktop 1440: `<lang>_web_<screen>.<theme>.png`. Boards were not re-rendered (compared against the earlier DIR task tables); this pass checks real data, states and both languages.
+
+| Board | Route | Screens (4 renders each) | Verdict |
+| --- | --- | --- | --- |
+| nbl_Dir_Home | `/city-services` | `home`, `home_end` | PASS (F10 copy note) |
+| nbl_Dir_List | `/city-services` (category, filters, empty) | `list`, `filters`, `search_empty` | PASS (F7) |
+| nbl_Dir_Map | `/city-services/map` | `map` (fallback) | PASS (map itself needs a Neshan key, not testable) |
+| nbl_Dir_Place | `/city-services/[id]` | `place`, `place_end`, `report` | PASS |
+| nbl_Dir_Book | `/city-services/[id]/request` | `book`, `reschedule` | PASS after F4 |
+| nbl_Dir_Booked | `/city-services/booked/[id]` | `booked_requested`, `booked_confirmed`, `booked_completed` | PASS after F3 |
+| nbl_Dir_MyBookings | `/profile/bookings` | `mybookings`, `mybookings_past` | PASS |
+| nbl_Dir_Join, JoinForm, JoinDocs, JoinDone | `/city-services/join` | `join_step1` (4 renders), `join_approved` (4 renders); fa light for steps 2 to 5 and states (`fa_join_*`) | PASS after F6 |
+| W_Dir_Search, W_Dir_Place, W_Dir_Booked | `/places`, `/places/[id]`, `/places/booked/[id]` | `web_search`, `web_place`, `web_booked` | PASS |
+| W_Dir_Business, W_Dir_Join, W_Dir_JoinDone | `/business`, `/business/join` | `web_business`, `web_join` | PASS |
+| Admin-web | `/city-services/applications[/id]`, `/city-services`, `/city-services/[id]`, `/city-service-bookings`, `/city-services/reviews`, `/city-services/reports` | `admin_root_*` (light and dark), `admin_mkt_*` (light) | PASS after F8 |
+
+All mobile and desktop renders: `dir=rtl` for fa and `ltr` for en, `data-theme` matches, no horizontal overflow, no console errors or warnings, no 4xx or 5xx other than the intended ones.
+
+### Security and privacy
+
+| Check | Result |
+| --- | --- |
+| User B reads, cancels, reschedules, reviews user A's booking | PASS: 404 each |
+| B books with A's child id | PASS: 422 on `child_id` (not found) |
+| B reads, edits, submits, deletes A's application; uploads or deletes its documents or photos | PASS: uniform 404 «این درخواست پیدا نشد» |
+| A's private licence file: download without signature, bad signature, other users with a token | PASS: 403 each; `files/public/{private id}` 404; signed link is `private, no-store` and expires in 5 minutes |
+| User token on the admin API, no auth on admin API, no auth on bookings | PASS: 401 |
+| Content-only admin: documents 403, contacts hidden, bookings queue 403 | PASS |
+| Booking validation: age mismatch, service/slot mismatch, unknown slot or place, past or full slot, same slot twice, note over 500, bad phone | PASS: 422 with the field, localized |
+| Capacity-1 slot taken by one mother, the next gets `slot_full` | PASS; a cancel returns the seat |
+| Write throttle (60 per minute per user) | PASS: 61st is 429, localized envelope with `retry_after` |
+| Public directory read throttle (120 per minute per IP) | FIXED (F11): was the English «Too Many Attempts.», now localized with the same envelope |
+| API, Next and admin server logs: mobile numbers, child names, contact names, notes | PASS: 0 hits (request log is method, path and status) |
+| Booking and review copy before confirmation; online payment | PASS: «در انتظار تأیید», «رزرو قطعی نیست», «در محل پرداخت می‌شود»; no payment action anywhere; F4 removed a «Payment 320k» label next to the send button |
+
+### Found
+
+| ID | Severity | Finding | Status |
+| --- | --- | --- | --- |
+| F1 | high | The join form's city chips came from `GET /city-services/options`, which lists only cities with a published place: the first business in a new city could not pick a city and so could not submit | FIXED: `?scope=join` returns every active city (Go, OpenAPI, `StepIntro`) |
+| F2 | high | «Suits this age» and the booking form's age check double counted years (`age.months` is already the total): a 14-month child was treated as 26 months, so the home «for your child» list was wrong and the booking form wrongly said «سن با این کلاس نمی‌خواند» | FIXED (`totalMonths`, `CityServicesHome`, test updated) |
+| F3 | medium | Booked page said «لغو رایگان تا …» for completed bookings and for windows that had closed (a past date) | FIXED (`freeCancelOpen`) |
+| F4 | medium (copy) | The booking bar showed «پرداخت ۳۲۰ هزار تومان» next to «ارسال درخواست», which reads like an online charge | FIXED: label is «مبلغ / Price» |
+| F5 | medium (policy) | A content-only admin (no support capability, cannot open documents or see contacts) can still approve an application and so publish a place without seeing the licence | OPEN: decide whether `approve` should need `support` (route is mapped to `content` on purpose in `permissions.go`) |
+| F6 | low | An approved application's page still said «درخواستت رسید … بعد از تأیید نمایش داده می‌شود» | FIXED (`titleApproved` and `subtitleApproved*` in fa, en, backend copies and goldens) |
+| F7 | low (copy) | A search or filter with no result shows «هنوز مرکزی ثبت نشده / No venues listed yet», which is wrong for «no match» | OPEN: needs a «no results» variant of the empty state |
+| F8 | low | Admin-web threw `MISSING_MESSAGE cityServices.modes.online` on every page that renders a place's booking mode | FIXED (fa and en) |
+| F9 | low | Admin can mark a booking `completed` before its slot has started | OPEN (admin discretion, no guard) |
+| F10 | low | en child age label «1 years and 2 months» (server `age.*` message has no singular; children domain, not DIR) | OPEN |
+| F11 | low | Public directory throttle was not localized | FIXED (see security table; `TooManyReads`, unit test) |
+| F12 | low | Booking with an account that has no name fails with «فیلد نام الزامی است» and the form has no name field (contact name defaults to the account name) | OPEN: needs a name step in onboarding or a fallback; real accounts normally have a name |
+| F13 | low | An approved place has no cancel window until the admin sets one (default null means always free) | NOTE: consider a default of 24 h on approve |
+| F14 | info | Booked page for a completed booking has no «review» entry (only the past tab of «رزروهای من» has it); the join stepper is not tappable (back button only) | NOTE |
+| F15 | info | Not covered: Neshan map (no key), real SMS and push to the mother or business, store badges, joining as the same business twice, the Go integration suite | NOTE |
+| F16 | info | I ran `pkill -f "go run ./cmd/api"` while restarting my API; this can stop another agent's API on the shared machine (one of mine was stopped once by a similar command from elsewhere) | NOTE |

@@ -53,9 +53,9 @@ func (h *Handlers) localizer(c fiber.Ctx) catalog.Localizer {
 
 // Options is GET /city-services/options → {cities, categories, age_ranges, max_advance_days} (bloom) + CB-DIR-02's
 // {amenities, place_age_ranges, sorts}. Public. Cities and categories are the active ones with at least one visible
-// (active + published) listing — CB-DIR-02 hides empty categories too.
+// (active + published) listing — CB-DIR-02 hides empty categories too. `?scope=join` (CB-DIR-13) lists every active city.
 func (h *Handlers) Options(c fiber.Ctx) error {
-	cities, cats, err := h.store.ActiveTaxa(c)
+	cities, cats, err := h.store.ActiveTaxa(c, c.Query("scope") == "join")
 	if err != nil {
 		return fmt.Errorf("cityservices: options: %w", err)
 	}

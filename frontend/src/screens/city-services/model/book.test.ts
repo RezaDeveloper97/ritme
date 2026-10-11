@@ -15,7 +15,7 @@ describe('groupSlotsByDay', () => {
 });
 
 describe('ageFits / totalMonths', () => {
-  it('adds years to the remaining months', () => expect(totalMonths({ years: 1, months: 2 })).toBe(14));
+  it('uses the API total of completed months (years are not added again)', () => expect(totalMonths({ years: 1, months: 14 })).toBe(14));
   it('checks the declared range, no range fits', () => {
     expect(ageFits(14, { age_min_months: 6, age_max_months: 18 })).toBe(true);
     expect(ageFits(30, { age_min_months: 6, age_max_months: 18 })).toBe(false);

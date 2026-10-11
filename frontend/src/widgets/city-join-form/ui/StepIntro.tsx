@@ -45,7 +45,7 @@ export function StepIntro({
   const tc = useTranslations("cityJoin.categories");
   const errorText = useErrorText();
   const router = useRouter();
-  const options = useCityServiceOptions();
+  const options = useCityServiceOptions({ scope: "join" });
   const save = useSaveJoinStep(app.id);
   const del = useDeleteJoinDraft();
   const [form, setForm] = useState(() => step1From(app));

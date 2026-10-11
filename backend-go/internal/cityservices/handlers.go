@@ -47,6 +47,9 @@ func NewHandlers(store *Store, notifier BookingNotifier, appURL string, base clo
 var userMessages = map[string]map[string]string{
 	"validation_failed": {"fa": "اطلاعات واردشده معتبر نیست.", "en": "The given data was invalid.", "ar": "البيانات المدخلة غير صالحة."},
 	"not_found":         {"fa": "پیدا نشد.", "en": "Not found.", "ar": "غير موجود."},
+	// CB-DIR-13: the public directory reads' throttle (was the framework's English «Too Many Attempts.»).
+	"too_many_reads": {"fa": "درخواست‌ها زیاد شد؛ چند ثانیه صبر کن و دوباره امتحان کن.",
+		"en": "Too many requests; wait a few seconds and try again.", "ar": "طلبات كثيرة؛ انتظر بضع ثوانٍ ثم حاول مرة أخرى."},
 	"booking_created": {"fa": "درخواست شما ثبت شد؛ تیم ریتمی با شما تماس می\u200cگیرد.",
 		"en": "Your request was sent; the Ritme team will contact you.", "ar": "تم إرسال طلبك وسيتواصل معك فريق ريتمي."},
 	"booking_cancelled": {"fa": "درخواست لغو شد.", "en": "Request cancelled.", "ar": "تم إلغاء الطلب."},
@@ -100,6 +103,17 @@ var attributes = map[string][]string{
 		"service_id", "service", "slot_id", "time", "child_id", "child", "rating", "rating", "score_cleanliness", "cleanliness score", "score_instructor", "instructor score", "score_amenities", "amenities score", "body", "review", "reason", "reason", "scope", "scope"},
 	"ar": {"listing_id", "المكان", "contact_name", "الاسم", "contact_phone", "رقم الهاتف", "preferred_date", "اليوم المفضل", "child_age_range", "الفئة العمرية للطفل", "note", "ملاحظة",
 		"service_id", "الخدمة", "slot_id", "الوقت", "child_id", "الطفل", "rating", "التقييم", "score_cleanliness", "تقييم النظافة", "score_instructor", "تقييم المدرب", "score_amenities", "تقييم المرافق", "body", "نص التقييم", "reason", "السبب", "scope", "النطاق"},
+}
+
+// TooManyReads is the localized 429 of the public directory reads' IP throttle (CB-DIR-13): the controller envelope
+// {success:false, message, error_code:"too_many_requests", retry_after} plus the Retry-After / X-RateLimit-* headers.
+func TooManyReads(locale string, retryAfter int, headers map[string]string) *httpx.FailError {
+	e := httpx.Fail(fiber.StatusTooManyRequests, msg("too_many_reads", locale),
+		"error_code", "too_many_requests", "retry_after", retryAfter)
+	for k, v := range headers {
+		e = e.WithHeader(k, v)
+	}
+	return e
 }
 
 func msg(key, locale string) string {

@@ -866,7 +866,8 @@
     "modes": {
       "link": "Link-out",
       "request": "Request",
-      "phone": "Phone"
+      "phone": "Phone",
+      "online": "Online (Ritme calendar)"
     },
     "photos": "Photos",
     "photosAfterSave": "Save the venue first, then add photos.",

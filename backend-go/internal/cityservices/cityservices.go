@@ -180,10 +180,17 @@ func scanListing(s scanner, l *Listing) error {
 
 // ActiveTaxa returns the active cities and categories that have a visible (active + published, CB-DIR-02) listing.
 // CB-DIR-02: a category with no visible listing is hidden too (bloom listed every active category).
-func (s *Store) ActiveTaxa(ctx context.Context) (cities, categories []Taxon, err error) {
+//
+// CB-DIR-13: allCities (`?scope=join`, the business application) returns every active city instead — the first business
+// in a new city would otherwise have no city chip to pick (a city only shows up once it has a published listing).
+func (s *Store) ActiveTaxa(ctx context.Context, allCities bool) (cities, categories []Taxon, err error) {
+	visible := ` AND EXISTS (SELECT 1 FROM city_service_listings l JOIN city_service_categories c ON c.id = l.category_id
+			WHERE l.city_id = t.id AND l.is_active = 1 AND l.status = 'published' AND c.is_active = 1)`
+	if allCities {
+		visible = ""
+	}
 	cities, err = s.taxa(ctx, `SELECT t.id, t.slug, t.name, NULL, t.sort_order, t.is_active, 0 FROM city_service_cities t
-		WHERE t.is_active = 1 AND EXISTS (SELECT 1 FROM city_service_listings l JOIN city_service_categories c ON c.id = l.category_id
-			WHERE l.city_id = t.id AND l.is_active = 1 AND l.status = 'published' AND c.is_active = 1)
+		WHERE t.is_active = 1`+visible+`
 		ORDER BY t.sort_order, t.id`)
 	if err != nil {
 		return nil, nil, err

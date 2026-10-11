@@ -18,6 +18,14 @@ import { usePrice } from './PlaceSections';
  * `/city-services/booked/[id]` (nbl_Dir_Booked). Honest about the status: a new booking is a REQUEST the Ritme team
  * confirms — the screen only says «confirmed» when the API status is `confirmed`. Price is «pay at the place».
  */
+
+/** CB-DIR-13: «free cancellation until …» is only said while it is still true — not for a completed / cancelled booking or a window that already closed. */
+function freeCancelOpen(status: string, until: string): boolean {
+  if (status !== 'requested' && status !== 'confirmed') return false;
+  const t = Date.parse(until.replace(' ', 'T'));
+  return Number.isNaN(t) || t > Date.now();
+}
+
 export function BookedPage({ id }: { id: number }) {
   const t = useTranslations('cityServices');
   const locale = useLocale() as Locale;
@@ -155,7 +163,7 @@ export function BookedPage({ id }: { id: number }) {
             {error}
           </p>
         ) : null}
-        {b.cancel_free_until && b.status !== 'cancelled' && b.status !== 'rejected' ? (
+        {b.cancel_free_until && freeCancelOpen(b.status, b.cancel_free_until) ? (
           <p className="csv-note">{t('booked.cancelUntil', { when: untilLabel(b.cancel_free_until) })}</p>
         ) : b.cancel_policy ? (
           <p className="csv-note">{b.cancel_policy}</p>

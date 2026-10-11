@@ -232,7 +232,8 @@ export function BookSlotFlow({
 
       <div className="cdp-bar-sticky">
         <div className="cdp-bar-price">
-          <small>{t('book.pay')}</small>
+          {/* CB-DIR-13: «Payment 320k» next to «Send request» read like an online charge; it is the venue's price (paid there). */}
+          <small>{total !== null ? t('book.amount') : t('book.pay')}</small>
           <strong>{total !== null ? price(total) : t('book.payAtPlace')}</strong>
         </div>
         <PrimaryButton block={false} disabled={slotId === null} loading={busy} onClick={submit}>

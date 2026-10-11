@@ -26,8 +26,8 @@ export function groupSlotsByDay(slots: CityServiceSlot[]): SlotDay[] {
   return [...byDay.values()];
 }
 
-/** Total age in whole months of a child (`ChildAge` carries years + the remaining months). */
-export const totalMonths = (age: { years: number; months: number }): number => age.years * 12 + age.months;
+/** `age.months` from the API is already the TOTAL of completed months (14 for «۱ سال و ۲ ماه»); adding `years * 12` double counts (CB-DIR-13). */
+export const totalMonths = (age: { years: number; months: number }): number => age.months;
 
 /** Whether a child's age fits the service's declared range (no range = fits). The server checks again. */
 export function ageFits(months: number, s: Pick<CityServiceService, 'age_min_months' | 'age_max_months'> | undefined): boolean {

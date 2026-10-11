@@ -57,7 +57,7 @@ export function CityServicesHome({ onBrowse }: Props) {
   const activeCity = city !== null && cities.some((c) => c.id === city) ? city : null;
   const cityName = cities.find((c) => c.id === activeCity)?.name ?? t('list.allCities');
   const child = children.data?.children[0] ?? null;
-  const childMonths = child ? child.age.months + child.age.years * 12 : null;
+  const childMonths = child ? child.age.months : null;
   const ageMonths = ageOn && childMonths !== null ? Math.min(216, childMonths) : null;
   const ready = cityReady && ageReady;
 

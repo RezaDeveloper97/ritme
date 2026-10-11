@@ -81,8 +81,17 @@ export function DonePage({
         <span className="cjn-done-ic">
           <Icon name="checkCircle" size={34} />
         </span>
-        <h2 className="cjn-hero-title">{t('title')}</h2>
-        <p className="cjn-hero-body">{name ? t('subtitle', { name }) : t('subtitleNoName')}</p>
+        {/* CB-DIR-13: once approved the page must not keep promising «will appear after approval». */}
+        <h2 className="cjn-hero-title">{app.status === 'approved' ? t('titleApproved') : t('title')}</h2>
+        <p className="cjn-hero-body">
+          {app.status === 'approved'
+            ? name
+              ? t('subtitleApproved', { name })
+              : t('subtitleApprovedNoName')
+            : name
+              ? t('subtitle', { name })
+              : t('subtitleNoName')}
+        </p>
         {pill}
         {code ? (
           <div className="cjn-code" dir="ltr">

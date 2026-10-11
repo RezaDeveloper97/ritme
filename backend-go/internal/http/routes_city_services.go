@@ -34,12 +34,16 @@ func init() {
 		writes := writeThrottle(d) // security audit (CB-DIR-03): per-user write budget on every POST
 		public := func(c fiber.Ctx) error { return c.Next() }
 		if d.Cache != nil {
-			public = ratelimit.New(d.Cache, clock.Real{}).Named("city-services-public", CityServicesPublicMax, time.Minute, nil)
+			// CB-DIR-13: a localized 429 — the locale middleware therefore runs before the throttle on these routes.
+			public = ratelimit.New(d.Cache, clock.Real{}).NamedWith("city-services-public", CityServicesPublicMax, time.Minute, nil,
+				func(c fiber.Ctx, rj ratelimit.Rejection) error {
+					return cityservices.TooManyReads(i18n.Locale(c), rj.RetryAfter, rj.Headers())
+				})
 		}
-		r.Get("/api/v1/city-services/options", public, locale, h.Options)
-		r.Get("/api/v1/city-services/listings", public, locale, h.Listings)
-		r.Get("/api/v1/city-services/listings/:id/slots", public, locale, h.Slots) // CB-DIR-02
-		r.Get("/api/v1/city-services/listings/:id", public, locale, h.Listing)
+		r.Get("/api/v1/city-services/options", locale, public, h.Options)
+		r.Get("/api/v1/city-services/listings", locale, public, h.Listings)
+		r.Get("/api/v1/city-services/listings/:id/slots", locale, public, h.Slots) // CB-DIR-02
+		r.Get("/api/v1/city-services/listings/:id", locale, public, h.Listing)
 		r.Post("/api/v1/city-services/listings/:id/report", locale, guard, writes, h.ReportListing) // CB-DIR-03
 		// CB-DIR-03 extends bloom's booking routes in place (service / slot / child, ?scope=upcoming|past, cancel
 		// window) and adds one booking, reschedule and review. Still a request the Ritme team confirms; no payment.
