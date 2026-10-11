@@ -3,7 +3,7 @@ id: CB-DIR-13
 title: DIR QA
 epic: DIR
 type: qa
-status: todo
+status: in_progress
 depends_on: [CB-DIR-05, CB-DIR-09, CB-DIR-12]
 parallel_group: DIR-J
 touches: [docs/qa/canvas]
