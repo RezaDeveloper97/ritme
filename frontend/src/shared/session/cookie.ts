@@ -35,7 +35,7 @@ export const INTRO_COOKIE = 'ritme_intro_seen';
  * so the client-side session guard gates on exactly the same list the edge does
  * — two copies would drift and produce redirect loops.
  */
-export const PUBLIC_SEGMENTS = ['splash', 'welcome', 'signup', 'otp', 'shared', 'd', 'emergency', 'places'] as const; // places: CB-DIR-11 public desktop directory (search, place, booked — booked asks for login itself); shared: B-N6-04 public doctor report; d + emergency: CB-REC-05 doctor code page + public emergency card
+export const PUBLIC_SEGMENTS = ['splash', 'welcome', 'signup', 'otp', 'shared', 'd', 'emergency', 'places', 'business'] as const; // business: CB-DIR-12 for-businesses landing (+ /business/join asks for login itself); places: CB-DIR-11 public desktop directory (search, place, booked — booked asks for login itself); shared: B-N6-04 public doctor report; d + emergency: CB-REC-05 doctor code page + public emergency card
 
 /**
  * Same-origin route that answers with a `Set-Cookie` for {@link AUTH_COOKIE}.

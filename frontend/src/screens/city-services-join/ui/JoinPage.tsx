@@ -16,12 +16,8 @@ import { formatNumber } from '@/shared/lib/date';
 import { Card, EmptyState, InfoNote, PrimaryButton, ProgressSteps, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { type JoinStep, pickApplication, resumeStep, STEP_COUNT } from '../model/join';
-import { DonePage } from './DonePage';
-import { StepDocs } from './StepDocs';
-import { StepIntro } from './StepIntro';
-import { StepPlace } from './StepPlace';
-import { StepServices } from './StepServices';
+import { DonePage, type JoinStep, pickApplication, resumeStep, STEP_COUNT, StepDocs, StepIntro, StepPlace, StepServices } from '@/widgets/city-join-form';
+
 
 const STEP_KEYS = ['intro', 'place', 'services', 'docs'] as const;
 

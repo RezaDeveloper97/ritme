@@ -1,0 +1,111 @@
+{
+  "meta": {
+    "title": "List your venue on Ritme | Ritme for business",
+    "description": "Run a mother-and-baby class, pool, play house or workshop? Build your venue page on Ritme so nearby mothers find you and send booking requests.",
+    "joinTitle": "List your venue | Ritme"
+  },
+  "hero": {
+    "eyebrow": "Ritme for business",
+    "title": "Introduce your venue to the mothers in your city",
+    "body": "If you run a mother-and-baby class, a pool, a play house or a parenting workshop, build your venue page on Ritme. Mothers nearby find you on the map and send booking requests right from there.",
+    "start": "Start listing your venue",
+    "faq": "FAQ",
+    "pill1": "On the map and in search",
+    "pill2": "Booking requests and reminders",
+    "pill3": "Reviews from real customers only",
+    "panelTitle": "Your venue, in front of nearby mothers",
+    "panelBody": "A page with photos, services, prices and opening hours; it goes live after the Ritme team reviews it."
+  },
+  "why": {
+    "title": "Why Ritme",
+    "reach": {
+      "title": "Be seen by mothers nearby",
+      "body": "Venues are shown to the right mothers by distance and their child's age; not by how much you pay."
+    },
+    "book": {
+      "title": "Booking requests, reminders and cancellations",
+      "body": "Share your free times. Online bookings are requests that the Ritme team confirms; reminders and cancellations are handled for you."
+    },
+    "reviews": {
+      "title": "Reviews from real customers only",
+      "body": "Only people who booked through Ritme can leave a review, and you can reply to each one."
+    }
+  },
+  "steps": {
+    "title": "How do I sign up?",
+    "s1": {
+      "title": "Introduce your venue",
+      "body": "Name, type of service, city and how to reach you"
+    },
+    "s2": {
+      "title": "Location and photos",
+      "body": "A pin on the map, real photos of the space, age ranges and opening hours"
+    },
+    "s3": {
+      "title": "Services and prices",
+      "body": "Classes, duration, capacity, price and how booking works"
+    },
+    "s4": {
+      "title": "Documents and review",
+      "body": "Your licence and the instructors' certificates; your page goes live after review"
+    },
+    "number": "{n, number}"
+  },
+  "req": {
+    "title": "What you need",
+    "license": "A business or activity licence from the relevant authority",
+    "coach": "Coaching or first-aid certificates of your instructors",
+    "health": "A health certificate for pools and water areas",
+    "photos": "At least 4 real photos of the space, without children's faces"
+  },
+  "terms": {
+    "title": "Terms of cooperation",
+    "body": "The commission or subscription model has not been set yet. The Ritme team will share the terms with you before your page goes live.",
+    "note": "Document review is not a medical endorsement of the services; it only means the venue holds an activity licence and its details match reality."
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "time": {
+      "q": "How long does listing take?",
+      "a": "The form takes about 15 minutes. The Ritme team tells you how long the document review takes once they receive your application."
+    },
+    "rank": {
+      "q": "Can I buy a higher spot in the results?",
+      "a": "No. Results are ordered only by distance, the child's age and mothers' reviews, and there are no paid placements."
+    },
+    "phone": {
+      "q": "What if I do not want online booking?",
+      "a": "Choose \"phone calls only\" and the venue's number is shown instead of a booking button."
+    },
+    "privacy": {
+      "q": "What information about mothers reaches me?",
+      "a": "Only the name, the child's name and age, and a contact number. No health data ever goes from Ritme to a venue."
+    }
+  },
+  "cta": {
+    "title": "Ready?",
+    "body": "Send your application; a Ritme specialist will call you to complete the details.",
+    "start": "Start listing your venue"
+  },
+  "join": {
+    "title": "List your venue",
+    "saveExit": "Save and exit",
+    "stepsLabel": "Listing steps",
+    "stateDone": "Complete",
+    "stateCurrent": "In progress",
+    "autosave": "Your draft is saved automatically; come back and continue whenever you like.",
+    "back": "Previous step",
+    "previewTitle": "Preview of your venue card",
+    "previewNameEmpty": "Venue name",
+    "previewNote": "Rating and distance appear after publishing and the first bookings.",
+    "loginTitle": "Log in to list your venue",
+    "loginBody": "The draft is tied to your account so you can come back and continue whenever you like.",
+    "login": "Log in or sign up",
+    "loadError": "The application could not be loaded.",
+    "retry": "Try again",
+    "loading": "Loading",
+    "locked": "The application is under review and can no longer be edited.",
+    "needsInfo": "The Ritme team needs more information.",
+    "toBusiness": "Back to the business page"
+  }
+}

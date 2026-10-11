@@ -193,6 +193,8 @@ export const ROUTE_NAMESPACES = {
   cityJoin: ['cityJoin', 'common'], // CB-DIR-10 /city-services/join (business join flow; no bottom nav)
   // CB-DIR-11 public desktop directory (/places, /places/[id], /places/booked/[id]); `cityServices` supplies the card/place/booking wording
   webDirectory: ['cityServices', 'common', 'webDirectory', 'webShell'],
+  // CB-DIR-12 for-businesses landing + desktop join (/business, /business/join); `cityJoin` supplies the join form wording
+  webBusiness: ['cityJoin', 'common', 'webBusiness', 'webShell'],
   doctors: ['common', 'doctors'], // B-N7-05 /services/doctors*, /services/bookings* (directory, profile, book, return, booked, chat)
   assistant: ['common', 'nav', 'assistant'], // B-N7-07 /assistant (hub; bottom nav)
   assistantDept: ['common', 'assistant'], // B-N7-07 /assistant/[dept]

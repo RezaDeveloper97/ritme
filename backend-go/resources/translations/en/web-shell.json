@@ -3,7 +3,8 @@
   "skip": "Skip to content",
   "navLabel": "Main navigation",
   "nav": {
-    "services": "Mother & child services"
+    "services": "Mother & child services",
+    "business": "For business"
   },
   "login": "Log in",
   "openApp": "Open the app",

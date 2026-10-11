@@ -10,7 +10,8 @@ import { Icon, InfoNote, PrimaryButton, SecondaryButton, StatusPill, StepTimelin
 
 import { PhotoManager } from './PhotoManager';
 
-function useTimeline(status: JoinStatus | undefined): TimelineStep[] {
+/** The review timeline of an application as `StepTimeline` rows (shared with the desktop done page). */
+export function useJoinTimeline(status: JoinStatus | undefined): TimelineStep[] {
   const t = useTranslations('cityJoin.done');
   const locale = useLocale() as Locale;
   const when = (at: string | null): string | undefined => {
@@ -31,12 +32,23 @@ function useTimeline(status: JoinStatus | undefined): TimelineStep[] {
 }
 
 /** `/city-services/join` once the application is with the Ritme team (nbl_Dir_JoinDone): tracking code + timeline. */
-export function DonePage({ app, onNew, newBusy }: { app: JoinApplication; onNew: () => void; newBusy: boolean }) {
+export function DonePage({
+  app,
+  onNew,
+  newBusy,
+  homeHref = '/city-services',
+}: {
+  app: JoinApplication;
+  onNew: () => void;
+  newBusy: boolean;
+  /** Where «back» leads (the desktop page passes its own directory). */
+  homeHref?: string;
+}) {
   const t = useTranslations('cityJoin.done');
   const locale = useLocale() as Locale;
   const router = useRouter();
   const status = useJoinStatus(app.id);
-  const steps = useTimeline(status.data);
+  const steps = useJoinTimeline(status.data);
   const [copied, setCopied] = useState(false);
   const code = app.tracking_code;
   const name = app.business_name;
@@ -118,7 +130,7 @@ export function DonePage({ app, onNew, newBusy }: { app: JoinApplication; onNew:
       <PrimaryButton onClick={onNew} loading={newBusy}>
         {t('newApp')}
       </PrimaryButton>
-      <SecondaryButton onClick={() => router.push('/city-services')}>{t('toHome')}</SecondaryButton>
+      <SecondaryButton onClick={() => router.push(homeHref)}>{t('toHome')}</SecondaryButton>
     </div>
   );
 }

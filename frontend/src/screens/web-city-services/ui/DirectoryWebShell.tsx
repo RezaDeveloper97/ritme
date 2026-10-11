@@ -12,8 +12,11 @@ export function DirectoryWebShell({ appHref, children }: { appHref: string; chil
   const t = useTranslations('webShell');
   return (
     <WebShell
-      nav={[{ href: PLACES_HOME, label: t('nav.services') }]}
-      cta={{ href: '/city-services/join', label: t('registerPlace') }}
+      nav={[
+        { href: PLACES_HOME, label: t('nav.services') },
+        { href: '/business', label: t('nav.business') }, // CB-DIR-12
+      ]}
+      cta={{ href: '/business/join', label: t('registerPlace') }}
       appHref={appHref}
       homeHref={PLACES_HOME}
     >

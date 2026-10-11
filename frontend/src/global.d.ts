@@ -60,6 +60,7 @@ import type enShop from '../messages/en/shop.json'; // B-N10-03
 import type enCityServices from '../messages/en/city-services.json'; // B-N10-05
 import type enWebShell from '../messages/en/web-shell.json'; // CB-DIR-11
 import type enWebDirectory from '../messages/en/web-directory.json'; // CB-DIR-11
+import type enWebBusiness from '../messages/en/web-business.json'; // CB-DIR-12
 import type enCityJoin from '../messages/en/city-join.json'; // CB-DIR-10
 import type enHomeLab from '../messages/en/home-lab.json'; // B-N10-04
 import type enSearch from '../messages/en/search.json';
@@ -134,6 +135,7 @@ type Messages = {
   cityJoin: typeof enCityJoin; // CB-DIR-10 screens/city-services-join
   webShell: typeof enWebShell; // CB-DIR-11 widgets/web-shell
   webDirectory: typeof enWebDirectory; // CB-DIR-11 screens/web-city-services
+  webBusiness: typeof enWebBusiness; // CB-DIR-12 screens/web-city-services-business
   homeLab: typeof enHomeLab; // B-N10-04 entities/partner-lab, screens/home-lab, widgets/home-lab-cards
   search: typeof enSearch;
   plus: typeof enPlus;

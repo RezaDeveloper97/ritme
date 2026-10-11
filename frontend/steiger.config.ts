@@ -461,4 +461,10 @@ export default defineConfig([
     files: ['./src/widgets/web-shell/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // CB-DIR-12: `widgets/city-join-form` is used by screens/city-services-join and screens/web-city-services-business
+    // only — references FROM `screens` are invisible to steiger.
+    files: ['./src/widgets/city-join-form/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);
