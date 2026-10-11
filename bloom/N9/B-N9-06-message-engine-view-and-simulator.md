@@ -3,7 +3,7 @@ id: B-N9-06
 title: Message engine view and simulator
 milestone: N9
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N9-05]
 parallel_group: N9-F
 touches: [backend-go/internal/messages,backend-go/api,admin-web/src]
