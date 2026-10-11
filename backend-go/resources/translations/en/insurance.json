@@ -131,5 +131,34 @@
       "member": "Write a name for every person."
     },
     "privacy": "Ritme doesn't send this information to an insurer or anyone else."
+  },
+  "centers": {
+    "title": "Contracted centres",
+    "searchLabel": "Search centres",
+    "searchPlaceholder": "Centre, doctor or specialty",
+    "clear": "Clear",
+    "typesLabel": "Centre type",
+    "types": {
+      "gyn": "Gynecology and maternity",
+      "lab": "Laboratory",
+      "imaging": "Imaging",
+      "hospital": "Hospital",
+      "pharmacy": "Pharmacy",
+      "pediatric": "Pediatrics",
+      "other": "Other"
+    },
+    "mapLabel": "Map of centres",
+    "direct": "Direct contract · no upfront payment",
+    "reimbursed": "Pay, then file a claim",
+    "insurer": "Insurer: {name}",
+    "call": "Call {name}",
+    "locate": "Show {name} on the map",
+    "openMap": "Directions to {name}",
+    "listLabel": "Centres list",
+    "loading": "Loading centres",
+    "error": "Couldn't load the centres.",
+    "empty": "No centres found.",
+    "emptyHint": "Try a different search or centre type.",
+    "note": "At \"direct contract\" centres you only pay your own share (the deductible) and there is no claim to file."
   }
 }

@@ -170,3 +170,6 @@
 2026-10-11T09:59Z CB-SHOP-07 -> in_progress
 2026-10-11T09:59Z CB-SHOP-09 -> in_progress
 2026-10-11T10:02Z CB-DIR-02 -> done
+2026-10-11T10:02Z CB-DIR-03 -> in_progress
+2026-10-11T10:02Z CB-DIR-06 -> in_progress
+2026-10-11T10:24Z CB-INS-06 -> done

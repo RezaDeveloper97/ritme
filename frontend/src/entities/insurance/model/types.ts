@@ -83,6 +83,26 @@ export interface InsuranceClaimsSummary {
   needsAction: number;
 }
 
+/** Contracted centre types (backend `CentreTypes`, CB-INS-06). */
+export const CENTRE_TYPES = ['gyn', 'lab', 'imaging', 'hospital', 'pharmacy', 'pediatric', 'other'] as const;
+export type CentreType = (typeof CENTRE_TYPES)[number];
+
+/** One row of GET /insurance/centres. `isDirect`: direct contract — she pays only the deductible, no claim. */
+export interface InsuranceCentre {
+  id: number;
+  name: string;
+  /** Server type; unknown codes fall back to `other` in the copy. */
+  type: string;
+  services: string | null;
+  city: string | null;
+  address: string | null;
+  phone: string | null;
+  lat: number | null;
+  lng: number | null;
+  isDirect: boolean;
+  insurerName: string | null;
+}
+
 /** PUT /insurance/policy body. The number is sent only when typed (the server keeps the last four). */
 export interface PolicyPayload {
   insurer_id?: number | null;

@@ -3,7 +3,7 @@ id: CB-INS-06
 title: Frontend: centres list + map
 epic: INS
 type: frontend
-status: todo
+status: done
 depends_on: [CB-INS-03, CB-CORE-06, CB-INS-02]
 parallel_group: INS-D
 touches: [frontend/src/screens/insurance-centers, frontend/src/app/[locale]/insurance/centers]

@@ -12726,3 +12726,22 @@ a.nb-card.cnd-card { color: inherit; text-decoration: none; }
 .shp-trust-title { font-size: 12.5px; font-weight: 800; color: var(--text-1); }
 .shp-trust-body { font-size: 11.5px; font-weight: 600; line-height: 1.7; color: var(--text-2); }
 /* ═══ end CB-SHOP-06 ═══ */
+
+/* ═══ CB-INS-06 — contracted centres list + map (nbl_Ins_Centers) ═══ */
+.ins-map { position: relative; height: 180px; overflow: hidden; border-radius: var(--r-card); border: 1px solid var(--line); background: var(--surface-2); }
+.ins-map-view { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ins-centres { list-style: none; margin: 0; padding: 4px 16px; display: flex; flex-direction: column; }
+.ins-centre { display: flex; align-items: flex-start; gap: 12px; padding: 14px 0; scroll-margin-block: 80px; }
+.ins-centre + .ins-centre { border-top: 1px solid var(--line); }
+.ins-centre.is-selected { margin-inline: -16px; padding-inline: 16px; background: var(--brand-soft); border-radius: 16px; }
+.ins-centre-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.ins-centre-name { margin: 0; font-size: 14px; font-weight: 800; line-height: 1.6; color: var(--text-1); }
+.ins-centre-meta { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.7; color: var(--text-2); }
+.ins-centre-pill { margin-top: 4px; }
+.ins-centre-actions { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+.ins-centre-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: var(--size-icon-btn); height: var(--size-icon-btn);
+  border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--text-1); cursor: pointer;
+}
+.ins-centre-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+/* ═══ end CB-INS-06 ═══ */

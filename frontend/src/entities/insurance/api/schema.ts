@@ -4,6 +4,7 @@ import type {
   ClaimStatus,
   CoverageStatus,
   InsuranceClaimsSummary,
+  InsuranceCentre,
   InsurancePolicyState,
   InsurerOption,
   MemberKind,
@@ -86,6 +87,52 @@ export const policyStateSchema = z
         })),
       },
     }),
+  );
+
+const ncoord = z
+  .union([z.number(), z.string()])
+  .nullish()
+  .transform((v) => {
+    if (v === null || v === undefined || v === '') return null;
+    const n = typeof v === 'number' ? v : Number.parseFloat(v);
+    return Number.isFinite(n) ? n : null;
+  });
+
+/** GET /insurance/centres (CB-INS-06): `lat`/`lng` arrive as decimal strings. */
+export const centresSchema = z
+  .object({
+    centres: z.array(
+      z.object({
+        id: z.number(),
+        name: z.string(),
+        type: z.string(),
+        services: nstr,
+        city: nstr,
+        address: nstr,
+        phone: nstr,
+        lat: ncoord,
+        lng: ncoord,
+        is_direct: z.boolean().catch(false),
+        insurer_name: nstr,
+      }),
+    ),
+  })
+  .transform(({ centres }) =>
+    centres.map(
+      (c): InsuranceCentre => ({
+        id: c.id,
+        name: c.name,
+        type: c.type,
+        services: c.services,
+        city: c.city,
+        address: c.address,
+        phone: c.phone,
+        lat: c.lat,
+        lng: c.lng,
+        isDirect: c.is_direct,
+        insurerName: c.insurer_name,
+      }),
+    ),
   );
 
 export const insurersSchema = z

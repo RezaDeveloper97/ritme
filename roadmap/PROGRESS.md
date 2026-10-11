@@ -562,3 +562,8 @@ TODO (ask user):
 - openapi, dump.sql fixtures (listings w/ 00081 cols, services, slots, catalog 9101–9113), contract city-services 26 cases (30/0 with services), services/hub goldens (mother_child live), directory.md §5.
 - Landing: openapi conflict with DIR-04 resolved by hand (DIR-02 detail fields + DIR-04 application schemas); on stage build/vet, http Directory|CityServ|OpenAPI|Services int green.
 - TODO (ask user): raw SQL in cityservices (bloom pattern) vs sqlc-only rule; D-92 deviation still says these routes are auth:api — update?
+
+## CB-INS-06 — Insurance centres list + map
+- `screens/insurance-centers` at /insurance/centers: back header, debounced search (?q=), type chips (?type=), map card via shared `NeshanMap` (only when `isMapEnabled()`; list-only fallback), centre cards (type icon, services, city, insurer, direct/reimbursed badge, tel, locate → pin + scroll), deductible note; no nav. `entities/insurance` useCentres + centresSchema + CENTRE_TYPES. Messages insurance.centers (fa/en, backend copy, goldens).
+- Shots docs/qa/canvas/ins/CB-INS-06/ (API mocked; map not rendered — no Neshan key). Verify (agent): typecheck, lint, fsd, styles, dark, vitest 1803, build, i18n.
+- TODO: check map with a real NEXT_PUBLIC_NESHAN_KEY; board distance km + «نقشه» toggle omitted (API has no distance; no location read); no `other` chip; chip copy wording.

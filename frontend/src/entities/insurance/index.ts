@@ -1,6 +1,9 @@
 // Public API of the `insurance` entity (CB-INS-03). Import only from here (CLAUDE.md §3.3).
 export {
+  CENTRE_TYPES,
   COVERAGE_CATEGORIES,
+  type CentreType,
+  type InsuranceCentre,
   type ClaimStatus,
   type CoverageCategory,
   type CoverageStatus,
@@ -28,4 +31,4 @@ export {
 } from './model/display';
 export { useAmountFormat } from './lib/use-amount';
 export { insuranceKeys } from './api/keys';
-export { useInsurancePolicy, useInsurers, useRecentClaims, useSaveInsurancePolicy } from './api/queries';
+export { useCentres, useInsurancePolicy, useInsurers, useRecentClaims, useSaveInsurancePolicy } from './api/queries';

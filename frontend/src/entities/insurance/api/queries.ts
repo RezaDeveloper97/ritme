@@ -7,7 +7,7 @@ import { isAuthenticated } from '@/shared/session';
 
 import type { PolicyPayload } from '../model/types';
 import { insuranceKeys } from './keys';
-import { claimsSchema, insurersSchema, policyStateSchema } from './schema';
+import { centresSchema, claimsSchema, insurersSchema, policyStateSchema } from './schema';
 
 /*
  * `/api/v1/insurance` (CB-INS-01, Go only). Self-tracking: nothing here is sent to an insurer. Health and financial
@@ -52,6 +52,24 @@ export function useRecentClaims(enabled = true) {
     },
     enabled: enabled && isAuthenticated(),
     staleTime: 60_000,
+    retry: 1,
+  });
+}
+
+/** GET /insurance/centres — contracted centres, filtered server-side by type and name/service text. */
+export function useCentres(type: string, q: string) {
+  return useQuery({
+    queryKey: insuranceKeys.centres(type, q),
+    queryFn: async () => {
+      const params: Record<string, string> = {};
+      if (type) params.type = type;
+      if (q) params.q = q;
+      const { data } = await apiClient.get<ApiEnvelope<unknown>>('/insurance/centres', { params });
+      return centresSchema.parse(data.data);
+    },
+    enabled: isAuthenticated(),
+    staleTime: 5 * 60_000,
+    placeholderData: (prev) => prev,
     retry: 1,
   });
 }
