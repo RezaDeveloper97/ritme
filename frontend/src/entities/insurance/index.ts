@@ -30,5 +30,33 @@ export {
   TOMAN_MILLION,
 } from './model/display';
 export { useAmountFormat } from './lib/use-amount';
+export {
+  buildTimeline,
+  evidenceLabel,
+  QUESTIONNAIRE_STEPS,
+  questionCode,
+  sectionCode,
+  type QuestionCode,
+  type SectionCode,
+  type TimelineRowId,
+  type EvidenceText,
+  type InsuranceQuestionnaire,
+  type QuestionAnswer,
+  type QuestionnaireEvent,
+  type QuestionnairePurpose,
+  type QuestionnaireQuestion,
+  type QuestionnaireStatus,
+  type QuestionnaireStep,
+  type QuestionnaireUpdate,
+  type TimelineRow,
+} from './model/questionnaire';
+export {
+  useAdvanceQuestionnaire,
+  useConfirmQuestionnaire,
+  useQuestionnaire,
+  useQuestionnaires,
+  useStartQuestionnaire,
+  useUpdateQuestionnaire,
+} from './api/questionnaire-queries';
 export { insuranceKeys } from './api/keys';
 export { useCentres, useInsurancePolicy, useInsurers, useRecentClaims, useSaveInsurancePolicy } from './api/queries';

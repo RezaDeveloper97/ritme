@@ -76,6 +76,8 @@ export const ROUTE_NAMESPACES = {
   insurance: ['common', 'insurance', 'me', 'nav'], // B-N10-06 /insurance (info copy under me.insurance); CB-INS-03 tracker home + setup (insurance namespace, nav for the home state)
   insuranceCoverage: ['common', 'insurance'], // CB-INS-03 /insurance/coverage (nbl_Ins_Coverage, back header, no nav)
   insuranceCenters: ['common', 'insurance'], // CB-INS-06 /insurance/centers (nbl_Ins_Centers, back header, no nav)
+  insuranceQuestionnaire: ['common', 'insurance'], // CB-INS-05 /insurance/questionnaire (nbl_Ins_Health, stepper form, no nav)
+  insuranceStatus: ['common', 'insurance'], // CB-INS-05 /insurance/status (nbl_Ins_Status, back header, no nav)
   profileAbout: ['common', 'me'], // B-N1-12 /profile/about
   profileLegal: ['common', 'me'], // B-N1-12 /profile/legal
   profileMode: ['common', 'contraception', 'loss', 'me'], // B-N2-03 /profile/mode (copy under me.mode; CB-CONTRA-02 manage row; CB-LOSS-03b care re-entry row)

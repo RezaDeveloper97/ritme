@@ -12836,3 +12836,25 @@ a.nb-card.cnd-card { color: inherit; text-decoration: none; }
 .shp-buy-variant { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
 .shp-buy-hint { font-size: var(--fs-2xs); font-weight: 600; line-height: 1.6; color: var(--text-3); }
 /* ═══ end CB-SHOP-07 ═══ */
+
+/* ═══ CB-INS-05 health questionnaire + request status ═══ */
+.insq-stepper { display: flex; flex-direction: column; gap: 8px; }
+.insq-stepof { margin: 0; font-size: 12px; font-weight: 700; color: var(--text-3); }
+.insq-banner { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: var(--r-card); background: var(--data-soft); }
+.insq-banner-t { margin: 0; font-size: 13px; font-weight: 800; color: var(--data-deep); }
+.insq-row { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; }
+.insq-q { margin: 0; font-size: 14px; font-weight: 800; line-height: 1.8; color: var(--text-1); }
+.insq-answer { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; inline-size: 100%; }
+.insq-answer .nb-chips { inline-size: 100%; }
+.insq-evidence { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; font-weight: 600; line-height: 1.8; color: var(--text-2); }
+.insq-evidence-k { font-weight: 800; color: var(--text-1); }
+.insq-text { inline-size: 100%; min-block-size: 96px; padding: 12px 14px; border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface); color: var(--text-1); font: inherit; font-size: 14px; font-weight: 600; line-height: 1.8; resize: none; text-align: start; }
+.insq-text::placeholder { color: var(--text-4); }
+.insq-text:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.insq-sum { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.insq-sum-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; font-size: 13px; font-weight: 600; line-height: 1.8; color: var(--text-2); }
+.insq-sum-a { flex-shrink: 0; font-weight: 800; color: var(--text-1); }
+.insq-edit { border: 0; background: none; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; min-block-size: 44px; }
+.insq-nav { display: flex; flex-direction: column; gap: 8px; }
+.insq-done { align-items: flex-start; }
+/* ═══ end CB-INS-05 ═══ */

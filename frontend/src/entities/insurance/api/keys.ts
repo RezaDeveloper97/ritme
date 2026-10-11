@@ -5,4 +5,6 @@ export const insuranceKeys = {
   insurers: () => [...insuranceKeys.all, 'insurers'] as const,
   centres: (type: string, q: string) => [...insuranceKeys.all, 'centres', type, q] as const,
   recentClaims: () => [...insuranceKeys.all, 'claims', 'recent'] as const,
+  questionnaires: () => [...insuranceKeys.all, 'questionnaires'] as const,
+  questionnaire: (id: number) => [...insuranceKeys.all, 'questionnaires', id] as const,
 };

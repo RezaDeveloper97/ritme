@@ -4423,6 +4423,148 @@
     "empty": "No centres found.",
     "emptyHint": "Try a different search or centre type.",
     "note": "At \"direct contract\" centres you only pay your own share (the deductible) and there is no claim to file."
+   },
+   "questionnaire": {
+    "title": "Health questionnaire",
+    "subtitle": "For issuing or renewing a policy",
+    "loading": "Loading the questionnaire",
+    "error": "Couldn't load the questionnaire.",
+    "saveError": "Couldn't save. Try again.",
+    "start": {
+     "title": "A new questionnaire",
+     "body": "Ritme fills in what it can from your health record. You answer the rest and review every answer before confirming.",
+     "purposeLabel": "What is it for?",
+     "purpose": {
+      "issue": "Issuing a policy",
+      "renewal": "Renewing a policy"
+     },
+     "begin": "Start the questionnaire",
+     "starting": "Getting ready"
+    },
+    "prefilled": "{count, plural, =0 {Nothing was filled in from your health record} one {1 answer filled in from your health record} other {# answers filled in from your health record}}",
+    "checkFirst": "Check every answer yourself before confirming",
+    "stepOf": "Part {current} of {total} · {name}",
+    "stepLabel": "Part {current} of {total}",
+    "sections": {
+     "general": "General",
+     "history": "Medical history",
+     "family": "Family history",
+     "review": "Review and confirm"
+    },
+    "q": {
+     "smoker": "Do you smoke or use a hookah?",
+     "disability": "Do you have a permanent disability or physical limitation?",
+     "hospitalized_5y": "Have you been admitted to hospital in the last 5 years?",
+     "chronic_disease": "Do you have a chronic condition such as diabetes, high blood pressure or a thyroid condition?",
+     "pregnant": "Are you pregnant right now?",
+     "gyn_surgery": "Have you had gynecological surgery (such as a C-section or cyst removal)?",
+     "regular_medication": "Do you take medicine regularly?",
+     "infertility_treatment": "Are you in fertility treatment?",
+     "family_history": "Does a parent, sister or brother have a serious hereditary or chronic illness?"
+    },
+    "yes": "Yes",
+    "no": "No",
+    "notAnswered": "Not answered",
+    "fromRecord": "From health record",
+    "evidence": {
+     "title": "In your record",
+     "cesarean": "C-section",
+     "surgical_menopause": "Surgical menopause",
+     "ivf_iui": "IVF or IUI treatment"
+    },
+    "explanation": {
+     "title": "Explain your «Yes» answers",
+     "placeholder": "Write whatever helps, such as a medicine name or the year of a hospital stay.",
+     "hint": "This note stays in your own record, encrypted.",
+     "openRecord": "See it in your health record"
+    },
+    "warning": "A wrong or incomplete answer may get a claim rejected. Your answers stay in your own record and nothing is sent to an insurer; export a PDF whenever you need one and give it to your insurer yourself.",
+    "next": "Continue",
+    "prev": "Previous part",
+    "confirm": "Confirm my answers",
+    "confirming": "Confirming",
+    "incomplete": "{count, plural, one {1 question is still unanswered} other {# questions are still unanswered}}",
+    "review": {
+     "title": "Review your answers",
+     "edit": "Edit"
+    },
+    "done": {
+     "title": "Your answers are confirmed",
+     "body": "They are saved in your record and were not sent anywhere. Export a PDF, and note each step in «Request status» after you send it to your insurer.",
+     "edit": "Edit answers",
+     "status": "Request status"
+    },
+    "pdf": {
+     "export": "Export PDF",
+     "working": "Building the PDF",
+     "error": "Couldn't build the PDF.",
+     "title": "Health questionnaire",
+     "subtitle": "{purpose} · {date}",
+     "fromRecord": "From health record",
+     "explanation": "Note: {text}",
+     "disclaimer": "This sheet was built from the user's own answers in Ritme. Ritme has not sent it to any insurer.",
+     "footer": "Ritme · page {page} of {pages}",
+     "filename": "health-questionnaire.pdf"
+    }
+   },
+   "status": {
+    "title": "Request status",
+    "intro": "You note each step yourself. Ritme doesn't check with your insurer or send it anything.",
+    "loading": "Loading statuses",
+    "error": "Couldn't load statuses.",
+    "empty": "No questionnaire yet. Start with the health questionnaire.",
+    "begin": "Start the health questionnaire",
+    "questionnaireTitle": "Health questionnaire · {purpose}",
+    "purpose": {
+     "issue": "issue",
+     "renewal": "renewal"
+    },
+    "state": {
+     "draft": "Draft",
+     "confirmed": "Confirmed",
+     "submitted": "Sent",
+     "reviewing": "In review",
+     "doctor_review": "Doctor review",
+     "approved": "Approved",
+     "conditional": "Approved with conditions",
+     "rejected": "Rejected"
+    },
+    "draftHint": "You haven't confirmed it yet.",
+    "continue": "Continue the questionnaire",
+    "timelineLabel": "Questionnaire steps",
+    "stateLabels": {
+     "done": "Done",
+     "current": "Current step",
+     "todo": "Next"
+    },
+    "steps": {
+     "submitted": "Sent",
+     "reviewing": "First review",
+     "doctor_review": "Insurer's trusted doctor review",
+     "outcome": "Result: approved or special conditions"
+    },
+    "outcome": {
+     "approved": "Approved",
+     "conditional": "Approved with conditions",
+     "rejected": "Rejected"
+    },
+    "record": {
+     "title": "Note a step",
+     "hint": "Note any step your insurer told you about, right here.",
+     "step": "Which step?",
+     "date": "Date",
+     "save": "Save",
+     "cancel": "Cancel",
+     "error": "Couldn't save. Try again.",
+     "pick": "Pick a date",
+     "done": "Done"
+    },
+    "claims": {
+     "title": "Open claims",
+     "all": "All",
+     "empty": "You have no open claims.",
+     "needsAction": "Waiting on documents from you"
+    }
    }
   },
   "ivf": {
