@@ -3,7 +3,7 @@ id: CB-DIR-12
 title: Desktop web: for-businesses landing + join + done
 epic: DIR
 type: frontend
-status: todo
+status: done
 depends_on: [CB-DIR-10, CB-DIR-11]
 parallel_group: DIR-I
 touches: [frontend/src/screens/web-city-services-business, frontend/src/app/[locale]/(web)/business]
