@@ -10,7 +10,8 @@ import { isIconName, type IconName } from '@/shared/ui';
 
 const text = z.string().nullable().catch(null);
 
-export const BOOKING_MODES = ['link', 'request', 'phone'] as const;
+// CB-DIR-02 added `online` (pick a slot; still a request the team confirms).
+export const BOOKING_MODES = ['link', 'request', 'phone', 'online'] as const;
 export type BookingMode = (typeof BOOKING_MODES)[number];
 
 export const BOOKING_STATUSES = ['requested', 'confirmed', 'rejected', 'cancelled', 'completed'] as const;
@@ -29,11 +30,17 @@ const icon = z
 export const taxonSchema = z.object({ id: z.number(), slug: z.string(), name: z.string(), icon: icon.optional() });
 export type CityServiceTaxon = z.infer<typeof taxonSchema>;
 
+/** Catalog option (CB-DIR-02): `meta` carries {min_months,max_months} or {pregnancy}. */
+export const catalogOptionSchema = z.object({ code: z.string(), name: text, meta: z.unknown().optional() });
+export type CityServiceCatalogOption = z.infer<typeof catalogOptionSchema>;
+
 export const optionsSchema = z.object({
   cities: z.array(taxonSchema),
   categories: z.array(taxonSchema),
   age_ranges: z.array(z.string()).catch([...AGE_RANGES]),
   max_advance_days: z.number().catch(365),
+  // CB-DIR-02: the directory's place age ranges (catalog options) — used to label «مناسب …» on the cards.
+  place_age_ranges: z.array(catalogOptionSchema).catch([]),
 });
 
 const categoryRef = z.object({ slug: z.string(), name: z.string(), icon });
@@ -49,6 +56,19 @@ export const cardSchema = z.object({
   price_text: text,
   booking_mode: mode,
   photo_url: text,
+  // CB-DIR-02 directory fields — all optional on the wire for older payloads.
+  lat: z.number().nullable().catch(null),
+  lng: z.number().nullable().catch(null),
+  distance_km: z.number().nullable().catch(null),
+  verified: z.boolean().catch(false),
+  rating_avg: z.number().nullable().catch(null),
+  rating_count: z.number().catch(0),
+  age_ranges: z.array(z.string()).catch([]),
+  amenities: z.array(z.string()).catch([]),
+  price_from_toman: z.number().nullable().catch(null),
+  open_now: z.boolean().nullable().catch(null),
+  next_slot_at: text,
+  age_fit: z.boolean().nullable().catch(null),
 });
 export type CityServiceCard = z.infer<typeof cardSchema>;
 

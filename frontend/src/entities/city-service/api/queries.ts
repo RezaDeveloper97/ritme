@@ -5,7 +5,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
-import { cityServiceKeys } from './keys';
+import { cityServiceKeys, type DirectoryParams } from './keys';
 import { type AgeRange, bookingOneSchema, bookingsSchema, listingOneSchema, listingsSchema, optionsSchema } from './schema';
 
 /** GET /city-services/options — cities with a visible listing and the active categories. */
@@ -30,6 +30,34 @@ export const useCityServiceListings = (city: number | null, category: string | n
         ).data.data,
       ),
     enabled: isAuthenticated(),
+    placeholderData: keepPreviousData,
+    staleTime: 60_000,
+  });
+
+/**
+ * CB-DIR-06: GET /city-services/listings with the CB-DIR-02 search params (q, age_months, sort, per_page). Public read
+ * (works without a session). The child's age is sent as whole months only — never a name or a birth date.
+ */
+export const useDirectoryListings = (params: DirectoryParams, enabled = true) =>
+  useQuery({
+    queryKey: cityServiceKeys.directory(params),
+    queryFn: async () =>
+      listingsSchema.parse(
+        (
+          await apiClient.get<ApiEnvelope<unknown>>('/city-services/listings', {
+            params: {
+              ...(params.city ? { city: params.city } : {}),
+              ...(params.category ? { category: params.category } : {}),
+              ...(params.q?.trim() ? { q: params.q.trim() } : {}),
+              ...(params.ageMonths != null ? { age_months: params.ageMonths } : {}),
+              ...(params.sort ? { sort: params.sort } : {}),
+              ...(params.perPage ? { per_page: params.perPage } : {}),
+              page: params.page ?? 1,
+            },
+          })
+        ).data.data,
+      ),
+    enabled,
     placeholderData: keepPreviousData,
     staleTime: 60_000,
   });

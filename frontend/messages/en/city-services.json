@@ -21,7 +21,8 @@
     "mode": {
       "link": "Book on the venue's site",
       "request": "Request a booking in Ritme",
-      "phone": "Book by phone"
+      "phone": "Book by phone",
+      "online": "Book in Ritme (pick a time)"
     }
   },
   "detail": {
@@ -92,5 +93,27 @@
       "cancelled": "Cancelled",
       "completed": "Done"
     }
+  },
+  "home": {
+    "forYouAnd": "For you and {name}",
+    "searchLabel": "Search places",
+    "searchPlaceholder": "Pool, class, play house…",
+    "nextBooking": "Next booking",
+    "suitedTitle": "Suits {name}'s age",
+    "suitedSub": "{age} · from your child profile",
+    "all": "All",
+    "suitable": "Suits {ages}",
+    "km": "{km} km",
+    "nearTitle": "Near you",
+    "list": "List",
+    "map": "Show on map",
+    "openNow": "Open now",
+    "verified": "Documents checked",
+    "joinTitle": "Run a mother and child place?",
+    "joinSub": "Apply to be listed so mothers nearby can find you",
+    "rankNote": "Results are ordered by distance, your child's age and mothers' ratings. No place pays to rank higher.",
+    "ageNote": "Age suggestions are built from your child's age in your profile and can be turned off.",
+    "ageOff": "Turn off",
+    "ageOn": "Turn on"
   }
 }

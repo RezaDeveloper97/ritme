@@ -1,7 +1,7 @@
 // Public API of the `city-service` entity (bloom B-N10-05) — the city-services directory and my booking requests.
 // Import only from here.
 
-export { cityServiceKeys } from './api/keys';
+export { cityServiceKeys, type DirectoryParams } from './api/keys';
 export {
   AGE_RANGES,
   BOOKING_STATUSES,
@@ -10,6 +10,7 @@ export {
   type BookingStatus,
   type CityServiceBooking,
   type CityServiceCard,
+  type CityServiceCatalogOption,
   type CityServiceDetail,
   type CityServiceTaxon,
 } from './api/schema';
@@ -20,6 +21,9 @@ export {
   useCityServiceListing,
   useCityServiceListings,
   useCityServiceOptions,
+  useDirectoryListings,
   useCreateCityBooking,
 } from './api/queries';
 export { useCityChoice } from './model/city-choice';
+export { useAgeSuggest } from './model/age-suggest';
+export { ageRangeLabel, nextBooking } from './model/home';

@@ -4,31 +4,41 @@ import clsx from 'clsx';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-import { useCityChoice, useCityServiceListings, useCityServiceOptions, type CityServiceCard } from '@/entities/city-service';
-import { Link, useDirection, useRouter } from '@/shared/i18n';
+import { useCityChoice, useCityServiceOptions, useDirectoryListings, type CityServiceCard } from '@/entities/city-service';
+import { Link, useDirection } from '@/shared/i18n';
 import { Card, EmptyState, Icon, ScreenHeader, SecondaryButton, SkyLayer } from '@/shared/ui';
 
+import { type BrowseQuery, CityServicesHome } from './CityServicesHome';
 import { CsError, CsSkeleton } from './ListSkeleton';
+
+/**
+ * CB-DIR-06: `/city-services` is now the «مادر و کودک» home (`CityServicesHome`); tapping a category, a search or
+ * «همه» opens bloom's list below with that filter. Map/list/filters follow in CB-DIR-07.
+ */
+export function CityServicesPage() {
+  const [browse, setBrowse] = useState<BrowseQuery | null>(null);
+  return browse ? <CityServicesList initial={browse} onHome={() => setBrowse(null)} /> : <CityServicesHome onBrowse={setBrowse} />;
+}
 
 /**
  * `/city-services` — «برای مادر و کودک» (entry from the services hub section): classes, pools and playhouses near the
  * user. The city is remembered on the device only; filters are a city chip row and a category chip row. A tap opens
  * the venue. The screen shows no map, no reviews and nothing from the user's health data.
  */
-export function CityServicesPage() {
+function CityServicesList({ initial, onHome }: { initial: BrowseQuery; onHome: () => void }) {
   const t = useTranslations('cityServices');
   const fmt = useFormatter();
-  const router = useRouter();
   const rtl = useDirection() === 'rtl';
   const options = useCityServiceOptions();
   const [city, setCity, ready] = useCityChoice();
-  const [category, setCategory] = useState<string | null>(null);
+  const [category, setCategory] = useState<string | null>(initial.category);
   const [page, setPage] = useState(1);
 
   // A remembered city that no longer has listings must not hide everything: fall back to «همه شهرها».
   const cities = options.data?.cities ?? [];
   const activeCity = city !== null && cities.some((c) => c.id === city) ? city : null;
-  const list = useCityServiceListings(activeCity, category, page);
+  // CB-DIR-06: search text and child age come from the home; both are plain request params.
+  const list = useDirectoryListings({ city: activeCity, category, q: initial.q, ageMonths: initial.ageMonths, sort: 'rank', page });
 
   const pick = (next: number | null) => {
     setCity(next);
@@ -112,7 +122,7 @@ export function CityServicesPage() {
     <div className="view csv-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('title')} subtitle={t('tag')} onBack={() => router.push('/services')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} subtitle={t('tag')} onBack={onHome} backLabel={t('back')} />
         <div className="csv-body">
           {options.data ? (
             <>
