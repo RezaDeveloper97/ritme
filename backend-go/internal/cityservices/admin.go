@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
 	"github.com/ritme/backend-go/internal/admin/media"
 	"github.com/ritme/backend-go/internal/content"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
@@ -28,6 +30,8 @@ const (
 	CodeInUse = "in_use"
 	// CodeBadTransition is the 422 error_code of an illegal booking status move.
 	CodeBadTransition = "invalid_transition"
+	// CodeNotStarted is the 422 error_code of completing a booking before its slot (or preferred day) has started.
+	CodeNotStarted = "booking_not_started"
 )
 
 var slugRe = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]*$`)
@@ -591,6 +595,9 @@ func (a *Admin) UpdateBooking(c fiber.Ctx) error {
 	if !CanMove(cur.Status, to) {
 		return httpadmin.Fail(fiber.StatusUnprocessableEntity, CodeBadTransition, "This status change is not allowed.")
 	}
+	if to == StatusCompleted && !bookingStarted(cur, a.now(c).Time) {
+		return httpadmin.Fail(fiber.StatusUnprocessableEntity, CodeNotStarted, "This booking has not started yet, so it cannot be marked completed.")
+	}
 	ok, err := a.store.MoveBooking(c, cur.ID, cur.Status, to, nullable(data, "status_note"), a.now(c).Time)
 	if err != nil {
 		return err
@@ -605,4 +612,13 @@ func (a *Admin) UpdateBooking(c fiber.Ctx) error {
 		return err
 	}
 	return httpadmin.OK(c, jsonx.Obj("booking", a.bookingJSON(b)), "Booking updated.")
+}
+
+// bookingStarted reports whether a booking may be completed: a slot booking from the slot's start on, a slotless one
+// from its preferred day (Tehran calendar) on.
+func bookingStarted(b Booking, now time.Time) bool {
+	if b.SlotStartsAt.Valid {
+		return !now.Before(b.SlotStartsAt.Time)
+	}
+	return !civildate.InTehran(now).Before(b.PreferredDate)
 }

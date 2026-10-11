@@ -47,19 +47,33 @@ func AgeOn(birth, on civildate.Date) Age {
 	}
 }
 
-// Label is the screen's age text: «امروز به دنیا آمده», «۱۲ روز», «۳ ماه و ۱۲ روز», «۴ سال و ۲ ماه».
+// unit is «n days / 1 day» in the locale (singular key for 1, so English reads «1 month», not «1 months»).
+func unit(kind string, n int, locale string) string {
+	key := "age.unit_" + kind
+	if n == 1 {
+		key += "_one"
+	}
+	return Tp(key, map[string]string{"n": num(n, locale)}, locale)
+}
+
+func joined(a, b, locale string) string {
+	return Tp("age.joined", map[string]string{"a": a, "b": b}, locale)
+}
+
+// Label is the screen's age text: «امروز به دنیا آمده», «۱۲ روز», «۳ ماه و ۱۲ روز», «۴ سال و ۲ ماه»
+// (English pluralises each unit: «1 year and 2 months»).
 func (a Age) Label(locale string) string {
 	switch {
 	case a.Days == 0:
 		return T("age.newborn", locale)
 	case a.Months == 0:
-		return Tp("age.days", map[string]string{"d": num(a.Days, locale)}, locale)
+		return unit("day", a.Days, locale)
 	case a.Years == 0 && a.DaysInMonth == 0:
-		return Tp("age.months", map[string]string{"m": num(a.Months, locale)}, locale)
+		return unit("month", a.Months, locale)
 	case a.Years == 0:
-		return Tp("age.months_days", map[string]string{"m": num(a.Months, locale), "d": num(a.DaysInMonth, locale)}, locale)
+		return joined(unit("month", a.Months, locale), unit("day", a.DaysInMonth, locale), locale)
 	case a.Months%12 == 0:
-		return Tp("age.years", map[string]string{"y": num(a.Years, locale)}, locale)
+		return unit("year", a.Years, locale)
 	}
-	return Tp("age.years_months", map[string]string{"y": num(a.Years, locale), "m": num(a.Months%12, locale)}, locale)
+	return joined(unit("year", a.Years, locale), unit("month", a.Months%12, locale), locale)
 }

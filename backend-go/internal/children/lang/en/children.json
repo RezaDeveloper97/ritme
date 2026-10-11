@@ -53,7 +53,14 @@
         "months": ":m months",
         "months_days": ":m months and :d days",
         "years": ":y years",
-        "years_months": ":y years and :m months"
+        "years_months": ":y years and :m months",
+        "unit_day": ":n days",
+        "unit_day_one": ":n day",
+        "unit_month": ":n months",
+        "unit_month_one": ":n month",
+        "unit_year": ":n years",
+        "unit_year_one": ":n year",
+        "joined": ":a and :b"
     },
     "visits": {
         "birth": "At birth",

@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { useCancelCityBooking, useCityBooking } from '@/entities/city-service';
+import { ReviewCityBookingForm } from '@/features/review-city-booking';
 import { getApiErrorMessage } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, formatWeekday, fromApiDate } from '@/shared/lib/date';
@@ -34,6 +35,7 @@ export function BookedPage({ id }: { id: number }) {
   const q = useCityBooking(id);
   const cancel = useCancelCityBooking();
   const [confirming, setConfirming] = useState(false);
+  const [reviewing, setReviewing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const num = (v: number | string) => formatNumber(v, locale);
   /** «سه‌شنبه ۲۱ مهر ۱۷:۰۰» from the API's Tehran wall-clock stamp. */
@@ -155,6 +157,18 @@ export function BookedPage({ id }: { id: number }) {
           ) : (
             <SecondaryButton block={false} variant="text" onClick={() => setConfirming(true)}>
               {t('bookings.cancel')}
+            </SecondaryButton>
+          )
+        ) : null}
+        {/* CB-DIR-13 F14: a completed booking can be rated here too (same form as «رزروهای من»). */}
+        {b.review ? (
+          <p className="csv-bk-line">{b.review.status === 'published' ? t('bookings.reviewPublished') : t('bookings.reviewPending')}</p>
+        ) : b.can_review ? (
+          reviewing ? (
+            <ReviewCityBookingForm bookingId={b.id} onDone={() => setReviewing(false)} onCancel={() => setReviewing(false)} />
+          ) : (
+            <SecondaryButton block={false} variant="text" onClick={() => setReviewing(true)}>
+              {t('bookings.review')}
             </SecondaryButton>
           )
         ) : null}

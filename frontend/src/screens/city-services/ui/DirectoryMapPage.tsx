@@ -17,7 +17,7 @@ import {
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { isMapEnabled, NeshanMap, type MapBbox, type MapPin } from '@/shared/ui/map';
-import { Card, EmptyState, Icon, ScreenHeader, SkyLayer } from '@/shared/ui';
+import { Card, EmptyState, Icon, ScreenHeader, SecondaryButton, SkyLayer } from '@/shared/ui';
 import { DirectoryCard, DirectoryFilterSheet } from '@/widgets/directory-filters';
 
 import { CsError, CsSkeleton } from './ListSkeleton';
@@ -76,6 +76,7 @@ export function DirectoryMapPage() {
   const pick = places.find((p) => String(p.id) === selected) ?? null;
   const total = list.data?.meta.total ?? places.length;
   const count = filterCount(filters);
+  const narrowed = count > 0 || q.trim() !== '' || category !== null || bbox !== undefined;
   const center = near.point ?? undefined;
   const onMap = mapOk && ready;
   const rtl = useDirection() === 'rtl';
@@ -198,7 +199,26 @@ export function DirectoryMapPage() {
   } else if (places.length === 0) {
     body = (
       <Card>
-        <EmptyState icon="home" title={t('list.emptyTitle')} body={t('list.emptyBody')} />
+        <EmptyState
+          icon="home"
+          title={narrowed ? t('list.noMatchTitle') : t('list.emptyTitle')}
+          body={narrowed ? t('list.noMatchBody') : t('list.emptyBody')}
+          action={
+            narrowed ? (
+              <SecondaryButton
+                onClick={() => {
+                  setFilters(EMPTY_FILTERS);
+                  setCategory(null);
+                  setQ('');
+                  setQDraft('');
+                  setBbox(undefined);
+                }}
+              >
+                {t('filters.clear')}
+              </SecondaryButton>
+            ) : undefined
+          }
+        />
       </Card>
     );
   } else {

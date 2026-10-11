@@ -96,7 +96,7 @@ func TestCityAdmin_CrudAndQueue(t *testing.T) {
 	ures := e.Exec(`INSERT INTO users (name, mobile, created_at, updated_at) VALUES ('Sara', '09120001111', NOW(), NOW())`)
 	uid, _ := ures.LastInsertId()
 	res := e.Exec(`INSERT INTO city_service_bookings (user_id, listing_id, contact_name, contact_phone, preferred_date, status, created_at, updated_at)
-		VALUES (?, ?, 'Sara', '09120000000', '2030-01-01', 'requested', NOW(), NOW())`, uid, lid)
+		VALUES (?, ?, 'Sara', '09120000000', '2020-01-01', 'requested', NOW(), NOW())`, uid, lid)
 	bid, _ := res.LastInsertId()
 	b := itoa(int(bid))
 	r = c.Get("/city-service-bookings?status=requested")

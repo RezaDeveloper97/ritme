@@ -84,6 +84,13 @@ export function WebSearchPage() {
   const toggleAmenity = (code: string) =>
     applyFilters({ ...filters, amenities: filters.amenities.includes(code) ? filters.amenities.filter((a) => a !== code) : [...filters.amenities, code] });
   const nothingActive = filterCount(filters) === 0 && !bbox && !category && !q;
+  const clearAll = () => {
+    applyFilters(EMPTY_FILTERS);
+    setBbox(undefined);
+    setCategory(null);
+    setQDraft('');
+    setQ('');
+  };
   const sorts = (['rank', 'distance', 'rating'] as const).filter((s) => !options.data?.sorts.length || options.data.sorts.includes(s));
 
   const chip = (key: string, label: string, on: boolean, onClick: () => void) => (
@@ -126,7 +133,18 @@ export function WebSearchPage() {
   } else if (places.length === 0) {
     results = (
       <Card>
-        <EmptyState icon="home" title={t('list.emptyTitle')} body={t('list.emptyBody')} />
+        <EmptyState
+          icon="home"
+          title={nothingActive ? t('list.emptyTitle') : t('list.noMatchTitle')}
+          body={nothingActive ? t('list.emptyBody') : t('list.noMatchBody')}
+          action={
+            nothingActive ? undefined : (
+              <button type="button" className="wcs-link-btn" onClick={clearAll}>
+                {t('filters.clear')}
+              </button>
+            )
+          }
+        />
       </Card>
     );
   } else {
@@ -200,13 +218,7 @@ export function WebSearchPage() {
               <button
                 type="button"
                 className="wcs-link-btn"
-                onClick={() => {
-                  applyFilters(EMPTY_FILTERS);
-                  setBbox(undefined);
-                  setCategory(null);
-                  setQDraft('');
-                  setQ('');
-                }}
+                onClick={clearAll}
               >
                 {w('search.clearAll')}
               </button>

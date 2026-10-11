@@ -53,7 +53,14 @@
         "months": ":m ماه",
         "months_days": ":m ماه و :d روز",
         "years": ":y سال",
-        "years_months": ":y سال و :m ماه"
+        "years_months": ":y سال و :m ماه",
+        "unit_day": ":n روز",
+        "unit_day_one": ":n روز",
+        "unit_month": ":n ماه",
+        "unit_month_one": ":n ماه",
+        "unit_year": ":n سال",
+        "unit_year_one": ":n سال",
+        "joined": ":a و :b"
     },
     "visits": {
         "birth": "بدو تولد",

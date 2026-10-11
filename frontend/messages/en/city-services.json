@@ -14,6 +14,8 @@
     "bookings": "My bookings",
     "emptyTitle": "No venues listed yet",
     "emptyBody": "Try another city or type; new venues are added soon.",
+    "noMatchTitle": "No venues match your search",
+    "noMatchBody": "Try a different search or remove some filters.",
     "pages": "Venue pages",
     "prev": "Previous",
     "next": "Next",

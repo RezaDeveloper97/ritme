@@ -27,6 +27,10 @@ func TestAgeOnAndLabel(t *testing.T) {
 	assert.Equal(t, Age{Days: 104, Weeks: 14, Months: 3, Years: 0, DaysInMonth: 12}, a)
 	assert.Equal(t, "۳ ماه و ۱۲ روز", a.Label("fa"))
 	assert.Equal(t, "3 months and 12 days", a.Label("en"))
+	// CB-DIR-13 F10: singular units in English.
+	assert.Equal(t, "1 year and 2 months", AgeOn(d("2025-08-02"), d("2026-10-02")).Label("en"))
+	assert.Equal(t, "1 month and 1 day", AgeOn(d("2026-09-01"), d("2026-10-02")).Label("en"))
+	assert.Equal(t, "۱ سال و ۲ ماه", AgeOn(d("2025-08-02"), d("2026-10-02")).Label("fa"))
 
 	assert.Equal(t, "۴ سال و ۲ ماه", AgeOn(d("2022-08-01"), d("2026-10-02")).Label("fa"))
 	assert.Equal(t, "۲ سال", AgeOn(d("2024-10-02"), d("2026-10-02")).Label("fa"))

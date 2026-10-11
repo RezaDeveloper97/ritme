@@ -467,4 +467,10 @@ export default defineConfig([
     files: ['./src/widgets/city-join-form/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // CB-DIR-13: `features/review-city-booking` is used by screens/city-services (bookings list + booked page) only —
+    // references FROM `screens` are invisible to steiger.
+    files: ['./src/features/review-city-booking/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

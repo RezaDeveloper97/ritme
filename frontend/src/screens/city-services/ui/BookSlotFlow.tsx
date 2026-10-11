@@ -12,13 +12,14 @@ import {
   useCreateCityBooking,
   useRescheduleCityBooking,
 } from '@/entities/city-service';
+import { useCurrentUser } from '@/entities/user';
 import { getApiErrorMessage } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, formatWeekday, fromApiDate } from '@/shared/lib/date';
 import { Icon, InfoNote, PrimaryButton } from '@/shared/ui';
 
 import { ageFits, groupSlotsByDay, totalMonths } from '../model/book';
-import { NOTE_MAX } from '../model/form';
+import { NAME_MAX, NOTE_MAX } from '../model/form';
 import { bookable } from '../model/place';
 import { CsSkeleton } from './ListSkeleton';
 import { usePrice } from './PlaceSections';
@@ -61,6 +62,11 @@ export function BookSlotFlow({
   const [childId, setChildId] = useState<number | null>(null);
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
+  // CB-DIR-13 F12: the API defaults the contact name to the account's name; an account without one has to type it.
+  const me = useCurrentUser();
+  const needsName = rescheduleId === null && me.isSuccess && !(me.data.name ?? '').trim();
+  const [contactName, setContactName] = useState('');
+  const [nameMissing, setNameMissing] = useState(false);
 
   // The picked slot decides the day; otherwise the chosen day, otherwise the soonest day with a seat.
   const slotDay = days.find((d) => d.slots.some((s) => s.slot.id === slotId))?.day ?? null;
@@ -78,6 +84,10 @@ export function BookSlotFlow({
   const submit = () => {
     if (slotId === null || busy) return;
     setError(null);
+    if (needsName && contactName.trim() === '') {
+      setNameMissing(true);
+      return;
+    }
     const fail = (e: unknown) => {
       setError(getApiErrorMessage(e) ?? t('book.error'));
       void slotsQ.refetch(); // the seat may be gone — show the fresh grid
@@ -87,7 +97,7 @@ export function BookSlotFlow({
       return;
     }
     create.mutate(
-      { listingId: listing.id, serviceId: effectiveService, slotId, childId: child?.id ?? null, note },
+      { listingId: listing.id, serviceId: effectiveService, slotId, childId: child?.id ?? null, note, ...(needsName ? { contactName: contactName.trim() } : {}) },
       { onSuccess: (b) => router.push(`/city-services/booked/${b.id}`), onError: fail },
     );
   };
@@ -188,6 +198,28 @@ export function BookSlotFlow({
           </>
         )}
       </section>
+
+      {needsName ? (
+        <label className="fld-label">
+          <span className="fld-label-t">{t('form.name')}</span>
+          <span className="field">
+            <Icon name="user" size={18} />
+            <input
+              type="text"
+              autoComplete="name"
+              maxLength={NAME_MAX}
+              value={contactName}
+              aria-invalid={nameMissing && contactName.trim() === ''}
+              onChange={(e) => setContactName(e.target.value)}
+            />
+          </span>
+          {nameMissing && contactName.trim() === '' ? (
+            <p role="alert" className="csv-err">
+              {t('form.required')}
+            </p>
+          ) : null}
+        </label>
+      ) : null}
 
       {rescheduleId === null ? (
         <label className="fld-label">

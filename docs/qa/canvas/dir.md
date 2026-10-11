@@ -150,13 +150,13 @@ All mobile and desktop renders: `dir=rtl` for fa and `ltr` for en, `data-theme` 
 | F4 | medium (copy) | The booking bar showed «پرداخت ۳۲۰ هزار تومان» next to «ارسال درخواست», which reads like an online charge | FIXED: label is «مبلغ / Price» |
 | F5 | medium (policy) | A content-only admin (no support capability, cannot open documents or see contacts) can still approve an application and so publish a place without seeing the licence | OPEN: decide whether `approve` should need `support` (route is mapped to `content` on purpose in `permissions.go`) |
 | F6 | low | An approved application's page still said «درخواستت رسید … بعد از تأیید نمایش داده می‌شود» | FIXED (`titleApproved` and `subtitleApproved*` in fa, en, backend copies and goldens) |
-| F7 | low (copy) | A search or filter with no result shows «هنوز مرکزی ثبت نشده / No venues listed yet», which is wrong for «no match» | OPEN: needs a «no results» variant of the empty state |
+| F7 | low (copy) | A search or filter with no result shows «هنوز مرکزی ثبت نشده / No venues listed yet», which is wrong for «no match» | FIXED: «no match» empty state with a clear-filters action (app list, map fallback, desktop /places) |
 | F8 | low | Admin-web threw `MISSING_MESSAGE cityServices.modes.online` on every page that renders a place's booking mode | FIXED (fa and en) |
-| F9 | low | Admin can mark a booking `completed` before its slot has started | OPEN (admin discretion, no guard) |
-| F10 | low | en child age label «1 years and 2 months» (server `age.*` message has no singular; children domain, not DIR) | OPEN |
+| F9 | low | Admin can mark a booking `completed` before its slot has started | FIXED: `completed` before the slot start (or the preferred day) is 422 `booking_not_started` |
+| F10 | low | en child age label «1 years and 2 months» (server `age.*` message has no singular; children domain, not DIR) | FIXED: singular/plural units in the age label (`age.unit_*`) |
 | F11 | low | Public directory throttle was not localized | FIXED (see security table; `TooManyReads`, unit test) |
-| F12 | low | Booking with an account that has no name fails with «فیلد نام الزامی است» and the form has no name field (contact name defaults to the account name) | OPEN: needs a name step in onboarding or a fallback; real accounts normally have a name |
+| F12 | low | Booking with an account that has no name fails with «فیلد نام الزامی است» and the form has no name field (contact name defaults to the account name) | FIXED: the slot flow shows a contact-name field when the account has no name |
 | F13 | low | An approved place has no cancel window until the admin sets one (default null means always free) | NOTE: consider a default of 24 h on approve |
-| F14 | info | Booked page for a completed booking has no «review» entry (only the past tab of «رزروهای من» has it); the join stepper is not tappable (back button only) | NOTE |
+| F14 | info | Booked page for a completed booking has no «review» entry (only the past tab of «رزروهای من» has it); the join stepper is not tappable (back button only) | FIXED (review entry on the booked page via `features/review-city-booking`); the join stepper stays back-button only |
 | F15 | info | Not covered: Neshan map (no key), real SMS and push to the mother or business, store badges, joining as the same business twice, the Go integration suite | NOTE |
 | F16 | info | I ran `pkill -f "go run ./cmd/api"` while restarting my API; this can stop another agent's API on the shared machine (one of mine was stopped once by a similar command from elsewhere) | NOTE |

@@ -277,6 +277,11 @@ func TestDirAdmin_ApplicationToReview_EndToEnd(t *testing.T) {
 	require.Equal(t, 200, c.JSON(fiber.MethodPut, "/city-service-bookings/"+b, map[string]any{"status": "confirmed"}).Status)
 	require.Len(t, e.notify.sent, 1)
 	assert.Equal(t, cityservices.StatusNotice{BookingID: uint64(bid), UserID: uint64(uid), Status: "confirmed"}, e.notify.sent[0]) //nolint:gosec // G115: test ids
+	// CB-DIR-13 F9: completing before the slot has started is refused; once it has, it goes through.
+	r = c.JSON(fiber.MethodPut, "/city-service-bookings/"+b, map[string]any{"status": "completed"})
+	assert.Equal(t, 422, r.Status)
+	assert.Equal(t, cityservices.CodeNotStarted, r.Code())
+	e.Exec(`UPDATE city_service_slots SET starts_at = NOW() - INTERVAL 1 HOUR WHERE id = ?`, slot)
 	require.Equal(t, 200, c.JSON(fiber.MethodPut, "/city-service-bookings/"+b, map[string]any{"status": "completed"}).Status)
 	assert.Len(t, e.notify.sent, 1, "completion is not notified")
 

@@ -75,6 +75,8 @@ export function DirectoryList({ initial, onHome }: { initial: BrowseQuery; onHom
   };
 
   const count = filterCount(filters) + (homeAge !== null && !filters.age ? 1 : 0);
+  // CB-DIR-13 F7: a search / category / filter that matches nothing is «no match», not «nothing listed yet».
+  const narrowed = count > 0 || q.trim() !== '' || category !== null;
   const cityName = cities.find((c) => c.id === activeCity)?.name ?? null;
   const chip = (key: string, label: string, on: boolean, onClick: () => void) => (
     <button key={key} type="button" role="radio" aria-checked={on} className={clsx('chip csv-chip', on && 'on')} onClick={onClick}>
@@ -102,14 +104,18 @@ export function DirectoryList({ initial, onHome }: { initial: BrowseQuery; onHom
       <Card>
         <EmptyState
           icon="home"
-          title={t('list.emptyTitle')}
-          body={t('list.emptyBody')}
+          title={narrowed ? t('list.noMatchTitle') : t('list.emptyTitle')}
+          body={narrowed ? t('list.noMatchBody') : t('list.emptyBody')}
           action={
-            count > 0 ? (
+            narrowed ? (
               <SecondaryButton
                 onClick={() => {
                   setFilters(EMPTY_FILTERS);
                   setHomeAge(null);
+                  setCategory(null);
+                  setQ('');
+                  setQDraft('');
+                  setPage(1);
                 }}
               >
                 {t('filters.clear')}

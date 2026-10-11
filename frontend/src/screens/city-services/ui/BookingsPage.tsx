@@ -9,8 +9,8 @@ import {
   type CityServiceBooking,
   useCancelCityBooking,
   useCityBookingScope,
-  useReviewCityBooking,
 } from '@/entities/city-service';
+import { ReviewCityBookingForm } from '@/features/review-city-booking';
 import { getApiErrorMessage } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, formatWeekday, fromApiDate } from '@/shared/lib/date';
@@ -43,11 +43,8 @@ export function BookingsPage() {
   const [scope, setScope] = useState<Scope>('upcoming');
   const q = useCityBookingScope(scope);
   const cancel = useCancelCityBooking();
-  const review = useReviewCityBooking();
   const [confirming, setConfirming] = useState<number | null>(null);
   const [reviewing, setReviewing] = useState<number | null>(null);
-  const [rating, setRating] = useState(0);
-  const [body, setBody] = useState('');
   const [error, setError] = useState<string | null>(null);
   const num = (v: number | string) => formatNumber(v, locale);
 
@@ -58,22 +55,6 @@ export function BookingsPage() {
       // 422 cancel_window_passed → the API's own message (after the free window she contacts the place).
       onError: (e) => setError(getApiErrorMessage(e) ?? t('bookings.cancelError')),
     });
-  };
-
-  const sendReview = (id: number) => {
-    if (rating < 1) return;
-    setError(null);
-    review.mutate(
-      { id, rating, body },
-      {
-        onSuccess: () => {
-          setReviewing(null);
-          setRating(0);
-          setBody('');
-        },
-        onError: (e) => setError(getApiErrorMessage(e) ?? t('bookings.reviewError')),
-      },
-    );
   };
 
   const row = (b: CityServiceBooking) => {
@@ -117,27 +98,7 @@ export function BookingsPage() {
             </SecondaryButton>
           </div>
         ) : reviewing === b.id ? (
-          <div className="cdb-review">
-            <div role="radiogroup" aria-label={t('bookings.rating')} className="cdb-stars">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button key={n} type="button" role="radio" aria-checked={rating === n} aria-label={num(n)} className={clsx('cdb-star', n <= rating && 'on')} onClick={() => setRating(n)}>
-                  <Icon name="star" size={22} />
-                </button>
-              ))}
-            </div>
-            <span className="field csv-area">
-              <textarea rows={2} maxLength={1000} placeholder={t('bookings.reviewPlaceholder')} value={body} onChange={(e) => setBody(e.target.value)} />
-            </span>
-            <p className="csv-note">{t('bookings.reviewNote')}</p>
-            <div className="cdb-btns">
-              <PrimaryButton block={false} disabled={rating < 1} loading={review.isPending} onClick={() => sendReview(b.id)}>
-                {t('bookings.reviewSend')}
-              </PrimaryButton>
-              <SecondaryButton block={false} variant="text" onClick={() => setReviewing(null)}>
-                {t('bookings.cancelNo')}
-              </SecondaryButton>
-            </div>
-          </div>
+          <ReviewCityBookingForm bookingId={b.id} onDone={() => setReviewing(null)} onCancel={() => setReviewing(null)} />
         ) : (
           <div className="cdb-btns">
             {scope === 'upcoming' && l.lat !== null && l.lng !== null ? (
