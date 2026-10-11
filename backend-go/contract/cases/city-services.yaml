@@ -1,0 +1,55 @@
+# City services (/api/v1/city-services/*) — Go only (bloom B-N10-05, deviations.md D-92): there is no Laravel route, so
+# these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8).
+# The fixture has the three seeded categories and no cities or listings (they are admin data). Listings with rows,
+# the link / request / phone modes, the booking life cycle, IDOR, the privacy rules and the admin CRUD + request queue
+# are covered by internal/http/city_services_int_test.go and internal/cityservices/admin_int_test.go.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: city-services
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: options
+    doc: No city has a visible listing yet; the three seeded categories
+    locales: [none, en]
+    method: GET
+    path: /api/v1/city-services/options
+    status: 200
+  - name: options_anon
+    persona: anon
+    method: GET
+    path: /api/v1/city-services/options
+    status: 401
+  - name: listings_empty
+    method: GET
+    path: /api/v1/city-services/listings
+    query: {category: pool}
+    status: 200
+  - name: listings_bad_city
+    method: GET
+    path: /api/v1/city-services/listings
+    query: {city: abc}
+    status: 422
+  - name: listing_missing
+    method: GET
+    path: /api/v1/city-services/listings/999
+    status: 404
+  - name: bookings_empty
+    method: GET
+    path: /api/v1/city-services/bookings
+    status: 200
+  - name: bookings_anon
+    persona: anon
+    method: GET
+    path: /api/v1/city-services/bookings
+    status: 401
+  - name: booking_invalid
+    doc: Missing fields and an unknown listing are 422 with the field bag
+    method: POST
+    path: /api/v1/city-services/bookings
+    body: {listing_id: 999, contact_name: "", contact_phone: "abc", preferred_date: "2020-01-01", child_age_range: "has asthma"}
+    status: 422
+  - name: cancel_missing
+    method: POST
+    path: /api/v1/city-services/bookings/999/cancel
+    status: 404

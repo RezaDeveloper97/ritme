@@ -1,0 +1,26 @@
+{
+  "case": "city-services/listings_bad_city",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/city-services/listings?city=abc",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست.",
+        "errors": {
+          "city": [
+            "اطلاعات واردشده معتبر نیست."
+          ]
+        }
+      }
+    }
+  ]
+}

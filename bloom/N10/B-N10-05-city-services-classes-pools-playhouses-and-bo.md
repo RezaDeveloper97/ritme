@@ -3,7 +3,7 @@ id: B-N10-05
 title: City services — classes, pools, playhouses and bookings
 milestone: N10
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N10-01]
 parallel_group: N10-E
 touches: [backend-go/internal/cityservices,backend-go/api,admin-web/src,frontend/src/screens/city-services]
