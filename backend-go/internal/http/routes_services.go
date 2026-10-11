@@ -10,7 +10,9 @@ import (
 	catalogstore "github.com/ritme/backend-go/internal/catalog/store"
 	"github.com/ritme/backend-go/internal/checkups"
 	checkupsstore "github.com/ritme/backend-go/internal/checkups/store"
+	"github.com/ritme/backend-go/internal/cityservices"
 	"github.com/ritme/backend-go/internal/companion"
+	contentstore "github.com/ritme/backend-go/internal/content/store"
 	"github.com/ritme/backend-go/internal/enums"
 	healthrecordstore "github.com/ritme/backend-go/internal/healthrecord/store"
 	"github.com/ritme/backend-go/internal/i18n"
@@ -45,9 +47,24 @@ func init() {
 			}
 			return false, nil
 		}
-		svc := services.NewService(cat, healthrecordstore.New(d.DB), mode, telemedBookings(d, false)).WithTeenParent(parentLinked) // B-N7-03 card
+		svc := services.NewService(cat, healthrecordstore.New(d.DB), mode, telemedBookings(d, false)).WithTeenParent(parentLinked).WithInsurancePage(insurancePublished(d)).WithCityServices(cityServicesLive(d)) // B-N7-03 card, B-N10-06 tile
 		h := services.NewHandlers(svc, clock.Real{})
 
 		r.Get("/api/v1/services", locale, guard, h.Show)
 	})
+}
+
+// insurancePublished is B-N10-06's tile switch: the `insurance` info page has at least one active box.
+func insurancePublished(d *Deps) services.InsurancePublished {
+	q := contentstore.New(d.DB)
+	return func(ctx context.Context) (bool, error) {
+		rows, err := q.ListActiveInfoPageSections(ctx, "insurance")
+		return len(rows) > 0, err
+	}
+}
+
+// cityServicesLive is B-N10-05's section switch: at least one visible city-service listing.
+func cityServicesLive(d *Deps) services.CityServicesLive {
+	st := cityservices.NewStore(d.DB)
+	return st.HasActive
 }

@@ -104,7 +104,7 @@ export function InfoSectionsScreen() {
         }
       >
         <p className="panel-note">
-          {t('intro', { page: groupLabel(group) })} {group === 'help' ? t('introHelp') : null}
+          {t('intro', { page: groupLabel(group) })} {group === 'help' ? t('introHelp') : null}{group === 'insurance' ? t('introInsurance') : null}
         </p>
         <DataTable
           columns={columns}

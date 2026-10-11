@@ -3,7 +3,7 @@ id: B-N10-06
 title: Insurance info page
 milestone: N10
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N10-01]
 parallel_group: N10-F
 touches: [backend-go/internal/content,admin-web/src,frontend/src/screens/insurance]

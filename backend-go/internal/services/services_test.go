@@ -195,3 +195,39 @@ func TestHub_ModeErrorPropagates(t *testing.T) {
 	_, err := svc.Hub(context.Background(), 1, time.Now(), loc)
 	assert.ErrorIs(t, err, boom)
 }
+
+func TestHub_InsuranceTileFollowsPublishedPage(t *testing.T) {
+	cat := fakeCatalog{GroupCare: {item("insurance", "Insurance", `{"icon":"shield","tone":"data"}`), item("labs", "Labs", "")}}
+	codes := func(published bool) []string {
+		svc := NewService(cat, &fakeDocs{}, modeOf(enums.LifeModeCycle), nil).WithInsurancePage(
+			func(context.Context) (bool, error) { return published, nil })
+		var out []string
+		for _, c := range hub(t, svc)["care"].([]any) {
+			out = append(out, c.(map[string]any)["code"].(string))
+		}
+		return out
+	}
+	assert.Equal(t, []string{"labs"}, codes(false), "tile hidden while the page is unpublished")
+	assert.Equal(t, []string{"insurance", "labs"}, codes(true))
+	svc := NewService(cat, &fakeDocs{}, modeOf(enums.LifeModeCycle), nil).WithInsurancePage(func(context.Context) (bool, error) { return true, nil })
+	tile := hub(t, svc)["care"].([]any)[0].(map[string]any)
+	assert.Equal(t, "/insurance", tile["href"])
+	assert.Equal(t, "live", tile["status"])
+}
+
+func TestHub_MotherChildSectionGoesLiveWithCityListings(t *testing.T) {
+	cat := fakeCatalog{GroupSections: {item("mother_child", "Mother & child", "")}}
+	section := func(svc *Service) map[string]any { return hub(t, svc)["sections"].([]any)[0].(map[string]any) }
+	base := func() *Service { return NewService(cat, &fakeDocs{}, modeOf(enums.LifeModeCycle), nil) }
+
+	s := section(base())
+	assert.Equal(t, "soon", s["status"])
+	s = section(base().WithCityServices(func(context.Context) (bool, error) { return false, nil }))
+	assert.Equal(t, "soon", s["status"], "no listings yet")
+	s = section(base().WithCityServices(func(context.Context) (bool, error) { return true, nil }))
+	assert.Equal(t, "/city-services", s["href"])
+	assert.Equal(t, "live", s["status"])
+	_, err := base().WithCityServices(func(context.Context) (bool, error) { return false, errors.New("db") }).
+		Hub(context.Background(), 1, time.Now(), loc)
+	assert.Error(t, err)
+}

@@ -170,16 +170,6 @@
               "href": "/vitals",
               "status": "live",
               "count": null
-            },
-            {
-              "code": "insurance",
-              "title": "Insurance",
-              "subtitle": "Coverage and claims",
-              "icon": "shield",
-              "tone": "data",
-              "href": null,
-              "status": "soon",
-              "count": null
             }
           ],
           "programs": [

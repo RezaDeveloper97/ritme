@@ -31,7 +31,7 @@ describe('servicesHubSchema', () => {
       ['record', 'live'],
       ['labs', 'live'],
       ['vitals', 'live'],
-      ['insurance', 'soon'],
+      // B-N10-06: the insurance tile is hidden while there is no insurance content.
     ]);
     expect(hub.care[2]).toMatchObject({ title: 'Health record', href: '/record', count: 0, icon: 'fileDoc' });
     expect(hub.programs.find((p) => p.code === 'contraception')?.href).toBe('/contraception');

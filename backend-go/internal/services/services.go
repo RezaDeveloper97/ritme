@@ -121,6 +121,29 @@ type Service struct {
 	mode     ModeReader
 	bookings BookingSource
 	parent   ParentLinked
+	insured  InsurancePublished
+	cities   CityServicesLive
+}
+
+// InsurancePublished reports whether the admin-edited insurance info page (B-N10-06, info group `insurance`) has at
+// least one active box.
+type InsurancePublished func(ctx context.Context) (bool, error)
+
+// WithInsurancePage plugs the insurance-page check (B-N10-06): the `insurance` care tile links to /insurance while the
+// page is published and is hidden while it is not. Without it the tile keeps its catalog meta.
+func (s *Service) WithInsurancePage(fn InsurancePublished) *Service {
+	s.insured = fn
+	return s
+}
+
+// CityServicesLive reports whether at least one city-service listing is visible to users (B-N10-05).
+type CityServicesLive func(ctx context.Context) (bool, error)
+
+// WithCityServices plugs the city-services check (B-N10-05): the `mother_child` section links to /city-services while
+// listings exist. Without it, or while there are none, the section keeps its catalog href (usually «به‌زودی»).
+func (s *Service) WithCityServices(fn CityServicesLive) *Service {
+	s.cities = fn
+	return s
 }
 
 // WithTeenParent plugs the parent-link check (CB-NAV-03). Without it a teen never sees the TeenParentOnlyCare tiles.
@@ -280,7 +303,18 @@ func (s *Service) sections(ctx context.Context, mode enums.LifeMode, loc catalog
 			continue
 		}
 		seen[it.Code] = true
-		out = append(out, sectionJSON(it, loc))
+		sec := sectionJSON(it, loc)
+		if it.Code == SectionMotherChild && s.cities != nil {
+			live, err := s.cities(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("services: city services: %w", err)
+			}
+			if live {
+				sec.Set("href", "/city-services")
+				sec.Set("status", StatusLive)
+			}
+		}
+		out = append(out, sec)
 	}
 	if !seen[SectionEmergency] {
 		out = append(out, sectionJSON(catalog.Item{Code: SectionEmergency}, loc))
@@ -340,6 +374,16 @@ func (s *Service) care(ctx context.Context, userID uint64, mode enums.LifeMode, 
 			}
 		}
 		m := metaOf(it)
+		if it.Code == "insurance" && s.insured != nil {
+			ok, err := s.insured(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("services: insurance page: %w", err)
+			}
+			if !ok {
+				continue
+			}
+			m.Href = "/insurance"
+		}
 		var count any
 		if m.Counter == CounterRecordDocuments {
 			if docs == nil {
