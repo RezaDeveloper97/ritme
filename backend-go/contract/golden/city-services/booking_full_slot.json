@@ -1,0 +1,30 @@
+{
+  "case": "city-services/booking_full_slot",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/bookings",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "listing_id": 1,
+          "slot_id": 2
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست.",
+        "errors": {
+          "slot_id": [
+            "ظرفیت این زمان پر شد؛ زمان دیگری انتخاب کن."
+          ]
+        }
+      }
+    }
+  ]
+}

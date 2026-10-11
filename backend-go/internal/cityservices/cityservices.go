@@ -147,6 +147,7 @@ type Booking struct {
 	CreatedAt     sql.NullTime
 	UpdatedAt     sql.NullTime
 	Listing       Listing
+	BookingDir    // CB-DIR-03: code, service, slot, child, status history, review (booking.go), additive
 }
 
 const listingSelect = `SELECT l.id, l.category_id, l.city_id, l.name, l.district, l.address, l.phone, l.description,
@@ -257,20 +258,20 @@ const bookingSelect = `SELECT b.id, b.user_id, b.listing_id, b.contact_name, b.c
 	b.child_age_range, b.note, b.status, b.status_note, b.created_at, b.updated_at,
 	l.id, l.category_id, l.city_id, l.name, l.district, l.address, l.phone, l.description, l.price_text, l.hours_text,
 	l.photos, l.booking_mode, l.booking_url, l.sort_order, l.is_active, l.created_at, l.updated_at,
-	c.slug, c.name, c.icon, t.name, t.slug
+	c.slug, c.name, c.icon, t.name, t.slug` + bookingDirColumns + `
 	FROM city_service_bookings b
 	JOIN city_service_listings l ON l.id = b.listing_id
 	JOIN city_service_categories c ON c.id = l.category_id
-	JOIN city_service_cities t ON t.id = l.city_id`
+	JOIN city_service_cities t ON t.id = l.city_id` + bookingDirJoins
 
 func scanBooking(s scanner, b *Booking) error {
 	var photos sql.NullString
 	l := &b.Listing
-	if err := s.Scan(&b.ID, &b.UserID, &b.ListingID, &b.ContactName, &b.ContactPhone, &b.PreferredDate,
+	if err := s.Scan(append([]any{&b.ID, &b.UserID, &b.ListingID, &b.ContactName, &b.ContactPhone, &b.PreferredDate,
 		&b.ChildAgeRange, &b.Note, &b.Status, &b.StatusNote, &b.CreatedAt, &b.UpdatedAt,
 		&l.ID, &l.CategoryID, &l.CityID, &l.Name, &l.District, &l.Address, &l.Phone, &l.Description, &l.PriceText,
 		&l.HoursText, &photos, &l.BookingMode, &l.BookingURL, &l.SortOrder, &l.IsActive, &l.CreatedAt, &l.UpdatedAt,
-		&l.CatSlug, &l.CatName, &l.CatIcon, &l.CityName, &l.CitySlug); err != nil {
+		&l.CatSlug, &l.CatName, &l.CatIcon, &l.CityName, &l.CitySlug}, b.targets()...)...); err != nil {
 		return err
 	}
 	if photos.Valid && photos.String != "" {
@@ -335,17 +336,6 @@ func (s *Store) bookings(ctx context.Context, tail string, args ...any) ([]Booki
 	return out, rows.Err()
 }
 
-// CancelBooking cancels the user's own open booking; false when it is not cancellable (already decided).
-func (s *Store) CancelBooking(ctx context.Context, userID, id uint64, now time.Time) (bool, error) {
-	res, err := s.db.ExecContext(ctx, `UPDATE city_service_bookings SET status = 'cancelled', updated_at = ?
-		WHERE id = ? AND user_id = ? AND status IN ('requested','confirmed')`, now, id, userID)
-	if err != nil {
-		return false, fmt.Errorf("cityservices: cancel: %w", err)
-	}
-	n, _ := res.RowsAffected()
-	return n > 0, nil
-}
-
 // ---------------------------------------------------------------------------
 // JSON
 
@@ -381,6 +371,7 @@ type Labeler struct {
 	Default string
 	AppURL  string
 	URL     func(appURL, path string) string
+	Now     time.Time // CB-DIR-03: the request time (cancel / reschedule flags); zero = time.Now()
 }
 
 func (l Labeler) name(raw json.RawMessage) string { return pick(raw, l.Locale, l.Default) }
@@ -437,10 +428,12 @@ func (l Labeler) DetailJSON(x Listing, ci CardInfo, d PlaceDetail) *jsonx.Ordere
 	return o
 }
 
-// BookingJSON is a booking for its owner.
+// BookingJSON is a booking for its owner. CB-DIR-03 appends the directory fields after bloom's (shape kept) and
+// refines can_cancel with the slot and the place's cancel window (booking_json.go).
 func (l Labeler) BookingJSON(b Booking) *jsonx.OrderedMap {
 	cat, city := l.place(b.Listing)
-	return jsonx.Obj(
+	now := l.now()
+	o := jsonx.Obj(
 		"id", b.ID,
 		"status", b.Status,
 		"status_note", nullStr(b.StatusNote),
@@ -449,12 +442,14 @@ func (l Labeler) BookingJSON(b Booking) *jsonx.OrderedMap {
 		"note", nullStr(b.Note),
 		"contact_name", b.ContactName,
 		"contact_phone", b.ContactPhone,
-		"can_cancel", b.Status == StatusRequested || b.Status == StatusConfirmed,
+		"can_cancel", b.CancelStateAt(now) == CancelAllowed,
 		"created_at", timeJSON(b.CreatedAt),
 		"listing", jsonx.Obj("id", b.Listing.ID, "name", b.Listing.Name, "category", cat, "city", city,
 			"district", nullStr(b.Listing.District), "address", nullStr(b.Listing.Address),
 			"phone", nullStr(b.Listing.Phone), "photo_url", firstOrNil(l.photos(b.Listing.Photos))),
 	)
+	l.directoryBooking(o, b, now)
+	return o
 }
 
 func firstOrNil(ps []string) any {

@@ -8,11 +8,19 @@
 # inactive service, one full. The clock is pinned at 2026-09-23 10:00 Tehran (a Wednesday = weekly_hours day 4).
 # The booking life cycle, IDOR, reviews and the privacy rules are covered by internal/http/city_services_int_test.go
 # and internal/cityservices/admin_int_test.go.
+# CB-DIR-03 (directory bookings on bloom's booking routes): the fixture's `engaged` persona (1018) has a COMPLETED
+# booking 1 (DNE23456, Water intro) and a CONFIRMED booking 2 (CNF23456) on slot 1 = today 17:00, i.e. inside Abpari's
+# 24 h free-cancellation window. `regular` (1004) has no booking or child, so the slot flow creates a child first.
+# The overbooking race, the seat release on reject and every-route IDOR live in
+# internal/http/directory_bookings_int_test.go. Booking codes are random (pattern).
 # Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
 group: city-services
 defaults:
   persona: regular
   locales: none
+  patterns:
+    data.booking.code: '^[2-9A-HJ-NP-Z]{8}$'
+    data.bookings.*.code: '^[2-9A-HJ-NP-Z]{8}$'
 cases:
   - name: options
     doc: Tehran; only the categories with a published listing (class, pool, playhouse); amenities, place age ranges, sorts
@@ -179,3 +187,151 @@ cases:
     method: POST
     path: /api/v1/city-services/bookings/999/cancel
     status: 404
+
+  # --- CB-DIR-03: booking requests, my bookings, cancel window, reschedule, reviews, reports ---
+  - name: bookings_upcoming
+    doc: «پیش رو» — the confirmed slot booking with its code, service, slot, price snapshot and cancel window (passed)
+    persona: engaged
+    locales: [none, en]
+    method: GET
+    path: /api/v1/city-services/bookings
+    query: {scope: upcoming}
+    status: 200
+  - name: bookings_past
+    doc: «گذشته» — the completed booking, reviewable
+    persona: engaged
+    method: GET
+    path: /api/v1/city-services/bookings
+    query: {scope: past}
+    status: 200
+  - name: bookings_bad_scope
+    method: GET
+    path: /api/v1/city-services/bookings
+    query: {scope: all}
+    status: 422
+  - name: booking_show
+    doc: Dir_Booked
+    persona: engaged
+    locales: [none, en]
+    method: GET
+    path: /api/v1/city-services/bookings/2
+    status: 200
+  - name: booking_show_foreign
+    doc: Someone else's booking is a 404 (owner-scoped)
+    method: GET
+    path: /api/v1/city-services/bookings/2
+    status: 404
+  - name: booking_show_anon
+    persona: anon
+    method: GET
+    path: /api/v1/city-services/bookings/2
+    status: 401
+  - name: cancel_window_passed
+    doc: Confirmed, slot at 17:00 today, cancel free until 24 h before → 422
+    persona: engaged
+    locales: [none, en]
+    method: POST
+    path: /api/v1/city-services/bookings/2/cancel
+    status: 422
+  - name: booking_online_needs_slot
+    doc: An online place takes a slot, not a free day
+    method: POST
+    path: /api/v1/city-services/bookings
+    body: {listing_id: 1, preferred_date: "2026-09-24"}
+    status: 422
+  - name: booking_full_slot
+    method: POST
+    path: /api/v1/city-services/bookings
+    body: {listing_id: 1, slot_id: 2}
+    status: 422
+  - name: booking_slot_flow
+    doc: Dir_Book → Dir_Booked → Dir_MyBookings — a 14-month-old on Water intro today 17:00 (contact from the account), the full slot refused for a reschedule, then cancelled (still requested, before the start)
+    locales: [none, en]
+    steps:
+      - method: POST
+        path: /api/v1/children
+        body: {name: Arian, birth_date: "2025-07-20", sex: boy}
+        status: 201
+        capture: {cid: data.id}
+      - method: POST
+        path: /api/v1/city-services/bookings
+        body: {listing_id: 1, slot_id: 1, child_id: "{{cid}}", note: "First time in the water"}
+        status: 201
+        capture: {bid: data.booking.id}
+      - method: GET
+        path: /api/v1/city-services/bookings
+        query: {scope: upcoming}
+        status: 200
+      - method: POST
+        path: "/api/v1/city-services/bookings/{{bid}}/reschedule"
+        body: {slot_id: 2}
+        status: 422
+      - method: POST
+        path: "/api/v1/city-services/bookings/{{bid}}/cancel"
+        status: 200
+  - name: booking_foreign_child
+    doc: A child id that is not hers reads as not found
+    method: POST
+    path: /api/v1/city-services/bookings
+    body: {listing_id: 1, slot_id: 1, child_id: 999}
+    status: 422
+  - name: review_flow
+    doc: One pending (moderated) review per completed booking
+    persona: engaged
+    locales: [none, en]
+    steps:
+      - method: POST
+        path: /api/v1/city-services/bookings/1/review
+        body: {rating: 5, score_cleanliness: 5, score_instructor: 4, score_amenities: 4, body: "Warm water and a kind instructor."}
+        status: 201
+      - method: POST
+        path: /api/v1/city-services/bookings/1/review
+        body: {rating: 4}
+        status: 422
+  - name: review_not_completed
+    persona: engaged
+    method: POST
+    path: /api/v1/city-services/bookings/2/review
+    body: {rating: 5}
+    status: 422
+  - name: review_invalid
+    persona: engaged
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/city-services/bookings/1/review
+    body: {rating: 9, score_instructor: 0}
+    status: 422
+  - name: review_foreign
+    method: POST
+    path: /api/v1/city-services/bookings/1/review
+    body: {rating: 1}
+    status: 404
+  - name: report
+    doc: «گزارش اطلاعات نادرست»; a second open report is refused
+    locales: [none, en]
+    steps:
+      - method: POST
+        path: /api/v1/city-services/listings/2/report
+        body: {reason: closed, note: "Closed since the summer"}
+        status: 201
+      - method: POST
+        path: /api/v1/city-services/listings/2/report
+        body: {reason: other}
+        status: 422
+  - name: report_invalid
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/city-services/listings/2/report
+    body: {reason: spam}
+    status: 422
+  - name: report_draft
+    method: POST
+    path: /api/v1/city-services/listings/4/report
+    body: {reason: closed}
+    status: 404
+  - name: report_anon
+    persona: anon
+    method: POST
+    path: /api/v1/city-services/listings/2/report
+    body: {reason: closed}
+    status: 401

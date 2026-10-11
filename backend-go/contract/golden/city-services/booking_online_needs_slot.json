@@ -1,0 +1,30 @@
+{
+  "case": "city-services/booking_online_needs_slot",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/bookings",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "listing_id": 1,
+          "preferred_date": "2026-09-24"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست.",
+        "errors": {
+          "slot_id": [
+            "یک زمان را انتخاب کن."
+          ]
+        }
+      }
+    }
+  ]
+}

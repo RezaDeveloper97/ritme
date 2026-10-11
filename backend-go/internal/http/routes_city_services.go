@@ -39,8 +39,14 @@ func init() {
 		r.Get("/api/v1/city-services/listings", public, locale, h.Listings)
 		r.Get("/api/v1/city-services/listings/:id/slots", public, locale, h.Slots) // CB-DIR-02
 		r.Get("/api/v1/city-services/listings/:id", public, locale, h.Listing)
+		r.Post("/api/v1/city-services/listings/:id/report", locale, guard, h.ReportListing) // CB-DIR-03
+		// CB-DIR-03 extends bloom's booking routes in place (service / slot / child, ?scope=upcoming|past, cancel
+		// window) and adds one booking, reschedule and review. Still a request the Ritme team confirms; no payment.
 		r.Post("/api/v1/city-services/bookings", locale, guard, h.StoreBooking)
 		r.Get("/api/v1/city-services/bookings", locale, guard, h.Bookings)
+		r.Get("/api/v1/city-services/bookings/:id", locale, guard, h.Booking) // CB-DIR-03
 		r.Post("/api/v1/city-services/bookings/:id/cancel", locale, guard, h.CancelBooking)
+		r.Post("/api/v1/city-services/bookings/:id/reschedule", locale, guard, h.RescheduleBooking) // CB-DIR-03
+		r.Post("/api/v1/city-services/bookings/:id/review", locale, guard, h.ReviewBooking)         // CB-DIR-03
 	})
 }

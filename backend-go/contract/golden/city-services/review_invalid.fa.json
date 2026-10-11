@@ -1,0 +1,34 @@
+{
+  "case": "city-services/review_invalid.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/bookings/1/review",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "rating": 9,
+          "score_instructor": 0
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست.",
+        "errors": {
+          "rating": [
+            "امتیاز نباید بزرگ‌تر از 5 باشد."
+          ],
+          "score_instructor": [
+            "امتیاز مربی باید حداقل 1 باشد."
+          ]
+        }
+      }
+    }
+  ]
+}

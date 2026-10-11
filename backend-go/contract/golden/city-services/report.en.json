@@ -1,0 +1,54 @@
+{
+  "case": "city-services/report.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/listings/2/report",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "reason": "closed",
+          "note": "Closed since the summer"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Thank you! Your report reached the Ritme team.",
+        "data": {
+          "report": {
+            "id": 1,
+            "listing_id": 2,
+            "reason": "closed",
+            "status": "open"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/listings/2/report",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "reason": "other"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Your earlier report about this venue is being reviewed."
+      }
+    }
+  ]
+}

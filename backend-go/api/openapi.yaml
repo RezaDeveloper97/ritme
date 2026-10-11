@@ -14923,15 +14923,68 @@ paths:
         '404': {$ref: "#/components/responses/CityServiceNotFound"}
         '422': {$ref: "#/components/responses/ValidationFailed"}
         '429': {description: Rate limited}
+  /api/v1/city-services/listings/{id}/report:
+    post:
+      tags: [CityServices]
+      summary: Report wrong information about a place
+      description: |
+        Go only (CB-DIR-03, «گزارش اطلاعات نادرست»). Auth required; a published place only (404 otherwise). One open
+        report per user and place (422). Worked by the Ritme team in admin; never sent to the venue.
+      operationId: reportCityServiceListing
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: {type: string, enum: [wrong_info, closed, wrong_location, other]}
+                note: {type: string, nullable: true, maxLength: 500}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [report]
+                    properties:
+                      report:
+                        type: object
+                        required: [id, listing_id, reason, status]
+                        properties:
+                          id: {type: integer}
+                          listing_id: {type: integer}
+                          reason: {type: string}
+                          status: {type: string, enum: [open]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CityServiceNotFound"}
+        '422': {$ref: "#/components/responses/CityServiceUnprocessable"}
   /api/v1/city-services/bookings:
     get:
       tags: [CityServices]
       summary: My city-service requests («رزروها»)
-      description: Go only (B-N10-05). The caller's own requests, newest first, with the user-visible status and the admin's note. Owner only.
+      description: |
+        Go only (B-N10-05). The caller's own requests, newest first, with the user-visible status and the admin's note.
+        Owner only. CB-DIR-03 («رزروهای من»): optional `scope=upcoming` (open bookings whose slot / day is not over,
+        soonest first) or `scope=past` (everything else, latest first), and `counts` of both.
       operationId: listCityServiceBookings
       security:
         - {bearerAuth: []}
       parameters:
+        - {name: scope, in: query, required: false, schema: {type: string, enum: [upcoming, past]}}
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
         '200':
@@ -14950,7 +15003,15 @@ paths:
                       bookings:
                         type: array
                         items: {$ref: "#/components/schemas/CityServiceBooking"}
+                      counts:
+                        type: object
+                        description: CB-DIR-03
+                        required: [upcoming, past]
+                        properties:
+                          upcoming: {type: integer}
+                          past: {type: integer}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
     post:
       tags: [CityServices]
       summary: Request a booking
@@ -14960,6 +15021,15 @@ paths:
         day (today up to 365 days ahead), an optional child AGE RANGE from the fixed list and a short note. Nothing about
         health, cycle or pregnancy is accepted, stored or sent to a venue. One open request per venue, at most 10 open
         requests per user; 422 otherwise (also for a listing that is not in `request` mode).
+
+        CB-DIR-03 (directory, Dir_Book): also `online`-mode places. Optional `service_id` (an active service of the
+        place; its price is snapshotted, display only — no payment), `slot_id` (required for an `online` place: a
+        future open slot of the place and service; it fixes `preferred_date`; its seat is held in the same transaction
+        as the insert, so the last seat can never be sold twice — 422 on `slot_id` when full, closed, past or already
+        booked by her) and `child_id` (her own child — anyone else's reads as not found — whose age must fit the
+        service). A missing `contact_name` / `contact_phone` defaults to the account's name / mobile. The request is
+        always `requested` with a user-visible `code`; the Ritme team confirms it. A venue is only ever told her name,
+        phone, the child's first name and age.
       operationId: createCityServiceBooking
       security:
         - {bearerAuth: []}
@@ -14971,14 +15041,17 @@ paths:
           application/json:
             schema:
               type: object
-              required: [listing_id, contact_name, contact_phone, preferred_date]
+              required: [listing_id]
               properties:
                 listing_id: {type: integer, minimum: 1}
-                contact_name: {type: string, maxLength: 120}
-                contact_phone: {type: string, description: "7-15 digits, optional leading +"}
-                preferred_date: {type: string, format: date}
+                contact_name: {type: string, maxLength: 120, description: "Defaults to the account name when absent (CB-DIR-03)"}
+                contact_phone: {type: string, description: "7-15 digits, optional leading +; defaults to the account mobile when absent (CB-DIR-03)"}
+                preferred_date: {type: string, format: date, description: "Required without slot_id"}
                 child_age_range: {type: string, nullable: true, enum: ["0-1", "1-3", "3-6", "6-12", "12+"]}
                 note: {type: string, nullable: true, maxLength: 500}
+                service_id: {type: integer, nullable: true, minimum: 1, description: CB-DIR-03}
+                slot_id: {type: integer, nullable: true, minimum: 1, description: "CB-DIR-03; required for an online place"}
+                child_id: {type: integer, nullable: true, minimum: 1, description: "CB-DIR-03; her own child (bloom children)"}
       responses:
         '201':
           description: Created
@@ -14997,11 +15070,42 @@ paths:
                       booking: {$ref: "#/components/schemas/CityServiceBooking"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/city-services/bookings/{id}:
+    get:
+      tags: [CityServices]
+      summary: One of my bookings (Dir_Booked)
+      description: Go only (CB-DIR-03). Owner only; anyone else's id is a 404.
+      operationId: getCityServiceBooking
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [booking]
+                    properties:
+                      booking: {$ref: "#/components/schemas/CityServiceBooking"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CityServiceNotFound"}
   /api/v1/city-services/bookings/{id}/cancel:
     post:
       tags: [CityServices]
       summary: Cancel my request
-      description: Go only (B-N10-05). Owner only (404 for anyone else's); 422 once the request is decided (rejected, cancelled, completed).
+      description: |
+        Go only (B-N10-05). Owner only (404 for anyone else's); 422 once the request is decided (rejected, cancelled,
+        completed). CB-DIR-03: a slot booking can be cancelled until its start; a confirmed one only until the place's
+        `cancel_free_hours` before it (422 after that — she contacts the place). The seat goes back to the slot.
       operationId: cancelCityServiceBooking
       security:
         - {bearerAuth: []}
@@ -15025,7 +15129,105 @@ paths:
                       booking: {$ref: "#/components/schemas/CityServiceBooking"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CityServiceNotFound"}
-        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '422': {$ref: "#/components/responses/CityServiceUnprocessable"}
+  /api/v1/city-services/bookings/{id}/reschedule:
+    post:
+      tags: [CityServices]
+      summary: Ask for another time («تغییر زمان»)
+      description: |
+        Go only (CB-DIR-03). Owner only (404). While the slot booking could still be cancelled, move it to another
+        future open slot of the same place and service: the new seat is taken and the old one given back in one
+        transaction, and the booking goes back to `requested` for the Ritme team to confirm. 422 when full / unavailable
+        or no longer reschedulable.
+      operationId: rescheduleCityServiceBooking
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [slot_id]
+              properties:
+                slot_id: {type: integer, minimum: 1}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [booking]
+                    properties:
+                      booking: {$ref: "#/components/schemas/CityServiceBooking"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CityServiceNotFound"}
+        '422': {$ref: "#/components/responses/CityServiceUnprocessable"}
+  /api/v1/city-services/bookings/{id}/review:
+    post:
+      tags: [CityServices]
+      summary: Review a completed booking («نظر بده»)
+      description: |
+        Go only (CB-DIR-03). Owner only (404). One review per COMPLETED booking (422 otherwise or when it already has
+        one). Stored `pending`: the Ritme team moderates it before it is public or counts in the place rating.
+      operationId: reviewCityServiceBooking
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rating]
+              properties:
+                rating: {type: integer, minimum: 1, maximum: 5}
+                score_cleanliness: {type: integer, nullable: true, minimum: 1, maximum: 5}
+                score_instructor: {type: integer, nullable: true, minimum: 1, maximum: 5}
+                score_amenities: {type: integer, nullable: true, minimum: 1, maximum: 5}
+                body: {type: string, nullable: true, maxLength: 1000}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [review]
+                    properties:
+                      review:
+                        type: object
+                        required: [id, booking_id, rating, score_cleanliness, score_instructor, score_amenities, body, status]
+                        properties:
+                          id: {type: integer}
+                          booking_id: {type: integer}
+                          rating: {type: integer}
+                          score_cleanliness: {type: [integer, "null"]}
+                          score_instructor: {type: [integer, "null"]}
+                          score_amenities: {type: [integer, "null"]}
+                          body: {type: [string, "null"]}
+                          status: {type: string, enum: [pending]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CityServiceNotFound"}
+        '422': {$ref: "#/components/responses/CityServiceUnprocessable"}
   /api/v1/city-services/applications:
     get:
       tags: [CityServiceApplications]
@@ -24519,6 +24721,17 @@ components:
             type: object
             required: [message]
             properties: {message: {type: string}}
+    CityServiceUnprocessable:
+      description: "CB-DIR-03: 422 — a field bag `{success:false, message, errors}`, or a rule refusal without `errors` (not cancellable, free-cancellation window passed, not reschedulable, not reviewable, already reviewed, already reported)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors: {type: object, additionalProperties: {type: array, items: {type: string}}}
     CareNotFound:
       description: "Not the user's medication (another user's id, another reminder type, or a malformed id)"
       content:
@@ -24932,18 +25145,23 @@ components:
         terms_accepted: {type: [boolean, 'null']}
     CityServiceBooking:
       type: object
-      required: [id, status, status_note, preferred_date, child_age_range, note, contact_name, contact_phone, can_cancel, created_at, listing]
+      description: |
+        bloom's B-N10-05 booking; CB-DIR-03 appends the directory fields (null on a bloom-era request) and refines
+        `can_cancel` with the slot start and the place's cancel window.
+      required: [id, status, status_note, preferred_date, child_age_range, note, contact_name, contact_phone, can_cancel, created_at, listing,
+        code, service, slot, child, price_toman, is_upcoming, cancel_free_hours, cancel_free_until, cancel_policy, can_reschedule,
+        can_review, review, confirmed_at, cancelled_at, cancelled_by, completed_at]
       properties:
         id: {type: integer}
         status: {type: string, enum: [requested, confirmed, rejected, cancelled, completed]}
-        status_note: {type: string, nullable: true}
+        status_note: {type: [string, "null"]}
         preferred_date: {type: string, format: date}
-        child_age_range: {type: string, nullable: true}
-        note: {type: string, nullable: true}
+        child_age_range: {type: [string, "null"]}
+        note: {type: [string, "null"]}
         contact_name: {type: string}
         contact_phone: {type: string}
         can_cancel: {type: boolean}
-        created_at: {type: string, nullable: true}
+        created_at: {type: [string, "null"]}
         listing:
           type: object
           required: [id, name, category, city, district, address, phone, photo_url]
@@ -24952,10 +25170,53 @@ components:
             name: {type: string}
             category: {type: object, additionalProperties: true}
             city: {type: object, additionalProperties: true}
-            district: {type: string, nullable: true}
-            address: {type: string, nullable: true}
-            phone: {type: string, nullable: true}
-            photo_url: {type: string, nullable: true}
+            district: {type: [string, "null"]}
+            address: {type: [string, "null"]}
+            phone: {type: [string, "null"]}
+            photo_url: {type: [string, "null"]}
+            lat: {type: [number, "null"], description: CB-DIR-03 (directions)}
+            lng: {type: [number, "null"], description: CB-DIR-03 (directions)}
+        code: {type: [string, "null"], description: "User-visible booking code (8 symbols)"}
+        service:
+          type: [object, "null"]
+          required: [id, name, duration_minutes]
+          properties:
+            id: {type: integer}
+            name: {type: [string, "null"]}
+            duration_minutes: {type: [integer, "null"]}
+        slot:
+          type: [object, "null"]
+          required: [id, starts_at, ends_at]
+          properties:
+            id: {type: integer}
+            starts_at: {type: [string, "null"], format: date-time}
+            ends_at: {type: [string, "null"], format: date-time}
+        child:
+          type: [object, "null"]
+          description: Her own child — first name and age in months on the booking day only
+          required: [id, name, age_months]
+          properties:
+            id: {type: integer}
+            name: {type: string}
+            age_months: {type: integer}
+        price_toman: {type: [integer, "null"], description: Price snapshot (display only; no payment)}
+        is_upcoming: {type: boolean}
+        cancel_free_hours: {type: [integer, "null"]}
+        cancel_free_until: {type: [string, "null"], format: date-time}
+        cancel_policy: {type: [string, "null"]}
+        can_reschedule: {type: boolean}
+        can_review: {type: boolean}
+        review:
+          type: [object, "null"]
+          required: [id, rating, status]
+          properties:
+            id: {type: integer}
+            rating: {type: [integer, "null"]}
+            status: {type: [string, "null"], enum: [pending, published, hidden, null]}
+        confirmed_at: {type: [string, "null"]}
+        cancelled_at: {type: [string, "null"]}
+        cancelled_by: {type: [string, "null"], enum: [user, admin, null]}
+        completed_at: {type: [string, "null"]}
     ShopCategory:
       type: object
       required: [id, slug, title, icon, product_count]

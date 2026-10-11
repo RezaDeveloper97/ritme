@@ -3,7 +3,7 @@ id: CB-DIR-03
 title: Directory user API: booking requests, my bookings, cancel, reviews
 epic: DIR
 type: backend
-status: in_progress
+status: done
 depends_on: [CB-DIR-02, B-N5-02]
 parallel_group: DIR-C
 touches: [backend-go/internal/cityservices/booking, backend-go/internal/http/routes_cityservices.go, backend-go/db/queries/cityservices, backend-go/api/openapi.yaml, backend-go/contract]

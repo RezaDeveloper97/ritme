@@ -1375,17 +1375,36 @@ CREATE TABLE `city_service_bookings` (
   `status_note` varchar(300) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `code` varchar(16) DEFAULT NULL,
+  `service_id` bigint(20) unsigned DEFAULT NULL,
+  `slot_id` bigint(20) unsigned DEFAULT NULL,
+  `child_id` bigint(20) unsigned DEFAULT NULL,
+  `price_toman` int(10) unsigned DEFAULT NULL,
+  `confirmed_at` timestamp NULL DEFAULT NULL,
+  `cancelled_at` timestamp NULL DEFAULT NULL,
+  `cancelled_by` varchar(8) DEFAULT NULL,
+  `completed_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `city_service_bookings_code_unique` (`code`),
   KEY `city_service_bookings_listing_id_foreign` (`listing_id`),
   KEY `city_service_bookings_user_id_created_at_index` (`user_id`,`created_at`),
   KEY `city_service_bookings_status_created_at_index` (`status`,`created_at`),
+  KEY `city_service_bookings_service_id_foreign` (`service_id`),
+  KEY `city_service_bookings_slot_id_foreign` (`slot_id`),
+  KEY `city_service_bookings_child_id_foreign` (`child_id`),
+  CONSTRAINT `city_service_bookings_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE SET NULL,
   CONSTRAINT `city_service_bookings_listing_id_foreign` FOREIGN KEY (`listing_id`) REFERENCES `city_service_listings` (`id`),
+  CONSTRAINT `city_service_bookings_service_id_foreign` FOREIGN KEY (`service_id`) REFERENCES `city_service_services` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `city_service_bookings_slot_id_foreign` FOREIGN KEY (`slot_id`) REFERENCES `city_service_slots` (`id`) ON DELETE SET NULL,
   CONSTRAINT `city_service_bookings_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `city_service_bookings` WRITE;
 /*!40000 ALTER TABLE `city_service_bookings` DISABLE KEYS */;
+INSERT INTO `city_service_bookings` VALUES
+(1,1018,1,'Contract engaged','09900000018','2026-09-10',NULL,NULL,'completed',NULL,'2026-09-05 09:00:00','2026-09-10 12:00:00','DNE23456',1,NULL,NULL,320000,'2026-09-06 09:00:00',NULL,NULL,'2026-09-10 12:00:00'),
+(2,1018,1,'Contract engaged','09900000018','2026-09-23',NULL,'Bring a swim diaper','confirmed','See you at the pool','2026-09-20 09:00:00','2026-09-21 09:00:00','CNF23456',1,1,NULL,320000,'2026-09-21 09:00:00',NULL,NULL,NULL);
 /*!40000 ALTER TABLE `city_service_bookings` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `city_service_categories`;
@@ -1500,6 +1519,32 @@ INSERT INTO `city_service_listings` VALUES
 (4,3,1,'Draft playhouse','Vanak',NULL,NULL,NULL,NULL,NULL,NULL,'online',NULL,4,1,'2026-09-23 09:00:00','2026-09-23 09:00:00','draft',NULL,NULL,35.757000,51.410000,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0),
 (5,2,1,'Legacy pool','Valiasr',NULL,'02112345678',NULL,'300',NULL,NULL,'link','https://legacy.example/book',5,1,'2026-09-23 09:00:00','2026-09-23 09:00:00','published',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 /*!40000 ALTER TABLE `city_service_listings` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `city_service_reports`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `city_service_reports` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `listing_id` bigint(20) unsigned NOT NULL,
+  `user_id` bigint(20) unsigned DEFAULT NULL,
+  `reason` varchar(32) NOT NULL,
+  `note` varchar(500) DEFAULT NULL,
+  `status` varchar(12) NOT NULL DEFAULT 'open',
+  `resolved_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `city_service_reports_listing_id_foreign` (`listing_id`),
+  KEY `city_service_reports_user_id_foreign` (`user_id`),
+  KEY `city_service_reports_status_created_at_index` (`status`,`created_at`),
+  CONSTRAINT `city_service_reports_listing_id_foreign` FOREIGN KEY (`listing_id`) REFERENCES `city_service_listings` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `city_service_reports_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `city_service_reports` WRITE;
+/*!40000 ALTER TABLE `city_service_reports` DISABLE KEYS */;
+/*!40000 ALTER TABLE `city_service_reports` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `city_service_reviews`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

@@ -1,0 +1,84 @@
+{
+  "case": "city-services/bookings_upcoming.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/city-services/bookings?scope=upcoming",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "bookings": [
+            {
+              "id": 2,
+              "status": "confirmed",
+              "status_note": "See you at the pool",
+              "preferred_date": "2026-09-23",
+              "child_age_range": null,
+              "note": "Bring a swim diaper",
+              "contact_name": "Contract engaged",
+              "contact_phone": "09900000018",
+              "can_cancel": false,
+              "created_at": "2026-09-20T09:00:00+03:30",
+              "listing": {
+                "id": 1,
+                "name": "Abpari mother & baby pool",
+                "category": {
+                  "slug": "pool",
+                  "name": "استخر",
+                  "icon": "drop"
+                },
+                "city": {
+                  "id": 1,
+                  "slug": "tehran",
+                  "name": "تهران"
+                },
+                "district": "Vanak",
+                "address": "[Full address] Vanak",
+                "phone": "02188001122",
+                "photo_url": null,
+                "lat": 35.7576,
+                "lng": 51.4099
+              },
+              "code": "<pattern:^[2-9A-HJ-NP-Z]{8}$>",
+              "service": {
+                "id": 1,
+                "name": "Water intro",
+                "duration_minutes": 45
+              },
+              "slot": {
+                "id": 1,
+                "starts_at": "2026-09-23T17:00:00+03:30",
+                "ends_at": "2026-09-23T17:45:00+03:30"
+              },
+              "child": null,
+              "price_toman": 320000,
+              "is_upcoming": true,
+              "cancel_free_hours": 24,
+              "cancel_free_until": "2026-09-22T17:00:00+03:30",
+              "cancel_policy": null,
+              "can_reschedule": false,
+              "can_review": false,
+              "review": null,
+              "confirmed_at": "2026-09-21T09:00:00+03:30",
+              "cancelled_at": null,
+              "cancelled_by": null,
+              "completed_at": null
+            }
+          ],
+          "counts": {
+            "upcoming": 1,
+            "past": 1
+          }
+        }
+      }
+    }
+  ]
+}

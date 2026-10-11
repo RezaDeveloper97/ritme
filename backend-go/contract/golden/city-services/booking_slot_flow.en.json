@@ -1,0 +1,356 @@
+{
+  "case": "city-services/booking_slot_flow.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "Arian",
+          "birth_date": "2025-07-20",
+          "sex": "boy"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Child added",
+        "data": {
+          "id": 1,
+          "name": "Arian",
+          "initial": "A",
+          "birth_date": "2025-07-20",
+          "sex": "boy",
+          "sex_label": "Boy",
+          "delivery_type": null,
+          "delivery_type_label": null,
+          "birth": {
+            "weight_kg": null,
+            "length_cm": null,
+            "head_cm": null
+          },
+          "age": {
+            "days": 430,
+            "weeks": 61,
+            "months": 14,
+            "years": 1,
+            "days_in_month": 3,
+            "label": "1 years and 2 months"
+          },
+          "role": "owner",
+          "can_edit": true,
+          "owner_name": null,
+          "vaccines": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "At birth",
+              "due_date": "2025-07-20",
+              "remind_on": "2025-07-17",
+              "days_left": -430,
+              "status": "overdue",
+              "status_label": "Overdue",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "BCG",
+                "Hepatitis B, dose 1",
+                "Oral polio (OPV)"
+              ]
+            }
+          },
+          "growth": {
+            "status": "unknown",
+            "label": "No measurements yet"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/bookings",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "listing_id": 1,
+          "slot_id": 1,
+          "child_id": "{{cid}}",
+          "note": "First time in the water"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Your request was sent; the Ritme team will contact you.",
+        "data": {
+          "booking": {
+            "id": 3,
+            "status": "requested",
+            "status_note": null,
+            "preferred_date": "2026-09-23",
+            "child_age_range": null,
+            "note": "First time in the water",
+            "contact_name": "Contract regular",
+            "contact_phone": "09900000004",
+            "can_cancel": true,
+            "created_at": "2026-09-23T10:00:00+03:30",
+            "listing": {
+              "id": 1,
+              "name": "Abpari mother & baby pool",
+              "category": {
+                "slug": "pool",
+                "name": "Pools",
+                "icon": "drop"
+              },
+              "city": {
+                "id": 1,
+                "slug": "tehran",
+                "name": "Tehran"
+              },
+              "district": "Vanak",
+              "address": "[Full address] Vanak",
+              "phone": "02188001122",
+              "photo_url": null,
+              "lat": 35.7576,
+              "lng": 51.4099
+            },
+            "code": "<pattern:^[2-9A-HJ-NP-Z]{8}$>",
+            "service": {
+              "id": 1,
+              "name": "Water intro",
+              "duration_minutes": 45
+            },
+            "slot": {
+              "id": 1,
+              "starts_at": "2026-09-23T17:00:00+03:30",
+              "ends_at": "2026-09-23T17:45:00+03:30"
+            },
+            "child": {
+              "id": 1,
+              "name": "Arian",
+              "age_months": 14
+            },
+            "price_toman": 320000,
+            "is_upcoming": true,
+            "cancel_free_hours": 24,
+            "cancel_free_until": "2026-09-22T17:00:00+03:30",
+            "cancel_policy": null,
+            "can_reschedule": true,
+            "can_review": false,
+            "review": null,
+            "confirmed_at": null,
+            "cancelled_at": null,
+            "cancelled_by": null,
+            "completed_at": null
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/city-services/bookings?scope=upcoming",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "bookings": [
+            {
+              "id": 3,
+              "status": "requested",
+              "status_note": null,
+              "preferred_date": "2026-09-23",
+              "child_age_range": null,
+              "note": "First time in the water",
+              "contact_name": "Contract regular",
+              "contact_phone": "09900000004",
+              "can_cancel": true,
+              "created_at": "2026-09-23T10:00:00+03:30",
+              "listing": {
+                "id": 1,
+                "name": "Abpari mother & baby pool",
+                "category": {
+                  "slug": "pool",
+                  "name": "Pools",
+                  "icon": "drop"
+                },
+                "city": {
+                  "id": 1,
+                  "slug": "tehran",
+                  "name": "Tehran"
+                },
+                "district": "Vanak",
+                "address": "[Full address] Vanak",
+                "phone": "02188001122",
+                "photo_url": null,
+                "lat": 35.7576,
+                "lng": 51.4099
+              },
+              "code": "<pattern:^[2-9A-HJ-NP-Z]{8}$>",
+              "service": {
+                "id": 1,
+                "name": "Water intro",
+                "duration_minutes": 45
+              },
+              "slot": {
+                "id": 1,
+                "starts_at": "2026-09-23T17:00:00+03:30",
+                "ends_at": "2026-09-23T17:45:00+03:30"
+              },
+              "child": {
+                "id": 1,
+                "name": "Arian",
+                "age_months": 14
+              },
+              "price_toman": 320000,
+              "is_upcoming": true,
+              "cancel_free_hours": 24,
+              "cancel_free_until": "2026-09-22T17:00:00+03:30",
+              "cancel_policy": null,
+              "can_reschedule": true,
+              "can_review": false,
+              "review": null,
+              "confirmed_at": null,
+              "cancelled_at": null,
+              "cancelled_by": null,
+              "completed_at": null
+            }
+          ],
+          "counts": {
+            "upcoming": 1,
+            "past": 0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/bookings/3/reschedule",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "slot_id": 2
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "The given data was invalid.",
+        "errors": {
+          "slot_id": [
+            "This time is full; pick another one."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/bookings/3/cancel",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Request cancelled.",
+        "data": {
+          "booking": {
+            "id": 3,
+            "status": "cancelled",
+            "status_note": null,
+            "preferred_date": "2026-09-23",
+            "child_age_range": null,
+            "note": "First time in the water",
+            "contact_name": "Contract regular",
+            "contact_phone": "09900000004",
+            "can_cancel": false,
+            "created_at": "2026-09-23T10:00:00+03:30",
+            "listing": {
+              "id": 1,
+              "name": "Abpari mother & baby pool",
+              "category": {
+                "slug": "pool",
+                "name": "Pools",
+                "icon": "drop"
+              },
+              "city": {
+                "id": 1,
+                "slug": "tehran",
+                "name": "Tehran"
+              },
+              "district": "Vanak",
+              "address": "[Full address] Vanak",
+              "phone": "02188001122",
+              "photo_url": null,
+              "lat": 35.7576,
+              "lng": 51.4099
+            },
+            "code": "<pattern:^[2-9A-HJ-NP-Z]{8}$>",
+            "service": {
+              "id": 1,
+              "name": "Water intro",
+              "duration_minutes": 45
+            },
+            "slot": {
+              "id": 1,
+              "starts_at": "2026-09-23T17:00:00+03:30",
+              "ends_at": "2026-09-23T17:45:00+03:30"
+            },
+            "child": {
+              "id": 1,
+              "name": "Arian",
+              "age_months": 14
+            },
+            "price_toman": 320000,
+            "is_upcoming": false,
+            "cancel_free_hours": 24,
+            "cancel_free_until": "2026-09-22T17:00:00+03:30",
+            "cancel_policy": null,
+            "can_reschedule": false,
+            "can_review": false,
+            "review": null,
+            "confirmed_at": null,
+            "cancelled_at": "2026-09-23T10:00:00+03:30",
+            "cancelled_by": "user",
+            "completed_at": null
+          }
+        }
+      }
+    }
+  ]
+}

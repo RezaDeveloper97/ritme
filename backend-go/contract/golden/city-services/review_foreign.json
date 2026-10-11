@@ -1,0 +1,24 @@
+{
+  "case": "city-services/review_foreign",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/bookings/1/review",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "rating": 1
+        }
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "پیدا نشد."
+      }
+    }
+  ]
+}

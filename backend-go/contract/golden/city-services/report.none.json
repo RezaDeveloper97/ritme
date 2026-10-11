@@ -1,0 +1,52 @@
+{
+  "case": "city-services/report.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/listings/2/report",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "reason": "closed",
+          "note": "Closed since the summer"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "ممنون! گزارشت به تیم ریتمی رسید.",
+        "data": {
+          "report": {
+            "id": 1,
+            "listing_id": 2,
+            "reason": "closed",
+            "status": "open"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/listings/2/report",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "reason": "other"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "گزارش قبلی تو دربارهٔ این مجموعه در حال بررسی است."
+      }
+    }
+  ]
+}

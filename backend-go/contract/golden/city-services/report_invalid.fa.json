@@ -1,0 +1,30 @@
+{
+  "case": "city-services/report_invalid.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/listings/2/report",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "reason": "spam"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست.",
+        "errors": {
+          "reason": [
+            "دلیل انتخاب‌شده معتبر نیست."
+          ]
+        }
+      }
+    }
+  ]
+}

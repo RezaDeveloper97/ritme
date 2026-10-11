@@ -3,6 +3,7 @@ package cityservices
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
@@ -17,6 +18,12 @@ type BookingNotice struct {
 	PreferredDate civildate.Date
 	ChildAgeRange string
 	Note          string
+	// CB-DIR-03 (Dir_Book «فقط نام تو، نام و سن کودک و شماره تماست»): the service, the slot start, and the child's
+	// FIRST NAME + age in months — never a birth date, measurement or any other child record.
+	ServiceName    string
+	StartsAt       time.Time // zero without a slot
+	ChildName      string
+	ChildAgeMonths int // -1 = no child chosen
 }
 
 // BookingNotifier is the only door from a request toward a venue. A failure never fails the request: the row is

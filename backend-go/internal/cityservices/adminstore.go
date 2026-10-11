@@ -279,11 +279,30 @@ func (s *Store) AdminBooking(ctx context.Context, id uint64) (Booking, error) {
 
 // MoveBooking sets a request's status (compare-and-set on `from`) and the note shown to the user.
 func (s *Store) MoveBooking(ctx context.Context, id uint64, from, to string, note sql.NullString, now time.Time) (bool, error) {
-	res, err := s.db.ExecContext(ctx, "UPDATE city_service_bookings SET status = ?, status_note = ?, updated_at = ? WHERE id = ? AND status = ?",
-		to, note, now, id, from)
-	if err != nil {
-		return false, err
-	}
-	n, _ := res.RowsAffected()
-	return n > 0, nil
+	// CB-DIR-03: the move also stamps the status history (confirmed_at / cancelled_at + cancelled_by / completed_at)
+	// and a rejected or cancelled booking gives its slot seat back, in one transaction with the status change.
+	done := false
+	err := s.inTx(ctx, func(tx *sql.Tx) error {
+		res, err := tx.ExecContext(ctx, `UPDATE city_service_bookings SET status = ?, status_note = ?, updated_at = ?,
+			confirmed_at = IF(? = 'confirmed', ?, confirmed_at),
+			cancelled_at = IF(? = 'cancelled', ?, cancelled_at), cancelled_by = IF(? = 'cancelled', 'admin', cancelled_by),
+			completed_at = IF(? = 'completed', ?, completed_at)
+			WHERE id = ? AND status = ?`, to, note, now, to, now, to, now, to, to, now, id, from)
+		if err != nil {
+			return err
+		}
+		if n, _ := res.RowsAffected(); n == 0 {
+			return nil
+		}
+		done = true
+		if to != StatusRejected && to != StatusCancelled {
+			return nil
+		}
+		var slot sql.NullInt64
+		if err := tx.QueryRowContext(ctx, `SELECT slot_id FROM city_service_bookings WHERE id = ?`, id).Scan(&slot); err != nil {
+			return err
+		}
+		return releaseSeat(ctx, tx, slot, now)
+	})
+	return done, err
 }

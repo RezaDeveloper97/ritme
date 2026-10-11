@@ -1,0 +1,24 @@
+{
+  "case": "city-services/report_draft",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/listings/4/report",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "reason": "closed"
+        }
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "پیدا نشد."
+      }
+    }
+  ]
+}

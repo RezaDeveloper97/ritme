@@ -15,7 +15,11 @@
       "body": {
         "success": true,
         "data": {
-          "bookings": []
+          "bookings": [],
+          "counts": {
+            "upcoming": 0,
+            "past": 0
+          }
         }
       }
     }
