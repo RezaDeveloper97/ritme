@@ -67,8 +67,10 @@ func TestShop_PublicCatalogAndClicks(t *testing.T) {
 	assert.Equal(t, 2, e.count("SELECT clicks FROM shop_click_counts WHERE product_id = ?", link))
 	assert.Equal(t, fiber.StatusNotFound, e.do(fiber.MethodPost, "/api/v1/shop/products/"+itoa(plain)+"/click", sara, nil).Status)
 	assert.Equal(t, fiber.StatusNotFound, e.do(fiber.MethodPost, "/api/v1/shop/products/"+itoa(hidden)+"/click", sara, nil).Status)
-	assert.Equal(t, 0, e.count("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name LIKE 'shop\\_%' AND column_name LIKE '%user%'"),
-		"shop tables carry no user column")
+	// CB-SHOP-01: the internal COD shop (00080) adds user-owned carts/orders/checklists by design (DECISIONS #15), so
+	// the no-user-column invariant is scoped to bloom's link-out catalog tables.
+	assert.Equal(t, 0, e.count("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name IN ('shop_categories','shop_products','shop_click_counts') AND column_name LIKE '%user%'"),
+		"link-out catalog tables carry no user column")
 }
 
 func TestShop_TeenHasNoShop(t *testing.T) {

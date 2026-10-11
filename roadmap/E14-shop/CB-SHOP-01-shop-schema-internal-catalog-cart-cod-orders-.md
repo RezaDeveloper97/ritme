@@ -3,7 +3,7 @@ id: CB-SHOP-01
 title: Shop schema: internal catalog, cart, COD orders, checklist (supersedes link-out)
 epic: SHOP
 type: backend
-status: todo
+status: done
 depends_on: [B-N10-03, CB-CORE-05, CB-CORE-03]
 parallel_group: SHOP-A
 touches: [backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/shop, backend-go/sqlc.yaml, docs/canvas-build/shop.md]

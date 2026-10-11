@@ -2072,6 +2072,37 @@ type Session struct {
 	LastActivity int32
 }
 
+type ShopAddress struct {
+	ID             uint64
+	UserID         uint64
+	Label          sql.NullString
+	RecipientName  string
+	RecipientPhone string
+	Province       sql.NullString
+	City           string
+	AddressLine    string
+	PostalCode     sql.NullString
+	IsDefault      bool
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+}
+
+type ShopCart struct {
+	ID        uint64
+	UserID    uint64
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type ShopCartItem struct {
+	ID        uint64
+	CartID    uint64
+	VariantID uint64
+	Quantity  uint16
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
 type ShopCategory struct {
 	ID        uint64
 	Slug      string
@@ -2081,6 +2112,7 @@ type ShopCategory struct {
 	IsActive  bool
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
+	ParentID  sql.NullInt64
 }
 
 type ShopClickCount struct {
@@ -2089,19 +2121,209 @@ type ShopClickCount struct {
 	Clicks    uint32
 }
 
-type ShopProduct struct {
+type ShopDeliverySlot struct {
+	ID        uint64
+	SellerID  uint64
+	SlotDate  civildate.Date
+	StartsAt  string
+	EndsAt    string
+	Capacity  sql.NullInt16
+	Booked    uint16
+	IsActive  bool
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type ShopLayetteItem struct {
 	ID           uint64
-	CategoryID   uint64
+	GroupKey     string
 	Title        string
-	ImagePath    sql.NullString
-	PriceText    sql.NullString
-	Badge        sql.NullString
-	ExternalUrl  sql.NullString
-	PartnerLabel sql.NullString
+	Note         sql.NullString
+	SuggestedQty sql.NullInt16
+	IsEssential  bool
+	IsFirstDays  bool
+	CategoryID   sql.NullInt64
 	SortOrder    int32
 	IsActive     bool
 	CreatedAt    sql.NullTime
 	UpdatedAt    sql.NullTime
+}
+
+type ShopOrder struct {
+	ID             uint64
+	Code           string
+	UserID         uint64
+	AddressID      sql.NullInt64
+	RecipientName  string
+	RecipientPhone string
+	City           string
+	AddressText    string
+	PostalCode     sql.NullString
+	PaymentMethod  string
+	PaymentStatus  string
+	Status         string
+	Discreet       bool
+	ItemsTotal     uint64
+	ShippingTotal  uint64
+	DiscountTotal  uint64
+	PayableTotal   uint64
+	PlacedAt       sql.NullTime
+	CancelledAt    sql.NullTime
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+}
+
+type ShopOrderEvent struct {
+	ID         uint64
+	OrderID    uint64
+	ShipmentID sql.NullInt64
+	Status     string
+	Note       sql.NullString
+	CreatedAt  sql.NullTime
+}
+
+type ShopOrderItem struct {
+	ID           uint64
+	OrderID      uint64
+	ShipmentID   uint64
+	ProductID    sql.NullInt64
+	VariantID    sql.NullInt64
+	Title        string
+	VariantLabel sql.NullString
+	UnitPrice    uint64
+	Quantity     uint16
+	LineTotal    uint64
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+}
+
+type ShopOrderShipment struct {
+	ID             uint64
+	OrderID        uint64
+	SellerID       uint64
+	DeliverySlotID sql.NullInt64
+	SlotDate       civildate.NullDate
+	SlotStartsAt   sql.NullString
+	SlotEndsAt     sql.NullString
+	Status         string
+	ItemsTotal     uint64
+	ShippingFee    uint64
+	TrackingCode   sql.NullString
+	DeliveredAt    sql.NullTime
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+}
+
+type ShopProduct struct {
+	ID                uint64
+	CategoryID        uint64
+	Title             string
+	ImagePath         sql.NullString
+	PriceText         sql.NullString
+	Badge             sql.NullString
+	ExternalUrl       sql.NullString
+	PartnerLabel      sql.NullString
+	SortOrder         int32
+	IsActive          bool
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+	SellerID          sql.NullInt64
+	Subtitle          sql.NullString
+	Description       sql.NullString
+	Images            sql.NullString
+	Attributes        sql.NullString
+	IrcCode           sql.NullString
+	ExpiresOn         civildate.NullDate
+	SkinTypes         sql.NullString
+	Badges            sql.NullString
+	DiscreetPackaging bool
+	RatingAvg         sql.NullString
+	RatingCount       uint32
+	PurchaseCount     uint32
+}
+
+type ShopProductReview struct {
+	ID           uint64
+	ProductID    uint64
+	UserID       uint64
+	OrderItemID  sql.NullInt64
+	AuthorName   string
+	VariantLabel sql.NullString
+	Rating       uint8
+	Body         sql.NullString
+	Status       string
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+}
+
+type ShopProductVariant struct {
+	ID             uint64
+	ProductID      uint64
+	Sku            sql.NullString
+	Size           sql.NullString
+	Color          sql.NullString
+	Volume         sql.NullString
+	Price          uint64
+	CompareAtPrice sql.NullInt64
+	Stock          uint32
+	SortOrder      int32
+	IsActive       bool
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+}
+
+type ShopReturn struct {
+	ID          uint64
+	OrderID     uint64
+	OrderItemID uint64
+	UserID      uint64
+	Quantity    uint16
+	Reason      string
+	Note        sql.NullString
+	Status      string
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type ShopSeller struct {
+	ID                uint64
+	Slug              string
+	Name              string
+	LogoPath          sql.NullString
+	IsVerified        bool
+	ShipMinDays       uint8
+	ShipMaxDays       uint8
+	DiscreetPackaging bool
+	ShippingFee       uint64
+	FreeShippingOver  sql.NullInt64
+	CodMaxTotal       sql.NullInt64
+	ReturnDays        uint8
+	SortOrder         int32
+	IsActive          bool
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+}
+
+type ShopSupplyReminder struct {
+	UserID    uint64
+	IsEnabled bool
+	LeadDays  uint8
+	ProductID sql.NullInt64
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type ShopUserChecklistItem struct {
+	ID            uint64
+	UserID        uint64
+	LayetteItemID sql.NullInt64
+	CustomTitle   sql.NullString
+	GroupKey      string
+	State         string
+	Quantity      sql.NullInt16
+	SortOrder     int32
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
 }
 
 type SideEffectLog struct {

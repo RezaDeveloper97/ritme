@@ -313,3 +313,11 @@ sql:
       go:
         <<: *go
         out: internal/partners/store
+  # CB-SHOP-01: the internal shop's typed store (sellers, variants, cart, COD orders, checklist). bloom's link-out
+  # catalog in internal/shop keeps its own hand-written SQL.
+  - <<: *pkg
+    queries: db/queries/shop
+    gen:
+      go:
+        <<: *go
+        out: internal/shop/store
