@@ -42,3 +42,8 @@ SET status = 'canceled', auto_renew = 0, canceled_at = sqlc.arg(stamp), updated_
 WHERE user_id = sqlc.arg(user_id)
   AND status = 'active'
   AND ends_at > sqlc.arg(now);
+
+-- name: InsertGrantedSubscription :execlastid
+-- A free period (challenge reward, B-N9-07): no plan, no invoice, auto-renew off.
+INSERT INTO plus_subscriptions (user_id, plan_id, invoice_id, status, source, starts_at, ends_at, auto_renew, created_at, updated_at)
+VALUES (?, NULL, NULL, 'active', ?, ?, ?, 0, ?, ?);

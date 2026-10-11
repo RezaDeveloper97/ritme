@@ -322,6 +322,7 @@ const listActiveChallenges = `-- name: ListActiveChallenges :many
 SELECT id, title, description, cycle_day_from, cycle_day_to, category
 FROM ` + "`" + `challenges` + "`" + `
 WHERE is_active = 1
+  AND NOT EXISTS (SELECT 1 FROM ` + "`" + `challenge_programs` + "`" + ` p WHERE p.challenge_id = ` + "`" + `challenges` + "`" + `.id) -- v2 runs (B-N9-07) are not daily picks
 ORDER BY sort_order, id
 `
 

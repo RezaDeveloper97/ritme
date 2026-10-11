@@ -20,6 +20,9 @@ import {
 } from '@/shared/ui';
 
 import { challengesApi, type Challenge } from '../api/challenges';
+import { toDraft, toPayload } from '../lib/program';
+import { ProgramSection } from './ProgramSection';
+import { StatsPanel } from './StatsPanel';
 
 /** /challenges/new and /challenges/:id (Blade challenges.form + cycle-day-range). */
 export function ChallengeFormScreen({ id }: { id: number | null }) {
@@ -52,6 +55,7 @@ function ChallengeForm({ id, row, maxDay }: { id: number | null; row: Challenge 
   const [category, setCategory] = useState(row?.category ?? '');
   const [sortOrder, setSortOrder] = useState(String(row?.sort_order ?? 0));
   const [active, setActive] = useState(row?.is_active ?? true);
+  const [program, setProgram] = useState(() => toDraft(row));
   const err = (name: string) => fieldError(save.error, name);
 
   const submit = () =>
@@ -64,6 +68,7 @@ function ChallengeForm({ id, row, maxDay }: { id: number | null; row: Challenge 
         category: blankToNull(category),
         sort_order: toIntOrNull(sortOrder) ?? 0,
         is_active: active,
+        ...toPayload(program),
       },
       {
         onSuccess: () => {
@@ -130,6 +135,8 @@ function ChallengeForm({ id, row, maxDay }: { id: number | null; row: Challenge 
         />
         <Switch label={tc('isActive')} checked={active} onChange={setActive} />
       </div>
+      <ProgramSection draft={program} onChange={setProgram} error={save.error} />
+      {id !== null && row?.program ? <StatsPanel id={id} /> : null}
     </FormPage>
   );
 }

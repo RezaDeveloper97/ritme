@@ -49,6 +49,26 @@ export function ChallengesScreen() {
         </Badge>
       ),
     },
+    {
+      key: 'run',
+      header: t('program.run'),
+      cell: (c) =>
+        c.program ? (
+          <span className="whitespace-nowrap">
+            {t('program.durationDays', { count: c.program.duration_days })}
+            {c.stats ? (
+              <span className="text-muted">
+                {' · '}
+                {t('program.participantsShort', { count: formatNumber(c.stats.participants, locale) })}
+                {' · '}
+                {t('program.completionShort', { rate: formatNumber(c.stats.completion_rate, locale) })}
+              </span>
+            ) : null}
+          </span>
+        ) : (
+          '—'
+        ),
+    },
     { key: 'category', header: tc('category'), cell: (c) => c.category || '—' },
     { key: 'sort', header: tc('sortOrder'), cell: (c) => formatNumber(c.sort_order, locale), className: 'cell-num' },
     {

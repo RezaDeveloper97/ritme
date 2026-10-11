@@ -3,7 +3,7 @@ id: B-N9-07
 title: Challenges v2 — eligibility rules, daily tasks, rewards
 milestone: N9
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N9-02]
 parallel_group: N9-G
 touches: [backend-go/internal/challenges,backend-go/internal/admin,backend-go/api,admin-web/src,frontend/src/widgets/today-challenge]

@@ -88,6 +88,9 @@ func (h *Handlers) ListChallenges(c fiber.Ctx) error {
 	for i := range rows {
 		items = append(items, challengeJSON(&rows[i]))
 	}
+	if err := h.challengeListExtras(c.Context(), rows, items); err != nil {
+		return err
+	}
 	page := httpadmin.Page(items, p, int(total))
 	page.Set("filters", jsonx.Obj("q", search, "status", status, "cycle_day", day))
 	return httpadmin.OK(c, page)
@@ -99,9 +102,23 @@ func (h *Handlers) ChallengeOptions(c fiber.Ctx) error {
 }
 
 // ShowChallenge is GET /challenges/:id.
-func (h *Handlers) ShowChallenge(c fiber.Ctx) error { return h.challenges().show(c) }
+func (h *Handlers) ShowChallenge(c fiber.Ctx) error {
+	ch, err := find(c, "Challenge", h.q.GetChallenge)
+	if err != nil {
+		return err
+	}
+	m, err := h.fullChallengeJSON(c.Context(), &ch)
+	if err != nil {
+		return err
+	}
+	return httpadmin.OK(c, jsonx.Obj("challenge", m))
+}
 
 func challengeRules(c fiber.Ctx) validation.Rules {
+	return append(challengeLegacyRules(c), challengeV2Rules(c)...)
+}
+
+func challengeLegacyRules(c fiber.Ctx) validation.Rules {
 	rules := form.Translatable(c, "title", true)
 	rules = append(rules, form.Translatable(c, "description", false)...)
 	day := "nullable|integer|min:1|max:" + strconv.Itoa(MaxCycleDay)
@@ -133,7 +150,7 @@ func checkDayRange(c fiber.Ctx) form.Check {
 
 // StoreChallenge is POST /challenges.
 func (h *Handlers) StoreChallenge(c fiber.Ctx) error {
-	data, err := form.Validate(c, challengeRules(c), checkDayRange(c))
+	data, err := form.Validate(c, challengeRules(c), checkDayRange(c), checkChallengeV2(c))
 	if err != nil {
 		return err
 	}
@@ -150,8 +167,11 @@ func (h *Handlers) StoreChallenge(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := h.saveChallengeProgram(c.Context(), id, data, h.now(c)); err != nil {
+		return err
+	}
 	httpadmin.Audit(c, h.logger, "challenge.create", "challenge", id)
-	return h.challenges().respond(c, id, true, "Challenge created.")
+	return h.respondChallenge(c, id, true, "Challenge created.")
 }
 
 // UpdateChallenge is PUT /challenges/:id.
@@ -160,7 +180,7 @@ func (h *Handlers) UpdateChallenge(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	data, err := form.Validate(c, challengeRules(c), checkDayRange(c))
+	data, err := form.Validate(c, challengeRules(c), checkDayRange(c), checkChallengeV2(c))
 	if err != nil {
 		return err
 	}
@@ -172,8 +192,11 @@ func (h *Handlers) UpdateChallenge(c fiber.Ctx) error {
 	}); err != nil {
 		return err
 	}
+	if err := h.saveChallengeProgram(c.Context(), cur.ID, data, h.now(c)); err != nil {
+		return err
+	}
 	httpadmin.Audit(c, h.logger, "challenge.update", "challenge", cur.ID)
-	return h.challenges().respond(c, cur.ID, false, "Challenge updated.")
+	return h.respondChallenge(c, cur.ID, false, "Challenge updated.")
 }
 
 // DestroyChallenge is DELETE /challenges/:id.

@@ -107,6 +107,36 @@ func (q *Queries) HasAnySubscription(ctx context.Context, userID uint64) (bool, 
 	return has_any, err
 }
 
+const insertGrantedSubscription = `-- name: InsertGrantedSubscription :execlastid
+INSERT INTO plus_subscriptions (user_id, plan_id, invoice_id, status, source, starts_at, ends_at, auto_renew, created_at, updated_at)
+VALUES (?, NULL, NULL, 'active', ?, ?, ?, 0, ?, ?)
+`
+
+type InsertGrantedSubscriptionParams struct {
+	UserID    uint64
+	Source    string
+	StartsAt  time.Time
+	EndsAt    time.Time
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+// A free period (challenge reward, B-N9-07): no plan, no invoice, auto-renew off.
+func (q *Queries) InsertGrantedSubscription(ctx context.Context, arg InsertGrantedSubscriptionParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, insertGrantedSubscription,
+		arg.UserID,
+		arg.Source,
+		arg.StartsAt,
+		arg.EndsAt,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
 const insertSubscription = `-- name: InsertSubscription :execlastid
 INSERT INTO plus_subscriptions (user_id, plan_id, invoice_id, status, source, starts_at, ends_at, auto_renew, created_at, updated_at)
 VALUES (?, ?, ?, 'active', ?, ?, ?, 1, ?, ?)

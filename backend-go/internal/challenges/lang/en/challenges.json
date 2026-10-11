@@ -1,0 +1,14 @@
+{
+    "messages": {
+        "validation_failed": "The given data was invalid",
+        "not_found": "Challenge not found",
+        "not_eligible": "This challenge is not available for you right now",
+        "not_startable": "This challenge cannot be started yet",
+        "not_joined": "Join the challenge first",
+        "bad_day": "This task does not apply to that day",
+        "run_ended": "This challenge run has ended",
+        "joined": "You joined the challenge",
+        "task_done": "Done",
+        "completed": "Challenge completed"
+    }
+}
