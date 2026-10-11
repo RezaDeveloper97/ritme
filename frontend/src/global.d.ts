@@ -58,6 +58,7 @@ import type enWelcome from '../messages/en/welcome.json';
 import type enServices from '../messages/en/services.json';
 import type enShop from '../messages/en/shop.json'; // B-N10-03
 import type enCityServices from '../messages/en/city-services.json'; // B-N10-05
+import type enCityJoin from '../messages/en/city-join.json'; // CB-DIR-10
 import type enHomeLab from '../messages/en/home-lab.json'; // B-N10-04
 import type enSearch from '../messages/en/search.json';
 import type enPlus from '../messages/en/plus.json';
@@ -128,6 +129,7 @@ type Messages = {
   services: typeof enServices;
   shop: typeof enShop; // B-N10-03 entities/shop, screens/shop
   cityServices: typeof enCityServices; // B-N10-05 entities/city-service, screens/city-services
+  cityJoin: typeof enCityJoin; // CB-DIR-10 screens/city-services-join
   homeLab: typeof enHomeLab; // B-N10-04 entities/partner-lab, screens/home-lab, widgets/home-lab-cards
   search: typeof enSearch;
   plus: typeof enPlus;

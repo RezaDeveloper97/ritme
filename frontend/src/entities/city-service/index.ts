@@ -42,3 +42,36 @@ export {
   type SlotWhen,
 } from './model/filters';
 export { useNearMe, type NearMe } from './model/near-me';
+
+// CB-DIR-10: the business join flow (applications API).
+export {
+  APPLICATION_STATUSES,
+  DOCUMENT_SLOTS,
+  JOIN_AGE_RANGES,
+  JOIN_AMENITIES,
+  JOIN_BOOKING_MODES,
+  JOIN_CATEGORY_ORDER,
+  TIMELINE_KEYS,
+  joinKeys,
+  type ApplicationStatus,
+  type DocumentSlot,
+  type JoinApplication,
+  type JoinBookingMode,
+  type JoinFile,
+  type JoinHours,
+  type JoinOffer,
+  type JoinStatus,
+  type JoinSummary,
+  type TimelineKey,
+  useAddJoinPhoto,
+  useDeleteJoinDraft,
+  useJoinApplication,
+  useJoinApplications,
+  useJoinStatus,
+  useOpenJoinDraft,
+  useRemoveJoinDocument,
+  useRemoveJoinPhoto,
+  useSaveJoinStep,
+  useSubmitJoin,
+  useUploadJoinDocument,
+} from './api/application';

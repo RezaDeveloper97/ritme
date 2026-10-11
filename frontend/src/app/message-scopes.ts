@@ -190,6 +190,7 @@ export const ROUTE_NAMESPACES = {
   shop: ['common', 'shop'], // B-N10-03 /shop, /shop/[category] (categories, products, link-out interstitial)
   shopChecklist: ['common', 'companions', 'shop'], // CB-SHOP-09 /shop/checklist (family read-only view uses companion ids)
   cityServices: ['children', 'cityServices', 'common', 'nav'], // CB-DIR-06 home adds the child avatar + bottom nav; B-N10-05 /city-services, /city-services/[id], /city-services/[id]/request, /profile/bookings
+  cityJoin: ['cityJoin', 'common'], // CB-DIR-10 /city-services/join (business join flow; no bottom nav)
   doctors: ['common', 'doctors'], // B-N7-05 /services/doctors*, /services/bookings* (directory, profile, book, return, booked, chat)
   assistant: ['common', 'nav', 'assistant'], // B-N7-07 /assistant (hub; bottom nav)
   assistantDept: ['common', 'assistant'], // B-N7-07 /assistant/[dept]

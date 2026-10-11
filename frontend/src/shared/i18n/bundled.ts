@@ -61,6 +61,7 @@ import enServices from '../../../messages/en/services.json';
 import enShop from '../../../messages/en/shop.json'; // B-N10-03
 import enHomeLab from '../../../messages/en/home-lab.json'; // B-N10-04
 import enCityServices from '../../../messages/en/city-services.json'; // B-N10-05
+import enCityJoin from '../../../messages/en/city-join.json'; // CB-DIR-10
 import enSearch from '../../../messages/en/search.json';
 import enPlus from '../../../messages/en/plus.json';
 import enCompanions from '../../../messages/en/companions.json';
@@ -126,6 +127,7 @@ import faServices from '../../../messages/fa/services.json';
 import faShop from '../../../messages/fa/shop.json'; // B-N10-03
 import faHomeLab from '../../../messages/fa/home-lab.json'; // B-N10-04
 import faCityServices from '../../../messages/fa/city-services.json'; // B-N10-05
+import faCityJoin from '../../../messages/fa/city-join.json'; // CB-DIR-10
 import faSearch from '../../../messages/fa/search.json';
 import faPlus from '../../../messages/fa/plus.json';
 import faCompanions from '../../../messages/fa/companions.json';
@@ -229,6 +231,7 @@ const bundled = {
     shop: faShop, // B-N10-03 /shop*
     homeLab: faHomeLab, // B-N10-04 /services/home-lab*, home suggestion cards
     cityServices: faCityServices, // B-N10-05 /city-services*, /profile/bookings
+    cityJoin: faCityJoin, // CB-DIR-10 /city-services/join
     search: faSearch,
     plus: faPlus,
     companions: faCompanions,
@@ -296,6 +299,7 @@ const bundled = {
     shop: enShop, // B-N10-03 /shop*
     homeLab: enHomeLab, // B-N10-04 /services/home-lab*, home suggestion cards
     cityServices: enCityServices, // B-N10-05 /city-services*, /profile/bookings
+    cityJoin: enCityJoin, // CB-DIR-10 /city-services/join
     search: enSearch,
     plus: enPlus,
     companions: enCompanions,

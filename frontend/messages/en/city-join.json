@@ -1,0 +1,270 @@
+{
+  "title": "Register your venue",
+  "back": "Back",
+  "close": "Close",
+  "loading": "Loading your application",
+  "loadError": "Your application didn't load. Check your connection and try again.",
+  "retry": "Try again",
+  "stepLabel": "Step {n} of {total}",
+  "stepsLabel": "Application steps",
+  "steps": {
+    "intro": "About you",
+    "place": "Place and photos",
+    "services": "Services",
+    "docs": "Documents"
+  },
+  "next": "Continue",
+  "saving": "Saving…",
+  "saved": "Draft saved",
+  "saveError": "Couldn't save. We'll try again when you continue.",
+  "locked": "This application can no longer be edited. It is with the Ritme team.",
+  "resume": "You have a draft in progress. We picked it up where you left it.",
+  "needsInfo": "The Ritme team asked for more information",
+  "intro": {
+    "heroTitle": "Introduce your venue to mothers",
+    "heroBody": "Mothers near you see your venue on the map and in search, read your page and send a booking request from the app.",
+    "mapTitle": "On the map and in search",
+    "mapBody": "Shown to mothers by distance and their child's age.",
+    "bookTitle": "Booking requests and reminders",
+    "bookBody": "Share your free times. Requests are confirmed by the Ritme team; reminders and cancellations are handled for you.",
+    "termsTitle": "Terms of cooperation",
+    "termsBody": "The commission or subscription model has not been set yet. The Ritme team will share the terms with you before your page goes live.",
+    "name": "Venue name",
+    "namePh": "e.g. Mother and baby pool",
+    "kind": "Type of service",
+    "kindHint": "You can pick several",
+    "city": "City",
+    "cityPh": "Choose a city",
+    "cityNone": "No city is open for new venues yet.",
+    "district": "District",
+    "districtPh": "e.g. Vanak",
+    "contact": "Contact person's full name",
+    "phone": "Mobile number",
+    "phonePh": "09xx xxx xxxx",
+    "owner": "I own or manage this venue",
+    "delete": "Delete this draft",
+    "deleteAsk": "Delete the draft and its files? This cannot be undone.",
+    "deleteYes": "Delete",
+    "deleteNo": "Keep it"
+  },
+  "categories": {
+    "class": "Mother and baby class",
+    "pool": "Mother and baby pool",
+    "playhouse": "Play house",
+    "music_art": "Music and art",
+    "postpartum_fitness": "Postpartum fitness",
+    "baby_massage": "Baby massage",
+    "parenting_workshop": "Parenting workshop",
+    "other": "Other"
+  },
+  "place": {
+    "mapTitle": "Location on the map",
+    "mapHint": "Where mothers should come",
+    "mapDrag": "Move the map so the entrance is in view, then tap the button.",
+    "setPin": "Pin the entrance here",
+    "pinSet": "Pin set",
+    "pinNone": "No pin yet",
+    "locate": "Use my current location",
+    "locateError": "We couldn't read your location. Type the coordinates instead.",
+    "coords": "Or type the coordinates",
+    "lat": "Latitude",
+    "lng": "Longitude",
+    "mapLabel": "Map to place the venue pin",
+    "myLocation": "My location",
+    "address": "Exact address",
+    "addressPh": "Street, alley, number, floor",
+    "photos": "Photos",
+    "photosHint": "At least {min} real photos of the space · no children's faces",
+    "photoCount": "{n} of {min} minimum · {max} at most",
+    "add": "Add",
+    "uploading": "Uploading {percent}%",
+    "removePhoto": "Remove photo {n}",
+    "photoAlt": "Photo {n} of your venue",
+    "about": "About the venue",
+    "aboutPh": "A few sentences about the space, the instructors and the feel of the classes",
+    "ages": "Age range",
+    "amenities": "Amenities",
+    "hours": "Opening hours",
+    "open": "Open",
+    "closed": "Closed",
+    "from": "From",
+    "to": "To",
+    "hoursError": "Closing time must be after opening time."
+  },
+  "ages": {
+    "pregnancy": "Pregnancy",
+    "m0_6": "0 to 6 months",
+    "m6_12": "6 to 12 months",
+    "y1_2": "1 to 2 years",
+    "y2_4": "2 to 4 years",
+    "y4_6": "4 to 6 years"
+  },
+  "amenities": {
+    "nursing_room": "Nursing room",
+    "changing_table": "Changing table",
+    "female_instructor": "Female instructor",
+    "stroller_parking": "Stroller parking",
+    "parking": "Parking",
+    "elevator": "Elevator",
+    "wheelchair_access": "Wheelchair access"
+  },
+  "days": {
+    "sat": "Saturday",
+    "sun": "Sunday",
+    "mon": "Monday",
+    "tue": "Tuesday",
+    "wed": "Wednesday",
+    "thu": "Thursday",
+    "fri": "Friday"
+  },
+  "services": {
+    "title": "Services and prices",
+    "lead": "Add what mothers can book. Prices are shown for information; there is no online payment.",
+    "empty": "No services yet. Add at least one.",
+    "add": "Add a service",
+    "edit": "Edit service",
+    "editLabel": "Edit {name}",
+    "removeLabel": "Remove {name}",
+    "kinds": {
+      "session": "Single session",
+      "package": "Package of sessions"
+    },
+    "kind": "Type",
+    "name": "Service name",
+    "namePh": "e.g. Water familiarisation",
+    "desc": "Short description (optional)",
+    "format": "Format",
+    "formats": {
+      "group": "Group",
+      "private": "Private"
+    },
+    "duration": "Duration (minutes)",
+    "ageMin": "From age (months)",
+    "ageMax": "Up to age (months)",
+    "capacity": "Capacity",
+    "price": "Price (Toman)",
+    "sessions": "Number of sessions",
+    "validity": "Valid for (days)",
+    "save": "Save service",
+    "cancel": "Cancel",
+    "errors": {
+      "name": "Enter a name.",
+      "duration": "Duration must be between 5 and 600 minutes.",
+      "capacity": "Capacity must be between 1 and 500.",
+      "age": "Check the ages: 0 to 240 months, and the upper age can't be lower.",
+      "sessions": "Enter 1 to 200 sessions.",
+      "validity": "Validity must be 1 to 730 days."
+    },
+    "minutes": "{n} minutes",
+    "agesFromTo": "{min} to {max} months",
+    "agesFrom": "from {min} months",
+    "agesTo": "up to {max} months",
+    "capacityOf": "capacity {n}",
+    "price_toman": "{price} Toman",
+    "package": "{n} sessions · valid {days} days"
+  },
+  "docs": {
+    "bookingTitle": "How booking works",
+    "modes": {
+      "online": {
+        "title": "Booking requests with your Ritme calendar",
+        "body": "You announce free times here. Mothers send a request for a time; the Ritme team confirms it. Nothing is confirmed automatically."
+      },
+      "request": {
+        "title": "Booking requests",
+        "body": "Mothers send a request and the Ritme team confirms it with you."
+      },
+      "phone": {
+        "title": "Phone only",
+        "body": "No booking button is shown; mothers call you."
+      }
+    },
+    "docsTitle": "Documents",
+    "docsHint": "Only the Ritme review team sees these documents.",
+    "slots": {
+      "licence": {
+        "title": "Operating licence",
+        "hint": "Business licence or permit from the relevant authority"
+      },
+      "instructor_cert": {
+        "title": "Instructor certificates",
+        "hint": "Coaching or first-aid certificate"
+      },
+      "health_cert": {
+        "title": "Health certificate",
+        "hint": "For pools and water spaces"
+      }
+    },
+    "required": "Required",
+    "optional": "Optional",
+    "uploaded": "Uploaded",
+    "upload": "Upload",
+    "replace": "Replace",
+    "remove": "Remove",
+    "view": "View",
+    "viewLabel": "View {title}",
+    "removeLabel": "Remove {title}",
+    "uploading": "Uploading {percent}%",
+    "termsLead": "The information and photos are real and belong to this venue, and I have read the ",
+    "termsLink": "terms of cooperation",
+    "termsTail": ".",
+    "termsSheet": "Terms of cooperation",
+    "termsSheetBody": "The commission or subscription model has not been set yet. The Ritme team will share the terms with you before your page goes live.",
+    "note": "Venues are reviewed from their documents and a visit by the Ritme team. This review is not a medical approval of the services.",
+    "submit": "Send application",
+    "submitting": "Sending…",
+    "missingTitle": "A few things are still missing",
+    "goStep": "Go to step {n}"
+  },
+  "errors": {
+    "fileType": "Only JPEG, PNG or WebP photos, and PDFs for documents, can be uploaded.",
+    "fileSize": "This file is too large.",
+    "tooMany": "You reached the maximum of {max} photos.",
+    "network": "The connection dropped. Check your internet and try again.",
+    "unknown": "Something went wrong. Please try again."
+  },
+  "done": {
+    "title": "We received your application",
+    "subtitle": "{name} will appear on the map and in search once it is reviewed and approved.",
+    "subtitleNoName": "Your venue will appear on the map and in search once it is reviewed and approved.",
+    "codeLabel": "Tracking code",
+    "copy": "Copy code",
+    "copied": "Copied",
+    "timelineLabel": "Application progress",
+    "states": {
+      "done": "Done",
+      "current": "In progress",
+      "todo": "Next",
+      "failed": "Not approved"
+    },
+    "timeline": {
+      "submitted": {
+        "title": "Application received",
+        "hint": "Your application is with the Ritme team."
+      },
+      "documents_review": {
+        "title": "Document review",
+        "hint": "The team checks your documents and photos."
+      },
+      "expert_contact": {
+        "title": "A Ritme specialist contacts you",
+        "hint": "To arrange a visit or complete information."
+      },
+      "published": {
+        "title": "Your venue page goes live",
+        "hint": "We will let you know by SMS after approval."
+      }
+    },
+    "statusNeedsInfo": "More information needed",
+    "statusRejected": "Not approved",
+    "statusApproved": "Approved",
+    "reviewNote": "Note from the Ritme team",
+    "edit": "Update the application",
+    "meanwhile": "In the meantime",
+    "morePhotos": "Add more photos",
+    "morePhotosHint": "Pages with 8 or more photos feel more complete.",
+    "support": "Questions? Contact support",
+    "newApp": "Register another venue",
+    "toHome": "Back to Mother and child"
+  }
+}
