@@ -154,3 +154,6 @@
 2026-10-11T08:58Z CB-INS-02 -> in_progress
 2026-10-11T08:58Z CB-INS-03 -> in_progress
 2026-10-11T09:07Z CB-DIR-01 -> done
+2026-10-11T09:08Z CB-DIR-02 -> in_progress
+2026-10-11T09:08Z CB-DIR-04 -> in_progress
+2026-10-11T09:26Z CB-INS-02 -> done

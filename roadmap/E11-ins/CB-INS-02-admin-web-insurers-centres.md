@@ -3,7 +3,7 @@ id: CB-INS-02
 title: admin-web: insurers + centres
 epic: INS
 type: frontend
-status: todo
+status: done
 depends_on: [CB-INS-01, CB-CORE-04]
 parallel_group: INS-B
 touches: [admin-web/src/screens/insurance-centers, admin-web/src/app/(panel)/insurance-centers, admin-web/src/widgets/shell/model/nav.ts, admin-web/messages]

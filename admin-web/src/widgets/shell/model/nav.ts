@@ -116,6 +116,7 @@ export const NAV: readonly NavGroup[] = [
       { key: 'shop', href: '/shop', icon: 'banner', cap: 'content', ready: true }, // B-N10-03 link-out catalog
       { key: 'cityServices', href: '/city-services', icon: 'banner', cap: 'content', ready: true }, // B-N10-05 city services listings
       { key: 'cityServiceBookings', href: '/city-service-bookings', icon: 'inbox', cap: 'support', ready: true }, // B-N10-05 booking request queue
+      { key: 'insuranceCenters', href: '/insurance-centers', icon: 'shieldCheck', cap: 'content', ready: true }, // CB-INS-02 insurers + centres
       { key: 'infoSections', href: '/info-sections', icon: 'lifeRing', cap: 'content', ready: true },
       // Editor + super (the content permission); switch to B-N9-02's content role once it lands.
       { key: 'catalog', href: '/catalog', icon: 'listBullet', cap: 'clinical', ready: true },

@@ -120,6 +120,7 @@
     "cityServices": "City services",
     "cityServiceBookings": "City service requests",
     "infoSections": "Help & text pages",
+    "insuranceCenters": "Insurance centres",
     "messages": "Messages",
     "languages": "Languages",
     "password": "Change password",
@@ -3036,6 +3037,42 @@
         "home_draw": "Home blood draw",
         "checkup": "Checkup and screening"
       }
+    }
+  },
+  "insuranceCenters": {
+    "title": "Insurance centres",
+    "insurers": "Insurers",
+    "newInsurer": "New insurer",
+    "newCentre": "New centre",
+    "backToCentres": "Back to centres",
+    "emptyInsurers": "No insurers yet.",
+    "emptyCentres": "No centres yet.",
+    "confirmDeleteInsurer": "Delete this insurer? Policies and centres keep their rows with the link emptied; deactivate it to keep the name.",
+    "name": "Name",
+    "code": "Code",
+    "codeHint": "Lowercase letters, digits and underscore; unique.",
+    "website": "Website",
+    "phone": "Phone",
+    "type": "Type",
+    "insurer": "Insurer",
+    "insurerHint": "Empty means every insurer.",
+    "allInsurers": "All insurers",
+    "services": "Services",
+    "city": "City",
+    "address": "Address",
+    "lat": "Latitude",
+    "lng": "Longitude",
+    "coordHint": "Enter latitude and longitude together, or leave both empty.",
+    "isDirect": "Direct billing",
+    "direct": "Direct",
+    "types": {
+      "gyn": "Gynaecology",
+      "lab": "Laboratory",
+      "imaging": "Imaging",
+      "hospital": "Hospital",
+      "pharmacy": "Pharmacy",
+      "pediatric": "Paediatrics",
+      "other": "Other"
     }
   }
 }

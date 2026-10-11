@@ -520,3 +520,8 @@ TODO (ask user):
 - bloom tests: seeded category count 3→3+5 (2 commented one-liners). No routes/sqlc yet (CB-DIR-02..05).
 - Verify (agent): schema-diff (187 tables), vet, golangci-lint, unit, int (migrations, cityservices, catalog, http CityServ/Catalog/OpenAPI).
 - TODO (ask user): categories in city_service_categories instead of catalog dir_categories OK? new empty categories active in existing filter — inactive or hide empty (DIR-02)? JoinDocs board "auto-confirmed" copy → request confirmed by team? review author = first name at read time OK?
+
+## CB-INS-02 — Admin-web: insurers & centres
+- admin-web `screens/insurance-centers`: `/insurance-centers` (centres CRUD: type, insurer, lat/lng, city, address, phone, services, direct billing, active, sort) and `/insurance-centers/insurers` (insurers CRUD, delete warns links drop). Nav entry (content capability) before infoSections; B-N10-06 info editor untouched. Messages namespace `insuranceCenters` (fa/en).
+- Verify (agent): typecheck, lint, fsd, vitest 158, next build. No screenshots / live-API smoke — covered in CB-INS-07 QA.
+- TODO (ask user): centre type labels wording (fa/en).
