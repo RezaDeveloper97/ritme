@@ -321,3 +321,9 @@ sql:
       go:
         <<: *go
         out: internal/shop/store
+  - <<: *pkg
+    queries: db/queries/insurance
+    gen:
+      go:
+        <<: *go
+        out: internal/insurance/store

@@ -934,3 +934,20 @@ Capability `support` (view = GET, manage = writes). Under `/api/admin/v1/partner
 | POST | `/partners/lab-requests/:id/status` | `{status: accepted\|sampled\|result_ready\|rejected}` — the console plays the fake partner; 409 `lab_bad_transition` for a move the machine does not allow, 409 `lab_manual_status_unsupported` for real partners (they update their own statuses) |
 
 Every write is audited (`partner_lab_service.create|update`, `partner_lab_request.status`).
+
+## 27. Insurance catalog — «بیمه: بیمه‌گرها و مراکز طرف قرارداد» (CB-INS-01, D-INS-01)
+
+Capability `content`. Admin data only: no user policy, claim or questionnaire is reachable here.
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/insurance/insurers` | `{items[{id, code, name, website, phone, is_active, sort_order, updated_at}]}` |
+| POST | `/insurance/insurers` | `{code (a-z0-9_, unique), name, website? (http/https), phone?, is_active?, sort_order?}` → 201 `{item}` |
+| PUT | `/insurance/insurers/:id` | same body, full replace |
+| DELETE | `/insurance/insurers/:id` | policies / centres keep their rows with the link emptied (deactivate to keep the name) |
+| GET | `/insurance/centres` | `{items[{id, insurer_id, insurer_name, name, type, services, city, address, phone, lat, lng, is_direct, is_active, sort_order, updated_at}], types}` |
+| POST | `/insurance/centres` | `{name, type gyn\|lab\|imaging\|hospital\|pharmacy\|pediatric\|other, insurer_id? (null = every insurer), services?, city?, address?, phone?, lat?+lng?, is_direct?, is_active?, sort_order?}` → 201 `{item}` |
+| PUT | `/insurance/centres/:id` | same body, full replace |
+| DELETE | `/insurance/centres/:id` | claims keep the centre name |
+
+Every write is audited (`insurance_insurer.save|delete`, `insurance_centre.save|delete`).

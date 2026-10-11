@@ -1,0 +1,73 @@
+{
+  "case": "insurance/policy_empty",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/insurance/policy",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "policy": null,
+          "children": [],
+          "needs_action": 0,
+          "options": {
+            "categories": [
+              "inpatient",
+              "delivery",
+              "paraclinic",
+              "visit_drug",
+              "infertility",
+              "dental",
+              "optical",
+              "other"
+            ],
+            "coverage_statuses": [
+              "covered",
+              "conditional",
+              "not_covered"
+            ],
+            "member_kinds": [
+              "self",
+              "spouse",
+              "child",
+              "other"
+            ],
+            "cost_types": [
+              "paraclinic",
+              "visit",
+              "drug",
+              "inpatient",
+              "delivery",
+              "dental",
+              "optical",
+              "infertility",
+              "other"
+            ],
+            "claim_statuses": [
+              "submitted",
+              "reviewing",
+              "docs_requested",
+              "paid",
+              "rejected",
+              "appealed"
+            ],
+            "document_labels": [
+              "prescription",
+              "invoice",
+              "report",
+              "other"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

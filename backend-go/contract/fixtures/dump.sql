@@ -2361,6 +2361,252 @@ INSERT INTO `info_sections` VALUES
 (16,'about','app-version','{\"fa\":\"\\u0646\\u0633\\u062e\\u0647 \\u0627\\u067e\",\"en\":\"App version\"}','{\"fa\":\"\\u0627\\u0644\\u0627\\u0646 \\u062f\\u0627\\u0631\\u06cc \\u0627\\u0632 \\u0646\\u0633\\u062e\\u0647 \\u06f1\\u066b\\u06f0\\u066b\\u06f0 \\u0631\\u06cc\\u062a\\u0645\\u06cc \\u0627\\u0633\\u062a\\u0641\\u0627\\u062f\\u0647 \\u0645\\u06cc\\u200c\\u06a9\\u0646\\u06cc. \\u0645\\u0627 \\u0645\\u0631\\u062a\\u0628 \\u0627\\u067e \\u0631\\u0648 \\u0628\\u0647\\u062a\\u0631 \\u0645\\u06cc\\u200c\\u06a9\\u0646\\u06cc\\u0645\\u061b \\u0646\\u0638\\u0631\\u062a \\u062a\\u0648\\u06cc \\u0627\\u06cc\\u0646 \\u0645\\u0633\\u06cc\\u0631 \\u062e\\u06cc\\u0644\\u06cc \\u0628\\u0631\\u0627\\u0645\\u0648\\u0646 \\u0627\\u0631\\u0632\\u0634 \\u062f\\u0627\\u0631\\u0647.\",\"en\":\"You are using Ritme version 1.0.0. We improve the app regularly \\u2014 your feedback is invaluable along the way.\"}',NULL,NULL,1,30,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `info_sections` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `insurance_centres`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `insurance_centres` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `insurer_id` bigint(20) unsigned DEFAULT NULL,
+  `name` varchar(160) NOT NULL,
+  `type` varchar(16) NOT NULL,
+  `services` varchar(160) DEFAULT NULL,
+  `city` varchar(80) DEFAULT NULL,
+  `address` varchar(300) DEFAULT NULL,
+  `phone` varchar(32) DEFAULT NULL,
+  `lat` decimal(10,7) DEFAULT NULL,
+  `lng` decimal(10,7) DEFAULT NULL,
+  `is_direct` tinyint(1) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `insurance_centres_insurer_id_foreign` (`insurer_id`),
+  KEY `insurance_centres_is_active_type_index` (`is_active`,`type`),
+  CONSTRAINT `insurance_centres_insurer_id_foreign` FOREIGN KEY (`insurer_id`) REFERENCES `insurance_insurers` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `insurance_centres` WRITE;
+/*!40000 ALTER TABLE `insurance_centres` DISABLE KEYS */;
+INSERT INTO `insurance_centres` VALUES
+(1,1,'Alpha Home Lab','lab','Home sampling','Tehran',NULL,NULL,35.7000000,51.4000000,1,1,1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(2,NULL,'City Imaging','imaging','Ultrasound and mammography','Tehran',NULL,NULL,35.7100000,51.4100000,0,1,2,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(3,2,'Beta Clinic','gyn',NULL,'Tehran',NULL,NULL,NULL,NULL,0,1,3,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(4,NULL,'Closed Hospital','hospital',NULL,NULL,NULL,NULL,NULL,NULL,1,0,4,'2026-09-23 09:00:00','2026-09-23 09:00:00');
+/*!40000 ALTER TABLE `insurance_centres` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `insurance_claim_documents`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `insurance_claim_documents` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `claim_id` bigint(20) unsigned NOT NULL,
+  `document_id` bigint(20) unsigned NOT NULL,
+  `label` varchar(16) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `insurance_claim_documents_claim_id_document_id_unique` (`claim_id`,`document_id`),
+  KEY `insurance_claim_documents_document_id_foreign` (`document_id`),
+  CONSTRAINT `insurance_claim_documents_claim_id_foreign` FOREIGN KEY (`claim_id`) REFERENCES `insurance_claims` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `insurance_claim_documents_document_id_foreign` FOREIGN KEY (`document_id`) REFERENCES `record_documents` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `insurance_claim_documents` WRITE;
+/*!40000 ALTER TABLE `insurance_claim_documents` DISABLE KEYS */;
+/*!40000 ALTER TABLE `insurance_claim_documents` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `insurance_claim_events`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `insurance_claim_events` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `claim_id` bigint(20) unsigned NOT NULL,
+  `status` varchar(16) NOT NULL,
+  `occurred_on` date NOT NULL,
+  `deadline_on` date DEFAULT NULL,
+  `amount` bigint(20) unsigned DEFAULT NULL,
+  `note_enc` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `insurance_claim_events_claim_id_occurred_on_index` (`claim_id`,`occurred_on`),
+  CONSTRAINT `insurance_claim_events_claim_id_foreign` FOREIGN KEY (`claim_id`) REFERENCES `insurance_claims` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `insurance_claim_events` WRITE;
+/*!40000 ALTER TABLE `insurance_claim_events` DISABLE KEYS */;
+/*!40000 ALTER TABLE `insurance_claim_events` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `insurance_claims`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `insurance_claims` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `policy_id` bigint(20) unsigned NOT NULL,
+  `member_id` bigint(20) unsigned DEFAULT NULL,
+  `cost_type` varchar(16) NOT NULL,
+  `title` varchar(120) DEFAULT NULL,
+  `centre_id` bigint(20) unsigned DEFAULT NULL,
+  `centre_name` varchar(160) DEFAULT NULL,
+  `service_date` date NOT NULL,
+  `amount` bigint(20) unsigned NOT NULL,
+  `over_tariff` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `paid_amount` bigint(20) unsigned DEFAULT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'submitted',
+  `deadline_on` date DEFAULT NULL,
+  `notes_enc` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `insurance_claims_policy_id_foreign` (`policy_id`),
+  KEY `insurance_claims_member_id_foreign` (`member_id`),
+  KEY `insurance_claims_centre_id_foreign` (`centre_id`),
+  KEY `insurance_claims_user_id_service_date_index` (`user_id`,`service_date`),
+  CONSTRAINT `insurance_claims_centre_id_foreign` FOREIGN KEY (`centre_id`) REFERENCES `insurance_centres` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `insurance_claims_member_id_foreign` FOREIGN KEY (`member_id`) REFERENCES `insurance_policy_members` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `insurance_claims_policy_id_foreign` FOREIGN KEY (`policy_id`) REFERENCES `insurance_policies` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `insurance_claims_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `insurance_claims` WRITE;
+/*!40000 ALTER TABLE `insurance_claims` DISABLE KEYS */;
+/*!40000 ALTER TABLE `insurance_claims` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `insurance_coverages`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `insurance_coverages` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `policy_id` bigint(20) unsigned NOT NULL,
+  `category` varchar(16) NOT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'covered',
+  `cap_amount` bigint(20) unsigned DEFAULT NULL,
+  `deductible_pct` tinyint(3) unsigned DEFAULT NULL,
+  `waiting_days` smallint(5) unsigned DEFAULT NULL,
+  `note` varchar(160) DEFAULT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `insurance_coverages_policy_id_category_unique` (`policy_id`,`category`),
+  CONSTRAINT `insurance_coverages_policy_id_foreign` FOREIGN KEY (`policy_id`) REFERENCES `insurance_policies` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `insurance_coverages` WRITE;
+/*!40000 ALTER TABLE `insurance_coverages` DISABLE KEYS */;
+/*!40000 ALTER TABLE `insurance_coverages` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `insurance_insurers`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `insurance_insurers` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(40) NOT NULL,
+  `name` varchar(120) NOT NULL,
+  `website` varchar(255) DEFAULT NULL,
+  `phone` varchar(32) DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `insurance_insurers_code_unique` (`code`),
+  KEY `insurance_insurers_is_active_sort_order_index` (`is_active`,`sort_order`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `insurance_insurers` WRITE;
+/*!40000 ALTER TABLE `insurance_insurers` DISABLE KEYS */;
+INSERT INTO `insurance_insurers` VALUES
+(1,'alpha','Alpha Insurance','https://alpha.example',NULL,1,1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(2,'beta','Beta Insurance',NULL,NULL,0,2,'2026-09-23 09:00:00','2026-09-23 09:00:00');
+/*!40000 ALTER TABLE `insurance_insurers` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `insurance_policies`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `insurance_policies` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `insurer_id` bigint(20) unsigned DEFAULT NULL,
+  `insurer_name` varchar(120) DEFAULT NULL,
+  `plan_name` varchar(120) DEFAULT NULL,
+  `number_last4` varchar(4) DEFAULT NULL,
+  `valid_from` date DEFAULT NULL,
+  `valid_to` date DEFAULT NULL,
+  `claim_deadline_days` smallint(5) unsigned DEFAULT NULL,
+  `iban_last4` varchar(4) DEFAULT NULL,
+  `not_covered_note` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `insurance_policies_user_id_unique` (`user_id`),
+  KEY `insurance_policies_insurer_id_foreign` (`insurer_id`),
+  CONSTRAINT `insurance_policies_insurer_id_foreign` FOREIGN KEY (`insurer_id`) REFERENCES `insurance_insurers` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `insurance_policies_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `insurance_policies` WRITE;
+/*!40000 ALTER TABLE `insurance_policies` DISABLE KEYS */;
+/*!40000 ALTER TABLE `insurance_policies` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `insurance_policy_members`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `insurance_policy_members` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `policy_id` bigint(20) unsigned NOT NULL,
+  `kind` varchar(8) NOT NULL,
+  `child_id` bigint(20) unsigned DEFAULT NULL,
+  `name` varchar(64) NOT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `insurance_policy_members_child_id_foreign` (`child_id`),
+  KEY `insurance_policy_members_policy_id_sort_order_index` (`policy_id`,`sort_order`),
+  CONSTRAINT `insurance_policy_members_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `insurance_policy_members_policy_id_foreign` FOREIGN KEY (`policy_id`) REFERENCES `insurance_policies` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `insurance_policy_members` WRITE;
+/*!40000 ALTER TABLE `insurance_policy_members` DISABLE KEYS */;
+/*!40000 ALTER TABLE `insurance_policy_members` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `insurance_questionnaires`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `insurance_questionnaires` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `purpose` varchar(16) NOT NULL,
+  `label` varchar(80) DEFAULT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'draft',
+  `answers` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`answers`)),
+  `explanation_enc` text DEFAULT NULL,
+  `timeline` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`timeline`)),
+  `confirmed_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `insurance_questionnaires_user_id_created_at_index` (`user_id`,`created_at`),
+  CONSTRAINT `insurance_questionnaires_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `insurance_questionnaires` WRITE;
+/*!40000 ALTER TABLE `insurance_questionnaires` DISABLE KEYS */;
+/*!40000 ALTER TABLE `insurance_questionnaires` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `ivf_cycles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;

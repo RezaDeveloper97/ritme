@@ -22,6 +22,7 @@ info:
     **Auth.** Passport-compatible RS256 Bearer tokens, 365-day lifetime; see `POST /api/v1/auth/refresh-session`.
 servers: [{url: /, description: Same origin}]
 tags:
+  - {name: Insurance, description: "Insurance self-tracking (Go only, CB-INS-01): policy, coverage caps, claims with a timeline she maintains, questionnaire drafts prefilled from her record. Nothing is sent to an insurer"}
   - {name: Shop, description: "Shop catalog (B-N10-03): admin-managed categories and link-out products, per-day click counter, no health data"}
   - {name: CityServices, description: "City services (Go only, B-N10-05, D-92): admin-managed classes / pools / playhouses per city, link-out / phone / request booking, the user's own requests. No health data goes to venues"}
   - {name: Assistant, description: "AI assistant clinic (B-N7-06): departments, shared profile, SSE chat, triage, summary, handoff to a booked doctor"}
@@ -21175,6 +21176,588 @@ paths:
         '422': {$ref: "#/components/responses/PartnerLabValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
         '503': {$ref: "#/components/responses/PartnerLabUnavailable"}
+  /api/v1/insurance/insurers:
+    get:
+      tags: [Insurance]
+      summary: Insurer catalog
+      description: "Active insurers (names only)."
+      operationId: listInsuranceInsurers
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceInsurerList"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/insurance/centres:
+    get:
+      tags: [Insurance]
+      summary: Contracted centres
+      description: "Active centres for her insurer (plus those for every insurer). No location is sent; distances are computed on the device."
+      operationId: listInsuranceCentres
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: type, in: query, schema: {type: string}}
+        - {name: q, in: query, schema: {type: string}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceCentreList"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/insurance/policy:
+    get:
+      tags: [Insurance]
+      summary: My insurance policy
+      description: "Her policy with members and coverage usage, or policy null (setup form)."
+      operationId: showInsurancePolicy
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsurancePolicyEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    put:
+      tags: [Insurance]
+      summary: Create or replace my policy
+      description: "201 on create, 200 on replace. Policy number and IBAN keep only their last four characters."
+      operationId: saveInsurancePolicy
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InsurancePolicyInput"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsurancePolicyEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '201': {$ref: "#/components/responses/InsurancePolicySaved"}
+        '422': {$ref: "#/components/responses/InsuranceValidationFailed"}
+        '503': {$ref: "#/components/responses/InsuranceUnavailable"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Insurance]
+      summary: Delete my policy
+      description: "Removes the policy with all its claims."
+      operationId: deleteInsurancePolicy
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: 'null'}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/insurance/claims:
+    get:
+      tags: [Insurance]
+      summary: My claims
+      description: "Claims with the totals of the window (default the policy period)."
+      operationId: listInsuranceClaims
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: status, in: query, schema: {type: string, enum: [open, needs_action, paid, rejected]}}
+        - {name: q, in: query, schema: {type: string}}
+        - {name: member_id, in: query, schema: {type: integer}}
+        - {name: from, in: query, schema: {type: string, format: date}}
+        - {name: to, in: query, schema: {type: string, format: date}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceClaimList"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+    post:
+      tags: [Insurance]
+      summary: File a claim
+      description: "Self-tracked: nothing is sent to the insurer. 404 insurance_no_policy without a policy."
+      operationId: storeInsuranceClaim
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InsuranceClaimInput"}
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceClaimDetail"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '422': {$ref: "#/components/responses/InsuranceValidationFailed"}
+        '503': {$ref: "#/components/responses/InsuranceUnavailable"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/insurance/claims/{id}:
+    get:
+      tags: [Insurance]
+      summary: One claim
+      description: "Payable breakdown, timeline and record documents."
+      operationId: showInsuranceClaim
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceClaimDetail"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+    put:
+      tags: [Insurance]
+      summary: Edit a claim
+      operationId: updateInsuranceClaim
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InsuranceClaimInput"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceClaimDetail"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '422': {$ref: "#/components/responses/InsuranceValidationFailed"}
+        '503': {$ref: "#/components/responses/InsuranceUnavailable"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Insurance]
+      summary: Delete a claim
+      operationId: deleteInsuranceClaim
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: 'null'}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/insurance/claims/{id}/events:
+    post:
+      tags: [Insurance]
+      summary: Add a timeline step
+      description: "A step she maintains; the claim status follows the latest step."
+      operationId: storeInsuranceClaimEvent
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InsuranceClaimEventInput"}
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceClaimDetail"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '422': {$ref: "#/components/responses/InsuranceValidationFailed"}
+        '409': {$ref: "#/components/responses/InsuranceConflict"}
+        '503': {$ref: "#/components/responses/InsuranceUnavailable"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/insurance/claims/{id}/events/{eventId}:
+    delete:
+      tags: [Insurance]
+      summary: Remove a timeline step
+      description: "409 for the only step left."
+      operationId: deleteInsuranceClaimEvent
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {name: eventId, in: path, required: true, schema: {type: integer}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceClaimDetail"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '409': {$ref: "#/components/responses/InsuranceConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/insurance/claims/{id}/documents:
+    post:
+      tags: [Insurance]
+      summary: Attach a record document
+      description: "One of her record documents (another user's answers 404)."
+      operationId: attachInsuranceClaimDocument
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InsuranceClaimDocumentInput"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceClaimDetail"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '422': {$ref: "#/components/responses/InsuranceValidationFailed"}
+        '409': {$ref: "#/components/responses/InsuranceConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/insurance/claims/{id}/documents/{documentId}:
+    delete:
+      tags: [Insurance]
+      summary: Detach a record document
+      operationId: detachInsuranceClaimDocument
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {name: documentId, in: path, required: true, schema: {type: integer}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceClaimDetail"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/insurance/questionnaires:
+    get:
+      tags: [Insurance]
+      summary: My health questionnaires
+      operationId: listInsuranceQuestionnaires
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceQuestionnaireList"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    post:
+      tags: [Insurance]
+      summary: Start a questionnaire
+      description: "A draft prefilled from her own record; she reviews every answer."
+      operationId: storeInsuranceQuestionnaire
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InsuranceQuestionnaireCreate"}
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceQuestionnaire"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/InsuranceValidationFailed"}
+        '409': {$ref: "#/components/responses/InsuranceConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/insurance/questionnaires/{id}:
+    get:
+      tags: [Insurance]
+      summary: One questionnaire
+      description: "Also the source of the PDF drawn on the device."
+      operationId: showInsuranceQuestionnaire
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceQuestionnaire"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+    put:
+      tags: [Insurance]
+      summary: Edit answers
+      description: "A confirmed questionnaire goes back to draft; 409 once sent."
+      operationId: updateInsuranceQuestionnaire
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InsuranceQuestionnaireInput"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceQuestionnaire"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '422': {$ref: "#/components/responses/InsuranceValidationFailed"}
+        '409': {$ref: "#/components/responses/InsuranceConflict"}
+        '503': {$ref: "#/components/responses/InsuranceUnavailable"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Insurance]
+      summary: Delete a questionnaire
+      operationId: deleteInsuranceQuestionnaire
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: 'null'}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/insurance/questionnaires/{id}/confirm:
+    post:
+      tags: [Insurance]
+      summary: Confirm my answers
+      description: "422 insurance_questionnaire_incomplete while a question is unanswered."
+      operationId: confirmInsuranceQuestionnaire
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceQuestionnaire"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '409': {$ref: "#/components/responses/InsuranceConflict"}
+        '422': {$ref: "#/components/responses/InsuranceValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/insurance/questionnaires/{id}/status:
+    post:
+      tags: [Insurance]
+      summary: Record a status step
+      description: "After confirming (409 for a draft)."
+      operationId: advanceInsuranceQuestionnaire
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InsuranceQuestionnaireStep"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsuranceQuestionnaire"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '422': {$ref: "#/components/responses/InsuranceValidationFailed"}
+        '409': {$ref: "#/components/responses/InsuranceConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
 components:
   securitySchemes:
     bearerAuth:
@@ -22610,6 +23193,65 @@ components:
               success: {type: boolean, const: false}
               message: {type: string}
               error_code: {type: string, enum: [lab_partner_unavailable, lab_storage_unavailable]}
+    InsuranceNotFound:
+      description: "Unknown row, one that belongs to another user, or no policy yet."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [insurance_not_found, insurance_no_policy]}
+              errors: {type: object, additionalProperties: {type: array, items: {type: string}}}
+    InsuranceValidationFailed:
+      description: "Insurance validation failed (controller 422 `{success: false, message, errors}`)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string}
+              errors: {type: object, additionalProperties: {type: array, items: {type: string}}}
+    InsuranceConflict:
+      description: "Not allowed in the current state."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [insurance_questionnaire_locked, insurance_questionnaire_not_confirmed, insurance_too_many, insurance_event_last]}
+              errors: {type: object, additionalProperties: {type: array, items: {type: string}}}
+    InsuranceUnavailable:
+      description: "Sealed storage (PRIVATE_NOTE_KEY) unavailable."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [insurance_storage_unavailable]}
+              errors: {type: object, additionalProperties: {type: array, items: {type: string}}}
+    InsurancePolicySaved:
+      description: Policy created
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, data]
+            properties:
+              success: {type: boolean}
+              message: {type: string}
+              data: {$ref: "#/components/schemas/InsurancePolicyEnvelope"}
   schemas:
     BannerAdList:
       type: array
@@ -28140,3 +28782,277 @@ components:
             city: {type: string}
             address: {type: string}
             note: {type: string}
+    InsuranceInsurerList:
+      type: object
+      required: [insurers]
+      properties:
+        insurers:
+          type: array
+          items:
+            type: object
+            required: [id, code, name]
+            properties:
+              id: {type: integer}
+              code: {type: string}
+              name: {type: string}
+              website: {type: [string, 'null']}
+              phone: {type: [string, 'null']}
+    InsuranceCentreList:
+      type: object
+      required: [centres, types]
+      properties:
+        types: {type: array, items: {type: string}}
+        centres:
+          type: array
+          items:
+            type: object
+            required: [id, name, type, is_direct]
+            properties:
+              id: {type: integer}
+              name: {type: string}
+              type: {type: string}
+              services: {type: [string, 'null']}
+              city: {type: [string, 'null']}
+              address: {type: [string, 'null']}
+              phone: {type: [string, 'null']}
+              lat: {type: [string, 'null'], description: decimal string}
+              lng: {type: [string, 'null'], description: decimal string}
+              is_direct: {type: boolean}
+              insurer_name: {type: [string, 'null']}
+    InsurancePolicyEnvelope:
+      type: object
+      required: [policy, children, needs_action, options]
+      properties:
+        policy:
+          oneOf:
+            - {type: 'null'}
+            - {$ref: "#/components/schemas/InsurancePolicy"}
+        children: {type: array, items: {type: object, properties: {id: {type: integer}, name: {type: string}}}}
+        needs_action: {type: integer}
+        options: {type: object, additionalProperties: {type: array, items: {type: string}}}
+    InsurancePolicy:
+      type: object
+      required: [id, insurer_name, members, coverages]
+      properties:
+        id: {type: integer}
+        insurer: {type: [object, 'null'], properties: {id: {type: integer}, name: {type: string}}}
+        insurer_name: {type: string}
+        plan_name: {type: [string, 'null']}
+        number_last4: {type: [string, 'null']}
+        valid_from: {type: [string, 'null'], format: date}
+        valid_to: {type: [string, 'null'], format: date}
+        claim_deadline_days: {type: [integer, 'null']}
+        iban_last4: {type: [string, 'null']}
+        not_covered_note: {type: [string, 'null']}
+        members:
+          type: array
+          items:
+            type: object
+            properties:
+              id: {type: integer}
+              kind: {type: string, enum: [self, spouse, child, other]}
+              child_id: {type: [integer, 'null']}
+              name: {type: string}
+        coverages:
+          type: array
+          items:
+            type: object
+            properties:
+              category: {type: string}
+              status: {type: string, enum: [covered, conditional, not_covered]}
+              cap_amount: {type: [integer, 'null']}
+              deductible_pct: {type: [integer, 'null']}
+              waiting_days: {type: [integer, 'null']}
+              note: {type: [string, 'null']}
+              used: {type: integer}
+              remaining: {type: [integer, 'null']}
+              waiting_ends_on: {type: [string, 'null'], format: date}
+              waiting_over: {type: boolean}
+        updated_at: {type: [string, 'null']}
+    InsurancePolicyInput:
+      type: object
+      properties:
+        insurer_id: {type: [integer, 'null']}
+        insurer_name: {type: [string, 'null'], description: required without insurer_id}
+        plan_name: {type: [string, 'null']}
+        policy_number: {type: [string, 'null'], description: only the last four characters are kept; omit to keep}
+        iban: {type: [string, 'null'], description: only the last four characters are kept; omit to keep}
+        valid_from: {type: [string, 'null'], format: date}
+        valid_to: {type: [string, 'null'], format: date}
+        claim_deadline_days: {type: [integer, 'null'], maximum: 365}
+        not_covered_note: {type: [string, 'null']}
+        members:
+          type: array
+          maxItems: 10
+          items:
+            type: object
+            required: [kind, name]
+            properties:
+              id: {type: [integer, 'null']}
+              kind: {type: string, enum: [self, spouse, child, other]}
+              child_id: {type: [integer, 'null']}
+              name: {type: string, maxLength: 64}
+        coverages:
+          type: array
+          maxItems: 12
+          items:
+            type: object
+            required: [category]
+            properties:
+              category: {type: string, enum: [inpatient, delivery, paraclinic, visit_drug, infertility, dental, optical, other]}
+              status: {type: [string, 'null'], enum: [covered, conditional, not_covered, null]}
+              cap_amount: {type: [integer, 'null']}
+              deductible_pct: {type: [integer, 'null'], maximum: 100}
+              waiting_days: {type: [integer, 'null'], maximum: 1095}
+              note: {type: [string, 'null']}
+    InsuranceClaim:
+      type: object
+      required: [id, cost_type, category, service_date, amount, status, needs_action]
+      properties:
+        id: {type: integer}
+        title: {type: [string, 'null']}
+        cost_type: {type: string}
+        category: {type: string}
+        member: {type: [object, 'null'], properties: {id: {type: integer}, kind: {type: string}, name: {type: string}}}
+        centre_id: {type: [integer, 'null']}
+        centre_name: {type: [string, 'null']}
+        service_date: {type: string, format: date}
+        amount: {type: integer}
+        over_tariff: {type: integer}
+        paid_amount: {type: [integer, 'null']}
+        status: {type: string, enum: [submitted, reviewing, docs_requested, paid, rejected, appealed]}
+        needs_action: {type: boolean}
+        deadline_on: {type: [string, 'null'], format: date}
+        submit_by: {type: [string, 'null'], format: date}
+        created_at: {type: [string, 'null']}
+    InsuranceClaimList:
+      type: object
+      required: [claims, totals, window, filters]
+      properties:
+        claims: {type: array, items: {$ref: "#/components/schemas/InsuranceClaim"}}
+        totals: {type: object, properties: {requested: {type: integer}, paid: {type: integer}, count: {type: integer}, needs_action: {type: integer}}}
+        window: {type: object, properties: {from: {type: [string, 'null']}, to: {type: [string, 'null']}}}
+        filters: {type: object}
+    InsuranceClaimDetail:
+      allOf:
+        - {$ref: "#/components/schemas/InsuranceClaim"}
+        - type: object
+          required: [note, payable, events, documents]
+          properties:
+            note: {type: string}
+            payable:
+              type: object
+              properties:
+                known: {type: boolean}
+                invoice: {type: integer}
+                over_tariff: {type: integer}
+                deductible_pct: {type: integer}
+                deductible: {type: integer}
+                payable: {type: integer}
+                user_share: {type: integer}
+                capped: {type: boolean}
+            events:
+              type: array
+              items:
+                type: object
+                properties:
+                  id: {type: integer}
+                  status: {type: string}
+                  occurred_on: {type: string, format: date}
+                  deadline_on: {type: [string, 'null'], format: date}
+                  amount: {type: [integer, 'null']}
+                  note: {type: string}
+            documents:
+              type: array
+              items:
+                type: object
+                properties:
+                  document_id: {type: integer}
+                  label: {type: [string, 'null']}
+                  kind: {type: string}
+                  title: {type: [string, 'null']}
+                  document_date: {type: [string, 'null'], format: date}
+    InsuranceClaimInput:
+      type: object
+      required: [cost_type, service_date, amount]
+      properties:
+        member_id: {type: [integer, 'null']}
+        cost_type: {type: string, enum: [paraclinic, visit, drug, inpatient, delivery, dental, optical, infertility, other]}
+        title: {type: [string, 'null']}
+        centre_id: {type: [integer, 'null']}
+        centre_name: {type: [string, 'null']}
+        service_date: {type: string, format: date}
+        amount: {type: integer, minimum: 1}
+        over_tariff: {type: [integer, 'null']}
+        note: {type: [string, 'null'], description: sealed at rest}
+        documents:
+          type: array
+          items: {type: object, required: [id], properties: {id: {type: integer}, label: {type: [string, 'null'], enum: [prescription, invoice, report, other, null]}}}
+    InsuranceClaimEventInput:
+      type: object
+      required: [status, occurred_on]
+      properties:
+        status: {type: string, enum: [submitted, reviewing, docs_requested, paid, rejected, appealed]}
+        occurred_on: {type: string, format: date}
+        deadline_on: {type: [string, 'null'], format: date}
+        amount: {type: [integer, 'null'], description: required for paid}
+        note: {type: [string, 'null']}
+    InsuranceClaimDocumentInput:
+      type: object
+      required: [document_id]
+      properties:
+        document_id: {type: integer}
+        label: {type: [string, 'null'], enum: [prescription, invoice, report, other, null]}
+    InsuranceQuestionnaire:
+      type: object
+      required: [id, purpose, status, complete, timeline]
+      properties:
+        id: {type: integer}
+        purpose: {type: string, enum: [issue, renewal]}
+        label: {type: [string, 'null']}
+        status: {type: string, enum: [draft, confirmed, submitted, reviewing, doctor_review, approved, conditional, rejected]}
+        prefilled_count: {type: integer}
+        answered_count: {type: integer}
+        question_count: {type: integer}
+        complete: {type: boolean}
+        confirmed_at: {type: [string, 'null']}
+        timeline: {type: array, items: {type: object, properties: {status: {type: string}, 'on': {type: string, format: date}}}}
+        created_at: {type: [string, 'null']}
+        updated_at: {type: [string, 'null']}
+        sections: {type: array, items: {type: string}}
+        explanation: {type: string}
+        questions:
+          type: array
+          items:
+            type: object
+            properties:
+              code: {type: string}
+              section: {type: string}
+              answer: {type: [string, 'null'], enum: ['yes', 'no', null]}
+              record_answer: {type: [string, 'null'], enum: ['yes', 'no', null]}
+              from_record: {type: boolean}
+              evidence: {type: array, items: {type: string}}
+    InsuranceQuestionnaireList:
+      type: object
+      required: [questionnaires, steps]
+      properties:
+        questionnaires: {type: array, items: {$ref: "#/components/schemas/InsuranceQuestionnaire"}}
+        steps: {type: array, items: {type: string}}
+    InsuranceQuestionnaireCreate:
+      type: object
+      required: [purpose]
+      properties:
+        purpose: {type: string, enum: [issue, renewal]}
+        label: {type: [string, 'null']}
+    InsuranceQuestionnaireInput:
+      type: object
+      properties:
+        answers: {type: object, additionalProperties: {type: [string, 'null'], enum: ['yes', 'no', null]}}
+        explanation: {type: [string, 'null'], description: sealed at rest}
+        label: {type: [string, 'null']}
+    InsuranceQuestionnaireStep:
+      type: object
+      required: [status, occurred_on]
+      properties:
+        status: {type: string, enum: [submitted, reviewing, doctor_review, approved, conditional, rejected]}
+        occurred_on: {type: string, format: date}

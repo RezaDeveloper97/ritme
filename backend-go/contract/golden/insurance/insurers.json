@@ -1,0 +1,31 @@
+{
+  "case": "insurance/insurers",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/insurance/insurers",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "insurers": [
+            {
+              "id": 1,
+              "code": "alpha",
+              "name": "Alpha Insurance",
+              "website": "https://alpha.example",
+              "phone": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

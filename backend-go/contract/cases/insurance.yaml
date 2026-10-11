@@ -1,0 +1,162 @@
+# Insurance self-tracking (/api/v1/insurance/*) — Go only (canvas CB-INS-01, deviations.md D-INS-01): no Laravel
+# route, so these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The
+# fixture dump carries insurers 1 (alpha, active) / 2 (beta, inactive) and centres 1 (alpha lab, direct), 2 (every
+# insurer, imaging), 3 (beta's), 4 (inactive); no policy, claim or questionnaire. Coverage maths, the timeline, sealing
+# and user isolation (IDOR) are covered by internal/insurance and internal/http integration tests.
+# Fixture day 2026-09-23; `regular` (1004) and `no_profile` (1001) are the users.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: insurance
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: insurers_anon
+    persona: anon
+    method: GET
+    path: /api/v1/insurance/insurers
+    status: 401
+  - name: insurers
+    doc: only active insurers
+    method: GET
+    path: /api/v1/insurance/insurers
+    status: 200
+  - name: centres_without_policy
+    doc: no policy → only the centres open to every insurer
+    method: GET
+    path: /api/v1/insurance/centres
+    status: 200
+  - name: policy_empty
+    persona: no_profile
+    method: GET
+    path: /api/v1/insurance/policy
+    status: 200
+  - name: policy_invalid
+    doc: no insurer, inactive insurer, bad member kind → 422
+    locales: [en, fa]
+    method: PUT
+    path: /api/v1/insurance/policy
+    body: {insurer_id: 2, members: [{kind: cousin, name: X}], coverages: [{category: dental}, {category: dental}]}
+    status: 422
+  - name: claims_without_policy
+    persona: no_profile
+    locales: [en]
+    method: GET
+    path: /api/v1/insurance/claims
+    status: 404
+  - name: policy_delete_missing
+    persona: no_profile
+    locales: [en]
+    method: DELETE
+    path: /api/v1/insurance/policy
+    status: 404
+  - name: claim_flow
+    doc: create policy → centres for her insurer → claim → list/show/edit → timeline steps → documents → delete all
+    reset: true
+    locales: [en]
+    steps:
+      - method: PUT
+        path: /api/v1/insurance/policy
+        body:
+          insurer_id: 1
+          plan_name: Gold
+          policy_number: "PN-99-4821"
+          iban: "IR12 0000 0000 0000 1234"
+          valid_from: "2026-03-21"
+          valid_to: "2027-03-20"
+          claim_deadline_days: 15
+          members: [{kind: self, name: Sara}, {kind: spouse, name: Ali}]
+          coverages:
+            - {category: paraclinic, cap_amount: 20000000, deductible_pct: 30}
+            - {category: delivery, cap_amount: 40000000, deductible_pct: 10, waiting_days: 270}
+            - {category: optical, status: not_covered}
+        status: 201
+      - method: GET
+        path: /api/v1/insurance/policy
+        status: 200
+      - method: GET
+        path: /api/v1/insurance/centres
+        query: {type: lab}
+        status: 200
+      - method: POST
+        path: /api/v1/insurance/claims
+        body: {cost_type: paraclinic, title: Pregnancy ultrasound, centre_id: 2, service_date: "2026-09-20", amount: 1800000, note: report pending}
+        status: 201
+        capture: {id: data.id}
+      - method: GET
+        path: /api/v1/insurance/claims
+        status: 200
+      - method: GET
+        path: "/api/v1/insurance/claims/{{id}}"
+        status: 200
+      - method: PUT
+        path: "/api/v1/insurance/claims/{{id}}"
+        body: {cost_type: paraclinic, title: Pregnancy ultrasound, centre_name: Private clinic, service_date: "2026-09-20", amount: 1800000, over_tariff: 100000}
+        status: 200
+      - method: POST
+        path: "/api/v1/insurance/claims/{{id}}/events"
+        body: {status: docs_requested, occurred_on: "2026-09-23", deadline_on: "2026-10-03", note: send the ultrasound report}
+        status: 201
+      - method: POST
+        path: "/api/v1/insurance/claims/{{id}}/events"
+        body: {status: paid, occurred_on: "2026-09-23"}
+        status: 422
+      - method: DELETE
+        path: "/api/v1/insurance/claims/{{id}}/events/999999"
+        status: 404
+      - method: POST
+        path: "/api/v1/insurance/claims/{{id}}/documents"
+        body: {document_id: 999999}
+        status: 404
+      - method: DELETE
+        path: "/api/v1/insurance/claims/{{id}}/documents/999999"
+        status: 404
+      - method: DELETE
+        path: "/api/v1/insurance/claims/{{id}}"
+        status: 200
+      - method: GET
+        path: "/api/v1/insurance/claims/{{id}}"
+        status: 404
+      - method: DELETE
+        path: /api/v1/insurance/policy
+        status: 200
+  - name: questionnaire_flow
+    doc: draft prefilled from the record → answers → confirm → status step → delete
+    reset: true
+    locales: [en]
+    steps:
+      - method: POST
+        path: /api/v1/insurance/questionnaires
+        body: {purpose: renewal, label: Renewal 1405}
+        status: 201
+        capture: {id: data.id}
+      - method: GET
+        path: /api/v1/insurance/questionnaires
+        status: 200
+      - method: GET
+        path: "/api/v1/insurance/questionnaires/{{id}}"
+        status: 200
+      - method: POST
+        path: "/api/v1/insurance/questionnaires/{{id}}/status"
+        body: {status: submitted, occurred_on: "2026-09-23"}
+        status: 409
+      - method: PUT
+        path: "/api/v1/insurance/questionnaires/{{id}}"
+        body:
+          answers: {smoker: "no", disability: "no", hospitalized_5y: "no", chronic_disease: "no", pregnant: "no", gyn_surgery: "no", regular_medication: "no", infertility_treatment: "no", family_history: "no"}
+          explanation: nothing to declare
+        status: 200
+      - method: POST
+        path: "/api/v1/insurance/questionnaires/{{id}}/confirm"
+        status: 200
+      - method: POST
+        path: "/api/v1/insurance/questionnaires/{{id}}/status"
+        body: {status: submitted, occurred_on: "2026-09-23"}
+        status: 200
+      - method: DELETE
+        path: "/api/v1/insurance/questionnaires/{{id}}"
+        status: 200
+  - name: questionnaire_missing
+    locales: [en]
+    method: GET
+    path: /api/v1/insurance/questionnaires/999999
+    status: 404

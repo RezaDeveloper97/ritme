@@ -921,6 +921,132 @@ type InfoSection struct {
 	UpdatedAt sql.NullTime
 }
 
+type InsuranceCentre struct {
+	ID        uint64
+	InsurerID sql.NullInt64
+	Name      string
+	Type      string
+	Services  sql.NullString
+	City      sql.NullString
+	Address   sql.NullString
+	Phone     sql.NullString
+	Lat       sql.NullString
+	Lng       sql.NullString
+	IsDirect  bool
+	IsActive  bool
+	SortOrder int32
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type InsuranceClaim struct {
+	ID          uint64
+	UserID      uint64
+	PolicyID    uint64
+	MemberID    sql.NullInt64
+	CostType    string
+	Title       sql.NullString
+	CentreID    sql.NullInt64
+	CentreName  sql.NullString
+	ServiceDate civildate.Date
+	Amount      uint64
+	OverTariff  uint64
+	PaidAmount  sql.NullInt64
+	Status      string
+	DeadlineOn  civildate.NullDate
+	NotesEnc    sql.NullString
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type InsuranceClaimDocument struct {
+	ID         uint64
+	ClaimID    uint64
+	DocumentID uint64
+	Label      sql.NullString
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
+type InsuranceClaimEvent struct {
+	ID         uint64
+	ClaimID    uint64
+	Status     string
+	OccurredOn civildate.Date
+	DeadlineOn civildate.NullDate
+	Amount     sql.NullInt64
+	NoteEnc    sql.NullString
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
+type InsuranceCoverage struct {
+	ID            uint64
+	PolicyID      uint64
+	Category      string
+	Status        string
+	CapAmount     sql.NullInt64
+	DeductiblePct sql.NullInt16
+	WaitingDays   sql.NullInt16
+	Note          sql.NullString
+	SortOrder     int32
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
+type InsuranceInsurer struct {
+	ID        uint64
+	Code      string
+	Name      string
+	Website   sql.NullString
+	Phone     sql.NullString
+	IsActive  bool
+	SortOrder int32
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type InsurancePolicy struct {
+	ID                uint64
+	UserID            uint64
+	InsurerID         sql.NullInt64
+	InsurerName       sql.NullString
+	PlanName          sql.NullString
+	NumberLast4       sql.NullString
+	ValidFrom         civildate.NullDate
+	ValidTo           civildate.NullDate
+	ClaimDeadlineDays sql.NullInt16
+	IbanLast4         sql.NullString
+	NotCoveredNote    sql.NullString
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+}
+
+type InsurancePolicyMember struct {
+	ID        uint64
+	PolicyID  uint64
+	Kind      string
+	ChildID   sql.NullInt64
+	Name      string
+	SortOrder int32
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type InsuranceQuestionnaire struct {
+	ID             uint64
+	UserID         uint64
+	Purpose        string
+	Label          sql.NullString
+	Status         string
+	Answers        json.RawMessage
+	ExplanationEnc sql.NullString
+	Timeline       db.NullRawJSON
+	ConfirmedAt    sql.NullTime
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+}
+
 type IvfCycle struct {
 	ID              uint64
 	UserID          uint64

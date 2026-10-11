@@ -1,0 +1,25 @@
+{
+  "case": "insurance/policy_delete_missing",
+  "steps": [
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/insurance/policy",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "Add your insurance policy first",
+        "error_code": "insurance_no_policy"
+      }
+    }
+  ]
+}

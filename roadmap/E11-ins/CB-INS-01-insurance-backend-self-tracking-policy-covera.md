@@ -3,7 +3,7 @@ id: CB-INS-01
 title: Insurance backend (self-tracking): policy, coverage, claims, questionnaire, centres
 epic: INS
 type: backend
-status: todo
+status: done
 depends_on: [CB-REC-01, B-N5-02, B-N10-06]
 parallel_group: INS-A
 touches: [backend-go/internal/insurance, backend-go/internal/http/routes_insurance.go, backend-go/db/queries/insurance, backend-go/api/openapi.yaml, backend-go/contract, backend-go/resources/translations, backend-go/db/migrations, backend/database/migrations, docs/go-migration/deviations.md]

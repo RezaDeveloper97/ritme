@@ -1,0 +1,823 @@
+{
+  "case": "insurance/claim_flow",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/insurance/policy",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "insurer_id": 1,
+          "plan_name": "Gold",
+          "policy_number": "PN-99-4821",
+          "iban": "IR12 0000 0000 0000 1234",
+          "valid_from": "2026-03-21",
+          "valid_to": "2027-03-20",
+          "claim_deadline_days": 15,
+          "members": [
+            {
+              "kind": "self",
+              "name": "Sara"
+            },
+            {
+              "kind": "spouse",
+              "name": "Ali"
+            }
+          ],
+          "coverages": [
+            {
+              "category": "paraclinic",
+              "cap_amount": 20000000,
+              "deductible_pct": 30
+            },
+            {
+              "category": "delivery",
+              "cap_amount": 40000000,
+              "deductible_pct": 10,
+              "waiting_days": 270
+            },
+            {
+              "category": "optical",
+              "status": "not_covered"
+            }
+          ]
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Your policy was saved",
+        "data": {
+          "policy": {
+            "id": 1,
+            "insurer": {
+              "id": 1,
+              "name": "Alpha Insurance"
+            },
+            "insurer_name": "Alpha Insurance",
+            "plan_name": "Gold",
+            "number_last4": "4821",
+            "valid_from": "2026-03-21",
+            "valid_to": "2027-03-20",
+            "claim_deadline_days": 15,
+            "iban_last4": "1234",
+            "not_covered_note": null,
+            "members": [
+              {
+                "id": 1,
+                "kind": "self",
+                "child_id": null,
+                "name": "Sara"
+              },
+              {
+                "id": 2,
+                "kind": "spouse",
+                "child_id": null,
+                "name": "Ali"
+              }
+            ],
+            "coverages": [
+              {
+                "category": "paraclinic",
+                "status": "covered",
+                "cap_amount": 20000000,
+                "deductible_pct": 30,
+                "waiting_days": null,
+                "note": null,
+                "used": 0,
+                "remaining": 20000000,
+                "waiting_ends_on": null,
+                "waiting_over": true
+              },
+              {
+                "category": "delivery",
+                "status": "covered",
+                "cap_amount": 40000000,
+                "deductible_pct": 10,
+                "waiting_days": 270,
+                "note": null,
+                "used": 0,
+                "remaining": 40000000,
+                "waiting_ends_on": "2026-12-16",
+                "waiting_over": false
+              },
+              {
+                "category": "optical",
+                "status": "not_covered",
+                "cap_amount": null,
+                "deductible_pct": null,
+                "waiting_days": null,
+                "note": null,
+                "used": 0,
+                "remaining": null,
+                "waiting_ends_on": null,
+                "waiting_over": true
+              }
+            ],
+            "updated_at": "2026-09-23T10:00:00+03:30"
+          },
+          "children": [],
+          "needs_action": 0,
+          "options": {
+            "categories": [
+              "inpatient",
+              "delivery",
+              "paraclinic",
+              "visit_drug",
+              "infertility",
+              "dental",
+              "optical",
+              "other"
+            ],
+            "coverage_statuses": [
+              "covered",
+              "conditional",
+              "not_covered"
+            ],
+            "member_kinds": [
+              "self",
+              "spouse",
+              "child",
+              "other"
+            ],
+            "cost_types": [
+              "paraclinic",
+              "visit",
+              "drug",
+              "inpatient",
+              "delivery",
+              "dental",
+              "optical",
+              "infertility",
+              "other"
+            ],
+            "claim_statuses": [
+              "submitted",
+              "reviewing",
+              "docs_requested",
+              "paid",
+              "rejected",
+              "appealed"
+            ],
+            "document_labels": [
+              "prescription",
+              "invoice",
+              "report",
+              "other"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/insurance/policy",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "policy": {
+            "id": 1,
+            "insurer": {
+              "id": 1,
+              "name": "Alpha Insurance"
+            },
+            "insurer_name": "Alpha Insurance",
+            "plan_name": "Gold",
+            "number_last4": "4821",
+            "valid_from": "2026-03-21",
+            "valid_to": "2027-03-20",
+            "claim_deadline_days": 15,
+            "iban_last4": "1234",
+            "not_covered_note": null,
+            "members": [
+              {
+                "id": 1,
+                "kind": "self",
+                "child_id": null,
+                "name": "Sara"
+              },
+              {
+                "id": 2,
+                "kind": "spouse",
+                "child_id": null,
+                "name": "Ali"
+              }
+            ],
+            "coverages": [
+              {
+                "category": "paraclinic",
+                "status": "covered",
+                "cap_amount": 20000000,
+                "deductible_pct": 30,
+                "waiting_days": null,
+                "note": null,
+                "used": 0,
+                "remaining": 20000000,
+                "waiting_ends_on": null,
+                "waiting_over": true
+              },
+              {
+                "category": "delivery",
+                "status": "covered",
+                "cap_amount": 40000000,
+                "deductible_pct": 10,
+                "waiting_days": 270,
+                "note": null,
+                "used": 0,
+                "remaining": 40000000,
+                "waiting_ends_on": "2026-12-16",
+                "waiting_over": false
+              },
+              {
+                "category": "optical",
+                "status": "not_covered",
+                "cap_amount": null,
+                "deductible_pct": null,
+                "waiting_days": null,
+                "note": null,
+                "used": 0,
+                "remaining": null,
+                "waiting_ends_on": null,
+                "waiting_over": true
+              }
+            ],
+            "updated_at": "2026-09-23T10:00:00+03:30"
+          },
+          "children": [],
+          "needs_action": 0,
+          "options": {
+            "categories": [
+              "inpatient",
+              "delivery",
+              "paraclinic",
+              "visit_drug",
+              "infertility",
+              "dental",
+              "optical",
+              "other"
+            ],
+            "coverage_statuses": [
+              "covered",
+              "conditional",
+              "not_covered"
+            ],
+            "member_kinds": [
+              "self",
+              "spouse",
+              "child",
+              "other"
+            ],
+            "cost_types": [
+              "paraclinic",
+              "visit",
+              "drug",
+              "inpatient",
+              "delivery",
+              "dental",
+              "optical",
+              "infertility",
+              "other"
+            ],
+            "claim_statuses": [
+              "submitted",
+              "reviewing",
+              "docs_requested",
+              "paid",
+              "rejected",
+              "appealed"
+            ],
+            "document_labels": [
+              "prescription",
+              "invoice",
+              "report",
+              "other"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/insurance/centres?type=lab",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "centres": [
+            {
+              "id": 1,
+              "name": "Alpha Home Lab",
+              "type": "lab",
+              "services": "Home sampling",
+              "city": "Tehran",
+              "address": null,
+              "phone": null,
+              "lat": "35.7000000",
+              "lng": "51.4000000",
+              "is_direct": true,
+              "insurer_name": "Alpha Insurance"
+            }
+          ],
+          "types": [
+            "gyn",
+            "lab",
+            "imaging",
+            "hospital",
+            "pharmacy",
+            "pediatric",
+            "other"
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/insurance/claims",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "cost_type": "paraclinic",
+          "title": "Pregnancy ultrasound",
+          "centre_id": 2,
+          "service_date": "2026-09-20",
+          "amount": 1800000,
+          "note": "report pending"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "Claim saved",
+        "data": {
+          "id": 1,
+          "title": "Pregnancy ultrasound",
+          "cost_type": "paraclinic",
+          "category": "paraclinic",
+          "member": null,
+          "centre_id": 2,
+          "centre_name": "City Imaging",
+          "service_date": "2026-09-20",
+          "amount": 1800000,
+          "over_tariff": 0,
+          "paid_amount": null,
+          "status": "submitted",
+          "needs_action": false,
+          "deadline_on": null,
+          "submit_by": "2026-10-05",
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "note": "report pending",
+          "payable": {
+            "known": true,
+            "invoice": 1800000,
+            "over_tariff": 0,
+            "deductible_pct": 30,
+            "deductible": 540000,
+            "payable": 1260000,
+            "user_share": 540000,
+            "capped": false
+          },
+          "events": [
+            {
+              "id": 1,
+              "status": "submitted",
+              "occurred_on": "2026-09-23",
+              "deadline_on": null,
+              "amount": null,
+              "note": ""
+            }
+          ],
+          "documents": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/insurance/claims",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "claims": [
+            {
+              "id": 1,
+              "title": "Pregnancy ultrasound",
+              "cost_type": "paraclinic",
+              "category": "paraclinic",
+              "member": null,
+              "centre_id": 2,
+              "centre_name": "City Imaging",
+              "service_date": "2026-09-20",
+              "amount": 1800000,
+              "over_tariff": 0,
+              "paid_amount": null,
+              "status": "submitted",
+              "needs_action": false,
+              "deadline_on": null,
+              "submit_by": "2026-10-05",
+              "created_at": "2026-09-23T10:00:00+03:30"
+            }
+          ],
+          "totals": {
+            "requested": 1800000,
+            "paid": 0,
+            "count": 1,
+            "needs_action": 0
+          },
+          "window": {
+            "from": "2026-03-21",
+            "to": "2027-03-20"
+          },
+          "filters": {
+            "status": "",
+            "q": "",
+            "member_id": 0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/insurance/claims/1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "title": "Pregnancy ultrasound",
+          "cost_type": "paraclinic",
+          "category": "paraclinic",
+          "member": null,
+          "centre_id": 2,
+          "centre_name": "City Imaging",
+          "service_date": "2026-09-20",
+          "amount": 1800000,
+          "over_tariff": 0,
+          "paid_amount": null,
+          "status": "submitted",
+          "needs_action": false,
+          "deadline_on": null,
+          "submit_by": "2026-10-05",
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "note": "report pending",
+          "payable": {
+            "known": true,
+            "invoice": 1800000,
+            "over_tariff": 0,
+            "deductible_pct": 30,
+            "deductible": 540000,
+            "payable": 1260000,
+            "user_share": 540000,
+            "capped": false
+          },
+          "events": [
+            {
+              "id": 1,
+              "status": "submitted",
+              "occurred_on": "2026-09-23",
+              "deadline_on": null,
+              "amount": null,
+              "note": ""
+            }
+          ],
+          "documents": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/insurance/claims/1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "cost_type": "paraclinic",
+          "title": "Pregnancy ultrasound",
+          "centre_name": "Private clinic",
+          "service_date": "2026-09-20",
+          "amount": 1800000,
+          "over_tariff": 100000
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "Claim saved",
+        "data": {
+          "id": 1,
+          "title": "Pregnancy ultrasound",
+          "cost_type": "paraclinic",
+          "category": "paraclinic",
+          "member": null,
+          "centre_id": null,
+          "centre_name": "Private clinic",
+          "service_date": "2026-09-20",
+          "amount": 1800000,
+          "over_tariff": 100000,
+          "paid_amount": null,
+          "status": "submitted",
+          "needs_action": false,
+          "deadline_on": null,
+          "submit_by": "2026-10-05",
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "note": "",
+          "payable": {
+            "known": true,
+            "invoice": 1800000,
+            "over_tariff": 100000,
+            "deductible_pct": 30,
+            "deductible": 510000,
+            "payable": 1190000,
+            "user_share": 610000,
+            "capped": false
+          },
+          "events": [
+            {
+              "id": 1,
+              "status": "submitted",
+              "occurred_on": "2026-09-23",
+              "deadline_on": null,
+              "amount": null,
+              "note": ""
+            }
+          ],
+          "documents": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/insurance/claims/1/events",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "status": "docs_requested",
+          "occurred_on": "2026-09-23",
+          "deadline_on": "2026-10-03",
+          "note": "send the ultrasound report"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "message": "Step added",
+        "data": {
+          "id": 1,
+          "title": "Pregnancy ultrasound",
+          "cost_type": "paraclinic",
+          "category": "paraclinic",
+          "member": null,
+          "centre_id": null,
+          "centre_name": "Private clinic",
+          "service_date": "2026-09-20",
+          "amount": 1800000,
+          "over_tariff": 100000,
+          "paid_amount": null,
+          "status": "docs_requested",
+          "needs_action": true,
+          "deadline_on": "2026-10-03",
+          "submit_by": "2026-10-05",
+          "created_at": "2026-09-23T10:00:00+03:30",
+          "note": "",
+          "payable": {
+            "known": true,
+            "invoice": 1800000,
+            "over_tariff": 100000,
+            "deductible_pct": 30,
+            "deductible": 510000,
+            "payable": 1190000,
+            "user_share": 610000,
+            "capped": false
+          },
+          "events": [
+            {
+              "id": 1,
+              "status": "submitted",
+              "occurred_on": "2026-09-23",
+              "deadline_on": null,
+              "amount": null,
+              "note": ""
+            },
+            {
+              "id": 2,
+              "status": "docs_requested",
+              "occurred_on": "2026-09-23",
+              "deadline_on": "2026-10-03",
+              "amount": null,
+              "note": "send the ultrasound report"
+            }
+          ],
+          "documents": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/insurance/claims/1/events",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "status": "paid",
+          "occurred_on": "2026-09-23"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": false,
+        "message": "The submitted data is not valid",
+        "errors": {
+          "amount": [
+            "The amount field is required when status is paid."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/insurance/claims/1/events/999999",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "54"
+      },
+      "body": {
+        "success": false,
+        "message": "This item was not found",
+        "error_code": "insurance_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/insurance/claims/1/documents",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "document_id": 999999
+        }
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "53"
+      },
+      "body": {
+        "success": false,
+        "message": "This item was not found",
+        "error_code": "insurance_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/insurance/claims/1/documents/999999",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "52"
+      },
+      "body": {
+        "success": false,
+        "message": "This item was not found",
+        "error_code": "insurance_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/insurance/claims/1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "51"
+      },
+      "body": {
+        "success": true,
+        "message": "Claim deleted",
+        "data": null
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/insurance/claims/1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "This item was not found",
+        "error_code": "insurance_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/insurance/policy",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "50"
+      },
+      "body": {
+        "success": true,
+        "message": "Your policy and its claims were deleted",
+        "data": null
+      }
+    }
+  ]
+}

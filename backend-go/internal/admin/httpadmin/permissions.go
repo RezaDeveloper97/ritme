@@ -183,6 +183,8 @@ func capabilityOf(path string) string {
 	case "articles", "affirmations", "banners", "info-sections", "phase-contents", "recommendations",
 		"task-templates", "companions", "uploads", "media", "shop", "city-services":
 		return CapContent
+	case "insurance": // CB-INS-01: insurer catalog + contracted centres (admin content, no user data)
+		return CapContent
 	case "plus":
 		return CapBilling
 	case "support-reports", "partners", "city-service-bookings":

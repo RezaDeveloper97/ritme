@@ -1,0 +1,46 @@
+{
+  "case": "insurance/centres_without_policy",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/insurance/centres",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "centres": [
+            {
+              "id": 2,
+              "name": "City Imaging",
+              "type": "imaging",
+              "services": "Ultrasound and mammography",
+              "city": "Tehran",
+              "address": null,
+              "phone": null,
+              "lat": "35.7100000",
+              "lng": "51.4100000",
+              "is_direct": false,
+              "insurer_name": null
+            }
+          ],
+          "types": [
+            "gyn",
+            "lab",
+            "imaging",
+            "hospital",
+            "pharmacy",
+            "pediatric",
+            "other"
+          ]
+        }
+      }
+    }
+  ]
+}
