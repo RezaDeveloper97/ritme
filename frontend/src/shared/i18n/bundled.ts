@@ -61,6 +61,8 @@ import enServices from '../../../messages/en/services.json';
 import enShop from '../../../messages/en/shop.json'; // B-N10-03
 import enHomeLab from '../../../messages/en/home-lab.json'; // B-N10-04
 import enCityServices from '../../../messages/en/city-services.json'; // B-N10-05
+import enWebShell from '../../../messages/en/web-shell.json'; // CB-DIR-11
+import enWebDirectory from '../../../messages/en/web-directory.json'; // CB-DIR-11
 import enCityJoin from '../../../messages/en/city-join.json'; // CB-DIR-10
 import enSearch from '../../../messages/en/search.json';
 import enPlus from '../../../messages/en/plus.json';
@@ -127,6 +129,8 @@ import faServices from '../../../messages/fa/services.json';
 import faShop from '../../../messages/fa/shop.json'; // B-N10-03
 import faHomeLab from '../../../messages/fa/home-lab.json'; // B-N10-04
 import faCityServices from '../../../messages/fa/city-services.json'; // B-N10-05
+import faWebShell from '../../../messages/fa/web-shell.json'; // CB-DIR-11
+import faWebDirectory from '../../../messages/fa/web-directory.json'; // CB-DIR-11
 import faCityJoin from '../../../messages/fa/city-join.json'; // CB-DIR-10
 import faSearch from '../../../messages/fa/search.json';
 import faPlus from '../../../messages/fa/plus.json';
@@ -232,6 +236,8 @@ const bundled = {
     homeLab: faHomeLab, // B-N10-04 /services/home-lab*, home suggestion cards
     cityServices: faCityServices, // B-N10-05 /city-services*, /profile/bookings
     cityJoin: faCityJoin, // CB-DIR-10 /city-services/join
+    webShell: faWebShell, // CB-DIR-11 widgets/web-shell
+    webDirectory: faWebDirectory, // CB-DIR-11 screens/web-city-services
     search: faSearch,
     plus: faPlus,
     companions: faCompanions,
@@ -300,6 +306,8 @@ const bundled = {
     homeLab: enHomeLab, // B-N10-04 /services/home-lab*, home suggestion cards
     cityServices: enCityServices, // B-N10-05 /city-services*, /profile/bookings
     cityJoin: enCityJoin, // CB-DIR-10 /city-services/join
+    webShell: enWebShell, // CB-DIR-11 widgets/web-shell
+    webDirectory: enWebDirectory, // CB-DIR-11 screens/web-city-services
     search: enSearch,
     plus: enPlus,
     companions: enCompanions,

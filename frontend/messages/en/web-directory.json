@@ -1,0 +1,46 @@
+{
+  "search": {
+    "metaTitle": "Mother & child services: pools, classes and play spaces | Ritme",
+    "metaDescription": "Find mother and child pools, classes, play spaces and workshops near you on the map, read each venue's page and send a booking request.",
+    "title": "Mother & child services",
+    "sub": "Good places for you and your child, near home",
+    "lead": "See mother and child classes, pools, play spaces and workshops on the map, read each venue's page and send a booking request right here.",
+    "where": "Where?",
+    "what": "What kind?",
+    "filtersTitle": "Filters",
+    "resultsCount": "{count} places",
+    "resultsIn": "{count} places in {city}",
+    "map": "Map",
+    "mapOff": "The map is unavailable right now; you are seeing the list only.",
+    "pagesLabel": "Result pages",
+    "sortLabel": "Sort",
+    "clearAll": "Clear all filters"
+  },
+  "place": {
+    "metaTitle": "{name} | {category} in {city}",
+    "metaDescription": "{name}, {category} in {city}. Services and prices, opening hours, mothers' reviews and booking requests on Ritme.",
+    "metaFallback": "Mother & child venue | Ritme",
+    "crumbRoot": "Mother & child services",
+    "crumbLabel": "Breadcrumb",
+    "gallery": "Venue photos",
+    "allPhotos": "All {n} photos",
+    "bookTitle": "Book a time",
+    "loginTitle": "Log in to send a request",
+    "loginBody": "Logging in or signing up takes a few seconds. Your request goes to the Ritme team and you get an SMS once it is confirmed.",
+    "login": "Log in or sign up",
+    "continueApp": "Continue in Ritme",
+    "bookingNote": "You pay at the venue; there is no online payment in Ritme.",
+    "notFoundTitle": "This place was not found",
+    "notFoundBody": "It may no longer be active.",
+    "toSearch": "Back to search"
+  },
+  "booked": {
+    "loginTitle": "Log in to see your booking",
+    "loginBody": "Booking details are shown only to their owner.",
+    "login": "Log in or sign up",
+    "appTitle": "Reminders and bookings in the Ritme app",
+    "appBody": "Your bookings are in the app too, all in one place.",
+    "openApp": "Open in the app",
+    "toSearch": "Find more places"
+  }
+}

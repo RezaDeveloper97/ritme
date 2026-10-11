@@ -6,14 +6,15 @@ import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
 import { cityServiceKeys, type DirectoryParams } from './keys';
-import { type AgeRange, bookingOneSchema, bookingsSchema, listingOneSchema, listingsSchema, optionsSchema, slotsSchema } from './schema';
+import { type AgeRange, type CityServiceDetail, bookingOneSchema, bookingsSchema, listingOneSchema, listingsSchema, optionsSchema, slotsSchema } from './schema';
 
 /** GET /city-services/options — cities with a visible listing and the active categories. */
-export const useCityServiceOptions = () =>
+export const useCityServiceOptions = (opts?: { anon?: boolean }) =>
   useQuery({
     queryKey: cityServiceKeys.options(),
     queryFn: async () => optionsSchema.parse((await apiClient.get<ApiEnvelope<unknown>>('/city-services/options')).data.data),
-    enabled: isAuthenticated(),
+    // CB-DIR-11: the public desktop pages read this without a session (`anon`); the app screens still wait for one.
+    enabled: opts?.anon === true || isAuthenticated(),
     staleTime: 60_000,
   });
 
@@ -68,11 +69,13 @@ export const useDirectoryListings = (params: DirectoryParams, enabled = true) =>
   });
 
 /** GET /city-services/listings/:id — 404 for an unknown or inactive listing. */
-export const useCityServiceListing = (id: number) =>
+export const useCityServiceListing = (id: number, opts?: { anon?: boolean; initialData?: CityServiceDetail }) =>
   useQuery({
     queryKey: cityServiceKeys.listing(id),
     queryFn: async () => listingOneSchema.parse((await apiClient.get<ApiEnvelope<unknown>>(`/city-services/listings/${id}`)).data.data).listing,
-    enabled: isAuthenticated() && Number.isFinite(id),
+    // CB-DIR-11: the public place page works without a session and starts from the server-rendered listing.
+    enabled: (opts?.anon === true || isAuthenticated()) && Number.isFinite(id),
+    initialData: opts?.initialData,
     staleTime: 60_000,
     retry: false,
   });

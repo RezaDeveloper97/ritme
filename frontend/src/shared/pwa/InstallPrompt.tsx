@@ -110,7 +110,8 @@ function isInAppBrowser(): boolean {
  */
 export function hidesInstallPrompt(pathname: string): boolean {
   // CB-REC-05: the doctor code page `/d` (+ `/d/<token>`) and the public emergency card `/emergency/<token>` too.
-  return ['/shared', '/d', '/emergency'].some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  // CB-DIR-11: the public desktop directory (`/places*`) is opened by visitors, not by app users.
+  return ['/shared', '/d', '/emergency', '/places'].some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 /**

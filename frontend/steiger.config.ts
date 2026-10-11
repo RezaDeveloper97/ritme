@@ -455,4 +455,10 @@ export default defineConfig([
     files: ['./src/widgets/claim-documents/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // CB-DIR-11: `widgets/web-shell` is used by screens/web-city-services (and later CB-DIR-12 / CB-SHOP-10/11 web
+    // screens) only — references FROM `screens` are invisible to steiger.
+    files: ['./src/widgets/web-shell/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

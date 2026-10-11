@@ -1,0 +1,16 @@
+{
+  "brand": "Ritme",
+  "skip": "Skip to content",
+  "navLabel": "Main navigation",
+  "nav": {
+    "services": "Mother & child services"
+  },
+  "login": "Log in",
+  "openApp": "Open the app",
+  "registerPlace": "List your place",
+  "footer": {
+    "tagline": "Your companion for women's, mother and child health",
+    "note": "These pages never read your health data and nothing is sent to any venue.",
+    "label": "Footer links"
+  }
+}

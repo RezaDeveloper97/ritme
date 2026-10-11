@@ -82,3 +82,6 @@ export {
   useSubmitJoin,
   useUploadJoinDocument,
 } from './api/application';
+
+// CB-DIR-11: server-side read of the public place (SEO metadata + first paint of the desktop place page).
+export { fetchPublicListing } from './api/public';

@@ -13,6 +13,7 @@ describe('install prompt visibility', () => {
     expect(hidesInstallPrompt('/d')).toBe(true);
     expect(hidesInstallPrompt('/d/abc')).toBe(true);
     expect(hidesInstallPrompt('/emergency/abc')).toBe(true);
+    expect(hidesInstallPrompt('/places/12')).toBe(true); // CB-DIR-11
     expect(hidesInstallPrompt('/dashboard')).toBe(false);
     expect(hidesInstallPrompt('/record/emergency')).toBe(false);
   });

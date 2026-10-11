@@ -12,6 +12,8 @@ interface Props {
   catalog: CityServiceCatalogOption[];
   /** Compact = the map's bottom card (no thumbnail row chevron, fewer lines). */
   compact?: boolean;
+  /** CB-DIR-11: where a card leads — the app's place page by default, `/places` on the public desktop pages. */
+  hrefBase?: string;
 }
 
 /** Hooks for the card's facts — shared by the list row and the map's bottom card. */
@@ -31,7 +33,7 @@ export function usePlaceFacts(place: CityServiceCard) {
 }
 
 /** One result row (nbl_Dir_List): verified badge, rating, price-from and the next free slot (or «open now»). */
-export function DirectoryCard({ place: l, catalog, compact = false }: Props) {
+export function DirectoryCard({ place: l, catalog, compact = false, hrefBase = '/city-services' }: Props) {
   const t = useTranslations('cityServices');
   const rtl = useDirection() === 'rtl';
   const { slotText, price, distance, locale } = usePlaceFacts(l);
@@ -40,7 +42,7 @@ export function DirectoryCard({ place: l, catalog, compact = false }: Props) {
   const status = l.open_now === true ? t('home.openNow') : slotText;
 
   return (
-    <Link href={`/city-services/${l.id}`} className="csv-card dfc">
+    <Link href={`${hrefBase}/${l.id}`} className="csv-card dfc">
       {compact ? null : (
         <span className="csv-thumb" aria-hidden>
           {l.photo_url ? (
