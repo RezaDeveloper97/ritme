@@ -119,6 +119,20 @@ func (q *Queries) CountChecklistOnTheWay(ctx context.Context, arg CountChecklist
 	return count, err
 }
 
+const countOpenOrdersByUser = `-- name: CountOpenOrdersByUser :one
+SELECT COUNT(*) FROM ` + "`" + `shop_orders` + "`" + ` o
+WHERE o.user_id = ? AND o.status = 'placed'
+  AND NOT EXISTS (SELECT 1 FROM ` + "`" + `shop_order_shipments` + "`" + ` s WHERE s.order_id = o.id AND s.status IN ('shipped', 'delivered'))
+`
+
+// Security audit (directory/shop): the open-order cap — her placed orders none of whose shipments has left the seller.
+func (q *Queries) CountOpenOrdersByUser(ctx context.Context, userID uint64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countOpenOrdersByUser, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countUndeliveredShipments = `-- name: CountUndeliveredShipments :one
 SELECT COUNT(*) FROM ` + "`" + `shop_order_shipments` + "`" + ` WHERE order_id = ? AND status NOT IN ('delivered', 'cancelled')
 `
@@ -786,6 +800,50 @@ func (q *Queries) ListOrderItemsByUser(ctx context.Context, userID uint64) ([]Sh
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOtherOpenOrderCategories = `-- name: ListOtherOpenOrderCategories :many
+SELECT DISTINCT p.category_id, c.parent_id
+FROM ` + "`" + `shop_order_items` + "`" + ` i
+JOIN ` + "`" + `shop_orders` + "`" + ` o ON o.id = i.order_id
+JOIN ` + "`" + `shop_products` + "`" + ` p ON p.id = i.product_id
+JOIN ` + "`" + `shop_categories` + "`" + ` c ON c.id = p.category_id
+WHERE o.user_id = ? AND o.status = 'placed' AND o.id <> ?
+`
+
+type ListOtherOpenOrderCategoriesParams struct {
+	UserID uint64
+	ID     uint64
+}
+
+type ListOtherOpenOrderCategoriesRow struct {
+	CategoryID uint64
+	ParentID   sql.NullInt64
+}
+
+// Security audit (directory/shop): categories her OTHER placed orders still carry — their checklist rows stay «در راه»
+// when one order is cancelled.
+func (q *Queries) ListOtherOpenOrderCategories(ctx context.Context, arg ListOtherOpenOrderCategoriesParams) ([]ListOtherOpenOrderCategoriesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listOtherOpenOrderCategories, arg.UserID, arg.ID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListOtherOpenOrderCategoriesRow{}
+	for rows.Next() {
+		var i ListOtherOpenOrderCategoriesRow
+		if err := rows.Scan(&i.CategoryID, &i.ParentID); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

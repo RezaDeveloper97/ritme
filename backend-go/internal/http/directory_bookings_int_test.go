@@ -309,3 +309,88 @@ func TestDirectoryBookings_NoOverbooking(t *testing.T) {
 	assert.Equal(t, 2, e.seats(f.small))
 	assert.Equal(t, 2, e.count(`SELECT COUNT(*) FROM city_service_bookings WHERE slot_id = ?`, f.small))
 }
+
+// Security audit (directory/shop) L1: one mother double-tapping «رزرو» in parallel gets exactly one booking — for one
+// slot (one seat per mother and slot) and for a day request (one open request per venue) — and her open cap holds.
+func TestDirectoryBookings_SameUserRace(t *testing.T) {
+	e := newCompanionEnv(t)
+	f := seedDirBookings(t, e)
+	race := func(n int, body map[string]any) (won int) {
+		statuses := make([]int, n)
+		var wg sync.WaitGroup
+		start := make(chan struct{})
+		for i := range n {
+			wg.Add(1)
+			go func(i int) {
+				defer wg.Done()
+				<-start
+				statuses[i] = e.rawDo(fiber.MethodPost, f.bookURL, f.sara, body)
+			}(i)
+		}
+		close(start)
+		wg.Wait()
+		for _, s := range statuses {
+			switch s {
+			case fiber.StatusCreated:
+				won++
+			case fiber.StatusUnprocessableEntity:
+			default:
+				t.Fatalf("unexpected status %d (%v)", s, statuses)
+			}
+		}
+		return won
+	}
+	assert.Equal(t, 1, race(6, map[string]any{"listing_id": f.pool, "slot_id": f.s1}))
+	assert.Equal(t, 1, e.seats(f.s1), "the losers took no seat")
+	assert.Equal(t, 1, e.count(`SELECT COUNT(*) FROM city_service_bookings WHERE user_id = ? AND slot_id = ?`, f.saraUser, f.s1))
+	assert.Equal(t, 1, race(6, map[string]any{"listing_id": f.class, "preferred_date": "2026-09-30"}))
+	assert.Equal(t, 1, e.count(`SELECT COUNT(*) FROM city_service_bookings WHERE user_id = ? AND listing_id = ?`, f.saraUser, f.class))
+
+	// The open cap (MaxOpenBookings) under a parallel burst over distinct slots: never above it.
+	slots := make([]uint64, cityservices.MaxOpenBookings+4)
+	for i := range slots {
+		slots[i] = e.insExec(`INSERT INTO city_service_slots (listing_id, service_id, starts_at, ends_at, capacity, booked_count, status,
+			created_at, updated_at) VALUES (?, NULL, DATE_ADD('2026-10-01 09:00:00', INTERVAL ? DAY), DATE_ADD('2026-10-01 10:00:00', INTERVAL ? DAY),
+			6, 0, 'open', NOW(), NOW())`, f.pool, i, i)
+	}
+	var wg sync.WaitGroup
+	start := make(chan struct{})
+	for _, s := range slots {
+		wg.Add(1)
+		go func(s uint64) {
+			defer wg.Done()
+			<-start
+			e.rawDo(fiber.MethodPost, f.bookURL, f.sara, map[string]any{"listing_id": f.pool, "slot_id": s})
+		}(s)
+	}
+	close(start)
+	wg.Wait()
+	assert.Equal(t, cityservices.MaxOpenBookings, e.count(`SELECT COUNT(*) FROM city_service_bookings WHERE user_id = ?
+		AND status IN ('requested','confirmed')`, f.saraUser))
+}
+
+// Security audit (directory/shop) L2: a reschedule keeps the service (a service-less slot is another service) and
+// re-checks the child's age on the new date.
+func TestDirectoryBookings_RescheduleGuards(t *testing.T) {
+	e := newCompanionEnv(t)
+	f := seedDirBookings(t, e)
+	r := e.do(fiber.MethodPost, f.bookURL, f.sara, map[string]any{"listing_id": f.pool, "slot_id": f.s1, "child_id": f.saraChild})
+	require.Equal(t, fiber.StatusCreated, r.Status, r.Raw)
+	bid := itoa(uint64(r.data()["booking"].(map[string]any)["id"].(float64)))
+	noService := e.insExec(`INSERT INTO city_service_slots (listing_id, service_id, starts_at, ends_at, capacity, booked_count, status,
+		created_at, updated_at) VALUES (?, NULL, '2026-09-28 17:00:00', '2026-09-28 18:00:00', 6, 0, 'open', NOW(), NOW())`, f.pool)
+	tooOld := e.insExec(`INSERT INTO city_service_slots (listing_id, service_id, starts_at, ends_at, capacity, booked_count, status,
+		created_at, updated_at) VALUES (?, ?, '2027-03-01 17:00:00', '2027-03-01 18:00:00', 6, 0, 'open', NOW(), NOW())`, f.pool, f.baby)
+	resched := func(slot uint64) reply {
+		return e.do(fiber.MethodPost, f.bookingsURL+"/"+bid+"/reschedule", f.sara, map[string]any{"slot_id": slot})
+	}
+	r = resched(noService)
+	require.Equal(t, fiber.StatusUnprocessableEntity, r.Status, r.Raw)
+	assert.Contains(t, r.Body["errors"], "slot_id", "a service booking cannot move to a service-less slot")
+	r = resched(tooOld) // Arian is 19 months on 2027-03-01: Water intro is 6–18
+	require.Equal(t, fiber.StatusUnprocessableEntity, r.Status, r.Raw)
+	assert.Contains(t, r.Body["errors"], "slot_id")
+	assert.Equal(t, 1, e.seats(f.s1), "nothing moved")
+	assert.Equal(t, 0, e.seats(noService)+e.seats(tooOld))
+	require.Equal(t, fiber.StatusOK, resched(f.s2).Status, "same service, child fits")
+}

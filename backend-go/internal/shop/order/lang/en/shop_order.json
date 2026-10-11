@@ -21,6 +21,8 @@
         "not_returnable": "This item can only be returned after delivery.",
         "return_window_closed": "The return window for this item has closed.",
         "return_quantity": "That is more than you can return for this item.",
+        "too_many_open_orders": "You have too many orders waiting to ship. Wait for one to ship or cancel one first.",
+        "too_many_discount_tries": "Too many discount code tries. Try again later.",
         "busy": "Please try again in a moment."
     },
     "messages": {

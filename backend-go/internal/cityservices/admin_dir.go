@@ -959,7 +959,11 @@ func (a *Admin) applicationReply(c fiber.Ctx, app join.Application, msg string) 
 		}
 	}
 	docs := []*jsonx.OrderedMap{}
-	for _, slot := range join.Slots {
+	slots := join.Slots
+	if !seesContacts(c) { // without support the private documents are not even listed (DocumentLink answers 403)
+		slots = nil
+	}
+	for _, slot := range slots {
 		var mime, size any
 		present := false
 		if fid := d.Documents[slot]; fid > 0 && a.files != nil {
@@ -998,8 +1002,11 @@ func (a *Admin) applicationReply(c fiber.Ctx, app join.Application, msg string) 
 }
 
 // DocumentLink is GET /city-service-applications/:id/documents/:slot: a fresh 5-minute signed link to a private
-// licence (each view is audited; the link names no path).
+// licence (each view is audited; the link names no path). Needs the support capability (403 otherwise).
 func (a *Admin) DocumentLink(c fiber.Ctx) error {
+	if !seesContacts(c) { // private applicant documents are personal data, like the contact name / phone
+		return httpadmin.ForbiddenPermission(httpadmin.CapSupport)
+	}
 	app, err := a.findApplication(c)
 	if err != nil {
 		return err
@@ -1053,22 +1060,16 @@ func (a *Admin) ReviewApplication(c fiber.Ctx) error {
 	if !join.CanReview(app.Row.Status, to) {
 		return httpadmin.Fail(fiber.StatusUnprocessableEntity, CodeBadTransition, "This status change is not allowed.")
 	}
-	now := a.now(c)
-	note := nullable(data, "note")
-	if to == join.StatusInReview && !note.Valid {
-		note = app.Row.ReviewNote
-	}
-	n, err := a.jq().AdminReviewApplication(c, joinstore.AdminReviewApplicationParams{Status: to, ReviewNote: note,
-		ReviewedAt: now, UpdatedAt: now, ID: app.Row.ID, Status_2: app.Row.Status})
-	if err != nil {
+	done, err := a.store.ReviewApplication(c, app.Row.ID, to, nullable(data, "note"), a.now(c).Time)
+	switch {
+	case errors.Is(err, ErrMoved):
+		return httpadmin.Fail(fiber.StatusUnprocessableEntity, CodeBadTransition, "This status change is not allowed.")
+	case errors.Is(err, ErrNotFound):
+		return httpadmin.NotFound("Application")
+	case err != nil:
 		return err
 	}
-	if n == 0 {
-		return httpadmin.Fail(fiber.StatusUnprocessableEntity, CodeBadTransition, "This status change is not allowed.")
-	}
-	if to == join.StatusRejected {
-		a.dropApplicationPhotos(c, app, now)
-	}
+	a.dropApplicationPhotos(c, app.Row.ID, done)
 	httpadmin.Audit(c, a.logger, "city_service_application.review", "city_service_application", app.Row.ID, slog.String("to", to))
 	app, err = a.findApplication(c)
 	if err != nil {
@@ -1077,23 +1078,21 @@ func (a *Admin) ReviewApplication(c fiber.Ctx) error {
 	return a.applicationReply(c, app, "Saved.")
 }
 
-// dropApplicationPhotos deletes a rejected application's photo files (best effort: a failure is logged by id).
-func (a *Admin) dropApplicationPhotos(c fiber.Ctx, app join.Application, now sql.NullTime) {
-	if len(app.Draft.PhotoIDs) == 0 {
+// dropApplicationPhotos deletes the photo files a rejection detached (after the commit; best effort: a failure is
+// logged by id — the row no longer points at them either way).
+func (a *Admin) dropApplicationPhotos(c fiber.Ctx, appID uint64, done ReviewedApplication) {
+	if len(done.PhotoIDs) == 0 {
 		return
 	}
 	if a.files == nil {
-		a.logger.WarnContext(c.Context(), "cityservices: no file service, rejected photos kept", slog.Uint64("application_id", app.Row.ID))
+		a.logger.WarnContext(c.Context(), "cityservices: no file service, rejected photos kept", slog.Uint64("application_id", appID))
 		return
 	}
-	for _, fid := range app.Draft.PhotoIDs {
-		if err := a.files.Delete(c, app.Row.UserID, fid); err != nil && !errors.Is(err, files.ErrNotFound) {
-			a.logger.WarnContext(c.Context(), "cityservices: photo delete failed", slog.Uint64("application_id", app.Row.ID),
+	for _, fid := range done.PhotoIDs {
+		if err := a.files.Delete(c, done.UserID, fid); err != nil && !errors.Is(err, files.ErrNotFound) {
+			a.logger.WarnContext(c.Context(), "cityservices: photo delete failed", slog.Uint64("application_id", appID),
 				slog.Uint64("file_id", fid))
 		}
-	}
-	if err := a.jq().AdminClearApplicationPhotos(c, joinstore.AdminClearApplicationPhotosParams{UpdatedAt: now, ID: app.Row.ID}); err != nil {
-		a.logger.WarnContext(c.Context(), "cityservices: clear photos failed", slog.Uint64("application_id", app.Row.ID))
 	}
 }
 

@@ -923,6 +923,7 @@
         "bookingMode": "Booking",
         "documents": "Documents",
         "documentsNote": "Private files. Each view opens a link that expires in 5 minutes and is written to the audit log.",
+        "documentsHidden": "Private documents are visible to the support role only.",
         "viewDocument": "View",
         "missingDocument": "Not uploaded",
         "slot": {

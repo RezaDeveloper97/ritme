@@ -28,6 +28,7 @@ const (
 	MaxLineQuantity = 10  // one variant in a cart
 	MaxCartLines    = 30  // distinct variants in a cart
 	MaxAddresses    = 20  // saved addresses per user
+	MaxOpenOrders   = 5   // placed orders not yet shipped, per user (security audit: stock / slot hoarding)
 	OrdersListed    = 50  // GET /shop/orders
 	codeAttempts    = 5   // order-code collisions retried
 	codeSpace       = 1e8 // 8-digit order codes
@@ -292,8 +293,10 @@ func (s *Service) ApplyDiscount(ctx context.Context, userID uint64, code string,
 		if err != nil {
 			return fmt.Errorf("order: discount uses: %w", err)
 		}
+		// One refusal for every reason (unknown, inactive, exhausted, used, below the minimum): applying a code must
+		// not tell a guesser which codes exist (security audit). Once applied, the cart names the exact reason.
 		if _, why := evaluateDiscount(&d, cart.ItemsTotal, now, uses); why != "" {
-			return fail(422, why, "code")
+			return fail(422, "discount_invalid", "code")
 		}
 		return q.SetCartDiscountCode(ctx, store.SetCartDiscountCodeParams{
 			DiscountCodeID: sql.NullInt64{Int64: int64(d.ID), Valid: true}, UpdatedAt: nt(now), ID: c.ID}) //nolint:gosec // G115
@@ -472,6 +475,12 @@ func (s *Service) Place(ctx context.Context, userID uint64, in PlaceInput, defau
 			return nil
 		} else if !errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("order: idempotency: %w", err)
+		}
+		// The cap is read under the cart lock, so two parallel checkouts of one user are serialized here.
+		if open, err := q.CountOpenOrdersByUser(ctx, userID); err != nil {
+			return fmt.Errorf("order: open orders: %w", err)
+		} else if open >= MaxOpenOrders {
+			return fail(422, "too_many_open_orders", "")
 		}
 		addr, err := q.GetAddressForUser(ctx, store.GetAddressForUserParams{ID: in.AddressID, UserID: userID})
 		if errors.Is(err, sql.ErrNoRows) {
@@ -775,6 +784,14 @@ func (s *Service) Order(ctx context.Context, userID, id uint64) (*Detail, error)
 	return d, nil
 }
 
+func otherRows(rows []store.ListOtherOpenOrderCategoriesRow) []store.ListOrderCategoriesRow {
+	out := make([]store.ListOrderCategoriesRow, len(rows))
+	for i, r := range rows {
+		out[i] = store.ListOrderCategoriesRow(r)
+	}
+	return out
+}
+
 func categoryIDs(rows []store.ListOrderCategoriesRow) []sql.NullInt64 {
 	out := []sql.NullInt64{}
 	for _, r := range rows {
@@ -957,7 +974,15 @@ func (s *Service) cancel(ctx context.Context, userID, id uint64, now time.Time, 
 		if err != nil {
 			return fmt.Errorf("order: categories: %w", err)
 		}
-		if ids := categoryIDs(cats); len(ids) > 0 {
+		// Rows «در راه» carry no order id, so only categories none of her other placed orders still carries go back
+		// to «باید بخرم» (a row she marked «در راه» by hand in such a category is still reverted — not traceable).
+		others, err := q.ListOtherOpenOrderCategories(ctx, store.ListOtherOpenOrderCategoriesParams{UserID: userID, ID: o.ID})
+		if err != nil {
+			return fmt.Errorf("order: open categories: %w", err)
+		}
+		keep := categoryIDs(otherRows(others))
+		ids := slices.DeleteFunc(categoryIDs(cats), func(c sql.NullInt64) bool { return slices.Contains(keep, c) })
+		if len(ids) > 0 {
 			if _, err := q.RevertChecklistOnTheWay(ctx, store.RevertChecklistOnTheWayParams{UpdatedAt: nt(now), UserID: userID, CategoryIds: ids}); err != nil {
 				return fmt.Errorf("order: checklist: %w", err)
 			}

@@ -176,11 +176,19 @@ function DocumentsPanel({ app }: { app: Application }) {
       },
       onError: notifyError,
     });
+  // Without the support capability the API lists no documents and refuses links (403): say so instead of buttons.
+  if (app.contact_hidden || !app.documents?.length) {
+    return (
+      <Panel title={t('documents')}>
+        <p className="panel-note">{app.contact_hidden ? t('documentsHidden') : t('documentsNote')}</p>
+      </Panel>
+    );
+  }
   return (
     <Panel title={t('documents')}>
       <p className="panel-note">{t('documentsNote')}</p>
       <ul className="flex flex-col gap-2">
-        {(app.documents ?? []).map((d) => (
+        {app.documents.map((d) => (
           <li key={d.slot} className="flex items-center justify-between gap-3">
             <span>{t(`slot.${d.slot}` as 'slot.licence')}</span>
             {d.present ? (

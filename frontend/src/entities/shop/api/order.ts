@@ -25,7 +25,7 @@ export const shopErrorCode = (error: unknown): string | null => getApiErrorCode(
 const ERROR_KEYS = [
   'variant_unavailable', 'out_of_stock', 'quantity_limit', 'cart_full', 'discount_invalid', 'discount_exhausted', 'discount_used',
   'discount_min_total', 'slot_full', 'slot_invalid', 'cod_limit_exceeded', 'address_invalid', 'cart_unavailable', 'cart_empty', 'busy',
-  'not_cancellable',
+  'not_cancellable', 'too_many_open_orders',
 ] as const;
 
 /** Message key under `shop.errors.*` for a failed cart / checkout / order call (`generic` for anything unknown). */

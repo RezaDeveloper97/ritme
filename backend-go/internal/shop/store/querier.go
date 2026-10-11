@@ -85,6 +85,8 @@ type Querier interface {
 	CountAddressesByUser(ctx context.Context, userID uint64) (int64, error)
 	CountChecklistOnTheWay(ctx context.Context, arg CountChecklistOnTheWayParams) (int64, error)
 	CountCustomChecklistItems(ctx context.Context, userID uint64) (int64, error)
+	// Security audit (directory/shop): the open-order cap — her placed orders none of whose shipments has left the seller.
+	CountOpenOrdersByUser(ctx context.Context, userID uint64) (int64, error)
 	CountPublishedReviews(ctx context.Context, productID uint64) (int64, error)
 	CountUndeliveredShipments(ctx context.Context, orderID uint64) (int64, error)
 	CountUserOrdersWithDiscount(ctx context.Context, arg CountUserOrdersWithDiscountParams) (int64, error)
@@ -158,6 +160,9 @@ type Querier interface {
 	ListOrderItemsByOrder(ctx context.Context, orderID uint64) ([]ShopOrderItem, error)
 	ListOrderItemsByUser(ctx context.Context, userID uint64) ([]ShopOrderItem, error)
 	ListOrdersByUser(ctx context.Context, arg ListOrdersByUserParams) ([]ShopOrder, error)
+	// Security audit (directory/shop): categories her OTHER placed orders still carry — their checklist rows stay «در راه»
+	// when one order is cancelled.
+	ListOtherOpenOrderCategories(ctx context.Context, arg ListOtherOpenOrderCategoriesParams) ([]ListOtherOpenOrderCategoriesRow, error)
 	ListProductImages(ctx context.Context, ids []uint64) ([]ListProductImagesRow, error)
 	ListPublishedReviews(ctx context.Context, arg ListPublishedReviewsParams) ([]ShopProductReview, error)
 	ListPublishedReviewsPage(ctx context.Context, arg ListPublishedReviewsPageParams) ([]ShopProductReview, error)

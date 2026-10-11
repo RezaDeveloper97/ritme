@@ -14406,9 +14406,10 @@ paths:
       tags: [Shop]
       summary: Apply a discount code
       description: |
-        Go only (CB-SHOP-03). «کد تخفیف داری؟» — admin-defined codes (case-insensitive). 422 with `error_code`
-        `discount_invalid` (unknown, inactive, outside its window), `discount_exhausted`, `discount_used` (her per-user
-        limit) or `discount_min_total`. Answers the cart.
+        Go only (CB-SHOP-03). «کد تخفیف داری؟» — admin-defined codes (case-insensitive). Every refusal is 422
+        `discount_invalid` (unknown, inactive, outside its window, run out, already used, below its minimum — one code
+        so a guesser cannot tell which codes exist; once applied, the cart's `discount.error_code` names the exact
+        reason). Per-user limit of 10 tries an hour (429 `too_many_requests`, localized). Answers the cart.
       operationId: applyShopCartDiscount
       security:
         - {bearerAuth: []}
@@ -14428,6 +14429,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
         '422': {$ref: "#/components/responses/ShopOrderFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
     delete:
       tags: [Shop]
       summary: Remove the discount code
@@ -14601,7 +14603,8 @@ paths:
         chosen delivery slots' capacity. Prices, titles, variant labels and the recipient/address are SNAPSHOTS.
         `payment_method` must be `cod` (422 otherwise). `idempotency_key` (client-generated, 8–64 of `A-Za-z0-9_-`)
         makes a retry safe: the same key again answers **200** with the first order and `replayed: true`. Refusals:
-        422 `cart_empty`, `address_invalid` (not one of her addresses), `slot_invalid`, `cod_limit_exceeded`; 409
+        422 `cart_empty`, `address_invalid` (not one of her addresses), `slot_invalid`, `cod_limit_exceeded`,
+        `too_many_open_orders` (at most 5 placed orders none of whose shipments has shipped); 409
         `out_of_stock` / `cart_unavailable` (with `variant_ids`), `slot_full`, `discount_*`, `busy`. Layette checklist
         rows of the ordered categories move to «در راه» (`checklist_on_the_way`). A discreet SMS (order code only)
         goes out through the SMS adapter.
@@ -24639,8 +24642,8 @@ components:
         Cart / checkout / order refusal (CB-SHOP-03): `error_code` names the reason (not_found, variant_unavailable,
         out_of_stock, quantity_limit, cart_full, cart_empty, cart_unavailable, discount_invalid, discount_min_total,
         discount_used, discount_exhausted, address_invalid, address_limit, slot_invalid, slot_full, cod_limit_exceeded,
-        not_cancellable, not_returnable, return_window_closed, return_quantity, busy); `errors` names the field when
-        one is to blame; `variant_ids` lists the cart lines concerned. A plain validation failure has `errors` only.
+        not_cancellable, not_returnable, return_window_closed, return_quantity, too_many_open_orders, busy); `errors`
+        names the field when one is to blame; `variant_ids` lists the cart lines concerned. A plain validation failure has `errors` only.
       content:
         application/json:
           schema:

@@ -138,9 +138,16 @@ func TestDirAdmin_CapabilitiesCSRFAndPII(t *testing.T) {
 	app1 := r.Obj("application")
 	assert.Nil(t, app1["contact_phone"])
 	assert.Equal(t, true, app1["contact_hidden"])
+	// Security audit M1: so are the private documents — not listed, and no link (403 permission, not 404).
+	assert.Empty(t, app1["documents"])
+	r = e.As(marketingID).Get("/city-service-applications/" + a + "/documents/licence")
+	assert.Equal(t, 403, r.Status, r.Body)
+	assert.NotContains(t, r.Body, "signature=")
 	r = e.As(admintest.EditorID).Get("/city-service-applications/" + a)
 	assert.Equal(t, "09121112233", r.Obj("application")["contact_phone"])
 	assert.Len(t, r.Obj("application")["photos"], 1)
+	assert.Equal(t, true, r.Obj("application")["documents"].([]any)[0].(map[string]any)["present"])
+	assert.Equal(t, 200, e.As(admintest.EditorID).Get("/city-service-applications/"+a+"/documents/licence").Status)
 
 	noToken := e.As(admintest.EditorID)
 	noToken.CSRF = ""

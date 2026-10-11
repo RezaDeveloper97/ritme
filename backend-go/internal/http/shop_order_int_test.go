@@ -134,7 +134,7 @@ func TestShopOrder_CartCheckoutPlaceCancel(t *testing.T) {
 	require.Equal(t, fiber.StatusOK, e.addToCart(sara, f.vPads, 1).Status)
 
 	// Discount codes.
-	for code, want := range map[string]string{"NOPE": "discount_invalid", "OFF": "discount_invalid", "BIG": "discount_min_total"} {
+	for code, want := range map[string]string{"NOPE": "discount_invalid", "OFF": "discount_invalid", "BIG": "discount_invalid"} {
 		r = e.do(fiber.MethodPut, "/api/v1/shop/cart/discount", sara, map[string]any{"code": code})
 		require.Equal(t, fiber.StatusUnprocessableEntity, r.Status, r.Raw)
 		assert.Equal(t, want, r.Body["error_code"], code)
@@ -244,7 +244,7 @@ func TestShopOrder_CartCheckoutPlaceCancel(t *testing.T) {
 	// The code was used once: per-user limit.
 	require.Equal(t, fiber.StatusOK, e.addToCart(sara, f.vSleep, 1).Status)
 	r = e.do(fiber.MethodPut, "/api/v1/shop/cart/discount", sara, map[string]any{"code": "WELCOME10"})
-	assert.Equal(t, "discount_used", r.Body["error_code"])
+	assert.Equal(t, "discount_invalid", r.Body["error_code"], "one refusal for every reason (security audit)")
 
 	// List and detail.
 	r = e.do(fiber.MethodGet, "/api/v1/shop/orders", sara, nil)
@@ -480,4 +480,57 @@ func TestShopOrder_NoOversellUnderConcurrency(t *testing.T) {
 	assert.Equal(t, 1, got["201 "], got)
 	assert.Equal(t, 4, got["200 "], got)
 	assert.Equal(t, 1, e.count(`SELECT COUNT(*) FROM shop_orders WHERE user_id = ?`, e.ids["D0"]))
+}
+
+// Security audit (directory/shop) M2: applying discount codes has a small hourly per-user budget (localized 429), and
+// a user holds at most order.MaxOpenOrders placed-but-unshipped orders. L5: cancelling one order leaves the checklist
+// rows another open order still carries «در راه».
+func TestShopOrder_DiscountLimitAndOpenOrderCap(t *testing.T) {
+	e := newCompanionEnv(t)
+	f := seedOrderShop(e)
+	e.exec(`UPDATE shop_product_variants SET stock = 100 WHERE id IN (?, ?, ?)`, f.vBody, f.vSleep, f.vPads)
+
+	guess := e.user("Guess", "09120008131")
+	for i := range ShopDiscountMax {
+		r := e.do(fiber.MethodPut, "/api/v1/shop/cart/discount", guess, map[string]any{"code": "TRY" + itoa(uint64(i))}) //nolint:gosec // test
+		require.Equal(t, fiber.StatusUnprocessableEntity, r.Status, r.Raw)
+		assert.Equal(t, "discount_invalid", r.Body["error_code"])
+	}
+	r := e.do(fiber.MethodPut, "/api/v1/shop/cart/discount", guess, map[string]any{"code": "WELCOME10"})
+	require.Equal(t, fiber.StatusTooManyRequests, r.Status, r.Raw)
+	assert.Equal(t, "too_many_requests", r.Body["error_code"])
+	assert.Equal(t, "Too many discount code tries. Try again later.", r.Body["message"])
+
+	lina := e.user("Lina", "09120008132")
+	uid := e.ids["Lina"]
+	e.exec(`INSERT INTO shop_user_checklist_items (user_id, layette_item_id, group_key, state) VALUES (?, ?, 'clothes', 'todo')`, uid, f.layette)
+	addr := e.address(lina)
+	place := func(variant uint64, key string) reply {
+		e.t.Helper()
+		require.Equal(t, fiber.StatusOK, e.addToCart(lina, variant, 1).Status)
+		return e.do(fiber.MethodPost, "/api/v1/shop/orders", lina, map[string]any{"idempotency_key": key, "address_id": addr, "payment_method": "cod"})
+	}
+	var ids []uint64
+	for i, v := range []uint64{f.vBody, f.vSleep, f.vPads, f.vPads, f.vPads} { // two clothes orders, three pads orders
+		r = place(v, "cap-000"+itoa(uint64(i))) //nolint:gosec // test
+		require.Equal(t, fiber.StatusCreated, r.Status, r.Raw)
+		ids = append(ids, idOf(r.data()["order"].(map[string]any)["id"]))
+	}
+	assert.Equal(t, "on_the_way", e.str(`SELECT state FROM shop_user_checklist_items WHERE user_id = ?`, uid))
+	r = place(f.vPads, "cap-0006")
+	require.Equal(t, fiber.StatusUnprocessableEntity, r.Status, r.Raw)
+	assert.Equal(t, "too_many_open_orders", r.Body["error_code"])
+	assert.Equal(t, "You have too many orders waiting to ship. Wait for one to ship or cancel one first.", r.Body["message"])
+	assert.Equal(t, 5, e.count(`SELECT COUNT(*) FROM shop_orders WHERE user_id = ?`, uid))
+
+	// A shipped order no longer counts as open.
+	e.exec(`UPDATE shop_order_shipments SET status = 'shipped' WHERE order_id = ?`, ids[4])
+	r = e.do(fiber.MethodPost, "/api/v1/shop/orders", lina, map[string]any{"idempotency_key": "cap-0006", "address_id": addr, "payment_method": "cod"})
+	require.Equal(t, fiber.StatusCreated, r.Status, r.Raw)
+
+	// L5: the first clothes order is cancelled, the second still carries the category → the row stays «در راه».
+	require.Equal(t, fiber.StatusOK, e.do(fiber.MethodPost, "/api/v1/shop/orders/"+itoa(ids[0])+"/cancel", lina, nil).Status)
+	assert.Equal(t, "on_the_way", e.str(`SELECT state FROM shop_user_checklist_items WHERE user_id = ?`, uid))
+	require.Equal(t, fiber.StatusOK, e.do(fiber.MethodPost, "/api/v1/shop/orders/"+itoa(ids[1])+"/cancel", lina, nil).Status)
+	assert.Equal(t, "todo", e.str(`SELECT state FROM shop_user_checklist_items WHERE user_id = ?`, uid))
 }

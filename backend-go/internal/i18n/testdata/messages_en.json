@@ -11347,6 +11347,7 @@
     "cart_empty": "Your cart is empty.",
     "busy": "We're busy; try again in a moment.",
     "not_cancellable": "This order can no longer be cancelled.",
+    "too_many_open_orders": "You have too many orders waiting to ship. Wait for one to ship or cancel one first.",
     "generic": "That didn't work. Try again."
    }
   },

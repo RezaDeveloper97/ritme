@@ -5,8 +5,21 @@ import (
 	"io/fs"
 	"sync"
 
+	"github.com/gofiber/fiber/v3"
+
 	"github.com/ritme/backend-go/internal/i18n/lang"
+	"github.com/ritme/backend-go/internal/platform/httpx"
 )
+
+// TooManyDiscountTries is the localized 429 of PUT /shop/cart/discount's per-user limit (security audit: code guessing).
+func TooManyDiscountTries(locale string, retryAfter int, headers map[string]string) *httpx.FailError {
+	e := httpx.Fail(fiber.StatusTooManyRequests, T("errors.too_many_discount_tries", locale),
+		"error_code", "too_many_requests", "retry_after", retryAfter)
+	for k, v := range headers {
+		e = e.WithHeader(k, v)
+	}
+	return e
+}
 
 // The order API's server copy (errors, messages, the order SMS, validation attribute names) is data:
 // lang/<code>/shop_order.json, one file per language, read through the platform translator. A language without the

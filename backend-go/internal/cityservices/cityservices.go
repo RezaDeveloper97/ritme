@@ -280,14 +280,6 @@ func scanBooking(s scanner, b *Booking) error {
 	return nil
 }
 
-// OpenBookings counts the user's requested / confirmed bookings from today on, and how many of them are for listingID.
-func (s *Store) OpenBookings(ctx context.Context, userID, listingID uint64, today civildate.Date) (total, forListing int, err error) {
-	err = s.db.QueryRowContext(ctx, `SELECT COUNT(*), COALESCE(SUM(listing_id = ?), 0) FROM city_service_bookings
-		WHERE user_id = ? AND status IN ('requested','confirmed') AND preferred_date >= ?`, listingID, userID, today).
-		Scan(&total, &forListing)
-	return total, forListing, err
-}
-
 // CreateBooking stores a request in status requested and returns it.
 func (s *Store) CreateBooking(ctx context.Context, userID uint64, in NewBooking, now time.Time) (Booking, error) {
 	res, err := s.db.ExecContext(ctx, `INSERT INTO city_service_bookings

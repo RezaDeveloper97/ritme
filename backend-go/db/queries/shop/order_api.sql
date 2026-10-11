@@ -203,3 +203,19 @@ WHERE u.user_id = sqlc.arg(user_id) AND u.state = 'on_the_way' AND l.category_id
 -- name: CountChecklistOnTheWay :one
 SELECT COUNT(*) FROM `shop_user_checklist_items` u JOIN `shop_layette_items` l ON l.id = u.layette_item_id
 WHERE u.user_id = sqlc.arg(user_id) AND u.state = 'on_the_way' AND l.category_id IN (sqlc.slice(category_ids));
+
+-- Security audit (directory/shop): the open-order cap — her placed orders none of whose shipments has left the seller.
+-- name: CountOpenOrdersByUser :one
+SELECT COUNT(*) FROM `shop_orders` o
+WHERE o.user_id = ? AND o.status = 'placed'
+  AND NOT EXISTS (SELECT 1 FROM `shop_order_shipments` s WHERE s.order_id = o.id AND s.status IN ('shipped', 'delivered'));
+
+-- Security audit (directory/shop): categories her OTHER placed orders still carry — their checklist rows stay «در راه»
+-- when one order is cancelled.
+-- name: ListOtherOpenOrderCategories :many
+SELECT DISTINCT p.category_id, c.parent_id
+FROM `shop_order_items` i
+JOIN `shop_orders` o ON o.id = i.order_id
+JOIN `shop_products` p ON p.id = i.product_id
+JOIN `shop_categories` c ON c.id = p.category_id
+WHERE o.user_id = ? AND o.status = 'placed' AND o.id <> ?;

@@ -57,6 +57,9 @@ var (
 	ErrSlotFull        = errors.New("cityservices: slot full")
 	ErrNotOpen         = errors.New("cityservices: booking no longer open")
 	ErrAlreadyReviewed = errors.New("cityservices: already reviewed")
+	ErrSlotTaken       = errors.New("cityservices: user already holds this slot")              // a seat per mother and slot
+	ErrAlreadyOpen     = errors.New("cityservices: user already has an open day request here") // bloom: one per venue
+	ErrTooManyOpen     = errors.New("cityservices: too many open bookings")                    // MaxOpenBookings
 )
 
 // BookingDir holds a booking's directory columns (CB-DIR-01) and its joined service / slot / child / review.
@@ -291,14 +294,6 @@ func (s *Store) BookableSlot(ctx context.Context, listingID, id uint64, now time
 	return v, err
 }
 
-// OpenOnSlot counts the caller's open bookings of one slot (a seat per mother and slot).
-func (s *Store) OpenOnSlot(ctx context.Context, userID, slotID uint64) (int, error) {
-	var n int
-	err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM city_service_bookings WHERE user_id = ? AND slot_id = ?
-		AND status IN ('requested','confirmed')`, userID, slotID).Scan(&n)
-	return n, err
-}
-
 // ---------------------------------------------------------------------------
 // Writes
 
@@ -382,13 +377,43 @@ func (s *Store) inTx(ctx context.Context, fn func(tx *sql.Tx) error) error {
 
 // CreateDirBooking stores a request in status requested with a fresh code, holding a seat of its slot (if any) in
 // the same transaction, and returns it. ErrSlotUnavailable / ErrSlotFull when the seat cannot be taken.
-func (s *Store) CreateDirBooking(ctx context.Context, userID uint64, in NewBooking, d DirBooking, now time.Time) (Booking, error) {
+//
+// The per-user guards run inside the transaction (security audit L1): the user row is locked first, so two parallel
+// requests of one mother are serialized and the second one counts the first one's booking. ErrSlotTaken (she already
+// holds this slot), ErrAlreadyOpen (bloom: one open day request per venue), ErrTooManyOpen (MaxOpenBookings from
+// today on).
+func (s *Store) CreateDirBooking(ctx context.Context, userID uint64, in NewBooking, d DirBooking, today civildate.Date,
+	now time.Time) (Booking, error) {
 	var id int64
 	err := s.inTx(ctx, func(tx *sql.Tx) error {
+		var locked uint64
+		if err := tx.QueryRowContext(ctx, "SELECT id FROM users WHERE id = ? FOR UPDATE", userID).Scan(&locked); err != nil {
+			return fmt.Errorf("cityservices: lock user: %w", err)
+		}
 		if d.SlotID.Valid {
 			if err := takeSeat(ctx, tx, in.ListingID, uint64(d.SlotID.Int64), now); err != nil { //nolint:gosec // G115: ids are positive
 				return err
 			}
+			var n int
+			if err := tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM city_service_bookings WHERE user_id = ? AND slot_id = ?
+				AND status IN ('requested','confirmed')`, userID, d.SlotID.Int64).Scan(&n); err != nil {
+				return fmt.Errorf("cityservices: open on slot: %w", err)
+			}
+			if n > 0 {
+				return ErrSlotTaken
+			}
+		}
+		var total, forListing int
+		if err := tx.QueryRowContext(ctx, `SELECT COUNT(*), COALESCE(SUM(listing_id = ?), 0) FROM city_service_bookings
+			WHERE user_id = ? AND status IN ('requested','confirmed') AND preferred_date >= ?`, in.ListingID, userID, today).
+			Scan(&total, &forListing); err != nil {
+			return fmt.Errorf("cityservices: open bookings: %w", err)
+		}
+		if !d.SlotID.Valid && forListing > 0 {
+			return ErrAlreadyOpen
+		}
+		if total >= MaxOpenBookings {
+			return ErrTooManyOpen
 		}
 		for range 5 {
 			code, err := NewBookingCode()

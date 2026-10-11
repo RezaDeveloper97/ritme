@@ -129,13 +129,6 @@ func (h *Handlers) StoreBooking(c fiber.Ctx) error {
 		if slot.BookedCount >= slot.Capacity {
 			return fieldFail(c, "slot_id", msg("slot_full", locale))
 		}
-		n, err := h.store.OpenOnSlot(c, userID, slotID)
-		if err != nil {
-			return err
-		}
-		if n > 0 {
-			return fieldFail(c, "slot_id", msg("slot_taken", locale))
-		}
 		date = civildate.FromTime(wall(slot.StartsAt))
 		dir.SlotID = sql.NullInt64{Int64: int64(slotID), Valid: true} //nolint:gosec // G115: validated ids
 	} else {
@@ -169,16 +162,6 @@ func (h *Handlers) StoreBooking(c fiber.Ctx) error {
 		dir.ChildID = sql.NullInt64{Int64: int64(childID), Valid: true} //nolint:gosec // G115: validated ids
 	}
 
-	total, forListing, err := h.store.OpenBookings(c, userID, listingID, today)
-	if err != nil {
-		return fmt.Errorf("cityservices: open bookings: %w", err)
-	}
-	if slotID == 0 && forListing > 0 { // bloom: one open day-request per venue (slots are guarded per slot above)
-		return fieldFail(c, "listing_id", msg("already_open", locale))
-	}
-	if total >= MaxOpenBookings {
-		return fieldFail(c, "listing_id", msg("too_many_open", locale))
-	}
 	optional := func(k string) (n sql.NullString) {
 		if s := get(k); s != "" {
 			n.Valid, n.String = true, s
@@ -188,8 +171,14 @@ func (h *Handlers) StoreBooking(c fiber.Ctx) error {
 	b, err := h.store.CreateDirBooking(c, userID, NewBooking{
 		ListingID: listingID, ContactName: get("contact_name"), ContactPhone: get("contact_phone"), PreferredDate: date,
 		ChildAgeRange: optional("child_age_range"), Note: optional("note"),
-	}, dir, now)
-	switch {
+	}, dir, today, now)
+	switch { // the per-user guards (slot taken, one day request per venue, open cap) run in the transaction
+	case errors.Is(err, ErrSlotTaken):
+		return fieldFail(c, "slot_id", msg("slot_taken", locale))
+	case errors.Is(err, ErrAlreadyOpen):
+		return fieldFail(c, "listing_id", msg("already_open", locale))
+	case errors.Is(err, ErrTooManyOpen):
+		return fieldFail(c, "listing_id", msg("too_many_open", locale))
 	case errors.Is(err, ErrSlotFull):
 		return fieldFail(c, "slot_id", msg("slot_full", locale))
 	case errors.Is(err, ErrSlotUnavailable):
@@ -353,8 +342,22 @@ func (h *Handlers) RescheduleBooking(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if slot.ServiceID.Valid && b.ServiceID.Valid && slot.ServiceID.Int64 != b.ServiceID.Int64 {
+	// The new slot must be of the very same service (both none, or the same id), and the child must still fit its
+	// age bounds on the new date (security audit L2) — a reschedule is not a way around the create checks.
+	if slot.ServiceID.Valid != b.ServiceID.Valid || (slot.ServiceID.Valid && slot.ServiceID.Int64 != b.ServiceID.Int64) {
 		return fieldFail(c, "slot_id", msg("service_mismatch", locale))
+	}
+	if b.ServiceID.Valid && b.ChildBirth.Valid {
+		sv, err := h.store.ActiveServiceRow(c, b.ListingID, uint64(b.ServiceID.Int64)) //nolint:gosec // G115: ids are positive
+		if errors.Is(err, ErrNotFound) {
+			return fieldFail(c, "slot_id", msg("slot_unavailable", locale))
+		}
+		if err != nil {
+			return err
+		}
+		if !AgeFits(sv, AgeMonthsOn(civildate.FromTime(b.ChildBirth.Time), civildate.FromTime(wall(slot.StartsAt)))) {
+			return fieldFail(c, "slot_id", msg("age_mismatch", locale))
+		}
 	}
 	switch err := h.store.Reschedule(c, userID, b, slot, now); {
 	case errors.Is(err, ErrSlotFull):

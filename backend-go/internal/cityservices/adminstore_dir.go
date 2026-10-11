@@ -610,3 +610,53 @@ func (s *Store) CategoryIDBySlug(ctx context.Context, slug string) (uint64, erro
 	}
 	return id, err
 }
+
+// ReviewedApplication is what ReviewApplication changed: the owner and, on a rejection, the photo file ids it
+// detached (read from the locked row, so a concurrent edit cannot slip a photo past the delete).
+type ReviewedApplication struct {
+	UserID   uint64
+	PhotoIDs []uint64
+}
+
+// ReviewApplication moves an application to in_review / needs_info / rejected in one transaction: the row is locked,
+// the move re-checked against its current status (ErrMoved when no longer allowed) and, on a rejection, the photo ids
+// cleared from the row. An in_review move without a note keeps the current note. The caller deletes the returned
+// photo files after the commit.
+func (s *Store) ReviewApplication(ctx context.Context, id uint64, to string, note sql.NullString, now time.Time) (ReviewedApplication, error) {
+	var out ReviewedApplication
+	err := s.inTx(ctx, func(tx *sql.Tx) error {
+		q := joinstore.New(tx)
+		row, err := q.AdminLockApplication(ctx, id)
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return fmt.Errorf("cityservices: lock application: %w", err)
+		}
+		if !join.CanReview(row.Status, to) {
+			return ErrMoved
+		}
+		if to == join.StatusInReview && !note.Valid {
+			note = row.ReviewNote
+		}
+		at := sql.NullTime{Time: now, Valid: true}
+		n, err := q.AdminReviewApplication(ctx, joinstore.AdminReviewApplicationParams{Status: to, ReviewNote: note,
+			ReviewedAt: at, UpdatedAt: at, ID: id, Status_2: row.Status})
+		if err != nil {
+			return fmt.Errorf("cityservices: review: %w", err)
+		}
+		if n == 0 {
+			return ErrMoved
+		}
+		out.UserID = row.UserID
+		if to == join.StatusRejected {
+			if out.PhotoIDs = join.Decode(row).Draft.PhotoIDs; len(out.PhotoIDs) > 0 {
+				if err := q.AdminClearApplicationPhotos(ctx, joinstore.AdminClearApplicationPhotosParams{UpdatedAt: at, ID: id}); err != nil {
+					return fmt.Errorf("cityservices: clear photos: %w", err)
+				}
+			}
+		}
+		return nil
+	})
+	return out, err
+}
