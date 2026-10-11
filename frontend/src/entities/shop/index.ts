@@ -58,6 +58,7 @@ export {
 // CB-SHOP-08: cart, addresses, COD checkout, orders, returns.
 export {
   RETURN_REASONS,
+  REVIEW_STATUSES,
   type ReturnReason,
   type ShopAddress,
   type ShopAddressInput,
@@ -67,6 +68,7 @@ export {
   type ShopOrder,
   type ShopOrderItem,
   type ShopOrderSummary,
+  type ShopOwnReview,
 } from './api/order-schema';
 export {
   shopErrorCode,
@@ -75,6 +77,7 @@ export {
   useAddToCart,
   useApplyDiscount,
   useCancelOrder,
+  useCreateReview,
   useDeleteAddress,
   usePlaceOrder,
   useRemoveCartItem,

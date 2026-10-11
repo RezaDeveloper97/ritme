@@ -219,3 +219,42 @@ JOIN `shop_orders` o ON o.id = i.order_id
 JOIN `shop_products` p ON p.id = i.product_id
 JOIN `shop_categories` c ON c.id = p.category_id
 WHERE o.user_id = ? AND o.status = 'placed' AND o.id <> ?;
+
+-- CB-SHOP-12 F-6: a purchase also adds the layette rows she never touched for the ordered categories, straight to
+-- «در راه» (MarkChecklistOnTheWay moves the rows she has). A cancel reverts them to «باید بخرم» like any other row,
+-- which is what an untouched template row shows anyway. IGNORE only covers a concurrent insert of the same row.
+-- name: InsertChecklistOnTheWay :execrows
+INSERT IGNORE INTO `shop_user_checklist_items` (`user_id`, `layette_item_id`, `group_key`, `state`, `created_at`, `updated_at`)
+SELECT sqlc.arg(user_id), l.id, l.group_key, 'on_the_way', sqlc.arg(now), sqlc.arg(now)
+FROM `shop_layette_items` l
+WHERE l.is_active = 1 AND l.category_id IN (sqlc.slice(category_ids))
+  AND NOT EXISTS (SELECT 1 FROM `shop_user_checklist_items` u WHERE u.user_id = sqlc.arg(user_id) AND u.layette_item_id = l.id);
+
+-- CB-SHOP-12 F-5: the user's own product review — verified purchase, one per order item (unique order_item_id),
+-- only after the item's shipment is delivered, `pending` until an admin moderates it.
+-- name: GetOrderItemForReview :one
+SELECT i.id, i.product_id, i.variant_label, s.status AS shipment_status
+FROM `shop_order_items` i
+JOIN `shop_orders` o ON o.id = i.order_id
+JOIN `shop_order_shipments` s ON s.id = i.shipment_id
+WHERE i.id = sqlc.arg(item_id) AND i.order_id = sqlc.arg(order_id) AND o.user_id = sqlc.arg(user_id)
+LIMIT 1 FOR UPDATE;
+
+-- name: GetUserDisplayName :one
+SELECT name FROM `users` WHERE id = ? LIMIT 1;
+
+-- name: CountReviewsByOrderItem :one
+SELECT COUNT(*) FROM `shop_product_reviews` WHERE order_item_id = ?;
+
+-- name: CreateUserProductReview :execlastid
+INSERT INTO `shop_product_reviews` (`product_id`, `user_id`, `order_item_id`, `author_name`, `variant_label`, `rating`,
+  `body`, `status`, `created_at`, `updated_at`)
+VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?);
+
+-- name: GetProductReviewForUser :one
+SELECT * FROM `shop_product_reviews` WHERE id = ? AND user_id = ? LIMIT 1;
+
+-- name: ListReviewsByOrderForUser :many
+SELECT r.order_item_id, r.status FROM `shop_product_reviews` r
+JOIN `shop_order_items` i ON i.id = r.order_item_id
+WHERE i.order_id = sqlc.arg(order_id) AND r.user_id = sqlc.arg(user_id);

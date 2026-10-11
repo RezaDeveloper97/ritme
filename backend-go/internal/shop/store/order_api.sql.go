@@ -133,6 +133,17 @@ func (q *Queries) CountOpenOrdersByUser(ctx context.Context, userID uint64) (int
 	return count, err
 }
 
+const countReviewsByOrderItem = `-- name: CountReviewsByOrderItem :one
+SELECT COUNT(*) FROM ` + "`" + `shop_product_reviews` + "`" + ` WHERE order_item_id = ?
+`
+
+func (q *Queries) CountReviewsByOrderItem(ctx context.Context, orderItemID sql.NullInt64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countReviewsByOrderItem, orderItemID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countUndeliveredShipments = `-- name: CountUndeliveredShipments :one
 SELECT COUNT(*) FROM ` + "`" + `shop_order_shipments` + "`" + ` WHERE order_id = ? AND status NOT IN ('delivered', 'cancelled')
 `
@@ -366,6 +377,42 @@ func (q *Queries) CreateShipment(ctx context.Context, arg CreateShipmentParams) 
 	return result.LastInsertId()
 }
 
+const createUserProductReview = `-- name: CreateUserProductReview :execlastid
+INSERT INTO ` + "`" + `shop_product_reviews` + "`" + ` (` + "`" + `product_id` + "`" + `, ` + "`" + `user_id` + "`" + `, ` + "`" + `order_item_id` + "`" + `, ` + "`" + `author_name` + "`" + `, ` + "`" + `variant_label` + "`" + `, ` + "`" + `rating` + "`" + `,
+  ` + "`" + `body` + "`" + `, ` + "`" + `status` + "`" + `, ` + "`" + `created_at` + "`" + `, ` + "`" + `updated_at` + "`" + `)
+VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
+`
+
+type CreateUserProductReviewParams struct {
+	ProductID    uint64
+	UserID       uint64
+	OrderItemID  sql.NullInt64
+	AuthorName   string
+	VariantLabel sql.NullString
+	Rating       uint8
+	Body         sql.NullString
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+}
+
+func (q *Queries) CreateUserProductReview(ctx context.Context, arg CreateUserProductReviewParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, createUserProductReview,
+		arg.ProductID,
+		arg.UserID,
+		arg.OrderItemID,
+		arg.AuthorName,
+		arg.VariantLabel,
+		arg.Rating,
+		arg.Body,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
 const deleteAddressForUser = `-- name: DeleteAddressForUser :execrows
 DELETE FROM ` + "`" + `shop_addresses` + "`" + ` WHERE id = ? AND user_id = ?
 `
@@ -573,6 +620,70 @@ func (q *Queries) GetOrderItemForReturn(ctx context.Context, arg GetOrderItemFor
 	return i, err
 }
 
+const getOrderItemForReview = `-- name: GetOrderItemForReview :one
+SELECT i.id, i.product_id, i.variant_label, s.status AS shipment_status
+FROM ` + "`" + `shop_order_items` + "`" + ` i
+JOIN ` + "`" + `shop_orders` + "`" + ` o ON o.id = i.order_id
+JOIN ` + "`" + `shop_order_shipments` + "`" + ` s ON s.id = i.shipment_id
+WHERE i.id = ? AND i.order_id = ? AND o.user_id = ?
+LIMIT 1 FOR UPDATE
+`
+
+type GetOrderItemForReviewParams struct {
+	ItemID  uint64
+	OrderID uint64
+	UserID  uint64
+}
+
+type GetOrderItemForReviewRow struct {
+	ID             uint64
+	ProductID      sql.NullInt64
+	VariantLabel   sql.NullString
+	ShipmentStatus string
+}
+
+// CB-SHOP-12 F-5: the user's own product review — verified purchase, one per order item (unique order_item_id),
+// only after the item's shipment is delivered, `pending` until an admin moderates it.
+func (q *Queries) GetOrderItemForReview(ctx context.Context, arg GetOrderItemForReviewParams) (GetOrderItemForReviewRow, error) {
+	row := q.db.QueryRowContext(ctx, getOrderItemForReview, arg.ItemID, arg.OrderID, arg.UserID)
+	var i GetOrderItemForReviewRow
+	err := row.Scan(
+		&i.ID,
+		&i.ProductID,
+		&i.VariantLabel,
+		&i.ShipmentStatus,
+	)
+	return i, err
+}
+
+const getProductReviewForUser = `-- name: GetProductReviewForUser :one
+SELECT id, product_id, user_id, order_item_id, author_name, variant_label, rating, body, status, created_at, updated_at FROM ` + "`" + `shop_product_reviews` + "`" + ` WHERE id = ? AND user_id = ? LIMIT 1
+`
+
+type GetProductReviewForUserParams struct {
+	ID     uint64
+	UserID uint64
+}
+
+func (q *Queries) GetProductReviewForUser(ctx context.Context, arg GetProductReviewForUserParams) (ShopProductReview, error) {
+	row := q.db.QueryRowContext(ctx, getProductReviewForUser, arg.ID, arg.UserID)
+	var i ShopProductReview
+	err := row.Scan(
+		&i.ID,
+		&i.ProductID,
+		&i.UserID,
+		&i.OrderItemID,
+		&i.AuthorName,
+		&i.VariantLabel,
+		&i.Rating,
+		&i.Body,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getReturnForUser = `-- name: GetReturnForUser :one
 SELECT id, order_id, order_item_id, user_id, quantity, reason, note, status, created_at, updated_at FROM ` + "`" + `shop_returns` + "`" + ` WHERE id = ? AND user_id = ? LIMIT 1
 `
@@ -626,6 +737,17 @@ func (q *Queries) GetShipment(ctx context.Context, id uint64) (ShopOrderShipment
 	return i, err
 }
 
+const getUserDisplayName = `-- name: GetUserDisplayName :one
+SELECT name FROM ` + "`" + `users` + "`" + ` WHERE id = ? LIMIT 1
+`
+
+func (q *Queries) GetUserDisplayName(ctx context.Context, id uint64) (sql.NullString, error) {
+	row := q.db.QueryRowContext(ctx, getUserDisplayName, id)
+	var name sql.NullString
+	err := row.Scan(&name)
+	return name, err
+}
+
 const getVariantForCart = `-- name: GetVariantForCart :one
 SELECT v.id, v.product_id, v.stock, v.is_active AS variant_active, p.seller_id, p.is_active AS product_active,
        c.is_active AS category_active
@@ -658,6 +780,45 @@ func (q *Queries) GetVariantForCart(ctx context.Context, id uint64) (GetVariantF
 		&i.CategoryActive,
 	)
 	return i, err
+}
+
+const insertChecklistOnTheWay = `-- name: InsertChecklistOnTheWay :execrows
+INSERT IGNORE INTO ` + "`" + `shop_user_checklist_items` + "`" + ` (` + "`" + `user_id` + "`" + `, ` + "`" + `layette_item_id` + "`" + `, ` + "`" + `group_key` + "`" + `, ` + "`" + `state` + "`" + `, ` + "`" + `created_at` + "`" + `, ` + "`" + `updated_at` + "`" + `)
+SELECT ?, l.id, l.group_key, 'on_the_way', ?, ?
+FROM ` + "`" + `shop_layette_items` + "`" + ` l
+WHERE l.is_active = 1 AND l.category_id IN (/*SLICE:category_ids*/?)
+  AND NOT EXISTS (SELECT 1 FROM ` + "`" + `shop_user_checklist_items` + "`" + ` u WHERE u.user_id = ? AND u.layette_item_id = l.id)
+`
+
+type InsertChecklistOnTheWayParams struct {
+	UserID      uint64
+	Now         sql.NullTime
+	CategoryIds []sql.NullInt64
+}
+
+// CB-SHOP-12 F-6: a purchase also adds the layette rows she never touched for the ordered categories, straight to
+// «در راه» (MarkChecklistOnTheWay moves the rows she has). A cancel reverts them to «باید بخرم» like any other row,
+// which is what an untouched template row shows anyway. IGNORE only covers a concurrent insert of the same row.
+func (q *Queries) InsertChecklistOnTheWay(ctx context.Context, arg InsertChecklistOnTheWayParams) (int64, error) {
+	query := insertChecklistOnTheWay
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.UserID)
+	queryParams = append(queryParams, arg.Now)
+	queryParams = append(queryParams, arg.Now)
+	if len(arg.CategoryIds) > 0 {
+		for _, v := range arg.CategoryIds {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:category_ids*/?", strings.Repeat(",?", len(arg.CategoryIds))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:category_ids*/?", "NULL", 1)
+	}
+	queryParams = append(queryParams, arg.UserID)
+	result, err := q.db.ExecContext(ctx, query, queryParams...)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const listCartLines = `-- name: ListCartLines :many
@@ -932,6 +1093,45 @@ func (q *Queries) ListReturnsByOrderForUser(ctx context.Context, arg ListReturns
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listReviewsByOrderForUser = `-- name: ListReviewsByOrderForUser :many
+SELECT r.order_item_id, r.status FROM ` + "`" + `shop_product_reviews` + "`" + ` r
+JOIN ` + "`" + `shop_order_items` + "`" + ` i ON i.id = r.order_item_id
+WHERE i.order_id = ? AND r.user_id = ?
+`
+
+type ListReviewsByOrderForUserParams struct {
+	OrderID uint64
+	UserID  uint64
+}
+
+type ListReviewsByOrderForUserRow struct {
+	OrderItemID sql.NullInt64
+	Status      string
+}
+
+func (q *Queries) ListReviewsByOrderForUser(ctx context.Context, arg ListReviewsByOrderForUserParams) ([]ListReviewsByOrderForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, listReviewsByOrderForUser, arg.OrderID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListReviewsByOrderForUserRow{}
+	for rows.Next() {
+		var i ListReviewsByOrderForUserRow
+		if err := rows.Scan(&i.OrderItemID, &i.Status); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

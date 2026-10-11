@@ -48,7 +48,7 @@ var userMessages = map[string]map[string]string{
 	"validation_failed": {"fa": "اطلاعات واردشده معتبر نیست.", "en": "The given data was invalid.", "ar": "البيانات المدخلة غير صالحة."},
 	"not_found":         {"fa": "پیدا نشد.", "en": "Not found.", "ar": "غير موجود."},
 	// CB-DIR-13: the public directory reads' throttle (was the framework's English «Too Many Attempts.»).
-	"too_many_reads": {"fa": "درخواست‌ها زیاد شد؛ چند ثانیه صبر کن و دوباره امتحان کن.",
+	"too_many_reads": {"fa": "درخواست\u200cها زیاد شد؛ چند ثانیه صبر کن و دوباره امتحان کن.",
 		"en": "Too many requests; wait a few seconds and try again.", "ar": "طلبات كثيرة؛ انتظر بضع ثوانٍ ثم حاول مرة أخرى."},
 	"booking_created": {"fa": "درخواست شما ثبت شد؛ تیم ریتمی با شما تماس می\u200cگیرد.",
 		"en": "Your request was sent; the Ritme team will contact you.", "ar": "تم إرسال طلبك وسيتواصل معك فريق ريتمي."},

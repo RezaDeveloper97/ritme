@@ -110,6 +110,17 @@ func TestShopAdmin_CatalogStockSlotsCodesTemplate(t *testing.T) {
 	require.Equal(t, 201, r.Status, r.Body)
 	vid := id(r, "variant")
 	assert.Equal(t, 422, c.JSON(fiber.MethodPost, "/shop/products/"+s(pid)+"/variants", map[string]any{"sku": "B-36", "price": 1, "stock": 0}).Status, "sku unique")
+	// CB-SHOP-12 F-7: is_active omitted on create = active; an explicit false stays inactive. (Removed again below.)
+	for sku, want := range map[string]bool{"F7-OMIT": true, "F7-OFF": false} {
+		body := map[string]any{"sku": sku, "price": 1000, "stock": 100}
+		if !want {
+			body["is_active"] = false
+		}
+		r = c.JSON(fiber.MethodPost, "/shop/products/"+s(pid)+"/variants", body)
+		require.Equal(t, 201, r.Status, r.Body)
+		assert.Equal(t, want, r.Obj("variant")["is_active"], sku)
+		require.Equal(t, 200, c.JSON(fiber.MethodDelete, "/shop/variants/"+s(id(r, "variant")), nil).Status)
+	}
 	r = c.Get("/shop/stock?low=1")
 	require.Equal(t, 200, r.Status, r.Body)
 	require.Len(t, r.Items(), 1)

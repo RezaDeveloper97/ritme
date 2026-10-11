@@ -14754,6 +14754,54 @@ paths:
         '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
         '404': {$ref: "#/components/responses/ShopOrderFailed"}
         '422': {$ref: "#/components/responses/ShopOrderFailed"}
+  /api/v1/shop/orders/{id}/items/{item_id}/review:
+    post:
+      tags: [Shop]
+      summary: Review a delivered order item
+      description: |
+        Go only (CB-SHOP-12 F-5). «ثبت نظر» on an item of one of her orders once its shipment is DELIVERED: a verified
+        purchase review (the row keeps `order_item_id`), one per order item, `status: pending` until the admin moderates
+        it (only `published` reviews reach the catalog and its rating). The author shown is the initial of her profile
+        name, never the full name. 404 for anyone else's order or an item not in it, 422 `not_reviewable` before
+        delivery, 409 `already_reviewed` for a second review of the same item. Shares the shop write throttle.
+      operationId: createShopReview
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {name: item_id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rating]
+              properties:
+                rating: {type: integer, minimum: 1, maximum: 5}
+                body: {type: [string, "null"], maxLength: 2000}
+      responses:
+        '201':
+          description: Review submitted (pending moderation)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [review]
+                    properties:
+                      review: {$ref: "#/components/schemas/ShopOwnReview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '404': {$ref: "#/components/responses/ShopOrderFailed"}
+        '409': {$ref: "#/components/responses/ShopOrderFailed"}
+        '422': {$ref: "#/components/responses/ShopOrderFailed"}
   /api/v1/city-services/options:
     get:
       tags: [CityServices]
@@ -24647,7 +24695,8 @@ components:
         Cart / checkout / order refusal (CB-SHOP-03): `error_code` names the reason (not_found, variant_unavailable,
         out_of_stock, quantity_limit, cart_full, cart_empty, cart_unavailable, discount_invalid, discount_min_total,
         discount_used, discount_exhausted, address_invalid, address_limit, slot_invalid, slot_full, cod_limit_exceeded,
-        not_cancellable, not_returnable, return_window_closed, return_quantity, too_many_open_orders, busy); `errors`
+        not_cancellable, not_returnable, return_window_closed, return_quantity, too_many_open_orders, busy,
+        not_reviewable, already_reviewed); `errors`
         names the field when one is to blame; `variant_ids` lists the cart lines concerned. A plain validation failure has `errors` only.
       content:
         application/json:
@@ -25522,12 +25571,30 @@ components:
         quantity: {type: integer}
         line_total: {type: integer}
         returnable: {type: boolean}
+        reviewable:
+          type: boolean
+          description: order detail only — delivered, product still exists, not reviewed yet (CB-SHOP-12)
+        review_status:
+          type: [string, "null"]
+          enum: [pending, published, rejected, null]
+          description: order detail only — her review of this item, null when none
     ShopOrderEvent:
       type: object
       required: [status, at]
       properties:
         status: {type: string}
         at: {type: [string, "null"], format: date-time}
+    ShopOwnReview:
+      type: object
+      required: [id, product_id, order_item_id, rating, body, status, created_at]
+      properties:
+        id: {type: integer}
+        product_id: {type: integer}
+        order_item_id: {type: [integer, "null"]}
+        rating: {type: integer, minimum: 1, maximum: 5}
+        body: {type: [string, "null"]}
+        status: {type: string, enum: [pending, published, rejected]}
+        created_at: {type: [string, "null"], format: date-time}
     ShopReturn:
       type: object
       required: [id, order_id, order_item_id, quantity, reason, note, status, created_at]

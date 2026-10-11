@@ -11,6 +11,7 @@ import {
   type ShopOrderItem,
   shopErrorKey,
   useCancelOrder,
+  useCreateReview,
   useRequestReturn,
   useShopOrder,
   useShopPrice,
@@ -53,7 +54,7 @@ function useEventTime() {
 }
 
 /** Seller confirms → shipped → delivered, from the shipment status (the board's per-seller timeline). */
-function ShipmentCard({ s, onReturn }: { s: Shipment; onReturn: (item: ShopOrderItem) => void }) {
+function ShipmentCard({ s, onReturn, onReview }: { s: Shipment; onReturn: (item: ShopOrderItem) => void; onReview: (item: ShopOrderItem) => void }) {
   const t = useTranslations('shop');
   const locale = useLocale() as Locale;
   const slotText = useSlotText();
@@ -102,6 +103,15 @@ function ShipmentCard({ s, onReturn }: { s: Shipment; onReturn: (item: ShopOrder
               <button type="button" className="shord-link" onClick={() => onReturn(it)}>
                 {t('order.returnRequest')}
               </button>
+            ) : null}
+            {/* CB-SHOP-12 F-5: «ثبت نظر» on a delivered item, then its moderation state. */}
+            {it.reviewable ? (
+              <button type="button" className="shord-link" onClick={() => onReview(it)}>
+                <Icon name="star" size={16} />
+                {t('order.review')}
+              </button>
+            ) : it.review_status ? (
+              <StatusPill tone={it.review_status === 'published' ? 'success' : 'neutral'}>{t(`order.reviewStatus.${it.review_status}`)}</StatusPill>
             ) : null}
           </li>
         ))}
@@ -174,6 +184,77 @@ function ReturnSheet({ orderId, item, onClose }: { orderId: number; item: ShopOr
   );
 }
 
+/** CB-SHOP-12 F-5: «ثبت نظر» — 1–5 stars and an optional text; it shows on the product after the admin's check. */
+function ReviewSheet({ orderId, item, onClose }: { orderId: number; item: ShopOrderItem; onClose: () => void }) {
+  const t = useTranslations('shop');
+  const locale = useLocale() as Locale;
+  const create = useCreateReview(orderId);
+  const [rating, setRating] = useState(0);
+  const [body, setBody] = useState('');
+  const [tried, setTried] = useState(false);
+  const submit = () => {
+    setTried(true);
+    if (rating < 1) return;
+    create.mutate({ orderItemId: item.id, rating, body: body.trim() }, { onSuccess: onClose });
+  };
+  const errorKey = create.isError ? shopErrorKey(create.error) : null;
+  return (
+    <AppSheet
+      open
+      onClose={create.isPending ? () => undefined : onClose}
+      size="full"
+      title={t('review.title')}
+      footer={
+        <div className="shco-sheet-actions">
+          <PrimaryButton loading={create.isPending} onClick={submit}>
+            {t('review.submit')}
+          </PrimaryButton>
+        </div>
+      }
+    >
+      <div className="shco-sheet">
+        <p className="shord-item-title">{item.title}</p>
+        {item.variant_label ? <p className="shord-item-variant">{item.variant_label}</p> : null}
+        <div className="shrev-stars" role="radiogroup" aria-label={t('review.rating')}>
+          <span className="lbl" aria-hidden>{t('review.rating')}</span>
+          <div className="shrev-stars-row">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                role="radio"
+                aria-checked={rating === n}
+                aria-label={t('review.star', { n: formatNumber(n, locale) })}
+                className={rating >= n ? 'shrev-star is-on' : 'shrev-star'}
+                onClick={() => setRating(n)}
+              >
+                <Icon name="star" size={28} />
+              </button>
+            ))}
+          </div>
+        </div>
+        {tried && rating < 1 ? (
+          <p className="shco-error" role="alert">
+            {t('review.pickRating')}
+          </p>
+        ) : null}
+        <label className="lbl" htmlFor="shrev-body">
+          {t('review.body')}
+        </label>
+        <div className="field shrev-field">
+          <textarea id="shrev-body" className="shrev-body" rows={4} value={body} maxLength={2000} onChange={(e) => setBody(e.target.value)} />
+        </div>
+        <p className="shco-note">{t('review.hint')}</p>
+        {errorKey ? (
+          <p className="shco-error" role="alert">
+            {errorKey === 'generic' ? t('review.failed') : t(`errors.${errorKey}`)}
+          </p>
+        ) : null}
+      </div>
+    </AppSheet>
+  );
+}
+
 function CancelSheet({ orderId, onClose }: { orderId: number; onClose: () => void }) {
   const t = useTranslations('shop');
   const cancel = useCancelOrder(orderId);
@@ -212,6 +293,7 @@ function OrderBody({ order, placed }: { order: ShopOrder; placed: boolean }) {
   const router = useRouter();
   const price = useShopPrice();
   const [returning, setReturning] = useState<ShopOrderItem | null>(null);
+  const [reviewing, setReviewing] = useState<ShopOrderItem | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const statusKey = (STATUS_KEYS as readonly string[]).includes(order.status) ? (order.status as (typeof STATUS_KEYS)[number]) : 'placed';
 
@@ -226,7 +308,7 @@ function OrderBody({ order, placed }: { order: ShopOrder; placed: boolean }) {
       </div>
 
       {order.shipments.map((s) => (
-        <ShipmentCard key={s.id} s={s} onReturn={setReturning} />
+        <ShipmentCard key={s.id} s={s} onReturn={setReturning} onReview={setReviewing} />
       ))}
 
       {order.checklist_on_the_way > 0 ? (
@@ -298,6 +380,7 @@ function OrderBody({ order, placed }: { order: ShopOrder; placed: boolean }) {
       </div>
 
       {returning ? <ReturnSheet orderId={order.id} item={returning} onClose={() => setReturning(null)} /> : null}
+      {reviewing ? <ReviewSheet orderId={order.id} item={reviewing} onClose={() => setReviewing(null)} /> : null}
       {cancelling ? <CancelSheet orderId={order.id} onClose={() => setCancelling(false)} /> : null}
     </>
   );

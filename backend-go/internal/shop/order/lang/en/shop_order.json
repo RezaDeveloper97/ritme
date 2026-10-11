@@ -23,14 +23,17 @@
         "return_quantity": "That is more than you can return for this item.",
         "too_many_open_orders": "You have too many orders waiting to ship. Wait for one to ship or cancel one first.",
         "too_many_discount_tries": "Too many discount code tries. Try again later.",
-        "busy": "Please try again in a moment."
+        "busy": "Please try again in a moment.",
+        "not_reviewable": "You can review this item once it is delivered.",
+        "already_reviewed": "You have already reviewed this item."
     },
     "messages": {
         "order_placed": "Your order is placed.",
         "order_cancelled": "Your order is cancelled.",
         "return_requested": "Your return request is sent.",
         "address_saved": "Address saved.",
-        "address_deleted": "Address deleted."
+        "address_deleted": "Address deleted.",
+        "review_submitted": "Thanks. Your review shows once it is checked."
     },
     "sms": {
         "order_placed": "Ritme: order :code is placed. Pay on delivery."
@@ -54,6 +57,11 @@
         "slots": "delivery times",
         "order_item_id": "item",
         "reason": "reason",
-        "note": "note"
+        "note": "note",
+        "rating": "rating",
+        "body": "review"
+    },
+    "labels": {
+        "review_author": "Ritme user"
     }
 }

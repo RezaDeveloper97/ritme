@@ -186,3 +186,20 @@ cases:
     method: GET
     path: /api/v1/shop/returns
     status: 200
+  # CB-SHOP-12 F-5: her review of an order item (POST /shop/orders/:id/items/:item_id/review). The fixture has no
+  # delivered shipment, so the contract pins the refusals; the delivered → 201 pending → 409 duplicate path, the
+  # foreign 404 and the teen 403 are covered by internal/http/shop_review_int_test.go.
+  - name: review_refusals
+    doc: Not delivered yet (422 not_reviewable), a rating out of range (422 errors.rating), an unknown order (404)
+    patterns:
+      data.order.code: '^[0-9]{8}$'
+    steps:
+      - {method: POST, path: /api/v1/shop/cart/items, body: {variant_id: 2, quantity: 1}, status: 200}
+      - method: POST
+        path: /api/v1/shop/orders
+        body: {idempotency_key: regular-review-1, address_id: 1, payment_method: cod}
+        status: 201
+        capture: {order: data.order.id, item: "data.order.shipments[0].items[0].id"}
+      - {method: POST, path: "/api/v1/shop/orders/{{order}}/items/{{item}}/review", body: {rating: 5}, status: 422}
+      - {method: POST, path: "/api/v1/shop/orders/{{order}}/items/{{item}}/review", body: {rating: 9}, status: 422}
+      - {method: POST, path: /api/v1/shop/orders/999/items/1/review, body: {rating: 5}, status: 404}

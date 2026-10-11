@@ -262,7 +262,15 @@ func (h *Handlers) orderJSON(l catalog.Locale, d *Detail, now time.Time) *jsonx.
 		items := []*jsonx.OrderedMap{}
 		for _, it := range d.Items {
 			if it.ShipmentID == s.ID {
-				items = append(items, h.itemJSON(l, it, d.Images).Set("returnable", returnable))
+				// CB-SHOP-12 F-5: «ثبت نظر» once delivered, one review per order item (status null until she writes it).
+				status, reviewed := d.Reviews[it.ID]
+				var reviewStatus any
+				if reviewed {
+					reviewStatus = status
+				}
+				items = append(items, h.itemJSON(l, it, d.Images).Set("returnable", returnable).
+					Set("reviewable", s.Status == StatusDelivered && it.ProductID.Valid && !reviewed).
+					Set("review_status", reviewStatus))
 			}
 		}
 		timeline := []*jsonx.OrderedMap{}
@@ -740,4 +748,43 @@ func (h *Handlers) Returns(c fiber.Ctx) error {
 		out = append(out, returnJSON(r))
 	}
 	return httpx.OK(c, jsonx.Obj("returns", out))
+}
+
+// reviewJSON is her review as the order screen needs it (the catalog renders published ones itself).
+func reviewJSON(r store.ShopProductReview) *jsonx.OrderedMap {
+	return jsonx.Obj("id", r.ID, "product_id", r.ProductID, "order_item_id", nullInt(r.OrderItemID), "rating", r.Rating,
+		"body", nullable(r.Body.String), "status", r.Status, "created_at", isoNull(r.CreatedAt.Valid, r.CreatedAt.Time))
+}
+
+// CreateReview is POST /shop/orders/:id/items/:item_id/review {rating 1–5, body?} → 201 (CB-SHOP-12 F-5): a verified
+// purchase review of a delivered item, one per order item, pending until the admin publishes it.
+func (h *Handlers) CreateReview(c fiber.Ctx) error {
+	uid, err := h.gate(c)
+	if err != nil {
+		return err
+	}
+	id, ok := pathID(c, "id")
+	if !ok {
+		return notFound(c)
+	}
+	itemID, ok := pathID(c, "item_id")
+	if !ok {
+		return notFound(c)
+	}
+	now := h.now(c)
+	F := validation.F
+	data, err := validate(c, now, validation.Rules{
+		F("rating", "required", "integer", "min:"+strconv.Itoa(MinRating), "max:"+strconv.Itoa(MaxRating)),
+		F("body", "nullable", "string", "max:"+strconv.Itoa(MaxReviewBody)),
+	}, "rating", "body")
+	if err != nil {
+		return err
+	}
+	locale := i18n.Locale(c)
+	in := ReviewInput{Rating: int(num(data, "rating")), Body: str(data, "body")} //nolint:gosec // G115: validated 1–5
+	r, err := h.svc.CreateReview(c, uid, id, itemID, in, T("labels.review_author", locale), now)
+	if err != nil {
+		return render(c, err)
+	}
+	return httpx.Created(c, jsonx.Obj("review", reviewJSON(r)), T("messages.review_submitted", locale))
 }

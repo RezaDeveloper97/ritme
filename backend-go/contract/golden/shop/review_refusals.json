@@ -1,0 +1,241 @@
+{
+  "case": "shop/review_refusals",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/cart/items",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "variant_id": 2,
+          "quantity": 1
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "cart": {
+            "items_count": 1,
+            "sellers_count": 1,
+            "groups": [
+              {
+                "seller": {
+                  "id": 1,
+                  "slug": "panbe",
+                  "name": "پوشاک پنبه‌ریز",
+                  "logo_url": null,
+                  "is_verified": true,
+                  "ship_min_days": 2,
+                  "ship_max_days": 4,
+                  "discreet_packaging": false,
+                  "shipping_fee": 35000,
+                  "free_shipping_over": 1000000,
+                  "cod_max_total": 5000000,
+                  "return_days": 7
+                },
+                "items_count": 1,
+                "items_total": 485000,
+                "shipping_fee": 35000,
+                "free_shipping_remaining": 515000,
+                "items": [
+                  {
+                    "variant_id": 2,
+                    "product_id": 1,
+                    "title": "بادی آستین‌بلند نخی",
+                    "image_url": "http://127.0.0.1:8090/storage/shop/bodysuit.jpg",
+                    "variant_label": "۳ تا ۶ ماه · شیری",
+                    "unit_price": 485000,
+                    "compare_at_price": null,
+                    "quantity": 1,
+                    "line_total": 485000,
+                    "stock": 5,
+                    "status": "ok",
+                    "discreet_packaging": false
+                  }
+                ]
+              }
+            ],
+            "unavailable_items": [],
+            "discount": null,
+            "items_total": 485000,
+            "discount_total": 0,
+            "payable_total": 485000
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/orders",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "idempotency_key": "regular-review-1",
+          "address_id": 1,
+          "payment_method": "cod"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "سفارشت ثبت شد.",
+        "data": {
+          "order": {
+            "id": 1,
+            "code": "<pattern:^[0-9]{8}$>",
+            "status": "placed",
+            "payment_method": "cod",
+            "payment_status": "unpaid",
+            "discreet": false,
+            "can_cancel": true,
+            "recipient": {
+              "name": "Regular",
+              "phone": "09900000004",
+              "city": "Tehran",
+              "address": "Valiasr St, No. 1",
+              "postal_code": "1234567890"
+            },
+            "items_total": 485000,
+            "shipping_total": 35000,
+            "discount_total": 0,
+            "payable_total": 520000,
+            "placed_at": "2026-09-23T10:00:00+03:30",
+            "cancelled_at": null,
+            "shipments": [
+              {
+                "id": 1,
+                "seller": {
+                  "id": 1,
+                  "slug": "panbe",
+                  "name": "پوشاک پنبه‌ریز",
+                  "logo_url": null
+                },
+                "status": "awaiting_seller",
+                "slot": null,
+                "items_total": 485000,
+                "shipping_fee": 35000,
+                "tracking_code": null,
+                "delivered_at": null,
+                "return_until": null,
+                "items": [
+                  {
+                    "id": 1,
+                    "product_id": 1,
+                    "variant_id": 2,
+                    "title": "بادی آستین‌بلند نخی",
+                    "variant_label": "۳ تا ۶ ماه · شیری",
+                    "image_url": "http://127.0.0.1:8090/storage/shop/bodysuit.jpg",
+                    "unit_price": 485000,
+                    "quantity": 1,
+                    "line_total": 485000,
+                    "returnable": false,
+                    "reviewable": false,
+                    "review_status": null
+                  }
+                ],
+                "timeline": [
+                  {
+                    "status": "awaiting_seller",
+                    "at": "2026-09-23T10:00:00+03:30"
+                  }
+                ]
+              }
+            ],
+            "timeline": [
+              {
+                "status": "placed",
+                "at": "2026-09-23T10:00:00+03:30"
+              }
+            ],
+            "returns": [],
+            "checklist_on_the_way": 0
+          },
+          "replayed": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/orders/1/items/1/review",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "rating": 5
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": false,
+        "message": "بعد از تحویل این کالا می‌توانی برایش نظر بنویسی.",
+        "error_code": "not_reviewable"
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/orders/1/items/1/review",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "rating": 9
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست.",
+        "errors": {
+          "rating": [
+            "امتیاز نباید بزرگ‌تر از 5 باشد."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/orders/999/items/1/review",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "rating": 5
+        }
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": false,
+        "message": "پیدا نشد.",
+        "error_code": "not_found"
+      }
+    }
+  ]
+}

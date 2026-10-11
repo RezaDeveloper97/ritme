@@ -378,7 +378,13 @@
     "cancelKeep": "Keep the order",
     "cancelFailed": "The order was not cancelled.",
     "myOrders": "My orders",
-    "continueShopping": "Keep shopping"
+    "continueShopping": "Keep shopping",
+    "review": "Write a review",
+    "reviewStatus": {
+      "pending": "Your review is waiting for a check",
+      "published": "Your review is published",
+      "rejected": "Your review was not published"
+    }
   },
   "return": {
     "title": "Request a return",
@@ -404,6 +410,16 @@
       "refunded": "Settled"
     },
     "failed": "The request was not sent. The return window may have closed."
+  },
+  "review": {
+    "title": "Write a review",
+    "rating": "Your rating",
+    "star": "{n} of 5",
+    "body": "What did you think of it? (optional)",
+    "hint": "Your review shows after a check, with your first initial and a «verified purchase» tag.",
+    "submit": "Send review",
+    "pickRating": "Pick a rating first.",
+    "failed": "Your review was not sent. Try again."
   },
   "orders": {
     "title": "Orders",
@@ -433,6 +449,8 @@
     "busy": "We're busy; try again in a moment.",
     "not_cancellable": "This order can no longer be cancelled.",
     "too_many_open_orders": "You have too many orders waiting to ship. Wait for one to ship or cancel one first.",
+    "not_reviewable": "You can review this item once it is delivered.",
+    "already_reviewed": "You have already reviewed this item.",
     "generic": "That didn't work. Try again."
   }
 }

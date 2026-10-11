@@ -631,6 +631,13 @@ func (s *Service) Place(ctx context.Context, userID uint64, in PlaceInput, defau
 		if err != nil {
 			return fmt.Errorf("order: checklist: %w", err)
 		}
+		if len(categories) > 0 { // CB-SHOP-12 F-6: rows she never touched are created «در راه» too
+			added, err := q.InsertChecklistOnTheWay(ctx, store.InsertChecklistOnTheWayParams{UserID: userID, Now: nt(now), CategoryIds: categories})
+			if err != nil {
+				return fmt.Errorf("order: checklist insert: %w", err)
+			}
+			moved += added
+		}
 		out = &Placed{OrderID: orderID, OnTheWay: moved, Notice: &Notice{UserID: userID, OrderID: orderID, Code: code}}
 		return nil
 	})
@@ -730,6 +737,7 @@ type Detail struct {
 	Sellers   map[uint64]*store.ShopSeller
 	Images    map[uint64]string
 	OnTheWay  int64
+	Reviews   ReviewStatus // CB-SHOP-12 F-5: her review status per order item id
 }
 
 // CanCancel: placed and no seller has acted yet.
@@ -768,6 +776,9 @@ func (s *Service) Order(ctx context.Context, userID, id uint64) (*Detail, error)
 		return nil, fmt.Errorf("order: returns: %w", err)
 	}
 	if d.Sellers, d.Images, err = s.lookups(ctx, d.Shipments, d.Items); err != nil {
+		return nil, err
+	}
+	if d.Reviews, err = s.reviewStatuses(ctx, userID, o.ID); err != nil {
 		return nil, err
 	}
 	if o.Status != StatusCancelled {

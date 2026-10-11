@@ -88,6 +88,7 @@ type Querier interface {
 	// Security audit (directory/shop): the open-order cap — her placed orders none of whose shipments has left the seller.
 	CountOpenOrdersByUser(ctx context.Context, userID uint64) (int64, error)
 	CountPublishedReviews(ctx context.Context, productID uint64) (int64, error)
+	CountReviewsByOrderItem(ctx context.Context, orderItemID sql.NullInt64) (int64, error)
 	CountUndeliveredShipments(ctx context.Context, orderID uint64) (int64, error)
 	CountUserOrdersWithDiscount(ctx context.Context, arg CountUserOrdersWithDiscountParams) (int64, error)
 	CreateAddress(ctx context.Context, arg CreateAddressParams) (int64, error)
@@ -97,6 +98,7 @@ type Querier interface {
 	CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (int64, error)
 	CreateReturn(ctx context.Context, arg CreateReturnParams) (int64, error)
 	CreateShipment(ctx context.Context, arg CreateShipmentParams) (int64, error)
+	CreateUserProductReview(ctx context.Context, arg CreateUserProductReviewParams) (int64, error)
 	DecrementVariantStock(ctx context.Context, arg DecrementVariantStockParams) (int64, error)
 	DeleteAddressForUser(ctx context.Context, arg DeleteAddressForUserParams) (int64, error)
 	DeleteCartItem(ctx context.Context, arg DeleteCartItemParams) error
@@ -124,14 +126,23 @@ type Querier interface {
 	GetOrderByIdempotencyKey(ctx context.Context, arg GetOrderByIdempotencyKeyParams) (ShopOrder, error)
 	GetOrderForUser(ctx context.Context, arg GetOrderForUserParams) (ShopOrder, error)
 	GetOrderItemForReturn(ctx context.Context, arg GetOrderItemForReturnParams) (GetOrderItemForReturnRow, error)
+	// CB-SHOP-12 F-5: the user's own product review — verified purchase, one per order item (unique order_item_id),
+	// only after the item's shipment is delivered, `pending` until an admin moderates it.
+	GetOrderItemForReview(ctx context.Context, arg GetOrderItemForReviewParams) (GetOrderItemForReviewRow, error)
+	GetProductReviewForUser(ctx context.Context, arg GetProductReviewForUserParams) (ShopProductReview, error)
 	GetReturnForUser(ctx context.Context, arg GetReturnForUserParams) (ShopReturn, error)
 	// Internal shop catalog (CB-SHOP-01, on bloom's 00071): sellers, sub-categories, variants and verified-purchase reviews.
 	// No query here joins a health table. Link-out rows (external_url set, no variants) keep using internal/shop's own SQL.
 	GetSeller(ctx context.Context, id uint64) (ShopSeller, error)
 	GetShipment(ctx context.Context, id uint64) (ShopOrderShipment, error)
 	GetSupplyReminder(ctx context.Context, userID uint64) (ShopSupplyReminder, error)
+	GetUserDisplayName(ctx context.Context, id uint64) (sql.NullString, error)
 	GetVariant(ctx context.Context, id uint64) (ShopProductVariant, error)
 	GetVariantForCart(ctx context.Context, id uint64) (GetVariantForCartRow, error)
+	// CB-SHOP-12 F-6: a purchase also adds the layette rows she never touched for the ordered categories, straight to
+	// «در راه» (MarkChecklistOnTheWay moves the rows she has). A cancel reverts them to «باید بخرم» like any other row,
+	// which is what an untouched template row shows anyway. IGNORE only covers a concurrent insert of the same row.
+	InsertChecklistOnTheWay(ctx context.Context, arg InsertChecklistOnTheWayParams) (int64, error)
 	InsertCustomChecklistItem(ctx context.Context, arg InsertCustomChecklistItemParams) (int64, error)
 	InsertSupplyCareReminder(ctx context.Context, arg InsertSupplyCareReminderParams) (int64, error)
 	// Shop catalog read API (CB-SHOP-02): home sections, list + filters, product detail, reviews, bought-together.
@@ -168,6 +179,7 @@ type Querier interface {
 	ListPublishedReviewsPage(ctx context.Context, arg ListPublishedReviewsPageParams) ([]ShopProductReview, error)
 	ListReturnsByOrderForUser(ctx context.Context, arg ListReturnsByOrderForUserParams) ([]ShopReturn, error)
 	ListReturnsByUser(ctx context.Context, userID uint64) ([]ShopReturn, error)
+	ListReviewsByOrderForUser(ctx context.Context, arg ListReviewsByOrderForUserParams) ([]ListReviewsByOrderForUserRow, error)
 	ListSellersByIDs(ctx context.Context, ids []uint64) ([]ShopSeller, error)
 	ListShipmentCategories(ctx context.Context, shipmentID uint64) ([]ListShipmentCategoriesRow, error)
 	ListShipmentsByOrder(ctx context.Context, orderID uint64) ([]ShopOrderShipment, error)

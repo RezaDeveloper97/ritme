@@ -159,3 +159,12 @@ Open:
 
 Environment notes: the app CSP (`img-src https:`) blocks images of an http API, so local screenshots need `bypassCSP`;
 Lighthouse numbers come from `next start` of a production build with `NEXT_PUBLIC_API_BASE_URL` pointing at the local API.
+
+### Follow-up fixes (QA follow-ups commit)
+
+| id | resolution |
+|---|---|
+| F-5 | `POST /api/v1/shop/orders/:id/items/:item_id/review` {rating 1–5, body?}: delivered items only (422 `not_reviewable`), one per order item (409 `already_reviewed`), `pending` until moderation, author = initial of the profile name; owner-scoped 404, teen 403, shop write throttle. Order detail items carry `reviewable` + `review_status`; `/shop/order/[id]` shows «ثبت نظر» and a sheet (stars + optional text, "shows after a check"). OpenAPI, contract case `shop/review_refusals`, `shop_review_int_test.go` |
+| F-6 | placing an order also inserts the active layette rows of the ordered categories she never touched as `on_the_way` (`InsertChecklistOnTheWay`); delivery moves them to `have`, cancel reverts them to `todo` under the existing other-open-orders rule |
+| F-7 | admin variant create: `is_active` omitted = active (explicit false kept); update unchanged |
+| F-11 | admin-web `overview.mode.teen` added (fa + en) |

@@ -15,6 +15,7 @@ import {
   shopOrderEnvelopeSchema,
   shopOrdersSchema,
   shopReturnEnvelopeSchema,
+  shopReviewEnvelopeSchema,
 } from './order-schema';
 
 const noRetry = (count: number, error: unknown) => ![403, 404].includes(getApiErrorStatus(error) ?? 0) && count < 2;
@@ -25,7 +26,7 @@ export const shopErrorCode = (error: unknown): string | null => getApiErrorCode(
 const ERROR_KEYS = [
   'variant_unavailable', 'out_of_stock', 'quantity_limit', 'cart_full', 'discount_invalid', 'discount_exhausted', 'discount_used',
   'discount_min_total', 'slot_full', 'slot_invalid', 'cod_limit_exceeded', 'address_invalid', 'cart_unavailable', 'cart_empty', 'busy',
-  'not_cancellable', 'too_many_open_orders',
+  'not_cancellable', 'too_many_open_orders', 'not_reviewable', 'already_reviewed',
 ] as const;
 
 /** Message key under `shop.errors.*` for a failed cart / checkout / order call (`generic` for anything unknown). */
@@ -219,6 +220,26 @@ export function useRequestReturn(orderId: number) {
           })
         ).data.data,
       ).return,
+    onSuccess: () => qc.invalidateQueries({ queryKey: shopKeys.order(orderId) }),
+  });
+}
+
+/**
+ * POST /shop/orders/:id/items/:itemId/review — CB-SHOP-12 F-5: her review of a delivered item (rating 1–5, optional
+ * text), one per order item; it stays `pending` until the admin publishes it.
+ */
+export function useCreateReview(orderId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { orderItemId: number; rating: number; body?: string }) =>
+      shopReviewEnvelopeSchema.parse(
+        (
+          await apiClient.post<ApiEnvelope<unknown>>(`/shop/orders/${orderId}/items/${v.orderItemId}/review`, {
+            rating: v.rating,
+            body: v.body || null,
+          })
+        ).data.data,
+      ).review,
     onSuccess: () => qc.invalidateQueries({ queryKey: shopKeys.order(orderId) }),
   });
 }

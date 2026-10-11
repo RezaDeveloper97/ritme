@@ -136,8 +136,24 @@ export const orderItemSchema = z.object({
   quantity: z.number().catch(1),
   line_total: z.number().catch(0),
   returnable: z.boolean().catch(false),
+  // CB-SHOP-12 F-5 (order detail only): «ثبت نظر» once delivered; her review's moderation status, null when none.
+  reviewable: z.boolean().catch(false),
+  review_status: z.enum(['pending', 'published', 'rejected']).nullable().catch(null),
 });
 export type ShopOrderItem = z.infer<typeof orderItemSchema>;
+
+export const REVIEW_STATUSES = ['pending', 'published', 'rejected'] as const;
+export const shopOwnReviewSchema = z.object({
+  id: z.number(),
+  product_id: z.number(),
+  order_item_id: z.number().nullable().catch(null),
+  rating: z.number(),
+  body: z.string().nullable().catch(null),
+  status: z.enum(REVIEW_STATUSES).catch('pending'),
+  created_at: z.string().nullable().catch(null),
+});
+export type ShopOwnReview = z.infer<typeof shopOwnReviewSchema>;
+export const shopReviewEnvelopeSchema = z.object({ review: shopOwnReviewSchema });
 
 const orderEventSchema = z.object({ status: z.string(), at: z.string().nullable().catch(null) });
 export type ShopOrderEvent = z.infer<typeof orderEventSchema>;

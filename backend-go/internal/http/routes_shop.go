@@ -73,6 +73,8 @@ func init() {
 		r.Get("/api/v1/shop/orders/:id", locale, guard, oh.Order)
 		r.Post("/api/v1/shop/orders/:id/cancel", locale, guard, writes, oh.CancelOrder)
 		r.Post("/api/v1/shop/orders/:id/returns", locale, guard, writes, oh.RequestReturn)
+		// CB-SHOP-12 F-5: her review of a delivered order item (verified purchase, one per item, pending moderation).
+		r.Post("/api/v1/shop/orders/:id/items/:item_id/review", locale, guard, writes, oh.CreateReview)
 		r.Get("/api/v1/shop/categories", locale, guard, h.Categories)
 		r.Get("/api/v1/shop/products", locale, guard, h.Products)
 		r.Get("/api/v1/shop/products/:id", locale, guard, h.Product)

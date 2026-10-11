@@ -657,6 +657,11 @@ func (a *Admin) StoreVariant(c fiber.Ctx) error {
 		return err
 	}
 	in.ProductID = p.ID
+	// CB-SHOP-12 F-7: an omitted is_active means active on create (an API caller must not ship an invisible variant
+	// by accident); an explicit false still creates it inactive. Update keeps the full-replace form semantics.
+	if _, sent := validation.Input(c).Get("is_active"); !sent {
+		in.IsActive = true
+	}
 	id, err := a.q.AdminCreateVariant(c, in)
 	if err != nil {
 		return err

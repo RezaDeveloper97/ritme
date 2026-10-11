@@ -225,7 +225,8 @@
       "pregnancy": "Pregnancy",
       "postpartum": "Postpartum",
       "menopause": "Menopause",
-      "companion": "Ritme Companion"
+      "companion": "Ritme Companion",
+      "teen": "Teen"
     },
     "engineTitle": "Prediction engine health",
     "engineSuppressed": "Not enough data (fewer than 10 users).",
