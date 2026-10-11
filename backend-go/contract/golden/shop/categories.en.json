@@ -1,0 +1,39 @@
+{
+  "case": "shop/categories.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/shop/categories",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "categories": [
+            {
+              "id": 1,
+              "slug": "layette",
+              "title": "Layette & baby",
+              "icon": "bottle",
+              "product_count": 0
+            },
+            {
+              "id": 2,
+              "slug": "beauty",
+              "title": "Beauty & hygiene",
+              "icon": "sparkle",
+              "product_count": 0
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

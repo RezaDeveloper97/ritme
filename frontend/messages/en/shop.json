@@ -1,0 +1,28 @@
+{
+  "title": "Shop",
+  "tag": "Shop · enter",
+  "back": "Back",
+  "loading": "Loading the shop",
+  "loadError": "The shop didn't load. Check your connection and try again.",
+  "retry": "Try again",
+  "note": "The shop is separate from your health data and its suggestions are not based on your logs.",
+  "partner": "Seller: {name}",
+  "empty": {
+    "title": "No categories to show right now",
+    "body": "New categories will appear here soon."
+  },
+  "products": {
+    "emptyTitle": "No products in this category yet",
+    "emptyBody": "New products will be added soon.",
+    "pages": "Product pages",
+    "prev": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {last}"
+  },
+  "interstitial": {
+    "label": "Go to the seller's site for {title}",
+    "line": "You're going to the seller's site. Buying and payment happen there, and nothing from your health logs goes with you.",
+    "go": "Continue",
+    "cancel": "Cancel"
+  }
+}

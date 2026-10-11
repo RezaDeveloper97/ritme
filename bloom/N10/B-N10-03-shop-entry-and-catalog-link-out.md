@@ -3,7 +3,7 @@ id: B-N10-03
 title: Shop entry and catalog (link-out)
 milestone: N10
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N10-01]
 parallel_group: N10-C
 touches: [backend-go/internal/shop,backend-go/api,admin-web/src,frontend/src/screens/shop]
