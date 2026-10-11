@@ -3,7 +3,7 @@ id: CB-SHOP-12
 title: SHOP QA
 epic: SHOP
 type: qa
-status: todo
+status: done
 depends_on: [CB-SHOP-05, CB-SHOP-08, CB-SHOP-09, CB-SHOP-11]
 parallel_group: SHOP-J
 touches: [docs/qa/canvas]
