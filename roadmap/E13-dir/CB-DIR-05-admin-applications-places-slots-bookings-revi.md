@@ -18,7 +18,7 @@ verify: cd backend-go && make sqlc && go vet ./... && go test ./internal/cityser
 All marketplace operations in admin-web (DECISIONS).
 
 ## Scope
-1. Application review (doc viewer, approve → place, reject + reason), place edit/publish/suspend, services + weekly slot generator, bookings queue (confirm/reject/complete/no-show), reviews & reports moderation. Extends bloom's city-services admin.
+1. Application review (doc viewer, approve → place, reject + reason), place edit/publish/suspend, services + weekly slot generator, bookings queue (confirm/reject/complete/no-show), reviews & reports moderation. Extends bloom's city-services admin (B-N10-05 already has cities/categories/listings CRUD + the booking-request queue in admin-web `city-services`): add the new tabs/fields to those screens and routes; do not create a second admin section.
 
 ## Out of scope
 - Anything owned by another CB task; Android/native work (never); online payment (MVP).

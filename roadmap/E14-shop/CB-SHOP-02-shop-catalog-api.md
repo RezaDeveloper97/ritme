@@ -26,6 +26,7 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 - `nbd_Shop_ProductBeauty.dc.html`
 
 ## Scope
+0. Extend bloom's public `GET /api/v1/shop/categories` + `/shop/products` (B-N10-03) backward compatibly (link-out products keep their shape incl. `external_url`); add new routes/params only.
 1. Home sections, list filters (size, material, color, price, skin type) + sort, product detail with variants/stock/reviews, bought-together. Teen → 403.
 
 ## Out of scope

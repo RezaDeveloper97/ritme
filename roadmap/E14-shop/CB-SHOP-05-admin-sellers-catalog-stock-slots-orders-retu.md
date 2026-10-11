@@ -18,6 +18,7 @@ verify: cd backend-go && make sqlc && go vet ./... && go test ./internal/shop/..
 The team runs the shop in admin-web (extends bloom's shop admin).
 
 ## Scope
+0. Extend bloom's existing shop admin (B-N10-03: categories + products CRUD in admin-web `shop`) — add tabs/fields, no second shop section; link-out products remain editable there.
 1. Sellers, categories, products + variants + images + IRC, stock, delivery-slot templates, orders queue per shipment (confirm → shipped → delivered / cancel), returns, reviews, discount codes, layette template.
 
 ## Out of scope

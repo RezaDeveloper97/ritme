@@ -27,7 +27,8 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 - `nbd_Shop_Checklist.dc.html`
 
 ## Scope
-1. Extend `shop`: sellers (verified, shipping days, discreet packaging), category tree per shop (baby, beauty), products (badges, rating cache, material/wash/size guide or IRC code/ingredients/expiry/skin types, public images), variants (size/color/volume, price, compare-at, stock), verified-purchase reviews, carts, addresses, orders (per-seller shipments, delivery slot, status timeline, COD, totals, discreet flag), returns, layette templates (catalog) + user checklist states, supply-reminder opt-in.
+0. Build ON bloom B-N10-03 (migration 00071, `internal/shop`): existing `shop_categories` (layette, beauty seeded), `shop_products` (title JSON, image_path, price_text, badge, nullable `external_url`, partner_label, sort_order, is_active) and `shop_click_counts` are EXTENDED with `ALTER TABLE` (nullable new columns: seller_id, rating cache, attributes JSON, etc.) and new `shop_*` tables — never recreated/renamed. Migrations numbered 00080+ (+ Laravel twin). Rows with `external_url` set stay link-out (price_text, click counter, interstitial) until migrated; a product with variants is internal. The `ShopOrders` partner adapter stub and the Me «سفارش‌ها» partner row are dropped/unused (DECISIONS #15).
+1. Extend `shop`: sellers (verified, shipping days, discreet packaging), category tree per shop (extend `shop_categories` with parent_id for sub-categories under the two seeded roots), products (badges, rating cache, material/wash/size guide or IRC code/ingredients/expiry/skin types, public images), variants (size/color/volume, price, compare-at, stock), verified-purchase reviews, carts, addresses, orders (per-seller shipments, delivery slot, status timeline, COD, totals, discreet flag), returns, layette templates (catalog) + user checklist states, supply-reminder opt-in.
 2. Shop tables never join health data.
 
 ## Out of scope

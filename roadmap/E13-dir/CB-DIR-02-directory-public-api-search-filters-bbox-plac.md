@@ -25,6 +25,7 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 - `nbl_Dir_Place.dc.html`
 
 ## Scope
+0. Extend bloom's existing public listing/detail endpoints and `internal/cityservices` (B-N10-05) — add params/fields, keep the current response shape backward compatible; no parallel `/places` route family.
 1. List with q, category, child age (months), open-now, amenities, lat/lng radius + distance sort, bbox; ranking = distance + age fit + rating, never paid. Place detail with services, next slots, reviews summary. Public, cached, rate-limited.
 
 ## Out of scope

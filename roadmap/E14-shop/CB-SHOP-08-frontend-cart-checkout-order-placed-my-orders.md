@@ -25,7 +25,7 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 
 ## Scope
 1. Cart (seller groups, qty, discount, totals, free-shipping hint if configured). Checkout (stepper, address, recipient, per-seller slots, discreet packaging, pay on delivery only). Order placed (per-seller timelines, checklist link, returns). My orders in Me.
-2. (CB-CORE-01) Me is bloom's `/profile` hub (B-N1-10) → route `/profile/orders`. This replaces bloom B-N10-03's «سفارش‌ها» partner-orders row (DECISIONS #15: internal COD shop supersedes link-out). No bank-gateway row on checkout (DECISIONS #13).
+2. (CB-CORE-01) Me is bloom's `/profile` hub (B-N1-10) → route `/profile/orders`. (bloom N10 extras.md §2 also recommends this.) This replaces bloom B-N10-03's «سفارش‌ها» partner-orders row (DECISIONS #15: internal COD shop supersedes link-out). No bank-gateway row on checkout (DECISIONS #13).
 
 ## Out of scope
 - Anything owned by another CB task; Android/native work (never); online payment (MVP).

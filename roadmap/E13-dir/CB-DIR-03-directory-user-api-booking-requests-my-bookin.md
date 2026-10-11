@@ -24,6 +24,7 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 - `nbl_Dir_MyBookings.dc.html`
 
 ## Scope
+0. Extend bloom's booking-request endpoint (B-N10-05, `city_service_bookings`) and its status flow; the thin bloom «رزروها» list is superseded here. Keep link/phone listings working unchanged; no payment.
 1. Create request (child, age-fit, slot hold), upcoming/past, cancel (policy window), reschedule request, review after completed; on confirm → care reminders (1 day + 2 h) + SMS adapter; place sees only name, child name/age, phone.
 
 ## Out of scope

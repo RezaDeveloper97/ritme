@@ -25,7 +25,7 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 
 ## Scope
 1. Book (services, child chips + add child, 7-day strip, slot grid, note, summary, data-sharing note, 'send request' — price 'pay at the place', no payment step). Booked/pending (status, what to bring, directions, reminder added, cancel window). My bookings (tabs, cancel/reschedule, review, book again), linked from Me.
-2. (CB-CORE-01) Me is bloom's `/profile` hub (B-N1-10) → route `/profile/bookings` (not `/me/...`). It supersedes bloom B-N10-05's «my bookings» list and also lists bloom doctor bookings (B-N7-03, `/services/bookings/[id]`) when they exist.
+2. (CB-CORE-01) Me is bloom's `/profile` hub (B-N1-10) → route `/profile/bookings` (not `/me/...`). It supersedes (replaces in place, same table `city_service_bookings`) bloom B-N10-05's «رزروها» list and also lists bloom doctor bookings (B-N7-03, `/services/bookings/[id]`) when they exist.
 
 ## Out of scope
 - Anything owned by another CB task; Android/native work (never); online payment (MVP).

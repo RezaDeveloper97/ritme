@@ -18,6 +18,7 @@ verify: cd admin-web && npm run typecheck && npm run lint && npm run fsd:lint &&
 Ours to maintain.
 
 ## Scope
+0. Build ON bloom: B-N10-06 already ships the admin editor for the `/insurance` info page (internal/content) — do not rebuild or move it; add only the new insurers/centres screens next to it (nav entry grouped with the existing insurance-info item).
 1. Centres CRUD (type, lat/lng, direct flag); insurer names via catalog.
 
 ## Out of scope

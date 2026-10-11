@@ -23,6 +23,7 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 - `nbl_Ins_Coverage.dc.html`
 
 ## Scope
+0. Build ON bloom: `/insurance` is B-N10-06's info page route/screen (`frontend/src/screens/insurance`). Extend that screen in place: when no policy exists show setup form + a link to the info content; when one exists show the tracker and keep «how it works» reachable (e.g. a link/section). Do not create a second `/insurance` route or duplicate the info content. The services tile (hidden while info is unpublished) must also show once a policy exists.
 1. Home (+ setup form when empty): policy card, action card, remaining coverage bars, recent claims. Coverage: deductible tiles, caps, waiting notes, not-covered note, policy document link.
 
 ## Out of scope
