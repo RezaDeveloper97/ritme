@@ -169,7 +169,10 @@ func TestRequireAdmin_InactiveAdminLosesSession(t *testing.T) {
 	require.NoError(t, err)
 	assert.Nil(t, got, "session destroyed")
 
-	// Deactivated mid-session (the Blade admin.active middleware).
+	// Deactivated mid-session (the Blade admin.active middleware). /me is unmapped (super only since B-N9-02b).
+	ed := e.admins[2]
+	ed.Role = httpadmin.RoleSuper
+	e.admins[2] = ed
 	s = e.login(t, 2, false)
 	require.Equal(t, 200, e.do(t, fiber.MethodGet, "/me", withSession(e.kit, s, false)).status)
 	a := e.admins[2]

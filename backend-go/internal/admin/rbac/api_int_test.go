@@ -35,6 +35,7 @@ const (
 	marketingID uint64 = 6
 	doctorID    uint64 = 7
 	supportID   uint64 = 8
+	analystID   uint64 = 9
 )
 
 func newEnv(t *testing.T) *admintest.Env {
@@ -52,7 +53,12 @@ func newEnv(t *testing.T) *admintest.Env {
 	r(get, "/users", e.Kit.Admin(usersH.List))
 	r(get, "/users/:id", e.Kit.Admin(usersH.Show))
 	r(post, "/users/:id/block", e.Kit.Admin(usersH.Block))
+	r(fiber.MethodPut, "/users/:id", e.Kit.Admin(usersH.Update))
+	r(fiber.MethodDelete, "/users/:id", e.Kit.Admin(usersH.Destroy))
 	r(post, "/admins", e.Kit.Super(adminsH.Store))
+	r(fiber.MethodPut, "/admins/:id", e.Kit.Super(adminsH.Update))
+	r(post, "/auth/login", e.Kit.Public(authH.Login))
+	r(get, "/something-new", e.Kit.Admin(func(c fiber.Ctx) error { return httpadmin.OK(c, nil) })) // unmapped
 
 	const pw = "$2y$12$lo8Z3h/WEQp7b8AwCvwiTObVkv7/Xa68c/VnNTSszAOrR4kLj1HBi" //nolint:gosec // G101: test fixture hash
 	e.Exec(`INSERT INTO admins (id, name, email, password, role, is_active, created_at, updated_at) VALUES
@@ -61,7 +67,8 @@ func newEnv(t *testing.T) *admintest.Env {
 		(5, 'Clin Two', 'clin2@ritme.test', ?, 'clinical_support', 1, NOW(), NOW()),
 		(6, 'Mark', 'mkt@ritme.test', ?, 'marketing', 1, NOW(), NOW()),
 		(7, 'Dr', 'dr@ritme.test', ?, 'doctor', 1, NOW(), NOW()),
-		(8, 'Sup', 'sup@ritme.test', ?, 'support', 1, NOW(), NOW())`, pw, pw, pw, pw, pw, pw)
+		(8, 'Sup', 'sup@ritme.test', ?, 'support', 1, NOW(), NOW()),
+		(9, 'Ana', 'ana@ritme.test', ?, 'analyst', 1, NOW(), NOW())`, pw, pw, pw, pw, pw, pw, pw)
 	e.Exec(`INSERT INTO users (id, name, mobile, created_at, updated_at) VALUES
 		(10, 'Sara', '09120000010', NOW(), NOW()), (11, 'Mina', '09120000011', NOW(), NOW())`)
 	e.Exec(`INSERT INTO user_profiles (user_id, subscription_type, user_goal, cycle_duration, last_period_start,
@@ -94,9 +101,15 @@ func TestPermissions_PerRole(t *testing.T) {
 		// clinical support: health requests, support, users; not content.
 		{clinicalID, fiber.MethodGet, "/health-access", 200},
 		{clinicalID, fiber.MethodGet, "/articles", 403},
-		// editor keeps everything it had, but no health data and no super routes.
+		// editor keeps content, but no health data, no audit log (B-N9-02b), no super or unmapped routes.
 		{admintest.EditorID, fiber.MethodGet, "/articles", 200},
-		{admintest.EditorID, fiber.MethodGet, "/audit-logs", 200},
+		{admintest.EditorID, fiber.MethodGet, "/audit-logs", 403},
+		{admintest.EditorID, fiber.MethodGet, "/something-new", 403},
+		{admintest.SuperID, fiber.MethodGet, "/something-new", 200},
+		// analyst: users view only — cannot block or delete (B-N9-02b).
+		{analystID, fiber.MethodGet, "/users", 200},
+		{analystID, fiber.MethodDelete, "/users/11", 403},
+		{analystID, fiber.MethodPost, "/users/11/block", 403},
 		{admintest.EditorID, fiber.MethodPost, "/health-access", 403},
 		{admintest.EditorID, fiber.MethodGet, "/roles", 403},
 		// super: everything.
@@ -133,7 +146,7 @@ func TestRoles_EditAndReset(t *testing.T) {
 	assert.Len(t, list.Data()["roles"], len(httpadmin.Roles))
 
 	// Locked and unknown roles.
-	assert.Equal(t, rbac.CodeRoleLocked, super.JSON(fiber.MethodPut, "/roles/editor", map[string]any{"permissions": map[string]any{}}).Code())
+	assert.Equal(t, rbac.CodeRoleLocked, super.JSON(fiber.MethodPut, "/roles/super", map[string]any{"permissions": map[string]any{}}).Code())
 	assert.Equal(t, 404, super.JSON(fiber.MethodPut, "/roles/nope", map[string]any{"permissions": map[string]any{}}).Status)
 	assert.Equal(t, 422, super.JSON(fiber.MethodPut, "/roles/marketing", map[string]any{"permissions": map[string]any{"bogus": "view"}}).Status)
 	assert.Equal(t, 422, super.JSON(fiber.MethodPut, "/roles/marketing", map[string]any{"permissions": map[string]any{"health": "view"}}).Status)

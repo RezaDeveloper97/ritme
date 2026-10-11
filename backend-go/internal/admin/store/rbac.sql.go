@@ -77,6 +77,27 @@ func (q *Queries) CountAdminAuditLogs(ctx context.Context, arg CountAdminAuditLo
 	return count, err
 }
 
+const countAdminChangesBy = `-- name: CountAdminChangesBy :one
+SELECT COUNT(*) FROM ` + "`" + `admin_audit_logs` + "`" + `
+WHERE admin_id = ? AND target_type = 'admin' AND target_id = ?
+  AND action IN ('admin.create', 'admin.update') AND created_at >= ?
+`
+
+type CountAdminChangesByParams struct {
+	ActorID  sql.NullInt64
+	TargetID uint64
+	SinceAt  sql.NullTime
+}
+
+// B-N9-02b approver independence: admin.create / admin.update rows written by actor_id about target_id since since_at
+// (creation, password, role or any other account change of the would-be approver by the requester).
+func (q *Queries) CountAdminChangesBy(ctx context.Context, arg CountAdminChangesByParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countAdminChangesBy, arg.ActorID, arg.TargetID, arg.SinceAt)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countAdminsByRole = `-- name: CountAdminsByRole :many
 SELECT role, COUNT(*) AS admins FROM ` + "`" + `admins` + "`" + ` GROUP BY role
 `

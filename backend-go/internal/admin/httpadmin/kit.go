@@ -154,6 +154,8 @@ func (k *Kit) setCORS(c fiber.Ctx, origin string) {
 
 func (k *Kit) edge(c fiber.Ctx) error {
 	c.Locals(kitKey, k) // Audit writes the DB row through it
+	// B-N9-02b: admin answers (user PII, health grants, audit rows) never land in a browser / proxy cache.
+	c.Set(fiber.HeaderCacheControl, "no-store")
 	if !k.hostAllowed(c) {
 		return httpx.RouteNotFound(string(c.Request().URI().PathOriginal()))
 	}

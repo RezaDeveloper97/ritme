@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -29,7 +30,8 @@ func HealthGrant(c fiber.Ctx, q HealthGrantStore, userID uint64) (*store.ActiveH
 		return nil, nil
 	}
 	row, err := q.ActiveHealthAccess(c.Context(), store.ActiveHealthAccessParams{
-		AdminID: a.ID, UserID: userID, Now: DBTime(Now(c)),
+		// B-N9-02b: the real clock, never the X-Test-Now request clock (a header must not revive an expired grant).
+		AdminID: a.ID, UserID: userID, Now: DBTime(time.Now()),
 	})
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil

@@ -102,3 +102,10 @@ WHERE admin_id = sqlc.arg(admin_id) AND user_id = sqlc.arg(user_id) AND status =
   AND expires_at > sqlc.arg(now)
 ORDER BY expires_at DESC
 LIMIT 1;
+
+-- name: CountAdminChangesBy :one
+-- B-N9-02b approver independence: admin.create / admin.update rows written by actor_id about target_id since since_at
+-- (creation, password, role or any other account change of the would-be approver by the requester).
+SELECT COUNT(*) FROM `admin_audit_logs`
+WHERE admin_id = sqlc.arg(actor_id) AND target_type = 'admin' AND target_id = sqlc.arg(target_id)
+  AND action IN ('admin.create', 'admin.update') AND created_at >= sqlc.arg(since_at);

@@ -24,6 +24,9 @@ type cenv struct {
 	box   *loss.NoteBox
 }
 
+// doctorAdminID is the `doctor`-role admin setupChat links to the booking's doctor.
+const doctorAdminID uint64 = 3
+
 var chatPDF = []byte("%PDF-1.4\n1 0 obj << /Report 1 >> endobj\n%%EOF")
 
 func setupChat(t *testing.T) *cenv {
@@ -45,7 +48,12 @@ func setupChat(t *testing.T) *cenv {
 	be.App.Post(b+"/:id/prescription/:item/reminder", locale, g, h.AddReminder)
 	be.App.Get(b+"/:id/video", locale, g, h.Video)
 	telemed.NewDoctorAdmin(ch).Routes(be.Route(), be.Kit)
-	be.Exec(`UPDATE telemed_doctors SET admin_id = ? WHERE id = ?`, admintest.EditorID, be.a)
+	// The doctor inbox needs the telemed_doctor capability, which only the doctor role (and super) holds since
+	// B-N9-02b narrowed editor; the doctor is a `doctor` admin linked to the booking's doctor.
+	be.Exec(`INSERT INTO admins (id, name, email, password, role, is_active, created_at, updated_at)
+		SELECT ?, 'Doctor', 'doctor@ritme.test', password, 'doctor', 1, created_at, updated_at FROM admins WHERE id = ?`,
+		doctorAdminID, admintest.EditorID)
+	be.Exec(`UPDATE telemed_doctors SET admin_id = ? WHERE id = ?`, doctorAdminID, be.a)
 	return &cenv{benv: be, files: svc, box: box}
 }
 
@@ -113,16 +121,16 @@ func TestChat_IDORAndEncryption(t *testing.T) {
 	require.ErrorIs(t, err, loss.ErrNoteUnreadable, "copied to another booking")
 
 	// The doctor reads (marks read) and answers.
-	dr := ce.As(admintest.EditorID).Get(fmt.Sprintf("/telemed/doctor/bookings/%d/messages", bid))
+	dr := ce.As(doctorAdminID).Get(fmt.Sprintf("/telemed/doctor/bookings/%d/messages", bid))
 	require.Equal(t, http.StatusOK, dr.Status, dr.Body)
 	require.Len(t, dr.Items(), 1)
 	m := dr.Items()[0].(map[string]any)
 	assert.Equal(t, secret, m["body"])
 	assert.Equal(t, false, m["mine"])
 	assert.Equal(t, true, dr.Obj("chat")["open"])
-	reply := ce.As(admintest.EditorID).JSON(http.MethodPost, fmt.Sprintf("/telemed/doctor/bookings/%d/messages", bid), map[string]any{"body": "سلام، در ویزیت بررسی میکنیم"})
+	reply := ce.As(doctorAdminID).JSON(http.MethodPost, fmt.Sprintf("/telemed/doctor/bookings/%d/messages", bid), map[string]any{"body": "سلام، در ویزیت بررسی میکنیم"})
 	require.Equal(t, http.StatusCreated, reply.Status, reply.Body)
-	assert.Len(t, ce.As(admintest.EditorID).Get("/telemed/doctor/bookings").Items(), 1)
+	assert.Len(t, ce.As(doctorAdminID).Get("/telemed/doctor/bookings").Items(), 1)
 
 	u := ce.do(t, http.MethodGet, ce.path(bid, "/messages"), tokA, "fa", nil)
 	require.Equal(t, http.StatusOK, u.status)
@@ -163,7 +171,7 @@ func TestChat_Attachments(t *testing.T) {
 	assert.Equal(t, "application/pdf", att["mime"])
 	assert.Contains(t, att["url"], "/api/v1/files/")
 
-	dr := ce.As(admintest.EditorID).Get(fmt.Sprintf("/telemed/doctor/bookings/%d/messages", bid))
+	dr := ce.As(doctorAdminID).Get(fmt.Sprintf("/telemed/doctor/bookings/%d/messages", bid))
 	require.Len(t, dr.Items(), 1)
 	datt, _ := dr.Items()[0].(map[string]any)["attachment"].(map[string]any)
 	require.NotNil(t, datt, "the booked doctor gets a signed link")
@@ -190,7 +198,7 @@ func TestChat_VideoWindow(t *testing.T) {
 			assert.Nil(t, v["url"], tc.at)
 		}
 	}
-	d := ce.As(admintest.EditorID).Get(fmt.Sprintf("/telemed/doctor/bookings/%d/video", bid))
+	d := ce.As(doctorAdminID).Get(fmt.Sprintf("/telemed/doctor/bookings/%d/video", bid))
 	require.Equal(t, http.StatusOK, d.Status, d.Body)
 	assert.NotNil(t, d.Obj("video"))
 }
@@ -200,7 +208,7 @@ func TestChat_PrescriptionToReminder(t *testing.T) {
 	userA, tok := ce.user(t, "A", "09120000001")
 	bid := ce.pay(t, tok, "16:00", nil)
 	dp := fmt.Sprintf("/telemed/doctor/bookings/%d/prescription", bid)
-	doc := ce.As(admintest.EditorID)
+	doc := ce.As(doctorAdminID)
 
 	bad := doc.JSON(http.MethodPost, dp, map[string]any{"drug": "Folic acid", "form": "powder", "times": []any{"25:00"}})
 	assert.Equal(t, http.StatusUnprocessableEntity, bad.Status)

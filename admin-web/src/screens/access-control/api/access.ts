@@ -31,7 +31,8 @@ const auditRowSchema = z.object({
   action: z.string(),
   target_type: z.string(),
   target_id: z.number(),
-  ip: z.string(),
+  /** null for non-super admins (B-N9-02b). */
+  ip: z.string().nullable(),
   detail: z.record(z.string(), z.unknown()).nullable(),
   created_at: z.string().nullable(),
 });

@@ -114,7 +114,7 @@ func (h *Handlers) List(c fiber.Ctx) error {
 			"is_blocked", u.BlockedAt.Valid,
 			"blocked_at", httpadmin.Time(u.BlockedAt),
 			"subscription_type", orDefault(u.SubscriptionType, string(enums.SubscriptionTypeFree)),
-			"user_goal", orDefault(u.UserGoal, string(enums.UserGoalNonTtc)),
+			"user_goal", nil, // B-N9-02b: health data (TTC / pregnancy goal) — only on the detail, with a grant
 			"created_at", httpadmin.Time(u.CreatedAt),
 		))
 	}
@@ -186,7 +186,7 @@ func (h *Handlers) detail(c fiber.Ctx, id uint64) (*jsonx.OrderedMap, error) {
 			"cycle_duration", pick(nullInt(u.CycleDuration)),
 			"period_duration", pick(nullInt(u.PeriodDuration)),
 			"subscription_type", httpadmin.NullString(u.SubscriptionType),
-			"user_goal", httpadmin.NullString(u.UserGoal),
+			"user_goal", pick(httpadmin.NullString(u.UserGoal)), // B-N9-02b: user_goal is health data
 			"pregnancy_intention", pick(httpadmin.NullString(u.PregnancyIntention)),
 		)
 	}
@@ -194,6 +194,10 @@ func (h *Handlers) detail(c fiber.Ctx, id uint64) (*jsonx.OrderedMap, error) {
 	if grant != nil {
 		access.Set("expires_at", httpadmin.Time(grant.ExpiresAt))
 		httpadmin.Audit(c, h.logger, "health_access.read", "user", id, slog.Uint64("request_id", grant.ID))
+	}
+	var userGoal any
+	if grant != nil {
+		userGoal = orDefault(u.UserGoal, string(enums.UserGoalNonTtc))
 	}
 	locale := i18n.Locale(c)
 	return jsonx.Obj(
@@ -206,7 +210,7 @@ func (h *Handlers) detail(c fiber.Ctx, id uint64) (*jsonx.OrderedMap, error) {
 			"blocked_at", httpadmin.Time(u.BlockedAt),
 			"mobile_verified_at", httpadmin.Time(u.MobileVerifiedAt),
 			"subscription_type", orDefault(u.SubscriptionType, string(enums.SubscriptionTypeFree)),
-			"user_goal", orDefault(u.UserGoal, string(enums.UserGoalNonTtc)),
+			"user_goal", userGoal,
 			"created_at", httpadmin.Time(u.CreatedAt),
 			"updated_at", httpadmin.Time(u.UpdatedAt),
 		),
@@ -238,8 +242,10 @@ func nullInt(n sql.NullInt16) any {
 	return n.Int16
 }
 
-// Update is PUT /users/:id {name, subscription_type, user_goal}. Subscription and goal
-// live on the profile, which is created on demand (updateOrCreate).
+// Update is PUT /users/:id {name, subscription_type, user_goal?}. Subscription and goal
+// live on the profile, which is created on demand (updateOrCreate). B-N9-02b: user_goal is
+// health data the form only shows with a grant, so absent / null keeps the stored goal, and
+// the goal never reaches the audit row.
 func (h *Handlers) Update(c fiber.Ctx) error {
 	id, err := h.userID(c)
 	if err != nil {
@@ -251,7 +257,7 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 	data, err := httpadmin.Validate(c, validation.Rules{
 		validation.F("name", "nullable|string|max:255"),
 		validation.F("subscription_type", "required", validation.In(enums.SubscriptionTypeValues()...)),
-		validation.F("user_goal", "required", validation.In(enums.UserGoalValues()...)),
+		validation.F("user_goal", "nullable", validation.In(enums.UserGoalValues()...)),
 	})
 	if err != nil {
 		return err
@@ -264,11 +270,19 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 	}
 	now := httpadmin.DBTime(httpadmin.Now(c))
 	sub, goal := httpadmin.String(data, "subscription_type"), httpadmin.String(data, "user_goal")
+	goalSet := goal != ""
 	err = h.inTx(c.Context(), func(q *store.Queries, _ *sql.Tx) error {
 		if setName {
 			if err := q.UpdateUserName(c.Context(), store.UpdateUserNameParams{Name: name, Now: now, ID: id}); err != nil {
 				return err
 			}
+		}
+		if goal == "" {
+			cur, err := q.GetUserDetail(c.Context(), id)
+			if err != nil {
+				return err
+			}
+			goal = orDefault(cur.UserGoal, string(enums.UserGoalNonTtc))
 		}
 		pid, err := q.FirstProfileID(c.Context(), id)
 		if errors.Is(err, sql.ErrNoRows) {
@@ -285,7 +299,7 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 		return err
 	}
 	httpadmin.Audit(c, h.logger, "user.update", "user", id,
-		slog.String("subscription_type", sub), slog.String("user_goal", goal))
+		slog.String("subscription_type", sub), slog.Bool("goal_set", goalSet))
 	body, err := h.detail(c, id)
 	if err != nil {
 		return err

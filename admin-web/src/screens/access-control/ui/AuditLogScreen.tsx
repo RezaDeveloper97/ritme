@@ -72,7 +72,7 @@ export function AuditLogScreen() {
           '—'
         ),
     },
-    { key: 'ip', header: t('ip'), cell: (r) => <span dir="ltr">{r.ip}</span>, className: 'text-ink-3' },
+    { key: 'ip', header: t('ip'), cell: (r) => (r.ip ? <span dir="ltr">{r.ip}</span> : '—'), className: 'text-ink-3' },
   ];
 
   // One URL update for every filter (setFilter per key would race: each replace starts from the same URL).

@@ -110,14 +110,14 @@ func (h *Handlers) Login(c fiber.Ctx) error {
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		burnTime(password)
-		return h.failed(c)
+		return h.failed(c, 0)
 	case err != nil:
 		return err
 	case !admin.IsActive:
 		burnTime(password)
-		return h.failed(c)
+		return h.failed(c, admin.ID)
 	case !CheckPassword(admin.Password, password):
-		return h.failed(c)
+		return h.failed(c, admin.ID)
 	}
 
 	// A new id on every login (session fixation); drop the session this browser had.
@@ -147,8 +147,10 @@ func (h *Handlers) Login(c fiber.Ctx) error {
 	return httpadmin.OK(c, out, "Logged in.")
 }
 
-func (h *Handlers) failed(c fiber.Ctx) error {
-	h.logger.InfoContext(c.Context(), "admin login failed", slog.String("ip", c.IP()))
+// failed audits the attempt (B-N9-02b L4: an auth.login_failed row with the ip and, for a known account, its id as
+// the target — never the submitted email or password) and answers the uniform invalid-login error.
+func (h *Handlers) failed(c fiber.Ctx, adminID uint64) error {
+	httpadmin.AuditAs(c, h.logger, 0, "auth.login_failed", "admin", adminID, slog.Bool("known_account", adminID > 0))
 	return invalidLogin()
 }
 

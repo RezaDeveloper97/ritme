@@ -44,6 +44,17 @@ const (
 	CodeSelfApproval = "self_approval" // 422: the requester cannot approve their own request
 	CodeNotPending   = "not_pending"   // 409
 	CodeNotActive    = "not_active"    // 409
+	// B-N9-02b: the approver is not independent of the requester (created / changed by them in the last 30 days, or
+	// an account younger than 24 hours).
+	CodeApproverNotIndependent = "approver_not_independent" // 422
+	CodeRequesterNotPermitted  = "requester_not_permitted"  // 422: the requester lost the health capability
+)
+
+// B-N9-02b approval rules.
+const (
+	pendingTTL         = 24 * time.Hour      // a pending request expires unanswered after a day
+	approverMinAge     = 24 * time.Hour      // the approver's account must be at least a day old
+	independenceWindow = 30 * 24 * time.Hour // no account change of the approver by the requester in this window
 )
 
 // exportMaxRows caps one CSV export.
@@ -260,7 +271,7 @@ func detailJSON(d sql.NullString) any {
 	return m
 }
 
-func auditJSON(r store.ListAdminAuditLogsRow) *jsonx.OrderedMap {
+func auditJSON(r store.ListAdminAuditLogsRow, showIP bool) *jsonx.OrderedMap {
 	var admin any
 	if r.AdminID.Valid {
 		admin = jsonx.Obj("id", r.AdminID.Int64, "name", httpadmin.NullString(r.AdminName),
@@ -272,10 +283,23 @@ func auditJSON(r store.ListAdminAuditLogsRow) *jsonx.OrderedMap {
 		"action", r.Action,
 		"target_type", r.TargetType,
 		"target_id", r.TargetID,
-		"ip", r.Ip,
+		"ip", ipOf(r.Ip, showIP),
 		"detail", detailJSON(r.Detail),
 		"created_at", httpadmin.Time(r.CreatedAt),
 	)
+}
+
+// isSuper: only a super admin sees client IPs in the audit log (B-N9-02b L6).
+func isSuper(c fiber.Ctx) bool {
+	a := httpadmin.CurrentAdmin(c)
+	return a != nil && a.Role == httpadmin.RoleSuper
+}
+
+func ipOf(ip string, show bool) any {
+	if !show {
+		return nil
+	}
+	return ip
 }
 
 // ListAudit is GET /audit-logs?admin_id&action(prefix)&target_type&target_id&from&to&page&per_page (newest first).
@@ -299,7 +323,7 @@ func (h *Handlers) ListAudit(c fiber.Ctx) error {
 	}
 	items := make([]*jsonx.OrderedMap, 0, len(rows))
 	for _, r := range rows {
-		items = append(items, auditJSON(r))
+		items = append(items, auditJSON(r, isSuper(c)))
 	}
 	return httpadmin.OK(c, httpadmin.Page(items, p, int(total)))
 }
@@ -322,6 +346,7 @@ func (h *Handlers) ExportAudit(c fiber.Ctx) error {
 	w := csv.NewWriter(&b)
 	_ = w.Write([]string{"id", "created_at", "admin_id", "admin_name", "admin_role", "action", "target_type",
 		"target_id", "ip", "detail"})
+	showIP := isSuper(c)
 	for _, r := range rows {
 		adminID := ""
 		if r.AdminID.Valid {
@@ -331,9 +356,13 @@ func (h *Handlers) ExportAudit(c fiber.Ctx) error {
 		if r.CreatedAt.Valid {
 			created = r.CreatedAt.Time.Format(time.DateTime)
 		}
+		ip := ""
+		if showIP {
+			ip = r.Ip
+		}
 		_ = w.Write([]string{strconv.FormatUint(r.ID, 10), created, adminID, csvSafe(r.AdminName.String),
-			r.AdminRole.String, csvSafe(r.Action), csvSafe(r.TargetType), strconv.FormatUint(r.TargetID, 10), r.Ip,
-			csvSafe(r.Detail.String)})
+			csvSafe(r.AdminRole.String), csvSafe(r.Action), csvSafe(r.TargetType), strconv.FormatUint(r.TargetID, 10),
+			csvSafe(ip), csvSafe(r.Detail.String)})
 	}
 	w.Flush()
 	httpadmin.Audit(c, h.logger, "audit_log.export", "audit_log", 0, slog.Int("rows", len(rows)))
@@ -342,9 +371,16 @@ func (h *Handlers) ExportAudit(c fiber.Ctx) error {
 	return c.SendString(b.String())
 }
 
-// csvSafe defuses spreadsheet formulas (=, +, -, @ at the start of a cell).
+// csvSafe defuses spreadsheet formulas: a cell starting with a tab / CR, or with =, +, -, @ after leading
+// whitespace (spreadsheets trim it), gets a leading quote.
 func csvSafe(s string) string {
-	if s != "" && strings.ContainsRune("=+-@\t\r", rune(s[0])) {
+	if s == "" {
+		return s
+	}
+	if strings.ContainsRune("\t\r", rune(s[0])) {
+		return "'" + s
+	}
+	if t := strings.TrimLeft(s, " \t\r\n"); t != "" && strings.ContainsRune("=+-@", rune(t[0])) {
 		return "'" + s
 	}
 	return s
@@ -353,11 +389,19 @@ func csvSafe(s string) string {
 // ---------------------------------------------------------------------------
 // Health access
 
-func accessStatus(status string, expires sql.NullTime, now time.Time) string {
+// accessStatus derives "expired": an approved grant past expires_at, or a request pending for over pendingTTL.
+func accessStatus(status string, expires, created sql.NullTime, now time.Time) string {
 	if status == StatusApproved && (!expires.Valid || !expires.Time.After(now)) {
 		return StatusExpired
 	}
+	if status == StatusPending && pendingExpired(created, now) {
+		return StatusExpired
+	}
 	return status
+}
+
+func pendingExpired(created sql.NullTime, now time.Time) bool {
+	return !created.Valid || !created.Time.Add(pendingTTL).After(now)
 }
 
 func accessJSON(r store.GetHealthAccessRequestRow, now time.Time) *jsonx.OrderedMap {
@@ -371,7 +415,7 @@ func accessJSON(r store.GetHealthAccessRequestRow, now time.Time) *jsonx.Ordered
 		"user_id", r.UserID,
 		"reason", r.Reason,
 		"ticket", r.Ticket,
-		"status", accessStatus(r.Status, r.ExpiresAt, now),
+		"status", accessStatus(r.Status, r.ExpiresAt, r.CreatedAt, now),
 		"decided_by", decidedBy,
 		"decided_at", httpadmin.Time(r.DecidedAt),
 		"expires_at", httpadmin.Time(r.ExpiresAt),
@@ -480,7 +524,16 @@ func (h *Handlers) decide(c fiber.Ctx, approve bool) error {
 		return httpadmin.Fail(fiber.StatusUnprocessableEntity, CodeSelfApproval,
 			"Another super admin must approve your own request.")
 	}
-	now := httpadmin.Now(c)
+	// B-N9-02b L2: the real clock; X-Test-Now must not stretch a grant or revive a stale request.
+	now := time.Now()
+	if r.Status != StatusPending || pendingExpired(r.CreatedAt, now) {
+		return httpadmin.Fail(fiber.StatusConflict, CodeNotPending, "This request is no longer pending.")
+	}
+	if approve {
+		if err := h.checkApproval(c, r, a, now); err != nil {
+			return err
+		}
+	}
 	status, expires, action := StatusRejected, sql.NullTime{}, "health_access.reject"
 	if approve {
 		status, action = StatusApproved, "health_access.approve"
@@ -497,7 +550,51 @@ func (h *Handlers) decide(c fiber.Ctx, approve bool) error {
 		return httpadmin.Fail(fiber.StatusConflict, CodeNotPending, "This request is no longer pending.")
 	}
 	httpadmin.Audit(c, h.logger, action, "user", r.UserID, slog.Uint64("request_id", r.ID))
+	if approve {
+		// B-N9-02b: every approval raises an alert line (log-based alerting picks up alert=health_access_approved).
+		h.logger.WarnContext(c.Context(), "health access approved", slog.String("alert", "health_access_approved"),
+			slog.Uint64("request_id", r.ID), slog.Uint64("requester_id", r.AdminID), slog.Uint64("approver_id", a.ID))
+	}
 	return h.respond(c, r.ID, false, "Request "+status+".")
+}
+
+// checkApproval (B-N9-02b M1 + L5): the requester still holds the health capability and is active; the approver's
+// account is at least approverMinAge old and was neither created nor changed by the requester within
+// independenceWindow (from admin_audit_logs: admin.create / admin.update by the requester on the approver).
+func (h *Handlers) checkApproval(c fiber.Ctx, r store.GetHealthAccessRequestRow, approver *store.Admin, now time.Time) error {
+	requester, err := h.q.GetAdminByID(c.Context(), r.AdminID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	}
+	permitted := err == nil && requester.IsActive
+	if permitted && requester.Role != httpadmin.RoleSuper {
+		perms, perr := h.kit.PermissionsFor(c.Context(), requester.Role)
+		if perr != nil {
+			return perr
+		}
+		permitted = perms.Allows(httpadmin.CapHealth, httpadmin.LevelManage)
+	}
+	if !permitted {
+		return httpadmin.Fail(fiber.StatusUnprocessableEntity, CodeRequesterNotPermitted,
+			"The requester's role no longer allows health-data access.")
+	}
+	notIndependent := httpadmin.Fail(fiber.StatusUnprocessableEntity, CodeApproverNotIndependent,
+		"An independent super admin must approve this request.")
+	if !approver.CreatedAt.Valid || approver.CreatedAt.Time.After(now.Add(-approverMinAge)) {
+		return notIndependent
+	}
+	n, err := h.q.CountAdminChangesBy(c.Context(), store.CountAdminChangesByParams{
+		ActorID:  sql.NullInt64{Int64: int64(r.AdminID), Valid: true}, //nolint:gosec // ids fit int64
+		TargetID: approver.ID,
+		SinceAt:  httpadmin.DBTime(now.Add(-independenceWindow)),
+	})
+	if err != nil {
+		return err
+	}
+	if n > 0 {
+		return notIndependent
+	}
+	return nil
 }
 
 // Approve is POST /health-access/:id/approve (super, not the requester): approved for 30 minutes.

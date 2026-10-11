@@ -3,7 +3,7 @@ id: B-N9-02b
 title: Admin RBAC security fixes — approver independence, user_goal as health, least-privilege defaults, no-store, real clock
 milestone: N9
 type: fullstack
-status: in_progress
+status: done
 depends_on: [B-N9-02]
 parallel_group: N9-B2
 touches: [backend-go/internal/admin,admin-web/src/screens/access-control]
