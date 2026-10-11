@@ -828,7 +828,7 @@ func (s *Service) lookups(ctx context.Context, ships []store.ShopOrderShipment, 
 			return nil, nil, fmt.Errorf("order: images: %w", err)
 		}
 		for _, p := range list {
-			images[p.ID] = p.ImagePath.String
+			images[p.ID] = coverPath(p.ImagePath, p.Images)
 		}
 	}
 	return sellers, images, nil

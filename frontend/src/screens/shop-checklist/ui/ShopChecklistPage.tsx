@@ -206,7 +206,7 @@ export function ShopChecklistPage() {
             label={t('ringLabel')}
             valueText={t('ringText', { ready: d.summary.ready, total: d.summary.total })}
           >
-            <span className="shc-pct">{formatNumber(d.summary.percent, locale)}٪</span>
+            <span className="shc-pct">{formatNumber(d.summary.percent, locale)}{locale === 'fa' ? '٪' : '%'}</span>
           </ProgressRing>
           <div className="shc-sum-text">
             <p className="shc-sum-main">

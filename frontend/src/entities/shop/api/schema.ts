@@ -57,7 +57,8 @@ export const shopCatalogCategorySchema = z.object({
     .catch(null)
     .transform((v): IconName => (v && isIconName(v) ? v : 'box')),
   parent: z.string().nullable().catch(null),
-  product_count: z.number().catch(0),
+  // Absent on the list endpoint's own `category` (pages then fall back to meta.total); present on sub_categories.
+  product_count: z.number().optional().catch(undefined),
 });
 export type ShopCatalogCategory = z.infer<typeof shopCatalogCategorySchema>;
 

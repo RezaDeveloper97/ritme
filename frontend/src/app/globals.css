@@ -12777,10 +12777,10 @@ a.nb-card.cnd-card { color: inherit; text-decoration: none; }
 .shp-filters { display: flex; flex-direction: column; gap: 20px; padding-block-end: 8px; }
 .shp-fgroup { display: flex; flex-direction: column; gap: 10px; }
 .shp-fgroup-title { margin: 0; font-size: 13.5px; font-weight: 800; color: var(--text-1); }
-.shp-price-range { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.shp-price-field { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: var(--text-2); }
+.shp-price-range { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.shp-price-field { display: flex; flex-direction: column; gap: 4px; min-inline-size: 0; font-size: 11.5px; font-weight: 700; color: var(--text-2); }
 .shp-price-input {
-  min-block-size: 48px; padding-inline: 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface);
+  inline-size: 100%; min-inline-size: 0; box-sizing: border-box; min-block-size: 48px; padding-inline: 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface);
   color: var(--text-1); font: inherit; font-size: 14px; font-weight: 700; text-align: start;
 }
 .shp-fhint { margin: 0; font-size: 11.5px; font-weight: 600; color: var(--text-3); }

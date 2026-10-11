@@ -25,6 +25,24 @@ const (
 	DiscountFixed   = "fixed"
 )
 
+// coverPath is the thumbnail path of a product: the legacy single image_path, else the first entry of the images JSON
+// array (admin-uploaded commerce products only have the array; catalog.images uses the same order).
+func coverPath(imagePath, images sql.NullString) string {
+	if imagePath.Valid && imagePath.String != "" {
+		return imagePath.String
+	}
+	var more []string
+	if images.Valid {
+		_ = json.Unmarshal([]byte(images.String), &more)
+	}
+	for _, m := range more {
+		if m != "" {
+			return m
+		}
+	}
+	return ""
+}
+
 // Line is one cart line with its seller and derived status.
 type Line struct {
 	store.ListCartLinesRow

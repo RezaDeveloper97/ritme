@@ -146,7 +146,7 @@ export function WebShopList({ category, initial }: { category: string; initial?:
                     <li key={c.id}>
                       <Link href={storeCategoryHref(c.slug)} className="wsh-sub">
                         <span>{c.title}</span>
-                        <span className="wsh-sub-n">{formatNumber(c.product_count, locale)}</span>
+                        <span className="wsh-sub-n">{formatNumber(c.product_count ?? 0, locale)}</span>
                       </Link>
                     </li>
                   ))}

@@ -18,7 +18,7 @@ SELECT quantity FROM `shop_cart_items` WHERE cart_id = ? AND variant_id = ? LIMI
 -- name: ListCartLines :many
 SELECT ci.variant_id, ci.quantity,
        v.product_id, v.size, v.color, v.volume, v.price, v.compare_at_price, v.stock, v.is_active AS variant_active,
-       p.title, p.image_path, p.category_id, p.seller_id, p.discreet_packaging, p.is_active AS product_active,
+       p.title, p.image_path, p.images AS product_images, p.category_id, p.seller_id, p.discreet_packaging, p.is_active AS product_active,
        c.is_active AS category_active, c.parent_id AS category_parent_id
 FROM `shop_cart_items` ci
 JOIN `shop_product_variants` v ON v.id = ci.variant_id
@@ -127,7 +127,7 @@ SELECT i.* FROM `shop_order_items` i JOIN `shop_orders` o ON o.id = i.order_id
 WHERE o.user_id = ? ORDER BY i.order_id, i.shipment_id, i.id;
 
 -- name: ListProductImages :many
-SELECT id, image_path FROM `shop_products` WHERE id IN (sqlc.slice(ids));
+SELECT id, image_path, images FROM `shop_products` WHERE id IN (sqlc.slice(ids));
 
 -- name: LockOrder :one
 SELECT * FROM `shop_orders` WHERE id = ? LIMIT 1 FOR UPDATE;

@@ -207,7 +207,7 @@
     },
     "emptyTitle": "Nothing in this filter",
     "emptyBody": "Try another filter or add a new item.",
-    "note": "This is a general suggestion, not a required list. More things does not mean more ready.",
+    "note": "This is a general suggestion, not a required list. More things do not mean more ready.",
     "unavailableTitle": "The layette checklist is not available",
     "unavailableBody": "This list is not active for this account.",
     "add": {

@@ -663,7 +663,7 @@ func (q *Queries) GetVariantForCart(ctx context.Context, id uint64) (GetVariantF
 const listCartLines = `-- name: ListCartLines :many
 SELECT ci.variant_id, ci.quantity,
        v.product_id, v.size, v.color, v.volume, v.price, v.compare_at_price, v.stock, v.is_active AS variant_active,
-       p.title, p.image_path, p.category_id, p.seller_id, p.discreet_packaging, p.is_active AS product_active,
+       p.title, p.image_path, p.images AS product_images, p.category_id, p.seller_id, p.discreet_packaging, p.is_active AS product_active,
        c.is_active AS category_active, c.parent_id AS category_parent_id
 FROM ` + "`" + `shop_cart_items` + "`" + ` ci
 JOIN ` + "`" + `shop_product_variants` + "`" + ` v ON v.id = ci.variant_id
@@ -686,6 +686,7 @@ type ListCartLinesRow struct {
 	VariantActive     bool
 	Title             string
 	ImagePath         sql.NullString
+	ProductImages     sql.NullString
 	CategoryID        uint64
 	SellerID          sql.NullInt64
 	DiscreetPackaging bool
@@ -716,6 +717,7 @@ func (q *Queries) ListCartLines(ctx context.Context, cartID uint64) ([]ListCartL
 			&i.VariantActive,
 			&i.Title,
 			&i.ImagePath,
+			&i.ProductImages,
 			&i.CategoryID,
 			&i.SellerID,
 			&i.DiscreetPackaging,
@@ -858,12 +860,13 @@ func (q *Queries) ListOtherOpenOrderCategories(ctx context.Context, arg ListOthe
 }
 
 const listProductImages = `-- name: ListProductImages :many
-SELECT id, image_path FROM ` + "`" + `shop_products` + "`" + ` WHERE id IN (/*SLICE:ids*/?)
+SELECT id, image_path, images FROM ` + "`" + `shop_products` + "`" + ` WHERE id IN (/*SLICE:ids*/?)
 `
 
 type ListProductImagesRow struct {
 	ID        uint64
 	ImagePath sql.NullString
+	Images    sql.NullString
 }
 
 func (q *Queries) ListProductImages(ctx context.Context, ids []uint64) ([]ListProductImagesRow, error) {
@@ -885,7 +888,7 @@ func (q *Queries) ListProductImages(ctx context.Context, ids []uint64) ([]ListPr
 	items := []ListProductImagesRow{}
 	for rows.Next() {
 		var i ListProductImagesRow
-		if err := rows.Scan(&i.ID, &i.ImagePath); err != nil {
+		if err := rows.Scan(&i.ID, &i.ImagePath, &i.Images); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

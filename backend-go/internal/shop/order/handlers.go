@@ -177,7 +177,7 @@ func (h *Handlers) sellerJSON(l catalog.Locale, s *store.ShopSeller) *jsonx.Orde
 
 func (h *Handlers) lineJSON(l catalog.Locale, x *Line) *jsonx.OrderedMap {
 	return jsonx.Obj("variant_id", x.VariantID, "product_id", x.ProductID, "title", l.Pick(x.Title),
-		"image_url", h.url(x.ImagePath.String),
+		"image_url", h.url(coverPath(x.ImagePath, x.ProductImages)),
 		"variant_label", nullable(variantLabel(l, variantParts(x.Size.String, x.Color.String, x.Volume.String))),
 		"unit_price", x.Price, "compare_at_price", nullInt(x.CompareAtPrice), "quantity", x.Quantity, "line_total", x.LineTotal,
 		"stock", x.Stock, "status", x.Status, "discreet_packaging", x.DiscreetPackaging)
