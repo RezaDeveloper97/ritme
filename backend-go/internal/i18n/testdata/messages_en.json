@@ -12159,7 +12159,8 @@
    "nav": {
     "services": "Mother & child services",
     "shop": "Shop",
-    "business": "For business"
+    "business": "For business",
+    "cart": "Cart"
    },
    "login": "Log in",
    "openApp": "Open the app",
@@ -12209,9 +12210,33 @@
     "loginTitle": "Log in to add to your cart",
     "loginBody": "Your cart and orders live in your Ritme account. You pay on delivery.",
     "login": "Log in or sign up",
-    "openCart": "View cart in the app",
+    "openCart": "View cart",
     "teen": "The shop is not available for this account.",
     "crumbCategory": "More in this category"
+   },
+   "cart": {
+    "metaTitle": "Cart | Ritme shop",
+    "summary": "Order summary",
+    "itemsCount": "Items ({n})",
+    "remove": "Remove",
+    "privacy": "Sellers only see your name, address and phone number to deliver. No health data from Ritme ever reaches a seller.",
+    "discountLimit": "Too many tries. Wait a while and try again."
+   },
+   "checkout": {
+    "metaTitle": "Checkout | Ritme shop",
+    "items": "{n, plural, one {# item} other {# items}}"
+   },
+   "done": {
+    "metaTitle": "Order placed | Ritme shop",
+    "body": "You pay {amount} on delivery. Each seller ships their items separately.",
+    "track": "Track order",
+    "continue": "Keep shopping",
+    "returns": "Unopened items can be returned within the seller's return window. Ask for it from the order page in the app."
+   },
+   "gate": {
+    "title": "Log in to see your cart and orders",
+    "body": "Your cart, addresses and orders live in your Ritme account. You pay on delivery.",
+    "browse": "Back to the shop"
    }
   },
   "welcome": {

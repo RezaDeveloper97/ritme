@@ -102,7 +102,7 @@ function ProductBody({ product }: { product: ShopCatalogProduct }) {
     );
   } else if (addCart.isSuccess) {
     buy = (
-      <Link href={`${APP_SHOP}/cart`} className="wsh-go">
+      <Link href={`${STORE_HOME}/cart`} className="wsh-go">
         {w('product.openCart')}
         <Icon name="arrowR" size={16} />
       </Link>

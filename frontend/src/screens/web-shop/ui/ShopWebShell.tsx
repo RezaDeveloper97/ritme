@@ -21,6 +21,7 @@ export function ShopWebShell({ appHref, children }: { appHref: string; children:
       nav={[
         { href: STORE_HOME, label: t('nav.shop') },
         { href: '/places', label: t('nav.services') },
+        { href: `${STORE_HOME}/cart`, label: t('nav.cart') },
       ]}
       appHref={appHref}
       homeHref={STORE_HOME}

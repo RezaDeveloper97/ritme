@@ -60,3 +60,15 @@ Shots at 1440 wide, Persian, guest (logged out), light + dark. The catalog API i
 | `W_Shop_Product` | `/store/product/[id]` | `CB-SHOP-10/product-light.png` | `CB-SHOP-10/product-dark.png` | matches: breadcrumb, gallery, seller, rating, price, color/size choosers, add-to-cart panel (login link when logged out), shipping/returns, specifications, reviews, bought-together | no quantity stepper or wishlist (cart takes qty 1); size table shown as the size guide line |
 
 Behaviour: logged out → «ورود یا ثبت‌نام» link; logged in → `useAddToCart`, then a link to the app cart. Signed-in teen (403) and unknown product (404) get a plain state. `<1024px` signed-in visitors are redirected to the app `/shop` screens by the web shell. SSR metadata (title, description, OpenGraph, canonical) comes from the public catalog API.
+
+## CB-SHOP-11
+
+Desktop 1440w, mocked API (3 items from 2 sellers). Routes sit under the public `store` segment, signed-in only (page-level login prompt `CB-SHOP-11/gate-dark.png`), noindex + robots disallow.
+
+| board | route | light | dark | verdict | fix |
+|---|---|---|---|---|---|
+| `W_Shop_Cart` | `/store/cart` | `CB-SHOP-11/cart-light.png` | `CB-SHOP-11/cart-dark.png` | matches: title, lines per seller with free-shipping bar, quantity stepper + remove, discount code, sticky order summary + «ادامه خرید», privacy note | no «شاید لازم داشته باشی» strip (no recommendations endpoint); no cart/search icons in the header (cart is a nav link) |
+| `W_Shop_Checkout` | `/store/checkout` | `CB-SHOP-11/checkout-light.png` | `CB-SHOP-11/checkout-dark.png` | matches: 3-step bar, numbered address / delivery-time / payment cards, per-seller slot grid, plain-packaging switch, summary with pay-on-delivery button | payment is ONE fixed «پرداخت در محل» card — the board's bank-gateway option is out of MVP scope; address map thumbnail omitted; phone masked; add/edit address inline |
+| `W_Shop_Done` | `/store/order/[id]` | `CB-SHOP-11/done-light.png` | `CB-SHOP-11/done-dark.png` | matches: success mark, title, order code, one card per seller with items, status chip and slot, «پیگیری سفارش» + «ادامه خرید», return note | per-seller timeline reduced to status chip + slot (full timeline lives on the app order page, linked); app-download strip not rendered (no real store links yet, same as the shell footer) |
+
+Behaviour: `<1024px` signed-in visitors go to the app `/shop/cart|checkout|order/[id]`. One `crypto.randomUUID()` idempotency key per checkout page, reused on retry; discount refusals show the generic «not valid» text, 429 shows a try-later line; `too_many_open_orders` (422) is shown from `shop.errors`.

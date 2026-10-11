@@ -89,3 +89,6 @@ export {
 } from './api/order';
 export { useShopPrice } from './model/use-price';
 export { useSlotText } from './model/use-slot';
+
+// CB-SHOP-11: helpers shared by the app and the desktop checkout.
+export { checkoutBlockerKey, maskPhone, useIdempotencyKey } from './model/checkout';

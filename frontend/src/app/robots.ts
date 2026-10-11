@@ -7,6 +7,6 @@ import type { MetadataRoute } from 'next';
  */
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: '*', allow: '/', disallow: ['/*/d', '/*/shared', '/*/emergency', '/*/places/booked'] }],
+    rules: [{ userAgent: '*', allow: '/', disallow: ['/*/d', '/*/shared', '/*/emergency', '/*/places/booked', '/*/store/cart', '/*/store/checkout', '/*/store/order'] }],
   };
 }

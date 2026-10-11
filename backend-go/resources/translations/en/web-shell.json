@@ -5,7 +5,8 @@
   "nav": {
     "services": "Mother & child services",
     "shop": "Shop",
-    "business": "For business"
+    "business": "For business",
+    "cart": "Cart"
   },
   "login": "Log in",
   "openApp": "Open the app",

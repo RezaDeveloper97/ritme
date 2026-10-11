@@ -1,11 +1,14 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 
 import {
+  checkoutBlockerKey,
+  maskPhone,
   type ShopCheckout,
   shopErrorKey,
+  useIdempotencyKey,
   usePlaceOrder,
   useShopCheckout,
   useShopPrice,
@@ -30,24 +33,6 @@ import {
 } from '@/shared/ui';
 
 import { AddressSheet } from './AddressSheet';
-
-const BLOCKERS = ['cart_empty', 'cart_unavailable', 'address_invalid', 'discount_invalid', 'discount_exhausted', 'discount_used', 'discount_min_total'] as const;
-
-/** «۰۹۱۲ ••• ••۴۵» — never show the full number on the review step. */
-function maskPhone(phone: string, locale: Locale): string {
-  const d = phone.replace(/\D/g, '');
-  if (d.length < 6) return formatNumber(phone, locale);
-  return formatNumber(`${d.slice(0, 4)} ••• ••${d.slice(-2)}`, locale);
-}
-
-/** One idempotency key per checkout attempt, reused on every retry (a double tap or a lost reply never orders twice). */
-function useIdempotencyKey(): () => string {
-  const ref = useRef<string | null>(null);
-  return () => {
-    if (!ref.current) ref.current = crypto.randomUUID();
-    return ref.current;
-  };
-}
 
 function Stepper() {
   const t = useTranslations('shop.checkout');
@@ -226,7 +211,7 @@ function Review({ data }: { data: ShopCheckout }) {
         .filter((b) => b !== 'cod_limit_exceeded')
         .map((b) => (
           <p key={b} className="shco-error" role="alert">
-            {t(`checkout.blockers.${(BLOCKERS as readonly string[]).includes(b) ? (b as (typeof BLOCKERS)[number]) : 'cart_unavailable'}`)}
+            {t(`checkout.blockers.${checkoutBlockerKey(b)}`)}
           </p>
         ))}
       {place.isError ? (
