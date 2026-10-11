@@ -3,7 +3,7 @@ id: B-N9-09
 title: OKR module bound to live metrics
 milestone: N9
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N9-08]
 parallel_group: N9-I
 touches: [backend-go/internal/okr,backend-go/db,backend-go/api,admin-web/src]
