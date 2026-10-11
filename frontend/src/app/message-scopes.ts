@@ -185,6 +185,7 @@ export const ROUTE_NAMESPACES = {
   learnDownloads: ['common', 'learn', 'nav'], // B-N8-04 /learn/downloads (Learn_Downloads; bottom nav, offline-capable)
   homeLab: ['common', 'homeLab'], // B-N10-04 /services/home-lab, /services/home-lab/new, /services/home-lab/[id]
   shop: ['common', 'shop'], // B-N10-03 /shop, /shop/[category] (categories, products, link-out interstitial)
+  shopChecklist: ['common', 'companions', 'shop'], // CB-SHOP-09 /shop/checklist (family read-only view uses companion ids)
   cityServices: ['common', 'cityServices'], // B-N10-05 /city-services, /city-services/[id], /city-services/[id]/request, /profile/bookings
   doctors: ['common', 'doctors'], // B-N7-05 /services/doctors*, /services/bookings* (directory, profile, book, return, booked, chat)
   assistant: ['common', 'nav', 'assistant'], // B-N7-07 /assistant (hub; bottom nav)

@@ -26,3 +26,12 @@ install prompt visible on the list shot is the app shell, not this screen.
 
 Behaviour: non-catalog slug (404) keeps bloom's link-out list; teen (403) shows the unavailable state; pay on delivery
 only, no online-payment wording.
+## CB-SHOP-09
+
+Shots at 390 wide, Persian, API mocked at the network layer (shapes from `GET /shop/checklist`, `GET/PUT /shop/supply-reminder`).
+
+| board | route | light | dark | verdict | fix |
+|---|---|---|---|---|---|
+| `nbd_Shop_Checklist` (`docs/qa/canvas/boards/nbd_Shop_Checklist.png`) | `/shop/checklist` | `CB-SHOP-09/fa_shop-checklist.light.png` | `CB-SHOP-09/fa_shop-checklist.dark.png` | matches: progress ring, due date + weeks left, family share, add item, filter chips, per-group rows with state lines and «see» links, safe-sleep note on the row, "general list, more stuff is not more ready" note | state/qty edit via sheet (pen icon); family view (`?for=`) is read only |
+| `nbd_Shop_Home` | `/shop` (baby) | `CB-SHOP-09/fa_shop-baby-card.light.png` | `CB-SHOP-09/fa_shop-baby-card.dark.png` | layette-checklist card with progress | none |
+| `nbd_Shop_Beauty` | `/shop` (beauty) | `CB-SHOP-09/fa_shop-beauty-reminder.light.png` | `CB-SHOP-09/fa_shop-beauty-reminder.dark.png` | discreet supply-reminder toggle (copy never names the reason; opt-in, off by default) | none |

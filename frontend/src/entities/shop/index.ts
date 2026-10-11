@@ -31,3 +31,24 @@ export {
   type ShopListParams,
 } from './api/queries';
 export { formatToman } from './model/price';
+
+// CB-SHOP-09: layette checklist + discreet period-supply reminder.
+export {
+  CHECKLIST_GROUPS,
+  CHECKLIST_STATES,
+  type ChecklistGroupKey,
+  type ChecklistState,
+  type ShopChecklist,
+  type ShopChecklistGroup,
+  type ShopChecklistItem,
+  type SupplyReminder,
+} from './api/checklist-schema';
+export {
+  useAddCustomItem,
+  useDeleteCustomItem,
+  useSaveSupplyReminder,
+  useSetChecklistItemState,
+  useShopChecklist,
+  useSupplyReminder,
+  useUpdateCustomItem,
+} from './api/checklist';

@@ -12858,3 +12858,43 @@ a.nb-card.cnd-card { color: inherit; text-decoration: none; }
 .insq-nav { display: flex; flex-direction: column; gap: 8px; }
 .insq-done { align-items: flex-start; }
 /* ═══ end CB-INS-05 ═══ */
+
+/* ═══ CB-SHOP-09 — layette checklist + shop-home cards ═══ */
+.shc-view { position: relative; }
+.shc-body { display: flex; flex-direction: column; gap: 14px; padding: 8px var(--gutter) 24px; }
+.shc-sum { display: flex; align-items: center; gap: 16px; }
+.shc-pct { font-family: var(--font-display); font-size: 24px; color: var(--text-1); line-height: 1; }
+.shc-sum-text { display: flex; flex-direction: column; gap: 4px; min-inline-size: 0; }
+.shc-sum-main { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); }
+.shc-sum-sub { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.8; color: var(--text-2); }
+.shc-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.shc-chips { flex-wrap: nowrap; overflow-x: auto; padding-block-end: 4px; scrollbar-width: none; }
+.shc-chips::-webkit-scrollbar { display: none; }
+.shc-group { display: flex; flex-direction: column; gap: 8px; }
+.shc-group-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.shc-group-title { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); }
+.shc-group-count { font-size: 12px; font-weight: 700; color: var(--text-2); }
+.shc-rows { list-style: none; margin: 0; padding: 0; }
+.shc-row { display: flex; align-items: center; gap: 8px; padding-inline: 12px; }
+.shc-row + .shc-row { border-block-start: 1px solid var(--line); }
+.shc-row .shc-check { flex: 1; min-inline-size: 0; }
+.shc-row.is-skipped .nb-check-label { text-decoration: line-through; color: var(--text-3); }
+.shc-see { display: inline-flex; align-items: center; min-block-size: 44px; font-size: 12.5px; font-weight: 800; color: var(--brand); text-decoration: none; }
+.shc-edit {
+  display: inline-flex; align-items: center; justify-content: center; inline-size: 44px; block-size: 44px; border: 0;
+  background: transparent; color: var(--text-3); cursor: pointer; border-radius: 50%;
+}
+.shc-see:focus-visible, .shc-edit:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.shc-sheet { display: flex; flex-direction: column; gap: 14px; }
+.shc-sheet-note { margin: 0; font-size: 12.5px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+.shc-sheet-actions { display: flex; flex-direction: column; gap: 4px; }
+.shc-error { margin: 0; font-size: 12.5px; font-weight: 700; color: var(--danger-deep); }
+.shp-checklist { text-decoration: none; color: var(--text-1); }
+.shp-checklist-card { display: flex; align-items: center; gap: 12px; color: var(--brand); }
+.shp-checklist-main { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; gap: 6px; }
+.shp-checklist-title { margin: 0; font-size: 14px; font-weight: 800; color: var(--text-1); }
+.shp-supply { display: flex; align-items: center; gap: 12px; color: var(--brand); }
+.shp-supply-main { flex: 1; min-inline-size: 0; }
+.shp-supply-title { margin: 0 0 4px; font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+.shp-supply-body { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+/* ═══ end CB-SHOP-09 ═══ */

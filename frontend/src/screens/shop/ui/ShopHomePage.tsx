@@ -10,6 +10,7 @@ import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SegmentedTabs, Ske
 
 import { ProductTile } from './ProductTile';
 import { ShopPage as ShopLinkOutPage } from './ShopPage';
+import { ChecklistCard, SupplyReminderCard } from './ShopHomeCards';
 
 /**
  * `/shop` home (CB-SHOP-06, nbd_Shop_Home + nbd_Shop_Beauty): root tabs (baby / beauty), sub-category chips, best
@@ -19,6 +20,8 @@ import { ShopPage as ShopLinkOutPage } from './ShopPage';
  *
  * Product tiles open the product page (CB-SHOP-07). Not here yet: the layette-checklist card (CB-SHOP-09), the
  * period-supply reminder card (CB-SHOP-04 API) and the header cart / city (CB-SHOP-08) — each lands with its API.
+ * CB-SHOP-09 adds the layette-checklist card (baby) and the discreet supply-reminder toggle (beauty).
+ * Not here yet: the header cart / city (CB-SHOP-08) and search + product pages (CB-SHOP-07) — each lands with its API.
  */
 export function ShopHomePage() {
   const t = useTranslations('shop');
@@ -91,6 +94,7 @@ export function ShopHomePage() {
             </div>
           </Card>
         ) : null}
+        {isBeauty ? <SupplyReminderCard /> : <ChecklistCard />}
         {home.sections.length === 0 ? (
           <Card>
             <EmptyState icon="bag" title={t('empty.title')} body={t('empty.body')} />

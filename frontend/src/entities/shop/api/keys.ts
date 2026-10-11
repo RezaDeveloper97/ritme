@@ -7,4 +7,8 @@ export const shopKeys = {
   catalogList: (params: object) => [...shopKeys.all, 'catalog-list', params] as const, // CB-SHOP-07
   catalogProduct: (id: number) => [...shopKeys.all, 'catalog-product', id] as const,
   catalogReviews: (id: number) => [...shopKeys.all, 'catalog-reviews', id] as const,
+  // CB-SHOP-09
+  checklistAll: () => [...shopKeys.all, 'checklist'] as const,
+  checklist: (forUserId: number | null) => [...shopKeys.all, 'checklist', forUserId ?? 'me'] as const,
+  supplyReminder: () => [...shopKeys.all, 'supply-reminder'] as const,
 };

@@ -60,7 +60,16 @@
     "cod": "You pay on delivery.",
     "separation": "The shop is separate from the health section. Your health data is not used to suggest products unless you separately allow it.",
     "teenTitle": "The shop isn't available in this mode",
-    "teenBody": "Shopping is not available for a teen account."
+    "teenBody": "Shopping is not available for a teen account.",
+    "checklist": {
+      "title": "Layette checklist",
+      "progress": "Readiness",
+      "count": "{ready} of {total} ready"
+    },
+    "supply": {
+      "title": "Personal supplies reminder",
+      "body": "A few days ahead you get a plain nudge: \"Take a look at your personal supplies\". Just for you; nothing reaches a seller."
+    }
   },
   "skin": {
     "oily": "oily",
@@ -150,5 +159,68 @@
     "outHint": "This option is out of stock for now.",
     "notFoundTitle": "Product not found",
     "notFoundBody": "It may no longer be in the shop."
+  },
+  "checklist": {
+    "title": "Layette checklist",
+    "due": "Due around {date} · {weeks} weeks to go",
+    "dueDate": "Due around {date}",
+    "ringLabel": "Layette checklist progress",
+    "ringText": "{ready} of {total} items ready",
+    "summary": "{ready} of {total} items ready",
+    "notNeeded": "You marked {num} as not needed.",
+    "yours": "This list is yours; remove or add anything.",
+    "readOnly": "You can view this list; only its owner can change it.",
+    "share": "Share with family",
+    "addItem": "Add an item",
+    "filters": "List filter",
+    "filter": {
+      "all": "All",
+      "essential": "Essentials",
+      "first": "First days"
+    },
+    "groups": {
+      "clothing": "Clothing",
+      "sleep": "Sleep",
+      "feeding": "Feeding",
+      "bath": "Bath",
+      "outing": "Going out"
+    },
+    "groupCount": "{ready} of {total}",
+    "see": "See",
+    "edit": "Edit {name}",
+    "state": {
+      "todo": "Not yet",
+      "have": "Have it",
+      "in_cart": "In cart",
+      "on_the_way": "On the way",
+      "not_needed": "Not needed",
+      "later": "Later"
+    },
+    "qty": {
+      "have": "Have {n}",
+      "in_cart": "{n} in cart",
+      "on_the_way": "{n} on the way"
+    },
+    "emptyTitle": "Nothing in this filter",
+    "emptyBody": "Try another filter or add a new item.",
+    "note": "This is a general suggestion, not a required list. More things does not mean more ready.",
+    "unavailableTitle": "The layette checklist is not available",
+    "unavailableBody": "This list is not active for this account.",
+    "add": {
+      "title": "Add an item",
+      "name": "Item name",
+      "placeholder": "e.g. changing bag",
+      "group": "Group"
+    },
+    "sheet": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "remove": "Remove this item",
+      "state": "Status",
+      "qty": "Quantity",
+      "less": "Fewer",
+      "more": "More",
+      "error": "Could not save. Try again."
+    }
   }
 }
