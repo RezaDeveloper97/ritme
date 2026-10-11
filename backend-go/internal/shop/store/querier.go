@@ -14,8 +14,8 @@ type Querier interface {
 	ClearCart(ctx context.Context, cartID uint64) error
 	CountActiveProduct(ctx context.Context, id uint64) (int64, error)
 	CountActiveVariantsByProduct(ctx context.Context, productID uint64) (int64, error)
-	CountPublishedReviews(ctx context.Context, productID uint64) (int64, error)
 	CountCustomChecklistItems(ctx context.Context, userID uint64) (int64, error)
+	CountPublishedReviews(ctx context.Context, productID uint64) (int64, error)
 	CreateCart(ctx context.Context, arg CreateCartParams) (int64, error)
 	CreateOrderEvent(ctx context.Context, arg CreateOrderEventParams) (int64, error)
 	DecrementVariantStock(ctx context.Context, arg DecrementVariantStockParams) (int64, error)
@@ -38,12 +38,12 @@ type Querier interface {
 	GetSeller(ctx context.Context, id uint64) (ShopSeller, error)
 	GetSupplyReminder(ctx context.Context, userID uint64) (ShopSupplyReminder, error)
 	GetVariant(ctx context.Context, id uint64) (ShopProductVariant, error)
+	InsertCustomChecklistItem(ctx context.Context, arg InsertCustomChecklistItemParams) (int64, error)
+	InsertSupplyCareReminder(ctx context.Context, arg InsertSupplyCareReminderParams) (int64, error)
 	// Shop catalog read API (CB-SHOP-02): home sections, list + filters, product detail, reviews, bought-together.
 	// "Catalog product" = an internal product: active, in an active category, with at least one active variant, and no
 	// inactive seller. Link-out rows (no variants) stay on bloom's /shop/products (internal/shop). No health table here.
 	ListActiveCategories(ctx context.Context) ([]ShopCategory, error)
-	InsertCustomChecklistItem(ctx context.Context, arg InsertCustomChecklistItemParams) (int64, error)
-	InsertSupplyCareReminder(ctx context.Context, arg InsertSupplyCareReminderParams) (int64, error)
 	// Layette checklist template + the user's own checklist state, and the period-supply reminder opt-in (CB-SHOP-01).
 	// The reminder's timing comes from cycle predictions through a Go interface; no query here joins a health table.
 	ListActiveLayetteItems(ctx context.Context) ([]ShopLayetteItem, error)

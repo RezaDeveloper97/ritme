@@ -107,10 +107,13 @@ ALTER TABLE `city_service_bookings`
   ADD COLUMN IF NOT EXISTS `cancelled_at` timestamp NULL DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS `cancelled_by` varchar(8) DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS `completed_at` timestamp NULL DEFAULT NULL,
-  ADD UNIQUE KEY IF NOT EXISTS `city_service_bookings_code_unique` (`code`),
   ADD CONSTRAINT `city_service_bookings_service_id_foreign` FOREIGN KEY IF NOT EXISTS (`service_id`) REFERENCES `city_service_services` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `city_service_bookings_slot_id_foreign` FOREIGN KEY IF NOT EXISTS (`slot_id`) REFERENCES `city_service_slots` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `city_service_bookings_child_id_foreign` FOREIGN KEY IF NOT EXISTS (`child_id`) REFERENCES `children` (`id`) ON DELETE SET NULL;
+
+-- CB-DIR-04: the unique key as its own statement — sqlc's parser rejects `ADD UNIQUE KEY IF NOT EXISTS` inside an
+-- ALTER TABLE (make sqlc failed on this file); MariaDB builds the identical index.
+CREATE UNIQUE INDEX IF NOT EXISTS `city_service_bookings_code_unique` ON `city_service_bookings` (`code`);
 
 CREATE TABLE IF NOT EXISTS `city_service_reviews` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,

@@ -445,6 +445,39 @@ type ChildVaccineDose struct {
 	UpdatedAt sql.NullTime
 }
 
+type CityServiceApplication struct {
+	ID              uint64
+	UserID          uint64
+	TrackingCode    sql.NullString
+	Status          string
+	Step            uint8
+	BusinessName    sql.NullString
+	CategorySlugs   sql.NullString
+	CityID          sql.NullInt64
+	District        sql.NullString
+	ContactName     sql.NullString
+	ContactPhone    sql.NullString
+	OwnerConfirmed  bool
+	Lat             sql.NullString
+	Lng             sql.NullString
+	Address         sql.NullString
+	About           sql.NullString
+	AgeRanges       sql.NullString
+	Amenities       sql.NullString
+	WeeklyHours     sql.NullString
+	PhotoFileIds    sql.NullString
+	Services        sql.NullString
+	BookingMode     sql.NullString
+	Documents       sql.NullString
+	TermsAcceptedAt sql.NullTime
+	SubmittedAt     sql.NullTime
+	ReviewedAt      sql.NullTime
+	ReviewNote      sql.NullString
+	ListingID       sql.NullInt64
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
 type CityServiceBooking struct {
 	ID            uint64
 	UserID        uint64
@@ -458,6 +491,15 @@ type CityServiceBooking struct {
 	StatusNote    sql.NullString
 	CreatedAt     sql.NullTime
 	UpdatedAt     sql.NullTime
+	Code          sql.NullString
+	ServiceID     sql.NullInt64
+	SlotID        sql.NullInt64
+	ChildID       sql.NullInt64
+	PriceToman    sql.NullInt32
+	ConfirmedAt   sql.NullTime
+	CancelledAt   sql.NullTime
+	CancelledBy   sql.NullString
+	CompletedAt   sql.NullTime
 }
 
 type CityServiceCategory struct {
@@ -482,21 +524,97 @@ type CityServiceCity struct {
 }
 
 type CityServiceListing struct {
+	ID              uint64
+	CategoryID      uint64
+	CityID          uint64
+	Name            string
+	District        sql.NullString
+	Address         sql.NullString
+	Phone           sql.NullString
+	Description     sql.NullString
+	PriceText       sql.NullString
+	HoursText       sql.NullString
+	Photos          sql.NullString
+	BookingMode     string
+	BookingUrl      sql.NullString
+	SortOrder       int32
+	IsActive        bool
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+	Status          string
+	VerifiedAt      sql.NullTime
+	OwnerUserID     sql.NullInt64
+	Lat             sql.NullString
+	Lng             sql.NullString
+	About           sql.NullString
+	AgeRanges       sql.NullString
+	Amenities       sql.NullString
+	WeeklyHours     sql.NullString
+	PhotoFileIds    sql.NullString
+	WebsiteUrl      sql.NullString
+	CancelFreeHours sql.NullInt16
+	CancelPolicy    sql.NullString
+	Rules           sql.NullString
+	RatingAvg       sql.NullString
+	RatingCount     uint32
+}
+
+type CityServiceReport struct {
+	ID         uint64
+	ListingID  uint64
+	UserID     sql.NullInt64
+	Reason     string
+	Note       sql.NullString
+	Status     string
+	ResolvedAt sql.NullTime
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
+type CityServiceReview struct {
+	ID               uint64
+	ListingID        uint64
+	BookingID        uint64
+	UserID           uint64
+	Rating           uint8
+	ScoreCleanliness sql.NullInt16
+	ScoreInstructor  sql.NullInt16
+	ScoreAmenities   sql.NullInt16
+	Body             sql.NullString
+	Status           string
+	CreatedAt        sql.NullTime
+	UpdatedAt        sql.NullTime
+}
+
+type CityServiceService struct {
+	ID                  uint64
+	ListingID           uint64
+	Kind                string
+	Name                string
+	Description         sql.NullString
+	Format              sql.NullString
+	DurationMinutes     sql.NullInt16
+	AgeMinMonths        sql.NullInt16
+	AgeMaxMonths        sql.NullInt16
+	Capacity            sql.NullInt16
+	PriceToman          sql.NullInt32
+	PackageSessions     sql.NullInt16
+	PackageValidityDays sql.NullInt16
+	SortOrder           int32
+	IsActive            bool
+	CreatedAt           sql.NullTime
+	UpdatedAt           sql.NullTime
+}
+
+type CityServiceSlot struct {
 	ID          uint64
-	CategoryID  uint64
-	CityID      uint64
-	Name        string
-	District    sql.NullString
-	Address     sql.NullString
-	Phone       sql.NullString
-	Description sql.NullString
-	PriceText   sql.NullString
-	HoursText   sql.NullString
-	Photos      sql.NullString
-	BookingMode string
-	BookingUrl  sql.NullString
-	SortOrder   int32
-	IsActive    bool
+	ListingID   uint64
+	ServiceID   sql.NullInt64
+	StartsAt    time.Time
+	EndsAt      sql.NullTime
+	Capacity    uint16
+	BookedCount uint16
+	Status      string
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
 }

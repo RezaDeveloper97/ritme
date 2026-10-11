@@ -1,0 +1,99 @@
+# Directory business applications (/api/v1/city-services/applications/*) — Go only (canvas CB-DIR-04): there is no
+# Laravel route, so these goldens were recorded from the Go server (APP_ENV=contract → the public development file key)
+# and reviewed by hand (new-endpoint skill, step 8). The fixture dump carries bloom's three categories (no city) and the
+# empty `city_service_applications` table (goose 00081), added by hand. A private document's signed link covers the
+# random blob path and the tracking code is random, so both are patterns. Photo uploads (PNG re-encode), steps 2–3,
+# the full submit with a tracking code, needs_info resubmission, replacing / deleting files, the submit throttle and
+# the IDOR matrix are covered by internal/http/city_services_join_int_test.go. `regular` (1004) applies;
+# `no_profile` (1001) is the other account.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: city-services-join
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: applications_anon
+    persona: anon
+    steps:
+      - method: GET
+        path: /api/v1/city-services/applications
+        status: 401
+      - method: POST
+        path: /api/v1/city-services/applications
+        status: 401
+  - name: applications_empty
+    method: GET
+    path: /api/v1/city-services/applications
+    status: 200
+  - name: application_missing
+    locales: [en]
+    method: GET
+    path: /api/v1/city-services/applications/999
+    status: 404
+  - name: step_invalid
+    doc: unknown category, inactive city, bad mobile → 422 (localized)
+    reset: true
+    locales: [en, fa]
+    steps:
+      - method: POST
+        path: /api/v1/city-services/applications
+        status: 201
+        capture: {id: data.application.id}
+      - method: PUT
+        path: "/api/v1/city-services/applications/{{id}}/steps/1"
+        body: {business_name: Ab Pari, category_slugs: [pool, nope], city_id: 99, contact_phone: "12345"}
+        status: 422
+  - name: application_flow
+    doc: draft → same draft again → step 1 and 4 → licence (private, signed link) → incomplete submit → status → IDOR 404 → delete
+    reset: true
+    locales: [en]
+    patterns:
+      data.document.url: '^http://[^/]+/api/v1/files/\d+/download\?expires=\d+&signature=[A-Za-z0-9_-]{43}$'
+      data.application.documents.licence.url: '^http://[^/]+/api/v1/files/\d+/download\?expires=\d+&signature=[A-Za-z0-9_-]{43}$'
+    steps:
+      - method: POST
+        path: /api/v1/city-services/applications
+        status: 201
+        capture: {id: data.application.id}
+      - method: POST
+        path: /api/v1/city-services/applications
+        status: 200
+      - method: PUT
+        path: "/api/v1/city-services/applications/{{id}}/steps/1"
+        body: {business_name: Ab Pari, category_slugs: [pool, class], district: Vanak, contact_name: Sara, contact_phone: "۰۹۱۲ ۱۲۳ ۴۵۶۷", owner_confirmed: true}
+        status: 200
+      - method: PUT
+        path: "/api/v1/city-services/applications/{{id}}/steps/4"
+        body: {booking_mode: request, terms_accepted: true}
+        status: 200
+      - method: PUT
+        path: "/api/v1/city-services/applications/{{id}}/documents/licence"
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"licence.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 licence\n%%EOF\r\n--ritmeB--\r\n"
+        status: 200
+      - method: GET
+        path: "/api/v1/city-services/applications/{{id}}"
+        status: 200
+      - method: POST
+        path: "/api/v1/city-services/applications/{{id}}/submit"
+        status: 422
+      - method: GET
+        path: "/api/v1/city-services/applications/{{id}}/status"
+        status: 200
+      - method: GET
+        as: no_profile
+        path: "/api/v1/city-services/applications/{{id}}"
+        status: 404
+      - method: POST
+        as: no_profile
+        path: "/api/v1/city-services/applications/{{id}}/submit"
+        status: 404
+      - method: GET
+        path: /api/v1/city-services/applications
+        status: 200
+      - method: DELETE
+        path: "/api/v1/city-services/applications/{{id}}"
+        status: 200
+      - method: GET
+        path: "/api/v1/city-services/applications/{{id}}"
+        status: 404

@@ -3,7 +3,7 @@ id: CB-DIR-04
 title: Business application API (4-step join)
 epic: DIR
 type: backend
-status: todo
+status: done
 depends_on: [CB-DIR-01]
 parallel_group: DIR-C
 touches: [backend-go/internal/cityservices/join, backend-go/internal/http/routes_cityservices.go, backend-go/db/queries/cityservices, backend-go/api/openapi.yaml]

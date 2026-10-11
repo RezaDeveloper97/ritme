@@ -1296,6 +1296,56 @@ LOCK TABLES `children` WRITE;
 /*!40000 ALTER TABLE `children` DISABLE KEYS */;
 /*!40000 ALTER TABLE `children` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `city_service_applications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `city_service_applications` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `tracking_code` varchar(16) DEFAULT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'draft',
+  `step` tinyint(3) unsigned NOT NULL DEFAULT 1,
+  `business_name` varchar(160) DEFAULT NULL,
+  `category_slugs` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`category_slugs`)),
+  `city_id` bigint(20) unsigned DEFAULT NULL,
+  `district` varchar(120) DEFAULT NULL,
+  `contact_name` varchar(120) DEFAULT NULL,
+  `contact_phone` varchar(32) DEFAULT NULL,
+  `owner_confirmed` tinyint(1) NOT NULL DEFAULT 0,
+  `lat` decimal(9,6) DEFAULT NULL,
+  `lng` decimal(9,6) DEFAULT NULL,
+  `address` varchar(300) DEFAULT NULL,
+  `about` text DEFAULT NULL,
+  `age_ranges` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`age_ranges`)),
+  `amenities` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`amenities`)),
+  `weekly_hours` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`weekly_hours`)),
+  `photo_file_ids` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`photo_file_ids`)),
+  `services` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`services`)),
+  `booking_mode` varchar(12) DEFAULT NULL,
+  `documents` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`documents`)),
+  `terms_accepted_at` timestamp NULL DEFAULT NULL,
+  `submitted_at` timestamp NULL DEFAULT NULL,
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `review_note` varchar(500) DEFAULT NULL,
+  `listing_id` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `city_service_applications_tracking_code_unique` (`tracking_code`),
+  KEY `city_service_applications_city_id_foreign` (`city_id`),
+  KEY `city_service_applications_listing_id_foreign` (`listing_id`),
+  KEY `city_service_applications_user_id_status_index` (`user_id`,`status`),
+  KEY `city_service_applications_status_submitted_at_index` (`status`,`submitted_at`),
+  CONSTRAINT `city_service_applications_city_id_foreign` FOREIGN KEY (`city_id`) REFERENCES `city_service_cities` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `city_service_applications_listing_id_foreign` FOREIGN KEY (`listing_id`) REFERENCES `city_service_listings` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `city_service_applications_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `city_service_applications` WRITE;
+/*!40000 ALTER TABLE `city_service_applications` DISABLE KEYS */;
+/*!40000 ALTER TABLE `city_service_applications` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `city_service_bookings`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;

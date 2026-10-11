@@ -327,3 +327,10 @@ sql:
       go:
         <<: *go
         out: internal/insurance/store
+  # CB-DIR-04 business applications (4-step join), next to bloom's raw-SQL cityservices store.
+  - <<: *pkg
+    queries: db/queries/cityservices_join
+    gen:
+      go:
+        <<: *go
+        out: internal/cityservices/join/store

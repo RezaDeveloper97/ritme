@@ -194,6 +194,34 @@ func readUpload(c fiber.Ctx, raw []byte, locale string) (upload, error) {
 	return out, nil
 }
 
+// ReadUpload parses a multipart upload body exactly like POST /files (one bounded `file` part, an optional `purpose`
+// field, nothing else, no multipart temp file) for a consumer that takes an upload on its own owner-checked route
+// (canvas CB-DIR-04: business-application photos and licences). The caller clears data after use. Errors are the
+// localized 422 of POST /files; an empty file is the caller's to refuse (FileRequired).
+func ReadUpload(c fiber.Ctx, raw []byte, locale string) (purpose string, data []byte, err error) {
+	up, err := readUpload(c, raw, locale)
+	return up.purpose, up.data, err
+}
+
+// FileRequired is the 422 POST /files answers for a missing or empty file (CB-DIR-04).
+func FileRequired(locale string) error { return fieldFail(locale, "file", "file_required", nil) }
+
+// PutFailure is the response POST /files gives for a Service.Put error on purpose p: 422 on `file` (type, size,
+// quota) or `purpose`, 503 for storage / busy. Shared with consumers that call Put on their own route (CB-DIR-04).
+func PutFailure(err error, p Purpose, locale string) error {
+	switch {
+	case errors.Is(err, ErrType):
+		return fieldFail(locale, "file", "file_type", nil)
+	case errors.Is(err, ErrTooLarge):
+		return fieldFail(locale, "file", "file_too_large", map[string]string{"max": strconv.Itoa(p.MaxBytes / mb)})
+	case errors.Is(err, ErrQuota):
+		return fieldFail(locale, "file", "quota", nil)
+	case errors.Is(err, ErrPurpose):
+		return fieldFail(locale, "purpose", "purpose_invalid", nil)
+	}
+	return fail(err, locale)
+}
+
 // Upload is POST /api/v1/files.
 func (h *Handlers) Upload(c fiber.Ctx) error {
 	userID, err := user(c)
@@ -220,17 +248,8 @@ func (h *Handlers) Upload(c fiber.Ctx) error {
 	}
 	now := h.now(c)
 	f, err := h.svc.Put(c.Context(), userID, p.Name, up.data, now)
-	switch {
-	case errors.Is(err, ErrType):
-		return fieldFail(locale, "file", "file_type", nil)
-	case errors.Is(err, ErrTooLarge):
-		return fieldFail(locale, "file", "file_too_large", map[string]string{"max": strconv.Itoa(p.MaxBytes / mb)})
-	case errors.Is(err, ErrQuota):
-		return fieldFail(locale, "file", "quota", nil)
-	case errors.Is(err, ErrPurpose):
-		return fieldFail(locale, "purpose", "purpose_invalid", nil)
-	case err != nil:
-		return fail(err, locale)
+	if err != nil {
+		return PutFailure(err, p, locale)
 	}
 	body, err := h.fileJSON(f, now)
 	if err != nil {

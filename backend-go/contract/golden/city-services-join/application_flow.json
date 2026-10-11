@@ -1,0 +1,570 @@
+{
+  "case": "city-services-join/application_flow",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/applications",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Your application draft is ready.",
+        "data": {
+          "application": {
+            "id": 1,
+            "status": "draft",
+            "step": 1,
+            "tracking_code": null,
+            "editable": true,
+            "can_add_photos": true,
+            "business_name": null,
+            "category_slugs": [],
+            "city_id": null,
+            "district": null,
+            "contact_name": null,
+            "contact_phone": null,
+            "owner_confirmed": false,
+            "lat": null,
+            "lng": null,
+            "address": null,
+            "about": null,
+            "age_ranges": [],
+            "amenities": [],
+            "weekly_hours": [],
+            "photos": [],
+            "services": [],
+            "booking_mode": null,
+            "terms_accepted_at": null,
+            "documents": {
+              "licence": null,
+              "instructor_cert": null,
+              "health_cert": null
+            },
+            "requirements": {
+              "min_photos": 4,
+              "max_photos": 20,
+              "health_cert_category": "pool"
+            },
+            "submitted_at": null,
+            "reviewed_at": null,
+            "review_note": null,
+            "created_at": "2026-09-23T10:00:00+03:30",
+            "updated_at": "2026-09-23T10:00:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/applications",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "application": {
+            "id": 1,
+            "status": "draft",
+            "step": 1,
+            "tracking_code": null,
+            "editable": true,
+            "can_add_photos": true,
+            "business_name": null,
+            "category_slugs": [],
+            "city_id": null,
+            "district": null,
+            "contact_name": null,
+            "contact_phone": null,
+            "owner_confirmed": false,
+            "lat": null,
+            "lng": null,
+            "address": null,
+            "about": null,
+            "age_ranges": [],
+            "amenities": [],
+            "weekly_hours": [],
+            "photos": [],
+            "services": [],
+            "booking_mode": null,
+            "terms_accepted_at": null,
+            "documents": {
+              "licence": null,
+              "instructor_cert": null,
+              "health_cert": null
+            },
+            "requirements": {
+              "min_photos": 4,
+              "max_photos": 20,
+              "health_cert_category": "pool"
+            },
+            "submitted_at": null,
+            "reviewed_at": null,
+            "review_note": null,
+            "created_at": "2026-09-23T10:00:00+03:30",
+            "updated_at": "2026-09-23T10:00:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/city-services/applications/1/steps/1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "business_name": "Ab Pari",
+          "category_slugs": [
+            "pool",
+            "class"
+          ],
+          "district": "Vanak",
+          "contact_name": "Sara",
+          "contact_phone": "۰۹۱۲ ۱۲۳ ۴۵۶۷",
+          "owner_confirmed": true
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved.",
+        "data": {
+          "application": {
+            "id": 1,
+            "status": "draft",
+            "step": 1,
+            "tracking_code": null,
+            "editable": true,
+            "can_add_photos": true,
+            "business_name": "Ab Pari",
+            "category_slugs": [
+              "pool",
+              "class"
+            ],
+            "city_id": null,
+            "district": "Vanak",
+            "contact_name": "Sara",
+            "contact_phone": "09121234567",
+            "owner_confirmed": true,
+            "lat": null,
+            "lng": null,
+            "address": null,
+            "about": null,
+            "age_ranges": [],
+            "amenities": [],
+            "weekly_hours": [],
+            "photos": [],
+            "services": [],
+            "booking_mode": null,
+            "terms_accepted_at": null,
+            "documents": {
+              "licence": null,
+              "instructor_cert": null,
+              "health_cert": null
+            },
+            "requirements": {
+              "min_photos": 4,
+              "max_photos": 20,
+              "health_cert_category": "pool"
+            },
+            "submitted_at": null,
+            "reviewed_at": null,
+            "review_note": null,
+            "created_at": "2026-09-23T10:00:00+03:30",
+            "updated_at": "2026-09-23T10:00:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/city-services/applications/1/steps/4",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "booking_mode": "request",
+          "terms_accepted": true
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved.",
+        "data": {
+          "application": {
+            "id": 1,
+            "status": "draft",
+            "step": 4,
+            "tracking_code": null,
+            "editable": true,
+            "can_add_photos": true,
+            "business_name": "Ab Pari",
+            "category_slugs": [
+              "pool",
+              "class"
+            ],
+            "city_id": null,
+            "district": "Vanak",
+            "contact_name": "Sara",
+            "contact_phone": "09121234567",
+            "owner_confirmed": true,
+            "lat": null,
+            "lng": null,
+            "address": null,
+            "about": null,
+            "age_ranges": [],
+            "amenities": [],
+            "weekly_hours": [],
+            "photos": [],
+            "services": [],
+            "booking_mode": "request",
+            "terms_accepted_at": "2026-09-23T10:00:00+03:30",
+            "documents": {
+              "licence": null,
+              "instructor_cert": null,
+              "health_cert": null
+            },
+            "requirements": {
+              "min_photos": 4,
+              "max_photos": 20,
+              "health_cert_category": "pool"
+            },
+            "submitted_at": null,
+            "reviewed_at": null,
+            "review_note": null,
+            "created_at": "2026-09-23T10:00:00+03:30",
+            "updated_at": "2026-09-23T10:00:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/city-services/applications/1/documents/licence",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "raw_body": "--ritmeB\r\nContent-Disposition: form-data; name=\"file\"; filename=\"licence.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 licence\n%%EOF\r\n--ritmeB--\r\n"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": true,
+        "message": "Document uploaded.",
+        "data": {
+          "slot": "licence",
+          "document": {
+            "id": 1,
+            "mime": "application/pdf",
+            "size_bytes": 22,
+            "url": "<pattern:^http://[^/]+/api/v1/files/\\d+/download\\?expires=\\d+&signature=[A-Za-z0-9_-]{43}$>",
+            "url_expires_at": "2026-09-23T10:05:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/city-services/applications/1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "application": {
+            "id": 1,
+            "status": "draft",
+            "step": 4,
+            "tracking_code": null,
+            "editable": true,
+            "can_add_photos": true,
+            "business_name": "Ab Pari",
+            "category_slugs": [
+              "pool",
+              "class"
+            ],
+            "city_id": null,
+            "district": "Vanak",
+            "contact_name": "Sara",
+            "contact_phone": "09121234567",
+            "owner_confirmed": true,
+            "lat": null,
+            "lng": null,
+            "address": null,
+            "about": null,
+            "age_ranges": [],
+            "amenities": [],
+            "weekly_hours": [],
+            "photos": [],
+            "services": [],
+            "booking_mode": "request",
+            "terms_accepted_at": "2026-09-23T10:00:00+03:30",
+            "documents": {
+              "licence": {
+                "id": 1,
+                "mime": "application/pdf",
+                "size_bytes": 22,
+                "url": "<pattern:^http://[^/]+/api/v1/files/\\d+/download\\?expires=\\d+&signature=[A-Za-z0-9_-]{43}$>",
+                "url_expires_at": "2026-09-23T10:05:00+03:30"
+              },
+              "instructor_cert": null,
+              "health_cert": null
+            },
+            "requirements": {
+              "min_photos": 4,
+              "max_photos": 20,
+              "health_cert_category": "pool"
+            },
+            "submitted_at": null,
+            "reviewed_at": null,
+            "review_note": null,
+            "created_at": "2026-09-23T10:00:00+03:30",
+            "updated_at": "2026-09-23T10:00:00+03:30"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/applications/1/submit",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "54"
+      },
+      "body": {
+        "success": false,
+        "message": "A few things are still missing before you can send the application.",
+        "error_code": "application_incomplete",
+        "errors": {
+          "city_id": [
+            "This field is required to send the application."
+          ],
+          "location": [
+            "Pin the place on the map."
+          ],
+          "address": [
+            "This field is required to send the application."
+          ],
+          "age_ranges": [
+            "This field is required to send the application."
+          ],
+          "weekly_hours": [
+            "This field is required to send the application."
+          ],
+          "photos": [
+            "Add at least 4 real photos of the place."
+          ],
+          "services": [
+            "This field is required to send the application."
+          ],
+          "documents.health_cert": [
+            "Upload this document."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/city-services/applications/1/status",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "status": "draft",
+          "tracking_code": null,
+          "business_name": "Ab Pari",
+          "submitted_at": null,
+          "reviewed_at": null,
+          "review_note": null,
+          "timeline": [
+            {
+              "key": "submitted",
+              "state": "current",
+              "at": null
+            },
+            {
+              "key": "documents_review",
+              "state": "pending",
+              "at": null
+            },
+            {
+              "key": "expert_contact",
+              "state": "pending",
+              "at": null
+            },
+            {
+              "key": "published",
+              "state": "pending",
+              "at": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/city-services/applications/1",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "This application was not found.",
+        "error_code": "application_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/city-services/applications/1/submit",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "This application was not found.",
+        "error_code": "application_not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/city-services/applications",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "applications": [
+            {
+              "id": 1,
+              "status": "draft",
+              "step": 4,
+              "tracking_code": null,
+              "business_name": "Ab Pari",
+              "editable": true,
+              "submitted_at": null,
+              "updated_at": "2026-09-23T10:00:00+03:30"
+            }
+          ],
+          "max_applications": 10
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/city-services/applications/1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "53"
+      },
+      "body": {
+        "success": true,
+        "message": "Draft deleted."
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/city-services/applications/1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "This application was not found.",
+        "error_code": "application_not_found"
+      }
+    }
+  ]
+}

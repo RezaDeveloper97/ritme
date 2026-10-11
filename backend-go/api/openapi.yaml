@@ -25,6 +25,7 @@ tags:
   - {name: Insurance, description: "Insurance self-tracking (Go only, CB-INS-01): policy, coverage caps, claims with a timeline she maintains, questionnaire drafts prefilled from her record. Nothing is sent to an insurer"}
   - {name: Shop, description: "Shop catalog (B-N10-03): admin-managed categories and link-out products, per-day click counter, no health data"}
   - {name: CityServices, description: "City services (Go only, B-N10-05, D-92): admin-managed classes / pools / playhouses per city, link-out / phone / request booking, the user's own requests. No health data goes to venues"}
+  - {name: CityServiceApplications, description: "Directory business applications (Go only, canvas CB-DIR-04): the 4-step join draft with auto-saved steps, public place photos and PRIVATE licence documents (owner-only, signed links), submit → random tracking code + SMS. Owner-scoped (404 for anyone else's); no payment"}
   - {name: Assistant, description: "AI assistant clinic (B-N7-06): departments, shared profile, SSE chat, triage, summary, handoff to a booked doctor"}
   - {name: Auth, description: OTP sign-in and the 365-day session token}
   - {name: Profile, description: "User profile, data export and account deletion"}
@@ -14512,6 +14513,288 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CityServiceNotFound"}
         '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/city-services/applications:
+    get:
+      tags: [CityServiceApplications]
+      summary: My business applications
+      description: Go only (canvas CB-DIR-04). The caller's applications, newest first (summaries). no-store.
+      operationId: listCityServiceApplications
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [applications, max_applications]
+                    properties:
+                      applications: {type: array, items: {$ref: "#/components/schemas/CityServiceApplicationSummary"}}
+                      max_applications: {type: integer}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    post:
+      tags: [CityServiceApplications]
+      summary: Open a draft (or return the open one)
+      description: Go only (CB-DIR-04, Dir_Join). 201 with a new draft; 200 with the account's open draft when there is one; 409 `too_many_applications` past 10 rows.
+      operationId: startCityServiceApplication
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/CityServiceApplicationOK"}
+        '201': {$ref: "#/components/responses/CityServiceApplicationOK"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/CityServiceApplicationConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/city-services/applications/{id}:
+    get:
+      tags: [CityServiceApplications]
+      summary: One of my applications
+      description: Go only (CB-DIR-04). Owner only — another account's id is the uniform 404. Photos carry their public URL, documents a 5-minute signed link (private files, never public).
+      operationId: showCityServiceApplication
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/CityServiceApplicationOK"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CityServiceApplicationNotFound"}
+    delete:
+      tags: [CityServiceApplications]
+      summary: Delete my draft
+      description: Go only (CB-DIR-04). Drafts only (409 `application_locked` once submitted); its photos and documents are deleted too.
+      operationId: deleteCityServiceApplication
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/CityServiceApplicationMessage"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CityServiceApplicationNotFound"}
+        '409': {$ref: "#/components/responses/CityServiceApplicationConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/city-services/applications/{id}/status:
+    get:
+      tags: [CityServiceApplications]
+      summary: Status and review timeline (JoinDone)
+      description: Go only (CB-DIR-04). Owner only. Timeline keys submitted → documents_review → expert_contact → published, each done | current | pending | failed.
+      operationId: showCityServiceApplicationStatus
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/CityServiceApplicationStatus"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CityServiceApplicationNotFound"}
+  /api/v1/city-services/applications/{id}/steps/{step}:
+    put:
+      tags: [CityServiceApplications]
+      summary: Auto-save one step
+      description: |
+        Go only (CB-DIR-04). The whole form of step 1 (Dir_Join), 2 (Dir_JoinForm, photos have their own route),
+        3 (services) or 4 (booking mode + terms, documents have their own route); an absent field is stored empty.
+        Lenient: types, lengths and references (active category / city, catalog chips `dir_age_ranges` /
+        `dir_amenities`) are checked, completeness only on submit. `step` advances to the saved step at most.
+        Only while `draft` / `needs_info` (else 409 `application_locked`). Unknown keys are ignored.
+      operationId: saveCityServiceApplicationStep
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {name: step, in: path, required: true, schema: {type: integer, minimum: 1, maximum: 4}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - {$ref: "#/components/schemas/CityServiceApplicationStep1"}
+                - {$ref: "#/components/schemas/CityServiceApplicationStep2"}
+                - {$ref: "#/components/schemas/CityServiceApplicationStep3"}
+                - {$ref: "#/components/schemas/CityServiceApplicationStep4"}
+      responses:
+        '200': {$ref: "#/components/responses/CityServiceApplicationOK"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CityServiceApplicationNotFound"}
+        '409': {$ref: "#/components/responses/CityServiceApplicationConflict"}
+        '422': {$ref: "#/components/responses/CityServiceApplicationValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/city-services/applications/{id}/photos:
+    post:
+      tags: [CityServiceApplications]
+      summary: Add a place photo
+      description: |
+        Go only (CB-DIR-04). Multipart `file` (JPEG / PNG / WebP ≤ 5 MB, sniffed from the bytes) stored through the
+        generic file storage as purpose `place_photo` (public, re-encoded WebP without EXIF / GPS). At most 20 per
+        application; allowed while draft / needs_info and also while submitted / in_review (JoinDone «عکس‌های بیشتر»).
+        Per-user upload limit 60 / hour.
+      operationId: addCityServiceApplicationPhoto
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: {type: string, format: binary}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [photo]
+                    properties:
+                      photo: {$ref: "#/components/schemas/CityServiceApplicationFile"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CityServiceApplicationNotFound"}
+        '409': {$ref: "#/components/responses/CityServiceApplicationConflict"}
+        '422': {$ref: "#/components/responses/FileValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/FileStorageUnavailable"}
+  /api/v1/city-services/applications/{id}/photos/{fileId}:
+    delete:
+      tags: [CityServiceApplications]
+      summary: Remove a place photo
+      description: Go only (CB-DIR-04). Only one of this application's photos (else 404); only while draft / needs_info. The file is deleted.
+      operationId: removeCityServiceApplicationPhoto
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {name: fileId, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/CityServiceApplicationMessage"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CityServiceApplicationNotFound"}
+        '409': {$ref: "#/components/responses/CityServiceApplicationConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/city-services/applications/{id}/documents/{slot}:
+    put:
+      tags: [CityServiceApplications]
+      summary: Upload a private document (JoinDocs)
+      description: |
+        Go only (CB-DIR-04). Multipart `file` (photo or PDF ≤ 10 MB, sniffed) stored as purpose `place_licence`:
+        private, encrypted at rest, owner-only, served only through short-lived signed links (the Ritme review team
+        reads it in admin). Replaces the slot's previous file (deleted). Only while draft / needs_info. Slots:
+        `licence` (required), `instructor_cert`, `health_cert` (required for the `pool` category). Unknown slot → 404.
+      operationId: putCityServiceApplicationDocument
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {name: slot, in: path, required: true, schema: {type: string, enum: [licence, instructor_cert, health_cert]}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: {type: string, format: binary}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [slot, document]
+                    properties:
+                      slot: {type: string, enum: [licence, instructor_cert, health_cert]}
+                      document: {$ref: "#/components/schemas/CityServiceApplicationFile"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CityServiceApplicationNotFound"}
+        '409': {$ref: "#/components/responses/CityServiceApplicationConflict"}
+        '422': {$ref: "#/components/responses/FileValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/FileStorageUnavailable"}
+    delete:
+      tags: [CityServiceApplications]
+      summary: Remove a document
+      description: Go only (CB-DIR-04). Empties the slot and deletes its file (404 when empty). Only while draft / needs_info.
+      operationId: removeCityServiceApplicationDocument
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {name: slot, in: path, required: true, schema: {type: string, enum: [licence, instructor_cert, health_cert]}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/CityServiceApplicationMessage"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CityServiceApplicationNotFound"}
+        '409': {$ref: "#/components/responses/CityServiceApplicationConflict"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/city-services/applications/{id}/submit:
+    post:
+      tags: [CityServiceApplications]
+      summary: Send the application
+      description: |
+        Go only (CB-DIR-04, Dir_JoinDocs «ارسال درخواست»). Checks completeness (≥ 4 live photos, licence, health
+        certificate for pools, terms, …) → 422 `application_incomplete` with per-field errors; else `submitted` with
+        a random tracking code (60 bits, `XXXX-XXXX-XXXX`, kept on a resubmission after `needs_info`) and a
+        confirmation SMS to the step-1 mobile (fake provider for now). No payment (MVP). Per-user limit 5 / hour.
+      operationId: submitCityServiceApplication
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/CityServiceApplicationOK"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CityServiceApplicationNotFound"}
+        '409': {$ref: "#/components/responses/CityServiceApplicationConflict"}
+        '422': {$ref: "#/components/responses/CityServiceApplicationValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/analytics/events:
     post:
       tags: [Analytics]
@@ -22517,6 +22800,65 @@ components:
               success: {type: boolean, const: false}
               message: {type: string}
               error_code: {type: string, const: file_not_found}
+    CityServiceApplicationOK:
+      description: "CB-DIR-04: the caller's application (optional localized `message`)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, data]
+            properties:
+              success: {type: boolean}
+              message: {type: string}
+              data:
+                type: object
+                required: [application]
+                properties:
+                  application: {$ref: "#/components/schemas/CityServiceApplication"}
+    CityServiceApplicationMessage:
+      description: "CB-DIR-04: done, with a localized message."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean}
+              message: {type: string}
+    CityServiceApplicationNotFound:
+      description: "CB-DIR-04: unknown id, another account's application, an unknown step / slot, or a photo / document that is not this application's — one uniform answer."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: application_not_found}
+    CityServiceApplicationConflict:
+      description: "CB-DIR-04: `application_locked` (no longer draft / needs_info) or `too_many_applications`."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [application_locked, too_many_applications]}
+    CityServiceApplicationValidationFailed:
+      description: "CB-DIR-04: controller-style 422 `{success:false, message, errors}`; on submit also `error_code: application_incomplete` with one error per missing field (`photos`, `location`, `terms`, `documents.licence`, …)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: application_incomplete}
+              errors: {type: object, additionalProperties: {type: array, items: {type: string}}}
     FileValidationFailed:
       description: "CB-CORE-05: controller-style 422 `{success:false, message, errors}` on `purpose` or `file` (missing, type, size, quota)."
       content:
@@ -23759,6 +24101,152 @@ components:
             hours_text: {type: string, nullable: true}
             photos: {type: array, items: {type: string}}
             booking_url: {type: string, nullable: true, description: "only in link mode"}
+    CityServiceApplicationSummary:
+      type: object
+      required: [id, status, step, tracking_code, business_name, editable, submitted_at, updated_at]
+      properties:
+        id: {type: integer}
+        status: {type: string, enum: [draft, submitted, in_review, needs_info, approved, rejected]}
+        step: {type: integer, minimum: 1, maximum: 4, description: furthest saved step}
+        tracking_code: {type: [string, 'null']}
+        business_name: {type: [string, 'null']}
+        editable: {type: boolean}
+        submitted_at: {type: [string, 'null'], format: date-time}
+        updated_at: {type: [string, 'null'], format: date-time}
+    CityServiceApplicationFile:
+      type: object
+      required: [id, mime, size_bytes, url, url_expires_at]
+      properties:
+        id: {type: integer}
+        mime: {type: string}
+        size_bytes: {type: integer}
+        url: {type: string, description: "public URL (photos) or a signed, expiring download link (documents)"}
+        url_expires_at: {type: [string, 'null'], format: date-time}
+    CityServiceApplicationHours:
+      type: object
+      required: [day, open, close]
+      properties:
+        day: {type: integer, minimum: 0, maximum: 6, description: 0 = Saturday}
+        open: {type: string, pattern: '^\d{2}:\d{2}$'}
+        close: {type: string, pattern: '^\d{2}:\d{2}$'}
+    CityServiceApplicationOffer:
+      type: object
+      required: [kind, name]
+      properties:
+        kind: {type: string, enum: [session, package]}
+        name: {type: string, maxLength: 160}
+        description: {type: [string, 'null'], maxLength: 300}
+        format: {type: [string, 'null'], enum: [group, private, null]}
+        duration_minutes: {type: [integer, 'null'], minimum: 5, maximum: 600}
+        age_min_months: {type: [integer, 'null'], minimum: 0, maximum: 240}
+        age_max_months: {type: [integer, 'null'], minimum: 0, maximum: 240}
+        capacity: {type: [integer, 'null'], minimum: 1, maximum: 500}
+        price_toman: {type: [integer, 'null'], minimum: 0, description: display only (no payment, MVP)}
+        package_sessions: {type: [integer, 'null'], minimum: 1, maximum: 200}
+        package_validity_days: {type: [integer, 'null'], minimum: 1, maximum: 730}
+    CityServiceApplication:
+      type: object
+      required: [id, status, step, tracking_code, editable, can_add_photos, business_name, category_slugs, city_id,
+        district, contact_name, contact_phone, owner_confirmed, lat, lng, address, about, age_ranges, amenities,
+        weekly_hours, photos, services, booking_mode, terms_accepted_at, documents, requirements, submitted_at,
+        reviewed_at, review_note, created_at, updated_at]
+      properties:
+        id: {type: integer}
+        status: {type: string, enum: [draft, submitted, in_review, needs_info, approved, rejected]}
+        step: {type: integer, minimum: 1, maximum: 4}
+        tracking_code: {type: [string, 'null'], description: "set on submit: 12 random symbols XXXX-XXXX-XXXX"}
+        editable: {type: boolean, description: draft or needs_info}
+        can_add_photos: {type: boolean}
+        business_name: {type: [string, 'null']}
+        category_slugs: {type: array, items: {type: string}}
+        city_id: {type: [integer, 'null']}
+        district: {type: [string, 'null']}
+        contact_name: {type: [string, 'null']}
+        contact_phone: {type: [string, 'null'], description: normalised 09xxxxxxxxx}
+        owner_confirmed: {type: boolean}
+        lat: {type: [number, 'null']}
+        lng: {type: [number, 'null']}
+        address: {type: [string, 'null']}
+        about: {type: [string, 'null']}
+        age_ranges: {type: array, items: {type: string}, description: codes of catalog group dir_age_ranges}
+        amenities: {type: array, items: {type: string}, description: codes of catalog group dir_amenities}
+        weekly_hours: {type: array, items: {$ref: "#/components/schemas/CityServiceApplicationHours"}}
+        photos: {type: array, items: {$ref: "#/components/schemas/CityServiceApplicationFile"}}
+        services: {type: array, items: {$ref: "#/components/schemas/CityServiceApplicationOffer"}}
+        booking_mode: {type: [string, 'null'], enum: [online, request, phone, null]}
+        terms_accepted_at: {type: [string, 'null'], format: date-time}
+        documents:
+          type: object
+          required: [licence, instructor_cert, health_cert]
+          properties:
+            licence: {oneOf: [{$ref: "#/components/schemas/CityServiceApplicationFile"}, {type: 'null'}]}
+            instructor_cert: {oneOf: [{$ref: "#/components/schemas/CityServiceApplicationFile"}, {type: 'null'}]}
+            health_cert: {oneOf: [{$ref: "#/components/schemas/CityServiceApplicationFile"}, {type: 'null'}]}
+        requirements:
+          type: object
+          required: [min_photos, max_photos, health_cert_category]
+          properties:
+            min_photos: {type: integer}
+            max_photos: {type: integer}
+            health_cert_category: {type: string}
+        submitted_at: {type: [string, 'null'], format: date-time}
+        reviewed_at: {type: [string, 'null'], format: date-time}
+        review_note: {type: [string, 'null']}
+        created_at: {type: [string, 'null'], format: date-time}
+        updated_at: {type: [string, 'null'], format: date-time}
+    CityServiceApplicationStatus:
+      type: object
+      required: [id, status, tracking_code, business_name, submitted_at, reviewed_at, review_note, timeline]
+      properties:
+        id: {type: integer}
+        status: {type: string, enum: [draft, submitted, in_review, needs_info, approved, rejected]}
+        tracking_code: {type: [string, 'null']}
+        business_name: {type: [string, 'null']}
+        submitted_at: {type: [string, 'null'], format: date-time}
+        reviewed_at: {type: [string, 'null'], format: date-time}
+        review_note: {type: [string, 'null']}
+        timeline:
+          type: array
+          items:
+            type: object
+            required: [key, state, at]
+            properties:
+              key: {type: string, enum: [submitted, documents_review, expert_contact, published]}
+              state: {type: string, enum: [done, current, pending, failed]}
+              at: {type: [string, 'null'], format: date-time}
+    CityServiceApplicationStep1:
+      type: object
+      description: Dir_Join
+      properties:
+        business_name: {type: [string, 'null'], maxLength: 160}
+        category_slugs: {type: [array, 'null'], maxItems: 8, items: {type: string}, description: active city_service_categories slugs}
+        city_id: {type: [integer, 'null'], description: an active city}
+        district: {type: [string, 'null'], maxLength: 120}
+        contact_name: {type: [string, 'null'], maxLength: 120}
+        contact_phone: {type: [string, 'null'], description: "Iranian mobile; Persian digits and separators are folded"}
+        owner_confirmed: {type: [boolean, 'null']}
+    CityServiceApplicationStep2:
+      type: object
+      description: Dir_JoinForm (photos via POST …/photos)
+      properties:
+        lat: {type: [number, 'null'], minimum: -90, maximum: 90}
+        lng: {type: [number, 'null'], minimum: -180, maximum: 180}
+        address: {type: [string, 'null'], maxLength: 300}
+        about: {type: [string, 'null'], maxLength: 2000}
+        age_ranges: {type: [array, 'null'], items: {type: string}}
+        amenities: {type: [array, 'null'], items: {type: string}}
+        weekly_hours: {type: [array, 'null'], maxItems: 7, items: {$ref: "#/components/schemas/CityServiceApplicationHours"}}
+    CityServiceApplicationStep3:
+      type: object
+      description: services and packages
+      properties:
+        services: {type: [array, 'null'], maxItems: 30, items: {$ref: "#/components/schemas/CityServiceApplicationOffer"}}
+    CityServiceApplicationStep4:
+      type: object
+      description: Dir_JoinDocs (documents via PUT …/documents/{slot})
+      properties:
+        booking_mode: {type: [string, 'null'], enum: [online, request, phone, null]}
+        terms_accepted: {type: [boolean, 'null']}
     CityServiceBooking:
       type: object
       required: [id, status, status_note, preferred_date, child_age_range, note, contact_name, contact_phone, can_cancel, created_at, listing]

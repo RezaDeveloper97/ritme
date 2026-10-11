@@ -114,3 +114,32 @@ record the decision. Deleting the account cascades its applications.
 | `catalog_items` `dir_age_ranges` | `pregnancy` (`meta {pregnancy:true}`), `m0_6`, `m6_12`, `y1_2`, `y2_4`, `y4_6` (`meta {min_months, max_months}`) |
 
 All `INSERT IGNORE` (an admin edit is never overwritten), `needs_review = 0` (labels, not clinical copy).
+
+## 4. Business application API (CB-DIR-04)
+
+Package `backend-go/internal/cityservices/join` (queries `db/queries/cityservices_join`, routes
+`internal/http/routes_city_services_join.go`, OpenAPI tag `CityServiceApplications`, deviations **D-DIR-04**).
+All under `/api/v1/city-services/applications`, auth:api, owner-only (a foreign id is the same 404 as a missing one).
+
+| Route | What |
+|---|---|
+| `GET /` · `POST /` | my applications · open a draft (201) or get the open draft (200); ≤ 10 rows per account |
+| `GET /{id}` · `DELETE /{id}` | full application (photos with public URLs, documents with 5-min signed links) · delete a draft + its files |
+| `GET /{id}/status` | status + JoinDone timeline `submitted → documents_review → expert_contact → published` |
+| `PUT /{id}/steps/{1..4}` | auto-save one step (whole step form; lenient — completeness only on submit) |
+| `POST /{id}/photos` · `DELETE /{id}/photos/{fileId}` | multipart `file` → `files` purpose `place_photo` (public, re-encoded WebP); ≤ 20; adding also while submitted / in_review |
+| `PUT /{id}/documents/{slot}` · `DELETE …` | slots `licence`, `instructor_cert`, `health_cert`; multipart `file` → purpose `place_licence` (**private**, encrypted, signed links only) |
+| `POST /{id}/submit` | 422 `application_incomplete` with per-field errors, else `submitted` + tracking code + SMS (fake provider) |
+
+- **Submit needs**: step-1 fields + `owner_confirmed`, map pin + address, ≥ 1 age range, ≥ 1 open day, **≥ 4 live
+  photos**, ≥ 1 service, booking mode, accepted terms, `licence` (+ `health_cert` when the categories include `pool`).
+- **Edits** only in `draft` / `needs_info` (else 409 `application_locked`); a resubmission keeps the tracking code and
+  clears `review_note`.
+- **Tracking code**: 12 symbols of `23456789ABCDEFGHJKLMNPQRSTUVWXYZ` (60 random bits), `XXXX-XXXX-XXXX`. It identifies;
+  it never authorizes (the status route is owner-scoped).
+- **Files**: never accepted as ids from the body — only from the application's own upload routes, so an applicant can
+  only reference files she uploaded there. Replacing / removing a document or photo deletes the file.
+- **Limits**: uploads 60 / hour, submits 5 / hour per account (localized 429), plus the shared write throttle.
+- **Logs** carry ids only (no name, phone, address or tracking code).
+- **Open**: a real SMS template for the submit confirmation (the notifier is fake); photos are public from upload
+  (before review) — the board allows adding them after submit.
