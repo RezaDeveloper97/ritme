@@ -1,4 +1,6 @@
 {
   "region": "بنرهای تبلیغاتی",
-  "goToSlide": "رفتن به بنر {n, number}"
+  "goToSlide": "رفتن به بنر {n, number}",
+  "adLabel": "تبلیغ",
+  "adRegion": "بخش تبلیغات"
 }

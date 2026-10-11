@@ -3,7 +3,7 @@ id: B-N10-02
 title: Home ad slots on the banner system
 milestone: N10
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N10-01]
 parallel_group: N10-B
 touches: [backend-go/internal/banners,backend-go/internal/admin,backend-go/api,admin-web/src,frontend/src/widgets]

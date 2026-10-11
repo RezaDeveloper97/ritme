@@ -18,3 +18,17 @@ export interface Banner {
 
 /** Active banners grouped by slot — the shape returned by `useBanners`. */
 export type BannersByPosition = Record<BannerPosition, Banner[]>;
+
+/** Sponsored home slots (B-N10-02): `ad_slider` 342x170, `ad_square` 166x166, `ad_strip` 342x76. */
+export type AdSlot = 'ad_slider' | 'ad_square' | 'ad_strip';
+
+/** One sponsored item. The advertiser name is admin-only; the «تبلیغ» label is rendered by the client. */
+export interface Ad {
+  id: number;
+  title: string | null;
+  imageUrl: string;
+  slot: AdSlot;
+  ctaLabel: string | null;
+  linkUrl: string | null;
+  linkType: BannerLinkType | null;
+}

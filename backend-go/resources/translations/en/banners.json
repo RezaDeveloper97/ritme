@@ -1,4 +1,6 @@
 {
   "region": "Promotional banners",
-  "goToSlide": "Go to banner {n, number}"
+  "goToSlide": "Go to banner {n, number}",
+  "adLabel": "Ad",
+  "adRegion": "Sponsored"
 }

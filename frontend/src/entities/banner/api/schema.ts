@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import type { Banner, BannerPosition, BannersByPosition } from '../model/types';
+import type { Ad, AdSlot, Banner, BannerPosition, BannersByPosition } from '../model/types';
 
 const POSITIONS: readonly BannerPosition[] = [
   'home_top',
@@ -47,5 +47,38 @@ export const bannersEnvelopeSchema = z
     for (const position of POSITIONS) {
       out[position] = e.positions[position] ?? [];
     }
+    return out;
+  });
+
+const AD_SLOTS: readonly AdSlot[] = ['ad_slider', 'ad_square', 'ad_strip'];
+
+const adSchema = z
+  .object({
+    id: z.number(),
+    title: z.string().nullable().default(null),
+    image_url: z.string().nullable().default(null),
+    position: z.string(),
+    cta_label: z.string().nullable().default(null),
+    link_url: z.string().nullable().default(null),
+    link_type: z.enum(['internal', 'external']).nullable().default(null),
+  })
+  .transform(
+    (a): Ad => ({
+      id: a.id,
+      title: a.title,
+      imageUrl: a.image_url ?? '',
+      slot: a.position as AdSlot,
+      ctaLabel: a.cta_label,
+      linkUrl: a.link_url,
+      linkType: a.link_type,
+    }),
+  );
+
+/** `{ positions: { ad_slider: [...], ad_square: [...], ad_strip: [...] } }` — every slot present. */
+export const adsEnvelopeSchema = z
+  .object({ positions: z.record(z.string(), z.array(adSchema)).default({}) })
+  .transform((e): Record<AdSlot, Ad[]> => {
+    const out = {} as Record<AdSlot, Ad[]>;
+    for (const slot of AD_SLOTS) out[slot] = e.positions[slot]?.filter((a) => a.imageUrl) ?? [];
     return out;
   });

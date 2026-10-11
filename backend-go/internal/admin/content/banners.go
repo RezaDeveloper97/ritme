@@ -3,16 +3,20 @@ package content
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/admin/content/form"
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
 	"github.com/ritme/backend-go/internal/admin/media"
 	"github.com/ritme/backend-go/internal/admin/store"
+	"github.com/ritme/backend-go/internal/bannerads"
 	publiccontent "github.com/ritme/backend-go/internal/content"
 	"github.com/ritme/backend-go/internal/enums"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
@@ -48,7 +52,28 @@ func (h *Handlers) bannerJSON(b *store.Banner) *jsonx.OrderedMap {
 		"sort_order", b.SortOrder,
 		"created_at", httpadmin.Time(b.CreatedAt),
 		"updated_at", httpadmin.Time(b.UpdatedAt),
+		// B-N10-02 (D-93), additive: sponsored slots.
+		"kind", b.Kind,
+		"advertiser", httpadmin.NullString(b.Advertiser),
+		"cta_label", form.NullRaw(rawOf(b.CtaLabel)),
+		"modes", bannerModes(b.Modes),
 	)
+}
+
+func rawOf(s sql.NullString) db.NullRawJSON {
+	if !s.Valid {
+		return db.NullRawJSON{}
+	}
+	return db.NullRawJSON{V: []byte(s.String), Valid: true}
+}
+
+// bannerModes is the stored targeting list ([] = every mode).
+func bannerModes(s sql.NullString) []string {
+	out := []string{}
+	if s.Valid {
+		_ = json.Unmarshal([]byte(s.String), &out)
+	}
+	return out
 }
 
 func (h *Handlers) banners() resource[store.Banner] {
@@ -87,6 +112,9 @@ func (h *Handlers) BannerOptions(c fiber.Ctx) error {
 	loc := locale(c)
 	return httpadmin.OK(c, jsonx.Obj(
 		"positions", options(enums.BannerPositionOptions(loc)),
+		"kinds", []string{bannerads.KindBanner, bannerads.KindAd},
+		"ad_slots", bannerads.Slots,
+		"modes", bannerads.ValidModes(),
 		"link_types", options(enums.BannerLinkTypeOptions(loc)),
 		"image", jsonx.Obj("max_kb", bannerImageMaxKB, "min_width", bannerMinWidth, "min_height", bannerMinHeight,
 			"recommended_width", bannerRecommendedW, "recommended_height", bannerRecommendedH,
@@ -99,8 +127,13 @@ func (h *Handlers) ShowBanner(c fiber.Ctx) error { return h.banners().show(c) }
 
 func bannerRules(c fiber.Ctx) validation.Rules {
 	rules := form.Translatable(c, "title", false, "max:255")
+	rules = append(rules, form.Translatable(c, "cta_label", false, "max:60")...)
 	return append(rules,
-		validation.F("position", "required", validation.In(enums.BannerPositionValues()...)),
+		validation.F("position", "required", validation.In(append(enums.BannerPositionValues(), bannerads.Slots...)...)),
+		validation.F("kind", "nullable", validation.In(bannerads.KindBanner, bannerads.KindAd)),
+		validation.F("advertiser", "nullable|string|max:120"),
+		validation.F("modes", "nullable|array"),
+		validation.F("modes.*", validation.In(bannerads.ValidModes()...)),
 		validation.F("link_type", "nullable", validation.In(enums.BannerLinkTypeValues()...)),
 		validation.F("link_url", "nullable|string|max:1000"),
 		validation.F("starts_at", "nullable|date"),
@@ -108,6 +141,49 @@ func bannerRules(c fiber.Ctx) validation.Rules {
 		validation.F("sort_order", "nullable|integer"),
 		validation.F("is_active", "nullable"),
 	)
+}
+
+// checkBannerKind keeps kind and slot consistent: an ad sits in an ad_* slot, a plain banner in a home_* slot. On
+// update the kind not sent is the stored one.
+func checkBannerKind(c fiber.Ctx, cur *store.Banner) form.Check {
+	return func(in phpval.Map, add form.Add) error {
+		pos, _ := in.Get("position")
+		p, ok := pos.(string)
+		if !ok {
+			return nil
+		}
+		kind := bannerKind(in, cur)
+		if (kind == bannerads.KindAd) != bannerads.IsSlot(p) {
+			add("position", form.Msg(c, "validation.in", "position"))
+		}
+		return nil
+	}
+}
+
+func bannerKind(in phpval.Map, cur *store.Banner) string {
+	if k, ok := in.Get("kind"); ok && k != nil {
+		return phpval.ToString(k)
+	}
+	if cur != nil && cur.Kind != "" {
+		return cur.Kind
+	}
+	return bannerads.KindBanner
+}
+
+// bannerModesJSON is the targeting column: NULL for "every mode" (missing or empty list).
+func bannerModesJSON(data phpval.Map, cur sql.NullString, keep bool) sql.NullString {
+	v, ok := data.Get("modes")
+	if !ok {
+		if keep {
+			return cur
+		}
+		return sql.NullString{}
+	}
+	list, _ := phpval.Packed(v).([]any)
+	if len(list) == 0 {
+		return sql.NullString{}
+	}
+	return sql.NullString{String: string(form.JSON(list)), Valid: true}
 }
 
 // checkBannerLink: link_url is required_with:link_type, and must be a `url` for
@@ -163,7 +239,7 @@ func isInternalPath(s string) bool {
 // validateBanner validates a create (cur == nil) or an update of cur.
 func (h *Handlers) validateBanner(c fiber.Ctx, cur *store.Banner) (phpval.Map, *media.Image, error) {
 	var img *media.Image
-	data, err := form.Validate(c, bannerRules(c), checkBannerLink(c, cur),
+	data, err := form.Validate(c, bannerRules(c), checkBannerLink(c, cur), checkBannerKind(c, cur),
 		form.ImageRule{Field: "image", Required: cur == nil, MaxKB: bannerImageMaxKB,
 			MinWidth: bannerMinWidth, MinHeight: bannerMinHeight}.Check(c, &img))
 	return data, img, err
@@ -198,6 +274,8 @@ func (h *Handlers) StoreBanner(c fiber.Ctx) error {
 		LinkUrl: link, LinkType: linkType,
 		StartsAt: form.KeepTime(data, "starts_at", sql.NullTime{}), EndsAt: form.KeepTime(data, "ends_at", sql.NullTime{}),
 		IsActive: httpadmin.Bool(data, "is_active"), SortOrder: form.Int32(data, "sort_order", 0), Now: h.now(c),
+		Kind: bannerKind(data, nil), Advertiser: form.Str(data, "advertiser"), CtaLabel: jsonStr(form.NullJSON(data, "cta_label")),
+		Modes: bannerModesJSON(data, sql.NullString{}, false),
 	})
 	if err != nil {
 		h.deleteFile(c, rel)
@@ -233,7 +311,10 @@ func (h *Handlers) UpdateBanner(c fiber.Ctx) error {
 		Position: httpadmin.String(data, "position"), LinkUrl: link, LinkType: linkType,
 		StartsAt: form.KeepTime(data, "starts_at", cur.StartsAt), EndsAt: form.KeepTime(data, "ends_at", cur.EndsAt),
 		IsActive: httpadmin.Bool(data, "is_active"), SortOrder: form.Int32(data, "sort_order", 0),
-		Now: h.now(c), ID: cur.ID,
+		Kind: bannerKind(data, &cur), Advertiser: form.KeepStr(data, "advertiser", cur.Advertiser),
+		CtaLabel: jsonStr(form.KeepJSON(data, "cta_label", rawOf(cur.CtaLabel))),
+		Modes:    bannerModesJSON(data, cur.Modes, true),
+		Now:      h.now(c), ID: cur.ID,
 	}); err != nil {
 		if img != nil {
 			h.deleteFile(c, imagePath)
@@ -265,4 +346,42 @@ func (h *Handlers) DestroyBanner(c fiber.Ctx) error {
 // ToggleBanner is POST /banners/:id/toggle (is_active).
 func (h *Handlers) ToggleBanner(c fiber.Ctx) error {
 	return h.banners().doToggle(c, h.logger, "Status changed.")
+}
+
+func jsonStr(j db.NullRawJSON) sql.NullString {
+	if !j.Valid {
+		return sql.NullString{}
+	}
+	return sql.NullString{String: string(j.V), Valid: true}
+}
+
+// BannerStats is GET /banners/:id/stats?days=30: the per-day impression / click counters (aggregate only, Tehran
+// days, newest first) plus their totals and the click-through rate.
+func (h *Handlers) BannerStats(c fiber.Ctx) error {
+	cur, err := find(c, "Banner", h.q.GetBanner)
+	if err != nil {
+		return err
+	}
+	days := fiber.Query[int](c, "days", 30)
+	if days < 1 || days > 366 {
+		days = 30
+	}
+	since := civildate.InTehran(h.now(c).Time.AddDate(0, 0, -(days - 1)))
+	rows, err := h.q.ListBannerStats(c.Context(), store.ListBannerStatsParams{BannerID: cur.ID, Since: since})
+	if err != nil {
+		return err
+	}
+	var imp, clk int64
+	items := make([]*jsonx.OrderedMap, 0, len(rows))
+	for _, r := range rows {
+		imp += int64(r.Impressions)
+		clk += int64(r.Clicks)
+		items = append(items, jsonx.Obj("day", r.Day.String(), "impressions", r.Impressions, "clicks", r.Clicks))
+	}
+	ctr := 0.0
+	if imp > 0 {
+		ctr = float64(clk) / float64(imp)
+	}
+	return httpadmin.OK(c, jsonx.Obj("banner_id", cur.ID, "days", days, "since", since.String(),
+		"totals", jsonx.Obj("impressions", imp, "clicks", clk, "ctr", ctr), "items", items))
 }

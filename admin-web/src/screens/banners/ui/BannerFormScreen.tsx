@@ -8,6 +8,7 @@ import { fieldError, fieldErrorsOf } from '@/shared/api';
 import { useLocalized } from '@/shared/i18n';
 import { blankToNull, formatNumber, isoToLocalInput, localInputToApi, toFormData, toIntOrNull } from '@/shared/lib';
 import {
+  CheckboxGrid,
   FormPage,
   ImageUpload,
   LoadGate,
@@ -21,7 +22,7 @@ import {
   type Translations,
 } from '@/shared/ui';
 
-import { bannersApi, type Banner, type BannerOptions } from '../api/banners';
+import { bannersApi, useBannerStats, type Banner, type BannerOptions } from '../api/banners';
 
 /** /banners/new and /banners/:id (Blade banners.form). */
 export function BannerFormScreen({ id }: { id: number | null }) {
@@ -48,7 +49,25 @@ function BannerForm({ id, row, options }: { id: number | null; row: Banner | nul
   const save = bannersApi.useSave(id);
 
   const [image, setImage] = useState<File | null>(null);
+  const names: Record<'adSlots' | 'kinds' | 'modeNames', Record<string, string>> = {
+    adSlots: { ad_slider: t('adSlots.ad_slider'), ad_square: t('adSlots.ad_square'), ad_strip: t('adSlots.ad_strip') },
+    kinds: { banner: t('kinds.banner'), ad: t('kinds.ad') },
+    modeNames: {
+      cycle: t('modeNames.cycle'), ttc: t('modeNames.ttc'), pregnancy: t('modeNames.pregnancy'),
+      postpartum: t('modeNames.postpartum'), menopause: t('modeNames.menopause'), teen: t('modeNames.teen'),
+      companion: t('modeNames.companion'),
+    },
+  };
+  const [kind, setKind] = useState(row?.kind ?? 'banner');
+  const isAd = kind === 'ad';
+  const slotOptions = isAd
+    ? options.ad_slots.map((v) => ({ value: v, label: names.adSlots[v] ?? v }))
+    : options.positions;
   const [position, setPosition] = useState(row?.position ?? options.positions[0]?.value ?? '');
+  const [advertiser, setAdvertiser] = useState(row?.advertiser ?? '');
+  const [ctaLabel, setCtaLabel] = useState<Translations>(row?.cta_label ?? {});
+  const [modes, setModes] = useState<string[]>(row?.modes ?? []);
+  const stats = useBannerStats(id, isAd);
   const [sortOrder, setSortOrder] = useState(String(row?.sort_order ?? 0));
   const [title, setTitle] = useState<Translations>(row?.title ?? {});
   const [linkType, setLinkType] = useState(row?.link_type ?? '');
@@ -64,7 +83,11 @@ function BannerForm({ id, row, options }: { id: number | null; row: Banner | nul
     save.mutate(
       toFormData({
         image: image ?? undefined,
-        position,
+        position: isAd && !options.ad_slots.includes(position) ? (options.ad_slots[0] ?? position) : !isAd && options.ad_slots.includes(position) ? (options.positions[0]?.value ?? position) : position,
+        kind,
+        advertiser: isAd ? blankToNull(advertiser) : null,
+        cta_label: isAd ? ctaLabel : undefined,
+        modes: isAd ? modes : [],
         sort_order: toIntOrNull(sortOrder) ?? 0,
         title,
         link_type: blankToNull(linkType),
@@ -109,7 +132,20 @@ function BannerForm({ id, row, options }: { id: number | null; row: Banner | nul
         error={err('image')}
       />
       <div className="form-grid">
-        <Select label={t('position')} value={position} onChange={(e) => setPosition(e.target.value)} options={options.positions} required error={err('position')} />
+        <Select
+          label={t('kind')}
+          value={kind}
+          onChange={(e) => setKind(e.target.value)}
+          options={options.kinds.map((v) => ({ value: v, label: names.kinds[v] ?? v }))}
+        />
+        <Select
+          label={t('position')}
+          value={slotOptions.some((o) => o.value === position) ? position : (slotOptions[0]?.value ?? '')}
+          onChange={(e) => setPosition(e.target.value)}
+          options={slotOptions}
+          required
+          error={err('position')}
+        />
         <TextInput
           label={tc('sortOrder')}
           hint={tc('sortOrderHint')}
@@ -119,6 +155,19 @@ function BannerForm({ id, row, options }: { id: number | null; row: Banner | nul
           error={err('sort_order')}
         />
       </div>
+      {isAd && (
+        <>
+          <TextInput label={t('advertiser')} hint={t('advertiserHint')} value={advertiser} onChange={(e) => setAdvertiser(e.target.value)} maxLength={120} error={err('advertiser')} />
+          <TranslatableField name="cta_label" label={t('ctaLabel')} value={ctaLabel} onChange={setCtaLabel} maxLength={60} errors={fieldErrorsOf(save.error)} />
+          <CheckboxGrid
+            label={t('modes')}
+            hint={t('modesHint')}
+            options={options.modes.map((v) => ({ value: v, label: names.modeNames[v] ?? v }))}
+            value={modes}
+            onChange={setModes}
+          />
+        </>
+      )}
       <TranslatableField name="title" label={t('titleField')} value={title} onChange={setTitle} maxLength={255} errors={fieldErrorsOf(save.error)} />
       <div className="form-grid">
         <Select
@@ -156,6 +205,23 @@ function BannerForm({ id, row, options }: { id: number | null; row: Banner | nul
         />
         <Switch label={tc('isActive')} checked={active} onChange={setActive} />
       </div>
+      {isAd && id !== null && stats.data && (
+        <section aria-label={t('stats.title')}>
+          <h3>{t('stats.title')}</h3>
+          <p>
+            {t('stats.totals', {
+              impressions: n(stats.data.totals.impressions),
+              clicks: n(stats.data.totals.clicks),
+              ctr: n(Math.round(stats.data.totals.ctr * 1000) / 10),
+            })}
+          </p>
+          <ul>
+            {stats.data.items.map((d) => (
+              <li key={d.day}>{t('stats.day', { day: d.day, impressions: n(d.impressions), clicks: n(d.clicks) })}</li>
+            ))}
+          </ul>
+        </section>
+      )}
     </FormPage>
   );
 }

@@ -10,13 +10,125 @@ import (
 	"database/sql"
 
 	"github.com/ritme/backend-go/db"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
+
+const bumpBannerClick = `-- name: BumpBannerClick :exec
+INSERT INTO ` + "`" + `banner_daily_stats` + "`" + ` (banner_id, day, impressions, clicks) VALUES (?, ?, 0, 1)
+ON DUPLICATE KEY UPDATE clicks = clicks + 1
+`
+
+type BumpBannerClickParams struct {
+	BannerID uint64
+	Day      civildate.Date
+}
+
+func (q *Queries) BumpBannerClick(ctx context.Context, arg BumpBannerClickParams) error {
+	_, err := q.db.ExecContext(ctx, bumpBannerClick, arg.BannerID, arg.Day)
+	return err
+}
+
+const bumpBannerImpression = `-- name: BumpBannerImpression :exec
+INSERT INTO ` + "`" + `banner_daily_stats` + "`" + ` (banner_id, day, impressions, clicks) VALUES (?, ?, 1, 0)
+ON DUPLICATE KEY UPDATE impressions = impressions + 1
+`
+
+type BumpBannerImpressionParams struct {
+	BannerID uint64
+	Day      civildate.Date
+}
+
+// Per-day aggregate only: banner id + Tehran calendar day. No user id, no device, no health context.
+func (q *Queries) BumpBannerImpression(ctx context.Context, arg BumpBannerImpressionParams) error {
+	_, err := q.db.ExecContext(ctx, bumpBannerImpression, arg.BannerID, arg.Day)
+	return err
+}
+
+const getActiveAdID = `-- name: GetActiveAdID :one
+SELECT id FROM ` + "`" + `banners` + "`" + `
+WHERE id = ? AND is_active = 1 AND kind = 'ad'
+  AND (starts_at IS NULL OR starts_at <= ?)
+  AND (ends_at IS NULL OR ends_at >= ?)
+LIMIT 1
+`
+
+type GetActiveAdIDParams struct {
+	ID  uint64
+	Now sql.NullTime
+}
+
+func (q *Queries) GetActiveAdID(ctx context.Context, arg GetActiveAdIDParams) (uint64, error) {
+	row := q.db.QueryRowContext(ctx, getActiveAdID, arg.ID, arg.Now, arg.Now)
+	var id uint64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const listActiveAds = `-- name: ListActiveAds :many
+SELECT id, title, image_path, position, link_url, link_type, cta_label, modes
+FROM ` + "`" + `banners` + "`" + `
+WHERE is_active = 1
+  AND kind = 'ad'
+  AND (starts_at IS NULL OR starts_at <= ?)
+  AND (ends_at IS NULL OR ends_at >= ?)
+ORDER BY sort_order, id DESC
+`
+
+type ListActiveAdsParams struct {
+	Now sql.NullTime
+}
+
+type ListActiveAdsRow struct {
+	ID        uint64
+	Title     db.NullRawJSON
+	ImagePath string
+	Position  string
+	LinkUrl   sql.NullString
+	LinkType  sql.NullString
+	CtaLabel  sql.NullString
+	Modes     sql.NullString
+}
+
+// Sponsored slots (kind = 'ad', B-N10-02): the same active window / ordering as ListActiveBanners. The advertiser
+// label is deliberately not selected (admin-only). Mode targeting is applied by the caller.
+func (q *Queries) ListActiveAds(ctx context.Context, arg ListActiveAdsParams) ([]ListActiveAdsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveAds, arg.Now, arg.Now)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListActiveAdsRow{}
+	for rows.Next() {
+		var i ListActiveAdsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.ImagePath,
+			&i.Position,
+			&i.LinkUrl,
+			&i.LinkType,
+			&i.CtaLabel,
+			&i.Modes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const listActiveBanners = `-- name: ListActiveBanners :many
 
 SELECT id, title, image_path, position, link_url, link_type
 FROM ` + "`" + `banners` + "`" + `
 WHERE is_active = 1
+  AND kind = 'banner'
   AND (starts_at IS NULL OR starts_at <= ?)
   AND (ends_at IS NULL OR ends_at >= ?)
 ORDER BY sort_order, id DESC
