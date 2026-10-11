@@ -12745,3 +12745,94 @@ a.nb-card.cnd-card { color: inherit; text-decoration: none; }
 }
 .ins-centre-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 /* ═══ end CB-INS-06 ═══ */
+
+/* ═══ CB-SHOP-07 — shop list, filters and product pages ═══ */
+.shp-tile-link { display: flex; flex-direction: column; gap: 4px; color: inherit; text-decoration: none; min-inline-size: 0; }
+.shp-tile-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: var(--r-card); }
+.shp-chip.is-on { background: var(--brand-fill); border-color: var(--brand-fill); color: var(--on-brand); }
+.shp-subtabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.shp-subtabs::-webkit-scrollbar { display: none; }
+.shp-subtabs > li { flex: none; }
+.shp-filterbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.shp-filterbtn, .shp-activechip {
+  display: inline-flex; align-items: center; gap: 6px; min-block-size: 40px; padding-inline: 14px; border-radius: 20px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text-1); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;
+}
+.shp-filterbtn:disabled { color: var(--text-4); cursor: default; }
+.shp-activechip { background: var(--brand-soft); border-color: transparent; color: var(--brand-ink); }
+.shp-filterbtn:focus-visible, .shp-activechip:focus-visible, .shp-thumb-btn:focus-visible, .shp-sort select:focus-visible, .shp-price-input:focus-visible {
+  outline: 2px solid var(--brand); outline-offset: 2px;
+}
+.shp-filter-n { min-inline-size: 18px; padding-inline: 5px; border-radius: 9px; background: var(--brand-fill); color: var(--on-brand); font-size: var(--fs-2xs); font-weight: 800; text-align: center; }
+.shp-resultbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.shp-count { font-size: 12.5px; font-weight: 700; color: var(--text-2); }
+.shp-sort { display: inline-flex; align-items: center; gap: 6px; }
+.shp-sort-label { font-size: 11.5px; font-weight: 600; color: var(--text-3); }
+.shp-sort select {
+  min-block-size: 40px; padding-inline: 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface);
+  color: var(--text-1); font: inherit; font-size: 12.5px; font-weight: 700;
+}
+.shp-pager { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--text-2); }
+.shp-sheet-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; inline-size: 100%; }
+.shp-filters { display: flex; flex-direction: column; gap: 20px; padding-block-end: 8px; }
+.shp-fgroup { display: flex; flex-direction: column; gap: 10px; }
+.shp-fgroup-title { margin: 0; font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+.shp-price-range { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.shp-price-field { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 700; color: var(--text-2); }
+.shp-price-input {
+  min-block-size: 48px; padding-inline: 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface);
+  color: var(--text-1); font: inherit; font-size: 14px; font-weight: 700; text-align: start;
+}
+.shp-fhint { margin: 0; font-size: 11.5px; font-weight: 600; color: var(--text-3); }
+
+.shp-pbody { padding-block-end: 8px; }
+.shp-gallery { display: flex; flex-direction: column; gap: 8px; }
+.shp-hero-art {
+  position: relative; display: flex; align-items: center; justify-content: center; aspect-ratio: 1 / 1; overflow: hidden;
+  border-radius: var(--r-card); background: var(--surface-2); color: var(--text-3);
+}
+.shp-hero-art img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+.shp-thumbs { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; overflow-x: auto; }
+.shp-thumb-btn { inline-size: 56px; block-size: 56px; padding: 0; border-radius: 14px; overflow: hidden; border: 2px solid transparent; background: var(--surface-2); cursor: pointer; }
+.shp-thumb-btn[aria-pressed="true"] { border-color: var(--brand); }
+.shp-thumb-btn img { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+.shp-pinfo { display: flex; flex-direction: column; gap: 6px; }
+.shp-pseller { margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--text-2); }
+.shp-verified { display: inline-flex; align-items: center; gap: 4px; color: var(--data-deep); font-size: 11.5px; font-weight: 800; }
+.shp-ptitle { margin: 0; font-size: 18px; font-weight: 800; line-height: 1.6; color: var(--text-1); }
+.shp-psub { margin: 0; font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+.shp-prating { margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--warm-deep); }
+.shp-skin { margin: 0; font-size: 12.5px; font-weight: 700; color: var(--data-deep); }
+.shp-pprice { margin: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.shp-price.is-big { font-size: 20px; }
+.shp-opt { display: flex; flex-direction: column; gap: 8px; }
+.shp-opt-title { margin: 0; font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+.shp-opt-val { font-weight: 600; color: var(--text-2); }
+.shp-guide { margin: 0; font-size: 11.5px; font-weight: 600; line-height: 1.8; color: var(--text-2); }
+.nb-chip:disabled { opacity: .45; text-decoration: line-through; cursor: not-allowed; }
+.shp-dl { margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.shp-dl-row { display: flex; flex-direction: column; gap: 2px; }
+.shp-dl-row dt { font-size: 11.5px; font-weight: 800; color: var(--text-3); }
+.shp-dl-row dd { margin: 0; font-size: 12.5px; font-weight: 600; line-height: 1.8; color: var(--text-1); overflow-wrap: anywhere; }
+.shp-dl-sub { display: block; font-size: 11.5px; color: var(--text-2); }
+.shp-stars { display: inline-flex; gap: 2px; }
+.shp-stars .is-on { color: var(--warm-deep); }
+.shp-stars .is-off { color: var(--track); }
+.shp-reviews { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.shp-review { display: flex; flex-direction: column; gap: 4px; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.shp-review-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.shp-review-author { font-size: 12.5px; font-weight: 800; color: var(--text-1); }
+.shp-review-meta { margin: 0; font-size: 11.5px; font-weight: 600; color: var(--text-3); }
+.shp-review-body { margin: 0; font-size: 12.5px; font-weight: 600; line-height: 1.9; color: var(--text-1); }
+.shp-sec-all { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
+.shp-rail { display: flex; overflow-x: auto; gap: 10px; padding-block-end: 4px; }
+.shp-rail .shp-tile { flex: none; inline-size: 150px; }
+.shp-buybar {
+  position: sticky; inset-block-end: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-inline: calc(var(--gutter) * -1); padding: 10px var(--gutter); border-block-start: 1px solid var(--line);
+  background: var(--surface-glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.shp-buy-info { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
+.shp-buy-variant { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+.shp-buy-hint { font-size: var(--fs-2xs); font-weight: 600; line-height: 1.6; color: var(--text-3); }
+/* ═══ end CB-SHOP-07 ═══ */

@@ -1,58 +1,15 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-import { formatToman, useShopCatalogHome, type ShopCatalogCard } from '@/entities/shop';
+import { useShopCatalogHome } from '@/entities/shop';
 import { getApiErrorStatus } from '@/shared/api';
-import { Link, type Locale, useRouter } from '@/shared/i18n';
-import { formatNumber } from '@/shared/lib/date';
+import { Link, useRouter } from '@/shared/i18n';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SegmentedTabs, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
+import { ProductTile } from './ProductTile';
 import { ShopPage as ShopLinkOutPage } from './ShopPage';
-
-/** «۴۸۵ هزار تومان» — compact toman, copy from the `shop.price.*` messages. */
-function usePrice() {
-  const t = useTranslations('shop');
-  const locale = useLocale() as Locale;
-  return (toman: number) => {
-    const { unit, n } = formatToman(toman, locale);
-    return t(`price.${unit}`, { n });
-  };
-}
-
-function ProductCard({ p }: { p: ShopCatalogCard }) {
-  const t = useTranslations('shop');
-  const locale = useLocale() as Locale;
-  const price = usePrice();
-  return (
-    <li className="shp-tile">
-      <span className="shp-tile-art" aria-hidden>
-        {p.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element -- admin-uploaded public-disk image, sized by CSS
-          <img src={p.image_url} alt="" loading="lazy" />
-        ) : (
-          <Icon name="bag" size={28} strokeWidth={1.4} />
-        )}
-        {p.badges[0] ? <span className="shp-tile-badge">{p.badges[0]}</span> : null}
-      </span>
-      <span className="shp-tile-title">{p.title}</span>
-      {p.seller ? <span className="shp-tile-seller">{p.seller.name}</span> : null}
-      {p.rating_avg !== null && p.rating_count > 0 ? (
-        <span className="shp-tile-rating">
-          <Icon name="star" size={12} />
-          <bdi>{formatNumber(p.rating_avg.toFixed(1).replace('.', locale === 'fa' ? '٫' : '.'), locale)}</bdi>
-          <span className="shp-tile-count">({formatNumber(p.rating_count, locale)})</span>
-        </span>
-      ) : null}
-      <span className="shp-tile-prices">
-        <span className="shp-price">{price(p.price)}</span>
-        {p.compare_at_price && p.compare_at_price > p.price ? <s className="shp-was">{price(p.compare_at_price)}</s> : null}
-      </span>
-      {!p.in_stock ? <span className="shp-tile-out">{t('home.outOfStock')}</span> : null}
-    </li>
-  );
-}
 
 /**
  * `/shop` home (CB-SHOP-06, nbd_Shop_Home + nbd_Shop_Beauty): root tabs (baby / beauty), sub-category chips, best
@@ -60,8 +17,8 @@ function ProductCard({ p }: { p: ShopCatalogCard }) {
  * when the internal catalog has nothing yet (404) it renders bloom's link-out categories unchanged. A teen-mode
  * account (403) sees a plain unavailable state. Pay on delivery only — no online-payment wording.
  *
- * Not here yet: the layette-checklist card (CB-SHOP-09), the period-supply reminder card (CB-SHOP-04 API), the
- * header cart / city (CB-SHOP-08) and search + product pages (CB-SHOP-07) — each lands with its API.
+ * Product tiles open the product page (CB-SHOP-07). Not here yet: the layette-checklist card (CB-SHOP-09), the
+ * period-supply reminder card (CB-SHOP-04 API) and the header cart / city (CB-SHOP-08) — each lands with its API.
  */
 export function ShopHomePage() {
   const t = useTranslations('shop');
@@ -151,7 +108,7 @@ export function ShopHomePage() {
               </div>
               <ul className="shp-tiles">
                 {s.products.map((p) => (
-                  <ProductCard key={p.id} p={p} />
+                  <ProductTile key={p.id} p={p} />
                 ))}
               </ul>
             </section>

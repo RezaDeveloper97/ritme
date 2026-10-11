@@ -5,11 +5,29 @@ export {
   shopCatalogHomeSchema,
   shopCategoriesSchema,
   shopProductsSchema,
+  shopCatalogListSchema,
+  shopCatalogProductSchema,
+  SHOP_SORTS,
   type ShopCatalogCard,
+  type ShopCatalogFacet,
+  type ShopCatalogList,
+  type ShopCatalogProduct,
+  type ShopCatalogReview,
+  type ShopCatalogVariant,
+  type ShopSort,
   type ShopCatalogCategory,
   type ShopCatalogHome,
   type ShopCategory,
   type ShopProduct,
 } from './api/schema';
-export { countShopClick, useShopCatalogHome, useShopCategories, useShopProducts } from './api/queries';
+export {
+  countShopClick,
+  useShopCatalogHome,
+  useShopCatalogProduct,
+  useShopCatalogProducts,
+  useShopCatalogReviews,
+  useShopCategories,
+  useShopProducts,
+  type ShopListParams,
+} from './api/queries';
 export { formatToman } from './model/price';
