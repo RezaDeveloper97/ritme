@@ -3,7 +3,7 @@ id: CB-INS-07
 title: INS QA
 epic: INS
 type: qa
-status: todo
+status: done
 depends_on: [CB-INS-04, CB-INS-05, CB-INS-06]
 parallel_group: INS-E
 touches: [docs/qa/canvas]
