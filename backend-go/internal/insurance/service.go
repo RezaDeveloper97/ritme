@@ -255,7 +255,7 @@ func (s *Service) SavePolicy(ctx context.Context, userID uint64, in PolicyInput,
 			if m.ID != 0 && known[m.ID] {
 				keep[m.ID] = true
 				if err := q.UpdateMember(ctx, store.UpdateMemberParams{Kind: m.Kind, ChildID: nullID(m.ChildID), Name: m.Name,
-					SortOrder: order, UpdatedAt: ts, ID: m.ID, PolicyID: pid}); err != nil {
+					SortOrder: order, UpdatedAt: ts, ID: m.ID, PolicyID: pid, UserID: userID}); err != nil {
 					return err
 				}
 				continue
@@ -267,7 +267,7 @@ func (s *Service) SavePolicy(ctx context.Context, userID uint64, in PolicyInput,
 		}
 		for _, m := range existing {
 			if !keep[m.ID] {
-				if err := q.DeleteMember(ctx, store.DeleteMemberParams{ID: m.ID, PolicyID: pid}); err != nil {
+				if err := q.DeleteMember(ctx, store.DeleteMemberParams{ID: m.ID, PolicyID: pid, UserID: userID}); err != nil {
 					return err
 				}
 			}
@@ -275,7 +275,7 @@ func (s *Service) SavePolicy(ctx context.Context, userID uint64, in PolicyInput,
 		if !in.CoveragesSent && !created {
 			return nil
 		}
-		if err := q.DeletePolicyCoverages(ctx, pid); err != nil {
+		if err := q.DeletePolicyCoverages(ctx, store.DeletePolicyCoveragesParams{PolicyID: pid, UserID: userID}); err != nil {
 			return err
 		}
 		for i, c := range in.Coverages {
@@ -412,9 +412,9 @@ func (s *Service) CheckClaimRefs(ctx context.Context, userID uint64, pv PolicyVi
 	return "", nil
 }
 
-func (s *Service) attachAll(ctx context.Context, q *store.Queries, claimID uint64, docs []DocumentRef, ts sql.NullTime) error {
+func (s *Service) attachAll(ctx context.Context, q *store.Queries, userID, claimID uint64, docs []DocumentRef, ts sql.NullTime) error {
 	for _, d := range docs {
-		if err := q.AttachClaimDocument(ctx, store.AttachClaimDocumentParams{ClaimID: claimID, DocumentID: d.ID,
+		if err := q.AttachClaimDocument(ctx, store.AttachClaimDocumentParams{ClaimID: claimID, UserID: userID, DocumentID: d.ID,
 			Label: nullStr(d.Label), CreatedAt: ts, UpdatedAt: ts}); err != nil {
 			return err
 		}
@@ -443,7 +443,7 @@ func (s *Service) CreateClaim(ctx context.Context, userID, policyID uint64, in C
 			OccurredOn: civildate.InTehran(now), CreatedAt: ts, UpdatedAt: ts}); err != nil {
 			return err
 		}
-		return s.attachAll(ctx, q, id, in.Documents, ts)
+		return s.attachAll(ctx, q, userID, id, in.Documents, ts)
 	})
 	return id, err
 }
@@ -456,6 +456,10 @@ func (s *Service) UpdateClaim(ctx context.Context, userID, id uint64, in ClaimIn
 	}
 	ts := dbTime(now)
 	return s.tx(ctx, func(q *store.Queries) error {
+		// Ownership first: nothing below (document links) may touch a claim that isn't hers.
+		if _, err := q.GetUserClaim(ctx, store.GetUserClaimParams{ID: id, UserID: userID}); err != nil {
+			return notFound(err)
+		}
 		if err := q.UpdateClaim(ctx, store.UpdateClaimParams{MemberID: nullID(in.MemberID), CostType: in.CostType,
 			Title: nullStr(in.Title), CentreID: nullID(in.CentreID), CentreName: nullStr(in.CentreName), ServiceDate: in.Date,
 			Amount: uint64(in.Amount), OverTariff: uint64(in.OverTariff), NotesEnc: note, UpdatedAt: ts, //nolint:gosec // G115: validated ≥ 0
@@ -465,10 +469,10 @@ func (s *Service) UpdateClaim(ctx context.Context, userID, id uint64, in ClaimIn
 		if !in.DocsSent {
 			return nil
 		}
-		if err := q.DeleteClaimDocuments(ctx, id); err != nil {
+		if err := q.DeleteClaimDocuments(ctx, store.DeleteClaimDocumentsParams{ClaimID: id, UserID: userID}); err != nil {
 			return err
 		}
-		return s.attachAll(ctx, q, id, in.Documents, ts)
+		return s.attachAll(ctx, q, userID, id, in.Documents, ts)
 	})
 }
 
@@ -556,7 +560,7 @@ func (s *Service) DeleteEvent(ctx context.Context, userID, claimID, eventID uint
 		if len(evs) <= 1 {
 			return ErrEventLast
 		}
-		if _, err := q.DeleteClaimEvent(ctx, store.DeleteClaimEventParams{ID: eventID, ClaimID: claimID}); err != nil {
+		if _, err := q.DeleteClaimEvent(ctx, store.DeleteClaimEventParams{ID: eventID, ClaimID: claimID, UserID: userID}); err != nil {
 			return err
 		}
 		return s.syncState(ctx, q, userID, claimID, ts)
@@ -583,7 +587,7 @@ func (s *Service) AttachDocument(ctx context.Context, userID, claimID uint64, d 
 		return ErrTooMany
 	}
 	ts := dbTime(now)
-	return s.q.AttachClaimDocument(ctx, store.AttachClaimDocumentParams{ClaimID: claimID, DocumentID: d.ID, Label: nullStr(d.Label),
+	return s.q.AttachClaimDocument(ctx, store.AttachClaimDocumentParams{ClaimID: claimID, UserID: userID, DocumentID: d.ID, Label: nullStr(d.Label),
 		CreatedAt: ts, UpdatedAt: ts})
 }
 
@@ -592,7 +596,7 @@ func (s *Service) DetachDocument(ctx context.Context, userID, claimID, documentI
 	if _, err := s.Claim(ctx, userID, claimID); err != nil {
 		return err
 	}
-	n, err := s.q.DetachClaimDocument(ctx, store.DetachClaimDocumentParams{ClaimID: claimID, DocumentID: documentID})
+	n, err := s.q.DetachClaimDocument(ctx, store.DetachClaimDocumentParams{ClaimID: claimID, DocumentID: documentID, UserID: userID})
 	if err == nil && n == 0 {
 		return ErrNotFound
 	}

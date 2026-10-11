@@ -33,6 +33,8 @@ type Querier interface {
 	// A resubmission after needs_info keeps its tracking code (COALESCE) and clears the previous review note.
 	SubmitApplication(ctx context.Context, arg SubmitApplicationParams) error
 	TrackingCodeTaken(ctx context.Context, trackingCode sql.NullString) (bool, error)
+	// The submit SMS goes to the account's OTP-verified login mobile, never to the free-text step-1 contact_phone.
+	UserMobile(ctx context.Context, id uint64) (sql.NullString, error)
 }
 
 var _ Querier = (*Queries)(nil)

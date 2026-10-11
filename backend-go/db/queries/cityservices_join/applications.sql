@@ -67,3 +67,7 @@ SELECT EXISTS(SELECT 1 FROM `city_service_cities` WHERE id = ? AND is_active = 1
 
 -- name: ActiveCatalogCodes :many
 SELECT `code` FROM `catalog_items` WHERE `group` = ? AND is_active = 1 ORDER BY sort_order, id;
+
+-- name: UserMobile :one
+-- The submit SMS goes to the account's OTP-verified login mobile, never to the free-text step-1 contact_phone.
+SELECT `mobile` FROM `users` WHERE id = ?;

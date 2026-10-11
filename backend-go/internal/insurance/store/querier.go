@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	// INSERT … SELECT: nothing is linked unless the claim is hers.
 	AttachClaimDocument(ctx context.Context, arg AttachClaimDocumentParams) error
 	CountUserQuestionnaires(ctx context.Context, userID uint64) (int64, error)
 	CreateCentre(ctx context.Context, arg CreateCentreParams) (int64, error)
@@ -22,11 +23,11 @@ type Querier interface {
 	CreatePolicy(ctx context.Context, arg CreatePolicyParams) (int64, error)
 	CreateQuestionnaire(ctx context.Context, arg CreateQuestionnaireParams) (int64, error)
 	DeleteCentre(ctx context.Context, id uint64) (int64, error)
-	DeleteClaimDocuments(ctx context.Context, claimID uint64) error
+	DeleteClaimDocuments(ctx context.Context, arg DeleteClaimDocumentsParams) error
 	DeleteClaimEvent(ctx context.Context, arg DeleteClaimEventParams) (int64, error)
 	DeleteInsurer(ctx context.Context, id uint64) (int64, error)
 	DeleteMember(ctx context.Context, arg DeleteMemberParams) error
-	DeletePolicyCoverages(ctx context.Context, policyID uint64) error
+	DeletePolicyCoverages(ctx context.Context, arg DeletePolicyCoveragesParams) error
 	DeleteUserClaim(ctx context.Context, arg DeleteUserClaimParams) (int64, error)
 	DeleteUserPolicy(ctx context.Context, userID uint64) (int64, error)
 	DeleteUserQuestionnaire(ctx context.Context, arg DeleteUserQuestionnaireParams) (int64, error)
@@ -76,6 +77,7 @@ type Querier interface {
 	UpdateCentre(ctx context.Context, arg UpdateCentreParams) error
 	UpdateClaim(ctx context.Context, arg UpdateClaimParams) error
 	UpdateInsurer(ctx context.Context, arg UpdateInsurerParams) error
+	// Child-table mutations are scoped to the owner through the parent row (defence in depth on top of the service checks).
 	UpdateMember(ctx context.Context, arg UpdateMemberParams) error
 	UpdatePolicy(ctx context.Context, arg UpdatePolicyParams) error
 	UpdateQuestionnaire(ctx context.Context, arg UpdateQuestionnaireParams) error

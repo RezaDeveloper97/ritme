@@ -15,6 +15,8 @@ import (
 )
 
 // Step inputs are read field by field from the allow-listed keys only; anything else in the body is ignored.
+// Repeated fields use the `list` rule (not `array`): a JSON object would pass `array` but the parser walks them
+// by numeric index, so a map would dodge the `.*` rules (and used to nil-deref on weekly_hours).
 
 // digitFold maps Persian / Arabic digits to ASCII and drops separators (the mobile is validated normalised).
 var digitFold = strings.NewReplacer("۰", "0", "۱", "1", "۲", "2", "۳", "3", "۴", "4", "۵", "5", "۶", "6", "۷", "7", "۸", "8", "۹", "9",
@@ -34,7 +36,7 @@ func stepRules(step int) validation.Rules {
 	case 1:
 		return validation.Rules{
 			F("business_name", "nullable", "string", "max:160"),
-			F("category_slugs", "nullable", "array", "max:"+strconv.Itoa(MaxCategories)),
+			F("category_slugs", "nullable", "list", "max:"+strconv.Itoa(MaxCategories)),
 			F("category_slugs.*", "required", "string", "max:64"),
 			F("city_id", "nullable", "integer", "min:1"),
 			F("district", "nullable", "string", "max:120"),
@@ -48,11 +50,11 @@ func stepRules(step int) validation.Rules {
 			F("lng", "nullable", "numeric", "between:-180,180"),
 			F("address", "nullable", "string", "max:300"),
 			F("about", "nullable", "string", "max:"+strconv.Itoa(MaxAbout)),
-			F("age_ranges", "nullable", "array", "max:20"),
+			F("age_ranges", "nullable", "list", "max:20"),
 			F("age_ranges.*", "required", "string", "max:64"),
-			F("amenities", "nullable", "array", "max:30"),
+			F("amenities", "nullable", "list", "max:30"),
 			F("amenities.*", "required", "string", "max:64"),
-			F("weekly_hours", "nullable", "array", "max:7"),
+			F("weekly_hours", "nullable", "list", "max:7"),
 			F("weekly_hours.*", "required", "array"),
 			F("weekly_hours.*.day", "required", "integer", "min:0", "max:6"),
 			F("weekly_hours.*.open", "required", "date_format:H:i"),
@@ -60,7 +62,7 @@ func stepRules(step int) validation.Rules {
 		}
 	case 3:
 		return validation.Rules{
-			F("services", "nullable", "array", "max:"+strconv.Itoa(MaxServices)),
+			F("services", "nullable", "list", "max:"+strconv.Itoa(MaxServices)),
 			F("services.*", "required", "array"),
 			F("services.*.kind", "required", validation.In(ServiceKinds...)),
 			F("services.*.name", "required", "string", "max:160"),
@@ -106,6 +108,14 @@ func num(data any, key string) *int64 {
 	}
 	n := int64(phpval.ToFloat(v))
 	return &n
+}
+
+// numOr is num with a fallback for an absent / null value (never dereferences nil).
+func numOr(data any, key string, fallback int64) int64 {
+	if n := num(data, key); n != nil {
+		return *n
+	}
+	return fallback
 }
 
 func truthy(data any, key string) bool {
@@ -220,7 +230,7 @@ func (h *Handlers) parseStep(c fiber.Ctx, step int, locale string, now time.Time
 		days := map[int]bool{}
 		for i := range elems(data, "weekly_hours") {
 			p := "weekly_hours." + strconv.Itoa(i)
-			hrs := Hours{Day: int(*num(data, p+".day")), Open: text(data, p+".open"), Close: text(data, p+".close")}
+			hrs := Hours{Day: int(numOr(data, p+".day", -1)), Open: text(data, p+".open"), Close: text(data, p+".close")}
 			if days[hrs.Day] {
 				errs.add(p+".day", "day_distinct")
 			}
@@ -264,7 +274,7 @@ func (h *Handlers) parseStep(c fiber.Ctx, step int, locale string, now time.Time
 	return out, nil
 }
 
-// mobile reports whether s is an Iranian mobile number 09xxxxxxxxx (the submit SMS goes there).
+// mobile reports whether s is an Iranian mobile number 09xxxxxxxxx (the contact number shown to reviewers).
 func mobile(s string) bool {
 	if len(s) != 11 || !strings.HasPrefix(s, "09") {
 		return false

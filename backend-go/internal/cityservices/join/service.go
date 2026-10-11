@@ -402,6 +402,8 @@ type SubmitResult struct {
 
 // Submit checks completeness (Missing) and moves a draft / needs_info application to submitted with a tracking code
 // (kept on a resubmission), then sends the confirmation SMS (best effort: a failure is logged by id only).
+// Completeness is judged on the row locked FOR UPDATE, so a concurrent RemovePhoto / RemoveDocument (same lock) can't
+// slip between the check and the status change. The SMS goes to the account's verified login mobile.
 func (s *Service) Submit(ctx context.Context, userID, id uint64, now time.Time) (SubmitResult, error) {
 	a, err := s.get(ctx, userID, id)
 	if err != nil {
@@ -410,26 +412,27 @@ func (s *Service) Submit(ctx context.Context, userID, id uint64, now time.Time) 
 	if !Editable(a.Row.Status) {
 		return SubmitResult{}, ErrLocked
 	}
-	photos, docs, err := s.LiveFiles(ctx, userID, a.Draft)
-	if err != nil {
-		return SubmitResult{}, err
-	}
-	have := map[string]bool{}
-	for slot := range docs {
-		have[slot] = true
-	}
-	if m := Missing(a.Draft, len(photos), have); len(m) > 0 {
-		return SubmitResult{Missing: m}, nil
-	}
 	code := a.Row.TrackingCode.String
 	if code == "" {
 		if code, err = s.freshCode(ctx); err != nil {
 			return SubmitResult{}, err
 		}
 	}
+	var missing map[string]string
 	err = s.tx(ctx, userID, id, func(q *store.Queries, a Application) error {
 		if !Editable(a.Row.Status) {
 			return ErrLocked
+		}
+		photos, docs, err := s.LiveFiles(ctx, userID, a.Draft)
+		if err != nil {
+			return err
+		}
+		have := map[string]bool{}
+		for slot := range docs {
+			have[slot] = true
+		}
+		if missing = Missing(a.Draft, len(photos), have); len(missing) > 0 {
+			return nil // nothing stored; the empty tx just commits
 		}
 		return q.SubmitApplication(ctx, store.SubmitApplicationParams{TrackingCode: nullStr(code), SubmittedAt: nullTime(now),
 			UpdatedAt: nullTime(now), ID: id, UserID: userID})
@@ -437,12 +440,18 @@ func (s *Service) Submit(ctx context.Context, userID, id uint64, now time.Time) 
 	if err != nil {
 		return SubmitResult{}, err
 	}
+	if len(missing) > 0 {
+		return SubmitResult{Missing: missing}, nil
+	}
 	a, err = s.get(ctx, userID, id)
 	if err != nil {
 		return SubmitResult{}, err
 	}
-	if err := s.notifier.Submitted(ctx, Notice{ApplicationID: id, Mobile: a.Draft.ContactPhone,
-		TrackingCode: a.Row.TrackingCode.String}); err != nil {
+	mobile, err := s.q.UserMobile(ctx, userID)
+	if err == nil && mobile.Valid && mobile.String != "" {
+		err = s.notifier.Submitted(ctx, Notice{ApplicationID: id, Mobile: mobile.String, TrackingCode: a.Row.TrackingCode.String})
+	}
+	if err != nil {
 		s.logger.WarnContext(ctx, "join: submit sms failed", slog.Uint64("application_id", id))
 	}
 	return SubmitResult{Application: a}, nil

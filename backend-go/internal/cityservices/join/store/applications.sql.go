@@ -516,3 +516,15 @@ func (q *Queries) TrackingCodeTaken(ctx context.Context, trackingCode sql.NullSt
 	err := row.Scan(&taken)
 	return taken, err
 }
+
+const userMobile = `-- name: UserMobile :one
+SELECT ` + "`" + `mobile` + "`" + ` FROM ` + "`" + `users` + "`" + ` WHERE id = ?
+`
+
+// The submit SMS goes to the account's OTP-verified login mobile, never to the free-text step-1 contact_phone.
+func (q *Queries) UserMobile(ctx context.Context, id uint64) (sql.NullString, error) {
+	row := q.db.QueryRowContext(ctx, userMobile, id)
+	var mobile sql.NullString
+	err := row.Scan(&mobile)
+	return mobile, err
+}

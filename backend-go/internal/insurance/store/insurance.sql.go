@@ -16,25 +16,29 @@ import (
 
 const attachClaimDocument = `-- name: AttachClaimDocument :exec
 INSERT INTO ` + "`" + `insurance_claim_documents` + "`" + ` (` + "`" + `claim_id` + "`" + `, ` + "`" + `document_id` + "`" + `, ` + "`" + `label` + "`" + `, ` + "`" + `created_at` + "`" + `, ` + "`" + `updated_at` + "`" + `)
-VALUES (?, ?, ?, ?, ?)
+SELECT c.id, ?, ?, ?, ?
+FROM ` + "`" + `insurance_claims` + "`" + ` c WHERE c.id = ? AND c.user_id = ?
 ON DUPLICATE KEY UPDATE ` + "`" + `label` + "`" + ` = VALUES(` + "`" + `label` + "`" + `), ` + "`" + `updated_at` + "`" + ` = VALUES(` + "`" + `updated_at` + "`" + `)
 `
 
 type AttachClaimDocumentParams struct {
-	ClaimID    uint64
 	DocumentID uint64
 	Label      sql.NullString
 	CreatedAt  sql.NullTime
 	UpdatedAt  sql.NullTime
+	ClaimID    uint64
+	UserID     uint64
 }
 
+// INSERT … SELECT: nothing is linked unless the claim is hers.
 func (q *Queries) AttachClaimDocument(ctx context.Context, arg AttachClaimDocumentParams) error {
 	_, err := q.db.ExecContext(ctx, attachClaimDocument,
-		arg.ClaimID,
 		arg.DocumentID,
 		arg.Label,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.ClaimID,
+		arg.UserID,
 	)
 	return err
 }
@@ -357,25 +361,31 @@ func (q *Queries) DeleteCentre(ctx context.Context, id uint64) (int64, error) {
 }
 
 const deleteClaimDocuments = `-- name: DeleteClaimDocuments :exec
-DELETE FROM ` + "`" + `insurance_claim_documents` + "`" + ` WHERE claim_id = ?
+DELETE FROM ` + "`" + `insurance_claim_documents` + "`" + ` WHERE claim_id = ? AND ` + "`" + `claim_id` + "`" + ` IN (SELECT c.id FROM ` + "`" + `insurance_claims` + "`" + ` c WHERE c.user_id = ?)
 `
 
-func (q *Queries) DeleteClaimDocuments(ctx context.Context, claimID uint64) error {
-	_, err := q.db.ExecContext(ctx, deleteClaimDocuments, claimID)
+type DeleteClaimDocumentsParams struct {
+	ClaimID uint64
+	UserID  uint64
+}
+
+func (q *Queries) DeleteClaimDocuments(ctx context.Context, arg DeleteClaimDocumentsParams) error {
+	_, err := q.db.ExecContext(ctx, deleteClaimDocuments, arg.ClaimID, arg.UserID)
 	return err
 }
 
 const deleteClaimEvent = `-- name: DeleteClaimEvent :execrows
-DELETE FROM ` + "`" + `insurance_claim_events` + "`" + ` WHERE id = ? AND claim_id = ?
+DELETE FROM ` + "`" + `insurance_claim_events` + "`" + ` WHERE ` + "`" + `insurance_claim_events` + "`" + `.id = ? AND ` + "`" + `insurance_claim_events` + "`" + `.claim_id = ? AND ` + "`" + `insurance_claim_events` + "`" + `.` + "`" + `claim_id` + "`" + ` IN (SELECT c.id FROM ` + "`" + `insurance_claims` + "`" + ` c WHERE c.user_id = ?)
 `
 
 type DeleteClaimEventParams struct {
 	ID      uint64
 	ClaimID uint64
+	UserID  uint64
 }
 
 func (q *Queries) DeleteClaimEvent(ctx context.Context, arg DeleteClaimEventParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, deleteClaimEvent, arg.ID, arg.ClaimID)
+	result, err := q.db.ExecContext(ctx, deleteClaimEvent, arg.ID, arg.ClaimID, arg.UserID)
 	if err != nil {
 		return 0, err
 	}
@@ -395,25 +405,32 @@ func (q *Queries) DeleteInsurer(ctx context.Context, id uint64) (int64, error) {
 }
 
 const deleteMember = `-- name: DeleteMember :exec
-DELETE FROM ` + "`" + `insurance_policy_members` + "`" + ` WHERE id = ? AND policy_id = ?
+DELETE FROM ` + "`" + `insurance_policy_members` + "`" + `
+WHERE ` + "`" + `insurance_policy_members` + "`" + `.id = ? AND ` + "`" + `insurance_policy_members` + "`" + `.policy_id = ? AND ` + "`" + `insurance_policy_members` + "`" + `.` + "`" + `policy_id` + "`" + ` IN (SELECT p.id FROM ` + "`" + `insurance_policies` + "`" + ` p WHERE p.user_id = ?)
 `
 
 type DeleteMemberParams struct {
 	ID       uint64
 	PolicyID uint64
+	UserID   uint64
 }
 
 func (q *Queries) DeleteMember(ctx context.Context, arg DeleteMemberParams) error {
-	_, err := q.db.ExecContext(ctx, deleteMember, arg.ID, arg.PolicyID)
+	_, err := q.db.ExecContext(ctx, deleteMember, arg.ID, arg.PolicyID, arg.UserID)
 	return err
 }
 
 const deletePolicyCoverages = `-- name: DeletePolicyCoverages :exec
-DELETE FROM ` + "`" + `insurance_coverages` + "`" + ` WHERE policy_id = ?
+DELETE FROM ` + "`" + `insurance_coverages` + "`" + ` WHERE policy_id = ? AND ` + "`" + `policy_id` + "`" + ` IN (SELECT p.id FROM ` + "`" + `insurance_policies` + "`" + ` p WHERE p.user_id = ?)
 `
 
-func (q *Queries) DeletePolicyCoverages(ctx context.Context, policyID uint64) error {
-	_, err := q.db.ExecContext(ctx, deletePolicyCoverages, policyID)
+type DeletePolicyCoveragesParams struct {
+	PolicyID uint64
+	UserID   uint64
+}
+
+func (q *Queries) DeletePolicyCoverages(ctx context.Context, arg DeletePolicyCoveragesParams) error {
+	_, err := q.db.ExecContext(ctx, deletePolicyCoverages, arg.PolicyID, arg.UserID)
 	return err
 }
 
@@ -464,16 +481,18 @@ func (q *Queries) DeleteUserQuestionnaire(ctx context.Context, arg DeleteUserQue
 }
 
 const detachClaimDocument = `-- name: DetachClaimDocument :execrows
-DELETE FROM ` + "`" + `insurance_claim_documents` + "`" + ` WHERE claim_id = ? AND document_id = ?
+DELETE FROM ` + "`" + `insurance_claim_documents` + "`" + `
+WHERE claim_id = ? AND document_id = ? AND ` + "`" + `claim_id` + "`" + ` IN (SELECT c.id FROM ` + "`" + `insurance_claims` + "`" + ` c WHERE c.user_id = ?)
 `
 
 type DetachClaimDocumentParams struct {
 	ClaimID    uint64
 	DocumentID uint64
+	UserID     uint64
 }
 
 func (q *Queries) DetachClaimDocument(ctx context.Context, arg DetachClaimDocumentParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, detachClaimDocument, arg.ClaimID, arg.DocumentID)
+	result, err := q.db.ExecContext(ctx, detachClaimDocument, arg.ClaimID, arg.DocumentID, arg.UserID)
 	if err != nil {
 		return 0, err
 	}
@@ -1494,8 +1513,9 @@ func (q *Queries) UpdateInsurer(ctx context.Context, arg UpdateInsurerParams) er
 }
 
 const updateMember = `-- name: UpdateMember :exec
-UPDATE ` + "`" + `insurance_policy_members` + "`" + ` SET ` + "`" + `kind` + "`" + ` = ?, ` + "`" + `child_id` + "`" + ` = ?, ` + "`" + `name` + "`" + ` = ?, ` + "`" + `sort_order` + "`" + ` = ?, ` + "`" + `updated_at` + "`" + ` = ?
-WHERE id = ? AND policy_id = ?
+UPDATE ` + "`" + `insurance_policy_members` + "`" + ` SET ` + "`" + `kind` + "`" + ` = ?, ` + "`" + `child_id` + "`" + ` = ?, ` + "`" + `name` + "`" + ` = ?,
+  ` + "`" + `sort_order` + "`" + ` = ?, ` + "`" + `updated_at` + "`" + ` = ?
+WHERE ` + "`" + `insurance_policy_members` + "`" + `.id = ? AND ` + "`" + `insurance_policy_members` + "`" + `.policy_id = ? AND ` + "`" + `insurance_policy_members` + "`" + `.` + "`" + `policy_id` + "`" + ` IN (SELECT p.id FROM ` + "`" + `insurance_policies` + "`" + ` p WHERE p.user_id = ?)
 `
 
 type UpdateMemberParams struct {
@@ -1506,8 +1526,10 @@ type UpdateMemberParams struct {
 	UpdatedAt sql.NullTime
 	ID        uint64
 	PolicyID  uint64
+	UserID    uint64
 }
 
+// Child-table mutations are scoped to the owner through the parent row (defence in depth on top of the service checks).
 func (q *Queries) UpdateMember(ctx context.Context, arg UpdateMemberParams) error {
 	_, err := q.db.ExecContext(ctx, updateMember,
 		arg.Kind,
@@ -1517,6 +1539,7 @@ func (q *Queries) UpdateMember(ctx context.Context, arg UpdateMemberParams) erro
 		arg.UpdatedAt,
 		arg.ID,
 		arg.PolicyID,
+		arg.UserID,
 	)
 	return err
 }

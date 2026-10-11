@@ -121,6 +121,13 @@ func TestCityServicesJoin_Flow(t *testing.T) {
 	assert.Contains(t, errs, "lat")
 	assert.Contains(t, errs, "age_ranges.0")
 	assert.Contains(t, errs, "weekly_hours.0.close")
+	// A JSON object where a list belongs is a 422, never a 500 (it used to nil-deref) nor a `.*` rule bypass.
+	r = e.do(fiber.MethodPut, p+"/"+id+"/steps/2", sara, map[string]any{"weekly_hours": map[string]any{"a": map[string]any{"open": "09:00"}}})
+	require.Equal(t, fiber.StatusUnprocessableEntity, r.Status, r.Raw)
+	assert.Contains(t, r.Body["errors"].(map[string]any), "weekly_hours")
+	r = e.do(fiber.MethodPut, p+"/"+id+"/steps/3", sara, map[string]any{"services": map[string]any{"x": map[string]any{"kind": "nope"}}})
+	require.Equal(t, fiber.StatusUnprocessableEntity, r.Status, r.Raw)
+	assert.Contains(t, r.Body["errors"].(map[string]any), "services")
 	r = e.do(fiber.MethodPut, p+"/"+id+"/steps/2", sara, map[string]any{"lat": 35.757, "lng": 51.41, "address": "Vanak sq.",
 		"about": "Warm pool.\nFemale coaches.", "age_ranges": []string{"m6_12", "y1_2"}, "amenities": []string{"nursing_room"},
 		"weekly_hours": []map[string]any{{"day": 5, "open": "09:00", "close": "14:00"}, {"day": 0, "open": "09:00", "close": "20:00"}}})

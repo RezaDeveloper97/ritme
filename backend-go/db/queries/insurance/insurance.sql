@@ -95,11 +95,14 @@ INSERT INTO `insurance_policy_members` (`policy_id`, `kind`, `child_id`, `name`,
 VALUES (?, ?, ?, ?, ?, ?, ?);
 
 -- name: UpdateMember :exec
-UPDATE `insurance_policy_members` SET `kind` = ?, `child_id` = ?, `name` = ?, `sort_order` = ?, `updated_at` = ?
-WHERE id = ? AND policy_id = ?;
+-- Child-table mutations are scoped to the owner through the parent row (defence in depth on top of the service checks).
+UPDATE `insurance_policy_members` SET `kind` = sqlc.arg(kind), `child_id` = sqlc.arg(child_id), `name` = sqlc.arg(name),
+  `sort_order` = sqlc.arg(sort_order), `updated_at` = sqlc.arg(updated_at)
+WHERE `insurance_policy_members`.id = sqlc.arg(id) AND `insurance_policy_members`.policy_id = sqlc.arg(policy_id) AND `insurance_policy_members`.`policy_id` IN (SELECT p.id FROM `insurance_policies` p WHERE p.user_id = sqlc.arg(user_id));
 
 -- name: DeleteMember :exec
-DELETE FROM `insurance_policy_members` WHERE id = ? AND policy_id = ?;
+DELETE FROM `insurance_policy_members`
+WHERE `insurance_policy_members`.id = sqlc.arg(id) AND `insurance_policy_members`.policy_id = sqlc.arg(policy_id) AND `insurance_policy_members`.`policy_id` IN (SELECT p.id FROM `insurance_policies` p WHERE p.user_id = sqlc.arg(user_id));
 
 -- name: UserOwnsChild :one
 SELECT EXISTS(SELECT 1 FROM `children` WHERE id = sqlc.arg(child_id) AND owner_id = sqlc.arg(user_id)) AS found;
@@ -111,7 +114,7 @@ SELECT id, name FROM `children` WHERE owner_id = ? ORDER BY birth_date, id;
 SELECT * FROM `insurance_coverages` WHERE policy_id = ? ORDER BY sort_order, id;
 
 -- name: DeletePolicyCoverages :exec
-DELETE FROM `insurance_coverages` WHERE policy_id = ?;
+DELETE FROM `insurance_coverages` WHERE policy_id = sqlc.arg(policy_id) AND `policy_id` IN (SELECT p.id FROM `insurance_policies` p WHERE p.user_id = sqlc.arg(user_id));
 
 -- name: CreateCoverage :exec
 INSERT INTO `insurance_coverages` (`policy_id`, `category`, `status`, `cap_amount`, `deductible_pct`, `waiting_days`,
@@ -154,7 +157,7 @@ INSERT INTO `insurance_claim_events` (`claim_id`, `status`, `occurred_on`, `dead
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: DeleteClaimEvent :execrows
-DELETE FROM `insurance_claim_events` WHERE id = ? AND claim_id = ?;
+DELETE FROM `insurance_claim_events` WHERE `insurance_claim_events`.id = sqlc.arg(id) AND `insurance_claim_events`.claim_id = sqlc.arg(claim_id) AND `insurance_claim_events`.`claim_id` IN (SELECT c.id FROM `insurance_claims` c WHERE c.user_id = sqlc.arg(user_id));
 
 -- name: ListClaimDocuments :many
 -- Only documents that still belong to the claim's owner (record_documents.user_id) are listed.
@@ -168,15 +171,18 @@ ORDER BY cd.id;
 SELECT EXISTS(SELECT 1 FROM `record_documents` WHERE id = sqlc.arg(document_id) AND user_id = sqlc.arg(user_id)) AS found;
 
 -- name: AttachClaimDocument :exec
+-- INSERT … SELECT: nothing is linked unless the claim is hers.
 INSERT INTO `insurance_claim_documents` (`claim_id`, `document_id`, `label`, `created_at`, `updated_at`)
-VALUES (?, ?, ?, ?, ?)
+SELECT c.id, sqlc.arg(document_id), sqlc.arg(label), sqlc.arg(created_at), sqlc.arg(updated_at)
+FROM `insurance_claims` c WHERE c.id = sqlc.arg(claim_id) AND c.user_id = sqlc.arg(user_id)
 ON DUPLICATE KEY UPDATE `label` = VALUES(`label`), `updated_at` = VALUES(`updated_at`);
 
 -- name: DetachClaimDocument :execrows
-DELETE FROM `insurance_claim_documents` WHERE claim_id = ? AND document_id = ?;
+DELETE FROM `insurance_claim_documents`
+WHERE claim_id = sqlc.arg(claim_id) AND document_id = sqlc.arg(document_id) AND `claim_id` IN (SELECT c.id FROM `insurance_claims` c WHERE c.user_id = sqlc.arg(user_id));
 
 -- name: DeleteClaimDocuments :exec
-DELETE FROM `insurance_claim_documents` WHERE claim_id = ?;
+DELETE FROM `insurance_claim_documents` WHERE claim_id = sqlc.arg(claim_id) AND `claim_id` IN (SELECT c.id FROM `insurance_claims` c WHERE c.user_id = sqlc.arg(user_id));
 
 -- ---------------------------------------------------------------------------------------------------------------
 -- Questionnaires

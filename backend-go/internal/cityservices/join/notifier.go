@@ -5,8 +5,9 @@ import (
 	"log/slog"
 )
 
-// Notice is everything the submit confirmation SMS («درخواستت رسید … کد پیگیری») may carry: the applicant's own
-// mobile from step 1 and the tracking code. No business detail, no account id beyond the row id for the log.
+// Notice is everything the submit confirmation SMS («درخواستت رسید … کد پیگیری») may carry: the account's verified
+// login mobile (users.mobile, never the unverified step-1 contact_phone) and the tracking code.
+// No business detail, no account id beyond the row id for the log.
 type Notice struct {
 	ApplicationID uint64
 	Mobile        string
