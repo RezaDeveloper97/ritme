@@ -1,0 +1,13 @@
+import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+
+import { SafetyScreen } from '@/screens/safety';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('safety');
+  return { title: t('title') };
+}
+
+export default function Page() {
+  return <SafetyScreen />;
+}

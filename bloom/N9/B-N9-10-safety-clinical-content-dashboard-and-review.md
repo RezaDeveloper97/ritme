@@ -3,7 +3,7 @@ id: B-N9-10
 title: Safety & clinical content dashboard and review queue
 milestone: N9
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N9-05]
 parallel_group: N9-J
 touches: [backend-go/internal/safety,backend-go/internal/admin,backend-go/api,admin-web/src]
