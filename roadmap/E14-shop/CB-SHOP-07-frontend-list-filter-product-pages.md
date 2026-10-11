@@ -3,7 +3,7 @@ id: CB-SHOP-07
 title: Frontend: list/filter + product pages
 epic: SHOP
 type: frontend
-status: todo
+status: done
 depends_on: [CB-SHOP-06]
 parallel_group: SHOP-F
 touches: [frontend/src/screens/shop-list, frontend/src/screens/shop-product, frontend/src/app/[locale]/services/shop/list, frontend/src/app/[locale]/services/shop/product]

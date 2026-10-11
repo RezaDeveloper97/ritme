@@ -573,3 +573,27 @@ TODO (ask user):
 - openapi, contract shop 33/0 (10 new goldens), dump (00087, WELCOME10, address, slots), shop.md. Int: full flow, returns, IDOR, teen, races (8 buyers/3 units, 6/2-slot, 5 same-key taps) ×3 green.
 - On stage: sqlc regen (all models.go now include 00080–00087 tables), build, shop/... + http Shop|OpenAPI int green. Not run: make schema-diff (needs php/vendor) — run before stage deploy.
 - TODO (ask user): encrypt shop addresses (repeat); real SMS provider/template for shop; order code 8 digits (board 6).
+
+## CB-SHOP-07 — Product list, filters, product page
+- `/shop/[category]` gate (`ShopCategoryGate`): catalog category → filtered list (debounced search, filter sheet size/colour/volume/material/skin/price with chips, sub-category tabs, sort, 2-col grid, pager); catalog 404 → bloom's link-out page untouched. `/shop/product/[id]`: gallery, seller+verified, rating, variant choosers (OOS disabled), size guide, material/wash/shipping/returns, reviews + show all, bought-together, sticky bar; beauty adds skin types, IRC/expiry, ingredients, pregnancy/breastfeeding caution. Shared `ProductTile` (home tiles now link). Teen → unavailable. Add-to-cart disabled `TODO(CB-SHOP-08)`.
+- Shots docs/qa/canvas/shop/CB-SHOP-07/ (API mocked). Verify (agent): full chain + build green.
+- TODO: filters not in URL (lost on reload); comma-joined filter values; no per-variant stock count; routes `/shop/...` instead of spec `services/shop/...`.
+
+## CB-INS-05 — Health questionnaire + status
+- `/insurance/questionnaire` (section stepper, from-record tags, explanation card, review, confirm → done card with on-device PDF export, edit, status link); `/insurance/status` (four-row self-recorded timeline, record-step sheet, open claims). Entity questionnaire model/schema/queries. Board line «پاسخ‌ها فقط برای بیمه‌گر ارسال می‌شود» replaced (stays in her record, nothing sent, PDF export). Nothing logged.
+- Shots docs/qa/canvas/ins/CB-INS-05/ (API mocked; PDF + step sheet only typechecked). Verify (agent): full chain + build.
+- TODO: explanation card placement (shown on steps with a «yes»); insurer estimate omitted.
+
+## CB-SHOP-09 — Layette checklist
+- `/shop/checklist` (`screens/shop-checklist`): progress ring, due date/weeks left, share-with-family (→ /companions), add item, filter chips, per-group rows, «see» links, edit sheet (state, qty, custom add/delete); `?for=<id>` read-only family view; teen/no grant → unavailable. `/shop` home: baby tab layette card; beauty tab discreet supply-reminder switch (off by default; copy never names the reason).
+- Shots docs/qa/canvas/shop/CB-SHOP-09/ (API mocked). Verify (agent): full chain + build.
+- TODO: supply toggle shows for pregnant users though server only schedules in cycle/TTC/no mode — gate by mode?
+
+## CB-INS-04 — Claims list, new claim, claim detail
+- `/insurance/claims` (year totals, search, status chips, month groups), `/insurance/claims/new` (person, cost type, centre, date, amount, 3 doc slots + extras via `widgets/claim-documents` ClaimDocPicker over record documents, masked IBAN), `/insurance/claims/[id]` (payable breakdown, missing-docs card, step timeline + sheet, appeal, delete). Entity claim types/schemas/hooks.
+- Verify (agent, resumed after slow tsc under load). Landing: union-merge duplicated `entities/insurance` exports → deduped by hand; on stage tsc, eslint, vitest (insurance/shop/app 230) green.
+
+## CB-DIR-06 — Mother & child home
+- `/city-services` is the home (`CityServicesHome`): city picker, "for you and {child}" header, search + map button, category tiles, next booking, age-matched carousel (age_months, age_fit), near-you list, join CTA, ranking/age notes; age-suggest toggle in localStorage. Category/search/«all» opens bloom's list (kept as `CityServicesList`) via `useDirectoryListings` (q, age_months, sort=rank); back returns home. Entity parses DIR-02 card fields; `BOOKING_MODES` + online. Nav root + services tab active.
+- Shots docs/qa/canvas/dir/CB-DIR-06/ (fa/en, light/dark, API mocked). Landing: duplicate `cityServices` scope line and stale `useRouter` from bloom's newer page fixed by hand; tsc, eslint, vitest green.
+- TODO: links to /city-services/map (DIR-07) and /join (DIR-10) 404 until landed; online booking mode CTA in DIR-08/09; city only (no district); age toggle placement.

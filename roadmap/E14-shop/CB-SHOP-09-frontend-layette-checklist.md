@@ -3,7 +3,7 @@ id: CB-SHOP-09
 title: Frontend: layette checklist
 epic: SHOP
 type: frontend
-status: todo
+status: done
 depends_on: [CB-SHOP-06, CB-SHOP-04]
 parallel_group: SHOP-F
 touches: [frontend/src/screens/shop-checklist, frontend/src/app/[locale]/services/shop/checklist]

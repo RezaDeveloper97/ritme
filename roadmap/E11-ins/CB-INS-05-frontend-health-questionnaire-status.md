@@ -3,7 +3,7 @@ id: CB-INS-05
 title: Frontend: health questionnaire + status
 epic: INS
 type: frontend
-status: todo
+status: done
 depends_on: [CB-INS-03]
 parallel_group: INS-D
 touches: [frontend/src/screens/insurance-questionnaire, frontend/src/screens/insurance-status, frontend/src/app/[locale]/insurance/questionnaire, frontend/src/app/[locale]/insurance/status]

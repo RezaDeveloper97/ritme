@@ -3,7 +3,7 @@ id: CB-INS-04
 title: Frontend: claims list, new claim, claim detail
 epic: INS
 type: frontend
-status: todo
+status: done
 depends_on: [CB-INS-03, CB-REC-04]
 parallel_group: INS-D
 touches: [frontend/src/screens/insurance-claims, frontend/src/screens/insurance-claim-new, frontend/src/screens/insurance-claim, frontend/src/app/[locale]/insurance/claims]

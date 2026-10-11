@@ -3,7 +3,7 @@ id: CB-DIR-06
 title: Frontend: mother & child home
 epic: DIR
 type: frontend
-status: todo
+status: done
 depends_on: [CB-DIR-02, B-N7-01]
 parallel_group: DIR-E
 touches: [frontend/src/screens/city-services, frontend/src/entities/city-service, frontend/messages/fa/city-services.json, frontend/messages/en/city-services.json, frontend/src/app/[locale]/services/mother-child, frontend/src/app/message-scopes.ts]
