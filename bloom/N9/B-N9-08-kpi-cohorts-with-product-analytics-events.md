@@ -3,7 +3,7 @@ id: B-N9-08
 title: KPI & cohorts with product analytics events
 milestone: N9
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N9-03]
 parallel_group: N9-H
 touches: [backend-go/internal/metrics,backend-go/internal/analyticsevents,backend-go/db,backend-go/api,admin-web/src,frontend/src/shared/analytics]

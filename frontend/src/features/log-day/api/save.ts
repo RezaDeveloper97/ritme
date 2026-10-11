@@ -14,6 +14,7 @@ import {
 } from '@/entities/health-log';
 import { messageKeys } from '@/entities/message';
 import { wellbeingKeys } from '@/entities/wellbeing';
+import { track } from '@/shared/analytics';
 
 export interface SaveLogDayInput {
   date: string;
@@ -46,6 +47,7 @@ export function useSaveLogDay() {
     },
     onSuccess: (day, { date }) => {
       queryClient.setQueryData(logKeys.day(date), day);
+      track({ name: 'log_saved', props: { source: 'full' } });
       void queryClient.invalidateQueries({ queryKey: logKeys.ranges() });
       void queryClient.invalidateQueries({ queryKey: healthLogKeys.all });
       void queryClient.invalidateQueries({ queryKey: cycleKeys.all });

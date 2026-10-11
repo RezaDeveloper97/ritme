@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { analyticsConsentChanged } from '@/shared/analytics';
 import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
@@ -54,7 +55,8 @@ export function useUpdateConsent() {
     onError: (_e, _v, context) => {
       if (context?.previous) queryClient.setQueryData(key, context.previous);
     },
-    onSuccess: (saved) => {
+    onSuccess: (saved, { code }) => {
+      if (code === 'anonymous_stats') analyticsConsentChanged();
       if (queryClient.isMutating({ mutationKey: [...key, 'update'] }) <= 1) queryClient.setQueryData(key, saved);
     },
   });

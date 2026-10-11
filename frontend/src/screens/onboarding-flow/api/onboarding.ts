@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { userKeys } from '@/entities/user';
+import { track } from '@/shared/analytics';
 import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
@@ -58,6 +59,7 @@ export function useFinishOnboarding() {
     },
     onSuccess: (state) => {
       queryClient.setQueryData(onboardingKeys.state(), state);
+      track({ name: 'onboarding_done' });
     },
   });
 }

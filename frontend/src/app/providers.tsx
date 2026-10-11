@@ -1,7 +1,9 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
+
+import { track } from '@/shared/analytics';
 
 /**
  * Client-side providers. Server state lives in TanStack Query — never copied
@@ -20,6 +22,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
         },
       }),
   );
+
+  useEffect(() => {
+    track({ name: 'app_open' });
+  }, []);
 
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }

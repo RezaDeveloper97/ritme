@@ -14,6 +14,7 @@ import {
   type PlusStatus,
   type PlusVerification,
 } from '@/entities/plus';
+import { track } from '@/shared/analytics';
 import { type ApiEnvelope, apiClient } from '@/shared/api';
 
 /*
@@ -71,6 +72,9 @@ export function useVerifyPayment() {
     },
     onSuccess: (result) => {
       queryClient.setQueryData(plusKeys.status(), result.status);
+      if (result.invoice.status === 'paid' && !result.alreadyVerified) {
+        track({ name: 'plus_purchase', props: { plan_months: Math.min(12, Math.max(1, result.invoice.durationMonths)) } });
+      }
       void queryClient.invalidateQueries({ queryKey: plusKeys.history() });
     },
   });

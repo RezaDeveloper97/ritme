@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 
 import { formatToman, planFromParam, usePlusPlans, usePlusStatus, type PlusPlan } from '@/entities/plus';
+import { track } from '@/shared/analytics';
 import { useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import {
@@ -33,6 +34,10 @@ export function PlansPage() {
   const query = usePlusPlans();
   const status = usePlusStatus();
   const [chosen, setChosen] = useState<number | null>(null);
+
+  useEffect(() => {
+    track({ name: 'plus_paywall_view', props: { surface: 'other' } });
+  }, []);
 
   useEffect(() => {
     if (navMode === 'teen') router.replace('/profile');
