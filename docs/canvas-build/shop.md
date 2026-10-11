@@ -81,3 +81,36 @@ group `shop-checklist`. auth:api, teen-mode → 404.
 Health inputs (due date, prediction) and the companion check are injected interfaces wired in the routes file; the
 package imports no health package and logs no health data. `Service.SyncSupply` is exported for a future daily job.
 The «in transit → have» moves on order / delivery belong to CB-SHOP-03.
+
+## Cart, COD checkout, orders, returns (CB-SHOP-03)
+
+Package `backend-go/internal/shop/order` (sqlc queries `db/queries/shop/order_api.sql`, migration
+`00087_shop_checkout.sql` + Laravel twin), routes in `internal/http/routes_shop.go`. All `auth:api`, owner-scoped
+(someone else's order / address → 404, someone else's `address_id` at checkout → 422), teen mode → 403
+`teen_commercial_blocked`. Errors: `{success:false, message, error_code[, errors][, variant_ids]}`.
+
+| route | does |
+|---|---|
+| `GET /shop/cart` | lines per seller (one shipment each) + fee + free-shipping remainder; unavailable lines apart; applied code re-evaluated |
+| `POST /shop/cart/items` · `PUT/DELETE /shop/cart/items/:variant_id` | add (≤ stock, ≤ 10 per variant, ≤ 30 lines) / set / remove |
+| `PUT/DELETE /shop/cart/discount` | admin codes `shop_discount_codes` (percent/fixed, cap, minimum, window, global + per-user limits) |
+| `GET/POST /shop/addresses` · `PUT/DELETE /shop/addresses/:id` | her addresses (mobile + 10-digit postal code, digits folded; first = default; ≤ 20) |
+| `GET /shop/checkout` | addresses, per-seller shipment (fee, COD ceiling, slots from tomorrow), plain packaging, `payment_methods: [cod]`, totals, `blockers` |
+| `POST /shop/orders` | place (COD only), `idempotency_key` required: same key → 200 + `replayed: true` |
+| `GET /shop/orders` · `GET /shop/orders/:id` | cards · detail with shipments, slot, items, timeline, `return_until`, `checklist_on_the_way` |
+| `POST /shop/orders/:id/cancel` | while `placed` and every shipment `awaiting_seller`: stock, slots, code use and checklist given back |
+| `POST /shop/orders/:id/returns` · `GET /shop/returns` | item of a delivered shipment within the seller's `return_days` (default 7) |
+
+- **Checkout transaction**: lock the cart row (`FOR UPDATE`; serialises one user's checkouts so the idempotency key is
+  race-free, plus `UNIQUE (user_id, idempotency_key)`), take stock with `UPDATE … WHERE stock >= qty` in variant-id
+  order, then the code use (`used_count < max_uses`), then each chosen slot (`booked < capacity`). Any guard missing →
+  the whole order rolls back (409 `out_of_stock` / `discount_exhausted` / `slot_full`). Deadlock → 409 `busy`.
+- **Snapshots**: unit price, title, variant label (all languages present in the data), recipient and address text.
+- **Statuses** written here: order `placed` → `cancelled` / `delivered`; shipment `awaiting_seller` → `cancelled` /
+  `delivered`. CB-SHOP-05's admin moves shipments through confirm / ship and calls
+  `order.Service.MarkShipmentDelivered` (shipment + timeline, order delivered when all are, checklist «دارم»).
+- **Layette checklist link**: placing moves her existing checklist rows whose template category is an ordered product's
+  category (or its parent) from todo / in_cart / later to `on_the_way`; delivery → `have`; cancel → `todo`.
+- **SMS**: `order.Notifier` adapter, fake provider only (logs the order id). The copy is discreet: order code + «پرداخت
+  هنگام تحویل», never a product name. No phone number or address reaches a log line.
+- Open: encryption at rest for `shop_addresses` / order recipient snapshots; a real SMS provider for shop messages.

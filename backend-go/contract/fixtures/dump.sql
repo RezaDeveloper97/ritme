@@ -5232,6 +5232,8 @@ CREATE TABLE `shop_addresses` (
 
 LOCK TABLES `shop_addresses` WRITE;
 /*!40000 ALTER TABLE `shop_addresses` DISABLE KEYS */;
+INSERT INTO `shop_addresses` VALUES
+(1,1004,'Home','Regular','09900000004',NULL,'Tehran','Valiasr St, No. 1','1234567890',1,'2026-10-11 09:00:00','2026-10-11 09:00:00');
 /*!40000 ALTER TABLE `shop_addresses` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `shop_cart_items`;
@@ -5264,8 +5266,11 @@ CREATE TABLE `shop_carts` (
   `user_id` bigint(20) unsigned NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `discount_code_id` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `shop_carts_user_id_unique` (`user_id`),
+  KEY `shop_carts_discount_code_id_foreign` (`discount_code_id`),
+  CONSTRAINT `shop_carts_discount_code_id_foreign` FOREIGN KEY (`discount_code_id`) REFERENCES `shop_discount_codes` (`id`) ON DELETE SET NULL,
   CONSTRAINT `shop_carts_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -5342,7 +5347,39 @@ CREATE TABLE `shop_delivery_slots` (
 
 LOCK TABLES `shop_delivery_slots` WRITE;
 /*!40000 ALTER TABLE `shop_delivery_slots` DISABLE KEYS */;
+INSERT INTO `shop_delivery_slots` VALUES
+(1,1,'2026-09-26','17:00:00','21:00:00',10,0,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(2,2,'2026-09-24','09:00:00','13:00:00',NULL,0,1,'2026-10-11 09:00:00','2026-10-11 09:00:00');
 /*!40000 ALTER TABLE `shop_delivery_slots` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_discount_codes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_discount_codes` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(32) NOT NULL,
+  `kind` varchar(10) NOT NULL DEFAULT 'percent',
+  `value` bigint(20) unsigned NOT NULL,
+  `max_discount` bigint(20) unsigned DEFAULT NULL,
+  `min_items_total` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `max_uses` int(10) unsigned DEFAULT NULL,
+  `used_count` int(10) unsigned NOT NULL DEFAULT 0,
+  `per_user_limit` smallint(5) unsigned DEFAULT 1,
+  `starts_at` timestamp NULL DEFAULT NULL,
+  `ends_at` timestamp NULL DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `shop_discount_codes_code_unique` (`code`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_discount_codes` WRITE;
+/*!40000 ALTER TABLE `shop_discount_codes` DISABLE KEYS */;
+INSERT INTO `shop_discount_codes` VALUES
+(1,'WELCOME10','percent',10,50000,200000,NULL,0,1,NULL,NULL,1,'2026-10-11 09:00:00','2026-10-11 09:00:00');
+/*!40000 ALTER TABLE `shop_discount_codes` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `shop_layette_items`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5482,12 +5519,17 @@ CREATE TABLE `shop_orders` (
   `cancelled_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `discount_code_id` bigint(20) unsigned DEFAULT NULL,
+  `idempotency_key` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `shop_orders_code_unique` (`code`),
+  UNIQUE KEY `shop_orders_user_id_idempotency_key_unique` (`user_id`,`idempotency_key`),
   KEY `shop_orders_address_id_foreign` (`address_id`),
   KEY `shop_orders_user_id_created_at_index` (`user_id`,`created_at`),
   KEY `shop_orders_status_created_at_index` (`status`,`created_at`),
+  KEY `shop_orders_discount_code_id_foreign` (`discount_code_id`),
   CONSTRAINT `shop_orders_address_id_foreign` FOREIGN KEY (`address_id`) REFERENCES `shop_addresses` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `shop_orders_discount_code_id_foreign` FOREIGN KEY (`discount_code_id`) REFERENCES `shop_discount_codes` (`id`) ON DELETE SET NULL,
   CONSTRAINT `shop_orders_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

@@ -1,0 +1,57 @@
+{
+    "errors": {
+        "validation_failed": "The given data was invalid.",
+        "not_found": "Not found.",
+        "variant_unavailable": "This item can no longer be bought.",
+        "out_of_stock": "There is not enough stock for this item.",
+        "quantity_limit": "That is more than you can order of one item.",
+        "cart_full": "Your cart is full.",
+        "cart_empty": "Your cart is empty.",
+        "cart_unavailable": "Some items in your cart are no longer available.",
+        "discount_invalid": "This discount code is not valid.",
+        "discount_min_total": "Your cart is below this code's minimum.",
+        "discount_used": "You have already used this code.",
+        "discount_exhausted": "This code has run out.",
+        "address_invalid": "Choose one of your addresses.",
+        "address_limit": "You have saved the maximum number of addresses.",
+        "slot_invalid": "This delivery time is not available.",
+        "slot_full": "This delivery time just filled up. Pick another one.",
+        "cod_limit_exceeded": "Pay on delivery is not available for an order this large.",
+        "not_cancellable": "This order can no longer be cancelled.",
+        "not_returnable": "This item can only be returned after delivery.",
+        "return_window_closed": "The return window for this item has closed.",
+        "return_quantity": "That is more than you can return for this item.",
+        "busy": "Please try again in a moment."
+    },
+    "messages": {
+        "order_placed": "Your order is placed.",
+        "order_cancelled": "Your order is cancelled.",
+        "return_requested": "Your return request is sent.",
+        "address_saved": "Address saved.",
+        "address_deleted": "Address deleted."
+    },
+    "sms": {
+        "order_placed": "Ritme: order :code is placed. Pay on delivery."
+    },
+    "attributes": {
+        "variant_id": "item",
+        "quantity": "quantity",
+        "code": "discount code",
+        "label": "label",
+        "recipient_name": "recipient name",
+        "recipient_phone": "recipient phone",
+        "province": "province",
+        "city": "city",
+        "address_line": "address",
+        "postal_code": "postal code",
+        "is_default": "default address",
+        "address_id": "address",
+        "payment_method": "payment method",
+        "discreet": "plain packaging",
+        "idempotency_key": "request key",
+        "slots": "delivery times",
+        "order_item_id": "item",
+        "reason": "reason",
+        "note": "note"
+    }
+}

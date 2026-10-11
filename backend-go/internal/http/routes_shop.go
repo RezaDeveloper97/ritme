@@ -12,6 +12,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
 	"github.com/ritme/backend-go/internal/shop"
 	"github.com/ritme/backend-go/internal/shop/catalog"
+	"github.com/ritme/backend-go/internal/shop/order"
 	"github.com/ritme/backend-go/internal/teen"
 )
 
@@ -38,6 +39,27 @@ func init() {
 		r.Get("/api/v1/shop/catalog/products", locale, guard, ch.Products)
 		r.Get("/api/v1/shop/catalog/products/:id", locale, guard, ch.Product)
 		r.Get("/api/v1/shop/catalog/products/:id/reviews", locale, guard, ch.Reviews)
+		// CB-SHOP-03 (additive): server cart, discount code, addresses, COD checkout (idempotent, stock / slot guarded),
+		// orders, cancel, returns. Owner-scoped (404 for anyone else's rows); teen-mode → 403 teen_commercial_blocked.
+		oh := order.NewHandlers(order.NewService(d.DB), teen.NewPolicy(d.DB), order.NewFakeNotifier(d.Logger),
+			d.Config.App.URL, clock.Real{}, d.Logger)
+		r.Get("/api/v1/shop/cart", locale, guard, oh.Cart)
+		r.Post("/api/v1/shop/cart/items", locale, guard, oh.AddItem)
+		r.Put("/api/v1/shop/cart/items/:variant_id", locale, guard, oh.UpdateItem)
+		r.Delete("/api/v1/shop/cart/items/:variant_id", locale, guard, oh.RemoveItem)
+		r.Put("/api/v1/shop/cart/discount", locale, guard, oh.ApplyDiscount)
+		r.Delete("/api/v1/shop/cart/discount", locale, guard, oh.RemoveDiscount)
+		r.Get("/api/v1/shop/addresses", locale, guard, oh.Addresses)
+		r.Post("/api/v1/shop/addresses", locale, guard, oh.StoreAddress)
+		r.Put("/api/v1/shop/addresses/:id", locale, guard, oh.UpdateAddress)
+		r.Delete("/api/v1/shop/addresses/:id", locale, guard, oh.DeleteAddress)
+		r.Get("/api/v1/shop/checkout", locale, guard, oh.Checkout)
+		r.Get("/api/v1/shop/orders", locale, guard, oh.Orders)
+		r.Post("/api/v1/shop/orders", locale, guard, oh.PlaceOrder)
+		r.Get("/api/v1/shop/returns", locale, guard, oh.Returns)
+		r.Get("/api/v1/shop/orders/:id", locale, guard, oh.Order)
+		r.Post("/api/v1/shop/orders/:id/cancel", locale, guard, oh.CancelOrder)
+		r.Post("/api/v1/shop/orders/:id/returns", locale, guard, oh.RequestReturn)
 		r.Get("/api/v1/shop/categories", locale, guard, h.Categories)
 		r.Get("/api/v1/shop/products", locale, guard, h.Products)
 		r.Get("/api/v1/shop/products/:id", locale, guard, h.Product)

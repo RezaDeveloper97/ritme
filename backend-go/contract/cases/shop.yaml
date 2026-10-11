@@ -112,3 +112,80 @@ cases:
     method: GET
     path: /api/v1/shop/catalog/products/999/reviews
     status: 404
+  # CB-SHOP-03: cart, discount code, addresses, COD checkout, orders, cancel (/api/v1/shop/{cart,addresses,checkout,
+  # orders,returns}). Fixture (dump.sql, 00087): code WELCOME10 (10 %, cap 50 000, min 200 000, once per user), address
+  # 1 of the regular persona (1004), slot 1 (panbe, 2026-09-26 17–21, capacity 10) and slot 2 (banoo, 2026-09-24 9–13).
+  # The order code is random (8 digits, checked by pattern). Stock / slot races, idempotent double-taps, returns after
+  # delivery, the checklist link and the teen 403 are covered by internal/http/shop_order_int_test.go.
+  - name: cart_empty
+    method: GET
+    path: /api/v1/shop/cart
+    status: 200
+  - name: cart_anon
+    persona: anon
+    method: GET
+    path: /api/v1/shop/cart
+    status: 401
+  - name: cart_and_checkout
+    doc: Two sellers, the discount code, then the checkout review (addresses, per-seller fee + slots, COD only)
+    locales: [none, en]
+    steps:
+      - {method: POST, path: /api/v1/shop/cart/items, body: {variant_id: 2, quantity: 1}, status: 200}
+      - {method: POST, path: /api/v1/shop/cart/items, body: {variant_id: 3}, status: 200}
+      - {method: POST, path: /api/v1/shop/cart/items, body: {variant_id: 4, quantity: 1}, status: 200}
+      - {method: PUT, path: /api/v1/shop/cart/items/4, body: {quantity: 2}, status: 200}
+      - {method: PUT, path: /api/v1/shop/cart/discount, body: {code: welcome10}, status: 200}
+      - {method: GET, path: /api/v1/shop/checkout, status: 200}
+  - name: cart_refusals
+    doc: Out of stock (variant 1 has none), over the line limit, unknown code, a line not in the cart
+    steps:
+      - {method: POST, path: /api/v1/shop/cart/items, body: {variant_id: 1}, status: 422}
+      - {method: POST, path: /api/v1/shop/cart/items, body: {variant_id: 2, quantity: 11}, status: 422}
+      - {method: POST, path: /api/v1/shop/cart/items, body: {variant_id: 999}, status: 422}
+      - {method: PUT, path: /api/v1/shop/cart/discount, body: {code: NOPE}, status: 422}
+      - {method: DELETE, path: /api/v1/shop/cart/items/3, status: 404}
+  - name: addresses
+    doc: List, add (Persian digits folded), validation failure
+    steps:
+      - {method: GET, path: /api/v1/shop/addresses, status: 200}
+      - {method: POST, path: /api/v1/shop/addresses, body: {label: Work, recipient_name: Regular, recipient_phone: "۰۹۱۲ ۱۲۳ ۴۵۶۷", city: Tehran, address_line: "Enghelab St, No. 9", is_default: true}, status: 201}
+      - {method: POST, path: /api/v1/shop/addresses, body: {recipient_name: Regular, recipient_phone: "123", city: Tehran}, status: 422}
+      - {method: GET, path: /api/v1/shop/addresses, status: 200}
+  - name: address_foreign
+    doc: Another user's address is a 404, and cannot be ordered to
+    persona: irregular
+    steps:
+      - {method: PUT, path: /api/v1/shop/addresses/1, body: {recipient_name: X, recipient_phone: "09120000000", city: X, address_line: X}, status: 404}
+      - {method: DELETE, path: /api/v1/shop/addresses/1, status: 404}
+      - {method: POST, path: /api/v1/shop/cart/items, body: {variant_id: 2}, status: 200}
+      - {method: POST, path: /api/v1/shop/orders, body: {idempotency_key: irregular-0001, address_id: 1, payment_method: cod}, status: 422}
+  - name: place_order
+    doc: COD order with slots and plain packaging; the same key replays (200); list, detail, cancel
+    patterns:
+      data.order.code: '^[0-9]{8}$'
+      data.orders[*].code: '^[0-9]{8}$'
+    steps:
+      - {method: POST, path: /api/v1/shop/cart/items, body: {variant_id: 2, quantity: 1}, status: 200}
+      - {method: POST, path: /api/v1/shop/cart/items, body: {variant_id: 4, quantity: 1}, status: 200}
+      - {method: POST, path: /api/v1/shop/orders, body: {idempotency_key: regular-order-1, address_id: 1, payment_method: online}, status: 422}
+      - method: POST
+        path: /api/v1/shop/orders
+        body: {idempotency_key: regular-order-1, address_id: 1, payment_method: cod, discreet: true, slots: [{seller_id: 1, slot_id: 1}, {seller_id: 2, slot_id: 2}]}
+        status: 201
+        capture: {order: data.order.id}
+      - method: POST
+        path: /api/v1/shop/orders
+        body: {idempotency_key: regular-order-1, address_id: 1, payment_method: cod, discreet: true, slots: [{seller_id: 1, slot_id: 1}, {seller_id: 2, slot_id: 2}]}
+        status: 200
+      - {method: GET, path: /api/v1/shop/orders, status: 200}
+      - {method: GET, path: "/api/v1/shop/orders/{{order}}", status: 200}
+      - {method: POST, path: "/api/v1/shop/orders/{{order}}/cancel", status: 200}
+      - {method: POST, path: "/api/v1/shop/orders/{{order}}/cancel", status: 422}
+  - name: order_missing
+    method: GET
+    path: /api/v1/shop/orders/999
+    status: 404
+  - name: returns_empty
+    method: GET
+    path: /api/v1/shop/returns
+    status: 200

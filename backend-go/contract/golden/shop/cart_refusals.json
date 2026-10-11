@@ -1,0 +1,125 @@
+{
+  "case": "shop/cart_refusals",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/cart/items",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "variant_id": 1
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "موجودی این کالا کافی نیست.",
+        "error_code": "out_of_stock",
+        "errors": {
+          "quantity": [
+            "موجودی این کالا کافی نیست."
+          ]
+        },
+        "variant_ids": [
+          1
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/cart/items",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "variant_id": 2,
+          "quantity": 11
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست.",
+        "errors": {
+          "quantity": [
+            "تعداد نباید بزرگ‌تر از 10 باشد."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/cart/items",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "variant_id": 999
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این کالا دیگر قابل خرید نیست.",
+        "error_code": "variant_unavailable",
+        "errors": {
+          "variant_id": [
+            "این کالا دیگر قابل خرید نیست."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/shop/cart/discount",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "code": "NOPE"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این کد تخفیف معتبر نیست.",
+        "error_code": "discount_invalid",
+        "errors": {
+          "code": [
+            "این کد تخفیف معتبر نیست."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/shop/cart/items/3",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "پیدا نشد.",
+        "error_code": "not_found"
+      }
+    }
+  ]
+}

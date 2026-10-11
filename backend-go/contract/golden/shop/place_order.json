@@ -1,0 +1,861 @@
+{
+  "case": "shop/place_order",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/cart/items",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "variant_id": 2,
+          "quantity": 1
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "cart": {
+            "items_count": 1,
+            "sellers_count": 1,
+            "groups": [
+              {
+                "seller": {
+                  "id": 1,
+                  "slug": "panbe",
+                  "name": "پوشاک پنبه‌ریز",
+                  "logo_url": null,
+                  "is_verified": true,
+                  "ship_min_days": 2,
+                  "ship_max_days": 4,
+                  "discreet_packaging": false,
+                  "shipping_fee": 35000,
+                  "free_shipping_over": 1000000,
+                  "cod_max_total": 5000000,
+                  "return_days": 7
+                },
+                "items_count": 1,
+                "items_total": 485000,
+                "shipping_fee": 35000,
+                "free_shipping_remaining": 515000,
+                "items": [
+                  {
+                    "variant_id": 2,
+                    "product_id": 1,
+                    "title": "بادی آستین‌بلند نخی",
+                    "image_url": "http://127.0.0.1:8090/storage/shop/bodysuit.jpg",
+                    "variant_label": "۳ تا ۶ ماه · شیری",
+                    "unit_price": 485000,
+                    "compare_at_price": null,
+                    "quantity": 1,
+                    "line_total": 485000,
+                    "stock": 5,
+                    "status": "ok",
+                    "discreet_packaging": false
+                  }
+                ]
+              }
+            ],
+            "unavailable_items": [],
+            "discount": null,
+            "items_total": 485000,
+            "discount_total": 0,
+            "payable_total": 485000
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/cart/items",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "variant_id": 4,
+          "quantity": 1
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "cart": {
+            "items_count": 2,
+            "sellers_count": 2,
+            "groups": [
+              {
+                "seller": {
+                  "id": 1,
+                  "slug": "panbe",
+                  "name": "پوشاک پنبه‌ریز",
+                  "logo_url": null,
+                  "is_verified": true,
+                  "ship_min_days": 2,
+                  "ship_max_days": 4,
+                  "discreet_packaging": false,
+                  "shipping_fee": 35000,
+                  "free_shipping_over": 1000000,
+                  "cod_max_total": 5000000,
+                  "return_days": 7
+                },
+                "items_count": 1,
+                "items_total": 485000,
+                "shipping_fee": 35000,
+                "free_shipping_remaining": 515000,
+                "items": [
+                  {
+                    "variant_id": 2,
+                    "product_id": 1,
+                    "title": "بادی آستین‌بلند نخی",
+                    "image_url": "http://127.0.0.1:8090/storage/shop/bodysuit.jpg",
+                    "variant_label": "۳ تا ۶ ماه · شیری",
+                    "unit_price": 485000,
+                    "compare_at_price": null,
+                    "quantity": 1,
+                    "line_total": 485000,
+                    "stock": 5,
+                    "status": "ok",
+                    "discreet_packaging": false
+                  }
+                ]
+              },
+              {
+                "seller": {
+                  "id": 2,
+                  "slug": "banoo",
+                  "name": "بهداشتی بانو",
+                  "logo_url": null,
+                  "is_verified": true,
+                  "ship_min_days": 1,
+                  "ship_max_days": 2,
+                  "discreet_packaging": true,
+                  "shipping_fee": 35000,
+                  "free_shipping_over": null,
+                  "cod_max_total": 3000000,
+                  "return_days": 7
+                },
+                "items_count": 1,
+                "items_total": 550000,
+                "shipping_fee": 35000,
+                "free_shipping_remaining": null,
+                "items": [
+                  {
+                    "variant_id": 4,
+                    "product_id": 3,
+                    "title": "ضدآفتاب بی‌رنگ SPF50",
+                    "image_url": null,
+                    "variant_label": "۵۰ میلی‌لیتر",
+                    "unit_price": 550000,
+                    "compare_at_price": null,
+                    "quantity": 1,
+                    "line_total": 550000,
+                    "stock": 7,
+                    "status": "ok",
+                    "discreet_packaging": true
+                  }
+                ]
+              }
+            ],
+            "unavailable_items": [],
+            "discount": null,
+            "items_total": 1035000,
+            "discount_total": 0,
+            "payable_total": 1035000
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/orders",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "idempotency_key": "regular-order-1",
+          "address_id": 1,
+          "payment_method": "online"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست.",
+        "errors": {
+          "payment_method": [
+            "روش پرداخت انتخاب‌شده معتبر نیست."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/orders",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "idempotency_key": "regular-order-1",
+          "address_id": 1,
+          "payment_method": "cod",
+          "discreet": true,
+          "slots": [
+            {
+              "seller_id": 1,
+              "slot_id": 1
+            },
+            {
+              "seller_id": 2,
+              "slot_id": 2
+            }
+          ]
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "سفارشت ثبت شد.",
+        "data": {
+          "order": {
+            "id": 1,
+            "code": "<pattern:^[0-9]{8}$>",
+            "status": "placed",
+            "payment_method": "cod",
+            "payment_status": "unpaid",
+            "discreet": true,
+            "can_cancel": true,
+            "recipient": {
+              "name": "Regular",
+              "phone": "09900000004",
+              "city": "Tehran",
+              "address": "Valiasr St, No. 1",
+              "postal_code": "1234567890"
+            },
+            "items_total": 1035000,
+            "shipping_total": 70000,
+            "discount_total": 0,
+            "payable_total": 1105000,
+            "placed_at": "2026-09-23T10:00:00+03:30",
+            "cancelled_at": null,
+            "shipments": [
+              {
+                "id": 1,
+                "seller": {
+                  "id": 1,
+                  "slug": "panbe",
+                  "name": "پوشاک پنبه‌ریز",
+                  "logo_url": null
+                },
+                "status": "awaiting_seller",
+                "slot": {
+                  "date": "2026-09-26",
+                  "starts_at": "17:00",
+                  "ends_at": "21:00"
+                },
+                "items_total": 485000,
+                "shipping_fee": 35000,
+                "tracking_code": null,
+                "delivered_at": null,
+                "return_until": null,
+                "items": [
+                  {
+                    "id": 1,
+                    "product_id": 1,
+                    "variant_id": 2,
+                    "title": "بادی آستین‌بلند نخی",
+                    "variant_label": "۳ تا ۶ ماه · شیری",
+                    "image_url": "http://127.0.0.1:8090/storage/shop/bodysuit.jpg",
+                    "unit_price": 485000,
+                    "quantity": 1,
+                    "line_total": 485000,
+                    "returnable": false
+                  }
+                ],
+                "timeline": [
+                  {
+                    "status": "awaiting_seller",
+                    "at": "2026-09-23T10:00:00+03:30"
+                  }
+                ]
+              },
+              {
+                "id": 2,
+                "seller": {
+                  "id": 2,
+                  "slug": "banoo",
+                  "name": "بهداشتی بانو",
+                  "logo_url": null
+                },
+                "status": "awaiting_seller",
+                "slot": {
+                  "date": "2026-09-24",
+                  "starts_at": "09:00",
+                  "ends_at": "13:00"
+                },
+                "items_total": 550000,
+                "shipping_fee": 35000,
+                "tracking_code": null,
+                "delivered_at": null,
+                "return_until": null,
+                "items": [
+                  {
+                    "id": 2,
+                    "product_id": 3,
+                    "variant_id": 4,
+                    "title": "ضدآفتاب بی‌رنگ SPF50",
+                    "variant_label": "۵۰ میلی‌لیتر",
+                    "image_url": null,
+                    "unit_price": 550000,
+                    "quantity": 1,
+                    "line_total": 550000,
+                    "returnable": false
+                  }
+                ],
+                "timeline": [
+                  {
+                    "status": "awaiting_seller",
+                    "at": "2026-09-23T10:00:00+03:30"
+                  }
+                ]
+              }
+            ],
+            "timeline": [
+              {
+                "status": "placed",
+                "at": "2026-09-23T10:00:00+03:30"
+              }
+            ],
+            "returns": [],
+            "checklist_on_the_way": 0
+          },
+          "replayed": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/orders",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "idempotency_key": "regular-order-1",
+          "address_id": 1,
+          "payment_method": "cod",
+          "discreet": true,
+          "slots": [
+            {
+              "seller_id": 1,
+              "slot_id": 1
+            },
+            {
+              "seller_id": 2,
+              "slot_id": 2
+            }
+          ]
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "سفارشت ثبت شد.",
+        "data": {
+          "order": {
+            "id": 1,
+            "code": "<pattern:^[0-9]{8}$>",
+            "status": "placed",
+            "payment_method": "cod",
+            "payment_status": "unpaid",
+            "discreet": true,
+            "can_cancel": true,
+            "recipient": {
+              "name": "Regular",
+              "phone": "09900000004",
+              "city": "Tehran",
+              "address": "Valiasr St, No. 1",
+              "postal_code": "1234567890"
+            },
+            "items_total": 1035000,
+            "shipping_total": 70000,
+            "discount_total": 0,
+            "payable_total": 1105000,
+            "placed_at": "2026-09-23T10:00:00+03:30",
+            "cancelled_at": null,
+            "shipments": [
+              {
+                "id": 1,
+                "seller": {
+                  "id": 1,
+                  "slug": "panbe",
+                  "name": "پوشاک پنبه‌ریز",
+                  "logo_url": null
+                },
+                "status": "awaiting_seller",
+                "slot": {
+                  "date": "2026-09-26",
+                  "starts_at": "17:00",
+                  "ends_at": "21:00"
+                },
+                "items_total": 485000,
+                "shipping_fee": 35000,
+                "tracking_code": null,
+                "delivered_at": null,
+                "return_until": null,
+                "items": [
+                  {
+                    "id": 1,
+                    "product_id": 1,
+                    "variant_id": 2,
+                    "title": "بادی آستین‌بلند نخی",
+                    "variant_label": "۳ تا ۶ ماه · شیری",
+                    "image_url": "http://127.0.0.1:8090/storage/shop/bodysuit.jpg",
+                    "unit_price": 485000,
+                    "quantity": 1,
+                    "line_total": 485000,
+                    "returnable": false
+                  }
+                ],
+                "timeline": [
+                  {
+                    "status": "awaiting_seller",
+                    "at": "2026-09-23T10:00:00+03:30"
+                  }
+                ]
+              },
+              {
+                "id": 2,
+                "seller": {
+                  "id": 2,
+                  "slug": "banoo",
+                  "name": "بهداشتی بانو",
+                  "logo_url": null
+                },
+                "status": "awaiting_seller",
+                "slot": {
+                  "date": "2026-09-24",
+                  "starts_at": "09:00",
+                  "ends_at": "13:00"
+                },
+                "items_total": 550000,
+                "shipping_fee": 35000,
+                "tracking_code": null,
+                "delivered_at": null,
+                "return_until": null,
+                "items": [
+                  {
+                    "id": 2,
+                    "product_id": 3,
+                    "variant_id": 4,
+                    "title": "ضدآفتاب بی‌رنگ SPF50",
+                    "variant_label": "۵۰ میلی‌لیتر",
+                    "image_url": null,
+                    "unit_price": 550000,
+                    "quantity": 1,
+                    "line_total": 550000,
+                    "returnable": false
+                  }
+                ],
+                "timeline": [
+                  {
+                    "status": "awaiting_seller",
+                    "at": "2026-09-23T10:00:00+03:30"
+                  }
+                ]
+              }
+            ],
+            "timeline": [
+              {
+                "status": "placed",
+                "at": "2026-09-23T10:00:00+03:30"
+              }
+            ],
+            "returns": [],
+            "checklist_on_the_way": 0
+          },
+          "replayed": true
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/shop/orders",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "orders": [
+            {
+              "id": 1,
+              "code": "<pattern:^[0-9]{8}$>",
+              "status": "placed",
+              "payment_method": "cod",
+              "payable_total": 1105000,
+              "items_count": 2,
+              "placed_at": "2026-09-23T10:00:00+03:30",
+              "shipments": [
+                {
+                  "id": 1,
+                  "seller": {
+                    "id": 1,
+                    "slug": "panbe",
+                    "name": "پوشاک پنبه‌ریز",
+                    "logo_url": null
+                  },
+                  "status": "awaiting_seller",
+                  "slot": {
+                    "date": "2026-09-26",
+                    "starts_at": "17:00",
+                    "ends_at": "21:00"
+                  }
+                },
+                {
+                  "id": 2,
+                  "seller": {
+                    "id": 2,
+                    "slug": "banoo",
+                    "name": "بهداشتی بانو",
+                    "logo_url": null
+                  },
+                  "status": "awaiting_seller",
+                  "slot": {
+                    "date": "2026-09-24",
+                    "starts_at": "09:00",
+                    "ends_at": "13:00"
+                  }
+                }
+              ],
+              "items": [
+                {
+                  "id": 1,
+                  "product_id": 1,
+                  "variant_id": 2,
+                  "title": "بادی آستین‌بلند نخی",
+                  "variant_label": "۳ تا ۶ ماه · شیری",
+                  "image_url": "http://127.0.0.1:8090/storage/shop/bodysuit.jpg",
+                  "unit_price": 485000,
+                  "quantity": 1,
+                  "line_total": 485000
+                },
+                {
+                  "id": 2,
+                  "product_id": 3,
+                  "variant_id": 4,
+                  "title": "ضدآفتاب بی‌رنگ SPF50",
+                  "variant_label": "۵۰ میلی‌لیتر",
+                  "image_url": null,
+                  "unit_price": 550000,
+                  "quantity": 1,
+                  "line_total": 550000
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/shop/orders/1",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "order": {
+            "id": 1,
+            "code": "<pattern:^[0-9]{8}$>",
+            "status": "placed",
+            "payment_method": "cod",
+            "payment_status": "unpaid",
+            "discreet": true,
+            "can_cancel": true,
+            "recipient": {
+              "name": "Regular",
+              "phone": "09900000004",
+              "city": "Tehran",
+              "address": "Valiasr St, No. 1",
+              "postal_code": "1234567890"
+            },
+            "items_total": 1035000,
+            "shipping_total": 70000,
+            "discount_total": 0,
+            "payable_total": 1105000,
+            "placed_at": "2026-09-23T10:00:00+03:30",
+            "cancelled_at": null,
+            "shipments": [
+              {
+                "id": 1,
+                "seller": {
+                  "id": 1,
+                  "slug": "panbe",
+                  "name": "پوشاک پنبه‌ریز",
+                  "logo_url": null
+                },
+                "status": "awaiting_seller",
+                "slot": {
+                  "date": "2026-09-26",
+                  "starts_at": "17:00",
+                  "ends_at": "21:00"
+                },
+                "items_total": 485000,
+                "shipping_fee": 35000,
+                "tracking_code": null,
+                "delivered_at": null,
+                "return_until": null,
+                "items": [
+                  {
+                    "id": 1,
+                    "product_id": 1,
+                    "variant_id": 2,
+                    "title": "بادی آستین‌بلند نخی",
+                    "variant_label": "۳ تا ۶ ماه · شیری",
+                    "image_url": "http://127.0.0.1:8090/storage/shop/bodysuit.jpg",
+                    "unit_price": 485000,
+                    "quantity": 1,
+                    "line_total": 485000,
+                    "returnable": false
+                  }
+                ],
+                "timeline": [
+                  {
+                    "status": "awaiting_seller",
+                    "at": "2026-09-23T10:00:00+03:30"
+                  }
+                ]
+              },
+              {
+                "id": 2,
+                "seller": {
+                  "id": 2,
+                  "slug": "banoo",
+                  "name": "بهداشتی بانو",
+                  "logo_url": null
+                },
+                "status": "awaiting_seller",
+                "slot": {
+                  "date": "2026-09-24",
+                  "starts_at": "09:00",
+                  "ends_at": "13:00"
+                },
+                "items_total": 550000,
+                "shipping_fee": 35000,
+                "tracking_code": null,
+                "delivered_at": null,
+                "return_until": null,
+                "items": [
+                  {
+                    "id": 2,
+                    "product_id": 3,
+                    "variant_id": 4,
+                    "title": "ضدآفتاب بی‌رنگ SPF50",
+                    "variant_label": "۵۰ میلی‌لیتر",
+                    "image_url": null,
+                    "unit_price": 550000,
+                    "quantity": 1,
+                    "line_total": 550000,
+                    "returnable": false
+                  }
+                ],
+                "timeline": [
+                  {
+                    "status": "awaiting_seller",
+                    "at": "2026-09-23T10:00:00+03:30"
+                  }
+                ]
+              }
+            ],
+            "timeline": [
+              {
+                "status": "placed",
+                "at": "2026-09-23T10:00:00+03:30"
+              }
+            ],
+            "returns": [],
+            "checklist_on_the_way": 0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/orders/1/cancel",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "سفارشت لغو شد.",
+        "data": {
+          "order": {
+            "id": 1,
+            "code": "<pattern:^[0-9]{8}$>",
+            "status": "cancelled",
+            "payment_method": "cod",
+            "payment_status": "unpaid",
+            "discreet": true,
+            "can_cancel": false,
+            "recipient": {
+              "name": "Regular",
+              "phone": "09900000004",
+              "city": "Tehran",
+              "address": "Valiasr St, No. 1",
+              "postal_code": "1234567890"
+            },
+            "items_total": 1035000,
+            "shipping_total": 70000,
+            "discount_total": 0,
+            "payable_total": 1105000,
+            "placed_at": "2026-09-23T10:00:00+03:30",
+            "cancelled_at": "2026-09-23T10:00:00+03:30",
+            "shipments": [
+              {
+                "id": 1,
+                "seller": {
+                  "id": 1,
+                  "slug": "panbe",
+                  "name": "پوشاک پنبه‌ریز",
+                  "logo_url": null
+                },
+                "status": "cancelled",
+                "slot": {
+                  "date": "2026-09-26",
+                  "starts_at": "17:00",
+                  "ends_at": "21:00"
+                },
+                "items_total": 485000,
+                "shipping_fee": 35000,
+                "tracking_code": null,
+                "delivered_at": null,
+                "return_until": null,
+                "items": [
+                  {
+                    "id": 1,
+                    "product_id": 1,
+                    "variant_id": 2,
+                    "title": "بادی آستین‌بلند نخی",
+                    "variant_label": "۳ تا ۶ ماه · شیری",
+                    "image_url": "http://127.0.0.1:8090/storage/shop/bodysuit.jpg",
+                    "unit_price": 485000,
+                    "quantity": 1,
+                    "line_total": 485000,
+                    "returnable": false
+                  }
+                ],
+                "timeline": [
+                  {
+                    "status": "awaiting_seller",
+                    "at": "2026-09-23T10:00:00+03:30"
+                  }
+                ]
+              },
+              {
+                "id": 2,
+                "seller": {
+                  "id": 2,
+                  "slug": "banoo",
+                  "name": "بهداشتی بانو",
+                  "logo_url": null
+                },
+                "status": "cancelled",
+                "slot": {
+                  "date": "2026-09-24",
+                  "starts_at": "09:00",
+                  "ends_at": "13:00"
+                },
+                "items_total": 550000,
+                "shipping_fee": 35000,
+                "tracking_code": null,
+                "delivered_at": null,
+                "return_until": null,
+                "items": [
+                  {
+                    "id": 2,
+                    "product_id": 3,
+                    "variant_id": 4,
+                    "title": "ضدآفتاب بی‌رنگ SPF50",
+                    "variant_label": "۵۰ میلی‌لیتر",
+                    "image_url": null,
+                    "unit_price": 550000,
+                    "quantity": 1,
+                    "line_total": 550000,
+                    "returnable": false
+                  }
+                ],
+                "timeline": [
+                  {
+                    "status": "awaiting_seller",
+                    "at": "2026-09-23T10:00:00+03:30"
+                  }
+                ]
+              }
+            ],
+            "timeline": [
+              {
+                "status": "placed",
+                "at": "2026-09-23T10:00:00+03:30"
+              },
+              {
+                "status": "cancelled",
+                "at": "2026-09-23T10:00:00+03:30"
+              }
+            ],
+            "returns": [],
+            "checklist_on_the_way": 0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/orders/1/cancel",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این سفارش دیگر قابل لغو نیست.",
+        "error_code": "not_cancellable"
+      }
+    }
+  ]
+}

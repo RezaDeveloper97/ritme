@@ -1,0 +1,57 @@
+{
+    "errors": {
+        "validation_failed": "اطلاعات واردشده معتبر نیست.",
+        "not_found": "پیدا نشد.",
+        "variant_unavailable": "این کالا دیگر قابل خرید نیست.",
+        "out_of_stock": "موجودی این کالا کافی نیست.",
+        "quantity_limit": "از یک کالا بیشتر از این نمی‌شود سفارش داد.",
+        "cart_full": "سبد خریدت پر است.",
+        "cart_empty": "سبد خریدت خالی است.",
+        "cart_unavailable": "بعضی از کالاهای سبدت دیگر در دسترس نیستند.",
+        "discount_invalid": "این کد تخفیف معتبر نیست.",
+        "discount_min_total": "مبلغ سبدت به حداقل این کد نمی‌رسد.",
+        "discount_used": "این کد را قبلاً استفاده کرده‌ای.",
+        "discount_exhausted": "ظرفیت این کد تمام شده است.",
+        "address_invalid": "یکی از آدرس‌هایت را انتخاب کن.",
+        "address_limit": "به حداکثر تعداد آدرس رسیده‌ای.",
+        "slot_invalid": "این زمان تحویل در دسترس نیست.",
+        "slot_full": "ظرفیت این زمان تحویل همین حالا پر شد. زمان دیگری انتخاب کن.",
+        "cod_limit_exceeded": "پرداخت در محل برای سفارشی با این مبلغ ممکن نیست.",
+        "not_cancellable": "این سفارش دیگر قابل لغو نیست.",
+        "not_returnable": "این کالا فقط بعد از تحویل قابل بازگشت است.",
+        "return_window_closed": "مهلت بازگشت این کالا تمام شده است.",
+        "return_quantity": "این تعداد بیشتر از مقدار قابل بازگشت این کالاست.",
+        "busy": "چند لحظه بعد دوباره امتحان کن."
+    },
+    "messages": {
+        "order_placed": "سفارشت ثبت شد.",
+        "order_cancelled": "سفارشت لغو شد.",
+        "return_requested": "درخواست بازگشت فرستاده شد.",
+        "address_saved": "آدرس ذخیره شد.",
+        "address_deleted": "آدرس حذف شد."
+    },
+    "sms": {
+        "order_placed": "ریتمی: سفارش :code ثبت شد. پرداخت هنگام تحویل."
+    },
+    "attributes": {
+        "variant_id": "کالا",
+        "quantity": "تعداد",
+        "code": "کد تخفیف",
+        "label": "عنوان",
+        "recipient_name": "نام تحویل‌گیرنده",
+        "recipient_phone": "شماره تحویل‌گیرنده",
+        "province": "استان",
+        "city": "شهر",
+        "address_line": "آدرس",
+        "postal_code": "کد پستی",
+        "is_default": "آدرس پیش‌فرض",
+        "address_id": "آدرس",
+        "payment_method": "روش پرداخت",
+        "discreet": "بسته‌بندی ساده",
+        "idempotency_key": "کلید درخواست",
+        "slots": "زمان‌های تحویل",
+        "order_item_id": "کالا",
+        "reason": "دلیل",
+        "note": "توضیح"
+    }
+}

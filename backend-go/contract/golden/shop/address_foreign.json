@@ -1,0 +1,139 @@
+{
+  "case": "shop/address_foreign",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/shop/addresses/1",
+        "persona": "irregular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "recipient_name": "X",
+          "recipient_phone": "09120000000",
+          "city": "X",
+          "address_line": "X"
+        }
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "پیدا نشد.",
+        "error_code": "not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/shop/addresses/1",
+        "persona": "irregular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "پیدا نشد.",
+        "error_code": "not_found"
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/cart/items",
+        "persona": "irregular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "variant_id": 2
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "cart": {
+            "items_count": 1,
+            "sellers_count": 1,
+            "groups": [
+              {
+                "seller": {
+                  "id": 1,
+                  "slug": "panbe",
+                  "name": "پوشاک پنبه‌ریز",
+                  "logo_url": null,
+                  "is_verified": true,
+                  "ship_min_days": 2,
+                  "ship_max_days": 4,
+                  "discreet_packaging": false,
+                  "shipping_fee": 35000,
+                  "free_shipping_over": 1000000,
+                  "cod_max_total": 5000000,
+                  "return_days": 7
+                },
+                "items_count": 1,
+                "items_total": 485000,
+                "shipping_fee": 35000,
+                "free_shipping_remaining": 515000,
+                "items": [
+                  {
+                    "variant_id": 2,
+                    "product_id": 1,
+                    "title": "بادی آستین‌بلند نخی",
+                    "image_url": "http://127.0.0.1:8090/storage/shop/bodysuit.jpg",
+                    "variant_label": "۳ تا ۶ ماه · شیری",
+                    "unit_price": 485000,
+                    "compare_at_price": null,
+                    "quantity": 1,
+                    "line_total": 485000,
+                    "stock": 5,
+                    "status": "ok",
+                    "discreet_packaging": false
+                  }
+                ]
+              }
+            ],
+            "unavailable_items": [],
+            "discount": null,
+            "items_total": 485000,
+            "discount_total": 0,
+            "payable_total": 485000
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/orders",
+        "persona": "irregular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "idempotency_key": "irregular-0001",
+          "address_id": 1,
+          "payment_method": "cod"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "یکی از آدرس‌هایت را انتخاب کن.",
+        "error_code": "address_invalid",
+        "errors": {
+          "address_id": [
+            "یکی از آدرس‌هایت را انتخاب کن."
+          ]
+        }
+      }
+    }
+  ]
+}

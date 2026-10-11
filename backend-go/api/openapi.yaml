@@ -14312,6 +14312,441 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
         '404': {$ref: "#/components/responses/ShopNotFound"}
+  /api/v1/shop/cart:
+    get:
+      tags: [Shop]
+      summary: The server cart
+      description: |
+        Go only (CB-SHOP-03). Lines grouped per seller (one shipment each; groups keep the order of each seller's first
+        line) with the seller's shipping terms, the group's fee and how much more waives it; lines whose variant /
+        product / category / seller is gone are listed apart (`unavailable_items`) and never counted. A line with
+        `status: out_of_stock` (stock below its quantity) is shown but not counted. The applied discount code is
+        re-evaluated on every read (`discount.error_code` when it no longer applies). `payable_total` = items −
+        discount; shipping is priced at checkout. Teen mode → 403.
+      operationId: getShopCart
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/ShopCartReply"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+  /api/v1/shop/cart/items:
+    post:
+      tags: [Shop]
+      summary: Add a variant to the cart
+      description: |
+        Go only (CB-SHOP-03). Adds `quantity` (default 1) to the variant's line. 422 `variant_unavailable` (inactive or
+        link-out data), `out_of_stock` (more than the stock), `quantity_limit` (more than 10 of one variant),
+        `cart_full` (30 distinct variants). Answers the cart.
+      operationId: addShopCartItem
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [variant_id]
+              properties:
+                variant_id: {type: integer, minimum: 1}
+                quantity: {type: [integer, "null"], minimum: 1, maximum: 10}
+      responses:
+        '200': {$ref: "#/components/responses/ShopCartReply"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '422': {$ref: "#/components/responses/ShopOrderFailed"}
+  /api/v1/shop/cart/items/{variant_id}:
+    put:
+      tags: [Shop]
+      summary: Set a cart line's quantity
+      description: Go only (CB-SHOP-03). 404 when the variant is not in her cart; the same 422s as adding.
+      operationId: updateShopCartItem
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: variant_id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              properties:
+                quantity: {type: integer, minimum: 1, maximum: 10}
+      responses:
+        '200': {$ref: "#/components/responses/ShopCartReply"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '404': {$ref: "#/components/responses/ShopOrderFailed"}
+        '422': {$ref: "#/components/responses/ShopOrderFailed"}
+    delete:
+      tags: [Shop]
+      summary: Remove a cart line
+      description: Go only (CB-SHOP-03). 404 when the variant is not in her cart. Answers the cart.
+      operationId: removeShopCartItem
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: variant_id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/ShopCartReply"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '404': {$ref: "#/components/responses/ShopOrderFailed"}
+  /api/v1/shop/cart/discount:
+    put:
+      tags: [Shop]
+      summary: Apply a discount code
+      description: |
+        Go only (CB-SHOP-03). «کد تخفیف داری؟» — admin-defined codes (case-insensitive). 422 with `error_code`
+        `discount_invalid` (unknown, inactive, outside its window), `discount_exhausted`, `discount_used` (her per-user
+        limit) or `discount_min_total`. Answers the cart.
+      operationId: applyShopCartDiscount
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: {type: string, maxLength: 32}
+      responses:
+        '200': {$ref: "#/components/responses/ShopCartReply"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '422': {$ref: "#/components/responses/ShopOrderFailed"}
+    delete:
+      tags: [Shop]
+      summary: Remove the discount code
+      description: Go only (CB-SHOP-03). Answers the cart.
+      operationId: removeShopCartDiscount
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/ShopCartReply"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+  /api/v1/shop/addresses:
+    get:
+      tags: [Shop]
+      summary: Her delivery addresses
+      description: Go only (CB-SHOP-03). Default first, then newest.
+      operationId: listShopAddresses
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Addresses
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [addresses]
+                    properties:
+                      addresses: {type: array, items: {$ref: "#/components/schemas/ShopAddress"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+    post:
+      tags: [Shop]
+      summary: Add an address
+      description: |
+        Go only (CB-SHOP-03). Persian/Arabic digits are folded; `recipient_phone` is a mobile (`09…`, `+98…` accepted),
+        `postal_code` 10 digits. Her first address becomes the default; `is_default: true` moves the default. At most 20
+        (422 `address_limit`).
+      operationId: createShopAddress
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ShopAddressInput"}
+      responses:
+        '201': {$ref: "#/components/responses/ShopAddressReply"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '422': {$ref: "#/components/responses/ShopOrderFailed"}
+  /api/v1/shop/addresses/{id}:
+    put:
+      tags: [Shop]
+      summary: Edit an address
+      description: Go only (CB-SHOP-03). 404 for anyone else's address. Placed orders keep their own snapshot.
+      operationId: updateShopAddress
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ShopAddressInput"}
+      responses:
+        '200': {$ref: "#/components/responses/ShopAddressReply"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '404': {$ref: "#/components/responses/ShopOrderFailed"}
+        '422': {$ref: "#/components/responses/ShopOrderFailed"}
+    delete:
+      tags: [Shop]
+      summary: Delete an address
+      description: Go only (CB-SHOP-03). 404 for anyone else's address. Placed orders keep their own snapshot.
+      operationId: deleteShopAddress
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: "null"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '404': {$ref: "#/components/responses/ShopOrderFailed"}
+  /api/v1/shop/checkout:
+    get:
+      tags: [Shop]
+      summary: Checkout review step
+      description: |
+        Go only (CB-SHOP-03). The priced cart, her addresses (`default_address_id`), one shipment per seller with its fee,
+        COD availability (seller's COD ceiling on items + fee) and open delivery slots from tomorrow (Tehran; full
+        slots hidden), whether plain packaging is offered, the only payment method (`cod` — MVP has no online payment)
+        and the totals. `blockers` lists what stops «ثبت سفارش»: `cart_empty`, `cart_unavailable`, a discount error,
+        `address_invalid` (no address yet), `cod_limit_exceeded`.
+      operationId: getShopCheckout
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The review step
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ShopCheckout"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+  /api/v1/shop/orders:
+    get:
+      tags: [Shop]
+      summary: Her orders
+      description: Go only (CB-SHOP-03). The 50 newest, as cards with their shipments and items.
+      operationId: listShopOrders
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Orders
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [orders]
+                    properties:
+                      orders: {type: array, items: {$ref: "#/components/schemas/ShopOrderSummary"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+    post:
+      tags: [Shop]
+      summary: Place a pay-on-delivery order
+      description: |
+        Go only (CB-SHOP-03). Turns the cart into one order with one shipment per seller, inside one transaction: the
+        cart row is locked, stock is taken with guarded updates (never below zero), then the discount code use and the
+        chosen delivery slots' capacity. Prices, titles, variant labels and the recipient/address are SNAPSHOTS.
+        `payment_method` must be `cod` (422 otherwise). `idempotency_key` (client-generated, 8–64 of `A-Za-z0-9_-`)
+        makes a retry safe: the same key again answers **200** with the first order and `replayed: true`. Refusals:
+        422 `cart_empty`, `address_invalid` (not one of her addresses), `slot_invalid`, `cod_limit_exceeded`; 409
+        `out_of_stock` / `cart_unavailable` (with `variant_ids`), `slot_full`, `discount_*`, `busy`. Layette checklist
+        rows of the ordered categories move to «در راه» (`checklist_on_the_way`). A discreet SMS (order code only)
+        goes out through the SMS adapter.
+      operationId: placeShopOrder
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idempotency_key, address_id, payment_method]
+              properties:
+                idempotency_key: {type: string, minLength: 8, maxLength: 64, pattern: "^[A-Za-z0-9_-]+$"}
+                address_id: {type: integer, minimum: 1}
+                payment_method: {type: string, enum: [cod]}
+                discreet: {type: [boolean, "null"], description: "«بسته‌بندی ساده»: no product name on the box or outer invoice"}
+                slots:
+                  type: [array, "null"]
+                  maxItems: 20
+                  items:
+                    type: object
+                    required: [seller_id, slot_id]
+                    properties:
+                      seller_id: {type: integer}
+                      slot_id: {type: integer}
+      responses:
+        '200': {$ref: "#/components/responses/ShopOrderPlaced"}
+        '201': {$ref: "#/components/responses/ShopOrderPlaced"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '409': {$ref: "#/components/responses/ShopOrderFailed"}
+        '422': {$ref: "#/components/responses/ShopOrderFailed"}
+  /api/v1/shop/returns:
+    get:
+      tags: [Shop]
+      summary: Her return requests
+      description: Go only (CB-SHOP-03). Newest first.
+      operationId: listShopReturns
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Returns
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [returns]
+                    properties:
+                      returns: {type: array, items: {$ref: "#/components/schemas/ShopReturn"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+  /api/v1/shop/orders/{id}:
+    get:
+      tags: [Shop]
+      summary: One of her orders
+      description: Go only (CB-SHOP-03). Shipments with slot, items, timeline and return window; 404 for anyone else's order.
+      operationId: getShopOrder
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/ShopOrderReply"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '404': {$ref: "#/components/responses/ShopOrderFailed"}
+  /api/v1/shop/orders/{id}/cancel:
+    post:
+      tags: [Shop]
+      summary: Cancel an order
+      description: |
+        Go only (CB-SHOP-03). Only while the order is `placed` and every shipment still awaits the seller (else 422
+        `not_cancellable`). Stock, delivery slots and the discount-code use are given back; checklist rows this order set
+        «در راه» go back to «todo». 404 for anyone else's order.
+      operationId: cancelShopOrder
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/ShopOrderReply"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '404': {$ref: "#/components/responses/ShopOrderFailed"}
+        '422': {$ref: "#/components/responses/ShopOrderFailed"}
+  /api/v1/shop/orders/{id}/returns:
+    post:
+      tags: [Shop]
+      summary: Request a return
+      description: |
+        Go only (CB-SHOP-03). «بازگشت کالا تا ۷ روز بعد از تحویل»: an item of a DELIVERED shipment, within the seller's
+        `return_days` (default 7) of delivery. 422 `not_returnable`, `return_window_closed`, `return_quantity` (more
+        than ordered minus open requests). 404 for anyone else's order.
+      operationId: requestShopReturn
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_item_id, reason]
+              properties:
+                order_item_id: {type: integer, minimum: 1}
+                quantity: {type: [integer, "null"], minimum: 1, maximum: 10}
+                reason: {type: string, enum: [wrong_size, damaged, not_as_described, changed_mind, other]}
+                note: {type: [string, "null"], maxLength: 1000}
+      responses:
+        '201':
+          description: Return requested
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [return]
+                    properties:
+                      return: {$ref: "#/components/schemas/ShopReturn"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '404': {$ref: "#/components/responses/ShopOrderFailed"}
+        '422': {$ref: "#/components/responses/ShopOrderFailed"}
   /api/v1/city-services/options:
     get:
       tags: [CityServices]
@@ -23997,6 +24432,85 @@ components:
             type: object
             required: [message]
             properties: {message: {type: string}}
+    ShopOrderFailed:
+      description: |
+        Cart / checkout / order refusal (CB-SHOP-03): `error_code` names the reason (not_found, variant_unavailable,
+        out_of_stock, quantity_limit, cart_full, cart_empty, cart_unavailable, discount_invalid, discount_min_total,
+        discount_used, discount_exhausted, address_invalid, address_limit, slot_invalid, slot_full, cod_limit_exceeded,
+        not_cancellable, not_returnable, return_window_closed, return_quantity, busy); `errors` names the field when
+        one is to blame; `variant_ids` lists the cart lines concerned. A plain validation failure has `errors` only.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string}
+              errors: {type: object, additionalProperties: {type: array, items: {type: string}}}
+              variant_ids: {type: array, items: {type: integer}}
+          example: {success: false, message: موجودی این کالا کافی نیست., error_code: out_of_stock, variant_ids: [12]}
+    ShopCartReply:
+      description: The cart
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, data]
+            properties:
+              success: {type: boolean}
+              data:
+                type: object
+                required: [cart]
+                properties:
+                  cart: {$ref: "#/components/schemas/ShopCart"}
+    ShopAddressReply:
+      description: The saved address
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, data]
+            properties:
+              success: {type: boolean}
+              message: {type: string}
+              data:
+                type: object
+                required: [address]
+                properties:
+                  address: {$ref: "#/components/schemas/ShopAddress"}
+    ShopOrderReply:
+      description: The order
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, data]
+            properties:
+              success: {type: boolean}
+              message: {type: string}
+              data:
+                type: object
+                required: [order]
+                properties:
+                  order: {$ref: "#/components/schemas/ShopOrder"}
+    ShopOrderPlaced:
+      description: "201: placed. 200: the idempotency key matched an earlier order (`replayed: true`, nothing new)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, data]
+            properties:
+              success: {type: boolean}
+              message: {type: string}
+              data:
+                type: object
+                required: [order, replayed]
+                properties:
+                  order: {$ref: "#/components/schemas/ShopOrder"}
+                  replayed: {type: boolean}
     CityServiceNotFound:
       description: "Unknown or inactive listing, or a booking that is not the caller's"
       content:
@@ -24575,6 +25089,256 @@ components:
         compare_at_price: {type: [integer, "null"]}
         stock: {type: integer}
         in_stock: {type: boolean}
+    ShopSellerTerms:
+      type: object
+      required: [id, slug, name, logo_url, is_verified, ship_min_days, ship_max_days, discreet_packaging, shipping_fee, free_shipping_over, cod_max_total, return_days]
+      properties:
+        id: {type: integer}
+        slug: {type: string}
+        name: {type: string}
+        logo_url: {type: [string, "null"]}
+        is_verified: {type: boolean}
+        ship_min_days: {type: integer}
+        ship_max_days: {type: integer}
+        discreet_packaging: {type: boolean}
+        shipping_fee: {type: integer, description: toman}
+        free_shipping_over: {type: [integer, "null"]}
+        cod_max_total: {type: [integer, "null"]}
+        return_days: {type: integer}
+    ShopCartLine:
+      type: object
+      required: [variant_id, product_id, title, image_url, variant_label, unit_price, compare_at_price, quantity, line_total, stock, status, discreet_packaging]
+      properties:
+        variant_id: {type: integer}
+        product_id: {type: integer}
+        title: {type: string}
+        image_url: {type: [string, "null"]}
+        variant_label: {type: [string, "null"], description: "size · color · volume in the request language"}
+        unit_price: {type: integer}
+        compare_at_price: {type: [integer, "null"]}
+        quantity: {type: integer}
+        line_total: {type: integer}
+        stock: {type: integer}
+        status: {type: string, enum: [ok, out_of_stock, unavailable]}
+        discreet_packaging: {type: boolean}
+    ShopCart:
+      type: object
+      required: [items_count, sellers_count, groups, unavailable_items, discount, items_total, discount_total, payable_total]
+      properties:
+        items_count: {type: integer}
+        sellers_count: {type: integer}
+        groups:
+          type: array
+          items:
+            type: object
+            required: [seller, items_count, items_total, shipping_fee, free_shipping_remaining, items]
+            properties:
+              seller: {$ref: "#/components/schemas/ShopSellerTerms"}
+              items_count: {type: integer}
+              items_total: {type: integer}
+              shipping_fee: {type: integer}
+              free_shipping_remaining: {type: [integer, "null"]}
+              items: {type: array, items: {$ref: "#/components/schemas/ShopCartLine"}}
+        unavailable_items: {type: array, items: {$ref: "#/components/schemas/ShopCartLine"}}
+        discount:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [code, amount, error_code]
+              properties:
+                code: {type: string}
+                amount: {type: integer}
+                error_code: {type: [string, "null"]}
+        items_total: {type: integer}
+        discount_total: {type: integer}
+        payable_total: {type: integer, description: items − discount (shipping is priced at checkout)}
+    ShopAddress:
+      type: object
+      required: [id, label, recipient_name, recipient_phone, province, city, address_line, postal_code, is_default]
+      properties:
+        id: {type: integer}
+        label: {type: [string, "null"]}
+        recipient_name: {type: string}
+        recipient_phone: {type: string}
+        province: {type: [string, "null"]}
+        city: {type: string}
+        address_line: {type: string}
+        postal_code: {type: [string, "null"]}
+        is_default: {type: boolean}
+    ShopAddressInput:
+      type: object
+      required: [recipient_name, recipient_phone, city, address_line]
+      properties:
+        label: {type: [string, "null"], maxLength: 40}
+        recipient_name: {type: string, maxLength: 120}
+        recipient_phone: {type: string, description: "Iranian mobile; Persian digits, spaces, dashes and +98 accepted"}
+        province: {type: [string, "null"], maxLength: 60}
+        city: {type: string, maxLength: 60}
+        address_line: {type: string, maxLength: 500}
+        postal_code: {type: [string, "null"], description: 10 digits}
+        is_default: {type: [boolean, "null"]}
+    ShopCheckout:
+      type: object
+      required: [cart, addresses, default_address_id, shipments, discreet_packaging_available, payment_methods, items_total, discount_total, shipping_total, payable_total, can_place, blockers]
+      properties:
+        cart: {$ref: "#/components/schemas/ShopCart"}
+        addresses: {type: array, items: {$ref: "#/components/schemas/ShopAddress"}}
+        default_address_id: {type: [integer, "null"]}
+        shipments:
+          type: array
+          items:
+            type: object
+            required: [seller, items_count, items_total, shipping_fee, cod_available, slots]
+            properties:
+              seller: {$ref: "#/components/schemas/ShopSellerTerms"}
+              items_count: {type: integer}
+              items_total: {type: integer}
+              shipping_fee: {type: integer}
+              cod_available: {type: boolean}
+              slots:
+                type: array
+                items:
+                  type: object
+                  required: [id, date, starts_at, ends_at]
+                  properties:
+                    id: {type: integer}
+                    date: {$ref: "#/components/schemas/Date"}
+                    starts_at: {type: string, example: "09:00"}
+                    ends_at: {type: string, example: "13:00"}
+        discreet_packaging_available: {type: boolean}
+        payment_methods:
+          type: array
+          items:
+            type: object
+            required: [method, available]
+            properties:
+              method: {type: string, enum: [cod]}
+              available: {type: boolean}
+        items_total: {type: integer}
+        discount_total: {type: integer}
+        shipping_total: {type: integer}
+        payable_total: {type: integer}
+        can_place: {type: boolean}
+        blockers: {type: array, items: {type: string}}
+    ShopOrderSeller:
+      oneOf:
+        - {type: "null"}
+        - type: object
+          required: [id, slug, name, logo_url]
+          properties:
+            id: {type: integer}
+            slug: {type: string}
+            name: {type: string}
+            logo_url: {type: [string, "null"]}
+    ShopOrderSlot:
+      oneOf:
+        - {type: "null"}
+        - type: object
+          required: [date, starts_at, ends_at]
+          properties:
+            date: {$ref: "#/components/schemas/Date"}
+            starts_at: {type: string}
+            ends_at: {type: string}
+    ShopOrderItem:
+      type: object
+      required: [id, product_id, variant_id, title, variant_label, image_url, unit_price, quantity, line_total]
+      properties:
+        id: {type: integer}
+        product_id: {type: [integer, "null"]}
+        variant_id: {type: [integer, "null"]}
+        title: {type: string, description: snapshot at order time}
+        variant_label: {type: [string, "null"]}
+        image_url: {type: [string, "null"]}
+        unit_price: {type: integer, description: snapshot at order time}
+        quantity: {type: integer}
+        line_total: {type: integer}
+        returnable: {type: boolean}
+    ShopOrderEvent:
+      type: object
+      required: [status, at]
+      properties:
+        status: {type: string}
+        at: {type: [string, "null"], format: date-time}
+    ShopReturn:
+      type: object
+      required: [id, order_id, order_item_id, quantity, reason, note, status, created_at]
+      properties:
+        id: {type: integer}
+        order_id: {type: integer}
+        order_item_id: {type: integer}
+        quantity: {type: integer}
+        reason: {type: string}
+        note: {type: [string, "null"]}
+        status: {type: string}
+        created_at: {type: [string, "null"], format: date-time}
+    ShopOrder:
+      type: object
+      required: [id, code, status, payment_method, payment_status, discreet, can_cancel, recipient, items_total, shipping_total, discount_total, payable_total, placed_at, cancelled_at, shipments, timeline, returns, checklist_on_the_way]
+      properties:
+        id: {type: integer}
+        code: {type: string}
+        status: {type: string, description: "placed | confirmed | shipped | delivered | cancelled"}
+        payment_method: {type: string, enum: [cod]}
+        payment_status: {type: string}
+        discreet: {type: boolean}
+        can_cancel: {type: boolean}
+        recipient:
+          type: object
+          required: [name, phone, city, address, postal_code]
+          properties:
+            name: {type: string}
+            phone: {type: string}
+            city: {type: string}
+            address: {type: string}
+            postal_code: {type: [string, "null"]}
+        items_total: {type: integer}
+        shipping_total: {type: integer}
+        discount_total: {type: integer}
+        payable_total: {type: integer}
+        placed_at: {type: [string, "null"], format: date-time}
+        cancelled_at: {type: [string, "null"], format: date-time}
+        shipments:
+          type: array
+          items:
+            type: object
+            required: [id, seller, status, slot, items_total, shipping_fee, tracking_code, delivered_at, return_until, items, timeline]
+            properties:
+              id: {type: integer}
+              seller: {$ref: "#/components/schemas/ShopOrderSeller"}
+              status: {type: string, description: "awaiting_seller | confirmed | shipped | delivered | cancelled"}
+              slot: {$ref: "#/components/schemas/ShopOrderSlot"}
+              items_total: {type: integer}
+              shipping_fee: {type: integer}
+              tracking_code: {type: [string, "null"]}
+              delivered_at: {type: [string, "null"], format: date-time}
+              return_until: {type: [string, "null"], format: date-time}
+              items: {type: array, items: {$ref: "#/components/schemas/ShopOrderItem"}}
+              timeline: {type: array, items: {$ref: "#/components/schemas/ShopOrderEvent"}}
+        timeline: {type: array, items: {$ref: "#/components/schemas/ShopOrderEvent"}}
+        returns: {type: array, items: {$ref: "#/components/schemas/ShopReturn"}}
+        checklist_on_the_way: {type: integer, description: "layette checklist rows of this order's categories now «در راه»"}
+    ShopOrderSummary:
+      type: object
+      required: [id, code, status, payment_method, payable_total, items_count, placed_at, shipments, items]
+      properties:
+        id: {type: integer}
+        code: {type: string}
+        status: {type: string}
+        payment_method: {type: string}
+        payable_total: {type: integer}
+        items_count: {type: integer}
+        placed_at: {type: [string, "null"], format: date-time}
+        shipments:
+          type: array
+          items:
+            type: object
+            required: [id, seller, status, slot]
+            properties:
+              id: {type: integer}
+              seller: {$ref: "#/components/schemas/ShopOrderSeller"}
+              status: {type: string}
+              slot: {$ref: "#/components/schemas/ShopOrderSlot"}
+        items: {type: array, items: {$ref: "#/components/schemas/ShopOrderItem"}}
     ShopCatalogReview:
       type: object
       required: [id, author_name, rating, body, variant_label, verified_purchase, created_at]

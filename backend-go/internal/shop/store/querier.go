@@ -10,18 +10,37 @@ import (
 )
 
 type Querier interface {
+	AddProductPurchases(ctx context.Context, arg AddProductPurchasesParams) error
 	BookDeliverySlot(ctx context.Context, arg BookDeliverySlotParams) (int64, error)
+	CancelOrderForUser(ctx context.Context, arg CancelOrderForUserParams) (int64, error)
+	CancelOrderShipments(ctx context.Context, arg CancelOrderShipmentsParams) error
 	ClearCart(ctx context.Context, cartID uint64) error
+	ClearDefaultAddress(ctx context.Context, arg ClearDefaultAddressParams) error
 	CountActiveProduct(ctx context.Context, id uint64) (int64, error)
 	CountActiveVariantsByProduct(ctx context.Context, productID uint64) (int64, error)
+	CountAddressesByUser(ctx context.Context, userID uint64) (int64, error)
+	CountChecklistOnTheWay(ctx context.Context, arg CountChecklistOnTheWayParams) (int64, error)
 	CountCustomChecklistItems(ctx context.Context, userID uint64) (int64, error)
 	CountPublishedReviews(ctx context.Context, productID uint64) (int64, error)
+	CountUndeliveredShipments(ctx context.Context, orderID uint64) (int64, error)
+	CountUserOrdersWithDiscount(ctx context.Context, arg CountUserOrdersWithDiscountParams) (int64, error)
+	CreateAddress(ctx context.Context, arg CreateAddressParams) (int64, error)
 	CreateCart(ctx context.Context, arg CreateCartParams) (int64, error)
+	CreateOrder(ctx context.Context, arg CreateOrderParams) (int64, error)
 	CreateOrderEvent(ctx context.Context, arg CreateOrderEventParams) (int64, error)
+	CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (int64, error)
+	CreateReturn(ctx context.Context, arg CreateReturnParams) (int64, error)
+	CreateShipment(ctx context.Context, arg CreateShipmentParams) (int64, error)
 	DecrementVariantStock(ctx context.Context, arg DecrementVariantStockParams) (int64, error)
+	DeleteAddressForUser(ctx context.Context, arg DeleteAddressForUserParams) (int64, error)
 	DeleteCartItem(ctx context.Context, arg DeleteCartItemParams) error
 	DeleteCustomChecklistItem(ctx context.Context, arg DeleteCustomChecklistItemParams) (int64, error)
 	DeleteSupplyCareReminders(ctx context.Context, userID uint64) error
+	// Cart, addresses, COD checkout, orders and returns API (CB-SHOP-03, internal/shop/order). Every user row is scoped by
+	// user_id in the query itself; stock, delivery-slot capacity and discount-code uses change only through guarded
+	// UPDATEs (…WHERE stock >= ?, booked < capacity, used_count < max_uses) inside the checkout transaction. No query here
+	// joins a health table.
+	EnsureCart(ctx context.Context, arg EnsureCartParams) error
 	// The care reminder the supply opt-in created (meta.source = shop_supply). It lives in `reminders` like any other
 	// custom reminder, so GET /reminders lists it and the user can switch it off or delete it there.
 	FindSupplyCareReminder(ctx context.Context, userID uint64) (Reminder, error)
@@ -30,14 +49,23 @@ type Querier interface {
 	// Cart, addresses, delivery slots and pay-on-delivery orders (CB-SHOP-01). COD only in the MVP; every order row carries
 	// a recipient/address and item-title SNAPSHOT. No query here joins a health table.
 	GetCartByUser(ctx context.Context, userID uint64) (ShopCart, error)
+	GetCartItemQuantity(ctx context.Context, arg GetCartItemQuantityParams) (uint16, error)
 	GetCustomChecklistItem(ctx context.Context, arg GetCustomChecklistItemParams) (ShopUserChecklistItem, error)
+	GetDeliverySlot(ctx context.Context, id uint64) (ShopDeliverySlot, error)
+	GetDiscountCode(ctx context.Context, id uint64) (ShopDiscountCode, error)
+	GetDiscountCodeByCode(ctx context.Context, code string) (ShopDiscountCode, error)
 	GetOrderByCodeForUser(ctx context.Context, arg GetOrderByCodeForUserParams) (ShopOrder, error)
+	GetOrderByIdempotencyKey(ctx context.Context, arg GetOrderByIdempotencyKeyParams) (ShopOrder, error)
 	GetOrderForUser(ctx context.Context, arg GetOrderForUserParams) (ShopOrder, error)
+	GetOrderItemForReturn(ctx context.Context, arg GetOrderItemForReturnParams) (GetOrderItemForReturnRow, error)
+	GetReturnForUser(ctx context.Context, arg GetReturnForUserParams) (ShopReturn, error)
 	// Internal shop catalog (CB-SHOP-01, on bloom's 00071): sellers, sub-categories, variants and verified-purchase reviews.
 	// No query here joins a health table. Link-out rows (external_url set, no variants) keep using internal/shop's own SQL.
 	GetSeller(ctx context.Context, id uint64) (ShopSeller, error)
+	GetShipment(ctx context.Context, id uint64) (ShopOrderShipment, error)
 	GetSupplyReminder(ctx context.Context, userID uint64) (ShopSupplyReminder, error)
 	GetVariant(ctx context.Context, id uint64) (ShopProductVariant, error)
+	GetVariantForCart(ctx context.Context, id uint64) (GetVariantForCartRow, error)
 	InsertCustomChecklistItem(ctx context.Context, arg InsertCustomChecklistItemParams) (int64, error)
 	InsertSupplyCareReminder(ctx context.Context, arg InsertSupplyCareReminderParams) (int64, error)
 	// Shop catalog read API (CB-SHOP-02): home sections, list + filters, product detail, reviews, bought-together.
@@ -54,29 +82,56 @@ type Querier interface {
 	// Products that share orders with sqlc.arg(product_id), most shared first (order lines only; no user column read).
 	ListBoughtTogether(ctx context.Context, arg ListBoughtTogetherParams) ([]ListBoughtTogetherRow, error)
 	ListCartItems(ctx context.Context, cartID uint64) ([]ShopCartItem, error)
+	ListCartLines(ctx context.Context, cartID uint64) ([]ListCartLinesRow, error)
 	ListCatalogProductsByIDs(ctx context.Context, ids []uint64) ([]ShopProduct, error)
 	ListCatalogProductsInCategories(ctx context.Context, arg ListCatalogProductsInCategoriesParams) ([]ShopProduct, error)
 	// ---------------------------------------------------------------- CB-SHOP-04: checklist API + supply reminder
 	// The active template with the slug of its «see» category (an inactive category → no link).
 	ListLayetteTemplate(ctx context.Context) ([]ListLayetteTemplateRow, error)
 	ListOpenDeliverySlots(ctx context.Context, arg ListOpenDeliverySlotsParams) ([]ShopDeliverySlot, error)
+	ListOrderCategories(ctx context.Context, orderID uint64) ([]ListOrderCategoriesRow, error)
 	ListOrderEvents(ctx context.Context, orderID uint64) ([]ShopOrderEvent, error)
 	ListOrderItemsByOrder(ctx context.Context, orderID uint64) ([]ShopOrderItem, error)
+	ListOrderItemsByUser(ctx context.Context, userID uint64) ([]ShopOrderItem, error)
 	ListOrdersByUser(ctx context.Context, arg ListOrdersByUserParams) ([]ShopOrder, error)
+	ListProductImages(ctx context.Context, ids []uint64) ([]ListProductImagesRow, error)
 	ListPublishedReviews(ctx context.Context, arg ListPublishedReviewsParams) ([]ShopProductReview, error)
 	ListPublishedReviewsPage(ctx context.Context, arg ListPublishedReviewsPageParams) ([]ShopProductReview, error)
+	ListReturnsByOrderForUser(ctx context.Context, arg ListReturnsByOrderForUserParams) ([]ShopReturn, error)
 	ListReturnsByUser(ctx context.Context, userID uint64) ([]ShopReturn, error)
 	ListSellersByIDs(ctx context.Context, ids []uint64) ([]ShopSeller, error)
+	ListShipmentCategories(ctx context.Context, shipmentID uint64) ([]ListShipmentCategoriesRow, error)
 	ListShipmentsByOrder(ctx context.Context, orderID uint64) ([]ShopOrderShipment, error)
+	ListShipmentsByUser(ctx context.Context, userID uint64) ([]ShopOrderShipment, error)
 	ListSubCategories(ctx context.Context, parentID sql.NullInt64) ([]ShopCategory, error)
 	ListUserChecklistItems(ctx context.Context, userID uint64) ([]ShopUserChecklistItem, error)
+	LockCartByUser(ctx context.Context, userID uint64) (ShopCart, error)
+	LockOrder(ctx context.Context, id uint64) (ShopOrder, error)
+	LockOrderForUser(ctx context.Context, arg LockOrderForUserParams) (ShopOrder, error)
+	MarkChecklistHave(ctx context.Context, arg MarkChecklistHaveParams) (int64, error)
+	// Layette checklist link (board Shop_Order: «۲ مورد در لیست سیسمونی «در راه» شد / بعد از تحویل خودکار «دارم» می‌شود»).
+	// Only the user's EXISTING rows whose template item points at one of the ordered categories move; CB-SHOP-04 owns
+	// the checklist itself.
+	MarkChecklistOnTheWay(ctx context.Context, arg MarkChecklistOnTheWayParams) (int64, error)
+	MarkShipmentDelivered(ctx context.Context, arg MarkShipmentDeliveredParams) (int64, error)
 	RefreshProductRating(ctx context.Context, id uint64) error
+	ReleaseDeliverySlot(ctx context.Context, arg ReleaseDeliverySlotParams) error
+	ReleaseDiscountCode(ctx context.Context, arg ReleaseDiscountCodeParams) error
+	ReserveVariantStock(ctx context.Context, arg ReserveVariantStockParams) (int64, error)
+	RestockVariant(ctx context.Context, arg RestockVariantParams) error
+	RevertChecklistOnTheWay(ctx context.Context, arg RevertChecklistOnTheWayParams) (int64, error)
+	SetCartDiscountCode(ctx context.Context, arg SetCartDiscountCodeParams) error
+	SetOrderStatus(ctx context.Context, arg SetOrderStatusParams) error
 	SetUserChecklistState(ctx context.Context, arg SetUserChecklistStateParams) error
+	SubtractProductPurchases(ctx context.Context, arg SubtractProductPurchasesParams) error
+	SumOpenReturnQuantity(ctx context.Context, orderItemID uint64) (int64, error)
+	UpdateAddressForUser(ctx context.Context, arg UpdateAddressForUserParams) (int64, error)
 	UpdateCustomChecklistItem(ctx context.Context, arg UpdateCustomChecklistItemParams) (int64, error)
 	// Moves the reminder to the current prediction; the user's own switch (is_active) stays.
 	UpdateSupplyCareReminder(ctx context.Context, arg UpdateSupplyCareReminderParams) error
 	UpsertCartItem(ctx context.Context, arg UpsertCartItemParams) error
 	UpsertSupplyReminder(ctx context.Context, arg UpsertSupplyReminderParams) error
+	UseDiscountCode(ctx context.Context, arg UseDiscountCodeParams) (int64, error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -1,0 +1,32 @@
+{
+  "case": "shop/cart_empty",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/shop/cart",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "cart": {
+            "items_count": 0,
+            "sellers_count": 0,
+            "groups": [],
+            "unavailable_items": [],
+            "discount": null,
+            "items_total": 0,
+            "discount_total": 0,
+            "payable_total": 0
+          }
+        }
+      }
+    }
+  ]
+}

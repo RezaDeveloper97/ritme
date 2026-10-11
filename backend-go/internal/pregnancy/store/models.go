@@ -2332,10 +2332,11 @@ type ShopAddress struct {
 }
 
 type ShopCart struct {
-	ID        uint64
-	UserID    uint64
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
+	ID             uint64
+	UserID         uint64
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+	DiscountCodeID sql.NullInt64
 }
 
 type ShopCartItem struct {
@@ -2378,6 +2379,23 @@ type ShopDeliverySlot struct {
 	UpdatedAt sql.NullTime
 }
 
+type ShopDiscountCode struct {
+	ID            uint64
+	Code          string
+	Kind          string
+	Value         uint64
+	MaxDiscount   sql.NullInt64
+	MinItemsTotal uint64
+	MaxUses       sql.NullInt32
+	UsedCount     uint32
+	PerUserLimit  sql.NullInt16
+	StartsAt      sql.NullTime
+	EndsAt        sql.NullTime
+	IsActive      bool
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
 type ShopLayetteItem struct {
 	ID           uint64
 	GroupKey     string
@@ -2415,6 +2433,8 @@ type ShopOrder struct {
 	CancelledAt    sql.NullTime
 	CreatedAt      sql.NullTime
 	UpdatedAt      sql.NullTime
+	DiscountCodeID sql.NullInt64
+	IdempotencyKey sql.NullString
 }
 
 type ShopOrderEvent struct {

@@ -1,0 +1,142 @@
+{
+  "case": "shop/addresses",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/shop/addresses",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "addresses": [
+            {
+              "id": 1,
+              "label": "Home",
+              "recipient_name": "Regular",
+              "recipient_phone": "09900000004",
+              "province": null,
+              "city": "Tehran",
+              "address_line": "Valiasr St, No. 1",
+              "postal_code": "1234567890",
+              "is_default": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/addresses",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "label": "Work",
+          "recipient_name": "Regular",
+          "recipient_phone": "۰۹۱۲ ۱۲۳ ۴۵۶۷",
+          "city": "Tehran",
+          "address_line": "Enghelab St, No. 9",
+          "is_default": true
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "آدرس ذخیره شد.",
+        "data": {
+          "address": {
+            "id": 2,
+            "label": "Work",
+            "recipient_name": "Regular",
+            "recipient_phone": "09121234567",
+            "province": null,
+            "city": "Tehran",
+            "address_line": "Enghelab St, No. 9",
+            "postal_code": null,
+            "is_default": true
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/shop/addresses",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "recipient_name": "Regular",
+          "recipient_phone": "123",
+          "city": "Tehran"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست.",
+        "errors": {
+          "recipient_phone": [
+            "قالب شماره تحویل‌گیرنده معتبر نیست."
+          ],
+          "address_line": [
+            "فیلد آدرس الزامی است."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/shop/addresses",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "addresses": [
+            {
+              "id": 2,
+              "label": "Work",
+              "recipient_name": "Regular",
+              "recipient_phone": "09121234567",
+              "province": null,
+              "city": "Tehran",
+              "address_line": "Enghelab St, No. 9",
+              "postal_code": null,
+              "is_default": true
+            },
+            {
+              "id": 1,
+              "label": "Home",
+              "recipient_name": "Regular",
+              "recipient_phone": "09900000004",
+              "province": null,
+              "city": "Tehran",
+              "address_line": "Valiasr St, No. 1",
+              "postal_code": "1234567890",
+              "is_default": false
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
