@@ -55,7 +55,8 @@ func TestCityAdmin_CrudAndQueue(t *testing.T) {
 	city := int(r.Obj("item")["id"].(float64))
 	assert.Equal(t, 422, c.JSON(fiber.MethodPost, "/city-services/cities", map[string]any{"slug": "tehran", "name": map[string]any{"fa": "x", "en": "x"}}).Status, "slug unique")
 	r = c.Get("/city-services/categories")
-	require.Len(t, r.Items(), 3, "class / pool / playhouse seeded")
+	// CB-DIR-01 (00081) seeds five more directory categories next to bloom's three.
+	require.Len(t, r.Items(), 3+5, "class / pool / playhouse + directory categories seeded")
 	cat := int(r.Items()[0].(map[string]any)["id"].(float64))
 
 	// Listings.

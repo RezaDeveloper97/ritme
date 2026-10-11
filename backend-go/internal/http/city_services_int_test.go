@@ -49,7 +49,7 @@ func TestCityServices_PublicAndBookings(t *testing.T) {
 	r := e.do(fiber.MethodGet, "/api/v1/city-services/options", sara, nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	assert.Len(t, r.data()["cities"], 1)
-	assert.Len(t, r.data()["categories"], 3)
+	assert.Len(t, r.data()["categories"], 3+5) // + the five directory categories seeded by CB-DIR-01 (00081)
 
 	r = e.do(fiber.MethodGet, "/api/v1/city-services/listings?city="+itoa(city)+"&category=pool", sara, nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)

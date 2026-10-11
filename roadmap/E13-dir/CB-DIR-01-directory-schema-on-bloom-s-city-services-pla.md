@@ -3,7 +3,7 @@ id: CB-DIR-01
 title: Directory schema on bloom's city services: places, services, slots, bookings, reviews, applications
 epic: DIR
 type: backend
-status: todo
+status: done
 depends_on: [B-N10-05, CB-CORE-05]
 parallel_group: DIR-A
 touches: [backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/cityservices, backend-go/sqlc.yaml, docs/canvas-build/directory.md]
