@@ -2566,12 +2566,26 @@
     "cancelNo": "No, keep it",
     "cancelError": "It wasn't cancelled. Try again.",
     "status": {
-     "requested": "Waiting for a call",
+     "requested": "Waiting for confirmation",
      "confirmed": "Confirmed",
      "rejected": "Declined",
      "cancelled": "Cancelled",
      "completed": "Done"
-    }
+    },
+    "tab": {
+     "upcoming": "Upcoming",
+     "past": "Past"
+    },
+    "reschedule": "Change time",
+    "review": "Leave a review",
+    "again": "Book again",
+    "rating": "Rating",
+    "reviewPlaceholder": "Tell us how it went (optional)",
+    "reviewNote": "Your review is published after the Ritme team checks it.",
+    "reviewSend": "Send review",
+    "reviewError": "The review wasn't saved. Try again.",
+    "reviewPending": "Your review is waiting to be checked",
+    "reviewPublished": "Your review is published"
    },
    "home": {
     "forYouAnd": "For you and {name}",
@@ -2660,7 +2674,20 @@
     "from": "From",
     "price": "Price",
     "continue": "Continue",
-    "chooseTime": "Choose a time"
+    "chooseTime": "Choose a time",
+    "report": {
+     "cta": "Report wrong information",
+     "reason": {
+      "wrong_info": "Wrong information",
+      "closed": "It has closed",
+      "wrong_location": "Wrong location",
+      "other": "Something else"
+     },
+     "note": "Details (optional)",
+     "send": "Send report",
+     "thanks": "Thank you. The Ritme team will look at your report; it isn't sent to the venue.",
+     "error": "The report wasn't saved. Try again."
+    }
    },
    "filters": {
     "title": "Filters",
@@ -2692,6 +2719,53 @@
     "today": "Today",
     "tomorrow": "Tomorrow",
     "priceFrom": "from {amount}k toman"
+   },
+   "book": {
+    "title": "Book",
+    "rescheduleTitle": "Change time",
+    "rescheduleFor": "A new time for {name}",
+    "service": "Service",
+    "child": "Which child?",
+    "addChild": "Add a child",
+    "ageMismatch": "Age doesn't fit this class",
+    "day": "Day",
+    "time": "Time",
+    "noSlots": "No open times are listed right now.",
+    "note": "Note for the venue",
+    "notePlaceholder": "Optional, e.g. \"first time in the water\"",
+    "amount": "Price",
+    "pay": "Payment",
+    "payAtPlace": "Pay at the place",
+    "dataNote": "Only your name, your child's name and age and your phone number are sent to the venue. No health data from Ritme goes to the venue.",
+    "requestNote": "This is a request. The Ritme team confirms it, and it isn't booked until it says so.",
+    "sendReschedule": "Request new time",
+    "error": "The request wasn't sent. Try again."
+   },
+   "booked": {
+    "header": "Booking",
+    "title": {
+     "requested": "Request sent",
+     "confirmed": "Booking confirmed",
+     "rejected": "Request not accepted",
+     "cancelled": "Booking cancelled",
+     "completed": "Done"
+    },
+    "lead": {
+     "requested": "Your request for {name} was sent. The Ritme team will review and confirm it.",
+     "confirmed": "{name} is expecting you.",
+     "rejected": "This request wasn't confirmed. You can try another time.",
+     "cancelled": "This booking was cancelled.",
+     "completed": "We hope it went well."
+    },
+    "code": "Booking code {code}",
+    "dayOnly": "The venue arranges the time",
+    "childAge": "{n} months",
+    "yourNote": "Your note",
+    "noPrice": "The venue tells you the price",
+    "waiting": "It isn't booked until the status says confirmed. You'll see the result here and in My bookings.",
+    "callPlace": "Call the venue",
+    "cancelUntil": "Free cancellation until {when}",
+    "all": "All my bookings"
    }
   },
   "common": {

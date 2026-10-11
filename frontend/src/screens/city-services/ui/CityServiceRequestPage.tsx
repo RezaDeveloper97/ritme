@@ -19,6 +19,7 @@ import {
   NOTE_MAX,
   validateBookingForm,
 } from '../model/form';
+import { BookSlotFlow } from './BookSlotFlow';
 import { CsError, CsSkeleton } from './ListSkeleton';
 
 /**
@@ -26,7 +27,18 @@ import { CsError, CsSkeleton } from './ListSkeleton';
  * an optional child AGE RANGE and a short note, with a «don't write medical details» warning. Personal fields go to
  * the API only (never to storage or analytics); nothing about health or the cycle is part of the form.
  */
-export function CityServiceRequestPage({ id }: { id: number }) {
+export function CityServiceRequestPage({
+  id,
+  service = null,
+  slot = null,
+  reschedule = null,
+}: {
+  id: number;
+  /** CB-DIR-09: `?service=` / `?slot=` from the place page, `?reschedule=<booking id>` from «my bookings». */
+  service?: number | null;
+  slot?: number | null;
+  reschedule?: number | null;
+}) {
   const t = useTranslations('cityServices');
   const locale = useLocale() as Locale;
   const router = useRouter();
@@ -74,6 +86,9 @@ export function CityServiceRequestPage({ id }: { id: number }) {
     body = <CsSkeleton label={t('loading')} />;
   } else if (listing.isError) {
     body = <CsError title={t('loadError')} retry={t('retry')} busy={listing.isFetching} onRetry={() => void listing.refetch()} />;
+  } else if (listing.data.booking_mode === 'online' || reschedule !== null) {
+    // CB-DIR-09: an `online` place is booked by picking a slot (service, child, day, time) — a request the team confirms.
+    body = <BookSlotFlow listing={listing.data} initialService={service} initialSlot={slot} rescheduleId={reschedule} />;
   } else if (listing.data.booking_mode !== 'request') {
     body = <InfoNote icon="info">{t('form.notRequestable')}</InfoNote>;
   } else {
@@ -167,7 +182,7 @@ export function CityServiceRequestPage({ id }: { id: number }) {
     <div className="view csv-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('form.title')} onBack={back} backLabel={t('back')} />
+        <ScreenHeader title={reschedule !== null ? t('book.rescheduleTitle') : listing.data?.booking_mode === 'online' ? t('book.title') : t('form.title')} onBack={back} backLabel={t('back')} />
         <div className="csv-body">{body}</div>
         <div className="page-tail" />
       </div>

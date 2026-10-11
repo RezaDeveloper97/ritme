@@ -99,11 +99,16 @@ export const useCityBookings = () =>
 
 export interface CityBookingInput {
   listingId: number;
-  contactName: string;
-  contactPhone: string;
-  preferredDate: string;
-  childAgeRange: AgeRange | null;
+  /** Omitted on the slot flow: the API defaults them to the account's name and mobile (CB-DIR-09). */
+  contactName?: string;
+  contactPhone?: string;
+  preferredDate?: string;
+  childAgeRange?: AgeRange | null;
   note: string;
+  /** CB-DIR-09: the slot flow — a service, one of her own children and a seat. */
+  serviceId?: number | null;
+  slotId?: number | null;
+  childId?: number | null;
 }
 
 /** POST /city-services/bookings → 201. Contact details go to the API only (never to storage or analytics). */
@@ -115,10 +120,13 @@ export function useCreateCityBooking() {
         (
           await apiClient.post<ApiEnvelope<unknown>>('/city-services/bookings', {
             listing_id: input.listingId,
-            contact_name: input.contactName,
-            contact_phone: input.contactPhone,
-            preferred_date: input.preferredDate,
-            child_age_range: input.childAgeRange,
+            ...(input.contactName !== undefined ? { contact_name: input.contactName } : {}),
+            ...(input.contactPhone !== undefined ? { contact_phone: input.contactPhone } : {}),
+            ...(input.preferredDate !== undefined ? { preferred_date: input.preferredDate } : {}),
+            ...(input.childAgeRange !== undefined ? { child_age_range: input.childAgeRange } : {}),
+            ...(input.serviceId ? { service_id: input.serviceId } : {}),
+            ...(input.slotId ? { slot_id: input.slotId } : {}),
+            ...(input.childId ? { child_id: input.childId } : {}),
             note: input.note.trim() === '' ? null : input.note.trim(),
           })
         ).data.data,
@@ -136,3 +144,58 @@ export function useCancelCityBooking() {
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: cityServiceKeys.bookings() }),
   });
 }
+
+/** CB-DIR-09: GET /city-services/bookings?scope= — «رزروهای من» tabs with the counts of both. */
+export const useCityBookingScope = (scope: 'upcoming' | 'past') =>
+  useQuery({
+    queryKey: cityServiceKeys.bookingList(scope),
+    queryFn: async () => bookingsSchema.parse((await apiClient.get<ApiEnvelope<unknown>>('/city-services/bookings', { params: { scope } })).data.data),
+    enabled: isAuthenticated(),
+  });
+
+/** CB-DIR-09: GET /city-services/bookings/:id — the «booked» screen (owner only; 404 otherwise). */
+export const useCityBooking = (id: number) =>
+  useQuery({
+    queryKey: cityServiceKeys.booking(id),
+    queryFn: async () => bookingOneSchema.parse((await apiClient.get<ApiEnvelope<unknown>>(`/city-services/bookings/${id}`)).data.data).booking,
+    enabled: isAuthenticated() && Number.isFinite(id) && id > 0,
+    retry: false,
+  });
+
+/** CB-DIR-09: POST /city-services/bookings/:id/reschedule — another open slot; the team confirms again. */
+export function useRescheduleCityBooking() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { id: number; slotId: number }) =>
+      bookingOneSchema.parse((await apiClient.post<ApiEnvelope<unknown>>(`/city-services/bookings/${v.id}/reschedule`, { slot_id: v.slotId })).data.data).booking,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: cityServiceKeys.bookings() }),
+  });
+}
+
+export interface CityReviewInput {
+  id: number;
+  rating: number;
+  body: string;
+}
+
+/** CB-DIR-09: POST /city-services/bookings/:id/review — stored pending until the team moderates it. */
+export function useReviewCityBooking() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: CityReviewInput) => {
+      await apiClient.post(`/city-services/bookings/${v.id}/review`, { rating: v.rating, body: v.body.trim() === '' ? null : v.body.trim() });
+    },
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: cityServiceKeys.bookings() }),
+  });
+}
+
+export type ReportReason = 'wrong_info' | 'closed' | 'wrong_location' | 'other';
+export const REPORT_REASONS: readonly ReportReason[] = ['wrong_info', 'closed', 'wrong_location', 'other'];
+
+/** CB-DIR-09: POST /city-services/listings/:id/report — «گزارش اطلاعات نادرست»; 422 when she already has one open. */
+export const useReportCityListing = (id: number) =>
+  useMutation({
+    mutationFn: async (v: { reason: ReportReason; note: string }) => {
+      await apiClient.post(`/city-services/listings/${id}/report`, { reason: v.reason, note: v.note.trim() === '' ? null : v.note.trim() });
+    },
+  });

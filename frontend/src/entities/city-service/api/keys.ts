@@ -27,4 +27,6 @@ export const cityServiceKeys = {
   listing: (id: number) => [...cityServiceKeys.all, 'listing', id] as const,
   slots: (id: number, serviceId: number | null) => [...cityServiceKeys.all, 'slots', id, serviceId] as const,
   bookings: () => [...cityServiceKeys.all, 'bookings'] as const,
+  bookingList: (scope: 'upcoming' | 'past') => [...cityServiceKeys.all, 'bookings', 'list', scope] as const,
+  booking: (id: number) => [...cityServiceKeys.all, 'bookings', 'one', id] as const,
 };

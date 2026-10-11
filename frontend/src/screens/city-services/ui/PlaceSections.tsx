@@ -2,11 +2,13 @@
 
 import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
+import { useState } from 'react';
 
-import type { CityServiceDetail, CityServiceService, CityServiceSlot } from '@/entities/city-service';
+import { type CityServiceDetail, type CityServiceService, type CityServiceSlot, REPORT_REASONS, type ReportReason, useReportCityListing } from '@/entities/city-service';
+import { getApiErrorMessage } from '@/shared/api';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatDecimal, formatNumber, formatWeekday, fromApiDate } from '@/shared/lib/date';
-import { Card, Icon } from '@/shared/ui';
+import { Card, Icon, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
 import { bookable, monthsLabelParts, neshanHref, priceParts, safeWebsite, slotDayOffset, slotParts } from '../model/place';
 
@@ -274,6 +276,7 @@ export function PlaceReviews({ l }: { l: CityServiceDetail }) {
 /** Address, weekly hours, rules, cancel policy, owner/report links. */
 export function PlaceInfo({ l }: { l: CityServiceDetail }) {
   const { t, num } = useFmt();
+  const [reporting, setReporting] = useState(false);
   const address = [l.district, l.address].filter(Boolean).join(' · ');
   const hoursByDay = new Map(l.weekly_hours.map((h) => [h.day, h]));
   const cancel =
@@ -327,8 +330,61 @@ export function PlaceInfo({ l }: { l: CityServiceDetail }) {
         <Link href="/city-services/join" className="csv-link">
           {t('place.owner')}
         </Link>
-        {/* TODO(CB-DIR-08): «گزارش اطلاعات نادرست» — wire to the report endpoint once CB-DIR-03 ships it. */}
+        <button type="button" className="csv-link cdb-linkbtn" onClick={() => setReporting((v) => !v)} aria-expanded={reporting}>
+          {t('place.report.cta')}
+        </button>
       </p>
+      {reporting ? <ReportPanel id={l.id} onClose={() => setReporting(false)} /> : null}
     </Card>
+  );
+}
+
+/** CB-DIR-09: «گزارش اطلاعات نادرست» — one reason + an optional note; worked by the Ritme team, never sent to the venue. */
+function ReportPanel({ id, onClose }: { id: number; onClose: () => void }) {
+  const { t } = useFmt();
+  const report = useReportCityListing(id);
+  const [reason, setReason] = useState<ReportReason>('wrong_info');
+  const [note, setNote] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  if (report.isSuccess) {
+    return (
+      <p className="csv-note" role="status">
+        {t('place.report.thanks')}
+      </p>
+    );
+  }
+  return (
+    <div className="cdb-review">
+      <div role="radiogroup" aria-label={t('place.report.cta')} className="fld-chips">
+        {REPORT_REASONS.map((r) => (
+          <button key={r} type="button" role="radio" aria-checked={reason === r} className={clsx('chip', reason === r && 'on')} onClick={() => setReason(r)}>
+            {t(`place.report.reason.${r}`)}
+          </button>
+        ))}
+      </div>
+      <span className="field csv-area">
+        <textarea rows={2} maxLength={500} placeholder={t('place.report.note')} value={note} onChange={(e) => setNote(e.target.value)} />
+      </span>
+      {error ? (
+        <p role="alert" className="csv-err">
+          {error}
+        </p>
+      ) : null}
+      <div className="cdb-btns">
+        <PrimaryButton
+          block={false}
+          loading={report.isPending}
+          onClick={() => {
+            setError(null);
+            report.mutate({ reason, note }, { onError: (e) => setError(getApiErrorMessage(e) ?? t('place.report.error')) });
+          }}
+        >
+          {t('place.report.send')}
+        </PrimaryButton>
+        <SecondaryButton block={false} variant="text" onClick={onClose}>
+          {t('bookings.cancelNo')}
+        </SecondaryButton>
+      </div>
+    </div>
   );
 }

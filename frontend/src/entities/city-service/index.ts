@@ -20,6 +20,13 @@ export {
 export {
   type CityBookingInput,
   useCancelCityBooking,
+  useCityBooking,
+  useCityBookingScope,
+  useRescheduleCityBooking,
+  useReviewCityBooking,
+  useReportCityListing,
+  REPORT_REASONS,
+  type ReportReason,
   useCityBookings,
   useCityServiceListing,
   useCityServiceListings,

@@ -165,10 +165,29 @@ export const bookingSchema = z.object({
     address: text,
     phone: text,
     photo_url: text,
+    lat: z.number().nullable().catch(null),
+    lng: z.number().nullable().catch(null),
   }),
+  // CB-DIR-09 (CB-DIR-03 fields): all null/false on a bloom-era request. The child is her own — first name + age only.
+  code: text,
+  service: z.object({ id: z.number(), name: text, duration_minutes: int }).nullable().catch(null),
+  slot: z.object({ id: z.number(), starts_at: text, ends_at: text }).nullable().catch(null),
+  child: z.object({ id: z.number(), name: z.string(), age_months: z.number() }).nullable().catch(null),
+  price_toman: int,
+  is_upcoming: z.boolean().catch(false),
+  cancel_free_hours: int,
+  cancel_free_until: text,
+  cancel_policy: text,
+  can_reschedule: z.boolean().catch(false),
+  can_review: z.boolean().catch(false),
+  review: z.object({ id: z.number(), rating: int, status: text }).nullable().catch(null),
+  cancelled_by: text,
 });
 export type CityServiceBooking = z.infer<typeof bookingSchema>;
 
-export const bookingsSchema = z.object({ bookings: z.array(bookingSchema) });
+export const bookingsSchema = z.object({
+  bookings: z.array(bookingSchema),
+  counts: z.object({ upcoming: z.number(), past: z.number() }).catch({ upcoming: 0, past: 0 }),
+});
 export const bookingOneSchema = z.object({ booking: bookingSchema });
 export const listingOneSchema = z.object({ listing: detailSchema });
