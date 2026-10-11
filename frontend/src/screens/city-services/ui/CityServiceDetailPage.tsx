@@ -3,11 +3,13 @@
 import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-import { useCityServiceListing } from '@/entities/city-service';
+import { useCityServiceListing, useCityServiceSlots } from '@/entities/city-service';
 import { Link, useRouter } from '@/shared/i18n';
 import { Card, EmptyState, Icon, type IconName, InfoNote, PrimaryButton, ScreenHeader, SecondaryButton, SkyLayer } from '@/shared/ui';
 
+import { minPrice } from '../model/place';
 import { CsError, CsSkeleton } from './ListSkeleton';
+import { PlaceAbout, PlaceHead, PlaceInfo, PlaceReviews, PlaceServices, PlaceSlots, usePrice } from './PlaceSections';
 
 /** An http(s)-only guard for the admin-entered booking link (the server validates too). */
 function safeHref(url: string | null): string | null {
@@ -31,6 +33,11 @@ export function CityServiceDetailPage({ id }: { id: number }) {
   const router = useRouter();
   const q = useCityServiceListing(id);
   const [photo, setPhoto] = useState(0);
+  // CB-DIR-08: the chosen service / slot ride to the request flow as query params (DIR-09 rebuilds that flow).
+  const [serviceId, setServiceId] = useState<number | null>(null);
+  const [slotId, setSlotId] = useState<number | null>(null);
+  const svcSlots = useCityServiceSlots(id, serviceId);
+  const price = usePrice();
   const back = () => router.push('/city-services');
 
   let body;
@@ -89,6 +96,7 @@ export function CityServiceDetailPage({ id }: { id: number }) {
           <p className="csv-card-meta">
             <span className="csv-badge">{l.category.name}</span>
           </p>
+          <PlaceHead l={l} />
         </div>
         <Card>
           <dl className="csv-facts">
@@ -114,39 +122,28 @@ export function CityServiceDetailPage({ id }: { id: number }) {
             ) : null}
           </dl>
         </Card>
-        {l.description ? (
-          <Card>
-            <h3 className="csv-sub">{t('detail.about')}</h3>
-            <p className="csv-text">{l.description}</p>
-          </Card>
-        ) : null}
+        {/* CB-DIR-08: place page sections (board nbl_Dir_Place) */}
+        <PlaceAbout l={l} />
+        <PlaceServices
+          services={l.services}
+          serviceId={serviceId}
+          onPick={(sid) => {
+            setServiceId(sid);
+            setSlotId(null);
+          }}
+        />
+        <PlaceSlots
+          slots={serviceId !== null ? (svcSlots.data ?? []) : l.next_slots}
+          slotId={slotId}
+          loading={serviceId !== null && svcSlots.isPending}
+          onPick={setSlotId}
+        />
+        <PlaceReviews l={l} />
+        <PlaceInfo l={l} />
         <div className="csv-cta">
-          {l.booking_mode === 'link' && href ? (
-            <>
-              <a className="csv-go-btn" href={href} target="_blank" rel="noopener noreferrer">
-                {t('detail.linkCta')}
-                <Icon name="arrowR" size={16} />
-              </a>
-              <InfoNote icon="shield">{t('detail.linkNote')}</InfoNote>
-            </>
-          ) : null}
-          {l.booking_mode === 'request' ? (
-            <>
-              <PrimaryButton block onClick={() => router.push(`/city-services/${l.id}/request`)}>
-                {t('detail.requestCta')}
-              </PrimaryButton>
-              <InfoNote icon="shield">{t('detail.requestNote')}</InfoNote>
-            </>
-          ) : null}
-          {l.booking_mode === 'phone' && l.phone ? (
-            <>
-              <a className="csv-go-btn" href={telHref(l.phone)}>
-                <Icon name="phone" size={16} />
-                {t('detail.phoneCta')}
-              </a>
-              <InfoNote icon="info">{t('detail.phoneNote')}</InfoNote>
-            </>
-          ) : null}
+          <InfoNote icon={l.booking_mode === 'link' ? 'shield' : 'info'}>
+            {t(l.booking_mode === 'link' ? 'detail.linkNote' : l.booking_mode === 'phone' ? 'detail.phoneNote' : 'detail.requestNote')}
+          </InfoNote>
           <Link href="/profile/bookings" className="csv-link">
             <Icon name="calendar" size={18} />
             {t('list.bookings')}
@@ -156,6 +153,43 @@ export function CityServiceDetailPage({ id }: { id: number }) {
           </SecondaryButton>
         </div>
         <p className="csv-note">{t('note')}</p>
+        {/* CB-DIR-08: sticky choose-time bar — the booking action of the venue's mode (link / phone / request+online). */}
+        <div className="cdp-bar-sticky">
+          <div className="cdp-bar-price">
+            {(() => {
+              const chosen = l.services.find((s) => s.id === serviceId)?.price_toman ?? minPrice(l.services);
+              return chosen !== null && chosen !== undefined ? (
+                <>
+                  <small>{serviceId !== null ? t('place.price') : t('place.from')}</small>
+                  <strong>{price(chosen)}</strong>
+                </>
+              ) : null;
+            })()}
+          </div>
+          {l.booking_mode === 'link' && href ? (
+            <a className="csv-go-btn" href={href} target="_blank" rel="noopener noreferrer">
+              {t('detail.linkCta')}
+              <Icon name="arrowR" size={16} />
+            </a>
+          ) : l.booking_mode === 'phone' && l.phone ? (
+            <a className="csv-go-btn" href={telHref(l.phone)}>
+              <Icon name="phone" size={16} />
+              {t('detail.phoneCta')}
+            </a>
+          ) : l.booking_mode === 'request' || l.booking_mode === 'online' ? (
+            <PrimaryButton
+              onClick={() => {
+                const qs = new URLSearchParams();
+                if (serviceId !== null) qs.set('service', String(serviceId));
+                if (slotId !== null) qs.set('slot', String(slotId));
+                const q2 = qs.toString();
+                router.push(`/city-services/${l.id}/request${q2 ? `?${q2}` : ''}`);
+              }}
+            >
+              {slotId !== null ? t('place.continue') : l.booking_mode === 'online' ? t('place.chooseTime') : t('detail.requestCta')}
+            </PrimaryButton>
+          ) : null}
+        </div>
       </div>
     );
   }

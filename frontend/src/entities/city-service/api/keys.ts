@@ -17,5 +17,6 @@ export const cityServiceKeys = {
     [...cityServiceKeys.all, 'listings', city, category, page] as const,
   directory: (params: DirectoryParams) => [...cityServiceKeys.all, 'directory', params] as const,
   listing: (id: number) => [...cityServiceKeys.all, 'listing', id] as const,
+  slots: (id: number, serviceId: number | null) => [...cityServiceKeys.all, 'slots', id, serviceId] as const,
   bookings: () => [...cityServiceKeys.all, 'bookings'] as const,
 };

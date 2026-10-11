@@ -6,7 +6,7 @@ import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
 import { cityServiceKeys, type DirectoryParams } from './keys';
-import { type AgeRange, bookingOneSchema, bookingsSchema, listingOneSchema, listingsSchema, optionsSchema } from './schema';
+import { type AgeRange, bookingOneSchema, bookingsSchema, listingOneSchema, listingsSchema, optionsSchema, slotsSchema } from './schema';
 
 /** GET /city-services/options — cities with a visible listing and the active categories. */
 export const useCityServiceOptions = () =>
@@ -70,6 +70,18 @@ export const useCityServiceListing = (id: number) =>
     enabled: isAuthenticated() && Number.isFinite(id),
     staleTime: 60_000,
     retry: false,
+  });
+
+/** CB-DIR-08: GET /city-services/listings/:id/slots?service_id= — open slots of one service (31 days). Public read. */
+export const useCityServiceSlots = (id: number, serviceId: number | null) =>
+  useQuery({
+    queryKey: cityServiceKeys.slots(id, serviceId),
+    queryFn: async () =>
+      slotsSchema.parse(
+        (await apiClient.get<ApiEnvelope<unknown>>(`/city-services/listings/${id}/slots`, { params: { service_id: serviceId } })).data.data,
+      ).slots,
+    enabled: serviceId !== null && Number.isFinite(id),
+    staleTime: 30_000,
   });
 
 /** GET /city-services/bookings — my own requests, newest first («رزروها»). */

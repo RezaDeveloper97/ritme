@@ -2313,6 +2313,73 @@
     "ageNote": "پیشنهادهای سنی از سن کودک در پروفایلت ساخته می‌شود و خاموش‌شدنی است.",
     "ageOff": "خاموش کن",
     "ageOn": "روشن کن"
+   },
+   "place": {
+    "priceK": "{n} هزار تومان",
+    "priceM": "{n} میلیون تومان",
+    "months": "{n} ماه",
+    "years": "{n} سال",
+    "ageBetween": "{from} تا {to}",
+    "ageFrom": "از {from}",
+    "ageTo": "تا {to}",
+    "call": "تماس",
+    "directions": "مسیریابی",
+    "website": "وب‌سایت",
+    "reviewCount": "{n} نظر",
+    "closedNow": "بسته است",
+    "amenity": {
+     "nursing_room": "اتاق شیردهی",
+     "changing_table": "میز تعویض",
+     "female_instructor": "مربی خانم",
+     "stroller_parking": "جای کالسکه",
+     "parking": "پارکینگ",
+     "elevator": "آسانسور",
+     "wheelchair_access": "دسترسی ویلچر"
+    },
+    "servicesTitle": "خدمات و قیمت",
+    "servicesNote": "قیمت‌ها را خود مجموعه اعلام کرده است.",
+    "packageSessions": "بسته {n} جلسه",
+    "minutes": "{n} دقیقه",
+    "validity": "اعتبار {n} روز",
+    "format": {
+     "group": "گروهی",
+     "private": "خصوصی"
+    },
+    "book": "رزرو",
+    "slotsTitle": "نزدیک‌ترین وقت‌ها",
+    "slotsEmpty": "فعلاً وقت خالی ثبت نشده است.",
+    "today": "امروز",
+    "tomorrow": "فردا",
+    "full": "پر شد",
+    "seatsLeft": "{n} جا",
+    "healthNote": "اگر کودکت زیر ۶ ماه است یا مشکل پوستی یا گوش دارد، قبل از شروع با پزشک کودک مشورت کن.",
+    "reviewsTitle": "نظر مادرها",
+    "reviewsNote": "فقط کسانی که از ریتمی رزرو کرده‌اند نظر می‌دهند.",
+    "score": {
+     "cleanliness": "تمیزی",
+     "instructor": "مربی",
+     "amenities": "امکانات"
+    },
+    "mother": "مادر {name}",
+    "motherAnon": "یک مادر",
+    "days": {
+     "d0": "شنبه",
+     "d1": "یکشنبه",
+     "d2": "دوشنبه",
+     "d3": "سه‌شنبه",
+     "d4": "چهارشنبه",
+     "d5": "پنجشنبه",
+     "d6": "جمعه"
+    },
+    "closedDay": "تعطیل",
+    "rules": "قوانین مجموعه",
+    "cancel": "لغو رزرو",
+    "cancelFree": "رایگان تا {n} ساعت قبل",
+    "owner": "صاحب این مجموعه هستی؟ اطلاعاتش را مدیریت کن",
+    "from": "از",
+    "price": "مبلغ",
+    "continue": "ادامه",
+    "chooseTime": "انتخاب وقت"
    }
   },
   "common": {

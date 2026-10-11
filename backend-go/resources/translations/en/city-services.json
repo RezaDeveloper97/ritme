@@ -115,5 +115,72 @@
     "ageNote": "Age suggestions are built from your child's age in your profile and can be turned off.",
     "ageOff": "Turn off",
     "ageOn": "Turn on"
+  },
+  "place": {
+    "priceK": "{n}k toman",
+    "priceM": "{n}M toman",
+    "months": "{n} mo",
+    "years": "{n} yr",
+    "ageBetween": "{from} to {to}",
+    "ageFrom": "from {from}",
+    "ageTo": "up to {to}",
+    "call": "Call",
+    "directions": "Directions",
+    "website": "Website",
+    "reviewCount": "{n} reviews",
+    "closedNow": "Closed",
+    "amenity": {
+      "nursing_room": "Nursing room",
+      "changing_table": "Changing table",
+      "female_instructor": "Female instructor",
+      "stroller_parking": "Stroller parking",
+      "parking": "Parking",
+      "elevator": "Elevator",
+      "wheelchair_access": "Wheelchair access"
+    },
+    "servicesTitle": "Services and prices",
+    "servicesNote": "Prices are declared by the venue itself.",
+    "packageSessions": "{n}-session package",
+    "minutes": "{n} min",
+    "validity": "valid {n} days",
+    "format": {
+      "group": "Group",
+      "private": "Private"
+    },
+    "book": "Book",
+    "slotsTitle": "Nearest times",
+    "slotsEmpty": "No open times listed right now.",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "full": "Full",
+    "seatsLeft": "{n} left",
+    "healthNote": "If your child is under 6 months or has a skin or ear problem, check with your pediatrician before starting.",
+    "reviewsTitle": "Mothers' reviews",
+    "reviewsNote": "Only people who booked through Ritme can leave a review.",
+    "score": {
+      "cleanliness": "Cleanliness",
+      "instructor": "Instructor",
+      "amenities": "Amenities"
+    },
+    "mother": "{name}'s mom",
+    "motherAnon": "A mother",
+    "days": {
+      "d0": "Saturday",
+      "d1": "Sunday",
+      "d2": "Monday",
+      "d3": "Tuesday",
+      "d4": "Wednesday",
+      "d5": "Thursday",
+      "d6": "Friday"
+    },
+    "closedDay": "Closed",
+    "rules": "Venue rules",
+    "cancel": "Cancellation",
+    "cancelFree": "Free up to {n} hours before",
+    "owner": "Own this place? Manage its details",
+    "from": "From",
+    "price": "Price",
+    "continue": "Continue",
+    "chooseTime": "Choose a time"
   }
 }

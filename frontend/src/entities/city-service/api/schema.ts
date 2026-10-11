@@ -72,6 +72,52 @@ export const cardSchema = z.object({
 });
 export type CityServiceCard = z.infer<typeof cardSchema>;
 
+// CB-DIR-08: the place page — services (prices as the venue declared them), next slots, weekly hours, rules, cancel
+// policy and the published reviews summary (authors as a first name only). All optional for older payloads.
+const int = z.number().nullable().catch(null);
+
+export const serviceSchema = z.object({
+  id: z.number(),
+  kind: z.enum(['session', 'package']).catch('session'),
+  name: z.string(),
+  description: text,
+  format: z.enum(['group', 'private']).nullable().catch(null),
+  duration_minutes: int,
+  age_min_months: int,
+  age_max_months: int,
+  capacity: int,
+  price_toman: int,
+  package_sessions: int,
+  package_validity_days: int,
+});
+export type CityServiceService = z.infer<typeof serviceSchema>;
+
+export const slotSchema = z.object({
+  id: z.number(),
+  service_id: int,
+  starts_at: z.string(),
+  ends_at: text,
+  capacity: z.number().catch(0),
+  seats_left: z.number().catch(0),
+  is_full: z.boolean().catch(false),
+});
+export type CityServiceSlot = z.infer<typeof slotSchema>;
+
+export const slotsSchema = z.object({ slots: z.array(slotSchema).catch([]) });
+
+const score = z.number().nullable().catch(null);
+export const reviewsSchema = z
+  .object({
+    rating_avg: score,
+    rating_count: z.number().catch(0),
+    scores: z.object({ cleanliness: score, instructor: score, amenities: score }).catch({ cleanliness: null, instructor: null, amenities: null }),
+    latest: z
+      .array(z.object({ id: z.number(), rating: z.number(), body: text, author_first_name: text, created_at: text }))
+      .catch([]),
+  })
+  .catch({ rating_avg: null, rating_count: 0, scores: { cleanliness: null, instructor: null, amenities: null }, latest: [] });
+export type CityServiceReviews = z.infer<typeof reviewsSchema>;
+
 export const detailSchema = cardSchema.extend({
   address: text,
   phone: text,
@@ -79,6 +125,15 @@ export const detailSchema = cardSchema.extend({
   hours_text: text,
   photos: z.array(z.string()).catch([]),
   booking_url: text,
+  about: text,
+  website_url: text,
+  weekly_hours: z.array(z.object({ day: z.number(), open: z.string(), close: z.string() })).catch([]),
+  rules: text,
+  cancel_free_hours: int,
+  cancel_policy: text,
+  services: z.array(serviceSchema).catch([]),
+  next_slots: z.array(slotSchema).catch([]),
+  reviews: reviewsSchema,
 });
 export type CityServiceDetail = z.infer<typeof detailSchema>;
 

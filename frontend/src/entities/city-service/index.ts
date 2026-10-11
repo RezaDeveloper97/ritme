@@ -12,6 +12,9 @@ export {
   type CityServiceCard,
   type CityServiceCatalogOption,
   type CityServiceDetail,
+  type CityServiceReviews,
+  type CityServiceService,
+  type CityServiceSlot,
   type CityServiceTaxon,
 } from './api/schema';
 export {
@@ -21,6 +24,7 @@ export {
   useCityServiceListing,
   useCityServiceListings,
   useCityServiceOptions,
+  useCityServiceSlots,
   useDirectoryListings,
   useCreateCityBooking,
 } from './api/queries';
