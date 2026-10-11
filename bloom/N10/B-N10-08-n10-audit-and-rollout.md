@@ -3,7 +3,7 @@ id: B-N10-08
 title: N10 audit and rollout
 milestone: N10
 type: release
-status: todo
+status: in_progress
 depends_on: [B-N10-02,B-N10-03,B-N10-04,B-N10-05,B-N10-06,B-N10-07]
 parallel_group: N10-H
 touches: [docs/night-bloom/audit-n10.md,docs/qa/bloom,bloom/PROGRESS.md]

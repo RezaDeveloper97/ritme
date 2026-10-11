@@ -1373,3 +1373,10 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   RTL engine pipeline + fixed-rules card, Persian digits in challenges, KPI/OKR footnotes moved to messages, safety
   queue paged by 10), ~11 low open. Open: U1 engine-derived user columns need a snapshot table (QUESTIONS #130), U3
   user detail shows the real name while lists/board show only RT-ids (QUESTIONS #134). Shots `docs/qa/bloom/B-N9-12/`.
+
+## B-N10-08 — N10 audit (rollout pending)
+
+- Real-data audit (`docs/night-bloom/audit-n10.md`): 0 high, 1 med fixed (Latin digits in Persian copy on home-lab
+  form, shop/city-services pagination, alt text), 6 low open (local CSP `https:` images, image fallbacks, admin Latin
+  digits, raw `ad_slider` code, RTL arrow, «آخرین پشتیبان» on a fresh profile). All 6 extras.md privacy rules verified on
+  live API responses. Stage rollout + programme summary wait for the push (QUESTIONS #118).

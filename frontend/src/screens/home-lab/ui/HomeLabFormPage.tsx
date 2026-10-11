@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { useLocale, useTranslations } from 'next-intl';
+import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
 import { LAB_WINDOWS, useCreateLabRequest, useLabServices } from '@/entities/partner-lab';
@@ -29,6 +29,7 @@ import {
  */
 export function HomeLabFormPage({ serviceId }: { serviceId: number | null }) {
   const t = useTranslations('homeLab');
+  const fmt = useFormatter();
   const locale = useLocale() as Locale;
   const router = useRouter();
   const services = useLabServices();
@@ -228,7 +229,7 @@ export function HomeLabFormPage({ serviceId }: { serviceId: number | null }) {
           />
           {err('consentShare')}
           <Checkbox checked={state.consentImport} onCheckedChange={(v) => set('consentImport', v)} label={t('form.consentImport')} />
-          <p className="hlb-note">{t('form.retention', { days: services.data.purge_days })}</p>
+          <p className="hlb-note">{t('form.retention', { days: fmt.number(services.data.purge_days) })}</p>
         </section>
 
         {formError && (

@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { useTranslations } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { useCityChoice, useCityServiceListings, useCityServiceOptions, type CityServiceCard } from '@/entities/city-service';
@@ -17,6 +17,7 @@ import { CsError, CsSkeleton } from './ListSkeleton';
  */
 export function CityServicesPage() {
   const t = useTranslations('cityServices');
+  const fmt = useFormatter();
   const router = useRouter();
   const rtl = useDirection() === 'rtl';
   const options = useCityServiceOptions();
@@ -91,7 +92,7 @@ export function CityServicesPage() {
             <SecondaryButton variant="text" disabled={page <= 1} onClick={() => setPage((n) => n - 1)}>
               {t('list.prev')}
             </SecondaryButton>
-            <span>{t('list.page', { page, last: list.data.meta.last_page })}</span>
+            <span>{t('list.page', { page: fmt.number(page), last: fmt.number(list.data.meta.last_page) })}</span>
             <SecondaryButton variant="text" disabled={page >= list.data.meta.last_page} onClick={() => setPage((n) => n + 1)}>
               {t('list.next')}
             </SecondaryButton>

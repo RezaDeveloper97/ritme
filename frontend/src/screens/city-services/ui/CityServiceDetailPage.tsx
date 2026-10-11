@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { useCityServiceListing } from '@/entities/city-service';
@@ -27,6 +27,7 @@ function telHref(phone: string): string {
  */
 export function CityServiceDetailPage({ id }: { id: number }) {
   const t = useTranslations('cityServices');
+  const fmt = useFormatter();
   const router = useRouter();
   const q = useCityServiceListing(id);
   const [photo, setPhoto] = useState(0);
@@ -64,7 +65,7 @@ export function CityServiceDetailPage({ id }: { id: number }) {
         <div className="csv-hero">
           {current ? (
             // eslint-disable-next-line @next/next/no-img-element -- admin-uploaded public-disk image, sized by CSS
-            <img src={current} alt={t('detail.photo', { n: photo + 1, name: l.name })} className="csv-hero-img" />
+            <img src={current} alt={t('detail.photo', { n: fmt.number(photo + 1), name: l.name })} className="csv-hero-img" />
           ) : (
             <span className="csv-hero-art" aria-hidden>
               <Icon name={l.category.icon} size={56} strokeWidth={1.3} />
@@ -75,7 +76,7 @@ export function CityServiceDetailPage({ id }: { id: number }) {
           <ul className="csv-strip" aria-label={t('detail.title')}>
             {photos.map((p, i) => (
               <li key={p}>
-                <button type="button" className={i === photo ? 'csv-strip-btn on' : 'csv-strip-btn'} aria-label={t('detail.photo', { n: i + 1, name: l.name })} aria-pressed={i === photo} onClick={() => setPhoto(i)}>
+                <button type="button" className={i === photo ? 'csv-strip-btn on' : 'csv-strip-btn'} aria-label={t('detail.photo', { n: fmt.number(i + 1), name: l.name })} aria-pressed={i === photo} onClick={() => setPhoto(i)}>
                   {/* eslint-disable-next-line @next/next/no-img-element -- admin-uploaded public-disk image */}
                   <img src={p} alt="" loading="lazy" />
                 </button>

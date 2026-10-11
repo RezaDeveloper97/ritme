@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { countShopClick, useShopProducts, type ShopProduct } from '@/entities/shop';
@@ -14,6 +14,7 @@ import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SecondaryButton, S
  */
 export function ShopCategoryPage({ category }: { category: string }) {
   const t = useTranslations('shop');
+  const fmt = useFormatter();
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState<number | null>(null);
@@ -115,7 +116,7 @@ export function ShopCategoryPage({ category }: { category: string }) {
             <SecondaryButton variant="text" disabled={page <= 1} onClick={() => setPage((n) => n - 1)}>
               {t('products.prev')}
             </SecondaryButton>
-            <span>{t('products.page', { page, last: q.data.meta.last_page })}</span>
+            <span>{t('products.page', { page: fmt.number(page), last: fmt.number(q.data.meta.last_page) })}</span>
             <SecondaryButton variant="text" disabled={page >= q.data.meta.last_page} onClick={() => setPage((n) => n + 1)}>
               {t('products.next')}
             </SecondaryButton>
