@@ -270,6 +270,13 @@ func readAll(ctx context.Context, db *sql.DB, table string) (seedRows, error) {
 
 // reset truncates every table (resetting AUTO_INCREMENT) and re-inserts the migration seed rows.
 func (s *state) reset(ctx context.Context) error {
+	// Migration Down/Up tests (db/migrations) move the shared schema below head and re-apply it in a
+	// t.Cleanup whose error is ignored. If that Up did not complete, the snapshot below (taken at head)
+	// no longer matches the schema and the restore fails with "Unknown column" in an unrelated later test.
+	// Migrate is a no-op at head, so always bring the schema back to head first.
+	if err := platformdb.Migrate(ctx, s.pool); err != nil {
+		return fmt.Errorf("re-migrate to head: %w", err)
+	}
 	conn, err := s.pool.Conn(ctx)
 	if err != nil {
 		return err
