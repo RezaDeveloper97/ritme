@@ -1,0 +1,127 @@
+{
+  "case": "shop/catalog_products_skin_type",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/shop/catalog/products?skin_type=oily",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "category": null,
+          "sub_categories": [
+            {
+              "id": 1,
+              "slug": "layette",
+              "title": "سیسمونی و نوزاد",
+              "icon": "bottle",
+              "parent": null,
+              "product_count": 2
+            },
+            {
+              "id": 2,
+              "slug": "beauty",
+              "title": "آرایشی و بهداشتی",
+              "icon": "sparkle",
+              "parent": null,
+              "product_count": 1
+            }
+          ],
+          "filters": {
+            "sizes": [
+              {
+                "value": "۰ تا ۳ ماه",
+                "label": "۰ تا ۳ ماه",
+                "count": 1
+              },
+              {
+                "value": "۳ تا ۶ ماه",
+                "label": "۳ تا ۶ ماه",
+                "count": 2
+              }
+            ],
+            "colors": [
+              {
+                "value": "شیری",
+                "label": "شیری",
+                "count": 1
+              },
+              {
+                "value": "یاسی",
+                "label": "یاسی",
+                "count": 1
+              }
+            ],
+            "volumes": [
+              {
+                "value": "۵۰ میلی‌لیتر",
+                "label": "۵۰ میلی‌لیتر",
+                "count": 1
+              }
+            ],
+            "materials": [
+              {
+                "value": "پنبه ۱۰۰٪",
+                "label": "پنبه ۱۰۰٪",
+                "count": 1
+              }
+            ],
+            "skin_types": [
+              {
+                "value": "oily",
+                "label": "oily",
+                "count": 1
+              },
+              {
+                "value": "combination",
+                "label": "combination",
+                "count": 1
+              }
+            ],
+            "price": {
+              "min": 390000,
+              "max": 550000
+            }
+          },
+          "sort": "popular",
+          "products": [
+            {
+              "id": 3,
+              "title": "ضدآفتاب بی‌رنگ SPF50",
+              "subtitle": null,
+              "category": "skin-care",
+              "image_url": null,
+              "price": 550000,
+              "compare_at_price": null,
+              "rating_avg": null,
+              "rating_count": 0,
+              "purchase_count": 403,
+              "badges": [],
+              "in_stock": true,
+              "discreet_packaging": true,
+              "seller": {
+                "id": 2,
+                "slug": "banoo",
+                "name": "بهداشتی بانو",
+                "is_verified": true
+              }
+            }
+          ],
+          "meta": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 20,
+            "total": 1
+          }
+        }
+      }
+    }
+  ]
+}

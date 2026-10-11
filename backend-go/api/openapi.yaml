@@ -13879,6 +13879,201 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/ShopNotFound"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  # CB-SHOP-02: internal catalog read API (Go only, on CB-SHOP-01's 00080 schema). bloom's link-out routes above are
+  # unchanged except that /shop/categories lists root categories only.
+  /api/v1/shop/catalog/home:
+    get:
+      tags: [Shop]
+      summary: Shop home (layette or beauty)
+      description: |
+        Go only (CB-SHOP-02). One root category's home: the root tabs, its sub-categories with catalog product counts and
+        up to 6 sections (sub-categories that have products) with their 4 best sellers. Catalog products are internal
+        products (active, in an active category, with at least one active variant, seller active); link-out rows are
+        not included. `root` defaults to the first root; a sub-category or unknown slug is 404. Teen mode → 403.
+      operationId: getShopCatalogHome
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: root, in: query, required: false, schema: {type: string}, description: Root category slug (layette, beauty)}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The home
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [root, roots, sub_categories, sections]
+                    properties:
+                      root: {$ref: "#/components/schemas/ShopCatalogCategory"}
+                      roots:
+                        type: array
+                        items: {$ref: "#/components/schemas/ShopCatalogCategory"}
+                      sub_categories:
+                        type: array
+                        items: {$ref: "#/components/schemas/ShopCatalogCategory"}
+                      sections:
+                        type: array
+                        items:
+                          type: object
+                          required: [category, products]
+                          properties:
+                            category: {$ref: "#/components/schemas/ShopCatalogCategory"}
+                            products:
+                              type: array
+                              items: {$ref: "#/components/schemas/ShopCatalogCard"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '404': {$ref: "#/components/responses/ShopNotFound"}
+  /api/v1/shop/catalog/products:
+    get:
+      tags: [Shop]
+      summary: Catalog product list with filters and sort
+      description: |
+        Go only (CB-SHOP-02). Catalog products of a category and its sub-categories (all categories without
+        `category`), filtered and sorted, paged. Filter values are the `value`s of `filters` (default-language text, so
+        they do not change with the UI language); multi-valued filters are comma-separated and match any value; size,
+        color, volume and the price bounds must hold on the same variant. `filters` describes the category before
+        filtering. Unknown `sort` falls back to `popular`; invalid numbers are ignored. 404 for an unknown or inactive
+        category; teen mode → 403.
+      operationId: listShopCatalogProducts
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: category, in: query, required: false, schema: {type: string}}
+        - {name: q, in: query, required: false, schema: {type: string, maxLength: 100}, description: Title search}
+        - {name: size, in: query, required: false, schema: {type: string}}
+        - {name: color, in: query, required: false, schema: {type: string}}
+        - {name: volume, in: query, required: false, schema: {type: string}}
+        - {name: material, in: query, required: false, schema: {type: string}}
+        - {name: skin_type, in: query, required: false, schema: {type: string}, description: "Keys: oily, combination, normal, dry, sensitive…"}
+        - {name: price_min, in: query, required: false, schema: {type: integer, minimum: 0}, description: Toman}
+        - {name: price_max, in: query, required: false, schema: {type: integer, minimum: 0}, description: Toman}
+        - {name: sort, in: query, required: false, schema: {type: string, enum: [popular, rating, newest, price_asc, price_desc], default: popular}}
+        - {name: page, in: query, required: false, schema: {type: integer, minimum: 1}}
+        - {name: per_page, in: query, required: false, schema: {type: integer, minimum: 1, maximum: 50}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Products
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [category, sub_categories, filters, sort, products, meta]
+                    properties:
+                      category:
+                        oneOf:
+                          - {$ref: "#/components/schemas/ShopCatalogCategory"}
+                          - {type: "null"}
+                      sub_categories:
+                        type: array
+                        description: Direct sub-categories with counts (the roots without `category`)
+                        items: {$ref: "#/components/schemas/ShopCatalogCategory"}
+                      filters:
+                        type: object
+                        required: [sizes, colors, volumes, materials, skin_types, price]
+                        properties:
+                          sizes: {type: array, items: {$ref: "#/components/schemas/ShopCatalogFacet"}}
+                          colors: {type: array, items: {$ref: "#/components/schemas/ShopCatalogFacet"}}
+                          volumes: {type: array, items: {$ref: "#/components/schemas/ShopCatalogFacet"}}
+                          materials: {type: array, items: {$ref: "#/components/schemas/ShopCatalogFacet"}}
+                          skin_types:
+                            type: array
+                            description: value = label = key; the client labels them
+                            items: {$ref: "#/components/schemas/ShopCatalogFacet"}
+                          price:
+                            type: object
+                            required: [min, max]
+                            properties:
+                              min: {type: [integer, "null"]}
+                              max: {type: [integer, "null"]}
+                      sort: {type: string, enum: [popular, rating, newest, price_asc, price_desc]}
+                      products:
+                        type: array
+                        items: {$ref: "#/components/schemas/ShopCatalogCard"}
+                      meta: {type: object, additionalProperties: true}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '404': {$ref: "#/components/responses/ShopNotFound"}
+  /api/v1/shop/catalog/products/{id}:
+    get:
+      tags: [Shop]
+      summary: Catalog product detail
+      description: |
+        Go only (CB-SHOP-02). The card plus description, images, attributes (material, wash, size_guide, ingredients…
+        localized), beauty fields (irc_code, expires_on, skin_types), seller shipping/return terms, active variants with
+        stock (`default_variant_id` = cheapest in stock), the 3 newest published reviews and up to 6 bought-together
+        cards (products ordered together, then the category's best sellers). 404 for a link-out product (no variants)
+        or an inactive product/category/seller; teen mode → 403.
+      operationId: getShopCatalogProduct
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The product
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [product]
+                    properties:
+                      product: {$ref: "#/components/schemas/ShopCatalogProduct"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '404': {$ref: "#/components/responses/ShopNotFound"}
+  /api/v1/shop/catalog/products/{id}/reviews:
+    get:
+      tags: [Shop]
+      summary: Published reviews of a catalog product
+      description: Go only (CB-SHOP-02). Published reviews, newest first, paged (default 10). Same 404/403 as the detail.
+      operationId: listShopCatalogProductReviews
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {name: page, in: query, required: false, schema: {type: integer, minimum: 1}}
+        - {name: per_page, in: query, required: false, schema: {type: integer, minimum: 1, maximum: 50}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Reviews
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [reviews, meta]
+                    properties:
+                      reviews:
+                        type: array
+                        items: {$ref: "#/components/schemas/ShopCatalogReview"}
+                      meta: {type: object, additionalProperties: true}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '404': {$ref: "#/components/responses/ShopNotFound"}
   /api/v1/city-services/options:
     get:
       tags: [CityServices]
@@ -23351,6 +23546,119 @@ components:
         badge: {type: string, nullable: true}
         partner_label: {type: string, nullable: true}
         link_url: {type: string, nullable: true, description: "Outgoing link (external_url + utm_source=ritme); null = no link-out"}
+    ShopCatalogCategory:
+      type: object
+      description: CB-SHOP-02 catalog category; product_count (catalog products in its subtree) on sub-category lists only
+      required: [id, slug, title, icon, parent]
+      properties:
+        id: {type: integer}
+        slug: {type: string}
+        title: {type: string}
+        icon: {type: [string, "null"]}
+        parent: {type: [string, "null"], description: Parent slug (null for a root)}
+        product_count: {type: integer}
+    ShopCatalogFacet:
+      type: object
+      required: [value, label, count]
+      properties:
+        value: {type: string, description: Filter value (default-language text)}
+        label: {type: string, description: Localized label}
+        count: {type: integer, description: Products carrying it}
+    ShopCatalogSellerCard:
+      type: object
+      required: [id, slug, name, is_verified]
+      properties:
+        id: {type: integer}
+        slug: {type: string}
+        name: {type: string}
+        is_verified: {type: boolean}
+    ShopCatalogCard:
+      type: object
+      description: CB-SHOP-02 product tile. Money is integer toman.
+      required: [id, title, subtitle, category, image_url, price, compare_at_price, rating_avg, rating_count, purchase_count, badges, in_stock, discreet_packaging, seller]
+      properties:
+        id: {type: integer}
+        title: {type: string}
+        subtitle: {type: [string, "null"]}
+        category: {type: string, description: Category slug}
+        image_url: {type: [string, "null"]}
+        price: {type: integer, description: Cheapest in-stock variant (else cheapest)}
+        compare_at_price: {type: [integer, "null"], description: Struck-through price of that variant}
+        rating_avg: {type: [number, "null"]}
+        rating_count: {type: integer}
+        purchase_count: {type: integer}
+        badges: {type: array, items: {type: string}}
+        in_stock: {type: boolean}
+        discreet_packaging: {type: boolean}
+        seller:
+          oneOf:
+            - {$ref: "#/components/schemas/ShopCatalogSellerCard"}
+            - {type: "null"}
+    ShopCatalogVariant:
+      type: object
+      required: [id, sku, size, color, volume, label, price, compare_at_price, stock, in_stock]
+      properties:
+        id: {type: integer}
+        sku: {type: [string, "null"]}
+        size: {type: [string, "null"]}
+        color: {type: [string, "null"]}
+        volume: {type: [string, "null"]}
+        label: {type: string, description: "size · color · volume"}
+        price: {type: integer}
+        compare_at_price: {type: [integer, "null"]}
+        stock: {type: integer}
+        in_stock: {type: boolean}
+    ShopCatalogReview:
+      type: object
+      required: [id, author_name, rating, body, variant_label, verified_purchase, created_at]
+      properties:
+        id: {type: integer}
+        author_name: {type: string}
+        rating: {type: integer, minimum: 1, maximum: 5}
+        body: {type: [string, "null"]}
+        variant_label: {type: [string, "null"]}
+        verified_purchase: {type: boolean}
+        created_at: {type: [string, "null"], format: date-time}
+    ShopCatalogProduct:
+      description: CB-SHOP-02 product detail (the card plus the fields below; `seller` carries the shipping terms).
+      allOf:
+        - {$ref: "#/components/schemas/ShopCatalogCard"}
+        - type: object
+          required: [description, images, attributes, irc_code, expires_on, skin_types, seller, variants, default_variant_id, reviews, bought_together]
+          properties:
+            description: {type: [string, "null"]}
+            images: {type: array, items: {type: string}}
+            attributes: {type: object, additionalProperties: {type: string}}
+            irc_code: {type: [string, "null"]}
+            expires_on: {type: [string, "null"], format: date}
+            skin_types: {type: array, items: {type: string}}
+            seller:
+              oneOf:
+                - type: object
+                  required: [id, slug, name, logo_url, is_verified, ship_min_days, ship_max_days, shipping_fee, free_shipping_over, return_days, discreet_packaging]
+                  properties:
+                    id: {type: integer}
+                    slug: {type: string}
+                    name: {type: string}
+                    logo_url: {type: [string, "null"]}
+                    is_verified: {type: boolean}
+                    ship_min_days: {type: integer}
+                    ship_max_days: {type: integer}
+                    shipping_fee: {type: integer}
+                    free_shipping_over: {type: [integer, "null"]}
+                    return_days: {type: integer}
+                    discreet_packaging: {type: boolean}
+                - {type: "null"}
+            variants: {type: array, items: {$ref: "#/components/schemas/ShopCatalogVariant"}}
+            default_variant_id: {type: [integer, "null"]}
+            reviews:
+              type: object
+              required: [rating_avg, rating_count, items]
+              properties:
+                rating_avg: {type: [number, "null"]}
+                rating_count: {type: integer}
+                items: {type: array, items: {$ref: "#/components/schemas/ShopCatalogReview"}}
+            bought_together: {type: array, items: {$ref: "#/components/schemas/ShopCatalogCard"}}
     AssistantDepartment:
       type: object
       required: [code, icon, name, tagline]

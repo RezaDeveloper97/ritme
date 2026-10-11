@@ -5010,6 +5010,72 @@ LOCK TABLES `sessions` WRITE;
 /*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
 /*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_addresses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_addresses` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `label` varchar(40) DEFAULT NULL,
+  `recipient_name` varchar(120) NOT NULL,
+  `recipient_phone` varchar(20) NOT NULL,
+  `province` varchar(60) DEFAULT NULL,
+  `city` varchar(60) NOT NULL,
+  `address_line` varchar(500) NOT NULL,
+  `postal_code` varchar(10) DEFAULT NULL,
+  `is_default` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `shop_addresses_user_id_foreign` (`user_id`),
+  CONSTRAINT `shop_addresses_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_addresses` WRITE;
+/*!40000 ALTER TABLE `shop_addresses` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_addresses` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_cart_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_cart_items` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `cart_id` bigint(20) unsigned NOT NULL,
+  `variant_id` bigint(20) unsigned NOT NULL,
+  `quantity` smallint(5) unsigned NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `shop_cart_items_cart_id_variant_id_unique` (`cart_id`,`variant_id`),
+  KEY `shop_cart_items_variant_id_foreign` (`variant_id`),
+  CONSTRAINT `shop_cart_items_cart_id_foreign` FOREIGN KEY (`cart_id`) REFERENCES `shop_carts` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `shop_cart_items_variant_id_foreign` FOREIGN KEY (`variant_id`) REFERENCES `shop_product_variants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_cart_items` WRITE;
+/*!40000 ALTER TABLE `shop_cart_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_cart_items` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_carts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_carts` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `shop_carts_user_id_unique` (`user_id`),
+  CONSTRAINT `shop_carts_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_carts` WRITE;
+/*!40000 ALTER TABLE `shop_carts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_carts` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `shop_categories`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5022,17 +5088,22 @@ CREATE TABLE `shop_categories` (
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `parent_id` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `shop_categories_slug_unique` (`slug`),
-  KEY `shop_categories_is_active_sort_order_index` (`is_active`,`sort_order`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `shop_categories_is_active_sort_order_index` (`is_active`,`sort_order`),
+  KEY `shop_categories_parent_id_foreign` (`parent_id`),
+  CONSTRAINT `shop_categories_parent_id_foreign` FOREIGN KEY (`parent_id`) REFERENCES `shop_categories` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `shop_categories` WRITE;
 /*!40000 ALTER TABLE `shop_categories` DISABLE KEYS */;
 INSERT INTO `shop_categories` VALUES
-(1,'layette','{\"fa\":\"سیسمونی و نوزاد\",\"en\":\"Layette & baby\"}','bottle',1,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
-(2,'beauty','{\"fa\":\"آرایشی و بهداشتی\",\"en\":\"Beauty & hygiene\"}','sparkle',2,1,'2026-10-11 09:00:00','2026-10-11 09:00:00');
+(1,'layette','{\"fa\":\"سیسمونی و نوزاد\",\"en\":\"Layette & baby\"}','bottle',1,1,'2026-10-11 09:00:00','2026-10-11 09:00:00',NULL),
+(2,'beauty','{\"fa\":\"آرایشی و بهداشتی\",\"en\":\"Beauty & hygiene\"}','sparkle',2,1,'2026-10-11 09:00:00','2026-10-11 09:00:00',NULL),
+(3,'baby-clothes','{\"fa\":\"لباس نوزاد\",\"en\":\"Baby clothes\"}',NULL,1,1,'2026-10-11 09:00:00','2026-10-11 09:00:00',1),
+(4,'skin-care','{\"fa\":\"مراقبت پوست\",\"en\":\"Skin care\"}',NULL,1,1,'2026-10-11 09:00:00','2026-10-11 09:00:00',2);
 /*!40000 ALTER TABLE `shop_categories` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `shop_click_counts`;
@@ -5051,6 +5122,248 @@ LOCK TABLES `shop_click_counts` WRITE;
 /*!40000 ALTER TABLE `shop_click_counts` DISABLE KEYS */;
 /*!40000 ALTER TABLE `shop_click_counts` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_delivery_slots`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_delivery_slots` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `seller_id` bigint(20) unsigned NOT NULL,
+  `slot_date` date NOT NULL,
+  `starts_at` time NOT NULL,
+  `ends_at` time NOT NULL,
+  `capacity` smallint(5) unsigned DEFAULT NULL,
+  `booked` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `shop_delivery_slots_seller_id_slot_date_starts_at_unique` (`seller_id`,`slot_date`,`starts_at`),
+  CONSTRAINT `shop_delivery_slots_seller_id_foreign` FOREIGN KEY (`seller_id`) REFERENCES `shop_sellers` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_delivery_slots` WRITE;
+/*!40000 ALTER TABLE `shop_delivery_slots` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_delivery_slots` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_layette_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_layette_items` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `group_key` varchar(32) NOT NULL,
+  `title` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`title`)),
+  `note` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`note`)),
+  `suggested_qty` smallint(5) unsigned DEFAULT NULL,
+  `is_essential` tinyint(1) NOT NULL DEFAULT 0,
+  `is_first_days` tinyint(1) NOT NULL DEFAULT 0,
+  `category_id` bigint(20) unsigned DEFAULT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `shop_layette_items_category_id_foreign` (`category_id`),
+  KEY `shop_layette_items_is_active_group_key_sort_order_index` (`is_active`,`group_key`,`sort_order`),
+  CONSTRAINT `shop_layette_items_category_id_foreign` FOREIGN KEY (`category_id`) REFERENCES `shop_categories` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_layette_items` WRITE;
+/*!40000 ALTER TABLE `shop_layette_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_layette_items` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_order_events`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_order_events` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `order_id` bigint(20) unsigned NOT NULL,
+  `shipment_id` bigint(20) unsigned DEFAULT NULL,
+  `status` varchar(20) NOT NULL,
+  `note` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `shop_order_events_shipment_id_foreign` (`shipment_id`),
+  KEY `shop_order_events_order_id_created_at_index` (`order_id`,`created_at`),
+  CONSTRAINT `shop_order_events_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `shop_orders` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `shop_order_events_shipment_id_foreign` FOREIGN KEY (`shipment_id`) REFERENCES `shop_order_shipments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_order_events` WRITE;
+/*!40000 ALTER TABLE `shop_order_events` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_order_events` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_order_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_order_items` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `order_id` bigint(20) unsigned NOT NULL,
+  `shipment_id` bigint(20) unsigned NOT NULL,
+  `product_id` bigint(20) unsigned DEFAULT NULL,
+  `variant_id` bigint(20) unsigned DEFAULT NULL,
+  `title` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`title`)),
+  `variant_label` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`variant_label`)),
+  `unit_price` bigint(20) unsigned NOT NULL,
+  `quantity` smallint(5) unsigned NOT NULL,
+  `line_total` bigint(20) unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `shop_order_items_order_id_foreign` (`order_id`),
+  KEY `shop_order_items_shipment_id_foreign` (`shipment_id`),
+  KEY `shop_order_items_product_id_foreign` (`product_id`),
+  KEY `shop_order_items_variant_id_foreign` (`variant_id`),
+  CONSTRAINT `shop_order_items_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `shop_orders` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `shop_order_items_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `shop_products` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `shop_order_items_shipment_id_foreign` FOREIGN KEY (`shipment_id`) REFERENCES `shop_order_shipments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `shop_order_items_variant_id_foreign` FOREIGN KEY (`variant_id`) REFERENCES `shop_product_variants` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_order_items` WRITE;
+/*!40000 ALTER TABLE `shop_order_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_order_items` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_order_shipments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_order_shipments` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `order_id` bigint(20) unsigned NOT NULL,
+  `seller_id` bigint(20) unsigned NOT NULL,
+  `delivery_slot_id` bigint(20) unsigned DEFAULT NULL,
+  `slot_date` date DEFAULT NULL,
+  `slot_starts_at` time DEFAULT NULL,
+  `slot_ends_at` time DEFAULT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'awaiting_seller',
+  `items_total` bigint(20) unsigned NOT NULL,
+  `shipping_fee` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `tracking_code` varchar(64) DEFAULT NULL,
+  `delivered_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `shop_order_shipments_order_id_foreign` (`order_id`),
+  KEY `shop_order_shipments_delivery_slot_id_foreign` (`delivery_slot_id`),
+  KEY `shop_order_shipments_seller_id_status_index` (`seller_id`,`status`),
+  CONSTRAINT `shop_order_shipments_delivery_slot_id_foreign` FOREIGN KEY (`delivery_slot_id`) REFERENCES `shop_delivery_slots` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `shop_order_shipments_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `shop_orders` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `shop_order_shipments_seller_id_foreign` FOREIGN KEY (`seller_id`) REFERENCES `shop_sellers` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_order_shipments` WRITE;
+/*!40000 ALTER TABLE `shop_order_shipments` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_order_shipments` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_orders`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_orders` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(16) NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `address_id` bigint(20) unsigned DEFAULT NULL,
+  `recipient_name` varchar(120) NOT NULL,
+  `recipient_phone` varchar(20) NOT NULL,
+  `city` varchar(60) NOT NULL,
+  `address_text` varchar(600) NOT NULL,
+  `postal_code` varchar(10) DEFAULT NULL,
+  `payment_method` varchar(16) NOT NULL DEFAULT 'cod',
+  `payment_status` varchar(16) NOT NULL DEFAULT 'unpaid',
+  `status` varchar(20) NOT NULL DEFAULT 'placed',
+  `discreet` tinyint(1) NOT NULL DEFAULT 0,
+  `items_total` bigint(20) unsigned NOT NULL,
+  `shipping_total` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `discount_total` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `payable_total` bigint(20) unsigned NOT NULL,
+  `placed_at` timestamp NULL DEFAULT NULL,
+  `cancelled_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `shop_orders_code_unique` (`code`),
+  KEY `shop_orders_address_id_foreign` (`address_id`),
+  KEY `shop_orders_user_id_created_at_index` (`user_id`,`created_at`),
+  KEY `shop_orders_status_created_at_index` (`status`,`created_at`),
+  CONSTRAINT `shop_orders_address_id_foreign` FOREIGN KEY (`address_id`) REFERENCES `shop_addresses` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `shop_orders_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_orders` WRITE;
+/*!40000 ALTER TABLE `shop_orders` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_orders` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_product_reviews`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_product_reviews` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `product_id` bigint(20) unsigned NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `order_item_id` bigint(20) unsigned DEFAULT NULL,
+  `author_name` varchar(60) NOT NULL,
+  `variant_label` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`variant_label`)),
+  `rating` tinyint(3) unsigned NOT NULL,
+  `body` varchar(2000) DEFAULT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `shop_product_reviews_order_item_id_unique` (`order_item_id`),
+  KEY `shop_product_reviews_user_id_foreign` (`user_id`),
+  KEY `shop_product_reviews_product_id_status_created_at_index` (`product_id`,`status`,`created_at`),
+  CONSTRAINT `shop_product_reviews_order_item_id_foreign` FOREIGN KEY (`order_item_id`) REFERENCES `shop_order_items` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `shop_product_reviews_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `shop_products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `shop_product_reviews_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_product_reviews` WRITE;
+/*!40000 ALTER TABLE `shop_product_reviews` DISABLE KEYS */;
+INSERT INTO `shop_product_reviews` VALUES
+(1,1,1004,NULL,'Parnia','{\"fa\":\"۳ تا ۶ ماه\",\"en\":\"3-6 months\"}',5,'Soft fabric, did not shrink.','published','2026-10-05 10:00:00','2026-10-05 10:00:00'),
+(2,1,1005,NULL,'Sam',NULL,4,'Runs a little large.','published','2026-10-06 10:00:00','2026-10-06 10:00:00'),
+(3,1,1006,NULL,'Pending',NULL,1,'not moderated','pending','2026-10-07 10:00:00','2026-10-07 10:00:00');
+/*!40000 ALTER TABLE `shop_product_reviews` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_product_variants`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_product_variants` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `product_id` bigint(20) unsigned NOT NULL,
+  `sku` varchar(64) DEFAULT NULL,
+  `size` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`size`)),
+  `color` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`color`)),
+  `volume` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`volume`)),
+  `price` bigint(20) unsigned NOT NULL,
+  `compare_at_price` bigint(20) unsigned DEFAULT NULL,
+  `stock` int(10) unsigned NOT NULL DEFAULT 0,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `shop_product_variants_sku_unique` (`sku`),
+  KEY `shop_product_variants_product_id_is_active_sort_order_index` (`product_id`,`is_active`,`sort_order`),
+  CONSTRAINT `shop_product_variants_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `shop_products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_product_variants` WRITE;
+/*!40000 ALTER TABLE `shop_product_variants` DISABLE KEYS */;
+INSERT INTO `shop_product_variants` VALUES
+(1,1,'PB-BODY-03','{\"fa\":\"۰ تا ۳ ماه\",\"en\":\"0-3 months\"}','{\"fa\":\"شیری\",\"en\":\"Cream\"}',NULL,485000,NULL,0,1,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(2,1,'PB-BODY-36','{\"fa\":\"۳ تا ۶ ماه\",\"en\":\"3-6 months\"}','{\"fa\":\"شیری\",\"en\":\"Cream\"}',NULL,485000,NULL,5,2,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(3,2,'PB-SLEEP-36','{\"fa\":\"۳ تا ۶ ماه\",\"en\":\"3-6 months\"}','{\"fa\":\"یاسی\",\"en\":\"Lilac\"}',NULL,390000,460000,3,1,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(4,3,'BN-SPF-50',NULL,NULL,'{\"fa\":\"۵۰ میلی‌لیتر\",\"en\":\"50 ml\"}',550000,NULL,7,1,1,'2026-10-11 09:00:00','2026-10-11 09:00:00');
+/*!40000 ALTER TABLE `shop_product_variants` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `shop_products`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5067,15 +5380,143 @@ CREATE TABLE `shop_products` (
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `seller_id` bigint(20) unsigned DEFAULT NULL,
+  `subtitle` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`subtitle`)),
+  `description` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`description`)),
+  `images` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`images`)),
+  `attributes` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`attributes`)),
+  `irc_code` varchar(40) DEFAULT NULL,
+  `expires_on` date DEFAULT NULL,
+  `skin_types` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`skin_types`)),
+  `badges` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`badges`)),
+  `discreet_packaging` tinyint(1) NOT NULL DEFAULT 0,
+  `rating_avg` decimal(3,2) DEFAULT NULL,
+  `rating_count` int(10) unsigned NOT NULL DEFAULT 0,
+  `purchase_count` int(10) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `shop_products_category_id_is_active_sort_order_index` (`category_id`,`is_active`,`sort_order`),
-  CONSTRAINT `shop_products_category_id_foreign` FOREIGN KEY (`category_id`) REFERENCES `shop_categories` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `shop_products_seller_id_foreign` (`seller_id`),
+  CONSTRAINT `shop_products_category_id_foreign` FOREIGN KEY (`category_id`) REFERENCES `shop_categories` (`id`),
+  CONSTRAINT `shop_products_seller_id_foreign` FOREIGN KEY (`seller_id`) REFERENCES `shop_sellers` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `shop_products` WRITE;
 /*!40000 ALTER TABLE `shop_products` DISABLE KEYS */;
+INSERT INTO `shop_products` VALUES
+(1,3,'{\"fa\":\"بادی آستین‌بلند نخی\",\"en\":\"Long-sleeve cotton bodysuit\"}','shop/bodysuit.jpg',NULL,NULL,NULL,NULL,1,1,'2026-10-11 09:00:00','2026-10-11 09:00:00',1,'{\"fa\":\"۳ عدد\",\"en\":\"Pack of 3\"}','{\"fa\":\"بادی نرم برای روزهای اول.\",\"en\":\"A soft bodysuit for the first days.\"}','[\"shop/bodysuit-2.jpg\"]','{\"material\":{\"fa\":\"پنبه ۱۰۰٪\",\"en\":\"100% cotton\"},\"wash\":{\"fa\":\"ماشین با ۳۰ درجه\",\"en\":\"Machine wash at 30°C\"},\"size_guide\":{\"fa\":\"قد ۶۱ تا ۶۷ سانت\",\"en\":\"Height 61-67 cm\"}}',NULL,NULL,NULL,'[{\"fa\":\"پنبه ۱۰۰٪\",\"en\":\"100% cotton\"}]',0,4.70,2,1800),
+(2,3,'{\"fa\":\"سرهمی خواب دکمه‌دار\",\"en\":\"Button sleepsuit\"}',NULL,NULL,NULL,NULL,NULL,2,1,'2026-10-11 09:00:00','2026-10-11 09:00:00',1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL,0,98),
+(3,4,'{\"fa\":\"ضدآفتاب بی‌رنگ SPF50\",\"en\":\"Tinted-free sunscreen SPF50\"}',NULL,NULL,NULL,NULL,NULL,1,1,'2026-10-11 09:00:00','2026-10-11 09:00:00',2,NULL,NULL,NULL,'{\"ingredients\":{\"fa\":\"[فهرست ترکیبات]\",\"en\":\"[Ingredient list]\"}}','IRC-1234567890','2027-05-31','[\"oily\",\"combination\"]',NULL,1,NULL,0,403);
 /*!40000 ALTER TABLE `shop_products` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_returns`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_returns` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `order_id` bigint(20) unsigned NOT NULL,
+  `order_item_id` bigint(20) unsigned NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `quantity` smallint(5) unsigned NOT NULL DEFAULT 1,
+  `reason` varchar(32) NOT NULL,
+  `note` varchar(1000) DEFAULT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'requested',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `shop_returns_order_id_foreign` (`order_id`),
+  KEY `shop_returns_order_item_id_foreign` (`order_item_id`),
+  KEY `shop_returns_user_id_foreign` (`user_id`),
+  KEY `shop_returns_status_created_at_index` (`status`,`created_at`),
+  CONSTRAINT `shop_returns_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `shop_orders` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `shop_returns_order_item_id_foreign` FOREIGN KEY (`order_item_id`) REFERENCES `shop_order_items` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `shop_returns_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_returns` WRITE;
+/*!40000 ALTER TABLE `shop_returns` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_returns` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_sellers`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_sellers` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `slug` varchar(64) NOT NULL,
+  `name` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`name`)),
+  `logo_path` varchar(255) DEFAULT NULL,
+  `is_verified` tinyint(1) NOT NULL DEFAULT 0,
+  `ship_min_days` tinyint(3) unsigned NOT NULL DEFAULT 1,
+  `ship_max_days` tinyint(3) unsigned NOT NULL DEFAULT 3,
+  `discreet_packaging` tinyint(1) NOT NULL DEFAULT 0,
+  `shipping_fee` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `free_shipping_over` bigint(20) unsigned DEFAULT NULL,
+  `cod_max_total` bigint(20) unsigned DEFAULT NULL,
+  `return_days` tinyint(3) unsigned NOT NULL DEFAULT 7,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `shop_sellers_slug_unique` (`slug`),
+  KEY `shop_sellers_is_active_sort_order_index` (`is_active`,`sort_order`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_sellers` WRITE;
+/*!40000 ALTER TABLE `shop_sellers` DISABLE KEYS */;
+INSERT INTO `shop_sellers` VALUES
+(1,'panbe','{\"fa\":\"پوشاک پنبه‌ریز\",\"en\":\"Panbe Kids\"}',NULL,1,2,4,0,35000,1000000,5000000,7,1,1,'2026-10-11 09:00:00','2026-10-11 09:00:00'),
+(2,'banoo','{\"fa\":\"بهداشتی بانو\",\"en\":\"Banoo Care\"}',NULL,1,1,2,1,35000,NULL,3000000,7,2,1,'2026-10-11 09:00:00','2026-10-11 09:00:00');
+/*!40000 ALTER TABLE `shop_sellers` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_supply_reminders`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_supply_reminders` (
+  `user_id` bigint(20) unsigned NOT NULL,
+  `is_enabled` tinyint(1) NOT NULL DEFAULT 0,
+  `lead_days` tinyint(3) unsigned NOT NULL DEFAULT 3,
+  `product_id` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`user_id`),
+  KEY `shop_supply_reminders_product_id_foreign` (`product_id`),
+  CONSTRAINT `shop_supply_reminders_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `shop_products` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `shop_supply_reminders_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_supply_reminders` WRITE;
+/*!40000 ALTER TABLE `shop_supply_reminders` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_supply_reminders` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `shop_user_checklist_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_user_checklist_items` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `layette_item_id` bigint(20) unsigned DEFAULT NULL,
+  `custom_title` varchar(120) DEFAULT NULL,
+  `group_key` varchar(32) NOT NULL,
+  `state` varchar(16) NOT NULL DEFAULT 'todo',
+  `quantity` smallint(5) unsigned DEFAULT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `shop_user_checklist_items_user_id_layette_item_id_unique` (`user_id`,`layette_item_id`),
+  KEY `shop_user_checklist_items_layette_item_id_foreign` (`layette_item_id`),
+  CONSTRAINT `shop_user_checklist_items_layette_item_id_foreign` FOREIGN KEY (`layette_item_id`) REFERENCES `shop_layette_items` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `shop_user_checklist_items_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_user_checklist_items` WRITE;
+/*!40000 ALTER TABLE `shop_user_checklist_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_user_checklist_items` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `side_effect_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

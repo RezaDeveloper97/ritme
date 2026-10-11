@@ -1,0 +1,82 @@
+{
+  "case": "shop/catalog_product_beauty",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/shop/catalog/products/3",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "product": {
+            "id": 3,
+            "title": "ضدآفتاب بی‌رنگ SPF50",
+            "subtitle": null,
+            "category": "skin-care",
+            "image_url": null,
+            "price": 550000,
+            "compare_at_price": null,
+            "rating_avg": null,
+            "rating_count": 0,
+            "purchase_count": 403,
+            "badges": [],
+            "in_stock": true,
+            "discreet_packaging": true,
+            "seller": {
+              "id": 2,
+              "slug": "banoo",
+              "name": "بهداشتی بانو",
+              "logo_url": null,
+              "is_verified": true,
+              "ship_min_days": 1,
+              "ship_max_days": 2,
+              "shipping_fee": 35000,
+              "free_shipping_over": null,
+              "return_days": 7,
+              "discreet_packaging": true
+            },
+            "description": null,
+            "images": [],
+            "attributes": {
+              "ingredients": "[فهرست ترکیبات]"
+            },
+            "irc_code": "IRC-1234567890",
+            "expires_on": "2027-05-31",
+            "skin_types": [
+              "oily",
+              "combination"
+            ],
+            "variants": [
+              {
+                "id": 4,
+                "sku": "BN-SPF-50",
+                "size": null,
+                "color": null,
+                "volume": "۵۰ میلی‌لیتر",
+                "label": "۵۰ میلی‌لیتر",
+                "price": 550000,
+                "compare_at_price": null,
+                "stock": 7,
+                "in_stock": true
+              }
+            ],
+            "default_variant_id": 4,
+            "reviews": {
+              "rating_avg": null,
+              "rating_count": 0,
+              "items": []
+            },
+            "bought_together": []
+          }
+        }
+      }
+    }
+  ]
+}

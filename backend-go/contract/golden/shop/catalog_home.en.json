@@ -1,0 +1,113 @@
+{
+  "case": "shop/catalog_home.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/shop/catalog/home",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "root": {
+            "id": 1,
+            "slug": "layette",
+            "title": "Layette & baby",
+            "icon": "bottle",
+            "parent": null
+          },
+          "roots": [
+            {
+              "id": 1,
+              "slug": "layette",
+              "title": "Layette & baby",
+              "icon": "bottle",
+              "parent": null
+            },
+            {
+              "id": 2,
+              "slug": "beauty",
+              "title": "Beauty & hygiene",
+              "icon": "sparkle",
+              "parent": null
+            }
+          ],
+          "sub_categories": [
+            {
+              "id": 3,
+              "slug": "baby-clothes",
+              "title": "Baby clothes",
+              "icon": null,
+              "parent": "layette",
+              "product_count": 2
+            }
+          ],
+          "sections": [
+            {
+              "category": {
+                "id": 3,
+                "slug": "baby-clothes",
+                "title": "Baby clothes",
+                "icon": null,
+                "parent": "layette"
+              },
+              "products": [
+                {
+                  "id": 1,
+                  "title": "Long-sleeve cotton bodysuit",
+                  "subtitle": "Pack of 3",
+                  "category": "baby-clothes",
+                  "image_url": "http://127.0.0.1:8090/storage/shop/bodysuit.jpg",
+                  "price": 485000,
+                  "compare_at_price": null,
+                  "rating_avg": 4.7,
+                  "rating_count": 2,
+                  "purchase_count": 1800,
+                  "badges": [
+                    "100% cotton"
+                  ],
+                  "in_stock": true,
+                  "discreet_packaging": false,
+                  "seller": {
+                    "id": 1,
+                    "slug": "panbe",
+                    "name": "Panbe Kids",
+                    "is_verified": true
+                  }
+                },
+                {
+                  "id": 2,
+                  "title": "Button sleepsuit",
+                  "subtitle": null,
+                  "category": "baby-clothes",
+                  "image_url": null,
+                  "price": 390000,
+                  "compare_at_price": 460000,
+                  "rating_avg": null,
+                  "rating_count": 0,
+                  "purchase_count": 98,
+                  "badges": [],
+                  "in_stock": true,
+                  "discreet_packaging": false,
+                  "seller": {
+                    "id": 1,
+                    "slug": "panbe",
+                    "name": "Panbe Kids",
+                    "is_verified": true
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

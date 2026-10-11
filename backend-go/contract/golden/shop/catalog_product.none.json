@@ -1,0 +1,139 @@
+{
+  "case": "shop/catalog_product.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/shop/catalog/products/1",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "product": {
+            "id": 1,
+            "title": "بادی آستین‌بلند نخی",
+            "subtitle": "۳ عدد",
+            "category": "baby-clothes",
+            "image_url": "http://127.0.0.1:8090/storage/shop/bodysuit.jpg",
+            "price": 485000,
+            "compare_at_price": null,
+            "rating_avg": 4.7,
+            "rating_count": 2,
+            "purchase_count": 1800,
+            "badges": [
+              "پنبه ۱۰۰٪"
+            ],
+            "in_stock": true,
+            "discreet_packaging": false,
+            "seller": {
+              "id": 1,
+              "slug": "panbe",
+              "name": "پوشاک پنبه‌ریز",
+              "logo_url": null,
+              "is_verified": true,
+              "ship_min_days": 2,
+              "ship_max_days": 4,
+              "shipping_fee": 35000,
+              "free_shipping_over": 1000000,
+              "return_days": 7,
+              "discreet_packaging": false
+            },
+            "description": "بادی نرم برای روزهای اول.",
+            "images": [
+              "http://127.0.0.1:8090/storage/shop/bodysuit.jpg",
+              "http://127.0.0.1:8090/storage/shop/bodysuit-2.jpg"
+            ],
+            "attributes": {
+              "material": "پنبه ۱۰۰٪",
+              "wash": "ماشین با ۳۰ درجه",
+              "size_guide": "قد ۶۱ تا ۶۷ سانت"
+            },
+            "irc_code": null,
+            "expires_on": null,
+            "skin_types": [],
+            "variants": [
+              {
+                "id": 1,
+                "sku": "PB-BODY-03",
+                "size": "۰ تا ۳ ماه",
+                "color": "شیری",
+                "volume": null,
+                "label": "۰ تا ۳ ماه · شیری",
+                "price": 485000,
+                "compare_at_price": null,
+                "stock": 0,
+                "in_stock": false
+              },
+              {
+                "id": 2,
+                "sku": "PB-BODY-36",
+                "size": "۳ تا ۶ ماه",
+                "color": "شیری",
+                "volume": null,
+                "label": "۳ تا ۶ ماه · شیری",
+                "price": 485000,
+                "compare_at_price": null,
+                "stock": 5,
+                "in_stock": true
+              }
+            ],
+            "default_variant_id": 2,
+            "reviews": {
+              "rating_avg": 4.7,
+              "rating_count": 2,
+              "items": [
+                {
+                  "id": 2,
+                  "author_name": "Sam",
+                  "rating": 4,
+                  "body": "Runs a little large.",
+                  "variant_label": null,
+                  "verified_purchase": false,
+                  "created_at": "2026-10-06T10:00:00+03:30"
+                },
+                {
+                  "id": 1,
+                  "author_name": "Parnia",
+                  "rating": 5,
+                  "body": "Soft fabric, did not shrink.",
+                  "variant_label": "۳ تا ۶ ماه",
+                  "verified_purchase": false,
+                  "created_at": "2026-10-05T10:00:00+03:30"
+                }
+              ]
+            },
+            "bought_together": [
+              {
+                "id": 2,
+                "title": "سرهمی خواب دکمه‌دار",
+                "subtitle": null,
+                "category": "baby-clothes",
+                "image_url": null,
+                "price": 390000,
+                "compare_at_price": 460000,
+                "rating_avg": null,
+                "rating_count": 0,
+                "purchase_count": 98,
+                "badges": [],
+                "in_stock": true,
+                "discreet_packaging": false,
+                "seller": {
+                  "id": 1,
+                  "slug": "panbe",
+                  "name": "پوشاک پنبه‌ریز",
+                  "is_verified": true
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

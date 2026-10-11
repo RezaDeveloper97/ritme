@@ -1,0 +1,89 @@
+{
+  "case": "shop/catalog_home_beauty",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/shop/catalog/home?root=beauty",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "root": {
+            "id": 2,
+            "slug": "beauty",
+            "title": "آرایشی و بهداشتی",
+            "icon": "sparkle",
+            "parent": null
+          },
+          "roots": [
+            {
+              "id": 1,
+              "slug": "layette",
+              "title": "سیسمونی و نوزاد",
+              "icon": "bottle",
+              "parent": null
+            },
+            {
+              "id": 2,
+              "slug": "beauty",
+              "title": "آرایشی و بهداشتی",
+              "icon": "sparkle",
+              "parent": null
+            }
+          ],
+          "sub_categories": [
+            {
+              "id": 4,
+              "slug": "skin-care",
+              "title": "مراقبت پوست",
+              "icon": null,
+              "parent": "beauty",
+              "product_count": 1
+            }
+          ],
+          "sections": [
+            {
+              "category": {
+                "id": 4,
+                "slug": "skin-care",
+                "title": "مراقبت پوست",
+                "icon": null,
+                "parent": "beauty"
+              },
+              "products": [
+                {
+                  "id": 3,
+                  "title": "ضدآفتاب بی‌رنگ SPF50",
+                  "subtitle": null,
+                  "category": "skin-care",
+                  "image_url": null,
+                  "price": 550000,
+                  "compare_at_price": null,
+                  "rating_avg": null,
+                  "rating_count": 0,
+                  "purchase_count": 403,
+                  "badges": [],
+                  "in_stock": true,
+                  "discreet_packaging": true,
+                  "seller": {
+                    "id": 2,
+                    "slug": "banoo",
+                    "name": "بهداشتی بانو",
+                    "is_verified": true
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

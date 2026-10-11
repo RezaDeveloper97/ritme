@@ -13,6 +13,7 @@ type Querier interface {
 	BookDeliverySlot(ctx context.Context, arg BookDeliverySlotParams) (int64, error)
 	ClearCart(ctx context.Context, cartID uint64) error
 	CountActiveVariantsByProduct(ctx context.Context, productID uint64) (int64, error)
+	CountPublishedReviews(ctx context.Context, productID uint64) (int64, error)
 	CreateCart(ctx context.Context, arg CreateCartParams) (int64, error)
 	CreateOrderEvent(ctx context.Context, arg CreateOrderEventParams) (int64, error)
 	DecrementVariantStock(ctx context.Context, arg DecrementVariantStockParams) (int64, error)
@@ -28,19 +29,30 @@ type Querier interface {
 	GetSeller(ctx context.Context, id uint64) (ShopSeller, error)
 	GetSupplyReminder(ctx context.Context, userID uint64) (ShopSupplyReminder, error)
 	GetVariant(ctx context.Context, id uint64) (ShopProductVariant, error)
+	// Shop catalog read API (CB-SHOP-02): home sections, list + filters, product detail, reviews, bought-together.
+	// "Catalog product" = an internal product: active, in an active category, with at least one active variant, and no
+	// inactive seller. Link-out rows (no variants) stay on bloom's /shop/products (internal/shop). No health table here.
+	ListActiveCategories(ctx context.Context) ([]ShopCategory, error)
 	// Layette checklist template + the user's own checklist state, and the period-supply reminder opt-in (CB-SHOP-01).
 	// The reminder's timing comes from cycle predictions through a Go interface; no query here joins a health table.
 	ListActiveLayetteItems(ctx context.Context) ([]ShopLayetteItem, error)
 	ListActiveSellers(ctx context.Context) ([]ShopSeller, error)
 	ListActiveVariantsByProduct(ctx context.Context, productID uint64) ([]ShopProductVariant, error)
+	ListActiveVariantsByProducts(ctx context.Context, productIds []uint64) ([]ShopProductVariant, error)
 	ListAddressesByUser(ctx context.Context, userID uint64) ([]ShopAddress, error)
+	// Products that share orders with sqlc.arg(product_id), most shared first (order lines only; no user column read).
+	ListBoughtTogether(ctx context.Context, arg ListBoughtTogetherParams) ([]ListBoughtTogetherRow, error)
 	ListCartItems(ctx context.Context, cartID uint64) ([]ShopCartItem, error)
+	ListCatalogProductsByIDs(ctx context.Context, ids []uint64) ([]ShopProduct, error)
+	ListCatalogProductsInCategories(ctx context.Context, arg ListCatalogProductsInCategoriesParams) ([]ShopProduct, error)
 	ListOpenDeliverySlots(ctx context.Context, arg ListOpenDeliverySlotsParams) ([]ShopDeliverySlot, error)
 	ListOrderEvents(ctx context.Context, orderID uint64) ([]ShopOrderEvent, error)
 	ListOrderItemsByOrder(ctx context.Context, orderID uint64) ([]ShopOrderItem, error)
 	ListOrdersByUser(ctx context.Context, arg ListOrdersByUserParams) ([]ShopOrder, error)
 	ListPublishedReviews(ctx context.Context, arg ListPublishedReviewsParams) ([]ShopProductReview, error)
+	ListPublishedReviewsPage(ctx context.Context, arg ListPublishedReviewsPageParams) ([]ShopProductReview, error)
 	ListReturnsByUser(ctx context.Context, userID uint64) ([]ShopReturn, error)
+	ListSellersByIDs(ctx context.Context, ids []uint64) ([]ShopSeller, error)
 	ListShipmentsByOrder(ctx context.Context, orderID uint64) ([]ShopOrderShipment, error)
 	ListSubCategories(ctx context.Context, parentID sql.NullInt64) ([]ShopCategory, error)
 	ListUserChecklistItems(ctx context.Context, userID uint64) ([]ShopUserChecklistItem, error)

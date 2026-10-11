@@ -3,7 +3,7 @@ id: CB-SHOP-02
 title: Shop catalog API
 epic: SHOP
 type: backend
-status: todo
+status: done
 depends_on: [CB-SHOP-01]
 parallel_group: SHOP-B
 touches: [backend-go/internal/shop, backend-go/internal/http/routes_shop.go, backend-go/db/queries/shop, backend-go/api/openapi.yaml, backend-go/contract]

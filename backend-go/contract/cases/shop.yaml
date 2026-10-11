@@ -39,3 +39,76 @@ cases:
     method: POST
     path: /api/v1/shop/products/999/click
     status: 404
+  # CB-SHOP-02: the internal catalog (/api/v1/shop/catalog/*). The fixture (dump.sql, 00080 tables) has two sellers,
+  # sub-categories baby-clothes (layette) and skin-care (beauty), three products with variants and two published
+  # reviews plus one pending. Teen 403, inactive sellers, link-out exclusion and bought-together from orders are covered
+  # by internal/http/shop_catalog_int_test.go (no teen persona in the fixture).
+  - name: catalog_home
+    doc: Layette home — roots, sub-categories with counts, best-seller sections
+    locales: [none, en]
+    method: GET
+    path: /api/v1/shop/catalog/home
+    status: 200
+  - name: catalog_home_beauty
+    method: GET
+    path: /api/v1/shop/catalog/home
+    query: {root: beauty}
+    status: 200
+  - name: catalog_home_sub_category
+    doc: A sub-category is not a home
+    method: GET
+    path: /api/v1/shop/catalog/home
+    query: {root: baby-clothes}
+    status: 404
+  - name: catalog_home_anon
+    persona: anon
+    method: GET
+    path: /api/v1/shop/catalog/home
+    status: 401
+  - name: catalog_products
+    doc: Layette subtree with filter choices (sizes, colors, materials, price range), popular first
+    locales: [none, en]
+    method: GET
+    path: /api/v1/shop/catalog/products
+    query: {category: layette}
+    status: 200
+  - name: catalog_products_filtered
+    doc: Size filter by default-language value plus price sort
+    method: GET
+    path: /api/v1/shop/catalog/products
+    query: {category: baby-clothes, size: "۳ تا ۶ ماه", sort: price_asc}
+    status: 200
+  - name: catalog_products_skin_type
+    method: GET
+    path: /api/v1/shop/catalog/products
+    query: {skin_type: oily}
+    status: 200
+  - name: catalog_products_unknown_category
+    method: GET
+    path: /api/v1/shop/catalog/products
+    query: {category: nope}
+    status: 404
+  - name: catalog_product
+    doc: Detail — variants with stock, seller terms, attributes, latest published reviews, bought-together
+    locales: [none, en]
+    method: GET
+    path: /api/v1/shop/catalog/products/1
+    status: 200
+  - name: catalog_product_beauty
+    doc: Beauty detail — IRC code, expiry, skin types, volume variant
+    method: GET
+    path: /api/v1/shop/catalog/products/3
+    status: 200
+  - name: catalog_product_missing
+    method: GET
+    path: /api/v1/shop/catalog/products/999
+    status: 404
+  - name: catalog_reviews
+    method: GET
+    path: /api/v1/shop/catalog/products/1/reviews
+    query: {per_page: '1'}
+    status: 200
+  - name: catalog_reviews_missing
+    method: GET
+    path: /api/v1/shop/catalog/products/999/reviews
+    status: 404

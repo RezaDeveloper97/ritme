@@ -11,6 +11,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
 	"github.com/ritme/backend-go/internal/shop"
+	"github.com/ritme/backend-go/internal/shop/catalog"
 	"github.com/ritme/backend-go/internal/teen"
 )
 
@@ -29,6 +30,14 @@ func init() {
 			throttle = ratelimit.New(d.Cache, clock.Real{}).
 				NamedWith("shop-click", ShopClickMax, time.Minute, auth.ThrottleIdentity, writeThrottled)
 		}
+		// CB-SHOP-02 (additive): the internal catalog read API — homes, filtered list, product detail with variants /
+		// stock / reviews / bought-together, review list. Static /catalog paths never collide with bloom's /products/:id.
+		// Teen-mode accounts get 403 teen_commercial_blocked here (bloom's link-out routes keep their 404 / empty list).
+		ch := catalog.NewHandlers(catalog.NewService(d.DB), teen.NewPolicy(d.DB), d.Config.App.URL)
+		r.Get("/api/v1/shop/catalog/home", locale, guard, ch.Home)
+		r.Get("/api/v1/shop/catalog/products", locale, guard, ch.Products)
+		r.Get("/api/v1/shop/catalog/products/:id", locale, guard, ch.Product)
+		r.Get("/api/v1/shop/catalog/products/:id/reviews", locale, guard, ch.Reviews)
 		r.Get("/api/v1/shop/categories", locale, guard, h.Categories)
 		r.Get("/api/v1/shop/products", locale, guard, h.Products)
 		r.Get("/api/v1/shop/products/:id", locale, guard, h.Product)

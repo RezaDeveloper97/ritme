@@ -37,3 +37,32 @@ built on bloom's `00071_shop_catalog.sql` (B-N10-03). Typed store: `backend-go/i
 
 Status strings (`placed`, `awaiting_seller`, `requested`, `pending`…) are plain varchar; their sets are owned by the
 CB-SHOP-03/05 services.
+
+## Catalog API (CB-SHOP-02)
+
+Package `backend-go/internal/shop/catalog` (sqlc queries `db/queries/shop/catalog_api.sql`), routes in
+`internal/http/routes_shop.go` next to bloom's. All `auth:api`; a teen-mode account gets **403
+`teen_commercial_blocked`** (bloom's link-out routes keep their 404 / empty list).
+
+| route | answers |
+|---|---|
+| `GET /api/v1/shop/catalog/home?root=layette\|beauty` | root tabs, sub-categories + counts, ≤ 6 sections × 4 best sellers |
+| `GET /api/v1/shop/catalog/products?category&q&size&color&volume&material&skin_type&price_min&price_max&sort&page&per_page` | filtered, sorted, paged cards + `filters` (choices with counts, price range) |
+| `GET /api/v1/shop/catalog/products/:id` | detail: variants + stock, seller terms, attributes, beauty fields, 3 newest reviews, bought-together |
+| `GET /api/v1/shop/catalog/products/:id/reviews` | published reviews, newest first, paged |
+
+- **Catalog product** = active, active category, ≥ 1 active variant, seller null or active. Link-out rows are not
+  catalog products (404 on the detail); bloom's `/shop/products*` is unchanged. bloom's public `/shop/categories` now
+  lists **root** categories only, so sub-categories never leak into its two-tab strip.
+- A category's list covers its whole subtree. Card price = cheapest in-stock variant (else cheapest).
+- **Filter values are the default-language text** of the variant `size` / `color` / `volume` and of
+  `attributes.material` (labels are localized), so a chosen filter survives a UI language switch. Size, color, volume
+  and the price bounds must hold on the same variant. `skin_type` matches keys in `skin_types` (the client labels them).
+- Data shapes the admin (CB-SHOP-05) writes: `attributes` = `{"material": {…}, "wash": {…}, "size_guide": {…},
+  "ingredients": {…}, …}` (translatable values or plain strings; the board rows come first, the rest alphabetically);
+  `skin_types` = `["oily","combination",…]`; `badges` = array of translatable objects or strings; `images` = array of
+  storage paths (`image_path` stays the cover).
+- Sort: `popular` (default, purchase_count), `rating`, `newest`, `price_asc`, `price_desc`. Filtering runs in memory
+  over at most 1000 products per subtree (MVP catalog size).
+- Bought-together = products sharing orders (`shop_order_items`, no user column read), topped up with the category's
+  best sellers.

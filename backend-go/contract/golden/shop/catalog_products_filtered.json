@@ -1,0 +1,122 @@
+{
+  "case": "shop/catalog_products_filtered",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/shop/catalog/products?category=baby-clothes&size=%DB%B3+%D8%AA%D8%A7+%DB%B6+%D9%85%D8%A7%D9%87&sort=price_asc",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "category": {
+            "id": 3,
+            "slug": "baby-clothes",
+            "title": "لباس نوزاد",
+            "icon": null,
+            "parent": "layette"
+          },
+          "sub_categories": [],
+          "filters": {
+            "sizes": [
+              {
+                "value": "۰ تا ۳ ماه",
+                "label": "۰ تا ۳ ماه",
+                "count": 1
+              },
+              {
+                "value": "۳ تا ۶ ماه",
+                "label": "۳ تا ۶ ماه",
+                "count": 2
+              }
+            ],
+            "colors": [
+              {
+                "value": "شیری",
+                "label": "شیری",
+                "count": 1
+              },
+              {
+                "value": "یاسی",
+                "label": "یاسی",
+                "count": 1
+              }
+            ],
+            "volumes": [],
+            "materials": [
+              {
+                "value": "پنبه ۱۰۰٪",
+                "label": "پنبه ۱۰۰٪",
+                "count": 1
+              }
+            ],
+            "skin_types": [],
+            "price": {
+              "min": 390000,
+              "max": 485000
+            }
+          },
+          "sort": "price_asc",
+          "products": [
+            {
+              "id": 2,
+              "title": "سرهمی خواب دکمه‌دار",
+              "subtitle": null,
+              "category": "baby-clothes",
+              "image_url": null,
+              "price": 390000,
+              "compare_at_price": 460000,
+              "rating_avg": null,
+              "rating_count": 0,
+              "purchase_count": 98,
+              "badges": [],
+              "in_stock": true,
+              "discreet_packaging": false,
+              "seller": {
+                "id": 1,
+                "slug": "panbe",
+                "name": "پوشاک پنبه‌ریز",
+                "is_verified": true
+              }
+            },
+            {
+              "id": 1,
+              "title": "بادی آستین‌بلند نخی",
+              "subtitle": "۳ عدد",
+              "category": "baby-clothes",
+              "image_url": "http://127.0.0.1:8090/storage/shop/bodysuit.jpg",
+              "price": 485000,
+              "compare_at_price": null,
+              "rating_avg": 4.7,
+              "rating_count": 2,
+              "purchase_count": 1800,
+              "badges": [
+                "پنبه ۱۰۰٪"
+              ],
+              "in_stock": true,
+              "discreet_packaging": false,
+              "seller": {
+                "id": 1,
+                "slug": "panbe",
+                "name": "پوشاک پنبه‌ریز",
+                "is_verified": true
+              }
+            }
+          ],
+          "meta": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 20,
+            "total": 2
+          }
+        }
+      }
+    }
+  ]
+}

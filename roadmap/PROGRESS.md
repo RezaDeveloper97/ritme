@@ -525,3 +525,9 @@ TODO (ask user):
 - admin-web `screens/insurance-centers`: `/insurance-centers` (centres CRUD: type, insurer, lat/lng, city, address, phone, services, direct billing, active, sort) and `/insurance-centers/insurers` (insurers CRUD, delete warns links drop). Nav entry (content capability) before infoSections; B-N10-06 info editor untouched. Messages namespace `insuranceCenters` (fa/en).
 - Verify (agent): typecheck, lint, fsd, vitest 158, next build. No screenshots / live-API smoke — covered in CB-INS-07 QA.
 - TODO (ask user): centre type labels wording (fa/en).
+
+## CB-SHOP-02 — Shop catalog API
+- New `internal/shop/catalog` (sqlc queries db/queries/shop/catalog_api.sql): GET /shop/catalog/home (root tabs, subcats w/ counts, ≤6 sections × 4 bestsellers), /shop/catalog/products (filters size/color/volume/material/skin_type/price, sort, paging, facets with counts + price range), /products/:id (variants+stock, seller shipping, attributes, cosmetic fields, 3 latest reviews, bought-together), /products/:id/reviews. Teen → 403 `teen_commercial_blocked`. Link-out products (no variants) 404 on detail. bloom's public /shop/categories now returns roots only (commented; goldens unchanged).
+- OpenAPI (4 paths, 7 ShopCatalog* schemas), dump.sql (00080 tables + fixtures), contract 13 cases / 16 goldens (`make contract ROUTES=shop` 23/0), data shape for SHOP-05 in docs/canvas-build/shop.md.
+- Verify (agent): vet, golangci-lint, go test, int (shop/..., http Shop|Teen). On stage: go build OK.
+- TODO (ask user): permanent contract `record-go` mode? teen 403 on catalog vs bloom link-out 404/empty? invalid query params ignored (no 422)? TeenCommercialBlocked description still about Plus.

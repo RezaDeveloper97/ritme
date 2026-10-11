@@ -87,11 +87,12 @@ func scanCategory(row interface{ Scan(...any) error }, withCount bool) (Category
 }
 
 // ListCategories returns the categories in display order with their product counts (activeOnly: public view, only
-// active categories and active products).
+// active categories and active products). CB-SHOP-02: the public view lists root categories only, so the
+// sub-categories CB-SHOP-01 added (parent_id) stay out of bloom's two-tab strip; the catalog API serves the tree.
 func (s *Store) ListCategories(ctx context.Context, activeOnly bool) ([]Category, error) {
 	q := `SELECT ` + categoryCols + `,
 	  (SELECT COUNT(*) FROM shop_products p WHERE p.category_id = c.id AND (? = 0 OR p.is_active = 1)) AS n
-	  FROM shop_categories c WHERE (? = 0 OR c.is_active = 1) ORDER BY c.sort_order, c.id`
+	  FROM shop_categories c WHERE (? = 0 OR (c.is_active = 1 AND c.parent_id IS NULL)) ORDER BY c.sort_order, c.id`
 	flag := 0
 	if activeOnly {
 		flag = 1

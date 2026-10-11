@@ -1,0 +1,39 @@
+{
+  "case": "shop/catalog_reviews",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/shop/catalog/products/1/reviews?per_page=1",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "reviews": [
+            {
+              "id": 2,
+              "author_name": "Sam",
+              "rating": 4,
+              "body": "Runs a little large.",
+              "variant_label": null,
+              "verified_purchase": false,
+              "created_at": "2026-10-06T10:00:00+03:30"
+            }
+          ],
+          "meta": {
+            "current_page": 1,
+            "last_page": 2,
+            "per_page": 1,
+            "total": 2
+          }
+        }
+      }
+    }
+  ]
+}
