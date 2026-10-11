@@ -45,10 +45,13 @@ func init() {
 		// stock / reviews / bought-together, review list. Static /catalog paths never collide with bloom's /products/:id.
 		// Teen-mode accounts get 403 teen_commercial_blocked here (bloom's link-out routes keep their 404 / empty list).
 		ch := catalog.NewHandlers(catalog.NewService(d.DB), teen.NewPolicy(d.DB), d.Config.App.URL)
-		r.Get("/api/v1/shop/catalog/home", locale, guard, ch.Home)
-		r.Get("/api/v1/shop/catalog/products", locale, guard, ch.Products)
-		r.Get("/api/v1/shop/catalog/products/:id", locale, guard, ch.Product)
-		r.Get("/api/v1/shop/catalog/products/:id/reviews", locale, guard, ch.Reviews)
+		// CB-SHOP-10: the four catalog reads are public (desktop web shop, SEO/SSR) — optional auth: guests allowed, a
+		// signed-in teen-mode account still gets 403, a malformed/expired token still 401.
+		optional := auth.MustGuard(r, d.Config, d.DB, d.Logger).OptionalUser
+		r.Get("/api/v1/shop/catalog/home", locale, optional, ch.Home)
+		r.Get("/api/v1/shop/catalog/products", locale, optional, ch.Products)
+		r.Get("/api/v1/shop/catalog/products/:id", locale, optional, ch.Product)
+		r.Get("/api/v1/shop/catalog/products/:id/reviews", locale, optional, ch.Reviews)
 		// CB-SHOP-03 (additive): server cart, discount code, addresses, COD checkout (idempotent, stock / slot guarded),
 		// orders, cancel, returns. Owner-scoped (404 for anyone else's rows); teen-mode → 403 teen_commercial_blocked.
 		oh := order.NewHandlers(order.NewService(d.DB), teen.NewPolicy(d.DB), order.NewFakeNotifier(d.Logger),

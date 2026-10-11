@@ -12158,6 +12158,7 @@
    "navLabel": "Main navigation",
    "nav": {
     "services": "Mother & child services",
+    "shop": "Shop",
     "business": "For business"
    },
    "login": "Log in",
@@ -12167,6 +12168,50 @@
     "tagline": "Your companion for women's, mother and child health",
     "note": "These pages never read your health data and nothing is sent to any venue.",
     "label": "Footer links"
+   }
+  },
+  "web-shop": {
+   "metaFallback": "Shop | Ritme",
+   "home": {
+    "metaTitle": "Ritme shop: baby clothes and beauty, pay on delivery",
+    "metaDescription": "Layette, baby essentials, skin care and personal hygiene from vetted sellers. Pay on delivery, returns for unopened items, plain packaging on request.",
+    "eyebrow": "Ritme shop",
+    "title": "What you and your little one need",
+    "lead": "Layette, baby clothes, sleep and feeding gear, plus beauty and hygiene products from vetted sellers. The shop never uses your health data to suggest products.",
+    "enter": "Enter the shop",
+    "heroBody": {
+     "layette": "Clothes, sleep and feeding gear, and out-and-about essentials, with a layette checklist in the app.",
+     "beauty": "Skin care, hair and personal hygiene, with the health ID (IRC) and full ingredients of every product.",
+     "other": "Hand-picked products from vetted sellers."
+    },
+    "categoriesOf": "Categories: {name}",
+    "loadError": "The shop didn't load. Check your connection and try again."
+   },
+   "list": {
+    "metaTitle": "{name} | Ritme shop",
+    "metaDescription": "Buy {name} from vetted sellers on the Ritme shop. Filter by size, color and price. Pay on delivery.",
+    "crumbRoot": "Shop",
+    "crumbLabel": "Breadcrumb",
+    "sidebar": "Filters",
+    "categories": "Category",
+    "clearAll": "Clear filters",
+    "applyPrice": "Apply",
+    "sortLabel": "Sort by",
+    "pageN": "Page {n}"
+   },
+   "product": {
+    "metaTitle": "{title} | Ritme shop",
+    "metaDescription": "{title}, {price}. Pay on delivery, returns for unopened items.",
+    "metaFallback": "Product | Ritme shop",
+    "crumbRoot": "Shop",
+    "crumbLabel": "Breadcrumb",
+    "specs": "Specifications",
+    "loginTitle": "Log in to add to your cart",
+    "loginBody": "Your cart and orders live in your Ritme account. You pay on delivery.",
+    "login": "Log in or sign up",
+    "openCart": "View cart in the app",
+    "teen": "The shop is not available for this account.",
+    "crumbCategory": "More in this category"
    }
   },
   "welcome": {

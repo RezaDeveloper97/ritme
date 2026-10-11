@@ -4,6 +4,7 @@
   "navLabel": "Main navigation",
   "nav": {
     "services": "Mother & child services",
+    "shop": "Shop",
     "business": "For business"
   },
   "login": "Log in",

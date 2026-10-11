@@ -48,3 +48,15 @@ The PWA install prompt on the cart shot is the app shell, not this screen. Pay o
 | `nbd_Shop_Checkout` | `/shop/checkout` | `CB-SHOP-08/fa_checkout.light.png` | `CB-SHOP-08/fa_checkout.dark.png` | matches: stepper, address (sheet to pick/add/edit), masked recipient phone, slot chips per seller, plain packaging switch, COD card, totals, place order | gateway option removed (COD only); one idempotency key per attempt, reused on retry |
 | `nbd_Shop_Order` | `/shop/order/[id]?placed=1` | `CB-SHOP-08/fa_order-placed.light.png` | `CB-SHOP-08/fa_order-placed.dark.png` | matches: code + discreet SMS note, per-seller timeline (confirm / ship / deliver), checklist «on the way» link, returns after delivery | cancel (sheet) while nothing is confirmed |
 | Me → orders | `/profile/orders` | `CB-SHOP-08/fa_my-orders.light.png` | `CB-SHOP-08/fa_my-orders.dark.png` | order cards (code, sellers, count, date, total) | none |
+
+## CB-SHOP-10
+
+Shots at 1440 wide, Persian, guest (logged out), light + dark. The catalog API is mocked by a local stand-in server (shapes of `GET /shop/catalog/home`, `/products`, `/products/:id`), so SSR also runs. Pay on delivery only, no online-payment wording. Board renders: `docs/qa/canvas/boards/W_Shop_{Home,List,Product}.png`.
+
+| board | route | light | dark | verdict | fix |
+|---|---|---|---|---|---|
+| `W_Shop_Home` | `/store` | `CB-SHOP-10/home-light.png` | `CB-SHOP-10/home-dark.png` | matches: hero + the two root cards (baby, beauty), category strip, best sellers per root, trust strip | the board's wishlist hearts, search/cart icons, magazine nav and the layette-checklist / reminder cards are app features and not on the public page; category art is the icon until images are uploaded |
+| `W_Shop_List` | `/store/[category]` | `CB-SHOP-10/list-light.png` | `CB-SHOP-10/list-dark.png` | matches: breadcrumb, title + count, filter sidebar (sub-categories, size, material, color, price), active chips, sort pills, 4-col grid, numbered pager | color swatches are checkboxes (labels come from the API, no hex); no seller / in-stock facet (not in the API) |
+| `W_Shop_Product` | `/store/product/[id]` | `CB-SHOP-10/product-light.png` | `CB-SHOP-10/product-dark.png` | matches: breadcrumb, gallery, seller, rating, price, color/size choosers, add-to-cart panel (login link when logged out), shipping/returns, specifications, reviews, bought-together | no quantity stepper or wishlist (cart takes qty 1); size table shown as the size guide line |
+
+Behaviour: logged out → «ورود یا ثبت‌نام» link; logged in → `useAddToCart`, then a link to the app cart. Signed-in teen (403) and unknown product (404) get a plain state. `<1024px` signed-in visitors are redirected to the app `/shop` screens by the web shell. SSR metadata (title, description, OpenGraph, canonical) comes from the public catalog API.

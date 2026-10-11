@@ -85,11 +85,16 @@ func names(list []any, key string) []any {
 func TestShopCatalog_HomeListDetailReviews(t *testing.T) {
 	e := newCompanionEnv(t)
 	sara := e.user("Sara", "09120008011")
-	for _, p := range []string{"/api/v1/shop/catalog/home", "/api/v1/shop/catalog/products", "/api/v1/shop/catalog/products/1",
-		"/api/v1/shop/catalog/products/1/reviews"} {
-		assert.Equal(t, fiber.StatusUnauthorized, e.do(fiber.MethodGet, p, "", nil).Status, p)
-	}
 	f := seedCatalog(e)
+
+	// CB-SHOP-10: the catalog reads are public (guest = no Authorization header); a bad token is still a 401, and a
+	// guest still has no cart.
+	for _, p := range []string{"/api/v1/shop/catalog/home", "/api/v1/shop/catalog/products", "/api/v1/shop/catalog/products/" + itoa(f.bodysuit),
+		"/api/v1/shop/catalog/products/" + itoa(f.bodysuit) + "/reviews"} {
+		assert.Equal(t, fiber.StatusOK, e.do(fiber.MethodGet, p, "", nil).Status, p)
+		assert.Equal(t, fiber.StatusUnauthorized, e.do(fiber.MethodGet, p, "not-a-token", nil).Status, p)
+	}
+	assert.Equal(t, fiber.StatusUnauthorized, e.do(fiber.MethodGet, "/api/v1/shop/cart", "", nil).Status)
 
 	// bloom's link-out routes keep their shape and only list root categories.
 	r := e.do(fiber.MethodGet, "/api/v1/shop/categories", sara, nil)

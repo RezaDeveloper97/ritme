@@ -15,6 +15,7 @@ export function DirectoryWebShell({ appHref, children }: { appHref: string; chil
       nav={[
         { href: PLACES_HOME, label: t('nav.services') },
         { href: '/business', label: t('nav.business') }, // CB-DIR-12
+        { href: '/store', label: t('nav.shop') }, // CB-SHOP-10
       ]}
       cta={{ href: '/business/join', label: t('registerPlace') }}
       appHref={appHref}

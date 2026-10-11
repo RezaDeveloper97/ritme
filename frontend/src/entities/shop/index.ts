@@ -28,8 +28,10 @@ export {
   useShopCatalogReviews,
   useShopCategories,
   useShopProducts,
+  type PublicOpts,
   type ShopListParams,
 } from './api/queries';
+export { fetchPublicShopHome, fetchPublicShopList, fetchPublicShopProduct } from './api/public';
 export { formatToman } from './model/price';
 
 // CB-SHOP-09: layette checklist + discreet period-supply reminder.

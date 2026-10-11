@@ -13,8 +13,20 @@ import {
   shopCatalogReviewsSchema,
   shopCategoriesSchema,
   shopProductsSchema,
+  type ShopCatalogHome,
+  type ShopCatalogList,
+  type ShopCatalogProduct,
   type ShopSort,
 } from './schema';
+
+/**
+ * CB-SHOP-10: the catalog reads are public on the server, so the desktop web pages read them without a session
+ * (`anon`) and may start from the server-rendered payload (`initialData`). The app screens still wait for a session.
+ */
+export interface PublicOpts<T> {
+  anon?: boolean;
+  initialData?: T;
+}
 
 /** GET /shop/categories — the active categories (empty for a teen-mode account). */
 export const useShopCategories = () =>
@@ -41,14 +53,15 @@ export const useShopProducts = (category: string, page: number) =>
  * root. A teen-mode account gets 403 `teen_commercial_blocked`, an empty catalog 404 — the caller reads the error
  * status (no retries for those).
  */
-export const useShopCatalogHome = (root: string) =>
+export const useShopCatalogHome = (root: string, opts?: PublicOpts<ShopCatalogHome>) =>
   useQuery({
     queryKey: shopKeys.catalogHome(root),
     queryFn: async () =>
       shopCatalogHomeSchema.parse(
         (await apiClient.get<ApiEnvelope<unknown>>('/shop/catalog/home', { params: root ? { root } : undefined })).data.data,
       ),
-    enabled: isAuthenticated(),
+    enabled: opts?.anon === true || isAuthenticated(),
+    initialData: opts?.initialData,
     staleTime: 60_000,
     retry: (count, error) => ![403, 404].includes(getApiErrorStatus(error) ?? 0) && count < 2,
   });
@@ -74,26 +87,28 @@ export interface ShopListParams {
  * GET /shop/catalog/products — filtered, sorted page of one catalog category (CB-SHOP-07). 404 = not an internal
  * category (the caller falls back to bloom's link-out list), 403 = teen mode.
  */
-export const useShopCatalogProducts = (params: ShopListParams) =>
+export const useShopCatalogProducts = (params: ShopListParams, opts?: PublicOpts<ShopCatalogList>) =>
   useQuery({
     queryKey: shopKeys.catalogList(params),
     queryFn: async () =>
       shopCatalogListSchema.parse(
         (await apiClient.get<ApiEnvelope<unknown>>('/shop/catalog/products', { params: { ...params, per_page: 20 } })).data.data,
       ),
-    enabled: isAuthenticated(),
+    enabled: opts?.anon === true || isAuthenticated(),
+    initialData: opts?.initialData,
     placeholderData: keepPreviousData,
     staleTime: 60_000,
     retry: noRetryFor,
   });
 
 /** GET /shop/catalog/products/:id — the product page (CB-SHOP-07). */
-export const useShopCatalogProduct = (id: number) =>
+export const useShopCatalogProduct = (id: number, opts?: PublicOpts<ShopCatalogProduct>) =>
   useQuery({
     queryKey: shopKeys.catalogProduct(id),
     queryFn: async () =>
       shopCatalogProductSchema.parse((await apiClient.get<ApiEnvelope<{ product: unknown }>>(`/shop/catalog/products/${id}`)).data.data?.product),
-    enabled: isAuthenticated() && Number.isFinite(id),
+    enabled: (opts?.anon === true || isAuthenticated()) && Number.isFinite(id),
+    initialData: opts?.initialData,
     staleTime: 60_000,
     retry: noRetryFor,
   });

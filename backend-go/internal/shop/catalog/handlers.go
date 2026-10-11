@@ -41,7 +41,7 @@ type CommercialPolicy interface {
 	AllowsCommercial(ctx context.Context, userID uint64) (bool, error)
 }
 
-// Handlers serve /api/v1/shop/catalog/* (auth:api; the user id is only read for the teen policy).
+// Handlers serve /api/v1/shop/catalog/* (public via auth.OptionalUser since CB-SHOP-10; a signed-in user id is only read for the teen policy).
 type Handlers struct {
 	svc    *Service
 	policy CommercialPolicy
@@ -56,11 +56,9 @@ func NewHandlers(svc *Service, policy CommercialPolicy, appURL string) *Handlers
 // gate answers 403 teen_commercial_blocked for a teen-mode account and returns the locale and category tree.
 func (h *Handlers) gate(c fiber.Ctx) (Locale, *Tree, error) {
 	loc := Locale{Code: i18n.ResolveLocale(c, ""), Default: i18n.LanguagesOf(c).DefaultCode()}
-	if h.policy != nil {
-		uid, ok := auth.CurrentUserID(c)
-		if !ok {
-			return loc, nil, &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
-		}
+	// CB-SHOP-10: the catalog is public (web SEO). A guest (no Authorization header, routes use OptionalUser) is
+	// served; a signed-in teen-mode account still gets 403.
+	if uid, ok := auth.CurrentUserID(c); ok && h.policy != nil {
 		allowed, err := h.policy.AllowsCommercial(c, uid)
 		if err != nil {
 			return loc, nil, fmt.Errorf("catalog: policy: %w", err)

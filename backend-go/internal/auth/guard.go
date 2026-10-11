@@ -109,6 +109,15 @@ func (g *Guard) RequireUser(c fiber.Ctx) error {
 	return c.Next()
 }
 
+// OptionalUser is `RequireUser` for public routes that still know a signed-in caller (CB-SHOP-10): no Authorization
+// header → a guest (CurrentUser stays nil); a header that is present must be valid, otherwise 401 as usual.
+func (g *Guard) OptionalUser(c fiber.Ctx) error {
+	if c.Get(fiber.HeaderAuthorization) == "" {
+		return c.Next()
+	}
+	return g.RequireUser(c)
+}
+
 // Authenticate validates an Authorization header value outside the middleware. Rejections
 // are *UnauthenticatedError; other errors are infrastructure failures (500).
 func (g *Guard) Authenticate(ctx context.Context, authorization string) (*User, *AccessToken, error) {

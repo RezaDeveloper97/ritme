@@ -17,6 +17,7 @@ describe('install prompt visibility', () => {
     expect(hidesInstallPrompt('/business')).toBe(true); // CB-DIR-12
     expect(hidesInstallPrompt('/business/join')).toBe(true);
     expect(hidesInstallPrompt('/businesses')).toBe(false);
+    expect(hidesInstallPrompt('/store/product/7')).toBe(true); // CB-SHOP-10
     expect(hidesInstallPrompt('/dashboard')).toBe(false);
     expect(hidesInstallPrompt('/record/emergency')).toBe(false);
   });

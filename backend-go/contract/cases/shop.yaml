@@ -60,11 +60,8 @@ cases:
     path: /api/v1/shop/catalog/home
     query: {root: baby-clothes}
     status: 404
-  - name: catalog_home_anon
-    persona: anon
-    method: GET
-    path: /api/v1/shop/catalog/home
-    status: 401
+  # CB-SHOP-10: the four catalog reads are public (guest 200, signed-in teen 403, bad token 401 — see
+  # internal/http/shop_catalog_int_test.go); the «no token → 401» case lives on cart_anon below.
   - name: catalog_products
     doc: Layette subtree with filter choices (sizes, colors, materials, price range), popular first
     locales: [none, en]

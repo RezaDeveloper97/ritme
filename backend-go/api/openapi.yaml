@@ -14127,9 +14127,10 @@ paths:
         Go only (CB-SHOP-02). One root category's home: the root tabs, its sub-categories with catalog product counts and
         up to 6 sections (sub-categories that have products) with their 4 best sellers. Catalog products are internal
         products (active, in an active category, with at least one active variant, seller active); link-out rows are
-        not included. `root` defaults to the first root; a sub-category or unknown slug is 404. Teen mode → 403.
+        not included. `root` defaults to the first root; a sub-category or unknown slug is 404. Public since CB-SHOP-10 (guests allowed, optional bearer); a signed-in teen-mode account → 403.
       operationId: getShopCatalogHome
       security:
+        - {}
         - {bearerAuth: []}
       parameters:
         - {name: root, in: query, required: false, schema: {type: string}, description: Root category slug (layette, beauty)}
@@ -14178,9 +14179,10 @@ paths:
         they do not change with the UI language); multi-valued filters are comma-separated and match any value; size,
         color, volume and the price bounds must hold on the same variant. `filters` describes the category before
         filtering. Unknown `sort` falls back to `popular`; invalid numbers are ignored. 404 for an unknown or inactive
-        category; teen mode → 403.
+        category; public since CB-SHOP-10 (optional bearer); signed-in teen mode → 403.
       operationId: listShopCatalogProducts
       security:
+        - {}
         - {bearerAuth: []}
       parameters:
         - {name: category, in: query, required: false, schema: {type: string}}
@@ -14253,9 +14255,10 @@ paths:
         localized), beauty fields (irc_code, expires_on, skin_types), seller shipping/return terms, active variants with
         stock (`default_variant_id` = cheapest in stock), the 3 newest published reviews and up to 6 bought-together
         cards (products ordered together, then the category's best sellers). 404 for a link-out product (no variants)
-        or an inactive product/category/seller; teen mode → 403.
+        or an inactive product/category/seller; public since CB-SHOP-10 (optional bearer); signed-in teen mode → 403.
       operationId: getShopCatalogProduct
       security:
+        - {}
         - {bearerAuth: []}
       parameters:
         - {name: id, in: path, required: true, schema: {type: integer}}
@@ -14285,6 +14288,7 @@ paths:
       description: Go only (CB-SHOP-02). Published reviews, newest first, paged (default 10). Same 404/403 as the detail.
       operationId: listShopCatalogProductReviews
       security:
+        - {}
         - {bearerAuth: []}
       parameters:
         - {name: id, in: path, required: true, schema: {type: integer}}
