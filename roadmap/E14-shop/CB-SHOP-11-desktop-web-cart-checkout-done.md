@@ -3,7 +3,7 @@ id: CB-SHOP-11
 title: Desktop web: cart, checkout, done
 epic: SHOP
 type: frontend
-status: todo
+status: done
 depends_on: [CB-SHOP-10, CB-SHOP-08]
 parallel_group: SHOP-I
 touches: [frontend/src/screens/web-shop-checkout, frontend/src/app/[locale]/(web)/shop/checkout]

@@ -660,3 +660,8 @@ TODO (ask user):
 - Backend: new `auth.OptionalUser` (no Authorization = guest; present header must be valid → else 401) on the 4 catalog GETs; signed-in teen still 403; int tests guest 200 / bad token 401; openapi `security: [{}, bearerAuth]`; contract `catalog_home_anon` removed (cart_anon covers 401).
 - Landing: union-merge with DIR-12 duplicated PUBLIC_SEGMENTS / hidesInstallPrompt / web-shell nav lines and the web-shell `nav` overlay dropped `business` → fixed by hand, goldens regenerated; tsc, eslint, fsd, vitest 526, i18n, go build, auth+http Shop|OpenAPI int green.
 - TODO: Lighthouse SEO on product not measured (DIR place page was 100); breadcrumb shows generic label (API returns slug only); no wishlist/qty/swatches/seller facet (no API).
+
+## CB-SHOP-11 — Desktop web: cart, checkout, done
+- `/store/cart` (per-seller lines, free-shipping bar, qty/remove, discount box with generic refusal + 429 line, sticky summary), `/store/checkout` (inline address pick/add/edit, per-seller slot, discreet packaging, fixed COD card — no gateway, masked phone, one idempotency key per page), `/store/order/[id]` done (per-seller cards, status chip + slot, track in app). Signed-in only (page-level login prompt), noindex, robots disallows cart/checkout/order; <1024px → app screens. Shared helpers `entities/shop/model/checkout.ts` (maskPhone, useIdempotencyKey, checkoutBlockerKey) now also used by the app checkout. web-shell nav «سبد».
+- Shots 1440w light/dark docs/qa/canvas/shop/CB-SHOP-11/ (API mocked). On stage: tsc, eslint, fsd, vitest 236, i18n green.
+- TODO: «you might also need» strip (no recommendations API), address map thumbnail, app-download strip (no store links); Shop + Cart both highlighted on /store/cart.
