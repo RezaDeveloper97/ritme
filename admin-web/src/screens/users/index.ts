@@ -1,2 +1,2 @@
-export { UsersScreen } from './ui/UsersScreen';
-export { UserDetailScreen } from './ui/UserDetailScreen';
+export { UsersScreen } from "./ui/UsersScreen";
+export { UserDetailScreen } from "./ui/UserDetailScreen";

@@ -3,7 +3,7 @@ id: B-N9-04
 title: Users list v2 and user detail
 milestone: N9
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N9-02,B-N9-03]
 parallel_group: N9-D
 touches: [backend-go/internal/admin,backend-go/api,admin-web/src]
