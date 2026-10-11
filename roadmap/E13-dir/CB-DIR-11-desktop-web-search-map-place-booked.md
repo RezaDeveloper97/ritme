@@ -3,7 +3,7 @@ id: CB-DIR-11
 title: Desktop web: search+map, place, booked
 epic: DIR
 type: frontend
-status: todo
+status: done
 depends_on: [CB-DIR-07, CB-DIR-08, CB-DIR-09]
 parallel_group: DIR-H
 touches: [frontend/src/screens/web-city-services, frontend/src/widgets/web-shell, frontend/src/app/[locale]/(web)]
