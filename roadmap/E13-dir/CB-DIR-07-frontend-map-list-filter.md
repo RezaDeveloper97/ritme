@@ -3,7 +3,7 @@ id: CB-DIR-07
 title: Frontend: map + list/filter
 epic: DIR
 type: frontend
-status: todo
+status: done
 depends_on: [CB-DIR-06, CB-CORE-06]
 parallel_group: DIR-F
 touches: [frontend/next.config.ts, frontend/src/screens/city-services-map, frontend/src/screens/city-services-list, frontend/src/app/[locale]/services/mother-child/map, frontend/src/app/[locale]/services/mother-child/list]

@@ -603,3 +603,13 @@ TODO (ask user):
 - openapi (4 paths, CityServiceUnprocessable, booking schema 3.1 nullables), dump (bookings to 00081 shape, reports table, 2 fixtures), contract city-services 54/0 (+ join/services/privacy/children green). Int: flow + IDOR, 8 users / 2-seat slot → exactly 2.
 - On stage: build, cityservices + http Directory|CityServ|OpenAPI|Shop|Insurance int green.
 - TODO (ask user): review `pending` status (doc lists published|hidden) — DIR-05 publishes + recomputes rating; reminders/SMS after confirm (DIR-05); cancel rule (window only for confirmed)? rare reschedule deadlock → 500 (no retry); admin bookingJSON new fields (DIR-05).
+
+## CB-DIR-08 — Place page
+- `/city-services/[id]` extended in place (CityServiceDetailPage + `PlaceSections.tsx`, `model/place.ts` + test): rating/verified/open-now, call/directions/website (http/https only, noopener noreferrer), about + amenities, services & prices, nearest slots per service (`useCityServiceSlots`, ?service_id=) + health note, reviews with sub-scores, address/hours/rules/cancel policy, owner link (→ /city-services/join), sticky price bar. CTA: online/request → /city-services/[id]/request?service=&slot= (DIR-09 must read them), phone → tel:, link → external. Messages `place.*`.
+- Shots docs/qa/canvas/dir/CB-DIR-08/ (API mocked). On stage: tsc, vitest, i18n green.
+- TODO: Neshan directions deep-link format is a guess; report-a-place link TODO (DIR-03 endpoint now exists → wire in DIR-09/QA); «message» action skipped (no API); detail query still auth-only though API is public.
+
+## CB-DIR-07 — Map + list/filter
+- List replaces bloom's chip list: search, filter/near-me/open-now chips, count + sort, filter sheet (child age, open now, amenities, sort), cards (verified, rating, price-from, next slot/«باز است»), pager, floating map button. `/city-services/map`: NeshanMap pins, debounced search, category chips, «search this area» → bbox, selected-place card, list toggle; no key/SDK fail → list fallback. Location only on tap, memory only, sent as lat/lng. New `widgets/directory-filters` (steiger block); entity filters/near-me models + tests. next.config.ts: Neshan CSP only when NEXT_PUBLIC_NESHAN_KEY is set at build.
+- Shots docs/qa/canvas/dir/CB-DIR-07/ (no key → fallback). On stage: tsc, eslint, fsd, vitest, i18n green (message overlay kept DIR-08 `place` + DIR-07 keys).
+- TODO: check map + CSP with a real Neshan key; age range → midpoint age_months OK?; map per_page=50, no clustering.

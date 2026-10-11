@@ -3,7 +3,7 @@ id: CB-DIR-08
 title: Frontend: place page
 epic: DIR
 type: frontend
-status: todo
+status: done
 depends_on: [CB-DIR-06]
 parallel_group: DIR-F
 touches: [frontend/src/screens/city-services-place, frontend/src/app/[locale]/services/mother-child/place]
