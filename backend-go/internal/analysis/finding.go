@@ -36,13 +36,13 @@ func cycleFinding(cr CycleReport) (string, *Phrase) {
 		switch {
 		case cr.CycleStatus == StatusFrequent:
 			return FindingCycleFrequent, &Phrase{Key: "findings.cycle.frequent", Args: []Arg{
-				Num("days", *cr.MedianCycle), Num("min", FIGOCycleMin), Num("max", FIGOCycleMax)}}
+				Num("days", *cr.MedianCycle), Num("min", cr.FIGO.CycleMin), Num("max", cr.FIGO.CycleMax)}}
 		case cr.CycleStatus == StatusInfrequent:
 			return FindingCycleInfrequent, &Phrase{Key: "findings.cycle.infrequent", Args: []Arg{
-				Num("days", *cr.MedianCycle), Num("min", FIGOCycleMin), Num("max", FIGOCycleMax)}}
+				Num("days", *cr.MedianCycle), Num("min", cr.FIGO.CycleMin), Num("max", cr.FIGO.CycleMax)}}
 		case cr.PeriodStatus == StatusProlonged:
 			return FindingPeriodProlonged, &Phrase{Key: "findings.period.prolonged", Args: []Arg{
-				Num("days", *cr.MedianPeriod), Num("max", FIGOPeriodMax)}}
+				Num("days", *cr.MedianPeriod), Num("max", cr.FIGO.PeriodMax)}}
 		}
 	}
 	if !cr.Applies {

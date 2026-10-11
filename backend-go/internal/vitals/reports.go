@@ -122,12 +122,16 @@ func bpAverage(typ string, rs []Reading) any {
 		return nil
 	}
 	var sys, dia []float64
+	var last civildate.Date // an average is classified with the thresholds of its latest reading's day
 	for _, r := range rs {
 		sys, dia = append(sys, r.Systolic), append(dia, r.Diastolic)
+		if r.Date.After(last) {
+			last = r.Date
+		}
 	}
 	s, d := whole(avg(sys)), whole(avg(dia))
 	return jsonx.Obj("systolic", s, "diastolic", d, "readings", len(rs),
-		"classification", ClassJSON(typ, ClassifyBP(float64(s), float64(d))))
+		"classification", ClassJSON(typ, ThresholdsOn(last).ClassifyBP(float64(s), float64(d))))
 }
 
 func glucoseAverage(rs []Reading) any {
@@ -243,6 +247,7 @@ func series(typ string, rs []Reading, glucoseSplit bool) []any {
 // Report is GET /vitals/reports/{type}: averages, extremes, class distribution, morning vs night, time in range and
 // the daily series of rs (one type, already limited to rng; any order). filter narrows glucose by context ("all").
 func Report(typ string, rs []Reading, rng Range, filter string) *jsonx.OrderedMap {
+	th := ThresholdsOn(rng.To) // targets of the range: the thresholds valid on its last day
 	var in []Reading
 	for _, r := range rs {
 		if r.Type != typ || !rng.Contains(r.Date) {
@@ -283,7 +288,7 @@ func Report(typ string, rs []Reading, rng Range, filter string) *jsonx.OrderedMa
 		out.Set("distribution", distribution(typ, BPClasses, in))
 		out.Set("morning_vs_night", morningVsNight(typ, in))
 		out.Set("time_in_range", jsonx.Obj("in_range", normal, "readings", len(in), "percent", percent(normal, len(in))))
-		out.Set("target", jsonx.Obj("systolic_max", BPElevatedSystolic, "diastolic_max", BPStage1Diastolic))
+		out.Set("target", jsonx.Obj("systolic_max", th.BPElevatedSystolic, "diastolic_max", th.BPStage1Diastolic))
 		out.Set("series", series(typ, in, false))
 	case TypeGlucose:
 		if filter == "" {
@@ -315,7 +320,7 @@ func Report(typ string, rs []Reading, rng Range, filter string) *jsonx.OrderedMa
 			if len(cs) == 0 {
 				continue
 			}
-			b := GlucoseBands[c]
+			b := th.GlucoseBands[c]
 			byContext = append(byContext, jsonx.Obj("context", c, "readings", len(cs), "average", glucoseAverage(cs),
 				"above_target", ab, "target", jsonx.Obj("min", b.TargetMin, "max", b.TargetMax)))
 		}
@@ -365,7 +370,7 @@ func Report(typ string, rs []Reading, rng Range, filter string) *jsonx.OrderedMa
 		out.Set("morning_vs_night", morningVsNight(typ, in))
 		out.Set("time_in_range", jsonx.Obj("in_range", normal, "readings", len(classified),
 			"percent", percent(normal, len(classified))))
-		out.Set("target", jsonx.Obj("min", HRRestingMin, "max", HRRestingMax))
+		out.Set("target", jsonx.Obj("min", th.HRRestingMin, "max", th.HRRestingMax))
 		out.Set("series", series(typ, in, false))
 	}
 	return out

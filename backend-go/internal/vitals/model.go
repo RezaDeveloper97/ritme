@@ -109,26 +109,28 @@ type Reading struct {
 // Timed reports whether the reading has a time of day (log readings have none).
 func (r Reading) Timed() bool { return !r.MeasuredAt.IsZero() }
 
-// Class is the reading's class ("" when unclassified).
+// Class is the reading's class ("" when unclassified), with the thresholds valid on the reading's day.
 func (r Reading) Class() string {
+	t := ThresholdsOn(r.Date)
 	switch r.Type {
 	case TypeBP:
-		return ClassifyBP(r.Systolic, r.Diastolic)
+		return t.ClassifyBP(r.Systolic, r.Diastolic)
 	case TypeGlucose:
-		return ClassifyGlucose(r.MgDl, r.Context)
+		return t.ClassifyGlucose(r.MgDl, r.Context)
 	case TypeHR:
-		return ClassifyHR(r.Pulse, r.Context)
+		return t.ClassifyHR(r.Pulse, r.Context)
 	}
 	return ""
 }
 
 // Urgent reports whether the reading crosses a safety threshold.
 func (r Reading) Urgent() bool {
+	t := ThresholdsOn(r.Date)
 	switch r.Type {
 	case TypeBP:
-		return UrgentBP(r.Systolic, r.Diastolic)
+		return t.UrgentBP(r.Systolic, r.Diastolic)
 	case TypeGlucose:
-		return UrgentGlucose(r.MgDl)
+		return t.UrgentGlucose(r.MgDl)
 	}
 	return false
 }

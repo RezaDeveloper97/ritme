@@ -129,7 +129,7 @@ func (h *Handlers) Thresholds(c fiber.Ctx) error {
 	if _, err := user(c); err != nil {
 		return err
 	}
-	return httpx.OK(c, ThresholdsJSON())
+	return httpx.OK(c, ThresholdsJSON(ThresholdsOn(civildate.InTehran(h.now(c)))))
 }
 
 // Readings is GET /vitals/readings?type&from&to: every reading of the range (timed + log sheet), newest first.

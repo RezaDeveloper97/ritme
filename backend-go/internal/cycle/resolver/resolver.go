@@ -42,20 +42,31 @@ import (
 	"math"
 	"slices"
 
+	"github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/cycle/metrics"
 	"github.com/ritme/backend-go/internal/cycle/model"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
-const (
-	lutealLength               = 14
-	fertileDaysBeforeOvulation = 5
-	periodHardCap              = 12
-	warningCapExtraDays        = 3
-	warningCapMinDays          = 8
-	maxLateDays                = 14
-)
+const lutealLength = 14
+
+// caps are the engine caps valid on the target date: versioned clinical config since B-N9-11 (D-88). Version 1
+// (fertile window O−5, period hard cap 12, warning cap max(EPL+3, 8), 14 days late) is the code default the store
+// answers when it is empty or unreachable.
+type caps struct {
+	fertileDaysBeforeOvulation, periodHardCap, warningCapExtraDays, warningCapMinDays, maxLateDays int
+}
+
+func capsOn(d civildate.Date) caps {
+	return caps{
+		fertileDaysBeforeOvulation: clinicalconfig.Int(clinicalconfig.KeyFertileWindow, "before", d),
+		periodHardCap:              clinicalconfig.Int(clinicalconfig.KeyPeriodHardCap, "days", d),
+		warningCapExtraDays:        clinicalconfig.Int(clinicalconfig.KeyWarningCap, "extra_days", d),
+		warningCapMinDays:          clinicalconfig.Int(clinicalconfig.KeyWarningCap, "min_days", d),
+		maxLateDays:                clinicalconfig.Int(clinicalconfig.KeyMaxLateDays, "days", d),
+	}
+}
 
 // Confidence-reason codes (§29.6), CycleStatusResolver::REASON_*.
 const (
@@ -84,6 +95,7 @@ func daysBetween(from, to civildate.Date) int { return from.DiffDays(to) }
 // Resolve is CycleStatusResolver::resolve. histories in any order; profile nil = no profile row.
 // today separates the prediction regimes (future dates ride predicted cycles).
 func Resolve(histories []model.History, profile *model.Profile, target, today civildate.Date, m metrics.Metrics) Status {
+	cp := capsOn(target)
 	start, startSource, loggedEnd, ok := anchorFor(histories, profile, target)
 	if !ok {
 		return unresolved(target, m)
@@ -110,7 +122,7 @@ func Resolve(histories []model.History, profile *model.Profile, target, today ci
 
 	predictedNext := start.AddDays(ecl)
 	ovulation := predictedNext.AddDays(-lutealLength)
-	biologicalFertileStart := ovulation.AddDays(-fertileDaysBeforeOvulation)
+	biologicalFertileStart := ovulation.AddDays(-cp.fertileDaysBeforeOvulation)
 	dayAfterPeriodEnd := end.AddDays(1)
 	displayFertileStart := dayAfterPeriodEnd
 	if biologicalFertileStart.After(dayAfterPeriodEnd) {
@@ -126,7 +138,7 @@ func Resolve(histories []model.History, profile *model.Profile, target, today ci
 	daysToOvulation := daysBetween(target, ovulation)
 
 	softCap := epl
-	warningCap := max(epl+warningCapExtraDays, warningCapMinDays)
+	warningCap := max(epl+cp.warningCapExtraDays, cp.warningCapMinDays)
 	isRealOpenPeriod := startSource == enums.PeriodStartSourceUserLogged && loggedEnd.IsZero()
 	pastWarningCapOpen := isRealOpenPeriod && cycleDay > warningCap
 
@@ -152,7 +164,7 @@ func Resolve(histories []model.History, profile *model.Profile, target, today ci
 			case cycleDay <= warningCap:
 				main, sub, resolution = enums.MainPhaseMenstrual, enums.CycleSubphaseMenstrualPossible, enums.ResolutionSourceUserLoggedWithAssumedEnd
 				warnings = append(warnings, enums.CycleWarningPeriodEndMissing)
-			case cycleDay <= periodHardCap:
+			case cycleDay <= cp.periodHardCap:
 				main, sub, resolution = enums.MainPhaseMenstrual, enums.CycleSubphaseMenstrualPossible, enums.ResolutionSourceUserLoggedWithAssumedEnd
 				warnings = append(warnings, enums.CycleWarningPeriodEndMissing, enums.CycleWarningPeriodEndMissingWarningCapExceeded)
 				forcedPoor, forcedLowConfidence, requiresInput = true, true, true
@@ -173,7 +185,7 @@ func Resolve(histories []model.History, profile *model.Profile, target, today ci
 		switch {
 		case daysLate <= 7:
 			main, sub, resolution = enums.MainPhasePeriodExpected, enums.CycleSubphasePeriodExpected, enums.ResolutionSourcePrediction
-		case daysLate <= maxLateDays:
+		case daysLate <= cp.maxLateDays:
 			main, sub, resolution = enums.MainPhasePeriodExpected, enums.CycleSubphasePeriodExpected, enums.ResolutionSourcePrediction
 			warnings = append(warnings, enums.CycleWarningPredictedPeriodOverdue)
 			forcedLowConfidence = true
@@ -239,7 +251,7 @@ func Resolve(histories []model.History, profile *model.Profile, target, today ci
 	if startSource == enums.PeriodStartSourceOnboardingDeclared &&
 		resolution != enums.ResolutionSourceUnknown &&
 		main != enums.MainPhasePeriodExpected &&
-		(main != enums.MainPhaseUnknown || daysLate <= maxLateDays) {
+		(main != enums.MainPhaseUnknown || daysLate <= cp.maxLateDays) {
 		resolution = onboardingResolution(m)
 	} else if resolution == "" {
 		resolution = enums.ResolutionSourcePrediction
@@ -291,7 +303,7 @@ func Resolve(histories []model.History, profile *model.Profile, target, today ci
 		(main == enums.MainPhaseFertile && displayFertileStart == end.AddDays(1))
 	var dataQuality enums.DataQualityLevel
 	switch {
-	case forcedPoor || pastWarningCapOpen || daysLate > maxLateDays || anchorContradiction || m.OnlyOutlierHistory:
+	case forcedPoor || pastWarningCapOpen || daysLate > cp.maxLateDays || anchorContradiction || m.OnlyOutlierHistory:
 		dataQuality = enums.DataQualityLevelPoor
 	case startSource == enums.PeriodStartSourceUserLogged &&
 		m.ValidCyclesCount >= 2 &&
@@ -331,7 +343,7 @@ func Resolve(histories []model.History, profile *model.Profile, target, today ci
 		confidence = enums.ConfidenceLevelMedium
 	}
 
-	reasons := confidenceReasons(m, highVariability, isRealOpenPeriod, cycleDay, warningCap, onboardingUsed,
+	reasons := confidenceReasons(cp, m, highVariability, isRealOpenPeriod, cycleDay, warningCap, onboardingUsed,
 		defaultsUsed, resolution, startSource, daysLate, main, dataQuality, anchorContradiction)
 
 	fertility := sub.FertilityLevelV11()
@@ -339,7 +351,7 @@ func Resolve(histories []model.History, profile *model.Profile, target, today ci
 		fertility = enums.FertilityLevelUnknown
 	}
 	var dto *int
-	if daysLate <= maxLateDays {
+	if daysLate <= cp.maxLateDays {
 		dto = ptr(daysToOvulation)
 	}
 
@@ -476,6 +488,7 @@ func onboardingResolution(m metrics.Metrics) enums.ResolutionSource {
 
 // confidenceReasons lists every active cause behind the confidence grade (§29.6), deduplicated.
 func confidenceReasons(
+	cp caps,
 	m metrics.Metrics,
 	highVariability, isRealOpenPeriod bool,
 	cycleDay, warningCap int,
@@ -502,9 +515,9 @@ func confidenceReasons(
 	}
 	if isRealOpenPeriod {
 		add(ReasonMissingPeriodEnd)
-		if cycleDay > warningCap && cycleDay <= periodHardCap {
+		if cycleDay > warningCap && cycleDay <= cp.periodHardCap {
 			add(ReasonMissingEndBeyondWarnCap)
-		} else if cycleDay > periodHardCap {
+		} else if cycleDay > cp.periodHardCap {
 			add(ReasonMissingEndBeyondHardCap)
 		}
 	}
@@ -520,7 +533,7 @@ func confidenceReasons(
 	if daysLate > 0 {
 		add(ReasonPeriodOverdue)
 	}
-	if main == enums.MainPhaseUnknown && daysLate > maxLateDays {
+	if main == enums.MainPhaseUnknown && daysLate > cp.maxLateDays {
 		add(ReasonUnresolvedCycle)
 	}
 	if dataQuality == enums.DataQualityLevelPoor {

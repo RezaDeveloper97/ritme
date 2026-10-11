@@ -279,7 +279,7 @@ func (h *Handlers) SaveCheck(c fiber.Ctx) error {
 		return err
 	}
 	today := civildate.InTehran(now)
-	res := Score(kind, answers)
+	res := ScoreOn(kind, answers, today)
 	saved, err := h.svc.SaveCheck(c, userID, res, today, now)
 	if err != nil {
 		return err
@@ -334,7 +334,8 @@ func (h *Handlers) History(c fiber.Ctx) error {
 	for _, ch := range checks {
 		list = append(list, CheckJSON(ch, birth, locale))
 	}
+	cut := CutoffsOn(civildate.InTehran(h.now(c)))
 	return httpx.OK(c, jsonx.Obj("checks", list, "thresholds", jsonx.Obj(
-		"short_elevated", ShortElevatedMin, "full_possible", FullPossibleMin, "full_likely", FullLikelyMin,
+		"short_elevated", cut.ShortElevated, "full_possible", cut.Possible, "full_likely", cut.Likely,
 	)))
 }

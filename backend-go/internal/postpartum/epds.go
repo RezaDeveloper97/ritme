@@ -3,6 +3,7 @@ package postpartum
 import (
 	"slices"
 
+	"github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
@@ -10,8 +11,9 @@ import (
 // options scored 0–3; items 1, 2 and 4 score their options 0→3 in order, the others 3→0. The client sends the score
 // of the chosen option (GET /postpartum/epds/questions lists every option with its score), the server recomputes
 // the total. The weekly short check is the EPDS-3 anxiety subscale (items 3, 4, 5; Kabir, Sheeder & Kelly 2008); the
-// full 10-item check runs every two weeks. Thresholds are named constants [needs clinical review]; the admin config
-// table of B-N9-11 can take them over (epds.cutoff.likely in nbl_Admin_Config).
+// full 10-item check runs every two weeks. The cut-offs are versioned clinical config since B-N9-11 (D-88:
+// epds.cutoff.likely / possible / short_elevated); the constants below are version 1, and a check is scored with the
+// version valid on the day it was taken.
 const (
 	KindShort = "short"
 	KindFull  = "full"
@@ -97,9 +99,27 @@ type Result struct {
 	FollowUp string   // KindFull when a short check suggests the full one now
 }
 
-// Score scores a check. answers must hold a 0–ItemMax score for every item of the kind (validated by the caller);
-// anything else in it is ignored.
+// Cutoffs are the EPDS cut-offs valid on one day.
+type Cutoffs struct{ Likely, Possible, ShortElevated int }
+
+// CutoffsOn reads the cut-offs valid on d (a zero d = version 1: FullLikelyMin, FullPossibleMin, ShortElevatedMin).
+func CutoffsOn(d civildate.Date) Cutoffs {
+	return Cutoffs{
+		Likely:        clinicalconfig.Int(clinicalconfig.KeyEPDSLikely, "score", d),
+		Possible:      clinicalconfig.Int(clinicalconfig.KeyEPDSPossible, "score", d),
+		ShortElevated: clinicalconfig.Int(clinicalconfig.KeyEPDSShortElevated, "score", d),
+	}
+}
+
+// Score scores a check with the version-1 cut-offs (ScoreOn with a zero day).
 func Score(kind string, answers map[string]int) Result {
+	return ScoreOn(kind, answers, civildate.Date{})
+}
+
+// ScoreOn scores a check taken on day. answers must hold a 0–ItemMax score for every item of the kind (validated by
+// the caller); anything else in it is ignored.
+func ScoreOn(kind string, answers map[string]int, day civildate.Date) Result {
+	cut := CutoffsOn(day)
 	items := ItemsOf(kind)
 	r := Result{Kind: kind, Answers: map[string]int{}, Max: len(items) * ItemMax, Band: BandLow}
 	for _, it := range items {
@@ -108,7 +128,7 @@ func Score(kind string, answers map[string]int) Result {
 		r.Total += v
 	}
 	if kind == KindShort {
-		if r.Total >= ShortElevatedMin {
+		if r.Total >= cut.ShortElevated {
 			r.Band, r.FollowUp = BandElevated, KindFull
 		}
 		return r
@@ -116,15 +136,15 @@ func Score(kind string, answers map[string]int) Result {
 	sh := r.Answers[SelfHarmItem]
 	r.SelfHarm = &sh
 	switch {
-	case r.Total >= FullLikelyMin:
+	case r.Total >= cut.Likely:
 		r.Band = BandLikely
-	case r.Total >= FullPossibleMin:
+	case r.Total >= cut.Possible:
 		r.Band = BandPossible
 	}
 	if sh > 0 {
 		r.Reasons = append(r.Reasons, ReasonSelfHarm)
 	}
-	if r.Total >= FullLikelyMin {
+	if r.Total >= cut.Likely {
 		r.Reasons = append(r.Reasons, ReasonScore)
 	}
 	r.Urgent = len(r.Reasons) > 0
@@ -141,16 +161,17 @@ type Check struct {
 	Urgent   bool
 }
 
-// Band is the stored check's band.
+// Band is the stored check's band, with the cut-offs valid on the day it was taken.
 func (c Check) Band() string {
+	cut := CutoffsOn(c.TakenOn)
 	switch {
-	case c.Kind == KindShort && c.Total >= ShortElevatedMin:
+	case c.Kind == KindShort && c.Total >= cut.ShortElevated:
 		return BandElevated
 	case c.Kind == KindShort:
 		return BandLow
-	case c.Total >= FullLikelyMin:
+	case c.Total >= cut.Likely:
 		return BandLikely
-	case c.Total >= FullPossibleMin:
+	case c.Total >= cut.Possible:
 		return BandPossible
 	}
 	return BandLow
@@ -174,7 +195,7 @@ func ScheduleOn(today, birth civildate.Date, last, lastFull *Check) Schedule {
 	if lastFull != nil {
 		fullNext = laterOf(fullFrom, lastFull.TakenOn.AddDays(FullIntervalDays))
 	}
-	elevated := last != nil && last.Kind == KindShort && last.Total >= ShortElevatedMin &&
+	elevated := last != nil && last.Kind == KindShort && last.Total >= CutoffsOn(last.TakenOn).ShortElevated &&
 		(lastFull == nil || last.TakenOn.After(lastFull.TakenOn))
 	if elevated || !today.Before(fullNext) {
 		return Schedule{Due: KindFull, NextDueOn: today}

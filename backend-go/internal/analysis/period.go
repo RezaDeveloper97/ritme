@@ -47,6 +47,7 @@ type PeriodReport struct {
 	CoSymptoms                   []CoSymptom
 	CoSymptomsReady              bool
 	Periods                      []PeriodRow // newest first, at most periodListSize
+	FIGOPeriodMax                int         // the FIGO duration limit valid on the report day (B-N9-11)
 }
 
 // Ready: the per-day average is a trend over periods (≥ MinTrendPoints).
@@ -73,7 +74,7 @@ func (in *Input) bleedDays(c Cycle) int {
 
 // BuildPeriod computes the period report of the range.
 func BuildPeriod(in *Input) PeriodReport {
-	out := PeriodReport{CoSymptoms: []CoSymptom{}, Periods: []PeriodRow{}}
+	out := PeriodReport{CoSymptoms: []CoSymptom{}, Periods: []PeriodRow{}, FIGOPeriodMax: FIGOOn(in.Today).PeriodMax}
 	var rows []PeriodRow
 	var bleeds []int
 	cycleStarts := map[civildate.Date]bool{}
@@ -99,7 +100,7 @@ func BuildPeriod(in *Input) PeriodReport {
 	out.MedianPeriod = insights.Median(bleeds)
 	if m := out.MedianPeriod; m != nil {
 		out.Status = StatusNormal
-		if *m > FIGOPeriodMax {
+		if *m > out.FIGOPeriodMax {
 			out.Status = StatusProlonged
 		}
 	}
@@ -231,7 +232,7 @@ func (r PeriodReport) JSON(c *Copy) *jsonx.OrderedMap {
 	return jsonx.Obj(
 		"ready", r.Ready(),
 		"based_on_periods", r.BasedOn,
-		"figo", jsonx.Obj("period", jsonx.Obj("max", FIGOPeriodMax)),
+		"figo", jsonx.Obj("period", jsonx.Obj("max", r.FIGOPeriodMax)),
 		"period_length", jsonx.Obj("median", ptrOrNil(r.MedianPeriod), "status", statusOrNil(r.Status)),
 		"peak", peak,
 		"spotting", jsonx.Obj("days", r.SpottingDays, "cycles", r.SpottingCycles, "of_cycles", r.Cycles),

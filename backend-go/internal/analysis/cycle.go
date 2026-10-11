@@ -81,6 +81,7 @@ type CycleReport struct {
 	VariationLimit int
 	Regularity     string
 	Applies        bool
+	FIGO           FIGO // the ranges valid on the report day (B-N9-11)
 	Typical        Layout
 	Current        *Cycle
 	CurrentDay     int
@@ -93,9 +94,10 @@ func (r CycleReport) Ready() bool { return r.BasedOn >= MinTrendPoints }
 // BuildCycle computes the cycle report of the range.
 func BuildCycle(in *Input) CycleReport {
 	age := in.Age()
+	figo := FIGOOn(in.Today)
 	out := CycleReport{
-		VariationLimit: FIGOVariationLimit(age), Applies: FIGOApplies(age), Regularity: RegularityNotEnoughData,
-		Cycles: []CycleRow{},
+		VariationLimit: figo.VariationLimit(age), Applies: FIGOApplies(age), Regularity: RegularityNotEnoughData,
+		FIGO: figo, Cycles: []CycleRow{},
 	}
 	window := in.windowCycles()
 	out.BasedOn = len(window)
@@ -104,7 +106,7 @@ func BuildCycle(in *Input) CycleReport {
 		c := window[i]
 		row := CycleRow{
 			Start: c.Start, End: c.End(in.Today), Length: c.Length, PeriodDays: c.PeriodDays,
-			InFIGO: c.Length >= FIGOCycleMin && c.Length <= FIGOCycleMax, Counted: insights.ValidCycleLength(c.Length),
+			InFIGO: c.Length >= figo.CycleMin && c.Length <= figo.CycleMax, Counted: insights.ValidCycleLength(c.Length),
 		}
 		if !row.Counted {
 			row.Excluded = ExcludedImplausible
@@ -131,9 +133,9 @@ func BuildCycle(in *Input) CycleReport {
 	out.MedianPeriod = insights.Median(bleeds)
 	if m := out.MedianCycle; m != nil {
 		switch {
-		case *m < FIGOCycleMin:
+		case *m < figo.CycleMin:
 			out.CycleStatus = StatusFrequent
-		case *m > FIGOCycleMax:
+		case *m > figo.CycleMax:
 			out.CycleStatus = StatusInfrequent
 		default:
 			out.CycleStatus = StatusNormal
@@ -141,7 +143,7 @@ func BuildCycle(in *Input) CycleReport {
 	}
 	if m := out.MedianPeriod; m != nil {
 		out.PeriodStatus = StatusNormal
-		if *m > FIGOPeriodMax {
+		if *m > figo.PeriodMax {
 			out.PeriodStatus = StatusProlonged
 		}
 	}
@@ -183,11 +185,11 @@ func positiveOrNil(n int) any {
 }
 
 // FIGOJSON is the reference ranges block.
-func FIGOJSON(limit int, applies bool) *jsonx.OrderedMap {
+func FIGOJSON(f FIGO, limit int, applies bool) *jsonx.OrderedMap {
 	return jsonx.Obj(
 		"applies", applies,
-		"cycle", jsonx.Obj("min", FIGOCycleMin, "max", FIGOCycleMax),
-		"period", jsonx.Obj("max", FIGOPeriodMax),
+		"cycle", jsonx.Obj("min", f.CycleMin, "max", f.CycleMax),
+		"period", jsonx.Obj("max", f.PeriodMax),
 		"variation", jsonx.Obj("max", limit),
 	)
 }
@@ -230,7 +232,7 @@ func (r CycleReport) JSON() *jsonx.OrderedMap {
 	return jsonx.Obj(
 		"ready", r.Ready(),
 		"based_on_cycles", r.BasedOn,
-		"figo", FIGOJSON(r.VariationLimit, r.Applies),
+		"figo", FIGOJSON(r.FIGO, r.VariationLimit, r.Applies),
 		"cycle_length", jsonx.Obj("median", ptrOrNil(r.MedianCycle), "status", statusOrNil(r.CycleStatus)),
 		"period_length", jsonx.Obj("median", ptrOrNil(r.MedianPeriod), "status", statusOrNil(r.PeriodStatus)),
 		"variation", jsonx.Obj(

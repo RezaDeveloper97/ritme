@@ -3,7 +3,7 @@ id: B-N9-11
 title: Versioned clinical thresholds & config with two approvals
 milestone: N9
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N9-02]
 parallel_group: N9-K
 touches: [backend-go/internal/config,backend-go/internal/vitals,backend-go/internal/postpartum,backend-go/internal/cycle,backend-go/db,backend-go/api,admin-web/src]

@@ -631,7 +631,7 @@ func (r TTCReport) regularityCard() Section {
 		}
 		bars = append(bars, jsonx.Obj("index", c.Index, "start", c.Start.String(), "length", length, "current", c.Current))
 	}
-	limit := FIGOVariationLimit(r.in.Age())
+	limit := FIGOOn(r.in.Today).VariationLimit(r.in.Age())
 	status := RegularityNotEnoughData
 	var variation any
 	if len(lens) >= MinTrendPoints {

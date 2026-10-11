@@ -30,9 +30,9 @@ const (
 // AlertRule is the rule a reading trips ("" = none).
 func AlertRule(r Reading) string {
 	switch {
-	case r.Type == TypeBP && UrgentBP(r.Systolic, r.Diastolic):
+	case r.Type == TypeBP && r.Urgent():
 		return RuleBPCrisis
-	case r.Type == TypeGlucose && UrgentGlucose(r.MgDl):
+	case r.Type == TypeGlucose && r.Urgent():
 		return RuleGlucoseLow
 	}
 	return ""

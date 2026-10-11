@@ -3,6 +3,7 @@ package view
 import (
 	"slices"
 
+	"github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/cycle/metrics"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -10,11 +11,9 @@ import (
 
 // ── CyclePredictionService / CyclePrediction ──────────────────────────────────────────────
 
-const (
-	predictionLutealLength     = 14
-	fertileDaysBeforeOvulation = 5
-	fertileDaysAfterOvulation  = 1
-)
+// predictionLutealLength: ovulation = next start − 14. The fertile window (O−5 .. O+1) is versioned clinical config
+// since B-N9-11 (engine.fertile_window, D-88), read for the reference date.
+const predictionLutealLength = 14
 
 // Prediction is CyclePrediction.php: the Start-anchored calendar prediction for the cycle
 // containing a reference date (§2, §10, §13).
@@ -49,8 +48,8 @@ func Predict(anchorStart civildate.Date, cycleLength, periodDuration int, refere
 		NextPeriodStart:        next,
 		NextPeriodEnd:          next.AddDays(periodDuration - 1),
 		EstimatedOvulationDate: ovulation,
-		FertileWindowStart:     ovulation.AddDays(-fertileDaysBeforeOvulation),
-		FertileWindowEnd:       ovulation.AddDays(fertileDaysAfterOvulation),
+		FertileWindowStart:     ovulation.AddDays(-clinicalconfig.Int(clinicalconfig.KeyFertileWindow, "before", reference)),
+		FertileWindowEnd:       ovulation.AddDays(clinicalconfig.Int(clinicalconfig.KeyFertileWindow, "after", reference)),
 		Source:                 source,
 	}
 }

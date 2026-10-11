@@ -44,9 +44,12 @@ func bpSummary(rs []vitals.Reading) any {
 		return nil
 	}
 	var sys, dia []float64
-	lo, hi := rs[0], rs[0]
+	lo, hi, last := rs[0], rs[0], rs[0].Date // classified with the thresholds of the latest reading's day (B-N9-11)
 	for _, r := range rs {
 		sys, dia = append(sys, r.Systolic), append(dia, r.Diastolic)
+		if r.Date.After(last) {
+			last = r.Date
+		}
 		if r.Systolic < lo.Systolic || (r.Systolic == lo.Systolic && r.Diastolic < lo.Diastolic) {
 			lo = r
 		}
@@ -55,7 +58,7 @@ func bpSummary(rs []vitals.Reading) any {
 		}
 	}
 	s, d := whole(mean(sys)), whole(mean(dia))
-	class := vitals.ClassifyBP(float64(s), float64(d))
+	class := vitals.ThresholdsOn(last).ClassifyBP(float64(s), float64(d))
 	return jsonx.Obj(
 		"systolic", s, "diastolic", d,
 		"min", jsonx.Obj("systolic", int(lo.Systolic), "diastolic", int(lo.Diastolic)),

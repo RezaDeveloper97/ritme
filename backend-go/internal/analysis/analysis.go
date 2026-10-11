@@ -14,6 +14,11 @@
 // from internal/cycle/insights (B-N1-08); the day logs from internal/healthlog (B-N3-01).
 package analysis
 
+import (
+	"github.com/ritme/backend-go/internal/clinicalconfig"
+	"github.com/ritme/backend-go/internal/platform/civildate"
+)
+
 // FIGO 2018 normal-uterine-bleeding reference ranges for non-pregnant adults of reproductive age
 // (Munro MG, Critchley HOD, Fraser IS; FIGO Menstrual Disorders Committee. «The two FIGO systems for
 // normal and abnormal uterine bleeding symptoms and classification of causes of abnormal uterine
@@ -61,18 +66,40 @@ var Phases = []string{PhasePeriod, PhaseFollicular, PhaseFertile, PhaseLuteal}
 // fertileDaysBeforeOvulation: the fertile window is the ovulation day and the 5 days before it.
 const fertileDaysBeforeOvulation = 5
 
-// FIGOVariationLimit is the normal shortest-to-longest variation for an age (unknown age → adult).
-func FIGOVariationLimit(age int) int {
+// FIGO are the reference ranges valid on one day: versioned clinical config since B-N9-11 (D-88:
+// cycle.figo.frequency / duration / regularity); the constants above are version 1, the store's fallback.
+type FIGO struct {
+	CycleMin, CycleMax, PeriodMax                 int
+	VariationYoung, VariationAdult, VariationLate int
+}
+
+// FIGOOn reads the ranges valid on d (a zero d = version 1).
+func FIGOOn(d civildate.Date) FIGO {
+	n := func(key, field string) int { return clinicalconfig.Int(key, field, d) }
+	return FIGO{
+		CycleMin: n(clinicalconfig.KeyFIGOFrequency, "min"), CycleMax: n(clinicalconfig.KeyFIGOFrequency, "max"),
+		PeriodMax:      n(clinicalconfig.KeyFIGODuration, "max"),
+		VariationYoung: n(clinicalconfig.KeyFIGORegularity, "young"),
+		VariationAdult: n(clinicalconfig.KeyFIGORegularity, "adult"),
+		VariationLate:  n(clinicalconfig.KeyFIGORegularity, "late"),
+	}
+}
+
+// VariationLimit is the normal shortest-to-longest variation for an age (unknown age → adult).
+func (f FIGO) VariationLimit(age int) int {
 	switch {
 	case age <= 0:
-		return FIGOVariationAdult
+		return f.VariationAdult
 	case age <= 25:
-		return FIGOVariationYoung
+		return f.VariationYoung
 	case age <= 41:
-		return FIGOVariationAdult
+		return f.VariationAdult
 	}
-	return FIGOVariationLate
+	return f.VariationLate
 }
+
+// FIGOVariationLimit is FIGO.VariationLimit of version 1.
+func FIGOVariationLimit(age int) int { return FIGOOn(civildate.Date{}).VariationLimit(age) }
 
 // FIGOApplies reports whether the adult ranges describe this age (unknown age → yes).
 func FIGOApplies(age int) bool { return age <= 0 || (age >= FIGOAgeMin && age <= FIGOAgeMax) }

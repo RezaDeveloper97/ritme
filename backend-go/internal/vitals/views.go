@@ -1,6 +1,7 @@
 package vitals
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -89,45 +90,52 @@ func ReadingsJSON(rs []Reading) []any {
 	return out
 }
 
-// ThresholdsJSON is GET /vitals/thresholds: the bands the server classifies with, with sources.
-func ThresholdsJSON() *jsonx.OrderedMap {
+// ThresholdsJSON is GET /vitals/thresholds: the bands the server classifies with today, with sources.
+func ThresholdsJSON(t Thresholds) *jsonx.OrderedMap {
 	contexts := jsonx.Obj()
 	for _, c := range GlucoseContexts {
-		b := GlucoseBands[c]
+		b := t.GlucoseBands[c]
 		contexts.Set(c, jsonx.Obj("target_min", b.TargetMin, "target_max", b.TargetMax, "very_high_from", b.VeryHighFrom))
 	}
+	g := func(v float64) string { return strconv.FormatFloat(v, 'f', -1, 64) }
 	return jsonx.Obj(
-		"version", ThresholdsVersion,
+		"version", t.Version(),
 		"intervals", "min_inclusive_max_exclusive",
 		"blood_pressure", jsonx.Obj(
 			"unit", "mmhg",
 			"source", SourceBP,
 			"classes", []any{
-				jsonx.Obj("code", ClassNormal, "tone", ToneOK, "rule", "systolic < 120 and diastolic < 80"),
-				jsonx.Obj("code", ClassElevated, "tone", ToneWatch, "rule", "systolic 120–129 and diastolic < 80"),
-				jsonx.Obj("code", ClassStage1, "tone", ToneHigh, "rule", "systolic 130–139 or diastolic 80–89"),
-				jsonx.Obj("code", ClassStage2, "tone", ToneHigh, "rule", "systolic ≥ 140 or diastolic ≥ 90"),
-				jsonx.Obj("code", ClassCrisis, "tone", ToneUrgent, "rule", "systolic > 180 and/or diastolic > 120"),
+				jsonx.Obj("code", ClassNormal, "tone", ToneOK, "rule",
+					"systolic < "+g(t.BPElevatedSystolic)+" and diastolic < "+g(t.BPStage1Diastolic)),
+				jsonx.Obj("code", ClassElevated, "tone", ToneWatch, "rule",
+					"systolic "+g(t.BPElevatedSystolic)+"–"+g(t.BPStage1Systolic-1)+" and diastolic < "+g(t.BPStage1Diastolic)),
+				jsonx.Obj("code", ClassStage1, "tone", ToneHigh, "rule",
+					"systolic "+g(t.BPStage1Systolic)+"–"+g(t.BPStage2Systolic-1)+" or diastolic "+g(t.BPStage1Diastolic)+
+						"–"+g(t.BPStage2Diastolic-1)),
+				jsonx.Obj("code", ClassStage2, "tone", ToneHigh, "rule",
+					"systolic ≥ "+g(t.BPStage2Systolic)+" or diastolic ≥ "+g(t.BPStage2Diastolic)),
+				jsonx.Obj("code", ClassCrisis, "tone", ToneUrgent, "rule",
+					"systolic > "+g(t.BPCrisisSystolic)+" and/or diastolic > "+g(t.BPCrisisDiastolic)),
 			},
-			"elevated_systolic", BPElevatedSystolic,
-			"stage1", jsonx.Obj("systolic", BPStage1Systolic, "diastolic", BPStage1Diastolic),
-			"stage2", jsonx.Obj("systolic", BPStage2Systolic, "diastolic", BPStage2Diastolic),
-			"urgent_above", jsonx.Obj("systolic", BPCrisisSystolic, "diastolic", BPCrisisDiastolic),
+			"elevated_systolic", t.BPElevatedSystolic,
+			"stage1", jsonx.Obj("systolic", t.BPStage1Systolic, "diastolic", t.BPStage1Diastolic),
+			"stage2", jsonx.Obj("systolic", t.BPStage2Systolic, "diastolic", t.BPStage2Diastolic),
+			"urgent_above", jsonx.Obj("systolic", t.BPCrisisSystolic, "diastolic", t.BPCrisisDiastolic),
 		),
 		"glucose", jsonx.Obj(
 			"unit", UnitMgDl,
 			"mmol_factor", MmolFactor,
 			"source", SourceGlucose,
 			"classes", GlucoseClasses,
-			"low_below", GlucoseLowBelow,
-			"urgent_below", GlucoseUrgentBelow,
+			"low_below", t.GlucoseLowBelow,
+			"urgent_below", t.GlucoseUrgentBelow,
 			"contexts", contexts,
 		),
 		"heart_rate", jsonx.Obj(
 			"unit", "bpm",
 			"source", SourceHR,
 			"classes", HRClasses,
-			"resting", jsonx.Obj("min", HRRestingMin, "max", HRRestingMax, "max_inclusive", true),
+			"resting", jsonx.Obj("min", t.HRRestingMin, "max", t.HRRestingMax, "max_inclusive", true),
 			"classified_contexts", []string{HRResting, HRAfterWaking},
 		),
 	)
