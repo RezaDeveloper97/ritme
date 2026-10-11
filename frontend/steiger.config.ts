@@ -429,6 +429,12 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // CB-DIR-07: `widgets/directory-filters` (filter sheet + result card) is consumed by screens/city-services (list and
+    // map) — references FROM `screens` are invisible to steiger.
+    files: ['./src/widgets/directory-filters/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // B-N10-03: `entities/shop` is consumed by screens/shop only — references FROM `screens` are invisible to steiger.
     files: ['./src/entities/shop/**'],
     rules: { 'fsd/insignificant-slice': 'off' },

@@ -58,19 +58,23 @@ const apiOrigin = originOf(process.env.NEXT_PUBLIC_API_BASE_URL);
 //  - worker-src/manifest-src keep the service worker and manifest allowed.
 // Anything new (a third-party script, font or API host) must be added here
 // narrowly, or the browser will refuse it.
+// CB-DIR-07 (docs/canvas-build/map.md): the Neshan map needs its SDK, tiles and a blob: worker. Only allowed when a
+// key is configured, so builds without one keep the stricter policy.
+const neshan = Boolean(process.env.NEXT_PUBLIC_NESHAN_KEY);
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isProd ? '' : " 'unsafe-eval'"}`,
-  "style-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${isProd ? '' : " 'unsafe-eval'"}${neshan ? ' https://static.neshan.org' : ''}`,
+  `style-src 'self' 'unsafe-inline'${neshan ? ' https://static.neshan.org' : ''}`,
   "font-src 'self' data:",
   // Admin-uploaded banners/articles come from the API's /storage.
   "img-src 'self' data: blob: https:",
-  `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ''}${isProd ? '' : ' ws: wss:'}`,
+  `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ''}${isProd ? '' : ' ws: wss:'}${neshan ? ' https://*.neshan.org' : ''}`,
   // B-N8-04: lessons play from the API's signed stream URL or, offline, from a
   // blob: URL of the decrypted local copy (video/audio, PDF in an iframe).
   `media-src 'self' blob:${apiOrigin ? ` ${apiOrigin}` : ''}`,
   `frame-src 'self' blob:${apiOrigin ? ` ${apiOrigin}` : ''}`,
-  "worker-src 'self'",
+  `worker-src 'self'${neshan ? ' blob:' : ''}`,
+  ...(neshan ? ["child-src 'self' blob:"] : []),
   "manifest-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",

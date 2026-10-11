@@ -41,6 +41,9 @@ export const optionsSchema = z.object({
   max_advance_days: z.number().catch(365),
   // CB-DIR-02: the directory's place age ranges (catalog options) — used to label «مناسب …» on the cards.
   place_age_ranges: z.array(catalogOptionSchema).catch([]),
+  // CB-DIR-07: the filter sheet's amenity catalog and the sort modes the API offers.
+  amenities: z.array(catalogOptionSchema).catch([]),
+  sorts: z.array(z.string()).catch([]),
 });
 
 const categoryRef = z.object({ slug: z.string(), name: z.string(), icon });

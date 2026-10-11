@@ -2221,7 +2221,18 @@
      "request": "Request a booking in Ritme",
      "phone": "Book by phone",
      "online": "Book in Ritme (pick a time)"
-    }
+    },
+    "titleIn": "Mother & child in {city}",
+    "results": "{count} results",
+    "sortedBy": {
+     "rank": "sorted by relevance",
+     "distance": "sorted by distance",
+     "rating": "sorted by rating"
+    },
+    "nearMe": "Near me",
+    "ageChip": "Age: {months} months",
+    "locationDenied": "Your location isn't available. Allow it in the browser, or pick a city instead.",
+    "mapFab": "Map"
    },
    "detail": {
     "title": "Venue details",
@@ -2380,6 +2391,37 @@
     "price": "Price",
     "continue": "Continue",
     "chooseTime": "Choose a time"
+   },
+   "filters": {
+    "title": "Filters",
+    "clear": "Clear filters",
+    "apply": "Show results",
+    "age": "Child's age",
+    "anyAge": "Any age",
+    "openNow": "Open now",
+    "amenities": "Amenities",
+    "sort": "Sort by",
+    "sorts": {
+     "rank": "Best match",
+     "distance": "Nearest",
+     "rating": "Top rated"
+    },
+    "distanceNote": "We will ask for your location once to sort by distance. It is not saved anywhere.",
+    "removeAge": "Remove the age filter"
+   },
+   "map": {
+    "title": "Map",
+    "unavailable": "The map is not available right now, so here is the list.",
+    "ariaLabel": "Map of mother and child places",
+    "searchArea": "Search this area",
+    "myLocation": "My location",
+    "listToggle": "List · {count} places",
+    "clearArea": "Whole city"
+   },
+   "card": {
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "priceFrom": "from {amount}k toman"
    }
   },
   "common": {

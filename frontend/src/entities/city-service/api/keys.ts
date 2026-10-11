@@ -6,6 +6,14 @@ export interface DirectoryParams {
   q?: string;
   ageMonths?: number | null;
   sort?: 'rank' | 'distance' | 'rating';
+  /** CB-DIR-07 filters. `lat`/`lng` come from a user-tapped «near me» and live in memory only. */
+  openNow?: boolean;
+  amenities?: string[];
+  lat?: number;
+  lng?: number;
+  radiusKm?: number;
+  /** `min_lng,min_lat,max_lng,max_lat` of the map's visible area. */
+  bbox?: string;
   perPage?: number;
   page?: number;
 }

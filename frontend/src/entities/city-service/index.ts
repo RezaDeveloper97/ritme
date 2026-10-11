@@ -31,3 +31,14 @@ export {
 export { useCityChoice } from './model/city-choice';
 export { useAgeSuggest } from './model/age-suggest';
 export { ageRangeLabel, nextBooking } from './model/home';
+// CB-DIR-07: list/map filters, the user-tapped «near me» position (memory only) and the next-slot label.
+export {
+  ageMonthsOf,
+  EMPTY_FILTERS,
+  filterCount,
+  slotWhen,
+  toDirectoryParams,
+  type DirectoryFilters,
+  type SlotWhen,
+} from './model/filters';
+export { useNearMe, type NearMe } from './model/near-me';
