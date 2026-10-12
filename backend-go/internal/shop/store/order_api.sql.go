@@ -173,8 +173,8 @@ func (q *Queries) CountUserOrdersWithDiscount(ctx context.Context, arg CountUser
 
 const createAddress = `-- name: CreateAddress :execlastid
 INSERT INTO ` + "`" + `shop_addresses` + "`" + ` (` + "`" + `user_id` + "`" + `, ` + "`" + `label` + "`" + `, ` + "`" + `recipient_name` + "`" + `, ` + "`" + `recipient_phone` + "`" + `, ` + "`" + `province` + "`" + `, ` + "`" + `city` + "`" + `,
-  ` + "`" + `address_line` + "`" + `, ` + "`" + `postal_code` + "`" + `, ` + "`" + `is_default` + "`" + `, ` + "`" + `created_at` + "`" + `, ` + "`" + `updated_at` + "`" + `)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ` + "`" + `address_line` + "`" + `, ` + "`" + `postal_code` + "`" + `, ` + "`" + `pii_enc` + "`" + `, ` + "`" + `is_default` + "`" + `, ` + "`" + `created_at` + "`" + `, ` + "`" + `updated_at` + "`" + `)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateAddressParams struct {
@@ -186,6 +186,7 @@ type CreateAddressParams struct {
 	City           string
 	AddressLine    string
 	PostalCode     sql.NullString
+	PiiEnc         sql.NullString
 	IsDefault      bool
 	CreatedAt      sql.NullTime
 	UpdatedAt      sql.NullTime
@@ -201,6 +202,7 @@ func (q *Queries) CreateAddress(ctx context.Context, arg CreateAddressParams) (i
 		arg.City,
 		arg.AddressLine,
 		arg.PostalCode,
+		arg.PiiEnc,
 		arg.IsDefault,
 		arg.CreatedAt,
 		arg.UpdatedAt,
@@ -213,9 +215,9 @@ func (q *Queries) CreateAddress(ctx context.Context, arg CreateAddressParams) (i
 
 const createOrder = `-- name: CreateOrder :execlastid
 INSERT INTO ` + "`" + `shop_orders` + "`" + ` (` + "`" + `code` + "`" + `, ` + "`" + `user_id` + "`" + `, ` + "`" + `address_id` + "`" + `, ` + "`" + `recipient_name` + "`" + `, ` + "`" + `recipient_phone` + "`" + `, ` + "`" + `city` + "`" + `, ` + "`" + `address_text` + "`" + `,
-  ` + "`" + `postal_code` + "`" + `, ` + "`" + `payment_method` + "`" + `, ` + "`" + `payment_status` + "`" + `, ` + "`" + `status` + "`" + `, ` + "`" + `discreet` + "`" + `, ` + "`" + `items_total` + "`" + `, ` + "`" + `shipping_total` + "`" + `,
+  ` + "`" + `postal_code` + "`" + `, ` + "`" + `pii_enc` + "`" + `, ` + "`" + `payment_method` + "`" + `, ` + "`" + `payment_status` + "`" + `, ` + "`" + `status` + "`" + `, ` + "`" + `discreet` + "`" + `, ` + "`" + `items_total` + "`" + `, ` + "`" + `shipping_total` + "`" + `,
   ` + "`" + `discount_total` + "`" + `, ` + "`" + `payable_total` + "`" + `, ` + "`" + `placed_at` + "`" + `, ` + "`" + `discount_code_id` + "`" + `, ` + "`" + `idempotency_key` + "`" + `, ` + "`" + `created_at` + "`" + `, ` + "`" + `updated_at` + "`" + `)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'cod', 'unpaid', 'placed', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'cod', 'unpaid', 'placed', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateOrderParams struct {
@@ -227,6 +229,7 @@ type CreateOrderParams struct {
 	City           string
 	AddressText    string
 	PostalCode     sql.NullString
+	PiiEnc         sql.NullString
 	Discreet       bool
 	ItemsTotal     uint64
 	ShippingTotal  uint64
@@ -249,6 +252,7 @@ func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (int64
 		arg.City,
 		arg.AddressText,
 		arg.PostalCode,
+		arg.PiiEnc,
 		arg.Discreet,
 		arg.ItemsTotal,
 		arg.ShippingTotal,
@@ -541,7 +545,7 @@ func (q *Queries) GetDiscountCodeByCode(ctx context.Context, code string) (ShopD
 }
 
 const getOrderByIdempotencyKey = `-- name: GetOrderByIdempotencyKey :one
-SELECT id, code, user_id, address_id, recipient_name, recipient_phone, city, address_text, postal_code, payment_method, payment_status, status, discreet, items_total, shipping_total, discount_total, payable_total, placed_at, cancelled_at, created_at, updated_at, discount_code_id, idempotency_key FROM ` + "`" + `shop_orders` + "`" + ` WHERE user_id = ? AND idempotency_key = ? LIMIT 1
+SELECT id, code, user_id, address_id, recipient_name, recipient_phone, city, address_text, postal_code, payment_method, payment_status, status, discreet, items_total, shipping_total, discount_total, payable_total, placed_at, cancelled_at, created_at, updated_at, discount_code_id, idempotency_key, pii_enc FROM ` + "`" + `shop_orders` + "`" + ` WHERE user_id = ? AND idempotency_key = ? LIMIT 1
 `
 
 type GetOrderByIdempotencyKeyParams struct {
@@ -576,6 +580,7 @@ func (q *Queries) GetOrderByIdempotencyKey(ctx context.Context, arg GetOrderById
 		&i.UpdatedAt,
 		&i.DiscountCodeID,
 		&i.IdempotencyKey,
+		&i.PiiEnc,
 	)
 	return i, err
 }
@@ -1242,7 +1247,7 @@ func (q *Queries) LockCartByUser(ctx context.Context, userID uint64) (ShopCart, 
 }
 
 const lockOrder = `-- name: LockOrder :one
-SELECT id, code, user_id, address_id, recipient_name, recipient_phone, city, address_text, postal_code, payment_method, payment_status, status, discreet, items_total, shipping_total, discount_total, payable_total, placed_at, cancelled_at, created_at, updated_at, discount_code_id, idempotency_key FROM ` + "`" + `shop_orders` + "`" + ` WHERE id = ? LIMIT 1 FOR UPDATE
+SELECT id, code, user_id, address_id, recipient_name, recipient_phone, city, address_text, postal_code, payment_method, payment_status, status, discreet, items_total, shipping_total, discount_total, payable_total, placed_at, cancelled_at, created_at, updated_at, discount_code_id, idempotency_key, pii_enc FROM ` + "`" + `shop_orders` + "`" + ` WHERE id = ? LIMIT 1 FOR UPDATE
 `
 
 func (q *Queries) LockOrder(ctx context.Context, id uint64) (ShopOrder, error) {
@@ -1272,12 +1277,13 @@ func (q *Queries) LockOrder(ctx context.Context, id uint64) (ShopOrder, error) {
 		&i.UpdatedAt,
 		&i.DiscountCodeID,
 		&i.IdempotencyKey,
+		&i.PiiEnc,
 	)
 	return i, err
 }
 
 const lockOrderForUser = `-- name: LockOrderForUser :one
-SELECT id, code, user_id, address_id, recipient_name, recipient_phone, city, address_text, postal_code, payment_method, payment_status, status, discreet, items_total, shipping_total, discount_total, payable_total, placed_at, cancelled_at, created_at, updated_at, discount_code_id, idempotency_key FROM ` + "`" + `shop_orders` + "`" + ` WHERE id = ? AND user_id = ? LIMIT 1 FOR UPDATE
+SELECT id, code, user_id, address_id, recipient_name, recipient_phone, city, address_text, postal_code, payment_method, payment_status, status, discreet, items_total, shipping_total, discount_total, payable_total, placed_at, cancelled_at, created_at, updated_at, discount_code_id, idempotency_key, pii_enc FROM ` + "`" + `shop_orders` + "`" + ` WHERE id = ? AND user_id = ? LIMIT 1 FOR UPDATE
 `
 
 type LockOrderForUserParams struct {
@@ -1312,6 +1318,7 @@ func (q *Queries) LockOrderForUser(ctx context.Context, arg LockOrderForUserPara
 		&i.UpdatedAt,
 		&i.DiscountCodeID,
 		&i.IdempotencyKey,
+		&i.PiiEnc,
 	)
 	return i, err
 }
@@ -1560,7 +1567,7 @@ func (q *Queries) SumOpenReturnQuantity(ctx context.Context, orderItemID uint64)
 
 const updateAddressForUser = `-- name: UpdateAddressForUser :execrows
 UPDATE ` + "`" + `shop_addresses` + "`" + ` SET label = ?, recipient_name = ?, recipient_phone = ?, province = ?, city = ?,
-  address_line = ?, postal_code = ?, is_default = ?, updated_at = ?
+  address_line = ?, postal_code = ?, pii_enc = ?, is_default = ?, updated_at = ?
 WHERE id = ? AND user_id = ?
 `
 
@@ -1572,6 +1579,7 @@ type UpdateAddressForUserParams struct {
 	City           string
 	AddressLine    string
 	PostalCode     sql.NullString
+	PiiEnc         sql.NullString
 	IsDefault      bool
 	UpdatedAt      sql.NullTime
 	ID             uint64
@@ -1587,6 +1595,7 @@ func (q *Queries) UpdateAddressForUser(ctx context.Context, arg UpdateAddressFor
 		arg.City,
 		arg.AddressLine,
 		arg.PostalCode,
+		arg.PiiEnc,
 		arg.IsDefault,
 		arg.UpdatedAt,
 		arg.ID,

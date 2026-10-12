@@ -8,6 +8,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/loss"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
 	"github.com/ritme/backend-go/internal/shop"
@@ -54,7 +55,7 @@ func init() {
 		r.Get("/api/v1/shop/catalog/products/:id/reviews", locale, optional, ch.Reviews)
 		// CB-SHOP-03 (additive): server cart, discount code, addresses, COD checkout (idempotent, stock / slot guarded),
 		// orders, cancel, returns. Owner-scoped (404 for anyone else's rows); teen-mode → 403 teen_commercial_blocked.
-		oh := order.NewHandlers(order.NewService(d.DB), teen.NewPolicy(d.DB), order.NewFakeNotifier(d.Logger),
+		oh := order.NewHandlers(order.NewService(d.DB).WithSealer(shopPIIBox(d)), teen.NewPolicy(d.DB), order.NewFakeNotifier(d.Logger),
 			d.Config.App.URL, clock.Real{}, d.Logger)
 		r.Get("/api/v1/shop/cart", locale, guard, oh.Cart)
 		r.Post("/api/v1/shop/cart/items", locale, guard, writes, oh.AddItem)
@@ -80,4 +81,19 @@ func init() {
 		r.Get("/api/v1/shop/products/:id", locale, guard, h.Product)
 		r.Post("/api/v1/shop/products/:id/click", locale, guard, throttle, h.Click)
 	})
+}
+
+// shopPIIBox is the buyer PII box of the shop (user decision 2026-10-12, migration 00091): saved addresses and the
+// order recipient snapshot are sealed with the PRIVATE_NOTE_KEY AES-256-GCM box (the B-N10-04 partner lab request
+// pattern). No key outside local / testing → disabled: the address, checkout and order-detail paths answer 503.
+func shopPIIBox(d *Deps) *loss.NoteBox {
+	disabled := d.Config.PrivateNotes.Missing(d.Config.App)
+	if disabled {
+		d.Logger.Error("PRIVATE_NOTE_KEY is not set (only local/testing may use the development key): shop addresses and orders are disabled (503)")
+	}
+	box, err := loss.NewNoteBox(d.Config.PrivateNotes.Key, d.Config.PrivateNotes.PreviousKeys, disabled)
+	if err != nil {
+		panic(err) // config.Load already checked the key length
+	}
+	return box
 }

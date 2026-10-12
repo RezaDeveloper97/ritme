@@ -117,7 +117,7 @@ DELETE FROM `shop_delivery_slots` WHERE id = ? AND booked = 0;
 -- name: AdminListShipments :many
 SELECT s.id, s.order_id, s.seller_id, s.slot_date, s.slot_starts_at, s.slot_ends_at, s.status, s.items_total,
   s.shipping_fee, s.tracking_code, s.delivered_at, s.created_at,
-  o.code AS order_code, o.recipient_name, o.city, o.payable_total, o.discreet, o.status AS order_status,
+  o.code AS order_code, o.user_id AS order_user_id, o.recipient_name, o.pii_enc, o.city, o.payable_total, o.discreet, o.status AS order_status,
   se.name AS seller_name
 FROM `shop_order_shipments` s
 JOIN `shop_orders` o ON o.id = s.order_id

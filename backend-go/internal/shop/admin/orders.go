@@ -68,13 +68,17 @@ func (a *Admin) ListShipments(c fiber.Ctx) error {
 	}
 	items := make([]*jsonx.OrderedMap, 0, len(rows))
 	for _, r := range rows {
+		name, err := a.orders.OpenRecipientName(r.OrderUserID, r.PiiEnc, r.RecipientName)
+		if err != nil {
+			return piiUnavailable()
+		}
 		items = append(items, jsonx.Obj("id", r.ID, "order_id", r.OrderID, "order_code", r.OrderCode,
 			"order_status", r.OrderStatus, "seller", jsonx.Obj("id", r.SellerID, "name", trans(r.SellerName)),
 			"status", r.Status, "allowed_statuses", NextShipmentStatuses(r.Status),
 			"slot", slotOf(r.SlotDate.Date, r.SlotDate.Valid, r.SlotStartsAt, r.SlotEndsAt),
 			"items_total", r.ItemsTotal, "shipping_fee", r.ShippingFee, "payable_total", r.PayableTotal,
 			"discreet", r.Discreet, "tracking_code", httpadmin.NullString(r.TrackingCode),
-			"recipient_name", r.RecipientName, "city", r.City,
+			"recipient_name", name, "city", r.City,
 			"delivered_at", httpadmin.Time(r.DeliveredAt), "created_at", httpadmin.Time(r.CreatedAt)))
 	}
 	return httpadmin.OK(c, httpadmin.Page(items, p, int(total)))
@@ -148,6 +152,9 @@ func (a *Admin) orderOut(c fiber.Ctx, id uint64, msg ...string) error {
 	o, err := a.q.AdminGetOrder(c, id)
 	if err != nil {
 		return notFound(err, "Order")
+	}
+	if o, err = a.orders.OpenOrder(o); err != nil {
+		return piiUnavailable()
 	}
 	ships, err := a.q.ListShipmentsByOrder(c, o.ID)
 	if err != nil {

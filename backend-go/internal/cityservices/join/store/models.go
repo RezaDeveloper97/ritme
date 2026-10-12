@@ -2330,6 +2330,7 @@ type ShopAddress struct {
 	IsDefault      bool
 	CreatedAt      sql.NullTime
 	UpdatedAt      sql.NullTime
+	PiiEnc         sql.NullString
 }
 
 type ShopCart struct {
@@ -2436,6 +2437,7 @@ type ShopOrder struct {
 	UpdatedAt      sql.NullTime
 	DiscountCodeID sql.NullInt64
 	IdempotencyKey sql.NullString
+	PiiEnc         sql.NullString
 }
 
 type ShopOrderEvent struct {

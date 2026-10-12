@@ -19,7 +19,7 @@ func init() {
 			}, kit)
 		// CB-SHOP-05 (additive): the internal shop's sellers, commerce fields, variants/stock, slots, shipment queue,
 		// returns, reviews, discount codes and layette template — same /shop section, routes registered after bloom's.
-		shopadmin.New(d.DB, media.NewDisk(d.Config.StoragePath), d.Config.App.URL, d.Logger).Routes(
+		shopadmin.New(d.DB, media.NewDisk(d.Config.StoragePath), d.Config.App.URL, d.Logger).WithSealer(shopPIIBox(d)).Routes(
 			func(method, path string, chain httpadmin.Chain) {
 				httpadmin.Handle(r, method, httpadmin.Prefix+path, chain)
 			}, kit)

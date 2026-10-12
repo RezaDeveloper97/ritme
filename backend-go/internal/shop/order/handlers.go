@@ -466,7 +466,7 @@ func (h *Handlers) Addresses(c fiber.Ctx) error {
 	}
 	list, err := h.svc.Addresses(c, uid)
 	if err != nil {
-		return fmt.Errorf("order: addresses: %w", err)
+		return render(c, err)
 	}
 	out := make([]*jsonx.OrderedMap, 0, len(list))
 	for _, a := range list {
@@ -542,7 +542,7 @@ func (h *Handlers) Checkout(c fiber.Ctx) error {
 	}
 	co, err := h.svc.Checkout(c, uid, h.now(c))
 	if err != nil {
-		return err
+		return render(c, err)
 	}
 	l := h.locale(c)
 	addrs := make([]*jsonx.OrderedMap, 0, len(co.Addresses))

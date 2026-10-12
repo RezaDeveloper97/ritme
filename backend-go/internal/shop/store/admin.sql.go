@@ -447,7 +447,7 @@ func (q *Queries) AdminGetLayetteItem(ctx context.Context, id uint64) (ShopLayet
 }
 
 const adminGetOrder = `-- name: AdminGetOrder :one
-SELECT id, code, user_id, address_id, recipient_name, recipient_phone, city, address_text, postal_code, payment_method, payment_status, status, discreet, items_total, shipping_total, discount_total, payable_total, placed_at, cancelled_at, created_at, updated_at, discount_code_id, idempotency_key FROM ` + "`" + `shop_orders` + "`" + ` WHERE id = ? LIMIT 1
+SELECT id, code, user_id, address_id, recipient_name, recipient_phone, city, address_text, postal_code, payment_method, payment_status, status, discreet, items_total, shipping_total, discount_total, payable_total, placed_at, cancelled_at, created_at, updated_at, discount_code_id, idempotency_key, pii_enc FROM ` + "`" + `shop_orders` + "`" + ` WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) AdminGetOrder(ctx context.Context, id uint64) (ShopOrder, error) {
@@ -477,6 +477,7 @@ func (q *Queries) AdminGetOrder(ctx context.Context, id uint64) (ShopOrder, erro
 		&i.UpdatedAt,
 		&i.DiscountCodeID,
 		&i.IdempotencyKey,
+		&i.PiiEnc,
 	)
 	return i, err
 }
@@ -1029,7 +1030,7 @@ const adminListShipments = `-- name: AdminListShipments :many
 
 SELECT s.id, s.order_id, s.seller_id, s.slot_date, s.slot_starts_at, s.slot_ends_at, s.status, s.items_total,
   s.shipping_fee, s.tracking_code, s.delivered_at, s.created_at,
-  o.code AS order_code, o.recipient_name, o.city, o.payable_total, o.discreet, o.status AS order_status,
+  o.code AS order_code, o.user_id AS order_user_id, o.recipient_name, o.pii_enc, o.city, o.payable_total, o.discreet, o.status AS order_status,
   se.name AS seller_name
 FROM ` + "`" + `shop_order_shipments` + "`" + ` s
 JOIN ` + "`" + `shop_orders` + "`" + ` o ON o.id = s.order_id
@@ -1063,7 +1064,9 @@ type AdminListShipmentsRow struct {
 	DeliveredAt   sql.NullTime
 	CreatedAt     sql.NullTime
 	OrderCode     string
+	OrderUserID   uint64
 	RecipientName string
+	PiiEnc        sql.NullString
 	City          string
 	PayableTotal  uint64
 	Discreet      bool
@@ -1104,7 +1107,9 @@ func (q *Queries) AdminListShipments(ctx context.Context, arg AdminListShipments
 			&i.DeliveredAt,
 			&i.CreatedAt,
 			&i.OrderCode,
+			&i.OrderUserID,
 			&i.RecipientName,
+			&i.PiiEnc,
 			&i.City,
 			&i.PayableTotal,
 			&i.Discreet,

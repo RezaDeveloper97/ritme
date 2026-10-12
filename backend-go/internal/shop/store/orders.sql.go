@@ -98,7 +98,7 @@ func (q *Queries) DeleteCartItem(ctx context.Context, arg DeleteCartItemParams) 
 }
 
 const getAddressForUser = `-- name: GetAddressForUser :one
-SELECT id, user_id, label, recipient_name, recipient_phone, province, city, address_line, postal_code, is_default, created_at, updated_at FROM ` + "`" + `shop_addresses` + "`" + ` WHERE id = ? AND user_id = ? LIMIT 1
+SELECT id, user_id, label, recipient_name, recipient_phone, province, city, address_line, postal_code, is_default, created_at, updated_at, pii_enc FROM ` + "`" + `shop_addresses` + "`" + ` WHERE id = ? AND user_id = ? LIMIT 1
 `
 
 type GetAddressForUserParams struct {
@@ -122,6 +122,7 @@ func (q *Queries) GetAddressForUser(ctx context.Context, arg GetAddressForUserPa
 		&i.IsDefault,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PiiEnc,
 	)
 	return i, err
 }
@@ -147,7 +148,7 @@ func (q *Queries) GetCartByUser(ctx context.Context, userID uint64) (ShopCart, e
 }
 
 const getOrderByCodeForUser = `-- name: GetOrderByCodeForUser :one
-SELECT id, code, user_id, address_id, recipient_name, recipient_phone, city, address_text, postal_code, payment_method, payment_status, status, discreet, items_total, shipping_total, discount_total, payable_total, placed_at, cancelled_at, created_at, updated_at, discount_code_id, idempotency_key FROM ` + "`" + `shop_orders` + "`" + ` WHERE code = ? AND user_id = ? LIMIT 1
+SELECT id, code, user_id, address_id, recipient_name, recipient_phone, city, address_text, postal_code, payment_method, payment_status, status, discreet, items_total, shipping_total, discount_total, payable_total, placed_at, cancelled_at, created_at, updated_at, discount_code_id, idempotency_key, pii_enc FROM ` + "`" + `shop_orders` + "`" + ` WHERE code = ? AND user_id = ? LIMIT 1
 `
 
 type GetOrderByCodeForUserParams struct {
@@ -182,12 +183,13 @@ func (q *Queries) GetOrderByCodeForUser(ctx context.Context, arg GetOrderByCodeF
 		&i.UpdatedAt,
 		&i.DiscountCodeID,
 		&i.IdempotencyKey,
+		&i.PiiEnc,
 	)
 	return i, err
 }
 
 const getOrderForUser = `-- name: GetOrderForUser :one
-SELECT id, code, user_id, address_id, recipient_name, recipient_phone, city, address_text, postal_code, payment_method, payment_status, status, discreet, items_total, shipping_total, discount_total, payable_total, placed_at, cancelled_at, created_at, updated_at, discount_code_id, idempotency_key FROM ` + "`" + `shop_orders` + "`" + ` WHERE id = ? AND user_id = ? LIMIT 1
+SELECT id, code, user_id, address_id, recipient_name, recipient_phone, city, address_text, postal_code, payment_method, payment_status, status, discreet, items_total, shipping_total, discount_total, payable_total, placed_at, cancelled_at, created_at, updated_at, discount_code_id, idempotency_key, pii_enc FROM ` + "`" + `shop_orders` + "`" + ` WHERE id = ? AND user_id = ? LIMIT 1
 `
 
 type GetOrderForUserParams struct {
@@ -222,12 +224,13 @@ func (q *Queries) GetOrderForUser(ctx context.Context, arg GetOrderForUserParams
 		&i.UpdatedAt,
 		&i.DiscountCodeID,
 		&i.IdempotencyKey,
+		&i.PiiEnc,
 	)
 	return i, err
 }
 
 const listAddressesByUser = `-- name: ListAddressesByUser :many
-SELECT id, user_id, label, recipient_name, recipient_phone, province, city, address_line, postal_code, is_default, created_at, updated_at FROM ` + "`" + `shop_addresses` + "`" + ` WHERE user_id = ? ORDER BY is_default DESC, id DESC
+SELECT id, user_id, label, recipient_name, recipient_phone, province, city, address_line, postal_code, is_default, created_at, updated_at, pii_enc FROM ` + "`" + `shop_addresses` + "`" + ` WHERE user_id = ? ORDER BY is_default DESC, id DESC
 `
 
 func (q *Queries) ListAddressesByUser(ctx context.Context, userID uint64) ([]ShopAddress, error) {
@@ -252,6 +255,7 @@ func (q *Queries) ListAddressesByUser(ctx context.Context, userID uint64) ([]Sho
 			&i.IsDefault,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.PiiEnc,
 		); err != nil {
 			return nil, err
 		}
@@ -421,7 +425,7 @@ func (q *Queries) ListOrderItemsByOrder(ctx context.Context, orderID uint64) ([]
 }
 
 const listOrdersByUser = `-- name: ListOrdersByUser :many
-SELECT id, code, user_id, address_id, recipient_name, recipient_phone, city, address_text, postal_code, payment_method, payment_status, status, discreet, items_total, shipping_total, discount_total, payable_total, placed_at, cancelled_at, created_at, updated_at, discount_code_id, idempotency_key FROM ` + "`" + `shop_orders` + "`" + ` WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT ?
+SELECT id, code, user_id, address_id, recipient_name, recipient_phone, city, address_text, postal_code, payment_method, payment_status, status, discreet, items_total, shipping_total, discount_total, payable_total, placed_at, cancelled_at, created_at, updated_at, discount_code_id, idempotency_key, pii_enc FROM ` + "`" + `shop_orders` + "`" + ` WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT ?
 `
 
 type ListOrdersByUserParams struct {
@@ -462,6 +466,7 @@ func (q *Queries) ListOrdersByUser(ctx context.Context, arg ListOrdersByUserPara
 			&i.UpdatedAt,
 			&i.DiscountCodeID,
 			&i.IdempotencyKey,
+			&i.PiiEnc,
 		); err != nil {
 			return nil, err
 		}

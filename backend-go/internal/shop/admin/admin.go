@@ -65,6 +65,18 @@ func New(sqlDB *sql.DB, disk *media.Disk, appURL string, logger *slog.Logger) *A
 		opt: media.DefaultOptimizer, appURL: appURL, logger: logger}
 }
 
+// WithSealer wires the buyer PII box (*loss.NoteBox, PRIVATE_NOTE_KEY) the order detail and the shipment queue open
+// the recipient snapshot with; without it those screens answer 503 storage_unavailable (fail closed).
+func (a *Admin) WithSealer(b order.Sealer) *Admin {
+	a.orders.WithSealer(b)
+	return a
+}
+
+// piiUnavailable is the admin 503 when a sealed recipient snapshot cannot be opened (no key / a broken blob).
+func piiUnavailable() error {
+	return httpadmin.Fail(fiber.StatusServiceUnavailable, "storage_unavailable", "Secure storage is not available right now.")
+}
+
 // Routes registers the endpoints (static paths before :id). bloom's /shop/categories|products routes stay in
 // package shop; these add sub-paths and new resources only.
 func (a *Admin) Routes(route Route, kit *httpadmin.Kit) {

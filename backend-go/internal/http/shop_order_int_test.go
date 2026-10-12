@@ -377,7 +377,9 @@ func TestShopOrder_OwnerScopedAndTeen(t *testing.T) {
 	minaAddr := e.address(mina)
 	r = e.do(fiber.MethodPost, "/api/v1/shop/orders", mina, map[string]any{"idempotency_key": "sara-0001", "address_id": minaAddr, "payment_method": "cod"})
 	require.Equal(t, fiber.StatusCreated, r.Status, r.Raw)
-	assert.Equal(t, "Sara", e.str(`SELECT recipient_name FROM shop_orders WHERE id = ?`, orderID), "Sara's order untouched")
+	r = e.do(fiber.MethodGet, "/api/v1/shop/orders/"+itoa(orderID), sara, nil)
+	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
+	assert.Equal(t, "Sara", r.data()["order"].(map[string]any)["recipient"].(map[string]any)["name"], "Sara's order untouched")
 	assert.Equal(t, "placed", e.str(`SELECT status FROM shop_orders WHERE id = ?`, orderID))
 
 	for _, rt := range [][2]string{{fiber.MethodGet, "/api/v1/shop/cart"}, {fiber.MethodPost, "/api/v1/shop/cart/items"},

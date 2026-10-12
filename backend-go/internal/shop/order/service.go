@@ -65,8 +65,9 @@ func fail(status int, code, field string) *Error {
 
 // Service runs the order use cases.
 type Service struct {
-	db *sql.DB
-	q  *store.Queries
+	db   *sql.DB
+	q    *store.Queries
+	seal Sealer // buyer PII box (pii.go); nil → the PII paths fail closed (503)
 }
 
 // NewService wraps db.
@@ -327,13 +328,22 @@ func ns(s string) sql.NullString { return sql.NullString{String: s, Valid: s != 
 
 // Addresses lists her addresses, default first.
 func (s *Service) Addresses(ctx context.Context, userID uint64) ([]store.ShopAddress, error) {
-	return s.q.ListAddressesByUser(ctx, userID)
+	list, err := s.q.ListAddressesByUser(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("order: addresses: %w", err)
+	}
+	return s.openAddresses(list)
 }
 
 // SaveAddress creates (id 0) or updates one of her addresses; the first address is the default. 404 for a foreign id.
 func (s *Service) SaveAddress(ctx context.Context, userID, id uint64, in AddressInput, now time.Time) (store.ShopAddress, error) {
 	var out store.ShopAddress
-	err := s.cartTx(ctx, userID, now, func(q *store.Queries, _ store.ShopCart) error { // the cart lock serialises the default flag
+	enc, err := s.sealJSON(addressPII{Label: in.Label, Name: in.RecipientName, Phone: in.RecipientPhone, Line: in.AddressLine,
+		PostalCode: in.PostalCode}, addressAD(userID))
+	if err != nil {
+		return out, err
+	}
+	err = s.cartTx(ctx, userID, now, func(q *store.Queries, _ store.ShopCart) error { // the cart lock serialises the default flag
 		if id == 0 {
 			n, err := q.CountAddressesByUser(ctx, userID)
 			if err != nil {
@@ -342,9 +352,8 @@ func (s *Service) SaveAddress(ctx context.Context, userID, id uint64, in Address
 			if n >= MaxAddresses {
 				return fail(422, "address_limit", "address_line")
 			}
-			last, err := q.CreateAddress(ctx, store.CreateAddressParams{UserID: userID, Label: ns(in.Label), RecipientName: in.RecipientName,
-				RecipientPhone: in.RecipientPhone, Province: ns(in.Province), City: in.City, AddressLine: in.AddressLine,
-				PostalCode: ns(in.PostalCode), IsDefault: in.IsDefault || n == 0, CreatedAt: nt(now), UpdatedAt: nt(now)})
+			last, err := q.CreateAddress(ctx, store.CreateAddressParams{UserID: userID, Province: ns(in.Province), City: in.City,
+				PiiEnc: enc, IsDefault: in.IsDefault || n == 0, CreatedAt: nt(now), UpdatedAt: nt(now)}) // plaintext columns stay ''
 			if err != nil {
 				return fmt.Errorf("order: create address: %w", err)
 			}
@@ -357,15 +366,17 @@ func (s *Service) SaveAddress(ctx context.Context, userID, id uint64, in Address
 			if err != nil {
 				return fmt.Errorf("order: address: %w", err)
 			}
-			if _, err := q.UpdateAddressForUser(ctx, store.UpdateAddressForUserParams{Label: ns(in.Label), RecipientName: in.RecipientName,
-				RecipientPhone: in.RecipientPhone, Province: ns(in.Province), City: in.City, AddressLine: in.AddressLine,
-				PostalCode: ns(in.PostalCode), IsDefault: in.IsDefault || cur.IsDefault, UpdatedAt: nt(now), ID: id, UserID: userID}); err != nil {
+			if _, err := q.UpdateAddressForUser(ctx, store.UpdateAddressForUserParams{Province: ns(in.Province), City: in.City,
+				PiiEnc: enc, IsDefault: in.IsDefault || cur.IsDefault, UpdatedAt: nt(now), ID: id, UserID: userID}); err != nil { // clears a legacy row's plaintext
 				return fmt.Errorf("order: update address: %w", err)
 			}
 		}
 		a, err := q.GetAddressForUser(ctx, store.GetAddressForUserParams{ID: id, UserID: userID})
 		if err != nil {
 			return fmt.Errorf("order: address: %w", err)
+		}
+		if a, err = s.OpenAddress(a); err != nil {
+			return err
 		}
 		if a.IsDefault {
 			if err := q.ClearDefaultAddress(ctx, store.ClearDefaultAddressParams{UserID: userID, ID: id}); err != nil {
@@ -410,9 +421,9 @@ func (s *Service) Checkout(ctx context.Context, userID uint64, now time.Time) (*
 	if err != nil {
 		return nil, err
 	}
-	addrs, err := s.q.ListAddressesByUser(ctx, userID)
+	addrs, err := s.Addresses(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("order: addresses: %w", err)
+		return nil, err
 	}
 	co := &Checkout{Cart: cart, Addresses: addrs, Slots: map[uint64][]store.ShopDeliverySlot{}, COD: true}
 	from := civildate.FromTime(now).AddDays(1)
@@ -488,6 +499,14 @@ func (s *Service) Place(ctx context.Context, userID uint64, in PlaceInput, defau
 		}
 		if err != nil {
 			return fmt.Errorf("order: address: %w", err)
+		}
+		if addr, err = s.OpenAddress(addr); err != nil {
+			return err
+		}
+		recipient, err := s.sealJSON(orderPII{Name: addr.RecipientName, Phone: addr.RecipientPhone, Address: addressText(addr),
+			PostalCode: addr.PostalCode.String}, orderAD(userID))
+		if err != nil {
+			return err
 		}
 		cart, err := s.price(ctx, q, userID, c, now)
 		if err != nil {
@@ -576,9 +595,8 @@ func (s *Service) Place(ctx context.Context, userID uint64, in PlaceInput, defau
 
 		// 4. The order, shipments, items, timeline.
 		orderID, code, err := createOrder(ctx, q, store.CreateOrderParams{UserID: userID,
-			AddressID:     sql.NullInt64{Int64: int64(addr.ID), Valid: true}, //nolint:gosec // G115
-			RecipientName: addr.RecipientName, RecipientPhone: addr.RecipientPhone, City: addr.City,
-			AddressText: addressText(addr), PostalCode: addr.PostalCode, Discreet: in.Discreet,
+			AddressID: sql.NullInt64{Int64: int64(addr.ID), Valid: true},   //nolint:gosec // G115
+			City:      addr.City, PiiEnc: recipient, Discreet: in.Discreet, // the recipient snapshot is sealed; plaintext columns ''
 			ItemsTotal: cart.ItemsTotal, ShippingTotal: cart.ShippingTotal(), DiscountTotal: cart.DiscountAmount,
 			PayableTotal: cart.Payable(), PlacedAt: nt(now), DiscountCodeID: cart.discountID(), IdempotencyKey: ns(in.Key),
 			CreatedAt: nt(now), UpdatedAt: nt(now)})
@@ -761,6 +779,9 @@ func (s *Service) Order(ctx context.Context, userID, id uint64) (*Detail, error)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("order: get: %w", err)
+	}
+	if o, err = s.OpenOrder(o); err != nil {
+		return nil, err
 	}
 	d := &Detail{Order: o}
 	if d.Shipments, err = s.q.ListShipmentsByOrder(ctx, o.ID); err != nil {

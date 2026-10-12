@@ -10,6 +10,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/admin/content/admintest"
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
+	"github.com/ritme/backend-go/internal/loss"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/shop"
 	shopadmin "github.com/ritme/backend-go/internal/shop/admin"
@@ -26,11 +27,19 @@ func newEnv(t *testing.T) *admintest.Env {
 	t.Helper()
 	e := admintest.New(t)
 	shop.NewAdmin(e.DB, nil, "http://localhost", admintest.Quiet).Routes(e.Route(), e.Kit)
-	shopadmin.New(e.DB, nil, "http://localhost", admintest.Quiet).Routes(e.Route(), e.Kit)
+	shopadmin.New(e.DB, nil, "http://localhost", admintest.Quiet).WithSealer(devBox(t)).Routes(e.Route(), e.Kit)
 	e.Exec(`INSERT INTO admins (id, name, email, password, role, is_active, created_at, updated_at) VALUES
 		(3, 'Mkt', 'mkt@ritme.test', 'x', 'marketing', 1, NOW(), NOW()),
 		(4, 'Sup', 'sup@ritme.test', 'x', 'support', 1, NOW(), NOW())`)
 	return e
+}
+
+// devBox is the PRIVATE_NOTE_KEY box on the public development key (local / testing).
+func devBox(t *testing.T) *loss.NoteBox {
+	t.Helper()
+	b, err := loss.NewNoteBox(nil, nil, false)
+	require.NoError(t, err)
+	return b
 }
 
 func id(r admintest.Resp, key string) uint64 { return uint64(r.Obj(key)["id"].(float64)) }
@@ -286,4 +295,37 @@ func seedOrder2(e *admintest.Env, f orderFixture) uint64 {
 	e.Exec(`INSERT INTO shop_order_items (order_id, shipment_id, product_id, variant_id, title, unit_price, quantity, line_total)
 		VALUES (?, ?, ?, ?, '{"fa":"بادی"}', 100000, 1, 100000)`, oid, sid, f.product, f.variant)
 	return uint64(sid)
+}
+
+// Buyer PII at rest (user decision 2026-10-12): support sees the sealed recipient snapshot decrypted in the shipment
+// queue and the order detail; the DB row holds no plaintext.
+func TestShopAdmin_SealedRecipientSnapshot(t *testing.T) {
+	e := newEnv(t)
+	c := e.As(supportID)
+	f := seedOrder(e)
+	enc, err := devBox(t).SealWith(`{"name":"Mina S","phone":"09127770001","address":"Secret St 9","postal_code":"1112223334"}`,
+		[]byte("shop-order:"+s(f.user)))
+	require.NoError(t, err)
+	e.Exec(`UPDATE shop_orders SET recipient_name = '', recipient_phone = '', address_text = '', postal_code = NULL, pii_enc = ? WHERE id = ?`, enc, f.order)
+
+	r := c.Get("/shop/shipments")
+	require.Equal(t, 200, r.Status, r.Body)
+	require.Len(t, r.Items(), 1)
+	assert.Equal(t, "Mina S", r.Items()[0].(map[string]any)["recipient_name"])
+	r = c.Get("/shop/orders/" + s(f.order))
+	require.Equal(t, 200, r.Status, r.Body)
+	o := r.Obj("order")
+	assert.Equal(t, "Mina S", o["recipient_name"])
+	assert.Equal(t, "09127770001", o["recipient_phone"])
+	assert.Equal(t, "Secret St 9", o["address_text"])
+	assert.Equal(t, "1112223334", o["postal_code"])
+
+	// A blob bound to another user does not open: fail closed, never a wrong recipient.
+	other, err := devBox(t).SealWith(`{"name":"X","phone":"0","address":"Y"}`, []byte("shop-order:999999"))
+	require.NoError(t, err)
+	e.Exec(`UPDATE shop_orders SET pii_enc = ? WHERE id = ?`, other, f.order)
+	r = c.Get("/shop/orders/" + s(f.order))
+	assert.Equal(t, 503, r.Status, r.Body)
+	assert.Equal(t, "storage_unavailable", r.Code())
+	assert.Equal(t, 503, c.Get("/shop/shipments").Status)
 }

@@ -56,12 +56,12 @@ SELECT COUNT(*) FROM `shop_addresses` WHERE user_id = ?;
 
 -- name: CreateAddress :execlastid
 INSERT INTO `shop_addresses` (`user_id`, `label`, `recipient_name`, `recipient_phone`, `province`, `city`,
-  `address_line`, `postal_code`, `is_default`, `created_at`, `updated_at`)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+  `address_line`, `postal_code`, `pii_enc`, `is_default`, `created_at`, `updated_at`)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: UpdateAddressForUser :execrows
 UPDATE `shop_addresses` SET label = ?, recipient_name = ?, recipient_phone = ?, province = ?, city = ?,
-  address_line = ?, postal_code = ?, is_default = ?, updated_at = ?
+  address_line = ?, postal_code = ?, pii_enc = ?, is_default = ?, updated_at = ?
 WHERE id = ? AND user_id = ?;
 
 -- name: ClearDefaultAddress :exec
@@ -94,9 +94,9 @@ SELECT * FROM `shop_orders` WHERE user_id = ? AND idempotency_key = ? LIMIT 1;
 
 -- name: CreateOrder :execlastid
 INSERT INTO `shop_orders` (`code`, `user_id`, `address_id`, `recipient_name`, `recipient_phone`, `city`, `address_text`,
-  `postal_code`, `payment_method`, `payment_status`, `status`, `discreet`, `items_total`, `shipping_total`,
+  `postal_code`, `pii_enc`, `payment_method`, `payment_status`, `status`, `discreet`, `items_total`, `shipping_total`,
   `discount_total`, `payable_total`, `placed_at`, `discount_code_id`, `idempotency_key`, `created_at`, `updated_at`)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'cod', 'unpaid', 'placed', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'cod', 'unpaid', 'placed', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: CreateShipment :execlastid
 INSERT INTO `shop_order_shipments` (`order_id`, `seller_id`, `delivery_slot_id`, `slot_date`, `slot_starts_at`,

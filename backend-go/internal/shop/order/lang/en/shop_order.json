@@ -25,7 +25,8 @@
         "too_many_discount_tries": "Too many discount code tries. Try again later.",
         "busy": "Please try again in a moment.",
         "not_reviewable": "You can review this item once it is delivered.",
-        "already_reviewed": "You have already reviewed this item."
+        "already_reviewed": "You have already reviewed this item.",
+        "storage_unavailable": "Secure address storage isn't available right now. Try again later."
     },
     "messages": {
         "order_placed": "Your order is placed.",

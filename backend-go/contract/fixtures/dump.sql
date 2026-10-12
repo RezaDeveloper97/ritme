@@ -5267,6 +5267,7 @@ CREATE TABLE `shop_addresses` (
   `city` varchar(60) NOT NULL,
   `address_line` varchar(500) NOT NULL,
   `postal_code` varchar(10) DEFAULT NULL,
+  `pii_enc` longtext DEFAULT NULL,
   `is_default` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -5279,7 +5280,7 @@ CREATE TABLE `shop_addresses` (
 LOCK TABLES `shop_addresses` WRITE;
 /*!40000 ALTER TABLE `shop_addresses` DISABLE KEYS */;
 INSERT INTO `shop_addresses` VALUES
-(1,1004,'Home','Regular','09900000004',NULL,'Tehran','Valiasr St, No. 1','1234567890',1,'2026-10-11 09:00:00','2026-10-11 09:00:00');
+(1,1004,'Home','Regular','09900000004',NULL,'Tehran','Valiasr St, No. 1','1234567890',NULL,1,'2026-10-11 09:00:00','2026-10-11 09:00:00');
 /*!40000 ALTER TABLE `shop_addresses` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `shop_cart_items`;
@@ -5553,6 +5554,7 @@ CREATE TABLE `shop_orders` (
   `city` varchar(60) NOT NULL,
   `address_text` varchar(600) NOT NULL,
   `postal_code` varchar(10) DEFAULT NULL,
+  `pii_enc` longtext DEFAULT NULL,
   `payment_method` varchar(16) NOT NULL DEFAULT 'cod',
   `payment_status` varchar(16) NOT NULL DEFAULT 'unpaid',
   `status` varchar(20) NOT NULL DEFAULT 'placed',
