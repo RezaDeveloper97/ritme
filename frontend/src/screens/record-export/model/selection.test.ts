@@ -19,6 +19,13 @@ describe('report selection', () => {
     });
   });
 
+  it('keeps losses out by default and only with the pregnancies group (user decision 2026-10-12)', () => {
+    const base = { range: '3m' as const, from: null, question: '' };
+    expect(selectionOf({ ...base, groups: { ...DEFAULT_GROUPS, pregnancies: true } }).includeLosses).toBe(false);
+    expect(selectionOf({ ...base, groups: { ...DEFAULT_GROUPS, pregnancies: true }, includeLosses: true }).includeLosses).toBe(true);
+    expect(selectionOf({ ...base, groups: DEFAULT_GROUPS, includeLosses: true }).includeLosses).toBe(false);
+  });
+
   it('accepts a custom start before today and at most 3 years back', () => {
     expect(isValidFrom('2026-09-01', '2026-10-06')).toBe(true);
     expect(isValidFrom('2023-10-06', '2026-10-06')).toBe(true);

@@ -32,6 +32,7 @@ import (
 	"github.com/ritme/backend-go/internal/plus"
 	"github.com/ritme/backend-go/internal/sharelinks"
 	"github.com/ritme/backend-go/internal/sharelinks/store"
+	"github.com/ritme/backend-go/internal/teen"
 )
 
 func TestMain(m *testing.M) { testdb.Main(m) }
@@ -64,7 +65,7 @@ func setup(t *testing.T) *env {
 	locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(db), nil, quiet))
 	records := healthrecord.NewService(db, nil)
 	rh := healthrecord.NewHandlers(records, clock.Fixed(fixed))
-	svc := sharelinks.NewService(store.New(db), records, quiet).WithDB(db)
+	svc := sharelinks.NewService(store.New(db), records, quiet).WithDB(db).WithSharingGate(teenGate{p: teen.NewPolicy(db)})
 	h := sharelinks.NewHandlers(svc, clock.Fixed(fixed))
 	plusSvc := plus.NewService(db, config.Plus{TrialDays: 7}, nil, quiet)
 	gate := plus.NewGate(plusSvc, clock.Real{})
@@ -73,10 +74,18 @@ func setup(t *testing.T) *env {
 	app.Get("/api/v1/health-record/report", locale, guard, rh.Report)
 	p := "/api/v1/health-record/share-links"
 	app.Get(p, locale, guard, h.Index)
-	app.Post(p, locale, guard, gate.Require(plus.PDFShare), h.Store)
+	app.Post(p, locale, guard, h.RequireDoctorSharing, gate.Require(plus.PDFShare), h.Store)
 	app.Delete(p+"/:id", locale, guard, h.Destroy)
 	app.Get("/api/v1/shared-reports/:token", locale, h.Show)
 	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), plus: plusSvc, svc: svc}
+}
+
+// teenGate is the production adapter of internal/http (routes_recordsharing.go teenSharing).
+type teenGate struct{ p *teen.Policy }
+
+func (g teenGate) Sharing(ctx context.Context, userID uint64) (sharelinks.SharingPolicy, error) {
+	isTeen, linked, err := g.p.Sharing(ctx, userID)
+	return sharelinks.SharingPolicy{Teen: isTeen, ParentLinked: linked}, err
 }
 
 func (e *env) exec(t *testing.T, query string, args ...any) {

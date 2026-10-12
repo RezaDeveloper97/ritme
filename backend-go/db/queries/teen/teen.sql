@@ -31,3 +31,10 @@ DELETE FROM `teen_kit_checks` WHERE user_id = sqlc.arg(user_id) AND item_code = 
 -- name: GetTeenLifeMode :one
 -- The stored life-stage mode (bloom B-N2-01; no row / NULL = not teen).
 SELECT life_mode FROM `user_life_profiles` WHERE user_id = ? LIMIT 1;
+
+-- name: HasActiveParentLink :one
+-- Teen sharing policy (user decision 2026-10-12, CB-REC-06 L5): whether the owner has an accepted parent link
+-- (companion type `parent`, CB-TEEN-01). A teen may make doctor codes / report links only with one.
+SELECT EXISTS (
+  SELECT 1 FROM `companions` WHERE owner_id = sqlc.arg(owner_id) AND type = 'parent' AND status = 'active'
+) AS linked;

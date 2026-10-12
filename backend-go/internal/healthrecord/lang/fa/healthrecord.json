@@ -22,6 +22,7 @@
         "from": "تاریخ شروع",
         "sections": "بخش‌ها",
         "sections.*": "بخش",
-        "question": "سؤال"
+        "question": "سؤال",
+        "include_losses": "شامل سابقه‌ی از دست دادن بارداری"
     }
 }

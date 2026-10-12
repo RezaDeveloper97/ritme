@@ -58,20 +58,22 @@ func (q *Queries) GetShareLinkByCode(ctx context.Context, codeHash sql.NullStrin
 }
 
 const getShareLinkForOpen = `-- name: GetShareLinkForOpen :one
-SELECT id, user_id, kind, payload, expires_at, revoked_at
+SELECT id, user_id, kind, payload, include_losses, expires_at, revoked_at
 FROM ` + "`" + `health_share_links` + "`" + `
 WHERE token_hash = ? LIMIT 1
 `
 
 type GetShareLinkForOpenRow struct {
-	ID        uint64
-	UserID    uint64
-	Kind      string
-	Payload   sql.NullString
-	ExpiresAt sql.NullTime
-	RevokedAt sql.NullTime
+	ID            uint64
+	UserID        uint64
+	Kind          string
+	Payload       sql.NullString
+	IncludeLosses bool
+	ExpiresAt     sql.NullTime
+	RevokedAt     sql.NullTime
 }
 
+// include_losses: the public read re-applies the owner's per-share loss choice to the decrypted snapshot.
 func (q *Queries) GetShareLinkForOpen(ctx context.Context, tokenHash string) (GetShareLinkForOpenRow, error) {
 	row := q.db.QueryRowContext(ctx, getShareLinkForOpen, tokenHash)
 	var i GetShareLinkForOpenRow
@@ -80,6 +82,7 @@ func (q *Queries) GetShareLinkForOpen(ctx context.Context, tokenHash string) (Ge
 		&i.UserID,
 		&i.Kind,
 		&i.Payload,
+		&i.IncludeLosses,
 		&i.ExpiresAt,
 		&i.RevokedAt,
 	)
@@ -87,7 +90,7 @@ func (q *Queries) GetShareLinkForOpen(ctx context.Context, tokenHash string) (Ge
 }
 
 const getSummaryLinkMeta = `-- name: GetSummaryLinkMeta :one
-SELECT id, label, sections, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
+SELECT id, label, sections, include_losses, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
 FROM ` + "`" + `health_share_links` + "`" + `
 WHERE id = ? AND user_id = ? AND kind = 'summary' LIMIT 1
 `
@@ -98,16 +101,17 @@ type GetSummaryLinkMetaParams struct {
 }
 
 type GetSummaryLinkMetaRow struct {
-	ID           uint64
-	Label        sql.NullString
-	Sections     json.RawMessage
-	RangeFrom    civildate.Date
-	RangeTo      civildate.Date
-	ExpiresAt    sql.NullTime
-	RevokedAt    sql.NullTime
-	ViewCount    uint32
-	LastViewedAt sql.NullTime
-	CreatedAt    sql.NullTime
+	ID            uint64
+	Label         sql.NullString
+	Sections      json.RawMessage
+	IncludeLosses bool
+	RangeFrom     civildate.Date
+	RangeTo       civildate.Date
+	ExpiresAt     sql.NullTime
+	RevokedAt     sql.NullTime
+	ViewCount     uint32
+	LastViewedAt  sql.NullTime
+	CreatedAt     sql.NullTime
 }
 
 func (q *Queries) GetSummaryLinkMeta(ctx context.Context, arg GetSummaryLinkMetaParams) (GetSummaryLinkMetaRow, error) {
@@ -117,6 +121,7 @@ func (q *Queries) GetSummaryLinkMeta(ctx context.Context, arg GetSummaryLinkMeta
 		&i.ID,
 		&i.Label,
 		&i.Sections,
+		&i.IncludeLosses,
 		&i.RangeFrom,
 		&i.RangeTo,
 		&i.ExpiresAt,
@@ -156,25 +161,26 @@ func (q *Queries) InsertShareLinkView(ctx context.Context, arg InsertShareLinkVi
 
 const insertSummaryLink = `-- name: InsertSummaryLink :execlastid
 
-INSERT INTO ` + "`" + `health_share_links` + "`" + ` (user_id, kind, label, token_hash, code_hash, code_payload, payload, sections, range_from,
-                                  range_to, expires_at, created_at, updated_at)
+INSERT INTO ` + "`" + `health_share_links` + "`" + ` (user_id, kind, label, token_hash, code_hash, code_payload, payload, sections,
+                                  include_losses, range_from, range_to, expires_at, created_at, updated_at)
 VALUES (?, 'summary', ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?,
-        ?)
+        ?, ?, ?, ?, ?,
+        ?, ?, ?)
 `
 
 type InsertSummaryLinkParams struct {
-	UserID      uint64
-	Label       sql.NullString
-	TokenHash   string
-	CodeHash    sql.NullString
-	CodePayload sql.NullString
-	Payload     sql.NullString
-	Sections    json.RawMessage
-	RangeFrom   civildate.Date
-	RangeTo     civildate.Date
-	ExpiresAt   sql.NullTime
-	Now         sql.NullTime
+	UserID        uint64
+	Label         sql.NullString
+	TokenHash     string
+	CodeHash      sql.NullString
+	CodePayload   sql.NullString
+	Payload       sql.NullString
+	Sections      json.RawMessage
+	IncludeLosses bool
+	RangeFrom     civildate.Date
+	RangeTo       civildate.Date
+	ExpiresAt     sql.NullTime
+	Now           sql.NullTime
 }
 
 // Record sharing (canvas-build CB-REC-03, D-71): the 24h summary links with a short code (kind = 'summary') and the
@@ -189,6 +195,7 @@ func (q *Queries) InsertSummaryLink(ctx context.Context, arg InsertSummaryLinkPa
 		arg.CodePayload,
 		arg.Payload,
 		arg.Sections,
+		arg.IncludeLosses,
 		arg.RangeFrom,
 		arg.RangeTo,
 		arg.ExpiresAt,
@@ -327,7 +334,7 @@ func (q *Queries) ListShareLinkAccess(ctx context.Context, arg ListShareLinkAcce
 }
 
 const listSummaryLinks = `-- name: ListSummaryLinks :many
-SELECT id, label, sections, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
+SELECT id, label, sections, include_losses, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
 FROM ` + "`" + `health_share_links` + "`" + `
 WHERE user_id = ? AND kind = 'summary' AND created_at >= ?
 ORDER BY created_at DESC, id DESC
@@ -340,16 +347,17 @@ type ListSummaryLinksParams struct {
 }
 
 type ListSummaryLinksRow struct {
-	ID           uint64
-	Label        sql.NullString
-	Sections     json.RawMessage
-	RangeFrom    civildate.Date
-	RangeTo      civildate.Date
-	ExpiresAt    sql.NullTime
-	RevokedAt    sql.NullTime
-	ViewCount    uint32
-	LastViewedAt sql.NullTime
-	CreatedAt    sql.NullTime
+	ID            uint64
+	Label         sql.NullString
+	Sections      json.RawMessage
+	IncludeLosses bool
+	RangeFrom     civildate.Date
+	RangeTo       civildate.Date
+	ExpiresAt     sql.NullTime
+	RevokedAt     sql.NullTime
+	ViewCount     uint32
+	LastViewedAt  sql.NullTime
+	CreatedAt     sql.NullTime
 }
 
 func (q *Queries) ListSummaryLinks(ctx context.Context, arg ListSummaryLinksParams) ([]ListSummaryLinksRow, error) {
@@ -365,6 +373,7 @@ func (q *Queries) ListSummaryLinks(ctx context.Context, arg ListSummaryLinksPara
 			&i.ID,
 			&i.Label,
 			&i.Sections,
+			&i.IncludeLosses,
 			&i.RangeFrom,
 			&i.RangeTo,
 			&i.ExpiresAt,

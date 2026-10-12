@@ -18978,8 +18978,9 @@ paths:
       summary: Doctor report preview (nbl_Record_Preview)
       description: |
         Bloom B-N6-04 (D-65). The owner's record built for the **share** audience (no row ids, no free-text notes, nothing
-        editable, a loss only as an ended pregnancy) over the chosen window and sections. The client draws the PDF on the
-        device from this body. Free (only the share link is Plus-gated).
+        editable) over the chosen window and sections. Pregnancy losses are left out unless `include_losses=1` (user
+        decision 2026-10-12: the owner's explicit opt-in; then each loss is one neutral `ended` row, never its type or
+        date). The client draws the PDF on the device from this body. Free (only the share link is Plus-gated).
       operationId: showHealthRecordReport
       security:
         - {bearerAuth: []}
@@ -18988,6 +18989,7 @@ paths:
         - {name: range, in: query, required: true, schema: {type: string, enum: [3m, 6m, 1y, custom]}}
         - {name: from, in: query, required: false, description: "Required for range=custom; at most 3 years back, before today.", schema: {$ref: "#/components/schemas/Date"}}
         - {name: sections, in: query, required: true, description: "Comma-separated section keys (basics, conditions, medications, allergies, cycle, vitals, pregnancies, checkups, labs, menopause). `menopause` (CB-MENO-03) is built for a user in menopause mode only (else absent): MenopauseReport over the report window.", schema: {type: string}}
+        - {name: include_losses, in: query, required: false, description: "Loss opt-in (Laravel boolean: 1/0/true/false). Off by default.", schema: {type: string, enum: ["0", "1", "true", "false"]}}
       responses:
         '200':
           description: OK
@@ -19023,12 +19025,13 @@ paths:
                   success: {type: boolean}
                   data:
                     type: object
-                    required: [items, active_count, max_active, ttl_days]
+                    required: [items, active_count, max_active, ttl_days, policy]
                     properties:
                       items: {type: array, items: {$ref: "#/components/schemas/HealthShareLink"}}
                       active_count: {type: integer}
                       max_active: {type: integer}
                       ttl_days: {type: integer}
+                      policy: {$ref: "#/components/schemas/RecordSharingPolicy"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
     post:
       tags: [HealthRecord]
@@ -19036,7 +19039,9 @@ paths:
       description: |
         Builds the share-audience report, freezes it with the optional question and stores it encrypted under a key
         derived from a fresh 256-bit token (only the token's SHA-256 is stored). The token is returned once; the client
-        builds the public URL from it. Plus-gated (`plus.pdf_share`), at most 10 live links.
+        builds the public URL from it. Plus-gated (`plus.pdf_share`), at most 10 live links. Pregnancy losses only with
+        `include_losses: true` (stored with the link; the public read enforces it). A teen-mode account without an active
+        parent link gets **403** `teen_share_needs_parent` (before the Plus gate; user decision 2026-10-12).
       operationId: storeHealthShareLink
       security:
         - {bearerAuth: []}
@@ -19054,6 +19059,7 @@ paths:
                 from: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
                 sections: {type: array, minItems: 1, maxItems: 10, items: {type: string, enum: [basics, conditions, medications, allergies, cycle, vitals, pregnancies, checkups, labs, menopause]}}
                 question: {type: [string, "null"], maxLength: 300}
+                include_losses: {type: [boolean, "null"], default: false, description: "«شامل سابقه‌ی از دست دادن بارداری» — off by default."}
       responses:
         '201':
           description: Created
@@ -19074,6 +19080,7 @@ paths:
                           token: {type: string, description: "43 base64url characters (256 random bits); shown once."}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '402': {$ref: "#/components/responses/PlusRequired"}
+        '403': {$ref: "#/components/responses/TeenShareNeedsParent"}
         '409': {$ref: "#/components/responses/ShareLinkLimit"}
         '422': {$ref: "#/components/responses/HealthRecordValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
@@ -19175,7 +19182,8 @@ paths:
       summary: Who sees your record (doctor codes, family scope, access history)
       description: |
         nbl_Rec_Share: the 24h doctor codes of the last 30 days (metadata only), the companion links with their record
-        scope — meds and appointments levels only, `documents` always false — and the 10 latest access log entries.
+        scope — meds and appointments levels only, `documents` always false — the 10 latest access log entries and
+        the owner's sharing `policy` (a teen-mode account shares with a doctor only with an active parent link).
       operationId: showRecordSharing
       security:
         - {bearerAuth: []}
@@ -19193,7 +19201,7 @@ paths:
                   success: {type: boolean}
                   data:
                     type: object
-                    required: [doctor, family, access_log]
+                    required: [doctor, family, access_log, policy]
                     properties:
                       doctor:
                         type: object
@@ -19206,6 +19214,7 @@ paths:
                           items: {type: array, items: {$ref: "#/components/schemas/ShareCodeSummary"}}
                       family: {type: array, items: {$ref: "#/components/schemas/RecordFamilyAccess"}}
                       access_log: {type: array, items: {$ref: "#/components/schemas/ShareAccessEntry"}}
+                      policy: {$ref: "#/components/schemas/RecordSharingPolicy"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/health-record/share-access:
     get:
@@ -19242,12 +19251,14 @@ paths:
       tags: [RecordSharing]
       summary: Create a 24h doctor code + QR to a frozen record summary
       description: |
-        Builds the share-audience record (no ids, no free-text notes, a loss only as an ended pregnancy, no care
-        appointments) over `range` (default 6m) and `sections` (default all), plus — only when listed — the owner's
+        Builds the share-audience record (no ids, no free-text notes, no care appointments; pregnancy losses only with
+        `include_losses: true`, then as neutral ended rows) over `range` (default 6m) and `sections` (default all),
+        plus — only when listed — the owner's
         own record documents (descriptive fields; their files are signed fresh, 5 minutes, on every open), freezes it
         encrypted under a fresh 256-bit token and wraps the token under a short code (HMAC with the server pepper).
         The code (`XXXX-XXXX`), the token and the QR path are returned once. Lives 24 hours, at most 5 live codes.
-        Not Plus-gated.
+        Not Plus-gated. A teen-mode account without an active parent link gets **403** `teen_share_needs_parent`
+        (user decision 2026-10-12; her emergency card stays available).
       operationId: storeShareCode
       security:
         - {bearerAuth: []}
@@ -19265,6 +19276,7 @@ paths:
                 from: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
                 sections: {type: array, minItems: 1, maxItems: 9, items: {type: string, enum: [basics, conditions, medications, allergies, cycle, vitals, pregnancies, checkups, labs]}}
                 document_ids: {type: [array, "null"], maxItems: 10, items: {type: integer, minimum: 1}}
+                include_losses: {type: [boolean, "null"], default: false, description: "«شامل سابقه‌ی از دست دادن بارداری» — off by default."}
       responses:
         '201':
           description: Created
@@ -19288,6 +19300,7 @@ paths:
                           qr_path: {type: string, description: "/{locale}/shared/report/{token} on the web app"}
                           qr_url: {type: [string, "null"], description: "SHARE_WEB_URL + qr_path; null when not configured"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenShareNeedsParent"}
         '409': {$ref: "#/components/responses/ShareCodeLimit"}
         '422': {$ref: "#/components/responses/ShareValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
@@ -23708,6 +23721,17 @@ components:
               success: {type: boolean, const: false}
               message: {type: string}
               error_code: {type: string, enum: [share_code_not_found]}
+    TeenShareNeedsParent:
+      description: "User decision 2026-10-12 (CB-REC-06 L5): a teen-mode account may create a doctor code or a report link only while she has an active parent link."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [teen_share_needs_parent]}
     ShareCodeLimit:
       description: "CB-REC-03: the owner already has the maximum number of live 24h codes."
       content:
@@ -26695,13 +26719,14 @@ components:
     ShareCodeSummary:
       type: object
       description: "CB-REC-03: a 24h summary's metadata (never the code, the token or the report after creation)."
-      required: [id, kind, label, status, sections, range, created_at, expires_at, revoked_at, views, last_viewed_at]
+      required: [id, kind, label, status, sections, include_losses, range, created_at, expires_at, revoked_at, views, last_viewed_at]
       properties:
         id: {type: integer}
         kind: {type: string, const: summary}
         label: {type: [string, "null"]}
         status: {type: string, enum: [active, expired, revoked]}
         sections: {type: array, items: {type: string}}
+        include_losses: {type: boolean, description: "The owner opted in to pregnancy losses (neutral ended rows) for this code."}
         range:
           type: object
           required: [from, to]
@@ -26713,6 +26738,17 @@ components:
         revoked_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
         views: {type: integer}
         last_viewed_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+    RecordSharingPolicy:
+      type: object
+      description: |
+        User decision 2026-10-12 (CB-REC-06 L5): what the owner may share right now. A teen-mode account makes doctor
+        codes and report links only while she has an active parent link; the emergency card is always available.
+      required: [teen, parent_linked, doctor_sharing, emergency_card]
+      properties:
+        teen: {type: boolean}
+        parent_linked: {type: boolean}
+        doctor_sharing: {type: boolean, description: "doctor codes and report links allowed"}
+        emergency_card: {type: boolean, const: true}
     ShareAccessEntry:
       type: object
       description: "CB-REC-03: one public open of a share link (access log «سابقه دسترسی»)."
@@ -26840,11 +26876,12 @@ components:
     HealthShareLink:
       type: object
       description: "Bloom B-N6-04: a share link's metadata (never the token after creation, never the report)."
-      required: [id, status, sections, range, created_at, expires_at, revoked_at, views, last_viewed_at]
+      required: [id, status, sections, include_losses, range, created_at, expires_at, revoked_at, views, last_viewed_at]
       properties:
         id: {type: integer}
         status: {type: string, enum: [active, expired, revoked]}
         sections: {type: array, items: {type: string}}
+        include_losses: {type: boolean, description: "The owner opted in to pregnancy losses (neutral ended rows) for this link."}
         range:
           type: object
           required: [from, to]

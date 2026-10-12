@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useId, useState } from 'react';
 
-import { MAX_REPORT_QUESTION, REPORT_RANGES, type ReportRange, useHealthReport } from '@/entities/health-record';
+import { MAX_REPORT_QUESTION, REPORT_RANGES, type ReportRange, useHealthReport, useShareLinks } from '@/entities/health-record';
 import { useLanguages } from '@/entities/language';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate, partsToDate, toApiDate, today, toParts, type DateParts } from '@/shared/lib/date';
@@ -14,6 +14,7 @@ import {
   Card,
   ChipGroup,
   Icon,
+  InfoNote,
   PillChip,
   PrimaryButton,
   ScreenHeader,
@@ -57,6 +58,8 @@ export function RecordExportPage() {
   const pdf = usePdfDownload();
   const pages = estimatePages(model);
   const language = useLanguages().data?.find((l) => l.code === loc)?.name ?? '';
+  // User decision 2026-10-12: a teen without an active parent link cannot make a 7-day link (the server answers 403).
+  const teenLocked = useShareLinks().data?.policy.doctorSharing === false;
 
   const pickRange = (r: ReportRange) => {
     if (r === 'custom') setPicking(true);
@@ -125,6 +128,18 @@ export function RecordExportPage() {
                 <Switch checked={draft.groups[g]} onCheckedChange={(on) => draft.toggle(g, on)} labelledBy={`rx-${g}`} />
               </li>
             ))}
+            {draft.groups.pregnancies ? (
+              // The loss opt-in (user decision 2026-10-12): off by default, only next to the pregnancies group.
+              <li className="rx-toggle">
+                <span className="rx-toggle-text">
+                  <span className="rx-toggle-title" id="rx-losses">
+                    {t('sections.losses')}
+                  </span>
+                  <span className="rx-toggle-sub">{t('sections.lossesSub')}</span>
+                </span>
+                <Switch checked={draft.includeLosses} onCheckedChange={draft.setIncludeLosses} labelledBy="rx-losses" />
+              </li>
+            ) : null}
           </ul>
           {selection.sections.length === 0 ? (
             <p id={noneId} className="rx-error rx-pad" role="alert">
@@ -161,6 +176,15 @@ export function RecordExportPage() {
           <p>{t('note')}</p>
         </Card>
 
+        {teenLocked ? (
+          <InfoNote icon="shield">
+            {t('teenLocked')}{' '}
+            <button type="button" className="rx-link" onClick={() => router.push('/teen/parent')}>
+              {t('shareSheet.teenCta')}
+            </button>
+          </InfoNote>
+        ) : null}
+
         {pdf.failed || report.isError ? (
           <p className="rx-error" role="alert">
             {report.isError ? t('preview.error') : t('downloadError')}
@@ -175,7 +199,7 @@ export function RecordExportPage() {
           >
             {pdf.busy ? t('downloading') : t('download')}
           </PrimaryButton>
-          <SecondaryButton icon="share" disabled={!ready} onClick={() => setSharing(true)}>
+          <SecondaryButton icon="share" disabled={!ready || teenLocked} onClick={() => setSharing(true)}>
             {t('share')}
           </SecondaryButton>
         </div>

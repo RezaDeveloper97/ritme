@@ -9,15 +9,27 @@ import {
   REPORT_SECTIONS,
   type ReportSection,
   type ShareCodeInput,
+  TEEN_SHARE_NEEDS_PARENT,
   type TimelineItem,
   useCreateShareCode,
   useRecordTimeline,
 } from '@/entities/health-record';
-import { ApiError } from '@/shared/api';
+import { ApiError, getApiErrorCode } from '@/shared/api';
 import type { Locale } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, formatTimeOfDay, fromApiDate } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
-import { Checkbox, ChipGroup, PillChip, PrimaryButton, QrCode, SecondaryButton, Skeleton } from '@/shared/ui';
+import {
+  Checkbox,
+  ChipGroup,
+  ListGroup,
+  ListRow,
+  PillChip,
+  PrimaryButton,
+  QrCode,
+  SecondaryButton,
+  Skeleton,
+  Switch,
+} from '@/shared/ui';
 
 import { codeEntryUrl, qrTarget, toggleDocument, toggleSection } from '../model/share-code';
 
@@ -36,6 +48,9 @@ export function ShareCodeSheet({ open, onClose, maxActive }: { open: boolean; on
   const [range, setRange] = useState<ShareCodeInput['range']>('6m');
   const [sections, setSections] = useState<ReportSection[]>([...REPORT_SECTIONS]);
   const [documentIds, setDocumentIds] = useState<number[]>([]);
+  // «شامل سابقه‌ی از دست دادن بارداری» (user decision 2026-10-12): off by default, offered with the pregnancies section.
+  const [includeLosses, setIncludeLosses] = useState(false);
+  const withPregnancies = sections.includes('pregnancies');
 
   useEffect(() => {
     if (open) return;
@@ -44,10 +59,12 @@ export function ShareCodeSheet({ open, onClose, maxActive }: { open: boolean; on
     setRange('6m');
     setSections([...REPORT_SECTIONS]);
     setDocumentIds([]);
+    setIncludeLosses(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const status = create.error instanceof ApiError ? create.error.response?.status : undefined;
+  const teen = getApiErrorCode(create.error) === TEEN_SHARE_NEEDS_PARENT;
   const created = create.data;
 
   const footer = created ? (
@@ -57,7 +74,7 @@ export function ShareCodeSheet({ open, onClose, maxActive }: { open: boolean; on
       <PrimaryButton
         loading={create.isPending}
         disabled={sections.length === 0}
-        onClick={() => create.mutate({ range, sections, documentIds })}
+        onClick={() => create.mutate({ range, sections, documentIds, includeLosses: includeLosses && withPregnancies })}
       >
         {t('submit')}
       </PrimaryButton>
@@ -99,10 +116,26 @@ export function ShareCodeSheet({ open, onClose, maxActive }: { open: boolean; on
             </ChipGroup>
             {sections.length === 0 ? <p className="rsh-hint">{t('needSection')}</p> : null}
           </fieldset>
+          {withPregnancies ? (
+            <ListGroup className="rsh-list">
+              <ListRow
+                id="rsh-losses"
+                title={t('losses')}
+                description={t('lossesHint')}
+                trailing={<Switch checked={includeLosses} labelledBy="rsh-losses-title" onCheckedChange={setIncludeLosses} />}
+              />
+            </ListGroup>
+          ) : null}
           <DocumentPicker selected={documentIds} onToggle={(id) => setDocumentIds((cur) => toggleDocument(cur, id))} />
           {create.isError ? (
             <p className="rsh-error" role="alert">
-              {status === 409 ? ts('limit', { max: formatNumber(maxActive, loc) }) : status === 503 ? ts('unavailable') : t('error')}
+              {teen
+                ? ts('teenLocked')
+                : status === 409
+                  ? ts('limit', { max: formatNumber(maxActive, loc) })
+                  : status === 503
+                    ? ts('unavailable')
+                    : t('error')}
             </p>
           ) : null}
         </div>

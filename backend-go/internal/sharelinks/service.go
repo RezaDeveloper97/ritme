@@ -43,6 +43,8 @@ type Service struct {
 	coder *Coder
 	docs  DocumentSource
 	files FileLinker
+	// The teen sharing policy (policy.go, user decision 2026-10-12).
+	gate SharingGate
 }
 
 // NewService wires the service.
@@ -94,14 +96,15 @@ func stamp(t time.Time) sql.NullTime { return sql.NullTime{Time: t, Valid: true}
 
 // Link is one link's metadata (never the report, never the token).
 type Link struct {
-	ID           uint64
-	Sections     []string
-	From, To     civildate.Date
-	ExpiresAt    time.Time
-	RevokedAt    time.Time
-	Views        int
-	LastViewedAt time.Time
-	CreatedAt    time.Time
+	ID            uint64
+	Sections      []string
+	IncludeLosses bool // the owner's per-share loss opt-in (policy.go)
+	From, To      civildate.Date
+	ExpiresAt     time.Time
+	RevokedAt     time.Time
+	Views         int
+	LastViewedAt  time.Time
+	CreatedAt     time.Time
 }
 
 // Status is active | expired | revoked at now.
@@ -125,6 +128,7 @@ func (l Link) JSON(now time.Time) *jsonx.OrderedMap {
 		"id", l.ID,
 		"status", l.Status(now),
 		"sections", sections,
+		"include_losses", l.IncludeLosses,
 		"range", jsonx.Obj("from", l.From.String(), "to", l.To.String()),
 		"created_at", jsonx.ISO8601(l.CreatedAt),
 		"expires_at", jsonx.ISO8601(l.ExpiresAt),
@@ -149,7 +153,7 @@ func sectionsOf(raw json.RawMessage) []string {
 
 func linkOf(r store.ListShareLinksRow) Link {
 	return Link{
-		ID: r.ID, Sections: sectionsOf(r.Sections), From: r.RangeFrom, To: r.RangeTo,
+		ID: r.ID, Sections: sectionsOf(r.Sections), IncludeLosses: r.IncludeLosses, From: r.RangeFrom, To: r.RangeTo,
 		ExpiresAt: nullTime(r.ExpiresAt), RevokedAt: nullTime(r.RevokedAt), Views: int(r.ViewCount),
 		LastViewedAt: nullTime(r.LastViewedAt), CreatedAt: nullTime(r.CreatedAt),
 	}
@@ -162,10 +166,13 @@ type Created struct {
 }
 
 // Create builds the report of userID for req, seals it under a new token and stores the link (ErrLimit past
-// MaxActive live links).
+// MaxActive live links, ErrTeenNeedsParent for a teen without an active parent link).
 func (s *Service) Create(ctx context.Context, userID uint64, req healthrecord.ReportRequest, now time.Time,
 	locale, def string,
 ) (Created, error) {
+	if err := s.requireDoctorSharing(ctx, userID); err != nil {
+		return Created{}, err
+	}
 	// Unlocked fast path: a user at the cap gets the 409 before the report is built (re-checked under the lock below).
 	n, err := s.q.CountActiveShareLinks(ctx, store.CountActiveShareLinksParams{UserID: userID, Now: stamp(now)})
 	if err != nil {
@@ -217,7 +224,8 @@ func (s *Service) Create(ctx context.Context, userID uint64, req healthrecord.Re
 		}
 		id, err = q.InsertShareLink(ctx, store.InsertShareLinkParams{
 			UserID: userID, TokenHash: HashToken(token), Payload: sql.NullString{String: payload, Valid: true},
-			Sections: sections, RangeFrom: from, RangeTo: to, ExpiresAt: stamp(expires), Now: stamp(now),
+			Sections: sections, IncludeLosses: req.IncludeLosses, RangeFrom: from, RangeTo: to, ExpiresAt: stamp(expires),
+			Now: stamp(now),
 		})
 		if err != nil {
 			return fmt.Errorf("sharelinks: insert: %w", err)
@@ -229,7 +237,7 @@ func (s *Service) Create(ctx context.Context, userID uint64, req healthrecord.Re
 	}
 	return Created{
 		Link: Link{
-			ID: uint64(id), Sections: req.Sections, From: from, To: to, //nolint:gosec // auto-increment id
+			ID: uint64(id), Sections: req.Sections, IncludeLosses: req.IncludeLosses, From: from, To: to, //nolint:gosec // auto-increment id
 			ExpiresAt: expires, CreatedAt: now,
 		},
 		Token: token,

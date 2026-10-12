@@ -90,7 +90,7 @@ func (q *Queries) GetShareLinkByHash(ctx context.Context, tokenHash string) (Get
 }
 
 const getShareLinkMeta = `-- name: GetShareLinkMeta :one
-SELECT id, sections, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
+SELECT id, sections, include_losses, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
 FROM ` + "`" + `health_share_links` + "`" + `
 WHERE id = ? AND user_id = ? AND kind = 'report' LIMIT 1
 `
@@ -101,15 +101,16 @@ type GetShareLinkMetaParams struct {
 }
 
 type GetShareLinkMetaRow struct {
-	ID           uint64
-	Sections     json.RawMessage
-	RangeFrom    civildate.Date
-	RangeTo      civildate.Date
-	ExpiresAt    sql.NullTime
-	RevokedAt    sql.NullTime
-	ViewCount    uint32
-	LastViewedAt sql.NullTime
-	CreatedAt    sql.NullTime
+	ID            uint64
+	Sections      json.RawMessage
+	IncludeLosses bool
+	RangeFrom     civildate.Date
+	RangeTo       civildate.Date
+	ExpiresAt     sql.NullTime
+	RevokedAt     sql.NullTime
+	ViewCount     uint32
+	LastViewedAt  sql.NullTime
+	CreatedAt     sql.NullTime
 }
 
 func (q *Queries) GetShareLinkMeta(ctx context.Context, arg GetShareLinkMetaParams) (GetShareLinkMetaRow, error) {
@@ -118,6 +119,7 @@ func (q *Queries) GetShareLinkMeta(ctx context.Context, arg GetShareLinkMetaPara
 	err := row.Scan(
 		&i.ID,
 		&i.Sections,
+		&i.IncludeLosses,
 		&i.RangeFrom,
 		&i.RangeTo,
 		&i.ExpiresAt,
@@ -131,20 +133,22 @@ func (q *Queries) GetShareLinkMeta(ctx context.Context, arg GetShareLinkMetaPara
 
 const insertShareLink = `-- name: InsertShareLink :execlastid
 
-INSERT INTO ` + "`" + `health_share_links` + "`" + ` (user_id, token_hash, payload, sections, range_from, range_to, expires_at, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?,
-        ?, ?, ?)
+INSERT INTO ` + "`" + `health_share_links` + "`" + ` (user_id, token_hash, payload, sections, include_losses, range_from, range_to, expires_at,
+                                  created_at, updated_at)
+VALUES (?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?)
 `
 
 type InsertShareLinkParams struct {
-	UserID    uint64
-	TokenHash string
-	Payload   sql.NullString
-	Sections  json.RawMessage
-	RangeFrom civildate.Date
-	RangeTo   civildate.Date
-	ExpiresAt sql.NullTime
-	Now       sql.NullTime
+	UserID        uint64
+	TokenHash     string
+	Payload       sql.NullString
+	Sections      json.RawMessage
+	IncludeLosses bool
+	RangeFrom     civildate.Date
+	RangeTo       civildate.Date
+	ExpiresAt     sql.NullTime
+	Now           sql.NullTime
 }
 
 // Doctor report share links (bloom B-N6-04; internal/sharelinks, D-65). Owner queries are scoped by user_id in the
@@ -155,6 +159,7 @@ func (q *Queries) InsertShareLink(ctx context.Context, arg InsertShareLinkParams
 		arg.TokenHash,
 		arg.Payload,
 		arg.Sections,
+		arg.IncludeLosses,
 		arg.RangeFrom,
 		arg.RangeTo,
 		arg.ExpiresAt,
@@ -168,7 +173,7 @@ func (q *Queries) InsertShareLink(ctx context.Context, arg InsertShareLinkParams
 }
 
 const listShareLinks = `-- name: ListShareLinks :many
-SELECT id, sections, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
+SELECT id, sections, include_losses, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
 FROM ` + "`" + `health_share_links` + "`" + `
 WHERE user_id = ? AND kind = 'report' AND created_at >= ?
 ORDER BY created_at DESC, id DESC
@@ -181,15 +186,16 @@ type ListShareLinksParams struct {
 }
 
 type ListShareLinksRow struct {
-	ID           uint64
-	Sections     json.RawMessage
-	RangeFrom    civildate.Date
-	RangeTo      civildate.Date
-	ExpiresAt    sql.NullTime
-	RevokedAt    sql.NullTime
-	ViewCount    uint32
-	LastViewedAt sql.NullTime
-	CreatedAt    sql.NullTime
+	ID            uint64
+	Sections      json.RawMessage
+	IncludeLosses bool
+	RangeFrom     civildate.Date
+	RangeTo       civildate.Date
+	ExpiresAt     sql.NullTime
+	RevokedAt     sql.NullTime
+	ViewCount     uint32
+	LastViewedAt  sql.NullTime
+	CreatedAt     sql.NullTime
 }
 
 func (q *Queries) ListShareLinks(ctx context.Context, arg ListShareLinksParams) ([]ListShareLinksRow, error) {
@@ -204,6 +210,7 @@ func (q *Queries) ListShareLinks(ctx context.Context, arg ListShareLinksParams) 
 		if err := rows.Scan(
 			&i.ID,
 			&i.Sections,
+			&i.IncludeLosses,
 			&i.RangeFrom,
 			&i.RangeTo,
 			&i.ExpiresAt,

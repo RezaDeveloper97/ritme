@@ -8,6 +8,7 @@ import { isAuthenticated } from '@/shared/session';
 
 import { healthRecordKeys } from './keys';
 import { type ReportSection, sharedReportSchema, type SharedReport } from './report';
+import { type SharingPolicy, sharingPolicySchema } from './sharing-policy';
 
 /*
  * «چه کسی پرونده‌ات را می‌بیند؟» (CB-REC-03 API, D-71; CB-REC-05 screen): 24h doctor codes + QR, the companions'
@@ -24,6 +25,8 @@ export interface ShareCode {
   label: string | null;
   status: ShareCodeStatus;
   sections: string[];
+  /** The owner opted in to her pregnancy loss history for this code (user decision 2026-10-12). */
+  includeLosses: boolean;
   from: string;
   to: string;
   createdAt: string;
@@ -60,6 +63,8 @@ export interface RecordSharing {
   doctor: { available: boolean; ttlHours: number; activeCount: number; maxActive: number; items: ShareCode[] };
   family: FamilyAccess[];
   accessLog: ShareAccessEntry[];
+  /** Teen accounts share with a doctor only with an active parent link (user decision 2026-10-12). */
+  policy: SharingPolicy;
 }
 
 const statusSchema = z.enum(['active', 'expired', 'revoked']);
@@ -71,6 +76,7 @@ const shareCodeSchema = z
     label: z.string().nullable().catch(null),
     status: statusSchema,
     sections: z.array(z.string()).catch([]),
+    include_losses: z.boolean().catch(false),
     range: z.object({ from: z.string(), to: z.string() }),
     created_at: z.string(),
     expires_at: z.string(),
@@ -84,6 +90,7 @@ const shareCodeSchema = z
       label: c.label,
       status: c.status,
       sections: c.sections,
+      includeLosses: c.include_losses,
       from: c.range.from,
       to: c.range.to,
       createdAt: c.created_at,
@@ -153,6 +160,7 @@ export const recordSharingSchema = z
     }),
     family: z.array(familySchema).catch([]),
     access_log: z.array(accessSchema).catch([]),
+    policy: sharingPolicySchema,
   })
   .transform(
     (d): RecordSharing => ({
@@ -165,14 +173,19 @@ export const recordSharingSchema = z
       },
       family: d.family,
       accessLog: d.access_log,
+      policy: d.policy,
     }),
   );
 
-/** What the owner picks for a doctor code: a window, the sections and up to 10 of her own documents. */
+/**
+ * What the owner picks for a doctor code: a window, the sections, up to 10 of her own documents and — only when she
+ * switches it on — her pregnancy loss history (off by default).
+ */
 export interface ShareCodeInput {
   range: '3m' | '6m' | '1y';
   sections: ReportSection[];
   documentIds: number[];
+  includeLosses: boolean;
 }
 
 export const MAX_SHARE_DOCUMENTS = 10;
@@ -211,13 +224,17 @@ export function useRecordSharing() {
   });
 }
 
-/** POST /health-record/share-codes (201) — the code + QR come back once. 409 = 5 live codes, 503 = unavailable. */
+/**
+ * POST /health-record/share-codes (201) — the code + QR come back once. 409 = 5 live codes, 503 = unavailable,
+ * 403 `teen_share_needs_parent` = a teen without an active parent link.
+ */
 export function useCreateShareCode() {
   const queryClient = useQueryClient();
   return useMutation<CreatedShareCode, unknown, ShareCodeInput>({
     mutationFn: async (input) => {
       const body: Record<string, unknown> = { range: input.range, sections: input.sections };
       if (input.documentIds.length) body.document_ids = input.documentIds.slice(0, MAX_SHARE_DOCUMENTS);
+      if (input.includeLosses && input.sections.includes('pregnancies')) body.include_losses = true;
       const { data } = await apiClient.post<ApiEnvelope<unknown>>('/health-record/share-codes', body);
       return createdShareCodeSchema.parse(data.data);
     },

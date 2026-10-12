@@ -22,6 +22,7 @@
         "from": "start date",
         "sections": "sections",
         "sections.*": "section",
-        "question": "question"
+        "question": "question",
+        "include_losses": "include pregnancy loss history"
     }
 }

@@ -44,8 +44,9 @@ func notFound(locale string) error {
 	return httpx.Fail(fiber.StatusNotFound, T("messages.not_found", locale), "error_code", CodeNotFound)
 }
 
-// Store is POST /health-record/share-links {range, from?, sections[], question?} → 201 {link…, token}. The token is
-// returned only here; the client builds the public URL from it.
+// Store is POST /health-record/share-links {range, from?, sections[], question?, include_losses?} → 201 {link…,
+// token}. The token is returned only here; the client builds the public URL from it. 403 teen_share_needs_parent for a
+// teen without an active parent link.
 func (h *Handlers) Store(c fiber.Ctx) error {
 	userID, err := user(c)
 	if err != nil {
@@ -57,6 +58,9 @@ func (h *Handlers) Store(c fiber.Ctx) error {
 		return err
 	}
 	created, err := h.svc.Create(c, userID, req, now, locale, i18n.LanguagesOf(c).DefaultCode())
+	if errors.Is(err, ErrTeenNeedsParent) {
+		return teenNeedsParent(locale)
+	}
 	if errors.Is(err, ErrLimit) {
 		return httpx.Fail(fiber.StatusConflict,
 			Tp("messages.limit", map[string]string{"max": strconv.Itoa(MaxActive)}, locale), "error_code", CodeLimit)
@@ -70,7 +74,8 @@ func (h *Handlers) Store(c fiber.Ctx) error {
 	return httpx.Created(c, body, T("messages.created", locale))
 }
 
-// Index is GET /health-record/share-links: the owner's links of the last 30 days (metadata only), newest first.
+// Index is GET /health-record/share-links: the owner's links of the last 30 days (metadata only), newest first, and
+// her sharing policy (teen accounts: links only with an active parent link).
 func (h *Handlers) Index(c fiber.Ctx) error {
 	userID, err := user(c)
 	if err != nil {
@@ -78,6 +83,10 @@ func (h *Handlers) Index(c fiber.Ctx) error {
 	}
 	now := h.now(c)
 	links, err := h.svc.List(c, userID, now)
+	if err != nil {
+		return err
+	}
+	policy, err := h.svc.Policy(c, userID)
 	if err != nil {
 		return err
 	}
@@ -90,7 +99,7 @@ func (h *Handlers) Index(c fiber.Ctx) error {
 		items = append(items, l.JSON(now))
 	}
 	return httpx.OK(c, jsonx.Obj("items", items, "active_count", active, "max_active", MaxActive,
-		"ttl_days", int(LinkTTL/(24*time.Hour))))
+		"ttl_days", int(LinkTTL/(24*time.Hour)), "policy", policy.JSON()))
 }
 
 // Destroy is DELETE /health-record/share-links/{id}: revokes the link now (404 for an unknown or foreign id).

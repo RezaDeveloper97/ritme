@@ -24,6 +24,7 @@ import { safeFileUrl } from '../model/documents-lib';
 import { healthRecordKeys } from './keys';
 import { type MenopauseSection, menopauseSectionSchema } from './menopause-section';
 import { rawSection, SECTION_SCHEMAS, type SectionKey } from './schema';
+import { type SharingPolicy, sharingPolicySchema } from './sharing-policy';
 
 /*
  * The doctor report «گزارش برای پزشک» (bloom B-N6-04, D-65): the record built by the API for the *share* audience
@@ -57,6 +58,11 @@ export interface ReportSelection {
   from: string | null;
   sections: (ReportSection | ReportProviderSection)[];
   question: string;
+  /**
+   * «شامل سابقه‌ی از دست دادن بارداری» (user decision 2026-10-12): off unless the owner switches it on. When on, each
+   * loss is one neutral «ended» pregnancy row in the preview, the PDF and the link — never its type or date.
+   */
+  includeLosses?: boolean;
 }
 
 export interface ReportWindow {
@@ -182,14 +188,20 @@ export const sharedReportSchema = z
     documents: d.documents ?? [],
   }));
 
-function reportParams(sel: Pick<ReportSelection, 'range' | 'from' | 'sections'>): Record<string, string> {
+/** Whether the selection carries the loss opt-in (only meaningful with the pregnancies section). */
+export function wantsLosses(sel: Pick<ReportSelection, 'sections' | 'includeLosses'>): boolean {
+  return !!sel.includeLosses && sel.sections.includes('pregnancies');
+}
+
+function reportParams(sel: Pick<ReportSelection, 'range' | 'from' | 'sections' | 'includeLosses'>): Record<string, string> {
   const params: Record<string, string> = { range: sel.range, sections: sel.sections.join(',') };
   if (sel.range === 'custom' && sel.from) params.from = sel.from;
+  if (wantsLosses(sel)) params.include_losses = '1';
   return params;
 }
 
 /** GET /health-record/report — the share-audience report for the selection (not the question: it stays on the device). */
-export function useHealthReport(sel: Pick<ReportSelection, 'range' | 'from' | 'sections'>, enabled = true) {
+export function useHealthReport(sel: Pick<ReportSelection, 'range' | 'from' | 'sections' | 'includeLosses'>, enabled = true) {
   const params = reportParams(sel);
   return useQuery({
     queryKey: healthRecordKeys.report(params),
@@ -230,6 +242,7 @@ export interface ShareLink {
   id: number;
   status: ShareLinkStatus;
   sections: string[];
+  includeLosses: boolean;
   from: string;
   to: string;
   createdAt: string;
@@ -243,6 +256,8 @@ export interface ShareLinks {
   activeCount: number;
   maxActive: number;
   ttlDays: number;
+  /** Teen accounts make links only with an active parent link (user decision 2026-10-12). */
+  policy: SharingPolicy;
 }
 
 const shareLinkSchema = z
@@ -250,6 +265,7 @@ const shareLinkSchema = z
     id: z.number(),
     status: z.enum(['active', 'expired', 'revoked']),
     sections: z.array(z.string()),
+    include_losses: z.boolean().catch(false),
     range: z.object({ from: z.string(), to: z.string() }),
     created_at: z.string(),
     expires_at: z.string(),
@@ -261,6 +277,7 @@ const shareLinkSchema = z
       id: l.id,
       status: l.status,
       sections: l.sections,
+      includeLosses: l.include_losses,
       from: l.range.from,
       to: l.range.to,
       createdAt: l.created_at,
@@ -271,8 +288,22 @@ const shareLinkSchema = z
   );
 
 export const shareLinksSchema = z
-  .object({ items: z.array(shareLinkSchema), active_count: z.number(), max_active: z.number(), ttl_days: z.number() })
-  .transform((d): ShareLinks => ({ items: d.items, activeCount: d.active_count, maxActive: d.max_active, ttlDays: d.ttl_days }));
+  .object({
+    items: z.array(shareLinkSchema),
+    active_count: z.number(),
+    max_active: z.number(),
+    ttl_days: z.number(),
+    policy: sharingPolicySchema,
+  })
+  .transform(
+    (d): ShareLinks => ({
+      items: d.items,
+      activeCount: d.active_count,
+      maxActive: d.max_active,
+      ttlDays: d.ttl_days,
+      policy: d.policy,
+    }),
+  );
 
 export const createdShareLinkSchema = z
   .object({ token: z.string().regex(/^[A-Za-z0-9_-]{43}$/) })
@@ -295,7 +326,10 @@ export function useShareLinks(enabled = true) {
   });
 }
 
-/** POST /health-record/share-links — Plus (402 → paywall); the token comes back once. */
+/**
+ * POST /health-record/share-links — Plus (402 → paywall); the token comes back once. 403 `teen_share_needs_parent` =
+ * a teen without an active parent link (checked before the paywall).
+ */
 export function useCreateShareLink() {
   const queryClient = useQueryClient();
   return useMutation<CreatedShareLink, unknown, ReportSelection>({
@@ -304,6 +338,7 @@ export function useCreateShareLink() {
       if (sel.range === 'custom') body.from = sel.from;
       const q = sel.question.trim();
       if (q) body.question = q;
+      if (wantsLosses(sel)) body.include_losses = true;
       const { data } = await apiClient.post<ApiEnvelope<unknown>>('/health-record/share-links', body);
       return createdShareLinkSchema.parse(data.data);
     },

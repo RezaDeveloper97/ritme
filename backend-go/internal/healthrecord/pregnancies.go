@@ -33,9 +33,10 @@ type TrackedPregnancies struct {
 }
 
 // ForAudience drops what a third party must not see: for AudienceShare no loss-derived «ended» rows (CB-REC-06 M2,
-// privacy default — an «ended» pregnancy with no type or date still tells a reader that a loss happened).
-func (t TrackedPregnancies) ForAudience(aud Audience) TrackedPregnancies {
-	if aud != AudienceOwner {
+// privacy default — an «ended» pregnancy with no type or date still tells a reader that a loss happened) unless the
+// owner explicitly opted in for this one share (includeLosses, user decision 2026-10-12).
+func (t TrackedPregnancies) ForAudience(aud Audience, includeLosses bool) TrackedPregnancies {
+	if aud != AudienceOwner && !includeLosses {
 		t.LossCount = 0
 	}
 	return t

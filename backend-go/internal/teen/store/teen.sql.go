@@ -66,6 +66,21 @@ func (q *Queries) GetTeenProfile(ctx context.Context, userID uint64) (TeenProfil
 	return i, err
 }
 
+const hasActiveParentLink = `-- name: HasActiveParentLink :one
+SELECT EXISTS (
+  SELECT 1 FROM ` + "`" + `companions` + "`" + ` WHERE owner_id = ? AND type = 'parent' AND status = 'active'
+) AS linked
+`
+
+// Teen sharing policy (user decision 2026-10-12, CB-REC-06 L5): whether the owner has an accepted parent link
+// (companion type `parent`, CB-TEEN-01). A teen may make doctor codes / report links only with one.
+func (q *Queries) HasActiveParentLink(ctx context.Context, ownerID uint64) (bool, error) {
+	row := q.db.QueryRowContext(ctx, hasActiveParentLink, ownerID)
+	var linked bool
+	err := row.Scan(&linked)
+	return linked, err
+}
+
 const listTeenKitChecks = `-- name: ListTeenKitChecks :many
 SELECT item_code FROM ` + "`" + `teen_kit_checks` + "`" + ` WHERE user_id = ? ORDER BY id
 `

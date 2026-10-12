@@ -3,25 +3,25 @@
 -- by the token's SHA-256 or the code's HMAC only. `payload` / `code_payload` are ciphertext.
 
 -- name: InsertSummaryLink :execlastid
-INSERT INTO `health_share_links` (user_id, kind, label, token_hash, code_hash, code_payload, payload, sections, range_from,
-                                  range_to, expires_at, created_at, updated_at)
+INSERT INTO `health_share_links` (user_id, kind, label, token_hash, code_hash, code_payload, payload, sections,
+                                  include_losses, range_from, range_to, expires_at, created_at, updated_at)
 VALUES (sqlc.arg(user_id), 'summary', sqlc.arg(label), sqlc.arg(token_hash), sqlc.arg(code_hash), sqlc.arg(code_payload),
-        sqlc.arg(payload), sqlc.arg(sections), sqlc.arg(range_from), sqlc.arg(range_to), sqlc.arg(expires_at), sqlc.arg(now),
-        sqlc.arg(now));
+        sqlc.arg(payload), sqlc.arg(sections), sqlc.arg(include_losses), sqlc.arg(range_from), sqlc.arg(range_to),
+        sqlc.arg(expires_at), sqlc.arg(now), sqlc.arg(now));
 
 -- name: CountActiveSummaryLinks :one
 SELECT COUNT(*) FROM `health_share_links`
 WHERE user_id = sqlc.arg(user_id) AND kind = 'summary' AND revoked_at IS NULL AND expires_at > sqlc.arg(now);
 
 -- name: ListSummaryLinks :many
-SELECT id, label, sections, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
+SELECT id, label, sections, include_losses, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
 FROM `health_share_links`
 WHERE user_id = sqlc.arg(user_id) AND kind = 'summary' AND created_at >= sqlc.arg(since)
 ORDER BY created_at DESC, id DESC
 LIMIT 50;
 
 -- name: GetSummaryLinkMeta :one
-SELECT id, label, sections, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
+SELECT id, label, sections, include_losses, range_from, range_to, expires_at, revoked_at, view_count, last_viewed_at, created_at
 FROM `health_share_links`
 WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id) AND kind = 'summary' LIMIT 1;
 
@@ -31,7 +31,8 @@ SET revoked_at = COALESCE(revoked_at, sqlc.arg(now)), payload = NULL, code_paylo
 WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id) AND kind = 'summary';
 
 -- name: GetShareLinkForOpen :one
-SELECT id, user_id, kind, payload, expires_at, revoked_at
+-- include_losses: the public read re-applies the owner's per-share loss choice to the decrypted snapshot.
+SELECT id, user_id, kind, payload, include_losses, expires_at, revoked_at
 FROM `health_share_links`
 WHERE token_hash = sqlc.arg(token_hash) LIMIT 1;
 

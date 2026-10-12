@@ -17,6 +17,9 @@ type Querier interface {
 	// data: every statement is scoped by user_id in the statement itself. The life-stage mode is bloom's
 	// user_life_profiles.life_mode; what a parent may see goes through internal/companion (type parent, teen sections).
 	GetTeenProfile(ctx context.Context, userID uint64) (TeenProfile, error)
+	// Teen sharing policy (user decision 2026-10-12, CB-REC-06 L5): whether the owner has an accepted parent link
+	// (companion type `parent`, CB-TEEN-01). A teen may make doctor codes / report links only with one.
+	HasActiveParentLink(ctx context.Context, ownerID uint64) (bool, error)
 	ListTeenKitChecks(ctx context.Context, userID uint64) ([]string, error)
 	SetTeenParentNote(ctx context.Context, arg SetTeenParentNoteParams) (int64, error)
 	UncheckTeenKitItem(ctx context.Context, arg UncheckTeenKitItemParams) error

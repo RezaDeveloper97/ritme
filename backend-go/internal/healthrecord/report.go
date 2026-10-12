@@ -44,11 +44,15 @@ type ReportRequest struct {
 	From     civildate.Date // custom only
 	Sections []string       // section keys (ReportSections), screen order
 	Question string         // "" = none
+	// IncludeLosses is the owner's explicit per-share opt-in «شامل سابقه‌ی از دست دادن بارداری» (user decision
+	// 2026-10-12, CB-REC-06 M2): off by default, a share carries no loss-derived «ended» pregnancy row; on, each loss is
+	// one neutral «ended» row (never a type, date, mood or note).
+	IncludeLosses bool
 }
 
 // Options are the Build options of the request for today.
 func (r ReportRequest) Options(today civildate.Date, locale, def string) Options {
-	o := Options{Today: today, Locale: locale, DefaultLocale: def, Sections: r.Sections}
+	o := Options{Today: today, Locale: locale, DefaultLocale: def, Sections: r.Sections, IncludeLosses: r.IncludeLosses}
 	o.ListFrom, _ = r.Window(today) // checkups and labs inside the window only (B-N6-04b, L-2)
 	if r.Range == ReportRangeCustom {
 		o.From = r.From
@@ -74,11 +78,11 @@ func (r ReportRequest) WindowJSON(today civildate.Date) *jsonx.OrderedMap {
 	return jsonx.Obj("key", r.Range, "from", from.String(), "to", to.String(), "days", from.DiffDays(to)+1)
 }
 
-// ParseReportRequest validates {range, from?, sections[], question?} (the query of GET /health-record/report with
+// ParseReportRequest validates {range, from?, sections[], question?, include_losses?} (the query of GET /health-record/report with
 // sections comma-separated, or the body of POST /health-record/share-links). The 422 is the controller envelope.
 func ParseReportRequest(data phpval.Map, locale string, now time.Time, withQuestion bool) (ReportRequest, error) {
 	today := civildate.InTehran(now)
-	keys := []string{"range", "from", "sections"}
+	keys := []string{"range", "from", "sections", "include_losses"}
 	if withQuestion {
 		keys = append(keys, "question")
 	}
@@ -100,6 +104,7 @@ func ParseReportRequest(data phpval.Map, locale string, now time.Time, withQuest
 			"after_or_equal:"+civildate.FromTime(today.Midnight(time.UTC).AddDate(-MaxCustomYears, 0, 0)).String(), "before:today"),
 		validation.F("sections", "required", "array", "min:1", "max:"+strconv.Itoa(len(ReportSections()))),
 		validation.F("sections.*", "required", "string", validation.In(ReportSections()...)),
+		validation.F("include_losses", "nullable", "boolean"),
 	}
 	if withQuestion {
 		rules = append(rules, validation.F("question", "nullable", "string", "max:"+strconv.Itoa(MaxQuestionLen)))
@@ -108,6 +113,9 @@ func ParseReportRequest(data phpval.Map, locale string, now time.Time, withQuest
 		return ReportRequest{}, err
 	}
 	req := ReportRequest{Range: str(data, "range")}
+	if v, ok := data.Get("include_losses"); ok {
+		req.IncludeLosses = phpval.Truthy(v)
+	}
 	if req.Range == ReportRangeCustom {
 		if t, err := civildate.ParseLenient(str(data, "from"), now, civildate.Tehran); err == nil {
 			req.From = civildate.InTehran(t)

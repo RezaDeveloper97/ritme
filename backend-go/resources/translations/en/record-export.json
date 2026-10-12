@@ -32,7 +32,9 @@
     "checkupsSub": "Latest checkups and lab tests",
     "pregnancies": "Pregnancy and births",
     "pregnanciesSub": "Number of pregnancies and births",
-    "none": "Choose at least one section."
+    "none": "Choose at least one section.",
+    "losses": "Include pregnancy loss history",
+    "lossesSub": "Off unless you turn it on; shown only as an “ended pregnancy”, without its type or date."
   },
   "question": {
     "label": "Question for your doctor (optional)",
@@ -68,7 +70,9 @@
     "plusBody": "With Plus you can send your report to your doctor with a secure 7-day link.",
     "plusCta": "See Plus",
     "manage": "Manage links",
-    "shareText": "My health report (Ritme)"
+    "shareText": "My health report (Ritme)",
+    "teenTitle": "Report links in teen mode",
+    "teenCta": "Link a parent"
   },
   "paper": {
     "title": "Health report",
@@ -141,5 +145,6 @@
     "error": "The links could not be loaded.",
     "revokeError": "Not revoked. Try again.",
     "hint": "Links from the last 30 days. Revoking a link takes the report offline at once."
-  }
+  },
+  "teenLocked": "In teen mode, 7-day links work only once one of your parents is linked to your account."
 }

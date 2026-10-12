@@ -102,6 +102,9 @@ type Options struct {
 	// >= ListFrom): the doctor report sets it to its window start for every range (B-N6-04b). Zero = the newest
 	// Checkups / Labs rows whatever their date (the owner's record).
 	ListFrom civildate.Date
+	// IncludeLosses lets an AudienceShare build carry each pregnancy loss as one neutral «ended» row (the owner's
+	// per-share opt-in, ReportRequest.IncludeLosses). Off by default; the owner's own record always has them.
+	IncludeLosses bool
 }
 
 func (o Options) withDefaults() Options {
@@ -280,7 +283,7 @@ func (s *Service) Build(ctx context.Context, userID uint64, aud Audience, opts O
 		{SectionCycle, func() (Section, error) { return s.cycleSection(ctx, userID, f, opts) }},
 		{SectionVitals, func() (Section, error) { return s.vitalsSection(ctx, userID, opts) }},
 		{SectionPregnancies, func() (Section, error) {
-			sec, ts, err := s.pregnanciesSection(ctx, userID, f, aud)
+			sec, ts, err := s.pregnanciesSection(ctx, userID, f, aud, opts.IncludeLosses)
 			stamps = append(stamps, ts...)
 			return sec, err
 		}},
@@ -546,7 +549,7 @@ func (s *Service) vitalsSection(ctx context.Context, userID uint64, opts Options
 	return Section{Key: SectionVitals, Empty: !has, Data: data}, nil
 }
 
-func (s *Service) pregnanciesSection(ctx context.Context, userID uint64, f facts, aud Audience,
+func (s *Service) pregnanciesSection(ctx context.Context, userID uint64, f facts, aud Audience, includeLosses bool,
 ) (Section, []sql.NullTime, error) {
 	t := TrackedPregnancies{}
 	if p := f.pregnancy; p != nil && p.PregnancyMode {
@@ -561,15 +564,16 @@ func (s *Service) pregnanciesSection(ctx context.Context, userID uint64, f facts
 	}
 	t.Birth = birth
 	// CB-REC-06 (M2): loss-derived «ended» rows are the owner's only — a share (doctor report, summary, emergency
-	// card) carries none by default (an opt-in is a later product decision).
-	if aud == AudienceOwner {
+	// card) carries none unless the owner opted in for that one share (user decision 2026-10-12). Without the opt-in
+	// the count is not even queried.
+	if aud == AudienceOwner || includeLosses {
 		losses, err := s.q.CountRecordLosses(ctx, userID)
 		if err != nil {
 			return Section{}, nil, fmt.Errorf("healthrecord: losses: %w", err)
 		}
 		t.LossCount = int(losses)
 	}
-	t = t.ForAudience(aud)
+	t = t.ForAudience(aud, includeLosses)
 	if t.ManualRows, err = s.q.ListManualPregnancies(ctx, userID); err != nil {
 		return Section{}, nil, fmt.Errorf("healthrecord: pregnancies: %w", err)
 	}

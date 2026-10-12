@@ -4,12 +4,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/ritme/backend-go/internal/healthrecord/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 	"github.com/ritme/backend-go/internal/vitals"
 )
 
@@ -67,8 +69,8 @@ func TestTrackedPregnancies_ShareDropsLosses(t *testing.T) {
 		Birth:     &store.GetRecordBirthRow{BirthDate: d("2024-06-10"), BabyCount: 1},
 		LossCount: 2,
 	}
-	assert.Equal(t, 2, tr.ForAudience(AudienceOwner).LossCount, "owner keeps the neutral «ended» rows")
-	share := tr.ForAudience(AudienceShare)
+	assert.Equal(t, 2, tr.ForAudience(AudienceOwner, false).LossCount, "owner keeps the neutral «ended» rows")
+	share := tr.ForAudience(AudienceShare, false)
 	assert.Equal(t, 0, share.LossCount)
 	es := share.Entries()
 	require.Len(t, es, 1)
@@ -77,6 +79,46 @@ func TestTrackedPregnancies_ShareDropsLosses(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotContains(t, string(b), OutcomeEnded)
 	assert.Contains(t, string(b), `"pregnancies_count":1`)
+}
+
+// User decision 2026-10-12: a share carries the losses only with the owner's explicit per-share opt-in, and then only
+// as neutral «ended» rows (no date, no type).
+func TestTrackedPregnancies_ShareOptInKeepsNeutralLosses(t *testing.T) {
+	tr := TrackedPregnancies{LossCount: 2}
+	share := tr.ForAudience(AudienceShare, true)
+	assert.Equal(t, 2, share.LossCount)
+	es := share.Entries()
+	require.Len(t, es, 2)
+	for _, e := range es {
+		assert.Equal(t, OutcomeEnded, e.Outcome)
+		assert.True(t, e.Date.IsZero())
+	}
+}
+
+func TestParseReportRequest_IncludeLosses(t *testing.T) {
+	now := time.Date(2026, 10, 12, 10, 0, 0, 0, civildate.Tehran)
+	base := func() phpval.Map {
+		m := phpval.NewMap()
+		m.Set("range", "3m")
+		m.Set("sections", "basics,pregnancies")
+		return m
+	}
+	req, err := ParseReportRequest(base(), "en", now, false)
+	require.NoError(t, err)
+	assert.False(t, req.IncludeLosses, "off by default")
+	assert.False(t, req.Options(civildate.InTehran(now), "en", "fa").IncludeLosses)
+
+	on := base()
+	on.Set("include_losses", "1")
+	req, err = ParseReportRequest(on, "en", now, false)
+	require.NoError(t, err)
+	assert.True(t, req.IncludeLosses)
+	assert.True(t, req.Options(civildate.InTehran(now), "en", "fa").IncludeLosses)
+
+	bad := base()
+	bad.Set("include_losses", "maybe")
+	_, err = ParseReportRequest(bad, "en", now, false)
+	require.Error(t, err)
 }
 
 func TestVitalsSummary(t *testing.T) {

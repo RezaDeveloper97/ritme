@@ -2516,6 +2516,7 @@ CREATE TABLE `health_share_links` (
   `code_payload` text DEFAULT NULL,
   `payload` mediumtext DEFAULT NULL,
   `sections` json NOT NULL,
+  `include_losses` tinyint(1) NOT NULL DEFAULT 0,
   `range_from` date NOT NULL,
   `range_to` date NOT NULL,
   `expires_at` timestamp NULL DEFAULT NULL,

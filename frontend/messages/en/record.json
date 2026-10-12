@@ -327,7 +327,12 @@
       "desktop": "Computer",
       "unknown": "Unknown device"
     },
-    "historyNote": "Only views through a doctor code or link are listed; no IP address or exact device details are kept."
+    "historyNote": "Only views through a doctor code or link are listed; no IP address or exact device details are kept.",
+    "withLosses": "Includes pregnancy loss history",
+    "teenLocked": "In teen mode, doctor codes and 7-day links work only once one of your parents is linked to your account.",
+    "teenLinkParent": "Link a parent",
+    "teenEmergency": "Emergency card",
+    "teenEmergencyBody": "Always available, with or without a parent"
   },
   "shareCode": {
     "title": "Code for your doctor",
@@ -366,7 +371,9 @@
     "copy": "Copy code",
     "copied": "Copied",
     "done": "Done",
-    "documentsCount": "{count, plural, =0 {No documents} one {1 document included} other {{n} documents included}}"
+    "documentsCount": "{count, plural, =0 {No documents} one {1 document included} other {{n} documents included}}",
+    "losses": "Include pregnancy loss history",
+    "lossesHint": "Off unless you turn it on. When on, each one appears only as an “ended pregnancy”, without its type or date."
   },
   "emergency": {
     "title": "Emergency card",

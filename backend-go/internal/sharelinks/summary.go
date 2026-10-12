@@ -90,6 +90,7 @@ func (l Summary) JSON(now time.Time) *jsonx.OrderedMap {
 		"label", orNil(l.Label),
 		"status", l.Status(now),
 		"sections", sections,
+		"include_losses", l.IncludeLosses,
 		"range", jsonx.Obj("from", l.From.String(), "to", l.To.String()),
 		"created_at", jsonx.ISO8601(l.CreatedAt),
 		"expires_at", jsonx.ISO8601(l.ExpiresAt),
@@ -102,7 +103,7 @@ func (l Summary) JSON(now time.Time) *jsonx.OrderedMap {
 func summaryOf(r store.ListSummaryLinksRow) Summary {
 	return Summary{
 		Link: Link{
-			ID: r.ID, Sections: sectionsOf(r.Sections), From: r.RangeFrom, To: r.RangeTo,
+			ID: r.ID, Sections: sectionsOf(r.Sections), IncludeLosses: r.IncludeLosses, From: r.RangeFrom, To: r.RangeTo,
 			ExpiresAt: nullTime(r.ExpiresAt), RevokedAt: nullTime(r.RevokedAt), Views: int(r.ViewCount),
 			LastViewedAt: nullTime(r.LastViewedAt), CreatedAt: nullTime(r.CreatedAt),
 		},
@@ -126,12 +127,16 @@ func isDuplicate(err error) bool {
 
 // CreateSummary builds the share-audience record of userID (plus the picked documents), seals it under a new token,
 // wraps the token under a new code and stores the 24h link (ErrSummaryLimit past MaxActiveSummaries live summaries,
-// *ErrDocument for a foreign document id, ErrCodesDisabled without a pepper in production).
+// *ErrDocument for a foreign document id, ErrCodesDisabled without a pepper in production, ErrTeenNeedsParent for a
+// teen without an active parent link).
 func (s *Service) CreateSummary(ctx context.Context, userID uint64, req SummaryRequest, now time.Time,
 	locale, def string,
 ) (CreatedSummary, error) {
 	if s.coder == nil {
 		return CreatedSummary{}, ErrCodesDisabled
+	}
+	if err := s.requireDoctorSharing(ctx, userID); err != nil {
+		return CreatedSummary{}, err
 	}
 	// Unlocked fast path before the build; re-checked under the user row lock at insert.
 	n, err := s.q.CountActiveSummaryLinks(ctx, store.CountActiveSummaryLinksParams{UserID: userID, Now: stamp(now)})
@@ -215,8 +220,8 @@ func (s *Service) insertSummary(ctx context.Context, q store.Querier, userID uin
 			UserID: userID, Label: sql.NullString{String: req.Label, Valid: req.Label != ""}, TokenHash: HashToken(token),
 			CodeHash:    sql.NullString{String: s.coder.Hash(code), Valid: true},
 			CodePayload: sql.NullString{String: wrapped, Valid: true},
-			Payload:     sql.NullString{String: payload, Valid: true}, Sections: sections, RangeFrom: from, RangeTo: to,
-			ExpiresAt: stamp(expires), Now: stamp(now),
+			Payload:     sql.NullString{String: payload, Valid: true}, Sections: sections,
+			IncludeLosses: req.Report.IncludeLosses, RangeFrom: from, RangeTo: to, ExpiresAt: stamp(expires), Now: stamp(now),
 		})
 		if isDuplicate(err) { // a live or not yet deleted code with the same HMAC: draw again
 			continue
@@ -226,8 +231,8 @@ func (s *Service) insertSummary(ctx context.Context, q store.Querier, userID uin
 		}
 		return CreatedSummary{
 			Summary: Summary{
-				Link: Link{ID: uint64(id), Sections: req.Report.Sections, From: from, To: to, //nolint:gosec // auto-increment id
-					ExpiresAt: expires, CreatedAt: now},
+				Link: Link{ID: uint64(id), Sections: req.Report.Sections, IncludeLosses: req.Report.IncludeLosses, //nolint:gosec // auto-increment id
+					From: from, To: to, ExpiresAt: expires, CreatedAt: now},
 				Label: req.Label,
 			},
 			Token: token, Code: code,
@@ -343,6 +348,9 @@ func (s *Service) openPayload(ctx context.Context, r store.GetShareLinkForOpenRo
 	m, isMap := val.(phpval.Map)
 	if err != nil || !isMap {
 		return Opened{}, ErrNotFound
+	}
+	if !r.IncludeLosses { // the owner's per-share loss choice holds whatever the snapshot carries (policy.go)
+		stripLosses(m)
 	}
 	if r.Kind == KindSummary {
 		raw, _ := m.Get("documents")

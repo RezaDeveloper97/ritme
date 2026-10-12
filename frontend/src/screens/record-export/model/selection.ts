@@ -65,9 +65,12 @@ interface ReportDraft {
   from: string | null;
   groups: Record<ReportGroup, boolean>;
   question: string;
+  /** «شامل سابقه‌ی از دست دادن بارداری» — off by default, only offered with the pregnancies group. */
+  includeLosses: boolean;
   setRange: (range: ReportRange, from?: string | null) => void;
   toggle: (group: ReportGroup, on: boolean) => void;
   setQuestion: (q: string) => void;
+  setIncludeLosses: (on: boolean) => void;
   preselect: (group: ReportGroup) => void;
 }
 
@@ -76,15 +79,27 @@ export const useReportDraft = create<ReportDraft>((set) => ({
   from: null,
   groups: DEFAULT_GROUPS,
   question: '',
+  includeLosses: false,
   setRange: (range, from = null) => set({ range, from: range === 'custom' ? from : null }),
-  toggle: (group, on) => set((s) => ({ groups: { ...s.groups, [group]: on } })),
+  // turning the pregnancies group off also drops the loss opt-in, so it never comes back on by itself
+  toggle: (group, on) =>
+    set((s) => ({ groups: { ...s.groups, [group]: on }, includeLosses: group === 'pregnancies' && !on ? false : s.includeLosses })),
   setQuestion: (question) => set({ question }),
-  preselect: (group) => set({ groups: preselectedGroups(group) }),
+  setIncludeLosses: (includeLosses) => set({ includeLosses }),
+  preselect: (group) => set({ groups: preselectedGroups(group), includeLosses: false }),
 }));
 
-/** The draft as the API selection. */
-export function selectionOf(d: Pick<ReportDraft, 'range' | 'from' | 'groups' | 'question'>): ReportSelection {
-  return { range: d.range, from: d.from, sections: sectionsOf(d.groups), question: d.question };
+/** The draft as the API selection (the loss opt-in only travels with the pregnancies group). */
+export function selectionOf(
+  d: Pick<ReportDraft, 'range' | 'from' | 'groups' | 'question'> & Partial<Pick<ReportDraft, 'includeLosses'>>,
+): ReportSelection {
+  return {
+    range: d.range,
+    from: d.from,
+    sections: sectionsOf(d.groups),
+    question: d.question,
+    includeLosses: !!d.includeLosses && d.groups.pregnancies,
+  };
 }
 
 /** The public URL of a share token (the page renders the frozen report read-only). */

@@ -24,7 +24,13 @@
             "items": []
           },
           "family": [],
-          "access_log": []
+          "access_log": [],
+          "policy": {
+            "teen": false,
+            "parent_linked": false,
+            "doctor_sharing": true,
+            "emergency_card": true
+          }
         }
       }
     }

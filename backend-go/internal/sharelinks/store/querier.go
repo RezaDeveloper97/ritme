@@ -16,6 +16,7 @@ type Querier interface {
 	DeleteStaleShareLinks(ctx context.Context, before sql.NullTime) (int64, error)
 	GetShareLinkByCode(ctx context.Context, codeHash sql.NullString) (GetShareLinkByCodeRow, error)
 	GetShareLinkByHash(ctx context.Context, tokenHash string) (GetShareLinkByHashRow, error)
+	// include_losses: the public read re-applies the owner's per-share loss choice to the decrypted snapshot.
 	GetShareLinkForOpen(ctx context.Context, tokenHash string) (GetShareLinkForOpenRow, error)
 	GetShareLinkMeta(ctx context.Context, arg GetShareLinkMetaParams) (GetShareLinkMetaRow, error)
 	GetSummaryLinkMeta(ctx context.Context, arg GetSummaryLinkMetaParams) (GetSummaryLinkMetaRow, error)

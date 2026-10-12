@@ -89,6 +89,8 @@ function ShareContent({ data, onCreate }: { data: RecordSharing; onCreate: () =>
   const { doctor } = data;
   const active = doctor.items.filter((c) => c.status === 'active');
   const full = doctor.activeCount >= doctor.maxActive;
+  // User decision 2026-10-12: a teen without an active parent link gets the emergency card only (the server says 403).
+  const teenLocked = !data.policy.doctorSharing;
 
   return (
     <>
@@ -101,11 +103,14 @@ function ShareContent({ data, onCreate }: { data: RecordSharing; onCreate: () =>
             <p className="rsh-doctor-body">{t('codeBody')}</p>
           </div>
         </div>
-        <PrimaryButton onClick={onCreate} disabled={!doctor.available || full}>
+        <PrimaryButton onClick={onCreate} disabled={!doctor.available || full || teenLocked}>
           {t('create')}
         </PrimaryButton>
-        {!doctor.available ? <p className="rsh-hint">{t('unavailable')}</p> : null}
-        {doctor.available && full ? <p className="rsh-hint">{t('limit', { max: formatNumber(doctor.maxActive, loc) })}</p> : null}
+        {teenLocked ? <p className="rsh-hint">{t('teenLocked')}</p> : null}
+        {!teenLocked && !doctor.available ? <p className="rsh-hint">{t('unavailable')}</p> : null}
+        {!teenLocked && doctor.available && full ? (
+          <p className="rsh-hint">{t('limit', { max: formatNumber(doctor.maxActive, loc) })}</p>
+        ) : null}
         {active.length ? (
           <ul className="rsh-codes">
             {active.map((c) => (
@@ -125,7 +130,19 @@ function ShareContent({ data, onCreate }: { data: RecordSharing; onCreate: () =>
         ) : null}
       </Card>
       <ListGroup className="rsh-list">
-        <ListRow icon="share" title={t('linkTitle')} description={t('linkBody')} onClick={() => router.push('/record/export')} />
+        {teenLocked ? (
+          <>
+            <ListRow icon="users" title={t('teenLinkParent')} onClick={() => router.push('/teen/parent')} />
+            <ListRow
+              icon="qr"
+              title={t('teenEmergency')}
+              description={t('teenEmergencyBody')}
+              onClick={() => router.push('/record/emergency')}
+            />
+          </>
+        ) : (
+          <ListRow icon="share" title={t('linkTitle')} description={t('linkBody')} onClick={() => router.push('/record/export')} />
+        )}
       </ListGroup>
 
       <SectionTitle title={t('insurer')} />
@@ -173,6 +190,7 @@ function ActiveCodeRow({ code, busy, onRevoke }: { code: ShareCode; busy: boolea
       <div className="rsh-code-text">
         <p className="rsh-code-title">{t('activeCode', { time: formatTimeOfDay(expires, loc) })}</p>
         <p className="rsh-code-meta">{t('codeViews', { count: code.views, n: formatNumber(code.views, loc) })}</p>
+        {code.includeLosses ? <p className="rsh-code-meta">{t('withLosses')}</p> : null}
       </div>
       <button type="button" className="rsh-revoke" onClick={onRevoke} disabled={busy}>
         {t('revoke')}

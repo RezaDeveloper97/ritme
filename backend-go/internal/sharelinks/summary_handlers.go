@@ -98,8 +98,8 @@ func codeNotFound(locale string) error {
 	return httpx.Fail(fiber.StatusNotFound, T("messages.code_not_found", locale), "error_code", CodeCodeNotFound)
 }
 
-// parseSummary validates {label?, range?, from?, sections?, document_ids?}: range defaults to 6m and sections to every
-// record section; the 422 is the controller envelope.
+// parseSummary validates {label?, range?, from?, sections?, document_ids?, include_losses?}: range defaults to 6m,
+// sections to every record section and include_losses to false; the 422 is the controller envelope.
 func parseSummary(body phpval.Map, locale string, now time.Time) (SummaryRequest, error) {
 	data := phpval.NewMap()
 	for _, k := range []string{"label", "document_ids"} {
@@ -116,7 +116,7 @@ func parseSummary(body phpval.Map, locale string, now time.Time) (SummaryRequest
 		return SummaryRequest{}, failValidation(locale, v.ErrorBag())
 	}
 	report := phpval.NewMap()
-	for _, k := range []string{"range", "from", "sections"} {
+	for _, k := range []string{"range", "from", "sections", "include_losses"} {
 		if x, ok := body.Get(k); ok && x != nil {
 			report.Set(k, x)
 		}
@@ -157,8 +157,9 @@ func parseSummary(body phpval.Map, locale string, now time.Time) (SummaryRequest
 	return req, nil
 }
 
-// StoreCode is POST /health-record/share-codes {label?, range?, from?, sections?, document_ids?} → 201 {summary…,
-// code, token, qr_path, qr_url, documents_count}. The code and the token are returned only here.
+// StoreCode is POST /health-record/share-codes {label?, range?, from?, sections?, document_ids?, include_losses?} →
+// 201 {summary…, code, token, qr_path, qr_url, documents_count}. The code and the token are returned only here. 403
+// teen_share_needs_parent for a teen without an active parent link.
 func (h *SharingHandlers) StoreCode(c fiber.Ctx) error {
 	userID, err := user(c)
 	if err != nil {
@@ -184,6 +185,8 @@ func (h *SharingHandlers) StoreCode(c fiber.Ctx) error {
 			"error_code", CodeCodeLimit)
 	case errors.Is(err, ErrCodesDisabled):
 		return codeUnavailable(locale)
+	case errors.Is(err, ErrTeenNeedsParent):
+		return teenNeedsParent(locale)
 	case err != nil:
 		return err
 	}
@@ -275,8 +278,8 @@ func (h *SharingHandlers) Access(c fiber.Ctx) error {
 }
 
 // Overview is GET /health-record/sharing (nbl_Rec_Share «چه کسی پرونده‌ات را می‌بیند؟»): the doctor codes of the last
-// 30 days, the companion links with their record scope (meds & appointments only, documents always false) and the
-// latest access log entries.
+// 30 days, the companion links with their record scope (meds & appointments only, documents always false), the
+// latest access log entries and her sharing policy (teen accounts: doctor codes only with an active parent link).
 func (h *SharingHandlers) Overview(c fiber.Ctx) error {
 	userID, err := user(c)
 	if err != nil {
@@ -314,11 +317,16 @@ func (h *SharingHandlers) Overview(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	policy, err := h.svc.Policy(c, userID)
+	if err != nil {
+		return err
+	}
 	return httpx.OK(c, jsonx.Obj(
 		"doctor", jsonx.Obj("available", !h.svc.CodesDisabled(), "ttl_hours", int(SummaryTTL/time.Hour),
 			"active_count", active, "max_active", MaxActiveSummaries, "items", items),
 		"family", family,
 		"access_log", accessJSON(entries, now),
+		"policy", policy.JSON(),
 	))
 }
 

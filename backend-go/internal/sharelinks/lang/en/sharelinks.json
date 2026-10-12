@@ -12,7 +12,8 @@
         "code_not_found": "This code or link is not valid",
         "code_limit": "You can have at most :max active doctor codes. Revoke one first.",
         "code_unavailable": "Doctor codes are not available right now",
-        "too_many_attempts": "Too many attempts. Please try again later."
+        "too_many_attempts": "Too many attempts. Please try again later.",
+        "teen_needs_parent": "In teen mode, doctor codes and report links need an active parent link. Your emergency card is always available."
     },
     "attributes": {
         "label": "recipient",

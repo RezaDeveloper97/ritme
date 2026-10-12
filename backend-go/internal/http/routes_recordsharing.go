@@ -21,6 +21,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
 	"github.com/ritme/backend-go/internal/sharelinks"
 	sharelinkstore "github.com/ritme/backend-go/internal/sharelinks/store"
+	"github.com/ritme/backend-go/internal/teen"
 	"github.com/ritme/backend-go/resources/translations"
 )
 
@@ -104,6 +105,15 @@ func (f companionFamily) Family(ctx context.Context, ownerID uint64) ([]sharelin
 	return out, nil
 }
 
+// teenSharing adapts teen.Policy.Sharing to sharelinks.SharingGate (user decision 2026-10-12: a teen shares with a
+// doctor only while she has an active parent link; the emergency card is never gated).
+type teenSharing struct{ p *teen.Policy }
+
+func (t teenSharing) Sharing(ctx context.Context, userID uint64) (sharelinks.SharingPolicy, error) {
+	isTeen, linked, err := t.p.Sharing(ctx, userID)
+	return sharelinks.SharingPolicy{Teen: isTeen, ParentLinked: linked}, err
+}
+
 // Record sharing «اشتراک‌گذاری پرونده» (canvas-build CB-REC-03, deviations.md D-71), Go only, on top of bloom's share
 // links (routes_sharelinks.go, D-65): the 24h doctor summary with a short code + QR (Go-only route group
 // /health-record/share-codes, not Plus-gated), the sharing overview (doctor codes, companion scope = meds &
@@ -129,7 +139,8 @@ func init() {
 		}
 		svc := sharelinks.NewService(sharelinkstore.New(d.DB), reports, d.Logger).WithDB(d.DB).
 			WithCodes([]byte(d.Config.Sharing.CodePepper), pepperMissing).
-			WithDocuments(sharelinks.NewRecordDocuments(d.DB), fileSvc)
+			WithDocuments(sharelinks.NewRecordDocuments(d.DB), fileSvc).
+			WithSharingGate(teenSharing{p: teen.NewPolicy(d.DB)})
 		family := companionFamily{svc: companion.NewService(d.DB, clock.Real{}, companion.Options{
 			CodePepper: []byte(d.Config.Companion.CodePepper), // unused by RecordScope (reads only)
 		})}

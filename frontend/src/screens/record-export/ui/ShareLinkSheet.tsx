@@ -3,9 +3,9 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
-import { type CreatedShareLink, type ReportSelection, useCreateShareLink } from '@/entities/health-record';
+import { type CreatedShareLink, type ReportSelection, TEEN_SHARE_NEEDS_PARENT, useCreateShareLink } from '@/entities/health-record';
 import { usePlusLocked } from '@/entities/plus';
-import { ApiError } from '@/shared/api';
+import { ApiError, getApiErrorCode } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
@@ -29,6 +29,7 @@ const PDF_SHARE = 'plus.pdf_share';
 export function ShareLinkSheet({ open, onClose, selection }: ShareLinkSheetProps) {
   const t = useTranslations('recordExport.shareSheet');
   const tp = useTranslations('recordExport.preview');
+  const tr = useTranslations('recordExport');
   const loc = useLocale() as Locale;
   const router = useRouter();
   const locked = usePlusLocked(PDF_SHARE);
@@ -52,7 +53,9 @@ export function ShareLinkSheet({ open, onClose, selection }: ShareLinkSheetProps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, locked]);
 
-  const denied = locked || plusDenialOf(create.error) !== null;
+  // A teen without an active parent link (403, checked before the paywall): explain, never pitch Plus.
+  const teen = getApiErrorCode(create.error) === TEEN_SHARE_NEEDS_PARENT;
+  const denied = !teen && (locked || plusDenialOf(create.error) !== null);
   const limit = create.error instanceof ApiError && create.error.response?.status === 409;
   const url = link && typeof window !== 'undefined' ? sharedReportUrl(window.location.origin, loc, link.token) : '';
 
@@ -73,7 +76,20 @@ export function ShareLinkSheet({ open, onClose, selection }: ShareLinkSheetProps
   };
 
   let body;
-  if (denied) {
+  if (teen) {
+    body = (
+      <EmptyState
+        icon="shield"
+        title={t('teenTitle')}
+        body={tr('teenLocked')}
+        action={
+          <PrimaryButton block={false} onClick={() => router.push('/teen/parent')}>
+            {t('teenCta')}
+          </PrimaryButton>
+        }
+      />
+    );
+  } else if (denied) {
     body = (
       <EmptyState
         icon="crown"

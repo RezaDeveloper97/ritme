@@ -74,6 +74,7 @@ export {
   useRevokeShareLink,
   useSharedReport,
   useShareLinks,
+  wantsLosses,
   type CreatedShareLink,
   type HealthReport,
   type ReportRange,
@@ -193,3 +194,10 @@ export {
   type ShareCodeInput,
   type ShareCodeStatus,
 } from './api/sharing';
+// User decision 2026-10-12: teen accounts share with a doctor only with an active parent link.
+export {
+  OPEN_SHARING_POLICY,
+  TEEN_SHARE_NEEDS_PARENT,
+  sharingPolicySchema,
+  type SharingPolicy,
+} from './api/sharing-policy';
