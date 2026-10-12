@@ -934,6 +934,7 @@
           "health_cert": "Health certificate"
         },
         "noPhotos": "No photos.",
+        "photosPendingNote": "Private until you approve: these links expire in 5 minutes (reload the page to renew). Approving publishes the photos; declining deletes them.",
         "decision": "Decision",
         "note": "Note for the applicant",
         "noteHint": "Required to ask for more information or to decline.",

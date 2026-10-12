@@ -162,7 +162,7 @@ export const useJoinApplications = () =>
     staleTime: 0,
   });
 
-/** GET /applications/:id — the full application (photos public, documents with signed links). */
+/** GET /applications/:id — the full application (documents and not-yet-approved photos with 5-minute signed links). */
 export const useJoinApplication = (id: number | null) =>
   useQuery({
     queryKey: joinKeys.one(id ?? 0),

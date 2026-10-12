@@ -244,8 +244,9 @@ func (s *Service) put(ctx context.Context, userID uint64, purpose string, data [
 	return s.files.Put(ctx, userID, purpose, data, now)
 }
 
-// AddPhoto stores data as a place_photo of the user and appends it to the application (MaxPhotos). Errors from
-// files.Service.Put are returned as they are (the handler maps them like POST /files).
+// AddPhoto stores data as a private place_photo_pending file of the user (it turns public only when the team approves
+// the application) and appends it to the application (MaxPhotos). Errors from files.Service.Put are returned as they
+// are (the handler maps them like POST /files).
 func (s *Service) AddPhoto(ctx context.Context, userID, id uint64, data []byte, now time.Time) (files.File, error) {
 	a, err := s.get(ctx, userID, id)
 	if err != nil {
@@ -257,7 +258,7 @@ func (s *Service) AddPhoto(ctx context.Context, userID, id uint64, data []byte, 
 	if len(a.Draft.PhotoIDs) >= MaxPhotos {
 		return files.File{}, ErrPhotoLimit
 	}
-	f, err := s.put(ctx, userID, files.PurposePlacePhoto, data, now)
+	f, err := s.put(ctx, userID, files.PurposePlacePhotoPending, data, now)
 	if err != nil {
 		return files.File{}, err
 	}
@@ -363,7 +364,7 @@ func (s *Service) LiveFiles(ctx context.Context, userID uint64, d Draft) (photos
 	photos = []files.File{}
 	for _, fid := range d.PhotoIDs {
 		f, err := s.files.Get(ctx, userID, fid)
-		if errors.Is(err, files.ErrNotFound) || (err == nil && f.Purpose != files.PurposePlacePhoto) {
+		if errors.Is(err, files.ErrNotFound) || (err == nil && !IsPhotoPurpose(f.Purpose)) {
 			continue
 		}
 		if err != nil {
@@ -389,7 +390,13 @@ func (s *Service) LiveFiles(ctx context.Context, userID uint64, d Draft) (photos
 	return photos, docs, nil
 }
 
-// Link is a fresh link to f (public for photos, 5-minute signed for documents).
+// IsPhotoPurpose reports whether an application photo id may point at a file of purpose: pending (private, before
+// approval) or place_photo (public: promoted on approval, or uploaded before the 2026-10-12 decision).
+func IsPhotoPurpose(purpose string) bool {
+	return purpose == files.PurposePlacePhotoPending || purpose == files.PurposePlacePhoto
+}
+
+// Link is a fresh link to f (5-minute signed for documents and pending photos, public once a photo is approved).
 func (s *Service) Link(f files.File, now time.Time) (files.Link, error) {
 	return s.files.Link(f, now, 0)
 }

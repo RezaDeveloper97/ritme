@@ -15330,7 +15330,7 @@ paths:
     get:
       tags: [CityServiceApplications]
       summary: One of my applications
-      description: Go only (CB-DIR-04). Owner only — another account's id is the uniform 404. Photos carry their public URL, documents a 5-minute signed link (private files, never public).
+      description: Go only (CB-DIR-04). Owner only — another account's id is the uniform 404. Photos carry a 5-minute signed link while the application is under review (private `place_photo_pending` files) and their public URL once the team approved it; documents always a 5-minute signed link (private files, never public).
       operationId: showCityServiceApplication
       security:
         - {bearerAuth: []}
@@ -15421,8 +15421,9 @@ paths:
       summary: Add a place photo
       description: |
         Go only (CB-DIR-04). Multipart `file` (JPEG / PNG / WebP ≤ 5 MB, sniffed from the bytes) stored through the
-        generic file storage as purpose `place_photo` (public, re-encoded WebP without EXIF / GPS). At most 20 per
-        application; allowed while draft / needs_info and also while submitted / in_review (JoinDone «عکس‌های بیشتر»).
+        generic file storage as purpose `place_photo_pending` (private, re-encoded WebP without EXIF / GPS; the answer
+        carries a 5-minute signed link). The photos become public `place_photo` files only when the team approves the
+        application (new ids; the application keeps them) and are deleted on rejection. At most 20 per application; allowed while draft / needs_info and also while submitted / in_review (JoinDone «عکس‌های بیشتر»).
         Per-user upload limit 60 / hour.
       operationId: addCityServiceApplicationPhoto
       security:
@@ -19942,8 +19943,8 @@ paths:
       summary: Upload a file (record / claim document)
       description: |
         Generic encrypted file storage (CB-CORE-05, Go only, D-59). Multipart: `purpose` (record_document |
-        claim_document; place_photo / place_licence open with the directory tasks, product_image is written by the
-        Ritme team only — all three are 422 here) and one `file`. The type is sniffed from the bytes (the name and
+        claim_document; place_photo / place_photo_pending / place_licence are written by the directory application
+        routes, product_image by the Ritme team only — all four are 422 here) and one `file`. The type is sniffed from the bytes (the name and
         Content-Type are ignored): JPEG / PNG (≤ 8-bit) / WebP photos up to 20 MP, or a PDF starting with `%PDF-` and
         ending with `%%EOF`. Photos are re-encoded to WebP (EXIF / GPS dropped), PDFs stored as sent; everything AES-256-GCM encrypted in private storage (FILE_KEY, else LAB_FILE_KEY; without
         a key outside local / testing / contract → 503 `storage_unavailable`). Size and per-owner quotas per purpose
@@ -25073,7 +25074,7 @@ components:
         id: {type: integer}
         mime: {type: string}
         size_bytes: {type: integer}
-        url: {type: string, description: "public URL (photos) or a signed, expiring download link (documents)"}
+        url: {type: string, description: "a signed, expiring download link (documents, and photos until the application is approved) or the public URL (approved photos)"}
         url_expires_at: {type: [string, 'null'], format: date-time}
     CityServiceApplicationHours:
       type: object
@@ -26635,7 +26636,7 @@ components:
       required: [id, purpose, visibility, mime, size_bytes, sha256, url, url_expires_at, created_at]
       properties:
         id: {type: integer}
-        purpose: {type: string, enum: [record_document, claim_document, telemed_attachment, place_photo, place_licence, product_image]}
+        purpose: {type: string, enum: [record_document, claim_document, telemed_attachment, place_photo, place_photo_pending, place_licence, product_image]}
         visibility: {type: string, enum: [private, public]}
         mime: {type: string, enum: [image/webp, application/pdf]}
         size_bytes: {type: integer, description: Stored size (after photo re-encoding)}

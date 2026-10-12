@@ -14,7 +14,8 @@
 //
 // Health data: blobs are encrypted at rest and user-scoped; nothing here logs a file's content, name, hash or owner.
 // A public purpose (place_photo, product_image) only ever holds re-encoded images; a private file is never served
-// by the public route, whatever its id.
+// by the public route, whatever its id. A private file becomes public only by Service.Promote (an application photo
+// the team approved), which re-seals it as a new file of the public purpose.
 //
 // The vault part has no dependency on the rest of the API besides the generated store, so account deletion
 // (internal/profile, the admin user delete) can call RemoveUser without an import cycle.
@@ -43,8 +44,12 @@ const (
 	PurposeRecordDocument = "record_document"
 	PurposeClaimDocument  = "claim_document"
 	PurposePlacePhoto     = "place_photo"
-	PurposePlaceLicence   = "place_licence"
-	PurposeProductImage   = "product_image"
+	// PurposePlacePhotoPending: a business application's photo while the team reviews it (decision 2026-10-12):
+	// private, owner + admin signed links only; promoted to place_photo on approval (Service.Promote), deleted on
+	// rejection.
+	PurposePlacePhotoPending = "place_photo_pending"
+	PurposePlaceLicence      = "place_licence"
+	PurposeProductImage      = "product_image"
 	// PurposeTelemedAttachment: a report the user attaches to a doctor chat message (bloom B-N7-04); the booked
 	// doctor reads it through a signed link issued by internal/telemed after its booking check.
 	PurposeTelemedAttachment = "telemed_attachment"
@@ -126,6 +131,8 @@ var Registry = map[string]Purpose{
 	PurposePlaceLicence: purpose(Purpose{Name: PurposePlaceLicence,
 		Kinds: []string{KindImage, KindPDF}, MaxBytes: 10 * mb, QuotaFiles: 20, QuotaBytes: 100 * mb}),
 	PurposePlacePhoto: purpose(Purpose{Name: PurposePlacePhoto, Public: true,
+		Kinds: []string{KindImage}, MaxBytes: 5 * mb, QuotaFiles: 30, QuotaBytes: 60 * mb}),
+	PurposePlacePhotoPending: purpose(Purpose{Name: PurposePlacePhotoPending,
 		Kinds: []string{KindImage}, MaxBytes: 5 * mb, QuotaFiles: 30, QuotaBytes: 60 * mb}),
 	PurposeProductImage: purpose(Purpose{Name: PurposeProductImage, Public: true,
 		Kinds: []string{KindImage}, MaxBytes: 5 * mb, QuotaFiles: 20000, QuotaBytes: 10 << 30}),

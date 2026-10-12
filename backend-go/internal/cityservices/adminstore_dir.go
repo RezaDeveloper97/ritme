@@ -503,6 +503,9 @@ type Approval struct {
 	CategoryID uint64
 	Phone      sql.NullString // the venue's public phone (never copied from the applicant's contact phone)
 	Note       sql.NullString
+	// Photos turns the application's photo file ids into the listing's public ones inside the approve transaction
+	// (the private pending photos are promoted, decision 2026-10-12); nil keeps the ids as they are.
+	Photos func(ctx context.Context, tx *sql.Tx, owner uint64, ids []uint64) ([]uint64, error)
 }
 
 func offerInput(o join.Offer, i int) ServiceInput {
@@ -531,7 +534,8 @@ func offerInput(o join.Offer, i int) ServiceInput {
 // ApproveApplication publishes a submitted / in-review application as a listing in one transaction: the row is locked,
 // a new published + verified listing is created (or the one it already points at is updated, its old services
 // deactivated) with the place, photos, weekly hours and services of the application, and the application moves to
-// approved. ErrMoved when it is no longer approvable. Returns the listing id.
+// approved. The photos go through in.Photos first (pending → public); the application keeps the resulting ids.
+// ErrMoved when it is no longer approvable. Returns the listing id.
 func (s *Store) ApproveApplication(ctx context.Context, id uint64, in Approval, now time.Time) (uint64, error) {
 	var listingID uint64
 	err := s.inTx(ctx, func(tx *sql.Tx) error {
@@ -551,8 +555,18 @@ func (s *Store) ApproveApplication(ctx context.Context, id uint64, in Approval, 
 		if mode == "" {
 			mode = ModeRequest
 		}
+		photos := a.Draft.PhotoIDs
+		if in.Photos != nil && len(photos) > 0 {
+			if photos, err = in.Photos(ctx, tx, row.UserID, photos); err != nil {
+				return err
+			}
+			if err := q.SetApplicationPhotos(ctx, joinstore.SetApplicationPhotosParams{PhotoFileIds: jsonList(photos),
+				UpdatedAt: sql.NullTime{Time: now, Valid: true}, ID: id, UserID: row.UserID}); err != nil {
+				return fmt.Errorf("cityservices: application photos: %w", err)
+			}
+		}
 		args := []any{in.CategoryID, a.Draft.CityID, row.BusinessName.String, row.District, row.Address, in.Phone, mode,
-			row.Lat, row.Lng, row.About, row.AgeRanges, row.Amenities, row.WeeklyHours, jsonList(a.Draft.PhotoIDs), now}
+			row.Lat, row.Lng, row.About, row.AgeRanges, row.Amenities, row.WeeklyHours, jsonList(photos), now}
 		if row.ListingID.Valid {
 			listingID = uint64(row.ListingID.Int64) //nolint:gosec // G115: ids are positive
 			if _, err := tx.ExecContext(ctx, `UPDATE city_service_listings SET category_id = ?, city_id = ?, name = ?,

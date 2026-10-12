@@ -252,6 +252,51 @@ func (s *Service) RemoveBlob(f File) error {
 	return s.vault.Remove(p, f.Owner, f.Path)
 }
 
+// Promote moves owner's private file f to purpose to (an application photo the team approved → public place_photo)
+// inside the caller's transaction tx: f's row is deleted (ErrNotFound when it is already gone — a concurrent delete),
+// its already re-encoded bytes are sealed again as a new blob of to (the additional data binds the purpose) and a new
+// row is inserted. There is no quota check: the bytes were counted under f's purpose and the move is the team's
+// decision. After tx commits the caller removes f's blob (RemoveBlob(f)); when tx rolls back it removes the new one.
+// Only images move to a public purpose.
+func (s *Service) Promote(ctx context.Context, tx *sql.Tx, f File, to string, now time.Time) (File, error) {
+	from, okFrom := s.Purpose(f.Purpose)
+	p, ok := s.Purpose(to)
+	if !okFrom || !ok || f.Owner == 0 || !ownerOK(p, f.Owner) || (p.Public && !strings.HasPrefix(f.MIME, "image/")) {
+		return File{}, ErrPurpose
+	}
+	if s.Disabled() {
+		return File{}, ErrDisabled
+	}
+	q := s.q.WithTx(tx)
+	n, err := q.DeleteOwnedFile(ctx, store.DeleteOwnedFileParams{ID: f.ID, UserID: ownerArg(f.Owner)})
+	if err != nil {
+		return File{}, fmt.Errorf("files: promote: %w", err)
+	}
+	if n == 0 {
+		return File{}, ErrNotFound
+	}
+	data, err := s.vault.Get(from, f.Owner, f.Path)
+	if err != nil {
+		return File{}, err
+	}
+	defer clear(data)
+	rel, err := s.vault.Put(p, f.Owner, data)
+	if err != nil {
+		return File{}, err
+	}
+	out := File{Owner: f.Owner, Purpose: p.Name, Visibility: p.Visibility(), MIME: f.MIME, Size: f.Size, SHA256: f.SHA256,
+		Path: rel, CreatedAt: now}
+	id, err := q.CreateFile(ctx, store.CreateFileParams{UserID: ownerArg(out.Owner), Purpose: out.Purpose,
+		Visibility: out.Visibility, Mime: out.MIME, SizeBytes: uint32(out.Size), Sha256: out.SHA256, Path: rel, //nolint:gosec // G115: ≤ MaxBytes
+		Now: sql.NullTime{Time: now, Valid: true}})
+	if err != nil {
+		_ = s.vault.Remove(p, out.Owner, rel)
+		return File{}, fmt.Errorf("files: promote: %w", err)
+	}
+	out.ID = uint64(id) //nolint:gosec // G115: auto-increment id
+	return out, nil
+}
+
 // Link returns how a client fetches f at now: the public URL for a public file, else a signed URL valid for ttl
 // (DefaultLinkTTL when ≤ 0, at most MaxLinkTTL).
 func (s *Service) Link(f File, now time.Time, ttl time.Duration) (Link, error) {

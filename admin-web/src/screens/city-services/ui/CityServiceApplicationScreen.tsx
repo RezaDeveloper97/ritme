@@ -148,14 +148,17 @@ function ApplicationView({ app, options }: { app: Application; options: CityServ
         {(app.photos ?? []).length === 0 ? (
           <p className="panel-note">{t('noPhotos')}</p>
         ) : (
-          <ul className="flex flex-wrap gap-3" aria-label={t('photos')}>
-            {(app.photos ?? []).map((p) => (
-              <li key={p.id}>
-                {/* eslint-disable-next-line @next/next/no-img-element -- API-hosted public file */}
-                <img src={p.url} alt="" className="thumb" loading="lazy" />
-              </li>
-            ))}
-          </ul>
+          <>
+            {(app.photos ?? []).some((p) => p.pending) ? <p className="panel-note">{t('photosPendingNote')}</p> : null}
+            <ul className="flex flex-wrap gap-3" aria-label={t('photos')}>
+              {(app.photos ?? []).map((p) => (
+                <li key={p.id}>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- API-hosted file (signed link while pending) */}
+                  <img src={p.url} alt="" className="thumb" loading="lazy" />
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </Panel>
 

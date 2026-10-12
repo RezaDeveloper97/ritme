@@ -127,7 +127,7 @@ All under `/api/v1/city-services/applications`, auth:api, owner-only (a foreign 
 | `GET /{id}` · `DELETE /{id}` | full application (photos with public URLs, documents with 5-min signed links) · delete a draft + its files |
 | `GET /{id}/status` | status + JoinDone timeline `submitted → documents_review → expert_contact → published` |
 | `PUT /{id}/steps/{1..4}` | auto-save one step (whole step form; lenient — completeness only on submit) |
-| `POST /{id}/photos` · `DELETE /{id}/photos/{fileId}` | multipart `file` → `files` purpose `place_photo` (public, re-encoded WebP); ≤ 20; adding also while submitted / in_review |
+| `POST /{id}/photos` · `DELETE /{id}/photos/{fileId}` | multipart `file` → `files` purpose `place_photo_pending` (private, re-encoded WebP, 5-minute signed links for the owner and the review team); ≤ 20; adding also while submitted / in_review (still pending). Approval promotes each to a public `place_photo` (new id, used by the listing and kept on the application); rejection deletes them (decision 2026-10-12) |
 | `PUT /{id}/documents/{slot}` · `DELETE …` | slots `licence`, `instructor_cert`, `health_cert`; multipart `file` → purpose `place_licence` (**private**, encrypted, signed links only) |
 | `POST /{id}/submit` | 422 `application_incomplete` with per-field errors, else `submitted` + tracking code + SMS (fake provider) |
 

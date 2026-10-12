@@ -29,7 +29,7 @@ import (
 //	DELETE /api/v1/city-services/applications/{id}                  delete a draft (+ its files)
 //	GET    /api/v1/city-services/applications/{id}/status           status + JoinDone timeline
 //	PUT    /api/v1/city-services/applications/{id}/steps/{step}     auto-save step 1..4
-//	POST   /api/v1/city-services/applications/{id}/photos           multipart `file` → place photo (public)
+//	POST   /api/v1/city-services/applications/{id}/photos           multipart `file` → private photo (public on approval)
 //	DELETE /api/v1/city-services/applications/{id}/photos/{fileId}
 //	PUT    /api/v1/city-services/applications/{id}/documents/{slot} multipart `file` → private document
 //	DELETE /api/v1/city-services/applications/{id}/documents/{slot}
@@ -468,7 +468,7 @@ func (h *Handlers) AddPhoto(c fiber.Ctx) error {
 		return err
 	}
 	defer clear(data)
-	p, _ := h.svc.files.Purpose(files.PurposePlacePhoto)
+	p, _ := h.svc.files.Purpose(files.PurposePlacePhotoPending)
 	f, err := h.svc.AddPhoto(c, userID, id, data, now)
 	if err != nil {
 		return mapErr(err, p, locale)

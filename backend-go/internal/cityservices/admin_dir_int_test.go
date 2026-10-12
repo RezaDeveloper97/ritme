@@ -10,6 +10,7 @@ import (
 	"image/color"
 	"image/png"
 	"log/slog"
+	"net/url"
 	"strings"
 	"sync"
 	"testing"
@@ -77,6 +78,14 @@ func pngBytes(t *testing.T, seed uint8) []byte {
 	return b.Bytes()
 }
 
+// query is one query parameter of a (signed) link.
+func query(t *testing.T, link, key string) string {
+	t.Helper()
+	u, err := url.Parse(link)
+	require.NoError(t, err)
+	return u.Query().Get(key)
+}
+
 // seedApplication stores a submitted application of a new user with nPhotos photos and a licence; returns ids.
 func (e *dirEnv) seedApplication(t *testing.T, cityID int64, nPhotos int, mode string) (appID, userID uint64, photoIDs []uint64) {
 	t.Helper()
@@ -85,7 +94,7 @@ func (e *dirEnv) seedApplication(t *testing.T, cityID int64, nPhotos int, mode s
 	userID = uint64(uid) //nolint:gosec // G115: test id
 	now := time.Now()
 	for i := range nPhotos {
-		f, err := e.files.Put(t.Context(), userID, files.PurposePlacePhoto, pngBytes(t, uint8(i+1)), now) //nolint:gosec // G115: small
+		f, err := e.files.Put(t.Context(), userID, files.PurposePlacePhotoPending, pngBytes(t, uint8(i+1)), now) //nolint:gosec // G115: small
 		require.NoError(t, err)
 		photoIDs = append(photoIDs, f.ID)
 	}
@@ -183,10 +192,54 @@ func TestDirAdmin_ApplicationToReview_EndToEnd(t *testing.T) {
 	r = c.JSON(fiber.MethodPost, "/city-service-applications/"+a+"/review", map[string]any{"status": "in_review"})
 	require.Equal(t, 200, r.Status, r.Body)
 
-	// Approve → a published, verified place with the application's photos, hours and services.
+	// Before approval the photos are private: the admin gets 5-minute signed links, never a public URL.
+	r = c.Get("/city-service-applications/" + a)
+	require.Equal(t, 200, r.Status, r.Body)
+	pend := r.Obj("application")["photos"].([]any)
+	require.Len(t, pend, len(photos))
+	for i, p := range pend {
+		ph := p.(map[string]any)
+		assert.EqualValues(t, photos[i], ph["id"])
+		assert.Equal(t, true, ph["pending"])
+		assert.NotNil(t, ph["expires_at"])
+		u := ph["url"].(string)
+		assert.Contains(t, u, "/download?")
+		assert.NotContains(t, u, "/files/public/")
+		f, err := e.files.Get(t.Context(), owner, photos[i])
+		require.NoError(t, err)
+		_, _, err = e.files.OpenPublic(t.Context(), f.ID, files.Name(f.Path))
+		require.ErrorIs(t, err, files.ErrNotFound, "a pending photo has no public URL")
+		_, data, err := e.files.OpenSigned(t.Context(), f.ID, query(t, u, "expires"), query(t, u, "signature"), time.Now())
+		require.NoError(t, err, "the admin's signed link opens it")
+		assert.NotEmpty(t, data)
+	}
+
+	// Approve → a published, verified place with the application's photos (promoted to public files), hours and
+	// services.
 	r = c.JSON(fiber.MethodPost, "/city-service-applications/"+a+"/approve", map[string]any{"note": "Welcome"})
 	require.Equal(t, 200, r.Status, r.Body)
 	lid := int(r.Obj("application")["listing_id"].(float64))
+	approved := r.Obj("application")["photos"].([]any)
+	require.Len(t, approved, len(photos))
+	var publicIDs []uint64
+	for _, p := range approved {
+		ph := p.(map[string]any)
+		assert.Equal(t, false, ph["pending"])
+		assert.Nil(t, ph["expires_at"])
+		assert.Contains(t, ph["url"], "/api/v1/files/public/")
+		publicIDs = append(publicIDs, uint64(ph["id"].(float64)))
+	}
+	for i, id := range photos {
+		_, err := e.files.Get(t.Context(), owner, id)
+		require.ErrorIs(t, err, files.ErrNotFound, "the pending file is gone")
+		f, err := e.files.Get(t.Context(), owner, publicIDs[i])
+		require.NoError(t, err)
+		assert.Equal(t, files.PurposePlacePhoto, f.Purpose)
+		_, data, err := e.files.OpenPublic(t.Context(), f.ID, files.Name(f.Path))
+		require.NoError(t, err, "public once approved")
+		assert.NotEmpty(t, data)
+	}
+	assert.Equal(t, 0, e.Int(`SELECT COUNT(*) FROM files WHERE user_id = ? AND purpose = 'place_photo_pending'`, owner))
 	assert.Equal(t, "approved", r.Obj("application")["status"])
 	assert.Equal(t, 422, c.JSON(fiber.MethodPost, "/city-service-applications/"+a+"/approve", map[string]any{}).Status, "approved is final")
 	l := itoa(lid)
@@ -197,6 +250,9 @@ func TestDirAdmin_ApplicationToReview_EndToEnd(t *testing.T) {
 	assert.Equal(t, true, place["verified"])
 	assert.Equal(t, "online", place["booking_mode"])
 	assert.Len(t, place["photo_file_ids"], len(photos))
+	for i, id := range place["photo_file_ids"].([]any) {
+		assert.EqualValues(t, publicIDs[i], id, "the listing points at the public copies")
+	}
 	assert.Len(t, place["file_photo_urls"], len(photos))
 	assert.Len(t, place["weekly_hours"], 1)
 	assert.Equal(t, int(owner), e.Int(`SELECT owner_user_id FROM city_service_listings WHERE id = ?`, lid)) //nolint:gosec // G115: test id

@@ -13,8 +13,10 @@ import { useErrorText } from './parts';
 
 /**
  * The photo grid of the application (step 2 and the done screen's «add more photos»): each picked file goes to
- * `POST …/photos` one after another with a progress bar; public thumbnails come back from the API. The API re-encodes
- * to WebP without EXIF / GPS. Nothing is kept on the device.
+ * `POST …/photos` one after another with a progress bar; thumbnails come back from the API as 5-minute signed links
+ * (the photos stay private until the team approves the application, then they turn public). The application query
+ * is never stale, so every visit gets fresh links. The API re-encodes to WebP without EXIF / GPS. Nothing is kept on
+ * the device.
  */
 export function PhotoManager({ app }: { app: JoinApplication }) {
   const t = useTranslations('cityJoin');
@@ -79,7 +81,7 @@ export function PhotoManager({ app }: { app: JoinApplication }) {
         <ul className="cjn-grid">
           {app.photos.map((p, i) => (
             <li key={p.id} className="cjn-thumb">
-              {/* eslint-disable-next-line @next/next/no-img-element -- the API's public WebP, shown as is */}
+              {/* eslint-disable-next-line @next/next/no-img-element -- the API's WebP (signed link until approval), shown as is */}
               <img src={p.url} alt={t('place.photoAlt', { n: num(i + 1) })} className="cjn-img" loading="lazy" />
               <button
                 type="button"

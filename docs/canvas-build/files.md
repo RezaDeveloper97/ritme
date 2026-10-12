@@ -20,7 +20,8 @@ insurance (claim documents), CB-DIR (place photos / licences), CB-SHOP (product 
 | `record_document` | private | user (`POST /files`) | photo, PDF | 10 MB | 300 files / 500 MB |
 | `claim_document` | private | user | photo, PDF | 10 MB | 200 files / 300 MB |
 | `place_licence` | private | Go code only for now (CB-DIR opens user uploads with place-ownership checks) | photo, PDF | 10 MB | 20 files / 100 MB |
-| `place_photo` | **public** | Go code only for now (same) | photo | 5 MB | 30 files / 60 MB |
+| `place_photo` | **public** | Go code only: an approved application's photos (`Service.Promote`) | photo | 5 MB | 30 files / 60 MB |
+| `place_photo_pending` | private | the directory application routes (CB-DIR-04): a business photo until the team approves (decision 2026-10-12); owner + admin signed links; promoted to `place_photo` on approval, deleted on rejection | photo | 5 MB | 30 files / 60 MB |
 | `product_image` | **public** | Go code only (admin, owner 0 = Ritme team) | photo | 5 MB | 20 000 files / 10 GB (shared by the team) |
 | `lab` | private | `internal/labs` only | photo, PDF | (labs' own limits) | (labs' own limits) |
 

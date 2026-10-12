@@ -40,7 +40,7 @@ func pngBytes(t *testing.T) []byte {
 }
 
 func TestRegistry(t *testing.T) {
-	for _, name := range []string{PurposeRecordDocument, PurposeClaimDocument, PurposePlacePhoto, PurposePlaceLicence, PurposeProductImage, PurposeTelemedAttachment} {
+	for _, name := range []string{PurposeRecordDocument, PurposeClaimDocument, PurposePlacePhoto, PurposePlacePhotoPending, PurposePlaceLicence, PurposeProductImage, PurposeTelemedAttachment} {
 		p, ok := Lookup(name)
 		require.True(t, ok, name)
 		assert.Equal(t, "app/private/files/"+name, p.Dir())
@@ -57,8 +57,13 @@ func TestRegistry(t *testing.T) {
 	assert.False(t, Registry[PurposeRecordDocument].Public)
 	assert.False(t, Registry[PurposeClaimDocument].Public)
 	assert.False(t, Registry[PurposePlaceLicence].Public)
+	pend, pub := Registry[PurposePlacePhotoPending], Registry[PurposePlacePhoto]
+	assert.False(t, pend.Public, "application photos stay private until approval")
+	assert.Equal(t, pub.Kinds, pend.Kinds)
+	assert.Equal(t, []int{pub.MaxBytes, pub.QuotaFiles}, []int{pend.MaxBytes, pend.QuotaFiles}, "same limits")
+	assert.Equal(t, pub.QuotaBytes, pend.QuotaBytes)
 	assert.False(t, Registry[PurposeProductImage].UserUpload, "product images are written by the Ritme team only")
-	for _, name := range []string{PurposePlacePhoto, PurposePlaceLicence} {
+	for _, name := range []string{PurposePlacePhoto, PurposePlacePhotoPending, PurposePlaceLicence} {
 		assert.False(t, Registry[name].UserUpload, "%s: opened by CB-DIR with place-ownership checks", name)
 	}
 	assert.True(t, Registry[PurposeRecordDocument].UserUpload)

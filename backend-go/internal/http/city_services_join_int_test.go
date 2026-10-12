@@ -9,6 +9,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,6 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ritme/backend-go/internal/files"
 	"github.com/ritme/backend-go/internal/platform/clock"
 )
 
@@ -154,16 +156,31 @@ func TestCityServicesJoin_Flow(t *testing.T) {
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	assert.NotNil(t, r.data()["application"].(map[string]any)["terms_accepted_at"])
 
-	// Photos (public, re-encoded) and private documents.
+	// Photos (re-encoded, private until the team approves: signed links only) and private documents.
 	var photoIDs []string
 	for i := range 4 {
 		r = e.joinUpload(fiber.MethodPost, p+"/"+id+"/photos", sara, "room.png", joinPNG(t, uint8(40+i)))
 		require.Equal(t, fiber.StatusCreated, r.Status, r.Raw)
 		ph := r.data()["photo"].(map[string]any)
 		assert.Equal(t, "image/webp", ph["mime"])
-		assert.Contains(t, ph["url"], "/api/v1/files/public/")
+		assert.Contains(t, ph["url"], "/download?expires=", "pending: a signed, expiring link")
+		assert.NotContains(t, ph["url"], "/files/public/")
+		assert.NotNil(t, ph["url_expires_at"])
 		photoIDs = append(photoIDs, itoa(idOf(ph["id"])))
 	}
+	assert.Equal(t, 4, e.count("SELECT COUNT(*) FROM files WHERE purpose = 'place_photo_pending' AND visibility = 'private'"))
+	assert.Equal(t, 0, e.count("SELECT COUNT(*) FROM files WHERE purpose = 'place_photo'"))
+	var photoPath string
+	require.NoError(t, e.db.QueryRow("SELECT path FROM files WHERE id = ?", photoIDs[0]).Scan(&photoPath))
+	assert.Equal(t, fiber.StatusNotFound, e.do(fiber.MethodGet, "/api/v1/files/public/"+photoIDs[0]+"/"+files.Name(photoPath), "", nil).Status,
+		"a pending photo is never served publicly")
+	r = e.do(fiber.MethodGet, p+"/"+id, sara, nil)
+	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
+	shown := r.data()["application"].(map[string]any)["photos"].([]any)
+	require.Len(t, shown, 4, "the owner still sees her photos")
+	signed, err := url.Parse(shown[0].(map[string]any)["url"].(string))
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, e.do(fiber.MethodGet, signed.RequestURI(), "", nil).Status, "the owner's signed link opens the photo")
 	r = e.joinUpload(fiber.MethodPost, p+"/"+id+"/photos", sara, "fake.png", []byte("not an image"))
 	assert.Equal(t, fiber.StatusUnprocessableEntity, r.Status, r.Raw)
 	r = e.joinUpload(fiber.MethodPut, p+"/"+id+"/documents/passport", sara, "x.pdf", joinPDF)
@@ -221,9 +238,10 @@ func TestCityServicesJoin_Flow(t *testing.T) {
 	assert.Equal(t, fiber.StatusConflict, e.joinUpload(fiber.MethodPut, p+"/"+id+"/documents/licence", sara, "x.pdf", joinPDF).Status)
 	r = e.joinUpload(fiber.MethodPost, p+"/"+id+"/photos", sara, "more.png", joinPNG(t, 200))
 	assert.Equal(t, fiber.StatusCreated, r.Status, "JoinDone: more photos may be added while the team reviews")
+	assert.Contains(t, r.data()["photo"].(map[string]any)["url"], "/download?expires=", "still pending while the team reviews")
 
 	// needs_info → editable again; a resubmission keeps the tracking code.
-	_, err := e.db.Exec("UPDATE city_service_applications SET status = 'needs_info', review_note = 'Add a photo' WHERE id = ?", id)
+	_, err = e.db.Exec("UPDATE city_service_applications SET status = 'needs_info', review_note = 'Add a photo' WHERE id = ?", id)
 	require.NoError(t, err)
 	r = e.do(fiber.MethodPut, p+"/"+id+"/steps/4", sara, map[string]any{"booking_mode": "request", "terms_accepted": true})
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)

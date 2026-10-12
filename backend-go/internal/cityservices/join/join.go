@@ -11,9 +11,11 @@
 //
 // Security / privacy:
 //   - Owner-only: every query carries user_id; another account's id is the same 404 as a missing one.
-//   - Files go through internal/files (CB-CORE-05): photos are purpose place_photo (public, re-encoded WebP without
-//     EXIF / GPS), documents purpose place_licence (private, AES-GCM at rest, 5-minute signed links for the owner;
-//     the review team reads them in admin). Types are sniffed from the bytes, sizes and per-owner quotas are the
+//   - Files go through internal/files (CB-CORE-05): photos are purpose place_photo_pending (private, re-encoded WebP
+//     without EXIF / GPS, 5-minute signed links for the owner and the review team) until the team approves the
+//     application, which promotes them to public place_photo files (a rejection deletes them; decision 2026-10-12);
+//     documents purpose place_licence (private, AES-GCM at rest, 5-minute signed links for the owner; the review team
+//     reads them in admin). Types are sniffed from the bytes, sizes and per-owner quotas are the
 //     purpose registry's. A file id is only ever accepted from the application's own upload, never from the body.
 //   - Tracking codes are 60 random bits (crypto/rand); they identify, they do not authorize (the status route is
 //     owner-scoped too).

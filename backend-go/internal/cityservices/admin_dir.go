@@ -21,6 +21,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log/slog"
 	"slices"
 	"strconv"
@@ -51,14 +52,18 @@ const (
 	MaxTimesPerDay  = 12
 )
 
-// AdminFiles is the slice of internal/files the admin uses (*files.Service): licence links and photo cleanup.
+// AdminFiles is the slice of internal/files the admin uses (*files.Service): licence and pending-photo links, photo
+// promotion on approval and photo cleanup.
 type AdminFiles interface {
 	Get(ctx context.Context, owner, id uint64) (files.File, error)
 	Link(f files.File, now time.Time, ttl time.Duration) (files.Link, error)
 	Delete(ctx context.Context, owner, id uint64) error
+	Promote(ctx context.Context, tx *sql.Tx, f files.File, to string, now time.Time) (files.File, error)
+	RemoveBlob(f files.File) error
 }
 
-// WithFiles wires the file service (licence links, deleting a rejected application's photos).
+// WithFiles wires the file service (licence / photo links, promoting an approved application's photos, deleting a
+// rejected application's photos).
 func (a *Admin) WithFiles(fs AdminFiles) *Admin { a.files = fs; return a }
 
 // WithStatusNotifier swaps the booking status notifier (tests).
@@ -935,8 +940,9 @@ func (a *Admin) findApplication(c fiber.Ctx) (join.Application, error) {
 	return join.Decode(r), nil
 }
 
-// ShowApplication is GET /city-service-applications/:id: every step, the photos (public URLs) and which document
-// slots hold a file — never a document URL (DocumentLink mints one per view).
+// ShowApplication is GET /city-service-applications/:id: every step, the photos (5-minute signed links while they are
+// pending, public URLs once approved) and which document slots hold a file — never a document URL (DocumentLink mints
+// one per view).
 func (a *Admin) ShowApplication(c fiber.Ctx) error {
 	app, err := a.findApplication(c)
 	if err != nil {
@@ -948,15 +954,9 @@ func (a *Admin) ShowApplication(c fiber.Ctx) error {
 func (a *Admin) applicationReply(c fiber.Ctx, app join.Application, msg string) error {
 	d := app.Draft
 	o := a.applicationJSON(c, app)
-	paths, err := a.store.PhotoPaths(c, d.PhotoIDs)
+	photos, err := a.applicationPhotos(c, app)
 	if err != nil {
 		return err
-	}
-	photos := []*jsonx.OrderedMap{}
-	for _, fid := range d.PhotoIDs {
-		if u := FilePhotoURLs(a.appURL, []uint64{fid}, paths); len(u) == 1 {
-			photos = append(photos, jsonx.Obj("id", fid, "url", u[0]))
-		}
 	}
 	docs := []*jsonx.OrderedMap{}
 	slots := join.Slots
@@ -1001,6 +1001,36 @@ func (a *Admin) applicationReply(c fiber.Ctx, app join.Application, msg string) 
 	return httpadmin.OK(c, jsonx.Obj("application", o), msg)
 }
 
+// applicationPhotos lists the application's live photos with a link each: a fresh 5-minute signed link for a pending
+// (private) photo, the public URL for an approved one. A file deleted meanwhile drops out.
+func (a *Admin) applicationPhotos(c fiber.Ctx, app join.Application) ([]*jsonx.OrderedMap, error) {
+	photos := []*jsonx.OrderedMap{}
+	if a.files == nil {
+		return photos, nil
+	}
+	now := httpadmin.Now(c)
+	for _, fid := range app.Draft.PhotoIDs {
+		f, err := a.files.Get(c, app.Row.UserID, fid)
+		if errors.Is(err, files.ErrNotFound) || (err == nil && !join.IsPhotoPurpose(f.Purpose)) {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		link, err := a.files.Link(f, now, 0)
+		if err != nil {
+			return nil, err
+		}
+		var exp any
+		if link.ExpiresAt != nil {
+			exp = link.ExpiresAt.In(civildate.Tehran).Format("2006-01-02T15:04:05-07:00")
+		}
+		photos = append(photos, jsonx.Obj("id", f.ID, "url", link.URL, "expires_at", exp,
+			"pending", f.Purpose == files.PurposePlacePhotoPending))
+	}
+	return photos, nil
+}
+
 // DocumentLink is GET /city-service-applications/:id/documents/:slot: a fresh 5-minute signed link to a private
 // licence (each view is audited; the link names no path). Needs the support capability (403 otherwise).
 func (a *Admin) DocumentLink(c fiber.Ctx) error {
@@ -1038,7 +1068,7 @@ func (a *Admin) DocumentLink(c fiber.Ctx) error {
 
 // ReviewApplication is POST /city-service-applications/:id/review {status in_review|needs_info|rejected, note}; a
 // note is required for needs_info / rejected (the applicant reads it). Rejecting deletes the application's photos
-// (public files of a business that will not be listed); the private documents stay for the record.
+// (still private pending files of a business that will not be listed); the private documents stay for the record.
 func (a *Admin) ReviewApplication(c fiber.Ctx) error {
 	app, err := a.findApplication(c)
 	if err != nil {
@@ -1160,8 +1190,11 @@ func (a *Admin) ApproveApplication(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	now := a.now(c).Time
+	promo := &photoPromotion{files: a.files, now: now}
 	listingID, err := a.store.ApproveApplication(c, app.Row.ID, Approval{CategoryID: category, Phone: nullable(data, "phone"),
-		Note: nullable(data, "note")}, a.now(c).Time)
+		Note: nullable(data, "note"), Photos: promo.run}, now)
+	promo.finish(err == nil)
 	switch {
 	case errors.Is(err, ErrMoved):
 		return httpadmin.Fail(fiber.StatusUnprocessableEntity, CodeBadTransition, "This status change is not allowed.")
@@ -1177,6 +1210,63 @@ func (a *Admin) ApproveApplication(c fiber.Ctx) error {
 		return err
 	}
 	return a.applicationReply(c, app, "Application approved.")
+}
+
+// photoPromotion turns an application's pending photos into public place_photo files inside the approve
+// transaction (decision 2026-10-12: application photos stay private until the team approves): each pending file is
+// re-sealed as a public one and its row deleted in the same transaction, so the listing never points at a private
+// file and a rolled-back approval leaves the pending photos untouched. finish removes the replaced blobs after a
+// commit, or the new ones after a rollback (best effort: a leftover blob has no row and the orphan sweep removes it).
+// Photos already public (uploaded before the decision) keep their ids; a photo deleted meanwhile drops out.
+type photoPromotion struct {
+	files      AdminFiles
+	now        time.Time
+	old, fresh []files.File
+}
+
+func (p *photoPromotion) run(ctx context.Context, tx *sql.Tx, owner uint64, ids []uint64) ([]uint64, error) {
+	if p.files == nil {
+		return ids, nil
+	}
+	out := make([]uint64, 0, len(ids))
+	for _, fid := range ids {
+		f, err := p.files.Get(ctx, owner, fid)
+		if errors.Is(err, files.ErrNotFound) {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		if f.Purpose == files.PurposePlacePhoto {
+			out = append(out, fid)
+			continue
+		}
+		if f.Purpose != files.PurposePlacePhotoPending {
+			continue
+		}
+		pub, err := p.files.Promote(ctx, tx, f, files.PurposePlacePhoto, p.now)
+		if errors.Is(err, files.ErrNotFound) {
+			continue // deleted by its owner meanwhile
+		}
+		if err != nil {
+			return nil, fmt.Errorf("cityservices: promote photo: %w", err)
+		}
+		p.old, p.fresh = append(p.old, f), append(p.fresh, pub)
+		out = append(out, pub.ID)
+	}
+	return out, nil
+}
+
+// finish removes the blobs the outcome left without a row: the pending ones after a commit, the new public ones
+// after a rollback.
+func (p *photoPromotion) finish(committed bool) {
+	gone := p.fresh
+	if committed {
+		gone = p.old
+	}
+	for _, f := range gone {
+		_ = p.files.RemoveBlob(f)
+	}
 }
 
 // directoryOptions appends the CB-DIR-05 enums and catalog chips to GET /city-services/options.

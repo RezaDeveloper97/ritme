@@ -56,7 +56,10 @@ export const applicationSchema = z.object({
   amenities: z.array(z.string()).optional(),
   weekly_hours: z.array(hoursSchema).optional(),
   services: z.array(offerSchema).optional(),
-  photos: z.array(z.object({ id: z.number(), url: z.string() })).optional(),
+  /** Pending photos are private until approval: `url` is a 5-minute signed link (`expires_at`); approved = public URL. */
+  photos: z
+    .array(z.object({ id: z.number(), url: z.string(), expires_at: z.string().nullable().optional(), pending: z.boolean().optional() }))
+    .optional(),
   documents: z.array(z.object({ slot: z.string(), present: z.boolean(), mime: z.string().nullable(), size: z.number().nullable() })).optional(),
 });
 export type Application = z.infer<typeof applicationSchema>;

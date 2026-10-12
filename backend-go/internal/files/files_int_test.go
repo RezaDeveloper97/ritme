@@ -497,3 +497,62 @@ func TestSweep(t *testing.T) {
 	_, err = os.Stat(filepath.Join(e.storage, filepath.FromSlash(keptPath)))
 	require.NoError(t, err, "a referenced blob stays")
 }
+
+// A pending place photo (decision 2026-10-12) is private: no public URL, a signed link and the owner's own route only;
+// Promote re-seals it as a public place_photo inside the caller's transaction and the pending row goes with the commit.
+func TestPendingPhoto_PromoteToPublic(t *testing.T) {
+	e := setup(t, false, nil)
+	uid, tok := e.user(t, "09120000012")
+	_, other := e.user(t, "09120000013")
+	assert.Equal(t, 422, e.upload(t, tok, files.PurposePlacePhotoPending, pngBytes(t)).status, "not a /files upload")
+	ctx := context.Background()
+	pend, err := e.svc.Put(ctx, uid, files.PurposePlacePhotoPending, pngBytes(t), time.Now())
+	require.NoError(t, err)
+	assert.Equal(t, files.Private, pend.Visibility)
+	assert.Equal(t, "image/webp", pend.MIME, "re-encoded like a public photo")
+
+	assert.Equal(t, 404, e.do(t, http.MethodGet, fmt.Sprintf("/api/v1/files/public/%d/%s", pend.ID, files.Name(pend.Path)), "", nil, "").status)
+	link, err := e.svc.Link(pend, time.Now(), 0)
+	require.NoError(t, err)
+	require.NotNil(t, link.ExpiresAt)
+	assert.Equal(t, 200, e.do(t, http.MethodGet, pathOf(t, link.URL), "", nil, "").status, "signed link")
+	assert.Equal(t, 200, e.do(t, http.MethodGet, fmt.Sprintf("/api/v1/files/%d", pend.ID), tok, nil, "").status)
+	assert.Equal(t, 404, e.do(t, http.MethodGet, fmt.Sprintf("/api/v1/files/%d", pend.ID), other, nil, "").status)
+
+	// A rolled-back promotion leaves the pending file as it was.
+	tx, err := e.db.BeginTx(ctx, nil)
+	require.NoError(t, err)
+	tmp, err := e.svc.Promote(ctx, tx, pend, files.PurposePlacePhoto, time.Now())
+	require.NoError(t, err)
+	require.NoError(t, tx.Rollback())
+	require.NoError(t, e.svc.RemoveBlob(tmp))
+	_, data, err := e.svc.Open(ctx, uid, pend.ID)
+	require.NoError(t, err)
+	assert.NotEmpty(t, data)
+
+	tx, err = e.db.BeginTx(ctx, nil)
+	require.NoError(t, err)
+	pub, err := e.svc.Promote(ctx, tx, pend, files.PurposePlacePhoto, time.Now())
+	require.NoError(t, err)
+	require.NoError(t, tx.Commit())
+	require.NoError(t, e.svc.RemoveBlob(pend))
+	assert.Equal(t, files.Public, pub.Visibility)
+	assert.Equal(t, pend.SHA256, pub.SHA256)
+	_, err = e.svc.Get(ctx, uid, pend.ID)
+	require.ErrorIs(t, err, files.ErrNotFound)
+	_, err = os.Stat(filepath.Join(e.storage, filepath.FromSlash(pend.Path)))
+	assert.True(t, os.IsNotExist(err))
+	plink, err := e.svc.Link(pub, time.Now(), 0)
+	require.NoError(t, err)
+	assert.Nil(t, plink.ExpiresAt)
+	r := e.do(t, http.MethodGet, pathOf(t, plink.URL), "", nil, "")
+	assert.Equal(t, 200, r.status)
+	assert.Equal(t, data, r.raw, "the same re-encoded bytes")
+
+	// Promoting a file that is already gone is ErrNotFound (the caller skips it).
+	tx, err = e.db.BeginTx(ctx, nil)
+	require.NoError(t, err)
+	defer func() { _ = tx.Rollback() }()
+	_, err = e.svc.Promote(ctx, tx, pend, files.PurposePlacePhoto, time.Now())
+	require.ErrorIs(t, err, files.ErrNotFound)
+}
