@@ -926,6 +926,7 @@
         "documents": "Documents",
         "documentsNote": "Private files. Each view opens a link that expires in 5 minutes and is written to the audit log.",
         "documentsHidden": "Private documents are visible to the support role only.",
+        "reviewNeedsSupport": "Approving, rejecting or requesting more info needs the support role. You can view the queue and the application, but not decide it.",
         "viewDocument": "View",
         "missingDocument": "Not uploaded",
         "slot": {
@@ -1118,11 +1119,13 @@
       "terms": "Terms",
       "about": "About",
       "support": "Support",
-      "insurance": "Insurance"
+      "insurance": "Insurance",
+      "business_terms": "Business terms"
     },
     "intro": "Each row is one box on the app's \"{page}\" screen; active boxes show in sort order.",
     "introHelp": "The support box can also carry a contact button (email, phone or link).",
     "introInsurance": "Use the keys coverage, claim_steps (one step per line), documents (one item per line), faq (heading = question) and disclaimer. The services tile shows only while at least one box is active; a link (optional) is shown as the insurer link-out.",
+    "introBusinessTerms": "Cooperation terms shown to businesses on the /business page and in the join flow. Each active box is one clause, in sort order; heading is optional. Leave it empty to show the neutral placeholder. Do not state fees until the model is decided.",
     "empty": "No boxes on this screen yet.",
     "heading": "Heading",
     "body": "Text",

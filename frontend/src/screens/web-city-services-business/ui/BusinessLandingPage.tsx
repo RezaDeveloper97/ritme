@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl';
 
+import type { BusinessTerm } from '@/entities/city-service';
 import { Link } from '@/shared/i18n';
 import { Icon, type IconName } from '@/shared/ui';
 
@@ -25,10 +26,10 @@ function StartLink({ label }: { label: string }) {
 
 /**
  * CB-DIR-12 — `W_Dir_Business`: the public for-businesses landing (hero, why, 4 steps, requirements, cooperation terms,
- * FAQ). The cooperation terms are a neutral placeholder until the commission / subscription model is decided: no fee
- * is ever stated here. Under 1024px a signed-in visitor is sent to the app's join flow.
+ * FAQ). The cooperation terms are the admin-edited `business_terms` text when published (server-fetched by the route),
+ * else a neutral placeholder: no fee is ever stated by the code itself. Under 1024px a signed-in visitor is sent to the app's join flow.
  */
-export function BusinessLandingPage() {
+export function BusinessLandingPage({ terms = [] }: { terms?: BusinessTerm[] }) {
   const t = useTranslations('webBusiness');
   return (
     <BusinessShell appHref="/city-services/join">
@@ -113,11 +114,22 @@ export function BusinessLandingPage() {
             <h2 id="wbz-terms" className="wbz-h2">
               {t('terms.title')}
             </h2>
-            <p className="wbz-p">{t('terms.body')}</p>
-            <p className="wbz-note">
-              <Icon name="info" size={16} />
-              <span>{t('terms.note')}</span>
-            </p>
+            {terms.length > 0 ? (
+              terms.map((term) => (
+                <div key={term.id} className="wbz-term">
+                  {term.heading ? <h3 className="wbz-h3">{term.heading}</h3> : null}
+                  {term.body ? <p className="wbz-p wbz-term-body">{term.body}</p> : null}
+                </div>
+              ))
+            ) : (
+              <>
+                <p className="wbz-p">{t('terms.body')}</p>
+                <p className="wbz-note">
+                  <Icon name="info" size={16} />
+                  <span>{t('terms.note')}</span>
+                </p>
+              </>
+            )}
           </section>
         </div>
 

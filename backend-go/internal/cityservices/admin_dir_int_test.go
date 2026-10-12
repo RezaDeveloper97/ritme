@@ -152,7 +152,17 @@ func TestDirAdmin_CapabilitiesCSRFAndPII(t *testing.T) {
 	r = e.As(marketingID).Get("/city-service-applications/" + a + "/documents/licence")
 	assert.Equal(t, 403, r.Status, r.Body)
 	assert.NotContains(t, r.Body, "signature=")
+	// Deciding needs «support» as well: a content admin sees the queue but cannot review/approve (403), and the
+	// detail says so (can_review=false, no moves).
+	assert.Equal(t, false, app1["can_review"])
+	assert.Empty(t, app1["allowed_moves"])
+	assert.Equal(t, 403, e.As(marketingID).JSON(fiber.MethodPost, "/city-service-applications/"+a+"/review",
+		map[string]any{"status": "in_review"}).Status)
+	assert.Equal(t, 403, e.As(marketingID).JSON(fiber.MethodPost, "/city-service-applications/"+a+"/approve",
+		map[string]any{}).Status)
+	assert.Equal(t, "submitted", e.String(`SELECT status FROM city_service_applications WHERE id = ?`, app))
 	r = e.As(admintest.EditorID).Get("/city-service-applications/" + a)
+	assert.Equal(t, true, r.Obj("application")["can_review"])
 	assert.Equal(t, "09121112233", r.Obj("application")["contact_phone"])
 	assert.Len(t, r.Obj("application")["photos"], 1)
 	assert.Equal(t, true, r.Obj("application")["documents"].([]any)[0].(map[string]any)["present"])

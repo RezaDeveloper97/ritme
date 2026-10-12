@@ -13,8 +13,11 @@ import (
 
 // InfoGroups is InfoSection::GROUPS (the screens the table feeds, admin order) plus `support` (B-N1-12, Go
 // only): the support channels of the Support screen (tel: → phone line, http(s)/mailto → the chat card), and
-// `insurance` (B-N10-06): the «بیمه» info page (keys coverage | claim_steps | documents | faq | disclaimer).
-var InfoGroups = []string{"help", "privacy", "terms", "about", "support", "insurance"}
+// `insurance` (B-N10-06): the «بیمه» info page (keys coverage | claim_steps | documents | faq | disclaimer), and
+// `business_terms`: the admin-editable cooperation terms for businesses joining the city directory (shown on the
+// /business landing and the join flow; `info_sections.group` is a plain varchar, so no migration is needed).
+// Additive: append new groups at the end.
+var InfoGroups = []string{"help", "privacy", "terms", "about", "support", "insurance", "business_terms"}
 
 // Info is GET /info/{group} (InfoController::show): unknown group → abort(404).
 func (h *Handlers) Info(c fiber.Ctx) error {

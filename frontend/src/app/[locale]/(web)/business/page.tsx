@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
+import { fetchBusinessTerms } from '@/entities/city-service';
 import { BusinessLandingPage } from '@/screens/web-city-services-business';
 
 import { RouteMessages } from '../../../RouteMessages';
@@ -27,6 +28,7 @@ export default async function BusinessRoute({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: 'webBusiness' });
+  const terms = await fetchBusinessTerms(locale); // public + admin-edited; [] → the neutral placeholder
   // FAQ structured data: the same questions the page shows. `<` is escaped so the text can never close the script tag.
   const faqLd = JSON.stringify({
     '@context': 'https://schema.org',
@@ -40,7 +42,7 @@ export default async function BusinessRoute({ params }: Props) {
   return (
     <RouteMessages route="webBusiness">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: faqLd }} />
-      <BusinessLandingPage />
+      <BusinessLandingPage terms={terms} />
     </RouteMessages>
   );
 }

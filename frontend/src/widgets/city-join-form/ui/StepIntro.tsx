@@ -1,11 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import {
   JOIN_CATEGORY_ORDER,
   type JoinApplication,
+  useBusinessTerms,
   useCityServiceOptions,
   useDeleteJoinDraft,
   useSaveJoinStep,
@@ -42,6 +43,8 @@ export function StepIntro({
   leaveHref?: string;
 }) {
   const t = useTranslations("cityJoin");
+  const locale = useLocale();
+  const terms = useBusinessTerms(locale).data ?? [];
   const tc = useTranslations("cityJoin.categories");
   const errorText = useErrorText();
   const router = useRouter();
@@ -89,7 +92,19 @@ export function StepIntro({
       ) : null}
 
       <InfoNote icon="info">
-        <strong>{t("intro.termsTitle")}</strong> {t("intro.termsBody")}
+        {terms.length > 0 ? (
+          // The admin-edited cooperation terms (business_terms); the neutral line is only the fallback.
+          terms.map((term) => (
+            <span key={term.id} className="cjn-term">
+              {term.heading ? <strong>{term.heading} </strong> : null}
+              {term.body}
+            </span>
+          ))
+        ) : (
+          <>
+            <strong>{t("intro.termsTitle")}</strong> {t("intro.termsBody")}
+          </>
+        )}
       </InfoNote>
 
       <section className="card fld-card cjn-fields">

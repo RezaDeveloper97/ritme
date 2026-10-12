@@ -9595,7 +9595,7 @@ paths:
           in: path
           description: Which screen to fetch.
           required: true
-          schema: {type: string, enum: [help, privacy, terms, about, support, insurance]}
+          schema: {type: string, enum: [help, privacy, terms, about, support, insurance, business_terms]}
         - {$ref: "#/components/parameters/LocaleQuery"}
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
@@ -9643,7 +9643,7 @@ paths:
         Go only (B-N1-12): the Night & Bloom Support / About / Legal screens. Like `/info/{group}` (active boxes,
         display order, one locale) plus each box's stable `key` (seeded: `summary` in privacy/terms = the Legal
         «خلاصه در ۳ خط», one line per `\n`; `about/disclaimer` = the About footer; `support/email`) and the page's last edit day `updated_at` (null when
-        empty). `link_label` / `link_url` are both set or both null. `insurance` (B-N10-06) is the admin-edited «بیمه» page: keys coverage / claim_steps / documents / faq / disclaimer, no personal data. `support` holds the support channels
+        empty). `link_label` / `link_url` are both set or both null. `business_terms` is the admin-edited cooperation terms for businesses (public; shown on /business and in the join flow). `insurance` (B-N10-06) is the admin-edited «بیمه» page: keys coverage / claim_steps / documents / faq / disclaimer, no personal data. `support` holds the support channels
         (`tel:` → phone line with the hours in `body`, `http(s):` / `mailto:` → the chat card). Public.
       operationId: getInfoPage
       security: []
@@ -9651,7 +9651,7 @@ paths:
         - name: group
           in: path
           required: true
-          schema: {type: string, enum: [help, privacy, terms, about, support, insurance]}
+          schema: {type: string, enum: [help, privacy, terms, about, support, insurance, business_terms]}
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
         '200':

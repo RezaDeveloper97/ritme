@@ -20,6 +20,7 @@ export interface DirectoryParams {
 
 export const cityServiceKeys = {
   all: ['city-service'] as const,
+  businessTerms: (locale: string) => [...cityServiceKeys.all, 'business-terms', locale] as const,
   options: (scope?: 'join') => [...cityServiceKeys.all, 'options', ...(scope ? [scope] : [])] as const,
   listings: (city: number | null, category: string | null, page: number) =>
     [...cityServiceKeys.all, 'listings', city, category, page] as const,

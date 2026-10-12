@@ -27,7 +27,7 @@ export const infoSectionsApi = createResource({
 });
 
 /** The app's text screens, in tab order (fallback until /options answers). */
-export const INFO_GROUPS = ['help', 'privacy', 'terms', 'about', 'support', 'insurance'] as const;
+export const INFO_GROUPS = ['help', 'privacy', 'terms', 'about', 'support', 'insurance', 'business_terms'] as const;
 
 /** An optional box `key`: lowercase slug, words joined by - or _ (the API validates the same). */
 export const INFO_KEY_PATTERN = '[a-z0-9]+(?:[-_][a-z0-9]+)*';

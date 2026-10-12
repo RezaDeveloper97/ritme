@@ -1,6 +1,7 @@
 // Public API of the `city-service` entity (bloom B-N10-05) — the city-services directory and my booking requests.
 // Import only from here.
 
+export { type BusinessTerm, fetchBusinessTerms, useBusinessTerms } from './api/business-terms';
 export { cityServiceKeys, type DirectoryParams } from './api/keys';
 export {
   AGE_RANGES,

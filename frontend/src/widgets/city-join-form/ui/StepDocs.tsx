@@ -10,6 +10,7 @@ import {
   type JoinApplication,
   type JoinBookingMode,
   type JoinFile,
+  useBusinessTerms,
   useRemoveJoinDocument,
   useSaveJoinStep,
   useSubmitJoin,
@@ -139,6 +140,7 @@ export function StepDocs({
   const [missing, setMissing] = useState<Record<string, string[]> | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [termsOpen, setTermsOpen] = useState(false);
+  const terms = useBusinessTerms(locale).data ?? [];
   const { state, flush } = useAutosave(form, (v) =>
     save.mutateAsync({ step: 4, body: step4Body(v) }).catch((e) => {
       onSaveError(e);
@@ -245,7 +247,16 @@ export function StepDocs({
       </PrimaryButton>
 
       <AppSheet open={termsOpen} onClose={() => setTermsOpen(false)} size="half" title={t('docs.termsSheet')}>
-        <p className="cjn-sheet-copy">{t('docs.termsSheetBody')}</p>
+        {terms.length > 0 ? (
+          terms.map((term) => (
+            <div key={term.id} className="cjn-term">
+              {term.heading ? <strong>{term.heading}</strong> : null}
+              <p className="cjn-sheet-copy">{term.body}</p>
+            </div>
+          ))
+        ) : (
+          <p className="cjn-sheet-copy">{t('docs.termsSheetBody')}</p>
+        )}
       </AppSheet>
     </div>
   );

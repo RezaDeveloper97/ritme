@@ -855,6 +855,12 @@ func seesContacts(c fiber.Ctx) bool {
 	return httpadmin.Can(c, httpadmin.CapSupport, httpadmin.LevelView)
 }
 
+// mayReview reports whether the admin may decide an application (in_review / needs_info / rejected / approve):
+// capability support (manage). Content admins still see the queue, without contacts or documents.
+func mayReview(c fiber.Ctx) bool {
+	return httpadmin.Can(c, httpadmin.CapSupport, httpadmin.LevelManage)
+}
+
 func strOrNil(s sql.NullString) any {
 	if !s.Valid || s.String == "" {
 		return nil
@@ -892,8 +898,15 @@ func (a *Admin) applicationJSON(c fiber.Ctx, app join.Application) *jsonx.Ordere
 	o.Set("reviewed_at", httpadmin.Time(r.ReviewedAt))
 	o.Set("review_note", strOrNil(r.ReviewNote))
 	o.Set("listing_id", listing)
-	o.Set("allowed_moves", join.ReviewMoves(r.Status))
-	o.Set("can_approve", join.CanApprove(r.Status))
+	review := mayReview(c)
+	o.Set("can_review", review)
+	if review {
+		o.Set("allowed_moves", join.ReviewMoves(r.Status))
+		o.Set("can_approve", join.CanApprove(r.Status))
+	} else {
+		o.Set("allowed_moves", []string{})
+		o.Set("can_approve", false)
+	}
 	return o
 }
 
@@ -1070,6 +1083,9 @@ func (a *Admin) DocumentLink(c fiber.Ctx) error {
 // note is required for needs_info / rejected (the applicant reads it). Rejecting deletes the application's photos
 // (still private pending files of a business that will not be listed); the private documents stay for the record.
 func (a *Admin) ReviewApplication(c fiber.Ctx) error {
+	if !mayReview(c) { // deciding on a business is a support action (it sees the applicant's contacts and licence)
+		return httpadmin.ForbiddenPermission(httpadmin.CapSupport)
+	}
 	app, err := a.findApplication(c)
 	if err != nil {
 		return err
@@ -1131,6 +1147,9 @@ func (a *Admin) dropApplicationPhotos(c fiber.Ctx, appID uint64, done ReviewedAp
 // category_id defaults to the first category the applicant chose; phone (the venue's public number) is required in
 // phone mode and is never copied from the applicant's contact phone.
 func (a *Admin) ApproveApplication(c fiber.Ctx) error {
+	if !mayReview(c) {
+		return httpadmin.ForbiddenPermission(httpadmin.CapSupport)
+	}
 	app, err := a.findApplication(c)
 	if err != nil {
 		return err

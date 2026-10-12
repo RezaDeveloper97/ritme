@@ -163,7 +163,13 @@ function ApplicationView({ app, options }: { app: Application; options: CityServ
       </Panel>
 
       <DocumentsPanel app={app} />
-      {app.allowed_moves.length > 0 || app.can_approve ? <DecisionPanel app={app} options={options} /> : null}
+      {!app.can_review ? (
+        <Panel title={t('decision')}>
+          <p className="panel-note">{t('reviewNeedsSupport')}</p>
+        </Panel>
+      ) : app.allowed_moves.length > 0 || app.can_approve ? (
+        <DecisionPanel app={app} options={options} />
+      ) : null}
     </div>
   );
 }

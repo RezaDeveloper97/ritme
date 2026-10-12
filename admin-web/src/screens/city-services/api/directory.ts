@@ -46,6 +46,8 @@ export const applicationSchema = z.object({
   listing_id: z.number().nullable(),
   allowed_moves: z.array(z.string()),
   can_approve: z.boolean(),
+  /** false without the support capability: the decision panel is replaced by a note. */
+  can_review: z.boolean().default(true),
   // detail only
   owner_confirmed: z.boolean().optional(),
   lat: z.string().nullable().optional(),
