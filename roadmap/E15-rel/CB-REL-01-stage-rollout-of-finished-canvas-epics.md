@@ -3,7 +3,7 @@ id: CB-REL-01
 title: Stage rollout of finished canvas epics
 epic: REL
 type: release
-status: todo
+status: in_progress
 depends_on: [CB-NAV-04]
 parallel_group: REL-A
 touches: [docs/qa/canvas/stage.md]
