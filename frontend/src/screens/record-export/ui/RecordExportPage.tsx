@@ -59,7 +59,11 @@ export function RecordExportPage() {
   const pages = estimatePages(model);
   const language = useLanguages().data?.find((l) => l.code === loc)?.name ?? '';
   // User decision 2026-10-12: a teen without an active parent link cannot make a 7-day link (the server answers 403).
-  const teenLocked = useShareLinks().data?.policy.doctorSharing === false;
+  const policy = useShareLinks().data?.policy;
+  const teenLocked = policy?.doctorSharing === false;
+  // User decision 2026-10-12: teens can't buy Plus, so a teen with a parent link shares through the 24-hour doctor
+  // code — a short note instead of the 7-day link (and its Plus pitch).
+  const teenCodeOnly = policy?.teen === true && !teenLocked;
 
   const pickRange = (r: ReportRange) => {
     if (r === 'custom') setPicking(true);
@@ -184,6 +188,14 @@ export function RecordExportPage() {
             </button>
           </InfoNote>
         ) : null}
+        {teenCodeOnly ? (
+          <InfoNote icon="qr">
+            {t('teenCodeOnly')}{' '}
+            <button type="button" className="rx-link" onClick={() => router.push('/record/share')}>
+              {t('shareSheet.teenCodeCta')}
+            </button>
+          </InfoNote>
+        ) : null}
 
         {pdf.failed || report.isError ? (
           <p className="rx-error" role="alert">
@@ -199,9 +211,11 @@ export function RecordExportPage() {
           >
             {pdf.busy ? t('downloading') : t('download')}
           </PrimaryButton>
-          <SecondaryButton icon="share" disabled={!ready || teenLocked} onClick={() => setSharing(true)}>
-            {t('share')}
-          </SecondaryButton>
+          {teenCodeOnly ? null : (
+            <SecondaryButton icon="share" disabled={!ready || teenLocked} onClick={() => setSharing(true)}>
+              {t('share')}
+            </SecondaryButton>
+          )}
         </div>
       </div>
 

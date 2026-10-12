@@ -33,6 +33,15 @@ type Querier interface {
 	DeleteUserPolicy(ctx context.Context, arg DeleteUserPolicyParams) (int64, error)
 	DeleteUserQuestionnaire(ctx context.Context, arg DeleteUserQuestionnaireParams) (int64, error)
 	DetachClaimDocument(ctx context.Context, arg DetachClaimDocumentParams) (int64, error)
+	ExportInsuranceClaimDocuments(ctx context.Context, userID uint64) ([]InsuranceClaimDocument, error)
+	ExportInsuranceClaimEvents(ctx context.Context, userID uint64) ([]InsuranceClaimEvent, error)
+	ExportInsuranceClaims(ctx context.Context, userID uint64) ([]InsuranceClaim, error)
+	ExportInsuranceCoverages(ctx context.Context, userID uint64) ([]InsuranceCoverage, error)
+	// Account data export (GET /profile/export, user decision 2026-10-12): every insurance row of the owner; child rows
+	// are reached through her policy / claim (the owner scope is in each statement). Sealed text is opened by the caller.
+	ExportInsurancePolicies(ctx context.Context, userID uint64) ([]InsurancePolicy, error)
+	ExportInsurancePolicyMembers(ctx context.Context, userID uint64) ([]InsurancePolicyMember, error)
+	ExportInsuranceQuestionnaires(ctx context.Context, userID uint64) ([]InsuranceQuestionnaire, error)
 	GetActiveCentre(ctx context.Context, id uint64) (InsuranceCentre, error)
 	GetCentre(ctx context.Context, id uint64) (GetCentreRow, error)
 	GetInsurer(ctx context.Context, id uint64) (InsuranceInsurer, error)

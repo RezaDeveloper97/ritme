@@ -32,6 +32,14 @@ type Querier interface {
 	CountUserApplications(ctx context.Context, userID uint64) (int64, error)
 	CreateApplication(ctx context.Context, arg CreateApplicationParams) (int64, error)
 	DeleteUserDraft(ctx context.Context, arg DeleteUserDraftParams) (int64, error)
+	ExportDirectoryApplicationFiles(ctx context.Context, userID sql.NullInt64) ([]ExportDirectoryApplicationFilesRow, error)
+	ExportDirectoryApplications(ctx context.Context, userID uint64) ([]CityServiceApplication, error)
+	// Account data export (GET /profile/export, user decision 2026-10-12): the owner's directory rows — bookings, reviews,
+	// reports, business applications — and the metadata of the files her applications reference (never the storage
+	// path, the hash or the bytes).
+	ExportDirectoryBookings(ctx context.Context, userID uint64) ([]CityServiceBooking, error)
+	ExportDirectoryReports(ctx context.Context, userID sql.NullInt64) ([]CityServiceReport, error)
+	ExportDirectoryReviews(ctx context.Context, userID uint64) ([]CityServiceReview, error)
 	GetUserApplication(ctx context.Context, arg GetUserApplicationParams) (CityServiceApplication, error)
 	GetUserDraft(ctx context.Context, userID uint64) (CityServiceApplication, error)
 	ListUserApplications(ctx context.Context, userID uint64) ([]CityServiceApplication, error)

@@ -75,13 +75,23 @@ func TestInsurance_PolicyHistory(t *testing.T) {
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	assert.Equal(t, float64(p1), r.data()["policy_id"])
 	assert.Equal(t, true, r.data()["read_only"])
-	for _, cse := range [][2]string{{fiber.MethodPut, c}, {fiber.MethodDelete, c}, {fiber.MethodPost, c + "/events"},
+	evID := uint64(idOfF(r.data()["events"].([]any)[0]))
+	for _, cse := range [][2]string{{fiber.MethodPut, c}, {fiber.MethodDelete, c}, {fiber.MethodDelete, c + "/events/" + itoaU(evID)},
 		{fiber.MethodPost, c + "/documents"}, {fiber.MethodDelete, c + "/documents/1"}} {
 		got := e.do(cse[0], cse[1], sara, map[string]any{"cost_type": "visit", "service_date": "2026-01-10", "amount": 1,
 			"status": "reviewing", "occurred_on": "2026-01-21", "document_id": 1})
 		assert.Equal(t, fiber.StatusConflict, got.Status, cse[0]+" "+cse[1]+" "+got.Raw)
 		assert.Equal(t, "insurance_policy_read_only", got.Body["error_code"])
 	}
+	// User decision 2026-10-12: her past policy's claim still takes timeline steps (a late claim paid after renewal).
+	r = e.do(fiber.MethodPost, c+"/events", sara, map[string]any{"status": "appealed", "occurred_on": "2026-09-23", "note": "late step"})
+	require.Equal(t, fiber.StatusCreated, r.Status, r.Raw)
+	assert.Equal(t, true, r.data()["read_only"], "the claim itself stays read-only")
+	assert.Len(t, r.data()["events"], 3)
+	assert.Equal(t, fiber.StatusUnprocessableEntity, e.do(fiber.MethodPost, c+"/events", sara,
+		map[string]any{"status": "paid", "occurred_on": "2026-09-22"}).Status, "steps are still validated")
+	assert.Equal(t, fiber.StatusNotFound, e.do(fiber.MethodPost, c+"/events", nina,
+		map[string]any{"status": "paid", "occurred_on": "2026-09-22", "amount": 1}).Status, "owner-only")
 
 	// Claims stay with their policy: the current list is empty, the old one keeps its claim; new claims go to p2.
 	r = e.do(fiber.MethodGet, insP+"/claims", sara, nil)

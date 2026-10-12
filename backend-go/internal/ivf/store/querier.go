@@ -18,6 +18,14 @@ type Querier interface {
 	DeleteDoseLog(ctx context.Context, arg DeleteDoseLogParams) error
 	DeleteScan(ctx context.Context, arg DeleteScanParams) (int64, error)
 	DeleteTWWLog(ctx context.Context, arg DeleteTWWLogParams) error
+	// Account data export (GET /profile/export, user decision 2026-10-12): every IVF row of the owner (cycles with their
+	// stage and outcome, meds with the inventory, injections with their sites, scans, two-week-wait moods, reminders).
+	ExportIvfCycles(ctx context.Context, userID uint64) ([]IvfCycle, error)
+	ExportIvfDoseLogs(ctx context.Context, userID uint64) ([]IvfDoseLog, error)
+	ExportIvfMeds(ctx context.Context, userID uint64) ([]IvfMed, error)
+	ExportIvfReminders(ctx context.Context, userID uint64) ([]IvfReminder, error)
+	ExportIvfScans(ctx context.Context, userID uint64) ([]IvfScan, error)
+	ExportIvfTwwLogs(ctx context.Context, userID uint64) ([]IvfTwwLog, error)
 	GetActiveCycle(ctx context.Context, userID uint64) (IvfCycle, error)
 	// IVF treatment (CB-IVF-01, goose 00027). Health data: every statement is scoped by user_id in the statement itself.
 	// Medicines are care medication reminders and doses taken are care intakes (internal/care store, reused as is);

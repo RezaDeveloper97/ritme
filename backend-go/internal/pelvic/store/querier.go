@@ -15,6 +15,10 @@ type Querier interface {
 	AddSession(ctx context.Context, arg AddSessionParams) error
 	DeleteBladderLog(ctx context.Context, arg DeleteBladderLogParams) error
 	DeleteProgram(ctx context.Context, userID uint64) error
+	ExportPelvicBladderLogs(ctx context.Context, userID uint64) ([]PelvicBladderLog, error)
+	// Account data export (GET /profile/export, user decision 2026-10-12): every pelvic floor row of the owner.
+	ExportPelvicProgram(ctx context.Context, userID uint64) ([]PelvicProgram, error)
+	ExportPelvicSessions(ctx context.Context, userID uint64) ([]PelvicSession, error)
 	GetBladderLog(ctx context.Context, arg GetBladderLogParams) (PelvicBladderLog, error)
 	// Pelvic floor program (CB-PELV-01, docs/canvas-build/README.md → PELV). Health data: every query is scoped by
 	// user_id in the statement itself.

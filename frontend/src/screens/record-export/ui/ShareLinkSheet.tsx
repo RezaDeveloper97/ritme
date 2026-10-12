@@ -3,7 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
-import { type CreatedShareLink, type ReportSelection, TEEN_SHARE_NEEDS_PARENT, useCreateShareLink } from '@/entities/health-record';
+import { type CreatedShareLink, type ReportSelection, TEEN_SHARE_NEEDS_PARENT, useCreateShareLink, useShareLinks } from '@/entities/health-record';
 import { usePlusLocked } from '@/entities/plus';
 import { ApiError, getApiErrorCode } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
@@ -33,6 +33,7 @@ export function ShareLinkSheet({ open, onClose, selection }: ShareLinkSheetProps
   const loc = useLocale() as Locale;
   const router = useRouter();
   const locked = usePlusLocked(PDF_SHARE);
+  const teenMode = useShareLinks().data?.policy.teen === true;
   const create = useCreateShareLink();
   const [link, setLink] = useState<CreatedShareLink | null>(null);
   const [copied, setCopied] = useState(false);
@@ -56,6 +57,9 @@ export function ShareLinkSheet({ open, onClose, selection }: ShareLinkSheetProps
   // A teen without an active parent link (403, checked before the paywall): explain, never pitch Plus.
   const teen = getApiErrorCode(create.error) === TEEN_SHARE_NEEDS_PARENT;
   const denied = !teen && (locked || plusDenialOf(create.error) !== null);
+  // User decision 2026-10-12: teens can't buy Plus — with a parent link they share through the 24-hour doctor code, so
+  // a teen gets a short note instead of the Plus pitch.
+  const teenCodeOnly = denied && teenMode;
   const limit = create.error instanceof ApiError && create.error.response?.status === 409;
   const url = link && typeof window !== 'undefined' ? sharedReportUrl(window.location.origin, loc, link.token) : '';
 
@@ -85,6 +89,19 @@ export function ShareLinkSheet({ open, onClose, selection }: ShareLinkSheetProps
         action={
           <PrimaryButton block={false} onClick={() => router.push('/teen/parent')}>
             {t('teenCta')}
+          </PrimaryButton>
+        }
+      />
+    );
+  } else if (teenCodeOnly) {
+    body = (
+      <EmptyState
+        icon="qr"
+        title={t('teenCodeTitle')}
+        body={tr('teenCodeOnly')}
+        action={
+          <PrimaryButton block={false} onClick={() => router.push('/record/share')}>
+            {t('teenCodeCta')}
           </PrimaryButton>
         }
       />

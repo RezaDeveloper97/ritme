@@ -58,3 +58,42 @@ entries:
     where: data.life_profile
     deviation: D-34
     reason: Go-only user_life_profiles row in the data export
+
+  # D-96 (user decision 2026-10-12): the export also carries the Go-only canvas health data, one key per section
+  # (internal/accountexport; empty lists / null for a user without such data).
+  - case: "export*"
+    where: data.pelvic_floor
+    deviation: D-96
+    reason: Go-only pelvic floor program, sessions and bladder diary in the data export
+  - case: "export*"
+    where: data.contraception
+    deviation: D-96
+    reason: Go-only contraception method, pill pack and reminders in the data export
+  - case: "export*"
+    where: data.menopause
+    deviation: D-96
+    reason: Go-only menopause profile, daily log, hot flashes, scores and treatments in the data export
+  - case: "export*"
+    where: data.ivf
+    deviation: D-96
+    reason: Go-only IVF cycles, meds, injections, scans, two-week wait and reminders in the data export
+  - case: "export*"
+    where: data.condition_programs
+    deviation: D-96
+    reason: Go-only condition program enrolments, pain diary, PMDD and PBAC in the data export
+  - case: "export*"
+    where: data.loss
+    deviation: D-96
+    reason: Go-only loss path rows with the private note opened for the owner in the data export
+  - case: "export*"
+    where: data.insurance
+    deviation: D-96
+    reason: Go-only insurance policies, claims and questionnaires with sealed text opened for the owner in the data export
+  - case: "export*"
+    where: data.shop
+    deviation: D-96
+    reason: Go-only shop orders and addresses with buyer PII opened for the owner in the data export
+  - case: "export*"
+    where: data.directory
+    deviation: D-96
+    reason: Go-only directory bookings, reviews, reports, applications and file metadata in the data export

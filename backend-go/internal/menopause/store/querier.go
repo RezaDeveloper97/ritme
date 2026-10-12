@@ -20,6 +20,16 @@ type Querier interface {
 	DeleteTreatmentIntake(ctx context.Context, arg DeleteTreatmentIntakeParams) (int64, error)
 	// Intakes go with it (FK cascade); side effects keep the day and lose the link (SET NULL).
 	DeleteTreatmentItem(ctx context.Context, arg DeleteTreatmentItemParams) (int64, error)
+	ExportHealthLogEntries(ctx context.Context, userID uint64) ([]HealthLogEntry, error)
+	ExportHotFlashes(ctx context.Context, userID uint64) ([]HotFlash, error)
+	// Account data export (GET /profile/export, user decision 2026-10-12): every menopause row of the owner. The profile
+	// is user_life_profiles.menopause_*; the daily symptom log is health_log_entries (B-N3-01), which the menopause
+	// screens read and write.
+	ExportMenopauseProfile(ctx context.Context, userID uint64) ([]ExportMenopauseProfileRow, error)
+	ExportMenopauseScores(ctx context.Context, userID uint64) ([]MenopauseScore, error)
+	ExportSideEffectLogs(ctx context.Context, userID uint64) ([]SideEffectLog, error)
+	ExportTreatmentIntakes(ctx context.Context, userID uint64) ([]TreatmentIntake, error)
+	ExportTreatmentItems(ctx context.Context, userID uint64) ([]TreatmentItem, error)
 	GetHotFlash(ctx context.Context, arg GetHotFlashParams) (HotFlash, error)
 	// CB-MENO-02 — the menopause API (profile, today, hot-flash timer, monthly score, patterns).
 	// The menopause answers of bloom's life profile (B-N2-01 columns; no menopause profile table).

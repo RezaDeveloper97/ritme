@@ -976,7 +976,9 @@ func (h *Handlers) DestroyClaim(c fiber.Ctx) error {
 }
 
 // StoreEvent is POST /insurance/claims/{id}/events {status, occurred_on, deadline_on?, amount?, note?}: a step of the
-// timeline she maintains («درخواست مدرک» with its deadline, «پرداخت» with the paid amount, …).
+// timeline she maintains («درخواست مدرک» with its deadline, «پرداخت» with the paid amount, …). User decision
+// 2026-10-12: a claim of a past policy still takes new steps — a claim filed late in the old period may be paid after
+// the renewal — while every other change to it stays read-only (409).
 func (h *Handlers) StoreEvent(c fiber.Ctx) error {
 	userID, err := user(c)
 	if err != nil {
@@ -987,7 +989,7 @@ func (h *Handlers) StoreEvent(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if _, _, err := h.svc.WritableClaim(c, userID, id, civildate.InTehran(now)); err != nil {
+	if _, _, err := h.svc.ClaimWithPolicy(c, userID, id, civildate.InTehran(now)); err != nil {
 		return mapErr(err, locale)
 	}
 	data := pick(validation.Input(c), "status", "occurred_on", "deadline_on", "amount", "note")

@@ -31,7 +31,8 @@ describe('servicesHubSchema', () => {
       ['record', 'live'],
       ['labs', 'live'],
       ['vitals', 'live'],
-      // B-N10-06: the insurance tile is hidden while there is no insurance content.
+      // The insurance tile is always live for adults (self-tracking, CB-INS; golden re-recorded in c227edd0).
+      ['insurance', 'live'],
     ]);
     expect(hub.care[2]).toMatchObject({ title: 'Health record', href: '/record', count: 0, icon: 'fileDoc' });
     expect(hub.programs.find((p) => p.code === 'contraception')?.href).toBe('/contraception');

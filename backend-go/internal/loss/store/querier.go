@@ -14,6 +14,10 @@ type Querier interface {
 	CountLosses(ctx context.Context, userID uint64) (int64, error)
 	// DELETE /loss: the record goes with its moods (FK cascade) and its encrypted note. Pregnancy stays stopped.
 	DeleteLoss(ctx context.Context, arg DeleteLossParams) (int64, error)
+	ExportPregnancyLossMoods(ctx context.Context, userID uint64) ([]PregnancyLossMood, error)
+	// Account data export (GET /profile/export, user decision 2026-10-12): every loss path row of the owner (the private
+	// note is opened for her by the caller).
+	ExportPregnancyLosses(ctx context.Context, userID uint64) ([]PregnancyLoss, error)
 	// Pregnancy loss path (CB-LOSS-01, goose 00028): /api/v1/loss*, Go only. Every statement is scoped by user_id.
 	// The user's newest loss event (the one the follow-up screens work on).
 	GetLatestLoss(ctx context.Context, userID uint64) (PregnancyLoss, error)

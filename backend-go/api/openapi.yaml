@@ -15850,7 +15850,7 @@ paths:
     get:
       tags: [Profile]
       summary: Export all personal data
-      description: "Returns a full JSON export of the authenticated user's data (account, profile, health logs, cycle history, pregnancy data, reminders; in Go also consents (with the version accepted, B-N6-05b), support reports and notification settings, D-33, the life profile, D-34, and `ai_usage` — the AI usage rows still linked to the user, kept 90 days: feature, op, provider, model, token counts, byte sizes, cost_micros, latency_ms, ok, created_at; no content, D-58) for data-portability."
+      description: "Returns a full JSON export of the authenticated user's data (account, profile, health logs, cycle history, pregnancy data, reminders; in Go also consents (with the version accepted, B-N6-05b), support reports and notification settings, D-33, the life profile, D-34, and `ai_usage` — the AI usage rows still linked to the user, kept 90 days: feature, op, provider, model, token counts, byte sizes, cost_micros, latency_ms, ok, created_at; no content, D-58; and, user decision 2026-10-12 / D-96, the canvas health data — `pelvic_floor`, `contraception`, `menopause`, `ivf`, `condition_programs`, `loss`, `insurance`, `shop`, `directory` — owner-scoped raw rows with the sealed text opened for the owner and file metadata only) for data-portability."
       operationId: getProfileExport
       security:
         - {bearerAuth: []}
@@ -16211,6 +16211,97 @@ paths:
                               onboarding_completed_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
                               created_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
                               updated_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+                      pelvic_floor:
+                        description: "Go only (user decision 2026-10-12, D-96): pelvic floor program, sessions and bladder diary."
+                        type: object
+                        required: [program, sessions, bladder_diary]
+                        properties:
+                          program: {type: [object, "null"]}
+                          sessions: {type: array, items: {type: object}}
+                          bladder_diary: {type: array, items: {type: object}}
+                      contraception:
+                        description: "Go only (user decision 2026-10-12, D-96): the method, the daily pill log (pill pack) and the reminder links."
+                        type: object
+                        required: [method, pill_pack, reminders]
+                        properties:
+                          method: {type: [object, "null"]}
+                          pill_pack: {type: array, items: {type: object}}
+                          reminders: {type: array, items: {type: object}}
+                      menopause:
+                        description: "Go only (user decision 2026-10-12, D-96): profile (user_life_profiles.menopause_*), the daily symptom log (health_log_entries), hot flashes, monthly scores, treatments and their intakes (adherence) and side effects."
+                        type: object
+                        required: [profile, logs, hot_flashes, scores, treatments, treatment_intakes, side_effects]
+                        properties:
+                          profile: {type: [object, "null"]}
+                          logs: {type: array, items: {type: object}}
+                          hot_flashes: {type: array, items: {type: object}}
+                          scores: {type: array, items: {type: object}}
+                          treatments: {type: array, items: {type: object}}
+                          treatment_intakes: {type: array, items: {type: object}}
+                          side_effects: {type: array, items: {type: object}}
+                      ivf:
+                        description: "Go only (user decision 2026-10-12, D-96): cycles (stage, outcome), meds (inventory), injections (dose logs with sites), scans, two-week-wait moods and reminder links."
+                        type: object
+                        required: [cycles, meds, injections, scans, tww, reminders]
+                        properties:
+                          cycles: {type: array, items: {type: object}}
+                          meds: {type: array, items: {type: object}}
+                          injections: {type: array, items: {type: object}}
+                          scans: {type: array, items: {type: object}}
+                          tww: {type: array, items: {type: object}}
+                          reminders: {type: array, items: {type: object}}
+                      condition_programs:
+                        description: "Go only (user decision 2026-10-12, D-96): enrolments, pain diary, PMDD and PBAC entries."
+                        type: object
+                        required: [enrolments, pain_diary, pmdd, pbac]
+                        properties:
+                          enrolments: {type: array, items: {type: object}}
+                          pain_diary: {type: array, items: {type: object}}
+                          pmdd: {type: array, items: {type: object}}
+                          pbac: {type: array, items: {type: object}}
+                      loss:
+                        description: "Go only (user decision 2026-10-12, D-96): losses (the private note opened for the owner, null when the seal does not open) and moods."
+                        type: object
+                        required: [losses, moods]
+                        properties:
+                          losses: {type: array, items: {type: object}}
+                          moods: {type: array, items: {type: object}}
+                      insurance:
+                        description: "Go only (user decision 2026-10-12, D-96): policies with members and coverages, claims with their timeline and record-document links, questionnaires; claim / step notes, the explanation and the evidence opened for the owner (`note`, `explanation`, `answers[].evidence`), never the ciphertext."
+                        type: object
+                        required: [policies, members, coverages, claims, claim_events, claim_documents, questionnaires]
+                        properties:
+                          policies: {type: array, items: {type: object}}
+                          members: {type: array, items: {type: object}}
+                          coverages: {type: array, items: {type: object}}
+                          claims: {type: array, items: {type: object}}
+                          claim_events: {type: array, items: {type: object}}
+                          claim_documents: {type: array, items: {type: object}}
+                          questionnaires: {type: array, items: {type: object}}
+                      shop:
+                        description: "Go only (user decision 2026-10-12, D-96): saved addresses and orders with the buyer PII opened for the owner, shipments, items, events, returns, reviews, the layette checklist and the supply reminder."
+                        type: object
+                        required: [addresses, orders, shipments, order_items, order_events, returns, reviews, checklist, supply_reminder]
+                        properties:
+                          addresses: {type: array, items: {type: object}}
+                          orders: {type: array, items: {type: object}}
+                          shipments: {type: array, items: {type: object}}
+                          order_items: {type: array, items: {type: object}}
+                          order_events: {type: array, items: {type: object}}
+                          returns: {type: array, items: {type: object}}
+                          reviews: {type: array, items: {type: object}}
+                          checklist: {type: array, items: {type: object}}
+                          supply_reminder: {type: [object, "null"]}
+                      directory:
+                        description: "Go only (user decision 2026-10-12, D-96): bookings, reviews, reports, business applications (document / photo file ids) and the metadata of those files (id, purpose, visibility, mime, size_bytes, created_at; never bytes, path or hash)."
+                        type: object
+                        required: [bookings, reviews, reports, applications, application_files]
+                        properties:
+                          bookings: {type: array, items: {type: object}}
+                          reviews: {type: array, items: {type: object}}
+                          reports: {type: array, items: {type: object}}
+                          applications: {type: array, items: {type: object}}
+                          application_files: {type: array, items: {type: object}}
         '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/reminders:
     get:
@@ -23101,7 +23192,7 @@ paths:
     post:
       tags: [Insurance]
       summary: Add a timeline step
-      description: "A step she maintains; the claim status follows the latest step."
+      description: "A step she maintains; the claim status follows the latest step. A claim of a past policy still takes new steps (a late claim paid after the renewal, user decision 2026-10-12); every other change to it answers 409 insurance_policy_read_only."
       operationId: storeInsuranceClaimEvent
       security:
         - {bearerAuth: []}

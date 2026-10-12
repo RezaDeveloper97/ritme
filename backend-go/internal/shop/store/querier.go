@@ -109,6 +109,17 @@ type Querier interface {
 	// UPDATEs (…WHERE stock >= ?, booked < capacity, used_count < max_uses) inside the checkout transaction. No query here
 	// joins a health table.
 	EnsureCart(ctx context.Context, arg EnsureCartParams) error
+	// Account data export (GET /profile/export, user decision 2026-10-12): every shop row of the owner; order child rows
+	// are reached through her order (the owner scope is in each statement). Buyer PII is opened by the caller.
+	ExportShopAddresses(ctx context.Context, userID uint64) ([]ShopAddress, error)
+	ExportShopChecklistItems(ctx context.Context, userID uint64) ([]ShopUserChecklistItem, error)
+	ExportShopOrderEvents(ctx context.Context, userID uint64) ([]ShopOrderEvent, error)
+	ExportShopOrderItems(ctx context.Context, userID uint64) ([]ShopOrderItem, error)
+	ExportShopOrderShipments(ctx context.Context, userID uint64) ([]ShopOrderShipment, error)
+	ExportShopOrders(ctx context.Context, userID uint64) ([]ShopOrder, error)
+	ExportShopProductReviews(ctx context.Context, userID uint64) ([]ShopProductReview, error)
+	ExportShopReturns(ctx context.Context, userID uint64) ([]ShopReturn, error)
+	ExportShopSupplyReminders(ctx context.Context, userID uint64) ([]ShopSupplyReminder, error)
 	// The care reminder the supply opt-in created (meta.source = shop_supply). It lives in `reminders` like any other
 	// custom reminder, so GET /reminders lists it and the user can switch it off or delete it there.
 	FindSupplyCareReminder(ctx context.Context, userID uint64) (Reminder, error)

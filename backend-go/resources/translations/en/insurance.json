@@ -432,7 +432,7 @@
     "deleteAsk": "Delete this claim and its timeline? The documents stay in your health record.",
     "deleteYes": "Delete",
     "selfTrack": "You keep this timeline yourself. Ritme doesn't send anything to an insurer.",
-    "readOnly": "This claim belongs to a past policy and can't be changed anymore."
+    "readOnly": "This claim belongs to a past policy: you can still record steps like a payment, but nothing else can change."
   },
   "docPicker": {
     "title": "From my health record",

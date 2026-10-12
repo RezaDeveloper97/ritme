@@ -13,6 +13,10 @@ type Querier interface {
 	DeletePillLog(ctx context.Context, arg DeletePillLogParams) (int64, error)
 	// Removes a method reminder (its link goes by FK cascade).
 	DeleteReminder(ctx context.Context, arg DeleteReminderParams) error
+	// Account data export (GET /profile/export, user decision 2026-10-12): every contraception row of the owner.
+	ExportContraceptionMethods(ctx context.Context, userID uint64) ([]ContraceptionMethod, error)
+	ExportContraceptionPillLogs(ctx context.Context, userID uint64) ([]ContraceptionPillLog, error)
+	ExportContraceptionReminders(ctx context.Context, userID uint64) ([]ContraceptionReminder, error)
 	// Contraception (CB-CONTRA-01, goose 00017). Health data: every statement is scoped by user_id in the statement
 	// itself. The «track contraception» flag is user_life_profiles.track_contraception (B-N2-01) and the pill reminder
 	// is notification_preferences' `pill` category (B-N1-09) — written here, never copied.

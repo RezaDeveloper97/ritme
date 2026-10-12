@@ -7,7 +7,9 @@
 //
 // History (user decision 2026-10-12, 00093). She keeps several policies: «تمدید» creates a new policy (new period,
 // members and coverages copied as a starting point). Exactly one is current (the latest period containing today,
-// else the newest); a policy that is neither current nor upcoming is past and read-only together with its claims.
+// else the newest); a policy that is neither current nor upcoming is past and read-only together with its claims —
+// except that her claims' timelines still take new steps (a late claim paid after the renewal, user decision
+// 2026-10-12).
 // Claims attach to a policy and coverage usage is computed per policy period.
 //
 // Privacy. No insurer API: nothing is ever sent anywhere. The policy number and the payout IBAN are kept only as their

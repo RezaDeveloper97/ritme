@@ -72,7 +72,9 @@
     "manage": "Manage links",
     "shareText": "My health report (Ritme)",
     "teenTitle": "Report links in teen mode",
-    "teenCta": "Link a parent"
+    "teenCta": "Link a parent",
+    "teenCodeTitle": "Use the 24-hour code",
+    "teenCodeCta": "Doctor code"
   },
   "paper": {
     "title": "Health report",
@@ -146,5 +148,6 @@
     "revokeError": "Not revoked. Try again.",
     "hint": "Links from the last 30 days. Revoking a link takes the report offline at once."
   },
-  "teenLocked": "In teen mode, 7-day links work only once one of your parents is linked to your account."
+  "teenLocked": "In teen mode, 7-day links work only once one of your parents is linked to your account.",
+  "teenCodeOnly": "In teen mode, share with your doctor using the 24-hour code instead of a 7-day link."
 }

@@ -91,6 +91,9 @@ function ShareContent({ data, onCreate }: { data: RecordSharing; onCreate: () =>
   const full = doctor.activeCount >= doctor.maxActive;
   // User decision 2026-10-12: a teen without an active parent link gets the emergency card only (the server says 403).
   const teenLocked = !data.policy.doctorSharing;
+  // User decision 2026-10-12: teens can't buy Plus, so a teen with a parent link uses the 24-hour code only (no 7-day
+  // link row, which would lead to the Plus pitch).
+  const teenCodeOnly = data.policy.teen && !teenLocked;
 
   return (
     <>
@@ -129,21 +132,25 @@ function ShareContent({ data, onCreate }: { data: RecordSharing; onCreate: () =>
           </p>
         ) : null}
       </Card>
-      <ListGroup className="rsh-list">
-        {teenLocked ? (
-          <>
-            <ListRow icon="users" title={t('teenLinkParent')} onClick={() => router.push('/teen/parent')} />
-            <ListRow
-              icon="qr"
-              title={t('teenEmergency')}
-              description={t('teenEmergencyBody')}
-              onClick={() => router.push('/record/emergency')}
-            />
-          </>
-        ) : (
-          <ListRow icon="share" title={t('linkTitle')} description={t('linkBody')} onClick={() => router.push('/record/export')} />
-        )}
-      </ListGroup>
+      {teenCodeOnly ? (
+        <InfoNote icon="qr">{t('teenCodeOnly')}</InfoNote>
+      ) : (
+        <ListGroup className="rsh-list">
+          {teenLocked ? (
+            <>
+              <ListRow icon="users" title={t('teenLinkParent')} onClick={() => router.push('/teen/parent')} />
+              <ListRow
+                icon="qr"
+                title={t('teenEmergency')}
+                description={t('teenEmergencyBody')}
+                onClick={() => router.push('/record/emergency')}
+              />
+            </>
+          ) : (
+            <ListRow icon="share" title={t('linkTitle')} description={t('linkBody')} onClick={() => router.push('/record/export')} />
+          )}
+        </ListGroup>
+      )}
 
       <SectionTitle title={t('insurer')} />
       <ListGroup className="rsh-list">

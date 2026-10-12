@@ -130,7 +130,8 @@ function Body({ claim }: { claim: InsuranceClaimDetail }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const p = claim.payable;
-  // A claim of a past policy is read-only (policy history): no steps, documents or delete.
+  // A claim of a past policy is read-only (policy history): no documents, edits or delete — but it still takes timeline
+  // steps (user decision 2026-10-12: a claim filed late in the old period may be paid after the renewal).
   const ro = claim.readOnly;
   const steps = buildSteps(claim.events);
   const current = steps.find((s) => s.state === 'current');
@@ -263,15 +264,13 @@ function Body({ claim }: { claim: InsuranceClaimDetail }) {
                       .join(' · '),
             }))}
           />
-          {ro ? null : (
-            <SecondaryButton icon="plus" onClick={() => setSheet(claim.status === 'submitted' ? 'reviewing' : nextStatuses(claim.status)[0])}>
-              {tn('advance')}
-            </SecondaryButton>
-          )}
+          <SecondaryButton icon="plus" onClick={() => setSheet(claim.status === 'submitted' ? 'reviewing' : nextStatuses(claim.status)[0])}>
+            {tn('advance')}
+          </SecondaryButton>
         </div>
       </section>
 
-      {!ro && (claim.status === 'rejected' || claim.status === 'paid') ? (
+      {claim.status === 'rejected' || claim.status === 'paid' ? (
         <SecondaryButton variant="text" onClick={() => setSheet('appealed')}>
           {tn('appeal')}
         </SecondaryButton>

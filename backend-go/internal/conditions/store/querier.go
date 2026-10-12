@@ -14,6 +14,11 @@ type Querier interface {
 	DeletePmddEntry(ctx context.Context, arg DeletePmddEntryParams) error
 	// Joining again keeps the first enrolment date.
 	Enrol(ctx context.Context, arg EnrolParams) error
+	// Account data export (GET /profile/export, user decision 2026-10-12): every condition program row of the owner.
+	ExportConditionEnrolments(ctx context.Context, userID uint64) ([]ConditionEnrolment, error)
+	ExportConditionPainEntries(ctx context.Context, userID uint64) ([]ConditionPainEntry, error)
+	ExportPbacEntries(ctx context.Context, userID uint64) ([]PbacEntry, error)
+	ExportPmddEntries(ctx context.Context, userID uint64) ([]PmddEntry, error)
 	// The profile's cycle and period length (the first profile row, as the cycle engine reads it).
 	GetCycleDefaults(ctx context.Context, userID uint64) (GetCycleDefaultsRow, error)
 	GetPainEntry(ctx context.Context, arg GetPainEntryParams) (ConditionPainEntry, error)

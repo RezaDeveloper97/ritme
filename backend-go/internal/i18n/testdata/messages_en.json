@@ -5176,7 +5176,7 @@
     "deleteAsk": "Delete this claim and its timeline? The documents stay in your health record.",
     "deleteYes": "Delete",
     "selfTrack": "You keep this timeline yourself. Ritme doesn't send anything to an insurer.",
-    "readOnly": "This claim belongs to a past policy and can't be changed anymore."
+    "readOnly": "This claim belongs to a past policy: you can still record steps like a payment, but nothing else can change."
    },
    "docPicker": {
     "title": "From my health record",
@@ -10498,7 +10498,8 @@
     "teenLocked": "In teen mode, doctor codes and 7-day links work only once one of your parents is linked to your account.",
     "teenLinkParent": "Link a parent",
     "teenEmergency": "Emergency card",
-    "teenEmergencyBody": "Always available, with or without a parent"
+    "teenEmergencyBody": "Always available, with or without a parent",
+    "teenCodeOnly": "In teen mode, share your record with a doctor using the 24-hour code above; 7-day links aren't part of teen accounts."
    },
    "shareCode": {
     "title": "Code for your doctor",
@@ -10691,7 +10692,9 @@
     "manage": "Manage links",
     "shareText": "My health report (Ritme)",
     "teenTitle": "Report links in teen mode",
-    "teenCta": "Link a parent"
+    "teenCta": "Link a parent",
+    "teenCodeTitle": "Use the 24-hour code",
+    "teenCodeCta": "Doctor code"
    },
    "paper": {
     "title": "Health report",
@@ -10765,7 +10768,8 @@
     "revokeError": "Not revoked. Try again.",
     "hint": "Links from the last 30 days. Revoking a link takes the report offline at once."
    },
-   "teenLocked": "In teen mode, 7-day links work only once one of your parents is linked to your account."
+   "teenLocked": "In teen mode, 7-day links work only once one of your parents is linked to your account.",
+   "teenCodeOnly": "In teen mode, share with your doctor using the 24-hour code instead of a 7-day link."
   },
   "reminders": {
    "title": "Reminders",

@@ -3,6 +3,7 @@
 package profile
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -33,13 +34,21 @@ var allowedFields = []string{
 	"pregnancy_intention", "chronic_conditions",
 }
 
+// ExportSection is a Go-only top-level key of GET /profile/export loaded for the owner (user decision 2026-10-12: the
+// canvas health data, internal/accountexport). Load must scope every read by userID and never log a value.
+type ExportSection struct {
+	Key  string
+	Load func(ctx context.Context, userID uint64) (any, error)
+}
+
 // Handlers is Api\V1\ProfileController.
 type Handlers struct {
-	svc    *Service
-	bmi    Bmi
-	clock  clock.Clock
-	debug  bool
-	logger *slog.Logger
+	svc      *Service
+	sections []ExportSection
+	bmi      Bmi
+	clock    clock.Clock
+	debug    bool
+	logger   *slog.Logger
 }
 
 // Options wires the handlers.
@@ -52,6 +61,8 @@ type Options struct {
 	Clock       clock.Clock     // fallback when the request carries no test clock
 	Debug       bool            // APP_DEBUG: 500 bodies carry the error text
 	Logger      *slog.Logger
+	// ExportSections are appended to GET /profile/export after the built-in keys, in order (nil = none).
+	ExportSections []ExportSection
 }
 
 // NewHandlers builds the controller.
@@ -67,11 +78,12 @@ func NewHandlers(o Options) *Handlers {
 		o.Logger = slog.Default()
 	}
 	return &Handlers{
-		svc:    &Service{DB: o.DB, Q: q, Telegram: o.Telegram, StoragePath: o.StoragePath, Logger: o.Logger},
-		bmi:    Bmi{Content: o.Content},
-		clock:  o.Clock,
-		debug:  o.Debug,
-		logger: o.Logger,
+		svc:      &Service{DB: o.DB, Q: q, Telegram: o.Telegram, StoragePath: o.StoragePath, Logger: o.Logger},
+		sections: o.ExportSections,
+		bmi:      Bmi{Content: o.Content},
+		clock:    o.Clock,
+		debug:    o.Debug,
+		logger:   o.Logger,
 	}
 }
 
@@ -302,7 +314,7 @@ func (h *Handlers) Export(c fiber.Ctx) error {
 	if u.Mobile.Valid {
 		mobile = u.Mobile.String
 	}
-	return httpx.OK(c, jsonx.Obj(
+	out := jsonx.Obj(
 		"exported_at", jsonx.ISO8601(h.now(c)),
 		"account", jsonx.Obj("id", u.ID, "name", name, "mobile", mobile, "created_at", createdAt),
 		"profile", model.ProfileJSON(p),
@@ -323,7 +335,16 @@ func (h *Handlers) Export(c fiber.Ctx) error {
 		"ai_usage", privacy.aiUsage,
 		// B-N2-01 (Go only, D-34): onboarding v2 answers and the life-stage mode.
 		"life_profile", LifeProfileExportJSON(life),
-	))
+	)
+	// User decision 2026-10-12 (Go only, D-96): the canvas health data, one key per section.
+	for _, s := range h.sections {
+		v, err := s.Load(ctx, u.ID)
+		if err != nil {
+			return fmt.Errorf("profile: export %s: %w", s.Key, err)
+		}
+		out.Set(s.Key, v)
+	}
+	return httpx.OK(c, out)
 }
 
 // DestroyAccount is DELETE /account: delete the user's OAuth tokens and the user in one
