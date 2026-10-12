@@ -9,6 +9,7 @@ import {
   LOSS_TYPES,
   type LossEvent,
   type LossType,
+  canContinueLoss,
   lossFieldError,
   shouldRecordLoss,
   useLossCatalog,
@@ -45,8 +46,8 @@ const LOOK: Record<LossType, { icon: IconName; tone: Tone }> = {
 
 /**
  * «متأسفیم که این را تجربه کردی» (`/loss`, CB-LOSS-02, nbl_Loss_Start): the
- * calm start of the loss path — what happened (optional), an approximate date
- * (optional), the always-on stop of pregnancy content, and an opt-in one-line
+ * calm start of the loss path — what happened and an approximate date (both start
+ * EMPTY and must be chosen before «ادامه» enables), the always-on stop of pregnancy content, and an opt-in one-line
  * notice to a companion who holds the pregnancy grant (off by default, hidden
  * without such a link). Full screen: no tab bar, no banners, nothing celebratory.
  *
@@ -168,7 +169,7 @@ function StartForm({
   }));
 
   const submit = () => {
-    if (save.isPending) return;
+    if (save.isPending || !canContinueLoss(type, date)) return;
     save.mutate(
       {
         ...(type ? { type } : {}),
@@ -257,7 +258,7 @@ function StartForm({
             {saveError}
           </p>
         ) : null}
-        <PrimaryButton loading={save.isPending} onClick={submit}>
+        <PrimaryButton loading={save.isPending} disabled={!canContinueLoss(type, date)} onClick={submit}>
           {save.isPending ? t('saving') : tc('continue')}
         </PrimaryButton>
       </div>

@@ -2281,8 +2281,11 @@ paths:
         returned as stored. `audiences` null = for everyone; with `?audience=` only those items and the ones
         listing that audience are returned. `needs_review` = copy still awaits clinical review. Cached per group
         (Redis, flushed on every admin write).
+        Public without login only for the FAQ groups on the server allow-list (`teen_faq`, `meno_faq`); every other group
+        answers 401 to a guest. A present but invalid bearer token is 401 everywhere.
       operationId: getCatalogGroup
       security:
+        - {}
         - {bearerAuth: []}
       parameters:
         - {name: group, in: path, required: true, schema: {type: string, pattern: "^[a-z][a-z0-9_]*$", maxLength: 64}}

@@ -52,7 +52,7 @@ func newEnv(t *testing.T) *env {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 	q := authstore.New(e.DB)
-	guard := auth.NewGuardWith(&key.PublicKey, q, clock.Real{}, admintest.Quiet).RequireUser
+	guard := auth.NewGuardWith(&key.PublicKey, q, clock.Real{}, admintest.Quiet).OptionalUser
 	e.App.Get("/api/v1/catalog/:group", i18n.Middleware(e.Registry), guard, catalog.NewHandlers(reader).Group)
 
 	id, err := e.Exec("INSERT INTO users (mobile, created_at, updated_at) VALUES ('09120000001', NOW(), NOW())").LastInsertId()
@@ -146,11 +146,24 @@ func groupRow(groups []any, group string) map[string]any {
 // ---------------------------------------------------------------------------
 // Public read
 
-func TestPublic_RequiresAuth(t *testing.T) {
+func TestPublic_GuestOnlyFAQGroups(t *testing.T) {
 	e := newEnv(t)
-	r := e.get(t, "/api/v1/catalog/teen_faq", "", "")
-	assert.Equal(t, 401, r.status)
-	assert.Equal(t, "unauthenticated", r.body["error_code"])
+	// teen_faq is seeded by migrations (the public FAQ group); "warn" is a private test group.
+	e.seed("warn", "bleeding", 1, true, nil, map[string]any{"fa": "خونریزی"}, nil, nil)
+
+	// Guest (no Authorization header): the public FAQ group is readable ...
+	pub := e.get(t, "/api/v1/catalog/teen_faq", "", "")
+	require.Equal(t, 200, pub.status)
+	assert.Contains(t, codes(pub), "irregular")
+
+	// ... any other group is still 401.
+	priv := e.get(t, "/api/v1/catalog/warn", "", "")
+	assert.Equal(t, 401, priv.status)
+	assert.Equal(t, "unauthenticated", priv.body["error_code"])
+
+	// A signed-in caller reads both; an invalid token is 401 even on a public group.
+	assert.Equal(t, 200, e.get(t, "/api/v1/catalog/warn", "").status)
+	assert.Equal(t, 401, e.get(t, "/api/v1/catalog/teen_faq", "", "garbage").status)
 }
 
 func TestPublic_LocalizedFilteredOrdered(t *testing.T) {

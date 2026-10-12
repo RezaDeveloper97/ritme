@@ -1,0 +1,76 @@
+{
+  "case": "teen/catalog_faq_anon",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/catalog/teen_faq",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "group": "teen_faq",
+          "locale": "fa",
+          "items": [
+            {
+              "code": "irregular",
+              "title": "پریودم نامنظم است، مشکلی دارد؟",
+              "body": "در ۱ تا ۲ سال اول نامنظم بودن خیلی شایع و طبیعی است.",
+              "meta": null,
+              "audiences": [
+                "teen"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "how_much_bleeding",
+              "title": "چقدر خونریزی طبیعی است؟",
+              "body": "معمولاً ۳ تا ۷ روز. اگر هر ساعت نوار پر می‌شود، به مادرت یا پزشک بگو.",
+              "meta": null,
+              "audiences": [
+                "teen"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "period_pain",
+              "title": "درد پریود چه کنم؟",
+              "body": "گرما روی شکم، کمی تحرک و مسکن ساده با اجازه بزرگ‌ترها کمک می‌کند.",
+              "meta": null,
+              "audiences": [
+                "teen"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "pad_change",
+              "title": "هر چند وقت نوار را عوض کنم؟",
+              "body": "معمولاً هر ۴ تا ۶ ساعت، یا زودتر اگر پر شده است.",
+              "meta": null,
+              "audiences": [
+                "teen"
+              ],
+              "needs_review": true
+            },
+            {
+              "code": "sports",
+              "title": "در پریود می‌توانم ورزش کنم؟",
+              "body": "بله. ورزش سبک حتی ممکن است درد را کمتر کند.",
+              "meta": null,
+              "audiences": [
+                "teen"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

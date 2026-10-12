@@ -266,3 +266,15 @@ cases:
       - method: GET
         path: /api/v1/logs/taxonomy
         status: 200
+  - name: catalog_faq_anon
+    doc: CB-CORE-03 — the FAQ group teen_faq is public (optional auth); a guest reads it
+    persona: anon
+    method: GET
+    path: /api/v1/catalog/teen_faq
+    status: 200
+  - name: catalog_private_anon
+    doc: CB-CORE-03 — any group off the public allow-list still needs a login
+    persona: anon
+    method: GET
+    path: /api/v1/catalog/teen_signs
+    status: 401

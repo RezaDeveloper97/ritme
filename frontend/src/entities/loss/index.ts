@@ -23,6 +23,7 @@ export {
   crisisHotlines,
   emergencyNumber,
   lifeModeOfNextStep,
+  canContinueLoss,
   shouldRecordLoss,
   splitWallClock,
   visitAt,

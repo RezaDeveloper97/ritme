@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  canContinueLoss,
   crisisHotlines,
   emergencyNumber,
   lifeModeOfNextStep,
@@ -71,6 +72,16 @@ describe('crisisHotlines', () => {
       item('social_emergency', 'اورژانس اجتماعی ۱۲۳', null, { number: '123', kind: 'crisis' }),
     ];
     expect(crisisHotlines(null, hotlines).map((h) => h.number)).toEqual(['1480', '123']);
+  });
+});
+
+describe('canContinueLoss', () => {
+  it('needs both a type and a date: the empty start form cannot continue', () => {
+    expect(canContinueLoss(null, null)).toBe(false);
+    expect(canContinueLoss('ectopic', null)).toBe(false);
+    expect(canContinueLoss(null, '2026-10-01')).toBe(false);
+    expect(canContinueLoss('ectopic', '')).toBe(false);
+    expect(canContinueLoss('ectopic', '2026-10-01')).toBe(true);
   });
 });
 

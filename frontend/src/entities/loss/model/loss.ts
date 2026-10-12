@@ -1,4 +1,4 @@
-import type { LossCatalogItem, LossEvent, LossHotline, LossNextStep } from './types';
+import type { LossCatalogItem, LossType, LossEvent, LossHotline, LossNextStep } from './types';
 
 /*
  * Pure rules of the loss path (no React, no locale). Clinical copy stays in the
@@ -75,6 +75,14 @@ export function shouldRecordLoss(loss: LossEvent | null, pregnant: boolean, toda
   if (!loss) return true;
   if (pregnant) return true;
   return loss.createdAt?.slice(0, 10) === todayIso;
+}
+
+/**
+ * The loss start form (CB-LOSS-02) begins EMPTY — no type, no date preselected — and «ادامه» stays disabled until
+ * she has chosen both (user decision 2026-10-12).
+ */
+export function canContinueLoss(type: LossType | null | undefined, date: string | null | undefined): boolean {
+  return Boolean(type) && Boolean(date);
 }
 
 /** `Y-m-d` + `HH:mm` → the visit's Tehran wall clock (`Y-m-d H:i`). */
