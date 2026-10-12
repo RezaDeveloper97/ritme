@@ -19,7 +19,7 @@
           "sections": [
             {
               "code": "search",
-              "title": "Doctors, labs, classes or programs…",
+              "title": "Doctors, labs, classes or programs\u2026",
               "subtitle": null,
               "caption": null,
               "href": "/search",
@@ -168,6 +168,16 @@
               "icon": "heartLine",
               "tone": "period",
               "href": "/vitals",
+              "status": "live",
+              "count": null
+            },
+            {
+              "code": "insurance",
+              "title": "Insurance",
+              "subtitle": "Coverage and claims",
+              "icon": "shield",
+              "tone": "data",
+              "href": "/insurance",
               "status": "live",
               "count": null
             }

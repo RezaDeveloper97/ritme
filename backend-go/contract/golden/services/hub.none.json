@@ -169,6 +169,16 @@
               "href": "/vitals",
               "status": "live",
               "count": null
+            },
+            {
+              "code": "insurance",
+              "title": "بیمه",
+              "subtitle": "پوشش و خسارت",
+              "icon": "shield",
+              "tone": "data",
+              "href": "/insurance",
+              "status": "live",
+              "count": null
             }
           ],
           "programs": [
