@@ -121,18 +121,16 @@ type Service struct {
 	mode     ModeReader
 	bookings BookingSource
 	parent   ParentLinked
-	insured  InsurancePublished
+	insured  bool
 	cities   CityServicesLive
 }
 
-// InsurancePublished reports whether the admin-edited insurance info page (B-N10-06, info group `insurance`) has at
-// least one active box, or (CB-INS-03) the user keeps her own policy — the tracker lives at the same route.
-type InsurancePublished func(ctx context.Context, userID uint64) (bool, error)
-
-// WithInsurancePage plugs the insurance-page check (B-N10-06): the `insurance` care tile links to /insurance while the
-// page is published and is hidden while it is not. Without it the tile keeps its catalog meta.
-func (s *Service) WithInsurancePage(fn InsurancePublished) *Service {
-	s.insured = fn
+// WithInsuranceTile turns the `insurance` care tile live: it links to /insurance for every adult (non-teen) user,
+// whether or not the info page is published — the policy tracker lives at the same route (2026-10-12 decision,
+// supersedes the B-N10-06 "published or has-policy" switch). A teen never sees it. Without it the tile keeps its
+// catalog meta.
+func (s *Service) WithInsuranceTile() *Service {
+	s.insured = true
 	return s
 }
 
@@ -374,12 +372,8 @@ func (s *Service) care(ctx context.Context, userID uint64, mode enums.LifeMode, 
 			}
 		}
 		m := metaOf(it)
-		if it.Code == "insurance" && s.insured != nil {
-			ok, err := s.insured(ctx, userID)
-			if err != nil {
-				return nil, fmt.Errorf("services: insurance page: %w", err)
-			}
-			if !ok {
+		if it.Code == "insurance" && s.insured {
+			if mode == enums.LifeModeTeen {
 				continue
 			}
 			m.Href = "/insurance"

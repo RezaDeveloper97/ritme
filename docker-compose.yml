@@ -189,6 +189,10 @@ services:
         # Inlined into the browser bundle at build time — must be a URL the
         # user's browser can reach (hence localhost, not the service name).
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080/api/v1}
+    # Runtime, server-only: the public origin used for metadataBase / canonical / OG URLs on the (web) pages.
+    # Empty = no absolute URLs outside development (see frontend/src/app/[locale]/(web)/site-origin.ts).
+    environment:
+      SITE_URL: ${SITE_URL:-}
     restart: unless-stopped
     depends_on:
       - backend

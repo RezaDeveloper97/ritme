@@ -1,11 +1,24 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 
-import { SHOP_SORTS, useShopCatalogProducts, type ShopCatalogFacet, type ShopCatalogList, type ShopSort } from '@/entities/shop';
+import {
+  NO_LIST_FILTERS,
+  parseShopListState,
+  SHOP_SORTS,
+  shopListParams,
+  shopListSearch,
+  useShopCatalogProducts,
+  type ShopCatalogFacet,
+  type ShopCatalogList,
+  type ShopListFilters,
+  type ShopListState,
+  type ShopSort,
+} from '@/entities/shop';
 import { getApiErrorStatus } from '@/shared/api';
-import { Link, type Locale, useRouter } from '@/shared/i18n';
+import { Link, type Locale, usePathname, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
 import {
@@ -25,18 +38,9 @@ import {
 
 import { ProductTile, usePrice, useSkinLabel } from './ProductTile';
 
-/** Selected filter values; multi-valued filters are kept as arrays and comma-joined for the API. */
-interface Filters {
-  size: string[];
-  color: string[];
-  volume: string[];
-  material: string[];
-  skin_type: string[];
-  price_min: string;
-  price_max: string;
-}
-
-const NO_FILTERS: Filters = { size: [], color: [], volume: [], material: [], skin_type: [], price_min: '', price_max: '' };
+/** Selected filter values; multi-valued filters are kept as arrays and comma-joined for the API / the URL. */
+type Filters = ShopListFilters;
+const NO_FILTERS = NO_LIST_FILTERS;
 const FACET_KEYS = ['size', 'color', 'volume', 'material', 'skin_type'] as const;
 type FacetKey = (typeof FACET_KEYS)[number];
 const FACET_SOURCE: Record<FacetKey, 'sizes' | 'colors' | 'volumes' | 'materials' | 'skin_types'> = {
@@ -156,44 +160,39 @@ export function ShopListPage({ category }: { category: string }) {
   const locale = useLocale() as Locale;
   const price = usePrice();
   const skinLabel = useSkinLabel();
-  const [qInput, setQInput] = useState('');
-  const [q, setQ] = useState('');
-  const [filters, setFilters] = useState<Filters>(NO_FILTERS);
-  const [sort, setSort] = useState<ShopSort>('popular');
-  const [page, setPage] = useState(1);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  // Filters, sort, search and page live in the query string (2026-10-12): a reload or a back from a product
+  // restores the list exactly. The URL is the single source of truth; `go` rewrites it with router.replace.
+  const state = useMemo(() => parseShopListState((k) => searchParams.get(k)), [searchParams]);
+  const { q, filters, sort, page } = state;
+  const [qInput, setQInput] = useState(q);
   const [sheet, setSheet] = useState(false);
+
+  const go = (next: Partial<ShopListState>) => {
+    router.replace(`${pathname}${shopListSearch({ ...state, ...next })}`, { scroll: false });
+  };
+  const setPage = (n: number) => go({ page: n });
 
   // Debounce the search box; a new query restarts at page 1.
   useEffect(() => {
     const id = window.setTimeout(() => {
-      setQ((prev) => {
-        if (prev !== qInput.trim()) setPage(1);
-        return qInput.trim();
-      });
+      const next = qInput.trim();
+      if (next !== q) go({ q: next, page: 1 });
     }, 350);
     return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `go` only closes over the current URL state
   }, [qInput]);
+  // The URL changed from outside the box (back, reset): mirror it.
+  useEffect(() => {
+    setQInput((cur) => (cur.trim() === q ? cur : q));
+  }, [q]);
 
-  const query = useShopCatalogProducts({
-    category,
-    q: q || undefined,
-    size: filters.size.join(',') || undefined,
-    color: filters.color.join(',') || undefined,
-    volume: filters.volume.join(',') || undefined,
-    material: filters.material.join(',') || undefined,
-    skin_type: filters.skin_type.join(',') || undefined,
-    price_min: filters.price_min ? Number(filters.price_min) : undefined,
-    price_max: filters.price_max ? Number(filters.price_max) : undefined,
-    sort,
-    page,
-  });
+  const query = useShopCatalogProducts(shopListParams(category, state));
   const status = query.isError ? getApiErrorStatus(query.error) : undefined;
   const list = query.data;
 
-  const apply = (f: Filters) => {
-    setFilters(f);
-    setPage(1);
-  };
+  const apply = (f: Filters) => go({ filters: f, page: 1 });
   const active: { key: string; label: string; remove: () => void }[] = [];
   if (list) {
     for (const key of FACET_KEYS) {
@@ -270,10 +269,7 @@ export function ShopListPage({ category }: { category: string }) {
             <span className="shp-sort-label">{t('list.sort')}</span>
             <select
               value={sort}
-              onChange={(e) => {
-                setSort(e.target.value as ShopSort);
-                setPage(1);
-              }}
+              onChange={(e) => go({ sort: e.target.value as ShopSort, page: 1 })}
             >
               {SHOP_SORTS.map((s) => (
                 <option key={s} value={s}>
@@ -294,7 +290,7 @@ export function ShopListPage({ category }: { category: string }) {
                   <SecondaryButton
                     onClick={() => {
                       setQInput('');
-                      apply(NO_FILTERS);
+                      go({ q: '', filters: NO_FILTERS, page: 1 });
                     }}
                   >
                     {t('list.reset')}
@@ -312,11 +308,11 @@ export function ShopListPage({ category }: { category: string }) {
         )}
         {list.meta.last_page > 1 ? (
           <nav className="shp-pager" aria-label={t('products.pages')}>
-            <SecondaryButton variant="text" disabled={page <= 1} onClick={() => setPage((n) => n - 1)}>
+            <SecondaryButton variant="text" disabled={page <= 1} onClick={() => setPage(page - 1)}>
               {t('products.prev')}
             </SecondaryButton>
             <span>{t('products.page', { page, last: list.meta.last_page })}</span>
-            <SecondaryButton variant="text" disabled={page >= list.meta.last_page} onClick={() => setPage((n) => n + 1)}>
+            <SecondaryButton variant="text" disabled={page >= list.meta.last_page} onClick={() => setPage(page + 1)}>
               {t('products.next')}
             </SecondaryButton>
           </nav>

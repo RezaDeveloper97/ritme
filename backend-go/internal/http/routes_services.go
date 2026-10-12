@@ -2,8 +2,6 @@ package http
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -14,12 +12,10 @@ import (
 	checkupsstore "github.com/ritme/backend-go/internal/checkups/store"
 	"github.com/ritme/backend-go/internal/cityservices"
 	"github.com/ritme/backend-go/internal/companion"
-	contentstore "github.com/ritme/backend-go/internal/content/store"
 	"github.com/ritme/backend-go/internal/enums"
 	healthrecordstore "github.com/ritme/backend-go/internal/healthrecord/store"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
-	insurancestore "github.com/ritme/backend-go/internal/insurance/store"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/services"
 )
@@ -50,31 +46,11 @@ func init() {
 			}
 			return false, nil
 		}
-		svc := services.NewService(cat, healthrecordstore.New(d.DB), mode, telemedBookings(d, false)).WithTeenParent(parentLinked).WithInsurancePage(insurancePublished(d)).WithCityServices(cityServicesLive(d)) // B-N7-03 card, B-N10-06 tile
+		svc := services.NewService(cat, healthrecordstore.New(d.DB), mode, telemedBookings(d, false)).WithTeenParent(parentLinked).WithInsuranceTile().WithCityServices(cityServicesLive(d)) // B-N7-03 card, B-N10-06 tile
 		h := services.NewHandlers(svc, clock.Real{})
 
 		r.Get("/api/v1/services", locale, guard, h.Show)
 	})
-}
-
-// insurancePublished is B-N10-06's tile switch: the `insurance` info page has at least one active box.
-// CB-INS-03: the tile also shows once the user keeps her own policy (the tracker lives at the same /insurance route).
-func insurancePublished(d *Deps) services.InsurancePublished {
-	q := contentstore.New(d.DB)
-	iq := insurancestore.New(d.DB)
-	return func(ctx context.Context, userID uint64) (bool, error) {
-		rows, err := q.ListActiveInfoPageSections(ctx, "insurance")
-		if err != nil || len(rows) > 0 {
-			return len(rows) > 0, err
-		}
-		if _, err := iq.GetUserPolicy(ctx, userID); err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return false, nil
-			}
-			return false, err
-		}
-		return true, nil
-	}
 }
 
 // cityServicesLive is B-N10-05's section switch: at least one visible city-service listing.

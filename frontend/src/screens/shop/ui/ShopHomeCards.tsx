@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 
 import { useSaveSupplyReminder, useShopChecklist, useSupplyReminder } from '@/entities/shop';
+import { useLifeStage } from '@/entities/user';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Card, Icon, ProgressBar, Switch } from '@/shared/ui';
@@ -39,13 +40,17 @@ export function ChecklistCard() {
 /**
  * CB-SHOP-09: the discreet personal-supplies reminder (opt-in, off by default). Visible copy never names the reason:
  * it is a plain "look at your personal supplies" nudge before the predicted date, kept on the server. Nothing reaches
- * a seller. Renders nothing for a teen-mode account (404).
+ * a seller. Renders nothing for a teen-mode account (404), and (2026-10-12) while the life mode is pregnancy,
+ * postpartum or menopause — the server only schedules this reminder for cycle / TTC / no-mode accounts
+ * (`shopPeriodPredictor`), so a toggle there would be a no-op.
  */
 export function SupplyReminderCard() {
   const t = useTranslations('shop.home.supply');
   const q = useSupplyReminder();
   const save = useSaveSupplyReminder();
-  if (!q.data) return null;
+  const life = useLifeStage();
+  const mode = life.data?.mode;
+  if (!q.data || life.isPending || mode === 'pregnancy' || mode === 'postpartum' || mode === 'menopause') return null;
   const on = q.data.enabled;
   return (
     <Card className="shp-supply">

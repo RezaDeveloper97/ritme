@@ -1,5 +1,6 @@
 import { env } from '@/shared/config';
 
+import { DEFAULT_LIST_STATE, shopListParams, type ShopListState } from '../model/list-url';
 import {
   shopCatalogHomeSchema,
   shopCatalogListSchema,
@@ -39,9 +40,15 @@ export async function fetchPublicShopHome(locale: string): Promise<ShopCatalogHo
   return parsed.success ? parsed.data : null;
 }
 
-/** First page of a category, default sort, no filters (the list page's initial state). */
-export async function fetchPublicShopList(category: string, locale: string): Promise<ShopCatalogList | null> {
-  const qs = new URLSearchParams({ category, sort: 'popular', page: '1', per_page: '20' });
+/** A page of a category for a list state (default: first page, popular, no filters — the list's initial state). */
+export async function fetchPublicShopList(
+  category: string,
+  locale: string,
+  state: ShopListState = DEFAULT_LIST_STATE,
+): Promise<ShopCatalogList | null> {
+  const qs = new URLSearchParams();
+  for (const [k, v] of Object.entries(shopListParams(category, state))) if (v !== undefined) qs.set(k, String(v));
+  qs.set('per_page', '20');
   const parsed = shopCatalogListSchema.safeParse(await getData(`/shop/catalog/products?${qs.toString()}`, locale));
   return parsed.success ? parsed.data : null;
 }

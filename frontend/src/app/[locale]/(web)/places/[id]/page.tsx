@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
@@ -7,6 +6,7 @@ import { fetchPublicListing } from '@/entities/city-service';
 import { WebPlacePage } from '@/screens/web-city-services';
 
 import { RouteMessages } from '../../../../RouteMessages';
+import { siteOrigin as originOf } from '../../site-origin';
 
 interface Props {
   params: Promise<{ locale: string; id: string }>;
@@ -16,15 +16,6 @@ const parseId = (id: string): number | null => {
   const n = Number(id);
   return Number.isInteger(n) && n > 0 ? n : null;
 };
-
-/** The request's own origin, for absolute canonical / OpenGraph URLs (no site-URL env exists). */
-async function originOf(): Promise<string | undefined> {
-  const h = await headers();
-  const host = h.get('x-forwarded-host') ?? h.get('host');
-  if (!host) return undefined;
-  const proto = h.get('x-forwarded-proto') ?? (host.startsWith('localhost') || host.startsWith('127.') ? 'http' : 'https');
-  return `${proto}://${host}`;
-}
 
 /**
  * Title / description / OpenGraph / canonical from the public API, server-side. Only the venue's own public fields

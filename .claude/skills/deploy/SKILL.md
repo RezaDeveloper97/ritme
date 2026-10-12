@@ -25,7 +25,7 @@ Steps: rsync source → `docker compose -f docker-compose.yml -f docker-compose.
 
 ## Layout on the server
 `/opt/ritme` holds the mirrored source. Server-only paths, excluded from rsync so they survive every deploy:
-- `.env` — prod secrets (APP_KEY, DB passwords, SMS keys, admin seed)
+- `.env` — prod secrets (APP_KEY, DB passwords, SMS keys, admin seed) and `SITE_URL` (public origin for canonical/OG URLs of the web pages; runtime env of the `frontend` container, so `up -d` is enough, no rebuild)
 - `ssl/` — copied TLS cert + key (nginx container can't follow letsencrypt symlinks)
 - `certbot-www/` — ACME webroot
 

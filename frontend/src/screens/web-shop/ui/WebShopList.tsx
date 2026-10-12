@@ -2,22 +2,26 @@
 
 import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useMemo, useState } from 'react';
 
 import {
+  parseShopListState,
   SHOP_SORTS,
+  shopListParams,
+  shopListSearch,
   type ShopCatalogFacet,
   type ShopCatalogList,
-  type ShopSort,
+  type ShopListState,
   useShopCatalogProducts,
   useShopPrice,
 } from '@/entities/shop';
 import { getApiErrorStatus } from '@/shared/api';
-import { Link, type Locale } from '@/shared/i18n';
+import { Link, type Locale, usePathname, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Card, EmptyState, Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 
-import { APP_SHOP, FACET_KEYS, FACET_SOURCE, type FacetKey, type Filters, isDefaultList, NO_FILTERS, STORE_HOME, storeCategoryHref } from '../model/store';
+import { APP_SHOP, FACET_KEYS, FACET_SOURCE, type FacetKey, type Filters, NO_FILTERS, STORE_HOME, storeCategoryHref } from '../model/store';
 import { ShopWebShell, WebTile } from './ShopWebShell';
 
 const SKIN_KEYS = ['oily', 'combination', 'normal', 'dry', 'sensitive'];
@@ -27,39 +31,43 @@ const digits = (v: string) => v.replace(/\D/g, '');
  * CB-SHOP-10 — `W_Shop_List`: breadcrumb, title, filter sidebar (sub-categories, facets, price), sort pills, product grid,
  * numbered pager. Filters are server-side (`/shop/catalog/products`); the first page arrives server-rendered. COD only.
  */
-export function WebShopList({ category, initial }: { category: string; initial?: ShopCatalogList | null }) {
+export function WebShopList({
+  category,
+  initial,
+  initialSearch = '',
+}: {
+  category: string;
+  initial?: ShopCatalogList | null;
+  /** The query string the server rendered `initial` for (`shopListSearch` of the request's own state). */
+  initialSearch?: string;
+}) {
   const t = useTranslations('shop');
   const w = useTranslations('webShop');
   const locale = useLocale() as Locale;
   const price = useShopPrice();
-  const [filters, setFilters] = useState<Filters>(NO_FILTERS);
-  const [priceDraft, setPriceDraft] = useState({ min: '', max: '' });
-  const [sort, setSort] = useState<ShopSort>('popular');
-  const [page, setPage] = useState(1);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  // Filters, sort and page live in the query string (2026-10-12): a reload, a shared link or a back from a product
+  // restores the list, and the server renders the same first page. `go` rewrites it with router.replace.
+  const state = useMemo(() => parseShopListState((k) => searchParams.get(k)), [searchParams]);
+  const { filters, sort } = state;
+  const [priceDraft, setPriceDraft] = useState({ min: filters.price_min, max: filters.price_max });
 
-  const query = useShopCatalogProducts(
-    {
-      category,
-      size: filters.size.join(',') || undefined,
-      color: filters.color.join(',') || undefined,
-      volume: filters.volume.join(',') || undefined,
-      material: filters.material.join(',') || undefined,
-      skin_type: filters.skin_type.join(',') || undefined,
-      price_min: filters.price_min ? Number(filters.price_min) : undefined,
-      price_max: filters.price_max ? Number(filters.price_max) : undefined,
-      sort,
-      page,
-    },
-    // The server-rendered page is only the right data while nothing has been filtered, sorted or paged.
-    { anon: true, initialData: isDefaultList(filters, sort, page) ? (initial ?? undefined) : undefined },
-  );
+  const go = (next: Partial<ShopListState>) => {
+    router.replace(`${pathname}${shopListSearch({ ...state, ...next })}`, { scroll: false });
+  };
+  const setPage = (n: number) => go({ page: n });
+
+  const query = useShopCatalogProducts(shopListParams(category, state), {
+    anon: true,
+    // The server-rendered page is only the right data for the exact state it was rendered for.
+    initialData: shopListSearch(state) === initialSearch ? (initial ?? undefined) : undefined,
+  });
   const status = query.isError ? getApiErrorStatus(query.error) : undefined;
   const list = query.data;
 
-  const apply = (f: Filters) => {
-    setFilters(f);
-    setPage(1);
-  };
+  const apply = (f: Filters) => go({ filters: f, page: 1 });
   const toggle = (key: FacetKey, v: string) => apply({ ...filters, [key]: filters[key].includes(v) ? filters[key].filter((x) => x !== v) : [...filters[key], v] });
   const label = (key: FacetKey, f: ShopCatalogFacet) => (key === 'skin_type' && SKIN_KEYS.includes(f.value) ? t(`skin.${f.value as 'oily'}`) : f.label);
   const activeCount = FACET_KEYS.reduce((n, k) => n + filters[k].length, 0) + (filters.price_min || filters.price_max ? 1 : 0);
@@ -214,10 +222,7 @@ export function WebShopList({ category, initial }: { category: string; initial?:
                     type="button"
                     className={clsx('wsh-pill', s === sort && 'on')}
                     aria-pressed={s === sort}
-                    onClick={() => {
-                      setSort(s);
-                      setPage(1);
-                    }}
+                    onClick={() => go({ sort: s, page: 1 })}
                   >
                     {t(`list.sorts.${s}`)}
                   </button>

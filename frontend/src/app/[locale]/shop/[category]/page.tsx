@@ -1,4 +1,5 @@
 import { setRequestLocale } from 'next-intl/server';
+import { Suspense } from 'react';
 
 import { ShopCategoryPage } from '@/screens/shop';
 
@@ -14,7 +15,10 @@ export default async function ShopCategoryRoute({ params }: Props) {
   setRequestLocale(locale);
   return (
     <RouteMessages route="shop">
-      <ShopCategoryPage category={category} />
+      {/* The list reads its filters from the query string (useSearchParams needs a Suspense boundary). */}
+      <Suspense>
+        <ShopCategoryPage category={category} />
+      </Suspense>
     </RouteMessages>
   );
 }
