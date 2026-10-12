@@ -21,6 +21,7 @@ type Querier interface {
 	CreateInsurer(ctx context.Context, arg CreateInsurerParams) (int64, error)
 	CreateMember(ctx context.Context, arg CreateMemberParams) (int64, error)
 	CreatePolicy(ctx context.Context, arg CreatePolicyParams) (int64, error)
+	// `answers` carries no evidence: the record items behind the suggestions are sealed in `evidence_enc` (00093).
 	CreateQuestionnaire(ctx context.Context, arg CreateQuestionnaireParams) (int64, error)
 	DeleteCentre(ctx context.Context, id uint64) (int64, error)
 	DeleteClaimDocuments(ctx context.Context, arg DeleteClaimDocumentsParams) error
@@ -29,22 +30,20 @@ type Querier interface {
 	DeleteMember(ctx context.Context, arg DeleteMemberParams) error
 	DeletePolicyCoverages(ctx context.Context, arg DeletePolicyCoveragesParams) error
 	DeleteUserClaim(ctx context.Context, arg DeleteUserClaimParams) (int64, error)
-	DeleteUserPolicy(ctx context.Context, userID uint64) (int64, error)
+	DeleteUserPolicy(ctx context.Context, arg DeleteUserPolicyParams) (int64, error)
 	DeleteUserQuestionnaire(ctx context.Context, arg DeleteUserQuestionnaireParams) (int64, error)
 	DetachClaimDocument(ctx context.Context, arg DetachClaimDocumentParams) (int64, error)
 	GetActiveCentre(ctx context.Context, id uint64) (InsuranceCentre, error)
 	GetCentre(ctx context.Context, id uint64) (GetCentreRow, error)
 	GetInsurer(ctx context.Context, id uint64) (InsuranceInsurer, error)
 	GetUserClaim(ctx context.Context, arg GetUserClaimParams) (InsuranceClaim, error)
-	// ---------------------------------------------------------------------------------------------------------------
-	// Policy
-	GetUserPolicy(ctx context.Context, userID uint64) (GetUserPolicyRow, error)
+	GetUserPolicyByID(ctx context.Context, arg GetUserPolicyByIDParams) (GetUserPolicyByIDRow, error)
 	GetUserQuestionnaire(ctx context.Context, arg GetUserQuestionnaireParams) (InsuranceQuestionnaire, error)
 	InsurerCodeExists(ctx context.Context, arg InsurerCodeExistsParams) (bool, error)
 	// The contracted centres a user sees: active, of the given type ('' = all), matching q ('' = all), for her insurer
 	// (insurer_id NULL rows are for every insurer; insurer 0 = she has none, so only those).
 	ListActiveCentres(ctx context.Context, arg ListActiveCentresParams) ([]ListActiveCentresRow, error)
-	// Insurance self-tracking (canvas CB-INS-01): catalog (insurers, centres), the user's policy + members + coverages,
+	// Insurance self-tracking (canvas CB-INS-01): catalog (insurers, centres), the user's policies (history, 00093) + members + coverages,
 	// claims with their timeline and record-document links, questionnaire drafts. Every user query is scoped by user_id
 	// in the SQL itself (IDOR): another user's row behaves exactly like a missing one.
 	// ---------------------------------------------------------------------------------------------------------------
@@ -55,12 +54,18 @@ type Querier interface {
 	ListClaimDocuments(ctx context.Context, arg ListClaimDocumentsParams) ([]ListClaimDocumentsRow, error)
 	ListClaimEvents(ctx context.Context, claimID uint64) ([]InsuranceClaimEvent, error)
 	ListInsurers(ctx context.Context) ([]InsuranceInsurer, error)
+	// The claims of one of her policies (coverage usage is per policy period).
+	ListPolicyClaims(ctx context.Context, arg ListPolicyClaimsParams) ([]InsuranceClaim, error)
 	ListPolicyCoverages(ctx context.Context, policyID uint64) ([]InsuranceCoverage, error)
 	ListPolicyMembers(ctx context.Context, policyID uint64) ([]InsurancePolicyMember, error)
 	ListUserChildren(ctx context.Context, ownerID uint64) ([]ListUserChildrenRow, error)
 	// ---------------------------------------------------------------------------------------------------------------
 	// Claims
 	ListUserClaims(ctx context.Context, userID uint64) ([]InsuranceClaim, error)
+	// ---------------------------------------------------------------------------------------------------------------
+	// Policy
+	// Her policy history (00093: several per user), newest period first. «Current» is chosen in Go (CurrentPolicy).
+	ListUserPolicies(ctx context.Context, userID uint64) ([]ListUserPoliciesRow, error)
 	// ---------------------------------------------------------------------------------------------------------------
 	// Questionnaires
 	ListUserQuestionnaires(ctx context.Context, userID uint64) ([]InsuranceQuestionnaire, error)
@@ -81,6 +86,7 @@ type Querier interface {
 	UpdateMember(ctx context.Context, arg UpdateMemberParams) error
 	UpdatePolicy(ctx context.Context, arg UpdatePolicyParams) error
 	UpdateQuestionnaire(ctx context.Context, arg UpdateQuestionnaireParams) error
+	UserHasPolicy(ctx context.Context, userID uint64) (bool, error)
 	UserOwnsChild(ctx context.Context, arg UserOwnsChildParams) (bool, error)
 	UserOwnsDocument(ctx context.Context, arg UserOwnsDocumentParams) (bool, error)
 }

@@ -114,45 +114,123 @@ func (s *Service) Insurers(ctx context.Context) ([]store.InsuranceInsurer, error
 	return s.q.ListActiveInsurers(ctx)
 }
 
-// Centres are the active contracted centres for her insurer (her policy's catalog insurer; none = the centres open to
-// every insurer). No location is taken: distances are computed on the device.
-func (s *Service) Centres(ctx context.Context, userID uint64, typ, q string) ([]store.ListActiveCentresRow, error) {
+// Centres are the active contracted centres for her insurer (her current policy's catalog insurer; none = the centres
+// open to every insurer). No location is taken: distances are computed on the device.
+func (s *Service) Centres(ctx context.Context, userID uint64, typ, q string, today civildate.Date) ([]store.ListActiveCentresRow, error) {
 	insurer := sql.NullInt64{Valid: true}
-	if p, err := s.q.GetUserPolicy(ctx, userID); err == nil && p.InsurerID.Valid {
-		insurer = p.InsurerID
-	} else if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if pv, err := s.Policy(ctx, userID, today); err == nil && pv.Policy.InsurerID.Valid {
+		insurer = pv.Policy.InsurerID
+	} else if err != nil && !errors.Is(err, ErrNoPolicy) {
 		return nil, err
 	}
 	return s.q.ListActiveCentres(ctx, store.ListActiveCentresParams{Type: typ, InsurerID: insurer, Q: q})
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// Policy
+// Policy history
 
-// PolicyView is her policy with its members and coverages.
+// PolicyRow is one of her policies (catalog insurer name joined).
+type PolicyRow = store.ListUserPoliciesRow
+
+// HistoryItem is one policy of her history with its place in it.
+type HistoryItem struct {
+	Policy PolicyRow
+	Status string // PolicyCurrent / PolicyUpcoming / PolicyPast
+}
+
+// History is her policies, newest period first, with the current one and the one that can be renewed.
+type History struct {
+	Items     []HistoryItem
+	CurrentID uint64
+	NewestID  uint64
+}
+
+// ReadOnly reports whether the policy with id is past (it and its claims are read-only). Unknown ids are read-only.
+func (h History) ReadOnly(id uint64) bool {
+	for _, it := range h.Items {
+		if it.Policy.ID == id {
+			return it.Status == PolicyPast
+		}
+	}
+	return true
+}
+
+func periodOfRow(p PolicyRow) Period { return Period{From: p.ValidFrom, To: p.ValidTo} }
+
+func historyOf(rows []PolicyRow, today civildate.Date) History {
+	facts := make([]PolicyFact, 0, len(rows))
+	for _, r := range rows {
+		facts = append(facts, PolicyFact{ID: r.ID, Period: periodOfRow(r)})
+	}
+	h := History{CurrentID: CurrentOf(facts, today), NewestID: NewestOf(facts)}
+	for i, r := range rows {
+		h.Items = append(h.Items, HistoryItem{Policy: r, Status: StatusOf(facts[i], h.CurrentID, today)})
+	}
+	return h
+}
+
+// History loads her policy history on `today`.
+func (s *Service) History(ctx context.Context, userID uint64, today civildate.Date) (History, error) {
+	return s.history(ctx, s.q, userID, today)
+}
+
+func (s *Service) history(ctx context.Context, q *store.Queries, userID uint64, today civildate.Date) (History, error) {
+	rows, err := q.ListUserPolicies(ctx, userID)
+	if err != nil {
+		return History{}, err
+	}
+	return historyOf(rows, today), nil
+}
+
+// PolicyView is one of her policies with its members, coverages and place in the history.
 type PolicyView struct {
-	Policy    store.GetUserPolicyRow
+	Policy    PolicyRow
+	Status    string
+	CanRenew  bool
 	Members   []store.InsurancePolicyMember
 	Coverages []store.InsuranceCoverage
 }
 
-// Policy loads her policy (ErrNoPolicy when she has none).
-func (s *Service) Policy(ctx context.Context, userID uint64) (PolicyView, error) {
-	p, err := s.q.GetUserPolicy(ctx, userID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return PolicyView{}, ErrNoPolicy
+// ReadOnly reports whether the policy is past (it and its claims cannot change).
+func (v PolicyView) ReadOnly() bool { return v.Status == PolicyPast }
+
+func (s *Service) view(ctx context.Context, h History, id uint64) (PolicyView, error) {
+	for _, it := range h.Items {
+		if it.Policy.ID != id {
+			continue
+		}
+		v := PolicyView{Policy: it.Policy, Status: it.Status, CanRenew: id == h.NewestID}
+		var err error
+		if v.Members, err = s.q.ListPolicyMembers(ctx, id); err != nil {
+			return PolicyView{}, err
+		}
+		if v.Coverages, err = s.q.ListPolicyCoverages(ctx, id); err != nil {
+			return PolicyView{}, err
+		}
+		return v, nil
 	}
+	return PolicyView{}, ErrNotFound
+}
+
+// Policy loads her current policy (ErrNoPolicy when she has none).
+func (s *Service) Policy(ctx context.Context, userID uint64, today civildate.Date) (PolicyView, error) {
+	h, err := s.History(ctx, userID, today)
 	if err != nil {
 		return PolicyView{}, err
 	}
-	v := PolicyView{Policy: p}
-	if v.Members, err = s.q.ListPolicyMembers(ctx, p.ID); err != nil {
+	if h.CurrentID == 0 {
+		return PolicyView{}, ErrNoPolicy
+	}
+	return s.view(ctx, h, h.CurrentID)
+}
+
+// PolicyByID loads one of her policies (ErrNotFound for a missing or another user's id).
+func (s *Service) PolicyByID(ctx context.Context, userID, id uint64, today civildate.Date) (PolicyView, error) {
+	h, err := s.History(ctx, userID, today)
+	if err != nil {
 		return PolicyView{}, err
 	}
-	if v.Coverages, err = s.q.ListPolicyCoverages(ctx, p.ID); err != nil {
-		return PolicyView{}, err
-	}
-	return v, nil
+	return s.view(ctx, h, id)
 }
 
 // MemberInput is one validated member row (ID 0 = new).
@@ -205,89 +283,225 @@ func (s *Service) OwnsChild(ctx context.Context, userID, childID uint64) (bool, 
 	return s.q.UserOwnsChild(ctx, store.UserOwnsChildParams{ChildID: childID, UserID: userID})
 }
 
-// SavePolicy creates or replaces her policy: members are matched by id (unknown ids are treated as new, missing ones
-// removed — their claims keep the row with no member), coverages are replaced when sent.
-func (s *Service) SavePolicy(ctx context.Context, userID uint64, in PolicyInput, now time.Time) (bool, error) {
-	ts := dbTime(now)
+// SavePolicy is PUT /policy: replaces her current policy, or creates her first one. It reports whether it created and
+// the policy id.
+func (s *Service) SavePolicy(ctx context.Context, userID uint64, in PolicyInput, now time.Time) (bool, uint64, error) {
+	ts, today := dbTime(now), civildate.InTehran(now)
 	created := false
+	var pid uint64
 	err := s.tx(ctx, func(q *store.Queries) error {
-		cur, err := q.GetUserPolicy(ctx, userID)
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			return err
-		}
-		number, iban := nullStr(in.NumberLast4), nullStr(in.IBANLast4)
-		if in.KeepNumber && err == nil {
-			number = cur.NumberLast4
-		}
-		if in.KeepIBAN && err == nil {
-			iban = cur.IbanLast4
-		}
-		var pid uint64
-		if errors.Is(err, sql.ErrNoRows) {
-			id, err := q.CreatePolicy(ctx, store.CreatePolicyParams{UserID: userID, InsurerID: nullID(in.InsurerID),
-				InsurerName: nullStr(in.InsurerName), PlanName: nullStr(in.PlanName), NumberLast4: number,
-				ValidFrom: in.ValidFrom, ValidTo: in.ValidTo, ClaimDeadlineDays: nullInt16(in.DeadlineDays), IbanLast4: iban,
-				NotCoveredNote: nullStr(in.NotCovered), CreatedAt: ts, UpdatedAt: ts})
-			if err != nil {
-				return err
-			}
-			pid, created = uint64(id), true //nolint:gosec // G115: DB id
-		} else {
-			pid = cur.ID
-			if err := q.UpdatePolicy(ctx, store.UpdatePolicyParams{InsurerID: nullID(in.InsurerID),
-				InsurerName: nullStr(in.InsurerName), PlanName: nullStr(in.PlanName), NumberLast4: number,
-				ValidFrom: in.ValidFrom, ValidTo: in.ValidTo, ClaimDeadlineDays: nullInt16(in.DeadlineDays), IbanLast4: iban,
-				NotCoveredNote: nullStr(in.NotCovered), UpdatedAt: ts, ID: pid, UserID: userID}); err != nil {
-				return err
-			}
-		}
-		existing, err := q.ListPolicyMembers(ctx, pid)
+		h, err := s.history(ctx, q, userID, today)
 		if err != nil {
 			return err
 		}
-		keep := map[uint64]bool{}
-		known := map[uint64]bool{}
-		for _, m := range existing {
-			known[m.ID] = true
+		if h.CurrentID == 0 {
+			pid, err = s.insertPolicy(ctx, q, userID, in, ts)
+			created = true
+			return err
 		}
-		for i, m := range in.Members {
-			order := int32(i) //nolint:gosec // G115: ≤ MaxMembers
-			if m.ID != 0 && known[m.ID] {
-				keep[m.ID] = true
-				if err := q.UpdateMember(ctx, store.UpdateMemberParams{Kind: m.Kind, ChildID: nullID(m.ChildID), Name: m.Name,
-					SortOrder: order, UpdatedAt: ts, ID: m.ID, PolicyID: pid, UserID: userID}); err != nil {
-					return err
-				}
-				continue
+		pid = h.CurrentID
+		return s.writePolicy(ctx, q, userID, h, pid, in, ts)
+	})
+	return created, pid, err
+}
+
+// UpdatePolicy replaces one of her policies by id (ErrNotFound; ErrReadOnly for a past one).
+func (s *Service) UpdatePolicy(ctx context.Context, userID, id uint64, in PolicyInput, now time.Time) error {
+	ts, today := dbTime(now), civildate.InTehran(now)
+	return s.tx(ctx, func(q *store.Queries) error {
+		h, err := s.history(ctx, q, userID, today)
+		if err != nil {
+			return err
+		}
+		return s.writePolicy(ctx, q, userID, h, id, in, ts)
+	})
+}
+
+// CreatePolicy adds a new policy to her history (another insurer, a policy she forgot to add, …).
+func (s *Service) CreatePolicy(ctx context.Context, userID uint64, in PolicyInput, now time.Time) (uint64, error) {
+	ts, today := dbTime(now), civildate.InTehran(now)
+	var pid uint64
+	err := s.tx(ctx, func(q *store.Queries) error {
+		h, err := s.history(ctx, q, userID, today)
+		if err != nil {
+			return err
+		}
+		if len(h.Items) >= MaxPolicies {
+			return ErrTooMany
+		}
+		pid, err = s.insertPolicy(ctx, q, userID, in, ts)
+		return err
+	})
+	return pid, err
+}
+
+func (s *Service) insertPolicy(ctx context.Context, q *store.Queries, userID uint64, in PolicyInput, ts sql.NullTime) (uint64, error) {
+	id, err := q.CreatePolicy(ctx, store.CreatePolicyParams{UserID: userID, InsurerID: nullID(in.InsurerID),
+		InsurerName: nullStr(in.InsurerName), PlanName: nullStr(in.PlanName), NumberLast4: nullStr(in.NumberLast4),
+		ValidFrom: in.ValidFrom, ValidTo: in.ValidTo, ClaimDeadlineDays: nullInt16(in.DeadlineDays), IbanLast4: nullStr(in.IBANLast4),
+		NotCoveredNote: nullStr(in.NotCovered), CreatedAt: ts, UpdatedAt: ts})
+	if err != nil {
+		return 0, err
+	}
+	pid := uint64(id) //nolint:gosec // G115: DB id
+	for i, m := range in.Members {
+		if _, err := q.CreateMember(ctx, store.CreateMemberParams{PolicyID: pid, Kind: m.Kind, ChildID: nullID(m.ChildID),
+			Name: m.Name, SortOrder: int32(i), CreatedAt: ts, UpdatedAt: ts}); err != nil { //nolint:gosec // G115: ≤ MaxMembers
+			return 0, err
+		}
+	}
+	return pid, s.replaceCoverages(ctx, q, userID, pid, in.Coverages, ts)
+}
+
+func (s *Service) replaceCoverages(ctx context.Context, q *store.Queries, userID, pid uint64, covs []CoverageInput, ts sql.NullTime) error {
+	if err := q.DeletePolicyCoverages(ctx, store.DeletePolicyCoveragesParams{PolicyID: pid, UserID: userID}); err != nil {
+		return err
+	}
+	for i, c := range covs {
+		if err := q.CreateCoverage(ctx, store.CreateCoverageParams{PolicyID: pid, Category: c.Category, Status: c.Status,
+			CapAmount: nullInt(c.Cap), DeductiblePct: nullInt16(c.Deductible), WaitingDays: nullInt16(c.WaitingDays),
+			Note: nullStr(c.Note), SortOrder: int32(i), CreatedAt: ts, UpdatedAt: ts}); err != nil { //nolint:gosec // G115: ≤ MaxCoverages
+			return err
+		}
+	}
+	return nil
+}
+
+// writePolicy replaces an existing policy of hers: members are matched by id (unknown ids are treated as new, missing
+// ones removed — their claims keep the row with no member), coverages are replaced when sent.
+func (s *Service) writePolicy(ctx context.Context, q *store.Queries, userID uint64, h History, pid uint64, in PolicyInput, ts sql.NullTime) error {
+	var cur *PolicyRow
+	for i := range h.Items {
+		if h.Items[i].Policy.ID == pid {
+			cur = &h.Items[i].Policy
+		}
+	}
+	if cur == nil {
+		return ErrNotFound
+	}
+	if h.ReadOnly(pid) {
+		return ErrReadOnly
+	}
+	number, iban := nullStr(in.NumberLast4), nullStr(in.IBANLast4)
+	if in.KeepNumber {
+		number = cur.NumberLast4
+	}
+	if in.KeepIBAN {
+		iban = cur.IbanLast4
+	}
+	if err := q.UpdatePolicy(ctx, store.UpdatePolicyParams{InsurerID: nullID(in.InsurerID),
+		InsurerName: nullStr(in.InsurerName), PlanName: nullStr(in.PlanName), NumberLast4: number,
+		ValidFrom: in.ValidFrom, ValidTo: in.ValidTo, ClaimDeadlineDays: nullInt16(in.DeadlineDays), IbanLast4: iban,
+		NotCoveredNote: nullStr(in.NotCovered), UpdatedAt: ts, ID: pid, UserID: userID}); err != nil {
+		return err
+	}
+	existing, err := q.ListPolicyMembers(ctx, pid)
+	if err != nil {
+		return err
+	}
+	keep := map[uint64]bool{}
+	known := map[uint64]bool{}
+	for _, m := range existing {
+		known[m.ID] = true
+	}
+	for i, m := range in.Members {
+		order := int32(i) //nolint:gosec // G115: ≤ MaxMembers
+		if m.ID != 0 && known[m.ID] {
+			keep[m.ID] = true
+			if err := q.UpdateMember(ctx, store.UpdateMemberParams{Kind: m.Kind, ChildID: nullID(m.ChildID), Name: m.Name,
+				SortOrder: order, UpdatedAt: ts, ID: m.ID, PolicyID: pid, UserID: userID}); err != nil {
+				return err
 			}
-			if _, err := q.CreateMember(ctx, store.CreateMemberParams{PolicyID: pid, Kind: m.Kind, ChildID: nullID(m.ChildID),
-				Name: m.Name, SortOrder: order, CreatedAt: ts, UpdatedAt: ts}); err != nil {
+			continue
+		}
+		if _, err := q.CreateMember(ctx, store.CreateMemberParams{PolicyID: pid, Kind: m.Kind, ChildID: nullID(m.ChildID),
+			Name: m.Name, SortOrder: order, CreatedAt: ts, UpdatedAt: ts}); err != nil {
+			return err
+		}
+	}
+	for _, m := range existing {
+		if !keep[m.ID] {
+			if err := q.DeleteMember(ctx, store.DeleteMemberParams{ID: m.ID, PolicyID: pid, UserID: userID}); err != nil {
 				return err
 			}
 		}
-		for _, m := range existing {
-			if !keep[m.ID] {
-				if err := q.DeleteMember(ctx, store.DeleteMemberParams{ID: m.ID, PolicyID: pid, UserID: userID}); err != nil {
-					return err
-				}
-			}
-		}
-		if !in.CoveragesSent && !created {
-			return nil
-		}
-		if err := q.DeletePolicyCoverages(ctx, store.DeletePolicyCoveragesParams{PolicyID: pid, UserID: userID}); err != nil {
+	}
+	if !in.CoveragesSent {
+		return nil
+	}
+	return s.replaceCoverages(ctx, q, userID, pid, in.Coverages, ts)
+}
+
+// RenewInput is the period of a renewal (zero = RenewalPeriod's default).
+type RenewInput struct {
+	ValidFrom civildate.NullDate
+	ValidTo   civildate.NullDate
+}
+
+// Renew creates the next policy from her newest one: a new period, the same insurer, plan, masked number / IBAN,
+// deadline, note, members and coverages as a starting point. The renewed policy keeps its claims and becomes past
+// once the new period starts (ErrRenewed for an older policy, ErrNotFound for another user's).
+func (s *Service) Renew(ctx context.Context, userID, id uint64, in RenewInput, now time.Time) (uint64, error) {
+	ts, today := dbTime(now), civildate.InTehran(now)
+	var pid uint64
+	err := s.tx(ctx, func(q *store.Queries) error {
+		h, err := s.history(ctx, q, userID, today)
+		if err != nil {
 			return err
 		}
-		for i, c := range in.Coverages {
+		var src *PolicyRow
+		for i := range h.Items {
+			if h.Items[i].Policy.ID == id {
+				src = &h.Items[i].Policy
+			}
+		}
+		switch {
+		case src == nil:
+			return ErrNotFound
+		case id != h.NewestID:
+			return ErrRenewed
+		case len(h.Items) >= MaxPolicies:
+			return ErrTooMany
+		}
+		period := RenewalPeriod(periodOfRow(*src), today)
+		if in.ValidFrom.Valid {
+			period.From = in.ValidFrom
+		}
+		if in.ValidTo.Valid {
+			period.To = in.ValidTo
+		}
+		nid, err := q.CreatePolicy(ctx, store.CreatePolicyParams{UserID: userID, InsurerID: src.InsurerID,
+			InsurerName: src.InsurerName, PlanName: src.PlanName, NumberLast4: src.NumberLast4, ValidFrom: period.From,
+			ValidTo: period.To, ClaimDeadlineDays: src.ClaimDeadlineDays, IbanLast4: src.IbanLast4,
+			NotCoveredNote: src.NotCoveredNote, CreatedAt: ts, UpdatedAt: ts})
+		if err != nil {
+			return err
+		}
+		pid = uint64(nid) //nolint:gosec // G115: DB id
+		members, err := q.ListPolicyMembers(ctx, id)
+		if err != nil {
+			return err
+		}
+		for _, m := range members {
+			if _, err := q.CreateMember(ctx, store.CreateMemberParams{PolicyID: pid, Kind: m.Kind, ChildID: m.ChildID,
+				Name: m.Name, SortOrder: m.SortOrder, CreatedAt: ts, UpdatedAt: ts}); err != nil {
+				return err
+			}
+		}
+		covs, err := q.ListPolicyCoverages(ctx, id)
+		if err != nil {
+			return err
+		}
+		for _, c := range covs {
 			if err := q.CreateCoverage(ctx, store.CreateCoverageParams{PolicyID: pid, Category: c.Category, Status: c.Status,
-				CapAmount: nullInt(c.Cap), DeductiblePct: nullInt16(c.Deductible), WaitingDays: nullInt16(c.WaitingDays),
-				Note: nullStr(c.Note), SortOrder: int32(i), CreatedAt: ts, UpdatedAt: ts}); err != nil { //nolint:gosec // G115: ≤ MaxCoverages
+				CapAmount: c.CapAmount, DeductiblePct: c.DeductiblePct, WaitingDays: c.WaitingDays, Note: c.Note,
+				SortOrder: c.SortOrder, CreatedAt: ts, UpdatedAt: ts}); err != nil {
 				return err
 			}
 		}
 		return nil
 	})
-	return created, err
+	return pid, err
 }
 
 func nullInt16(v *int64) sql.NullInt16 {
@@ -297,11 +511,22 @@ func nullInt16(v *int64) sql.NullInt16 {
 	return sql.NullInt16{Int16: int16(*v), Valid: true} //nolint:gosec // G115: validated ≤ MaxWaitingDays
 }
 
-// DeletePolicy removes her policy and everything under it (members, coverages, claims, timelines, document links).
-func (s *Service) DeletePolicy(ctx context.Context, userID uint64) error {
-	n, err := s.q.DeleteUserPolicy(ctx, userID)
+// DeletePolicy removes one of her policies (id 0 = the current one) and everything under it (members, coverages,
+// claims, timelines, document links). Deleting is her right even for a past policy.
+func (s *Service) DeletePolicy(ctx context.Context, userID, id uint64, today civildate.Date) error {
+	if id == 0 {
+		h, err := s.History(ctx, userID, today)
+		if err != nil {
+			return err
+		}
+		if h.CurrentID == 0 {
+			return ErrNoPolicy
+		}
+		id = h.CurrentID
+	}
+	n, err := s.q.DeleteUserPolicy(ctx, store.DeleteUserPolicyParams{ID: id, UserID: userID})
 	if err == nil && n == 0 {
-		return ErrNoPolicy
+		return ErrNotFound
 	}
 	return err
 }
@@ -322,9 +547,33 @@ func Facts(rows []store.InsuranceClaim) []ClaimFact {
 	return out
 }
 
-// Claims are all her claims, newest service day first.
+// Claims are all her claims (every policy), newest service day first.
 func (s *Service) Claims(ctx context.Context, userID uint64) ([]store.InsuranceClaim, error) {
 	return s.q.ListUserClaims(ctx, userID)
+}
+
+// PolicyClaims are the claims of one of her policies, newest service day first.
+func (s *Service) PolicyClaims(ctx context.Context, userID, policyID uint64) ([]store.InsuranceClaim, error) {
+	return s.q.ListPolicyClaims(ctx, store.ListPolicyClaimsParams{PolicyID: policyID, UserID: userID})
+}
+
+// ClaimWithPolicy loads one of her claims with the policy it is attached to.
+func (s *Service) ClaimWithPolicy(ctx context.Context, userID, id uint64, today civildate.Date) (store.InsuranceClaim, PolicyView, error) {
+	c, err := s.Claim(ctx, userID, id)
+	if err != nil {
+		return c, PolicyView{}, err
+	}
+	pv, err := s.PolicyByID(ctx, userID, c.PolicyID, today)
+	return c, pv, err
+}
+
+// WritableClaim is ClaimWithPolicy for a change: ErrReadOnly when the claim belongs to a past policy.
+func (s *Service) WritableClaim(ctx context.Context, userID, id uint64, today civildate.Date) (store.InsuranceClaim, PolicyView, error) {
+	c, pv, err := s.ClaimWithPolicy(ctx, userID, id, today)
+	if err == nil && pv.ReadOnly() {
+		err = ErrReadOnly
+	}
+	return c, pv, err
 }
 
 // Claim loads one of her claims.
@@ -622,6 +871,50 @@ func (s *Service) Explanation(r store.InsuranceQuestionnaire) string {
 	return s.openText("questionnaire", r.UserID, r.ExplanationEnc)
 }
 
+// Answers are the stored answers with their evidence: opened from evidence_enc (sealed, 00093), or the plain evidence
+// of a row written before it. Without the key (or for an unreadable seal) the evidence is empty — never an error, the
+// answers themselves stay usable.
+func (s *Service) Answers(r store.InsuranceQuestionnaire) []Answer {
+	answers := DecodeAnswers(r.Answers)
+	if !r.EvidenceEnc.Valid {
+		return answers
+	}
+	ev := map[string][]string{}
+	if plain := s.openText("questionnaire", r.UserID, r.EvidenceEnc); plain != "" {
+		_ = json.Unmarshal([]byte(plain), &ev)
+	}
+	for i := range answers {
+		answers[i].Evidence = ev[answers[i].Code]
+		if answers[i].Evidence == nil {
+			answers[i].Evidence = []string{}
+		}
+	}
+	return answers
+}
+
+// sealEvidence moves the answers' evidence into a sealed {code: [items]} JSON (NULL when there is none) and strips it
+// from the answers. ErrStorage when there is evidence and no key: health-record items are never stored in clear.
+func (s *Service) sealEvidence(userID uint64, answers []Answer) ([]Answer, sql.NullString, error) {
+	ev := map[string][]string{}
+	out := make([]Answer, len(answers))
+	for i, a := range answers {
+		if len(a.Evidence) > 0 {
+			ev[a.Code] = a.Evidence
+		}
+		a.Evidence = nil
+		out[i] = a
+	}
+	if len(ev) == 0 {
+		return out, sql.NullString{}, nil
+	}
+	b, err := json.Marshal(ev)
+	if err != nil {
+		return nil, sql.NullString{}, err
+	}
+	enc, err := s.sealText("questionnaire", userID, string(b))
+	return out, enc, err
+}
+
 func decodeStrings(raw db.NullRawJSON) []string {
 	if !raw.Valid {
 		return nil
@@ -711,13 +1004,17 @@ func (s *Service) CreateQuestionnaire(ctx context.Context, userID uint64, purpos
 	if err != nil {
 		return 0, err
 	}
-	answers, err := json.Marshal(Prefill(facts, civildate.InTehran(now)))
+	stripped, evidence, err := s.sealEvidence(userID, Prefill(facts, civildate.InTehran(now)))
+	if err != nil {
+		return 0, err
+	}
+	answers, err := json.Marshal(stripped)
 	if err != nil {
 		return 0, err
 	}
 	ts := dbTime(now)
 	id, err := s.q.CreateQuestionnaire(ctx, store.CreateQuestionnaireParams{UserID: userID, Purpose: purpose, Label: nullStr(label),
-		Answers: answers, CreatedAt: ts, UpdatedAt: ts})
+		Answers: answers, EvidenceEnc: evidence, CreatedAt: ts, UpdatedAt: ts})
 	return uint64(id), err //nolint:gosec // G115: DB id
 }
 
@@ -733,7 +1030,23 @@ type QuestionnaireInput struct {
 func (s *Service) saveQuestionnaire(ctx context.Context, r store.InsuranceQuestionnaire, answers []Answer, expl sql.NullString,
 	status string, confirmed sql.NullTime, timeline []TimelineStep, now time.Time,
 ) error {
-	a, err := json.Marshal(answers)
+	// The evidence never changes after the prefill: a sealed row keeps its seal untouched (so a missing key cannot
+	// wipe it); a row from before 00093 gets its plain evidence sealed now (ErrStorage without a key — fail closed).
+	var stripped []Answer
+	evidence := r.EvidenceEnc
+	if !r.EvidenceEnc.Valid {
+		var err error
+		if stripped, evidence, err = s.sealEvidence(r.UserID, answers); err != nil {
+			return err
+		}
+	} else {
+		stripped = make([]Answer, len(answers))
+		for i, a := range answers {
+			a.Evidence = nil
+			stripped[i] = a
+		}
+	}
+	a, err := json.Marshal(stripped)
 	if err != nil {
 		return err
 	}
@@ -745,7 +1058,7 @@ func (s *Service) saveQuestionnaire(ctx context.Context, r store.InsuranceQuesti
 		}
 		tl = db.NullRawJSON{V: b, Valid: true}
 	}
-	return s.q.UpdateQuestionnaire(ctx, store.UpdateQuestionnaireParams{Answers: a, ExplanationEnc: expl, Label: r.Label,
+	return s.q.UpdateQuestionnaire(ctx, store.UpdateQuestionnaireParams{Answers: a, EvidenceEnc: evidence, ExplanationEnc: expl, Label: r.Label,
 		Status: status, ConfirmedAt: confirmed, Timeline: tl, UpdatedAt: dbTime(now), ID: r.ID, UserID: r.UserID})
 }
 
@@ -758,7 +1071,7 @@ func (s *Service) UpdateQuestionnaire(ctx context.Context, userID, id uint64, in
 	if r.Status != QDraft && r.Status != QConfirmed {
 		return ErrLocked
 	}
-	answers := DecodeAnswers(r.Answers)
+	answers := s.Answers(r)
 	for i := range answers {
 		if v, ok := in.Answers[answers[i].Code]; ok {
 			answers[i].Answer = v
@@ -785,7 +1098,7 @@ func (s *Service) ConfirmQuestionnaire(ctx context.Context, userID, id uint64, n
 	if r.Status != QDraft && r.Status != QConfirmed {
 		return ErrLocked
 	}
-	answers := DecodeAnswers(r.Answers)
+	answers := s.Answers(r)
 	if !Complete(answers) {
 		return ErrIncomplete
 	}
@@ -806,7 +1119,7 @@ func (s *Service) AdvanceQuestionnaire(ctx context.Context, userID, id uint64, s
 		return ErrTooMany
 	}
 	tl = append(tl, TimelineStep{Status: status, On: on.String()})
-	return s.saveQuestionnaire(ctx, r, DecodeAnswers(r.Answers), r.ExplanationEnc, status, r.ConfirmedAt, tl, now)
+	return s.saveQuestionnaire(ctx, r, s.Answers(r), r.ExplanationEnc, status, r.ConfirmedAt, tl, now)
 }
 
 // DeleteQuestionnaire removes one of hers.

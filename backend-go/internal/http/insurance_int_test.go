@@ -251,6 +251,17 @@ func TestInsurance_Questionnaire(t *testing.T) {
 	require.NoError(t, e.db.QueryRow(`SELECT explanation_enc FROM insurance_questionnaires WHERE id = ?`, qid).Scan(&enc))
 	assert.NotContains(t, enc, "hypothyroid")
 
+	// The evidence copied from her record is sealed at rest (00093): the API shows it, the row holds no plaintext.
+	assert.Contains(t, r.Raw, "thyroid")
+	var answers, evidence string
+	require.NoError(t, e.db.QueryRow(`SELECT answers, evidence_enc FROM insurance_questionnaires WHERE id = ?`, qid).Scan(&answers, &evidence))
+	for _, plain := range []string{"thyroid", "Appendix"} {
+		assert.NotContains(t, answers, plain)
+		assert.NotContains(t, evidence, plain)
+	}
+	assert.NotContains(t, answers, "evidence")
+	assert.NotEmpty(t, evidence)
+
 	require.Equal(t, fiber.StatusOK, e.do(fiber.MethodPost, q+"/confirm", sara, nil).Status)
 	r = e.do(fiber.MethodPost, q+"/status", sara, map[string]any{"status": "submitted", "occurred_on": "2026-09-23"})
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)

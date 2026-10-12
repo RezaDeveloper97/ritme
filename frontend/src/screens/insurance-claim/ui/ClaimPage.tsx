@@ -130,6 +130,8 @@ function Body({ claim }: { claim: InsuranceClaimDetail }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const p = claim.payable;
+  // A claim of a past policy is read-only (policy history): no steps, documents or delete.
+  const ro = claim.readOnly;
   const steps = buildSteps(claim.events);
   const current = steps.find((s) => s.state === 'current');
   const waiting = claim.status === 'docs_requested';
@@ -199,23 +201,27 @@ function Body({ claim }: { claim: InsuranceClaimDetail }) {
                         <span className="ins-claim-t">{d.title ?? tk(kind)}</span>
                         <span className="ins-claim-s">{d.label ? tn(`labels.${d.label}`) : tk(kind)}</span>
                       </span>
-                      <button
-                        type="button"
-                        className="ins-icon-btn"
-                        aria-label={tn('detach')}
-                        disabled={detach.isPending}
-                        onClick={() => detach.mutate(d.documentId)}
-                      >
-                        <Icon name="x" size={16} />
-                      </button>
+                      {ro ? null : (
+                        <button
+                          type="button"
+                          className="ins-icon-btn"
+                          aria-label={tn('detach')}
+                          disabled={detach.isPending}
+                          onClick={() => detach.mutate(d.documentId)}
+                        >
+                          <Icon name="x" size={16} />
+                        </button>
+                      )}
                     </li>
                   );
                 })}
               </ul>
             ) : null}
-            <PrimaryButton icon="fileDoc" loading={attach.isPending} onClick={() => setPicker(true)}>
-              {tn('pickFromRecord')}
-            </PrimaryButton>
+            {ro ? null : (
+              <PrimaryButton icon="fileDoc" loading={attach.isPending} onClick={() => setPicker(true)}>
+                {tn('pickFromRecord')}
+              </PrimaryButton>
+            )}
             {attach.isError || detach.isError ? (
               <p className="ins-problem" role="alert">
                 {tn('saveError')}
@@ -223,7 +229,7 @@ function Body({ claim }: { claim: InsuranceClaimDetail }) {
             ) : null}
           </div>
         </section>
-      ) : (
+      ) : ro ? null : (
         <SecondaryButton icon="fileDoc" onClick={() => setPicker(true)}>
           {tn('attachDoc')}
         </SecondaryButton>
@@ -257,21 +263,24 @@ function Body({ claim }: { claim: InsuranceClaimDetail }) {
                       .join(' · '),
             }))}
           />
-          <SecondaryButton icon="plus" onClick={() => setSheet(claim.status === 'submitted' ? 'reviewing' : nextStatuses(claim.status)[0])}>
-            {tn('advance')}
-          </SecondaryButton>
+          {ro ? null : (
+            <SecondaryButton icon="plus" onClick={() => setSheet(claim.status === 'submitted' ? 'reviewing' : nextStatuses(claim.status)[0])}>
+              {tn('advance')}
+            </SecondaryButton>
+          )}
         </div>
       </section>
 
-      {claim.status === 'rejected' || claim.status === 'paid' ? (
+      {!ro && (claim.status === 'rejected' || claim.status === 'paid') ? (
         <SecondaryButton variant="text" onClick={() => setSheet('appealed')}>
           {tn('appeal')}
         </SecondaryButton>
       ) : null}
 
+      {ro ? <InfoNote icon="history">{tn('readOnly')}</InfoNote> : null}
       <InfoNote icon="lock">{tn('selfTrack')}</InfoNote>
 
-      {confirmDelete ? (
+      {ro ? null : confirmDelete ? (
         <div className="nb-card ins-card">
           <p className="ins-body">{tn('deleteAsk')}</p>
           <div className="ins-sheet-btns">

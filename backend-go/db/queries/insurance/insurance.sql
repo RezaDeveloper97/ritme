@@ -1,4 +1,4 @@
--- Insurance self-tracking (canvas CB-INS-01): catalog (insurers, centres), the user's policy + members + coverages,
+-- Insurance self-tracking (canvas CB-INS-01): catalog (insurers, centres), the user's policies (history, 00093) + members + coverages,
 -- claims with their timeline and record-document links, questionnaire drafts. Every user query is scoped by user_id
 -- in the SQL itself (IDOR): another user's row behaves exactly like a missing one.
 
@@ -69,10 +69,19 @@ DELETE FROM `insurance_centres` WHERE id = ?;
 -- ---------------------------------------------------------------------------------------------------------------
 -- Policy
 
--- name: GetUserPolicy :one
+-- name: ListUserPolicies :many
+-- Her policy history (00093: several per user), newest period first. «Current» is chosen in Go (CurrentPolicy).
 SELECT p.*, i.name AS catalog_insurer_name FROM `insurance_policies` p
 LEFT JOIN `insurance_insurers` i ON i.id = p.insurer_id
-WHERE p.user_id = ? LIMIT 1;
+WHERE p.user_id = ? ORDER BY p.valid_from DESC, p.id DESC LIMIT 100;
+
+-- name: GetUserPolicyByID :one
+SELECT p.*, i.name AS catalog_insurer_name FROM `insurance_policies` p
+LEFT JOIN `insurance_insurers` i ON i.id = p.insurer_id
+WHERE p.id = ? AND p.user_id = ? LIMIT 1;
+
+-- name: UserHasPolicy :one
+SELECT EXISTS(SELECT 1 FROM `insurance_policies` WHERE user_id = ?) AS found;
 
 -- name: CreatePolicy :execlastid
 INSERT INTO `insurance_policies` (`user_id`, `insurer_id`, `insurer_name`, `plan_name`, `number_last4`, `valid_from`,
@@ -85,7 +94,7 @@ UPDATE `insurance_policies` SET `insurer_id` = ?, `insurer_name` = ?, `plan_name
 WHERE id = ? AND user_id = ?;
 
 -- name: DeleteUserPolicy :execrows
-DELETE FROM `insurance_policies` WHERE user_id = ?;
+DELETE FROM `insurance_policies` WHERE id = ? AND user_id = ?;
 
 -- name: ListPolicyMembers :many
 SELECT * FROM `insurance_policy_members` WHERE policy_id = ? ORDER BY sort_order, id;
@@ -126,6 +135,10 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: ListUserClaims :many
 SELECT * FROM `insurance_claims` WHERE user_id = ? ORDER BY service_date DESC, id DESC LIMIT 500;
+
+-- name: ListPolicyClaims :many
+-- The claims of one of her policies (coverage usage is per policy period).
+SELECT * FROM `insurance_claims` WHERE policy_id = ? AND user_id = ? ORDER BY service_date DESC, id DESC LIMIT 500;
 
 -- name: GetUserClaim :one
 SELECT * FROM `insurance_claims` WHERE id = ? AND user_id = ? LIMIT 1;
@@ -197,11 +210,13 @@ SELECT * FROM `insurance_questionnaires` WHERE id = ? AND user_id = ? LIMIT 1;
 SELECT COUNT(*) FROM `insurance_questionnaires` WHERE user_id = ?;
 
 -- name: CreateQuestionnaire :execlastid
-INSERT INTO `insurance_questionnaires` (`user_id`, `purpose`, `label`, `status`, `answers`, `created_at`, `updated_at`)
-VALUES (?, ?, ?, 'draft', ?, ?, ?);
+-- `answers` carries no evidence: the record items behind the suggestions are sealed in `evidence_enc` (00093).
+INSERT INTO `insurance_questionnaires` (`user_id`, `purpose`, `label`, `status`, `answers`, `evidence_enc`, `created_at`,
+  `updated_at`)
+VALUES (?, ?, ?, 'draft', ?, ?, ?, ?);
 
 -- name: UpdateQuestionnaire :exec
-UPDATE `insurance_questionnaires` SET `answers` = ?, `explanation_enc` = ?, `label` = ?, `status` = ?,
+UPDATE `insurance_questionnaires` SET `answers` = ?, `evidence_enc` = ?, `explanation_enc` = ?, `label` = ?, `status` = ?,
   `confirmed_at` = ?, `timeline` = ?, `updated_at` = ?
 WHERE id = ? AND user_id = ?;
 

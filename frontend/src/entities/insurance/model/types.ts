@@ -37,8 +37,16 @@ export interface PolicyCoverage {
   waitingOver: boolean;
 }
 
+/** Place of a policy in her history: exactly one is current; a past one and its claims are read-only. */
+export type PolicyStatus = 'current' | 'upcoming' | 'past';
+
 export interface InsurancePolicy {
   id: number;
+  status: PolicyStatus;
+  /** Past policy: it and its claims cannot change. */
+  readOnly: boolean;
+  /** The newest policy — the only one that can be renewed. */
+  canRenew: boolean;
   /** Catalog insurer, or null when she typed the name. */
   insurerId: number | null;
   insurerName: string;
@@ -57,6 +65,24 @@ export interface InsurancePolicyState {
   policy: InsurancePolicy | null;
   /** Claims waiting on her (missing documents). */
   needsAction: number;
+}
+
+/** One row of GET /insurance/policies (the policy switcher). */
+export interface InsurancePolicySummary {
+  id: number;
+  insurerName: string;
+  planName: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+  status: PolicyStatus;
+  readOnly: boolean;
+  canRenew: boolean;
+  claimsCount: number;
+}
+
+export interface InsurancePolicyHistory {
+  policies: InsurancePolicySummary[];
+  currentId: number | null;
 }
 
 export interface InsurerOption {
@@ -79,6 +105,8 @@ export interface InsuranceClaimRow {
 }
 
 export interface InsuranceClaimsSummary {
+  /** The policy the list belongs to (default: the current one). */
+  policy: { id: number; readOnly: boolean } | null;
   claims: InsuranceClaimRow[];
   needsAction: number;
   /** Policy-period totals (toman) from the server. */
@@ -120,6 +148,9 @@ export interface ClaimDocument {
 }
 
 export interface InsuranceClaimDetail extends InsuranceClaimRow {
+  policyId: number | null;
+  /** The claim belongs to a past policy: no steps, documents or delete. */
+  readOnly: boolean;
   centreName: string | null;
   overTariff: number;
   deadlineOn: string | null;

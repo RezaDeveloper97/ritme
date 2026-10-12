@@ -119,6 +119,71 @@ cases:
       - method: DELETE
         path: /api/v1/insurance/policy
         status: 200
+  - name: policies_empty
+    doc: no history yet → empty list, current_id null
+    persona: no_profile
+    method: GET
+    path: /api/v1/insurance/policies
+    status: 200
+  - name: policy_history
+    doc: >-
+      policy history (user decision 2026-10-12): last year's policy + claim → renew → list (old one past / read-only)
+      → old policy and its claim refuse changes → claims per policy → only the newest renews → delete both
+    reset: true
+    locales: [en]
+    steps:
+      - method: PUT
+        path: /api/v1/insurance/policy
+        body:
+          insurer_name: Alpha
+          plan_name: Silver
+          valid_from: "2025-03-21"
+          valid_to: "2026-03-20"
+          members: [{kind: self, name: Sara}]
+          coverages: [{category: paraclinic, cap_amount: 20000000, deductible_pct: 30}]
+        status: 201
+        capture: {old: data.policy.id}
+      - method: POST
+        path: /api/v1/insurance/claims
+        body: {cost_type: paraclinic, service_date: "2026-01-10", amount: 1000000}
+        status: 201
+        capture: {claim: data.id}
+      - method: POST
+        path: "/api/v1/insurance/policies/{{old}}/renew"
+        status: 201
+        capture: {new: data.policy.id}
+      - method: GET
+        path: /api/v1/insurance/policies
+        status: 200
+      - method: GET
+        path: "/api/v1/insurance/policies/{{old}}"
+        status: 200
+      - method: PUT
+        path: "/api/v1/insurance/policies/{{old}}"
+        body: {insurer_name: Alpha}
+        status: 409
+      - method: POST
+        path: "/api/v1/insurance/policies/{{old}}/renew"
+        status: 409
+      - method: DELETE
+        path: "/api/v1/insurance/claims/{{claim}}"
+        status: 409
+      - method: GET
+        path: /api/v1/insurance/claims
+        query: {policy_id: "{{old}}"}
+        status: 200
+      - method: GET
+        path: /api/v1/insurance/claims
+        status: 200
+      - method: GET
+        path: /api/v1/insurance/policies/999999
+        status: 404
+      - method: DELETE
+        path: "/api/v1/insurance/policies/{{old}}"
+        status: 200
+      - method: DELETE
+        path: "/api/v1/insurance/policies/{{new}}"
+        status: 200
   - name: questionnaire_flow
     doc: draft prefilled from the record → answers → confirm → status step → delete
     reset: true

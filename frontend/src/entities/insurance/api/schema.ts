@@ -7,8 +7,10 @@ import type {
   CoverageStatus,
   InsuranceClaimsSummary,
   InsuranceCentre,
+  InsurancePolicyHistory,
   InsurancePolicyState,
   InsurerOption,
+  PolicyStatus,
   MemberKind,
 } from '../model/types';
 
@@ -43,8 +45,13 @@ const coverageSchema = z.object({
   waiting_over: z.boolean().catch(false),
 });
 
+const policyStatus = z.enum(['current', 'upcoming', 'past']).catch('current');
+
 const policySchema = z.object({
   id: z.number(),
+  status: policyStatus,
+  read_only: z.boolean().catch(false),
+  can_renew: z.boolean().catch(false),
   insurer: z.object({ id: z.number() }).nullish(),
   insurer_name: z.string(),
   plan_name: nstr,
@@ -65,6 +72,9 @@ export const policyStateSchema = z
       needsAction: v.needs_action,
       policy: v.policy && {
         id: v.policy.id,
+        status: v.policy.status as PolicyStatus,
+        readOnly: v.policy.read_only,
+        canRenew: v.policy.can_renew,
         insurerId: v.policy.insurer?.id ?? null,
         insurerName: v.policy.insurer_name,
         planName: v.policy.plan_name,
@@ -137,6 +147,41 @@ export const centresSchema = z
     ),
   );
 
+/** GET /insurance/policies — her policy history, newest period first. */
+export const policyHistorySchema = z
+  .object({
+    current_id: nint,
+    policies: z.array(
+      z.object({
+        id: z.number(),
+        insurer_name: z.string().catch(''),
+        plan_name: nstr,
+        valid_from: nstr,
+        valid_to: nstr,
+        status: policyStatus,
+        read_only: z.boolean().catch(false),
+        can_renew: z.boolean().catch(false),
+        claims_count: z.number().catch(0),
+      }),
+    ),
+  })
+  .transform(
+    (v): InsurancePolicyHistory => ({
+      currentId: v.current_id,
+      policies: v.policies.map((p) => ({
+        id: p.id,
+        insurerName: p.insurer_name,
+        planName: p.plan_name,
+        validFrom: p.valid_from,
+        validTo: p.valid_to,
+        status: p.status as PolicyStatus,
+        readOnly: p.read_only,
+        canRenew: p.can_renew,
+        claimsCount: p.claims_count,
+      })),
+    }),
+  );
+
 export const insurersSchema = z
   .object({ insurers: z.array(z.object({ id: z.number(), name: z.string() })) })
   .transform((v): InsurerOption[] => v.insurers.map((i) => ({ id: i.id, name: i.name })));
@@ -172,6 +217,7 @@ const rowOf = (c: z.infer<typeof claimBase>) => ({
 
 export const claimsSchema = z
   .object({
+    policy: z.object({ id: z.number(), read_only: z.boolean().catch(false) }).nullish(),
     claims: z.array(claimBase),
     totals: z
       .object({ requested: z.number().catch(0), paid: z.number().catch(0), count: z.number().catch(0) })
@@ -179,6 +225,7 @@ export const claimsSchema = z
   })
   .transform(
     (v): InsuranceClaimsSummary => ({
+      policy: v.policy ? { id: v.policy.id, readOnly: v.policy.read_only } : null,
       needsAction: v.claims.filter((c) => c.needs_action).length,
       claims: v.claims.map(rowOf),
       totals: v.totals,
@@ -187,6 +234,8 @@ export const claimsSchema = z
 
 export const claimDetailSchema = claimBase
   .extend({
+    policy_id: nint,
+    read_only: z.boolean().catch(false),
     note: z.string().catch(''),
     payable: z.object({
       known: z.boolean().catch(false),
@@ -221,6 +270,8 @@ export const claimDetailSchema = claimBase
   .transform(
     (c): InsuranceClaimDetail => ({
       ...rowOf(c),
+      policyId: c.policy_id,
+      readOnly: c.read_only,
       centreName: c.centre_name,
       overTariff: c.over_tariff,
       deadlineOn: c.deadline_on,

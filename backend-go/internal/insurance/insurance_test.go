@@ -1,12 +1,18 @@
 package insurance
 
 import (
+	"database/sql"
+	"encoding/hex"
 	"encoding/json"
+	"errors"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ritme/backend-go/internal/insurance/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
@@ -140,4 +146,91 @@ func TestPrefill(t *testing.T) {
 	assert.False(t, back[0].FromRecord())
 	assert.Equal(t, "history", SectionOf("pregnant"))
 	assert.Empty(t, DecodeTimeline(nil))
+}
+
+func nd(y int, m time.Month, d int) civildate.NullDate {
+	return civildate.NullDate{Date: civildate.New(y, m, d), Valid: true}
+}
+
+func TestPolicyHistory(t *testing.T) {
+	today := civildate.New(2026, 10, 12)
+	old := PolicyFact{ID: 1, Period: Period{From: nd(2025, 3, 21), To: nd(2026, 3, 20)}}
+	cur := PolicyFact{ID: 2, Period: Period{From: nd(2026, 3, 21), To: nd(2027, 3, 20)}}
+	next := PolicyFact{ID: 3, Period: Period{From: nd(2027, 3, 21), To: nd(2028, 3, 19)}}
+
+	assert.Zero(t, CurrentOf(nil, today))
+	ps := []PolicyFact{old, next, cur}
+	assert.Equal(t, uint64(2), CurrentOf(ps, today), "the period containing today")
+	assert.Equal(t, uint64(3), NewestOf(ps))
+	assert.Equal(t, PolicyPast, StatusOf(old, 2, today))
+	assert.Equal(t, PolicyCurrent, StatusOf(cur, 2, today))
+	assert.Equal(t, PolicyUpcoming, StatusOf(next, 2, today))
+
+	// Nothing contains today (expired, not renewed) → the newest one stays current.
+	assert.Equal(t, uint64(1), CurrentOf([]PolicyFact{old}, today))
+	// Overlapping periods → the latest start wins; an open start is the oldest.
+	open := PolicyFact{ID: 9, Period: Period{}}
+	assert.Equal(t, uint64(2), CurrentOf([]PolicyFact{open, cur}, today))
+	assert.Equal(t, uint64(9), CurrentOf([]PolicyFact{open}, today))
+
+	// Renewal: the day after the old end, same length; open periods → today, one year.
+	r := RenewalPeriod(cur.Period, today)
+	assert.Equal(t, "2027-03-21", r.From.Date.String())
+	assert.Equal(t, "2028-03-19", r.To.Date.String())
+	r = RenewalPeriod(Period{}, today)
+	assert.Equal(t, "2026-10-12", r.From.Date.String())
+	assert.Equal(t, "2027-10-11", r.To.Date.String())
+}
+
+// fakeSeal is a reversible test sealer bound to the additional data.
+type fakeSeal struct{ off bool }
+
+func (f fakeSeal) SealWith(plain string, ad []byte) (string, error) {
+	return "sealed:" + string(ad) + ":" + hexOf(plain), nil
+}
+func (f fakeSeal) OpenWith(stored string, ad []byte) (string, error) {
+	prefix := "sealed:" + string(ad) + ":"
+	if !strings.HasPrefix(stored, prefix) {
+		return "", errors.New("wrong owner")
+	}
+	b, err := hex.DecodeString(strings.TrimPrefix(stored, prefix))
+	return string(b), err
+}
+func (f fakeSeal) Disabled() bool { return f.off }
+
+func hexOf(s string) string { return hex.EncodeToString([]byte(s)) }
+
+func TestQuestionnaireEvidenceSealed(t *testing.T) {
+	svc := NewService(nil, fakeSeal{})
+	f := RecordFacts{HasLifeProfile: true, Chronic: []string{"thyroid"}, FamilyHistory: []string{}}
+	as := Prefill(f, civildate.New(2026, 9, 23))
+	stripped, enc, err := svc.sealEvidence(7, as)
+	require.NoError(t, err)
+	require.True(t, enc.Valid)
+	assert.NotContains(t, enc.String, "thyroid")
+	assert.Contains(t, enc.String, "insurance:questionnaire:7", "bound to the owner")
+	raw, err := json.Marshal(stripped)
+	require.NoError(t, err)
+	assert.NotContains(t, string(raw), "thyroid")
+	assert.NotContains(t, string(raw), "evidence")
+
+	row := store.InsuranceQuestionnaire{UserID: 7, Answers: raw, EvidenceEnc: enc}
+	assert.Equal(t, []string{"thyroid"}, answerOf(svc.Answers(row), "chronic_disease").Evidence)
+	row.UserID = 8 // a seal moved to another account does not open
+	assert.Empty(t, answerOf(svc.Answers(row), "chronic_disease").Evidence)
+
+	// A legacy row (plain evidence in answers) stays readable.
+	legacy, err := json.Marshal(as)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"thyroid"}, answerOf(svc.Answers(store.InsuranceQuestionnaire{UserID: 7, Answers: legacy}), "chronic_disease").Evidence)
+
+	// No key: nothing is stored in clear (fail closed); nothing to seal needs no key.
+	off := NewService(nil, fakeSeal{off: true})
+	_, _, err = off.sealEvidence(7, as)
+	require.ErrorIs(t, err, ErrStorage)
+	_, enc, err = off.sealEvidence(7, Prefill(RecordFacts{}, civildate.New(2026, 9, 23)))
+	require.NoError(t, err)
+	assert.False(t, enc.Valid)
+	row = store.InsuranceQuestionnaire{UserID: 7, Answers: raw, EvidenceEnc: sql.NullString{String: "x", Valid: true}}
+	assert.Empty(t, answerOf(off.Answers(row), "chronic_disease").Evidence)
 }

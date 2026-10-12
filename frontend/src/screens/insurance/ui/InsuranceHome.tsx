@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 
 import {
+  type InsurancePolicyHistory,
   categoryKey,
   costTypeKey,
   type ClaimStatus,
@@ -13,10 +14,13 @@ import {
   remainingOf,
   useAmountFormat,
   useRecentClaims,
+  useRenewInsurancePolicy,
 } from '@/entities/insurance';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatDayMonth, formatLongDate, fromApiDate } from '@/shared/lib/date';
 import { Icon, type IconName, InfoNote, ProgressBar, SecondaryButton, Skeleton, StatusPill, type Tone } from '@/shared/ui';
+
+import { PolicyHistory } from './PolicyHistory';
 
 const CLAIM_TONE: Record<ClaimStatus, Tone> = {
   submitted: 'neutral',
@@ -55,18 +59,20 @@ function ClaimRow({ claim }: { claim: InsuranceClaimRow }) {
   );
 }
 
-function RecentClaims() {
+function RecentClaims({ policyId }: { policyId: number | null }) {
   const t = useTranslations('insurance.home');
-  const claims = useRecentClaims();
+  const claims = useRecentClaims(true, policyId);
   return (
     <section className="ins-sec" aria-labelledby="ins-recent-h">
       <div className="ins-sec-head">
         <h2 id="ins-recent-h" className="ins-label">
           {t('recentTitle')}
         </h2>
-        <Link href="/insurance/claims" className="ins-more">
-          {t('all')}
-        </Link>
+        {policyId === null ? (
+          <Link href="/insurance/claims" className="ins-more">
+            {t('all')}
+          </Link>
+        ) : null}
       </div>
       {claims.isPending ? (
         <Skeleton shape="card" />
@@ -85,17 +91,31 @@ function RecentClaims() {
   );
 }
 
+interface InsuranceHomeProps {
+  state: InsurancePolicyState;
+  /** Her policy history (switcher); null while loading or when it failed. */
+  history: InsurancePolicyHistory | null;
+  onSelect: (id: number) => void;
+  onRenewed: (id: number) => void;
+  onEdit: () => void;
+  onShowInfo: () => void;
+}
+
 /**
  * Insurance home (CB-INS-03, nbl_Ins_Home): her own policy card, the action card when a claim needs documents,
  * remaining coverage bars and the latest claims. A personal notebook — nothing here is sent to an insurer.
+ * Policy history: the switcher lists her policies; a past one shows read-only (no actions, no edit) with its own
+ * claims and usage; the newest one can be renewed.
  */
-export function InsuranceHome({ state, onEdit, onShowInfo }: { state: InsurancePolicyState; onEdit: () => void; onShowInfo: () => void }) {
+export function InsuranceHome({ state, history, onSelect, onRenewed, onEdit, onShowInfo }: InsuranceHomeProps) {
   const t = useTranslations('insurance.home');
   const tc = useTranslations('insurance');
   const locale = useLocale() as Locale;
   const amount = useAmountFormat();
+  const renew = useRenewInsurancePolicy();
   const { policy } = state;
   if (!policy) return null;
+  const isCurrent = policy.status === 'current';
   const bars = homeCoverages(policy);
   const names = policy.members.map((m) => m.name).join('، ');
   const tail = maskedTail(policy.numberLast4);
@@ -124,18 +144,29 @@ export function InsuranceHome({ state, onEdit, onShowInfo }: { state: InsuranceP
         </ul>
       </section>
 
-      <nav className="ins-actions" aria-label={t('actions.coverage')}>
-        {ACTIONS.map((a) => (
-          <Link key={a.key} href={a.href} className="ins-action">
-            <span className="ins-action-ico" aria-hidden>
-              <Icon name={a.icon} size={20} />
-            </span>
-            <span className="ins-action-t">{t(`actions.${a.key}`)}</span>
-          </Link>
-        ))}
-      </nav>
+      {history ? <PolicyHistory history={history} selectedId={policy.id} onSelect={onSelect} /> : null}
+      {policy.readOnly ? <InfoNote icon="history">{t('pastNote')}</InfoNote> : null}
+      {policy.status === 'upcoming' ? <InfoNote icon="calendar">{t('upcomingNote')}</InfoNote> : null}
+      {!isCurrent && history?.currentId ? (
+        <SecondaryButton variant="text" icon="shield" onClick={() => onSelect(history.currentId ?? policy.id)}>
+          {t('backToCurrent')}
+        </SecondaryButton>
+      ) : null}
 
-      {state.needsAction > 0 ? (
+      {isCurrent ? (
+        <nav className="ins-actions" aria-label={t('actions.coverage')}>
+          {ACTIONS.map((a) => (
+            <Link key={a.key} href={a.href} className="ins-action">
+              <span className="ins-action-ico" aria-hidden>
+                <Icon name={a.icon} size={20} />
+              </span>
+              <span className="ins-action-t">{t(`actions.${a.key}`)}</span>
+            </Link>
+          ))}
+        </nav>
+      ) : null}
+
+      {isCurrent && state.needsAction > 0 ? (
         <Link href="/insurance/claims" className="ins-attn">
           <Icon name="warning" size={20} className="ins-attn-ico" />
           <span className="ins-attn-text">
@@ -151,9 +182,11 @@ export function InsuranceHome({ state, onEdit, onShowInfo }: { state: InsuranceP
             <h2 id="ins-rem-h" className="ins-h">
               {t('remainingTitle')}
             </h2>
-            <Link href="/insurance/coverage" className="ins-more">
-              {t('details')}
-            </Link>
+            {isCurrent ? (
+              <Link href="/insurance/coverage" className="ins-more">
+                {t('details')}
+              </Link>
+            ) : null}
           </div>
           {bars.map((c) => {
             const left = remainingOf(c);
@@ -174,11 +207,26 @@ export function InsuranceHome({ state, onEdit, onShowInfo }: { state: InsuranceP
         </section>
       ) : null}
 
-      <RecentClaims />
+      <RecentClaims policyId={isCurrent ? null : policy.id} />
 
-      <SecondaryButton variant="text" icon="pencil" onClick={onEdit}>
-        {t('edit')}
-      </SecondaryButton>
+      {policy.canRenew ? (
+        <div className="ins-renew">
+          <SecondaryButton icon="refresh" loading={renew.isPending} onClick={() => renew.mutate(policy.id, { onSuccess: (s) => s.policy && onRenewed(s.policy.id) })}>
+            {t('renew')}
+          </SecondaryButton>
+          <p className="ins-hint">{t('renewHint')}</p>
+          {renew.isError ? (
+            <p className="ins-problem" role="alert">
+              {t('renewError')}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+      {policy.readOnly ? null : (
+        <SecondaryButton variant="text" icon="pencil" onClick={onEdit}>
+          {t('edit')}
+        </SecondaryButton>
+      )}
       <SecondaryButton variant="text" icon="info" onClick={onShowInfo}>
         {t('howTitle')}
       </SecondaryButton>

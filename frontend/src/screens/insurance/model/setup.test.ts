@@ -34,6 +34,9 @@ describe('policy draft', () => {
     const d = draftFromPolicy(
       {
         id: 1,
+        status: 'current',
+        readOnly: false,
+        canRenew: true,
         insurerId: 7,
         insurerName: 'Catalog',
         planName: 'Gold',

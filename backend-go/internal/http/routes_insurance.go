@@ -38,6 +38,13 @@ func init() {
 		r.Get(p+"/policy", locale, guard, h.Policy)
 		r.Put(p+"/policy", locale, guard, writes, h.SavePolicy)
 		r.Delete(p+"/policy", locale, guard, writes, h.DeletePolicy)
+		// Policy history (user decision 2026-10-12, 00093): /policy above stays the current policy (the home).
+		r.Get(p+"/policies", locale, guard, h.Policies)
+		r.Post(p+"/policies", locale, guard, writes, h.StorePolicy)
+		r.Get(p+"/policies/:id", locale, guard, h.ShowPolicy)
+		r.Put(p+"/policies/:id", locale, guard, writes, h.UpdatePolicy)
+		r.Delete(p+"/policies/:id", locale, guard, writes, h.DestroyPolicy)
+		r.Post(p+"/policies/:id/renew", locale, guard, writes, h.RenewPolicy)
 		r.Get(p+"/claims", locale, guard, h.Claims)
 		r.Post(p+"/claims", locale, guard, writes, h.StoreClaim)
 		r.Get(p+"/claims/:id", locale, guard, h.ShowClaim)

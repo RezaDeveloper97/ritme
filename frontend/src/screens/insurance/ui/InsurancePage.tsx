@@ -3,7 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-import { useInsurancePolicy } from '@/entities/insurance'; // CB-INS-03
+import { useInsurancePolicies, useInsurancePolicy, useInsurancePolicyById } from '@/entities/insurance'; // CB-INS-03 (+ policy history)
 
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
@@ -134,9 +134,15 @@ export function InsurancePage() {
   const router = useRouter();
   const policy = useInsurancePolicy();
   const [view, setView] = useState<View | null>(null);
+  // Policy history: null = the current policy (GET /policy); another id = that policy of her history.
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  const state = policy.data ?? null;
-  const hasPolicy = Boolean(state?.policy);
+  const currentState = policy.data ?? null;
+  const hasPolicy = Boolean(currentState?.policy);
+  const history = useInsurancePolicies(hasPolicy);
+  const picked = useInsurancePolicyById(selectedId);
+  const state = selectedId !== null && picked.data?.policy ? picked.data : currentState;
+  const select = (id: number) => setSelectedId(id === currentState?.policy?.id ? null : id);
   // Until the policy answers (or if the tracker API fails) the page behaves exactly as B-N10-06 did.
   const trackerReady = policy.isSuccess;
   const current: View = !trackerReady ? 'info' : view ?? (hasPolicy ? 'home' : 'edit');
@@ -167,9 +173,19 @@ export function InsurancePage() {
             <Skeleton shape="card" />
           </SkeletonGroup>
         ) : current === 'home' && state ? (
-          <InsuranceHome state={state} onEdit={() => setView('edit')} onShowInfo={() => setView('info')} />
+          <InsuranceHome
+            state={state}
+            history={history.data ?? null}
+            onSelect={select}
+            onRenewed={(id) => {
+              select(id);
+              setView('edit');
+            }}
+            onEdit={() => setView('edit')}
+            onShowInfo={() => setView('info')}
+          />
         ) : current === 'edit' ? (
-          <PolicySetup policy={state?.policy ?? null} onDone={() => setView('home')} onShowInfo={() => setView('info')} />
+          <PolicySetup key={state?.policy?.id ?? 'new'} policy={state?.policy ?? null} onDone={() => setView('home')} onShowInfo={() => setView('info')} />
         ) : (
           <InsuranceBody />
         )}

@@ -2791,8 +2791,8 @@ CREATE TABLE `insurance_policies` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `insurance_policies_user_id_unique` (`user_id`),
   KEY `insurance_policies_insurer_id_foreign` (`insurer_id`),
+  KEY `insurance_policies_user_id_valid_from_index` (`user_id`,`valid_from`),
   CONSTRAINT `insurance_policies_insurer_id_foreign` FOREIGN KEY (`insurer_id`) REFERENCES `insurance_insurers` (`id`) ON DELETE SET NULL,
   CONSTRAINT `insurance_policies_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -2836,6 +2836,7 @@ CREATE TABLE `insurance_questionnaires` (
   `label` varchar(80) DEFAULT NULL,
   `status` varchar(16) NOT NULL DEFAULT 'draft',
   `answers` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`answers`)),
+  `evidence_enc` text DEFAULT NULL,
   `explanation_enc` text DEFAULT NULL,
   `timeline` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`timeline`)),
   `confirmed_at` datetime DEFAULT NULL,

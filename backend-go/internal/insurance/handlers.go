@@ -74,6 +74,10 @@ func mapErr(err error, locale string) error {
 		return fail(fiber.StatusConflict, "too_many", CodeTooMany, locale)
 	case errors.Is(err, ErrEventLast):
 		return fail(fiber.StatusConflict, "event_last", CodeEventLast, locale)
+	case errors.Is(err, ErrReadOnly):
+		return fail(fiber.StatusConflict, "read_only", CodeReadOnly, locale)
+	case errors.Is(err, ErrRenewed):
+		return fail(fiber.StatusConflict, "renewed", CodeRenewed, locale)
 	}
 	return err
 }
@@ -219,8 +223,6 @@ func coverageOf(c store.InsuranceCoverage) Coverage {
 	return cv
 }
 
-func periodOf(p store.GetUserPolicyRow) Period { return Period{From: p.ValidFrom, To: p.ValidTo} }
-
 func (h *Handlers) policyJSON(pv PolicyView, claims []ClaimFact, today civildate.Date) *jsonx.OrderedMap {
 	p := pv.Policy
 	var insurer any
@@ -239,7 +241,7 @@ func (h *Handlers) policyJSON(pv PolicyView, claims []ClaimFact, today civildate
 	}
 	covs := make([]*jsonx.OrderedMap, 0, len(pv.Coverages))
 	for _, c := range pv.Coverages {
-		u := UsageOf(coverageOf(c), periodOf(p), claims, 0, today)
+		u := UsageOf(coverageOf(c), periodOfRow(p), claims, 0, today)
 		covs = append(covs, jsonx.Obj("category", c.Category, "status", c.Status, "cap_amount", strOrNil(c.CapAmount),
 			"deductible_pct", strOrNil(c.DeductiblePct), "waiting_days", strOrNil(c.WaitingDays), "note", strOrNil(c.Note),
 			"used", u.Used, "remaining", ptrOrNil(u.Remaining), "waiting_ends_on", dateOrNil(u.WaitingEndsOn),
@@ -249,7 +251,24 @@ func (h *Handlers) policyJSON(pv PolicyView, claims []ClaimFact, today civildate
 		"number_last4", strOrNil(p.NumberLast4), "valid_from", dateOrNil(p.ValidFrom), "valid_to", dateOrNil(p.ValidTo),
 		"claim_deadline_days", strOrNil(p.ClaimDeadlineDays), "iban_last4", strOrNil(p.IbanLast4),
 		"not_covered_note", strOrNil(p.NotCoveredNote), "members", members, "coverages", covs,
-		"updated_at", isoOrNil(p.UpdatedAt.Time, p.UpdatedAt.Valid))
+		"updated_at", isoOrNil(p.UpdatedAt.Time, p.UpdatedAt.Valid), "status", pv.Status, "read_only", pv.ReadOnly(),
+		"can_renew", pv.CanRenew)
+}
+
+// insurerNameOf is the display name: the catalog insurer's, else the one she typed.
+func insurerNameOf(p PolicyRow) string {
+	if p.InsurerID.Valid {
+		return p.CatalogInsurerName.String
+	}
+	return p.InsurerName.String
+}
+
+// historyItemJSON is one row of the policy switcher.
+func historyItemJSON(it HistoryItem, h History, claims int) *jsonx.OrderedMap {
+	p := it.Policy
+	return jsonx.Obj("id", p.ID, "insurer_name", insurerNameOf(p), "plan_name", strOrNil(p.PlanName),
+		"number_last4", strOrNil(p.NumberLast4), "valid_from", dateOrNil(p.ValidFrom), "valid_to", dateOrNil(p.ValidTo),
+		"status", it.Status, "read_only", it.Status == PolicyPast, "can_renew", p.ID == h.NewestID, "claims_count", claims)
 }
 
 func memberJSON(id int64, members []store.InsurancePolicyMember) any {
@@ -261,7 +280,7 @@ func memberJSON(id int64, members []store.InsurancePolicyMember) any {
 	return nil
 }
 
-func submitBy(c store.InsuranceClaim, p store.GetUserPolicyRow) any {
+func submitBy(c store.InsuranceClaim, p PolicyRow) any {
 	if !p.ClaimDeadlineDays.Valid {
 		return nil
 	}
@@ -276,7 +295,8 @@ func claimJSON(c store.InsuranceClaim, pv PolicyView) *jsonx.OrderedMap {
 	if c.CentreID.Valid {
 		centre = c.CentreID.Int64
 	}
-	return jsonx.Obj("id", c.ID, "title", strOrNil(c.Title), "cost_type", c.CostType, "category", CategoryOf(c.CostType),
+	return jsonx.Obj("id", c.ID, "policy_id", c.PolicyID, "read_only", pv.ReadOnly(), "title", strOrNil(c.Title),
+		"cost_type", c.CostType, "category", CategoryOf(c.CostType),
 		"member", member, "centre_id", centre, "centre_name", strOrNil(c.CentreName), "service_date", c.ServiceDate.String(),
 		"amount", c.Amount, "over_tariff", c.OverTariff, "paid_amount", strOrNil(c.PaidAmount), "status", c.Status,
 		"needs_action", c.Status == ClaimDocsRequested, "deadline_on", dateOrNil(c.DeadlineOn), "submit_by", submitBy(c, pv.Policy),
@@ -318,7 +338,7 @@ func (h *Handlers) Centres(c fiber.Ctx) error {
 	if len([]rune(q)) > 80 {
 		q = string([]rune(q)[:80])
 	}
-	rows, err := h.svc.Centres(c, userID, typ, q)
+	rows, err := h.svc.Centres(c, userID, typ, q, civildate.InTehran(h.now(c)))
 	if err != nil {
 		return err
 	}
@@ -334,15 +354,23 @@ func (h *Handlers) Centres(c fiber.Ctx) error {
 // ---------------------------------------------------------------------------------------------------------------
 // Policy
 
-func (h *Handlers) policyResponse(c fiber.Ctx, userID uint64, msg string, created bool) error {
-	pv, err := h.svc.Policy(c, userID)
+// policyResponse answers the policy state of one of her policies (id 0 = the current one; none → policy null).
+func (h *Handlers) policyResponse(c fiber.Ctx, userID, id uint64, msg string, created bool) error {
+	today := civildate.InTehran(h.now(c))
+	var pv PolicyView
+	var err error
+	if id == 0 {
+		pv, err = h.svc.Policy(c, userID, today)
+	} else {
+		pv, err = h.svc.PolicyByID(c, userID, id, today)
+	}
 	if errors.Is(err, ErrNoPolicy) {
 		return h.emptyPolicy(c, userID)
 	}
 	if err != nil {
-		return err
+		return mapErr(err, i18n.Locale(c))
 	}
-	claims, err := h.svc.Claims(c, userID)
+	claims, err := h.svc.PolicyClaims(c, userID, pv.Policy.ID)
 	if err != nil {
 		return err
 	}
@@ -356,7 +384,7 @@ func (h *Handlers) policyResponse(c fiber.Ctx, userID uint64, msg string, create
 			needs++
 		}
 	}
-	body := jsonx.Obj("policy", h.policyJSON(pv, Facts(claims), civildate.InTehran(h.now(c))), "children", childrenJSON(children),
+	body := jsonx.Obj("policy", h.policyJSON(pv, Facts(claims), today), "children", childrenJSON(children),
 		"needs_action", needs, "options", options())
 	noStore(c)
 	if created {
@@ -391,14 +419,59 @@ func (h *Handlers) emptyPolicy(c fiber.Ctx, userID uint64) error {
 	return httpx.OK(c, jsonx.Obj("policy", nil, "children", childrenJSON(children), "needs_action", 0, "options", options()))
 }
 
-// Policy is GET /insurance/policy: her policy with members, coverage usage («پوشش باقی‌مانده») and the needs-action
-// count, or policy null (the client shows the setup form and the «how it works» link).
+// Policy is GET /insurance/policy: her current policy with members, coverage usage of its period («پوشش باقی‌مانده»)
+// and the needs-action count of its claims, or policy null (the client shows the setup form and the «how it works»
+// link). The home reads this.
 func (h *Handlers) Policy(c fiber.Ctx) error {
 	userID, err := user(c)
 	if err != nil {
 		return err
 	}
-	return h.policyResponse(c, userID, "", false)
+	return h.policyResponse(c, userID, 0, "", false)
+}
+
+// Policies is GET /insurance/policies: her policy history (newest period first) for the switcher, with the current
+// policy's id.
+func (h *Handlers) Policies(c fiber.Ctx) error {
+	userID, err := user(c)
+	if err != nil {
+		return err
+	}
+	hist, err := h.svc.History(c, userID, civildate.InTehran(h.now(c)))
+	if err != nil {
+		return err
+	}
+	claims, err := h.svc.Claims(c, userID)
+	if err != nil {
+		return err
+	}
+	counts := map[uint64]int{}
+	for _, cl := range claims {
+		counts[cl.PolicyID]++
+	}
+	items := make([]*jsonx.OrderedMap, 0, len(hist.Items))
+	for _, it := range hist.Items {
+		items = append(items, historyItemJSON(it, hist, counts[it.Policy.ID]))
+	}
+	var current any
+	if hist.CurrentID != 0 {
+		current = hist.CurrentID
+	}
+	noStore(c)
+	return httpx.OK(c, jsonx.Obj("policies", items, "current_id", current))
+}
+
+// ShowPolicy is GET /insurance/policies/{id}: one of her policies in the GET /policy shape (a past one is read_only).
+func (h *Handlers) ShowPolicy(c fiber.Ctx) error {
+	userID, err := user(c)
+	if err != nil {
+		return err
+	}
+	id, err := idParam(c, "id", i18n.Locale(c))
+	if err != nil {
+		return err
+	}
+	return h.policyResponse(c, userID, id, "", false)
 }
 
 func policyRules() validation.Rules {
@@ -516,21 +589,120 @@ func (h *Handlers) SavePolicy(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	created, err := h.svc.SavePolicy(c, userID, in, now)
+	created, id, err := h.svc.SavePolicy(c, userID, in, now)
 	if err != nil {
 		return mapErr(err, locale)
 	}
-	return h.policyResponse(c, userID, T("messages.policy_saved", locale), created)
+	return h.policyResponse(c, userID, id, T("messages.policy_saved", locale), created)
 }
 
-// DeletePolicy is DELETE /insurance/policy: removes her policy and all its claims.
+// StorePolicy is POST /insurance/policies → 201: adds a policy to her history (same body as PUT /policy).
+func (h *Handlers) StorePolicy(c fiber.Ctx) error {
+	userID, err := user(c)
+	if err != nil {
+		return err
+	}
+	now, locale := h.now(c), i18n.Locale(c)
+	in, err := h.parsePolicy(c, userID, locale, now)
+	if err != nil {
+		return err
+	}
+	id, err := h.svc.CreatePolicy(c, userID, in, now)
+	if err != nil {
+		return mapErr(err, locale)
+	}
+	return h.policyResponse(c, userID, id, T("messages.policy_saved", locale), true)
+}
+
+// UpdatePolicy is PUT /insurance/policies/{id}: replaces one of her policies (409 insurance_policy_read_only for a
+// past one).
+func (h *Handlers) UpdatePolicy(c fiber.Ctx) error {
+	userID, err := user(c)
+	if err != nil {
+		return err
+	}
+	now, locale := h.now(c), i18n.Locale(c)
+	id, err := idParam(c, "id", locale)
+	if err != nil {
+		return err
+	}
+	pv, err := h.svc.PolicyByID(c, userID, id, civildate.InTehran(now))
+	if err != nil {
+		return mapErr(err, locale)
+	}
+	if pv.ReadOnly() {
+		return mapErr(ErrReadOnly, locale)
+	}
+	in, err := h.parsePolicy(c, userID, locale, now)
+	if err != nil {
+		return err
+	}
+	if err := h.svc.UpdatePolicy(c, userID, id, in, now); err != nil {
+		return mapErr(err, locale)
+	}
+	return h.policyResponse(c, userID, id, T("messages.policy_saved", locale), false)
+}
+
+// RenewPolicy is POST /insurance/policies/{id}/renew {valid_from?, valid_to?} → 201: the next policy from her newest
+// one (members and coverages copied as a starting point; default period = the day after the old one ends, same
+// length). The renewed policy keeps its claims and turns past (read-only) once the new period starts. 409
+// insurance_policy_renewed for an older policy.
+func (h *Handlers) RenewPolicy(c fiber.Ctx) error {
+	userID, err := user(c)
+	if err != nil {
+		return err
+	}
+	now, locale := h.now(c), i18n.Locale(c)
+	id, err := idParam(c, "id", locale)
+	if err != nil {
+		return err
+	}
+	if _, err := h.svc.PolicyByID(c, userID, id, civildate.InTehran(now)); err != nil {
+		return mapErr(err, locale)
+	}
+	data := pick(validation.Input(c), "valid_from", "valid_to")
+	if err := validate(data, validation.Rules{
+		validation.F("valid_from", "nullable", "date_format:Y-m-d"),
+		validation.F("valid_to", "nullable", "date_format:Y-m-d"),
+	}, locale, now); err != nil {
+		return err
+	}
+	in := RenewInput{ValidFrom: date(data, "valid_from"), ValidTo: date(data, "valid_to")}
+	if in.ValidFrom.Valid && in.ValidTo.Valid && in.ValidTo.Date.Before(in.ValidFrom.Date) {
+		return fieldFail(locale, "valid_to", "valid_to")
+	}
+	nid, err := h.svc.Renew(c, userID, id, in, now)
+	if err != nil {
+		return mapErr(err, locale)
+	}
+	return h.policyResponse(c, userID, nid, T("messages.policy_renewed", locale), true)
+}
+
+// DestroyPolicy is DELETE /insurance/policies/{id}: removes one of her policies (past ones too) with its claims.
+func (h *Handlers) DestroyPolicy(c fiber.Ctx) error {
+	userID, err := user(c)
+	if err != nil {
+		return err
+	}
+	locale := i18n.Locale(c)
+	id, err := idParam(c, "id", locale)
+	if err != nil {
+		return err
+	}
+	if err := h.svc.DeletePolicy(c, userID, id, civildate.InTehran(h.now(c))); err != nil {
+		return mapErr(err, locale)
+	}
+	return httpx.OK(c, nil, T("messages.policy_deleted", locale))
+}
+
+// DeletePolicy is DELETE /insurance/policy: removes her current policy and all its claims.
 func (h *Handlers) DeletePolicy(c fiber.Ctx) error {
 	userID, err := user(c)
 	if err != nil {
 		return err
 	}
 	locale := i18n.Locale(c)
-	if err := h.svc.DeletePolicy(c, userID); err != nil {
+	if err := h.svc.DeletePolicy(c, userID, 0, civildate.InTehran(h.now(c))); err != nil {
 		return mapErr(err, locale)
 	}
 	return httpx.OK(c, nil, T("messages.policy_deleted", locale))
@@ -539,23 +711,33 @@ func (h *Handlers) DeletePolicy(c fiber.Ctx) error {
 // ---------------------------------------------------------------------------------------------------------------
 // Claims
 
-// Claims is GET /insurance/claims?status=&q=&member_id=&from=&to=: her claims (newest day first) with the totals of
-// the window (default: the policy period) — requested, paid, count and needs-action.
+// Claims is GET /insurance/claims?policy_id=&status=&q=&member_id=&from=&to=: the claims of one of her policies
+// (default the current one; newest day first) with the totals of the window (default: that policy's period) —
+// requested, paid, count and needs-action.
 func (h *Handlers) Claims(c fiber.Ctx) error {
 	userID, err := user(c)
 	if err != nil {
 		return err
 	}
-	locale := i18n.Locale(c)
-	pv, err := h.svc.Policy(c, userID)
+	locale, today := i18n.Locale(c), civildate.InTehran(h.now(c))
+	var pv PolicyView
+	if raw := c.Query("policy_id"); raw != "" {
+		id, perr := strconv.ParseUint(raw, 10, 64)
+		if perr != nil || id == 0 {
+			return mapErr(ErrNotFound, locale)
+		}
+		pv, err = h.svc.PolicyByID(c, userID, id, today)
+	} else {
+		pv, err = h.svc.Policy(c, userID, today)
+	}
 	if err != nil {
 		return mapErr(err, locale)
 	}
-	rows, err := h.svc.Claims(c, userID)
+	rows, err := h.svc.PolicyClaims(c, userID, pv.Policy.ID)
 	if err != nil {
 		return err
 	}
-	window := periodOf(pv.Policy)
+	window := periodOfRow(pv.Policy)
 	if d, err := civildate.Parse(c.Query("from")); err == nil {
 		window.From = civildate.NullDate{Date: d, Valid: true}
 	}
@@ -590,7 +772,8 @@ func (h *Handlers) Claims(c fiber.Ctx) error {
 		items = append(items, claimJSON(r, pv))
 	}
 	noStore(c)
-	return httpx.OK(c, jsonx.Obj("claims", items,
+	return httpx.OK(c, jsonx.Obj("policy", jsonx.Obj("id", pv.Policy.ID, "status", pv.Status, "read_only", pv.ReadOnly()),
+		"claims", items,
 		"totals", jsonx.Obj("requested", requested, "paid", paid, "count", count, "needs_action", needs),
 		"window", jsonx.Obj("from", dateOrNil(window.From), "to", dateOrNil(window.To)),
 		"filters", jsonx.Obj("status", filter, "q", q, "member_id", member)))
@@ -659,16 +842,12 @@ func (h *Handlers) parseClaim(c fiber.Ctx, userID uint64, pv PolicyView, locale 
 }
 
 func (h *Handlers) claimResponse(c fiber.Ctx, userID, id uint64, status int, msg string) error {
-	locale := i18n.Locale(c)
-	pv, err := h.svc.Policy(c, userID)
+	locale, today := i18n.Locale(c), civildate.InTehran(h.now(c))
+	cl, pv, err := h.svc.ClaimWithPolicy(c, userID, id, today)
 	if err != nil {
 		return mapErr(err, locale)
 	}
-	cl, err := h.svc.Claim(c, userID, id)
-	if err != nil {
-		return mapErr(err, locale)
-	}
-	all, err := h.svc.Claims(c, userID)
+	all, err := h.svc.PolicyClaims(c, userID, pv.Policy.ID)
 	if err != nil {
 		return err
 	}
@@ -688,7 +867,7 @@ func (h *Handlers) claimResponse(c fiber.Ctx, userID, id uint64, status int, msg
 	}
 	var remaining *int64
 	if cov != nil {
-		remaining = UsageOf(*cov, periodOf(pv.Policy), Facts(all), cl.ID, civildate.InTehran(h.now(c))).Remaining
+		remaining = UsageOf(*cov, periodOfRow(pv.Policy), Facts(all), cl.ID, today).Remaining
 	}
 	p, known := ExpectedPayable(int64(cl.Amount), int64(cl.OverTariff), cov, remaining) //nolint:gosec // G115: ≤ MaxAmount
 	o.Set("payable", jsonx.Obj("known", known, "invoice", p.Invoice, "over_tariff", p.OverTariff, "deductible_pct", p.Pct,
@@ -716,14 +895,14 @@ func (h *Handlers) claimResponse(c fiber.Ctx, userID, id uint64, status int, msg
 	return httpx.OK(c, o)
 }
 
-// StoreClaim is POST /insurance/claims → 201: a claim on her policy (404 insurance_no_policy without one).
+// StoreClaim is POST /insurance/claims → 201: a claim on her current policy (404 insurance_no_policy without one).
 func (h *Handlers) StoreClaim(c fiber.Ctx) error {
 	userID, err := user(c)
 	if err != nil {
 		return err
 	}
 	now, locale := h.now(c), i18n.Locale(c)
-	pv, err := h.svc.Policy(c, userID)
+	pv, err := h.svc.Policy(c, userID, civildate.InTehran(now))
 	if err != nil {
 		return mapErr(err, locale)
 	}
@@ -762,10 +941,7 @@ func (h *Handlers) UpdateClaim(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if _, err := h.svc.Claim(c, userID, id); err != nil {
-		return mapErr(err, locale)
-	}
-	pv, err := h.svc.Policy(c, userID)
+	_, pv, err := h.svc.WritableClaim(c, userID, id, civildate.InTehran(now))
 	if err != nil {
 		return mapErr(err, locale)
 	}
@@ -790,6 +966,9 @@ func (h *Handlers) DestroyClaim(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if _, _, err := h.svc.WritableClaim(c, userID, id, civildate.InTehran(h.now(c))); err != nil {
+		return mapErr(err, locale)
+	}
 	if err := h.svc.DeleteClaim(c, userID, id); err != nil {
 		return mapErr(err, locale)
 	}
@@ -808,7 +987,7 @@ func (h *Handlers) StoreEvent(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if _, err := h.svc.Claim(c, userID, id); err != nil {
+	if _, _, err := h.svc.WritableClaim(c, userID, id, civildate.InTehran(now)); err != nil {
 		return mapErr(err, locale)
 	}
 	data := pick(validation.Input(c), "status", "occurred_on", "deadline_on", "amount", "note")
@@ -855,6 +1034,9 @@ func (h *Handlers) DestroyEvent(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if _, _, err := h.svc.WritableClaim(c, userID, id, civildate.InTehran(now)); err != nil {
+		return mapErr(err, locale)
+	}
 	if err := h.svc.DeleteEvent(c, userID, id, eid, now); err != nil {
 		return mapErr(err, locale)
 	}
@@ -873,7 +1055,7 @@ func (h *Handlers) AttachDocument(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if _, err := h.svc.Claim(c, userID, id); err != nil {
+	if _, _, err := h.svc.WritableClaim(c, userID, id, civildate.InTehran(now)); err != nil {
 		return mapErr(err, locale)
 	}
 	data := pick(validation.Input(c), "document_id", "label")
@@ -904,6 +1086,9 @@ func (h *Handlers) DetachDocument(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if _, _, err := h.svc.WritableClaim(c, userID, id, civildate.InTehran(h.now(c))); err != nil {
+		return mapErr(err, locale)
+	}
 	if err := h.svc.DetachDocument(c, userID, id, did); err != nil {
 		return mapErr(err, locale)
 	}
@@ -914,7 +1099,7 @@ func (h *Handlers) DetachDocument(c fiber.Ctx) error {
 // Questionnaires
 
 func (h *Handlers) questionnaireJSON(r store.InsuranceQuestionnaire, details bool) *jsonx.OrderedMap {
-	answers := DecodeAnswers(r.Answers)
+	answers := h.svc.Answers(r)
 	prefilled, answered := 0, 0
 	qs := make([]*jsonx.OrderedMap, 0, len(answers))
 	for _, a := range answers {

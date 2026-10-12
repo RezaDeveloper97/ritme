@@ -20,7 +20,10 @@
         "questionnaire_created": "Questionnaire started from your health record",
         "questionnaire_saved": "Questionnaire saved",
         "questionnaire_confirmed": "Questionnaire confirmed",
-        "questionnaire_deleted": "Questionnaire deleted"
+        "questionnaire_deleted": "Questionnaire deleted",
+        "read_only": "This is a past policy; it and its claims can no longer be changed",
+        "renewed": "Only your newest policy can be renewed",
+        "policy_renewed": "Your policy was renewed"
     },
     "validation": {
         "valid_to": "The end date must be on or after the start date.",

@@ -1164,6 +1164,7 @@ type InsuranceQuestionnaire struct {
 	ConfirmedAt    sql.NullTime
 	CreatedAt      sql.NullTime
 	UpdatedAt      sql.NullTime
+	EvidenceEnc    sql.NullString
 }
 
 type IvfCycle struct {

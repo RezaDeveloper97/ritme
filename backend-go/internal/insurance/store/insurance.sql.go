@@ -320,25 +320,29 @@ func (q *Queries) CreatePolicy(ctx context.Context, arg CreatePolicyParams) (int
 }
 
 const createQuestionnaire = `-- name: CreateQuestionnaire :execlastid
-INSERT INTO ` + "`" + `insurance_questionnaires` + "`" + ` (` + "`" + `user_id` + "`" + `, ` + "`" + `purpose` + "`" + `, ` + "`" + `label` + "`" + `, ` + "`" + `status` + "`" + `, ` + "`" + `answers` + "`" + `, ` + "`" + `created_at` + "`" + `, ` + "`" + `updated_at` + "`" + `)
-VALUES (?, ?, ?, 'draft', ?, ?, ?)
+INSERT INTO ` + "`" + `insurance_questionnaires` + "`" + ` (` + "`" + `user_id` + "`" + `, ` + "`" + `purpose` + "`" + `, ` + "`" + `label` + "`" + `, ` + "`" + `status` + "`" + `, ` + "`" + `answers` + "`" + `, ` + "`" + `evidence_enc` + "`" + `, ` + "`" + `created_at` + "`" + `,
+  ` + "`" + `updated_at` + "`" + `)
+VALUES (?, ?, ?, 'draft', ?, ?, ?, ?)
 `
 
 type CreateQuestionnaireParams struct {
-	UserID    uint64
-	Purpose   string
-	Label     sql.NullString
-	Answers   json.RawMessage
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
+	UserID      uint64
+	Purpose     string
+	Label       sql.NullString
+	Answers     json.RawMessage
+	EvidenceEnc sql.NullString
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
 }
 
+// `answers` carries no evidence: the record items behind the suggestions are sealed in `evidence_enc` (00093).
 func (q *Queries) CreateQuestionnaire(ctx context.Context, arg CreateQuestionnaireParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, createQuestionnaire,
 		arg.UserID,
 		arg.Purpose,
 		arg.Label,
 		arg.Answers,
+		arg.EvidenceEnc,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
@@ -452,11 +456,16 @@ func (q *Queries) DeleteUserClaim(ctx context.Context, arg DeleteUserClaimParams
 }
 
 const deleteUserPolicy = `-- name: DeleteUserPolicy :execrows
-DELETE FROM ` + "`" + `insurance_policies` + "`" + ` WHERE user_id = ?
+DELETE FROM ` + "`" + `insurance_policies` + "`" + ` WHERE id = ? AND user_id = ?
 `
 
-func (q *Queries) DeleteUserPolicy(ctx context.Context, userID uint64) (int64, error) {
-	result, err := q.db.ExecContext(ctx, deleteUserPolicy, userID)
+type DeleteUserPolicyParams struct {
+	ID     uint64
+	UserID uint64
+}
+
+func (q *Queries) DeleteUserPolicy(ctx context.Context, arg DeleteUserPolicyParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteUserPolicy, arg.ID, arg.UserID)
 	if err != nil {
 		return 0, err
 	}
@@ -630,14 +639,18 @@ func (q *Queries) GetUserClaim(ctx context.Context, arg GetUserClaimParams) (Ins
 	return i, err
 }
 
-const getUserPolicy = `-- name: GetUserPolicy :one
-
+const getUserPolicyByID = `-- name: GetUserPolicyByID :one
 SELECT p.id, p.user_id, p.insurer_id, p.insurer_name, p.plan_name, p.number_last4, p.valid_from, p.valid_to, p.claim_deadline_days, p.iban_last4, p.not_covered_note, p.created_at, p.updated_at, i.name AS catalog_insurer_name FROM ` + "`" + `insurance_policies` + "`" + ` p
 LEFT JOIN ` + "`" + `insurance_insurers` + "`" + ` i ON i.id = p.insurer_id
-WHERE p.user_id = ? LIMIT 1
+WHERE p.id = ? AND p.user_id = ? LIMIT 1
 `
 
-type GetUserPolicyRow struct {
+type GetUserPolicyByIDParams struct {
+	ID     uint64
+	UserID uint64
+}
+
+type GetUserPolicyByIDRow struct {
 	ID                 uint64
 	UserID             uint64
 	InsurerID          sql.NullInt64
@@ -654,11 +667,9 @@ type GetUserPolicyRow struct {
 	CatalogInsurerName sql.NullString
 }
 
-// ---------------------------------------------------------------------------------------------------------------
-// Policy
-func (q *Queries) GetUserPolicy(ctx context.Context, userID uint64) (GetUserPolicyRow, error) {
-	row := q.db.QueryRowContext(ctx, getUserPolicy, userID)
-	var i GetUserPolicyRow
+func (q *Queries) GetUserPolicyByID(ctx context.Context, arg GetUserPolicyByIDParams) (GetUserPolicyByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserPolicyByID, arg.ID, arg.UserID)
+	var i GetUserPolicyByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
@@ -679,7 +690,7 @@ func (q *Queries) GetUserPolicy(ctx context.Context, userID uint64) (GetUserPoli
 }
 
 const getUserQuestionnaire = `-- name: GetUserQuestionnaire :one
-SELECT id, user_id, purpose, label, status, answers, explanation_enc, timeline, confirmed_at, created_at, updated_at FROM ` + "`" + `insurance_questionnaires` + "`" + ` WHERE id = ? AND user_id = ? LIMIT 1
+SELECT id, user_id, purpose, label, status, answers, explanation_enc, timeline, confirmed_at, created_at, updated_at, evidence_enc FROM ` + "`" + `insurance_questionnaires` + "`" + ` WHERE id = ? AND user_id = ? LIMIT 1
 `
 
 type GetUserQuestionnaireParams struct {
@@ -702,6 +713,7 @@ func (q *Queries) GetUserQuestionnaire(ctx context.Context, arg GetUserQuestionn
 		&i.ConfirmedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.EvidenceEnc,
 	)
 	return i, err
 }
@@ -812,7 +824,7 @@ const listActiveInsurers = `-- name: ListActiveInsurers :many
 SELECT id, code, name, website, phone, is_active, sort_order, created_at, updated_at FROM ` + "`" + `insurance_insurers` + "`" + ` WHERE is_active = 1 ORDER BY sort_order, id
 `
 
-// Insurance self-tracking (canvas CB-INS-01): catalog (insurers, centres), the user's policy + members + coverages,
+// Insurance self-tracking (canvas CB-INS-01): catalog (insurers, centres), the user's policies (history, 00093) + members + coverages,
 // claims with their timeline and record-document links, questionnaire drafts. Every user query is scoped by user_id
 // in the SQL itself (IDOR): another user's row behaves exactly like a missing one.
 // ---------------------------------------------------------------------------------------------------------------
@@ -1042,6 +1054,57 @@ func (q *Queries) ListInsurers(ctx context.Context) ([]InsuranceInsurer, error) 
 	return items, nil
 }
 
+const listPolicyClaims = `-- name: ListPolicyClaims :many
+SELECT id, user_id, policy_id, member_id, cost_type, title, centre_id, centre_name, service_date, amount, over_tariff, paid_amount, status, deadline_on, notes_enc, created_at, updated_at FROM ` + "`" + `insurance_claims` + "`" + ` WHERE policy_id = ? AND user_id = ? ORDER BY service_date DESC, id DESC LIMIT 500
+`
+
+type ListPolicyClaimsParams struct {
+	PolicyID uint64
+	UserID   uint64
+}
+
+// The claims of one of her policies (coverage usage is per policy period).
+func (q *Queries) ListPolicyClaims(ctx context.Context, arg ListPolicyClaimsParams) ([]InsuranceClaim, error) {
+	rows, err := q.db.QueryContext(ctx, listPolicyClaims, arg.PolicyID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []InsuranceClaim{}
+	for rows.Next() {
+		var i InsuranceClaim
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.PolicyID,
+			&i.MemberID,
+			&i.CostType,
+			&i.Title,
+			&i.CentreID,
+			&i.CentreName,
+			&i.ServiceDate,
+			&i.Amount,
+			&i.OverTariff,
+			&i.PaidAmount,
+			&i.Status,
+			&i.DeadlineOn,
+			&i.NotesEnc,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPolicyCoverages = `-- name: ListPolicyCoverages :many
 SELECT id, policy_id, category, status, cap_amount, deductible_pct, waiting_days, note, sort_order, created_at, updated_at FROM ` + "`" + `insurance_coverages` + "`" + ` WHERE policy_id = ? ORDER BY sort_order, id
 `
@@ -1197,9 +1260,74 @@ func (q *Queries) ListUserClaims(ctx context.Context, userID uint64) ([]Insuranc
 	return items, nil
 }
 
+const listUserPolicies = `-- name: ListUserPolicies :many
+
+SELECT p.id, p.user_id, p.insurer_id, p.insurer_name, p.plan_name, p.number_last4, p.valid_from, p.valid_to, p.claim_deadline_days, p.iban_last4, p.not_covered_note, p.created_at, p.updated_at, i.name AS catalog_insurer_name FROM ` + "`" + `insurance_policies` + "`" + ` p
+LEFT JOIN ` + "`" + `insurance_insurers` + "`" + ` i ON i.id = p.insurer_id
+WHERE p.user_id = ? ORDER BY p.valid_from DESC, p.id DESC LIMIT 100
+`
+
+type ListUserPoliciesRow struct {
+	ID                 uint64
+	UserID             uint64
+	InsurerID          sql.NullInt64
+	InsurerName        sql.NullString
+	PlanName           sql.NullString
+	NumberLast4        sql.NullString
+	ValidFrom          civildate.NullDate
+	ValidTo            civildate.NullDate
+	ClaimDeadlineDays  sql.NullInt16
+	IbanLast4          sql.NullString
+	NotCoveredNote     sql.NullString
+	CreatedAt          sql.NullTime
+	UpdatedAt          sql.NullTime
+	CatalogInsurerName sql.NullString
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Policy
+// Her policy history (00093: several per user), newest period first. «Current» is chosen in Go (CurrentPolicy).
+func (q *Queries) ListUserPolicies(ctx context.Context, userID uint64) ([]ListUserPoliciesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listUserPolicies, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListUserPoliciesRow{}
+	for rows.Next() {
+		var i ListUserPoliciesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.InsurerID,
+			&i.InsurerName,
+			&i.PlanName,
+			&i.NumberLast4,
+			&i.ValidFrom,
+			&i.ValidTo,
+			&i.ClaimDeadlineDays,
+			&i.IbanLast4,
+			&i.NotCoveredNote,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CatalogInsurerName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUserQuestionnaires = `-- name: ListUserQuestionnaires :many
 
-SELECT id, user_id, purpose, label, status, answers, explanation_enc, timeline, confirmed_at, created_at, updated_at FROM ` + "`" + `insurance_questionnaires` + "`" + ` WHERE user_id = ? ORDER BY id DESC LIMIT 50
+SELECT id, user_id, purpose, label, status, answers, explanation_enc, timeline, confirmed_at, created_at, updated_at, evidence_enc FROM ` + "`" + `insurance_questionnaires` + "`" + ` WHERE user_id = ? ORDER BY id DESC LIMIT 50
 `
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1225,6 +1353,7 @@ func (q *Queries) ListUserQuestionnaires(ctx context.Context, userID uint64) ([]
 			&i.ConfirmedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.EvidenceEnc,
 		); err != nil {
 			return nil, err
 		}
@@ -1584,13 +1713,14 @@ func (q *Queries) UpdatePolicy(ctx context.Context, arg UpdatePolicyParams) erro
 }
 
 const updateQuestionnaire = `-- name: UpdateQuestionnaire :exec
-UPDATE ` + "`" + `insurance_questionnaires` + "`" + ` SET ` + "`" + `answers` + "`" + ` = ?, ` + "`" + `explanation_enc` + "`" + ` = ?, ` + "`" + `label` + "`" + ` = ?, ` + "`" + `status` + "`" + ` = ?,
+UPDATE ` + "`" + `insurance_questionnaires` + "`" + ` SET ` + "`" + `answers` + "`" + ` = ?, ` + "`" + `evidence_enc` + "`" + ` = ?, ` + "`" + `explanation_enc` + "`" + ` = ?, ` + "`" + `label` + "`" + ` = ?, ` + "`" + `status` + "`" + ` = ?,
   ` + "`" + `confirmed_at` + "`" + ` = ?, ` + "`" + `timeline` + "`" + ` = ?, ` + "`" + `updated_at` + "`" + ` = ?
 WHERE id = ? AND user_id = ?
 `
 
 type UpdateQuestionnaireParams struct {
 	Answers        json.RawMessage
+	EvidenceEnc    sql.NullString
 	ExplanationEnc sql.NullString
 	Label          sql.NullString
 	Status         string
@@ -1604,6 +1734,7 @@ type UpdateQuestionnaireParams struct {
 func (q *Queries) UpdateQuestionnaire(ctx context.Context, arg UpdateQuestionnaireParams) error {
 	_, err := q.db.ExecContext(ctx, updateQuestionnaire,
 		arg.Answers,
+		arg.EvidenceEnc,
 		arg.ExplanationEnc,
 		arg.Label,
 		arg.Status,
@@ -1614,6 +1745,17 @@ func (q *Queries) UpdateQuestionnaire(ctx context.Context, arg UpdateQuestionnai
 		arg.UserID,
 	)
 	return err
+}
+
+const userHasPolicy = `-- name: UserHasPolicy :one
+SELECT EXISTS(SELECT 1 FROM ` + "`" + `insurance_policies` + "`" + ` WHERE user_id = ?) AS found
+`
+
+func (q *Queries) UserHasPolicy(ctx context.Context, userID uint64) (bool, error) {
+	row := q.db.QueryRowContext(ctx, userHasPolicy, userID)
+	var found bool
+	err := row.Scan(&found)
+	return found, err
 }
 
 const userOwnsChild = `-- name: UserOwnsChild :one

@@ -66,7 +66,22 @@
     "edit": "Edit policy",
     "howTitle": "How insurance works",
     "howBack": "Back to my insurance",
-    "selfTrack": "This is your personal notebook. Ritme doesn't send anything to an insurer; follow up claims through the insurer itself."
+    "selfTrack": "This is your personal notebook. Ritme doesn't send anything to an insurer; follow up claims through the insurer itself.",
+    "historyTitle": "My policies",
+    "period": "{from} – {to}",
+    "periodOpen": "No dates set",
+    "policyStatus": {
+      "current": "Current",
+      "upcoming": "Upcoming",
+      "past": "Past"
+    },
+    "claimsCount": "{count, plural, =0 {No claims} one {1 claim} other {# claims}}",
+    "pastNote": "This is a past policy. You can look at it and its claims, but they can't be changed.",
+    "upcomingNote": "This policy hasn’t started yet. Check its people and coverage before it begins.",
+    "renew": "Renew policy",
+    "renewHint": "Creates the next period's policy with the same people and coverage; you can edit it right after.",
+    "renewError": "Couldn't renew the policy. Try again.",
+    "backToCurrent": "Back to my current policy"
   },
   "coverage": {
     "title": "Policy coverage",
@@ -416,7 +431,8 @@
     "delete": "Delete this claim",
     "deleteAsk": "Delete this claim and its timeline? The documents stay in your health record.",
     "deleteYes": "Delete",
-    "selfTrack": "You keep this timeline yourself. Ritme doesn't send anything to an insurer."
+    "selfTrack": "You keep this timeline yourself. Ritme doesn't send anything to an insurer.",
+    "readOnly": "This claim belongs to a past policy and can't be changed anymore."
   },
   "docPicker": {
     "title": "From my health record",

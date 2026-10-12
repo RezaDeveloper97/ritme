@@ -198,6 +198,76 @@ func MatchesFilter(status, filter string) bool {
 	return true
 }
 
+// PolicyFact is what the history rules need of one policy.
+type PolicyFact struct {
+	ID     uint64
+	Period Period
+}
+
+// newer orders the history: the later start first (an open start is the oldest), then the higher id.
+func newer(a, b PolicyFact) bool {
+	switch {
+	case a.Period.From.Valid != b.Period.From.Valid:
+		return a.Period.From.Valid
+	case a.Period.From.Valid && a.Period.From.Date.Compare(b.Period.From.Date) != 0:
+		return a.Period.From.Date.After(b.Period.From.Date)
+	}
+	return a.ID > b.ID
+}
+
+func sortedHistory(ps []PolicyFact) []PolicyFact {
+	out := append([]PolicyFact(nil), ps...)
+	sort.SliceStable(out, func(i, j int) bool { return newer(out[i], out[j]) })
+	return out
+}
+
+// CurrentOf is the id of her single current policy on `today`: the latest period containing today, else the newest
+// policy (0 when she has none).
+func CurrentOf(ps []PolicyFact, today civildate.Date) uint64 {
+	sorted := sortedHistory(ps)
+	for _, p := range sorted {
+		if p.Period.Contains(today) {
+			return p.ID
+		}
+	}
+	return NewestOf(sorted)
+}
+
+// NewestOf is the id of the newest policy — the only one that can be renewed (0 when none).
+func NewestOf(ps []PolicyFact) uint64 {
+	sorted := sortedHistory(ps)
+	if len(sorted) == 0 {
+		return 0
+	}
+	return sorted[0].ID
+}
+
+// StatusOf is a policy's place in the history: current, upcoming (starts after today, e.g. renewed early) or past.
+// A past policy and its claims are read-only.
+func StatusOf(p PolicyFact, currentID uint64, today civildate.Date) string {
+	switch {
+	case p.ID == currentID:
+		return PolicyCurrent
+	case p.Period.From.Valid && p.Period.From.Date.After(today):
+		return PolicyUpcoming
+	}
+	return PolicyPast
+}
+
+// RenewalPeriod is the default period of a renewal: from the day after the old period ends (today when it has no
+// end) for the same length (one year when the old period is open).
+func RenewalPeriod(old Period, today civildate.Date) Period {
+	from := today
+	if old.To.Valid {
+		from = old.To.Date.AddDays(1)
+	}
+	to := civildate.New(from.Year+1, from.Month, from.Day).AddDays(-1)
+	if old.From.Valid && old.To.Valid {
+		to = from.AddDays(old.From.Date.DiffDays(old.To.Date))
+	}
+	return Period{From: civildate.NullDate{Date: from, Valid: true}, To: civildate.NullDate{Date: to, Valid: true}}
+}
+
 // MatchesQuery is the list search over the claim's own visible text.
 func MatchesQuery(q string, fields ...string) bool {
 	q = strings.ToLower(strings.TrimSpace(q))

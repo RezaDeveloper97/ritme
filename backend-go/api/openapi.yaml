@@ -22728,7 +22728,7 @@ paths:
     get:
       tags: [Insurance]
       summary: My insurance policy
-      description: "Her policy with members and coverage usage, or policy null (setup form)."
+      description: "Her current policy (the latest period containing today, else the newest) with members and coverage usage of its period, or policy null (setup form)."
       operationId: showInsurancePolicy
       security:
         - {bearerAuth: []}
@@ -22750,7 +22750,7 @@ paths:
     put:
       tags: [Insurance]
       summary: Create or replace my policy
-      description: "201 on create, 200 on replace. Policy number and IBAN keep only their last four characters."
+      description: "Replaces her current policy (200), or creates her first one (201). Policy number and IBAN keep only their last four characters."
       operationId: saveInsurancePolicy
       security:
         - {bearerAuth: []}
@@ -22781,7 +22781,7 @@ paths:
     delete:
       tags: [Insurance]
       summary: Delete my policy
-      description: "Removes the policy with all its claims."
+      description: "Removes her current policy with all its claims."
       operationId: deleteInsurancePolicy
       security:
         - {bearerAuth: []}
@@ -22802,16 +22802,169 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/InsuranceNotFound"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/insurance/policies:
+    get:
+      tags: [Insurance]
+      summary: My policy history
+      description: "Her policies, newest period first, for the switcher (user decision 2026-10-12). Exactly one is current (the latest period containing today, else the newest); a past policy and its claims are read-only; only the newest can be renewed."
+      operationId: listInsurancePolicies
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsurancePolicyList"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    post:
+      tags: [Insurance]
+      summary: Add a policy to my history
+      description: "Same body as PUT /policy; always creates (201). 409 insurance_too_many past 30 policies."
+      operationId: storeInsurancePolicy
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InsurancePolicyInput"}
+      responses:
+        '201': {$ref: "#/components/responses/InsurancePolicySaved"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/InsuranceConflict"}
+        '422': {$ref: "#/components/responses/InsuranceValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/insurance/policies/{id}:
+    get:
+      tags: [Insurance]
+      summary: One of my policies
+      description: "The GET /policy shape for any policy of her history (`read_only` for a past one)."
+      operationId: showInsurancePolicyById
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsurancePolicyEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+    put:
+      tags: [Insurance]
+      summary: Replace one of my policies
+      description: "409 insurance_policy_read_only for a past policy."
+      operationId: updateInsurancePolicyById
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/InsurancePolicyInput"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/InsurancePolicyEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '409': {$ref: "#/components/responses/InsuranceConflict"}
+        '422': {$ref: "#/components/responses/InsuranceValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Insurance]
+      summary: Delete one of my policies
+      description: "Removes the policy (past ones too) with all its claims."
+      operationId: deleteInsurancePolicyById
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: 'null'}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/insurance/policies/{id}/renew:
+    post:
+      tags: [Insurance]
+      summary: Renew my newest policy
+      description: "Creates the next policy (201): same insurer, plan, masked number / IBAN, deadline, note, members and coverages as a starting point; default period from the day after the old one ends for the same length (one year when open). The renewed policy keeps its claims and becomes past / read-only once the new period starts. 409 insurance_policy_renewed for an older policy."
+      operationId: renewInsurancePolicy
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                valid_from: {type: [string, 'null'], format: date}
+                valid_to: {type: [string, 'null'], format: date}
+      responses:
+        '201': {$ref: "#/components/responses/InsurancePolicySaved"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '409': {$ref: "#/components/responses/InsuranceConflict"}
+        '422': {$ref: "#/components/responses/InsuranceValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/insurance/claims:
     get:
       tags: [Insurance]
       summary: My claims
-      description: "Claims with the totals of the window (default the policy period)."
+      description: "The claims of one of her policies (default the current one) with the totals of the window (default that policy's period)."
       operationId: listInsuranceClaims
       security:
         - {bearerAuth: []}
       parameters:
         - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: policy_id, in: query, schema: {type: integer}}
         - {name: status, in: query, schema: {type: string, enum: [open, needs_action, paid, rejected]}}
         - {name: q, in: query, schema: {type: string}}
         - {name: member_id, in: query, schema: {type: integer}}
@@ -22917,6 +23070,7 @@ paths:
         '404': {$ref: "#/components/responses/InsuranceNotFound"}
         '422': {$ref: "#/components/responses/InsuranceValidationFailed"}
         '503': {$ref: "#/components/responses/InsuranceUnavailable"}
+        '409': {$ref: "#/components/responses/InsuranceConflict"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
     delete:
       tags: [Insurance]
@@ -22941,6 +23095,7 @@ paths:
                   data: {type: 'null'}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '409': {$ref: "#/components/responses/InsuranceConflict"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/insurance/claims/{id}/events:
     post:
@@ -23062,6 +23217,7 @@ paths:
                   data: {$ref: "#/components/schemas/InsuranceClaimDetail"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/InsuranceNotFound"}
+        '409': {$ref: "#/components/responses/InsuranceConflict"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/insurance/questionnaires:
     get:
@@ -24911,7 +25067,7 @@ components:
             properties:
               success: {type: boolean, const: false}
               message: {type: string}
-              error_code: {type: string, enum: [insurance_questionnaire_locked, insurance_questionnaire_not_confirmed, insurance_too_many, insurance_event_last]}
+              error_code: {type: string, enum: [insurance_questionnaire_locked, insurance_questionnaire_not_confirmed, insurance_too_many, insurance_event_last, insurance_policy_read_only, insurance_policy_renewed]}
               errors: {type: object, additionalProperties: {type: array, items: {type: string}}}
     InsuranceUnavailable:
       description: "Sealed storage (PRIVATE_NOTE_KEY) unavailable."
@@ -31282,6 +31438,30 @@ components:
               waiting_ends_on: {type: [string, 'null'], format: date}
               waiting_over: {type: boolean}
         updated_at: {type: [string, 'null']}
+        status: {type: string, enum: [current, upcoming, past]}
+        read_only: {type: boolean, description: "past policy: it and its claims cannot change"}
+        can_renew: {type: boolean, description: "the newest policy (the only one that can be renewed)"}
+    InsurancePolicyList:
+      type: object
+      required: [policies, current_id]
+      properties:
+        current_id: {type: [integer, 'null']}
+        policies:
+          type: array
+          items:
+            type: object
+            required: [id, insurer_name, status, read_only, can_renew, claims_count]
+            properties:
+              id: {type: integer}
+              insurer_name: {type: string}
+              plan_name: {type: [string, 'null']}
+              number_last4: {type: [string, 'null']}
+              valid_from: {type: [string, 'null'], format: date}
+              valid_to: {type: [string, 'null'], format: date}
+              status: {type: string, enum: [current, upcoming, past]}
+              read_only: {type: boolean}
+              can_renew: {type: boolean}
+              claims_count: {type: integer}
     InsurancePolicyInput:
       type: object
       properties:
@@ -31320,9 +31500,11 @@ components:
               note: {type: [string, 'null']}
     InsuranceClaim:
       type: object
-      required: [id, cost_type, category, service_date, amount, status, needs_action]
+      required: [id, policy_id, read_only, cost_type, category, service_date, amount, status, needs_action]
       properties:
         id: {type: integer}
+        policy_id: {type: integer}
+        read_only: {type: boolean, description: "the claim belongs to a past policy"}
         title: {type: [string, 'null']}
         cost_type: {type: string}
         category: {type: string}
@@ -31340,8 +31522,9 @@ components:
         created_at: {type: [string, 'null']}
     InsuranceClaimList:
       type: object
-      required: [claims, totals, window, filters]
+      required: [policy, claims, totals, window, filters]
       properties:
+        policy: {type: object, properties: {id: {type: integer}, status: {type: string, enum: [current, upcoming, past]}, read_only: {type: boolean}}}
         claims: {type: array, items: {$ref: "#/components/schemas/InsuranceClaim"}}
         totals: {type: object, properties: {requested: {type: integer}, paid: {type: integer}, count: {type: integer}, needs_action: {type: integer}}}
         window: {type: object, properties: {from: {type: [string, 'null']}, to: {type: [string, 'null']}}}

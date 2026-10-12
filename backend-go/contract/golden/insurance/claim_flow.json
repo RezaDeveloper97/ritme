@@ -121,7 +121,10 @@
                 "waiting_over": true
               }
             ],
-            "updated_at": "2026-09-23T10:00:00+03:30"
+            "updated_at": "2026-09-23T10:00:00+03:30",
+            "status": "current",
+            "read_only": false,
+            "can_renew": true
           },
           "children": [],
           "needs_action": 0,
@@ -257,7 +260,10 @@
                 "waiting_over": true
               }
             ],
-            "updated_at": "2026-09-23T10:00:00+03:30"
+            "updated_at": "2026-09-23T10:00:00+03:30",
+            "status": "current",
+            "read_only": false,
+            "can_renew": true
           },
           "children": [],
           "needs_action": 0,
@@ -381,6 +387,8 @@
         "message": "Claim saved",
         "data": {
           "id": 1,
+          "policy_id": 1,
+          "read_only": false,
           "title": "Pregnancy ultrasound",
           "cost_type": "paraclinic",
           "category": "paraclinic",
@@ -436,9 +444,16 @@
       "body": {
         "success": true,
         "data": {
+          "policy": {
+            "id": 1,
+            "status": "current",
+            "read_only": false
+          },
           "claims": [
             {
               "id": 1,
+              "policy_id": 1,
+              "read_only": false,
               "title": "Pregnancy ultrasound",
               "cost_type": "paraclinic",
               "category": "paraclinic",
@@ -490,6 +505,8 @@
         "success": true,
         "data": {
           "id": 1,
+          "policy_id": 1,
+          "read_only": false,
           "title": "Pregnancy ultrasound",
           "cost_type": "paraclinic",
           "category": "paraclinic",
@@ -557,6 +574,8 @@
         "message": "Claim saved",
         "data": {
           "id": 1,
+          "policy_id": 1,
+          "read_only": false,
           "title": "Pregnancy ultrasound",
           "cost_type": "paraclinic",
           "category": "paraclinic",
@@ -622,6 +641,8 @@
         "message": "Step added",
         "data": {
           "id": 1,
+          "policy_id": 1,
+          "read_only": false,
           "title": "Pregnancy ultrasound",
           "cost_type": "paraclinic",
           "category": "paraclinic",

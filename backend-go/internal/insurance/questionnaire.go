@@ -30,7 +30,7 @@ type Answer struct {
 	Code         string   `json:"code"`
 	Answer       *string  `json:"answer"`
 	RecordAnswer *string  `json:"record_answer"`
-	Evidence     []string `json:"evidence"`
+	Evidence     []string `json:"evidence,omitempty"` // sealed in evidence_enc at rest (00093); plain only in rows written before it
 }
 
 // FromRecord reports whether her answer is the one the record suggested («از پرونده سلامت»).

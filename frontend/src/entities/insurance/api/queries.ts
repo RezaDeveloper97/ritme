@@ -7,7 +7,7 @@ import { isAuthenticated } from '@/shared/session';
 
 import type { ClaimEventPayload, ClaimPayload, PolicyPayload } from '../model/types';
 import { insuranceKeys } from './keys';
-import { centresSchema, claimDetailSchema, claimsSchema, insurersSchema, policyStateSchema } from './schema';
+import { centresSchema, claimDetailSchema, claimsSchema, insurersSchema, policyHistorySchema, policyStateSchema } from './schema';
 
 /*
  * `/api/v1/insurance` (CB-INS-01, Go only). Self-tracking: nothing here is sent to an insurer. Health and financial
@@ -28,6 +28,56 @@ export function useInsurancePolicy() {
   });
 }
 
+/** GET /insurance/policies — her policy history (switcher), newest period first. */
+export function useInsurancePolicies(enabled = true) {
+  return useQuery({
+    queryKey: insuranceKeys.policies(),
+    queryFn: async () => {
+      const { data } = await apiClient.get<ApiEnvelope<unknown>>('/insurance/policies');
+      return policyHistorySchema.parse(data.data);
+    },
+    enabled: enabled && isAuthenticated(),
+    staleTime: 60_000,
+    retry: 1,
+  });
+}
+
+/** GET /insurance/policies/{id} — one policy of her history (null id = disabled; the current one reads /policy). */
+export function useInsurancePolicyById(id: number | null) {
+  return useQuery({
+    queryKey: insuranceKeys.policyById(id ?? 0),
+    queryFn: async () => {
+      const { data } = await apiClient.get<ApiEnvelope<unknown>>(`/insurance/policies/${id}`);
+      return policyStateSchema.parse(data.data);
+    },
+    enabled: isAuthenticated() && id !== null && id > 0,
+    staleTime: 60_000,
+    retry: 1,
+  });
+}
+
+/** Any policy write refreshes the current policy, the history and every per-policy view. */
+function invalidatePolicies(queryClient: ReturnType<typeof useQueryClient>) {
+  void queryClient.invalidateQueries({ queryKey: insuranceKeys.policy() });
+  void queryClient.invalidateQueries({ queryKey: insuranceKeys.policies() });
+  void queryClient.invalidateQueries({ queryKey: [...insuranceKeys.all, 'claims'] });
+}
+
+/** POST /insurance/policies/{id}/renew — the next policy (members and coverages copied); answers its state. */
+export function useRenewInsurancePolicy() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { data } = await apiClient.post<ApiEnvelope<unknown>>(`/insurance/policies/${id}/renew`, {});
+      return policyStateSchema.parse(data.data);
+    },
+    onSuccess: (state) => {
+      if (state.policy) queryClient.setQueryData(insuranceKeys.policyById(state.policy.id), state);
+      invalidatePolicies(queryClient);
+    },
+  });
+}
+
 /** GET /insurance/insurers — the admin catalog (names only). */
 export function useInsurers(enabled = true) {
   return useQuery({
@@ -42,12 +92,13 @@ export function useInsurers(enabled = true) {
   });
 }
 
-/** GET /insurance/claims — the policy-period claims; the home shows the latest few. */
-export function useRecentClaims(enabled = true) {
+/** GET /insurance/claims — the claims of a policy (default the current one); the home shows the latest few. */
+export function useRecentClaims(enabled = true, policyId: number | null = null) {
   return useQuery({
-    queryKey: insuranceKeys.recentClaims(),
+    queryKey: insuranceKeys.recentClaims(policyId),
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiEnvelope<unknown>>('/insurance/claims');
+      const params = policyId ? { policy_id: String(policyId) } : undefined;
+      const { data } = await apiClient.get<ApiEnvelope<unknown>>('/insurance/claims', { params });
       return claimsSchema.parse(data.data);
     },
     enabled: enabled && isAuthenticated(),
@@ -74,17 +125,22 @@ export function useCentres(type: string, q: string) {
   });
 }
 
-/** PUT /insurance/policy — create or replace; the response carries the whole policy state. */
-export function useSaveInsurancePolicy() {
+/**
+ * PUT /insurance/policy (the current one; creates her first) or PUT /insurance/policies/{id} (a given policy of her
+ * history, e.g. a renewal not started yet) — the response carries the whole policy state.
+ */
+export function useSaveInsurancePolicy(policyId: number | null = null) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: PolicyPayload) => {
-      const { data } = await apiClient.put<ApiEnvelope<unknown>>('/insurance/policy', payload);
+      const url = policyId ? `/insurance/policies/${policyId}` : '/insurance/policy';
+      const { data } = await apiClient.put<ApiEnvelope<unknown>>(url, payload);
       return policyStateSchema.parse(data.data);
     },
     onSuccess: (state) => {
-      queryClient.setQueryData(insuranceKeys.policy(), state);
-      void queryClient.invalidateQueries({ queryKey: insuranceKeys.recentClaims() });
+      if (policyId) queryClient.setQueryData(insuranceKeys.policyById(policyId), state);
+      else queryClient.setQueryData(insuranceKeys.policy(), state);
+      invalidatePolicies(queryClient);
     },
   });
 }
@@ -110,8 +166,7 @@ function useClaimWrite<V>(call: (v: V) => Promise<unknown>, id?: number) {
     mutationFn: async (v: V) => claimDetailSchema.parse(await call(v)),
     onSuccess: (claim) => {
       queryClient.setQueryData(insuranceKeys.claim(id ?? claim.id), claim);
-      void queryClient.invalidateQueries({ queryKey: insuranceKeys.recentClaims() });
-      void queryClient.invalidateQueries({ queryKey: insuranceKeys.policy() });
+      invalidatePolicies(queryClient);
     },
   });
 }
@@ -152,8 +207,7 @@ export function useDeleteClaim(id: number) {
     },
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: insuranceKeys.claim(id) });
-      void queryClient.invalidateQueries({ queryKey: insuranceKeys.recentClaims() });
-      void queryClient.invalidateQueries({ queryKey: insuranceKeys.policy() });
+      invalidatePolicies(queryClient);
     },
   });
 }

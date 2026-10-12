@@ -1,14 +1,19 @@
 // Package insurance is the insurance self-tracking domain (canvas CB-INS-01, roadmap DECISIONS #12): the user keeps her
-// own supplementary health insurance — one policy (insurer from the admin catalog or typed, masked number, validity,
+// own supplementary health insurance — her policies over time (insurer from the admin catalog or typed, masked number, validity,
 // members = self + spouse + her bloom children, claim deadline, coverage caps / deductibles / waiting periods per
 // category), the claims she files with the insurer herself (member, cost type, centre, day, amount, record documents,
 // a status timeline she advances, expected payable) and health questionnaire drafts prefilled from her record, which
 // she confirms and exports as a PDF drawn on the device. The contracted centres list is admin data.
 //
+// History (user decision 2026-10-12, 00093). She keeps several policies: «تمدید» creates a new policy (new period,
+// members and coverages copied as a starting point). Exactly one is current (the latest period containing today,
+// else the newest); a policy that is neither current nor upcoming is past and read-only together with its claims.
+// Claims attach to a policy and coverage usage is computed per policy period.
+//
 // Privacy. No insurer API: nothing is ever sent anywhere. The policy number and the payout IBAN are kept only as their
 // last four characters. Free-text notes (claim note, timeline notes, questionnaire explanation) are sealed at rest
-// (PRIVATE_NOTE_KEY, bound to the owner). Every query is scoped by the caller's user id; another user's row answers
-// the same 404 as a missing one. Nothing here is logged.
+// (PRIVATE_NOTE_KEY, bound to the owner), and so is the questionnaire evidence copied from her record. Every query
+// is scoped by the caller's user id; another user's row answers the same 404 as a missing one. Nothing is logged.
 //
 // The read-only «how it works» page stays bloom B-N10-06 (info_sections group `insurance`, internal/content).
 package insurance
@@ -73,6 +78,14 @@ const (
 	ClaimAppealed      = "appealed"
 )
 
+// Policy history statuses (00093: several policies per user). Exactly one is current; a past policy and its claims
+// are read-only.
+const (
+	PolicyCurrent  = "current"
+	PolicyUpcoming = "upcoming"
+	PolicyPast     = "past"
+)
+
 // Claim list filters.
 const (
 	FilterOpen        = "open"
@@ -114,6 +127,7 @@ const (
 	MaxWaitingDays    = 1095
 	MaxDocsPerClaim   = 20
 	MaxEventsPerClaim = 30
+	MaxPolicies       = 30
 )
 
 // Accepted values.
@@ -142,6 +156,8 @@ const (
 	CodeInUse            = "insurance_in_use"
 	CodeEventLast        = "insurance_event_last"
 	CodeValidationFailed = "insurance_validation_failed"
+	CodeReadOnly         = "insurance_policy_read_only"
+	CodeRenewed          = "insurance_policy_renewed"
 )
 
 // Errors of the service.
@@ -154,6 +170,8 @@ var (
 	ErrNotConfirmed = errors.New("insurance: questionnaire not confirmed")
 	ErrTooMany      = errors.New("insurance: too many items")
 	ErrEventLast    = errors.New("insurance: the first event cannot be removed")
+	ErrReadOnly     = errors.New("insurance: past policy is read-only")
+	ErrRenewed      = errors.New("insurance: only the newest policy can be renewed")
 )
 
 // Controller messages, validation lines and attribute names are data: lang/<code>/insurance.json (English fallback).

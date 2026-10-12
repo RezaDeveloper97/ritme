@@ -20,7 +20,10 @@
         "questionnaire_created": "پرسشنامه از پرونده سلامتت پر شد",
         "questionnaire_saved": "پرسشنامه ذخیره شد",
         "questionnaire_confirmed": "پرسشنامه تأیید شد",
-        "questionnaire_deleted": "پرسشنامه حذف شد"
+        "questionnaire_deleted": "پرسشنامه حذف شد",
+        "read_only": "این بیمه‌نامه‌ی گذشته است و خودش و خسارت‌هایش دیگر قابل تغییر نیستند",
+        "renewed": "فقط جدیدترین بیمه‌نامه‌ات را می‌شود تمدید کرد",
+        "policy_renewed": "بیمه‌نامه‌ات تمدید شد"
     },
     "validation": {
         "valid_to": "تاریخ پایان باید هم‌زمان یا بعد از تاریخ شروع باشد.",

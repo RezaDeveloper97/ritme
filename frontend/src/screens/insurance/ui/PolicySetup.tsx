@@ -69,7 +69,8 @@ export function PolicySetup({ policy, onDone, onShowInfo }: { policy: InsuranceP
   const t = useTranslations('insurance');
   const locale = useLocale() as Locale;
   const insurers = useInsurers();
-  const save = useSaveInsurancePolicy();
+  // An existing policy is saved by id (it may be a renewal that has not started yet); none → PUT /policy creates it.
+  const save = useSaveInsurancePolicy(policy?.id ?? null);
   const [draft, setDraft] = useState<PolicyDraft>(() => (policy ? draftFromPolicy(policy, t('setup.selfName')) : emptyDraft(t('setup.selfName'))));
   const [picker, setPicker] = useState<DateField | null>(null);
   const [touched, setTouched] = useState(false);
