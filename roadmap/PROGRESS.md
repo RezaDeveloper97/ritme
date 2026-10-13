@@ -677,3 +677,10 @@ TODO (ask user):
 - Fixed: F-1 filter price input overflow; F-2 list "0 items" (product_count default); F-3 line thumbnails for admin-uploaded images (`images` array, coverPath); F-4 en percent sign; F-9 en typo.
 - Open: F-5 (medium) no user endpoint to write a product review; F-6 layette link only moves existing rows; F-7 admin variant defaults inactive; F-8 two strings deny "online payment" (board wording); F-10 Lighthouse SEO product 0.92 (Next streams metadata for browsers; `htmlLimitedBots` would fix at TTFB cost); F-11 admin-web missing `overview.mode.teen` (fa).
 - On stage: sqlc clean, go build, shop/... + i18n + http int green, tsc, shop vitest green.
+
+## CB-REL-01 — Stage rollout of finished canvas epics (release)
+- Deployed `stage` f598a02d to https://stage.ritmeapp.ir (user ran push + deploy-stage.sh; SSH outage and a full root disk were cleared first). Goose at 00093; backend-go, admin-web, frontend, instructor-web, mysql, redis healthy.
+- Stage env: PRIVATE_NOTE_KEY, LAB_FILE_KEY, FILE_KEY, MEDIA_URL_KEY, SHARE_CODE_PEPPER, COMPANION_CODE_PEPPER, SHARE_WEB_URL, SITE_URL generated on the server only (never rotate them: sealed data would stop opening).
+- Fixed on the way: instructor-web lockfile regenerated with npm 10 (server npm 10.9.9 rejected `@swc/helpers` missing from the npm 11 lock).
+- Smoke: 42 PASS / 0 FAIL / 3 SKIP (loss create, real voice, sitemap) with throwaway users and seed data (all deleted afterwards). Report docs/qa/canvas/stage.md.
+- Open: NEXT_PUBLIC_NESHAN_KEY unset (map → list); Kavenegar templates for companion invite / directory / shop not registered; clinical review pending (docs/canvas-build/clinical-review.md); AI provider on stage is `fake`; no sitemap; account export has no record-documents / teen / companions sections (D-96 lists nine sections); rotate stage gate credentials (printed once in an agent transcript).
