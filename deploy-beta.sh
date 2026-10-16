@@ -67,6 +67,7 @@ if [[ "${SKIP_SYNC:-0}" != "1" ]]; then
     --exclude '*.fig' \
     --exclude '*.log' \
     --exclude '.env' \
+    --exclude '.bootstrapped' \
     --exclude '.env.local' \
     --exclude 'ssl/' \
     --exclude 'certbot-www/' \
