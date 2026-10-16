@@ -1,0 +1,144 @@
+# Beta overlay for the Ritme stack — used as:
+#   docker compose -p ritme-beta -f docker-compose.yml -f docker-compose.beta.yml ...
+# (see deploy-beta.sh). https://beta.ritme.app — a PUBLIC environment for REAL
+# users that always ships the tip of the `stage` branch.
+#
+# Same server as production and staging, but its own compose project, so its
+# containers, network and named volumes (ritme-beta_mysql-data …) are separate
+# from both `ritme` and `ritme-stage`. Its database is its own: real beta users
+# never share a row with staging's test accounts.
+#
+# Differences from docker-compose.stage.yml:
+#   - APP_ENV=production. Real users => the Go config refuses every fake adapter
+#     (payments, AI, companion SMS, video), APP_DEBUG must be false, and the
+#     secret peppers/keys are mandatory. Providers that are not configured in
+#     the server .env answer 503 instead of pretending.
+#   - No password gate: deploy/vhost-beta.inc has no auth_basic at all.
+#   - Instructor panel is profiled off (`instructor`) — no beta host for it, and
+#     the box has 4 GB of RAM for three stacks.
+#
+# Like staging it runs NO proxy of its own. Production's nginx (ritme-proxy-1)
+# owns :80/:443 and reaches this stack on the external `ritme-edge` network via
+# the beta-only aliases below — never a bare service name (the 2026-08-31
+# incident, see deploy/proxy-ssl.conf). Nothing here publishes a host port.
+
+name: ritme-beta
+
+services:
+  mysql:
+    # Same MariaDB substitution as production (the CPU is x86-64-v1 only).
+    image: mariadb:11.4
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    ports: !override []
+
+  redis:
+    ports: !override []
+
+  # Laravel is used ONCE, to bootstrap a fresh beta database (schema, Passport
+  # keys + personal-access client, admin/content seeds) before backend-go first
+  # starts — deploy-beta.sh does that automatically. Never started otherwise.
+  backend:
+    profiles: [laravel]
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+    ports: !override []
+
+  queue:
+    profiles: [laravel]
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+
+  backend-go:
+    container_name: ritme-beta-backend-go-1
+    depends_on: !override
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      RUN_MIGRATIONS: "true"
+      # Admin API on the single beta origin: admin-web at /panel and /api/admin/
+      # share beta.ritme.app, so every admin call is same-origin.
+      ADMIN_HOSTS: beta.ritme.app
+      ADMIN_WEB_ORIGINS: https://beta.ritme.app
+      ADMIN_COOKIE_SECURE: "true"
+      # Ritme Plus + payments. Unset PAYMENT_PROVIDER = none in production
+      # (checkout answers 503); set zarinpal + ZARINPAL_MERCHANT_ID in the server
+      # .env to take real money.
+      PLUS_VAT_RATE_BPS: ${PLUS_VAT_RATE_BPS:-1000}
+      PLUS_TRIAL_DAYS: ${PLUS_TRIAL_DAYS:-7}
+      PLUS_INVOICE_TTL_MINUTES: ${PLUS_INVOICE_TTL_MINUTES:-30}
+      PLUS_CALLBACK_URL: ${PLUS_CALLBACK_URL:-https://beta.ritme.app/plus/return}
+      TELEMED_HOLD_MINUTES: ${TELEMED_HOLD_MINUTES:-10}
+      TELEMED_PLUS_DISCOUNT_PERCENT: ${TELEMED_PLUS_DISCOUNT_PERCENT:-20}
+      TELEMED_CALLBACK_URL: ${TELEMED_CALLBACK_URL:-https://beta.ritme.app/services/bookings/return}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-}
+      PAYMENT_CALLBACK_BASE_URL: ${PAYMENT_CALLBACK_BASE_URL:-https://beta.ritme.app}
+      PAYMENT_RETURN_URLS: ${PAYMENT_RETURN_URLS:-}
+      PAYMENT_HTTP_TIMEOUT_SECONDS: ${PAYMENT_HTTP_TIMEOUT_SECONDS:-15}
+      ZARINPAL_MERCHANT_ID: ${ZARINPAL_MERCHANT_ID:-}
+      ZARINPAL_SANDBOX: ${ZARINPAL_SANDBOX:-false}
+      # AI: unset = none in production (AI features answer 503). gemini + a
+      # PAID-tier key in the server .env to switch it on.
+      AI_PROVIDER: ${AI_PROVIDER:-}
+      AI_HTTP_TIMEOUT_SECONDS: ${AI_HTTP_TIMEOUT_SECONDS:-30}
+      AI_DAILY_COST_CAP_USD: ${AI_DAILY_COST_CAP_USD:-5}
+      AI_USER_DAILY_COST_CAP_USD: ${AI_USER_DAILY_COST_CAP_USD:-0.25}
+      AI_PRICES: ${AI_PRICES:-gemini-flash-latest=0.30/2.50/1.00,gemini-2.5-flash=0.30/2.50/1.00,gemini-2.5-pro=1.25/10.00/1.25}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-flash-latest}
+      # Companion invites: unset = none in production (the owner shares the code
+      # herself); `gateway` sends through Kavenegar.
+      COMPANION_SMS_PROVIDER: ${COMPANION_SMS_PROVIDER:-}
+      COMPANION_CODE_PEPPER: ${COMPANION_CODE_PEPPER:-}
+      KAVENEGAR_TEMPLATE_COMPANION_INVITE: ${KAVENEGAR_TEMPLATE_COMPANION_INVITE:-companion-invite}
+      KAVENEGAR_TEMPLATE_COMPANION_INVITE_NEUTRAL: ${KAVENEGAR_TEMPLATE_COMPANION_INVITE_NEUTRAL:-}
+      SHARE_CODE_PEPPER: ${SHARE_CODE_PEPPER:-}
+      SHARE_WEB_URL: ${SHARE_WEB_URL:-https://beta.ritme.app}
+      PRIVATE_NOTE_KEY: ${PRIVATE_NOTE_KEY:-}
+      PRIVATE_NOTE_KEY_PREVIOUS: ${PRIVATE_NOTE_KEY_PREVIOUS:-}
+      LAB_FILE_KEY: ${LAB_FILE_KEY:-}
+      LAB_FILE_KEY_PREVIOUS: ${LAB_FILE_KEY_PREVIOUS:-}
+      FILE_KEY: ${FILE_KEY:-}
+      FILE_KEY_PREVIOUS: ${FILE_KEY_PREVIOUS:-}
+      MEDIA_URL_KEY: ${MEDIA_URL_KEY:-}
+    ports: !override []
+    networks:
+      default:
+      ritme-edge:
+        aliases: [beta-backend-go]
+
+  frontend:
+    container_name: ritme-beta-frontend-1
+    depends_on: !override [backend-go]
+    ports: !override []
+    networks:
+      default:
+      ritme-edge:
+        aliases: [beta-frontend]
+
+  # Next.js admin under /panel (one origin, like staging).
+  admin-web:
+    container_name: ritme-beta-admin-web-1
+    build:
+      args:
+        NEXT_PUBLIC_ADMIN_BASE_PATH: /panel
+    networks:
+      default:
+      ritme-edge:
+        aliases: [beta-admin-web]
+
+  instructor-web:
+    profiles: [instructor]
+
+networks:
+  ritme-edge:
+    external: true

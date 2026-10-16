@@ -131,6 +131,11 @@ services:
       # Same selector trick: empty placeholder by default; laravel-site/deploy-betatest.sh
       # sets SITE_CONF=./deploy/site-ssl.conf in the server .env.
       - ${SITE_CONF:-./deploy/site-off.conf}:/etc/nginx/conf.d/zz-site.conf:ro
+      # ── beta.ritme.app (public beta, compose project `ritme-beta`) ──
+      # Same selector trick: empty placeholder by default; deploy-beta.sh sets
+      # BETA_CONF=./deploy/beta-ssl.conf in the server .env.
+      - ${BETA_CONF:-./deploy/beta-off.conf}:/etc/nginx/conf.d/zz-beta.conf:ro
+      - ./deploy/vhost-beta.inc:/etc/nginx/conf.d/vhost-beta.inc:ro
       # ── instructor hosts (B-N8-05, instructor-web) ──
       # Same selector trick, one per environment: empty placeholder until DNS +
       # certificate exist (docs/night-bloom/instructor-web-deploy.md). Stage:
