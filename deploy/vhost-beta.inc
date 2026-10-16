@@ -3,9 +3,8 @@
 ## Same path routing as staging (vhost-stage.inc), all on Go:
 ##
 ##   /up, /api, /storage, /docs          -> beta backend-go
-##   /api/admin/                         -> beta backend-go (admin API)
-##   /panel                              -> beta admin-web
-##   /admin, /admin/*                    -> 301 /panel/
+##   /api/admin/                         -> 404 (the admin lives on beta-admin.ritme.app)
+##   /panel, /admin                      -> 301 https://beta-admin.ritme.app/
 ##   /oauth/*                            -> 404
 ##   /api/session/flag                   -> beta frontend (Next route handler)
 ##   everything else                     -> beta frontend (Next.js)
@@ -26,7 +25,6 @@ add_header Strict-Transport-Security "max-age=31536000" always;
 resolver 127.0.0.11 valid=10s ipv6=off;
 set $beta_backend_go_target http://beta-backend-go:80;
 set $beta_frontend_target   http://beta-frontend:3000;
-set $beta_admin_web_target  http://beta-admin-web:3000;
 
 proxy_http_version 1.1;
 proxy_set_header Host              $host;
@@ -53,9 +51,8 @@ location = /api/session/flag {
     proxy_pass $beta_frontend_target;
 }
 
-location ^~ /api/admin/ {
-    proxy_pass $beta_backend_go_target;
-}
+# Admin API only on beta-admin.ritme.app (backend-go also refuses it here: ADMIN_HOSTS).
+location ^~ /api/admin/ { return 404; }
 
 location /api/ {
     proxy_pass $beta_backend_go_target;
@@ -85,12 +82,11 @@ location ^~ /api/v1/media/ {
 location /storage/ { proxy_pass $beta_backend_go_target; }
 location ^~ /docs  { proxy_pass $beta_backend_go_target; }
 
-location = /panel   { proxy_pass $beta_admin_web_target; }
-location ^~ /panel/ { proxy_pass $beta_admin_web_target; }
-
 location ^~ /oauth/ { return 404; }
-location = /admin   { return 301 /panel/; }
-location ^~ /admin/ { return 301 /panel/; }
+location = /panel   { return 301 https://beta-admin.ritme.app/; }
+location ^~ /panel/ { return 301 https://beta-admin.ritme.app/; }
+location = /admin   { return 301 https://beta-admin.ritme.app/; }
+location ^~ /admin/ { return 301 https://beta-admin.ritme.app/; }
 
 # Public record pages with a bearer token in the path (doctor share, 24h doctor page, emergency card): never logged.
 location ~ ^/(?:[A-Za-z-]+/)?(?:shared/report|d|emergency)/ {

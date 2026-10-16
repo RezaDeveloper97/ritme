@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
-# Issue a Let's Encrypt certificate for beta.ritme.app and install it as ssl/beta-*.pem for the production proxy.
-# Run ON THE SERVER from /opt/ritme (deploy-beta.sh calls it once the vhost answers):
+# Issue a Let's Encrypt certificate for a beta host and install it as ssl/<prefix>-*.pem for the production proxy.
+# Run ON THE SERVER from /opt/ritme (deploy-beta.sh calls it once per host):
 #
-#   bash deploy/enable-https-beta.sh
+#   bash deploy/enable-https-beta.sh                                  # beta.ritme.app       -> ssl/beta-*.pem
+#   bash deploy/enable-https-beta.sh beta-admin.ritme.app beta-admin  # beta-admin.ritme.app -> ssl/beta-admin-*.pem
 #
 # Until then ssl/beta-*.pem is a copy of production's certificate (ArvanCloud terminates the public TLS, so the
 # origin certificate only secures the CDN → origin hop). HTTP-01 from production's certbot webroot; acme.inc is on
@@ -13,7 +14,8 @@
 # -----------------------------------------------------------------------------
 set -uo pipefail
 
-DOMAIN="${DOMAIN:-beta.ritme.app}"
+DOMAIN="${1:-beta.ritme.app}"
+PREFIX="${2:-beta}"
 PROD_DIR="${PROD_DIR:-/opt/ritme}"
 EMAIL="${CERTBOT_EMAIL:-admin@ritme.app}"
 PROD_COMPOSE="docker compose -f ${PROD_DIR}/docker-compose.yml -f ${PROD_DIR}/docker-compose.prod.yml --project-directory ${PROD_DIR}"
@@ -26,19 +28,19 @@ if ! certbot certonly --webroot -w "${PROD_DIR}/certbot-www" --non-interactive -
     exit 0
 fi
 
-install -m 644 "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" "${PROD_DIR}/ssl/beta-fullchain.pem"
-install -m 600 "/etc/letsencrypt/live/${DOMAIN}/privkey.pem"   "${PROD_DIR}/ssl/beta-privkey.pem"
+install -m 644 "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" "${PROD_DIR}/ssl/${PREFIX}-fullchain.pem"
+install -m 600 "/etc/letsencrypt/live/${DOMAIN}/privkey.pem"   "${PROD_DIR}/ssl/${PREFIX}-privkey.pem"
 
 mkdir -p /etc/letsencrypt/renewal-hooks/deploy
-cat > /etc/letsencrypt/renewal-hooks/deploy/ritme-beta-proxy.sh <<HOOK
+cat > /etc/letsencrypt/renewal-hooks/deploy/ritme-${PREFIX}-proxy.sh <<HOOK
 #!/usr/bin/env bash
 set -e
 [ -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem ] || exit 0
-install -m 644 /etc/letsencrypt/live/${DOMAIN}/fullchain.pem ${PROD_DIR}/ssl/beta-fullchain.pem
-install -m 600 /etc/letsencrypt/live/${DOMAIN}/privkey.pem   ${PROD_DIR}/ssl/beta-privkey.pem
+install -m 644 /etc/letsencrypt/live/${DOMAIN}/fullchain.pem ${PROD_DIR}/ssl/${PREFIX}-fullchain.pem
+install -m 600 /etc/letsencrypt/live/${DOMAIN}/privkey.pem   ${PROD_DIR}/ssl/${PREFIX}-privkey.pem
 ${PROD_COMPOSE} exec -T proxy nginx -s reload
 HOOK
-chmod +x /etc/letsencrypt/renewal-hooks/deploy/ritme-beta-proxy.sh
+chmod +x /etc/letsencrypt/renewal-hooks/deploy/ritme-${PREFIX}-proxy.sh
 systemctl enable --now certbot.timer 2>/dev/null || true
 
 $PROD_COMPOSE exec -T proxy nginx -t && $PROD_COMPOSE exec -T proxy nginx -s reload

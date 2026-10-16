@@ -14,6 +14,7 @@
 #     secret peppers/keys are mandatory. Providers that are not configured in
 #     the server .env answer 503 instead of pretending.
 #   - No password gate: deploy/vhost-beta.inc has no auth_basic at all.
+#   - The admin panel has its own host, beta-admin.ritme.app (vhost-beta-admin.inc).
 #   - Instructor panel is profiled off (`instructor`) — no beta host for it, and
 #     the box has 4 GB of RAM for three stacks.
 #
@@ -65,10 +66,11 @@ services:
       APP_ENV: production
       APP_DEBUG: "false"
       RUN_MIGRATIONS: "true"
-      # Admin API on the single beta origin: admin-web at /panel and /api/admin/
-      # share beta.ritme.app, so every admin call is same-origin.
-      ADMIN_HOSTS: beta.ritme.app
-      ADMIN_WEB_ORIGINS: https://beta.ritme.app
+      # Admin API on its own host, like production's adpanell: admin-web at `/`
+      # and /api/admin/ share beta-admin.ritme.app (deploy/vhost-beta-admin.inc),
+      # so every admin call is same-origin. Any other Host gets no admin API.
+      ADMIN_HOSTS: beta-admin.ritme.app
+      ADMIN_WEB_ORIGINS: https://beta-admin.ritme.app
       ADMIN_COOKIE_SECURE: "true"
       # Ritme Plus + payments. Unset PAYMENT_PROVIDER = none in production
       # (checkout answers 503); set zarinpal + ZARINPAL_MERCHANT_ID in the server
@@ -125,12 +127,10 @@ services:
       ritme-edge:
         aliases: [beta-frontend]
 
-  # Next.js admin under /panel (one origin, like staging).
+  # Next.js admin at the root of its own host, beta-admin.ritme.app (no basePath,
+  # unlike staging's /panel).
   admin-web:
     container_name: ritme-beta-admin-web-1
-    build:
-      args:
-        NEXT_PUBLIC_ADMIN_BASE_PATH: /panel
     networks:
       default:
       ritme-edge:

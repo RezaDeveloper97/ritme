@@ -10,6 +10,7 @@
 #   source   /opt/ritme-beta           (stage: /opt/ritme-stage, prod: /opt/ritme)
 #   project  ritme-beta                (own containers, network, volumes, DB)
 #   URL      https://beta.ritme.app    (no password gate; ArvanCloud in front)
+#   admin    https://beta-admin.ritme.app (admin-web at `/`, own host like adpanell)
 #   APP_ENV  production                (fake adapters refused, debug off)
 #
 # First run on an empty server state does everything once, automatically:
@@ -34,6 +35,7 @@ REMOTE_DIR="/opt/ritme-beta"
 PROD_DIR="/opt/ritme"          # where the shared proxy and its config live
 STAGE_DIR="/opt/ritme-stage"   # SMS keys are copied from here on first run
 BETA_HOST="beta.ritme.app"
+ADMIN_HOST="beta-admin.ritme.app"
 BRANCH="stage"                 # beta ALWAYS ships the stage branch
 SERVICES="${SERVICES:-}"
 
@@ -124,7 +126,7 @@ MEDIA_URL_KEY=$(r64 32)
 ENV
 cat > /root/ritme-beta-credentials.txt <<CRED
 Ritme BETA — https://${BETA_HOST}
-Admin panel: https://${BETA_HOST}/panel
+Admin panel: https://beta-admin.ritme.app
   email:    admin@ritme.app
   password: ${admin_pw}
 (all other secrets: ${REMOTE_DIR}/.env)
@@ -135,18 +137,24 @@ fi
 # ── 3. Production proxy: beta vhost files, compose mount, placeholder cert ──
 # deploy.sh ships the whole working tree to /opt/ritme, which this script must
 # never do (it would swap production's source for the stage branch). So only
-# the beta-owned nginx files are copied, and the two mount lines are added to
-# the server's docker-compose.prod.yml in place if they are not there yet —
-# the repo's copy carries the same lines, so the next prod deploy keeps them.
+# the beta-owned nginx files are copied, and the mount lines are added to the
+# server's docker-compose.prod.yml in place if they are not there yet — the
+# repo's copy carries the same lines, so the next prod deploy keeps them.
 echo "==> Installing the beta vhost into the production proxy ..."
 rsync -az -e "ssh ${SSH_OPTS[*]}" \
-  deploy/beta-ssl.conf deploy/beta-off.conf deploy/vhost-beta.inc deploy/enable-https-beta.sh \
+  deploy/beta-ssl.conf deploy/beta-off.conf deploy/vhost-beta.inc deploy/vhost-beta-admin.inc deploy/enable-https-beta.sh \
   "${SERVER}:${PROD_DIR}/deploy/"
 ssh_run "cd ${PROD_DIR} && grep -q 'zz-beta.conf' docker-compose.prod.yml || \
   sed -i 's#^\(\( *\)- \${SITE_CONF:-./deploy/site-off.conf}:/etc/nginx/conf.d/zz-site.conf:ro\)\$#\1\n\2- \${BETA_CONF:-./deploy/beta-off.conf}:/etc/nginx/conf.d/zz-beta.conf:ro\n\2- ./deploy/vhost-beta.inc:/etc/nginx/conf.d/vhost-beta.inc:ro#' docker-compose.prod.yml"
-ssh_run "grep -q 'zz-beta.conf' ${PROD_DIR}/docker-compose.prod.yml" \
+ssh_run "cd ${PROD_DIR} && grep -q 'vhost-beta-admin.inc' docker-compose.prod.yml || \
+  sed -i 's#^\(\( *\)- ./deploy/vhost-beta.inc:/etc/nginx/conf.d/vhost-beta.inc:ro\)\$#\1\n\2- ./deploy/vhost-beta-admin.inc:/etc/nginx/conf.d/vhost-beta-admin.inc:ro#' docker-compose.prod.yml"
+ssh_run "grep -q 'zz-beta.conf' ${PROD_DIR}/docker-compose.prod.yml && grep -q 'vhost-beta-admin.inc' ${PROD_DIR}/docker-compose.prod.yml" \
   || { echo "!! could not add the beta mounts to ${PROD_DIR}/docker-compose.prod.yml" >&2; exit 1; }
-ssh_run "cd ${PROD_DIR} && test -s ssl/beta-fullchain.pem || { cp ssl/fullchain.pem ssl/beta-fullchain.pem && install -m 600 ssl/privkey.pem ssl/beta-privkey.pem; }"
+# Placeholder certificates (a copy of production's) so nginx can load the
+# server blocks before enable-https-beta.sh has issued the real ones.
+for p in beta beta-admin; do
+  ssh_run "cd ${PROD_DIR} && test -s ssl/${p}-fullchain.pem || { cp ssl/fullchain.pem ssl/${p}-fullchain.pem && install -m 600 ssl/privkey.pem ssl/${p}-privkey.pem; }"
+done
 
 # ── 4. First deploy: bootstrap the empty DB with Laravel ────────────────────
 # Must happen BEFORE backend-go ever starts on the volume: Go creates no
@@ -200,11 +208,14 @@ echo "==> Ensuring the proxy serves ${BETA_HOST} ..."
 ssh_run "cd ${PROD_DIR} && { grep -q '^BETA_CONF=' .env || echo 'BETA_CONF=./deploy/beta-ssl.conf' >> .env; }"
 ssh_run "cd ${PROD_DIR} && ${PROD_COMPOSE} up -d proxy && ${PROD_COMPOSE} exec -T proxy sh -c 'nginx -t && nginx -s reload'"
 
-# Own certificate once (keeps the placeholder if issuance fails).
-if ! ssh_run "test -f /etc/letsencrypt/live/${BETA_HOST}/fullchain.pem"; then
-  echo "==> Requesting a certificate for ${BETA_HOST} ..."
-  ssh_run "cd ${PROD_DIR} && bash deploy/enable-https-beta.sh" || true
-fi
+# Own certificate per host, once (keeps the placeholder if issuance fails).
+for pair in "${BETA_HOST}:beta" "${ADMIN_HOST}:beta-admin"; do
+  host="${pair%%:*}" prefix="${pair##*:}"
+  if ! ssh_run "test -f /etc/letsencrypt/live/${host}/fullchain.pem"; then
+    echo "==> Requesting a certificate for ${host} ..."
+    ssh_run "cd ${PROD_DIR} && bash deploy/enable-https-beta.sh ${host} ${prefix}" || true
+  fi
+done
 
 # ── 7. Verify ───────────────────────────────────────────────────────────────
 echo "==> Verifying ..."
@@ -231,14 +242,23 @@ check 307 "${BASE}/"
 check 200 "${BASE}/api/v1/languages" -H 'Accept: application/json'
 # 401 from Go's auth middleware (not nginx): the API booted and is wired.
 check 401 "${BASE}/api/v1/banners" -H 'Accept: application/json'
-check 200 "${BASE}/panel/login"
-check 401 "${BASE}/api/admin/v1/auth/me" -H 'Accept: application/json'
 check 200 "${BASE}/manifest.webmanifest"
-check 301 "${BASE}/admin"
 check 404 "${BASE}/oauth/token"
+# The admin is NOT on the app host: its API 404s here, the old paths redirect.
+check 404 "${BASE}/api/admin/v1/auth/me" -H 'Accept: application/json'
+check 301 "${BASE}/admin"
+check 301 "${BASE}/panel"
+
+ADMIN="https://${ADMIN_HOST}"
+check 200 "${ADMIN}/login"
+# 401 from Go (JSON `unauthenticated`): ADMIN_HOSTS matches this host. A 404
+# here means the admin API is disabled for it.
+check 401 "${ADMIN}/api/admin/v1/auth/me" -H 'Accept: application/json'
+check 200 "${ADMIN}/api/v1/languages" -H 'Accept: application/json'
+check 404 "${ADMIN}/api/v1/banners" -H 'Accept: application/json'
 
 if (( failures > 0 )); then
   echo "❌ Beta deploy finished but ${failures} check(s) failed — see above." >&2
   exit 1
 fi
-echo "✅ Beta deploy done — ${BASE}  (admin login: ssh ${SERVER} cat /root/ritme-beta-credentials.txt)"
+echo "✅ Beta deploy done — ${BASE} + ${ADMIN}  (admin login: ssh ${SERVER} cat /root/ritme-beta-credentials.txt)"
