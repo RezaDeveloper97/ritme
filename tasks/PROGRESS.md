@@ -1031,7 +1031,7 @@ Nothing needed fixing.
 - Follow-up idea: 26 `.join('، ')` also use the Persian comma in en — a locale-aware `joinList` helper.
 - i18n fixtures regenerated for T-M8-13/14 in this commit.
 
-## T-M8-15 — M8 wrap-up (partial: sweep done, QA + stage on hold)
+## T-M8-15 — M8 wrap-up (sweep, visual QA, stage)
 - Done: cross-namespace sweep (commit 4829926f). `check.mjs --all` → 0 errors; warnings 843 (baseline) → 45,
   all legitimate senses (دوره = course/span, «تست» for home tests, «سقط» in clinical lists, «سوابق» in prose,
   «دکتر» before a name, FIGO/IOM years). Glossary: جست‌وجو، پیش‌رو added; لغو/یادآوری no longer rejected.
@@ -1041,3 +1041,16 @@ Nothing needed fixing.
   `layout.tsx:77` description em dash (file has other uncommitted work); pre-existing fa/en ICU drift in
   `labs`; fa≠en items listed under T-M8-06/08/11 for the content owner. Production runs Laravel until
   T-M2-26 — prod copy needs `php artisan translations:import` there or waits for the Go cutover.
+
+- QA (2026-10-18): local stack (contract fixtures + goose 00002…00094), Playwright 390×844, 25 screens × light/dark →
+  0 horizontal scroll, 0 clipped button/chip/tab/heading text. Report + 50 screenshots: `docs/copy-fa/QA.md`.
+- verify-all on a clean worktree of HEAD (excludes the uncommitted app-modules work): go vet/test/golangci-lint
+  green after re-recording `internal/analysis` goldens (text only, commit 5d07deee); frontend typecheck, lint,
+  fsd:lint, lint:styles, lint:dark, 1894 tests green; `npm run build` compiled + prerendered 348 pages, then hit
+  ENOSPC copying standalone output (local disk 100% full — not a code issue).
+- Stage deployed from `stage` @ 5d07deee: every deploy-stage.sh assertion ok; manifest and
+  `/api/v1/languages/fa/messages` serve the new copy (home.title «به ریتمی خوش آمدی»، pwa.softTitle «نسخهٔ تازه‌ای
+  آماده است»، loss.care.moodQuestion «امروز حالت چطور است؟»).
+- Still open (not M8 blockers): `layout.tsx:77` em dash (file has uncommitted app-modules work); IVF scan tile and
+  city-join buttons not reachable with fixture personas; fa≠en items for the content owner (T-M8-06/08/11);
+  production still on Laravel — needs `php artisan translations:import` or the T-M2-26 cutover.
