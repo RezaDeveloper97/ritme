@@ -991,3 +991,9 @@ Nothing needed fixing.
   Thresholds (۱۸۰/۱۲۰), emergency numbers and alert urgency unchanged. Reviewer: ezafe «دربارهٔ» ×2.
 - Glossary: «نوبت» also = medication dose slot; «دوره‌ای» (periodic) allowed.
 - i18n fixtures regenerated for the T-M8-07..09 round in this commit.
+
+## T-M8-10 — Copy batch 8 — menopause, teen, contraception
+- opus rewrite, full diff reviewed: menopause 49, teen 18, contraception 20 values. No fertility wording in
+  teen (`no_fertility_copy`); post-menopause bleeding alert and every «مشورت با پزشک» note unchanged
+  (contraception has no efficacy numbers in copy). Load-error titles lose the final period (rendered as titles).
+- Open: `teen/ui/ParentViewCard.tsx:14` comment says «فقط دیدنی» (comment only).
