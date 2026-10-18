@@ -6,7 +6,8 @@ import { Icon } from './Icon';
 
 interface NavBackProps {
   onClick: () => void;
-  label?: string;
+  /** Translated accessible name; required so no untranslated fallback is needed. */
+  label: string;
 }
 
 /**
@@ -23,7 +24,7 @@ interface NavBackProps {
 export function NavBack({ onClick, label }: NavBackProps) {
   const iconName = useDirection() === 'rtl' ? 'chevronRight' : 'chevronLeft';
   return (
-    <button className="iconbtn" onClick={onClick} aria-label={label ?? 'برگرد'}>
+    <button className="iconbtn" onClick={onClick} aria-label={label}>
       <Icon name={iconName} size={24} />
     </button>
   );

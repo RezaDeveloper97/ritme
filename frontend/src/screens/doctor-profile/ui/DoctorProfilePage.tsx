@@ -169,7 +169,7 @@ export function DoctorProfilePage({ doctorId }: { doctorId: number }) {
         ) : (
           items.map((r) => (
             <div key={r.id} className="dr-review">
-              <span className="dr-review-avatar" aria-hidden>{r.author_initial ?? '؟'}</span>
+              <span className="dr-review-avatar" aria-hidden>{r.author_initial ?? '?'}</span>
               <div className="dr-review-main">
                 <span className="dr-rating">
                   <Icon name="star" size={13} fill="currentColor" strokeWidth={0} />

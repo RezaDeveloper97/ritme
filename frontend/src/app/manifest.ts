@@ -19,9 +19,9 @@ import type { MetadataRoute } from 'next';
 //   keep the round mark inside the 80% safe-zone circle on a white plate.
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'ریتمی — همراه سلامت زنان',
+    name: 'ریتمی، همراه سلامت زنان',
     short_name: 'ریتمی',
-    description: 'پیگیری چرخه قاعدگی و بارداری',
+    description: 'پیگیری چرخهٔ قاعدگی و بارداری',
     id: '/',
     start_url: '/splash',
     scope: '/',
@@ -65,7 +65,7 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: '1080x2340',
         type: 'image/png',
         form_factor: 'narrow',
-        label: 'صفحه اصلی ریتمی',
+        label: 'صفحهٔ اصلی ریتمی',
       },
       {
         src: '/screenshots/calendar-narrow.png',
@@ -79,7 +79,7 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: '1280x800',
         type: 'image/png',
         form_factor: 'wide',
-        label: 'ریتمی روی صفحه بزرگ',
+        label: 'ریتمی روی صفحهٔ بزرگ',
       },
     ],
   };

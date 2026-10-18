@@ -1017,3 +1017,16 @@ Nothing needed fixing.
 - Reviewer: offline lesson downloads keep «دانلود» (subagent had switched them to «دریافت»; glossary row added:
   «دریافت» only for exporting data/PDF); `assistant.history.exportError` → «فایل PDF ساخته نشد».
 - Open: `me.mode.loss.*` «متأسفیم که این اتفاق افتاد» — near the STYLE §4.1 cliché list, left for the content owner.
+
+## T-M8-14 — Hardcoded Persian strings in frontend code
+- Inventory (`grep -rnE '[؀-ۿ]' src … | grep -v tests/comments/date`): 332 → 330 lines; what is left is
+  dev-only `/dev/ui-kit` (146), comments inside JSX (~77), `.join('، ')` separators (26), digit tables/input
+  normalisers (50), static `app/manifest.ts` (10), `layout.tsx` metadata (4), endonym/font-probe data (3).
+- Fixed: `profile-info.about.sections.2.body` now takes `{version}` (real `APP_VERSION`, locale digits; the
+  fallback in `InfoSheet.tsx` fills it since `t.raw` skips ICU), en + fa + mirrors; manifest copy (no em dash,
+  ezafe); `NavBack` loses the untranslated «برگرد» fallback (`label` required, component unused);
+  doctor review avatar fallback «؟» → «?».
+- Not fixed (file has someone else's uncommitted edits): `app/[locale]/layout.tsx:77` description
+  «ریتمی — همراه سلامت زنان» → should be «ریتمی، همراه سلامت زنان».
+- Follow-up idea: 26 `.join('، ')` also use the Persian comma in en — a locale-aware `joinList` helper.
+- i18n fixtures regenerated for T-M8-13/14 in this commit.

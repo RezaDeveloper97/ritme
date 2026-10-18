@@ -3,6 +3,8 @@
 import { useLocale, useTranslations } from 'next-intl';
 
 import { type InfoGroup, isInfoGroup, useInfoSections } from '@/entities/info';
+import { APP_VERSION } from '@/shared/config';
+import { formatNumber } from '@/shared/lib/date';
 import type { SheetContentProps } from '@/shared/sheet';
 
 interface StaticSection {
@@ -60,7 +62,13 @@ function InfoBody({ group }: { group: InfoGroup }) {
   if (isError || !data?.length) {
     // `t.raw` is typed per-namespace, so the group has to be narrowed for
     // next-intl to resolve the key.
-    const sections = t.raw(`${group}.sections`) as StaticSection[];
+    // `t.raw` skips ICU formatting, so the one placeholder (`{version}` in the
+    // About copy) is filled in by hand with the real, locale-digited app version.
+    const version = formatNumber(APP_VERSION, locale);
+    const sections = (t.raw(`${group}.sections`) as StaticSection[]).map((section) => ({
+      ...section,
+      body: section.body.replace('{version}', version),
+    }));
     return (
       <>
         {sections.map((section) => (

@@ -54,7 +54,7 @@
       },
       {
         "heading": "App version",
-        "body": "You are using Ritme version 1.0.0. We improve the app regularly — your feedback is invaluable along the way."
+        "body": "You are using Ritme version {version}. We improve the app regularly, and your feedback along the way means a lot."
       }
     ]
   },
