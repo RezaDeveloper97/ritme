@@ -44,7 +44,7 @@
       "bleedingValue": "{amount} · {color}"
     },
     "visits": {
-      "title": "مراجعه‌های پیش رو",
+      "title": "مراجعه‌های پیش‌رو",
       "all": "همه",
       "sixWeek": "ویزیت ۶ هفته پس از زایمان",
       "sixWeekSub": "حدود {date} · نوبتش را ثبت کن",
