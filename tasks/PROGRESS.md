@@ -1010,3 +1010,10 @@ Nothing needed fixing.
   «دیده شدن برای…» → «دیده شدن نزد مادرهای نزدیک».
 - QA in T-M8-15: «دوباره امتحان کنید»/«نگه دارید» button widths in city-join.
 - i18n fixtures regenerated for the T-M8-10..12 round in this commit.
+
+## T-M8-13 — Copy batch 11 — me, assistant, learn, articles, todo
+- sonnet rewrite, full diff reviewed: me 68, assistant 21, learn 23, articles 11, todo 4 values. Assistant
+  disclaimers, privacy/data-deletion consequences unchanged.
+- Reviewer: offline lesson downloads keep «دانلود» (subagent had switched them to «دریافت»; glossary row added:
+  «دریافت» only for exporting data/PDF); `assistant.history.exportError` → «فایل PDF ساخته نشد».
+- Open: `me.mode.loss.*` «متأسفیم که این اتفاق افتاد» — near the STYLE §4.1 cliché list, left for the content owner.

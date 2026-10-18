@@ -79,5 +79,6 @@ Status: **approved by the user 2026-10-18** (چرخه over سیکل; پریود 
 | chart | نمودار | | |
 | price | … تومان | ریال | always «تومان» |
 | update (app) | به‌روزرسانی | آپدیت | |
+| offline download (lessons, files kept on the device) | دانلود / دانلودها / حذف دانلود | | «دریافت» is only for exporting your data or a PDF («دریافت PDF»، «اطلاعاتت دریافت نشد») |
 | loading / load failed | در حال بارگذاری… / ‹X› بارگذاری نشد | بارگیری | one word for both (Iranian UI usage); «دریافت» for downloading a file/export |
 | today | امروز | | |
