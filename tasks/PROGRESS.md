@@ -977,3 +977,11 @@ Nothing needed fixing.
   bleeding warnings unchanged. «پارتنر» → «شریک»; «بعد از زایمان» → «پس از زایمان» as the mode name.
 - STYLE §1.1: text addressed to the couple together keeps plural «شما» (`companions.family.*`).
 - Open: `postpartum.recovery.colorsShort.pink_brown` «روشن» vs label «صورتی/قهوه‌ای» (fa≈en, left).
+
+## T-M8-08 — Copy batch 6 — health record, export, labs, home lab
+- opus rewrite, full diff reviewed: record 56, record-export 23, health-record 24, labs 32, home-lab 9 values.
+  No range, unit, verdict or disclaimer meaning changed; emergency-card and data-sharing item lists intact.
+  Doctor/medical-staff pages keep «شما» (`record.doctor.*`, `record.publicEmergency.*`).
+- Open for T-M8-15: pre-existing fa/en ICU drift (`labs.verify.lowConfidence`, `labs.result.attentionTitle`
+  use `{n}` in fa vs `{count, plural}` in en; `labs.upload.pageCount` `{n}` vs `#`) — check in code.
+  «سوابق و اسناد» section name kept (glossary warns; it is the documents sub-section).
