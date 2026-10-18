@@ -951,3 +951,9 @@ Nothing needed fixing.
   reverted to «FIGO 2018» (cleaner converts years next to Latin codes — STYLE §3.4 now says so),
   ezafe «چرخهٔ {length} روزه»، «دمای پایهٔ».
 - Open: `{from} – {to}` became «{from} تا {to}» (fine for RTL); visual check in T-M8-15.
+
+## T-M8-05 — Copy batch 3 — daily logging (log, sheets, taxonomy, voice)
+- sonnet rewrite, reviewed: log 11, log-period 9, log-sheet 20, log-customize 4, log-taxonomy 7 (chips left
+  as they were; only ezafe/«پس از زایمان»), voice-log 12.
+- Reviewer fix: voice card title «بگو امروز چطور بودی» (tense shift) → «بگو امروز حالت چطور است».
+  Glossary: «خونریزی» canonical (46 vs 11), «خون‌ریزی» rejected.

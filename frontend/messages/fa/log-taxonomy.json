@@ -4,7 +4,7 @@
     "mind": "ذهن",
     "lifestyle": "سبک زندگی",
     "measure": "اندازه‌گیری",
-    "mode": "ویژه حالت",
+    "mode": "ویژهٔ حالت",
     "other": "سایر"
   },
   "levels": {
@@ -67,7 +67,7 @@
           "title": "لخته"
         },
         "clot_size": {
-          "title": "اندازه لخته",
+          "title": "اندازهٔ لخته",
           "options": {
             "small": "کوچک",
             "large": "بزرگ‌تر از سکه",
@@ -85,7 +85,7 @@
           }
         },
         "lochia_amount": {
-          "title": "میزان خون‌ریزی بعد از زایمان",
+          "title": "میزان خونریزی پس از زایمان",
           "options": {
             "none": "هیچ",
             "spotting": "لکه‌بینی",
@@ -95,7 +95,7 @@
           }
         },
         "lochia_color": {
-          "title": "رنگ خون‌ریزی بعد از زایمان",
+          "title": "رنگ خونریزی پس از زایمان",
           "options": {
             "red": "قرمز",
             "pink_brown": "صورتی یا قهوه‌ای",
@@ -388,7 +388,7 @@
             "dryness": "خشکی",
             "burning": "سوزش",
             "pain_during_intercourse": "درد حین رابطه",
-            "bleeding_after_intercourse": "خون‌ریزی بعد از رابطه",
+            "bleeding_after_intercourse": "خونریزی بعد از رابطه",
             "lubricant_use": "استفاده از لوبریکانت",
             "high_desire": "میل زیاد",
             "no_desire": "بی‌میلی",
@@ -408,7 +408,7 @@
           "title": "وزن"
         },
         "bbt": {
-          "title": "دمای پایه بدن"
+          "title": "دمای پایهٔ بدن"
         },
         "lh_test": {
           "title": "تست تخمک‌گذاری (LH)",
@@ -484,7 +484,7 @@
       }
     },
     "pregnancy": {
-      "title": "ویژه بارداری",
+      "title": "ویژهٔ بارداری",
       "params": {
         "kicks": {
           "title": "حرکات جنین"

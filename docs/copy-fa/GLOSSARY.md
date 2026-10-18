@@ -19,6 +19,7 @@ Status: **approved by the user 2026-10-18** (چرخه over سیکل; پریود 
 | follicular phase | فاز فولیکولار | فولیکولی | | 12 |
 | spotting | لکه‌بینی | اسپاتینگ | | 29 |
 | discharge | ترشحات | | | 11 |
+| bleeding | خونریزی | خون‌ریزی | | خونریزی 46 · خون‌ریزی 11 |
 | symptoms | علائم | علایم | | 128 |
 | mood | حال (روحی) / خلق‌وخو | حال و هوا، مود | «نوسان خلق‌وخو» | |
 | basal body temperature | دمای پایهٔ بدن (BBT) | دمای پایه بدن | short label «دمای پایه» OK in chips | 36 |
