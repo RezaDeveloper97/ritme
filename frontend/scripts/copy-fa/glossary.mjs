@@ -55,7 +55,8 @@ export function termRegex(term) {
 export function compileGlossary(g = parseGlossary()) {
   return {
     rules: g.rules.map((r) => ({ ...r, re: termRegex(r.term) })),
-    allowed: g.allowedPhrases.map((p) => ({ p, re: new RegExp(escapeRe(p), 'g') })),
+    // longest first, so a short phrase («پریود») can't break a longer one («سوابق پریود») before it is masked
+    allowed: [...g.allowedPhrases].sort((x, y) => y.length - x.length).map((p) => ({ p, re: new RegExp(escapeRe(p), 'g') })),
   };
 }
 

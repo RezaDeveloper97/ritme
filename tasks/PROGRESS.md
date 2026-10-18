@@ -926,3 +926,20 @@ Nothing needed fixing.
   `node --test scripts/copy-fa` works on Node 24.
 - Baseline appended to `docs/copy-fa/INVENTORY.md`: 0 structure/sync, 12 lint errors, 843 warnings.
 - Known risk: `convert_digits` turns `FIGO 2018` into `FIGO ۲۰۱۸` — reviewers check Latin+number pairs.
+
+## T-M8-03 — Copy batch 1 — core, shell, auth, onboarding, profile (pilot)
+- 17 namespaces rewritten by a sonnet subagent, full diff reviewed by the main session; 123 values changed
+  (profile-info 24, onboarding 20, welcome 14, pwa 9, search 9 …; web-shell and banners were already right).
+  Reviewer fixes: profile-info «دوره‌های قاعدگی‌ات» had become «چرخه‌ات» (meaning shift → «پریودهایت»),
+  auth `errors.tooMany`, notifications empty body; «بارگیری» → «بارگذاری».
+- Lessons folded into STYLE.md/GLOSSARY.md: «بارگذاری» for loading, error-title variant, named-action error
+  template, asides in parentheses, «همدم» = Companion feature name, partner = «شریکت» («پارتنر» rejected),
+  «دوره‌ها» (courses) / «ویزیت» / «سوابق پریود» allowed, «حذف همه» / «حذف متن» for clear actions.
+- Checker: dropped the «داری؟» false positive; allowed phrases now mask longest-first.
+- Go: `go test ./internal/i18n -run MatchesLaravelGoldens -update` regenerates `testdata/messages_{fa,en,ar}.json`
+  from the embedded seed. Parallel batches skip that test; the main session regenerates once per round.
+- Commit stages value changes only (`git update-index` from HEAD + new values): the uncommitted foreign keys
+  `common.moduleOff.*` and `onboarding.flow.conditions.medsOnly` stay in the working tree, uncommitted.
+- Open (user decision pending): none blocking. Left unchanged for T-M8-14: hardcoded version «۱٫۰٫۰».
+- Verify: check.mjs 17 ns → 0 errors (1 justified warn before the mask fix, 0 after); vitest 1899/1899;
+  `go test ./internal/i18n/...` ok.

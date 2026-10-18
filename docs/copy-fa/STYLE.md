@@ -4,7 +4,7 @@ The contract for every rewrite of `frontend/messages/fa/*.json` (tasks T-M8-03 �
 Source of the writing rules: the `persian-writing` skill (`references/writing-style.md`,
 `references/orthography.md`). Terms: [GLOSSARY.md](GLOSSARY.md). Batches: [INVENTORY.md](INVENTORY.md).
 
-Status: **approved by the user 2026-10-18** (register «تو» written-but-warm, scope = frontend, glossary: چرخه + پریود).
+Status: **approved by the user 2026-10-18**, amended after the T-M8-03 pilot (same day: بارگذاری, error titles, parentheses for asides, همدم/شریک) (register «تو» written-but-warm, scope = frontend, glossary: چرخه + پریود).
 
 ---
 
@@ -66,13 +66,16 @@ Exclamation marks: at most one, only in welcome/celebration copy; never in error
 
 | Situation | Text |
 |---|---|
-| Load failed | «‹X› بارگیری نشد. کمی بعد دوباره امتحان کن.» |
+| Load failed | «‹X› بارگذاری نشد. کمی بعد دوباره امتحان کن.» As a title/heading: «‹X› بارگذاری نشد» (no period) |
 | Save failed | «ذخیره نشد. کمی بعد دوباره امتحان کن.» |
 | Delete failed | «حذف نشد. دوباره امتحان کن.» |
 | Generic | «مشکلی پیش آمد. دوباره امتحان کن.» |
 | Network | «اتصال برقرار نشد. اینترنتت را بررسی کن و دوباره امتحان کن.» |
 | Rate limit (429) | «چند لحظه صبر کن و دوباره امتحان کن.» (keep any extra reason the current string gives) |
 | Not allowed for future dates | «برای روزهای آینده نمی‌توانی ثبت کنی.» |
+| A named action failed | «‹X› نشد. دوباره امتحان کن.» («حساب حذف نشد.»، «اطلاعاتت دریافت نشد.»); consent/agreement = «ثبت نشد» |
+
+Titles and buttons never end with «.»; body sentences and toasts always do.
 
 ---
 
@@ -89,7 +92,7 @@ Exclamation marks: at most one, only in welcome/celebration copy; never in error
    (HbA1c, B12, mg/dL, IVF, PMDD, «Android 12»). Percent «۲۰٪».
 5. **Punctuation**: ، ؛ ؟ «…» quotes; no space before, one after; ellipsis is the single character «…»; no
    em/en dash (—, –) in prose: use «،» «؛» «:» or parentheses or two sentences. A value that is exactly «—»
-   (an empty-value placeholder) is allowed, and so is an en dash between two numbers or ICU arguments (`{min}–{max}`, `۲–۳`).
+   (an empty-value placeholder) is allowed. A dash-delimited aside becomes parentheses: «همهٔ اطلاعاتت (پروفایل، …) پاک می‌شود»; a dash between label and explanation becomes «:» or «؛», and so is an en dash between two numbers or ICU arguments (`{min}–{max}`, `۲–۳`).
 6. **Never start a value with a Latin word** (it flips direction). «آزمایش TSH …»، not «TSH …».
    Exception: a value that *is* only a code/unit (`"mg/dL"`).
 7. **Tanvin** only on Arabic loans (لطفاً، حتماً، معمولاً، تقریباً); never گاهاً. «لطفا» → «لطفاً».

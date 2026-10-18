@@ -8,7 +8,7 @@ depends_on: [T-M8-04,T-M8-05,T-M8-06,T-M8-07,T-M8-08,T-M8-09,T-M8-10,T-M8-11,T-M
 parallel_group: M8-H
 touches: [frontend/messages/fa,backend-go/resources/translations/fa,docs/copy-fa/QA.md]
 skills: [persian-writing:persian-writing,verify-all,deploy-stage]
-verify: node frontend/scripts/copy-fa/check.mjs --all && cd frontend && npm run typecheck && npm run lint && npm run test && cd ../backend-go && go test ./internal/i18n/...
+verify: node frontend/scripts/copy-fa/check.mjs --all && cd frontend && npm run typecheck && npm run lint && npm run test && cd ../backend-go && go test ./internal/i18n -run MatchesLaravelGoldens -update && go test ./internal/i18n/...
 ---
 
 # T-M8-15 — M8 wrap-up — cross-namespace consistency sweep, visual QA, stage

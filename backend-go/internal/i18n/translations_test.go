@@ -1,6 +1,9 @@
 package i18n_test
 
 import (
+	"bytes"
+	"encoding/json"
+	"flag"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,6 +24,10 @@ func canonical(t *testing.T, v any) string {
 	return string(b)
 }
 
+// -update rewrites testdata/messages_<code>.json from the embedded seed, after a copy change in
+// frontend/messages (synced to resources/translations): go test ./internal/i18n -run MatchesLaravelGoldens -update
+var update = flag.Bool("update", false, "rewrite testdata/messages_<code>.json from the embedded seed")
+
 // testdata/messages_<code>.json hold data.{locale,direction,messages} of the Laravel
 // goldens for GET /api/v1/languages/<code>/messages (backend-go/contract/golden/public),
 // recorded with languages fa (default), en and ar (a row only: no translation files).
@@ -35,6 +42,16 @@ func TestBundle_MatchesLaravelGoldens(t *testing.T) {
 			want, _ := golden.(phpval.Map).Get("messages")
 
 			got := store.Bundle(code, "fa")
+			if *update {
+				golden.(phpval.Map).Set("messages", got)
+				raw, err := jsonx.Marshal(golden, jsonx.UnescapedUnicode|jsonx.UnescapedSlashes)
+				require.NoError(t, err)
+				var buf bytes.Buffer
+				require.NoError(t, json.Indent(&buf, raw, "", " "))
+				buf.WriteByte('\n')
+				require.NoError(t, os.WriteFile(filepath.Join("testdata", "messages_"+code+".json"), buf.Bytes(), 0o644))
+				return
+			}
 			assert.Equal(t, canonical(t, want), canonical(t, got))
 		})
 	}

@@ -3,7 +3,7 @@ id: T-M8-03
 title: Copy batch 1 — core, shell, auth, onboarding, profile (pilot)
 milestone: M8
 type: frontend
-status: todo
+status: done
 depends_on: [T-M8-02]
 parallel_group: M8-B
 touches: [frontend/messages/fa/common.json,frontend/messages/fa/nav.json,frontend/messages/fa/auth.json,frontend/messages/fa/welcome.json,frontend/messages/fa/onboarding.json,frontend/messages/fa/account.json,frontend/messages/fa/profile.json,frontend/messages/fa/profile-edit.json,frontend/messages/fa/profile-info.json,frontend/messages/fa/pwa.json,frontend/messages/fa/web-shell.json,frontend/messages/fa/notifications.json,frontend/messages/fa/banners.json,frontend/messages/fa/search.json,frontend/messages/fa/day-tasks.json,frontend/messages/fa/challenge.json,frontend/messages/fa/lab-consent.json,backend-go/resources/translations/fa/common.json,backend-go/resources/translations/fa/nav.json,backend-go/resources/translations/fa/auth.json,backend-go/resources/translations/fa/welcome.json,backend-go/resources/translations/fa/onboarding.json,backend-go/resources/translations/fa/account.json,backend-go/resources/translations/fa/profile.json,backend-go/resources/translations/fa/profile-edit.json,backend-go/resources/translations/fa/profile-info.json,backend-go/resources/translations/fa/pwa.json,backend-go/resources/translations/fa/web-shell.json,backend-go/resources/translations/fa/notifications.json,backend-go/resources/translations/fa/banners.json,backend-go/resources/translations/fa/search.json,backend-go/resources/translations/fa/day-tasks.json,backend-go/resources/translations/fa/challenge.json,backend-go/resources/translations/fa/lab-consent.json]

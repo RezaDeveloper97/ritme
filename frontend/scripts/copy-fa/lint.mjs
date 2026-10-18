@@ -26,7 +26,6 @@ const COLLOQUIAL = [
   'بذار', 'نمیشه', 'میشه', 'بزار', 'باشه', 'کنه', 'بشه',
 ];
 const COLLOQUIAL_RE = new RegExp(`${NOT_P}(?:${COLLOQUIAL.join('|')})(?![${PL}${ZWNJ}])`);
-const DARI_RE = new RegExp(`${NOT_P}داری؟`);
 
 const LATIN_DIGIT_MASK = /[A-Za-z][A-Za-z0-9._/-]*\d[A-Za-z0-9._/-]*|\d[A-Za-z0-9._/-]*[A-Za-z][A-Za-z0-9._/-]*|https?:\/\/\S+/g;
 const BUTTONISH = /(cta|button|tab|chip|label|action)/i;
@@ -39,7 +38,7 @@ export function lintValue(key, value, { base, glossary } = {}) {
   for (const r of ERROR_RULES) {
     if (r.test ? r.test(prose, value) : r.re.test(prose)) out.push({ level: 'error', rule: r.id });
   }
-  if (COLLOQUIAL_RE.test(prose) || DARI_RE.test(prose)) out.push({ level: 'warn', rule: 'colloquial' });
+  if (COLLOQUIAL_RE.test(prose)) out.push({ level: 'warn', rule: 'colloquial' });
   if (/[0-9]/.test(prose.replace(LATIN_DIGIT_MASK, ' '))) out.push({ level: 'warn', rule: 'latin-digits' });
   if (glossary) {
     for (const h of glossaryHits(prose, glossary)) out.push({ level: 'warn', rule: `glossary:${h.canonical}` });

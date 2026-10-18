@@ -11,7 +11,7 @@ Status: **approved by the user 2026-10-18** (چرخه over سیکل; پریود 
 
 | Concept | Canonical | Rejected | Allowed in / notes | Counts |
 |---|---|---|---|---|
-| menstruation (everyday) | پریود | قاعدگی، دوره (for period)، عادت ماهانه | «قاعدگی» only in fixed medical phrases: «آخرین قاعدگی (LMP)»، «پیش از قاعدگی (PMS/PMDD)»، «اختلال قاعدگی». Phase label = «پریود». | پریود 192 · قاعدگی 13 · دوره 2+ |
+| menstruation (everyday) | پریود | قاعدگی، دوره (for period)، عادت ماهانه | «قاعدگی» only in fixed medical phrases: «آخرین قاعدگی (LMP)»، «پیش از قاعدگی (PMS/PMDD)»، «اختلال قاعدگی». Phase label = «پریود». «دوره» meaning a course is fine: «دوره‌ها»، «دوره‌های آموزشی»، «دورهٔ آموزشی». | پریود 192 · قاعدگی 13 · دوره 2+ |
 | menstrual cycle | چرخه | سیکل | «چرخهٔ قاعدگی» in medical text | سیکل 258 · چرخه 45 |
 | fertile window | پنجرهٔ باروری | پنجره باروری، روزهای باروری (as the name) | | 29 (all without ezafe) |
 | ovulation | تخمک‌گذاری | تخمک گذاری | | 54 |
@@ -37,7 +37,8 @@ Status: **approved by the user 2026-10-18** (چرخه over سیکل; پریود 
 | baby (0–1 y) / child | نوزاد / کودک | بچه | | |
 | pregnancy loss | از دست دادن بارداری | سقط (in UI headings) | «سقط» only where the medical term is required (e.g. «سقط فراموش‌شده» in clinical lists) | |
 | IVF | IVF / آی‌وی‌اف | | never start a value with «IVF»: «درمان IVF …» | 6 |
-| partner / companion | همراه | شریک | «همسر» only where the text is explicitly about a spouse | همراه 40 · شریک 16 · همسر 11 |
+| Companion feature (en Companion) | همدم | | product name: «همدم»، «دعوت همدم»، «پنل همدم», «کد همدم» | |
+| the user's partner (person) | شریکت / شریک زندگی | پارتنر | «همسر» only where the text is explicitly about a spouse; «همسر یا شریکت» is fine | شریک 16 · همسر 11 |
 
 ## Health record and care
 
@@ -48,9 +49,9 @@ Status: **approved by the user 2026-10-18** (چرخه over سیکل; پریود 
 | lab test | آزمایش | تست (except home/rapid tests: تست بارداری، تست LH) | |
 | checkup | چکاپ | | «غربالگری» for screening programmes |
 | medication | دارو | | «قرص» only for pills specifically (قرص ضدبارداری) |
-| appointment | نوبت | ویزیت (as the noun for the booking) | «ویزیت» OK for the visit itself |
+| appointment | نوبت | | the booking is «نوبت»; «ویزیت» only for the visit itself («نوبت یا ویزیت»، «دارو یا ویزیت») |
 | reminder | یادآور | یادآوری (as the item noun) | «یادآوری» = the act («یادآوری روزانه») |
-| health record | پروندهٔ سلامت | پرونده سلامت، سوابق (as the section name) | |
+| health record | پروندهٔ سلامت | پرونده سلامت، سوابق (as the section name) | «سوابق پریود»، «سوابق پزشکی» are fine in prose |
 | blood pressure / glucose | فشار خون / قند خون | | |
 | pelvic floor | کف لگن | | |
 | menopause / perimenopause | یائسگی / پیش‌یائسگی | | |
@@ -67,8 +68,8 @@ Status: **approved by the user 2026-10-18** (چرخه over سیکل; پریود 
 | continue / next | ادامه (flows) / بعدی (step N → N+1 in a wizard) | | |
 | back | بازگشت | برگشت، برگرد | aria-label for back button = «بازگشت» |
 | close | بستن | | |
-| edit / delete | ویرایش / حذف | پاک کردن (as button) | «پاک می‌شود» fine in explanations |
-| retry | دوباره امتحان کن | دوباره تلاش کن، مجدداً | |
+| edit / delete | ویرایش / حذف | پاک کردن (as button) | «پاک می‌شود» fine in explanations; clearing a list/history = «حذف همه»، an input = «حذف متن» |
+| retry | دوباره امتحان کن | دوباره تلاش کن، تلاش دوباره، مجدداً | also as a button, even if longer than the old «تلاش دوباره» |
 | profile | پروفایل | نمایه | |
 | account | حساب | اکانت، حساب کاربری (in buttons) | |
 | notification | اعلان | نوتیفیکیشن | |
@@ -77,4 +78,5 @@ Status: **approved by the user 2026-10-18** (چرخه over سیکل; پریود 
 | chart | نمودار | | |
 | price | … تومان | ریال | always «تومان» |
 | update (app) | به‌روزرسانی | آپدیت | |
+| loading / load failed | در حال بارگذاری… / ‹X› بارگذاری نشد | بارگیری | one word for both (Iranian UI usage); «دریافت» for downloading a file/export |
 | today | امروز | | |
