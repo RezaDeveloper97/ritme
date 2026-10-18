@@ -970,3 +970,10 @@ Nothing needed fixing.
   `pregnancy.log.criticalHint` («حتماً» vs en "right away").
 - QA in T-M8-15: `ivf.actions.scan` tile grew to «ثبت نتیجهٔ سونوگرافی» — check overflow.
 - i18n fixtures regenerated with `-update` for the whole round (T-M8-04/05/06) in this commit.
+
+## T-M8-07 — Copy batch 5 — postpartum, baby log, children, companions, pelvic floor
+- sonnet rewrite, full diff reviewed: postpartum 22, analysis-postpartum 18, baby-log 8, children 23,
+  companions 23, companion-home 16, pelvic 10 values. Crisis lines (۱۱۵/۱۲۳/۱۴۸۰), EPDS rule urgency and
+  bleeding warnings unchanged. «پارتنر» → «شریک»; «بعد از زایمان» → «پس از زایمان» as the mode name.
+- STYLE §1.1: text addressed to the couple together keeps plural «شما» (`companions.family.*`).
+- Open: `postpartum.recovery.colorsShort.pink_brown` «روشن» vs label «صورتی/قهوه‌ای» (fa≈en, left).

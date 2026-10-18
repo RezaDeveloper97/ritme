@@ -34,6 +34,7 @@ for emphasis («این تصمیم با توست»).
 |---|---|---|
 | The user (incl. teen, partner/companion using the app) | «تو» | everything by default |
 | A business / clinic / provider signing up or managing a listing | «شما» (formal-but-human) | `city-join`, `web-business`, provider-facing keys in `web-directory` |
+| Text addressed to the couple together (shared family, shared children) | plural «شما»/«ـتان» (`companions.family.*`, `typeDesc.spouse`) | `companions` |
 | Legal text the user agrees to (terms, consent clauses) | «تو» but formal vocabulary, no warmth idioms | `lab-consent`, consent keys in `auth`/`onboarding` |
 
 ### 1.2 «ما» (point of view)
