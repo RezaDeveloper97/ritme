@@ -11,7 +11,7 @@ Status: **approved by the user 2026-10-18** (چرخه over سیکل; پریود 
 
 | Concept | Canonical | Rejected | Allowed in / notes | Counts |
 |---|---|---|---|---|
-| menstruation (everyday) | پریود | قاعدگی، دوره (for period)، عادت ماهانه | «قاعدگی» only in fixed medical phrases: «آخرین قاعدگی (LMP)»، «پیش از قاعدگی (PMS/PMDD)»، «اختلال قاعدگی». Phase label = «پریود». «دوره» meaning a course is fine: «دوره‌ها»، «دوره‌های آموزشی»، «دورهٔ آموزشی». | پریود 192 · قاعدگی 13 · دوره 2+ |
+| menstruation (everyday) | پریود | قاعدگی، دوره (for period)، عادت ماهانه | «قاعدگی» only in fixed medical phrases: «آخرین قاعدگی (LMP)»، «پیش از قاعدگی (PMS/PMDD)»، «اختلال قاعدگی». Phase label = «پریود». «دوره» meaning a course or periodic is fine: «دوره‌ها»، «دوره‌های آموزشی»، «دورهٔ آموزشی»، «دوره‌ای». | پریود 192 · قاعدگی 13 · دوره 2+ |
 | menstrual cycle | چرخه | سیکل | «چرخهٔ قاعدگی» in medical text | سیکل 258 · چرخه 45 |
 | fertile window | پنجرهٔ باروری | پنجره باروری، روزهای باروری (as the name) | | 29 (all without ezafe) |
 | ovulation | تخمک‌گذاری | تخمک گذاری | | 54 |
@@ -50,7 +50,7 @@ Status: **approved by the user 2026-10-18** (چرخه over سیکل; پریود 
 | lab test | آزمایش | تست (except home/rapid tests: تست بارداری، تست LH) | |
 | checkup | چکاپ | | «غربالگری» for screening programmes |
 | medication | دارو | | «قرص» only for pills specifically (قرص ضدبارداری) |
-| appointment | نوبت | | the booking is «نوبت»; «ویزیت» only for the visit itself («نوبت یا ویزیت»، «دارو یا ویزیت») |
+| appointment | نوبت | | the booking is «نوبت»; «ویزیت» only for the visit itself («نوبت یا ویزیت»، «دارو یا ویزیت»); «نوبت» also = a medication dose slot («نوبت {n}»، «ساعت نوبت‌ها») |
 | reminder | یادآور | یادآوری (as the item noun) | «یادآوری» = the act («یادآوری روزانه») |
 | health record | پروندهٔ سلامت | پرونده سلامت، سوابق (as the section name) | «سوابق پریود»، «سوابق پزشکی» are fine in prose |
 | blood pressure / glucose | فشار خون / قند خون | | |

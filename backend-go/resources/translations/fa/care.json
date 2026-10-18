@@ -4,11 +4,11 @@
   "back": "بازگشت",
   "close": "بستن",
   "notifications": "اعلان‌ها",
-  "loading": "در حال گرفتن یادآورها…",
-  "loadError": "یادآورها نیومد. یه‌کم بعد دوباره امتحان کن.",
-  "saveError": "ذخیره نشد. یه‌کم بعد دوباره امتحان کن.",
-  "tooManyRequests": "یه لحظه صبر کن و دوباره ذخیره کن؛ توی این یک دقیقه تغییرهای زیادی فرستاده شده.",
-  "retry": "دوباره",
+  "loading": "در حال بارگذاری یادآورها…",
+  "loadError": "یادآورها بارگذاری نشد. کمی بعد دوباره امتحان کن.",
+  "saveError": "ذخیره نشد. کمی بعد دوباره امتحان کن.",
+  "tooManyRequests": "چند لحظه صبر کن و دوباره ذخیره کن؛ در یک دقیقهٔ گذشته تغییرهای زیادی فرستاده شده است.",
+  "retry": "دوباره امتحان کن",
   "add": "افزودن",
   "addReminder": "افزودن یادآور",
   "addNewReminder": "افزودن یادآور جدید",
@@ -21,7 +21,7 @@
     "remindBefore": "{before} یادآوری",
     "nextAppointmentMeta": "{when}، ساعت {time}، {place}",
     "nextAppointmentMetaNoPlace": "{when}، ساعت {time}",
-    "empty": "امروز یادآوری نداری."
+    "empty": "امروز یادآور نداری."
   },
   "tabs": {
     "all": "همه",
@@ -80,7 +80,7 @@
       "description": "ویزیت حضوری، سونوگرافی یا آزمایش"
     },
     "consult": {
-      "title": "مشاوره پزشکی",
+      "title": "مشاورهٔ پزشکی",
       "description": "تماس تلفنی یا مشاوره آنلاین"
     },
     "disclaimer": "یادآورها فقط برای کمک به نظم تو هستند و جای دستور پزشک را نمی‌گیرند."
@@ -147,16 +147,16 @@
     "hour": "ساعت",
     "minute": "دقیقه",
     "done": "تأیید",
-    "cancel": "بی‌خیال",
+    "cancel": "انصراف",
     "daysPerWeek": "{count} روز در هفته",
     "noDays": "هیچ روزی انتخاب نشده",
     "amountValue": "{amount} {form}",
     "untilDate": "تا {date}",
     "delete": "حذف",
     "deleteTitle": "این یادآور حذف شود؟",
-    "deleteBody": "یادآور و سابقه مصرف آن پاک می‌شود.",
+    "deleteBody": "یادآور و سابقهٔ مصرف آن پاک می‌شود.",
     "deleting": "در حال حذف…",
-    "deleteError": "حذف نشد. یه‌کم بعد دوباره امتحان کن.",
+    "deleteError": "حذف نشد. دوباره امتحان کن.",
     "notFound": "این دارو پیدا نشد.",
     "errors": {
       "titleRequired": "نام دارو را بنویس.",
@@ -176,14 +176,14 @@
     "subtitle": "نوبت پزشک یا مشاوره",
     "kinds": {
       "in_person": "ویزیت حضوری",
-      "phone": "مشاوره تلفنی",
-      "online": "مشاوره آنلاین"
+      "phone": "مشاورهٔ تلفنی",
+      "online": "مشاورهٔ آنلاین"
     },
     "with": "با چه کسی؟",
     "withPlaceholder": "نام پزشک یا مشاور",
     "specialty": "تخصص",
     "specialtyPlaceholder": "مثلاً زنان و زایمان، تغذیه",
-    "topic": "در خصوص چه چیزی؟",
+    "topic": "دربارهٔ چه چیزی؟",
     "topics": {
       "ultrasound": "سونوگرافی",
       "checkup": "ویزیت دوره‌ای",
@@ -230,7 +230,7 @@
   "appointmentDetail": {
     "title": "جزئیات نوبت",
     "daysUntil": "{days, plural, =0 {امروز} =1 {فردا} other {# روز دیگر}}",
-    "pregnancyWeek": "هفته {week} بارداری",
+    "pregnancyWeek": "هفتهٔ {week} بارداری",
     "weekdayAt": "{weekday} · ساعت",
     "weekdays": {
       "sat": "شنبه",
@@ -242,7 +242,7 @@
       "fri": "جمعه"
     },
     "with": "با چه کسی",
-    "about": "در خصوص",
+    "about": "درباره",
     "aboutWithNote": "{title}، {note}",
     "place": "محل",
     "directions": "مسیریابی",
@@ -257,7 +257,7 @@
     "confirmCancel": "این نوبت لغو شود؟",
     "confirmCancelYes": "بله، لغو شود",
     "confirmCancelNo": "نه",
-    "loading": "در حال گرفتن نوبت…",
+    "loading": "در حال بارگذاری نوبت…",
     "timeAt": "ساعت {time}",
     "reminderOff": "خاموش",
     "calendarFile": "نوبت",

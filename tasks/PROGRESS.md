@@ -985,3 +985,9 @@ Nothing needed fixing.
 - Open for T-M8-15: pre-existing fa/en ICU drift (`labs.verify.lowConfidence`, `labs.result.attentionTitle`
   use `{n}` in fa vs `{count, plural}` in en; `labs.upload.pageCount` `{n}` vs `#`) — check in code.
   «سوابق و اسناد» section name kept (glossary warns; it is the documents sub-section).
+
+## T-M8-09 — Copy batch 7 — vitals, checkups, care reminders, conditions
+- sonnet rewrite, full diff reviewed: vitals 22, checkups 10, care 16, reminders 12, conditions 26 values.
+  Thresholds (۱۸۰/۱۲۰), emergency numbers and alert urgency unchanged. Reviewer: ezafe «دربارهٔ» ×2.
+- Glossary: «نوبت» also = medication dose slot; «دوره‌ای» (periodic) allowed.
+- i18n fixtures regenerated for the T-M8-07..09 round in this commit.
