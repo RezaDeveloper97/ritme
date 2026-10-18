@@ -1054,3 +1054,17 @@ Nothing needed fixing.
 - Still open (not M8 blockers): `layout.tsx:77` em dash (file has uncommitted app-modules work); IVF scan tile and
   city-join buttons not reachable with fixture personas; fa≠en items for the content owner (T-M8-06/08/11);
   production still on Laravel — needs `php artisan translations:import` or the T-M2-26 cutover.
+
+## T-M4-10 / T-M7-15 — clinical review package (2026-10-18)
+- Built a shareable review doc (Claude Docs) «بازبینی پزشکی محتوای ریتمی»:
+  https://claude.ai/code/artifact/80858d2d-8499-4c0e-876b-f4f5245193be — 6 checkup catalog rows (intervals, ages,
+  cycle days, remind lead, pregnancy hiding, user-facing why/prep copy), 5 pregnancy care items (week windows,
+  prep), 8 alert rules (trigger, level, advice), 42 pregnancy weeks (size, length/weight, heart rate, tasks,
+  warning signs), each with a «نظر بازبین» dropdown (تأیید / اصلاح لازم / حذف), open questions (spotting rule vs
+  info box, call-doctor number, LMP ±5 vs ±3, IVF danger fa≠en, critical-hint urgency fa≠en) and a sign-off block
+  (reviewer, specialty + medical council no., date, sources).
+- Values taken from the goose seeds (00003 checkups, 00005/00008 pregnancy v2) — admin edits on stage/prod may differ.
+- Not signed off: tasks stay in_progress until the reviewer returns the doc; then apply corrections to
+  admin/seeds, set reviewer_name/reviewed_at, close both tasks.
+- Noticed: DB-seeded copy (alert texts, care prep, week tasks/warnings, checkup prep, week tips) is still
+  colloquial («رو»، «می‌شه») and week tips use «شما» — outside M8's frontend-only scope; candidate follow-up.
