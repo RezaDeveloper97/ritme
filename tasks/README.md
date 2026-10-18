@@ -44,3 +44,6 @@ Files: `LOG.md` = status transitions (append-only, written by `next.sh`), `PROGR
 - **M7** — Pregnancy mode v2: re-enable pregnancy in signup/profile, 6 redesigned screens, admin-defined week
   details / care plan / alert rules, pregnancy tips + alerts inside the main message engine; Go-only
   `/api/v1/pregnancy/v2/`. Spec: `docs/pregnancy-v2/README.md`, artboards `docs/design/pregnancy-v2/`.
+- **M8** — Persian copy pass: every user-app string (`frontend/messages/fa`) rewritten with the `persian-writing`
+  skill to one register (written-but-warm, «تو»), ICU-safe checker in `frontend/scripts/copy-fa/`. Contract:
+  `docs/copy-fa/STYLE.md` + `GLOSSARY.md`. Rewrites by sonnet subagents, every diff reviewed by the main session.

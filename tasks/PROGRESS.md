@@ -904,3 +904,11 @@ Nothing needed fixing.
 ## T-M2-36 — Daily tips on /cycle/today use the display fertile window (F-1)
 - Shared `legacy.DisplayWindow` (§19) used by `/messages/daily` (D-28) and new `Engine.CalculateForDisplay` behind `/cycle/today` + `/cycle/date` (D-30): O+1 = luteal, not fertile, no fertility flag; tips looked up as `early_luteal` (product decision 2026-09-29); scores/subphase unchanged; `/cycle/month`, `/home`, calendar keep the legacy calc. Cycle engine cache schema → 2.
 - Verify: go test/lint, cycle + messages int tests, contract 998 pass / 1994 allow-listed (all D-30 O+1 days), frontend 699 tests.
+
+## T-M8-01 — Persian copy style guide, glossary and namespace inventory
+- Shipped `docs/copy-fa/STYLE.md` (register, per-kind rules, error templates, orthography, medical-safety
+  rules, sensitive-domain tone, ICU safety, 20 before/after pairs), `GLOSSARY.md`, `INVENTORY.md` (70
+  namespaces → batches T-M8-03…13; 48 written / 11 colloquial / 8 mixed / 3 no prose today).
+- User approved 2026-10-18: written-but-warm «تو»; scope frontend only; «چرخه» replaces «سیکل»; «پریود»
+  everywhere, «قاعدگی» only in fixed medical phrases (LMP, PMS/PMDD); ezafe after ه = «هٔ».
+- Open: checker baseline counts to be appended to INVENTORY.md after T-M8-02.
