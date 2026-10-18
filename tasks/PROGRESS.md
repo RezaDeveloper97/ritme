@@ -943,3 +943,11 @@ Nothing needed fixing.
 - Open (user decision pending): none blocking. Left unchanged for T-M8-14: hardcoded version «۱٫۰٫۰».
 - Verify: check.mjs 17 ns → 0 errors (1 justified warn before the mask fix, 0 after); vitest 1899/1899;
   `go test ./internal/i18n/...` ok.
+
+## T-M8-04 — Copy batch 2 — home, cycle, calendar, phase details, analysis
+- sonnet rewrite, full diff read by the main session: home 71, cycle 40, calendar 20, phase-details 4,
+  analysis 114 values. Numbers, ranges, hedges, FIGO thresholds unchanged.
+- Reviewer fixes: «نشون بده» → «نشان بده»، «حال‌وهوا» → «خلق‌وخو»، «بازهٔ PMS» → «روزهای PMS»، «FIGO ۲۰۱۸»
+  reverted to «FIGO 2018» (cleaner converts years next to Latin codes — STYLE §3.4 now says so),
+  ezafe «چرخهٔ {length} روزه»، «دمای پایهٔ».
+- Open: `{from} – {to}` became «{from} تا {to}» (fine for RTL); visual check in T-M8-15.

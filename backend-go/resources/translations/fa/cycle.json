@@ -1,42 +1,42 @@
 {
   "title": "تحلیل",
-  "tagline": "یه نگاه به الگوهای بدنت",
+  "tagline": "نگاهی به الگوهای بدنت",
   "days": "{n, plural, other{# روز}}",
   "unavailable": "—",
   "dateRange": "{from} تا {to}",
   "cycles": {
-    "title": "سیکل‌های من",
-    "current": "سیکل فعلی",
+    "title": "چرخه‌های من",
+    "current": "چرخهٔ فعلی",
     "dayN": "روز {n, number}",
     "startedOn": "شروع شده در",
-    "addPrevious": "سیکل‌های قبلی‌ات رو ثبت کن",
+    "addPrevious": "چرخه‌های قبلی‌ات را ثبت کن",
     "ongoing": "در جریان",
     "periodDays": "{n, plural, other{پریود # روز}}",
     "periodUnknown": "مدت پریود ثبت نشده",
-    "avgCycle": "میانگین سیکل",
+    "avgCycle": "میانگین چرخه",
     "avgPeriod": "میانگین پریود",
-    "previousTitle": "سیکل‌های قبلی",
-    "recorded": "{n, plural, other{# سیکل ثبت کردی}}",
-    "showAll": "همه رو نشون بده ({n, number})",
+    "previousTitle": "چرخه‌های قبلی",
+    "recorded": "{n, plural, other{# چرخه ثبت کردی}}",
+    "showAll": "همه را نشان بده ({n, number})",
     "showLess": "کمتر نشون بده",
-    "none": "هنوز سیکل قبلی ثبت نکردی. پریودهای گذشته‌ات رو ثبت کن تا طول سیکل‌هات حساب بشه."
+    "none": "هنوز چرخهٔ قبلی ثبت نکرده‌ای. پریودهای گذشته‌ات را ثبت کن تا طول چرخه‌هایت محاسبه شود."
   },
   "cycleSummary": {
-    "title": "خلاصه سیکل",
+    "title": "خلاصهٔ چرخه",
     "dayRange": "{from, number} تا {to, number} روز",
-    "empty": "به‌محض این‌که اولین سیکل کاملت ثبت بشه، این خلاصه با عددهای خودت پر می‌شه."
+    "empty": "به‌محض این‌که اولین چرخهٔ کاملت ثبت شود، این خلاصه با عددهای خودت پر می‌شود."
   },
   "bmi": {
-    "title": "شاخص توده بدنی (BMI)"
+    "title": "شاخص تودهٔ بدنی (BMI)"
   },
   "back": "بازگشت",
   "loading": "در حال بارگذاری",
-  "retry": "تلاش دوباره",
+  "retry": "دوباره امتحان کن",
   "history": {
-    "title": "سیکل‌های من",
-    "subtitle": "{n, plural, =0 {هنوز سیکل کاملی ثبت نشده} other {# سیکل اخیر}}",
+    "title": "چرخه‌های من",
+    "subtitle": "{n, plural, =0 {هنوز چرخهٔ کاملی ثبت نشده} other {# چرخهٔ اخیر}}",
     "stats": {
-      "cycle": "طول سیکل",
+      "cycle": "طول چرخه",
       "period": "طول پریود",
       "spread": "نوسان",
       "days": "روز",
@@ -44,47 +44,47 @@
       "spreadValue": "±{n, number}"
     },
     "verdict": {
-      "regular": "سیکل‌هایت منظم‌اند",
-      "irregular": "طول سیکل‌هایت متغیر است",
+      "regular": "چرخه‌هایت منظم‌اند",
+      "irregular": "طول چرخه‌هایت متغیر است",
       "not_enough_data": "هنوز برای نتیجه‌گیری زود است",
-      "range": "{inRange, number} از {total, number} سیکل بین {min, number} تا {max, number} روز",
-      "notEnough": "با ثبت دست‌کم دو سیکل کامل، نظم سیکل‌هایت را این‌جا می‌بینی."
+      "range": "{inRange, number} از {total, number} چرخه بین {min, number} تا {max, number} روز",
+      "notEnough": "با ثبت دست‌کم دو چرخهٔ کامل، نظم چرخه‌هایت را این‌جا می‌بینی."
     },
-    "current": "سیکل فعلی",
-    "toToday": "{from} – امروز",
-    "range": "{from} – {to}",
+    "current": "چرخهٔ فعلی",
+    "toToday": "{from} تا امروز",
+    "range": "{from} تا {to}",
     "days": "روز",
     "barLabel": "{length, plural, other {# روز}}، پریود {period, plural, other {# روز}}",
-    "outOfRange": "خارج از بازه معمول",
-    "listLabel": "سیکل‌های اخیر",
-    "symptomPattern": "الگوی علائم در سیکل‌ها",
+    "outOfRange": "خارج از بازهٔ معمول",
+    "listLabel": "چرخه‌های اخیر",
+    "symptomPattern": "الگوی علائم در چرخه‌ها",
     "legend": {
       "period": "پریود",
-      "cycle": "طول سیکل",
-      "outOfRange": "خارج از بازه معمول"
+      "cycle": "طول چرخه",
+      "outOfRange": "خارج از بازهٔ معمول"
     },
-    "addPrevious": "افزودن سیکل‌های قبلی",
+    "addPrevious": "افزودن چرخه‌های قبلی",
     "empty": {
-      "title": "هنوز سیکلی ثبت نکردی",
-      "body": "پریودهای گذشته‌ات را ثبت کن تا طول سیکل‌ها، نوسان و نظم آن‌ها این‌جا نمایش داده شود."
+      "title": "هنوز چرخه‌ای ثبت نکردی",
+      "body": "پریودهای گذشته‌ات را ثبت کن تا طول چرخه‌ها، نوسان و نظم آن‌ها این‌جا نمایش داده شود."
     },
-    "error": "سیکل‌هایت الان بارگذاری نشد."
+    "error": "چرخه‌هایت الان بارگذاری نشد."
   },
   "symptoms": {
     "title": "الگوی علائم",
-    "subtitle": "{n, plural, other {بر اساس # سیکل}}",
+    "subtitle": "{n, plural, other {بر اساس # چرخه}}",
     "tabsLabel": "دسته‌بندی علائم",
     "tabs": {
       "symptoms": "علائم",
       "mood": "حال",
       "pain": "درد"
     },
-    "typical": "روی سیکل معمول تو",
+    "typical": "روی چرخهٔ معمول تو",
     "scale": "کم → زیاد",
     "day": "روز {n, number}",
     "dayN": "{n, number}",
-    "bandsLabel": "سیکل معمول: پریود روز ۱ تا {period, number}، تخمک‌گذاری حدود روز {ovulation, number}، طول {length, number} روز",
-    "stripLabel": "{name}: در {n, number} از {total, number} سیکل",
+    "bandsLabel": "چرخهٔ معمول: پریود روز ۱ تا {period, number}، تخمک‌گذاری حدود روز {ovulation, number}، طول {length, number} روز",
+    "stripLabel": "{name}: در {n, number} از {total, number} چرخه",
     "names": {
       "cramps": "گرفتگی",
       "breast_tenderness": "حساسیت سینه",
@@ -111,14 +111,14 @@
       "other": "علامت دیگر"
     },
     "window": {
-      "before_period": "در {n, number} از {total, number} سیکل، از حدود {days, number} روز قبل از پریود دیده شده است.",
-      "early": "در {n, number} از {total, number} سیکل، در {days, plural, other {# روز}} اول سیکل دیده شده است.",
-      "mid": "در {n, number} از {total, number} سیکل، حدود روز {from, number} تا {to, number} سیکل دیده شده است."
+      "before_period": "در {n, number} از {total, number} چرخه، از حدود {days, number} روز قبل از پریود دیده شده است.",
+      "early": "در {n, number} از {total, number} چرخه، در {days, plural, other {# روز}} اول چرخه دیده شده است.",
+      "mid": "در {n, number} از {total, number} چرخه، حدود روز {from, number} تا {to, number} چرخه دیده شده است."
     },
     "note": "این الگوها هم‌زمانی را نشان می‌دهند، نه علت را.",
     "notReady": {
       "title": "الگو هنوز آماده نیست",
-      "body": "برای دیدن الگوی علائم دست‌کم {needed, plural, other {# سیکل کامل}} لازم است و تا الان {n, plural, =0 {هیچ سیکلی} other {# سیکل}} ثبت شده. علائمت را روزانه ثبت کن تا الگو شکل بگیرد."
+      "body": "برای دیدن الگوی علائم دست‌کم {needed, plural, other {# چرخهٔ کامل}} لازم است و تا الان {n, plural, =0 {هیچ چرخه‌ای} other {# چرخه}} ثبت شده است. علائمت را روزانه ثبت کن تا الگو شکل بگیرد."
     },
     "emptyGroup": "هنوز در این دسته چیزی ثبت نکردی.",
     "error": "الگوی علائم الان بارگذاری نشد."

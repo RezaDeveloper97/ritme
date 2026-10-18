@@ -1,6 +1,6 @@
 {
   "title": "جزئیات فاز",
-  "subtitle": "چیزهایی که توی این فاز از چرخه‌ات مهمه",
+  "subtitle": "چیزهایی که در این فاز از چرخه‌ات مهم است",
   "currentPhase": "فاز فعلی تو",
   "loading": "در حال بارگذاری…",
   "fallback": "فعلاً محتوایی برای این فاز نداریم.",
@@ -9,7 +9,7 @@
     "vaginal_discharge": "ترشحات واژن",
     "fertility": "باروری",
     "hormonal_changes": "تغییرات هورمونی",
-    "sex_tips": "نکات رابطه جنسی",
+    "sex_tips": "نکات رابطهٔ جنسی",
     "nutrition": "تغذیه",
     "exercise": "ورزش",
     "skin_care": "مراقبت از پوست",
@@ -37,11 +37,11 @@
   "phases": {
     "menstrual": "فاز پریود",
     "follicular": "فاز فولیکولار",
-    "fertile": "پنجره باروری",
+    "fertile": "پنجرهٔ باروری",
     "luteal": "فاز لوتئال",
     "period_expected": "نزدیک پریود"
   },
-  "dayRange": "روز {from, number} تا {to, number} سیکل تو",
+  "dayRange": "روز {from, number} تا {to, number} چرخهٔ تو",
   "disclaimer": "اطلاعات عمومی است. اگر علائمت شدید یا غیرمعمول است، با پزشک مشورت کن.",
   "gotIt": "متوجه شدم"
 }
