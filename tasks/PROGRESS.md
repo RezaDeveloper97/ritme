@@ -912,3 +912,17 @@ Nothing needed fixing.
 - User approved 2026-10-18: written-but-warm «تو»; scope frontend only; «چرخه» replaces «سیکل»; «پریود»
   everywhere, «قاعدگی» only in fixed medical phrases (LMP, PMS/PMDD); ezafe after ه = «هٔ».
 - Open: checker baseline counts to be appended to INVENTORY.md after T-M8-02.
+
+## T-M8-02 — copy-fa tooling: ICU-safe checker, value-only cleanup and backend sync
+- `frontend/scripts/copy-fa/`: `check.mjs` (structure gate vs git base + en, ICU signature via
+  @formatjs parser, sync gate vs backend-go, lint errors/warnings from STYLE + GLOSSARY), `clean.mjs`
+  (runs the skill's `persian_cleanup.py --edit` on values only; ICU/tags/Latin codes protected; byte-stable
+  formatting; skips `fix_ezafe` and `fix_zwnj_compound_verbs` by default), `sync.mjs`, 25 node tests.
+  npm: `copy:check`, `copy:clean`, `copy:sync`. `clean.mjs` needs `--cleanup <path>` or env `PERSIAN_CLEANUP`
+  (the skill's `scripts/persian_cleanup.py`).
+- Main-session fix: a key added since the git base is not an error when en has it (uncommitted feature work:
+  `common.moduleOff.*`, `onboarding.flow.conditions.medsOnly`).
+- En dash allowed between numbers/ICU args (STYLE §3.5 amended). `index.js` exists only so
+  `node --test scripts/copy-fa` works on Node 24.
+- Baseline appended to `docs/copy-fa/INVENTORY.md`: 0 structure/sync, 12 lint errors, 843 warnings.
+- Known risk: `convert_digits` turns `FIGO 2018` into `FIGO ۲۰۱۸` — reviewers check Latin+number pairs.

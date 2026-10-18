@@ -18,7 +18,10 @@
     "fsd:lint": "steiger ./src",
     "lint:styles": "node scripts/check-styles.mjs",
     "lint:styles:accept": "node scripts/check-styles.mjs --update-baseline",
-    "lint:dark": "node scripts/check-dark-mode.mjs"
+    "lint:dark": "node scripts/check-dark-mode.mjs",
+    "copy:check": "node scripts/copy-fa/check.mjs",
+    "copy:clean": "node scripts/copy-fa/clean.mjs",
+    "copy:sync": "node scripts/copy-fa/sync.mjs"
   },
   "dependencies": {
     "next": "^15.1.6",

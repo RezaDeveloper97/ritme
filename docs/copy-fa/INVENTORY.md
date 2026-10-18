@@ -94,3 +94,83 @@ Target register for all: written-but-warm (STYLE.md §1). Checker baseline count
 | T-M8-13 | `me`, `assistant`, `learn`, `articles`, `todo` | sonnet + opus review | parallel group M8-C |
 | T-M8-14 | hardcoded Persian in `frontend/src` | sonnet + opus review | after the pilot |
 | T-M8-15 | sweep + QA + stage | opus (haiku for re-runs) | last |
+
+
+## Checker baseline (T-M8-02, 2026-10-18, before any rewrite)
+
+`node frontend/scripts/copy-fa/check.mjs --all --baseline` → 0 structure/sync errors, 12 lint errors (all em/en dashes in prose), 843 warnings (colloquial, glossary variants, Latin digits).
+
+```
+namespace            struct/sync-err  lint-err  warn
+account                            0         1     7
+analysis                           0         0    89
+analysis-postpartum                0         0     7
+analysis-pregnancy                 0         0    10
+articles                           0         0     8
+assistant                          0         0    29
+auth                               0         0     2
+baby-log                           0         0     1
+banners                            0         0     0
+calendar                           0         0    16
+care                               0         0    16
+challenge                          0         0     0
+checkups                           0         0    10
+children                           0         0     8
+city-join                          0         0     6
+city-services                      0         0    12
+common                             0         0     4
+companion-home                     0         0     6
+companions                         0         0     3
+conditions                         0         0    13
+contraception                      0         0     5
+cycle                              0         1    33
+day-tasks                          0         0     4
+doctors                            0         0    28
+fertility                          0         0    30
+health-record                      0         0     6
+home                               0         1    47
+home-lab                           0         0     6
+insurance                          0         0    31
+ivf                                0         0    61
+lab-consent                        0         0     0
+labs                               0         0     1
+learn                              0         0    23
+log                                0         0     5
+log-customize                      0         0     1
+log-period                         0         0     4
+log-sheet                          0         2    10
+log-taxonomy                       0         0     3
+loss                               0         0     9
+me                                 0         1    34
+menopause                          0         0     2
+nav                                0         1     5
+notifications                      0         0     3
+onboarding                         0         0     9
+pelvic                             0         0     3
+phase-details                      0         0     3
+plus                               0         0    17
+postpartum                         0         0    17
+pregnancy                          0         0    21
+pregnancy-tools                    0         0     0
+pregnancy-v2                       0         2    49
+profile                            0         0     5
+profile-edit                       0         0     6
+profile-info                       0         1    27
+pwa                                0         0     9
+record                             0         1    13
+record-export                      0         1    13
+reminders                          0         0    12
+search                             0         0     3
+services                           0         0     5
+shop                               0         0     8
+teen                               0         0     6
+todo                               0         0     1
+vitals                             0         0     4
+voice-log                          0         0     3
+web-business                       0         0     4
+web-directory                      0         0     0
+web-shell                          0         0     0
+web-shop                           0         0     2
+welcome                            0         0     5
+TOTAL                              0        12   843   (70 namespaces)
+```

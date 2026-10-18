@@ -3,7 +3,7 @@ id: T-M8-02
 title: copy-fa tooling: ICU-safe checker, value-only cleanup and backend sync
 milestone: M8
 type: frontend
-status: todo
+status: done
 depends_on: [T-M8-01]
 parallel_group: M8-A
 touches: [frontend/scripts/copy-fa,frontend/package.json]

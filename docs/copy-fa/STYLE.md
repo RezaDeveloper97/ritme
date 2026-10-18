@@ -89,7 +89,7 @@ Exclamation marks: at most one, only in welcome/celebration copy; never in error
    (HbA1c, B12, mg/dL, IVF, PMDD, «Android 12»). Percent «۲۰٪».
 5. **Punctuation**: ، ؛ ؟ «…» quotes; no space before, one after; ellipsis is the single character «…»; no
    em/en dash (—, –) in prose: use «،» «؛» «:» or parentheses or two sentences. A value that is exactly «—»
-   (an empty-value placeholder) is allowed.
+   (an empty-value placeholder) is allowed, and so is an en dash between two numbers or ICU arguments (`{min}–{max}`, `۲–۳`).
 6. **Never start a value with a Latin word** (it flips direction). «آزمایش TSH …»، not «TSH …».
    Exception: a value that *is* only a code/unit (`"mg/dL"`).
 7. **Tanvin** only on Arabic loans (لطفاً، حتماً، معمولاً، تقریباً); never گاهاً. «لطفا» → «لطفاً».
