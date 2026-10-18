@@ -9,7 +9,7 @@
   "headline": {
     "key": "monthly.headline.little_data",
     "params": {},
-    "text": "این ماه داده کمی ثبت شده"
+    "text": "این ماه دادهٔ کمی ثبت شده"
   },
   "summary": {
     "parts": [
@@ -25,10 +25,10 @@
         "params": {
           "length": 21
         },
-        "text": "سیکل ۲۱ روزه"
+        "text": "چرخهٔ ۲۱ روزه"
       }
     ],
-    "text": "۰ روز ثبت و سیکل ۲۱ روزه."
+    "text": "۰ روز ثبت و چرخهٔ ۲۱ روزه."
   },
   "metrics": [
     {
