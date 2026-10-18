@@ -1030,3 +1030,14 @@ Nothing needed fixing.
   «ریتمی — همراه سلامت زنان» → should be «ریتمی، همراه سلامت زنان».
 - Follow-up idea: 26 `.join('، ')` also use the Persian comma in en — a locale-aware `joinList` helper.
 - i18n fixtures regenerated for T-M8-13/14 in this commit.
+
+## T-M8-15 — M8 wrap-up (partial: sweep done, QA + stage on hold)
+- Done: cross-namespace sweep (commit 4829926f). `check.mjs --all` → 0 errors; warnings 843 (baseline) → 45,
+  all legitimate senses (دوره = course/span, «تست» for home tests, «سقط» in clinical lists, «سوابق» in prose,
+  «دکتر» before a name, FIGO/IOM years). Glossary: جست‌وجو، پیش‌رو added; لغو/یادآوری no longer rejected.
+- On hold by user decision (2026-10-18): visual QA (docs/copy-fa/QA.md) and deploy to stage.
+- Still open for QA: button widths that grew (`ivf.actions.scan` «ثبت نتیجهٔ سونوگرافی»، city-join
+  «دوباره امتحان کنید»، plus «شروع کنیم»، shop «اشتراک‌گذاری با خانواده»); `{from} تا {to}` ranges;
+  `layout.tsx:77` description em dash (file has other uncommitted work); pre-existing fa/en ICU drift in
+  `labs`; fa≠en items listed under T-M8-06/08/11 for the content owner. Production runs Laravel until
+  T-M2-26 — prod copy needs `php artisan translations:import` there or waits for the Go cutover.
