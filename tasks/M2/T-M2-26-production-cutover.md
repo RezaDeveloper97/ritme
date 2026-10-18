@@ -3,7 +3,7 @@ id: T-M2-26
 title: Production cutover to Go (per route group, with rollback)
 milestone: M2
 type: release
-status: todo
+status: blocked
 depends_on: [T-M2-25]
 parallel_group: M2-K
 touches: [deploy/go-routes.inc, deploy/proxy-ssl.conf, deploy/vhost-api.inc, deploy/vhost-admin.inc, docs/go-migration/prod-cutover-log.md]
@@ -45,3 +45,6 @@ image previews 404 in admin-web.
 Monitoring gaps to close before/at cutover (needed for the before/after metrics this task requires): the shared proxy
 access-log format has no `$host` (stage and prod lines can't be separated), backend-go doesn't log `error_code` on
 4xx (401 mix unreadable from logs), and container logs are lost on every redeploy (ship them to a volume/file).
+
+## Blocked
+On hold by user decision (2026-10-18): production cutover is out of the queue until the user asks for it explicitly. Do not pick, plan or run this task (or anything that deploys to production) on your own.

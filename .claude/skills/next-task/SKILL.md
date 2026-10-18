@@ -25,6 +25,11 @@ Never include Android in any task: no `android` type, no work in `android-shell/
 smoke/verification steps in Scope, Acceptance or verify, and no Android build. If a task file mentions Android, drop
 that part (note it in the task) instead of doing it. (User decision, 2026-09-23.)
 
+## 0.2 Hard rule — no production cutover
+T-M2-26 (production cutover to Go) and T-M2-27 (Laravel decommission) are `blocked` on purpose: never pick, plan or
+run them, and never add production-cutover work to other tasks, unless the user asks for it explicitly in that
+session. (User decision, 2026-10-18.)
+
 ## 1. Session start ritual
 1. `bash tasks/bin/next.sh` and `tail -5 tasks/LOG.md`.
 2. `git status --short | head` — uncommitted work from a crashed session must be triaged first (it usually belongs

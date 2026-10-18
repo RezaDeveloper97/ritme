@@ -3,7 +3,7 @@ id: T-M2-27
 title: Decommission Laravel, hand migrations to goose, update skills and docs
 milestone: M2
 type: release
-status: todo
+status: blocked
 depends_on: [T-M2-26]
 parallel_group: M2-L
 touches: [backend, backend-go, docker-compose.yml, docker-compose.stage.yml, docker-compose.prod.yml, deploy, .claude/skills, .claude/agents, .claude/hooks, CLAUDE.md, docs/go-migration, tasks/README.md]
@@ -43,3 +43,6 @@ New features; fixing preserved quirks (open product tasks for D-05 etc.).
 - No PHP left in the repo or images (except historical docs); `verify-all` green; stage and prod deployed via the
   updated skills with all assertions passing.
 - `/next-task`, `/local-dev`, `/deploy-stage`, `/verify-all` work end to end on the Go stack.
+
+## Blocked
+On hold by user decision (2026-10-18): production cutover is out of the queue until the user asks for it explicitly. Do not pick, plan or run this task (or anything that deploys to production) on your own.
