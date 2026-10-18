@@ -997,3 +997,8 @@ Nothing needed fixing.
   teen (`no_fertility_copy`); post-menopause bleeding alert and every «مشورت با پزشک» note unchanged
   (contraception has no efficacy numbers in copy). Load-error titles lose the final period (rendered as titles).
 - Open: `teen/ui/ParentViewCard.tsx:14` comment says «فقط دیدنی» (comment only).
+
+## T-M8-11 — Copy batch 9 — shop, web shop, insurance, Plus
+- sonnet rewrite, full diff reviewed: shop 19, web-shop 5, insurance 47, plus 13 values. No price, deadline,
+  COD/return/coverage term changed; no new marketing claim. «بزن بریم» → «شروع کنیم»; «٪{n}» → «{n}٪».
+- Open (fa≠en, left): `shop.order.notFoundBody` («سفارش دیگری» vs en "someone else's order").
