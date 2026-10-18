@@ -1002,3 +1002,11 @@ Nothing needed fixing.
 - sonnet rewrite, full diff reviewed: shop 19, web-shop 5, insurance 47, plus 13 values. No price, deadline,
   COD/return/coverage term changed; no new marketing claim. «بزن بریم» → «شروع کنیم»; «٪{n}» → «{n}٪».
 - Open (fa≠en, left): `shop.order.notFoundBody` («سفارش دیگری» vs en "someone else's order").
+
+## T-M8-12 — Copy batch 10 — services, city services, doctors, directory, business
+- sonnet rewrite, full diff reviewed: services 3, city-services 6, city-join 41, doctors 13, web-business 24,
+  web-directory 0 values. Provider-facing `city-join` + `web-business` now «شما» (formal-but-human); the rest «تو».
+  Reviewer fixes: ambiguous «مادرهای نزدیک شما را پیدا کنند» → «مادرهای نزدیکتان شما را…» ×2,
+  «دیده شدن برای…» → «دیده شدن نزد مادرهای نزدیک».
+- QA in T-M8-15: «دوباره امتحان کنید»/«نگه دارید» button widths in city-join.
+- i18n fixtures regenerated for the T-M8-10..12 round in this commit.
