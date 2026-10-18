@@ -89,7 +89,7 @@ Titles and buttons never end with «.»; body sentences and toasts always do.
 3. **Persian characters**: ی U+06CC, ک U+06A9, never ي ك ة.
 4. **Digits**: Persian digits in prose («۴۸ ساعت»، «۱. توی نوار …»). ICU placeholders (`{n}`, `{n, number}`)
    are formatted by the locale and stay untouched. Latin digits only inside Latin codes/units that stay LTR
-   (HbA1c, B12, mg/dL, IVF, PMDD, «Android 12»). Percent «۲۰٪».
+   (HbA1c, B12, mg/dL, IVF, PMDD, «Android 12»). A year that belongs to a Latin standard or guideline name stays Latin too: «FIGO 2018»، «IOM 2009» (`clean.mjs` converts them, so check after cleaning). Percent «۲۰٪».
 5. **Punctuation**: ، ؛ ؟ «…» quotes; no space before, one after; ellipsis is the single character «…»; no
    em/en dash (—, –) in prose: use «،» «؛» «:» or parentheses or two sentences. A value that is exactly «—»
    (an empty-value placeholder) is allowed. A dash-delimited aside becomes parentheses: «همهٔ اطلاعاتت (پروفایل، …) پاک می‌شود»; a dash between label and explanation becomes «:» or «؛», and so is an en dash between two numbers or ICU arguments (`{min}–{max}`, `۲–۳`).

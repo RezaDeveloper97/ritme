@@ -100,7 +100,7 @@ describe("insights.basedOn count", () => {
     );
 
   it("renders Persian digits in fa and keeps en plurals", () => {
-    expect(render("fa", 3)).toBe("بر اساس ۳ سیکل ثبت‌شده");
+    expect(render("fa", 3)).toBe("بر اساس ۳ چرخهٔ ثبت‌شده");
     expect(render("en", 3)).toBe("Based on 3 logged cycles");
     expect(render("en", 1)).toBe("Based on 1 logged cycle");
   });

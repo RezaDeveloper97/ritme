@@ -957,3 +957,16 @@ Nothing needed fixing.
   as they were; only ezafe/«پس از زایمان»), voice-log 12.
 - Reviewer fix: voice card title «بگو امروز چطور بودی» (tense shift) → «بگو امروز حالت چطور است».
   Glossary: «خونریزی» canonical (46 vs 11), «خون‌ریزی» rejected.
+
+## T-M8-06 — Copy batch 4 — fertility, pregnancy, IVF, pregnancy loss
+- opus rewrite (most sensitive batch), every warning/alert string checked by the main session: fertility 49,
+  pregnancy 31, pregnancy-v2 55, pregnancy-tools 7, analysis-pregnancy 23, ivf 89, loss 16 values.
+  No number, warning-sign list or urgency changed; loss stays gentle, IVF never promises outcomes.
+- IVF: «دوره/سیکل درمان» → «چرخهٔ درمان»; blood beta test = «آزمایش» (home tests stay «تست»);
+  «سونو» → «سونوگرافی». Test `fertility-insights/model/view.test.ts` follows the new «چرخهٔ» copy.
+- Reviewer fix: «IOM ۲۰۰۹» reverted to «IOM 2009».
+- Left for the user / content owner (fa≠en, not resolved on purpose): `ivf.tww.danger.body` («نفخ شدید و
+  سریع» vs en "severe or fast-growing bloating"; «کم شدن ادرار» vs "passing much less urine"),
+  `pregnancy.log.criticalHint` («حتماً» vs en "right away").
+- QA in T-M8-15: `ivf.actions.scan` tile grew to «ثبت نتیجهٔ سونوگرافی» — check overflow.
+- i18n fixtures regenerated with `-update` for the whole round (T-M8-04/05/06) in this commit.
