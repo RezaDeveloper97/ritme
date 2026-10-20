@@ -3,7 +3,7 @@ id: T-M9-01
 title: Engine v6 decisions and deviation rows (user OK)
 milestone: M9
 type: investigate
-status: todo
+status: done
 depends_on: []
 parallel_group: M9-A
 touches: [docs/engine-v6/DECISIONS.md, docs/go-migration/deviations.md]

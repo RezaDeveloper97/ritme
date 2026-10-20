@@ -1071,3 +1071,9 @@ Nothing needed fixing.
 
 ## T-M4-10 / T-M7-15 — closed (2026-10-21)
 - Closed on the user's word: staging e2e shipped, clinical review package in c45c06b8. No production work; content sign-off remains an open review item.
+
+## T-M9-01 — Engine v6 decisions and deviation rows (user OK)
+- User accepted every E/I/X recommended default on 2026-10-21 (two groups: visible product changes, technical defaults), no changes. Recorded in `docs/engine-v6/DECISIONS.md` (approval line + `Status: accepted`).
+- Code refs re-checked: `profile/service.go:463` syncOnboardingPeriodLog, `analysis/cycle.go:43` markOutlier, `home/sections.go` 21–35 constants still present — defaults hold.
+- `docs/go-migration/deviations.md`: rows D-120…D-139 added (`accepted — engine v6, not shipped yet`); D-30 → superseded by D-121/D-122, D-55 → superseded by D-124.
+- No task scope changed.

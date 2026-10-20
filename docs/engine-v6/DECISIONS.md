@@ -10,6 +10,8 @@ before they run.
   `advisor-pending` (shipped with the safe default below, waiting for the advisor).
 - **Who records the answers**: T-M9-01 (sections E, I, X), T-M10-01 (M, H, A), T-M11-01 (F). Nothing is left
   `proposed` once that task is done.
+- **Approval:** sections E, I and X accepted by the user on **2026-10-21** (T-M9-01) — every recommended default,
+  no changes.
 - **Clinical rule of thumb**: a change that *adds* an escalation (more alerts, earlier urgency) ships with the spec
   value. A change that *removes or lowers* an escalation ships as a clinical-config value that keeps today's behaviour,
   so the advisor's sign-off is a config approval in admin (two advisors, audited), not a code change.
@@ -26,7 +28,7 @@ before they run.
   skipped cycle E-15) or the target is resolved from a `future_cycles` projection (E-03). Ordinary days resolved from the
   current cycle's prediction carry no warning, so the §2.35 example holds byte for byte.
 - **Alternative:** keep v1.1 (always on `prediction`) and treat the example as illustrative.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-18
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-18
 
 ### E-02 — `contradictory_anchor_data`
 - **Question:** §2.33 lists it as a `requires_user_input` trigger, but it is missing from the §2.32 warning enum and no
@@ -35,7 +37,7 @@ before they run.
   a real start inside another real period; more than one open period. It implies `data_quality = poor`,
   `confidence = low`, `requires_user_input = true`, and the engine ignores the newer of the two conflicting records for
   medians.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-15, T-M9-18
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-15, T-M9-18
 
 ### E-03 — Resolving future dates
 - **Question:** §2.29 makes a `predicted_reference` start **low**; §2.16 says future cycles k ≥ 2 are "at most medium",
@@ -45,7 +47,7 @@ before they run.
   with source `predicted_reference` (the only honest §2.10 value), warning `prediction_based_output`, and confidence
   `min(today's confidence, k == 1 ? high : medium)`. The forced `low` of §2.29 for a `predicted_reference` start applies
   only to the stale onboarding anchor (§2.41) and skipped cycles (E-15), not to future-cycle projections.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-20
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-20
 
 ### E-04 — The future chain while the period is late
 - **Question:** §2.16 chains from `predicted_next_period_start`, which is already in the past once `days_late > 0`.
@@ -55,7 +57,7 @@ before they run.
   `period_expected` (late tiers). When `days_late > max_late` (unknown), `future_cycles` is empty. The calendar never
   paints a rolled-forward period while the user is late.
 - **Alternative:** keep the stale chain and mark it overdue.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-20, T-M9-45
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-20, T-M9-45
 
 ### E-05 — Shape of a `future_cycles` item
 - **Question:** the §2.35 example shows only `{k:2, period_start, ovulation}` and omits k = 1; which cycle does an
@@ -66,21 +68,21 @@ before they run.
   `estimated_ovulation_date` with its real source (bbt_confirmed / lh_positive / calendar); for k ≥ 2 it is
   `period_start[k] − 14` (`calendar`). `period_end = period_start + effective_period_length − 1`; fertile window =
   `ovulation − 5 .. ovulation`. Items are never stored (§2.40).
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-20, T-M9-45
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-20, T-M9-45
 
 ### E-06 — Basis of `clinical_flags.frequency`
 - **Question:** §2.27 classifies `effective_cycle_length`, but §2.8 drops cycles < 21 and > 45 from it, so a woman with
   real 18-day cycles falls back to 28 and reads "normal".
 - **Recommended:** classify the median of the last ≤ 3 *real complete* cycle lengths (outliers included, skipped cycles
   excluded). With no real cycle, use the declared length; with neither, `frequency = null`.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-18
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-18
 
 ### E-07 — `duration` and `absent`
 - **Recommended:** `duration = prolonged` when the median of the last ≤ 3 *closed real* periods is > the FIGO maximum
   (`cycle.figo.duration`, 8); `null` with no closed real period. `absent = true` when at least one real period exists,
   `difference_in_days(today, last real start) ≥ 90`, no period is open and the mode is not pregnancy/postpartum;
   `null` with no real period (a declared onboarding date alone is handled by E-15/§2.41, not by `absent`).
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-18
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-18
 
 ### E-08 — Teen and over-45 thresholds
 - **Question:** "teen" needs a menarche date the app does not collect; regularity thresholds for < 18 and > 45 are
@@ -88,14 +90,14 @@ before they run.
 - **Recommended:** teen = age < 18 (birth date) until menarche is collected (see I-06). Teens use the ACOG 21–45 range
   for `frequency` (frequent < 21, infrequent > 45). Regularity for < 18 uses the `young` band (≤ 9 days) and for > 45
   the `late` band (≤ 9 days).
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-18
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-18
 
 ### E-09 — Regularity window and outliers
 - **Recommended:** `cycle_regularity` uses real complete cycles whose start lies in the 12 months before the target,
   at least 3 of them; skipped cycles are excluded; outliers (< 21, > 45) are included (they are real variation). The
   analysis tab's one-outlier exclusion (`analysis/cycle.go` `markOutlier`) is removed so the tab and `cycle_view`
   always agree.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-18, T-M9-35
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-18, T-M9-35
 
 ### E-10 — Onboarding override of `resolution_source`
 - **Question:** §2.30 says the enum order is "only a tie-breaker", which would put `prediction` above
@@ -103,18 +105,18 @@ before they run.
 - **Recommended:** keep v1.1's override: when the anchor is the declared onboarding date, every phase resolves as
   `onboarding_based` (or `default_based` when both lengths are defaults), period_expected days 0–14 included. The
   tie-breaker applies only between genuinely equal sources.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-16
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-16
 
 ### E-11 — `resolution_source` after 14 days late
 - **Recommended:** `prediction` (confidence therefore `low`, not `unknown`), matching "unknown main_phase is not an
   invalid output" in §2.22.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-16
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-16
 
 ### E-12 — Cap warnings are cumulative
 - **Recommended:** an open period past the hard cap carries `period_end_missing`,
   `period_end_missing_warning_cap_exceeded` and `period_end_missing_hard_cap_exceeded` together, so every consumer keyed
   on any of them keeps working.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-16
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-16
 
 ### E-13 — Phases under hormonal contraception
 - **Question:** §2.42 stops fertile and ovulation, which leaves follicular/luteal undefined.
@@ -125,7 +127,7 @@ before they run.
   `limits.fertility_suppressed = true` (E-24); warning + reason `hormonal_contraception_active`; confidence `low`;
   `requires_user_input = false`. "unknown" here never means "insufficient data".
 - **Alternative:** `follicular / mid_follicular` for all other days (a placeholder phase the UI must then hide).
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-19, T-M9-44
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-19, T-M9-44
 
 ### E-14 — Postpartum and breastfeeding before cycles return
 - **Recommended:** applies in postpartum mode, or in any mode while `breastfeeding = true`, until 2 real periods have
@@ -134,7 +136,7 @@ before they run.
   `limits.fertility_suppressed = true` (reason `postpartum_not_returned`), `requires_user_input = false`. Confidence is
   `unknown` while no postpartum period exists and `low` after the first one (§2.29 lists "postpartum with < 2 real
   periods" as low — documented precedence exception).
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-19
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-19
 
 ### E-15 — Skipped cycle («پریود نداشتم»)
 - **Recommended:** allowed when `today ≥ predicted_next` for the cycle being skipped (any `days_late ≥ 0`, including
@@ -144,7 +146,7 @@ before they run.
   the next real start is neither a valid record nor an outlier; it is excluded from medians, variability and regularity.
   `skipped_cycle_recorded` stays until the next real start. Consecutive skips are allowed. A skip can be deleted, which
   restores the previous output.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-20, T-M9-29, T-M9-47
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-20, T-M9-29, T-M9-47
 
 ### E-16 — BBT and LH rule variants
 - **Recommended:** BBT strict mode by default (`engine.bbt.strict = 1`: the third high reading must be ≥ +0.20 °C over
@@ -153,31 +155,31 @@ before they run.
   ignored). LH/BBT conflict threshold 2 days (`> 2` → BBT wins + `lh_bbt_conflict`). `effective_luteal_length` = the §2.9
   median (last ≤ 3, half up) of BBT-confirmed luteal lengths (next real start − BBT ovulation) that lie in 10..16;
   otherwise 14. LH-only cycles do not contribute luteal lengths (spec: "BBT-confirmed").
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-17
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-17
 
 ### E-17 — Who owns the §2.43 Today mapping
 - **Recommended:** the engine emits a pure `today_ui` block, so web, the daily card and any later client cannot drift:
   `{ring_action: start|end|edit, banner: null|end_missing|overdue|ask_last_period, show_pregnancy_test_button,
   prediction_card: {period:{start,end}, pms:{start,end}, fertile:{start,end}|null, ovulation:{date,source}|null,
   cycle_length, cycle_regularity}}`. «هنوز نه» / «هنوز ادامه دارد» stay client-local for the day (spec).
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-21, T-M9-42
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-21, T-M9-42
 
 ### E-18 — Periods of 9–10 days
 - **Question:** §2.8 says they "may lower confidence depending on history"; no rule is given.
 - **Recommended:** no rule in v6.0 (documented). They stay valid records.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-18
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-18
 
 ### E-19 — Making the BBT path to `high` reachable
 - **Question:** §2.29 checks `low` (which includes `cycle_variability > 5`) before `high`, so "variability ≤ 5 **or**
   ovulation_source = bbt_confirmed" can never reach high through BBT.
 - **Recommended:** the low condition reads "cycle_variability > 5 **and** ovulation_source ≠ bbt_confirmed".
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-18
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-18
 
 ### E-20 — Manual cycle/period lengths (B-N1-09)
 - **Recommended:** keep the user's "use my lengths" switch as an explicit override. The engine treats the values as
   declared: `data_quality ≤ partial`, never `high`, reason `onboarding_data_used` is *not* added (it is not onboarding);
   `cycle_length_source = declared`.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-15, T-M9-18
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-15, T-M9-18
 
 ### E-21 — An open period past the warning cap
 - **Question:** spec-faithful output keeps the whole cycle `poor / low / requires_user_input` until the user closes the
@@ -186,7 +188,7 @@ before they run.
   `effective_period_length − 1`, §2.43), the `end_missing` banner, and the bridge closing an open period at its last
   logged bleeding day when the next period starts (I-02).
 - **Alternative:** limit it to days ≤ hard cap + N.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-16
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-16
 
 ### E-22 — Layout of completed past cycles
 - **Question:** the spec defines resolution around one current cycle. For a past target inside a *completed* cycle
@@ -196,11 +198,11 @@ before they run.
   no `period_expected` days exist inside a completed cycle. `resolution_source = prediction` (phases are still
   estimates). This keeps the calendar, the analysis tab and fertility history consistent.
 - **Alternative:** spec-literal (predict every past day from its own cycle start).
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-20, T-M9-33
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-20, T-M9-33
 
 ### E-23 — Reading of `data_quality = good`
 - **Recommended:** keep v1.1's stricter reading: `good` also needs the period-length source to be real history.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-18
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-18
 
 ### E-24 — A `limits` block in the output
 - **Question:** clients need one clear flag instead of inferring suppression from warnings (02c question 3).
@@ -208,31 +210,31 @@ before they run.
   `limits: {fertility_suppressed: bool, suppression_reason: null|hormonal_contraception|pregnancy|postpartum_not_returned,
   engine_suspended: bool, prompt_pregnancy_mode: bool}`. Also copied into the companion payload as
   `fertility_suppressed` only.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-19, T-M9-21, T-M9-32, T-M9-44
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-19, T-M9-21, T-M9-32, T-M9-44
 
 ### E-25 — Output in pregnancy mode
 - **Recommended:** the cycle engine is suspended (§2.42): `cycle_view` returns `main_phase = unknown`,
   `resolution_source = unknown`, `confidence = unknown`, no predictions, no `future_cycles`,
   `limits.engine_suspended = true`, `suppression_reason = pregnancy`, `requires_user_input = false`. `/cycle/month`
   still shows logged periods (history) with no predicted days.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-19, T-M9-33
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-19, T-M9-33
 
 ### E-26 — Positive pregnancy test
 - **Recommended:** a positive test dated on or after `current_period_start`, in mode cycle or ttc, sets
   `limits.prompt_pregnancy_mode = true` (UI: «رفتن به حالت بارداری»). It clears when a new period starts or the mode
   changes. It does not change phases by itself.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-19, T-M9-44
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-19, T-M9-44
 
 ### E-27 — Age rules
 - **Recommended:** age is computed at the target date from `birthday`. No birthday → no age rules. ≥ 45 → confidence
   capped at medium + `perimenopause_age_range`. < 18 → teen flags (E-08). Teen users with only an age band
   (`teen_profiles.age_band`) are treated as < 18.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-18, T-M9-19
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-18, T-M9-19
 
 ### E-28 — Targets beyond the 6th future cycle
 - **Recommended:** `main_phase = unknown`, `resolution_source = unknown`, no fertile data. The calendar shows nothing
   predicted beyond `future_cycles[6].period_end`.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-20
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-20
 
 ### E-29 — Menopause and teen modes
 - **Question:** §2.42 does not mention the menopause and teen life modes; today they only hide fertility *copy*
@@ -240,7 +242,7 @@ before they run.
 - **Recommended:** the engine computes these users normally (age rules E-08/E-27 still apply);
   `limits.fertility_suppressed` stays false because it is reserved for clinical suppression. The existing presentation
   flag that hides fertility copy for teen and menopause users stays as it is in every consumer.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-19, T-M9-46
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-19, T-M9-46
 
 ---
 
@@ -255,7 +257,7 @@ before they run.
   `syncOnboardingPeriodLog` is removed. The calendar shows the declared onboarding period as an *assumed* range
   computed by the engine (styled as predicted), which reverses the August 2026 "paint it as logged" decision.
 - **Alternative:** keep the row as `is_estimated = 1`, `source = onboarding_estimate`, no end, no length.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-24, T-M9-27, T-M9-45
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-24, T-M9-27, T-M9-45
 
 ### I-02 — Bleeding-log → period bridge (revises D-55)
 - **Recommended:** periods created from `flow` logs are actual data: `source = bleeding_log`, `is_confirmed = 1`
@@ -268,58 +270,58 @@ before they run.
   unchanged: the newest bridge period stays open (assumed end, §2.11) until the user confirms an end (end prompt or
   period editor) or the next period starts, which closes it at its last logged bleeding day; absence of logs is never
   read as "bleeding stopped".
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-28
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-28
 
 ### I-03 — Which contraception counts as hormonal
 - **Recommended:** hormonal = `combined_pill`, `progestin_pill`, `hormonal_iud`, `injection`, `implant` (active method in
   `contraception_methods`). Not hormonal: `copper_iud`, `condom`, `other`. Onboarding `medications`:
   `contraceptive_pill` → hormonal; `iud` (type unknown) → not hormonal + a one-time prompt to pick copper/hormonal in
   contraception setup; `hormonal_medication` → not contraception, ignored by the engine.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-19, T-M9-25
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-19, T-M9-25
 
 ### I-04 — Breastfeeding source
 - **Recommended:** explicit nullable flag `postpartum_profiles.breastfeeding`, asked on the postpartum screens; not
   derived from `baby_feeds`.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-24, T-M9-25, T-M9-28
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-24, T-M9-25, T-M9-28
 
 ### I-05 — How postpartum users log returning periods
 - **Recommended:** the log sheet offers `flow` in postpartum mode from delivery + 42 days (earlier bleeding is lochia);
   the bridge then creates periods as in cycle mode. The 42-day value is a clinical-config key
   (`postpartum.flow_from_day`, advisor may change it).
-- **Owner:** user+advisor · **Status:** proposed · **Blocks:** T-M9-28
+- **Owner:** user+advisor · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-28
 
 ### I-06 — Teen menarche
 - **Recommended:** do not ask for the menarche year now; apply only "age < 18" (E-08).
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-18
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-18
 
 ### I-07 — Cervical mucus
 - **Recommended:** stays out of the engine (no §2.16–§2.34 rule reads it); only the TTC analysis uses it.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-25
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-25
 
 ### I-08 — One "normal" criterion
 - **Recommended:** `/home` health-check items and every UI text use `clinical_flags` / `cycle_regularity` (FIGO). The
   21–35 / 2–8 constants in `home/sections.go:922-1036` are removed and 21–45 is never called "normal" (§2.40).
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-34, T-M9-46
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-34, T-M9-46
 
 ### I-09 — Duplicate `user_profiles` rows
 - **Recommended:** count first (read-only; ask the user before querying beta). If duplicates exist: keep the lowest id,
   fill its NULL columns from the newest duplicate, copy every removed row into `user_profiles_dedupe_backup`, then add
   `UNIQUE(user_id)`.
 - **Alternative:** fail the migration loudly and fix by hand.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-23
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-23
 
 ### I-10 — Derived cycle values stored outside the engine
 - **Recommended:** the shop supply reminder is re-synced on every engine revision bump; the lab interpretation stores
   the phase computed for the lab's `taken_on` date (labelled with that date); `todo_suggestion_events.ref_date` stays
   as is (documented).
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-37
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-37
 
 ### I-11 — v6 phase → legacy content phase (daily messages, tips, v2 facts)
 - **Question:** v6's fertile phase lasts 6 days; legacy "ovulation" content was written for 1–2 days.
 - **Recommended:** menstrual → `menstruation`; follicular and `fertile_rising` → `follicular`; `fertile_high` and
   `ovulation_likely` → `ovulation`; luteal and period_expected → `luteal`; `is_pms_window` = `pms_possible` days
   (next − 3 .. next − 1); `unknown` → no phase content (neutral tips only).
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-38
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-38
 
 ---
 
@@ -329,33 +331,33 @@ before they run.
 - **Recommended:** new pure package `internal/cycle/engine` (no I/O, no globals, no clock, `Params` passed in, epoch-day
   integers inside, hand-written v6 enums). The v1.1 `resolver`/`view`/`legacy` stay frozen behind the rollout flag until
   T-M9-51 deletes them.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-15
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-15
 
 ### X-02 — Cache design and messaging infrastructure
 - **Recommended:** DB-authoritative per-user revision (`user_revisions.engine_rev`, bumped inside every engine-input
   write transaction, read for free in the auth query) → L1 in-process LRU of the prepared engine state + L2 Redis input
   snapshot + singleflight; ETag/304 on engine GETs. Redis + asynq stay the only infrastructure; **no RabbitMQ, NATS or
   Kafka** (one server, one API replica per environment, tens of jobs per minute — README §6).
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-24, T-M9-30, T-M9-31
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-24, T-M9-30, T-M9-31
 
 ### X-03 — Rollout
 - **Recommended:** env flag `CYCLE_ENGINE = v1 | shadow | v6` (default `v1`). Stage: `shadow` (serve v1, compute v6,
   record classified diffs) → `v6` after review. Beta: `v6` only after the user's OK, with a DB backup first. Production
   stays on Laravel (T-M2-26/27 untouched).
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-32, T-M9-48, T-M9-50
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-32, T-M9-48, T-M9-50
 
 ### X-04 — Goldens
 - **Recommended:** the 124 Laravel-recorded goldens with `cycle_view`/`main_phase` stay as v1.1 characterization and run
   with `CYCLE_ENGINE=v1` until T-M9-51. New Go-native v6 goldens over the contract personas, regenerated with `-update`,
   with anchors hand-checked against the §2.36 tables and the §2.35 example.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-22, T-M9-32, T-M9-51
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-22, T-M9-32, T-M9-51
 
 ### X-05 — Legacy payload keys
 - **Recommended:** keep `phase`, `data_status`, `predictions`, `profile_values`, `calculated_values`,
   `effective_values`, `data_quality_details`, `daily_card` and the per-day `calculation` block during M9, rebuilt from
   the v6 status (`predictions` window O−5..O, one confidence everywhere). Remove them from the Go output in T-M9-51 once
   the frontend reads only v6 fields (the frontend keeps parsing them from Laravel on production).
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-32, T-M9-51
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-32, T-M9-51
 
 ### X-06 — One definition per concept (spec, informational)
 - Fertile window = O−5..O (display window §2.19); PMS = next − 3 .. next − 1; late = §2.22 tiers; regularity = §2.27;
@@ -368,7 +370,7 @@ before they run.
   `user_profiles.timezone`, then to `Asia/Tehran`, and stores a changed zone (at most once per day). `LocalToday(c)`
   replaces `civildate.Today` on the engine path and its direct consumers in M9; the other call sites stay on Tehran and
   are listed in the task. DB timestamps stay Tehran wall-clock.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-24, T-M9-26
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-24, T-M9-26
 
 ### X-08 — Deviation ids
 - To avoid collisions with the bloom/canvas queues, Engine v6 uses reserved blocks in
@@ -404,12 +406,12 @@ before they run.
 - **Recommended:** SLOs and benchmark ceilings in README §8 are the initial targets. T-M9-08 records the real baseline,
   then locks benchmark ceilings at baseline × 1.2. CI fails on an `allocs/op` regression and warns on a `sec/op`
   regression > 20 % (shared CI runners are too noisy to fail on time).
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-08, T-M9-49
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-08, T-M9-49
 
 ### X-10 — Worker process
 - **Recommended:** the same binary gains `api worker` (asynq server + scheduler + pollers); stage and beta run it as a
   second container; the API container sets `API_RUN_WORKERS=0`. Production compose is not touched.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-12
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-12
 
 ### X-11 — Which engine numbers are clinical config
 - **Recommended:** clinically tunable values live in `clinicalconfig` (two-advisor approval): caps and late days
@@ -418,7 +420,7 @@ before they run.
   `engine.pregnancy_test {cycle_days_late 8, ttc_days_late 1}`, `engine.stale_anchor {extra_days 14}`,
   `cycle.figo.*` (existing), `cycle.teen.frequency {min 21, max 45}` (ACOG CO 651). Pure product constants
   (6 future cycles, banner order, prompt window −3..+14) are code constants in `engine.DefaultParams()`.
-- **Owner:** user · **Status:** proposed · **Blocks:** T-M9-15
+- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-15
 
 ---
 
