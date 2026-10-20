@@ -3,8 +3,9 @@
 # Deploy Ritme BETA to https://beta.ritme.app.  Run from the repo root:
 #     ./deploy-beta.sh
 #
-# A PUBLIC environment for REAL users that always ships the tip of the `stage`
-# branch (via `git archive`, like deploy-stage.sh). Same server as production
+# A PUBLIC environment for REAL users. By default it ships your WORKING TREE
+# (uncommitted edits included, like deploy.sh); `FROM_WORKTREE=0` ships the tip
+# of a branch via `git archive` instead (like deploy-stage.sh). Same server as production
 # and staging, fully separate otherwise:
 #
 #   source   /opt/ritme-beta           (stage: /opt/ritme-stage, prod: /opt/ritme)
@@ -22,6 +23,8 @@
 #   - mounts the beta vhost into production's proxy and gets a certificate
 #
 # Switches:
+#   FROM_WORKTREE=0     ./deploy-beta.sh   ship the `stage` branch, not the disk
+#   BRANCH=my-feature FROM_WORKTREE=0 ./deploy-beta.sh   ship another branch
 #   SERVICES="frontend" ./deploy-beta.sh   only these services
 #   NO_BUILD=1          ./deploy-beta.sh   restart without building
 #   SKIP_SYNC=1         ./deploy-beta.sh   don't re-ship the source
@@ -36,7 +39,7 @@ PROD_DIR="/opt/ritme"          # where the shared proxy and its config live
 STAGE_DIR="/opt/ritme-stage"   # SMS keys are copied from here on first run
 BETA_HOST="beta.ritme.app"
 ADMIN_HOST="beta-admin.ritme.app"
-BRANCH="stage"                 # beta ALWAYS ships the stage branch
+BRANCH="${BRANCH:-stage}"      # only with FROM_WORKTREE=0
 SERVICES="${SERVICES:-}"
 
 SSH_OPTS=(-i "$SSH_KEY" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=8)
@@ -45,14 +48,19 @@ PROD_COMPOSE="docker compose -f docker-compose.yml -f docker-compose.prod.yml"
 
 ssh_run() { ssh "${SSH_OPTS[@]}" "$SERVER" "$@"; }
 
-# ── 1. Ship the `stage` branch ──────────────────────────────────────────────
+# ── 1. Ship the source ──────────────────────────────────────────────────────
 if [[ "${SKIP_SYNC:-0}" != "1" ]]; then
-  git rev-parse --verify "${BRANCH}^{commit}" >/dev/null 2>&1 \
-    || { echo "!! branch '${BRANCH}' does not exist locally" >&2; exit 1; }
-  SRC="$(mktemp -d)/"
-  trap 'rm -rf "${SRC%/}"' EXIT
-  git archive "$BRANCH" | tar -x -C "$SRC"
-  echo "==> Syncing branch '${BRANCH}' ($(git rev-parse --short "$BRANCH")) to ${SERVER}:${REMOTE_DIR} ..."
+  if [[ "${FROM_WORKTREE:-1}" == "1" ]]; then
+    SRC="./"
+    echo "==> Syncing WORKING TREE ($(git rev-parse --short HEAD)$(git diff --quiet HEAD -- || echo '+dirty')) to ${SERVER}:${REMOTE_DIR} ..."
+  else
+    git rev-parse --verify "${BRANCH}^{commit}" >/dev/null 2>&1 \
+      || { echo "!! branch '${BRANCH}' does not exist locally" >&2; exit 1; }
+    SRC="$(mktemp -d)/"
+    trap 'rm -rf "${SRC%/}"' EXIT
+    git archive "$BRANCH" | tar -x -C "$SRC"
+    echo "==> Syncing branch '${BRANCH}' ($(git rev-parse --short "$BRANCH")) to ${SERVER}:${REMOTE_DIR} ..."
+  fi
 
   ssh_run "mkdir -p ${REMOTE_DIR}"
   rsync -az --delete --stats \
@@ -186,7 +194,8 @@ REMOTE
 fi
 
 # ── 5. Build and start (backend-go first: the frontend build reads its messages)
-BUILD_REV="$(git rev-parse --short "${BRANCH}")-$(date -u +%Y%m%dT%H%M%SZ)"
+if [[ "${FROM_WORKTREE:-1}" == "1" ]]; then REV="$(git rev-parse --short HEAD)-wt"; else REV="$(git rev-parse --short "${BRANCH}")"; fi
+BUILD_REV="${REV}-$(date -u +%Y%m%dT%H%M%SZ)"
 wants() { [[ -z "$SERVICES" || " $SERVICES " == *" $1 "* ]]; }
 
 if [[ "${NO_BUILD:-0}" != "1" ]]; then

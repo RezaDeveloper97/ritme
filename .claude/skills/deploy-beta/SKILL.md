@@ -1,12 +1,13 @@
 ---
 name: deploy-beta
-description: Deploy Ritme beta to https://beta.ritme.app — a PUBLIC environment for real users that always ships the `stage` branch, as a third isolated compose project (ritme-beta) on the production server. Use when the user says "/deploy-beta", "دیپلوی بتا", "بتا رو آپدیت کن".
+description: Deploy Ritme beta to https://beta.ritme.app — a PUBLIC environment for real users that ships the current working tree (uncommitted edits included), as a third isolated compose project (ritme-beta) on the production server. Use when the user says "/deploy-beta", "دیپلوی بتا", "بتا رو آپدیت کن".
 ---
 
 # Deploy Ritme beta
 
-`https://beta.ritme.app` — real users, no password gate, always the tip of the **`stage` branch**
-(commit first: the script uses `git archive stage`, uncommitted edits never ship).
+`https://beta.ritme.app` — real users, no password gate. Ships the **working tree** as it is on disk
+(uncommitted edits included); `FROM_WORKTREE=0 ./deploy-beta.sh` ships the tip of the `stage` branch instead
+(`BRANCH=x` for another branch).
 
 ```bash
 ./deploy-beta.sh                      # full
