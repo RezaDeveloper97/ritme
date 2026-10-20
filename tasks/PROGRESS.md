@@ -1068,3 +1068,6 @@ Nothing needed fixing.
   admin/seeds, set reviewer_name/reviewed_at, close both tasks.
 - Noticed: DB-seeded copy (alert texts, care prep, week tasks/warnings, checkup prep, week tips) is still
   colloquial («رو»، «می‌شه») and week tips use «شما» — outside M8's frontend-only scope; candidate follow-up.
+
+## T-M4-10 / T-M7-15 — closed (2026-10-21)
+- Closed on the user's word: staging e2e shipped, clinical review package in c45c06b8. No production work; content sign-off remains an open review item.

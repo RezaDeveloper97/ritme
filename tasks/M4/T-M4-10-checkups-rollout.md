@@ -3,7 +3,7 @@ id: T-M4-10
 title: Checkups rollout — route checkups and admin catalog to Go, content review, stage
 milestone: M4
 type: release
-status: in_progress
+status: done
 depends_on: [T-M4-02, T-M4-04, T-M4-06, T-M4-07, T-M4-09, T-M2-09]
 parallel_group: M4-D
 touches: [deploy, tasks/PROGRESS.md, docs/checkups/README.md]
@@ -30,3 +30,6 @@ Go-only feature: reachable only once nginx sends `/api/v1/checkups` (and the adm
 Copy the new frontend namespace JSON (`frontend/messages/{fa,en}/<ns>.json`) into the backend translation seed
 (`backend-go/resources/translations/<code>/`, CLAUDE.md §6.4) if that is still how admin-editable translations are
 seeded.
+
+## Closed (2026-10-21)
+Closed by the user: staging e2e is done and the clinical review package is committed (c45c06b8). Production rollout is out of scope (no prod cutover, user decision 2026-10-18); clinical sign-off stays open as a review item.

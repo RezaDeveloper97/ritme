@@ -3,7 +3,7 @@ id: T-M7-15
 title: Pregnancy v2 rollout — clinical content sign-off, route /pregnancy/v2 to Go, stage e2e
 milestone: M7
 type: release
-status: in_progress
+status: done
 depends_on: [T-M7-07, T-M7-09, T-M7-10, T-M7-11, T-M7-12, T-M7-13, T-M7-14, T-M2-09]
 parallel_group: M7-E
 touches: [deploy, tasks/PROGRESS.md, docs/pregnancy-v2/README.md]
@@ -23,3 +23,6 @@ verify: bash -c 'curl -fsS -u "$STAGE_AUTH" https://stage.ritmeapp.ir/api/v1/pre
 
 ## Acceptance
 - Sign-off recorded; e2e checklist with screenshots in PROGRESS.
+
+## Closed (2026-10-21)
+Closed by the user: staging e2e is done and the clinical review package is committed (c45c06b8). Production rollout is out of scope (no prod cutover, user decision 2026-10-18); clinical sign-off stays open as a review item.
