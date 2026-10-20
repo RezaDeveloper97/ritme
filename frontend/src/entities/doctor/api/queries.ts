@@ -78,8 +78,8 @@ export const useDoctorSlots = (id: number, mode: VisitMode | null, from: string)
 export const useDoctorReviews = (id: number, enabledFlag: boolean) =>
   useQuery({ queryKey: doctorKeys.reviews(id), queryFn: () => get(`/telemed/doctors/${id}/reviews`, reviewsPageSchema), enabled: enabled() && enabledFlag });
 
-export const useBookings = (scope: 'upcoming' | 'past' | 'all') =>
-  useQuery({ queryKey: bookingKeys.list(scope), queryFn: () => get('/telemed/bookings', bookingListSchema, { scope }), enabled: enabled() });
+export const useBookings = (scope: 'upcoming' | 'past' | 'all', enabledFlag = true) =>
+  useQuery({ queryKey: bookingKeys.list(scope), queryFn: () => get('/telemed/bookings', bookingListSchema, { scope }), enabled: enabled() && enabledFlag });
 
 export const useBooking = (id: number) =>
   useQuery({

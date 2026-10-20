@@ -63,11 +63,17 @@ export function branchStep(goal: OnboardingGoal): FlowStep {
   return 'cycle';
 }
 
-/** Where «ادامه» (or «رد کردن») leads from `step`. */
-export function nextStep(step: FlowStep, ctx: { gender?: OnboardingGender | null; goal?: OnboardingGoal | null }): FlowStep {
+/**
+ * Where «ادامه» (or «رد کردن») leads from `step`. With the companion module off (admin switch) there is no
+ * gender question: Name goes straight to Goal and the API makes the account a woman's.
+ */
+export function nextStep(
+  step: FlowStep,
+  ctx: { gender?: OnboardingGender | null; goal?: OnboardingGoal | null; companion?: boolean },
+): FlowStep {
   switch (step) {
     case 'name':
-      return 'gender';
+      return ctx.companion === false ? 'goal' : 'gender';
     case 'gender':
       return ctx.gender === 'male' ? 'partner' : 'goal';
     case 'goal':
@@ -87,13 +93,14 @@ export function nextStep(step: FlowStep, ctx: { gender?: OnboardingGender | null
  * Where the header back arrow leads — a known route, never history
  * (CLAUDE.md §4.2). Name goes back to the phone screen.
  */
-export function previousRoute(step: FlowStep, goal: OnboardingGoal | null): string {
+export function previousRoute(step: FlowStep, goal: OnboardingGoal | null, companion = true): string {
   switch (step) {
     case 'name':
       return '/signup';
     case 'gender':
       return FLOW_ROUTES.name;
     case 'goal':
+      return companion ? FLOW_ROUTES.gender : FLOW_ROUTES.name;
     case 'partner':
       return FLOW_ROUTES.gender;
     case 'cycle':

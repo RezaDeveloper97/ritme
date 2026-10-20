@@ -94,6 +94,39 @@ type OnboardingHandlers struct {
 	pq    pregstore.Querier // admin-edited copy (message_contents) of the calm pregnancy exit
 	svc   *Service
 	clock clock.Clock
+	mods  ModuleSwitches // nil = every module on
+}
+
+// ModuleSwitches is the slice of the admin module kill-switches (internal/modules) onboarding and the mode switcher
+// honour: a disabled module cannot be picked as a goal / mode, and with the companion module off there is no
+// gender question (a new account is a woman's).
+type ModuleSwitches interface {
+	Enabled(ctx context.Context, key string) bool
+}
+
+// WithModules makes the handlers honour the admin module switches.
+func (h *OnboardingHandlers) WithModules(m ModuleSwitches) *OnboardingHandlers {
+	h.mods = m
+	return h
+}
+
+func (h *OnboardingHandlers) moduleOn(ctx context.Context, key string) bool {
+	return h.mods == nil || h.mods.Enabled(ctx, key)
+}
+
+// modeModule is the admin module behind a life mode ("" = always available: cycle, pregnancy).
+func modeModule(mode string) string {
+	switch enums.LifeMode(mode) {
+	case enums.LifeModeTTC, enums.LifeModeMenopause, enums.LifeModeTeen, enums.LifeModePostpartum:
+		return mode
+	}
+	return ""
+}
+
+// moduleOff is the 422 for a choice whose module the admin switched off.
+func moduleOff(field, locale string) error {
+	return httpx.Fail(fiber.StatusUnprocessableEntity, OT("messages.validation_failed", locale),
+		"errors", jsonx.Obj(field, []string{OT("messages.module_disabled", locale)}))
 }
 
 // NewOnboardingHandlers wires the handlers on d (base = fallback clock; tests pin it per request).
@@ -115,6 +148,7 @@ type lifeState struct {
 	profile   *store.UserProfile
 	life      *store.UserLifeProfile
 	pregnancy bool
+	off       map[string]bool // admin-disabled modules (internal/modules keys)
 }
 
 func (h *OnboardingHandlers) load(ctx context.Context, userID uint64) (lifeState, error) {
@@ -140,7 +174,23 @@ func (h *OnboardingHandlers) load(ctx context.Context, userID uint64) (lifeState
 	if st.pregnancy, err = h.q.PregnancyModeActive(ctx, userID); err != nil {
 		return st, fmt.Errorf("profile: pregnancy mode: %w", err)
 	}
+	st.off = map[string]bool{}
+	for _, k := range []string{"ttc", "ivf", "menopause", "teen", "postpartum", "contraception"} {
+		if !h.moduleOn(ctx, k) {
+			st.off[k] = true
+		}
+	}
 	return st, nil
+}
+
+// shownMode is the mode the app renders: a mode whose module the admin switched off reads as cycle (the stored
+// mode is kept, so switching the module back on restores it).
+func (st lifeState) shownMode() enums.LifeMode {
+	m := st.mode()
+	if mod := modeModule(string(m)); mod != "" && st.off[mod] {
+		return enums.LifeModeCycle
+	}
+	return m
 }
 
 // lifeRow is the stored row or a fresh one (defaults) to apply a change to.
@@ -211,10 +261,10 @@ func LifeStageJSON(st lifeState) *jsonx.OrderedMap {
 	ivf, contra := false, false
 	if st.life != nil {
 		stored = nullStrAny(st.life.LifeMode)
-		ivf, contra = st.life.IvfIui, st.life.TrackContraception
+		ivf, contra = st.life.IvfIui && !st.off["ivf"], st.life.TrackContraception && !st.off["contraception"]
 	}
 	return jsonx.Obj(
-		"mode", string(st.mode()),
+		"mode", string(st.shownMode()),
 		"stored_mode", stored,
 		"ivf_iui", ivf,
 		"track_contraception", contra,
@@ -510,9 +560,15 @@ func (h *OnboardingHandlers) UpdateStep(c fiber.Ctx) error {
 		}
 	case StepGender:
 		g, _ := pickString(body, "gender")
+		if g == string(enums.GenderMale) && !h.moduleOn(ctx, "companion") {
+			return moduleOff("gender", locale)
+		}
 		l.Gender = sql.NullString{String: g, Valid: true}
 	case StepGoal:
 		g, _ := pickString(body, "goal")
+		if m := modeModule(g); m != "" && !h.moduleOn(ctx, m) {
+			return moduleOff("goal", locale)
+		}
 		mode := enums.LifeMode(g)
 		l.LifeMode = sql.NullString{String: g, Valid: true}
 		if err := h.syncLegacyGoal(ctx, u, st, mode, now); err != nil {
@@ -570,6 +626,10 @@ func (h *OnboardingHandlers) Complete(c fiber.Ctx) error {
 		return err
 	}
 	l := st.lifeRow(u.ID)
+	if !l.Gender.Valid && !h.moduleOn(ctx, "companion") {
+		// No gender question while the companion module is off: the account is a woman's.
+		l.Gender = sql.NullString{String: string(enums.GenderFemale), Valid: true}
+	}
 
 	missing := httpx.NewValidationError()
 	if !st.user.Name.Valid || strings.TrimSpace(st.user.Name.String) == "" {
@@ -656,15 +716,24 @@ func (h *OnboardingHandlers) UpdateLifeStage(c fiber.Ctx) error {
 		return httpx.Fail(fiber.StatusUnprocessableEntity, OT("messages.validation_failed", locale),
 			"errors", jsonx.Obj("mode", []string{OT("messages.companion_no_mode", locale)}))
 	} else if ok {
+		if mod := modeModule(m); mod != "" && !h.moduleOn(ctx, mod) {
+			return moduleOff("mode", locale)
+		}
 		l.LifeMode = sql.NullString{String: m, Valid: true}
 		if err := h.syncLegacyGoal(ctx, u, st, enums.LifeMode(m), now); err != nil {
 			return err
 		}
 	}
 	if b := pickBool(body, "ivf_iui"); b.Valid {
+		if b.Bool && !h.moduleOn(ctx, "ivf") {
+			return moduleOff("ivf_iui", locale)
+		}
 		l.IvfIui = b.Bool
 	}
 	if b := pickBool(body, "track_contraception"); b.Valid {
+		if b.Bool && !h.moduleOn(ctx, "contraception") {
+			return moduleOff("track_contraception", locale)
+		}
 		l.TrackContraception = b.Bool
 	}
 	if err := h.save(ctx, l, now); err != nil {

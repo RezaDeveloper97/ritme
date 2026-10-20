@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { modeAvailable } from '@/entities/app-module';
 import { RadioCardGroup, type RadioCardOption } from '@/shared/ui';
 import { OnbFrame } from '@/features/auth';
 
@@ -21,9 +22,11 @@ function GoalForm({ ctx }: { ctx: StepContext }) {
   const t = useTranslations('onboarding.flow');
   const te = useTranslations('onboarding.enums.goal');
   const save = useSaveOnboardingStep();
-  const [goal, setGoal] = useState<OnboardingGoal | null>(ctx.goal);
+  // Goals whose module the admin switched off (ttc, menopause) are not offered.
+  const goals = (Object.keys(META) as OnboardingGoal[]).filter((g) => modeAvailable(ctx.modules, g));
+  const [goal, setGoal] = useState<OnboardingGoal | null>(ctx.goal && goals.includes(ctx.goal) ? ctx.goal : null);
 
-  const options = (Object.keys(META) as OnboardingGoal[]).map((value) => ({
+  const options = goals.map((value) => ({
     value,
     title: te(value),
     description: t(`goal.desc.${value}`),

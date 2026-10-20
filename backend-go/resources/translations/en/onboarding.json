@@ -145,6 +145,7 @@
       "chronic": "Chronic conditions",
       "gyn": "Gynaecological conditions",
       "meds": "Regular medication or contraception",
+      "medsOnly": "Ongoing medication",
       "none": "None",
       "noMeds": "None",
       "disclaimer": "Ritme doesn't diagnose; this only makes predictions and content more accurate and can be deleted any time."

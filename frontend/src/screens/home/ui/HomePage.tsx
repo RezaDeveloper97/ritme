@@ -9,6 +9,7 @@ import {
   type CategoryTranslator,
   useCycleArticles,
 } from '@/entities/article';
+import { useAppModules } from '@/entities/app-module';
 import { useBannersSettled } from '@/entities/banner';
 import {
   CycleValuesCard,
@@ -575,7 +576,9 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   // "coming soon" note on top (QUESTIONS #60).
   const teen = lifeMode === 'teen';
   const postpartum = lifeMode === 'postpartum';
-  const ttcAllowed = lifeMode === null || lifeMode === 'ttc' || lifeMode === 'cycle';
+  // Admin module switches: no TTC layout while «اقدام به بارداری» is off, no parent's teen cards without «نوجوان».
+  const modules = useAppModules();
+  const ttcAllowed = modules.ttc && (lifeMode === null || lifeMode === 'ttc' || lifeMode === 'cycle');
   // Chance labels and the TTC home copy live with the fertility screens, so the
   // home and «ثبت روز» say the same word for the same level (audit #1).
   const tf = useTranslations('fertility');
@@ -1144,7 +1147,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
             {/* CB-LOSS-03b: a quiet, dismissible way back into /loss/care for 60 days after a loss. */}
             {!teen && <LossCareReturn variant="home" />}
             {/* CB-TEEN-03: a parent's read-only teen cards (nothing for everyone else). */}
-            {!teen && <LinkedTeenCards />}
+            {!teen && modules.teen && <LinkedTeenCards />}
             {!teen && <BannerSlideshow position="home_top" />}
             {/* B-N10-02: sponsored slots, targeted by mode only; never teen (the slot also refuses loss/health paths). */}
             {!teen && <AdSlot slot="ad_slider" mode={lifeMode} />}
@@ -1155,9 +1158,9 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
             <ForToday reminders={<TodayRemindersCard />} />
             <QuickAccess />
             {/* CB-COND-07b: soft condition suggestion (heavy pain / flow) — nothing unless /messages/nudges hits. */}
-            {!teen && <HomeConditionNudge />}
+            {!teen && modules.programs && <HomeConditionNudge />}
             {/* B-N8-03 (Option A): «ادامه یادگیری» / «جدید · از مدرس» — nothing without a course. */}
-            {!teen && <LearnHomeCard />}
+            {!teen && modules.learning && <LearnHomeCard />}
             {/* «ثبت امروز» + streak (nbl_Cycle_Home). The TTC home logs through its tiles. */}
             {!noPeriodData && !loadFailed && !isTtc && <TodayLogCard streakDays={overview?.streakDays ?? null} />}
             {!noPeriodData && !loadFailed && (
@@ -1185,7 +1188,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
             {!noPeriodData && !loadFailed && !teen && (
               <PmsInsightCard pms={toPrediction(pmsSlot)} basedOnCycles={overview?.cycleLength.basedOnCycles ?? null} />
             )}
-            <Articles t={t} locale={loc} />
+            {modules.home_articles && <Articles t={t} locale={loc} />}
             {!teen && <AdSlot slot="ad_square" mode={lifeMode} />}
             {!teen && <BannerSlideshow position="home_bottom" />}
             {!teen && <AdSlot slot="ad_strip" mode={lifeMode} />}

@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import {
   BodySkeleton,
   CONSENT_SCOPES,
@@ -32,6 +33,7 @@ import { Card, EmptyState, Icon, InfoNote, ListGroup, ListRow, PrimaryButton, Sc
  */
 export function DoctorBookedPage({ bookingId }: { bookingId: number }) {
   const t = useTranslations('doctors');
+  const remindersOn = useModuleEnabled('reminders');
   const locale = useLocale() as Locale;
   const router = useRouter();
   const fresh = useSearchParams().get('new') === '1';
@@ -85,7 +87,9 @@ export function DoctorBookedPage({ bookingId }: { bookingId: number }) {
       {active || b.status === 'completed' ? (
         <>
           <ListGroup>
-            <ListRow icon="calendar" iconTone="brand" title={t('booked.reminders')} onClick={() => router.push('/reminders')} />
+            {remindersOn ? (
+              <ListRow icon="calendar" iconTone="brand" title={t('booked.reminders')} onClick={() => router.push('/reminders')} />
+            ) : null}
             <ListRow icon="chat" iconTone="warm" title={t('booked.chat')} onClick={() => router.push(`/services/bookings/${b.id}/chat`)} />
           </ListGroup>
           {active && b.mode === 'video' ? (

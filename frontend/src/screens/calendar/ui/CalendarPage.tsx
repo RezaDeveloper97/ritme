@@ -4,6 +4,7 @@ import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import {
   cycleDayMarkerAt,
   deriveCycleSchedule,
@@ -133,7 +134,8 @@ export function CalendarPage() {
   // calendar (the home does the same with `hideFertility`) — and never the TTC layout.
   const navMode = useNavMode();
   const hideFertility = navMode.mode === 'teen' || navMode.mode === 'menopause';
-  const isTtc = !hideFertility && (modeQuery.data?.isTtc ?? false);
+  const ttcOn = useModuleEnabled('ttc'); // admin switch «اقدام به بارداری»
+  const isTtc = !hideFertility && ttcOn && (modeQuery.data?.isTtc ?? false);
   // Queries are gated on the token (client-only): hold the skeleton until mount so
   // the first client render matches the server HTML, and until the mode is known
   // so a TTC user never sees the cycle layout flash first.

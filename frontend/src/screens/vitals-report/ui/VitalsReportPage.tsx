@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import { useTranslations } from 'next-intl';
 import { useState, type ReactNode } from 'react';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import {
   DEFAULT_RANGE,
   ReadingRow,
@@ -72,6 +73,7 @@ function dayLabel(date: string, rangeDays: number, t: T, locale: Locale): string
 export function VitalsReportPage({ type }: { type: VitalType }) {
   const t = useTranslations('vitals');
   const router = useRouter();
+  const recordOn = useModuleEnabled('record'); // «ارسال برای پزشک» is a health-record export
   const f = useVitalFormat();
   const [range, setRange] = useState<ReportRange>(DEFAULT_RANGE[type]);
   const [filter, setFilter] = useState<GlucoseFilter>('all');
@@ -138,7 +140,11 @@ export function VitalsReportPage({ type }: { type: VitalType }) {
           subtitle={subtitle}
           onBack={() => router.push('/vitals')}
           backLabel={t('common.back')}
-          action={<HeaderButton icon="export" label={t('report.shareDoctor')} onClick={() => router.push('/record/export?section=vitals')} />}
+          action={
+            recordOn ? (
+              <HeaderButton icon="export" label={t('report.shareDoctor')} onClick={() => router.push('/record/export?section=vitals')} />
+            ) : undefined
+          }
         />
         <div className="vt-report-tabs">
           {type === 'glucose' ? (

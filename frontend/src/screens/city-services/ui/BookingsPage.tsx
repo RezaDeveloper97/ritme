@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import {
   type BookingStatus,
   type CityServiceBooking,
@@ -38,6 +39,7 @@ type Scope = 'upcoming' | 'past';
  */
 export function BookingsPage() {
   const t = useTranslations('cityServices');
+  const doctorsOn = useModuleEnabled('doctors');
   const locale = useLocale() as Locale;
   const router = useRouter();
   const [scope, setScope] = useState<Scope>('upcoming');
@@ -174,10 +176,12 @@ export function BookingsPage() {
               {error}
             </p>
           ) : null}
-          <Link href="/services/bookings" className="csv-link">
-            <Icon name="doctor" size={18} />
-            {t('bookings.doctorBookings')}
-          </Link>
+          {doctorsOn ? (
+            <Link href="/services/bookings" className="csv-link">
+              <Icon name="doctor" size={18} />
+              {t('bookings.doctorBookings')}
+            </Link>
+          ) : null}
         </div>
         <div className="page-tail" />
       </div>

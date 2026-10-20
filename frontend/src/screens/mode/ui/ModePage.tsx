@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { useTranslations } from 'next-intl';
 import { useId, useRef, useState, type KeyboardEvent } from 'react';
 
+import { modeAvailable, useAppModules } from '@/entities/app-module';
 import { useStopContraception } from '@/entities/contraception';
 import { LossCareReturn } from '@/entities/loss';
 import { useDeactivatePregnancy } from '@/entities/pregnancy';
@@ -116,8 +117,11 @@ function ModeBody({ stage }: { stage: LifeStage }) {
   const [savedMode, setSavedMode] = useState<LifeMode | null>(null);
 
   const current = stage.mode;
+  // Modes / switches whose module the admin turned off are not offered (the API maps such a stored mode to cycle).
+  const modules = useAppModules();
+  const cards = MODE_CARDS.filter((c) => modeAvailable(modules, c.key));
   const busy = update.isPending || deactivate.isPending;
-  const checkedIndex = Math.max(0, MODE_CARDS.findIndex((c) => c.key === current));
+  const checkedIndex = Math.max(0, cards.findIndex((c) => c.key === current));
 
   // A mode reshapes the whole app (nav, home, messages, TTC layout): refetch everything.
   const afterModeChange = (mode: LifeMode) => {
@@ -159,7 +163,7 @@ function ModeBody({ stage }: { stage: LifeStage }) {
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
-    const next = radioStep(event.key, index, MODE_CARDS.length, rtl);
+    const next = radioStep(event.key, index, cards.length, rtl);
     if (next === null) return;
     event.preventDefault();
     refs.current[next]?.focus();
@@ -198,7 +202,7 @@ function ModeBody({ stage }: { stage: LifeStage }) {
       </p>
 
       <div role="radiogroup" aria-label={t('title')} aria-busy={busy || undefined} className="mode-list">
-        {MODE_CARDS.map((card, index) => (
+        {cards.map((card, index) => (
           <ModeCard
             key={card.key}
             card={card}
@@ -212,7 +216,7 @@ function ModeBody({ stage }: { stage: LifeStage }) {
             onSelect={() => choose(card.key)}
             onKeyDown={(event) => onKeyDown(event, index)}
           >
-            {card.key === 'ttc' ? (
+            {card.key === 'ttc' && modules.ivf ? (
               <div className="mode-sub">
                 <span id={`${groupId}-ivf`} className="mode-sub-label">
                   {t('ivf')}
@@ -240,30 +244,32 @@ function ModeBody({ stage }: { stage: LifeStage }) {
       {/* CB-LOSS-03b: the quiet way back into «مراقبت از خودت» while a recent loss exists. */}
       <LossCareReturn variant="row" />
 
-      <div className="mode-contra">
-        <ListRow
-          id={`${groupId}-contra`}
-          title={t('contraception.title')}
-          description={t('contraception.desc')}
-          trailing={
-            <Switch
-              checked={stage.trackContraception}
-              disabled={stopContraception.isPending}
-              onCheckedChange={toggleContraception}
-              labelledBy={`${groupId}-contra-title`}
-            />
-          }
-        />
-        {stage.trackContraception ? (
+      {modules.contraception ? (
+        <div className="mode-contra">
           <ListRow
-            icon="pill"
-            iconTone="brand"
-            title={tc('manage')}
-            description={tc('manageDesc')}
-            onClick={() => router.push('/contraception')}
+            id={`${groupId}-contra`}
+            title={t('contraception.title')}
+            description={t('contraception.desc')}
+            trailing={
+              <Switch
+                checked={stage.trackContraception}
+                disabled={stopContraception.isPending}
+                onCheckedChange={toggleContraception}
+                labelledBy={`${groupId}-contra-title`}
+              />
+            }
           />
-        ) : null}
-      </div>
+          {stage.trackContraception ? (
+            <ListRow
+              icon="pill"
+              iconTone="brand"
+              title={tc('manage')}
+              description={tc('manageDesc')}
+              onClick={() => router.push('/contraception')}
+            />
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="mode-note">
         <Icon name="info" size={17} />

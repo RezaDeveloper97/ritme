@@ -20,8 +20,8 @@ export async function fetchTodoBoard(): Promise<TodoBoard> {
 }
 
 /** GET /todo — today / tomorrow / later, the recently done and the cycle suggestion. */
-export function useTodoBoard() {
-  return useQuery({ queryKey: todoKeys.board(), queryFn: fetchTodoBoard, enabled: isAuthenticated(), staleTime: 30_000, retry: 1 });
+export function useTodoBoard(enabled = true) {
+  return useQuery({ queryKey: todoKeys.board(), queryFn: fetchTodoBoard, enabled: enabled && isAuthenticated(), staleTime: 30_000, retry: 1 });
 }
 
 export async function fetchTodoTask(id: number): Promise<TodoTaskDetail> {

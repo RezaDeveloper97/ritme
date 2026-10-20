@@ -178,7 +178,7 @@ func capabilityOf(path string) string {
 	case "pregnancy-weeks", "pregnancy-week-details", "pregnancy-care-items", "pregnancy-alert-rules",
 		"checkup-types", "catalog", "children", "assistant", "safety":
 		return CapClinical
-	case "ai", "clinical-config":
+	case "ai", "clinical-config", "modules":
 		return CapConfig
 	case "articles", "affirmations", "banners", "info-sections", "phase-contents", "recommendations",
 		"task-templates", "companions", "uploads", "media", "city-services":

@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import {
   ClassPill,
   ReadingRow,
@@ -33,6 +34,7 @@ import { PlanEditorSheet } from './PlanEditorSheet';
  */
 export function VitalsHubPage() {
   const t = useTranslations('vitals');
+  const recordOn = useModuleEnabled('record'); // admin switch «پرونده سلامت»
   const locale = useLocale() as Locale;
   const hub = useVitalsHub();
   const [planOpen, setPlanOpen] = useState(false);
@@ -87,9 +89,11 @@ export function VitalsHubPage() {
           date={formatWeekdayDayMonth(today(), locale)}
           greeting={t('hub.title')}
           actions={
-            <Link href="/record" className="nb-hbtn is-soft" aria-label={t('hub.record')}>
-              <Icon name="note" size={20} strokeWidth={1.8} />
-            </Link>
+            recordOn ? (
+              <Link href="/record" className="nb-hbtn is-soft" aria-label={t('hub.record')}>
+                <Icon name="note" size={20} strokeWidth={1.8} />
+              </Link>
+            ) : undefined
           }
         />
         {body}

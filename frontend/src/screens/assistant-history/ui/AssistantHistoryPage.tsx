@@ -14,6 +14,7 @@ import {
   useDeleteConversations,
   type Conversation,
 } from '@/entities/assistant';
+import { useModuleEnabled } from '@/entities/app-module';
 import { DoctorAvatar, useBookings, useDoctorTitle, useModeLabel, whenLabel } from '@/entities/doctor';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { Card, EmptyState, HeaderButton, Icon, PrimaryButton, ScreenHeader, SecondaryButton, SegmentedTabs, SkyLayer, StatusPill } from '@/shared/ui';
@@ -34,15 +35,17 @@ export function AssistantHistoryPage() {
   const errText = useAssistantError();
   const list = useConversations();
   const profile = useAssistantProfile();
-  const bookings = useBookings('all');
+  // «پزشک و ماما» switched off: no visits in the feed and no «پزشک» tab.
+  const doctorsOn = useModuleEnabled('doctors');
+  const bookings = useBookings('all', doctorsOn);
   const locale = useLocale() as Locale;
   const doctorTitle = useDoctorTitle();
   const modeLabel = useModeLabel();
   const [tab, setTab] = useState<HistoryTab>('all');
   const del = useDeleteConversations();
   const feed = useMemo(
-    () => buildFeed(list.data?.conversations ?? [], bookings.data?.items ?? [], tab),
-    [list.data, bookings.data, tab],
+    () => buildFeed(list.data?.conversations ?? [], doctorsOn ? (bookings.data?.items ?? []) : [], tab),
+    [list.data, bookings.data, tab, doctorsOn],
   );
   const pdf = useHistoryPdf(feed);
   const [confirm, setConfirm] = useState<number | 'all' | null>(null);
@@ -65,7 +68,7 @@ export function AssistantHistoryPage() {
     body = (
       <div className="as-body">
         <SegmentedTabs
-          tabs={HISTORY_TABS.map((k) => ({ value: k, label: t(`history.tabs.${k}`) }))}
+          tabs={HISTORY_TABS.filter((k) => doctorsOn || k !== 'doctor').map((k) => ({ value: k, label: t(`history.tabs.${k}`) }))}
           value={tab}
           onChange={setTab}
           label={t('history.tabsLabel')}

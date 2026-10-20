@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import { useChildren } from '@/entities/child';
 import { useDirection, useRouter } from '@/shared/i18n';
 import { openSheet } from '@/shared/sheet';
@@ -22,8 +23,10 @@ export function LogLater({ childRow = true }: { childRow?: boolean }) {
   const t = useTranslations('nav.later');
   const router = useRouter();
   const rtl = useDirection() === 'rtl';
-  const kids = useChildren({ enabled: childRow });
-  const child = childRow ? kids.data?.children.find((c) => c.role === 'owner') : undefined;
+  const childrenOn = useModuleEnabled('children'); // admin switch «کودک»
+  const withChild = childRow && childrenOn;
+  const kids = useChildren({ enabled: withChild });
+  const child = withChild ? kids.data?.children.find((c) => c.role === 'owner') : undefined;
 
   // Navigating closes every open sheet (shared/sheet closeSheetOnRouteChange) — no closeSheet() race with history.back().
   const go = (href: string) => router.push(href);

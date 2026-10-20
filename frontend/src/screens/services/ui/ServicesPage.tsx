@@ -3,6 +3,7 @@
 import { Fragment } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 
+import { type AppModule, moduleOfRoute, useAppModules } from '@/entities/app-module';
 import { iaOrderedSections, type ServiceSection, type ServicesHub, useServicesHub } from '@/entities/service-hub';
 import { type Locale } from '@/shared/i18n';
 import { openSheet } from '@/shared/sheet';
@@ -99,8 +100,33 @@ function hasContent(section: ServiceSection, hub: ServicesHub): boolean {
   }
 }
 
-function HubSections({ hub }: { hub: ServicesHub }) {
+/** «خدمات» sections that an admin module switch hides as a whole. */
+const SECTION_MODULE: Partial<Record<string, AppModule>> = {
+  programs: 'programs',
+  mother_child: 'mother_child',
+  learning: 'learning',
+  shop: 'shop',
+};
+
+function HubSections({ hub: raw }: { hub: ServicesHub }) {
   const t = useTranslations('services');
+  // Care tiles / program cards into a module the admin switched off are dropped (the API would answer 403).
+  const modules = useAppModules();
+  const on = (href: string | null) => {
+    const owner = href ? moduleOfRoute(href) : null;
+    return !owner || modules[owner];
+  };
+  // Whole sections that are an admin module of their own.
+  const sectionOn = (code: string) => {
+    const owner = SECTION_MODULE[code];
+    return !owner || modules[owner];
+  };
+  const hub = {
+    ...raw,
+    sections: raw.sections.filter((x) => sectionOn(x.code)),
+    care: raw.care.filter((x) => on(x.href)),
+    programs: raw.programs.filter((x) => on(x.href)),
+  };
   const locale = useLocale() as Locale;
   const empty = !hub.sections.some((s) => hasContent(s, hub));
 

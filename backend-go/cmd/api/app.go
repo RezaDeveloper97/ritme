@@ -9,6 +9,7 @@ import (
 	fiberrecover "github.com/gofiber/fiber/v3/middleware/recover"
 
 	apihttp "github.com/ritme/backend-go/internal/http"
+	"github.com/ritme/backend-go/internal/modules"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 )
@@ -44,6 +45,11 @@ func newApp(reg *apihttp.Registry, deps *apihttp.Deps) *fiber.App {
 	// Per-request frozen clock (X-Test-Now), same gate as Laravel's TestClock.
 	app.Use(clock.Middleware(clock.Real{}, clock.TestClockEnabledFromEnv()))
 	app.Use(corsMiddleware(deps.Config.CORS.AllowedOrigins))
+
+	// Admin kill-switches (app_modules): a disabled module's routes answer 403 module_disabled before any domain.
+	if deps.DB != nil {
+		app.Use(modules.Gate(modules.NewService(deps.DB, deps.Cache, deps.Logger)))
+	}
 
 	reg.Mount(app, deps)
 	return app

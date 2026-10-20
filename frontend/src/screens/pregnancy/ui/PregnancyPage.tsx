@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import {
   type DueCard,
   type NextVisit,
@@ -316,6 +317,8 @@ function Loading({ t }: { t: T }) {
 /** «بارداری» today — `/pregnancy` (PregFull_Main + v13_Preg_Home reminders block). */
 export function PregnancyPage() {
   const t = useTranslations('pregnancyV2');
+  // «زایمان کردم» leads into postpartum: no card while the admin switched that module off.
+  const postpartumOn = useModuleEnabled('postpartum');
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const query = usePregnancyToday();
@@ -386,7 +389,7 @@ export function PregnancyPage() {
       <QuickAccess />
       {data.tip && <TipCard tip={data.tip} week={data.progress.week} t={t} />}
       <PregnancyCareChecklist week={data.progress.week} tasks={data.tasks} />
-      {data.progress.week >= DELIVERED_FROM_WEEK && <DeliveredCard t={t} />}
+      {postpartumOn && data.progress.week >= DELIVERED_FROM_WEEK && <DeliveredCard t={t} />}
     </Shell>
   );
 }

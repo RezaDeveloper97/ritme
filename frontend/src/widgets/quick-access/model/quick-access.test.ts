@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { ALL_MODULES_ON } from '@/entities/app-module';
+
 import { availableShortcuts, QUICK_ACCESS_MAX, visibleShortcuts } from './shortcuts';
 import { QUICK_ACCESS_KEY, readQuickAccess, useQuickAccessStore, writeQuickAccess } from './store';
 
@@ -84,5 +86,12 @@ describe('quick access storage', () => {
     useQuickAccessStore.getState().save('1', null);
     expect(mem.has(QUICK_ACCESS_KEY)).toBe(false);
     expect(useQuickAccessStore.getState().ids).toBeNull();
+  });
+
+  it('hides shortcuts into a module the admin switched off', () => {
+    const off = { ...ALL_MODULES_ON, children: false, contraception: false };
+    expect(ids(availableShortcuts('cycle', false, off))).not.toContain('children');
+    expect(ids(availableShortcuts('cycle', false, off))).not.toContain('contraception');
+    expect(ids(visibleShortcuts('postpartum', null, false, off))).not.toContain('children');
   });
 });

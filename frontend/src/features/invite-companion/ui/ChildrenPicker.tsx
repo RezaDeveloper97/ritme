@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import { type Child, ChildAvatar, useChildren } from '@/entities/child';
 import { Link } from '@/shared/i18n';
 import { Icon, PrimaryButton, Skeleton, SkeletonGroup } from '@/shared/ui';
@@ -27,7 +28,12 @@ export function ownChildren(children: readonly Child[]): Child[] {
  * the owner registered (`GET /children`), for the spouse wizard (`child_ids`
  * on create) and the companion detail editor (PUT /companions/{id}/children).
  */
-export function ChildrenPicker({ value, onChange, disabled, showAdd = true }: ChildrenPickerProps) {
+export function ChildrenPicker(props: ChildrenPickerProps) {
+  // No children to share while the admin switched the «کودک» module off.
+  return useModuleEnabled('children') ? <ChildrenPickerList {...props} /> : null;
+}
+
+function ChildrenPickerList({ value, onChange, disabled, showAdd = true }: ChildrenPickerProps) {
   const t = useTranslations('companions.flow.children');
   const query = useChildren();
 

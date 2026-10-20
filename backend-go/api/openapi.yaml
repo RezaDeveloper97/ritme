@@ -22,6 +22,7 @@ info:
     **Auth.** Passport-compatible RS256 Bearer tokens, 365-day lifetime; see `POST /api/v1/auth/refresh-session`.
 servers: [{url: /, description: Same origin}]
 tags:
+  - {name: Modules, description: "Admin kill-switches for whole app modules (app_modules). A disabled module is hidden from onboarding and the app, and its routes answer 403 error_code=module_disabled"}
   - {name: Insurance, description: "Insurance self-tracking (Go only, CB-INS-01): policy, coverage caps, claims with a timeline she maintains, questionnaire drafts prefilled from her record. Nothing is sent to an insurer"}
   - {name: Shop, description: "Shop catalog (B-N10-03): admin-managed categories and link-out products, per-day click counter, no health data"}
   - {name: CityServices, description: "City services (Go only, B-N10-05, D-92): admin-managed classes / pools / playhouses per city, link-out / phone / request booking, the user's own requests. No health data goes to venues"}
@@ -9696,6 +9697,47 @@ paths:
                     - {id: 20, key: summary, heading: "In 3 lines", body: "We never sell your health data or use it for advertising\nSharing with a doctor, a companion or AI happens only with your explicit consent\nYou can download or delete your data at any time", link_label: null, link_url: null}
                     - {id: 6, key: commitment, heading: "Our commitment to you", body: "Ritme is built to hold some of your most personal health information…", link_label: null, link_url: null}
         '404': {$ref: "#/components/responses/ModelNotFound"}
+  /api/v1/modules:
+    get:
+      tags: [Modules]
+      summary: Which app modules are switched on
+      description: "Admin module switches (companion, ttc, ivf, menopause, teen, postpartum, children, contraception, programs, mother_child, learning, my_courses, shop, insurance, record, devices, doctors, todo, reminders, home_articles). false = hide the module from onboarding and the app; its API routes answer 403 with error_code module_disabled. Public, cacheable 60 s."
+      operationId: getModules
+      security: []
+      responses:
+        '200':
+          description: Module switches
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [companion, ttc, ivf, menopause, teen, postpartum, children, contraception, programs, mother_child, learning, my_courses, shop, insurance, record, devices, doctors, todo, reminders, home_articles]
+                    properties:
+                      companion: {type: boolean}
+                      ttc: {type: boolean}
+                      ivf: {type: boolean}
+                      menopause: {type: boolean}
+                      teen: {type: boolean}
+                      postpartum: {type: boolean}
+                      children: {type: boolean}
+                      contraception: {type: boolean}
+                      programs: {type: boolean}
+                      mother_child: {type: boolean}
+                      learning: {type: boolean}
+                      my_courses: {type: boolean}
+                      shop: {type: boolean}
+                      insurance: {type: boolean}
+                      record: {type: boolean}
+                      devices: {type: boolean}
+                      doctors: {type: boolean}
+                      todo: {type: boolean}
+                      reminders: {type: boolean}
+                      home_articles: {type: boolean}
   /api/v1/languages:
     get:
       tags: [Languages]

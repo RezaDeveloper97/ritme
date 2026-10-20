@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 
+import { useAppModules } from '@/entities/app-module';
 import { companionName, useCompanions } from '@/entities/companion';
 import { useUserMode } from '@/entities/message';
 import { usePlusStatus } from '@/entities/plus';
@@ -75,7 +76,9 @@ export function ProfilePage() {
   // CB-TEEN-04b: a teen's row opens /teen/parent, so it names her parent link — never a partner link
   // from before teen mode (dormant while she is a teen); the partner list waits until the mode is known.
   const teen = navMode === 'teen';
-  const { data: companions } = useCompanions(!navState.pending && navMode !== 'companion' && !teen);
+  // Admin module switches: the companions / children rows go with their module.
+  const modules = useAppModules();
+  const { data: companions } = useCompanions(!navState.pending && navMode !== 'companion' && !teen && modules.companion);
   const { data: teenToday } = useTeenToday(teen);
   const parentLink = teen ? primaryParentLink(teenToday?.parentLinks ?? []) : null;
   const companionNames = teen
@@ -169,13 +172,15 @@ export function ProfilePage() {
             {/* B-N4-05: a companion has no life stage to switch (PUT /profile/life-stage → 422);
                 his row is «کد همدم» — link another partner or leave a link. */}
             {navMode === 'companion' ? (
-              <ListRow
-                icon="users"
-                iconTone="brand"
-                title={t('rows.companionCode')}
-                description={t('rows.companionCodeSub')}
-                onClick={() => router.push('/companion/links')}
-              />
+              modules.companion ? (
+                <ListRow
+                  icon="users"
+                  iconTone="brand"
+                  title={t('rows.companionCode')}
+                  description={t('rows.companionCodeSub')}
+                  onClick={() => router.push('/companion/links')}
+                />
+              ) : null
             ) : (
               <ListRow
                 icon="modeRing"
@@ -185,7 +190,7 @@ export function ProfilePage() {
                 onClick={() => router.push('/profile/mode')}
               />
             )}
-            {navMode !== 'companion' ? (
+            {navMode !== 'companion' && (teen ? modules.teen : modules.companion) ? (
               <ListRow
                 icon="users"
                 iconTone="brand"
@@ -201,7 +206,7 @@ export function ProfilePage() {
               ? FAMILY_SOON.map((row) => (
                   <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
                 ))
-              : teen
+              : teen || !modules.children
                 ? null
                 : FAMILY_SOON.map((row) => (
                     <ListRow
@@ -221,15 +226,25 @@ export function ProfilePage() {
             <SectionTitle id="me-g-tasks" title={t('groups.tasks')} />
             <ListGroup>
               {/* B-N6-08: «کارهای من» → /todo. */}
-              <ListRow icon="todo" iconTone="brand" title={t('rows.todo')} onClick={() => router.push('/todo')} />
+              {modules.todo ? (
+                <ListRow icon="todo" iconTone="brand" title={t('rows.todo')} onClick={() => router.push('/todo')} />
+              ) : null}
               {/* B-N8-03: «دوره‌های من» → /learn. */}
-              <ListRow icon="gradCap" iconTone="bloom" title={t('rows.courses')} onClick={() => router.push('/learn')} />
+              {modules.learning && modules.my_courses ? (
+                <ListRow icon="gradCap" iconTone="bloom" title={t('rows.courses')} onClick={() => router.push('/learn')} />
+              ) : null}
               {/* B-N8-04: «دانلودها» → /learn/downloads (offline lessons). */}
-              <ListRow icon="download" iconTone="data" title={t('rows.downloads')} onClick={() => router.push('/learn/downloads')} />
+              {modules.learning ? (
+                <ListRow icon="download" iconTone="data" title={t('rows.downloads')} onClick={() => router.push('/learn/downloads')} />
+              ) : null}
               {/* B-N10-05: «رزروها» → /profile/bookings (my city-service requests; CB-DIR-09 supersedes later). */}
-              <ListRow icon="calendar" iconTone="data" title={t('rows.bookings')} onClick={() => router.push('/profile/bookings')} />
+              {modules.mother_child ? (
+                <ListRow icon="calendar" iconTone="data" title={t('rows.bookings')} onClick={() => router.push('/profile/bookings')} />
+              ) : null}
               {/* CB-SHOP-08: «سفارش‌ها» → /profile/orders (internal COD shop; supersedes the B-N10-03 partner row). */}
-              <ListRow icon="box" iconTone="brand" title={t('rows.orders')} onClick={() => router.push('/profile/orders')} />
+              {modules.shop ? (
+                <ListRow icon="box" iconTone="brand" title={t('rows.orders')} onClick={() => router.push('/profile/orders')} />
+              ) : null}
               {TASK_ROWS.map((row) => (
                 <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
               ))}
@@ -261,7 +276,7 @@ export function ProfilePage() {
               />
             ) : null}
             {/* B-N6-03: «پرونده سلامت من» (owner-only; a companion account has no record). */}
-            {navMode !== 'companion' ? (
+            {navMode !== 'companion' && modules.record ? (
               <ListRow
                 icon="fileDoc"
                 iconTone="brand"
@@ -271,13 +286,15 @@ export function ProfilePage() {
               />
             ) : null}
             {/* B-N10-07: honest «soon» devices screen (the web cannot pair watches). */}
-            <ListRow
-              icon="watch"
-              iconTone="data"
-              title={t('rows.devices')}
-              description={t('rows.devicesSub')}
-              onClick={() => router.push('/profile/devices')}
-            />
+            {modules.devices ? (
+              <ListRow
+                icon="watch"
+                iconTone="data"
+                title={t('rows.devices')}
+                description={t('rows.devicesSub')}
+                onClick={() => router.push('/profile/devices')}
+              />
+            ) : null}
             {/* B-N10-07: last server sync + manual export (JSON/PDF/doctor report). */}
             <ListRow
               icon="download"

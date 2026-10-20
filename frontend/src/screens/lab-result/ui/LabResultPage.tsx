@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState, type ReactNode } from 'react';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import { isBusy, type Lab, splitMarkers, useDeleteLab, useLab, useLabFeedback } from '@/entities/lab';
 import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
@@ -72,6 +73,7 @@ export function LabResultPage({ id }: { id: number }) {
   const t = useTranslations('labs');
   const locale = useLocale() as Locale;
   const router = useRouter();
+  const recordOn = useModuleEnabled('record'); // «ارسال برای پزشک» is a health-record export
   const mounted = useMounted();
   const valid = Number.isFinite(id) && id > 0;
   const lab = useLab(valid ? id : null);
@@ -98,7 +100,7 @@ export function LabResultPage({ id }: { id: number }) {
       onBack={() => router.push('/labs')}
       backLabel={t('common.back')}
       action={
-        lab.data?.status === 'ready' ? (
+        lab.data?.status === 'ready' && recordOn ? (
           <HeaderButton icon="export" label={t('result.shareDoctor')} onClick={() => router.push('/record/export?section=checkups')} />
         ) : undefined
       }

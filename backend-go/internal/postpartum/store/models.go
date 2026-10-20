@@ -97,6 +97,14 @@ type AnalyticsEvent struct {
 	CreatedAt  sql.NullTime
 }
 
+type AppModule struct {
+	ID        uint64
+	Key       string
+	Enabled   bool
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
 type Article struct {
 	ID              uint64
 	Slug            string

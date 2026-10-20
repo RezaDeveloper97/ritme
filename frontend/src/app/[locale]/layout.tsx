@@ -22,6 +22,7 @@ import { SessionGuard } from '@/shared/session';
 import { ThemeApplier, themeInitScript } from '@/shared/theme';
 
 import '../globals.css';
+import { ModuleRouteGate } from '../ModuleRouteGate';
 import { SHELL_NAMESPACES } from '../message-scopes';
 import { AppProviders } from '../providers';
 import { SheetHost } from '../sheets/SheetHost';
@@ -179,7 +180,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
                 {/* B-N1-12: while the app lock is closed neither the screen
                     nor any sheet renders — whatever the route or history. */}
                 <AppLockGate>
-                  {children}
+                  <ModuleRouteGate>{children}</ModuleRouteGate>
                   {/* Mounted beside the screen, not inside it: every secondary
                       screen is a sheet over whatever is showing, and it has to
                       outlive the screen that opened it (see app/sheets). */}

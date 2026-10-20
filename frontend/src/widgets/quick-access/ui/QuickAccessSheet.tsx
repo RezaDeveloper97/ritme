@@ -36,7 +36,7 @@ function Editor() {
   const [picked, setPicked] = useState<string[]>(() => qa.visible.map((s) => s.id));
   if (!qa.mode || !qa.owner) return null;
   const owner = qa.owner;
-  const options = availableShortcuts(qa.mode, qa.parentLinked);
+  const options = availableShortcuts(qa.mode, qa.parentLinked, qa.modules);
   const full = picked.length >= QUICK_ACCESS_MAX;
 
   const toggle = (id: string, on: boolean) =>

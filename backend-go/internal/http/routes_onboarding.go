@@ -6,6 +6,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/modules"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/profile"
 )
@@ -17,7 +18,7 @@ func init() {
 	Register("onboarding", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
-		h := profile.NewOnboardingHandlers(d.DB, clock.Real{})
+		h := profile.NewOnboardingHandlers(d.DB, clock.Real{}).WithModules(modules.NewService(d.DB, d.Cache, d.Logger))
 		writes := writeThrottle(d)
 
 		r.Get("/api/v1/onboarding", locale, guard, h.Show)

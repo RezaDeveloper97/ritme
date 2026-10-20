@@ -71,5 +71,10 @@
     },
     "separator": ", ",
     "callGeneric": "Call"
+  },
+  "moduleOff": {
+    "title": "This section isn’t available",
+    "body": "This part of Ritme is switched off for now.",
+    "home": "Back to home"
   }
 }

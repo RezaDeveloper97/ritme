@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 import { type ReactNode, useId, useState } from 'react';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import {
   type HealthRecord,
   type PregnancyEntry,
@@ -120,6 +121,7 @@ function RecordContent({ record, onSheet }: { record: HealthRecord; onSheet: (s:
   const t = useTranslations('healthRecord');
   const loc = useLocale() as Locale;
   const router = useRouter();
+  const remindersOn = useModuleEnabled('reminders');
   const r = record;
   const p = r.person;
 
@@ -145,7 +147,7 @@ function RecordContent({ record, onSheet }: { record: HealthRecord; onSheet: (s:
 
       <BasicsCard record={r} onEdit={() => onSheet('basics')} />
       <ConditionsCard record={r} onEdit={() => onSheet('conditions')} />
-      <MedicationsCard record={r} onManage={() => router.push('/reminders')} />
+      <MedicationsCard record={r} onManage={remindersOn ? () => router.push('/reminders') : undefined} />
       <AllergiesCard record={r} onEdit={() => onSheet('allergies')} />
       <CycleCard record={r} />
       <VitalsCard record={r} onOpen={() => router.push('/vitals')} />
@@ -331,7 +333,7 @@ const isChronic = (c: string): c is (typeof CHRONIC)[number] => (CHRONIC as read
 const isGyn = (c: string): c is (typeof GYN)[number] => (GYN as readonly string[]).includes(c);
 const isProfileMed = (c: string): c is (typeof PROFILE_MEDS)[number] => (PROFILE_MEDS as readonly string[]).includes(c);
 
-function MedicationsCard({ record, onManage }: { record: HealthRecord; onManage: () => void }) {
+function MedicationsCard({ record, onManage }: { record: HealthRecord; onManage?: () => void }) {
   const t = useTranslations('healthRecord');
   const loc = useLocale() as Locale;
   const m = record.medications.data;

@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import {
   BodySkeleton,
   EmergencyCard,
@@ -28,6 +29,7 @@ export function AssistantSummaryPage({ id }: { id: number }) {
   const router = useRouter();
   const when = useWhen();
   const errText = useAssistantError();
+  const doctorsOn = useModuleEnabled('doctors');
   const q = useConversation(id);
   const prepare = usePrepareSummary(id);
   const tried = useRef(false);
@@ -91,11 +93,13 @@ export function AssistantSummaryPage({ id }: { id: number }) {
           ) : null}
         </Card>
         {!page.summary.up_to_date ? <InfoNote icon="info">{t('summary.stale')}</InfoNote> : null}
-        <Card className="as-handoff-cta">
-          <h3 className="as-h3">{t('summary.connect')}</h3>
-          <p className="as-text">{t('summary.consentNote')}</p>
-          <PrimaryButton block icon="stetho" onClick={() => router.push(`/assistant/chat/${id}/handoff`)}>{t('summary.send')}</PrimaryButton>
-        </Card>
+        {doctorsOn ? (
+          <Card className="as-handoff-cta">
+            <h3 className="as-h3">{t('summary.connect')}</h3>
+            <p className="as-text">{t('summary.consentNote')}</p>
+            <PrimaryButton block icon="stetho" onClick={() => router.push(`/assistant/chat/${id}/handoff`)}>{t('summary.send')}</PrimaryButton>
+          </Card>
+        ) : null}
         <SecondaryButton block onClick={() => router.push(`/assistant/chat/${id}`)}>{t('summary.backToChat')}</SecondaryButton>
         <InfoNote icon="shield">{t('summary.footnote')}</InfoNote>
       </div>

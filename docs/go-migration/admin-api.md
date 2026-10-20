@@ -965,3 +965,29 @@ Capability `content`. Admin data only: no user policy, claim or questionnaire is
 | DELETE | `/insurance/centres/:id` | claims keep the centre name |
 
 Every write is audited (`insurance_insurer.save|delete`, `insurance_centre.save|delete`).
+
+## 28. App modules — «ماژول‌های اپ» (kill-switches)
+
+Table `app_modules` (goose 00094 + Laravel twin), one row per key: `companion`, `ttc`, `ivf`, `menopause`, `teen`,
+`postpartum`, `children`, `contraception`, `programs`, `mother_child`, `learning`, `my_courses`, `shop`, `insurance`,
+`record`, `devices`, `doctors`, `todo`, `reminders`, `home_articles` (all seeded on; a missing row = on). `my_courses`
+and `devices` are UI-only (a «من» row each); `reminders` (the «یادآورها» hub + the «یادآورهای امروز» card) and
+`home_articles` (home's «بر اساس سیکل فعلی‌ات» strip) are UI-only too — `/care` stays open because pregnancy visits,
+IVF, checkups and the log sheet book through it. `doctors` gates `/telemed`, `todo` gates `/todo`. The
+gate keeps `/health-record/emergency-card*` open with `record` off (safety). Capability `config` (view / manage).
+Package `internal/modules`; the switches are cached 60 s in Redis and cleared on every write.
+
+| Method | Path | Body / response |
+| --- | --- | --- |
+| GET | `/modules` | → `{modules: {key: bool}, keys: [...]}` |
+| PUT | `/modules` | partial `{companion?: bool, …}` → same shape; each change audited (`modules.update`, attr `module`, `enabled`) |
+
+Effects of an off module:
+
+- **Public** `GET /api/v1/modules` → `{key: bool}` (no auth; the onboarding reads it).
+- **Gate** (`modules.Gate`, installed in `cmd/api` before every domain): the module's `/api/v1` routes answer
+  403 `{error_code: "module_disabled", module}` — never 401.
+- **Onboarding / life stage:** `gender=male` (companion off), `goal` / `mode` ∈ ttc|menopause|teen|postpartum and
+  `ivf_iui=true` / `track_contraception=true` are 422. With companion off, `POST /onboarding/complete` stores a missing
+  gender as `female` (the frontend skips the gender screen). `GET /profile/life-stage` reports an off stored mode as
+  `cycle` and an off IVF / contraception switch as `false`; the stored values stay and come back when the module is on.

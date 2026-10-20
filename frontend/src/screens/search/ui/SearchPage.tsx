@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
+import { type AppModules, moduleOfRoute, useAppModules } from '@/entities/app-module';
 import { useCurrentUser } from '@/entities/user';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
@@ -53,10 +54,13 @@ interface ShownGroup {
   total: number;
 }
 
-function shownGroups(groups: readonly SearchGroup[]): ShownGroup[] {
+function shownGroups(groups: readonly SearchGroup[], modules: AppModules): ShownGroup[] {
   return groups.flatMap((group) => {
     const hits = group.items.flatMap((hit): ShownHit[] => {
       const target = searchTarget(hit.route);
+      // A hit inside a module the admin switched off is hidden like a screen that doesn't exist.
+      const area = target?.kind === 'route' ? moduleOfRoute(target.href) : null;
+      if (area && !modules[area]) return [];
       return target ? [{ hit, target }] : [];
     });
     if (hits.length === 0) return [];
@@ -86,7 +90,8 @@ export function SearchPage() {
   const debounced = useDebouncedValue(input, DEBOUNCE_MS);
   const query = searchableQuery(debounced);
   const search = useSearch(debounced, scope, locale);
-  const groups = useMemo(() => shownGroups(search.data?.groups ?? []), [search.data]);
+  const modules = useAppModules();
+  const groups = useMemo(() => shownGroups(search.data?.groups ?? [], modules), [search.data, modules]);
 
   const remember = (q: string) => {
     const s = searchableQuery(q);

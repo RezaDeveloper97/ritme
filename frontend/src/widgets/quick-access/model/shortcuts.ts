@@ -1,3 +1,4 @@
+import { ALL_MODULES_ON, type AppModules, moduleOfRoute } from '@/entities/app-module';
 import type { IconName, Tone } from '@/shared/ui';
 
 /**
@@ -56,15 +57,22 @@ const DEFAULTS: Record<QuickMode, readonly string[]> = {
   teen: ['reminders', 'doctor', 'analysis', 'search'],
 };
 
+/** A shortcut into a module the admin switched off is never offered. */
+function isModuleOff(href: string, modules: AppModules): boolean {
+  const owner = moduleOfRoute(href);
+  return owner !== null && !modules[owner];
+}
+
 /** How many defaults show (the board's single row of four + «ویرایش»). */
 const DEFAULT_COUNT = 4;
 
-/** Shortcuts that can be offered in `mode` (screen shipped + mode allowed), in catalogue order. */
-export function availableShortcuts(mode: QuickMode, parentLinked = false): Shortcut[] {
+/** Shortcuts that can be offered in `mode` (screen shipped + mode allowed + module on), in catalogue order. */
+export function availableShortcuts(mode: QuickMode, parentLinked = false, modules: AppModules = ALL_MODULES_ON): Shortcut[] {
   return SHORTCUTS.filter(
     (s) =>
       s.href !== null &&
       (!s.modes || s.modes.includes(mode)) &&
+      !isModuleOff(s.href, modules) &&
       !(mode === 'teen' && s.teenNeedsParent && !parentLinked),
   );
 }
@@ -73,8 +81,13 @@ export function availableShortcuts(mode: QuickMode, parentLinked = false): Short
  * What the Today row shows: the stored picks that are still available in `mode` (in the stored order),
  * else the mode's defaults. An empty stored list is a choice (show only «ویرایش»); `null` = never edited.
  */
-export function visibleShortcuts(mode: QuickMode, stored: readonly string[] | null, parentLinked = false): Shortcut[] {
-  const available = new Map(availableShortcuts(mode, parentLinked).map((s) => [s.id, s]));
+export function visibleShortcuts(
+  mode: QuickMode,
+  stored: readonly string[] | null,
+  parentLinked = false,
+  modules: AppModules = ALL_MODULES_ON,
+): Shortcut[] {
+  const available = new Map(availableShortcuts(mode, parentLinked, modules).map((s) => [s.id, s]));
   const pick = (ids: readonly string[]) =>
     ids.map((id) => available.get(id)).filter((s): s is Shortcut => Boolean(s));
   if (stored !== null) {

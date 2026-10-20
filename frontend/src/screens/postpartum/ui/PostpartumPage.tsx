@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import { type Appointment, useAppointments } from '@/entities/care-reminder';
 import { ChildrenStrip, useChildren, useDueText } from '@/entities/child';
 import { useLogDay } from '@/entities/health-log';
@@ -457,6 +458,7 @@ function VisitRow({ appointment }: { appointment: Appointment }) {
 function VisitsCard({ status, birthDate, t }: { status: PostpartumStatus; birthDate: string; t: T }) {
   const locale = useLocale() as Locale;
   const router = useRouter();
+  const remindersOn = useModuleEnabled('reminders');
   const appointments = useAppointments('upcoming');
   const list = (appointments.data ?? []).slice(0, 3);
   const sixWeekDate = addDays(fromApiDate(birthDate), status.puerperiumDays);
@@ -466,8 +468,8 @@ function VisitsCard({ status, birthDate, t }: { status: PostpartumStatus; birthD
       <SectionTitle
         id="pp-visits-title"
         title={t('home.visits.title')}
-        actionLabel={t('home.visits.all')}
-        onAction={() => router.push('/reminders')}
+        actionLabel={remindersOn ? t('home.visits.all') : undefined}
+        onAction={remindersOn ? () => router.push('/reminders') : undefined}
       />
       {appointments.isPending ? (
         <SkeletonGroup label={t('common.loading')}>

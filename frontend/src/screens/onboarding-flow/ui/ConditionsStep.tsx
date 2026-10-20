@@ -47,6 +47,9 @@ function ConditionsForm({ ctx }: { ctx: StepContext }) {
   const [chronic, setChronic] = useState<string[] | null>(saved.chronic_illnesses);
   const [gyn, setGyn] = useState<string[] | null>(saved.gyn_conditions);
   const [meds, setMeds] = useState<string[] | null>(saved.medications);
+  // With the contraception module off the pill / IUD chips go and the card is just «داروی دائمی».
+  const contraception = ctx.modules.contraception;
+  const medItems = contraception ? MEDICATIONS : MEDICATIONS.filter((m) => m !== 'contraceptive_pill' && m !== 'iud');
 
   const submit = () => {
     if (save.isPending) return;
@@ -83,9 +86,9 @@ function ConditionsForm({ ctx }: { ctx: StepContext }) {
         onChange={setGyn}
       />
       <ConditionGroup
-        title={t('conditions.meds')}
+        title={t(contraception ? 'conditions.meds' : 'conditions.medsOnly')}
         noneLabel={t('conditions.noMeds')}
-        items={MEDICATIONS}
+        items={medItems}
         itemLabel={(i) => te(`medication.${i}`)}
         value={meds}
         onChange={setMeds}

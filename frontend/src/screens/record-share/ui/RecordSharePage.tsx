@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import {
   type FamilyAccess,
   type RecordSharing,
@@ -83,6 +84,7 @@ export function RecordSharePage() {
 
 function ShareContent({ data, onCreate }: { data: RecordSharing; onCreate: () => void }) {
   const t = useTranslations('record.share');
+  const companionOn = useModuleEnabled('companion'); // admin switch «همدم»: no family section without it
   const loc = useLocale() as Locale;
   const router = useRouter();
   const revoke = useRevokeShareCode();
@@ -164,16 +166,20 @@ function ShareContent({ data, onCreate }: { data: RecordSharing; onCreate: () =>
       </ListGroup>
       <InfoNote icon="shield">{t('insNote')}</InfoNote>
 
-      <SectionTitle title={t('family')} />
-      <ListGroup className="rsh-list">
-        {data.family.length ? (
-          data.family.map((f) => (
-            <FamilyRow key={f.companionId} family={f} onOpen={() => router.push(`/companions/${f.companionId}`)} />
-          ))
-        ) : (
-          <ListRow icon="users" title={t('familyEmpty')} onClick={() => router.push('/companions')} />
-        )}
-      </ListGroup>
+      {companionOn ? (
+        <>
+          <SectionTitle title={t('family')} />
+          <ListGroup className="rsh-list">
+            {data.family.length ? (
+              data.family.map((f) => (
+                <FamilyRow key={f.companionId} family={f} onOpen={() => router.push(`/companions/${f.companionId}`)} />
+              ))
+            ) : (
+              <ListRow icon="users" title={t('familyEmpty')} onClick={() => router.push('/companions')} />
+            )}
+          </ListGroup>
+        </>
+      ) : null}
 
       <SectionTitle title={t('history')} />
       <ListGroup className="rsh-list">

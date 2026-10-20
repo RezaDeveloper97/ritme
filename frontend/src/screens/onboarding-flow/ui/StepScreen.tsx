@@ -1,7 +1,9 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
+
+import { ALL_MODULES_ON, type AppModules, useAppModulesQuery } from '@/entities/app-module';
 
 import { useRouter } from '@/shared/i18n';
 import { EmptyState, PrimaryButton, Skeleton, SkeletonGroup } from '@/shared/ui';
@@ -14,6 +16,8 @@ import type { OnboardingState } from '../model/state';
 export interface StepContext {
   state: OnboardingState;
   goal: OnboardingGoal | null;
+  /** Admin module switches: an off module's choices are hidden (companion off = no gender question). */
+  modules: AppModules;
   progress: { current: number; total: number } | undefined;
   back: () => void;
   /** Go to the screen after `step`; `override` replaces the stored answers (just saved). */
@@ -35,11 +39,19 @@ export function StepScreen({ step, children }: StepScreenProps) {
   const t = useTranslations('onboarding.flow');
   const router = useRouter();
   const query = useOnboardingState();
+  const modulesQuery = useAppModulesQuery();
+  // A failed read fails open (every module on), like the API.
+  const modules = modulesQuery.data ?? ALL_MODULES_ON;
   const progress = step === 'ready' ? undefined : { current: PROGRESS[step], total: PROGRESS_TOTAL };
   const storedGoal = isGoal(query.data?.goal) ? query.data.goal : null;
-  const back = () => router.replace(previousRoute(step, storedGoal));
+  const back = () => router.replace(previousRoute(step, storedGoal, modules.companion));
+  // No gender / partner screens while the companion module is off (a resumed or typed URL lands on Goal).
+  const skipped = !modulesQuery.isPending && !modules.companion && (step === 'gender' || step === 'partner');
+  useEffect(() => {
+    if (skipped) router.replace(FLOW_ROUTES.goal);
+  }, [skipped, router]);
 
-  if (query.isPending) {
+  if (query.isPending || modulesQuery.isPending || skipped) {
     return (
       <OnbFrame progress={progress} onBack={step === 'ready' ? undefined : back} privacyNote={false}>
         <SkeletonGroup label={t('loading')} className="onb2-skel">
@@ -69,12 +81,13 @@ export function StepScreen({ step, children }: StepScreenProps) {
   const ctx: StepContext = {
     state,
     goal: storedGoal,
+    modules,
     progress,
     back,
     next: (override) => {
       const gender = override?.gender ?? state.gender;
       const goalRaw = override?.goal ?? state.goal;
-      router.push(FLOW_ROUTES[nextStep(step, { gender, goal: isGoal(goalRaw) ? goalRaw : null })]);
+      router.push(FLOW_ROUTES[nextStep(step, { gender, goal: isGoal(goalRaw) ? goalRaw : null, companion: modules.companion })]);
     },
   };
   return <>{children(ctx)}</>;

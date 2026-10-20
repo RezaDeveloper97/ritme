@@ -40,6 +40,8 @@ export const NAV: readonly NavGroup[] = [
       { key: 'safety', href: '/safety', icon: 'alert', cap: 'clinical', ready: true },
       // B-N9-11 «آستانه‌ها و پیکربندی»: versioned clinical thresholds (config capability).
       { key: 'clinicalConfig', href: '/clinical-config', icon: 'gear', cap: 'config', ready: true },
+      // App module kill-switches (companion, TTC, IVF, menopause, teen, postpartum, children, contraception).
+      { key: 'appModules', href: '/app-modules', icon: 'gear', cap: 'config', ready: true },
       { key: 'admins', href: '/admins', icon: 'shield', role: 'super', ready: true },
       // B-N9-02 «نقش‌ها و ممیزی»: the matrix (super), the audit log and temporary health-data access.
       { key: 'roles', href: '/roles', icon: 'shieldCheck', role: 'super', ready: true },

@@ -13819,3 +13819,12 @@ a.nb-card.cnd-card { color: inherit; text-decoration: none; }
 .ins-hist-row:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .ins-renew { display: flex; flex-direction: column; gap: 6px; }
 /* ═══ end CB-INS-HIST ═══ */
+
+/* app/ModuleRouteGate — a deep link into a module the admin switched off. */
+.module-off {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}

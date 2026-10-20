@@ -170,7 +170,8 @@
     "shopLayette": "Layette checklist",
     "cityServiceApplications": "Directory applications",
     "cityServiceReviews": "Place reviews",
-    "cityServiceReports": "Place reports"
+    "cityServiceReports": "Place reports",
+    "appModules": "App modules"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -3609,6 +3610,100 @@
       "noCategory": "— None —",
       "note": "Note",
       "activeHint": "An inactive item is hidden from checklists."
+    }
+  },
+  "appModules": {
+    "title": "App modules",
+    "intro": "A module that is switched off disappears from the sign-up flow and from the app, and its API stops answering. User data is kept; switching it back on restores everything.",
+    "readOnly": "Your role can only view this page.",
+    "enabled": "“{name}” switched on",
+    "disabled": "“{name}” switched off",
+    "items": {
+      "companion": {
+        "title": "Companion",
+        "hint": "Companion panel, invites and partner code. While off, the gender question leaves sign-up and new accounts are women’s."
+      },
+      "ttc": {
+        "title": "Trying to conceive",
+        "hint": "The TTC goal in sign-up and the mode switcher, fertility tiles and log, BBT and fertility insights."
+      },
+      "ivf": {
+        "title": "Fertility treatment (IVF / IUI)",
+        "hint": "The IVF/IUI switch of TTC mode, medications, scans and the two-week wait."
+      },
+      "menopause": {
+        "title": "Menopause",
+        "hint": "The menopause goal in sign-up and the mode switcher, menopause home, hot flashes, score and treatment."
+      },
+      "teen": {
+        "title": "Teen",
+        "hint": "Teen mode, teen home and the parent link."
+      },
+      "postpartum": {
+        "title": "Postpartum",
+        "hint": "Postpartum mode, recovery, mood (EPDS) and the entry from pregnancy."
+      },
+      "children": {
+        "title": "Children",
+        "hint": "Child profiles, growth, vaccines, milestones and the feeding / sleep / diaper log."
+      },
+      "contraception": {
+        "title": "Contraception",
+        "hint": "Contraception and pill tracking, and its option in the mode switcher."
+      },
+      "programs": {
+        "title": "Care programs",
+        "hint": "Pain & endometriosis, PMDD, heavy bleeding and pelvic floor; from Services, quick access and home suggestions."
+      },
+      "mother_child": {
+        "title": "For mother & child",
+        "hint": "Classes, pools and play houses (city services) and the venue sign-up page."
+      },
+      "learning": {
+        "title": "Learning & courses",
+        "hint": "The whole courses module: the Services card, the home “continue” card, My courses and downloads."
+      },
+      "my_courses": {
+        "title": "My courses",
+        "hint": "Only the “My courses” row of the Me hub; learning itself stays."
+      },
+      "shop": {
+        "title": "Shop",
+        "hint": "The in-app and web shop, the cart and “Orders” in the Me hub."
+      },
+      "insurance": {
+        "title": "Insurance",
+        "hint": "The insurance tile in Services, the policy, caps and claim tracking."
+      },
+      "record": {
+        "title": "Health record",
+        "hint": "The record tile and row, documents, export and sharing with a doctor. The emergency card always stays available."
+      },
+      "devices": {
+        "title": "Watches & gadgets",
+        "hint": "The “Watches & gadgets” row of the Me hub."
+      },
+      "doctors": {
+        "title": "Doctors & midwives",
+        "hint": "Doctor and midwife directory, booking, visits and doctor chat (services tile, quick access and assistant buttons)."
+      },
+      "todo": {
+        "title": "To-do list",
+        "hint": "The “My tasks” screen and its rows in “For today” and the Me hub."
+      },
+      "reminders": {
+        "title": "Reminders",
+        "hint": "The Reminders screen and the “Today’s reminders” card on home. Visit and medication forms opened from pregnancy, IVF and checkups stay."
+      },
+      "home_articles": {
+        "title": "Home blog",
+        "hint": "The “Based on your current cycle” articles strip on home."
+      }
+    },
+    "groups": {
+      "stages": "Life stages & family",
+      "services": "Services & the Me hub",
+      "today": "Today screen sections"
     }
   }
 }

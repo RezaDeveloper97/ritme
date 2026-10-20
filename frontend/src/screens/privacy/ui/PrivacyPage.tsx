@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import { companionName, sharedSections, useCompanions } from '@/entities/companion';
 import { useShareLinks } from '@/entities/health-record';
 import {
@@ -307,6 +308,12 @@ function ConsentSection() {
  * companion yet it is the single «هنوز با کسی به اشتراک نگذاشته‌ای» row.
  */
 function CompanionRows() {
+  const enabled = useModuleEnabled('companion');
+  return enabled ? <CompanionRowsList /> : null;
+}
+
+/** The rows themselves (only while the admin keeps the companion module on: its API answers 403 otherwise). */
+function CompanionRowsList() {
   const t = useTranslations('me.privacy');
   const tc = useTranslations('companions');
   const router = useRouter();
@@ -370,6 +377,8 @@ function CompanionRows() {
  */
 export function PrivacyPage() {
   const t = useTranslations('me.privacy');
+  // Doctor links and share links live on the health record: gone while the admin switched «پرونده سلامت» off.
+  const recordOn = useModuleEnabled('record');
   const soon = useTranslations('me')('soon');
   const router = useRouter();
   const loc = useLocale() as Locale;
@@ -403,11 +412,11 @@ export function PrivacyPage() {
           <SectionLabel id="prv-g-access">{t('groups.access')}</SectionLabel>
           <ListGroup className="prv-list">
             <CompanionRows />
-            <DoctorsRow />
+            {recordOn ? <DoctorsRow /> : null}
           </ListGroup>
         </section>
 
-        <ShareLinksSection />
+        {recordOn ? <ShareLinksSection /> : null}
 
         <section className="prv-sec" aria-labelledby="prv-g-mine">
           <SectionLabel id="prv-g-mine">{t('groups.mine')}</SectionLabel>

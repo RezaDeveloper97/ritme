@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 
+import { type AppModules, useAppModules } from '@/entities/app-module';
 import { useTeenToday } from '@/entities/teen';
 import { useCurrentUser, useLifeStage } from '@/entities/user';
 
@@ -17,12 +18,15 @@ export interface QuickAccessState {
   visible: Shortcut[];
   /** A teen with an active parent link (doctor/labs shortcuts allowed); always false for adults. */
   parentLinked: boolean;
+  /** Admin module switches (shortcuts into an off module are hidden). */
+  modules: AppModules;
 }
 
 /** The life stage as a quick-access mode — IVF is the TTC sub-mode (CB-IVF-02); a companion has no Today row. */
 export function useQuickAccess(): QuickAccessState {
   const me = useCurrentUser();
   const life = useLifeStage();
+  const modules = useAppModules();
   const owner = me.data ? String(me.data.id) : null;
   const { owner: loaded, ids, load } = useQuickAccessStore();
   useEffect(() => {
@@ -42,6 +46,7 @@ export function useQuickAccess(): QuickAccessState {
     owner,
     stored,
     parentLinked,
-    visible: ready && mode ? visibleShortcuts(mode, stored, parentLinked) : [],
+    modules,
+    visible: ready && mode ? visibleShortcuts(mode, stored, parentLinked, modules) : [],
   };
 }

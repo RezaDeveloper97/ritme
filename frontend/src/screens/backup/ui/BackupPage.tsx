@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import { useExportData, useExportPdf } from '@/features/manage-account';
 import { readLastSync } from '@/shared/api';
 import { useDirection, useRouter, type Locale } from '@/shared/i18n';
@@ -25,6 +26,7 @@ export function BackupPage() {
   const t = useTranslations('me');
   const tp = useTranslations('me.privacy');
   const router = useRouter();
+  const recordOn = useModuleEnabled('record'); // the doctor report is a health-record export
   const loc = useLocale() as Locale;
   const dir = useDirection();
   const lastSync = useLastSync();
@@ -95,13 +97,15 @@ export function BackupPage() {
               description={pdf.isPending ? tp('mine.exporting') : t('backup.pdfSub')}
               onClick={exporting ? undefined : exportPdf}
             />
-            <ListRow
-              icon="fileDoc"
-              iconTone="brand"
-              title={t('backup.report')}
-              description={t('backup.reportSub')}
-              onClick={() => router.push('/record/export')}
-            />
+            {recordOn ? (
+              <ListRow
+                icon="fileDoc"
+                iconTone="brand"
+                title={t('backup.report')}
+                description={t('backup.reportSub')}
+                onClick={() => router.push('/record/export')}
+              />
+            ) : null}
           </ListGroup>
           {json.isError || pdf.isError ? (
             <p className="me-inline-error" role="alert">

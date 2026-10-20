@@ -24,6 +24,13 @@ describe('onboarding v2 flow', () => {
     expect(previousRoute('partner', null)).toBe(FLOW_ROUTES.gender);
   });
 
+  it('skips the gender question while the companion module is off', () => {
+    expect(nextStep('name', { companion: false })).toBe('goal');
+    expect(nextStep('name', { companion: true })).toBe('gender');
+    expect(previousRoute('goal', null, false)).toBe(FLOW_ROUTES.name);
+    expect(previousRoute('goal', null)).toBe(FLOW_ROUTES.gender);
+  });
+
   it('backs out to known routes, branch-aware', () => {
     expect(previousRoute('name', null)).toBe('/signup');
     expect(previousRoute('conditions', 'pregnancy')).toBe(FLOW_ROUTES.pregnancy);

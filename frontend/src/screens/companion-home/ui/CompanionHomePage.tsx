@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import {
   canRecordFor,
   COMPANION_SECTIONS,
@@ -340,7 +341,8 @@ function SharedChildren({ raw }: { raw: unknown }) {
   const locale = useLocale() as Locale;
   const rtl = useDirection() === 'rtl';
   const kids = parseCompanionChildren(raw);
-  if (kids.length === 0) return null;
+  const childrenOn = useModuleEnabled('children'); // admin switch «کودک»
+  if (kids.length === 0 || !childrenOn) return null;
   return (
     <section className="cmh-sec" aria-labelledby="cmh-child">
       <SectionTitle id="cmh-child" title={tc('companion.title')} />
