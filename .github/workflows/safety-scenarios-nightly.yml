@@ -1,0 +1,38 @@
+# Nightly urgent-path scenario tests (bloom B-N9-10, D-90): synthetic BP crisis, glucose < 54, EPDS Q10, 5-1-1,
+# heavy postpartum bleeding and reduced-kicks inputs through the real classifiers (backend-go/internal/safety).
+# The API runs the same set in-process at start-up and 03:00 Tehran; the admin «ایمنی و محتوای بالینی» screen
+# shows that run.
+name: safety-scenarios-nightly
+
+on:
+  schedule:
+    - cron: "30 23 * * *" # 03:00 Asia/Tehran
+  workflow_dispatch: {}
+  push:
+    paths:
+      - "backend-go/internal/safety/**"
+      - "backend-go/internal/vitals/**"
+      - "backend-go/internal/postpartum/**"
+      - "backend-go/internal/pregnancy/labor/**"
+      - "backend-go/internal/clinicalconfig/**"
+
+permissions:
+  contents: read
+
+jobs:
+  scenarios:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: Urgent scenarios
+        run: go test -count=1 -run 'TestUrgentScenarios|TestReducedKicks' ./internal/safety/...
+      - name: Classifier suites
+        run: go test -count=1 ./internal/vitals/ ./internal/postpartum/ ./internal/pregnancy/labor/
