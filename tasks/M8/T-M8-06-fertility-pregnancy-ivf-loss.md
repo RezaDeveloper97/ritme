@@ -3,7 +3,7 @@ id: T-M8-06
 title: Copy batch 4 — fertility, pregnancy, IVF, pregnancy loss
 milestone: M8
 type: frontend
-status: todo
+status: done
 depends_on: [T-M8-03]
 parallel_group: M8-C
 touches: [frontend/messages/fa/fertility.json,frontend/messages/fa/pregnancy.json,frontend/messages/fa/pregnancy-v2.json,frontend/messages/fa/pregnancy-tools.json,frontend/messages/fa/analysis-pregnancy.json,frontend/messages/fa/ivf.json,frontend/messages/fa/loss.json,backend-go/resources/translations/fa/fertility.json,backend-go/resources/translations/fa/pregnancy.json,backend-go/resources/translations/fa/pregnancy-v2.json,backend-go/resources/translations/fa/pregnancy-tools.json,backend-go/resources/translations/fa/analysis-pregnancy.json,backend-go/resources/translations/fa/ivf.json,backend-go/resources/translations/fa/loss.json]

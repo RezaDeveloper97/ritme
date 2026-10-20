@@ -3,7 +3,7 @@ id: T-M8-04
 title: Copy batch 2 — home, cycle, calendar, phase details, analysis
 milestone: M8
 type: frontend
-status: todo
+status: done
 depends_on: [T-M8-03]
 parallel_group: M8-C
 touches: [frontend/messages/fa/home.json,frontend/messages/fa/cycle.json,frontend/messages/fa/calendar.json,frontend/messages/fa/phase-details.json,frontend/messages/fa/analysis.json,backend-go/resources/translations/fa/home.json,backend-go/resources/translations/fa/cycle.json,backend-go/resources/translations/fa/calendar.json,backend-go/resources/translations/fa/phase-details.json,backend-go/resources/translations/fa/analysis.json]

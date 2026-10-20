@@ -3,7 +3,7 @@ id: T-M8-15
 title: M8 wrap-up — cross-namespace consistency sweep, visual QA, stage
 milestone: M8
 type: release
-status: todo
+status: done
 depends_on: [T-M8-04,T-M8-05,T-M8-06,T-M8-07,T-M8-08,T-M8-09,T-M8-10,T-M8-11,T-M8-12,T-M8-13,T-M8-14]
 parallel_group: M8-H
 touches: [frontend/messages/fa,backend-go/resources/translations/fa,docs/copy-fa/QA.md]

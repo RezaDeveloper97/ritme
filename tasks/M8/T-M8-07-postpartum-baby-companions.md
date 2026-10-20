@@ -3,7 +3,7 @@ id: T-M8-07
 title: Copy batch 5 — postpartum, baby log, children, companions, pelvic floor
 milestone: M8
 type: frontend
-status: todo
+status: done
 depends_on: [T-M8-03]
 parallel_group: M8-C
 touches: [frontend/messages/fa/postpartum.json,frontend/messages/fa/analysis-postpartum.json,frontend/messages/fa/baby-log.json,frontend/messages/fa/children.json,frontend/messages/fa/companions.json,frontend/messages/fa/companion-home.json,frontend/messages/fa/pelvic.json,backend-go/resources/translations/fa/postpartum.json,backend-go/resources/translations/fa/analysis-postpartum.json,backend-go/resources/translations/fa/baby-log.json,backend-go/resources/translations/fa/children.json,backend-go/resources/translations/fa/companions.json,backend-go/resources/translations/fa/companion-home.json,backend-go/resources/translations/fa/pelvic.json]

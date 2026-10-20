@@ -3,7 +3,7 @@ id: T-M8-13
 title: Copy batch 11 — me, assistant, learn, articles, todo
 milestone: M8
 type: frontend
-status: todo
+status: done
 depends_on: [T-M8-03]
 parallel_group: M8-C
 touches: [frontend/messages/fa/me.json,frontend/messages/fa/assistant.json,frontend/messages/fa/learn.json,frontend/messages/fa/articles.json,frontend/messages/fa/todo.json,backend-go/resources/translations/fa/me.json,backend-go/resources/translations/fa/assistant.json,backend-go/resources/translations/fa/learn.json,backend-go/resources/translations/fa/articles.json,backend-go/resources/translations/fa/todo.json]

@@ -3,7 +3,7 @@ id: T-M8-11
 title: Copy batch 9 — shop, web shop, insurance, Plus
 milestone: M8
 type: frontend
-status: todo
+status: done
 depends_on: [T-M8-03]
 parallel_group: M8-C
 touches: [frontend/messages/fa/shop.json,frontend/messages/fa/web-shop.json,frontend/messages/fa/insurance.json,frontend/messages/fa/plus.json,backend-go/resources/translations/fa/shop.json,backend-go/resources/translations/fa/web-shop.json,backend-go/resources/translations/fa/insurance.json,backend-go/resources/translations/fa/plus.json]

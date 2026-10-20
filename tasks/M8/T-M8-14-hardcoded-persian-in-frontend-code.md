@@ -3,7 +3,7 @@ id: T-M8-14
 title: Hardcoded Persian strings in frontend code — move to messages or rewrite
 milestone: M8
 type: frontend
-status: todo
+status: done
 depends_on: [T-M8-03]
 parallel_group: M8-C
 touches: [frontend/src,frontend/messages/fa/profile-info.json,frontend/messages/en/profile-info.json,backend-go/resources/translations/fa/profile-info.json,backend-go/resources/translations/en/profile-info.json,frontend/public/manifest.webmanifest,frontend/messages/fa/common.json,frontend/messages/en/common.json,backend-go/resources/translations/fa/common.json,backend-go/resources/translations/en/common.json]

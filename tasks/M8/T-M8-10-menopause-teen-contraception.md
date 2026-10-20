@@ -3,7 +3,7 @@ id: T-M8-10
 title: Copy batch 8 — menopause, teen, contraception
 milestone: M8
 type: frontend
-status: todo
+status: done
 depends_on: [T-M8-03]
 parallel_group: M8-C
 touches: [frontend/messages/fa/menopause.json,frontend/messages/fa/teen.json,frontend/messages/fa/contraception.json,backend-go/resources/translations/fa/menopause.json,backend-go/resources/translations/fa/teen.json,backend-go/resources/translations/fa/contraception.json]

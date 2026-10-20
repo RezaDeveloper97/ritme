@@ -3,7 +3,7 @@ id: T-M8-12
 title: Copy batch 10 — services, city services, doctors, directory, business
 milestone: M8
 type: frontend
-status: todo
+status: done
 depends_on: [T-M8-03]
 parallel_group: M8-C
 touches: [frontend/messages/fa/services.json,frontend/messages/fa/city-services.json,frontend/messages/fa/city-join.json,frontend/messages/fa/doctors.json,frontend/messages/fa/web-directory.json,frontend/messages/fa/web-business.json,backend-go/resources/translations/fa/services.json,backend-go/resources/translations/fa/city-services.json,backend-go/resources/translations/fa/city-join.json,backend-go/resources/translations/fa/doctors.json,backend-go/resources/translations/fa/web-directory.json,backend-go/resources/translations/fa/web-business.json]

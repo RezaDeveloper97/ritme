@@ -3,7 +3,7 @@ id: T-M8-09
 title: Copy batch 7 — vitals, checkups, care reminders, conditions
 milestone: M8
 type: frontend
-status: todo
+status: done
 depends_on: [T-M8-03]
 parallel_group: M8-C
 touches: [frontend/messages/fa/vitals.json,frontend/messages/fa/checkups.json,frontend/messages/fa/care.json,frontend/messages/fa/reminders.json,frontend/messages/fa/conditions.json,backend-go/resources/translations/fa/vitals.json,backend-go/resources/translations/fa/checkups.json,backend-go/resources/translations/fa/care.json,backend-go/resources/translations/fa/reminders.json,backend-go/resources/translations/fa/conditions.json]

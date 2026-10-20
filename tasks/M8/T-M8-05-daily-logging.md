@@ -3,7 +3,7 @@ id: T-M8-05
 title: Copy batch 3 — daily logging (log, sheets, taxonomy, voice)
 milestone: M8
 type: frontend
-status: todo
+status: done
 depends_on: [T-M8-03]
 parallel_group: M8-C
 touches: [frontend/messages/fa/log.json,frontend/messages/fa/log-period.json,frontend/messages/fa/log-sheet.json,frontend/messages/fa/log-customize.json,frontend/messages/fa/log-taxonomy.json,frontend/messages/fa/voice-log.json,backend-go/resources/translations/fa/log.json,backend-go/resources/translations/fa/log-period.json,backend-go/resources/translations/fa/log-sheet.json,backend-go/resources/translations/fa/log-customize.json,backend-go/resources/translations/fa/log-taxonomy.json,backend-go/resources/translations/fa/voice-log.json]

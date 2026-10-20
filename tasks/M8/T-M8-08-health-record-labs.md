@@ -3,7 +3,7 @@ id: T-M8-08
 title: Copy batch 6 — health record, export, labs, home lab
 milestone: M8
 type: frontend
-status: todo
+status: done
 depends_on: [T-M8-03]
 parallel_group: M8-C
 touches: [frontend/messages/fa/record.json,frontend/messages/fa/record-export.json,frontend/messages/fa/health-record.json,frontend/messages/fa/labs.json,frontend/messages/fa/home-lab.json,backend-go/resources/translations/fa/record.json,backend-go/resources/translations/fa/record-export.json,backend-go/resources/translations/fa/health-record.json,backend-go/resources/translations/fa/labs.json,backend-go/resources/translations/fa/home-lab.json]

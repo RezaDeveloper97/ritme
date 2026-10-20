@@ -47,3 +47,16 @@ Files: `LOG.md` = status transitions (append-only, written by `next.sh`), `PROGR
 - **M8** — Persian copy pass: every user-app string (`frontend/messages/fa`) rewritten with the `persian-writing`
   skill to one register (written-but-warm, «تو»), ICU-safe checker in `frontend/scripts/copy-fa/`. Contract:
   `docs/copy-fa/STYLE.md` + `GLOSSARY.md`. Rewrites by sonnet subagents, every diff reviewed by the main session.
+- **M9** — Engine v6 core (51 tasks): one pure cycle engine per SPEC v6 §2, revision-keyed state cache (L1 + Redis L2
+  + singleflight, ETag/304), queue v2 with a worker process, observability and performance budgets, safety and privacy
+  hotfixes, every consumer and the Today/Calendar screens on the engine; rollout `CYCLE_ENGINE=v1|shadow|v6` on stage,
+  then beta with the user's OK. Plan: `docs/engine-v6/README.md`, spec `docs/engine-v6/SPEC.md`, decisions
+  `docs/engine-v6/DECISIONS.md` (E/I/X rows, asked in T-M9-01), evidence `docs/engine-v6/gap/`.
+- **M10** — Engine v6 modules (36 tasks): message engine v6 (fact registry, slots, feed, alerts inbox, challenges),
+  health modules on the clinical registry (pregnancy dating, vitals, labs, checkups, children, consent ledger, safety
+  self-test), analysis methods and cache, Plus rules, KPI/OKR, metric alerts, admin monitoring, roles and audit chain.
+  Decisions M/H/A in T-M10-01; clinical items wait for the advisor (`docs/engine-v6/clinical-signoff.md`).
+- **M11** — Family (23 tasks): directional links with nine domains and four levels, `check()` authorizer with mode
+  epochs, member projections, invites v6, proposals, nudges, child co-guardianship with undo, urgent-alert relay,
+  member home and notifications, household list, admin family tab. Decisions F in T-M11-01; `docs/engine-v6/family.md`.
+  Gap → task map for M9–M11: `docs/engine-v6/GAP-ANALYSIS.md`.
