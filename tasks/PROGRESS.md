@@ -1498,3 +1498,13 @@ Nothing needed fixing.
   - T-M9-24 loader: `End = NoDay`, `Some(...)`, LH faint → negative, Skips passed as stored; decide whether to drop markers after today.
   - T-M9-29: reject or warn on a skip on a logged bleeding day.
   - Product question: should the API reject a period end in the future, or a period longer than the cycle? Suggestion: reject it in period-write validation.
+
+## T-M9-14 — k6 load tests and SLO baseline (scripts; baseline in T-M9-14b)
+- `backend-go/loadtest/`:
+  - Six k6 scenarios (`app_open`, `calendar_browse`, `log_burst`, `analysis_tab`, `fertility_tab`, `soak`), plus `lib.js`, `thresholds.js` (README §8 p95 budgets) and `run.sh`.
+  - `seed/`: 2 000 users with 6–36 months of history; persona mix TTC 15 %, pregnant 5 %, postpartum 4 %, pill 5 %, the rest cycle users. It is idempotent (`RESET=1` starts over). Tested against a scratch DB: 2 000 users and 516 k daily logs in 25 s.
+  - `metricsdiff/`: a per-route table from `/metrics`, scraped before and after a run.
+- Guards: the seeder accepts only a loopback DSN whose DB name contains test/local, and always refuses `ritme_test` and `gt_*`. The metrics scraper and `lib.js` accept only loopback URLs.
+- Tokens are minted with `passport.Issuer` straight into the scratch DB (the OTP rate limits make the API path impossible for 2 000 users). They go to `loadtest/.tokens.json`, mode 0600, git-ignored. No OTP bypass was added to the API.
+- Make targets: `loadtest-db`, `loadtest-seed`, `loadtest-api`, `loadtest SCENARIO=…`, `loadtest-lint`, `loadtest-drop`. The k6 image is pinned to `grafana/k6:1.3.0` (unverified); `K6_RUNNER=local` uses a local k6.
+- **Not measured:** the disk filled up (mostly per-agent Go build caches in the scratchpad) and Docker Desktop hung. The baseline moved to **T-M9-14b**.

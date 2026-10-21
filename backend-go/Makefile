@@ -102,3 +102,32 @@ bench-compare: ## benchstat bench/baseline.txt vs bench/current.txt, then the CI
 
 bench-gate: ## Only the CI gate: fail on an allocs/op regression, warn on sec/op > 20 % (X-09)
 	go run ./bench/gate -baseline bench/baseline.txt -current bench/current.txt
+
+# Load tests (T-M9-14). LOCAL ONLY: scripts/seed refuse non-local targets. Needs `make test-db-up`, `make loadtest-db`,
+# `make loadtest-seed`, and the API running on :8020 against LOADTEST_DB (`make loadtest-api`, other terminal).
+# SCENARIO = app_open | calendar_browse | log_burst | analysis_tab | fertility_tab | soak.  Recipe: header of loadtest/run.sh.
+LOADTEST_DB        ?= ritme_loadtest
+LOADTEST_USERS     ?= 2000
+LOADTEST_DSN       ?= ritme:ritme@tcp(127.0.0.1:$(TEST_DB_PORT))/$(LOADTEST_DB)
+SCENARIO           ?= app_open
+K6_RUNNER          ?= docker
+K6_IMAGE           ?= grafana/k6:1.3.0
+.PHONY: loadtest loadtest-db loadtest-seed loadtest-api loadtest-drop loadtest-lint
+
+loadtest-db: ## Create the scratch DB $(LOADTEST_DB) on the test stack (never ritme_test)
+	$(COMPOSE_TEST) exec -T mariadb mariadb -uroot -proot -e "CREATE DATABASE IF NOT EXISTS \`$(LOADTEST_DB)\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; GRANT ALL ON \`$(LOADTEST_DB)\`.* TO 'ritme'@'%';"
+
+loadtest-seed: ## Seed LOADTEST_USERS synthetic users + loadtest/.tokens.json (idempotent; RESET=1 starts over)
+	go run ./loadtest/seed -dsn '$(LOADTEST_DSN)' -users $(LOADTEST_USERS) -tokens-out loadtest/.tokens.json $(if $(RESET),-reset)
+
+loadtest-api: ## Run the API against the scratch DB (API on :8020, /metrics on 127.0.0.1:9090)
+	DB_DATABASE=$(LOADTEST_DB) SMS_PROVIDER=log go run ./cmd/api
+
+loadtest: ## Run a k6 scenario: make loadtest SCENARIO=app_open [RPS=200 DURATION=2m K6_RUNNER=local]
+	K6_RUNNER='$(K6_RUNNER)' K6_IMAGE='$(K6_IMAGE)' loadtest/run.sh '$(SCENARIO)'
+
+loadtest-lint: ## k6 inspect every script (pinned docker image, or K6_RUNNER=local)
+	K6_RUNNER='$(K6_RUNNER)' K6_IMAGE='$(K6_IMAGE)' loadtest/run.sh --inspect
+
+loadtest-drop: ## Drop the scratch DB $(LOADTEST_DB)
+	$(COMPOSE_TEST) exec -T mariadb mariadb -uroot -proot -e "DROP DATABASE IF EXISTS \`$(LOADTEST_DB)\`"

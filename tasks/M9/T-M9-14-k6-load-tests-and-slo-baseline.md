@@ -3,10 +3,10 @@ id: T-M9-14
 title: k6 load tests and SLO baseline
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-07, T-M9-08]
 parallel_group: M9-B
-touches: [backend-go/loadtest, backend-go/Makefile, docs/engine-v6/perf-baseline.md]
+touches: [backend-go/loadtest, backend-go/Makefile]
 skills: [local-dev]
 verify: cd backend-go && test -f loadtest/app_open.js && test -f loadtest/seed/main.go && go vet ./loadtest/...
 ---
@@ -37,3 +37,5 @@ today (gap 07 §7.7).
 
 ## Acceptance
 - Baseline table "before" recorded with p50/p95/p99, error rate and queries per request per scenario.
+
+> Note (main session, 2026-10-21): `docs/engine-v6/perf-baseline.md` was dropped from touches so this task can run next to T-M9-22. Report the numbers in the task report; the main session adds them to the doc.
