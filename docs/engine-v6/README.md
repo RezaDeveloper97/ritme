@@ -118,6 +118,40 @@ The web client sends `X-Timezone`; the API validates it (`time.LoadLocation`, tz
 `user_profiles.timezone`, then `Asia/Tehran`, and stores a changed zone. `civildate.LocalToday(c)` is used by the engine
 path and its direct consumers; background jobs use the stored zone. DB timestamps stay Tehran wall-clock.
 
+Shipped in T-M9-26 (deviation **D-126**, X-07):
+- Frontend `shared/api/apiClient` sends `X-Timezone: Intl.DateTimeFormat().resolvedOptions().timeZone` on every call
+  (omitted when unavailable). Display formatting is unchanged.
+- `internal/platform/usertz` middleware (global, after CORS in `cmd/api/app.go`): header → stored zone → Tehran. The
+  stored zone is read lazily (only when a handler asks and the request has no valid header) and remembered per user
+  for 15 min. A valid header zone that differs from the remembered one is stored after the response by
+  `StoreUserTimezone` (`UPDATE … WHERE user_id = ? AND (timezone IS NULL OR timezone <> ?)`, background goroutine, 5 s
+  timeout): no profile row is created, `updated_at` is untouched, no revision bump. Errors only log; the zone never
+  fails or delays a request.
+- `civildate.LocalToday(ctx, clock)` / `LocalNow(ctx, clock)`; without the middleware (jobs, tests) they equal
+  `civildate.Today`. Jobs use `usertz.ZoneFor(profile)`.
+- Switched now: `internal/cycle/service` handlers (`/cycle/today`, `/cycle/date/{date}`'s "today", `/cycle/month`).
+  T-M9-32…38 switch what they rewrite. CORS echoes `Access-Control-Request-Headers`, so `x-timezone` and
+  `if-none-match` pass the preflight (`cmd/api/cors_test.go`).
+
+**Call sites that intentionally stay on Tehran** (`civildate.Today` / `civildate.InTehran`, 249 non-test lines on
+2026-10-21; count per package). Everything that is not the engine path keeps the app day until its own task moves it:
+- Engine-adjacent, moved by T-M9-32…38 (not here): `cycle/periods` (3), `cycle/insights` (1), `home` (4),
+  `fertility` (5), `analysis` (2), `pregnancy` (4), `pregnancy/v2` (5), `pregnancy/v2/daylog` (5),
+  `pregnancy/v2/calendar` (1), `postpartum` (5), `contraception` (4), `healthlog` (2), `profile` (2), `profile/model` (1).
+- Background jobs and message rules (Tehran until they read `usertz.ZoneFor`): `messages` (1), `messages/rules` (1),
+  `messages/conditionnudges` (1), `messages/pregnancyalerts` (7), `pregnancy/alerts` (1), `checkups/engine` (2),
+  `ai/usage` (2, quota day).
+- Admin and operations (the operator's day, Tehran by design): `admin/checkups` (2), `admin/clinicalcfg` (1),
+  `admin/content` (2), `admin/messages` (1), `admin/safetyreview` (1), `cityservices` (1), `shop/admin` (1),
+  `bannerads` (1), `content` (1).
+- Other domains (out of scope of X-07): `babylog` (11), `care` (4), `challenges` (3), `checkups` (2), `children` (17),
+  `companion/shared` (1), `conditions` (2), `emergency` (3), `healthrecord` (7), `healthrecord/extract` (5),
+  `insurance` (26), `ivf` (12), `labs` (3), `learning` (1), `loss` (8), `menopause` (17), `partners` (1), `pelvic` (3),
+  `pregnancy/tools` (13), `safety` (3), `search` (1), `sharelinks` (2), `shop` (2), `shop/checklist` (3), `teen` (2),
+  `telemed` (9), `todo` (10), `vitals` (6), `voicelog` (2).
+
+Re-list with `grep -rn 'civildate\.Today(\|civildate\.InTehran(' --include='*.go' backend-go | grep -v _test.go`.
+
 ## 6. Observability
 Prometheus registry; `/metrics` and `/debug/pprof` on a separate listener `127.0.0.1:9090` (never routed by nginx).
 Metrics: `http_request_duration_seconds{route,method,status}` (route template), `db_queries_per_request{route}`,

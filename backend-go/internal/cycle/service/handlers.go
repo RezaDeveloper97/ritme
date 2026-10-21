@@ -39,6 +39,11 @@ func NewHandlers(svc *Service, db store.DBTX, base clock.Clock) *Handlers {
 
 func (h *Handlers) now(c fiber.Ctx) time.Time { return clock.FromContext(c, h.clock).Now() }
 
+// today is the user's local day (D-126): the request clock in the usertz zone (X-Timezone → stored zone → Tehran).
+func (h *Handlers) today(c fiber.Ctx) civildate.Date {
+	return civildate.LocalToday(c, clock.FromContext(c, h.clock))
+}
+
 func userID(c fiber.Ctx) (uint64, error) {
 	id, ok := auth.CurrentUserID(c)
 	if !ok {
@@ -49,8 +54,7 @@ func userID(c fiber.Ctx) (uint64, error) {
 
 // Today is GET /cycle/today.
 func (h *Handlers) Today(c fiber.Ctx) error {
-	now := h.now(c)
-	today := civildate.InTehran(now)
+	today := h.today(c)
 	return h.day(c, today, today)
 }
 
@@ -65,7 +69,7 @@ func (h *Handlers) ForDate(c fiber.Ctx) error {
 	if err != nil {
 		return httpx.Fail(fiber.StatusUnprocessableEntity, "Invalid date format. Use YYYY-MM-DD.")
 	}
-	return h.day(c, civildate.FromTime(t), civildate.InTehran(now))
+	return h.day(c, civildate.FromTime(t), h.today(c))
 }
 
 func (h *Handlers) day(c fiber.Ctx, date, today civildate.Date) error {
@@ -119,8 +123,7 @@ func (h *Handlers) Month(c fiber.Ctx) error {
 	if !slices.Contains(monthViews, viewName) {
 		return httpx.Fail(fiber.StatusUnprocessableEntity, "Invalid view. Must be one of: full, calendar.")
 	}
-	now := h.now(c)
-	p, err := h.svc.MonthJSON(c.Context(), uid, year, month, viewName, civildate.InTehran(now), i18n.ResolveLocale(c, ""))
+	p, err := h.svc.MonthJSON(c.Context(), uid, year, month, viewName, h.today(c), i18n.ResolveLocale(c, ""))
 	if err != nil {
 		return err
 	}

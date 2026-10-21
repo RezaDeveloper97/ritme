@@ -144,6 +144,15 @@ function sendWithProgress(
   });
 }
 
+/** The IANA zone of the device (`Asia/Tehran`), or `undefined` when `Intl` can't resolve one. */
+function deviceTimeZone(): string | undefined {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 async function request<T>(
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   path: string,
@@ -168,6 +177,11 @@ async function request<T>(
     typeof document !== 'undefined' && document.documentElement.lang
       ? document.documentElement.lang
       : 'fa';
+
+  // The device time zone, so the API's "today" is the user's local day, not
+  // Tehran's (engine v6 §2.3, D-126). Omitted when the runtime can't tell.
+  const timeZone = deviceTimeZone();
+  if (timeZone) headers['X-Timezone'] = timeZone;
 
   // Like axios: a JSON Content-Type only when there is a body to describe. A
   // FormData body (file upload) goes as is; the browser sets the multipart

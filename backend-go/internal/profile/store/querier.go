@@ -61,6 +61,10 @@ type Querier interface {
 	// ProfileController (backend/app/Http/Controllers/Api/V1/ProfileController.php) and UserProfile.
 	// $user->fresh().
 	GetUser(ctx context.Context, id uint64) (User, error)
+	// User-local day (T-M9-26, D-126, X-07). user_profiles.timezone is the user's IANA zone (goose 00098); NULL means
+	// unknown → Asia/Tehran.
+	// The stored zone, read lazily by the usertz middleware when a request carries no valid X-Timezone header.
+	GetUserTimezone(ctx context.Context, userID uint64) (sql.NullString, error)
 	// A grant keeps revoked_at (the last withdrawal), stamps granted_at and the version of the consent text in force
 	// (B-N6-05, internal/consent); a repeated grant of the same version leaves the row untouched.
 	GrantUserConsent(ctx context.Context, arg GrantUserConsentParams) error
@@ -91,6 +95,10 @@ type Querier interface {
 	SetOnboardingLastPeriodStart(ctx context.Context, arg SetOnboardingLastPeriodStartParams) error
 	// X-07: the validated X-Timezone zone (the caller decides when it changed). Same upsert as above.
 	SetProfileTimezone(ctx context.Context, arg SetProfileTimezoneParams) error
+	// Stores a validated X-Timezone zone after the response. Only an existing profile row is touched (no profile → 0
+	// rows), only when the zone really changed, and updated_at is left alone: the zone moves "today" (which is in the
+	// ETag), not the engine state, so there is no revision bump either.
+	StoreUserTimezone(ctx context.Context, arg StoreUserTimezoneParams) (int64, error)
 	UpdateOnboardingCycleHistory(ctx context.Context, arg UpdateOnboardingCycleHistoryParams) error
 	// $profile->fill($data)->save(): only the dirty attributes are written (set_* flags). The
 	// values are bound as the raw request strings, as PDO binds them, so MariaDB does the same

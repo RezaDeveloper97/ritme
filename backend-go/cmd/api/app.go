@@ -15,6 +15,8 @@ import (
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/metrics"
+	"github.com/ritme/backend-go/internal/platform/usertz"
+	profilestore "github.com/ritme/backend-go/internal/profile/store"
 )
 
 // slowRequest is the slow-request warning threshold (docs/engine-v6/README.md §6).
@@ -73,6 +75,11 @@ func newApp(reg *apihttp.Registry, deps *apihttp.Deps) *fiber.App {
 	// Per-request frozen clock (X-Test-Now), same gate as Laravel's TestClock.
 	app.Use(clock.Middleware(clock.Real{}, clock.TestClockEnabledFromEnv()))
 	app.Use(corsMiddleware(deps.Config.CORS.AllowedOrigins))
+	// The user-local day (D-126): X-Timezone → stored user_profiles.timezone → Asia/Tehran, read by
+	// civildate.LocalToday. A changed zone is stored after the response, never blocking it.
+	if deps.DB != nil {
+		app.Use(usertz.New(profilestore.New(deps.DB), deps.Logger).Handler())
+	}
 
 	// Admin kill-switches (app_modules): a disabled module's routes answer 403 module_disabled before any domain.
 	if deps.DB != nil {

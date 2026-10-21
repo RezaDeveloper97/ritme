@@ -3,7 +3,7 @@ id: T-M9-26
 title: User-local day: X-Timezone header, stored zone, LocalToday
 milestone: M9
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M9-24]
 parallel_group: M9-C
 touches: [backend-go/internal/platform/civildate, backend-go/internal/platform/usertz, backend-go/cmd/api/app.go, backend-go/cmd/api/cors.go, backend-go/internal/cycle/service/handlers.go, backend-go/db/queries/profile/timezone.sql, backend-go/internal/profile/store, frontend/src/shared/api/apiClient.ts, frontend/src/shared/api/apiClient.test.ts]
@@ -37,7 +37,7 @@ X-07 scopes the switch to the engine path and its direct consumers.
 - Instant 2026-07-17T21:00Z: header Asia/Tehran → 2026-07-18; Europe/Berlin → 2026-07-17; no header and no stored
   zone → Tehran (identical to today's behaviour); invalid header → ignored.
 - 00:30 Tehran on a UTC server clock → the Tehran date (§6.1).
-- Nowruz boundary 2026-03-20T20:29Z → 2026-03-21 in Tehran.
+- Nowruz boundary: 2026-03-20T20:29Z → 2026-03-20 and 20:30Z → 2026-03-21 in Tehran (fixed: the original line was one minute off).
 - Integration: a valid new zone is stored once; the same zone again → no UPDATE (query counter).
 - Contract runs without the header stay byte-identical (`make contract ROUTES=cycle`).
 - Frontend vitest: the header is present on requests.

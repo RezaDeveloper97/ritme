@@ -76,6 +76,33 @@ describe('apiClient', () => {
       expect(init.body).toBeUndefined();
     });
 
+    it('sends the device time zone as X-Timezone on every request (D-126)', async () => {
+      const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const { apiClient } = await load();
+      await apiClient.get('/cycle/today');
+      await apiClient.post('/logs', { a: 1 });
+
+      const calls = apiCalls(env.fetchSpy);
+      expect(calls).toHaveLength(2);
+      for (const [, init] of calls) {
+        expect((init.headers as Record<string, string>)['X-Timezone']).toBe(zone);
+      }
+    });
+
+    it('omits X-Timezone when Intl cannot resolve a zone', async () => {
+      const spy = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+        () => ({ resolvedOptions: () => ({ timeZone: '' }) }) as unknown as Intl.DateTimeFormat,
+      );
+      try {
+        const { apiClient } = await load();
+        await apiClient.get('/cycle/today');
+        const [, init] = apiCalls(env.fetchSpy)[0];
+        expect((init.headers as Record<string, string>)['X-Timezone']).toBeUndefined();
+      } finally {
+        spy.mockRestore();
+      }
+    });
+
     it('serialises params and drops null/undefined values', async () => {
       const { apiClient } = await load();
       await apiClient.get('/articles', { params: { page: 2, q: 'a b', category: undefined, x: null } });

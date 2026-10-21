@@ -1609,3 +1609,20 @@ Nothing needed fixing.
   - The loader notes (NoDay, Some, LH faint, skips, positive pregnancy tests, breastfeeding/delivery date, teen band) go to T-M9-25.
   - `PromoteLoggedStart` ignores `bleeding_log` (removed in T-M9-28 per I-02).
   - Revision bumps are wired in T-M9-30/31. A missing `user_revisions` row reads as 0/0.
+
+## T-M9-26 — User-local day: X-Timezone header, stored zone, LocalToday
+- Implements **D-126** (X-07 scope): `X-Timezone` header → stored `user_profiles.timezone` → Asia/Tehran, on the engine path.
+- Frontend `apiClient` sends `X-Timezone` (from `Intl…resolvedOptions().timeZone`) on every call; it is omitted when the zone is unknown.
+- New `internal/platform/usertz`:
+  - parse + cache via `time.LoadLocation` (tzdata embedded); rejects `""`, `Local`, names over 64 chars and invalid characters;
+  - global middleware in `cmd/api/app.go`, after CORS. It reads the stored zone lazily, only when a handler asks, and caches it per user for 15 min;
+  - a changed zone is stored after the response in a goroutine with a 5 s timeout, using `StoreUserTimezone` (`UPDATE … WHERE timezone IS NULL OR timezone <> ?`). It writes no `updated_at`, bumps no revision and creates no profile row. Errors are only logged.
+- `civildate.LocalToday(ctx, now)` / `LocalNow`; with no middleware this is exactly `civildate.Today` (Tehran).
+- The cycle service handlers (`/cycle/today`, today inside `/cycle/date/{date}`, `/cycle/month`) use the user's local day. `markRecalculated` stays Tehran wall-clock.
+- CORS: preflight test with `x-timezone, if-none-match` (new `cmd/api/cors_test.go`); `cors.go` already echoes requested headers. Stage/beta nginx does not strip the header (read only).
+- `docs/engine-v6/README.md` §5 lists the 249 non-test `civildate.Today`/`InTehran` call sites that stay on Tehran (engine-adjacent ones move in T-M9-32…38).
+- Task fix: the Nowruz test line was one minute off (20:29Z is still 03-20 in Tehran).
+- Open:
+  - in-flight zone-store goroutines are not awaited on shutdown (harmless; the next request re-stores);
+  - with several API instances, a zone change can take up to 15 min to reach each one's cache;
+  - `ForDate` still parses its Y-m-d param in Tehran (no effect on dates).
