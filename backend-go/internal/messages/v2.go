@@ -20,6 +20,8 @@ import (
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
+	pstore "github.com/ritme/backend-go/internal/pregnancy/store"
+	pregv2 "github.com/ritme/backend-go/internal/pregnancy/v2"
 )
 
 // Smart messages v2 (bloom B-N9-05, D-86): the rule engine's user endpoints. GET /messages/selected answers the one
@@ -69,11 +71,24 @@ func buildFacts(ctx context.Context, h *Handlers, src *StoreSource, userID uint6
 		}
 	}
 	if string(mode) == "pregnancy" {
-		if p, err := src.PregnancyProfile(ctx); err == nil && p != nil && p.LmpDate.Valid {
-			f["pregnancy_week"] = float64(today.DiffDays(p.LmpDate.Date)/7 + 1)
+		if p, err := src.PregnancyProfile(ctx); err == nil {
+			if week, ok := pregnancyWeek(p, today); ok {
+				f["pregnancy_week"] = week
+			}
 		}
 	}
 	return f, nil
+}
+
+// pregnancyWeek is the 1-based gestational week of p on today, read from the pregnancy v2 dating the pregnancy screens
+// use (LMP, ultrasound or manual entry), so a message fact and the pregnancy UI can never disagree. ok is false when the
+// profile has no dating data.
+func pregnancyWeek(p *pstore.PregnancyProfile, today civildate.Date) (float64, bool) {
+	d, ok := pregv2.Resolve(p, today)
+	if !ok {
+		return 0, false
+	}
+	return float64(d.CurrentWeek()), true
 }
 
 // Selected is GET /messages/selected?placement= → data {placement, message|null}.

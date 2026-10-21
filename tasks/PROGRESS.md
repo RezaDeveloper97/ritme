@@ -1077,3 +1077,10 @@ Nothing needed fixing.
 - Code refs re-checked: `profile/service.go:463` syncOnboardingPeriodLog, `analysis/cycle.go:43` markOutlier, `home/sections.go` 21–35 constants still present — defaults hold.
 - `docs/go-migration/deviations.md`: rows D-120…D-139 added (`accepted — engine v6, not shipped yet`); D-30 → superseded by D-121/D-122, D-55 → superseded by D-124.
 - No task scope changed.
+
+## T-M9-03 — Quick fixes: pregnancy_week fact, cycle cache key, language registry TTL
+- `messages/v2.go`: `pregnancy_week` fact now comes from `pregv2.Resolve(p, today).CurrentWeek()` (LMP, ultrasound or manual dating) — same number as the v2 pregnancy screens and the admin rule preview; was LMP-only and could go negative. No trimester fact exists, none added.
+- `cycle/service`: cache key includes `clinicalconfig.Fingerprint` of the engine group (`engine.*`, `cycle.figo.*`) for From/To/Today; engine cache schema 3 → 4.
+- `i18n/registry.go`: language list cached in Redis with `CacheTTL = 10m` (was no TTL); `Flush` unchanged.
+- Tests: `messages/v2_test.go`, `v2_int_test.go`, `cycle/service/cachekey_test.go`, `i18n/registry_ttl_test.go`; `registry_int_test.go` updated (asserted the old no-TTL behaviour).
+- Open: `content.RegistryTTL` middleware and `languageRegistryTTL` in `internal/http/routes_content.go` are now redundant (harmless, `EXPIRE NX`); remove in a later touch of routes_content.go.

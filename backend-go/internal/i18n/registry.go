@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/cache"
@@ -17,6 +18,10 @@ import (
 
 // CacheKey is LanguageRegistry::CACHE_KEY, stored under the Go prefix (ritme-go:languages.registry).
 const CacheKey = "languages.registry"
+
+// CacheTTL bounds the cached list (B5, T-M9-03): admin writes Flush it at once, and a direct DB edit (or a Laravel
+// admin edit during the strangler period) is picked up within this time instead of never.
+const CacheTTL = 10 * time.Minute
 
 // Language is one active row of the languages table (LanguageRegistry::all()).
 type Language struct {
@@ -142,8 +147,8 @@ func NewRegistry(db LanguageLister, c *cache.Client, logger *slog.Logger) *Regis
 }
 
 // All returns the active languages. It never fails: an unreadable table yields Bootstrap
-// (not cached, so the next request retries); an empty table yields Bootstrap (cached,
-// like Laravel's rememberForever).
+// (not cached, so the next request retries); an empty table yields Bootstrap (cached).
+// The cached list lives CacheTTL (Laravel's rememberForever never refreshed a direct DB edit).
 func (r *Registry) All(ctx context.Context) Languages {
 	if r.cache != nil {
 		if raw, err := r.cache.Get(ctx, CacheKey); err == nil {
@@ -163,7 +168,7 @@ func (r *Registry) All(ctx context.Context) Languages {
 	}
 	if r.cache != nil {
 		if b, err := json.Marshal(langs); err == nil {
-			if err := r.cache.Set(ctx, CacheKey, string(b), 0); err != nil {
+			if err := r.cache.Set(ctx, CacheKey, string(b), CacheTTL); err != nil {
 				r.logger.WarnContext(ctx, "language registry: cache write failed", slog.String("error", err.Error()))
 			}
 		}

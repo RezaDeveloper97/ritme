@@ -39,7 +39,9 @@ import (
 const TTL = 24 * time.Hour
 
 // schema is bumped when the cached payload shape changes, so old entries are ignored.
-const schema = 3 // 2: /cycle/today|date by the §19 display window (D-30); 3: the newest logged start anchors (D-55)
+// 2: /cycle/today|date by the §19 display window (D-30); 3: the newest logged start anchors (D-55);
+// 4: the inputs carry the engine clinical-config fingerprint (T-M9-03 B1).
+const schema = 4
 
 // Key identifies one cached computation.
 type Key struct {

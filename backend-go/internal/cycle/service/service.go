@@ -19,9 +19,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"slices"
 	"sync"
 	"time"
 
+	"github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/cycle/cache"
 	"github.com/ritme/backend-go/internal/cycle/legacy"
 	"github.com/ritme/backend-go/internal/cycle/model"
@@ -204,6 +206,11 @@ func (sn *Snapshot) cacheKey(ctx context.Context, locale, scope string, withCont
 	if sn.LifeMode != "" && !sn.LifeMode.AllowsFertilityContent() { // B-N2-11b: the day copy differs; others keep their key
 		inputs = append(inputs, "no_fertility_copy.v2") // v2: CB-TEEN-04b also drops the calculation's copy
 	}
+	// B1 (T-M9-03): an approved engine-group clinical-config version changes the result, so it changes the key at once
+	// instead of serving the old thresholds until the date rolls over. Interim; T-M9-31 replaces the cache.
+	if fp := engineConfigFingerprint(sn.From, sn.To, sn.Today); fp != "" {
+		inputs = append(inputs, "clinical_config:"+fp)
+	}
 	return cache.Key{
 		UserID:  sn.UserID,
 		Version: sn.Version(),
@@ -212,6 +219,33 @@ func (sn *Snapshot) cacheKey(ctx context.Context, locale, scope string, withCont
 		Scope:   scope,
 		Inputs:  inputs,
 	}, nil
+}
+
+// engineConfigKeys are the clinical-config keys of the engine group (engine.*, cycle.figo.*): the ones the cycle
+// engines read. Vitals, pregnancy and lab keys never change a cycle payload.
+var engineConfigKeys = func() []string {
+	var keys []string
+	for _, d := range clinicalconfig.Defs {
+		if d.Group == clinicalconfig.GroupEngine {
+			keys = append(keys, d.Key)
+		}
+	}
+	return keys
+}()
+
+// engineConfigFingerprint is the clinicalconfig.Fingerprint of the engine keys on each distinct day of days, "" when
+// every engine key is at version 1 on all of them.
+func engineConfigFingerprint(days ...civildate.Date) string {
+	out := ""
+	for i, d := range days {
+		if slices.Contains(days[:i], d) {
+			continue
+		}
+		if fp := clinicalconfig.Fingerprint(d, engineConfigKeys...); fp != "" {
+			out += d.String() + "=" + fp + ";"
+		}
+	}
+	return out
 }
 
 // DayPayload is the cached part of /cycle/today and /cycle/date: {calculation, cycle_view}.

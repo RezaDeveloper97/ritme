@@ -3,7 +3,7 @@ id: T-M9-03
 title: Quick fixes: pregnancy_week fact, cycle cache key, language registry TTL
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M9-A
 touches: [backend-go/internal/messages/v2.go, backend-go/internal/cycle/service/service.go, backend-go/internal/cycle/cache, backend-go/internal/i18n/registry.go, backend-go/internal/content/content.go]

@@ -64,9 +64,10 @@ func TestRegistry_DatabaseAndRedisCache(t *testing.T) {
 	assert.Len(t, cached, 3)
 	ttl, err := rdb.TTL(ctx, prefix+i18n.CacheKey).Result()
 	require.NoError(t, err)
-	assert.Less(t, int64(ttl), int64(0), "cached forever (no TTL)")
+	assert.Positive(t, ttl, "cached with a TTL (T-M9-03 B5)")
+	assert.LessOrEqual(t, ttl, i18n.CacheTTL)
 
-	// A write without Flush is not seen (rememberForever) …
+	// A write without Flush is not seen until the entry expires …
 	_, err = db.ExecContext(ctx, `UPDATE languages SET is_default = (code = 'en')`)
 	require.NoError(t, err)
 	assert.Equal(t, "fa", reg.DefaultCode(ctx))
