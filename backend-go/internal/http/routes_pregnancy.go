@@ -19,7 +19,7 @@ func init() {
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		h := pregnancy.NewHandlers(store.New(d.DB))
 		h.SetAfterLogSave(pregnancyalerts.New(store.New(d.DB)).AfterSave) // v2 alert rules (T-M7-04)
-		h.SetFamilyGrants(d.DB) // reset stale pregnancy grants on activate/onboarding/deactivate (T-M9-02)
+		h.SetFamilyGrants(d.DB)                                           // reset stale pregnancy grants on activate/onboarding/deactivate (T-M9-02)
 		const p = "/api/v1/pregnancy"
 
 		r.Post(p+"/activate", locale, guard, h.Activate)
