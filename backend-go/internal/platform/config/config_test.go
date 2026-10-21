@@ -126,7 +126,21 @@ func TestLoad_Defaults(t *testing.T) {
 	assert.Equal(t, "1507703", cfg.SMS.Kavenegar.TemplateLoginOTP)
 	assert.Equal(t, "/var/www/html/storage", cfg.StoragePath)
 	assert.Equal(t, ":8020", cfg.HTTP.Addr)
+	assert.Equal(t, "127.0.0.1:9090", cfg.HTTP.MetricsAddr, "metrics listener on loopback by default")
 	assert.False(t, cfg.RunMigrations, "goose never runs unless asked (prod: Laravel owns the schema)")
+}
+
+func TestLoad_MetricsAddr(t *testing.T) {
+	env := minimal()
+	env["METRICS_ADDR"] = ""
+	cfg, err := LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.Empty(t, cfg.HTTP.MetricsAddr, "set but empty turns the listener off")
+
+	env["METRICS_ADDR"] = "0.0.0.0:9100"
+	cfg, err = LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.Equal(t, "0.0.0.0:9100", cfg.HTTP.MetricsAddr)
 }
 
 func TestLoad_RunMigrations(t *testing.T) {

@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -23,12 +24,15 @@ import (
 	"github.com/ritme/backend-go/internal/platform/cache"
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/db"
+	"github.com/ritme/backend-go/internal/platform/httpx"
+	"github.com/ritme/backend-go/internal/platform/metrics"
 )
 
 const shutdownTimeout = 10 * time.Second
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
+	// Every record logged with a request context carries its X-Request-ID (T-M9-07).
+	logger := slog.New(httpx.LogHandler(slog.NewJSONHandler(os.Stderr, nil)))
 	slog.SetDefault(logger)
 
 	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
@@ -67,6 +71,16 @@ func run(logger *slog.Logger) error {
 	if err := rdb.Ping(ctx); err != nil {
 		return err
 	}
+	// cache_requests_total{cache="cycle_engine"}: the cycle-engine cache reads through Redis() directly.
+	rdb.TrackGets("cycle-engine:", "cycle_engine")
+
+	// A busy metrics port must not take the API down (a second local server, the contract harness): it is logged
+	// as an error and the API serves without the private listener.
+	if _, stopMetrics, err := startMetrics(ctx, logger, cfg.HTTP.MetricsAddr); err != nil {
+		logger.Error("metrics listener not started", slog.String("error", err.Error()))
+	} else {
+		defer stopMetrics()
+	}
 
 	app := newApp(apihttp.Default(), &apihttp.Deps{Config: cfg, DB: pool, Cache: rdb, Logger: logger})
 
@@ -82,6 +96,34 @@ func run(logger *slog.Logger) error {
 	})
 	logger.Info("stopped")
 	return err
+}
+
+// startMetrics serves /metrics and /debug/pprof/* on the private listener addr (METRICS_ADDR; "" = off). It binds
+// synchronously so a busy port is reported as an error. The returned func shuts it down; bound is the actual address
+// ("" when off).
+func startMetrics(ctx context.Context, logger *slog.Logger, addr string) (bound string, stop func(), err error) {
+	if addr == "" {
+		logger.Info("metrics listener off")
+		return "", func() {}, nil
+	}
+	var lc net.ListenConfig
+	ln, err := lc.Listen(ctx, "tcp", addr)
+	if err != nil {
+		return "", nil, fmt.Errorf("metrics: listen %s: %w", addr, err)
+	}
+	srv := metrics.NewServer(addr)
+	go func() {
+		if err := srv.Serve(ln); err != nil && !errors.Is(err, nethttp.ErrServerClosed) {
+			logger.Error("metrics listener", slog.String("error", err.Error()))
+		}
+	}()
+	bound = ln.Addr().String()
+	logger.Info("metrics listening", slog.String("addr", bound))
+	return bound, func() {
+		ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		defer cancel()
+		_ = srv.Shutdown(ctx)
+	}, nil
 }
 
 // migrateOnStart runs db.MigrateOnStart (RUN_MIGRATIONS=true: stage, where goose owns the schema

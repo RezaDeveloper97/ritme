@@ -3,7 +3,7 @@ id: T-M9-07
 title: Observability: Prometheus metrics, query counter, request id, pprof listener
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M9-A
 touches: [backend-go/cmd/api/app.go, backend-go/cmd/api/main.go, backend-go/internal/platform/db, backend-go/internal/platform/cache, backend-go/internal/platform/httpx, backend-go/internal/platform/metrics, backend-go/internal/platform/config, backend-go/go.mod, backend-go/go.sum]

@@ -9,11 +9,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 
 	"github.com/ritme/backend-go/internal/platform/config"
+	"github.com/ritme/backend-go/internal/platform/metrics"
 )
 
 // ErrMiss is returned by Get when the key does not exist.
@@ -81,6 +83,75 @@ func (c *Client) Delete(ctx context.Context, keys ...string) error {
 		prefixed[i] = c.Key(k)
 	}
 	return c.rdb.Del(ctx, prefixed...).Err()
+}
+
+// Cache-lookup counters: cache_requests_total{cache,result} (T-M9-07).
+
+// Hit counts one hit of the named cache.
+func Hit(name string) { metrics.IncCache(name, metrics.CacheHit) }
+
+// Miss counts one miss of the named cache.
+func Miss(name string) { metrics.IncCache(name, metrics.CacheMiss) }
+
+// Error counts one failed lookup (Redis error, undecodable value) of the named cache.
+func Error(name string) { metrics.IncCache(name, metrics.CacheError) }
+
+// Record counts a lookup from its outcome: nil → hit, ErrMiss or redis.Nil → miss, anything else → error.
+func Record(name string, err error) {
+	switch {
+	case err == nil:
+		Hit(name)
+	case errors.Is(err, ErrMiss) || errors.Is(err, redis.Nil):
+		Miss(name)
+	default:
+		Error(name)
+	}
+}
+
+// TrackGets counts every GET this client sends for keys under namespace (unprefixed, e.g. "cycle-engine:") as a
+// lookup of the named cache. It instruments callers that read through Redis() directly — the cycle-engine cache
+// (internal/cycle/cache) — without touching them. Call it once at start-up, before serving.
+func (c *Client) TrackGets(namespace, name string) {
+	c.rdb.AddHook(getTracker{prefix: c.Key(namespace), name: name})
+}
+
+// getTracker is the go-redis hook behind TrackGets.
+type getTracker struct{ prefix, name string }
+
+func (getTracker) DialHook(next redis.DialHook) redis.DialHook { return next }
+
+func (t getTracker) ProcessHook(next redis.ProcessHook) redis.ProcessHook {
+	return func(ctx context.Context, cmd redis.Cmder) error {
+		err := next(ctx, cmd)
+		if t.matches(cmd) {
+			Record(t.name, err)
+		}
+		return err
+	}
+}
+
+func (t getTracker) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.ProcessPipelineHook {
+	return func(ctx context.Context, cmds []redis.Cmder) error {
+		err := next(ctx, cmds)
+		for _, cmd := range cmds {
+			if t.matches(cmd) {
+				Record(t.name, cmd.Err())
+			}
+		}
+		return err
+	}
+}
+
+func (t getTracker) matches(cmd redis.Cmder) bool {
+	if cmd.Name() != "get" {
+		return false
+	}
+	args := cmd.Args()
+	if len(args) < 2 {
+		return false
+	}
+	key, ok := args[1].(string)
+	return ok && strings.HasPrefix(key, t.prefix)
 }
 
 // Close closes the underlying client.

@@ -12,7 +12,11 @@ import (
 	"github.com/ritme/backend-go/internal/modules"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/httpx"
+	"github.com/ritme/backend-go/internal/platform/metrics"
 )
+
+// slowRequest is the slow-request warning threshold (docs/engine-v6/README.md §6).
+const slowRequest = 500 * time.Millisecond
 
 // bodyLimit matches the upload ceiling of the PHP stack (25 MB).
 const bodyLimit = 25 * 1024 * 1024
@@ -34,9 +38,14 @@ func newApp(reg *apihttp.Registry, deps *apihttp.Deps) *fiber.App {
 		ErrorHandler:       httpx.ErrorHandler(deps.Logger),
 	})
 
-	// First: a panic in any handler becomes a 500 instead of killing the process (security audit of CB-REC-02).
-	app.Use(recoverPanics(deps.Logger))
+	// Observability first (T-M9-07): request id, then route metrics + the per-request query counter, so every later
+	// middleware (module gate, auth) is counted and logged under the request's id.
+	app.Use(httpx.RequestID())
+	app.Use(metrics.HTTP())
 	app.Use(accessLog(deps.Logger))
+	// A panic in any handler becomes a 500 instead of killing the process (security audit of CB-REC-02); it sits
+	// inside the access log and metrics so the 500 is logged and counted like any other.
+	app.Use(recoverPanics(deps.Logger))
 	// Lets the strangler smoke tests see which stack answered (deploy/switch-go-route.sh).
 	app.Use(func(c fiber.Ctx) error {
 		c.Set("X-Backend", "go")
@@ -69,14 +78,26 @@ func recoverPanics(logger *slog.Logger) fiber.Handler {
 	}})
 }
 
-// accessLog writes one JSON line per request.
+// accessLog writes one JSON line per request (with its request_id and DB query count) and a "slow request" warning
+// above slowRequest.
 func accessLog(logger *slog.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		start := time.Now()
 		err := c.Next()
+		elapsed := time.Since(start)
 		status := c.Response().StatusCode()
 		if err != nil {
 			status = httpx.StatusOf(err)
+		}
+		queries := metrics.RequestQueries(c)
+		if elapsed > slowRequest {
+			logger.LogAttrs(c.Context(), slog.LevelWarn, "slow request",
+				slog.String("method", c.Method()),
+				slog.String("route", metrics.RouteLabel(c, status)),
+				slog.Int("status", status),
+				slog.Int64("queries", queries),
+				slog.Float64("duration_ms", float64(elapsed.Microseconds())/1000),
+			)
 		}
 		level := slog.LevelInfo
 		if status >= fiber.StatusInternalServerError {
@@ -85,10 +106,12 @@ func accessLog(logger *slog.Logger) fiber.Handler {
 			return err // Docker probes /up every 10s; don't flood the log.
 		}
 		attrs := []slog.Attr{
+			slog.String("request_id", httpx.RequestIDFrom(c.Context())),
 			slog.String("method", c.Method()),
 			slog.String("path", httpx.LogPath(c.Path())),
 			slog.Int("status", status),
-			slog.Float64("duration_ms", float64(time.Since(start).Microseconds())/1000),
+			slog.Float64("duration_ms", float64(elapsed.Microseconds())/1000),
+			slog.Int64("queries", queries),
 		}
 		if !httpx.Sensitive(c.Path()) { // CB-REC-03: no viewer IP next to a public share / emergency read
 			attrs = append(attrs, slog.String("ip", c.IP()))

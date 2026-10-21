@@ -48,7 +48,7 @@ func Open(ctx context.Context, cfg config.DB, loc *time.Location) (*sql.DB, erro
 	return OpenDSN(ctx, DSN(cfg, loc))
 }
 
-// OpenDSN opens and pings a pool from a ready DSN (integration tests use TEST_DB_DSN).
+// OpenDSN opens and pings an instrumented pool from a ready DSN (integration tests use TEST_DB_DSN).
 // The DSN must not contain a time_zone parameter.
 func OpenDSN(ctx context.Context, dsn string) (*sql.DB, error) {
 	parsed, err := mysql.ParseDSN(dsn)
@@ -59,10 +59,12 @@ func OpenDSN(ctx context.Context, dsn string) (*sql.DB, error) {
 		return nil, fmt.Errorf("db: the DSN must not set time_zone (timestamps are Tehran wall-clock)")
 	}
 
-	pool, err := sql.Open("mysql", dsn)
+	connector, err := mysql.NewConnector(parsed)
 	if err != nil {
 		return nil, fmt.Errorf("db: open: %w", err)
 	}
+	// Every query is timed and counted (instrument.go, T-M9-07).
+	pool := sql.OpenDB(Instrument(connector))
 	pool.SetMaxOpenConns(maxOpenConns)
 	pool.SetMaxIdleConns(maxIdleConns)
 	pool.SetConnMaxLifetime(connMaxLifetime)

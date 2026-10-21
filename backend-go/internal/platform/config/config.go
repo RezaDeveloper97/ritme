@@ -2,7 +2,7 @@
 //
 // Variable names match the Laravel backend (backend/config/*.php, docker-compose.yml)
 // so both stacks can be fed from the same .env during the strangler period. Go-only
-// variables are HTTP_ADDR, STORAGE_PATH and REDIS_PREFIX; RUN_MIGRATIONS is shared (each
+// variables are HTTP_ADDR, METRICS_ADDR, STORAGE_PATH and REDIS_PREFIX; RUN_MIGRATIONS is shared (each
 // service's entrypoint reads its own value).
 //
 // Load fails fast: every missing required variable and every malformed value is
@@ -81,9 +81,15 @@ type App struct {
 // IsProduction reports whether APP_ENV is "production".
 func (a App) IsProduction() bool { return a.Env == "production" }
 
+// DefaultMetricsAddr is the private /metrics + /debug/pprof listener (T-M9-07): loopback only, never routed by nginx.
+const DefaultMetricsAddr = "127.0.0.1:9090"
+
 // HTTP holds the listener settings.
 type HTTP struct {
 	Addr string
+	// MetricsAddr (METRICS_ADDR, default DefaultMetricsAddr) is the second listener serving /metrics and
+	// /debug/pprof/*. Set but empty means off.
+	MetricsAddr string
 }
 
 // DB holds the MariaDB connection settings (DB_*).
@@ -456,7 +462,7 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			Timezone: e.str("APP_TIMEZONE", "Asia/Tehran"),
 			Locale:   e.str("APP_LOCALE", "en"),
 		},
-		HTTP: HTTP{Addr: e.str("HTTP_ADDR", ":8020")},
+		HTTP: HTTP{Addr: e.str("HTTP_ADDR", ":8020"), MetricsAddr: e.optional("METRICS_ADDR", DefaultMetricsAddr)},
 		DB: DB{
 			Host:     e.required("DB_HOST"),
 			Port:     e.integer("DB_PORT", 3306),
@@ -827,6 +833,14 @@ func (e *env) str(key, def string) string {
 		return v
 	}
 	return def
+}
+
+// optional is str with one difference: a variable that is set but empty means "" (off), not the default.
+func (e *env) optional(key, def string) string {
+	if _, ok := e.lookup(key); !ok {
+		return def
+	}
+	return e.raw(key)
 }
 
 func (e *env) required(key string) string {
