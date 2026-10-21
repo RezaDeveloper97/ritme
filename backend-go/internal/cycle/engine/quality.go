@@ -264,6 +264,11 @@ func (s *State) grade(st *Status, f facts, today Day) {
 	default:
 		st.Confidence = ConfidenceMedium
 	}
+	if f.futureK > 0 && res != ResolutionUnknown {
+		// E-03: a projection takes today's confidence, k ≥ 2 at most medium; the predicted_reference low and the
+		// day's own data_quality do not apply to it.
+		st.Confidence = f.futureCap
+	}
 	if perimenopause {
 		st.Confidence = min(st.Confidence, ConfidenceMedium)
 	}

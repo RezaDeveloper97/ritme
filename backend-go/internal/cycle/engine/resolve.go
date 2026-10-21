@@ -44,10 +44,14 @@ func (s *State) anchorAt(target Day) (anchor, bool) {
 // §2.16. A real cycle with a BBT or LH ovulation uses it (BBT > LH, E-16); the current cycle then predicts next =
 // O + effective_luteal_length, a completed cycle keeps its actual next start (E-22). Otherwise next = start +
 // effective_cycle_length (or the actual next start) and the calendar ovulation is next − Luteal.Default. Under
-// fertility suppression (markers = false) no ovulation is computed (§2.42), so BBT/LH never move next.
-func (s *State) layoutFor(a anchor, markers bool) layout {
+// fertility suppression (markers = false) no ovulation is computed (§2.42), so BBT/LH never move next. A skip anchor
+// (noPeriod, E-15) has no period: its follicular range starts on the anchor day.
+func (s *State) layoutFor(a anchor, markers, noPeriod bool) layout {
 	end, confirmed := a.loggedEnd, a.loggedEnd != NoDay
-	if !confirmed {
+	switch {
+	case noPeriod:
+		end, confirmed = a.start-1, false
+	case !confirmed:
 		end = a.start + days(max(1, s.periodLen)) - 1
 	}
 	next := a.nextReal
@@ -62,10 +66,13 @@ func (s *State) layoutFor(a anchor, markers bool) layout {
 		}
 	}
 	if next == NoDay {
-		next = a.start + days(max(1, s.cycleLen))
+		next = a.start + days(s.ecl())
 	}
 	return newLayout(a.start, end, confirmed, next, next-days(s.p.Luteal.Default), s.p.FertileBefore)
 }
+
+// ecl is effective_cycle_length as a step (≥ 1).
+func (s *State) ecl() int { return max(1, s.cycleLen) }
 
 // facts are the resolve-time signals the quality layer (grade, quality.go) reads besides the Status itself.
 type facts struct {
@@ -74,18 +81,73 @@ type facts struct {
 	forcedLow   bool // a tier forces confidence = low
 	realOpen    bool // the anchor is a real period with no logged end (confidence_reasons += missing_period_end)
 	endInvolved bool // the target's phase depends on current_period_end (menstrual, follicular, a window at end + 1)
+	// futureK > 0: the target was resolved from future_cycles[futureK] (E-03); its confidence is capped at
+	// futureCap = min(today's confidence, k == 1 ? high : medium) and the predicted_reference low does not apply.
+	futureK   int
+	futureCap Confidence
 }
 
-// Resolve is the engine status of one target date (§2.20–§2.34, §2.42) for the current cycle and the history. today
-// is the user-local day; the future-cycle projection of targets after today (E-03) and the stale anchor and skips
-// (§2.41, E-15) arrive in T-M9-20. It allocates nothing but the returned value.
+// layoutMemo lets Range reuse one cycle's layout for every day of that cycle.
+type layoutMemo struct {
+	ok       bool
+	a        anchor
+	markers  bool
+	noPeriod bool
+	l        layout
+}
+
+// layout is the cycle's day map, from the memo when it holds the same cycle.
+func (s *State) layout(c *cycle, markers bool, m *layoutMemo) layout {
+	if m == nil {
+		return s.layoutFor(c.a, markers, c.noPeriod)
+	}
+	if !m.ok || m.a != c.a || m.markers != markers || m.noPeriod != c.noPeriod {
+		*m = layoutMemo{ok: true, a: c.a, markers: markers, noPeriod: c.noPeriod,
+			l: s.layoutFor(c.a, markers, c.noPeriod)}
+	}
+	return m.l
+}
+
+// Resolve is the engine status of one target date (§2.20–§2.34, §2.41, §2.42, E-03, E-15) for the current cycle and
+// the history. today is the user-local day: a target after today on or after today's predicted next start resolves
+// inside today's future_cycles projection (E-03, E-04). It allocates nothing but the returned value.
 func (s *State) Resolve(target, today Day) Status {
-	st, f := s.resolve(target, today)
+	var ch chain
+	if target > today {
+		ch = s.chainAt(today)
+	}
+	return s.resolveDay(target, today, &ch, nil)
+}
+
+// resolveDay is Resolve with today's projection precomputed (zero chain when target ≤ today) and an optional layout
+// memo (Range).
+func (s *State) resolveDay(target, today Day, ch *chain, m *layoutMemo) Status {
+	st, f := s.resolveWith(target, ch, m)
 	s.grade(&st, f, today)
 	return st
 }
 
-func (s *State) resolve(target, _ Day) (Status, facts) {
+// resolve is the ungraded status of target (tests).
+func (s *State) resolve(target, today Day) (Status, facts) {
+	var ch chain
+	if target > today {
+		ch = s.chainAt(today)
+	}
+	return s.resolveWith(target, &ch, nil)
+}
+
+func (s *State) resolveWith(target Day, ch *chain, m *layoutMemo) (Status, facts) {
+	if ch.covers(target) && !s.realStartIn(ch.today, target) {
+		c, ok := s.futureCycle(target, ch)
+		return s.resolveCycle(target, &c, ok, true, m)
+	}
+	c, ok := s.cycleAt(target)
+	return s.resolveCycle(target, &c, ok, false, m)
+}
+
+// resolveCycle resolves target inside cycle c (ok = false: no cycle). quiet marks a future target outside the
+// projection (E-04 late beyond max_late, E-28 beyond the 6th cycle): unknown without insufficient_anchor_data.
+func (s *State) resolveCycle(target Day, c *cycle, ok, quiet bool, m *layoutMemo) (Status, facts) {
 	p := &s.p
 	st := Status{
 		Date: target,
@@ -107,19 +169,22 @@ func (s *State) resolve(target, _ Day) (Status, facts) {
 		st.Warnings.Add(WarnPostpartumCyclesNotReturned)
 	}
 
-	a, ok := s.anchorAt(target)
 	if !ok {
 		st.Limits = s.limitsFor(target, NoDay, sup)
 		// §2.20.6 / §2.28 insufficient: no real start and no declared start on or before the target. A suspended or
-		// postpartum status is complete without one (E-14, E-25: requires_user_input = false).
-		if !noPrediction {
+		// postpartum status is complete without one (E-14, E-25: requires_user_input = false), and so is a future
+		// target outside the projection (E-04, E-28).
+		if !noPrediction && !quiet {
 			st.Warnings.Add(WarnInsufficientAnchorData)
 		}
 		return st, f
 	}
+	a := c.a
 	f.anchored = true
-	st.Limits = s.limitsFor(target, a.start, sup)
-	l := s.layoutFor(a, sup == SuppressionNone)
+	f.futureK = c.futureK
+	st.FutureK = c.futureK
+	st.Limits = s.limitsFor(target, c.promptFrom, sup)
+	l := s.layout(c, sup == SuppressionNone, m)
 
 	cycleDay := int(target-a.start) + 1 // §2.5, 1-based
 	raw := int(l.next - target)         // §2.22
@@ -138,7 +203,10 @@ func (s *State) resolve(target, _ Day) (Status, facts) {
 		EstimatedOvulationDate:      l.ov,
 		OvulationSource:             l.ovSrc,
 	}
-	if l.endConfirmed {
+	switch {
+	case c.noPeriod: // E-15: a skipped cycle has no period, so no period end
+		st.Anchors.CurrentPeriodEnd, st.Anchors.CurrentPeriodEndSource = NoDay, EndUnknown
+	case l.endConfirmed:
 		st.Anchors.CurrentPeriodEndSource = EndUserLogged
 	}
 	if sup != SuppressionNone { // §2.42: ovulation is not computed
@@ -152,9 +220,10 @@ func (s *State) resolve(target, _ Day) (Status, facts) {
 	if l.conflict { // §2.17: every target of that cycle (never under suppression: the markers are not read)
 		st.Warnings.Add(WarnLHBBTConflict)
 	}
+	st.Warnings |= c.warns // stale_onboarding_anchor, skipped_cycle_recorded, prediction_based_output (E-01)
 
 	// 1. menstrual (§2.21): logged bleeding resolves under every limiting condition (E-13, E-14, E-25).
-	sub, res, decided := s.menstrual(&st, &f, a, &l, cycleDay)
+	sub, res, decided := s.menstrual(&st, &f, c, &l, cycleDay)
 
 	// E-14 / E-25: every other day is unknown with nothing predicted.
 	if !decided && noPrediction {
@@ -162,6 +231,7 @@ func (s *State) resolve(target, _ Day) (Status, facts) {
 	}
 
 	// 2. period_expected (§2.22) — never inside a completed cycle (E-22); also under hormonal contraception (E-13).
+	// A future projection never reaches it (target < its next start), so lateness applies to targets ≤ today (E-03).
 	unresolvedLate := false
 	if !decided && a.nextReal == NoDay && target >= l.next {
 		decided, res = true, ResolutionPrediction
@@ -200,9 +270,10 @@ func (s *State) resolve(target, _ Day) (Status, facts) {
 		f.forcedPoor = true
 	}
 
-	// §2.30 / E-10: a declared onboarding anchor resolves every phase as onboarding_based (default_based when both
-	// lengths are defaults), period_expected days 0..max_late included; > max_late stays prediction (E-11).
-	if a.src == StartOnboardingDeclared && res != ResolutionUnknown && !unresolvedLate {
+	// §2.30 / E-10: a cycle derived from the declared onboarding start (the start itself, its stale roll-forward,
+	// a skip after it, or today's projection from it) resolves every phase as onboarding_based (default_based when
+	// both lengths are defaults), period_expected days 0..max_late included; > max_late stays prediction (E-11).
+	if c.declared && res != ResolutionUnknown && !unresolvedLate {
 		res = ResolutionOnboardingBased
 		if s.cycleSrc == LengthDefault && s.periodSrc == LengthDefault {
 			res = ResolutionDefaultBased
@@ -211,15 +282,12 @@ func (s *State) resolve(target, _ Day) (Status, facts) {
 
 	// §2.32 source warnings. Manual lengths (E-20) are not onboarding data.
 	d := s.in.Declared
-	if a.src == StartOnboardingDeclared ||
-		(!d.Manual && (s.cycleSrc == LengthDeclared || s.periodSrc == LengthDeclared)) {
+	if c.declared || (!d.Manual && (s.cycleSrc == LengthDeclared || s.periodSrc == LengthDeclared)) {
 		st.Warnings.Add(WarnOnboardingDataUsed)
 	}
 	if s.cycleSrc == LengthDefault || s.periodSrc == LengthDefault {
 		st.Warnings.Add(WarnDefaultValuesUsed)
 	}
-	// prediction_based_output: only for a predicted_reference anchor or a future projection (E-01) — neither
-	// exists before T-M9-20, so ordinary prediction days carry no warning (§2.35 example).
 
 	st.Subphase = sub
 	st.MainPhase = sub.Main()
@@ -227,6 +295,9 @@ func (s *State) resolve(target, _ Day) (Status, facts) {
 	f.endInvolved = st.MainPhase == MainPhaseMenstrual || st.MainPhase == MainPhaseFollicular ||
 		(st.MainPhase == MainPhaseFertile && l.fertileStart == l.end+1)
 	st.ResolutionSource = res
+	if c.futureK > 0 {
+		f.futureCap = c.futureCap
+	}
 	if sup != SuppressionNone { // §2.26 / §2.34: suppressed fertility is unknown and has no countdown
 		st.FertilityLevel = FertilityUnknown
 		if sup == SuppressionPregnancy && st.MainPhase != MainPhaseMenstrual {
@@ -245,8 +316,9 @@ func (s *State) resolve(target, _ Day) (Status, facts) {
 // menstrual is priority 1 of §2.20 with the §2.21 tiers and the §2.12 caps (soft = EPL, warning = max(EPL + extra,
 // min), hard). decided is false when the day is not menstrual and resolves onward. The hard cap is checked before
 // the warning cap, so a warning cap above the hard cap (EPL ≥ 10) never keeps a day menstrual past the hard cap.
-func (s *State) menstrual(st *Status, f *facts, a anchor, l *layout, cycleDay int) (Subphase, ResolutionSource, bool) {
+func (s *State) menstrual(st *Status, f *facts, c *cycle, l *layout, cycleDay int) (Subphase, ResolutionSource, bool) {
 	p := &s.p
+	a := c.a
 	soft := s.periodLen
 	warning := max(s.periodLen+p.WarningCapExtra, p.WarningCapMin)
 	switch {
@@ -272,9 +344,10 @@ func (s *State) menstrual(st *Status, f *facts, a anchor, l *layout, cycleDay in
 			f.forcedPoor, f.forcedLow = true, true
 			return SubphaseMenstrualPossible, ResolutionUserLoggedWithAssumedEnd, true
 		}
-	default: // a declared onboarding start: menstrual over the assumed duration only, no end-missing tiers
+	case c.noPeriod: // a skip anchor (E-15): the user said no period came, so no menstrual days
+	default: // a declared or predicted start (§2.41, E-03): menstrual over the assumed duration only, no end tiers
 		if cycleDay <= soft {
-			return SubphaseMenstrual, ResolutionOnboardingBased, true
+			return SubphaseMenstrual, ResolutionPrediction, true // E-10 turns a declared one into onboarding_based
 		}
 	}
 	return SubphaseUnknown, ResolutionUnknown, false

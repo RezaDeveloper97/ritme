@@ -3,7 +3,7 @@ id: T-M9-20
 title: Engine v6 future cycles, stale anchor, skipped cycles and Range
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-19]
 parallel_group: M9-B
 touches: [backend-go/internal/cycle/engine]
@@ -41,7 +41,7 @@ skipped cycle (gap 01 §2.16, §2.39, §2.41). The calendar needs a fast range A
    `Resolve` for every day (property-tested). `from`/`to` may cross today and cycle boundaries; max span 400 days.
 
 ## Tests
-- Chain: start 07-01, L = 29 → k=1 07-30, k=2 08-28 (ovulation 08-14), k=6 12-24; k=1 confidence = today's, k ≥ 2
+- Chain: start 07-01, L = 29 → k=1 07-30, k=2 08-28 (ovulation 08-14), k=6 12-22 (07-30 + 5×29; was a 12-24 typo); k=1 confidence = today's, k ≥ 2
   ≤ medium; `period_end = start + EPL − 1`; fertile = O−5..O.
 - Late rebase: anchor 01-01, L = 28, today 02-01 (late 3) → k=1 starts 02-02; target 02-02 resolves menstrual (predicted,
   `FutureK = 1`), never "day 5"; days 01-29…02-01 are period_expected; late 15 → empty list, future targets unknown.

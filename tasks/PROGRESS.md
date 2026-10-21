@@ -1332,3 +1332,51 @@ Nothing needed fixing.
   - **T-M9-10b**: most service calls pass the `fiber.Ctx` itself, which has no deadline, so the 5 s cap reaches only about 93 of about 550 call sites. The fix is in the db connector.
   - A request timeout gives 500, never 401.
   - The `.env.*.example` files don't list the new vars yet.
+
+## T-M9-20 — Engine v6 future cycles, stale anchor, skipped cycles, range
+- New `engine/anchors.go`:
+  - Skip anchors (E-15) are matched in Prepare part 5. A skip must equal the predicted next of its base, or the previous skip + ECL.
+  - Unmatched skips go to `State.Diagnostics().IgnoredSkips`.
+  - Stale onboarding anchor (§2.41).
+- New `engine/future.go`:
+  - `(*State).FutureCycles(today) []FutureCycle`: 6 items (E-03/E-04/E-05/E-28). The k≥2 ovulation is start − 14.
+  - `(*State).Range(from, to, today) []Status`, at most `MaxRangeDays = 400`.
+  - A property test checks `Range == map(Resolve)` over 2 000 histories × 400 days.
+- Behaviour:
+  - **E-03:** a target after today, on or after today's next start, resolves inside future_cycles[k]. Its source is predicted_reference with the `prediction_based_output` warning, and its confidence is `min(today's, k==1 ? high : medium)`, then the age cap. Example: L 29, start 07-01, today 07-10 → 07-30 is menstrual, FutureK 1, confidence high. A target after future_cycles[6].period_end is unknown.
+  - **E-04:** while late, period_start[1] = today + 1. Example: next 01-29, today 02-01 → k1 = 02-02, and 01-29…02-01 are period_expected. Late > 14 gives `[]`, and future targets are unknown.
+  - **E-15:** start 07-01, L 28, skip 07-29 → 08-10 is cycle_day 13 (predicted_reference, low, `skipped_cycle_recorded`) and next is 08-26. Without the skip it would be late 12.
+  - Stale anchor: on a declared-only history, diff 43 is stale exactly when late would be 15, so the E-11 unknown is never reached there. One resolve_test assertion was updated for this.
+  - Suppression: on hormonal contraception the future cycles carry no fertile or ovulation dates. Pregnancy and postpartum-not-returned give `[]`.
+  - Future targets inherit today's stale/skip warnings. A real start logged in (today, target] resolves normally.
+- Benchmarks:
+
+  | Benchmark | Result | Budget |
+  |---|---|---|
+  | Range31 | 9.1 µs, 1 alloc | ≤ 150 µs |
+  | FutureCycles | 0.54 µs | ≤ 5 µs |
+  | Resolve | 356 ns, **0 allocs** | ≤ 3 µs |
+  | Prepare | 5.4 µs, 8 allocs | — |
+
+  Prepare has 8 allocs because the bench input has an ignored skip. Coverage 99.0 %.
+- Task text fixed: k=6 is 12-22, not 12-24.
+- v6 vs v1.1:
+  - The roll-forward is replaced by the FutureK projection, with no period_expected after today.
+  - The late rebase replaces "period day 5 tomorrow".
+  - Nothing is predicted after k6.
+  - The stale anchor replaces unknown / 62 days late.
+  - Skips act as virtual anchors.
+  - `prediction_based_output` is raised only on stale, skip and future statuses.
+- Open items:
+  - T-M9-21:
+    - Fill `FutureCycles` on the today payload.
+    - Encode `CurrentPeriodEnd = NoDay` for skip anchors, and `FutureK`.
+    - Encode `[]` vs null for an empty list.
+    - Decide whether `Diagnostics` is exposed.
+  - T-M9-22: lock the Range31 / FutureCycles ceilings. The benches are in `future_test.go`.
+  - T-M9-24: the loader passes `Skips`.
+  - T-M9-29: the skip endpoint must store exactly the predicted next. Otherwise the skip is ignored but still excludes its cycle from medians.
+  - Product questions:
+    - Should an unmatched skip stop excluding its cycle?
+    - Should stale/skip warnings carry onto future targets?
+    - Should regularity for far-future targets use today as ref (as it does now)?

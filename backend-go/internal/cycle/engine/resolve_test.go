@@ -365,9 +365,11 @@ func TestResolve_Onboarding(t *testing.T) {
 	st = s.Resolve(decl+5, decl+5)
 	assert.Equal(t, MainPhaseFollicular, st.MainPhase)
 
-	st = s.Resolve(decl+43, decl+43) // late 15 → unknown, prediction (E-11)
-	assert.Equal(t, MainPhaseUnknown, st.MainPhase)
-	assert.Equal(t, ResolutionPrediction, st.ResolutionSource)
+	// Late 15 is never reached on a declared-only history: diff 43 > 28 + 14 is the stale anchor (§2.41, T-M9-20).
+	st = s.Resolve(decl+43, decl+43)
+	assert.Equal(t, StartPredictedReference, st.Anchors.CurrentPeriodStartSource)
+	assert.Equal(t, decl+28, st.Anchors.CurrentPeriodStart)
+	assert.True(t, st.Warnings.Has(WarnStaleOnboardingAnchor))
 
 	// Declared date without lengths → default_based.
 	s = prep(declared(Declared{LastPeriodStart: Some(decl)}))
