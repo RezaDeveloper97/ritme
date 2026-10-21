@@ -18,7 +18,7 @@ import {
   useSaveContraceptionMethod,
 } from '@/entities/contraception';
 import { lifeStageKeys } from '@/entities/user';
-import { getApiSaveErrorMessage } from '@/shared/api';
+import { getApiSaveErrorMessage, invalidateCycleDependents } from '@/shared/api';
 import { type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import {
@@ -139,6 +139,8 @@ function SetupForm({ saved }: { saved: ContraceptionMethod | null }) {
     save.mutate(draftToPayload({ ...draft, method }), {
       onSuccess: () => {
         // The save flips «track contraception» and the pill reminder pref, and syncs care reminders.
+        // Contraception suppresses the fertility window in v6, so the cycle reads refresh too.
+        invalidateCycleDependents(queryClient);
         void queryClient.invalidateQueries({ queryKey: lifeStageKeys.all });
         void queryClient.invalidateQueries({ queryKey: careKeys.all });
         void queryClient.invalidateQueries({ queryKey: ['notification-settings'] });

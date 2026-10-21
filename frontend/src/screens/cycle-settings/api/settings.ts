@@ -2,9 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { cycleKeys } from '@/entities/cycle';
 import { userKeys } from '@/entities/user';
-import { type ApiEnvelope, apiClient } from '@/shared/api';
+import { type ApiEnvelope, apiClient, invalidateCycleDependents } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
 import { applyPatch, type CycleSettings, type CycleSettingsPatch, cycleSettingsSchema } from '../model/settings';
@@ -16,10 +15,10 @@ export const cycleSettingsKeys = {
 
 /**
  * Caches the save makes stale: manual lengths re-run the cycle engine (every
- * cycle query, the profile), and the reminder switches are shared with the
+ * cycle-dependent query via the shared helper, plus the profile), and the reminder switches are shared with the
  * /profile/notifications screen (a sibling slice, hence its literal key).
  */
-const DEPENDENT_KEYS: readonly (readonly string[])[] = [cycleKeys.all, userKeys.profile(), ['notification-settings']];
+const DEPENDENT_KEYS: readonly (readonly string[])[] = [userKeys.profile(), ['notification-settings']];
 
 const PATH = '/profile/cycle-settings';
 
@@ -64,6 +63,7 @@ export function useUpdateCycleSettings() {
       // Only the last save in flight writes the server copy, so an older
       // response never undoes a newer optimistic change.
       if (queryClient.isMutating({ mutationKey: [...key, 'update'] }) <= 1) queryClient.setQueryData(key, saved);
+      invalidateCycleDependents(queryClient);
       for (const k of DEPENDENT_KEYS) void queryClient.invalidateQueries({ queryKey: [...k] });
     },
   });

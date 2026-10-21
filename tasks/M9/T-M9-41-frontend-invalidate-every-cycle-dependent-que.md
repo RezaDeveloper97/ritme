@@ -3,7 +3,7 @@ id: T-M9-41
 title: Frontend: invalidate every cycle-dependent query after cycle writes
 milestone: M9
 type: frontend
-status: todo
+status: done
 depends_on: []
 parallel_group: M9-A
 touches: [frontend/src/shared/api/invalidation.ts, frontend/src/shared/api/invalidation.test.ts, frontend/src/shared/api/index.ts, frontend/src/features/log-period/api/mutations.ts, frontend/src/features/log-day/api/save.ts, frontend/src/features/log-fertility-day/api/mutations.ts, frontend/src/features/edit-profile/api/mutations.ts, frontend/src/screens/cycle-settings/api/settings.ts, frontend/src/screens/contraception-setup/ui/ContraceptionSetupPage.tsx, frontend/src/screens/mode/ui/ModePage.tsx, frontend/src/entities/contraception/api/queries.ts]

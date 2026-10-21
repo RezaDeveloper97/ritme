@@ -1090,3 +1090,8 @@ Nothing needed fixing.
 - Schedule: anchors win over `predictions`; null ovulation or suppression → no fertile window/marker; new `CycleSchedule.hasOvulation`; `isFertilitySuppressed(view)` exported.
 - Tests: `schema.v6.test.ts` (§2.35 example, Laravel, pill, missing layers, bad month day, unknown phase), schedule v6 block, `suppression.test.ts`. 1921 tests green.
 - Open (for T-M9-42…47): `schedule.ovulation` stays a non-null placeholder when `hasOvulation` is false — HomePage (`slotFor(schedule.ovulation…)`) and ReadyStep must gate on `hasOvulation`/`isFertilitySuppressed`; `daysUntilOvulation` falls back to `cycleLength-14-cycleDay`. Some prettier-style reflow in schema.ts/index.ts (no prettier config in repo; cosmetic).
+
+## T-M9-41 — Frontend: invalidate every cycle-dependent query after cycle writes
+- New `shared/api/invalidation.ts`: `CYCLE_DEPENDENT_ROOTS` (`cycle`, `fertility`, `analysis`, `message` — the real `messageKeys.all`, not `messages` —, `care`, `period-status`, `period-history`) and `invalidateCycleDependents(queryClient)`; test pins the roots to the entity key factories.
+- Wired into period start/end/range/edit/delete/reconcile, day-log save, fertility day log, profile update, cycle settings, contraception save + stop, and (main session, once T-M9-40 had landed) `useRecalculateCycle` in `entities/cycle/api/queries.ts`. ModePage untouched (already invalidates everything).
+- Open: per-mutation "onSuccess calls the helper" tests not written (test files outside `touches`); `period-status` is now refetched after start/end (harmless), the old race comment in `log-period/api/mutations.ts` is slightly stale; pill log/undo don't invalidate cycle (not cycle inputs).

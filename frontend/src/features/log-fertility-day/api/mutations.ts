@@ -2,8 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { type ApiEnvelope, apiClient } from '@/shared/api';
-import { cycleKeys } from '@/entities/cycle';
+import { type ApiEnvelope, apiClient, invalidateCycleDependents } from '@/shared/api';
 import {
   type FertilityDay,
   type FertilityDayInput,
@@ -11,7 +10,6 @@ import {
   fertilityKeys,
 } from '@/entities/fertility';
 import { healthLogKeys } from '@/entities/health-log';
-import { messageKeys } from '@/entities/message';
 
 import { toFertilityDayBody } from '../model/body';
 
@@ -49,9 +47,7 @@ export function useSaveFertilityDay() {
     onSuccess: (day, { date }) => {
       // The PUT answers with the merged day — adopt it before the refetch lands.
       queryClient.setQueryData(fertilityKeys.day(date), day);
-      void queryClient.invalidateQueries({ queryKey: fertilityKeys.all });
-      void queryClient.invalidateQueries({ queryKey: cycleKeys.all });
-      void queryClient.invalidateQueries({ queryKey: messageKeys.all });
+      invalidateCycleDependents(queryClient);
       void queryClient.invalidateQueries({ queryKey: healthLogKeys.all });
     },
   });

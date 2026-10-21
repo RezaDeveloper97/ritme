@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
-import { type ApiEnvelope, apiClient } from '@/shared/api';
+import { type ApiEnvelope, apiClient, invalidateCycleDependents } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
 import {
@@ -149,7 +149,7 @@ export function useRecalculateCycle() {
       await apiClient.post('/cycle/recalculate');
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: cycleKeys.all });
+      invalidateCycleDependents(queryClient);
     },
   });
 }

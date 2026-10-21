@@ -2,8 +2,6 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { cycleKeys } from '@/entities/cycle';
-import { fertilityKeys } from '@/entities/fertility';
 import {
   healthLogKeys,
   logKeys,
@@ -12,8 +10,8 @@ import {
   type LogDayChanges,
   type LogDayValues,
 } from '@/entities/health-log';
-import { messageKeys } from '@/entities/message';
 import { wellbeingKeys } from '@/entities/wellbeing';
+import { invalidateCycleDependents } from '@/shared/api';
 import { track } from '@/shared/analytics';
 
 export interface SaveLogDayInput {
@@ -50,9 +48,7 @@ export function useSaveLogDay() {
       track({ name: 'log_saved', props: { source: 'full' } });
       void queryClient.invalidateQueries({ queryKey: logKeys.ranges() });
       void queryClient.invalidateQueries({ queryKey: healthLogKeys.all });
-      void queryClient.invalidateQueries({ queryKey: cycleKeys.all });
-      void queryClient.invalidateQueries({ queryKey: fertilityKeys.all });
-      void queryClient.invalidateQueries({ queryKey: messageKeys.all });
+      invalidateCycleDependents(queryClient);
       void queryClient.invalidateQueries({ queryKey: wellbeingKeys.all });
     },
   });

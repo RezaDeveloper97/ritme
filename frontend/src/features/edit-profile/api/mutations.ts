@@ -2,8 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { cycleKeys } from '@/entities/cycle';
-import { type ApiEnvelope, apiClient } from '@/shared/api';
+import { type ApiEnvelope, apiClient, invalidateCycleDependents } from '@/shared/api';
 import {
   type ChronicCondition,
   type PregnancyIntention,
@@ -59,7 +58,7 @@ export function useUpdateProfile() {
       // Cycle length / last period feed every prediction, so the engine's
       // read-outs must refetch too — otherwise the home screen keeps nudging
       // the user to sync a value they just synced.
-      void queryClient.invalidateQueries({ queryKey: cycleKeys.all });
+      invalidateCycleDependents(queryClient);
     },
   });
 }

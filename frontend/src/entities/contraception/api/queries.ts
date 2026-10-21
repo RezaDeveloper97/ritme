@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { type ApiEnvelope, apiClient } from '@/shared/api';
+import { type ApiEnvelope, apiClient, invalidateCycleDependents } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
 import type { MissedPillRule } from '../model/missed';
@@ -38,12 +38,17 @@ export function useContraception() {
   });
 }
 
-function useOverviewWrite<V>(write: (vars: V) => Promise<ContraceptionOverview>) {
+/**
+ * `affectsCycle`: method save/stop change whether contraception suppresses the
+ * fertility window (v6), so the cycle-dependent reads must refresh as well.
+ */
+function useOverviewWrite<V>(write: (vars: V) => Promise<ContraceptionOverview>, affectsCycle = false) {
   const queryClient = useQueryClient();
   return useMutation<ContraceptionOverview, unknown, V>({
     mutationFn: write,
     onSuccess: (overview) => {
       queryClient.setQueryData(contraceptionKeys.overview(), overview);
+      if (affectsCycle) invalidateCycleDependents(queryClient);
     },
   });
 }
@@ -57,12 +62,13 @@ function useOverviewWrite<V>(write: (vars: V) => Promise<ContraceptionOverview>)
 export function useSaveContraceptionMethod() {
   return useOverviewWrite((payload: MethodPayload) =>
     parse(apiClient.put<ApiEnvelope<unknown>>(`${PATH}/method`, payload)),
+    true,
   );
 }
 
 /** DELETE /contraception/method — stop tracking: method + its reminders go, the pill log stays. */
 export function useStopContraception() {
-  return useOverviewWrite(() => parse(apiClient.delete<ApiEnvelope<unknown>>(`${PATH}/method`)));
+  return useOverviewWrite(() => parse(apiClient.delete<ApiEnvelope<unknown>>(`${PATH}/method`)), true);
 }
 
 /** POST /contraception/pills — log a pill (default: today, taken). */

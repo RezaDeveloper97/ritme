@@ -16,3 +16,4 @@ export {
   getApiThrottleMessage,
 } from './envelope';
 export { clearLastSync, readLastSync } from './lastSync';
+export { CYCLE_DEPENDENT_ROOTS, invalidateCycleDependents } from './invalidation';
