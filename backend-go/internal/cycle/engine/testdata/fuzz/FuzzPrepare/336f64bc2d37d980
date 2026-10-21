@@ -1,0 +1,4 @@
+go test fuzz v1
+[]byte("X 2Y01")
+int16(3)
+uint16(38)

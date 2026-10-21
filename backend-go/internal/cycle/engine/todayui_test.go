@@ -208,15 +208,3 @@ func TestTodayUI_NoAllocs(t *testing.T) {
 	assert.Zero(t, testing.AllocsPerRun(200, func() { ui = s.TodayUI(st) }))
 	_ = ui
 }
-
-func BenchmarkTodayUI(b *testing.B) {
-	cur := day(julyStart)
-	s := prep(withPeriods(periodsEnding(cur, 5, 27, 29, 30)))
-	st := s.Resolve(cur+17, cur+17)
-	b.ReportAllocs()
-	var ui TodayUI
-	for range b.N {
-		ui = s.TodayUI(st)
-	}
-	_ = ui
-}

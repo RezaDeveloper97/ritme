@@ -137,7 +137,10 @@ func (s *State) resolve(target, today Day) (Status, facts) {
 }
 
 func (s *State) resolveWith(target Day, ch *chain, m *layoutMemo) (Status, facts) {
-	if ch.covers(target) && !s.realStartIn(ch.today, target) {
+	// A logged real day — a period starting after today, or a closed period still running on target (a logged end
+	// after today, or a period longer than the cycle) — resolves from the history, never from the projection, so a
+	// logged bleeding day is never shown as fertile (§2.40; found by FuzzPrepare, T-M9-22).
+	if ch.covers(target) && !s.realStartIn(ch.today, target) && !s.loggedPeriodCovers(target) {
 		c, ok := s.futureCycle(target, ch)
 		return s.resolveCycle(target, &c, ok, true, m)
 	}

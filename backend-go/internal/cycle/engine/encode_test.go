@@ -355,28 +355,3 @@ func TestEncode_NoAllocsWithBuffer(t *testing.T) {
 	buf := make([]byte, 0, 4096)
 	assert.Zero(t, testing.AllocsPerRun(200, func() { buf = AppendJSON(buf[:0], &st, &ui) }))
 }
-
-// BenchmarkEncodeDay: the today payload (status + 6 future cycles + today_ui) into a reused buffer (budget ≤ 20 µs).
-func BenchmarkEncodeDay(b *testing.B) {
-	s := prep(withPeriods(periodsEnding(day("2026-07-01"), 5, 27, 29, 30)))
-	st, ui := s.Today(day("2026-07-18"))
-	buf := make([]byte, 0, 4096)
-	b.ReportAllocs()
-	b.ResetTimer()
-	for range b.N {
-		buf = AppendJSON(buf[:0], &st, &ui)
-	}
-	b.SetBytes(int64(len(buf)))
-}
-
-// BenchmarkTodayPayload: Resolve + FutureCycles + TodayUI + encode, the whole today path after Prepare.
-func BenchmarkTodayPayload(b *testing.B) {
-	s, cur := bench24()
-	buf := make([]byte, 0, 4096)
-	b.ReportAllocs()
-	b.ResetTimer()
-	for range b.N {
-		st, ui := s.Today(cur + 20)
-		buf = AppendJSON(buf[:0], &st, &ui)
-	}
-}

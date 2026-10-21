@@ -420,36 +420,4 @@ func TestFuture_NoAllocs(t *testing.T) {
 	assert.LessOrEqual(t, testing.AllocsPerRun(50, func() { _ = s.FutureCycles(cur + 29) }), 1.0)
 }
 
-func bench24() (*State, Day) {
-	lengths := make([]int, 23)
-	for i := range lengths {
-		lengths[i] = 26 + i%5
-	}
-	cur := day("2026-07-01")
-	return prep(withPeriods(periodsEnding(cur, 5, lengths...))), cur
-}
-
-// BenchmarkRange31: one month around today, 24 periods (budget ≤ 150 µs, ≤ 40 allocs).
-func BenchmarkRange31(b *testing.B) {
-	s, cur := bench24()
-	today := cur + 20
-	b.ReportAllocs()
-	b.ResetTimer()
-	var out []Status
-	for range b.N {
-		out = s.Range(today-15, today+15, today)
-	}
-	_ = out
-}
-
-// BenchmarkFutureCycles: budget ≤ 5 µs.
-func BenchmarkFutureCycles(b *testing.B) {
-	s, cur := bench24()
-	b.ReportAllocs()
-	b.ResetTimer()
-	var out []FutureCycle
-	for range b.N {
-		out = s.FutureCycles(cur + 20)
-	}
-	_ = out
-}
+func bench24() (*State, Day) { return prep(withPeriods(bench24Periods())), day("2026-07-01") }

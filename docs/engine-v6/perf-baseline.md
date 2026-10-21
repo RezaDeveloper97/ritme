@@ -33,15 +33,15 @@ every run benchmarks the same data:
 | cycle/cache | `KeyString/month/H=60` | 2197.15 | ±21% | 97768 | 435 | ✔ |
 | cycle/cache | `KeyString/day/H=120` | 961.00 | ±39% | 66230 | 627 | ✔ |
 | cycle/cache | `KeyString/month/H=120` | 2587.69 | ±80% | 128088 | 735 | ✔ |
-| cycle/engine | `EncodeDay` | 7.73 | ±16% | 0 | 0 | ✔ |
-| cycle/engine | `TodayPayload` | 14.28 | ±62% | 192 | 1 | ✔ |
-| cycle/engine | `Range31` | 12.60 | ±36% | 6528 | 1 | ✔ |
-| cycle/engine | `FutureCycles` | 0.27 | ±8% | 192 | 1 | ✔ |
-| cycle/engine | `Resolve_Hormonal` | 0.23 | ±49% | 0 | 0 | ✔ |
-| cycle/engine | `Prepare_Markers` | 36.04 | ±17% | 8952 | 10 | ✔ |
-| cycle/engine | `Prepare` | 4.07 | ±22% | 5272 | 8 | ✔ |
-| cycle/engine | `Resolve` | 0.40 | ±12% | 0 | 0 | ✔ |
-| cycle/engine | `TodayUI` | 0.02 | ±8% | 0 | 0 | ✔ |
+| cycle/engine | `EncodeDay` | 0.62 | ±4% | 0 | 0 | ✔ |
+| cycle/engine | `TodayPayload` | 1.13 | ±5% | 192 | 1 | ✔ |
+| cycle/engine | `Range31` | 9.44 | ±42% | 6528 | 1 | ✔ |
+| cycle/engine | `FutureCycles` | 0.28 | ±9% | 192 | 1 | ✔ |
+| cycle/engine | `Resolve_Hormonal` | 0.21 | ±4% | 0 | 0 | ✔ |
+| cycle/engine | `Prepare_Markers` | 18.78 | ±7% | 8952 | 10 | ✔ |
+| cycle/engine | `Prepare` | 2.89 | ±12% | 5272 | 8 | ✔ |
+| cycle/engine | `Resolve` | 0.21 | ±3% | 0 | 0 | ✔ |
+| cycle/engine | `TodayUI` | 0.02 | ±0% | 0 | 0 | ✔ |
 | cycle/legacy | `SnapshotMonth/calendar/H=6` | 395.74 | ±26% | 334471 | 1159 | ✔ |
 | cycle/legacy | `SnapshotMonth/calendar/H=24` | 430.43 | ±26% | 342308 | 1181 | ✔ |
 | cycle/legacy | `SnapshotMonth/calendar/H=60` | 577.16 | ±27% | 358992 | 1219 | ✔ |
@@ -82,8 +82,10 @@ every run benchmarks the same data:
 | auth/passport | `Verify` | 58.41 | ±17% | 6844 | 65 | ✔ |
 
 *allocs stable* = all 6 samples had the same count (a range = amortised growth; the gate's 0.1 % tolerance covers it).
-The `cycle/engine` rows are the v6 engine's own benchmarks; T-M9-20 was editing that package while this was recorded
-(`EncodeDay` / `TodayPayload` appeared between two runs), so expect that task to re-record them.
+The `cycle/engine` rows are the v6 engine's own benchmarks, **re-recorded by T-M9-22** (2026-10-21 03:56 UTC, load
+18 / 16 / 22, `07737dec` + the T-M9-22 working tree) after the budgets were locked — see §2a. The earlier rows were
+taken at load 26 / 38 / 45 while T-M9-20/21 were still editing the package (`EncodeDay` 7.73 µs and `TodayPayload`
+14.28 µs then; the encoder and its fixture changed after that run).
 
 What each one measures:
 
@@ -105,6 +107,41 @@ What each one measures:
 First reading against README §8: `rules.Select` (200 rules) and auth `Verify` are already inside their ceilings.
 The legacy path's costs sit in JSON: hashing the cache **key** of a month (every input row marshalled) costs more
 than computing the calendar month itself, and the full month body allocates ~27 k times. Those are the targets of the engine/cache tasks.
+
+## 2a. Engine v6 locked budgets (T-M9-22)
+
+`backend-go/internal/cycle/engine/budget_test.go` defines every engine benchmark from one table and locks it:
+
+- **Time.** A run with b.N ≥ 1 000 **fails** when its mean is above the ceiling. The README §8 ceiling is used
+  where it names one; otherwise the ceiling is set here.
+- **Allocations.** The count measured at lock time. `TestBudgets_Allocs` checks it in every `go test`, and the bench
+  gate checks the same numbers against `bench/baseline.txt`.
+
+The medians below come from `-count 6 -benchtime 1s` (Range31: `-count 10`). Load average was 11–18 on 10 cores: two
+other agents (T-M9-13b, T-M9-14) were building and testing at the same time. The ceilings are 10–30× above every
+median, so load does not make the lock flaky.
+
+| Benchmark | Fixture | median | min–max | ceiling | allocs (lock) | README §8 |
+|---|---|---:|---:|---:|---:|---|
+| `Prepare` | 60 periods, a skip, declared values | 2.89 µs | 2.48–3.18 | 300 µs | 8 | Prepare ≤ 300 µs |
+| `Prepare_Markers` | 60 periods + 400 BBT + 60 LH | 18.78 µs | 17.61–20.22 | 300 µs | 10 | ≤ 300 µs ✔ |
+| `Resolve` | 24 periods, 330 targets | 0.21 µs | 0.20–0.22 | 3 µs | 0 | ≤ 3 µs, ≤ 3 allocs ✔ |
+| `Resolve_Hormonal` | 24 periods on the pill | 0.21 µs | 0.20–0.22 | 3 µs | 0 | as Resolve ✔ |
+| `Range31` | 24 periods, 31 days crossing today | **7.62 µs** (count 10) | 6.41–8.08 | 150 µs | 1 | ≤ 150 µs, ≤ 40 allocs ✔ |
+| `FutureCycles` | 24 periods, 6 cycles | 0.28 µs | 0.24–0.29 | 5 µs | 1 | — |
+| `TodayUI` | one status | 0.015 µs | 0.015–0.015 | 1 µs | 0 | — |
+| `EncodeDay` | the §2.35 today payload, reused buffer | 0.62 µs | 0.61–0.66 | 20 µs | 0 | ≤ 20 µs ✔ |
+| `TodayPayload` | Resolve + FutureCycles + TodayUI + encode | 1.13 µs | 1.08–1.19 | 30 µs | 1 | — |
+
+**Range31 re-measured.** T-M9-20 saw 9.1 µs idle and T-M9-21 saw 29.9 µs under load. Now it is 7.62 µs (median of
+10 runs, load ≈ 11–14) and 9.44 µs in the 6-run baseline (load ≈ 18). The baseline's spread is 7.0–14.9 µs. Its
+one allocation is the 31-status result slice (6.5 kB). One short `-benchtime 2000x` verify run reported 6 530 B/op:
+over so few iterations, runtime background bytes are averaged in. allocs/op stayed at 1.
+
+Raising a lock is a decision. Change it in `budget_test.go`, re-record the engine rows (below) and give the reason
+in the task report. The engine rows of `bench/baseline.txt` were re-recorded with
+`BENCH_PKGS='./internal/cycle/engine/...' bench/run.sh` and spliced over the old engine block (header line 8 names
+the run); `make bench-gate` passes against it.
 
 ## 3. Query budgets per route
 

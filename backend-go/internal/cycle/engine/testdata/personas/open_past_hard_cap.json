@@ -1,0 +1,25 @@
+{
+  "name": "open_past_hard_cap",
+  "about": "Current period started 14 days ago and was never closed: all three cap warnings (E-12, E-21).",
+  "today": "2026-10-21",
+  "input": {
+    "periods": [
+      {
+        "start": "2026-07-16",
+        "end": "2026-07-20"
+      },
+      {
+        "start": "2026-08-13",
+        "end": "2026-08-17"
+      },
+      {
+        "start": "2026-09-11",
+        "end": "2026-09-15"
+      },
+      {
+        "start": "2026-10-08",
+        "end": null
+      }
+    ]
+  }
+}

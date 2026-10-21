@@ -3,7 +3,7 @@ id: T-M9-22
 title: Engine v6 hardening: invariants, fuzz, goldens, benchmarks, 95 % coverage
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-21]
 parallel_group: M9-B
 touches: [backend-go/internal/cycle/engine, backend-go/bench, docs/engine-v6/engine.md, docs/engine-v6/perf-baseline.md]

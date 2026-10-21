@@ -1,0 +1,35 @@
+{
+  "name": "teen_16",
+  "about": "Teen mode, 16 years old, cycles 25–40 (teen frequency band, young regularity band).",
+  "today": "2026-10-21",
+  "input": {
+    "periods": [
+      {
+        "start": "2026-05-09",
+        "end": "2026-05-14"
+      },
+      {
+        "start": "2026-06-08",
+        "end": "2026-06-13"
+      },
+      {
+        "start": "2026-07-18",
+        "end": "2026-07-23"
+      },
+      {
+        "start": "2026-08-12",
+        "end": "2026-08-17"
+      },
+      {
+        "start": "2026-09-16",
+        "end": "2026-09-21"
+      },
+      {
+        "start": "2026-10-14",
+        "end": "2026-10-19"
+      }
+    ],
+    "birth_date": "2010-09-11",
+    "mode": "teen"
+  }
+}

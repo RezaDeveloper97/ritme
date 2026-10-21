@@ -381,23 +381,3 @@ func TestResolve_NoAllocsWithMarkers(t *testing.T) {
 	assert.Zero(t, allocs)
 	_ = st
 }
-
-// BenchmarkPrepare_Markers: 60 periods plus 400 BBT readings and 60 LH tests (README §8: Prepare ≤ 300 µs incl. 400
-// markers).
-func BenchmarkPrepare_Markers(b *testing.B) {
-	in := benchInput()
-	for i, p := range in.Periods {
-		if i%9 == 0 && i+1 < len(in.Periods) {
-			in.BBT = append(in.BBT, shiftAt(in.Periods[i+1].Start-13)...)
-		}
-		in.LH = append(in.LH, lhOn(p.Start+12, i%2 == 0))
-	}
-	for len(in.BBT) < 400 {
-		in.BBT = append(in.BBT, BBTReading{Date: in.Periods[0].Start + Day(len(in.BBT)%20), Centi: 3650})
-	}
-	p := DefaultParams()
-	b.ReportAllocs()
-	for b.Loop() {
-		_ = Prepare(in, p)
-	}
-}

@@ -64,7 +64,11 @@ func (s *State) cycleOvulation(from, to Day) CycleOvulation {
 	}
 	for _, t := range between(s.lh, from, to, func(t LHTest) Day { return t.Date }) {
 		if t.Positive { // E-16: only positive; faint/negative arrive as not positive
-			o.LH = t.Date + 1
+			// A positive on the cycle's last day would put the ovulation on the next real start: no ovulation
+			// can be detected that late, so it is not one (found by FuzzPrepare, T-M9-22).
+			if to == NoDay || t.Date+1 < to {
+				o.LH = t.Date + 1
+			}
 			break
 		}
 	}

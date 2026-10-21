@@ -552,21 +552,3 @@ func TestResolve_NoAllocs(t *testing.T) {
 	assert.Zero(t, allocs)
 	_ = st
 }
-
-func BenchmarkResolve(b *testing.B) {
-	lengths := make([]int, 23)
-	for i := range lengths {
-		lengths[i] = 26 + i%5
-	}
-	cur := day("2026-07-01")
-	s := prep(withPeriods(periodsEnding(cur, 5, lengths...)))
-	require.Len(b, s.Periods(), 24)
-	b.ReportAllocs()
-	b.ResetTimer()
-	var st Status
-	for i := range b.N {
-		t := cur - 300 + Day(i%330)
-		st = s.Resolve(t, cur)
-	}
-	_ = st
-}

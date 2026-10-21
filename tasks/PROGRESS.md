@@ -1470,3 +1470,31 @@ Nothing needed fixing.
   - CI goes green only after a push. The first amd64 run may differ in allocs from arm64 (M4); if so, re-record the baseline from the CI artifact.
   - **Re-run `make bench-baseline`** after T-M9-22. The engine benches added by T-M9-20/21 (EncodeDay, TodayPayload) landed while the baseline was being recorded.
   - Re-record later on an idle machine; only the time column changes.
+
+## T-M9-22 — Engine v6 hardening: invariants, fuzz, goldens, budgets
+- `invariants_test.go`: 2 000 seeded histories × 400 days, plus `Range == map(Resolve)` byte for byte and deterministic Prepare. `TestInvariants_DetectBreakage` proves each checker catches a violation. A one-off run over 40 000 more histories was clean.
+- `FuzzPrepare` (new) and `FuzzBBTDetect`, with seed corpora committed under `testdata/fuzz/`. About 8 min of fuzzing after the fixes was clean.
+- **Three engine bugs found by fuzzing and fixed** (regressions in `TestInvariants_FuzzRegressions`):
+  1. A logged bleeding day could show as fertile. A closed period ending after today, or longer than the cycle, sent its later days to the future projection. Now any target inside a closed real period resolves from history (`loggedPeriodCovers`).
+  2. A skip that fell on a logged bleeding day became an anchor. Now the log wins and the skip goes to `IgnoredSkips`.
+  3. A positive LH on the last cycle day put ovulation on the next period start. That LH no longer counts; new invariant "ovulation < next start".
+- 21 persona goldens (`testdata/personas`, ~750 KB): the today payload plus 365 days of Range. The §2.36 table and the §2.35 anchors are also checked by hand. Regenerate with `-run TestGoldens -update`.
+- `budget_test.go`: every engine bench is built from one table, with a time ceiling (enforced when b.N ≥ 1000) and an allocs lock (`TestBudgets_Allocs`, runs in every `go test`).
+
+  | Bench | Median | Ceiling | Allocs |
+  |---|---|---|---|
+  | Prepare | 2.9 µs | 300 µs | 8 |
+  | Resolve | 0.21 µs | 3 µs | 0 |
+  | Range31 | 7.6 µs | 150 µs | 1 |
+  | FutureCycles | 0.28 µs | 5 µs | 1 |
+  | TodayUI | 0.015 µs | 1 µs | 0 |
+  | EncodeDay | 0.62 µs | 20 µs | 0 |
+  | TodayPayload | 1.1 µs | 30 µs | 1 |
+
+  The FutureCycles, TodayUI and TodayPayload ceilings were chosen by the agent; README sets none.
+- The engine rows of `bench/baseline.txt` were re-recorded; `make bench-gate` shows 0 regressions. Coverage 99.4 %.
+- New `docs/engine-v6/engine.md`: API, rule → E-id → file table, invariants, perf locks, how to add a rule.
+- Open items:
+  - T-M9-24 loader: `End = NoDay`, `Some(...)`, LH faint → negative, Skips passed as stored; decide whether to drop markers after today.
+  - T-M9-29: reject or warn on a skip on a logged bleeding day.
+  - Product question: should the API reject a period end in the future, or a period longer than the cycle? Suggestion: reject it in period-write validation.

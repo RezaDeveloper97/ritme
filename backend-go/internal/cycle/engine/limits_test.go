@@ -439,21 +439,3 @@ func TestLimits_NoAllocs(t *testing.T) {
 	assert.Zero(t, allocs)
 	_, _ = st, l
 }
-
-func BenchmarkResolve_Hormonal(b *testing.B) {
-	lengths := make([]int, 23)
-	for i := range lengths {
-		lengths[i] = 26 + i%5
-	}
-	cur := day(julyStart)
-	in := withPeriods(periodsEnding(cur, 5, lengths...))
-	in.Hormonal = true
-	s := prep(in)
-	b.ReportAllocs()
-	b.ResetTimer()
-	var st Status
-	for i := range b.N {
-		st = s.Resolve(cur-300+Day(i%330), cur)
-	}
-	_ = st
-}

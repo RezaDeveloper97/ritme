@@ -278,13 +278,3 @@ func benchInput() Input {
 		Declared: Declared{LastPeriodStart: Some(day("2024-12-01")), CycleLength: Some(28), PeriodLength: Some(5)},
 	}
 }
-
-// BenchmarkPrepare: 60 periods (budget locked in T-M9-22; README §8 ceiling 300 µs incl. 400 markers).
-func BenchmarkPrepare(b *testing.B) {
-	in := benchInput()
-	p := DefaultParams()
-	b.ReportAllocs()
-	for b.Loop() {
-		_ = Prepare(in, p)
-	}
-}

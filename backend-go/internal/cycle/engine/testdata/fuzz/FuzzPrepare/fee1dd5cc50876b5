@@ -1,0 +1,4 @@
+go test fuzz v1
+[]byte("12a0720")
+int16(-144)
+uint16(64)

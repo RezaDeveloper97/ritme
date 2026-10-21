@@ -1,0 +1,10 @@
+{
+  "name": "onboarding_stale",
+  "about": "Onboarding only, declared start 90 days ago, default lengths: stale anchor rolled forward (§2.41).",
+  "today": "2026-10-21",
+  "input": {
+    "declared": {
+      "last_period_start": "2026-07-23"
+    }
+  }
+}

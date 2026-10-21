@@ -30,8 +30,9 @@ func (s *State) Diagnostics() Diagnostics { return Diagnostics{IgnoredSkips: s.i
 // prepareSkipAnchors is Prepare part 5 (E-15): a skip creates a virtual anchor when it equals the predicted start of
 // the cycle it lies in — the base's predicted next (the latest real start before it, or the declared onboarding
 // start: start + effective_cycle_length, or O + effective_luteal_length when that real cycle has a BBT/LH
-// ovulation), or the previous matching skip + effective_cycle_length (consecutive skips chain). Every other skip is
-// ignored and reported in Diagnostics. Matching ignores today, so the State stays today-independent.
+// ovulation), or the previous matching skip + effective_cycle_length (consecutive skips chain). A skip inside a logged
+// closed period, and every other skip, is ignored and reported in Diagnostics. Matching ignores today, so the State
+// stays today-independent.
 func (s *State) prepareSkipAnchors() {
 	if len(s.skips) == 0 {
 		return
@@ -39,7 +40,9 @@ func (s *State) prepareSkipAnchors() {
 	base, expected := NoDay, NoDay
 	for _, sk := range s.skips {
 		a, ok := s.anchorAt(sk)
-		if !ok || a.start == sk {
+		// A skip on a day of a logged closed period contradicts the log (a period longer than the cycle): the log
+		// wins, so the skip is ignored (found by FuzzPrepare, T-M9-22).
+		if !ok || a.start == sk || (a.loggedEnd != NoDay && sk <= a.loggedEnd) {
 			s.ignoredSkips = append(s.ignoredSkips, sk)
 			continue
 		}
@@ -102,4 +105,10 @@ func (s *State) cycleAt(target Day) (cycle, bool) {
 func (s *State) realStartIn(after, upto Day) bool {
 	i := s.lastRealAtOrBefore(upto)
 	return i >= 0 && s.periods[i].Start > after
+}
+
+// loggedPeriodCovers reports whether a closed real period runs from its start through target.
+func (s *State) loggedPeriodCovers(target Day) bool {
+	i := s.lastRealAtOrBefore(target)
+	return i >= 0 && !s.periods[i].Open() && s.periods[i].End >= target
 }

@@ -1,0 +1,12 @@
+{
+  "name": "onboarding_fresh",
+  "about": "Onboarding only: declared last period 10 days ago, declared 30/5 (onboarding_based).",
+  "today": "2026-10-21",
+  "input": {
+    "declared": {
+      "last_period_start": "2026-10-12",
+      "cycle_length": 30,
+      "period_length": 5
+    }
+  }
+}

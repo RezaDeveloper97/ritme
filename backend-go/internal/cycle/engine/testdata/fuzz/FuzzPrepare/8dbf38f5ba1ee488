@@ -1,0 +1,4 @@
+go test fuzz v1
+[]byte("710\xb8000X 272")
+int16(134)
+uint16(240)

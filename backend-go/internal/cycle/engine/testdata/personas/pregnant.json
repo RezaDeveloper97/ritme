@@ -1,0 +1,30 @@
+{
+  "name": "pregnant",
+  "about": "Pregnancy mode: the engine is suspended (E-25); logged history keeps its menstrual days.",
+  "today": "2026-10-21",
+  "input": {
+    "periods": [
+      {
+        "start": "2026-04-19",
+        "end": "2026-04-23"
+      },
+      {
+        "start": "2026-05-17",
+        "end": "2026-05-21"
+      },
+      {
+        "start": "2026-06-15",
+        "end": "2026-06-19"
+      },
+      {
+        "start": "2026-07-13",
+        "end": "2026-07-17"
+      },
+      {
+        "start": "2026-08-12",
+        "end": "2026-08-16"
+      }
+    ],
+    "mode": "pregnancy"
+  }
+}
