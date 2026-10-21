@@ -61,6 +61,24 @@ type Querier interface {
 	ListCycleSkips(ctx context.Context, userID uint64) ([]CycleSkip, error)
 	// HealthDataEngine::preloadDailyLogs: whereBetween('log_date', [from, to 23:59:59]) on a DATE column.
 	ListDailyLogsBetween(ctx context.Context, arg ListDailyLogsBetweenParams) ([]DailyHealthLog, error)
+	// 4/4 — the fertility markers between from_date and to_date (inclusive; Go narrows each user to her own window):
+	// taxonomy v2 measurements (lh_test, bbt, pregnancy_test), the /fertility LH log and the legacy BBT column. The
+	// kind column says where a row came from: the v2 param, 'fertility_lh' or 'legacy_bbt'.
+	ListEngineInputMarkers(ctx context.Context, arg ListEngineInputMarkersParams) ([]ListEngineInputMarkersRow, error)
+	// 2/4 — every cycle_histories row of the users, narrow projection, oldest start first. Estimated rows and
+	// user_profile_confirmed seed rows are sorted out in Go (§2.2, I-01, I-02).
+	ListEngineInputPeriods(ctx context.Context, userIds []uint64) ([]ListEngineInputPeriodsRow, error)
+	// Engine v6 input loader (T-M9-25, internal/cycle/inputs): everything engine.Input needs for a batch of users in
+	// exactly four queries. Load is LoadMany of one id, so both run these same statements (IN lists of ≤ 500 ids).
+	// Health data: every query is scoped by user_id (IDOR). Mapping rules live in Go (internal/cycle/inputs), not here.
+	// 1/4 — one row per existing user: the declared data of user_profiles, the «خودکار از داده‌ها» switch
+	// (no cycle_preferences row = automatic), the stored life mode and onboarding medications, the active pregnancy
+	// (pregnancy_mode = 1 wins the mode), the postpartum delivery date and breastfeeding flag (I-04), the active
+	// contraception method (a row exists only while tracking, I-03) and the teen age band. Every table holds at most
+	// one row per user (UNIQUE user_id), so the joins never fan out.
+	ListEngineInputProfiles(ctx context.Context, userIds []uint64) ([]ListEngineInputProfilesRow, error)
+	// 3/4 — the skipped predicted starts «پریود نداشتم» (E-15, goose 00098), passed to the engine as stored.
+	ListEngineInputSkips(ctx context.Context, userIds []uint64) ([]ListEngineInputSkipsRow, error)
 	// history() and overlapsExistingPeriod(): the non-estimated periods, newest first.
 	ListLoggedPeriods(ctx context.Context, userID uint64) ([]CycleHistory, error)
 	// recomputeCycleLengths(): CycleHistory::where('user_id')->orderBy('period_start_date')->get().

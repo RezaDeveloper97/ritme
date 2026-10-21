@@ -3,7 +3,7 @@ id: T-M9-25
 title: Engine input loader: Load and LoadMany in at most 4 queries
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-24, T-M9-15, T-M9-07]
 parallel_group: M9-C
 touches: [backend-go/internal/cycle/inputs, backend-go/db/queries/cycle/inputs.sql, backend-go/internal/cycle/store, backend-go/internal/contraception/hormonal.go]

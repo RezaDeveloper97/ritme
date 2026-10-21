@@ -1626,3 +1626,34 @@ Nothing needed fixing.
   - in-flight zone-store goroutines are not awaited on shutdown (harmless; the next request re-stores);
   - with several API instances, a zone change can take up to 15 min to reach each one's cache;
   - `ForDate` still parses its Y-m-d param in Tehran (no effect on dates).
+
+## T-M9-25 — Engine input loader: Load and LoadMany in at most 4 queries
+- New `internal/cycle/inputs`:
+  - `Load(ctx, q, uid, today)` and `LoadMany(ctx, q, uids, today)` (batches of ≤ 500, duplicate ids merged). `Load` is `LoadMany` of one id. `today` is a parameter, so the loader never calls `NOW()`; callers pass `civildate.LocalToday` (T-M9-26).
+  - `Encode`/`Decode` JSON with `v: 1`; an unknown or missing `v` → `ErrVersion`, which forces a reload.
+- Queries (`db/queries/cycle/inputs.sql`), all `IN (sqlc.slice)`:
+  1. one joined profile row from `users`, so users without a profile still get mode, teen band and periods;
+  2. narrow periods;
+  3. skips;
+  4. one `UNION ALL` of markers (`health_log_entries` measurements, `fertility_logs.lh_test`, `daily_health_logs.basal_body_temperature`).
+  Measured with the T-M9-07 counter: exactly 4 queries; a bare user costs 1.
+- `internal/contraception/hormonal.go` (I-03):
+  - a saved method decides alone (pill → copper IUD = not hormonal);
+  - with no saved method, onboarding `contraceptive_pill` is hormonal, and `iud`/`hormonal_medication` are not.
+- Mapping:
+  - **Periods:** `is_estimated` rows are skipped. `user_profile_confirmed` rows are never periods; the newest one becomes the declared anchor only when `onboarding_last_period_start` is NULL. `bleeding_log` → `PeriodBleedingLog`. Open period → `End = NoDay`.
+  - **BBT:** v2 wins, then the 34.00–43.00 range check (no fallback to the legacy value); exact decimal → hundredths.
+  - **LH and pregnancy tests:** positives only, one per day.
+  - **Marker window:** from the earlier of the 7th-newest real period's start and today − 400, through today + 1.
+  - **Lengths:** manual when `lengths_auto = 0`.
+  - **Postpartum:** delivery and breastfeeding are passed in every mode (the engine applies E-14).
+- Inputs covered by unit tests only (no real-DB fixture):
+  - TTC mode from `user_goal`, menopause, the default and unknown stored modes;
+  - malformed `medications` JSON, Fahrenheit BBT typos;
+  - more than 500 ids;
+  - non-estimated `onboarding_initial`/`system_default`/`engine_prediction` rows (read as real periods);
+  - an out-of-range v2 BBT on a day that also has a legacy value.
+- Open:
+  - **p95 ≤ 5 ms is not proven.** Load average was 58–71 and a bare `SELECT ?` took 3.4 ms; measured p50 5.7 / p95 15.8 ms. `TestLoad_Budget` asserts the limit only when a trivial round trip is < 1 ms, so re-run it on an idle machine.
+  - **Import-cycle risk:** `inputs` → `contraception` pulls in care/notifications/i18n. If T-M9-32+ hits a cycle, move the I-03 table to a leaf package.
+  - **T-M9-31:** the snapshot depends on `today` (the marker window), so key or validate the L2 snapshot by day as well as by revision.
