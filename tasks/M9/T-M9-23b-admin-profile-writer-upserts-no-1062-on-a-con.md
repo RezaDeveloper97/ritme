@@ -3,7 +3,7 @@ id: T-M9-23b
 title: Admin profile writer upserts (no 1062 on a concurrent first profile)
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-23]
 parallel_group: M9-A
 touches: [backend-go/internal/admin/users,backend-go/db/queries/admin/core.sql,backend-go/internal/admin/store]

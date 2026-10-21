@@ -100,9 +100,10 @@ func (q *Queries) CreateAdmin(ctx context.Context, arg CreateAdminParams) (sql.R
 	)
 }
 
-const createProfilePlan = `-- name: CreateProfilePlan :exec
+const createProfilePlan = `-- name: CreateProfilePlan :execresult
 INSERT INTO ` + "`" + `user_profiles` + "`" + ` (user_id, subscription_type, user_goal, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?)
+ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)
 `
 
 type CreateProfilePlanParams struct {
@@ -112,15 +113,17 @@ type CreateProfilePlanParams struct {
 	Now              sql.NullTime
 }
 
-func (q *Queries) CreateProfilePlan(ctx context.Context, arg CreateProfilePlanParams) error {
-	_, err := q.db.ExecContext(ctx, createProfilePlan,
+// T-M9-23b: user_profiles.user_id is UNIQUE (D-127). A concurrent first write that lost the race
+// changes nothing and gets the existing row's id as LastInsertId (id = LAST_INSERT_ID(id)),
+// so the caller's UpdateProfilePlan lands on the one profile instead of failing with 1062.
+func (q *Queries) CreateProfilePlan(ctx context.Context, arg CreateProfilePlanParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, createProfilePlan,
 		arg.UserID,
 		arg.SubscriptionType,
 		arg.UserGoal,
 		arg.Now,
 		arg.Now,
 	)
-	return err
 }
 
 const dashboardCounts = `-- name: DashboardCounts :one

@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
@@ -271,7 +272,7 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 	now := httpadmin.DBTime(httpadmin.Now(c))
 	sub, goal := httpadmin.String(data, "subscription_type"), httpadmin.String(data, "user_goal")
 	goalSet := goal != ""
-	err = h.inTx(c.Context(), func(q *store.Queries, _ *sql.Tx) error {
+	err = h.inTxRetry(c.Context(), func(q *store.Queries, _ *sql.Tx) error {
 		if setName {
 			if err := q.UpdateUserName(c.Context(), store.UpdateUserNameParams{Name: name, Now: now, ID: id}); err != nil {
 				return err
@@ -286,10 +287,19 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 		}
 		pid, err := q.FirstProfileID(c.Context(), id)
 		if errors.Is(err, sql.ErrNoRows) {
-			return q.CreateProfilePlan(c.Context(), store.CreateProfilePlanParams{
+			// T-M9-23b: an upsert. When a concurrent first write won the race, LastInsertId is
+			// the existing profile's id and the plan is applied to it (never a 1062).
+			res, err := q.CreateProfilePlan(c.Context(), store.CreateProfilePlanParams{
 				UserID: id, SubscriptionType: sub, UserGoal: goal, Now: now})
-		}
-		if err != nil {
+			if err != nil {
+				return err
+			}
+			last, err := res.LastInsertId()
+			if err != nil {
+				return err
+			}
+			pid = uint64(last) //nolint:gosec // G115: an auto-increment id is positive
+		} else if err != nil {
 			return err
 		}
 		return q.UpdateProfilePlan(c.Context(), store.UpdateProfilePlanParams{
@@ -414,6 +424,18 @@ func (h *Handlers) mustExist(ctx context.Context, id uint64) error {
 		return httpadmin.NotFound("User")
 	}
 	return nil
+}
+
+// inTxRetry is inTx that runs again when InnoDB rolled the transaction back as a deadlock
+// (1213, racing upserts on the same unique key), up to 5 attempts.
+func (h *Handlers) inTxRetry(ctx context.Context, fn func(q *store.Queries, tx *sql.Tx) error) error {
+	for attempt := 1; ; attempt++ {
+		err := h.inTx(ctx, fn)
+		var me *mysql.MySQLError
+		if err == nil || attempt >= 5 || !errors.As(err, &me) || me.Number != 1213 {
+			return err
+		}
+	}
 }
 
 func (h *Handlers) inTx(ctx context.Context, fn func(q *store.Queries, tx *sql.Tx) error) error {

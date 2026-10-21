@@ -125,9 +125,13 @@ SET updated_at = CASE WHEN subscription_type = sqlc.arg(subscription_type) AND u
     user_goal = sqlc.arg(user_goal)
 WHERE id = sqlc.arg(id);
 
--- name: CreateProfilePlan :exec
+-- name: CreateProfilePlan :execresult
+-- T-M9-23b: user_profiles.user_id is UNIQUE (D-127). A concurrent first write that lost the race
+-- changes nothing and gets the existing row's id as LastInsertId (id = LAST_INSERT_ID(id)),
+-- so the caller's UpdateProfilePlan lands on the one profile instead of failing with 1062.
 INSERT INTO `user_profiles` (user_id, subscription_type, user_goal, created_at, updated_at)
-VALUES (sqlc.arg(user_id), sqlc.arg(subscription_type), sqlc.arg(user_goal), sqlc.arg(now), sqlc.arg(now));
+VALUES (sqlc.arg(user_id), sqlc.arg(subscription_type), sqlc.arg(user_goal), sqlc.arg(now), sqlc.arg(now))
+ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id);
 
 -- name: SetUserBlockedAt :exec
 -- forceFill(['blocked_at' => now()|null])->save().

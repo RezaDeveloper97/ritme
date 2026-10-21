@@ -174,7 +174,10 @@ type Querier interface {
 	CreateLanguage(ctx context.Context, arg CreateLanguageParams) (sql.Result, error)
 	CreatePhaseContent(ctx context.Context, arg CreatePhaseContentParams) (sql.Result, error)
 	CreatePregnancyWeek(ctx context.Context, arg CreatePregnancyWeekParams) (sql.Result, error)
-	CreateProfilePlan(ctx context.Context, arg CreateProfilePlanParams) error
+	// T-M9-23b: user_profiles.user_id is UNIQUE (D-127). A concurrent first write that lost the race
+	// changes nothing and gets the existing row's id as LastInsertId (id = LAST_INSERT_ID(id)),
+	// so the caller's UpdateProfilePlan lands on the one profile instead of failing with 1062.
+	CreateProfilePlan(ctx context.Context, arg CreateProfilePlanParams) (sql.Result, error)
 	CreateRecommendation(ctx context.Context, arg CreateRecommendationParams) (sql.Result, error)
 	CreateTaskTemplate(ctx context.Context, arg CreateTaskTemplateParams) (sql.Result, error)
 	// ---------------------------------------------------------------------------

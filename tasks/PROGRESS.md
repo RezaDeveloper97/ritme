@@ -1545,3 +1545,8 @@ Nothing needed fixing.
 - Open items:
   - **T-M9-23b**: the admin writer still uses a plain INSERT (1062 in a race).
   - On Laravel sqlite (local dev/phpunit) the dedupe is skipped, so a duplicate there stops the migration.
+
+## T-M9-23b — Admin profile writer upserts
+- `CreateProfilePlan` (admin `core.sql`) is an upsert: `ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)`, the same pattern as `profile.InsertProfile`. `users.Update` uses the returned id, so a race loser updates the existing row.
+- New `inTxRetry` retries the transaction up to 5 times on a deadlock (1213).
+- `TestUpdate_ConcurrentFirstProfileWrites`: 8 concurrent admin `PUT /users/:id` for a user with no profile → all 200, exactly one row. This closes the T-M9-23 open item.
