@@ -11,6 +11,7 @@
         "birth_date_too_old": "The birth date must be within the last year.",
         "pain_locations_required": "Choose where it hurts.",
         "answers_missing": "Answer every question.",
+        "temperature_step": "Enter the temperature with one decimal.",
         "sleep_step": "Enter sleep in half-hour steps."
     },
     "phases": {
@@ -61,6 +62,11 @@
         "kind": "check-in type",
         "answers": "answers",
         "answers.*": "answer",
-        "limit": "limit"
+        "limit": "limit",
+        "temperature_c": "temperature",
+        "pad_soaked_within_hour": "pad soaked within an hour",
+        "severe_pain": "severe pain",
+        "breathless": "shortness of breath",
+        "postpartum_visit": "postpartum visit"
     }
 }

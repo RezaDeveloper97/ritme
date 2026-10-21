@@ -2,7 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { logKeys } from '@/entities/health-log';
 import {
@@ -12,6 +12,8 @@ import {
   LOCHIA_COLORS,
   MAX_FEEDS,
   MAX_SLEEP_HOURS,
+  MAX_TEMPERATURE_C,
+  MIN_TEMPERATURE_C,
   PAIN_LEVELS,
   PAIN_LOCATIONS,
   type PostpartumAlert,
@@ -40,7 +42,17 @@ import {
   UrgentCard,
 } from '@/shared/ui';
 
-import { diffForm, formFrom, locationMissing, needsLocation, type RecoveryForm, toggleIn } from '../model/form';
+import {
+  diffForm,
+  formFrom,
+  locationMissing,
+  needsLocation,
+  RED_FLAGS,
+  type RecoveryForm,
+  roundTemperature,
+  TEMPERATURE_START,
+  toggleIn,
+} from '../model/form';
 
 /**
  * `/postpartum/recovery` — today's recovery form (nbl_v15_Recovery): lochia
@@ -118,6 +130,11 @@ function RecoveryFormView({ saved, overview }: { saved: PostpartumRecovery; over
   const [form, setForm] = useState<RecoveryForm>(base);
   const [tried, setTried] = useState(false);
   const [alerts, setAlerts] = useState<PostpartumAlert[]>([]);
+  const alertsRef = useRef<HTMLDivElement>(null);
+  // An urgent answer comes back at the top of the form: bring it into view (the save button is at the bottom).
+  useEffect(() => {
+    if (alerts.length) alertsRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }, [alerts]);
   const set = <K extends keyof RecoveryForm>(key: K, value: RecoveryForm[K]) => setForm((f) => ({ ...f, [key]: value }));
 
   const missing = locationMissing(form);
@@ -149,6 +166,7 @@ function RecoveryFormView({ saved, overview }: { saved: PostpartumRecovery; over
 
   return (
     <div className="pp-form">
+      <div ref={alertsRef} className="flex scroll-mt-4 flex-col gap-[14px] empty:hidden">
       {alerts.map((a) => (
         <UrgentCard
           key={a.key}
@@ -168,6 +186,48 @@ function RecoveryFormView({ saved, overview }: { saved: PostpartumRecovery; over
           {a.body}
         </UrgentCard>
       ))}
+      </div>
+
+      <Card as="section" className="pp-field" aria-labelledby="pp-redflags-title">
+        <h2 id="pp-redflags-title" className="pp-field-title">
+          {t('redFlags.title')}
+        </h2>
+        <p className="pp-field-hint">{t('redFlags.hint')}</p>
+        {form.temperatureC === null ? (
+          <ChipGroup label={t('redFlags.temperature')}>
+            <PillChip pressed={false} onPressedChange={() => set('temperatureC', TEMPERATURE_START)}>
+              {t('redFlags.addTemperature')}
+            </PillChip>
+          </ChipGroup>
+        ) : (
+          <>
+            <NumberStepper
+              className="pp-stepper"
+              label={t('redFlags.temperature')}
+              unit={t('redFlags.celsius')}
+              value={form.temperatureC}
+              onChange={(v) => set('temperatureC', roundTemperature(v, MIN_TEMPERATURE_C, MAX_TEMPERATURE_C))}
+              min={MIN_TEMPERATURE_C}
+              max={MAX_TEMPERATURE_C}
+              step={0.1}
+              decrementLabel={t('decrease')}
+              incrementLabel={t('increase')}
+              locale={locale}
+            />
+            <SecondaryButton block={false} icon="x" onClick={() => set('temperatureC', null)}>
+              {t('redFlags.clearTemperature')}
+            </SecondaryButton>
+          </>
+        )}
+        <h3 className="pp-field-sub">{t('redFlags.signs')}</h3>
+        <ChipGroup label={t('redFlags.signs')}>
+          {RED_FLAGS.map((flag) => (
+            <PillChip key={flag} pressed={form[flag] === true} onPressedChange={(on) => set(flag, on)}>
+              {t(`redFlags.flags.${flag}`)}
+            </PillChip>
+          ))}
+        </ChipGroup>
+      </Card>
 
       <Card as="section" className="pp-field">
         <h2 className="pp-field-title">{t('lochia')}</h2>

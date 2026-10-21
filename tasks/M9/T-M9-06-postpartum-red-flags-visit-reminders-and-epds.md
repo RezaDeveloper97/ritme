@@ -3,7 +3,7 @@ id: T-M9-06
 title: Postpartum red flags, visit reminders and EPDS urgency as config
 milestone: M9
 type: fullstack
-status: todo
+status: done
 depends_on: []
 parallel_group: M9-A
 touches: [backend-go/internal/postpartum, backend-go/internal/clinicalconfig, backend-go/internal/safety, backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/postpartum, backend-go/api/openapi.yaml, frontend/src/screens/postpartum-recovery, frontend/src/screens/postpartum, frontend/src/entities/postpartum, frontend/messages/fa/postpartum.json, frontend/messages/en/postpartum.json]

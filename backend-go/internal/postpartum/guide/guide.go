@@ -51,12 +51,26 @@ const (
 	AlertLargeClots    = "large_clots"    // large clots logged today
 	AlertCheckinShort  = "checkin_short"  // the weekly 3-question check is due
 	AlertCheckinFull   = "checkin_full"   // the 10-question check is due
+
+	// Red flags (T-M9-06, SPEC v6 §3.1): urgent, call 115 now. A missing or empty admin row falls back to the
+	// embedded copy (Copy.Urgent), so the path never goes silent.
+	AlertFever      = "fever"        // temperature ≥ postpartum.redflags.fever_c
+	AlertPadPerHour = "pad_per_hour" // a pad soaked within an hour
+	AlertSeverePain = "severe_pain"  // severe pain (abdomen, chest, head, leg)
+	AlertBreathless = "breathless"   // shortness of breath
+
+	// AlertVisitDue is the in-app notice and home prompt of a postpartum visit not logged by its day.
+	AlertVisitDue = "visit_due"
 )
+
+// RedFlagAlerts are the urgent red-flag keys in display order.
+var RedFlagAlerts = []string{AlertFever, AlertPadPerHour, AlertSeverePain, AlertBreathless}
 
 // Safety item keys (SafetyGroup).
 const (
 	SafetyUrgent        = "urgent"         // EPDS item 10 > 0 or total ≥ 13: call actions
 	SafetyAdvice        = "advice"         // full EPDS 10–12: talk to a doctor or counsellor
+	SafetyLikely        = "likely"         // full EPDS ≥ likely cut-off without the urgent path (H-01 off): see a doctor soon
 	SafetyShortElevated = "short_elevated" // EPDS-3 ≥ cutoff: take the full check
 	SafetyDisclaimer    = "disclaimer"     // non-diagnostic note above the questions
 )
@@ -86,9 +100,14 @@ func Slots() []Slot {
 	for _, k := range []string{AlertHeavyBleeding, AlertLargeClots, AlertCheckinShort, AlertCheckinFull} {
 		out = append(out, Slot{AlertGroup, k, []string{"title", "body", "action"}})
 	}
+	for _, k := range RedFlagAlerts {
+		out = append(out, Slot{AlertGroup, k, []string{"title", "body", "action"}})
+	}
+	out = append(out, Slot{AlertGroup, AlertVisitDue, []string{"title", "body", "action"}})
 	return append(out,
 		Slot{SafetyGroup, SafetyUrgent, []string{"title", "body", "emergency_label", "social_label", "counsel_label"}},
 		Slot{SafetyGroup, SafetyAdvice, []string{"title", "body"}},
+		Slot{SafetyGroup, SafetyLikely, []string{"title", "body"}},
 		Slot{SafetyGroup, SafetyShortElevated, []string{"title", "body", "action"}},
 		Slot{SafetyGroup, SafetyDisclaimer, []string{"body"}},
 	)
@@ -195,8 +214,30 @@ func (c *Copy) Text(ctx context.Context, group, key string) (map[string]string, 
 			}
 		}
 	}
+	return c.Embedded(group, key), nil
+}
+
+// Urgent is Text for an emergency slot: when the admin row leaves the title or the body empty, the embedded copy of
+// the locale is used instead, so an urgent alert always says what to do (T-M9-05 pattern).
+func (c *Copy) Urgent(ctx context.Context, group, key string) (map[string]string, error) {
+	t, err := c.Text(ctx, group, key)
+	if err != nil {
+		return nil, err
+	}
+	if t["title"] != "" && t["body"] != "" {
+		return t, nil
+	}
+	return c.Embedded(group, key), nil
+}
+
+// Embedded is the slot's embedded copy in the request locale (English when the locale has none).
+func (c *Copy) Embedded(group, key string) map[string]string {
+	slot, ok := SlotOf(group, key)
+	if !ok {
+		return map[string]string{}
+	}
 	line, _ := translator().Get("postpartum_copy."+group+"."+key, c.locale)
-	return fields(slot, line), nil
+	return fields(slot, line)
 }
 
 func fields(slot Slot, v any) map[string]string {

@@ -12,8 +12,9 @@ import (
 // of the chosen option (GET /postpartum/epds/questions lists every option with its score), the server recomputes
 // the total. The weekly short check is the EPDS-3 anxiety subscale (items 3, 4, 5; Kabir, Sheeder & Kelly 2008); the
 // full 10-item check runs every two weeks. The cut-offs are versioned clinical config since B-N9-11 (D-88:
-// epds.cutoff.likely / possible / short_elevated); the constants below are version 1, and a check is scored with the
-// version valid on the day it was taken.
+// epds.cutoff.likely / possible / short_elevated) and the urgent total since T-M9-06 (D-135: epds.urgent_total, H-01
+// advisor-pending); the constants below are version 1, and a check is scored with the version valid on the day it
+// was taken.
 const (
 	KindShort = "short"
 	KindFull  = "full"
@@ -22,8 +23,11 @@ const (
 	ItemMax = 3
 	// SelfHarmItem is item 10 («The thought of harming myself has occurred to me»): any score above 0 is urgent.
 	SelfHarmItem = "q10"
-	// FullLikelyMin: a full total from here is «likely depression» and urgent (Cox 1987 cut-off 12/13).
+	// FullLikelyMin: a full total from here is «likely depression» (Cox 1987 cut-off 12/13).
 	FullLikelyMin = 13
+	// UrgentTotalMin: a full total from here is urgent even with item 10 = 0 (version 1 of epds.urgent_total = today's
+	// behaviour; the spec reserves the urgent path for item 10 > 0, so the advisor may set 31 = off, H-01).
+	UrgentTotalMin = 13
 	// FullPossibleMin: a full total from here (below FullLikelyMin) is «possible» — advice to talk to a doctor.
 	FullPossibleMin = 10
 	// ShortElevatedMin: an EPDS-3 total from here suggests taking the full check now.
@@ -100,14 +104,16 @@ type Result struct {
 }
 
 // Cutoffs are the EPDS cut-offs valid on one day.
-type Cutoffs struct{ Likely, Possible, ShortElevated int }
+type Cutoffs struct{ Likely, Possible, ShortElevated, UrgentTotal int }
 
-// CutoffsOn reads the cut-offs valid on d (a zero d = version 1: FullLikelyMin, FullPossibleMin, ShortElevatedMin).
+// CutoffsOn reads the cut-offs valid on d (a zero d = version 1: FullLikelyMin, FullPossibleMin, ShortElevatedMin,
+// UrgentTotalMin).
 func CutoffsOn(d civildate.Date) Cutoffs {
 	return Cutoffs{
 		Likely:        clinicalconfig.Int(clinicalconfig.KeyEPDSLikely, "score", d),
 		Possible:      clinicalconfig.Int(clinicalconfig.KeyEPDSPossible, "score", d),
 		ShortElevated: clinicalconfig.Int(clinicalconfig.KeyEPDSShortElevated, "score", d),
+		UrgentTotal:   clinicalconfig.Int(clinicalconfig.KeyEPDSUrgentTotal, "score", d),
 	}
 }
 
@@ -141,10 +147,11 @@ func ScoreOn(kind string, answers map[string]int, day civildate.Date) Result {
 	case r.Total >= cut.Possible:
 		r.Band = BandPossible
 	}
+	// Urgent: item 10 > 0 always (the self-harm item), or a total from epds.urgent_total (H-01).
 	if sh > 0 {
 		r.Reasons = append(r.Reasons, ReasonSelfHarm)
 	}
-	if r.Total >= cut.Likely {
+	if r.Total >= cut.UrgentTotal {
 		r.Reasons = append(r.Reasons, ReasonScore)
 	}
 	r.Urgent = len(r.Reasons) > 0

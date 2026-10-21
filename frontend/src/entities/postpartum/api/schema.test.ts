@@ -103,3 +103,64 @@ describe('toRecoveryBody', () => {
     expect(toRecoveryBody({})).toEqual({});
   });
 });
+
+describe('postpartum red flags and visits (T-M9-06)', () => {
+  const day = {
+    date: '2026-10-21',
+    lochia_amount: null,
+    lochia_color: null,
+    pain_level: null,
+    pain_locations: [],
+    breasts: null,
+    feeds_count: null,
+    sleep_hours: null,
+    temperature_c: 38,
+    pad_soaked_within_hour: null,
+    severe_pain: false,
+    breathless: true,
+    postpartum_visit: true,
+    alerts: [
+      { key: 'breathless', level: 'urgent', title: 'نفست تنگ است', body: 'همین حالا با ۱۱۵ تماس بگیر یا به اورژانس برو.', action_label: 'تماس با ۱۱۵', action: { type: 'call', number: '115' } },
+    ],
+  };
+
+  it('parses the red flags and the urgent 115 alert', () => {
+    const r = recoverySchema.parse(day);
+    expect(r).toMatchObject({ temperatureC: 38, padSoakedWithinHour: null, severePain: false, breathless: true, postpartumVisit: true });
+    expect(r.alerts[0]).toMatchObject({ key: 'breathless', level: 'urgent', action: { type: 'call', number: '115' } });
+  });
+
+  it('an older payload without the new keys reads as not answered', () => {
+    const old: Record<string, unknown> = { ...day };
+    delete old.temperature_c;
+    delete old.breathless;
+    const r = recoverySchema.parse(old);
+    expect(r.temperatureC).toBeNull();
+    expect(r.breathless).toBeNull();
+  });
+
+  it('parses the visits and drops a bad row', () => {
+    const o = overviewSchema.parse({
+      active: true,
+      mode: 'postpartum',
+      visits: [
+        { kind: 'contact', due_on: '2026-10-22', done: true, done_on: '2026-10-15', status: 'done' },
+        { kind: 'reminder', due_on: '2026-11-12', done: false, done_on: null, status: 'due' },
+        { kind: 'nope', due_on: 'x', done: false, status: 'due' },
+      ],
+    });
+    expect(o.visits).toEqual([
+      { kind: 'contact', dueOn: '2026-10-22', done: true, doneOn: '2026-10-15', status: 'done' },
+      { kind: 'reminder', dueOn: '2026-11-12', done: false, doneOn: null, status: 'due' },
+    ]);
+    expect(overviewSchema.parse({ active: false, mode: 'cycle' }).visits).toEqual([]);
+  });
+
+  it('sends the red flags in API keys', () => {
+    expect(toRecoveryBody({ temperatureC: 38.2, padSoakedWithinHour: true, postpartumVisit: null })).toEqual({
+      temperature_c: 38.2,
+      pad_soaked_within_hour: true,
+      postpartum_visit: null,
+    });
+  });
+});

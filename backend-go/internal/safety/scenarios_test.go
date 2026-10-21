@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/queue"
 )
@@ -76,4 +77,27 @@ func TestWindows(t *testing.T) {
 	assert.Equal(t, "2026-10-12", cur.toDayEx.String())
 	assert.Equal(t, "2026-09-28", prev.fromDay.String())
 	assert.Equal(t, cur.from, prev.to)
+}
+
+// T-M9-06: the EPDS score scenario reads epds.urgent_total — still green when the advisor switches it off (31), and
+// the postpartum scenarios exist.
+func TestScenarios_PostpartumReadTheConfig(t *testing.T) {
+	t.Cleanup(clinicalconfig.Reset)
+	names := map[string]Scenario{}
+	for _, s := range Scenarios {
+		names[s.Name] = s
+	}
+	for _, n := range []string{"postpartum_fever", "postpartum_pad_per_hour", "postpartum_breathless", "epds_q10_low_total", "epds_high_total_urgent"} {
+		require.Contains(t, names, n)
+	}
+	day := civildate.MustParse("2026-10-21")
+	for _, v := range []float64{13, 20, 31} {
+		clinicalconfig.SetVersions([]clinicalconfig.Version{{Key: clinicalconfig.KeyEPDSUrgentTotal, Version: 2,
+			Value: clinicalconfig.Value{"score": v}, EffectiveFrom: civildate.MustParse("2026-10-01")}})
+		assert.True(t, names["epds_high_total_urgent"].Run(day), "urgent_total %v", v)
+		assert.True(t, names["epds_q10_low_total"].Run(day), "urgent_total %v", v)
+	}
+	clinicalconfig.SetVersions([]clinicalconfig.Version{{Key: clinicalconfig.KeyPostpartumRedFlags, Version: 2,
+		Value: clinicalconfig.Value{"fever_c": 38.5}, EffectiveFrom: civildate.MustParse("2026-10-01")}})
+	assert.True(t, names["postpartum_fever"].Run(day))
 }

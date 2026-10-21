@@ -48,7 +48,7 @@ tags:
   - {name: IVF, description: "IVF treatment (Go only): cycles and six stages, injection schedule (trigger time, 8-site rotation, inventory), ultrasound scans, two-week wait and outcome — medicines and appointments are care reminders"}
   - {name: Conditions, description: "Condition programs (Go only): enrolment (endometriosis, PMDD, heavy bleeding, PCOS), pain diary on the log taxonomy, PMDD questionnaire + cycle chart, PBAC pad chart"}
   - {name: Menopause, description: "Menopause mode (Go only, CB-MENO-02): stage profile on bloom's life profile, home read model, hot-flash timer, monthly symptom score with domains and deltas, patterns in her own logs (not a diagnosis)"}
-  - {name: Postpartum, description: "Postpartum mode (Go only, bloom B-N5-01): activation from pregnancy or directly, time since the birth, the recovery log on log taxonomy v2, EPDS mood checks (weekly EPDS-3, full every two weeks) with the urgent safety path (item 10 > 0 or total ≥ 13 → call 115 / 123 / 1480). EPDS answers are never logged or shared"}
+  - {name: Postpartum, description: "Postpartum mode (Go only, bloom B-N5-01): activation from pregnancy or directly, time since the birth, the recovery log on log taxonomy v2, EPDS mood checks (weekly EPDS-3, full every two weeks) with the urgent safety path (item 10 > 0 or total ≥ `epds.urgent_total`, 13 by default → call 115 / 123 / 1480), recovery red flags (fever, a pad soaked within an hour, severe pain, breathlessness → call 115) and the postpartum visits (T-M9-06). EPDS answers are never logged or shared"}
   - {name: Children, description: "Children (Go only, bloom B-N5-02): profiles, measurements placed on the WHO Child Growth Standards (LMS percentiles / z-scores, 0–5 years), the Iran national immunisation schedule with per-child doses and 3-day reminders, milestones by age band, age-based learn tips. Owner read/write; an active spouse sees shared children read-only (audited). Child data is never logged"}
   - {name: BabyLogs, description: "Baby logs (Go only, bloom B-N5-03): feeding sessions (breast timer per side, bottle / pump ml), baby sleep sessions and diapers per child, day summaries and the child home's «امروز» card. One running feed / sleep per child. Owner read/write; a shared spouse reads (audited) and gets 403 on writes. Never logged"}
   - {name: PregnancyTools, description: "Kick counter and contraction timer (Go only, bloom B-N5-03): kick sessions write the day total into the fetal movement log; the 5-1-1 rule is the pregnancy alert engine's contractions_511 rule (admin-editable copy). One running session per user"}
@@ -5063,10 +5063,16 @@ paths:
       description: |
         The effective mode, the stored birth, the time since it (completed `weeks` + `days`, 1-based `week`, phase
         puerperium (days 0–41) | recovery (weeks 6–25) | late, the 6-week puerperium countdown), the EPDS check-in
-        schedule with the latest check (totals only), today's recovery log with its alerts, the alerts (bleeding with a
-        call action, the due check-in), the week's tip and «کی فوراً تماس بگیرم؟» — admin `message_contents`
+        schedule with the latest check (totals only), the three postpartum `visits` (T-M9-06: contact by day 21, the
+        6-week reminder at day 42, comprehensive by day 84 after the birth — clinical config `postpartum.visits`; done
+        when a day logged with `postpartum_visit: true` falls in the window: contact = birth … contact day, the other two
+        = after it), today's recovery log with its alerts, the alerts (urgent red flags and bleeding with a call action,
+        the due check-in), the week's tip and «کی فوراً تماس بگیرم؟» — admin `message_contents`
         (`postpartum_week_tip`, `postpartum_alert`) with an embedded fa/en fallback. Outside postpartum mode `active`
-        is false and the time-based blocks are null; `setup_required` = postpartum mode chosen without a birth date.
+        is false and the time-based blocks are null (`visits` is `[]`); `setup_required` = postpartum mode chosen
+        without a birth date. Side effect: from the reminder day (and again past the comprehensive day) without a
+        logged visit, one in-app notice (`user_notifications.type = postpartum`, data `{event: visit_due, kind,
+        birth_date}`) is written lazily — once per kind and birth.
       operationId: getPostpartum
       security:
         - {bearerAuth: []}
@@ -5163,7 +5169,11 @@ paths:
         Keys not sent stay, null clears. Pain is one value: a level mild | moderate | severe needs at least one
         location (the stored half fills a half not sent); `none` clears the locations. `breasts: []` = normal (every
         symptom stored as no). `sleep_hours` 0–24 in half hours also sets the `sleep.duration` bucket. Written through
-        the taxonomy v2 storage (and its legacy write-back) in one transaction.
+        the taxonomy v2 storage (and its legacy write-back) in one transaction. The red flags (`temperature_c` °C in
+        0.1 steps 34–43, `pad_soaked_within_hour`, `severe_pain`, `breathless`) and `postpartum_visit` (she had her
+        postpartum check-up that day) are stored in the day's `postpartum_recovery_logs` row (T-M9-06); a temperature
+        ≥ `postpartum.redflags.fever_c` (38.0) or any of the three flags true answers an **urgent** alert with a call to
+        115.
       operationId: savePostpartumRecovery
       security:
         - {bearerAuth: []}
@@ -5188,6 +5198,11 @@ paths:
                   items: {type: string, enum: [engorgement, nipple_pain, redness]}
                 feeds_count: {type: [integer, "null"], minimum: 0, maximum: 30}
                 sleep_hours: {type: [number, "null"], minimum: 0, maximum: 24, multipleOf: 0.5}
+                temperature_c: {type: [number, "null"], minimum: 34, maximum: 43, multipleOf: 0.1}
+                pad_soaked_within_hour: {type: [boolean, "null"]}
+                severe_pain: {type: [boolean, "null"]}
+                breathless: {type: [boolean, "null"]}
+                postpartum_visit: {type: [boolean, "null"]}
             example: {lochia_amount: light, lochia_color: pink_brown, pain_level: mild, pain_locations: [stitches], breasts: [], feeds_count: 8, sleep_hours: 4.5}
       responses:
         '200':
@@ -5268,6 +5283,7 @@ paths:
                           short_elevated: {type: integer}
                           full_possible: {type: integer}
                           full_likely: {type: integer}
+                          urgent_total: {type: integer, description: "epds.urgent_total (31 = only item 10 is urgent)"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/PostpartumValidationFailed"}
     post:
@@ -5276,9 +5292,10 @@ paths:
       description: |
         `answers` = the score (0–3) of the chosen option of every item of the kind, no other key. Scored here and
         stored for today (the same kind again today replaces it); the answers are never logged or shown again.
-        `safety`: **urgent** when item 10 (self-harm) scores above 0 or a full total is ≥ 13 — title/body from admin
-        copy and call actions 115 (emergency), 123 (social emergency), 1480 (counselling line); **advice** for a full
-        10–12; **follow_up** to the full check for a short ≥ 6; null otherwise. 409 outside postpartum mode.
+        `safety`: **urgent** when item 10 (self-harm) scores above 0 or a full total is ≥ `epds.urgent_total` (13 by
+        default, DECISIONS.md H-01; 31 = off) — title/body from admin copy and call actions 115 (emergency), 123
+        (social emergency), 1480 (counselling line); **advice** for a full total ≥ 13 that is not urgent («talk to your
+        doctor soon») and for a full 10–12; **follow_up** to the full check for a short ≥ 6; null otherwise. 409 outside postpartum mode.
       operationId: saveEpdsCheck
       security:
         - {bearerAuth: []}
@@ -28438,8 +28455,8 @@ components:
       type: object
       required: [key, level, title, body, action_label, action]
       properties:
-        key: {type: string, enum: [heavy_bleeding, large_clots, checkin_short, checkin_full]}
-        level: {type: string, enum: [warning, info]}
+        key: {type: string, enum: [fever, pad_per_hour, severe_pain, breathless, heavy_bleeding, large_clots, checkin_short, checkin_full]}
+        level: {type: string, enum: [urgent, warning, info]}
         title: {type: string}
         body: {type: string}
         action_label: {type: [string, "null"]}
@@ -28453,6 +28470,8 @@ components:
             kind: {type: string, enum: [short, full]}
     PostpartumRecovery:
       type: object
+      description: "The red-flag / visit keys (T-M9-06) are always sent by the API; not `required` here only until the
+        postpartum contract goldens are re-recorded."
       required: [date, lochia_amount, lochia_color, pain_level, pain_locations, breasts, feeds_count, sleep_hours, alerts]
       properties:
         date: {$ref: "#/components/schemas/Date"}
@@ -28463,7 +28482,21 @@ components:
         breasts: {type: [array, "null"], items: {type: string}}
         feeds_count: {type: [integer, "null"]}
         sleep_hours: {type: [number, "null"]}
+        temperature_c: {type: [number, "null"], description: "°C, one decimal"}
+        pad_soaked_within_hour: {type: [boolean, "null"]}
+        severe_pain: {type: [boolean, "null"]}
+        breathless: {type: [boolean, "null"]}
+        postpartum_visit: {type: [boolean, "null"]}
         alerts: {type: array, items: {$ref: "#/components/schemas/PostpartumAlert"}}
+    PostpartumVisit:
+      type: object
+      required: [kind, due_on, done, done_on, status]
+      properties:
+        kind: {type: string, enum: [contact, reminder, comprehensive]}
+        due_on: {$ref: "#/components/schemas/Date"}
+        done: {type: boolean}
+        done_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        status: {type: string, enum: [done, upcoming, due, overdue]}
     EpdsCheck:
       type: object
       required: [id, kind, taken_on, week, total, max, band, band_label, urgent, self_harm]
@@ -28539,6 +28572,8 @@ components:
         checkin: {$ref: "#/components/schemas/EpdsSchedule"}
     PostpartumOverview:
       type: object
+      description: "`visits` (T-M9-06) is always sent by the API; not `required` here only until the postpartum
+        contract goldens are re-recorded."
       required: [active, mode, setup_required, profile, status, checkin, today, alerts, week_tip, call_when]
       properties:
         active: {type: boolean}
@@ -28573,6 +28608,7 @@ components:
                 puerperium_days_left: {type: integer}
                 progress: {type: number}
         checkin: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/EpdsSchedule"}]}
+        visits: {type: array, items: {$ref: "#/components/schemas/PostpartumVisit"}}
         today: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/PostpartumRecovery"}]}
         alerts: {type: array, items: {$ref: "#/components/schemas/PostpartumAlert"}}
         week_tip:

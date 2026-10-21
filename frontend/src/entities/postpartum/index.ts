@@ -10,8 +10,11 @@ export {
   MAX_BIRTH_AGE_DAYS,
   MAX_FEEDS,
   MAX_SLEEP_HOURS,
+  MAX_TEMPERATURE_C,
+  MIN_TEMPERATURE_C,
   PAIN_LEVELS,
   PAIN_LOCATIONS,
+  VISIT_KINDS,
   type ActivatePostpartumInput,
   type AlertAction,
   type BreastSymptom,
@@ -33,9 +36,12 @@ export {
   type PostpartumRecovery,
   type PostpartumStatus,
   type PostpartumText,
+  type PostpartumVisit,
   type PostpartumWeekTip,
   type RecoveryUpdate,
   type SafetyMessage,
+  type VisitKind,
+  type VisitStatus,
 } from './model/types';
 export { postpartumKeys } from './api/keys';
 export { epdsResultSchema, overviewSchema, questionnaireSchema, recoverySchema } from './api/schema';

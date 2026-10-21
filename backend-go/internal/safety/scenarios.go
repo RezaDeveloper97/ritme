@@ -13,6 +13,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/queue"
 	"github.com/ritme/backend-go/internal/postpartum"
 	"github.com/ritme/backend-go/internal/postpartum/guide"
@@ -44,6 +45,65 @@ func contractions(n int, every, last time.Duration) []labor.Contraction {
 		out[i] = labor.Contraction{Start: s, End: s.Add(last)}
 	}
 	return out
+}
+
+// epdsTotal is a full check with item 10 = 0 and the other nine items summing to total (≤ 27) on day.
+func epdsTotal(day civildate.Date, total int) postpartum.Result {
+	answers := map[string]int{postpartum.SelfHarmItem: 0}
+	left := total
+	for _, it := range postpartum.Items {
+		if it.Code == postpartum.SelfHarmItem {
+			continue
+		}
+		v := min(left, postpartum.ItemMax)
+		answers[it.Code], left = v, left-v
+	}
+	return postpartum.ScoreOn(postpartum.KindFull, answers, day)
+}
+
+// hasCall reports whether a safety message carries a call action to number.
+func hasCall(msg any, number string) bool {
+	m, ok := msg.(*jsonx.OrderedMap)
+	if !ok {
+		return false
+	}
+	raw, _ := m.Get("actions")
+	actions, _ := raw.([]*jsonx.OrderedMap)
+	for _, a := range actions {
+		if n, _ := a.Get("number"); n == number {
+			return true
+		}
+	}
+	return false
+}
+
+// redFlag runs the real recovery alert builder on r on day and reports whether it raised key as urgent with 115.
+func redFlag(day civildate.Date, r postpartum.Recovery, key string) bool {
+	for _, loc := range []string{"fa", "en"} {
+		alerts, err := postpartum.RecoveryAlerts(context.Background(), guide.NewCopy(nil, loc, loc), r, day)
+		if err != nil || len(alerts) == 0 {
+			return false
+		}
+		a, ok := alerts[0].(*jsonx.OrderedMap)
+		if !ok {
+			return false
+		}
+		k, _ := a.Get("key")
+		level, _ := a.Get("level")
+		title, _ := a.Get("title")
+		if k != key || level != postpartum.LevelUrgent || title == "" {
+			return false
+		}
+		act, _ := a.Get("action")
+		am, _ := act.(*jsonx.OrderedMap)
+		if am == nil {
+			return false
+		}
+		if n, _ := am.Get("number"); n != postpartum.EmergencyNumber {
+			return false
+		}
+	}
+	return true
 }
 
 func epds(kind string, score int, q10 int) postpartum.Result {
@@ -134,7 +194,24 @@ var Scenarios = []Scenario{
 		r := epds(postpartum.KindFull, 0, 1)
 		return r.Urgent && slices.Contains(r.Reasons, postpartum.ReasonSelfHarm)
 	}},
-	{"epds_high_total_urgent", func(civildate.Date) bool { return epds(postpartum.KindFull, 3, 0).Urgent }},
+	// T-M9-06 / H-01: the score path reads epds.urgent_total (13 today; 31 = off — then no total without item 10
+	// is urgent, the top one being 27).
+	{"epds_high_total_urgent", func(d civildate.Date) bool {
+		at := postpartum.CutoffsOn(d).UrgentTotal
+		top := len(postpartum.Items[:9]) * postpartum.ItemMax
+		if at > top {
+			return !epdsTotal(d, top).Urgent
+		}
+		return epdsTotal(d, at).Urgent && !epdsTotal(d, at-1).Urgent
+	}},
+	{"epds_q10_low_total", func(d civildate.Date) bool {
+		r := postpartum.ScoreOn(postpartum.KindFull, map[string]int{"q1": 1, "q2": 1, "q3": 1, "q10": 1}, d)
+		if r.Total != 4 || !r.Urgent {
+			return false
+		}
+		msg, err := postpartum.SafetyJSON(context.Background(), guide.NewCopy(nil, "fa", "fa"), r)
+		return err == nil && hasCall(msg, postpartum.EmergencyNumber) && hasCall(msg, postpartum.SocialEmergencyNumber)
+	}},
 	{"epds_low_not_urgent", func(civildate.Date) bool { return !epds(postpartum.KindFull, 0, 0).Urgent }},
 	{"epds_short_never_urgent", func(civildate.Date) bool { return !epds(postpartum.KindShort, 3, 0).Urgent }},
 	{"contractions_511_met", func(d civildate.Date) bool {
@@ -148,6 +225,21 @@ var Scenarios = []Scenario{
 	}},
 	{"postpartum_light_bleeding_no_alert", func(civildate.Date) bool {
 		return len(postpartum.Recovery{LochiaAmount: "light"}.Alerts()) == 0
+	}},
+	// T-M9-06: the postpartum red flags are urgent with 115 (fever from postpartum.redflags.fever_c).
+	{"postpartum_fever", func(d civildate.Date) bool {
+		fever := postpartum.FeverOn(d)
+		below := fever - 0.1
+		return redFlag(d, postpartum.Recovery{TemperatureC: &fever}, guide.AlertFever) &&
+			len(postpartum.Recovery{TemperatureC: &below}.AlertsOn(d)) == 0
+	}},
+	{"postpartum_pad_per_hour", func(d civildate.Date) bool {
+		yes := true
+		return redFlag(d, postpartum.Recovery{PadSoakedWithinHour: &yes}, guide.AlertPadPerHour)
+	}},
+	{"postpartum_breathless", func(d civildate.Date) bool {
+		yes := true
+		return redFlag(d, postpartum.Recovery{Breathless: &yes}, guide.AlertBreathless)
 	}},
 	// T-M9-05: the kick paths run the real alert rule (pregnancyalerts fetal_movement), not a counter.
 	{"reduced_kicks", func(d civildate.Date) bool {

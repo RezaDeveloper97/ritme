@@ -8,6 +8,8 @@ import {
   LOCHIA_COLORS,
   PAIN_LEVELS,
   PAIN_LOCATIONS,
+  VISIT_KINDS,
+  VISIT_STATUSES,
   type AlertAction,
   type EpdsCheck,
   type EpdsQuestionnaire,
@@ -19,6 +21,7 @@ import {
   type PostpartumRecovery,
   type PostpartumStatus,
   type PostpartumText,
+  type PostpartumVisit,
   type PostpartumWeekTip,
   type SafetyMessage,
 } from '../model/types';
@@ -33,6 +36,7 @@ import {
 const text = z.string().nullable().catch(null);
 const int = z.number().int().nullable().catch(null);
 const kind = z.enum(EPDS_KINDS);
+const flag = z.boolean().nullable().optional().catch(null);
 
 function enumList<T extends readonly [string, ...string[]]>(values: T) {
   return z
@@ -178,6 +182,11 @@ export const recoverySchema = z
     breasts: enumList(BREAST_SYMPTOMS).nullable().catch(null),
     feeds_count: int,
     sleep_hours: z.number().nullable().catch(null),
+    temperature_c: z.number().nullable().optional().catch(null),
+    pad_soaked_within_hour: flag,
+    severe_pain: flag,
+    breathless: flag,
+    postpartum_visit: flag,
     alerts: alertList,
   })
   .transform(
@@ -190,7 +199,36 @@ export const recoverySchema = z
       breasts: d.breasts,
       feedsCount: d.feeds_count,
       sleepHours: d.sleep_hours,
+      temperatureC: d.temperature_c ?? null,
+      padSoakedWithinHour: d.pad_soaked_within_hour ?? null,
+      severePain: d.severe_pain ?? null,
+      breathless: d.breathless ?? null,
+      postpartumVisit: d.postpartum_visit ?? null,
       alerts: d.alerts,
+    }),
+  );
+
+const visitSchema = z
+  .object({
+    kind: z.enum(VISIT_KINDS),
+    due_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    done: z.boolean().catch(false),
+    done_on: text,
+    status: z.enum(VISIT_STATUSES).catch('upcoming'),
+  })
+  .transform(
+    (d): PostpartumVisit => ({ kind: d.kind, dueOn: d.due_on, done: d.done, doneOn: d.done_on, status: d.status }),
+  );
+
+/** One bad row never blanks the card: it is dropped. */
+const visitList = z
+  .array(z.unknown())
+  .optional()
+  .catch([])
+  .transform((list) =>
+    (list ?? []).flatMap((raw) => {
+      const parsed = visitSchema.safeParse(raw);
+      return parsed.success ? [parsed.data] : [];
     }),
   );
 
@@ -210,6 +248,7 @@ export const overviewSchema = z
     profile: profileSchema.nullable().catch(null),
     status: statusSchema.nullable().catch(null),
     checkin: checkinSchema.nullable().catch(null),
+    visits: visitList,
     today: recoverySchema.nullable().catch(null),
     alerts: alertList,
     week_tip: weekTipSchema.nullable().catch(null),
@@ -223,6 +262,7 @@ export const overviewSchema = z
       profile: d.profile,
       status: d.status,
       checkin: d.checkin,
+      visits: d.visits,
       today: d.today,
       alerts: d.alerts,
       weekTip: d.week_tip,

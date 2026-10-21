@@ -17,6 +17,23 @@ export interface RecoveryForm {
   breasts: BreastSymptom[] | null;
   feedsCount: number | null;
   sleepHours: number | null;
+  /** Red flags (T-M9-06); `null` = not answered. */
+  temperatureC: number | null;
+  padSoakedWithinHour: boolean | null;
+  severePain: boolean | null;
+  breathless: boolean | null;
+}
+
+/** The three yes/no red flags, in display order. */
+export const RED_FLAGS = ['padSoakedWithinHour', 'severePain', 'breathless'] as const;
+export type RedFlag = (typeof RED_FLAGS)[number];
+
+/** Where the temperature stepper starts when she first enters one. */
+export const TEMPERATURE_START = 37;
+
+/** One decimal, inside the API bounds (the stepper adds 0.1 in floating point). */
+export function roundTemperature(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, Math.round(value * 10) / 10));
 }
 
 export function formFrom(r: PostpartumRecovery | undefined): RecoveryForm {
@@ -28,6 +45,10 @@ export function formFrom(r: PostpartumRecovery | undefined): RecoveryForm {
     breasts: r?.breasts ?? null,
     feedsCount: r?.feedsCount ?? null,
     sleepHours: r?.sleepHours ?? null,
+    temperatureC: r?.temperatureC ?? null,
+    padSoakedWithinHour: r?.padSoakedWithinHour ?? null,
+    severePain: r?.severePain ?? null,
+    breathless: r?.breathless ?? null,
   };
 }
 
@@ -57,6 +78,10 @@ export function diffForm(saved: RecoveryForm, form: RecoveryForm): RecoveryUpdat
   if (!same(saved.breasts, form.breasts)) out.breasts = form.breasts;
   if (!same(saved.feedsCount, form.feedsCount)) out.feedsCount = form.feedsCount;
   if (!same(saved.sleepHours, form.sleepHours)) out.sleepHours = form.sleepHours;
+  if (!same(saved.temperatureC, form.temperatureC)) out.temperatureC = form.temperatureC;
+  for (const flag of RED_FLAGS) {
+    if (!same(saved[flag], form[flag])) out[flag] = form[flag];
+  }
   return out;
 }
 

@@ -81,3 +81,47 @@ WHERE user_id = ? ORDER BY taken_on DESC, id DESC LIMIT 1;
 -- name: GetLastEpdsCheckOfKind :one
 SELECT id, kind, taken_on, total, self_harm, urgent FROM `epds_checks`
 WHERE user_id = ? AND kind = ? ORDER BY taken_on DESC, id DESC LIMIT 1;
+
+-- Red flags and the postpartum visit log (T-M9-06, goose 00097): one row per (user, day). Scoped by user_id.
+
+-- name: GetRecoveryLog :one
+SELECT * FROM `postpartum_recovery_logs` WHERE user_id = ? AND log_date = ? LIMIT 1;
+
+-- name: UpsertRecoveryLog :exec
+-- The full row of the day (the service merges a partial PUT into the stored row first).
+INSERT INTO `postpartum_recovery_logs`
+  (user_id, log_date, temperature_c, pad_soaked_within_hour, severe_pain, breathless, postpartum_visit, created_at, updated_at)
+VALUES
+  (sqlc.arg(user_id), sqlc.arg(log_date), sqlc.narg(temperature_c), sqlc.narg(pad_soaked_within_hour),
+   sqlc.narg(severe_pain), sqlc.narg(breathless), sqlc.narg(postpartum_visit), sqlc.arg(now), sqlc.arg(now))
+ON DUPLICATE KEY UPDATE
+  temperature_c = VALUES(temperature_c),
+  pad_soaked_within_hour = VALUES(pad_soaked_within_hour),
+  severe_pain = VALUES(severe_pain),
+  breathless = VALUES(breathless),
+  postpartum_visit = VALUES(postpartum_visit),
+  updated_at = VALUES(updated_at);
+
+-- name: ListPostpartumVisitDays :many
+-- The days she logged a postpartum visit since the birth, oldest first.
+SELECT log_date FROM `postpartum_recovery_logs`
+WHERE user_id = sqlc.arg(user_id) AND postpartum_visit = 1 AND log_date >= sqlc.arg(since)
+ORDER BY log_date ASC;
+
+-- name: LockPostpartumProfile :one
+-- Serialises the lazy visit notices of one user (two app opens at once write one notice).
+SELECT id FROM `postpartum_profiles` WHERE user_id = ? LIMIT 1 FOR UPDATE;
+
+-- name: CountPostpartumVisitNotices :one
+-- The visit notices of one kind already written for this birth (idempotency of the lazy notice).
+SELECT COUNT(*) FROM `user_notifications`
+WHERE user_id = sqlc.arg(user_id) AND `type` = 'postpartum'
+  AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.event')) = 'visit_due'
+  AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.kind')) = CAST(sqlc.arg(kind) AS CHAR)
+  AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.birth_date')) = CAST(sqlc.arg(birth_date) AS CHAR);
+
+-- name: InsertPostpartumNotice :exec
+-- Inbox row: title/body are {lang: text} JSON without any health payload.
+INSERT INTO `user_notifications` (user_id, type, title, body, action_url, data, created_at, updated_at)
+VALUES (sqlc.arg(user_id), 'postpartum', sqlc.arg(title), sqlc.arg(body), sqlc.arg(action_url), sqlc.arg(data),
+  sqlc.arg(now), sqlc.arg(now));

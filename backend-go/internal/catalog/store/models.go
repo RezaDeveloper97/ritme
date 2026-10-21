@@ -1964,6 +1964,19 @@ type PostpartumProfile struct {
 	UpdatedAt          sql.NullTime
 }
 
+type PostpartumRecoveryLog struct {
+	ID                  uint64
+	UserID              uint64
+	LogDate             civildate.Date
+	TemperatureC        sql.NullString
+	PadSoakedWithinHour sql.NullBool
+	SeverePain          sql.NullBool
+	Breathless          sql.NullBool
+	PostpartumVisit     sql.NullBool
+	CreatedAt           sql.NullTime
+	UpdatedAt           sql.NullTime
+}
+
 type PregnancyAlert struct {
 	ID                  uint64
 	UserID              uint64

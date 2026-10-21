@@ -20,11 +20,17 @@
         "heavy_bleeding": {"title": "You logged heavy bleeding", "body": "If you soak a full pad in an hour or the bleeding suddenly gets heavier, call your doctor or 115 now.", "action": "Call 115"},
         "large_clots": {"title": "You logged large clots", "body": "Tell your doctor about large clots (bigger than a walnut) after the first days. If they come with heavy bleeding or dizziness, call now.", "action": "Call 115"},
         "checkin_short": {"title": "Weekly mood check-in", "body": "Three short questions; it takes less than a minute.", "action": "Start"},
-        "checkin_full": {"title": "Full mood check-in", "body": "10 short questions every two weeks, so you can see how you are doing over time.", "action": "Start"}
+        "checkin_full": {"title": "Full mood check-in", "body": "10 short questions every two weeks, so you can see how you are doing over time.", "action": "Start"},
+        "fever": {"title": "Your temperature is high", "body": "A fever after birth can be a sign of infection, so don’t wait. Call 115 now or go to the emergency department.", "action": "Call 115"},
+        "pad_per_hour": {"title": "A pad soaked in under an hour", "body": "This is heavy bleeding and needs to be checked straight away. Call 115 now or go to the emergency department.", "action": "Call 115"},
+        "severe_pain": {"title": "You have severe pain", "body": "Take severe pain in your belly, chest, head or calf after birth seriously. Call 115 now or go to the emergency department.", "action": "Call 115"},
+        "breathless": {"title": "You are short of breath", "body": "Shortness of breath after birth needs to be checked straight away, even if it is mild. Call 115 now or go to the emergency department.", "action": "Call 115"},
+        "visit_due": {"title": "Time for your postpartum visit", "body": "Book a visit with your doctor or midwife to check your recovery, contraception and mood. If you have been already, log it on the postpartum page.", "action": "Book a visit"}
     },
     "postpartum_safety": {
         "urgent": {"title": "Please talk to someone now", "body": "Your answers show these days are very hard for you. You are not alone and help is available. If you have thoughts of harming yourself or your baby, call emergency 115 or the social emergency line 123 now, or go to the nearest hospital.", "emergency_label": "Emergency 115", "social_label": "Social emergency 123", "counsel_label": "Counselling line 1480"},
         "advice": {"title": "Talking to a doctor or counsellor helps", "body": "Your score is a little higher than usual. This is not a diagnosis, but talking to a doctor, midwife or counsellor can help."},
+        "likely": {"title": "Talk to your doctor soon", "body": "Your score is higher than usual. This is not a diagnosis, but it is best to talk to a doctor, midwife or counsellor this week. If you have thoughts of harming yourself or your baby, call emergency 115 or the social emergency line 123 now."},
         "short_elevated": {"title": "A fuller check-in can help", "body": "This week's answers suggest you may not be feeling well. Answer 10 short questions to get a clearer picture.", "action": "Full check-in"},
         "disclaimer": {"body": "These few questions are only for you to see how your mood is going. Ritme does not diagnose; if you are worried, talking to a doctor or counsellor is always a good option."}
     }

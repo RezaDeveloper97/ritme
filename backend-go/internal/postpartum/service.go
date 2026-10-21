@@ -22,10 +22,12 @@ import (
 	"fmt"
 	"time"
 
+	rootdb "github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/companion"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/postpartum/guide"
 	"github.com/ritme/backend-go/internal/postpartum/store"
 )
 
@@ -173,17 +175,36 @@ func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries, tx store.D
 	return nil
 }
 
-// Recovery is the user's recovery log of a day.
+// Recovery is the user's recovery log of a day: the taxonomy slots plus the red-flag / visit row.
 func (s *Service) Recovery(ctx context.Context, userID uint64, date civildate.Date) (Recovery, error) {
 	entries, err := s.logs.Day(ctx, userID, date)
 	if err != nil {
 		return Recovery{}, err
 	}
-	return RecoveryOf(entries), nil
+	return s.withLog(ctx, userID, date, RecoveryOf(entries))
 }
 
-// SaveRecovery writes the changed fields of a day through the taxonomy v2 storage (and its legacy write-back).
-func (s *Service) SaveRecovery(ctx context.Context, userID uint64, date civildate.Date, in RecoveryInput, locale string, now time.Time) (Recovery, error) {
+func (s *Service) withLog(ctx context.Context, userID uint64, date civildate.Date, r Recovery) (Recovery, error) {
+	row, err := s.q.GetRecoveryLog(ctx, store.GetRecoveryLogParams{UserID: userID, LogDate: date})
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return r, nil
+	case err != nil:
+		return Recovery{}, fmt.Errorf("postpartum: recovery log: %w", err)
+	}
+	return r.WithLog(row), nil
+}
+
+// SaveRecovery writes the changed fields of a day: the red-flag / visit row (merged with the stored one) and the
+// taxonomy v2 slots (with their legacy write-back). stored is the day as read before the input was validated.
+func (s *Service) SaveRecovery(ctx context.Context, userID uint64, date civildate.Date, in RecoveryInput, stored Recovery, locale string, now time.Time) (Recovery, error) {
+	if in.HasLog() {
+		p := in.LogRow(stored)
+		p.UserID, p.LogDate, p.Now = userID, date, tehranNow(now)
+		if err := s.q.UpsertRecoveryLog(ctx, p); err != nil {
+			return Recovery{}, fmt.Errorf("postpartum: save recovery log: %w", err)
+		}
+	}
 	changes := in.Changes()
 	if len(changes) == 0 {
 		return s.Recovery(ctx, userID, date)
@@ -192,7 +213,81 @@ func (s *Service) SaveRecovery(ctx context.Context, userID uint64, date civildat
 	if err != nil {
 		return Recovery{}, err
 	}
-	return RecoveryOf(day), nil
+	return s.withLog(ctx, userID, date, RecoveryOf(day))
+}
+
+// VisitDays are the days since birth she logged a postpartum visit, oldest first.
+func (s *Service) VisitDays(ctx context.Context, userID uint64, birth civildate.Date) ([]civildate.Date, error) {
+	days, err := s.q.ListPostpartumVisitDays(ctx, store.ListPostpartumVisitDaysParams{UserID: userID, Since: birth})
+	if err != nil {
+		return nil, fmt.Errorf("postpartum: visit days: %w", err)
+	}
+	return days, nil
+}
+
+// NoticeText is the title and body of a notice in one language.
+type NoticeText struct{ Title, Body string }
+
+// NoticePath is where a postpartum notice opens in the web app.
+const NoticePath = "/postpartum"
+
+// EnsureVisitNotices writes the in-app notice of each kind once per birth (T-M9-06): the user's postpartum profile row
+// is locked so two app opens at once still write one notice, and a kind that already has its notice is skipped.
+// texts holds the notice copy per language code (one entry per active language). It reports how many it wrote.
+func (s *Service) EnsureVisitNotices(ctx context.Context, userID uint64, birth civildate.Date, kinds []string,
+	texts map[string]NoticeText, now time.Time) (int, error) {
+	if len(kinds) == 0 {
+		return 0, nil
+	}
+	title, body := map[string]string{}, map[string]string{}
+	for code, t := range texts {
+		title[code], body[code] = t.Title, t.Body
+	}
+	rawTitle, err := json.Marshal(title)
+	if err != nil {
+		return 0, fmt.Errorf("postpartum: notice title: %w", err)
+	}
+	rawBody, err := json.Marshal(body)
+	if err != nil {
+		return 0, fmt.Errorf("postpartum: notice body: %w", err)
+	}
+	written := 0
+	err = s.inTx(ctx, func(q *store.Queries, _ store.DBTX) error {
+		if _, err := q.LockPostpartumProfile(ctx, userID); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return nil
+			}
+			return fmt.Errorf("postpartum: lock profile: %w", err)
+		}
+		for _, kind := range kinds {
+			n, err := q.CountPostpartumVisitNotices(ctx, store.CountPostpartumVisitNoticesParams{
+				UserID: userID, Kind: kind, BirthDate: birth.String(),
+			})
+			if err != nil {
+				return fmt.Errorf("postpartum: visit notices: %w", err)
+			}
+			if n > 0 {
+				continue
+			}
+			data, err := json.Marshal(map[string]any{"event": guide.AlertVisitDue, "kind": kind, "birth_date": birth.String()})
+			if err != nil {
+				return fmt.Errorf("postpartum: notice data: %w", err)
+			}
+			if err := q.InsertPostpartumNotice(ctx, store.InsertPostpartumNoticeParams{
+				UserID: userID, Title: json.RawMessage(rawTitle), Body: rootdb.NullRawJSON{V: rawBody, Valid: true},
+				ActionUrl: sql.NullString{String: NoticePath, Valid: true}, Data: rootdb.NullRawJSON{V: data, Valid: true},
+				Now: tehranNow(now),
+			}); err != nil {
+				return fmt.Errorf("postpartum: visit notice: %w", err)
+			}
+			written++
+		}
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	return written, nil
 }
 
 func checkOf(id uint64, kind string, takenOn civildate.Date, total uint8, selfHarm sql.NullInt16, urgent bool) Check {

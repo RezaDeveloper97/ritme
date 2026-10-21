@@ -102,6 +102,12 @@ func (r response) errors() map[string]any {
 
 func (e *env) do(t *testing.T, method, path, token, lang, body string) response {
 	t.Helper()
+	return e.doAt(t, now, method, path, token, lang, body)
+}
+
+// doAt is do with the request clock at at (RFC 3339).
+func (e *env) doAt(t *testing.T, at, method, path, token, lang, body string) response {
+	t.Helper()
 	req := httptest.NewRequest(method, path, strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
@@ -111,7 +117,7 @@ func (e *env) do(t *testing.T, method, path, token, lang, body string) response 
 	if lang != "" {
 		req.Header.Set("Accept-Language", lang)
 	}
-	req.Header.Set(clock.Header, now)
+	req.Header.Set(clock.Header, at)
 	resp, err := e.app.Test(req, fiber.TestConfig{Timeout: 30 * time.Second})
 	require.NoError(t, err)
 	defer func() { _ = resp.Body.Close() }()
@@ -520,4 +526,149 @@ func TestPostpartum_DailyMessage(t *testing.T) {
 	pm = r.data()["primary_message"].(map[string]any)
 	assert.Equal(t, "heavy_bleeding", pm["override_type"])
 	assert.Equal(t, "خون‌ریزی زیاد ثبت کردی", pm["short_message"]) //nolint:staticcheck // ST1018: Persian copy (ZWNJ) verbatim
+}
+
+// T-M9-06: the red flags of the recovery sheet are stored per day and raise the urgent 115 alert; partial saves keep
+// the other answers.
+func TestPostpartum_RecoveryRedFlags(t *testing.T) {
+	e := setup(t)
+	id, tok := e.activated(t, "09120000016", "2026-09-14")
+
+	r := e.do(t, http.MethodPut, "/api/v1/postpartum/recovery", tok, "fa", `{"temperature_c":37.9}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.EqualValues(t, 37.9, r.data()["temperature_c"])
+	assert.Equal(t, []any{}, r.data()["alerts"])
+	assert.Nil(t, r.data()["breathless"])
+
+	r = e.do(t, http.MethodPut, "/api/v1/postpartum/recovery", tok, "fa", `{"temperature_c":38.0,"lochia_amount":"heavy"}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	alerts := r.data()["alerts"].([]any)
+	require.Len(t, alerts, 2)
+	fever := alerts[0].(map[string]any)
+	assert.Equal(t, "fever", fever["key"])
+	assert.Equal(t, "urgent", fever["level"])
+	assert.Contains(t, fever["body"], "همین حالا با ۱۱۵ تماس بگیر یا به اورژانس برو")
+	assert.Equal(t, "115", fever["action"].(map[string]any)["number"])
+	assert.Equal(t, "heavy_bleeding", alerts[1].(map[string]any)["key"])
+	assert.Equal(t, "warning", alerts[1].(map[string]any)["level"])
+	assert.Equal(t, "38.0", e.scalar(t, `SELECT temperature_c FROM postpartum_recovery_logs WHERE user_id = ? AND log_date = '2026-10-01'`, id))
+
+	// Ordered: each save merges into the previous one (lochia "light" must land before the severe-pain save).
+	for _, c := range []struct{ body, key string }{
+		{`{"temperature_c":null,"lochia_amount":"light","pad_soaked_within_hour":true}`, "pad_per_hour"},
+		{`{"pad_soaked_within_hour":null,"severe_pain":true}`, "severe_pain"},
+		{`{"severe_pain":false,"breathless":true}`, "breathless"},
+	} {
+		body, key := c.body, c.key
+		r = e.do(t, http.MethodPut, "/api/v1/postpartum/recovery", tok, "en", body)
+		require.Equal(t, http.StatusOK, r.status, r.raw)
+		a := r.data()["alerts"].([]any)
+		require.NotEmpty(t, a, body)
+		assert.Equal(t, key, a[len(a)-1].(map[string]any)["key"], body)
+		assert.Equal(t, "urgent", a[len(a)-1].(map[string]any)["level"], body)
+	}
+	// the last save kept the earlier answers it did not send
+	r = e.do(t, http.MethodGet, "/api/v1/postpartum/recovery", tok, "en", "")
+	d := r.data()
+	assert.Nil(t, d["temperature_c"])
+	assert.Equal(t, false, d["severe_pain"])
+	assert.Equal(t, true, d["breathless"])
+	assert.Equal(t, "light", d["lochia_amount"])
+	// the home shows today's urgent alert too
+	r = e.do(t, http.MethodGet, "/api/v1/postpartum", tok, "en", "")
+	assert.Equal(t, "breathless", r.data()["alerts"].([]any)[0].(map[string]any)["key"])
+
+	for body, field := range map[string]string{
+		`{"temperature_c":33}`:         "temperature_c",
+		`{"temperature_c":44}`:         "temperature_c",
+		`{"temperature_c":38.05}`:      "temperature_c",
+		`{"breathless":"maybe"}`:       "breathless",
+		`{"postpartum_visit":"often"}`: "postpartum_visit",
+	} {
+		r := e.do(t, http.MethodPut, "/api/v1/postpartum/recovery", tok, "en", body)
+		require.Equal(t, http.StatusUnprocessableEntity, r.status, body+" "+r.raw)
+		assert.Contains(t, r.errors(), field, body)
+	}
+}
+
+// T-M9-06: visits for a delivery on 2026-10-01 (21 / 42 / 84 days), a logged visit marks it done, and the lazy
+// reminder notice is written once per kind.
+func TestPostpartum_VisitsAndTheLazyNotice(t *testing.T) {
+	e := setup(t)
+	id, tok := e.user(t, "09120000017")
+	at := "2026-10-10T10:00:00+03:30"
+	r := e.doAt(t, at, http.MethodPost, "/api/v1/postpartum/activate", tok, "fa", `{"birth_date":"2026-10-01"}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	visits := func(r response) map[string]map[string]any {
+		out := map[string]map[string]any{}
+		for _, v := range r.data()["visits"].([]any) {
+			m := v.(map[string]any)
+			out[m["kind"].(string)] = m
+		}
+		return out
+	}
+	v := visits(r)
+	assert.Equal(t, "2026-10-22", v["contact"]["due_on"])
+	assert.Equal(t, "2026-11-12", v["reminder"]["due_on"])
+	assert.Equal(t, "2026-12-24", v["comprehensive"]["due_on"])
+	assert.Equal(t, false, v["contact"]["done"])
+	assert.Equal(t, "upcoming", v["contact"]["status"])
+
+	// a visit logged on day 14 marks the contact done
+	r = e.doAt(t, "2026-10-15T10:00:00+03:30", http.MethodPut, "/api/v1/postpartum/recovery", tok, "fa", `{"postpartum_visit":true}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, true, r.data()["postpartum_visit"])
+
+	notices := func() string {
+		return e.scalar(t, `SELECT COUNT(*) FROM user_notifications WHERE user_id = ? AND type = 'postpartum'`, id)
+	}
+	day42 := "2026-11-12T09:00:00+03:30"
+	r = e.doAt(t, "2026-11-11T09:00:00+03:30", http.MethodGet, "/api/v1/postpartum", tok, "fa", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, "0", notices(), "not before reminder_day")
+	v = visits(r)
+	assert.Equal(t, "done", v["contact"]["status"])
+	assert.Equal(t, "2026-10-15", v["contact"]["done_on"])
+
+	for range 2 {
+		r = e.doAt(t, day42, http.MethodGet, "/api/v1/postpartum", tok, "fa", "")
+		require.Equal(t, http.StatusOK, r.status, r.raw)
+	}
+	assert.Equal(t, "due", visits(r)["reminder"]["status"])
+	assert.Equal(t, "1", notices(), "one notice however often she opens the app")
+	assert.Equal(t, "reminder", e.scalar(t, `SELECT JSON_UNQUOTE(JSON_EXTRACT(data, '$.kind')) FROM user_notifications WHERE user_id = ?`, id))
+	assert.Equal(t, "وقت ویزیت پس از زایمان رسیده است",
+		e.scalar(t, `SELECT JSON_UNQUOTE(JSON_EXTRACT(title, '$.fa')) FROM user_notifications WHERE user_id = ?`, id))
+	assert.NotEmpty(t, e.scalar(t, `SELECT JSON_UNQUOTE(JSON_EXTRACT(title, '$.en')) FROM user_notifications WHERE user_id = ?`, id))
+
+	// the 6-week visit logged → done, no more notices, even past day 84
+	r = e.doAt(t, day42, http.MethodPut, "/api/v1/postpartum/recovery", tok, "fa", `{"postpartum_visit":true}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	r = e.doAt(t, "2026-12-30T09:00:00+03:30", http.MethodGet, "/api/v1/postpartum", tok, "fa", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	v = visits(r)
+	assert.Equal(t, true, v["reminder"]["done"])
+	assert.Equal(t, "done", v["comprehensive"]["status"])
+	assert.Equal(t, "1", notices())
+
+	// another user never sees her visits
+	_, other := e.activated(t, "09120000018", "2026-09-14")
+	r = e.doAt(t, "2026-10-01T10:00:00+03:30", http.MethodGet, "/api/v1/postpartum", other, "fa", "")
+	for _, x := range visits(r) {
+		assert.Equal(t, false, x["done"])
+	}
+}
+
+// Without any visit: the reminder notice at day 42 and the comprehensive one after day 84, each once.
+func TestPostpartum_VisitNoticesPerKind(t *testing.T) {
+	e := setup(t)
+	id, tok := e.user(t, "09120000019")
+	r := e.doAt(t, "2026-10-01T10:00:00+03:30", http.MethodPost, "/api/v1/postpartum/activate", tok, "en", `{"birth_date":"2026-10-01"}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	for _, at := range []string{"2026-11-20T09:00:00+03:30", "2026-12-25T09:00:00+03:30", "2026-12-26T09:00:00+03:30"} {
+		r = e.doAt(t, at, http.MethodGet, "/api/v1/postpartum", tok, "en", "")
+		require.Equal(t, http.StatusOK, r.status, r.raw)
+	}
+	assert.Equal(t, "2", e.scalar(t, `SELECT COUNT(*) FROM user_notifications WHERE user_id = ? AND type = 'postpartum'`, id))
+	assert.Equal(t, "1", e.scalar(t, `SELECT COUNT(*) FROM user_notifications WHERE user_id = ? AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.kind')) = 'comprehensive'`, id))
 }

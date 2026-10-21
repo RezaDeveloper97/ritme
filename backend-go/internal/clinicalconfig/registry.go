@@ -81,6 +81,11 @@ const (
 	KeyPregnancyKicks           = "pregnancy.kicks"
 	KeyPregnancyManualFetalWeek = "pregnancy.fetal_movement.manual_from_week"
 	KeyPregnancyContractions511 = "pregnancy.contractions_511"
+
+	// Postpartum red flags, visits and the EPDS urgent total (T-M9-06, D-135, DECISIONS.md H-01).
+	KeyPostpartumRedFlags = "postpartum.redflags"
+	KeyPostpartumVisits   = "postpartum.visits"
+	KeyEPDSUrgentTotal    = "epds.urgent_total"
 )
 
 const (
@@ -99,6 +104,10 @@ const (
 	srcPregKicks  = "ACOG, Special Tests for Monitoring Fetal Well-Being (count to 10 within 2 hours, usually from week 28)"
 	srcPregManual = "Ritme pregnancy alerts v1 (reduced / no fetal movement from week 24, DECISIONS.md H-04)"
 	srcPreg511    = "ACOG, How to Tell When Labor Begins (5-1-1: every 5 min, about 1 min each, for 1 hour); duration 45 s, DECISIONS.md H-06"
+
+	srcPPRedFlags = "SPEC v6 §3.1 postpartum warning signs (fever ≥ 38 °C, a pad soaked within an hour, severe pain, breathlessness); ACOG Committee Opinion 736 (2018)"
+	srcPPVisits   = "ACOG Committee Opinion 736, Optimizing Postpartum Care (2018): contact within 3 weeks, comprehensive visit no later than 12 weeks; reminder at 6 weeks (SPEC v6 §3.1)"
+	srcEPDSUrgent = "Cox JL et al. 1987 (EPDS); ACOG CO 736 — urgent at total ≥ 13 is today's behaviour, 31 = off (only item 10 > 0 is urgent), DECISIONS.md H-01"
 )
 
 func one(name string, def, lo, hi float64) []Field { return []Field{{name, def, lo, hi}} }
@@ -156,6 +165,16 @@ var Defs = []Def{
 	{Key: KeyEPDSLikely, Group: GroupPregnancy, Unit: "score", Source: srcEPDS, Fields: one("score", 13, 1, 30)},
 	{Key: KeyEPDSPossible, Group: GroupPregnancy, Unit: "score", Source: srcEPDS, Fields: one("score", 10, 1, 30)},
 	{Key: KeyEPDSShortElevated, Group: GroupPregnancy, Unit: "score", Source: srcEPDS, Fields: one("score", 6, 1, 9)},
+	// epds.urgent_total: a full total from here opens the urgent safety path even with item 10 = 0 (H-01,
+	// advisor-pending). 31 is above the top total (30), so the advisor switches the score path off with it.
+	{Key: KeyEPDSUrgentTotal, Group: GroupPregnancy, Unit: "score", Source: srcEPDSUrgent, Fields: one("score", 13, 10, 31)},
+	// Postpartum red flags (T-M9-06): a temperature from fever_c is urgent (the three yes/no flags need no number).
+	{Key: KeyPostpartumRedFlags, Group: GroupPregnancy, Unit: "°C", Source: srcPPRedFlags,
+		Fields: one("fever_c", 38.0, 37.5, 39.0)},
+	// Postpartum visits, in days after the birth: contact due by, the in-app reminder from, comprehensive due by.
+	{Key: KeyPostpartumVisits, Group: GroupPregnancy, Unit: "day", Source: srcPPVisits,
+		Fields: []Field{{"contact_by_day", 21, 7, 42}, {"reminder_day", 42, 14, 84}, {"comprehensive_by_day", 84, 42, 120}},
+		Order:  [][2]string{{"contact_by_day", "reminder_day"}, {"reminder_day", "comprehensive_by_day"}}},
 
 	// Reference only: lab statuses compare with the range printed on the sheet or the admin catalog (B-N6-06), so no
 	// engine reads this key yet; it is versioned here so the medical team can approve the catalog fallback value.

@@ -11,6 +11,7 @@
         "birth_date_too_old": "تاریخ زایمان باید در یک سال گذشته باشد.",
         "pain_locations_required": "محل درد را انتخاب کن.",
         "answers_missing": "به همه سؤال‌ها جواب بده.",
+        "temperature_step": "دما را با یک رقم اعشار وارد کن.",
         "sleep_step": "خواب را با گام نیم ساعت وارد کن."
     },
     "phases": {
@@ -61,6 +62,11 @@
         "kind": "نوع چک‌این",
         "answers": "پاسخ‌ها",
         "answers.*": "پاسخ",
-        "limit": "تعداد"
+        "limit": "تعداد",
+        "temperature_c": "دمای بدن",
+        "pad_soaked_within_hour": "خیس شدن پد در یک ساعت",
+        "severe_pain": "درد شدید",
+        "breathless": "تنگی نفس",
+        "postpartum_visit": "ویزیت پس از زایمان"
     }
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { PostpartumAlert, PostpartumRecovery } from '@/entities/postpartum';
 
-import { durationKey, headlineWeek, homeAlerts, sixWeekVisitDue, splitScheduled, tileSummary } from './home';
+import { durationKey, headlineWeek, homeAlerts, splitScheduled, tileSummary } from './home';
 import { pressedChips, toggleChip } from './mood';
 import { birthDateProblem } from './setup';
 
@@ -15,6 +15,11 @@ const recovery = (over: Partial<PostpartumRecovery> = {}): PostpartumRecovery =>
   breasts: null,
   feedsCount: null,
   sleepHours: null,
+  temperatureC: null,
+  padSoakedWithinHour: null,
+  severePain: null,
+  breathless: null,
+  postpartumVisit: null,
   alerts: [],
   ...over,
 });
@@ -30,11 +35,6 @@ describe('postpartum hero', () => {
   it('uses completed weeks for the headline (QUESTIONS #97)', () => {
     expect(headlineWeek({ weeks: 2 })).toBe(2);
     expect(headlineWeek({ weeks: 0 })).toBe(1);
-  });
-
-  it('suggests the six-week visit only before day 42', () => {
-    expect(sixWeekVisitDue({ daysSinceBirth: 17, puerperiumDays: 42 })).toBe(true);
-    expect(sixWeekVisitDue({ daysSinceBirth: 42, puerperiumDays: 42 })).toBe(false);
   });
 });
 

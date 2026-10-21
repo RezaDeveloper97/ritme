@@ -1550,3 +1550,32 @@ Nothing needed fixing.
 - `CreateProfilePlan` (admin `core.sql`) is an upsert: `ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)`, the same pattern as `profile.InsertProfile`. `users.Update` uses the returned id, so a race loser updates the existing row.
 - New `inTxRetry` retries the transaction up to 5 times on a deadlock (1213).
 - `TestUpdate_ConcurrentFirstProfileWrites`: 8 concurrent admin `PUT /users/:id` for a user with no profile → all 200, exactly one row. This closes the T-M9-23 open item.
+
+## T-M9-06 — Postpartum red flags, visit reminders and EPDS urgency as config (D-135)
+- **Migration 00097** creates the new table `postpartum_recovery_logs`, mirrored by Laravel `2026_10_21_000097_create_postpartum_recovery_logs_table.php`. There was no recovery table to extend: the old log lives in taxonomy slots of `health_log_entries`.
+  - Columns: `temperature_c`, `pad_soaked_within_hour`, `severe_pain`, `breathless`, `postpartum_visit`.
+  - Unique on (user_id, log_date); cascades on user delete.
+  - `make sqlc` added the model struct to all 48 store packages. schema-diff: 215 tables.
+- Registry keys:
+  - `postpartum.redflags {fever_c 38.0}`
+  - `postpartum.visits {21, 42, 84}`
+  - `epds.urgent_total {score 13}` (31 = off; **H-01 advisor-pending**)
+- Red flags give urgent alerts with «همین حالا با ۱۱۵ تماس بگیر یا به اورژانس برو» and a 115 call: fever ≥ 38.0, a pad soaked within an hour, severe pain, breathlessness. Heavy lochia and clots stay warnings. If the admin row is missing, the embedded copy is used.
+- EPDS: Q10 > 0 is always urgent (115 + 123). The total threshold comes from config; with 31 (off), a total of 13 shows «زودتر با پزشکت صحبت کن».
+- Visits: for a delivery on 10-01, contact by 10-22, the 6-week reminder on 11-12, the comprehensive visit by 12-24. «امروز ویزیت داشتم» (via `PUT /postpartum/recovery` `postpartum_visit`) marks the right one done. The lazy notice is written once per kind on `GET /postpartum`.
+- Frontend:
+  - The recovery sheet adds a temperature stepper and three yes/no chips; the urgent 115 card scrolls into view after saving.
+  - The postpartum home has a «ویزیت‌های بعد از زایمان» card; the old 6-week row was removed.
+  - The style and dark gates pass; no screenshots were taken.
+- Safety scenarios: `postpartum_fever`, `postpartum_pad_per_hour`, `postpartum_breathless`, `epds_q10_low_total`. `epds_high_total_urgent` now reads the config.
+- The main session fixed a flaky order in `TestPostpartum_RecoveryRedFlags` (it looped over a map; now an ordered slice), and added H-20 (fever 38.0) and H-21 (visit windows, `pain_level = severe`) to `docs/engine-v6/clinical-signoff.md`.
+- Open items:
+  - **T-M9-06b**:
+    - **data export of the new table**
+    - the daily message ignores the new red flags
+    - postpartum goldens and OpenAPI `required`
+    - translation seed resync
+    - H-20/H-21 in the Claude Doc
+  - The «ویزیت ۶ هفته» label is fixed text even though the day is configurable.
+  - Notices are created only when the user opens the postpartum home.
+- Deploy to stage/beta: not done (needs user OK).

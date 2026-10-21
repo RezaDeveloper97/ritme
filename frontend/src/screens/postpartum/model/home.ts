@@ -16,11 +16,6 @@ export function headlineWeek(status: Pick<PostpartumStatus, 'weeks'>): number {
   return Math.max(1, status.weeks);
 }
 
-/** The six-week postpartum visit, suggested while it is still ahead (day < 42). */
-export function sixWeekVisitDue(status: Pick<PostpartumStatus, 'daysSinceBirth' | 'puerperiumDays'>): boolean {
-  return status.daysSinceBirth < status.puerperiumDays;
-}
-
 export interface TileSummary {
   /** i18n keys / values under `postpartum.home.tiles`; null = not logged yet. */
   bleeding: { amount: string; color: string | null } | null;

@@ -90,6 +90,7 @@ func (h *Handlers) overview(c fiber.Ctx, userID uint64, st State, now time.Time)
 		"profile", ProfileJSON(st.Profile, locale),
 		"status", nil,
 		"checkin", nil,
+		"visits", []any{},
 		"today", nil,
 		"alerts", []any{},
 		"week_tip", nil,
@@ -109,11 +110,27 @@ func (h *Handlers) overview(c fiber.Ctx, userID uint64, st State, now time.Time)
 	sch := ScheduleOn(today, birth, last, lastFull)
 	out.Set("checkin", ScheduleJSON(sch, last, &birth, locale))
 
+	visited, err := h.svc.VisitDays(ctx, userID, birth)
+	if err != nil {
+		return nil, err
+	}
+	visits := VisitsOn(birth, today, visited)
+	out.Set("visits", VisitsJSON(visits))
+	if kinds := NoticeKinds(visits); len(kinds) > 0 {
+		texts, err := h.noticeTexts(c)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := h.svc.EnsureVisitNotices(ctx, userID, birth, kinds, texts, now); err != nil {
+			return nil, err
+		}
+	}
+
 	rec, err := h.svc.Recovery(ctx, userID, today)
 	if err != nil {
 		return nil, err
 	}
-	alerts, err := RecoveryAlerts(ctx, cp, rec)
+	alerts, err := RecoveryAlerts(ctx, cp, rec, today)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +153,23 @@ func (h *Handlers) overview(c fiber.Ctx, userID uint64, st State, now time.Time)
 	return out, nil
 }
 
-// Show is GET /postpartum: the mode, the birth, the time since it, the check-in schedule, today's recovery log with
+// noticeTexts is the visit notice copy (guide visit_due: admin row, else the embedded copy) in every active language.
+func (h *Handlers) noticeTexts(c fiber.Ctx) (map[string]NoticeText, error) {
+	langs := i18n.LanguagesOf(c)
+	repo := content.NewRepository(h.mq)
+	out := map[string]NoticeText{}
+	for _, code := range langs.Codes() {
+		t, err := guide.NewCopy(repo, code, langs.DefaultCode()).Text(c, guide.AlertGroup, guide.AlertVisitDue)
+		if err != nil {
+			return nil, err
+		}
+		out[code] = NoticeText{Title: t["title"], Body: t["body"]}
+	}
+	return out, nil
+}
+
+// Show is GET /postpartum: the mode, the birth, the time since it, the check-in schedule, the postpartum visits (and
+// their lazy in-app notice, once per kind and birth), today's recovery log with
 // its alerts, the week's tip and «کی فوراً تماس بگیرم؟». Outside postpartum mode: active false, the rest null.
 func (h *Handlers) Show(c fiber.Ctx) error {
 	userID, err := h.user(c)
@@ -203,7 +236,7 @@ func (h *Handlers) ShowRecovery(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	alerts, err := RecoveryAlerts(c, h.copyFor(c), rec)
+	alerts, err := RecoveryAlerts(c, h.copyFor(c), rec, day)
 	if err != nil {
 		return err
 	}
@@ -233,11 +266,11 @@ func (h *Handlers) SaveRecovery(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	rec, err := h.svc.SaveRecovery(c, userID, day, in, locale, now)
+	rec, err := h.svc.SaveRecovery(c, userID, day, in, stored, locale, now)
 	if err != nil {
 		return err
 	}
-	alerts, err := RecoveryAlerts(c, h.copyFor(c), rec)
+	alerts, err := RecoveryAlerts(c, h.copyFor(c), rec, day)
 	if err != nil {
 		return err
 	}
@@ -262,7 +295,8 @@ func (h *Handlers) Questions(c fiber.Ctx) error {
 }
 
 // SaveCheck is POST /postpartum/epds {kind, answers}: scores and stores today's check and answers it with its band,
-// the safety message (urgent with call actions when item 10 > 0 or the full total ≥ 13) and the next due check.
+// the safety message (urgent with call actions when item 10 > 0 or the full total ≥ epds.urgent_total) and the next
+// due check.
 // The answers are never logged.
 func (h *Handlers) SaveCheck(c fiber.Ctx) error {
 	userID, err := h.user(c)
@@ -336,6 +370,6 @@ func (h *Handlers) History(c fiber.Ctx) error {
 	}
 	cut := CutoffsOn(civildate.InTehran(h.now(c)))
 	return httpx.OK(c, jsonx.Obj("checks", list, "thresholds", jsonx.Obj(
-		"short_elevated", cut.ShortElevated, "full_possible", cut.Possible, "full_likely", cut.Likely,
+		"short_elevated", cut.ShortElevated, "full_possible", cut.Possible, "full_likely", cut.Likely, "urgent_total", cut.UrgentTotal,
 	)))
 }

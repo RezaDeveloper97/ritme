@@ -6,11 +6,15 @@ package store
 
 import (
 	"context"
+
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
 type Querier interface {
 	// The pregnancy ended in a birth: the same flags as POST /pregnancy/deactivate.
 	ClosePregnancyAsDelivered(ctx context.Context, arg ClosePregnancyAsDeliveredParams) error
+	// The visit notices of one kind already written for this birth (idempotency of the lazy notice).
+	CountPostpartumVisitNotices(ctx context.Context, arg CountPostpartumVisitNoticesParams) (int64, error)
 	// The user's active pregnancy (pregnancy_mode = 1): the effective mode is then pregnancy.
 	GetActivePregnancyProfile(ctx context.Context, userID uint64) (uint64, error)
 	GetEpdsCheckOn(ctx context.Context, arg GetEpdsCheckOnParams) (GetEpdsCheckOnRow, error)
@@ -21,16 +25,26 @@ type Querier interface {
 	// Postpartum mode (bloom B-N5-01, goose 00030). Every query is scoped by user_id (health data, IDOR).
 	GetPostpartumProfile(ctx context.Context, userID uint64) (PostpartumProfile, error)
 	GetPostpartumUserGoal(ctx context.Context, userID uint64) (string, error)
+	// Red flags and the postpartum visit log (T-M9-06, goose 00097): one row per (user, day). Scoped by user_id.
+	GetRecoveryLog(ctx context.Context, arg GetRecoveryLogParams) (PostpartumRecoveryLog, error)
+	// Inbox row: title/body are {lang: text} JSON without any health payload.
+	InsertPostpartumNotice(ctx context.Context, arg InsertPostpartumNoticeParams) error
 	// Newest first; the answers stay in the table (history shows totals only).
 	ListEpdsChecks(ctx context.Context, arg ListEpdsChecksParams) ([]ListEpdsChecksRow, error)
+	// The days she logged a postpartum visit since the birth, oldest first.
+	ListPostpartumVisitDays(ctx context.Context, arg ListPostpartumVisitDaysParams) ([]civildate.Date, error)
 	// The same row, locked for the activation transaction.
 	LockActivePregnancyProfile(ctx context.Context, userID uint64) (uint64, error)
+	// Serialises the lazy visit notices of one user (two app opens at once write one notice).
+	LockPostpartumProfile(ctx context.Context, userID uint64) (uint64, error)
 	SetLifeModePostpartum(ctx context.Context, arg SetLifeModePostpartumParams) error
 	// user_profiles kept in step with a non-TTC mode (PUT /profile/life-stage does the same): user_goal non_ttc, a
 	// trying / pregnant intention dropped.
 	SyncPostpartumLegacyGoal(ctx context.Context, arg SyncPostpartumLegacyGoalParams) error
 	UpsertEpdsCheck(ctx context.Context, arg UpsertEpdsCheckParams) error
 	UpsertPostpartumProfile(ctx context.Context, arg UpsertPostpartumProfileParams) error
+	// The full row of the day (the service merges a partial PUT into the stored row first).
+	UpsertRecoveryLog(ctx context.Context, arg UpsertRecoveryLogParams) error
 }
 
 var _ Querier = (*Queries)(nil)

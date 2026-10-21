@@ -11,6 +11,9 @@ export const MAX_BABY_COUNT = 4;
 export const MAX_BIRTH_AGE_DAYS = 365;
 export const MAX_FEEDS = 30;
 export const MAX_SLEEP_HOURS = 24;
+/** Body temperature bounds (°C, one decimal) of the recovery red flags (backend `recovery.go`, T-M9-06). */
+export const MIN_TEMPERATURE_C = 34;
+export const MAX_TEMPERATURE_C = 43;
 
 export const LOCHIA_AMOUNTS = ['none', 'spotting', 'light', 'medium', 'heavy'] as const;
 export type LochiaAmount = (typeof LOCHIA_AMOUNTS)[number];
@@ -90,7 +93,28 @@ export interface PostpartumRecovery {
   breasts: BreastSymptom[] | null;
   feedsCount: number | null;
   sleepHours: number | null;
+  /** Red flags (T-M9-06): `null` = not answered. */
+  temperatureC: number | null;
+  padSoakedWithinHour: boolean | null;
+  severePain: boolean | null;
+  breathless: boolean | null;
+  /** She had her postpartum check-up on this day (marks a visit done). */
+  postpartumVisit: boolean | null;
   alerts: PostpartumAlert[];
+}
+
+export const VISIT_KINDS = ['contact', 'reminder', 'comprehensive'] as const;
+export type VisitKind = (typeof VISIT_KINDS)[number];
+export const VISIT_STATUSES = ['done', 'upcoming', 'due', 'overdue'] as const;
+export type VisitStatus = (typeof VISIT_STATUSES)[number];
+
+/** One postpartum visit (contact by day 21, 6-week reminder, comprehensive by day 84 — server config). */
+export interface PostpartumVisit {
+  kind: VisitKind;
+  dueOn: string;
+  done: boolean;
+  doneOn: string | null;
+  status: VisitStatus;
 }
 
 export interface PostpartumText {
@@ -110,6 +134,7 @@ export interface PostpartumOverview {
   profile: PostpartumProfile | null;
   status: PostpartumStatus | null;
   checkin: PostpartumCheckin | null;
+  visits: PostpartumVisit[];
   today: PostpartumRecovery | null;
   alerts: PostpartumAlert[];
   weekTip: PostpartumWeekTip | null;
@@ -131,6 +156,11 @@ export interface RecoveryUpdate {
   breasts?: BreastSymptom[] | null;
   feedsCount?: number | null;
   sleepHours?: number | null;
+  temperatureC?: number | null;
+  padSoakedWithinHour?: boolean | null;
+  severePain?: boolean | null;
+  breathless?: boolean | null;
+  postpartumVisit?: boolean | null;
 }
 
 export interface EpdsOption {

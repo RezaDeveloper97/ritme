@@ -10,6 +10,7 @@ import (
 	"database/sql"
 	"encoding/json"
 
+	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
@@ -28,6 +29,28 @@ type ClosePregnancyAsDeliveredParams struct {
 func (q *Queries) ClosePregnancyAsDelivered(ctx context.Context, arg ClosePregnancyAsDeliveredParams) error {
 	_, err := q.db.ExecContext(ctx, closePregnancyAsDelivered, arg.Now, arg.ID, arg.UserID)
 	return err
+}
+
+const countPostpartumVisitNotices = `-- name: CountPostpartumVisitNotices :one
+SELECT COUNT(*) FROM ` + "`" + `user_notifications` + "`" + `
+WHERE user_id = ? AND ` + "`" + `type` + "`" + ` = 'postpartum'
+  AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.event')) = 'visit_due'
+  AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.kind')) = CAST(? AS CHAR)
+  AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.birth_date')) = CAST(? AS CHAR)
+`
+
+type CountPostpartumVisitNoticesParams struct {
+	UserID    uint64
+	Kind      interface{}
+	BirthDate interface{}
+}
+
+// The visit notices of one kind already written for this birth (idempotency of the lazy notice).
+func (q *Queries) CountPostpartumVisitNotices(ctx context.Context, arg CountPostpartumVisitNoticesParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countPostpartumVisitNotices, arg.UserID, arg.Kind, arg.BirthDate)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const getActivePregnancyProfile = `-- name: GetActivePregnancyProfile :one
@@ -189,6 +212,64 @@ func (q *Queries) GetPostpartumUserGoal(ctx context.Context, userID uint64) (str
 	return user_goal, err
 }
 
+const getRecoveryLog = `-- name: GetRecoveryLog :one
+
+SELECT id, user_id, log_date, temperature_c, pad_soaked_within_hour, severe_pain, breathless, postpartum_visit, created_at, updated_at FROM ` + "`" + `postpartum_recovery_logs` + "`" + ` WHERE user_id = ? AND log_date = ? LIMIT 1
+`
+
+type GetRecoveryLogParams struct {
+	UserID  uint64
+	LogDate civildate.Date
+}
+
+// Red flags and the postpartum visit log (T-M9-06, goose 00097): one row per (user, day). Scoped by user_id.
+func (q *Queries) GetRecoveryLog(ctx context.Context, arg GetRecoveryLogParams) (PostpartumRecoveryLog, error) {
+	row := q.db.QueryRowContext(ctx, getRecoveryLog, arg.UserID, arg.LogDate)
+	var i PostpartumRecoveryLog
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.LogDate,
+		&i.TemperatureC,
+		&i.PadSoakedWithinHour,
+		&i.SeverePain,
+		&i.Breathless,
+		&i.PostpartumVisit,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const insertPostpartumNotice = `-- name: InsertPostpartumNotice :exec
+INSERT INTO ` + "`" + `user_notifications` + "`" + ` (user_id, type, title, body, action_url, data, created_at, updated_at)
+VALUES (?, 'postpartum', ?, ?, ?, ?,
+  ?, ?)
+`
+
+type InsertPostpartumNoticeParams struct {
+	UserID    uint64
+	Title     json.RawMessage
+	Body      db.NullRawJSON
+	ActionUrl sql.NullString
+	Data      db.NullRawJSON
+	Now       sql.NullTime
+}
+
+// Inbox row: title/body are {lang: text} JSON without any health payload.
+func (q *Queries) InsertPostpartumNotice(ctx context.Context, arg InsertPostpartumNoticeParams) error {
+	_, err := q.db.ExecContext(ctx, insertPostpartumNotice,
+		arg.UserID,
+		arg.Title,
+		arg.Body,
+		arg.ActionUrl,
+		arg.Data,
+		arg.Now,
+		arg.Now,
+	)
+	return err
+}
+
 const listEpdsChecks = `-- name: ListEpdsChecks :many
 SELECT id, kind, taken_on, total, self_harm, urgent FROM ` + "`" + `epds_checks` + "`" + `
 WHERE user_id = ?
@@ -241,6 +322,41 @@ func (q *Queries) ListEpdsChecks(ctx context.Context, arg ListEpdsChecksParams) 
 	return items, nil
 }
 
+const listPostpartumVisitDays = `-- name: ListPostpartumVisitDays :many
+SELECT log_date FROM ` + "`" + `postpartum_recovery_logs` + "`" + `
+WHERE user_id = ? AND postpartum_visit = 1 AND log_date >= ?
+ORDER BY log_date ASC
+`
+
+type ListPostpartumVisitDaysParams struct {
+	UserID uint64
+	Since  civildate.Date
+}
+
+// The days she logged a postpartum visit since the birth, oldest first.
+func (q *Queries) ListPostpartumVisitDays(ctx context.Context, arg ListPostpartumVisitDaysParams) ([]civildate.Date, error) {
+	rows, err := q.db.QueryContext(ctx, listPostpartumVisitDays, arg.UserID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []civildate.Date{}
+	for rows.Next() {
+		var log_date civildate.Date
+		if err := rows.Scan(&log_date); err != nil {
+			return nil, err
+		}
+		items = append(items, log_date)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const lockActivePregnancyProfile = `-- name: LockActivePregnancyProfile :one
 SELECT id FROM ` + "`" + `pregnancy_profiles` + "`" + ` WHERE user_id = ? AND pregnancy_mode = 1 LIMIT 1 FOR UPDATE
 `
@@ -248,6 +364,18 @@ SELECT id FROM ` + "`" + `pregnancy_profiles` + "`" + ` WHERE user_id = ? AND pr
 // The same row, locked for the activation transaction.
 func (q *Queries) LockActivePregnancyProfile(ctx context.Context, userID uint64) (uint64, error) {
 	row := q.db.QueryRowContext(ctx, lockActivePregnancyProfile, userID)
+	var id uint64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const lockPostpartumProfile = `-- name: LockPostpartumProfile :one
+SELECT id FROM ` + "`" + `postpartum_profiles` + "`" + ` WHERE user_id = ? LIMIT 1 FOR UPDATE
+`
+
+// Serialises the lazy visit notices of one user (two app opens at once write one notice).
+func (q *Queries) LockPostpartumProfile(ctx context.Context, userID uint64) (uint64, error) {
+	row := q.db.QueryRowContext(ctx, lockPostpartumProfile, userID)
 	var id uint64
 	err := row.Scan(&id)
 	return id, err
@@ -363,6 +491,48 @@ func (q *Queries) UpsertPostpartumProfile(ctx context.Context, arg UpsertPostpar
 		arg.Source,
 		arg.PregnancyProfileID,
 		arg.PregnancyClosedAt,
+		arg.Now,
+		arg.Now,
+	)
+	return err
+}
+
+const upsertRecoveryLog = `-- name: UpsertRecoveryLog :exec
+INSERT INTO ` + "`" + `postpartum_recovery_logs` + "`" + `
+  (user_id, log_date, temperature_c, pad_soaked_within_hour, severe_pain, breathless, postpartum_visit, created_at, updated_at)
+VALUES
+  (?, ?, ?, ?,
+   ?, ?, ?, ?, ?)
+ON DUPLICATE KEY UPDATE
+  temperature_c = VALUES(temperature_c),
+  pad_soaked_within_hour = VALUES(pad_soaked_within_hour),
+  severe_pain = VALUES(severe_pain),
+  breathless = VALUES(breathless),
+  postpartum_visit = VALUES(postpartum_visit),
+  updated_at = VALUES(updated_at)
+`
+
+type UpsertRecoveryLogParams struct {
+	UserID              uint64
+	LogDate             civildate.Date
+	TemperatureC        sql.NullString
+	PadSoakedWithinHour sql.NullBool
+	SeverePain          sql.NullBool
+	Breathless          sql.NullBool
+	PostpartumVisit     sql.NullBool
+	Now                 sql.NullTime
+}
+
+// The full row of the day (the service merges a partial PUT into the stored row first).
+func (q *Queries) UpsertRecoveryLog(ctx context.Context, arg UpsertRecoveryLogParams) error {
+	_, err := q.db.ExecContext(ctx, upsertRecoveryLog,
+		arg.UserID,
+		arg.LogDate,
+		arg.TemperatureC,
+		arg.PadSoakedWithinHour,
+		arg.SeverePain,
+		arg.Breathless,
+		arg.PostpartumVisit,
 		arg.Now,
 		arg.Now,
 	)

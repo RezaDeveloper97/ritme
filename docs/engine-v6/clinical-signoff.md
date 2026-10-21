@@ -26,6 +26,8 @@ Sources are the SPEC §6.2 references.
 | H-16 | چکاپ‌های خارج از اسپک (معاینهٔ بالینی پستان، آزمایش خون سالانه): بمانند، اختیاری شوند یا حذف؟ | kept unchanged | keep / optional / retire | USPSTF breast 2024 | checkup catalog (T-M10-21) | | advisor-pending |
 | H-17 | کودک از کدام نسخهٔ جدول واکسن پیروی کند؟ نسخهٔ معتبر در تاریخ تولدش؛ جبران (catch-up) دستی بماند؟ | version in force on the birth date; catch-up manual | same | وزارت بهداشت — برنامهٔ کشوری ایمن‌سازی | `child.vaccine_schedule` rows | | advisor-pending |
 | H-19 | شمارش لگد که با کمتر از ۱۰ حرکت تمام شود (حتی شروع و توقف فوری با ۰ حرکت) الان هشدار فوری می‌دهد. حداقل مدت شمارش لازم است؟ | any session ending under target → urgent (T-M9-05) | spec: < 10 in 2 h → urgent; minimum duration unspecified | ACOG kick count; SPEC §3.1 | new key (e.g. `pregnancy.kicks.min_session_min`) if the advisor wants one | | advisor-pending |
+| H-20 | تب بعد از زایمان از چند درجه هشدار فوری (۱۱۵) بدهد؟ | 38.0 °C → urgent (T-M9-06) | SPEC §3.1: ≥ 38.0 | SPEC §3.1; ACOG CO 736 | `postpartum.redflags.fever_c` = 38.0 | | advisor-pending |
+| H-21 | ویزیت‌های بعد از زایمان: تماس اول تا روز ۲۱، یادآوری روز ۴۲، ویزیت جامع تا روز ۸۴ — درست است؟ «درد شدید» در طبقه‌بندی فعلی (`pain_level = severe`) هم فوری باشد؟ | 21 / 42 / 84 days; only the new `severe_pain` flag is urgent | same (ACOG CO 736) | ACOG CO 736 | `postpartum.visits` = 21/42/84 | | advisor-pending |
 
 ## B. New registry keys (T-M10-16) — no behaviour change today, signature needed when changed
 

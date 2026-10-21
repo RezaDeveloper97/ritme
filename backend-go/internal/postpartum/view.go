@@ -120,7 +120,10 @@ func ScheduleJSON(s Schedule, last *Check, birth *civildate.Date, locale string)
 
 // RecoveryJSON is one day of the recovery log.
 func RecoveryJSON(date civildate.Date, r Recovery, alerts []any) *jsonx.OrderedMap {
-	var feeds, sleep, breasts any
+	var feeds, sleep, breasts, temp any
+	if r.TemperatureC != nil {
+		temp = jsonx.Float(*r.TemperatureC)
+	}
 	if r.FeedsCount != nil {
 		feeds = *r.FeedsCount
 	}
@@ -139,8 +142,34 @@ func RecoveryJSON(date civildate.Date, r Recovery, alerts []any) *jsonx.OrderedM
 		"breasts", breasts,
 		"feeds_count", feeds,
 		"sleep_hours", sleep,
+		"temperature_c", temp,
+		"pad_soaked_within_hour", boolOrNil(r.PadSoakedWithinHour),
+		"severe_pain", boolOrNil(r.SeverePain),
+		"breathless", boolOrNil(r.Breathless),
+		"postpartum_visit", boolOrNil(r.PostpartumVisit),
 		"alerts", alerts,
 	)
+}
+
+func boolOrNil(b *bool) any {
+	if b == nil {
+		return nil
+	}
+	return *b
+}
+
+// VisitsJSON are the postpartum visits (contact, 6-week reminder, comprehensive) with their due day and status.
+func VisitsJSON(visits []Visit) []*jsonx.OrderedMap {
+	out := make([]*jsonx.OrderedMap, 0, len(visits))
+	for _, v := range visits {
+		var doneOn any
+		if v.DoneOn != nil {
+			doneOn = v.DoneOn.String()
+		}
+		out = append(out, jsonx.Obj("kind", v.Kind, "due_on", v.DueOn.String(), "done", v.Done, "done_on", doneOn,
+			"status", v.Status))
+	}
+	return out
 }
 
 // alertJSON is one alert from guide.AlertGroup.
@@ -163,17 +192,42 @@ func callAction(number string) *jsonx.OrderedMap {
 	return jsonx.Obj("type", "call", "number", number)
 }
 
-// RecoveryAlerts are the day's recovery alerts (heavy bleeding, large clots) with a call action.
-func RecoveryAlerts(ctx context.Context, cp *guide.Copy, r Recovery) ([]any, error) {
+// RecoveryAlerts are the day's recovery alerts with a call action to 115: the red flags (urgent, embedded copy when
+// the admin row is missing or empty — Copy.Urgent) first, then heavy bleeding and large clots (warning), with the
+// clinical config valid on day.
+func RecoveryAlerts(ctx context.Context, cp *guide.Copy, r Recovery, day civildate.Date) ([]any, error) {
 	out := []any{}
-	for _, k := range r.Alerts() {
-		a, err := alertJSON(ctx, cp, k, LevelWarning, callAction(EmergencyNumber))
+	for _, k := range r.AlertsOn(day) {
+		var (
+			a   *jsonx.OrderedMap
+			err error
+		)
+		if IsUrgentAlert(k) {
+			a, err = urgentAlertJSON(ctx, cp, k)
+		} else {
+			a, err = alertJSON(ctx, cp, k, LevelWarning, callAction(EmergencyNumber))
+		}
 		if err != nil {
 			return nil, err
 		}
 		out = append(out, a)
 	}
 	return out, nil
+}
+
+func urgentAlertJSON(ctx context.Context, cp *guide.Copy, key string) (*jsonx.OrderedMap, error) {
+	t, err := cp.Urgent(ctx, guide.AlertGroup, key)
+	if err != nil {
+		return nil, err
+	}
+	return jsonx.Obj(
+		"key", key,
+		"level", LevelUrgent,
+		"title", t["title"],
+		"body", t["body"],
+		"action_label", strOrNil(t["action"]),
+		"action", callAction(EmergencyNumber),
+	), nil
 }
 
 // CheckinAlert is the «check-in due» prompt (nil when nothing is due).
@@ -191,7 +245,8 @@ func CheckinAlert(ctx context.Context, cp *guide.Copy, s Schedule) (*jsonx.Order
 }
 
 // SafetyJSON is the result message of a scored check (nil for a low result): urgent with the call actions (EPDS item
-// 10 > 0 or total ≥ 13), advice (full 10–12), or a follow-up to the full check (short ≥ cutoff).
+// 10 > 0 or total ≥ epds.urgent_total), «talk to your doctor soon» (full ≥ the likely cut-off when the total does not
+// open the urgent path, H-01), advice (full 10–12), or a follow-up to the full check (short ≥ cutoff).
 func SafetyJSON(ctx context.Context, cp *guide.Copy, r Result) (any, error) {
 	switch {
 	case r.Urgent:
@@ -210,6 +265,13 @@ func SafetyJSON(ctx context.Context, cp *guide.Copy, r Result) (any, error) {
 				jsonx.Obj("type", "call", "number", CounselNumber, "label", t["counsel_label"]),
 			},
 		), nil
+	case r.Band == BandLikely:
+		t, err := cp.Text(ctx, guide.SafetyGroup, guide.SafetyLikely)
+		if err != nil {
+			return nil, err
+		}
+		return jsonx.Obj("level", LevelAdvice, "reasons", []string{}, "title", t["title"], "body", t["body"],
+			"actions", []any{}), nil
 	case r.Band == BandPossible:
 		t, err := cp.Text(ctx, guide.SafetyGroup, guide.SafetyAdvice)
 		if err != nil {

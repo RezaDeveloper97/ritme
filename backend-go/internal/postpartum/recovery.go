@@ -2,11 +2,15 @@ package postpartum
 
 import (
 	"database/sql"
+	"math"
 	"slices"
 	"strconv"
 
+	"github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/healthlog/taxonomy"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/postpartum/guide"
+	"github.com/ritme/backend-go/internal/postpartum/store"
 )
 
 // The recovery log (nbl_v15_Recovery) is a view over log taxonomy v2 slots in health_log_entries — the same rows the
@@ -20,7 +24,9 @@ import (
 //	feeds_count    baby.feeds_count               0–30 (manual; feeding sessions arrive with B-N5-03)
 //	sleep_hours    sleep.hours (+ sleep.duration) 0–24, step 0.5; the duration bucket follows for the analysis engine
 //
-// The alerts read bleeding.lochia_amount and bleeding.clot_size (logged from the sheet).
+// The alerts read bleeding.lochia_amount and bleeding.clot_size (logged from the sheet). The red flags of the recovery
+// sheet (T-M9-06, D-135: temperature, a pad soaked within an hour, severe pain, breathlessness) and «I had my
+// postpartum visit today» have no taxonomy slot: they are the day's postpartum_recovery_logs row (goose 00097).
 const (
 	catBleeding = "bleeding"
 	catPain     = "pain"
@@ -42,7 +48,16 @@ var (
 const (
 	MaxFeeds      = 30
 	MaxSleepHours = 24
+	// MinTemperatureC / MaxTemperatureC bound a body temperature in °C (one decimal; DECIMAL(3,1)).
+	MinTemperatureC = 34
+	MaxTemperatureC = 43
 )
+
+// FeverOn is the temperature (°C) from which a postpartum temperature is urgent on day (postpartum.redflags.fever_c,
+// version 1 = 38.0; a zero day = version 1).
+func FeverOn(day civildate.Date) float64 {
+	return clinicalconfig.Num(clinicalconfig.KeyPostpartumRedFlags, "fever_c", day)
+}
 
 // Recovery is one day of the recovery log. Empty strings / nil = not logged.
 type Recovery struct {
@@ -54,6 +69,35 @@ type Recovery struct {
 	FeedsCount    *int
 	SleepHours    *float64
 	LargeClots    bool // bleeding.clot_size = large (from the log sheet)
+
+	// The day's postpartum_recovery_logs row (nil = not answered).
+	TemperatureC        *float64
+	PadSoakedWithinHour *bool
+	SeverePain          *bool
+	Breathless          *bool
+	PostpartumVisit     *bool
+}
+
+func boolOf(b sql.NullBool) *bool {
+	if !b.Valid {
+		return nil
+	}
+	v := b.Bool
+	return &v
+}
+
+// WithLog adds the day's red-flag / visit row to r.
+func (r Recovery) WithLog(row store.PostpartumRecoveryLog) Recovery {
+	if row.TemperatureC.Valid {
+		if f, err := strconv.ParseFloat(row.TemperatureC.String, 64); err == nil {
+			r.TemperatureC = &f
+		}
+	}
+	r.PadSoakedWithinHour = boolOf(row.PadSoakedWithinHour)
+	r.SeverePain = boolOf(row.SeverePain)
+	r.Breathless = boolOf(row.Breathless)
+	r.PostpartumVisit = boolOf(row.PostpartumVisit)
+	return r
 }
 
 func num(e taxonomy.Entry) (float64, bool) {
@@ -142,6 +186,56 @@ type RecoveryInput struct {
 	BreastsNull   bool
 	FeedsCount    *int
 	SleepHours    *float64
+	// The red-flag / visit row of the day (Set says which were sent; nil clears).
+	TemperatureC        *float64
+	PadSoakedWithinHour *bool
+	SeverePain          *bool
+	Breathless          *bool
+	PostpartumVisit     *bool
+}
+
+// logFields are the request keys stored in postpartum_recovery_logs.
+var logFields = []string{"temperature_c", "pad_soaked_within_hour", "severe_pain", "breathless", "postpartum_visit"}
+
+// HasLog reports whether the input changes the day's postpartum_recovery_logs row.
+func (in RecoveryInput) HasLog() bool {
+	for _, k := range logFields {
+		if in.Set[k] {
+			return true
+		}
+	}
+	return false
+}
+
+func nullBool(b *bool) sql.NullBool {
+	if b == nil {
+		return sql.NullBool{}
+	}
+	return sql.NullBool{Bool: *b, Valid: true}
+}
+
+// LogRow is the day's postpartum_recovery_logs row after the input: stored values for the keys not sent.
+func (in RecoveryInput) LogRow(stored Recovery) store.UpsertRecoveryLogParams {
+	pick := func(key string, sent, kept *bool) sql.NullBool {
+		if in.Set[key] {
+			return nullBool(sent)
+		}
+		return nullBool(kept)
+	}
+	temp := stored.TemperatureC
+	if in.Set["temperature_c"] {
+		temp = in.TemperatureC
+	}
+	p := store.UpsertRecoveryLogParams{
+		PadSoakedWithinHour: pick("pad_soaked_within_hour", in.PadSoakedWithinHour, stored.PadSoakedWithinHour),
+		SeverePain:          pick("severe_pain", in.SeverePain, stored.SeverePain),
+		Breathless:          pick("breathless", in.Breathless, stored.Breathless),
+		PostpartumVisit:     pick("postpartum_visit", in.PostpartumVisit, stored.PostpartumVisit),
+	}
+	if temp != nil {
+		p.TemperatureC = sql.NullString{String: strconv.FormatFloat(*temp, 'f', 1, 64), Valid: true}
+	}
+	return p
 }
 
 func code(cat, param, v string) taxonomy.Entry {
@@ -240,9 +334,27 @@ func (in RecoveryInput) Changes() []taxonomy.Change {
 	return out
 }
 
-// Alerts are the alert keys (guide.AlertGroup) a day raises.
-func (r Recovery) Alerts() []string {
+// Alerts are the alert keys (guide.AlertGroup) a day raises, with the version-1 thresholds (AlertsOn a zero day).
+func (r Recovery) Alerts() []string { return r.AlertsOn(civildate.Date{}) }
+
+// AlertsOn are the alert keys a day raises with the clinical config valid on day: the urgent red flags first
+// (guide.RedFlagAlerts: temperature ≥ postpartum.redflags.fever_c, a pad soaked within an hour, severe pain,
+// breathlessness), then the lochia warnings (heavy bleeding, large clots).
+func (r Recovery) AlertsOn(day civildate.Date) []string {
 	var out []string
+	yes := func(b *bool) bool { return b != nil && *b }
+	if r.TemperatureC != nil && math.Round(*r.TemperatureC*10) >= math.Round(FeverOn(day)*10) {
+		out = append(out, guide.AlertFever)
+	}
+	if yes(r.PadSoakedWithinHour) {
+		out = append(out, guide.AlertPadPerHour)
+	}
+	if yes(r.SeverePain) {
+		out = append(out, guide.AlertSeverePain)
+	}
+	if yes(r.Breathless) {
+		out = append(out, guide.AlertBreathless)
+	}
 	if r.LochiaAmount == "heavy" {
 		out = append(out, guide.AlertHeavyBleeding)
 	}

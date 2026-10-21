@@ -15,11 +15,11 @@ import {
   type PostpartumStatus,
   postpartumKeys,
   usePostpartum,
+  useSaveRecovery,
 } from '@/entities/postpartum';
 import { useSaveLogDay } from '@/features/log-day';
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import {
-  addDays,
   formatDayMonth,
   formatDecimal,
   formatNumber,
@@ -44,6 +44,7 @@ import {
   Skeleton,
   SkeletonGroup,
   SkyLayer,
+  StatusPill,
   type Tone,
   UrgentCard,
 } from '@/shared/ui';
@@ -53,8 +54,9 @@ import { ModeChip } from '@/widgets/mode-chip';
 import { QuickAccess } from '@/widgets/quick-access';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
-import { durationKey, headlineWeek, homeAlerts, sixWeekVisitDue, splitScheduled, tileSummary } from '../model/home';
+import { durationKey, headlineWeek, homeAlerts, splitScheduled, tileSummary } from '../model/home';
 import { MOOD_CHIPS, type MoodChip, pressedChips, toggleChip } from '../model/mood';
+import { VISIT_LOOK, visitAction, visitRows } from '../model/visits';
 
 type T = ReturnType<typeof useTranslations<'postpartum'>>;
 
@@ -179,7 +181,8 @@ export function PostpartumPage() {
         {/* CB-NAV-03b (nbd_Nav_Today / IA_Map Today): «برای امروز» + the user-picked «دسترسی سریع». */}
         <ForToday reminders={<TodayRemindersCard />} />
         <QuickAccess />
-        <VisitsCard status={data.status} birthDate={data.profile.birthDate} t={t} />
+        <PostpartumVisitsCard data={data} t={t} />
+        <VisitsCard t={t} />
         <CallWhenCard data={data} t={t} />
         {data.weekTip && (data.weekTip.title || data.weekTip.body) && (
           <Card as="section" className="pp-tip" aria-labelledby="pp-tip-title">
@@ -455,14 +458,11 @@ function VisitRow({ appointment }: { appointment: Appointment }) {
   );
 }
 
-function VisitsCard({ status, birthDate, t }: { status: PostpartumStatus; birthDate: string; t: T }) {
-  const locale = useLocale() as Locale;
+function VisitsCard({ t }: { t: T }) {
   const router = useRouter();
   const remindersOn = useModuleEnabled('reminders');
   const appointments = useAppointments('upcoming');
   const list = (appointments.data ?? []).slice(0, 3);
-  const sixWeekDate = addDays(fromApiDate(birthDate), status.puerperiumDays);
-  const showSixWeek = sixWeekVisitDue(status);
   return (
     <Card as="section" className="pp-visits" aria-labelledby="pp-visits-title">
       <SectionTitle
@@ -480,28 +480,72 @@ function VisitsCard({ status, birthDate, t }: { status: PostpartumStatus; birthD
         {list.map((a) => (
           <VisitRow key={a.id} appointment={a} />
         ))}
-        {showSixWeek && (
-          <li>
-            <Link href="/reminders/appointment/new" className="pp-visit">
-              <DateBadge date={sixWeekDate} tone="warm" />
-              <span className="pp-visit-text">
-                <span className="pp-visit-title">{t('home.visits.sixWeek')}</span>
-                <span className="pp-visit-sub">
-                  {t('home.visits.sixWeekSub', { date: formatDayMonth(sixWeekDate, locale) })}
-                </span>
-              </span>
-              <Chevron />
-            </Link>
-          </li>
-        )}
         <ChildVaccineRows t={t} />
       </ul>
-      {!appointments.isPending && list.length === 0 && !showSixWeek && (
+      {!appointments.isPending && list.length === 0 && (
         <Link href="/reminders/appointment/new" className="pp-visit-add">
           <Icon name="plus" size={16} />
           {t('home.visits.add')}
         </Link>
       )}
+    </Card>
+  );
+}
+
+/**
+ * T-M9-06: «ویزیت‌های بعد از زایمان» — the contact (by 3 weeks), 6-week and
+ * comprehensive (by 12 weeks) visits with their dates and status, computed by
+ * the server from the birth. «امروز ویزیت داشتم» logs today's visit.
+ */
+function PostpartumVisitsCard({ data, t }: { data: PostpartumOverview; t: T }) {
+  const locale = useLocale() as Locale;
+  const save = useSaveRecovery();
+  const rows = visitRows(data.visits);
+  if (!rows.length) return null;
+  const action = visitAction(rows, data.today);
+  return (
+    <Card as="section" className="pp-visits" aria-labelledby="pp-ppvisits-title">
+      <SectionTitle id="pp-ppvisits-title" title={t('home.postpartumVisits.title')} />
+      <ul className="pp-visit-list">
+        {rows.map((v) => {
+          const date = fromApiDate(v.dueOn);
+          const look = VISIT_LOOK[v.status];
+          const sub =
+            v.done && v.doneOn
+              ? t('home.postpartumVisits.doneOn', { date: formatDayMonth(fromApiDate(v.doneOn), locale) })
+              : t(`home.postpartumVisits.when.${v.kind}`, { date: formatDayMonth(date, locale) });
+          return (
+            <li key={v.kind}>
+              <div className="pp-visit">
+                <DateBadge date={date} tone={look.tone} />
+                <span className="pp-visit-text">
+                  <span className="pp-visit-title">{t(`home.postpartumVisits.kinds.${v.kind}`)}</span>
+                  <span className="pp-visit-sub">{sub}</span>
+                </span>
+                <StatusPill tone={look.tone} icon={look.icon}>
+                  {t(`home.postpartumVisits.status.${v.status}`)}
+                </StatusPill>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      {action && (
+        <SecondaryButton
+          block={false}
+          icon={action === 'log' ? 'check' : 'x'}
+          loading={save.isPending}
+          onClick={() => save.mutate({ postpartumVisit: action === 'log' ? true : null })}
+        >
+          {action === 'log' ? t('home.postpartumVisits.logToday') : t('home.postpartumVisits.undoToday')}
+        </SecondaryButton>
+      )}
+      {save.isError && (
+        <p className="pp-error" role="alert">
+          {t('home.postpartumVisits.saveError')}
+        </p>
+      )}
+      <p className="pp-mood-note">{t('home.postpartumVisits.note')}</p>
     </Card>
   );
 }

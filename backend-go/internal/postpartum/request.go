@@ -117,11 +117,14 @@ func validateDate(src phpval.Map, locale string, now time.Time) (civildate.Date,
 	return civildate.InTehran(now), nil
 }
 
-var recoveryFields = []string{"lochia_amount", "lochia_color", "pain_level", "pain_locations", "breasts", "feeds_count", "sleep_hours"}
+var recoveryFields = append([]string{"lochia_amount", "lochia_color", "pain_level", "pain_locations", "breasts",
+	"feeds_count", "sleep_hours"}, logFields...)
 
 // validateRecovery is PUT /postpartum/recovery {lochia_amount?, lochia_color?, pain_level?, pain_locations?,
-// breasts?, feeds_count?, sleep_hours?} — partial: keys not sent stay, null clears. Pain is one value: the level with
-// its locations (a level without a location is refused; the stored side fills a half sent); breasts [] = normal.
+// breasts?, feeds_count?, sleep_hours?, temperature_c?, pad_soaked_within_hour?, severe_pain?, breathless?,
+// postpartum_visit?} — partial: keys not sent stay, null clears. Pain is one value: the level with its locations (a
+// level without a location is refused; the stored side fills a half sent); breasts [] = normal; the temperature is
+// °C in 0.1 steps between MinTemperatureC and MaxTemperatureC.
 func validateRecovery(body phpval.Map, stored Recovery, locale string, now time.Time) (RecoveryInput, error) {
 	F := validation.F
 	data, err := validate(body, recoveryFields, validation.Rules{
@@ -134,6 +137,11 @@ func validateRecovery(body phpval.Map, stored Recovery, locale string, now time.
 		F("breasts.*", "required", "string", validation.In(BreastSymptoms...)),
 		F("feeds_count", "sometimes", "nullable", "integer", "min:0", "max:"+strconv.Itoa(MaxFeeds)),
 		F("sleep_hours", "sometimes", "nullable", "numeric", "min:0", "max:"+strconv.Itoa(MaxSleepHours)),
+		F("temperature_c", "sometimes", "nullable", "numeric", "min:"+strconv.Itoa(MinTemperatureC), "max:"+strconv.Itoa(MaxTemperatureC)),
+		F("pad_soaked_within_hour", "sometimes", "nullable", "boolean"),
+		F("severe_pain", "sometimes", "nullable", "boolean"),
+		F("breathless", "sometimes", "nullable", "boolean"),
+		F("postpartum_visit", "sometimes", "nullable", "boolean"),
 	}, locale, now)
 	if err != nil {
 		return RecoveryInput{}, err
@@ -183,6 +191,23 @@ func validateRecovery(body phpval.Map, stored Recovery, locale string, now time.
 				}
 				in.SleepHours = &f
 			}
+		case "temperature_c":
+			if v != nil {
+				f := phpval.ToFloat(v)
+				if math.Abs(f*10-math.Round(f*10)) > 1e-6 {
+					return RecoveryInput{}, fieldFail(locale, "temperature_c", "temperature_step")
+				}
+				f = math.Round(f*10) / 10
+				in.TemperatureC = &f
+			}
+		case "pad_soaked_within_hour":
+			in.PadSoakedWithinHour = boolPtr(v)
+		case "severe_pain":
+			in.SeverePain = boolPtr(v)
+		case "breathless":
+			in.Breathless = boolPtr(v)
+		case "postpartum_visit":
+			in.PostpartumVisit = boolPtr(v)
 		}
 	}
 	painSent := in.Set["pain_level"] || in.Set["pain_locations"]
@@ -190,6 +215,15 @@ func validateRecovery(body phpval.Map, stored Recovery, locale string, now time.
 		return RecoveryInput{}, fieldFail(locale, "pain_locations", "pain_locations_required")
 	}
 	return in, nil
+}
+
+// boolPtr is a validated nullable boolean (nil = cleared).
+func boolPtr(v any) *bool {
+	if v == nil {
+		return nil
+	}
+	b := phpval.Truthy(v)
+	return &b
 }
 
 // validateKind is ?kind= (short | full, default short).

@@ -90,6 +90,11 @@ export function toRecoveryBody(update: RecoveryUpdate): Record<string, unknown> 
     breasts: 'breasts',
     feedsCount: 'feeds_count',
     sleepHours: 'sleep_hours',
+    temperatureC: 'temperature_c',
+    padSoakedWithinHour: 'pad_soaked_within_hour',
+    severePain: 'severe_pain',
+    breathless: 'breathless',
+    postpartumVisit: 'postpartum_visit',
   };
   const body: Record<string, unknown> = {};
   for (const key of Object.keys(map) as (keyof RecoveryUpdate)[]) {
