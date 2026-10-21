@@ -56,6 +56,12 @@ func New(d Deps) *Handlers {
 	return &Handlers{q: store.New(d.DB), db: d.DB, cq: chstore.New(d.DB), disk: d.Disk, opt: d.Optimizer, appURL: d.AppURL, logger: d.Logger}
 }
 
+// pub publishes the tables a write changed (configcache, T-M9-13).
+var pub = httpadmin.Publishes
+
+// challengeTables are what a challenge write may touch (v1 row, v2 program, tasks).
+var challengeTables = []string{"challenges", "challenge_programs", "challenge_tasks"}
+
 // Route registers one endpoint (httpadmin.Handle with the prefix applied).
 type Route func(method, path string, chain httpadmin.Chain)
 
@@ -66,38 +72,38 @@ func (h *Handlers) Routes(route Route, kit *httpadmin.Kit) {
 
 	route(get, "/articles", a(h.ListArticles))
 	route(get, "/articles/options", a(h.ArticleOptions))
-	route(post, "/articles", a(h.StoreArticle))
+	route(post, "/articles", a(pub(h.StoreArticle, "articles")))
 	route(get, "/articles/:id", a(h.ShowArticle))
-	route(put, "/articles/:id", a(h.UpdateArticle))
-	route(post, "/articles/:id", a(h.UpdateArticle)) // multipart forms may not support PUT everywhere
-	route(del, "/articles/:id", a(h.DestroyArticle))
-	route(post, "/articles/:id/toggle", a(h.ToggleArticle))
+	route(put, "/articles/:id", a(pub(h.UpdateArticle, "articles")))
+	route(post, "/articles/:id", a(pub(h.UpdateArticle, "articles"))) // multipart forms may not support PUT everywhere
+	route(del, "/articles/:id", a(pub(h.DestroyArticle, "articles")))
+	route(post, "/articles/:id/toggle", a(pub(h.ToggleArticle, "articles")))
 
 	route(get, "/affirmations", a(h.ListAffirmations))
 	route(get, "/affirmations/options", a(h.AffirmationOptions))
-	route(post, "/affirmations", a(h.StoreAffirmation))
+	route(post, "/affirmations", a(pub(h.StoreAffirmation, "affirmations")))
 	route(get, "/affirmations/:id", a(h.ShowAffirmation))
-	route(put, "/affirmations/:id", a(h.UpdateAffirmation))
-	route(del, "/affirmations/:id", a(h.DestroyAffirmation))
-	route(post, "/affirmations/:id/toggle", a(h.ToggleAffirmation))
+	route(put, "/affirmations/:id", a(pub(h.UpdateAffirmation, "affirmations")))
+	route(del, "/affirmations/:id", a(pub(h.DestroyAffirmation, "affirmations")))
+	route(post, "/affirmations/:id/toggle", a(pub(h.ToggleAffirmation, "affirmations")))
 
 	route(get, "/challenge-completions", a(h.ChallengeCompletions))
 	route(get, "/challenges", a(h.ListChallenges))
 	route(get, "/challenges/options", a(h.ChallengeOptions))
-	route(post, "/challenges", a(h.StoreChallenge))
+	route(post, "/challenges", a(pub(h.StoreChallenge, challengeTables...)))
 	route(get, "/challenges/:id", a(h.ShowChallenge))
-	route(put, "/challenges/:id", a(h.UpdateChallenge))
+	route(put, "/challenges/:id", a(pub(h.UpdateChallenge, challengeTables...)))
 	route(get, "/challenges/:id/stats", a(h.ChallengeStats))
-	route(del, "/challenges/:id", a(h.DestroyChallenge))
-	route(post, "/challenges/:id/toggle", a(h.ToggleChallenge))
+	route(del, "/challenges/:id", a(pub(h.DestroyChallenge, challengeTables...)))
+	route(post, "/challenges/:id/toggle", a(pub(h.ToggleChallenge, challengeTables...)))
 
 	route(get, "/recommendations", a(h.ListRecommendations))
 	route(get, "/recommendations/options", a(h.RecommendationOptions))
-	route(post, "/recommendations", a(h.StoreRecommendation))
+	route(post, "/recommendations", a(pub(h.StoreRecommendation, "recommendations")))
 	route(get, "/recommendations/:id", a(h.ShowRecommendation))
-	route(put, "/recommendations/:id", a(h.UpdateRecommendation))
-	route(del, "/recommendations/:id", a(h.DestroyRecommendation))
-	route(post, "/recommendations/:id/toggle", a(h.ToggleRecommendation))
+	route(put, "/recommendations/:id", a(pub(h.UpdateRecommendation, "recommendations")))
+	route(del, "/recommendations/:id", a(pub(h.DestroyRecommendation, "recommendations")))
+	route(post, "/recommendations/:id/toggle", a(pub(h.ToggleRecommendation, "recommendations")))
 
 	route(get, "/banners", a(h.ListBanners))
 	route(get, "/banners/options", a(h.BannerOptions))
@@ -111,11 +117,11 @@ func (h *Handlers) Routes(route Route, kit *httpadmin.Kit) {
 
 	route(get, "/task-templates", a(h.ListTaskTemplates))
 	route(get, "/task-templates/options", a(h.TaskTemplateOptions))
-	route(post, "/task-templates", a(h.StoreTaskTemplate))
+	route(post, "/task-templates", a(pub(h.StoreTaskTemplate, "task_templates")))
 	route(get, "/task-templates/:id", a(h.ShowTaskTemplate))
-	route(put, "/task-templates/:id", a(h.UpdateTaskTemplate))
-	route(del, "/task-templates/:id", a(h.DestroyTaskTemplate))
-	route(post, "/task-templates/:id/toggle", a(h.ToggleTaskTemplate))
+	route(put, "/task-templates/:id", a(pub(h.UpdateTaskTemplate, "task_templates")))
+	route(del, "/task-templates/:id", a(pub(h.DestroyTaskTemplate, "task_templates")))
+	route(post, "/task-templates/:id/toggle", a(pub(h.ToggleTaskTemplate, "task_templates")))
 
 	route(get, "/info-sections", a(h.ListInfoSections))
 	route(get, "/info-sections/options", a(h.InfoSectionOptions))

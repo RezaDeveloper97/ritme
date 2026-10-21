@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/ritme/backend-go/internal/enums"
+	"github.com/ritme/backend-go/internal/platform/configcache"
 )
 
 // Source is the database behind the repository (a sqlc adapter in production, a slice in tests).
@@ -20,8 +21,19 @@ type Source interface {
 	AnyExists(ctx context.Context) (bool, error)
 }
 
-// Repository is RecommendationRepository: one load of the live set per request, matched in Go.
-// Create one per request (it memoises); it is safe for concurrent use within that request.
+// Table is the table the process snapshot reads; admin writers publish it (configcache.Changed) after their commit.
+const Table = "recommendations"
+
+// Process-wide snapshots of the live set and of "any row at all" (T-M9-13): every Source must read the one shared
+// recommendations table. Rows are read-only once loaded.
+var (
+	liveRows  = configcache.New[[]Row](Table+":active", []string{Table}, nil)
+	anyExists = configcache.New[bool](Table+":exists", []string{Table}, nil)
+)
+
+// Repository is RecommendationRepository: the live set (from the process snapshot, reloaded after an admin write or
+// the 60 s TTL), matched in Go. Create one per request (it memoises); it is safe for concurrent use within that
+// request.
 type Repository struct {
 	src Source
 
@@ -56,7 +68,7 @@ func (r *Repository) hasContentLocked(ctx context.Context) (bool, error) {
 	}
 	has := len(rows) > 0
 	if !has {
-		if has, err = r.src.AnyExists(ctx); err != nil {
+		if has, err = anyExists.GetWith(ctx, r.src.AnyExists); err != nil {
 			return false, fmt.Errorf("recommendation: exists: %w", err)
 		}
 	}
@@ -122,7 +134,7 @@ func (r *Repository) Signature(ctx context.Context) (string, error) {
 
 func (r *Repository) rowsLocked(ctx context.Context) ([]Row, error) {
 	if !r.loaded {
-		rows, err := r.src.ActiveRows(ctx)
+		rows, err := liveRows.GetWith(ctx, r.src.ActiveRows)
 		if err != nil {
 			return nil, fmt.Errorf("recommendation: load: %w", err)
 		}

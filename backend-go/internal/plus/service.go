@@ -14,6 +14,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/config"
+	"github.com/ritme/backend-go/internal/platform/configcache"
 	"github.com/ritme/backend-go/internal/plus/store"
 )
 
@@ -51,14 +52,20 @@ type Service struct {
 	cfg     config.Plus
 	gateway Gateway // nil = no payment provider (checkout/verify answer 503)
 	logger  *slog.Logger
+	plans   *configcache.Cache[[]store.PlusPlan] // active plans (T-M9-13); admin plan writes publish PlansTable
 }
+
+// PlansTable is the plans table; the admin plan writers publish it (configcache.Changed) after their commit.
+const PlansTable = "plus_plans"
 
 // NewService wires the domain. gateway may be nil (payments unavailable).
 func NewService(db *sql.DB, cfg config.Plus, gateway Gateway, logger *slog.Logger) *Service {
 	if logger == nil {
 		logger = slog.New(slog.DiscardHandler)
 	}
-	return &Service{db: db, q: store.New(db), cfg: cfg, gateway: gateway, logger: logger}
+	s := &Service{db: db, q: store.New(db), cfg: cfg, gateway: gateway, logger: logger}
+	s.plans = configcache.New(PlansTable, []string{PlansTable}, s.q.ListActivePlans)
+	return s
 }
 
 // Config is the checkout configuration (env VAT rate — see VATRateBps for the effective one —, trial length).
@@ -74,9 +81,10 @@ type Plan struct {
 	Savings int    // percent cheaper per month than the base plan
 }
 
-// Plans lists the active plans in display order.
+// Plans lists the active plans in display order (from the process snapshot: no query until an admin plan write or
+// the 60 s TTL).
 func (s *Service) Plans(ctx context.Context) ([]Plan, error) {
-	rows, err := s.q.ListActivePlans(ctx)
+	rows, err := s.plans.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("plus: plans: %w", err)
 	}

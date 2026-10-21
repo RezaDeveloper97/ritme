@@ -107,7 +107,7 @@ func (h *Handlers) Selected(c fiber.Ctx) error {
 	uid, _ := auth.CurrentUserID(c)
 	now := clock.FromContext(c, h.clock).Now()
 	ctx := c.Context()
-	rows, err := h.q.ListActiveMessageRules(ctx, store.ListActiveMessageRulesParams{Placement: placement})
+	rows, err := rules.ActiveRows(ctx, h.q, placement) // process snapshot, invalidated by admin writes (T-M9-13)
 	if err != nil {
 		return err
 	}

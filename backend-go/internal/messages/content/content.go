@@ -3,10 +3,11 @@
 // fallback copy of every smart-message class (their static contentDefaults()), exported once
 // from PHP to defaults.json and embedded.
 //
-// A Repository is request-scoped: the first lookup in a locale loads every live (active +
-// approved) message_contents row of that locale in one query; later lookups in any group are
-// answered from memory. Nothing outlives the request, so an admin edit is visible on the next
-// request.
+// A Repository is request-scoped: the first lookup in a locale takes every live (active +
+// approved) message_contents row of that locale; later lookups in any group are answered from
+// memory. The rows of a locale come from a process-wide snapshot (configcache, T-M9-13): one query
+// per locale per process until an admin write publishes message_contents (or the 60 s TTL ends),
+// so an admin edit is still visible on the next request. The decoded payloads stay per request.
 //
 // It also implements profile.MessageContents (the BMI message reader of T-M2-11).
 package content
@@ -18,8 +19,15 @@ import (
 	"sync"
 
 	"github.com/ritme/backend-go/internal/messages/store"
+	"github.com/ritme/backend-go/internal/platform/configcache"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 )
+
+// Table is the table the snapshot reads; admin writers publish it (configcache.Changed) after their commit.
+const Table = "message_contents"
+
+// live is the process-wide snapshot of the live rows, one per locale ("group|item_key" → raw payload; read-only).
+var live = configcache.NewKeyed[map[string]json.RawMessage](Table, []string{Table})
 
 // Rows loads the live rows of one locale (store.Queries implements it).
 type Rows interface {
@@ -89,13 +97,19 @@ func (r *Repository) rows(ctx context.Context, locale string) (map[string]json.R
 	if rows, ok := r.byLocale[locale]; ok {
 		return rows, nil
 	}
-	list, err := r.q.ListLiveMessageContents(ctx, locale)
+	rows, err := live.Get(ctx, locale, func(ctx context.Context) (map[string]json.RawMessage, error) {
+		list, err := r.q.ListLiveMessageContents(ctx, locale)
+		if err != nil {
+			return nil, err
+		}
+		rows := make(map[string]json.RawMessage, len(list))
+		for _, row := range list {
+			rows[row.Group+"|"+row.ItemKey] = row.Payload
+		}
+		return rows, nil
+	})
 	if err != nil {
 		return nil, fmt.Errorf("messages/content: load %q: %w", locale, err)
-	}
-	rows := make(map[string]json.RawMessage, len(list))
-	for _, row := range list {
-		rows[row.Group+"|"+row.ItemKey] = row.Payload
 	}
 	r.byLocale[locale] = rows
 	return rows, nil

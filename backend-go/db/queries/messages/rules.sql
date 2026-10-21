@@ -84,3 +84,16 @@ WHERE rule_id = ? AND created_at >= ? GROUP BY variant, event;
 
 -- name: GetMessageUserName :one
 SELECT name FROM `users` WHERE id = ? LIMIT 1;
+
+-- name: ListUserMessageEventStats :many
+-- One grouped read of a user's history on the candidate rules of rules.Select (T-M9-13, replaces the per-rule
+-- LastUserMessageEvent + CountUserMessageEvents probes): the latest event and the counts in the three cap windows
+-- (day, week, cycle) per rule and event.
+SELECT rule_id, event,
+  CAST(MAX(created_at) AS DATETIME) AS last_at,
+  CAST(SUM(created_at >= sqlc.arg(day_since)) AS SIGNED) AS day_count,
+  CAST(SUM(created_at >= sqlc.arg(week_since)) AS SIGNED) AS week_count,
+  CAST(SUM(created_at >= sqlc.arg(cycle_since)) AS SIGNED) AS cycle_count
+FROM `message_events`
+WHERE user_id = sqlc.arg(user_id) AND rule_id IN (sqlc.slice(rule_ids))
+GROUP BY rule_id, event;

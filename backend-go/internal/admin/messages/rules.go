@@ -37,16 +37,16 @@ const statsWindow = 7 * 24 * time.Hour
 func (h *Handlers) rulesRoutes(route func(method, path string, chain httpadmin.Chain), kit *httpadmin.Kit) {
 	h.engineRoutes(route, kit) // B-N9-06: static /messages/rules/engine|simulate
 	route(fiber.MethodGet, "/messages/rules", kit.Admin(h.RuleList))
-	route(fiber.MethodPost, "/messages/rules", kit.Admin(h.RuleStore))
+	route(fiber.MethodPost, "/messages/rules", kit.Admin(httpadmin.Publishes(h.RuleStore, "message_rules")))
 	route(fiber.MethodPost, "/messages/rules/conflicts", kit.Admin(h.RuleConflicts))
 	route(fiber.MethodPost, "/messages/rules/preview", kit.Admin(h.RulePreview))
 	route(fiber.MethodGet, "/messages/rules/:id", kit.Admin(h.RuleShow))
-	route(fiber.MethodPut, "/messages/rules/:id", kit.Admin(h.RuleUpdate))
-	route(fiber.MethodDelete, "/messages/rules/:id", kit.Admin(h.RuleDestroy))
-	route(fiber.MethodPost, "/messages/rules/:id/submit", kit.Admin(h.RuleSubmit))
-	route(fiber.MethodPost, "/messages/rules/:id/approve", kit.Admin(h.RuleApprove))
-	route(fiber.MethodPost, "/messages/rules/:id/reject", kit.Admin(h.RuleReject))
-	route(fiber.MethodPost, "/messages/rules/:id/toggle", kit.Admin(h.RuleToggle))
+	route(fiber.MethodPut, "/messages/rules/:id", kit.Admin(httpadmin.Publishes(h.RuleUpdate, "message_rules")))
+	route(fiber.MethodDelete, "/messages/rules/:id", kit.Admin(httpadmin.Publishes(h.RuleDestroy, "message_rules")))
+	route(fiber.MethodPost, "/messages/rules/:id/submit", kit.Admin(httpadmin.Publishes(h.RuleSubmit, "message_rules")))
+	route(fiber.MethodPost, "/messages/rules/:id/approve", kit.Admin(httpadmin.Publishes(h.RuleApprove, "message_rules")))
+	route(fiber.MethodPost, "/messages/rules/:id/reject", kit.Admin(httpadmin.Publishes(h.RuleReject, "message_rules")))
+	route(fiber.MethodPost, "/messages/rules/:id/toggle", kit.Admin(httpadmin.Publishes(h.RuleToggle, "message_rules")))
 }
 
 func mustJSON(v any) string {

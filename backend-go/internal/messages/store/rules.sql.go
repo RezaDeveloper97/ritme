@@ -8,6 +8,8 @@ package store
 import (
 	"context"
 	"database/sql"
+	"strings"
+	"time"
 
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
@@ -414,6 +416,81 @@ func (q *Queries) ListMessageRules(ctx context.Context, arg ListMessageRulesPara
 			&i.CreatedBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUserMessageEventStats = `-- name: ListUserMessageEventStats :many
+SELECT rule_id, event,
+  CAST(MAX(created_at) AS DATETIME) AS last_at,
+  CAST(SUM(created_at >= ?) AS SIGNED) AS day_count,
+  CAST(SUM(created_at >= ?) AS SIGNED) AS week_count,
+  CAST(SUM(created_at >= ?) AS SIGNED) AS cycle_count
+FROM ` + "`" + `message_events` + "`" + `
+WHERE user_id = ? AND rule_id IN (/*SLICE:rule_ids*/?)
+GROUP BY rule_id, event
+`
+
+type ListUserMessageEventStatsParams struct {
+	DaySince   sql.NullTime
+	WeekSince  sql.NullTime
+	CycleSince sql.NullTime
+	UserID     uint64
+	RuleIds    []uint64
+}
+
+type ListUserMessageEventStatsRow struct {
+	RuleID     uint64
+	Event      string
+	LastAt     time.Time
+	DayCount   int64
+	WeekCount  int64
+	CycleCount int64
+}
+
+// One grouped read of a user's history on the candidate rules of rules.Select (T-M9-13, replaces the per-rule
+// LastUserMessageEvent + CountUserMessageEvents probes): the latest event and the counts in the three cap windows
+// (day, week, cycle) per rule and event.
+func (q *Queries) ListUserMessageEventStats(ctx context.Context, arg ListUserMessageEventStatsParams) ([]ListUserMessageEventStatsRow, error) {
+	query := listUserMessageEventStats
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.DaySince)
+	queryParams = append(queryParams, arg.WeekSince)
+	queryParams = append(queryParams, arg.CycleSince)
+	queryParams = append(queryParams, arg.UserID)
+	if len(arg.RuleIds) > 0 {
+		for _, v := range arg.RuleIds {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:rule_ids*/?", strings.Repeat(",?", len(arg.RuleIds))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:rule_ids*/?", "NULL", 1)
+	}
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListUserMessageEventStatsRow{}
+	for rows.Next() {
+		var i ListUserMessageEventStatsRow
+		if err := rows.Scan(
+			&i.RuleID,
+			&i.Event,
+			&i.LastAt,
+			&i.DayCount,
+			&i.WeekCount,
+			&i.CycleCount,
 		); err != nil {
 			return nil, err
 		}

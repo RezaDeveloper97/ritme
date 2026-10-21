@@ -3,7 +3,7 @@ id: T-M9-13
 title: Config caches with pub/sub invalidation and one query for rule history
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-07]
 parallel_group: M9-B
 touches: [backend-go/internal/platform/configcache, backend-go/internal/messages/content, backend-go/internal/messages/rules, backend-go/internal/cycle/recommendation, backend-go/internal/challenges, backend-go/internal/plus, backend-go/internal/modules, backend-go/internal/home/articles.go, backend-go/internal/admin, backend-go/db/queries/messages]

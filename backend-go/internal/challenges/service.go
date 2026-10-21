@@ -16,6 +16,7 @@ import (
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/platform/configcache"
 	"github.com/ritme/backend-go/internal/plus"
 	plusstore "github.com/ritme/backend-go/internal/plus/store"
 )
@@ -38,12 +39,41 @@ type DB interface {
 
 // Service is the user side of challenges v2. Every query is scoped by the user id.
 type Service struct {
-	db DB
-	q  *store.Queries
+	db      DB
+	q       *store.Queries
+	catalog *configcache.Cache[catalog]
+}
+
+// Tables are what the catalog snapshot reads; the admin challenge writers publish them (configcache.Changed).
+var Tables = []string{"challenges", "challenge_programs", "challenge_tasks"}
+
+// catalog is the active v2 programs with their tasks (admin config, T-M9-13: one load per process until an admin
+// write or the 60 s TTL). Read-only once loaded.
+type catalog struct {
+	Programs []store.ListActiveProgramsRow
+	Tasks    map[uint64][]store.ChallengeTask
 }
 
 // NewService wires the service on db.
-func NewService(db DB) *Service { return &Service{db: db, q: store.New(db)} }
+func NewService(db DB) *Service {
+	s := &Service{db: db, q: store.New(db)}
+	s.catalog = configcache.New("challenges:catalog", Tables, s.loadCatalog)
+	return s
+}
+
+func (s *Service) loadCatalog(ctx context.Context) (catalog, error) {
+	rows, err := s.q.ListActivePrograms(ctx)
+	if err != nil {
+		return catalog{}, err
+	}
+	c := catalog{Programs: rows, Tasks: make(map[uint64][]store.ChallengeTask, len(rows))}
+	for _, r := range rows {
+		if c.Tasks[r.ID], err = s.q.ListTasks(ctx, r.ID); err != nil {
+			return catalog{}, err
+		}
+	}
+	return c, nil
+}
 
 // UserContext is what eligibility looks at: the life mode and (lazily) the cycle main phase.
 type UserContext struct {
@@ -138,10 +168,11 @@ func (s *Service) enrollmentView(ctx context.Context, e store.ChallengeEnrollmen
 
 // List is the user's challenge list: every active v2 challenge the user is enrolled in or may join.
 func (s *Service) List(ctx context.Context, userID uint64, today civildate.Date) ([]Item, error) {
-	rows, err := s.q.ListActivePrograms(ctx)
+	cat, err := s.catalog.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("challenges: list: %w", err)
 	}
+	rows := cat.Programs
 	enrolls, err := s.q.ListUserEnrollments(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("challenges: enrollments: %w", err)
@@ -169,10 +200,7 @@ func (s *Service) List(ctx context.Context, userID uint64, today civildate.Date)
 		if !joined && !eligible {
 			continue
 		}
-		tasks, err := s.q.ListTasks(ctx, p.ID)
-		if err != nil {
-			return nil, fmt.Errorf("challenges: tasks: %w", err)
-		}
+		tasks := cat.Tasks[p.ID]
 		it := Item{Program: p, Tasks: tasks, CanJoin: !joined && startable(p, uc, today)}
 		if joined {
 			if it.Enrollment, err = s.enrollmentView(ctx, e, p, tasks, today); err != nil {

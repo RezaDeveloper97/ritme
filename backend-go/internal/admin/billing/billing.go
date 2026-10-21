@@ -63,10 +63,10 @@ func (h *Handlers) Routes(route Route, kit *httpadmin.Kit) {
 	get, post, put, del := fiber.MethodGet, fiber.MethodPost, fiber.MethodPut, fiber.MethodDelete
 
 	route(get, "/plus/plans", a(h.ListPlans))
-	route(post, "/plus/plans", s(h.StorePlan))
+	route(post, "/plus/plans", s(httpadmin.Publishes(h.StorePlan, "plus_plans")))
 	route(get, "/plus/plans/:id", a(h.ShowPlan))
-	route(put, "/plus/plans/:id", s(h.UpdatePlan))
-	route(del, "/plus/plans/:id", s(h.DestroyPlan))
+	route(put, "/plus/plans/:id", s(httpadmin.Publishes(h.UpdatePlan, "plus_plans")))
+	route(del, "/plus/plans/:id", s(httpadmin.Publishes(h.DestroyPlan, "plus_plans")))
 
 	route(get, "/plus/discount-codes", a(h.ListDiscounts))
 	route(post, "/plus/discount-codes", s(h.StoreDiscount))

@@ -69,7 +69,7 @@ func (h *Handlers) Routes(route Route, kit *httpadmin.Kit) {
 	route(fiber.MethodGet, "/pregnancy-alert-rules", a(h.ListAlertRules))
 	route(fiber.MethodGet, "/pregnancy-alert-rules/options", a(h.AlertRuleOptions))
 	route(fiber.MethodGet, "/pregnancy-alert-rules/:key", a(h.ShowAlertRule))
-	route(fiber.MethodPut, "/pregnancy-alert-rules/:key", a(h.UpdateAlertRule))
+	route(fiber.MethodPut, "/pregnancy-alert-rules/:key", a(httpadmin.Publishes(h.UpdateAlertRule, "message_contents")))
 }
 
 // ---------------------------------------------------------------------------

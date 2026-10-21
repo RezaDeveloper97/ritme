@@ -7,7 +7,6 @@ package modules
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -18,6 +17,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/modules/store"
 	"github.com/ritme/backend-go/internal/platform/cache"
+	"github.com/ritme/backend-go/internal/platform/configcache"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 )
 
@@ -55,10 +55,8 @@ var Keys = []string{
 // CodeDisabled is the error_code of the 403 a disabled module's routes answer.
 const CodeDisabled = "module_disabled"
 
-const (
-	cacheKey = "app_modules:v1"
-	cacheTTL = 60 * time.Second
-)
+// Table is the switches table; Set publishes it (configcache) so every API process reloads its snapshot.
+const Table = "app_modules"
 
 // States maps each module key to whether it is enabled (every key present).
 type States map[string]bool
@@ -78,20 +76,24 @@ func (s States) JSON() map[string]bool {
 	return out
 }
 
-// Service reads and writes the switches. Reads go through Redis (60 s) so every request of a gated route costs no
-// query; a write clears the entry so every API process sees it on its next read.
+// Service reads and writes the switches. Reads come from an in-process snapshot (configcache, T-M9-13): a gated
+// request costs no query and no Redis round trip; a write publishes app_modules so every API process reloads on its
+// next read (the 60 s TTL covers a missed message).
 type Service struct {
 	q      *store.Queries
-	cache  *cache.Client // nil = always read the table
+	states *configcache.Cache[States]
 	logger *slog.Logger
 }
 
-// NewService wires the service; c may be nil.
-func NewService(db *sql.DB, c *cache.Client, logger *slog.Logger) *Service {
+// NewService wires the service. The Redis client is no longer read here (configcache owns the pub/sub link); the
+// parameter stays for the existing call sites.
+func NewService(db *sql.DB, _ *cache.Client, logger *slog.Logger) *Service {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &Service{q: store.New(db), cache: c, logger: logger}
+	s := &Service{q: store.New(db), logger: logger}
+	s.states = configcache.New(Table, []string{Table}, s.load)
+	return s
 }
 
 func allOn() States {
@@ -102,20 +104,21 @@ func allOn() States {
 	return s
 }
 
-// States is every module's switch. It never fails: an unreadable table means everything is on.
+// States is every module's switch. It never fails: an unreadable table means everything is on (not cached, so the
+// next request retries). The map is shared: callers must not modify it.
 func (s *Service) States(ctx context.Context) States {
-	if s.cache != nil {
-		if raw, err := s.cache.Get(ctx, cacheKey); err == nil && raw != "" {
-			var st States
-			if json.Unmarshal([]byte(raw), &st) == nil {
-				return st
-			}
-		}
-	}
-	rows, err := s.q.ListModules(ctx)
+	st, err := s.states.Get(ctx)
 	if err != nil {
 		s.logger.WarnContext(ctx, "modules: unreadable app_modules, treating every module as enabled", "error", err)
 		return allOn()
+	}
+	return st
+}
+
+func (s *Service) load(ctx context.Context) (States, error) {
+	rows, err := s.q.ListModules(ctx)
+	if err != nil {
+		return nil, err
 	}
 	st := allOn()
 	for _, r := range rows {
@@ -123,18 +126,13 @@ func (s *Service) States(ctx context.Context) States {
 			st[r.Key] = r.Enabled
 		}
 	}
-	if s.cache != nil {
-		if raw, err := json.Marshal(st); err == nil {
-			_ = s.cache.Set(ctx, cacheKey, string(raw), cacheTTL)
-		}
-	}
-	return st
+	return st, nil
 }
 
 // Enabled reports whether one module is on.
 func (s *Service) Enabled(ctx context.Context, key string) bool { return s.States(ctx).Enabled(key) }
 
-// Set stores the given switches (keys outside Keys are ignored by the caller's validation) and clears the cache.
+// Set stores the given switches (keys outside Keys are ignored by the caller's validation) and publishes the change.
 func (s *Service) Set(ctx context.Context, changes map[string]bool, now time.Time) error {
 	stamp := sql.NullTime{Time: now, Valid: true}
 	for _, k := range Keys {
@@ -143,14 +141,11 @@ func (s *Service) Set(ctx context.Context, changes map[string]bool, now time.Tim
 			continue
 		}
 		if err := s.q.UpsertModule(ctx, store.UpsertModuleParams{Key: k, Enabled: on, CreatedAt: stamp, UpdatedAt: stamp}); err != nil {
+			configcache.Changed(ctx, Table) // earlier keys may have been stored
 			return fmt.Errorf("modules: set %s: %w", k, err)
 		}
 	}
-	if s.cache != nil {
-		if err := s.cache.Delete(ctx, cacheKey); err != nil {
-			s.logger.WarnContext(ctx, "modules: cache clear failed; the change shows within a minute", "error", err)
-		}
-	}
+	configcache.Changed(ctx, Table)
 	return nil
 }
 

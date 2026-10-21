@@ -57,13 +57,13 @@ func New(db *sql.DB, logger *slog.Logger) *Handlers {
 func (h *Handlers) Routes(route func(method, path string, chain httpadmin.Chain), kit *httpadmin.Kit) {
 	h.rulesRoutes(route, kit) // B-N9-05: static /messages/rules* before /messages/:id
 	route(fiber.MethodGet, "/messages", kit.Admin(h.List))
-	route(fiber.MethodPost, "/messages", kit.Admin(h.Store))
+	route(fiber.MethodPost, "/messages", kit.Admin(httpadmin.Publishes(h.Store, "message_contents")))
 	route(fiber.MethodGet, "/messages/registry", kit.Admin(h.Registry))
 	route(fiber.MethodGet, "/messages/registry/:group/:key", kit.Admin(h.RegistryItem))
 	route(fiber.MethodGet, "/messages/:id", kit.Admin(h.Show))
-	route(fiber.MethodPut, "/messages/:id", kit.Admin(h.Update))
-	route(fiber.MethodPost, "/messages/:id/approve", kit.Admin(h.Approve))
-	route(fiber.MethodPost, "/messages/:id/toggle", kit.Admin(h.Toggle))
+	route(fiber.MethodPut, "/messages/:id", kit.Admin(httpadmin.Publishes(h.Update, "message_contents")))
+	route(fiber.MethodPost, "/messages/:id/approve", kit.Admin(httpadmin.Publishes(h.Approve, "message_contents")))
+	route(fiber.MethodPost, "/messages/:id/toggle", kit.Admin(httpadmin.Publishes(h.Toggle, "message_contents")))
 }
 
 func messageJSON(m *store.MessageContent) *jsonx.OrderedMap {

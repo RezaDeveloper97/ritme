@@ -215,6 +215,20 @@ type History interface {
 	Last(rule uint64, event string) (time.Time, bool, error)
 }
 
+// Prefetcher is a History that can read every candidate's history in one go (DBHistory: one grouped query instead
+// of two probes per rule). Select calls it once with the rules whose cooldown or cap it may check and the three cap
+// windows of this request (day, week, cycle).
+type Prefetcher interface {
+	Prefetch(rules []uint64, windows [3]time.Time) (History, error)
+}
+
+// Windows are the cap-window starts Eligible asks Count about: now − 1 day, − 7 days, − the cycle length.
+func Windows(now time.Time, facts Facts) [3]time.Time {
+	week := Rule{CapPeriod: "week"}
+	cycle := Rule{CapPeriod: "cycle"}
+	return [3]time.Time{now.Add(-capWindow(&Rule{}, facts)), now.Add(-capWindow(&week, facts)), now.Add(-capWindow(&cycle, facts))}
+}
+
 // Choice is the engine's answer.
 type Choice struct {
 	Rule    *Rule
@@ -231,6 +245,21 @@ func Select(all []Rule, facts Facts, userID uint64, now time.Time, h History) (*
 		}
 		return int(a.ID) - int(b.ID) //nolint:gosec // ids are small
 	})
+	if p, ok := h.(Prefetcher); ok {
+		var ids []uint64
+		for i := range cands {
+			if r := &cands[i]; r.Served() && !r.Unlimited() && (r.CooldownDays > 0 || r.CapCount > 0) {
+				ids = append(ids, r.ID)
+			}
+		}
+		if len(ids) > 0 {
+			ph, err := p.Prefetch(ids, Windows(now, facts))
+			if err != nil {
+				return nil, err
+			}
+			h = ph
+		}
+	}
 	for i := range cands {
 		r := &cands[i]
 		ok, err := Eligible(r, facts, userID, now, h)

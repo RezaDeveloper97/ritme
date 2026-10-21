@@ -49,7 +49,7 @@ func (h *Handlers) Routes(route Route, kit *httpadmin.Kit) {
 	a := kit.Admin
 	route(fiber.MethodGet, "/companions/tips", a(h.ListTips))
 	route(fiber.MethodGet, "/companions/tips/:phase", a(h.ShowTips))
-	route(fiber.MethodPut, "/companions/tips/:phase", a(h.UpdateTips))
-	route(fiber.MethodDelete, "/companions/tips/:phase", a(h.ResetTips))
+	route(fiber.MethodPut, "/companions/tips/:phase", a(httpadmin.Publishes(h.UpdateTips, "message_contents")))
+	route(fiber.MethodDelete, "/companions/tips/:phase", a(httpadmin.Publishes(h.ResetTips, "message_contents")))
 	route(fiber.MethodGet, "/companions/links", kit.Super(h.ListLinks)) // CMP-L6
 }

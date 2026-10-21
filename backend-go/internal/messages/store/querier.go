@@ -39,6 +39,10 @@ type Querier interface {
 	ListMessageRecentLogs(ctx context.Context, arg ListMessageRecentLogsParams) ([]ListMessageRecentLogsRow, error)
 	ListMessageRuleVersions(ctx context.Context, ruleID uint64) ([]MessageRuleVersion, error)
 	ListMessageRules(ctx context.Context, arg ListMessageRulesParams) ([]MessageRule, error)
+	// One grouped read of a user's history on the candidate rules of rules.Select (T-M9-13, replaces the per-rule
+	// LastUserMessageEvent + CountUserMessageEvents probes): the latest event and the counts in the three cap windows
+	// (day, week, cycle) per rule and event.
+	ListUserMessageEventStats(ctx context.Context, arg ListUserMessageEventStatsParams) ([]ListUserMessageEventStatsRow, error)
 	MessageRuleEventStats(ctx context.Context, createdAt sql.NullTime) ([]MessageRuleEventStatsRow, error)
 	MessageRuleVariantStats(ctx context.Context, arg MessageRuleVariantStatsParams) ([]MessageRuleVariantStatsRow, error)
 	SetMessageRuleActive(ctx context.Context, arg SetMessageRuleActiveParams) error

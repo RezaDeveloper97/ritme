@@ -22,6 +22,7 @@ import (
 
 	apihttp "github.com/ritme/backend-go/internal/http"
 	"github.com/ritme/backend-go/internal/platform/cache"
+	"github.com/ritme/backend-go/internal/platform/configcache"
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/db"
 	"github.com/ritme/backend-go/internal/platform/httpx"
@@ -73,6 +74,9 @@ func run(logger *slog.Logger) error {
 	}
 	// cache_requests_total{cache="cycle_engine"}: the cycle-engine cache reads through Redis() directly.
 	rdb.TrackGets("cycle-engine:", "cycle_engine")
+	// Config caches (T-M9-13): admin writes in any process invalidate every process through Redis pub/sub;
+	// without Redis the 60 s TTL still applies.
+	configcache.Start(ctx, rdb, logger)
 
 	// A busy metrics port must not take the API down (a second local server, the contract harness): it is logged
 	// as an error and the API serves without the private listener.
