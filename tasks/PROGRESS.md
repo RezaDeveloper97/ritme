@@ -1084,3 +1084,9 @@ Nothing needed fixing.
 - `i18n/registry.go`: language list cached in Redis with `CacheTTL = 10m` (was no TTL); `Flush` unchanged.
 - Tests: `messages/v2_test.go`, `v2_int_test.go`, `cycle/service/cachekey_test.go`, `i18n/registry_ttl_test.go`; `registry_int_test.go` updated (asserted the old no-TTL behaviour).
 - Open: `content.RegistryTTL` middleware and `languageRegistryTTL` in `internal/http/routes_content.go` are now redundant (harmless, `EXPIRE NX`); remove in a later touch of routes_content.go.
+
+## T-M9-40 — Frontend: tolerant cycle schema for v6 payloads
+- `entities/cycle` schema: v6 fields added tolerant (`future_cycles` per item → `[]`, `clinical_flags`, `today_ui`, `limits` nullable + catch, `suggest_pregnancy_test` default false, `cycle_regularity`, `ovulation_source`); nullable predictions / per-day ovulation / effective lengths; value layers default empty; month days parsed one by one; view enums map unknown strings to `'unknown'`; daily card `fertility_level` accepts `peak`/`unknown` (bad value → `unknown`).
+- Schedule: anchors win over `predictions`; null ovulation or suppression → no fertile window/marker; new `CycleSchedule.hasOvulation`; `isFertilitySuppressed(view)` exported.
+- Tests: `schema.v6.test.ts` (§2.35 example, Laravel, pill, missing layers, bad month day, unknown phase), schedule v6 block, `suppression.test.ts`. 1921 tests green.
+- Open (for T-M9-42…47): `schedule.ovulation` stays a non-null placeholder when `hasOvulation` is false — HomePage (`slotFor(schedule.ovulation…)`) and ReadyStep must gate on `hasOvulation`/`isFertilitySuppressed`; `daysUntilOvulation` falls back to `cycleLength-14-cycleDay`. Some prettier-style reflow in schema.ts/index.ts (no prettier config in repo; cosmetic).

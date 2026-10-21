@@ -3,7 +3,7 @@ id: T-M9-40
 title: Frontend: tolerant cycle schema for v6 payloads
 milestone: M9
 type: frontend
-status: todo
+status: done
 depends_on: []
 parallel_group: M9-A
 touches: [frontend/src/entities/cycle]

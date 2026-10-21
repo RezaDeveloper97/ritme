@@ -56,7 +56,7 @@ export function normalizePhase(phase: string): CyclePhase {
  * all it takes to read a calculation by the §19 rule.
  */
 function isAfterOvulation(calc: CycleCalculation): boolean {
-  return calc.cycleDay > calc.estimatedOvulationDay;
+  return calc.estimatedOvulationDay != null && calc.cycleDay > calc.estimatedOvulationDay;
 }
 
 /**
@@ -131,7 +131,9 @@ export function markerPhase(calc: CycleCalculation, marker: CycleDayMarker | nul
   if (marker === 'period' || marker === 'ovulation' || marker === 'fertile') return marker;
   const phase = calcMainPhase(calc);
   if (phase !== 'ovulation' && phase !== 'fertile') return phase;
-  return calc.cycleDay < calc.estimatedOvulationDay ? 'follicular' : 'luteal';
+  return calc.estimatedOvulationDay != null && calc.cycleDay < calc.estimatedOvulationDay
+    ? 'follicular'
+    : 'luteal';
 }
 
 /**
@@ -144,7 +146,9 @@ export function deriveCyclePredictions(calc: CycleCalculation): CyclePredictions
   // +1: the next period starts on cycle day cycleLength+1, not cycleLength, so the
   // offset reaches the next period start (matches the backend forecast date).
   const daysUntilNextPeriod = Math.max(0, calc.cycleLength - calc.cycleDay + 1);
-  const daysUntilOvulation = calc.estimatedOvulationDay - calc.cycleDay;
+  // No estimate (v6, fertility suppressed): the fixed luteal offset keeps this
+  // legacy number finite; screens must gate on the suppression flag, not on it.
+  const daysUntilOvulation = (calc.estimatedOvulationDay ?? calc.cycleLength - 14) - calc.cycleDay;
   // PMS is the short run of days ending the day before the next period. Clamp to
   // today so an imminent/overdue period never yields a negative window.
   const daysUntilPmsEnd = Math.max(0, daysUntilNextPeriod - 1);

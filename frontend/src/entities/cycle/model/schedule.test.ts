@@ -55,7 +55,11 @@ function makeView(overrides: Partial<CycleView> = {}): CycleView {
       predictedNextPeriodStart: '2026-08-11',
       estimatedOvulationDate: '2026-07-28',
     },
-    metrics: { effectiveCycleLength: 28, effectivePeriodLength: 3, cycleVariability: null },
+    metrics: {
+      effectiveCycleLength: 28,
+      effectivePeriodLength: 3,
+      cycleVariability: null,
+    },
     confidence: 'low',
     confidenceReasons: [],
     dataQuality: 'partial',
@@ -75,7 +79,11 @@ function makeView(overrides: Partial<CycleView> = {}): CycleView {
       confidenceReasons: [],
     },
     profileValues: { cycleLength: 28, periodDuration: 5 },
-    calculatedValues: { cycleLength: null, periodDuration: 3, basedOnCycles: null },
+    calculatedValues: {
+      cycleLength: null,
+      periodDuration: 3,
+      basedOnCycles: null,
+    },
     effectiveValues: {
       cycleLength: 28,
       periodDuration: 3,
@@ -144,7 +152,9 @@ describe('deriveCycleSchedule', () => {
   it('starts the window the day after a long period (max(O−5, period end + 1))', () => {
     const view = makeView();
     const s = deriveCycleSchedule(
-      makeView({ anchors: { ...view.anchors!, currentPeriodEnd: '2026-07-24' } }),
+      makeView({
+        anchors: { ...view.anchors!, currentPeriodEnd: '2026-07-24' },
+      }),
       makeCalc(),
     )!;
     expect(iso(s.fertileStart)).toBe('2026-07-25');
@@ -154,7 +164,9 @@ describe('deriveCycleSchedule', () => {
   it('has no window when the period runs past ovulation (§19 empty window)', () => {
     const view = makeView();
     const s = deriveCycleSchedule(
-      makeView({ anchors: { ...view.anchors!, currentPeriodEnd: '2026-07-28' } }),
+      makeView({
+        anchors: { ...view.anchors!, currentPeriodEnd: '2026-07-28' },
+      }),
       makeCalc(),
     )!;
     expect(hasFertileWindow(s)).toBe(false);
@@ -182,11 +194,97 @@ describe('deriveCycleSchedule', () => {
   });
 });
 
+describe('deriveCycleSchedule — v6 payloads', () => {
+  it('anchors win over a predictions block that disagrees', () => {
+    const base = makeView();
+    const s = deriveCycleSchedule(
+      makeView({
+        forecast: {
+          ...base.forecast!,
+          nextPeriodStart: '2026-08-20',
+          estimatedOvulationDate: '2026-08-05',
+        },
+      }),
+      makeCalc(),
+    )!;
+
+    expect(iso(s.nextPeriodStart)).toBe('2026-08-11');
+    expect(iso(s.ovulation)).toBe('2026-07-28');
+    expect(s.hasOvulation).toBe(true);
+  });
+
+  it('uses the predictions block when the view has no anchors (old backend)', () => {
+    const s = deriveCycleSchedule(makeView({ anchors: null }), makeCalc())!;
+
+    expect(iso(s.nextPeriodStart)).toBe('2026-08-11');
+    expect(iso(s.ovulation)).toBe('2026-07-28');
+  });
+
+  it('a null ovulation means no window and no ovulation marker', () => {
+    const view = makeView({
+      anchors: { ...makeView().anchors!, estimatedOvulationDate: null },
+      forecast: null,
+    });
+    const s = deriveCycleSchedule(view, makeCalc({ estimatedOvulationDay: null }))!;
+
+    expect(s.hasOvulation).toBe(false);
+    expect(hasFertileWindow(s)).toBe(false);
+    expect(fertileWindowDays(s)).toBeNull();
+    // Day 14 of the cycle would be the placeholder; it must not be painted.
+    expect(scheduleDayMarker(s, addDays(s.cycleStart, 13), 3)).toBeNull();
+    expect(scheduleDayMarker(s, addDays(s.cycleStart, 9), 3)).toBeNull();
+    // The period is still drawn.
+    expect(scheduleDayMarker(s, s.cycleStart, 3)).toBe('period');
+  });
+
+  it('suppression hides the ovulation even when the payload still carries a date', () => {
+    const s = deriveCycleSchedule(
+      makeView({
+        limits: {
+          fertilitySuppressed: true,
+          suppressionReason: 'hormonal_contraception',
+          engineSuspended: false,
+          promptPregnancyMode: false,
+        },
+      }),
+      makeCalc(),
+    )!;
+
+    expect(s.hasOvulation).toBe(false);
+    expect(hasFertileWindow(s)).toBe(false);
+  });
+
+  it('a suppressed view paints no fertile/ovulation marker on the calendar', () => {
+    const s = deriveCycleSchedule(
+      makeView({ warnings: ['hormonal_contraception_active'] }),
+      makeCalc(),
+    )!;
+    const day = addDays(s.cycleStart, 14);
+
+    expect(cycleDayMarkerAt(day, makeCalc({ isFertileWindow: false }), s, 3)).toBeNull();
+  });
+
+  it('a legacy calculation without a view still places ovulation', () => {
+    const s = deriveCycleSchedule(null, makeCalc())!;
+
+    expect(s.hasOvulation).toBe(true);
+    expect(iso(s.ovulation)).toBe('2026-07-28');
+  });
+
+  it('a legacy calculation with a null ovulation day yields none', () => {
+    const s = deriveCycleSchedule(null, makeCalc({ estimatedOvulationDay: null }))!;
+
+    expect(s.hasOvulation).toBe(false);
+  });
+});
+
 describe('cycleScheduleFor', () => {
   const schedule = deriveCycleSchedule(makeView(), makeCalc())!;
 
   it('keeps the same cycle for a day inside it', () => {
-    expect(iso(cycleScheduleFor(schedule, fromApiDate('2026-08-10')).cycleStart)).toBe('2026-07-14');
+    expect(iso(cycleScheduleFor(schedule, fromApiDate('2026-08-10')).cycleStart)).toBe(
+      '2026-07-14',
+    );
   });
 
   it('rolls forward whole cycles for a later day', () => {
@@ -197,7 +295,9 @@ describe('cycleScheduleFor', () => {
   });
 
   it('rolls back for a day in a previous cycle', () => {
-    expect(iso(cycleScheduleFor(schedule, fromApiDate('2026-07-13')).cycleStart)).toBe('2026-06-16');
+    expect(iso(cycleScheduleFor(schedule, fromApiDate('2026-07-13')).cycleStart)).toBe(
+      '2026-06-16',
+    );
   });
 });
 
@@ -259,7 +359,13 @@ describe('scheduleDayMarker', () => {
  * `menstruation` for the bleeding days, `ovulation` on O and O+1, the
  * biological fertile flag on O−5 … O+1 minus bleeding days, PMS from L−6.
  */
-function legacyDay(isoDate: string, cycleStart: string, o: number, length: number, bleeding: number) {
+function legacyDay(
+  isoDate: string,
+  cycleStart: string,
+  o: number,
+  length: number,
+  bleeding: number,
+) {
   const cycleDay = diffInDays(fromApiDate(isoDate), fromApiDate(cycleStart)) + 1;
   const period = cycleDay <= bleeding;
   const phase = period
@@ -315,7 +421,11 @@ describe('cycleDayMarkerAt — one §19 window for every surface (T-M5-13)', () 
       predictedNextPeriodStart: '2026-10-11',
       estimatedOvulationDate: '2026-09-27',
     },
-    metrics: { effectiveCycleLength: 28, effectivePeriodLength: 5, cycleVariability: null },
+    metrics: {
+      effectiveCycleLength: 28,
+      effectivePeriodLength: 5,
+      cycleVariability: null,
+    },
     forecast: {
       nextPeriodStart: '2026-10-11',
       nextPeriodEnd: '2026-10-15',
@@ -327,10 +437,18 @@ describe('cycleDayMarkerAt — one §19 window for every surface (T-M5-13)', () 
       confidenceReasons: [],
     },
   });
-  const schedule = deriveCycleSchedule(view, makeCalc({ calculationDate: '2026-09-28', cycleDay: 16 }))!;
+  const schedule = deriveCycleSchedule(
+    view,
+    makeCalc({ calculationDate: '2026-09-28', cycleDay: 16 }),
+  )!;
   const legacy = (isoDate: string) => {
     // Legacy engine: this cycle from 09-13, the next from 10-11, the one before from 08-16.
-    const start = isoDate >= '2026-10-11' ? '2026-10-11' : isoDate >= '2026-09-13' ? '2026-09-13' : '2026-08-16';
+    const start =
+      isoDate >= '2026-10-11'
+        ? '2026-10-11'
+        : isoDate >= '2026-09-13'
+          ? '2026-09-13'
+          : '2026-08-16';
     return legacyDay(isoDate, start, 15, 28, 5);
   };
 
@@ -354,7 +472,11 @@ describe('cycleDayMarkerAt — one §19 window for every surface (T-M5-13)', () 
     expect(m['2026-10-08']).toBe('pms');
     expect(m['2026-10-10']).toBe('pms');
     // The same days as the timeline bar (cycle days) and the home rows (dates).
-    expect(fertileWindowDays(schedule)).toEqual({ startDay: 10, endDay: 15, ovulationDay: 15 });
+    expect(fertileWindowDays(schedule)).toEqual({
+      startDay: 10,
+      endDay: 15,
+      ovulationDay: 15,
+    });
     expect(iso(schedule.fertileStart)).toBe('2026-09-22');
     expect(iso(schedule.fertileEnd)).toBe('2026-09-27');
   });
@@ -404,7 +526,11 @@ describe('cycleDayMarkerAt — one §19 window for every surface (T-M5-13)', () 
   });
 
   it('a logged period day always wins over the window', () => {
-    const bleeding = makeCalc({ calculationDate: '2026-09-25', cycleDay: 13, phase: 'menstruation' });
+    const bleeding = makeCalc({
+      calculationDate: '2026-09-25',
+      cycleDay: 13,
+      phase: 'menstruation',
+    });
     expect(cycleDayMarkerAt(fromApiDate('2026-09-25'), bleeding, schedule, 5)).toBe('period');
   });
 });
@@ -424,7 +550,11 @@ describe('short cycle whose period runs past O−5', () => {
       predictedNextPeriodStart: '2026-07-22',
       estimatedOvulationDate: '2026-07-08',
     },
-    metrics: { effectiveCycleLength: 21, effectivePeriodLength: 7, cycleVariability: null },
+    metrics: {
+      effectiveCycleLength: 21,
+      effectivePeriodLength: 7,
+      cycleVariability: null,
+    },
     forecast: null,
   });
   const schedule = deriveCycleSchedule(view, null)!;
@@ -432,7 +562,11 @@ describe('short cycle whose period runs past O−5', () => {
     legacyDay(isoDate, isoDate >= '2026-07-22' ? '2026-07-22' : '2026-07-01', 8, 21, 7);
 
   it('the window is the ovulation day alone, in the schedule and on the calendar', () => {
-    expect(fertileWindowDays(schedule)).toEqual({ startDay: 8, endDay: 8, ovulationDay: 8 });
+    expect(fertileWindowDays(schedule)).toEqual({
+      startDay: 8,
+      endDay: 8,
+      ovulationDay: 8,
+    });
     const m = markers(schedule, '2026-07-01', '2026-07-21', legacy, 7);
     expect(fertileDays(m)).toEqual(['2026-07-08*']);
     // Legacy O+1 (flag + `ovulation` phase) is not part of it.
@@ -452,7 +586,9 @@ describe('short cycle whose period runs past O−5', () => {
     // Current period logged 8 days, effective length 5: the next cycle's window
     // is the full O−5 … O again.
     const long = deriveCycleSchedule(
-      makeView({ anchors: { ...makeView().anchors!, currentPeriodEnd: '2026-07-24' } }),
+      makeView({
+        anchors: { ...makeView().anchors!, currentPeriodEnd: '2026-07-24' },
+      }),
       makeCalc(),
     )!;
     expect(iso(long.fertileStart)).toBe('2026-07-25');

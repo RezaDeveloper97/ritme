@@ -72,8 +72,8 @@ export interface CycleCalculation {
   phase: string;
   /** Finer-grained phase label, when the backend provides one. */
   subphase: string | null;
-  /** Estimated ovulation day, as a 1-based cycle day. */
-  estimatedOvulationDay: number;
+  /** Estimated ovulation day, as a 1-based cycle day; null when none is estimated (v6, e.g. hormonal contraception). */
+  estimatedOvulationDay: number | null;
   /** Cycle length the calculation was based on (days). */
   cycleLength: number;
   isFertileWindow: boolean;
@@ -124,19 +124,15 @@ export interface CyclePredictions {
 export type DataStatus = 'actual' | 'predicted' | 'needs_confirmation' | 'incomplete';
 
 /** Calendar-based fertility level on the daily card (spec §17). Informational only (§11). */
-export type FertilityLevel = 'very_low' | 'low' | 'medium' | 'high' | 'very_high';
+export type FertilityLevel =
+  'very_low' | 'low' | 'medium' | 'high' | 'very_high' | 'peak' | 'unknown';
 
 /** How much to trust a prediction. `unknown` = no resolvable anchor (v1.1 §29). */
 export type ConfidenceLevel = 'high' | 'medium' | 'low' | 'unknown';
 
 /** v1.1 engine main phase (task.md §13) — the authoritative classification. */
 export type MainPhase =
-  | 'menstrual'
-  | 'follicular'
-  | 'fertile'
-  | 'luteal'
-  | 'period_expected'
-  | 'unknown';
+  'menstrual' | 'follicular' | 'fertile' | 'luteal' | 'period_expected' | 'unknown';
 
 /** v1.1 fertility level for `cycle_view.fertility_level` (task.md §26). Informational (§11). */
 export type CycleFertilityLevel = 'none' | 'low' | 'medium' | 'high' | 'peak' | 'unknown';
@@ -166,14 +162,25 @@ export interface CycleAnchors {
   currentPeriodEndIsConfirmed: boolean;
   predictedNextPeriodStart: string | null;
   estimatedOvulationDate: string | null;
+  /** v6: how the ovulation date was established. Optional so Laravel payloads type-check. */
+  ovulationSource?: OvulationSource;
 }
+
+/** Where the ovulation estimate came from (v6 §2.20). Unknown values degrade to `unknown`. */
+export type OvulationSource = 'bbt_confirmed' | 'lh_positive' | 'calendar' | 'unknown';
+
+/** Cycle regularity label (v6 §2.27). */
+export type CycleRegularity = 'regular' | 'irregular' | 'insufficient_data';
 
 /** The v1.1 effective metrics block (task.md §9, §27, §35). */
 export interface CycleEngineMetrics {
-  effectiveCycleLength: number;
-  effectivePeriodLength: number;
+  /** Null when the engine could not resolve a length (v6). */
+  effectiveCycleLength: number | null;
+  effectivePeriodLength: number | null;
   /** max − min of the last ≤3 valid cycle lengths; null with fewer than 2. */
   cycleVariability: number | null;
+  /** v6: regular / irregular / insufficient_data; null when absent. */
+  cycleRegularity?: CycleRegularity | null;
 }
 
 /** A daily-card call to action — `type` is a stable code, `label` is localized. */
@@ -199,11 +206,11 @@ export interface DailyCard {
 
 /** Upcoming period / ovulation / fertile-window forecast (spec §13). Gregorian dates (§7). */
 export interface CycleForecast {
-  nextPeriodStart: string;
-  nextPeriodEnd: string;
-  estimatedOvulationDate: string;
-  fertileWindowStart: string;
-  fertileWindowEnd: string;
+  nextPeriodStart: string | null;
+  nextPeriodEnd: string | null;
+  estimatedOvulationDate: string | null;
+  fertileWindowStart: string | null;
+  fertileWindowEnd: string | null;
   /** Which layer the forecast is based on: recent_valid_cycles | profile | default. */
   source: string;
   confidence: ConfidenceLevel;
@@ -273,4 +280,53 @@ export interface CycleView {
   calculatedValues: CalculatedValues;
   effectiveValues: EffectiveValues;
   dailyCard: DailyCard | null;
+  // --- v6 additions: optional so Laravel payloads / old fixtures type-check ---
+  /** Predicted cycles after the current one (k = 2 is the cycle after next). */
+  futureCycles?: CycleFutureCycle[];
+  clinicalFlags?: CycleClinicalFlags | null;
+  suggestPregnancyTest?: boolean;
+  todayUi?: CycleTodayUi | null;
+  limits?: CycleLimits | null;
+}
+
+export interface CycleFutureCycle {
+  k: number;
+  periodStart: string | null;
+  ovulation: string | null;
+}
+
+/** FIGO-style flags (v6 §2.27); labels are open strings so a new one never throws. */
+export interface CycleClinicalFlags {
+  frequency: string | null;
+  duration: string | null;
+  absent: boolean;
+}
+
+export interface CycleDateRange {
+  start: string | null;
+  end: string | null;
+}
+
+export interface CycleTodayUi {
+  /** `start | end | edit` (E-17); open string so new actions degrade. */
+  ringAction: string | null;
+  /** `end_missing | overdue | ask_last_period` or null. */
+  banner: string | null;
+  showPregnancyTestButton: boolean;
+  predictionCard: {
+    period: CycleDateRange | null;
+    pms: CycleDateRange | null;
+    fertile: CycleDateRange | null;
+    ovulation: { date: string | null; source: OvulationSource } | null;
+    cycleLength: number | null;
+    cycleRegularity: CycleRegularity | null;
+  } | null;
+}
+
+/** Output limits (E-24). `fertilitySuppressed` is clinical suppression only. */
+export interface CycleLimits {
+  fertilitySuppressed: boolean;
+  suppressionReason: string | null;
+  engineSuspended: boolean;
+  promptPregnancyMode: boolean;
 }

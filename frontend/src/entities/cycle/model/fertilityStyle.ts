@@ -11,11 +11,13 @@ export interface FertilityBadgeStyle {
  * Foregrounds are darkened to clear WCAG AA (≥4.5:1) on their pale backgrounds.
  */
 const FERTILITY_COLOR: Record<FertilityLevel, FertilityBadgeStyle> = {
+  peak: { bg: 'var(--pink-bg)', fg: 'var(--brand-strong)' },
   very_high: { bg: 'var(--pink-bg)', fg: 'var(--brand-strong)' },
   high: { bg: 'var(--surface-2)', fg: 'var(--brand-strong)' },
   medium: { bg: 'var(--amber-tint)', fg: 'var(--amber-deep)' },
   low: { bg: 'var(--line)', fg: 'var(--ink-3)' },
   very_low: { bg: 'var(--line)', fg: 'var(--ink-3)' },
+  unknown: { bg: 'var(--line)', fg: 'var(--ink-3)' },
 };
 
 /** Neutral style for a fertility level the backend added that this build doesn't know. */

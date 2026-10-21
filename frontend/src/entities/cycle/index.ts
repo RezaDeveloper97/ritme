@@ -22,6 +22,7 @@ export {
   cycleDayMarkerAt,
 } from './model/schedule';
 export type { CycleSchedule } from './model/schedule';
+export { isFertilitySuppressed } from './model/suppression';
 export { cycleMarkerStyle, cycleMarkerBg, markerIntensityByDate } from './model/markers';
 export { fertilityBadgeStyle } from './model/fertilityStyle';
 export type { FertilityBadgeStyle } from './model/fertilityStyle';
@@ -59,6 +60,12 @@ export type {
   ResolutionSource,
   CycleAnchors,
   CycleEngineMetrics,
+  CycleFutureCycle,
+  CycleClinicalFlags,
+  CycleTodayUi,
+  CycleLimits,
+  CycleRegularity,
+  OvulationSource,
 } from './model/types';
 export {
   cycleKeys,
@@ -73,7 +80,12 @@ export {
   fetchCycleMonth,
 } from './api/queries';
 export { useMyCyclesSection, useCycleSummarySection } from './api/sections';
-export { useCycleOverview, fetchCycleOverview, cycleOverviewKey, cycleOverviewSchema } from './api/overview';
+export {
+  useCycleOverview,
+  fetchCycleOverview,
+  cycleOverviewKey,
+  cycleOverviewSchema,
+} from './api/overview';
 export type { CycleOverview } from './api/overview';
 export type {
   HomeSection,

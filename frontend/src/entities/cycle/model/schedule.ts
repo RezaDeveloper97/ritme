@@ -6,6 +6,7 @@ import {
   FERTILE_WINDOW_LEAD_DAYS,
   PMS_WINDOW_DAYS,
 } from './predictions';
+import { isFertilitySuppressed } from './suppression';
 import type { CycleCalculation, CycleDayMarker, CycleView } from './types';
 
 /** Fixed ovulation → next-period offset the engine uses (`CyclePredictionService`). */
@@ -39,7 +40,14 @@ export interface CycleSchedule {
    */
   periodLength: number;
   nextPeriodStart: Date;
+  /**
+   * The ovulation date. Only meaningful when {@link CycleSchedule.hasOvulation};
+   * otherwise it is a luteal-offset placeholder that must not be shown (the
+   * engine gave none — hormonal contraception, postpartum, unresolved anchors).
+   */
   ovulation: Date;
+  /** False when the engine has no ovulation: no window, no ovulation marker. */
+  hasOvulation: boolean;
   /**
    * The display fertile window (task.md §19): from `max(ovulation − 5, period
    * end + 1)` to the ovulation day itself — the days the engine resolves as
@@ -67,7 +75,11 @@ export function deriveCycleSchedule(
   calc: CycleCalculation | null,
 ): CycleSchedule | null {
   const anchors = view?.anchors ?? null;
-  const forecast = view?.forecast ?? null;
+  // The calendar-only `predictions` block is a fallback for a backend that sends
+  // no anchors; whenever the engine resolved a period start, the anchors win.
+  const anchored = !!anchors?.currentPeriodStart;
+  const forecast = anchored ? null : (view?.forecast ?? null);
+  const suppressed = isFertilitySuppressed(view);
 
   // Day 1 of the cycle: the resolved period start, else back-count from the
   // calculation's own date (never from the device's today — that's the drift).
@@ -96,11 +108,23 @@ export function deriveCycleSchedule(
     parse(anchors?.predictedNextPeriodStart) ??
     addDays(cycleStart, cycleLength);
 
-  const ovulation =
-    parse(forecast?.estimatedOvulationDate) ??
-    parse(anchors?.estimatedOvulationDate) ??
-    (calc ? addDays(cycleStart, calc.estimatedOvulationDay - 1) : null) ??
-    addDays(nextPeriodStart, -LUTEAL_LENGTH);
+  // With resolved anchors a null ovulation is final (no window, nothing invented);
+  // the per-day calculation is only consulted for a backend without anchors.
+  let resolvedOvulation: Date | null;
+  if (suppressed) resolvedOvulation = null;
+  else if (anchored) resolvedOvulation = parse(anchors?.estimatedOvulationDate);
+  else if (forecast?.estimatedOvulationDate)
+    resolvedOvulation = parse(forecast.estimatedOvulationDate);
+  else if (calc) {
+    resolvedOvulation =
+      calc.estimatedOvulationDay != null
+        ? addDays(cycleStart, calc.estimatedOvulationDay - 1)
+        : null;
+  } else
+    resolvedOvulation =
+      parse(anchors?.estimatedOvulationDate) ?? addDays(nextPeriodStart, -LUTEAL_LENGTH);
+  const hasOvulation = resolvedOvulation !== null;
+  const ovulation = resolvedOvulation ?? addDays(nextPeriodStart, -LUTEAL_LENGTH);
 
   // §19 display window from the same anchors as the engine's phases. Not the
   // legacy `predictions.fertile_window_*` (the biological O−5 … O+1): that one
@@ -114,6 +138,7 @@ export function deriveCycleSchedule(
     periodLength,
     nextPeriodStart,
     ovulation,
+    hasOvulation,
     fertileStart,
     fertileEnd: ovulation,
     pmsEnd: addDays(nextPeriodStart, -1),
@@ -161,6 +186,7 @@ export function cycleScheduleFor(schedule: CycleSchedule, date: Date): CycleSche
 
 /** Whether the schedule has a non-empty display fertile window (task.md §19). */
 export function hasFertileWindow(schedule: CycleSchedule): boolean {
+  if (!schedule.hasOvulation) return false;
   return diffInDays(schedule.fertileEnd, schedule.fertileStart) >= 0;
 }
 
@@ -188,12 +214,11 @@ export function scheduleDayMarker(
   periodLength: number,
 ): CycleDayMarker | null {
   const s = cycleScheduleFor(schedule, date);
-  const within = (from: Date, to: Date) =>
-    diffInDays(date, from) >= 0 && diffInDays(to, date) >= 0;
+  const within = (from: Date, to: Date) => diffInDays(date, from) >= 0 && diffInDays(to, date) >= 0;
 
   if (diffInDays(date, s.cycleStart) < Math.max(1, periodLength)) return 'period';
-  if (diffInDays(date, s.ovulation) === 0) return 'ovulation';
-  if (within(s.fertileStart, s.fertileEnd)) return 'fertile';
+  if (s.hasOvulation && diffInDays(date, s.ovulation) === 0) return 'ovulation';
+  if (s.hasOvulation && within(s.fertileStart, s.fertileEnd)) return 'fertile';
   if (within(s.pmsStart, s.pmsEnd)) return 'pms';
   return null;
 }
@@ -240,8 +265,14 @@ export function cycleDayMarkerAt(
 
   if (calcMainPhase(calc) === 'period') return 'period';
   const s = cycleScheduleFor(schedule, date);
-  if (diffInDays(date, s.ovulation) === 0) return 'ovulation';
-  if (diffInDays(date, s.fertileStart) >= 0 && diffInDays(s.fertileEnd, date) >= 0) return 'fertile';
+  if (s.hasOvulation && diffInDays(date, s.ovulation) === 0) return 'ovulation';
+  if (
+    s.hasOvulation &&
+    diffInDays(date, s.fertileStart) >= 0 &&
+    diffInDays(s.fertileEnd, date) >= 0
+  ) {
+    return 'fertile';
+  }
   if (diffInDays(date, s.pmsStart) >= 0 && diffInDays(s.pmsEnd, date) >= 0) return 'pms';
   return null;
 }
