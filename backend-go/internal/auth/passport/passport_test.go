@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -29,24 +30,64 @@ import (
 
 const clientID = "0199c0de-0000-7000-8000-00000c0ffee1"
 
-// fakeStore is an in-memory oauth_* / users store.
+// fakeStore is an in-memory oauth_* / users store. calls counts the reads per query name (each one stands for a
+// round-trip); mu guards everything because the client cache refreshes in the background.
 type fakeStore struct {
+	mu      sync.Mutex
 	tokens  map[string]store.GetAccessTokenRow
-	clients map[string]store.GetClientRow
+	clients map[string]store.ListClientsRow
 	users   map[uint64]store.User
 	cands   []store.ListPersonalAccessClientCandidatesRow
+	calls   map[string]int
 }
 
 func newStore() *fakeStore {
 	return &fakeStore{
 		tokens:  map[string]store.GetAccessTokenRow{},
-		clients: map[string]store.GetClientRow{clientID: {ID: clientID, Provider: sql.NullString{String: "users", Valid: true}}},
+		clients: map[string]store.ListClientsRow{clientID: {ID: clientID, Provider: sql.NullString{String: "users", Valid: true}}},
 		users:   map[uint64]store.User{1004: {ID: 1004}},
 		cands:   []store.ListPersonalAccessClientCandidatesRow{{ID: clientID, GrantTypes: `["personal_access"]`}},
+		calls:   map[string]int{},
 	}
 }
 
+func (s *fakeStore) count(name string) int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.calls[name]
+}
+
+func (s *fakeStore) resetCalls() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.calls = map[string]int{}
+}
+
+func (s *fakeStore) setClient(c store.ListClientsRow) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.clients[c.ID] = c
+}
+
+func (s *fakeStore) GetAccessTokenWithUser(_ context.Context, a store.GetAccessTokenWithUserParams) (store.GetAccessTokenWithUserRow, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.calls["GetAccessTokenWithUser"]++
+	t, okT := s.tokens[a.TokenID]
+	u, okU := s.users[a.UserID]
+	if !okT || !okU {
+		return store.GetAccessTokenWithUserRow{}, sql.ErrNoRows
+	}
+	return store.GetAccessTokenWithUserRow{
+		TokenID: t.ID, TokenUserID: t.UserID, TokenClientID: t.ClientID, TokenRevoked: t.Revoked,
+		TokenExpiresAt: t.ExpiresAt, User: u,
+	}, nil
+}
+
 func (s *fakeStore) GetAccessToken(_ context.Context, id string) (store.GetAccessTokenRow, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.calls["GetAccessToken"]++
 	r, ok := s.tokens[id]
 	if !ok {
 		return r, sql.ErrNoRows
@@ -54,15 +95,21 @@ func (s *fakeStore) GetAccessToken(_ context.Context, id string) (store.GetAcces
 	return r, nil
 }
 
-func (s *fakeStore) GetClient(_ context.Context, id string) (store.GetClientRow, error) {
-	r, ok := s.clients[id]
-	if !ok {
-		return r, sql.ErrNoRows
+func (s *fakeStore) ListClients(context.Context) ([]store.ListClientsRow, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.calls["ListClients"]++
+	out := make([]store.ListClientsRow, 0, len(s.clients))
+	for _, c := range s.clients {
+		out = append(out, c)
 	}
-	return r, nil
+	return out, nil
 }
 
 func (s *fakeStore) GetUserByID(_ context.Context, id uint64) (store.User, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.calls["GetUserByID"]++
 	r, ok := s.users[id]
 	if !ok {
 		return r, sql.ErrNoRows
@@ -75,6 +122,8 @@ func (s *fakeStore) ListPersonalAccessClientCandidates(context.Context) ([]store
 }
 
 func (s *fakeStore) InsertAccessToken(_ context.Context, a store.InsertAccessTokenParams) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.tokens[a.ID] = store.GetAccessTokenRow{ID: a.ID, UserID: a.UserID, ClientID: a.ClientID, ExpiresAt: a.ExpiresAt}
 	return nil
 }

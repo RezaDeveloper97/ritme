@@ -43,10 +43,13 @@ func reject(code, format string, args ...any) *AuthError {
 	return &AuthError{Code: code, Reason: fmt.Sprintf(format, args...)}
 }
 
-// VerifierStore is the data the guard reads (satisfied by *store.Queries).
+// VerifierStore is the data the guard reads (satisfied by *store.Queries). The hot path is one query
+// (GetAccessTokenWithUser) plus the in-process client cache (ListClients); GetAccessToken and GetUserByID are read
+// only when the joined row is missing, to tell a missing/revoked token from a missing user.
 type VerifierStore interface {
+	ClientLister
+	GetAccessTokenWithUser(ctx context.Context, arg store.GetAccessTokenWithUserParams) (store.GetAccessTokenWithUserRow, error)
 	GetAccessToken(ctx context.Context, id string) (store.GetAccessTokenRow, error)
-	GetClient(ctx context.Context, id string) (store.GetClientRow, error)
 	GetUserByID(ctx context.Context, id uint64) (store.User, error)
 }
 
@@ -58,19 +61,21 @@ type Session struct {
 
 // Verifier is the `auth:api` guard (Passport TokenGuard + league BearerTokenValidator).
 type Verifier struct {
-	pub    *rsa.PublicKey
-	store  VerifierStore
-	clock  clock.Clock
-	parser *jwt.Parser
+	pub     *rsa.PublicKey
+	store   VerifierStore
+	clients *clientCache
+	clock   clock.Clock
+	parser  *jwt.Parser
 }
 
 // NewVerifier builds a verifier. clk decides token time validity; production passes
 // clock.Real{} — like league's SystemClock, the request's X-Test-Now is not consulted.
 func NewVerifier(pub *rsa.PublicKey, st VerifierStore, clk clock.Clock) *Verifier {
 	return &Verifier{
-		pub:   pub,
-		store: st,
-		clock: clk,
+		pub:     pub,
+		store:   st,
+		clients: newClientCache(st),
+		clock:   clk,
 		// RS256 only; time claims are checked below with µs precision and no leeway
 		// (golang-jwt's own validation truncates NumericDate to seconds).
 		parser: jwt.NewParser(jwt.WithValidMethods([]string{jwt.SigningMethodRS256.Alg()}), jwt.WithoutClaimsValidation()),
@@ -106,6 +111,10 @@ func jwtFromHeader(header string) string {
 // Order (as in Passport): Bearer present → signature (RS256) and LooseValidAt without
 // leeway → token row id=jti AND revoked=0 (DB expires_at is NOT checked) → client by aud
 // (exists, not revoked, provider NULL or "users") → user by sub.
+//
+// Cost (T-M9-09): one query on the hot path — the token row and the user come from a single
+// join and the client from the in-process cache. The token row is never cached, so a revoked
+// token is rejected on the very next request (DECISIONS.md X-02).
 func (v *Verifier) Verify(ctx context.Context, authorization string) (*Session, error) {
 	if BearerToken(authorization) == "" {
 		return nil, reject(CodeUnauthenticated, "no bearer token")
@@ -115,6 +124,32 @@ func (v *Verifier) Verify(ctx context.Context, authorization string) (*Session, 
 		return nil, err
 	}
 
+	if c.sub != 0 {
+		row, err := v.store.GetAccessTokenWithUser(ctx, store.GetAccessTokenWithUserParams{TokenID: c.jti, UserID: c.sub})
+		switch {
+		case err == nil:
+			tok := store.GetAccessTokenRow{
+				ID: row.TokenID, UserID: row.TokenUserID, ClientID: row.TokenClientID,
+				Revoked: row.TokenRevoked, ExpiresAt: row.TokenExpiresAt,
+			}
+			if tok.Revoked {
+				return nil, reject(CodeRevoked, "token revoked")
+			}
+			if err := v.checkClient(ctx, c.aud); err != nil {
+				return nil, err
+			}
+			return &Session{User: row.User, Token: tok}, nil
+		case !errors.Is(err, sql.ErrNoRows):
+			return nil, fmt.Errorf("passport: load token and user: %w", err)
+		}
+		// No joined row: the token or the user is missing — the separate reads below give the exact code.
+	}
+	return v.verifySlow(ctx, c)
+}
+
+// verifySlow is the original three-step path (token → client → user). It runs only when the
+// joined read found nothing or the token has no subject, i.e. for requests about to be rejected.
+func (v *Verifier) verifySlow(ctx context.Context, c *claims) (*Session, error) {
 	row, err := v.store.GetAccessToken(ctx, c.jti)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
@@ -125,16 +160,8 @@ func (v *Verifier) Verify(ctx context.Context, authorization string) (*Session, 
 		return nil, reject(CodeRevoked, "token revoked")
 	}
 
-	client, err := v.store.GetClient(ctx, c.aud)
-	switch {
-	case errors.Is(err, sql.ErrNoRows):
-		return nil, reject(CodeUnauthenticated, "client not found")
-	case err != nil:
-		return nil, fmt.Errorf("passport: load client: %w", err)
-	case client.Revoked:
-		return nil, reject(CodeUnauthenticated, "client revoked")
-	case phpTruthy(client.Provider) && client.Provider.String != UserProvider:
-		return nil, reject(CodeUnauthenticated, "client provider %q", client.Provider.String)
+	if err := v.checkClient(ctx, c.aud); err != nil {
+		return nil, err
 	}
 
 	if c.sub == 0 {
@@ -148,6 +175,22 @@ func (v *Verifier) Verify(ctx context.Context, authorization string) (*Session, 
 		return nil, fmt.Errorf("passport: load user: %w", err)
 	}
 	return &Session{User: user, Token: row}, nil
+}
+
+// checkClient is ClientRepository::findActive($aud) + the guard's provider check, against the client cache.
+func (v *Verifier) checkClient(ctx context.Context, aud string) error {
+	client, ok, err := v.clients.lookup(ctx, aud)
+	switch {
+	case err != nil:
+		return err
+	case !ok:
+		return reject(CodeUnauthenticated, "client not found")
+	case client.Revoked:
+		return reject(CodeUnauthenticated, "client revoked")
+	case phpTruthy(client.Provider) && client.Provider.String != UserProvider:
+		return reject(CodeUnauthenticated, "client provider %q", client.Provider.String)
+	}
+	return nil
 }
 
 // phpTruthy is `$client->provider` in a boolean context ("" and "0" are false).

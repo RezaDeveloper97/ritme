@@ -3,7 +3,7 @@ id: T-M9-09
 title: Auth hot path: one JOIN, cached OAuth clients, interpolateParams, pool from env
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-07]
 parallel_group: M9-B
 touches: [backend-go/internal/auth/passport, backend-go/internal/auth/store, backend-go/db/queries/auth, backend-go/internal/platform/db, backend-go/internal/platform/config]

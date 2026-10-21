@@ -99,6 +99,39 @@ type DB struct {
 	Database string
 	Username string
 	Password string
+	Pool     DBPool
+}
+
+// Pool defaults (T-M9-09). The Laravel stack keeps one connection per PHP-FPM worker; Go shares one pool.
+const (
+	DefaultDBMaxOpen         = 25
+	DefaultDBConnMaxLifetime = 5 * time.Minute
+	DefaultDBConnMaxIdleTime = 2 * time.Minute
+)
+
+// DBPool is the database/sql pool sizing. A zero field means its default (see WithDefaults).
+type DBPool struct {
+	MaxOpen         int           // DB_MAX_OPEN (default 25)
+	MaxIdle         int           // DB_MAX_IDLE (default = MaxOpen, so a burst does not close and reopen connections)
+	ConnMaxLifetime time.Duration // DB_CONN_MAX_LIFETIME (default 5m; a Go duration, or whole seconds)
+	ConnMaxIdleTime time.Duration // DB_CONN_MAX_IDLE_TIME (default 2m; a Go duration, or whole seconds)
+}
+
+// WithDefaults fills the zero fields with the defaults.
+func (p DBPool) WithDefaults() DBPool {
+	if p.MaxOpen <= 0 {
+		p.MaxOpen = DefaultDBMaxOpen
+	}
+	if p.MaxIdle <= 0 {
+		p.MaxIdle = p.MaxOpen
+	}
+	if p.ConnMaxLifetime <= 0 {
+		p.ConnMaxLifetime = DefaultDBConnMaxLifetime
+	}
+	if p.ConnMaxIdleTime <= 0 {
+		p.ConnMaxIdleTime = DefaultDBConnMaxIdleTime
+	}
+	return p
 }
 
 // Redis holds the Redis connection settings (REDIS_*).
@@ -469,6 +502,7 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			Database: e.required("DB_DATABASE"),
 			Username: e.required("DB_USERNAME"),
 			Password: e.str("DB_PASSWORD", ""),
+			Pool:     loadDBPool(e),
 		},
 		Redis: Redis{
 			Host:     e.required("REDIS_HOST"),
@@ -889,6 +923,45 @@ func (e *env) boolean(key string, def bool) bool {
 		e.fail("%s: %q is not a boolean", key, e.raw(key))
 		return def
 	}
+}
+
+// loadDBPool reads DB_MAX_OPEN, DB_MAX_IDLE, DB_CONN_MAX_LIFETIME and DB_CONN_MAX_IDLE_TIME.
+func loadDBPool(e *env) DBPool {
+	p := DBPool{
+		MaxOpen:         e.integer("DB_MAX_OPEN", DefaultDBMaxOpen),
+		ConnMaxLifetime: e.duration("DB_CONN_MAX_LIFETIME", DefaultDBConnMaxLifetime),
+		ConnMaxIdleTime: e.duration("DB_CONN_MAX_IDLE_TIME", DefaultDBConnMaxIdleTime),
+	}
+	if p.MaxOpen < 1 {
+		e.fail("DB_MAX_OPEN: %d must be at least 1", p.MaxOpen)
+	}
+	p.MaxIdle = e.integer("DB_MAX_IDLE", p.MaxOpen)
+	if p.MaxIdle < 1 || p.MaxIdle > p.MaxOpen {
+		e.fail("DB_MAX_IDLE: %d must be between 1 and DB_MAX_OPEN (%d)", p.MaxIdle, p.MaxOpen)
+	}
+	return p
+}
+
+// duration reads a positive Go duration ("5m", "90s") or a whole number of seconds ("300").
+func (e *env) duration(key string, def time.Duration) time.Duration {
+	v := e.raw(key)
+	if v == "" {
+		return def
+	}
+	d, err := time.ParseDuration(v)
+	if err != nil {
+		n, nerr := strconv.Atoi(v)
+		if nerr != nil {
+			e.fail("%s: %q is not a duration", key, v)
+			return def
+		}
+		d = time.Duration(n) * time.Second
+	}
+	if d <= 0 {
+		e.fail("%s: %q must be positive", key, v)
+		return def
+	}
+	return d
 }
 
 // list mirrors cors.php: explode on ",", trim, drop empties.

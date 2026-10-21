@@ -1169,3 +1169,27 @@ Nothing needed fixing.
 - v6 vs v1.1: ovulation from BBT/LH instead of always next − 14, next moves to O + luteal; new BBT rule (v1.1 fertility: first reading ≥ +0.20, 9 readings); `ovulation_source` bbt_confirmed/lh_positive; `lh_bbt_conflict`; completed cycles laid out around detected ovulation.
 - Benchmarks: Resolve 0 allocs ≈ 124 ns; Prepare 7 allocs ≈ 3.5 µs; Prepare with 60 periods + 400 BBT + 60 LH ≈ 35 µs (budget 300 µs).
 - Open: `Period.End` zero = 1970 trap (loader must set `NoDay`; fixed in T-M9-18 if cheap); T-M9-24 builds dates with `Some(...)`, maps LH faint → not positive, may drop markers after today; T-M9-35 switches `internal/fertility` to `bbt.Detect`; product question — should TTC users with only an onboarding date (no logged period) get marker-based predictions? (today: calendar).
+
+## T-M9-09 — Auth hot path: one JOIN, cached OAuth clients, interpolateParams, pool from env
+- Each authed request now runs **1** auth query (`GetAccessTokenWithUser`: the token by jti joined with the user by `sub`) instead of 3. Measured on MariaDB with `metrics.QueryCounter`. The check order is the same as Passport: token revoked → client → user. A miss falls back to the old 3-step path (`verifySlow`) only to pick the exact 401 code. 401 codes, the 365-day lifetime and refresh-session are unchanged.
+- New `passport/clients.go`: in-memory cache of OAuth clients.
+  - Filled on first use, refreshed in the background every 5 min (stale requests are served from the last snapshot).
+  - An unknown client id triggers one shared (single-flight) reload.
+  - Tokens are never cached (X-02).
+- `platform/db`: `interpolateParams=true` is on in the DSN, forced in `OpenDSN` too. Charset utf8mb4 is safe; the driver refuses unsafe charsets.
+  - Integration test: Persian text, ZWNJ, quotes, backslash, NUL, emoji and JSON round-trip byte for byte; DATETIME stays Tehran wall-clock; `Com_stmt_prepare` stays 0.
+- Pool size comes from env through `config.DB.Pool`. Invalid values fail at startup.
+  - `DB_MAX_OPEN` default 25
+  - `DB_MAX_IDLE` default = `DB_MAX_OPEN` (was 10)
+  - `DB_CONN_MAX_LIFETIME` default 5m
+  - `DB_CONN_MAX_IDLE_TIME` default 2m
+- `BenchmarkVerify` ≈ 106 µs/op on M4 (budget 150 µs). Race and lint are clean. The full `make test-int PKG=./...` passes.
+- Contract auth: 44/45. `auth/refresh_session_due` already failed on HEAD: the contract tool mints the near-expiry token with `time.Now()` while its request clock is fixed at 2026-09-23.
+- Behaviour change: revoking an OAuth **client** reaches the guards within ≤ 5 min. Token revocation is still immediate.
+- Open (task **T-M9-09b**):
+  - contract clock fix
+  - warm the client cache at startup (today each of ~73 guards runs one `ListClients` on first use)
+  - `.env.example` DB_* vars
+  - perf-baseline numbers
+  - deviation entry for the client-revoke delay
+  - The query budget is pinned in `passport/verify_int_test.go`, because `internal/querybudget` doesn't exist yet (T-M9-08).

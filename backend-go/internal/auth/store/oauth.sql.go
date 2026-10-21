@@ -37,6 +37,57 @@ func (q *Queries) GetAccessToken(ctx context.Context, id string) (GetAccessToken
 	return i, err
 }
 
+const getAccessTokenWithUser = `-- name: GetAccessTokenWithUser :one
+SELECT t.id AS token_id, t.user_id AS token_user_id, t.client_id AS token_client_id, t.revoked AS token_revoked,
+       t.expires_at AS token_expires_at, u.id, u.name, u.email, u.mobile, u.mobile_verified_at, u.blocked_at, u.email_verified_at, u.password, u.remember_token, u.created_at, u.updated_at
+FROM ` + "`" + `oauth_access_tokens` + "`" + ` t
+CROSS JOIN ` + "`" + `users` + "`" + ` u
+WHERE t.id = ? AND u.id = ?
+LIMIT 1
+`
+
+type GetAccessTokenWithUserParams struct {
+	TokenID string
+	UserID  uint64
+}
+
+type GetAccessTokenWithUserRow struct {
+	TokenID        string
+	TokenUserID    sql.NullInt64
+	TokenClientID  string
+	TokenRevoked   bool
+	TokenExpiresAt sql.NullTime
+	User           User
+}
+
+// The auth hot path (T-M9-09): the token row (id = jti) and the user (id = the JWT `sub`) in ONE round-trip,
+// replacing GetAccessToken + GetUserByID. Both are primary-key lookups, so the join is two const reads. No row means
+// the token or the user is missing: the verifier then falls back to the separate reads to answer the exact 401 code.
+// Never cached (DECISIONS.md X-02): revocation must be read fresh on every request.
+func (q *Queries) GetAccessTokenWithUser(ctx context.Context, arg GetAccessTokenWithUserParams) (GetAccessTokenWithUserRow, error) {
+	row := q.db.QueryRowContext(ctx, getAccessTokenWithUser, arg.TokenID, arg.UserID)
+	var i GetAccessTokenWithUserRow
+	err := row.Scan(
+		&i.TokenID,
+		&i.TokenUserID,
+		&i.TokenClientID,
+		&i.TokenRevoked,
+		&i.TokenExpiresAt,
+		&i.User.ID,
+		&i.User.Name,
+		&i.User.Email,
+		&i.User.Mobile,
+		&i.User.MobileVerifiedAt,
+		&i.User.BlockedAt,
+		&i.User.EmailVerifiedAt,
+		&i.User.Password,
+		&i.User.RememberToken,
+		&i.User.CreatedAt,
+		&i.User.UpdatedAt,
+	)
+	return i, err
+}
+
 const getClient = `-- name: GetClient :one
 SELECT id, provider, revoked FROM ` + "`" + `oauth_clients` + "`" + ` WHERE id = ? LIMIT 1
 `
@@ -80,6 +131,41 @@ func (q *Queries) InsertAccessToken(ctx context.Context, arg InsertAccessTokenPa
 		arg.ExpiresAt,
 	)
 	return err
+}
+
+const listClients = `-- name: ListClients :many
+SELECT id, provider, revoked FROM ` + "`" + `oauth_clients` + "`" + `
+`
+
+type ListClientsRow struct {
+	ID       string
+	Provider sql.NullString
+	Revoked  bool
+}
+
+// Every client for the verifier's in-process cache (T-M9-09): loaded on first use, refreshed every 5 min, reloaded
+// once on an unknown id. The table holds a handful of rows.
+func (q *Queries) ListClients(ctx context.Context) ([]ListClientsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClients)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListClientsRow{}
+	for rows.Next() {
+		var i ListClientsRow
+		if err := rows.Scan(&i.ID, &i.Provider, &i.Revoked); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listPersonalAccessClientCandidates = `-- name: ListPersonalAccessClientCandidates :many

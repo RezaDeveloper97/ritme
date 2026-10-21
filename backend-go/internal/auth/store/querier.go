@@ -19,6 +19,11 @@ type Querier interface {
 	DeleteOtpsForMobile(ctx context.Context, mobile string) error
 	// Passport tables (oauth_access_tokens, oauth_clients), shared with Laravel.
 	GetAccessToken(ctx context.Context, id string) (GetAccessTokenRow, error)
+	// The auth hot path (T-M9-09): the token row (id = jti) and the user (id = the JWT `sub`) in ONE round-trip,
+	// replacing GetAccessToken + GetUserByID. Both are primary-key lookups, so the join is two const reads. No row means
+	// the token or the user is missing: the verifier then falls back to the separate reads to answer the exact 401 code.
+	// Never cached (DECISIONS.md X-02): revocation must be read fresh on every request.
+	GetAccessTokenWithUser(ctx context.Context, arg GetAccessTokenWithUserParams) (GetAccessTokenWithUserRow, error)
 	// ClientRepository::find($aud) (findActive checks `revoked`, the guard checks `provider`).
 	GetClient(ctx context.Context, id string) (GetClientRow, error)
 	// ->whereNull('verified_at')->latest()->first().
@@ -34,6 +39,9 @@ type Querier interface {
 	// AccessTokenRepository::persistNewAccessToken + PersonalAccessTokenFactory (name, scopes '[]').
 	InsertAccessToken(ctx context.Context, arg InsertAccessTokenParams) error
 	InsertOtp(ctx context.Context, arg InsertOtpParams) error
+	// Every client for the verifier's in-process cache (T-M9-09): loaded on first use, refreshed every 5 min, reloaded
+	// once on an unknown id. The table holds a handful of rows.
+	ListClients(ctx context.Context) ([]ListClientsRow, error)
 	// ClientRepository::personalAccessClient('users'): non-revoked, provider NULL or 'users',
 	// latest first; the caller picks the first whose grant_types contains "personal_access".
 	ListPersonalAccessClientCandidates(ctx context.Context) ([]ListPersonalAccessClientCandidatesRow, error)

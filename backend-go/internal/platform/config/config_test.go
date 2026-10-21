@@ -405,3 +405,38 @@ func TestLoad_Learning(t *testing.T) {
 	_, err = LoadFrom(lookup(env))
 	require.ErrorContains(t, err, "LEARNING_SMS_PROVIDER")
 }
+
+// T-M9-09: pool sizing from env; DB_MAX_IDLE follows DB_MAX_OPEN unless set.
+func TestLoad_DBPool(t *testing.T) {
+	cfg, err := LoadFrom(lookup(minimal()))
+	require.NoError(t, err)
+	assert.Equal(t, DBPool{MaxOpen: 25, MaxIdle: 25, ConnMaxLifetime: 5 * time.Minute, ConnMaxIdleTime: 2 * time.Minute}, cfg.DB.Pool)
+
+	env := minimal()
+	env["DB_MAX_OPEN"] = "40"
+	env["DB_CONN_MAX_LIFETIME"] = "10m"
+	env["DB_CONN_MAX_IDLE_TIME"] = "90"
+	cfg, err = LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.Equal(t, DBPool{MaxOpen: 40, MaxIdle: 40, ConnMaxLifetime: 10 * time.Minute, ConnMaxIdleTime: 90 * time.Second}, cfg.DB.Pool)
+
+	env["DB_MAX_IDLE"] = "8"
+	cfg, err = LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.Equal(t, 8, cfg.DB.Pool.MaxIdle)
+
+	for key, bad := range map[string]string{
+		"DB_MAX_OPEN": "0", "DB_MAX_IDLE": "41", "DB_CONN_MAX_LIFETIME": "soon", "DB_CONN_MAX_IDLE_TIME": "-1s",
+	} {
+		e := minimal()
+		e["DB_MAX_OPEN"] = "40"
+		e[key] = bad
+		_, err := LoadFrom(lookup(e))
+		require.Error(t, err, key)
+		assert.Contains(t, err.Error(), key)
+	}
+
+	assert.Equal(t, DBPool{MaxOpen: 25, MaxIdle: 25, ConnMaxLifetime: 5 * time.Minute, ConnMaxIdleTime: 2 * time.Minute},
+		DBPool{}.WithDefaults())
+	assert.Equal(t, 7, DBPool{MaxOpen: 7}.WithDefaults().MaxIdle)
+}
