@@ -198,11 +198,26 @@ if [[ "${FROM_WORKTREE:-1}" == "1" ]]; then REV="$(git rev-parse --short HEAD)-w
 BUILD_REV="${REV}-$(date -u +%Y%m%dT%H%M%SZ)"
 wants() { [[ -z "$SERVICES" || " $SERVICES " == *" $1 "* ]]; }
 
+# wait_ready — poll backend-go's GET /ready (MariaDB + Redis both answer, T-M9-10) until it is 200, from inside
+# the container: the image has no shell or curl, so `api healthcheck ready` makes the request. /up (the Docker
+# HEALTHCHECK) only says the process is alive. Gives up — and aborts the deploy — after ~60 s.
+wait_ready() {
+  echo "==> Waiting for backend-go /ready ..."
+  ssh_run 'for i in $(seq 1 30); do
+    if docker exec ritme-beta-backend-go-1 /app/api healthcheck ready >/dev/null 2>&1; then echo "  ready"; exit 0; fi
+    sleep 2
+  done
+  echo "!! backend-go is not ready (GET /ready answers non-200: MariaDB or Redis unreachable)" >&2
+  docker exec ritme-beta-backend-go-1 /app/api healthcheck ready >&2 || true
+  exit 1'
+}
+
 if [[ "${NO_BUILD:-0}" != "1" ]]; then
   if wants backend-go; then
     echo "==> Building and starting backend-go first ..."
     ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} build backend-go"
     ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} up -d --wait --wait-timeout 180 backend-go"
+    wait_ready
     ssh_run "docker logs ritme-beta-backend-go-1 2>&1 | grep '\"msg\":\"migrations\"' | tail -1" || true
   fi
   echo "==> Building beta images on the server (BUILD_REV=${BUILD_REV}) ..."
@@ -211,6 +226,7 @@ fi
 
 echo "==> Starting beta stack ..."
 ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} up -d ${SERVICES}"
+if wants backend-go; then wait_ready; fi
 ssh_run "docker image prune -f" >/dev/null || true
 
 # ── 6. Switch the vhost on (recreate: BETA_CONF selects a mount source) ─────

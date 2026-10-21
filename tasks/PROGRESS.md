@@ -1295,3 +1295,40 @@ Nothing needed fixing.
 - `docs/investigations/perf-baseline.md`: new T-M9-09 numbers (auth queries per request 3 → 1, Verify ≈ 106 µs/op, interpolateParams = 1 round-trip per query).
 - `docs/go-migration/deviations.md` **D-140**: revoking an OAuth client takes effect within ≤ 5 min; token revocation stays immediate. Status: awaiting user OK.
 - Not done: scope item 2, warming the client cache at startup. The auto-mode permission check refused the `guard.go` edit, and I did not try to work around it. It moved to **T-M9-09c**, which needs a user OK first.
+
+## T-M9-10 — HTTP and infra hardening: gzip, timeouts, readiness, Redis eviction, MariaDB config
+- `platform/httpx`:
+  - `Compress()`: brotli or gzip for JSON responses of 1 KB and up (D-132). Not compressed: HEAD, Range/206/204, streams (SSE, file, media), responses that already have a Content-Encoding, `no-transform`, and any non-JSON type. It applies to every large JSON response, not only the engine GETs; the bytes after decompression are unchanged.
+  - `RequestDeadline(5s, LongRunning)`: a deadline on `c.Context()`, with an allow-list for long routes (multipart uploads, `…/export`, assistant, voice logs, document extract, instructor media).
+- `GET /ready`: pings the DB and Redis, each within 1 s. 200 `{"status":"ok"}`, or 503 with `failed: [db|redis]`. `/up` stays liveness only. `api healthcheck ready` probes it. Documented in OpenAPI (added by the main session; outside the agent's touches).
+- Fiber Read/Write/Idle timeouts, with a 1 h override for media upload and streaming.
+- Redis pool and timeouts come from config. New test `TestCacheWritesHaveTTL` finds cache writes with no TTL.
+- New env vars:
+
+  | Var | Default |
+  |---|---|
+  | `HTTP_READ_TIMEOUT` | 15s |
+  | `HTTP_WRITE_TIMEOUT` | 120s |
+  | `HTTP_IDLE_TIMEOUT` | 60s |
+  | `HTTP_REQUEST_TIMEOUT` | 5s |
+  | `HTTP_MEDIA_TIMEOUT` | 1h |
+  | `REDIS_POOL_SIZE` | 20 |
+  | `REDIS_DIAL_TIMEOUT` | 2s |
+  | `REDIS_READ_TIMEOUT` | 2s |
+  | `REDIS_WRITE_TIMEOUT` | 2s |
+  | `MARIADB_BUFFER_POOL_SIZE` (compose only) | 512M |
+  | `REDIS_MAXMEMORY` (compose only) | 256mb |
+
+- Stage and beta compose:
+  - MariaDB: `--innodb-buffer-pool-size`, plus a read-only `deploy/mariadb/ritme.cnf` (slow log at 0.2 s, performance_schema ON).
+  - Redis: `--maxmemory … --maxmemory-policy volatile-lru` with AOF.
+- `deploy-stage.sh` / `deploy-beta.sh`: `wait_ready` polls `/ready` up to 30 × 2 s and aborts the deploy if it never passes. Not run.
+- **User/server notes:**
+  - The next stage or beta deploy recreates the mysql and redis containers (a short DB restart; volumes are kept).
+  - The server has 4 GB RAM for three stacks. 512M buffer pool plus performance_schema may be tight, so consider `MARIADB_BUFFER_POOL_SIZE=256M` on stage.
+  - `slow-query.log` is never rotated.
+  - Under `volatile-lru`, keys without a TTL (queue, state) are never evicted.
+- Open items:
+  - **T-M9-10b**: most service calls pass the `fiber.Ctx` itself, which has no deadline, so the 5 s cap reaches only about 93 of about 550 call sites. The fix is in the db connector.
+  - A request timeout gives 500, never 401.
+  - The `.env.*.example` files don't list the new vars yet.

@@ -16736,6 +16736,22 @@ paths:
           description: Alive
           content:
             text/plain: {schema: {type: string, const: OK}}
+  /ready:
+    get:
+      tags: [System]
+      summary: Readiness probe
+      description: "MariaDB and Redis each answer a ping within 1 s; 503 names the failed checks. Used by the deploy scripts (`api healthcheck ready`); not routed by nginx (T-M9-10)."
+      operationId: getReady
+      security: []
+      responses:
+        '200':
+          description: Ready
+          content:
+            application/json: {schema: {type: object, required: [status], properties: {status: {type: string, const: ok}}}}
+        '503':
+          description: A dependency is down
+          content:
+            application/json: {schema: {type: object, required: [status, failed], properties: {status: {type: string, const: unavailable}, failed: {type: array, items: {type: string, enum: [db, redis]}}}}}
   /api/v1/pregnancy/v2/setup-copy:
     get:
       tags: [PregnancyV2]

@@ -1,0 +1,19 @@
+# MariaDB settings for the STAGE and BETA stacks only (T-M9-10), mounted read-only at
+# /etc/mysql/conf.d/ritme.cnf by docker-compose.stage.yml / docker-compose.beta.yml.
+# Production (docker-compose.yml + docker-compose.prod.yml) does not mount it.
+#
+# innodb_buffer_pool_size is NOT set here: option files cannot read env vars, so the overlays pass
+# --innodb-buffer-pool-size=${MARIADB_BUFFER_POOL_SIZE:-512M} on the command line.
+#
+# The file must not be world-writable, or mariadbd ignores it (rsync keeps the repo's 0644).
+
+[mariadbd]
+# Slow-query log: every statement slower than 200 ms (the Go slow-query warning threshold, db.SlowQuery).
+# A fixed file name in the datadir volume — the default <hostname>-slow.log would change with every
+# container recreate.
+slow_query_log      = 1
+long_query_time     = 0.2
+slow_query_log_file = /var/lib/mysql/slow-query.log
+
+# Per-statement / per-wait statistics for the M9 performance work (sys schema, events_statements_summary_*).
+performance_schema  = ON

@@ -3,7 +3,7 @@ id: T-M9-10
 title: HTTP and infra hardening: gzip, timeouts, readiness, Redis eviction, MariaDB config
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-07]
 parallel_group: M9-B
 touches: [backend-go/cmd/api/app.go, backend-go/cmd/api/main.go, backend-go/internal/platform/httpx, backend-go/internal/http/routes_health.go, backend-go/internal/platform/cache, backend-go/internal/platform/config, docker-compose.stage.yml, docker-compose.beta.yml, deploy/mariadb, deploy-stage.sh, deploy-beta.sh]

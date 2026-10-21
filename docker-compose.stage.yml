@@ -32,9 +32,19 @@ services:
       interval: 5s
       timeout: 3s
       retries: 30
+    # T-M9-10: slow-query log + performance_schema (deploy/mariadb/ritme.cnf) and a buffer pool sized from the
+    # server .env (MARIADB_BUFFER_POOL_SIZE, default 512M; option files cannot read env vars). Production's
+    # mysql service does not get either.
+    command: ["--innodb-buffer-pool-size=${MARIADB_BUFFER_POOL_SIZE:-512M}"]
+    volumes:
+      - ./deploy/mariadb/ritme.cnf:/etc/mysql/conf.d/ritme.cnf:ro
     ports: !override []
 
   redis:
+    # T-M9-10: bounded memory. volatile-lru evicts only keys with a TTL (cache entries) and never the TTL-less
+    # queue / state keys; the default noeviction would instead fail every write (throttles, queue) with a 500
+    # once memory is full. AOF persistence kept as in the base file.
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "${REDIS_MAXMEMORY:-256mb}", "--maxmemory-policy", "volatile-lru"]
     ports: !override []
 
   # Retired on stage (T-M2-28) — profile `laravel`, see the header. Its alias

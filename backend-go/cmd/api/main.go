@@ -1,7 +1,8 @@
 // Command api is the Ritme Go HTTP service: config → MariaDB/Redis → router → Fiber.
 //
 // `api healthcheck` probes GET /up on HTTP_ADDR and exits 0/1; the Docker HEALTHCHECK
-// uses it because the runtime image has no shell or curl.
+// uses it because the runtime image has no shell or curl. `api healthcheck ready` probes
+// GET /ready instead (MariaDB + Redis reachable, T-M9-10): the deploy scripts wait on it.
 package main
 
 import (
@@ -22,8 +23,8 @@ import (
 
 	apihttp "github.com/ritme/backend-go/internal/http"
 	"github.com/ritme/backend-go/internal/platform/cache"
-	"github.com/ritme/backend-go/internal/platform/configcache"
 	"github.com/ritme/backend-go/internal/platform/config"
+	"github.com/ritme/backend-go/internal/platform/configcache"
 	"github.com/ritme/backend-go/internal/platform/db"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/metrics"
@@ -37,7 +38,7 @@ func main() {
 	slog.SetDefault(logger)
 
 	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
-		os.Exit(healthcheck())
+		os.Exit(healthcheck(healthPath(os.Args[2:])))
 	}
 
 	if err := run(logger); err != nil {
@@ -146,8 +147,16 @@ func migrateOnStart(ctx context.Context, logger *slog.Logger, pool *sql.DB) erro
 	return nil
 }
 
-// healthcheck returns the process exit code for `api healthcheck`.
-func healthcheck() int {
+// healthPath maps the `api healthcheck` arguments to the probed path: none → /up (liveness), "ready" → /ready.
+func healthPath(args []string) string {
+	if len(args) > 0 && args[0] == "ready" {
+		return "/ready"
+	}
+	return "/up"
+}
+
+// healthcheck returns the process exit code for `api healthcheck`: 0 when GET path answers 200.
+func healthcheck(path string) int {
 	addr := os.Getenv("HTTP_ADDR")
 	if addr == "" {
 		addr = ":8020"
@@ -163,7 +172,7 @@ func healthcheck() int {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	// The target is our own listener from HTTP_ADDR, pinned to loopback above, not user input.
-	url := "http://" + net.JoinHostPort(host, port) + "/up"
+	url := "http://" + net.JoinHostPort(host, port) + path
 	req, err := nethttp.NewRequestWithContext(ctx, nethttp.MethodGet, url, nil) //nolint:gosec // G704: see above
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "healthcheck:", err)

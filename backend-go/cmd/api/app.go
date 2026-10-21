@@ -7,10 +7,12 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	fiberrecover "github.com/gofiber/fiber/v3/middleware/recover"
+	"github.com/valyala/fasthttp"
 
 	apihttp "github.com/ritme/backend-go/internal/http"
 	"github.com/ritme/backend-go/internal/modules"
 	"github.com/ritme/backend-go/internal/platform/clock"
+	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/metrics"
 )
@@ -21,12 +23,23 @@ const slowRequest = 500 * time.Millisecond
 // bodyLimit matches the upload ceiling of the PHP stack (25 MB).
 const bodyLimit = 25 * 1024 * 1024
 
-// newApp builds the Fiber app: proxy/IP handling, access log, CORS, then every
-// registered domain from reg.
+// newApp builds the Fiber app: proxy/IP handling, timeouts, access log, compression, request deadline, CORS, then
+// every registered domain from reg.
 func newApp(reg *apihttp.Registry, deps *apihttp.Deps) *fiber.App {
+	var timeouts config.HTTPTimeouts
+	if deps.Config != nil {
+		timeouts = deps.Config.HTTP.Timeouts
+	}
+	timeouts = timeouts.WithDefaults()
+
 	app := fiber.New(fiber.Config{
 		AppName:   "ritme-backend-go",
 		BodyLimit: bodyLimit,
+		// T-M9-10: bounded listener timeouts (fasthttp's default is none). Write sits above the longest regular
+		// response, the assistant SSE stream; the unbuffered media routes get timeouts.Media (mediaTimeouts).
+		ReadTimeout:  timeouts.Read,
+		WriteTimeout: timeouts.Write,
+		IdleTimeout:  timeouts.Idle,
 		// Laravel trusts every proxy (bootstrap/app.php trustProxies(at: '*')): the
 		// container port is only reachable through nginx. c.IP() returns the first
 		// valid address of X-Forwarded-For, like Symfony's getClientIp() does when
@@ -37,6 +50,7 @@ func newApp(reg *apihttp.Registry, deps *apihttp.Deps) *fiber.App {
 		EnableIPValidation: true,
 		ErrorHandler:       httpx.ErrorHandler(deps.Logger),
 	})
+	app.Server().HeaderReceived = mediaTimeouts(timeouts.Media)
 
 	// Observability first (T-M9-07): request id, then route metrics + the per-request query counter, so every later
 	// middleware (module gate, auth) is counted and logged under the request's id.
@@ -46,6 +60,11 @@ func newApp(reg *apihttp.Registry, deps *apihttp.Deps) *fiber.App {
 	// A panic in any handler becomes a 500 instead of killing the process (security audit of CB-REC-02); it sits
 	// inside the access log and metrics so the 500 is logged and counted like any other.
 	app.Use(recoverPanics(deps.Logger))
+	// JSON bodies ≥ 1 KB leave brotli/gzip-compressed (D-132); streams, files and small bodies stay as they are.
+	app.Use(httpx.Compress())
+	// Every query made with c.Context() is cancelled after timeouts.Request, except on the AI / upload / export
+	// allow-list (httpx.LongRunning).
+	app.Use(httpx.RequestDeadline(timeouts.Request, httpx.LongRunning))
 	// Lets the strangler smoke tests see which stack answered (deploy/switch-go-route.sh).
 	app.Use(func(c fiber.Ctx) error {
 		c.Set("X-Backend", "go")
@@ -62,6 +81,18 @@ func newApp(reg *apihttp.Registry, deps *apihttp.Deps) *fiber.App {
 
 	reg.Mount(app, deps)
 	return app
+}
+
+// mediaTimeouts is the fasthttp HeaderReceived hook: the media upload chunks and the playback stream, which nginx
+// does not buffer (proxy_request_buffering / proxy_buffering off), read and write at the client's speed, so they get
+// d instead of the listener's ReadTimeout / WriteTimeout. Every other request keeps the listener's.
+func mediaTimeouts(d time.Duration) func(*fasthttp.RequestHeader) fasthttp.RequestConfig {
+	return func(h *fasthttp.RequestHeader) fasthttp.RequestConfig {
+		if !httpx.MediaTransfer(string(h.RequestURI())) {
+			return fasthttp.RequestConfig{}
+		}
+		return fasthttp.RequestConfig{ReadTimeout: d, WriteTimeout: d}
+	}
 }
 
 // recoverPanics turns a handler panic into the framework 500 (httpx.ServerError through the error handler). The log
@@ -102,8 +133,8 @@ func accessLog(logger *slog.Logger) fiber.Handler {
 		level := slog.LevelInfo
 		if status >= fiber.StatusInternalServerError {
 			level = slog.LevelError
-		} else if c.Path() == "/up" {
-			return err // Docker probes /up every 10s; don't flood the log.
+		} else if p := c.Path(); p == "/up" || p == "/ready" {
+			return err // Docker probes /up every 10s and deploys poll /ready; don't flood the log.
 		}
 		attrs := []slog.Attr{
 			slog.String("request_id", httpx.RequestIDFrom(c.Context())),

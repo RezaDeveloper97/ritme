@@ -129,6 +129,20 @@ BUILD_REV="$(git rev-parse --short "${BRANCH}" 2>/dev/null || echo worktree)-$(d
 # True when this run touches <service> (an empty SERVICES means all of them).
 wants() { [[ -z "$SERVICES" || " $SERVICES " == *" $1 "* ]]; }
 
+# wait_ready — poll backend-go's GET /ready (MariaDB + Redis both answer, T-M9-10) until it is 200, from inside
+# the container: the image has no shell or curl, so `api healthcheck ready` makes the request. /up (the Docker
+# HEALTHCHECK) only says the process is alive. Gives up — and aborts the deploy — after ~60 s.
+wait_ready() {
+  echo "==> Waiting for backend-go /ready ..."
+  ssh_run 'for i in $(seq 1 30); do
+    if docker exec ritme-stage-backend-go-1 /app/api healthcheck ready >/dev/null 2>&1; then echo "  ready"; exit 0; fi
+    sleep 2
+  done
+  echo "!! backend-go is not ready (GET /ready answers non-200: MariaDB or Redis unreachable)" >&2
+  docker exec ritme-stage-backend-go-1 /app/api healthcheck ready >&2 || true
+  exit 1'
+}
+
 if [[ "${NO_BUILD:-0}" != "1" ]]; then
   if wants backend-go; then
     echo "==> Building and starting backend-go first (the frontend build reads its messages)..."
@@ -136,6 +150,7 @@ if [[ "${NO_BUILD:-0}" != "1" ]]; then
     # --wait: returns once the healthcheck passes, non-zero (=> abort under
     # set -e) if it goes unhealthy — nothing gets built against a dead API.
     ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} up -d --wait --wait-timeout 180 backend-go"
+    wait_ready
     ssh_run "docker logs ritme-stage-backend-go-1 2>&1 | grep '\"msg\":\"migrations\"' | tail -1" || true
     # The route-group upstream{} blocks in stage-ssl.conf resolve at nginx
     # load; the SSG fetch goes through the proxy, so point them at the new
@@ -149,6 +164,7 @@ fi
 
 echo "==> Starting staging stack..."
 ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} up -d ${SERVICES}"
+if wants backend-go; then wait_ready; fi
 
 # Laravel is retired on stage (T-M2-28). Its services are profiled out, so
 # `up -d` no longer touches the containers an older deploy started — stop and

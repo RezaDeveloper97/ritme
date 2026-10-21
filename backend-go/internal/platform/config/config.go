@@ -84,12 +84,52 @@ func (a App) IsProduction() bool { return a.Env == "production" }
 // DefaultMetricsAddr is the private /metrics + /debug/pprof listener (T-M9-07): loopback only, never routed by nginx.
 const DefaultMetricsAddr = "127.0.0.1:9090"
 
+// HTTP timeout defaults (T-M9-10). DefaultHTTPWriteTimeout sits above the longest regular route: the assistant
+// chat stream (90 s StreamTimeout + 10 s slack, internal/assistant). DefaultHTTPMediaTimeout covers the media
+// transfer routes nginx does not buffer (instructor upload chunks, signed playback stream).
+const (
+	DefaultHTTPReadTimeout    = 15 * time.Second
+	DefaultHTTPWriteTimeout   = 120 * time.Second
+	DefaultHTTPIdleTimeout    = 60 * time.Second
+	DefaultHTTPRequestTimeout = 5 * time.Second
+	DefaultHTTPMediaTimeout   = time.Hour
+)
+
 // HTTP holds the listener settings.
 type HTTP struct {
 	Addr string
 	// MetricsAddr (METRICS_ADDR, default DefaultMetricsAddr) is the second listener serving /metrics and
 	// /debug/pprof/*. Set but empty means off.
 	MetricsAddr string
+	Timeouts    HTTPTimeouts
+}
+
+// HTTPTimeouts are the listener and per-request deadlines (T-M9-10). Each env value is a Go duration ("90s") or
+// whole seconds ("90").
+type HTTPTimeouts struct {
+	Read  time.Duration // HTTP_READ_TIMEOUT: whole request, headers + body (default 15s)
+	Write time.Duration // HTTP_WRITE_TIMEOUT: whole response (default 120s)
+	Idle  time.Duration // HTTP_IDLE_TIMEOUT: keep-alive wait for the next request (default 60s)
+	// Request (HTTP_REQUEST_TIMEOUT, default 5s) is the deadline of the request context, so of every DB query made
+	// with it; the long-running allow-list (AI, uploads, exports) is exempt.
+	Request time.Duration
+	// Media (HTTP_MEDIA_TIMEOUT, default 1h) replaces Read and Write on the unbuffered media transfer routes.
+	Media time.Duration
+}
+
+// WithDefaults fills the zero fields with the defaults.
+func (t HTTPTimeouts) WithDefaults() HTTPTimeouts {
+	def := func(d *time.Duration, v time.Duration) {
+		if *d <= 0 {
+			*d = v
+		}
+	}
+	def(&t.Read, DefaultHTTPReadTimeout)
+	def(&t.Write, DefaultHTTPWriteTimeout)
+	def(&t.Idle, DefaultHTTPIdleTimeout)
+	def(&t.Request, DefaultHTTPRequestTimeout)
+	def(&t.Media, DefaultHTTPMediaTimeout)
+	return t
 }
 
 // DB holds the MariaDB connection settings (DB_*).
@@ -134,6 +174,14 @@ func (p DBPool) WithDefaults() DBPool {
 	return p
 }
 
+// Redis client defaults (T-M9-10).
+const (
+	DefaultRedisPoolSize     = 20
+	DefaultRedisDialTimeout  = 2 * time.Second
+	DefaultRedisReadTimeout  = 2 * time.Second
+	DefaultRedisWriteTimeout = 2 * time.Second
+)
+
 // Redis holds the Redis connection settings (REDIS_*).
 type Redis struct {
 	Host     string
@@ -142,6 +190,30 @@ type Redis struct {
 	Password string
 	DB       int
 	Prefix   string
+	// Pool sizing and socket timeouts: REDIS_POOL_SIZE, REDIS_DIAL_TIMEOUT, REDIS_READ_TIMEOUT, REDIS_WRITE_TIMEOUT.
+	// Zero means the default above. Blocking commands (BLMOVE …) get their own timeout on top of ReadTimeout from
+	// go-redis.
+	PoolSize     int
+	DialTimeout  time.Duration
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+}
+
+// WithDefaults fills the zero pool / timeout fields with the defaults.
+func (r Redis) WithDefaults() Redis {
+	if r.PoolSize <= 0 {
+		r.PoolSize = DefaultRedisPoolSize
+	}
+	if r.DialTimeout <= 0 {
+		r.DialTimeout = DefaultRedisDialTimeout
+	}
+	if r.ReadTimeout <= 0 {
+		r.ReadTimeout = DefaultRedisReadTimeout
+	}
+	if r.WriteTimeout <= 0 {
+		r.WriteTimeout = DefaultRedisWriteTimeout
+	}
+	return r
 }
 
 // Addr returns host:port.
@@ -495,7 +567,11 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			Timezone: e.str("APP_TIMEZONE", "Asia/Tehran"),
 			Locale:   e.str("APP_LOCALE", "en"),
 		},
-		HTTP: HTTP{Addr: e.str("HTTP_ADDR", ":8020"), MetricsAddr: e.optional("METRICS_ADDR", DefaultMetricsAddr)},
+		HTTP: HTTP{
+			Addr:        e.str("HTTP_ADDR", ":8020"),
+			MetricsAddr: e.optional("METRICS_ADDR", DefaultMetricsAddr),
+			Timeouts:    loadHTTPTimeouts(e),
+		},
 		DB: DB{
 			Host:     e.required("DB_HOST"),
 			Port:     e.integer("DB_PORT", 3306),
@@ -511,6 +587,11 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			Password: e.str("REDIS_PASSWORD", ""),
 			DB:       e.integer("REDIS_DB", 0),
 			Prefix:   e.str("REDIS_PREFIX", "ritme-go:"),
+
+			PoolSize:     e.integer("REDIS_POOL_SIZE", DefaultRedisPoolSize),
+			DialTimeout:  e.duration("REDIS_DIAL_TIMEOUT", DefaultRedisDialTimeout),
+			ReadTimeout:  e.duration("REDIS_READ_TIMEOUT", DefaultRedisReadTimeout),
+			WriteTimeout: e.duration("REDIS_WRITE_TIMEOUT", DefaultRedisWriteTimeout),
 		},
 		CORS: CORS{AllowedOrigins: e.list("CORS_ALLOWED_ORIGINS", DefaultCORSOrigins)},
 		Passport: Passport{
@@ -597,6 +678,9 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	}
 	if len(cfg.CORS.AllowedOrigins) == 0 {
 		e.fail("CORS_ALLOWED_ORIGINS: no origins after parsing")
+	}
+	if cfg.Redis.PoolSize < 1 {
+		e.fail("REDIS_POOL_SIZE: %d must be at least 1", cfg.Redis.PoolSize)
 	}
 	if cfg.Plus.VATRateBps < 0 || cfg.Plus.VATRateBps > 10000 {
 		e.fail("PLUS_VAT_RATE_BPS: must be between 0 and 10000")
@@ -940,6 +1024,18 @@ func loadDBPool(e *env) DBPool {
 		e.fail("DB_MAX_IDLE: %d must be between 1 and DB_MAX_OPEN (%d)", p.MaxIdle, p.MaxOpen)
 	}
 	return p
+}
+
+// loadHTTPTimeouts reads HTTP_READ_TIMEOUT, HTTP_WRITE_TIMEOUT, HTTP_IDLE_TIMEOUT, HTTP_REQUEST_TIMEOUT and
+// HTTP_MEDIA_TIMEOUT.
+func loadHTTPTimeouts(e *env) HTTPTimeouts {
+	return HTTPTimeouts{
+		Read:    e.duration("HTTP_READ_TIMEOUT", DefaultHTTPReadTimeout),
+		Write:   e.duration("HTTP_WRITE_TIMEOUT", DefaultHTTPWriteTimeout),
+		Idle:    e.duration("HTTP_IDLE_TIMEOUT", DefaultHTTPIdleTimeout),
+		Request: e.duration("HTTP_REQUEST_TIMEOUT", DefaultHTTPRequestTimeout),
+		Media:   e.duration("HTTP_MEDIA_TIMEOUT", DefaultHTTPMediaTimeout),
+	}
 }
 
 // duration reads a positive Go duration ("5m", "90s") or a whole number of seconds ("300").

@@ -27,14 +27,25 @@ type Client struct {
 	prefix string
 }
 
-// New builds a client; it does not dial. Call Ping to fail fast.
+// New builds a client; it does not dial. Call Ping to fail fast. Pool size and socket timeouts come from cfg
+// (REDIS_POOL_SIZE / REDIS_*_TIMEOUT, T-M9-10); zero fields take the config defaults.
 func New(cfg config.Redis) *Client {
-	return NewFromClient(redis.NewClient(&redis.Options{
-		Addr:     cfg.Addr(),
-		Username: cfg.Username,
-		Password: cfg.Password,
-		DB:       cfg.DB,
-	}), cfg.Prefix)
+	return NewFromClient(redis.NewClient(Options(cfg)), cfg.Prefix)
+}
+
+// Options maps cfg to the go-redis options New uses.
+func Options(cfg config.Redis) *redis.Options {
+	cfg = cfg.WithDefaults()
+	return &redis.Options{
+		Addr:         cfg.Addr(),
+		Username:     cfg.Username,
+		Password:     cfg.Password,
+		DB:           cfg.DB,
+		PoolSize:     cfg.PoolSize,
+		DialTimeout:  cfg.DialTimeout,
+		ReadTimeout:  cfg.ReadTimeout,
+		WriteTimeout: cfg.WriteTimeout,
+	}
 }
 
 // NewFromClient wraps an existing go-redis client (tests, asynq sharing).
