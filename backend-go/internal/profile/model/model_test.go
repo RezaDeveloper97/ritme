@@ -4,8 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,8 +21,48 @@ import (
 	"github.com/ritme/backend-go/internal/profile/store"
 )
 
+// laterColumns applies the `ALTER TABLE … ADD COLUMN` / `DROP COLUMN` statements of the Up sections after the baseline
+// to a table's column list, in migration order (AFTER honoured, so the result is the real table order).
+func laterColumns(t *testing.T, table string, cols []string) []string {
+	t.Helper()
+	files, err := filepath.Glob("../../../db/migrations/000*.sql")
+	require.NoError(t, err)
+	slices.Sort(files)
+	stmt := regexp.MustCompile("(?i)ALTER TABLE `" + table + "` (ADD|DROP) COLUMN (?:IF (?:NOT )?EXISTS )?`([a-z0-9_]+)`([^;]*);")
+	after := regexp.MustCompile("(?i) AFTER `([a-z0-9_]+)`")
+	for _, f := range files {
+		if strings.HasSuffix(f, "00001_baseline.sql") {
+			continue
+		}
+		raw, err := os.ReadFile(f)
+		require.NoError(t, err)
+		up, _, _ := strings.Cut(string(raw), "-- +goose Down")
+		for _, m := range stmt.FindAllStringSubmatch(up, -1) {
+			op, col := strings.ToUpper(m[1]), m[2]
+			i := slices.Index(cols, col)
+			if op == "DROP" {
+				if i >= 0 {
+					cols = slices.Delete(cols, i, i+1)
+				}
+				continue
+			}
+			if i >= 0 {
+				continue
+			}
+			if a := after.FindStringSubmatch(m[3]); a != nil {
+				j := slices.Index(cols, a[1])
+				require.GreaterOrEqual(t, j, 0, "%s: AFTER %s", f, a[1])
+				cols = slices.Insert(cols, j+1, col)
+				continue
+			}
+			cols = append(cols, col)
+		}
+	}
+	return cols
+}
+
 // The generic serializer names columns from sqlc field names; every model it renders must
-// map back to the exact column list (and order) of the baseline schema.
+// map back to the exact column list (and order) of the migrated schema (baseline + later ALTERs).
 func TestColumnNamesMatchSchema(t *testing.T) {
 	raw, err := os.ReadFile("../../../db/migrations/00001_baseline.sql")
 	require.NoError(t, err)
@@ -36,6 +79,7 @@ func TestColumnNamesMatchSchema(t *testing.T) {
 		for _, m := range col.FindAllSubmatch(block[1], -1) {
 			want = append(want, string(m[1]))
 		}
+		want = laterColumns(t, table, want)
 		var got []string
 		rt := reflect.TypeOf(row)
 		for i := range rt.NumField() {
@@ -64,7 +108,8 @@ func TestProfileJSON(t *testing.T) {
 		`"cycle_duration":null,"last_period_start":null,"user_goal":"non_ttc","pregnancy_intention":null,`+
 		`"chronic_conditions":[],"subscription_type":"free","calculation_status":"pending",`+
 		`"calculation_started_at":"2026-09-23T06:30:00.000000Z","calculation_completed_at":null,`+
-		`"calculation_version":0,"created_at":"2026-09-23T06:30:00.000000Z","updated_at":null}`, string(b))
+		`"calculation_version":0,"created_at":"2026-09-23T06:30:00.000000Z","updated_at":null,`+
+		`"onboarding_last_period_start":null,"timezone":null}`, string(b))
 	assert.Nil(t, model.ProfileJSON(nil))
 }
 

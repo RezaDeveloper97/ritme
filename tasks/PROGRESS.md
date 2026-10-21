@@ -1579,3 +1579,33 @@ Nothing needed fixing.
   - The «ویزیت ۶ هفته» label is fixed text even though the day is configurable.
   - Notices are created only when the user opens the postpartum home.
 - Deploy to stage/beta: not done (needs user OK).
+
+## T-M9-24 — Schema for engine v6 inputs and revisions
+- **Migration 00098** `engine_v6_inputs`, mirrored by Laravel `2026_10_21_000098_add_engine_v6_inputs.php`:
+  - `user_profiles.onboarding_last_period_start DATE NULL` and `user_profiles.timezone VARCHAR(64) NULL`
+  - `postpartum_profiles.breastfeeding TINYINT(1) NULL`
+  - new `cycle_skips` (UNIQUE user_id + expected_start, cascade)
+  - new `user_revisions` (PK user_id; `engine_rev` / `analysis_rev` BIGINT UNSIGNED default 0, cascade)
+  - Everything uses `IF [NOT] EXISTS`. It is safe on populated tables (nullable columns, empty tables, no data moves). Down drops only the new columns and tables. schema-diff: 217 tables.
+- New queries:
+  - `cycle/revisions.sql`: `BumpUserRevisions` / `BumpAnalysisRevision` / `GetUserRevisions`. 10 concurrent bumps give 10.
+  - `cycle/skips.sql`: list, idempotent insert, user-scoped delete.
+  - profile: `GetProfileEngineInputs`, plus upserts `SetOnboardingLastPeriodStart` / `SetProfileTimezone`.
+  - postpartum: `GetPostpartumBreastfeeding` / `SetPostpartumBreastfeeding`.
+  - Timestamps come from `sqlc.arg(now)` (Tehran clock), never `NOW()`.
+- Enums: `DataSourceBleedingLog` with `IsKnown` / `ParseDataSource`; `IsActual()` now covers `bleeding_log`. PHP-parity `DataSourceFrom` is unchanged (D-138).
+- Profile JSON (option a, the same as Laravel `toArray()` after the twin migration): `onboarding_last_period_start` and `timezone` appear as null at the end of the column list.
+  - `TestColumnNamesMatchSchema` now replays the later `ALTER TABLE`s.
+  - 41 goldens (89 profile objects) were hand-edited, because the Laravel contract image could not be built offline. `contract/fixtures/dump.sql` was updated.
+  - OpenAPI: both fields added to the three profile schemas.
+  - `make contract ROUTES=profile,onboarding,healthlog`: 169 passed, 0 failed.
+- `go test ./...` is green except `resources/translations` `TestSeedMatchesFrontendMessages`, which has been red since T-M9-06 (the postpartum copy was not resynced) and is fixed in T-M9-06b.
+- **Full contract (`ROUTES=all`), the same on HEAD:** 1870 passed, 44 failed (postpartum 17, pregnancy 9, analysis-ttc 7, analysis 6, pregnancy-tools 3, logs 1, teen 1). Causes:
+  - `dump.sql` lacks 00096/00097, so `postpartum/activate` returns 500;
+  - Persian copy differences such as «سیکل» vs «چرخه».
+  - Added to T-M9-06b.
+- Open items:
+  - Re-record the profile/healthlog goldens with `make contract-record` once the Laravel contract stack builds.
+  - The loader notes (NoDay, Some, LH faint, skips, positive pregnancy tests, breastfeeding/delivery date, teen band) go to T-M9-25.
+  - `PromoteLoggedStart` ignores `bleeding_log` (removed in T-M9-28 per I-02).
+  - Revision bumps are wired in T-M9-30/31. A missing `user_revisions` row reads as 0/0.

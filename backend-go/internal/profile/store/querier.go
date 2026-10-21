@@ -56,6 +56,8 @@ type Querier interface {
 	GetProfileByID(ctx context.Context, id uint64) (UserProfile, error)
 	// $user->profile (hasOne: the first row in index order).
 	GetProfileByUserID(ctx context.Context, userID uint64) (UserProfile, error)
+	// Engine v6 (T-M9-24, goose 00098): the declared onboarding LMP (I-01) and the stored IANA time zone (X-07).
+	GetProfileEngineInputs(ctx context.Context, userID uint64) (GetProfileEngineInputsRow, error)
 	// ProfileController (backend/app/Http/Controllers/Api/V1/ProfileController.php) and UserProfile.
 	// $user->fresh().
 	GetUser(ctx context.Context, id uint64) (User, error)
@@ -84,6 +86,11 @@ type Querier interface {
 	// A withdrawal keeps granted_at (the last grant) and stamps revoked_at; revoking what was never granted stores
 	// an explicit «no» without a revoked_at.
 	RevokeUserConsent(ctx context.Context, arg RevokeUserConsentParams) error
+	// I-01: only onboarding writes the declared anchor. user_id is UNIQUE (00096), so a missing profile row is created
+	// with the DB defaults and an existing one keeps everything else.
+	SetOnboardingLastPeriodStart(ctx context.Context, arg SetOnboardingLastPeriodStartParams) error
+	// X-07: the validated X-Timezone zone (the caller decides when it changed). Same upsert as above.
+	SetProfileTimezone(ctx context.Context, arg SetProfileTimezoneParams) error
 	UpdateOnboardingCycleHistory(ctx context.Context, arg UpdateOnboardingCycleHistoryParams) error
 	// $profile->fill($data)->save(): only the dirty attributes are written (set_* flags). The
 	// values are bound as the raw request strings, as PDO binds them, so MariaDB does the same

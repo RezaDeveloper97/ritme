@@ -160,6 +160,23 @@ func (q *Queries) GetLastEpdsCheckOfKind(ctx context.Context, arg GetLastEpdsChe
 	return i, err
 }
 
+const getPostpartumBreastfeeding = `-- name: GetPostpartumBreastfeeding :one
+SELECT birth_date, breastfeeding FROM ` + "`" + `postpartum_profiles` + "`" + ` WHERE user_id = ? LIMIT 1
+`
+
+type GetPostpartumBreastfeedingRow struct {
+	BirthDate     civildate.Date
+	Breastfeeding sql.NullBool
+}
+
+// Engine v6 (T-M9-24, I-04, goose 00098): the delivery date and the breastfeeding answer (NULL = not answered).
+func (q *Queries) GetPostpartumBreastfeeding(ctx context.Context, userID uint64) (GetPostpartumBreastfeedingRow, error) {
+	row := q.db.QueryRowContext(ctx, getPostpartumBreastfeeding, userID)
+	var i GetPostpartumBreastfeedingRow
+	err := row.Scan(&i.BirthDate, &i.Breastfeeding)
+	return i, err
+}
+
 const getPostpartumLifeProfile = `-- name: GetPostpartumLifeProfile :one
 SELECT life_mode, gender FROM ` + "`" + `user_life_profiles` + "`" + ` WHERE user_id = ? LIMIT 1
 `
@@ -179,7 +196,7 @@ func (q *Queries) GetPostpartumLifeProfile(ctx context.Context, userID uint64) (
 
 const getPostpartumProfile = `-- name: GetPostpartumProfile :one
 
-SELECT id, user_id, birth_date, delivery_type, baby_count, source, pregnancy_profile_id, pregnancy_closed_at, created_at, updated_at FROM ` + "`" + `postpartum_profiles` + "`" + ` WHERE user_id = ? LIMIT 1
+SELECT id, user_id, birth_date, delivery_type, baby_count, source, pregnancy_profile_id, pregnancy_closed_at, created_at, updated_at, breastfeeding FROM ` + "`" + `postpartum_profiles` + "`" + ` WHERE user_id = ? LIMIT 1
 `
 
 // Postpartum mode (bloom B-N5-01, goose 00030). Every query is scoped by user_id (health data, IDOR).
@@ -197,6 +214,7 @@ func (q *Queries) GetPostpartumProfile(ctx context.Context, userID uint64) (Post
 		&i.PregnancyClosedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Breastfeeding,
 	)
 	return i, err
 }
@@ -395,6 +413,26 @@ type SetLifeModePostpartumParams struct {
 func (q *Queries) SetLifeModePostpartum(ctx context.Context, arg SetLifeModePostpartumParams) error {
 	_, err := q.db.ExecContext(ctx, setLifeModePostpartum, arg.UserID, arg.Now, arg.Now)
 	return err
+}
+
+const setPostpartumBreastfeeding = `-- name: SetPostpartumBreastfeeding :execrows
+UPDATE ` + "`" + `postpartum_profiles` + "`" + ` SET breastfeeding = ?, updated_at = ?
+WHERE user_id = ?
+`
+
+type SetPostpartumBreastfeedingParams struct {
+	Breastfeeding sql.NullBool
+	Now           sql.NullTime
+	UserID        uint64
+}
+
+// I-04: asked on the postpartum screens; NULL clears the answer. 0 rows = the user has no postpartum profile.
+func (q *Queries) SetPostpartumBreastfeeding(ctx context.Context, arg SetPostpartumBreastfeedingParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, setPostpartumBreastfeeding, arg.Breastfeeding, arg.Now, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const syncPostpartumLegacyGoal = `-- name: SyncPostpartumLegacyGoal :exec

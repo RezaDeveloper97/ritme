@@ -3,7 +3,7 @@ id: T-M9-24
 title: Schema for engine v6 inputs and revisions
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-01, T-M9-23]
 parallel_group: M9-C
 touches: [backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/cycle, backend-go/db/queries/profile, backend-go/db/queries/postpartum, backend-go/internal/enums, backend-go/sqlc.yaml]

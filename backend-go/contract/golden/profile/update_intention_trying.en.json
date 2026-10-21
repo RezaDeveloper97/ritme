@@ -49,7 +49,9 @@
             "calculation_completed_at": "2026-09-23T05:30:00.000000Z",
             "calculation_version": 1,
             "created_at": "2026-09-23T05:30:00.000000Z",
-            "updated_at": "2026-09-23T06:30:00.000000Z"
+            "updated_at": "2026-09-23T06:30:00.000000Z",
+            "onboarding_last_period_start": null,
+            "timezone": null
           },
           "calculation_status": "completed"
         }
@@ -98,7 +100,9 @@
               "calculation_completed_at": "2026-09-23T05:30:00.000000Z",
               "calculation_version": 1,
               "created_at": "2026-09-23T05:30:00.000000Z",
-              "updated_at": "2026-09-23T06:30:00.000000Z"
+              "updated_at": "2026-09-23T06:30:00.000000Z",
+              "onboarding_last_period_start": null,
+              "timezone": null
             }
           },
           "profile": {
@@ -119,7 +123,9 @@
             "calculation_completed_at": "2026-09-23T05:30:00.000000Z",
             "calculation_version": 1,
             "created_at": "2026-09-23T05:30:00.000000Z",
-            "updated_at": "2026-09-23T06:30:00.000000Z"
+            "updated_at": "2026-09-23T06:30:00.000000Z",
+            "onboarding_last_period_start": null,
+            "timezone": null
           },
           "bmi": {
             "value": 22.2,

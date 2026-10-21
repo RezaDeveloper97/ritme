@@ -11,6 +11,17 @@ import (
 type Querier interface {
 	// RecommendationRepository::hasContent(): Recommendation::query()->exists() (inactive rows count).
 	AnyRecommendationExists(ctx context.Context) (bool, error)
+	// An analysis-only write: analysis_rev + 1, engine_rev unchanged (the first bump creates the row at 0 / 1).
+	BumpAnalysisRevision(ctx context.Context, arg BumpAnalysisRevisionParams) error
+	// Engine v6 per-user revisions (T-M9-24, DECISIONS.md X-02; table user_revisions, goose 00098). engine_rev is bumped
+	// inside every engine-input write transaction (pass the tx to store.New), analysis_rev with every engine or
+	// analysis-input write; caches key on them. A user without a row reads as 0 / 0 (sql.ErrNoRows). `now` is the Tehran
+	// wall-clock (the session time_zone is never set, so NOW() is not used).
+	// An engine-input write: both revisions + 1 (the first bump creates the row at 1 / 1). Atomic on the row, so
+	// concurrent bumps never lose one.
+	BumpUserRevisions(ctx context.Context, arg BumpUserRevisionsParams) error
+	// Undoing a skip restores the previous engine output (E-15). 0 rows = no such skip of this user.
+	DeleteCycleSkip(ctx context.Context, arg DeleteCycleSkipParams) (int64, error)
 	// CycleHistory::where('user_id')->where('is_estimated', true)->where('id', '!=', $keep)->delete().
 	DeleteEstimatesExcept(ctx context.Context, arg DeleteEstimatesExceptParams) error
 	DeletePeriod(ctx context.Context, id uint64) error
@@ -36,12 +47,18 @@ type Querier interface {
 	GetProfileByUserID(ctx context.Context, userID uint64) (UserProfile, error)
 	// CycleHistory::where('user_id', $u)->find($period).
 	GetUserPeriod(ctx context.Context, arg GetUserPeriodParams) (CycleHistory, error)
+	GetUserRevisions(ctx context.Context, userID uint64) (GetUserRevisionsRow, error)
+	// Idempotent: skipping the same predicted start again changes nothing (0 rows).
+	InsertCycleSkip(ctx context.Context, arg InsertCycleSkipParams) (int64, error)
 	// CycleHistory::create([...]); columns the controller does not set take the table defaults.
 	InsertPeriod(ctx context.Context, arg InsertPeriodParams) (int64, error)
 	// RecommendationRepository::rows(): Recommendation::active()->orderBy('sort_order')->orderBy('id').
 	ListActiveRecommendations(ctx context.Context) ([]Recommendation, error)
 	// HealthDataEngine::getCycleHistories: CycleHistory::where('user_id')->orderBy('period_start_date', 'desc').
 	ListCycleHistoriesNewestFirst(ctx context.Context, userID uint64) ([]CycleHistory, error)
+	// Skipped cycles «پریود نداشتم» (T-M9-24, DECISIONS.md E-15; table cycle_skips, goose 00098). One row per skipped
+	// predicted start; passed to the engine exactly as stored. Health data: every query is scoped by user_id (IDOR).
+	ListCycleSkips(ctx context.Context, userID uint64) ([]CycleSkip, error)
 	// HealthDataEngine::preloadDailyLogs: whereBetween('log_date', [from, to 23:59:59]) on a DATE column.
 	ListDailyLogsBetween(ctx context.Context, arg ListDailyLogsBetweenParams) ([]DailyHealthLog, error)
 	// history() and overlapsExistingPeriod(): the non-estimated periods, newest first.

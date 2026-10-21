@@ -234,9 +234,10 @@ func (e DataQualityFlag) ExcludesFromPrediction() bool {
 }
 
 // IsActual reports a real, user-owned period fact (not an estimate or prediction).
-// PHP: backend/app/Enums/DataSource.php:45.
+// PHP: backend/app/Enums/DataSource.php:45, plus the Go-only DataSourceBleedingLog (D-138, I-02), which is actual data
+// wherever user_logged is.
 func (e DataSource) IsActual() bool {
-	return e == DataSourceUserLogged || e == DataSourceUserProfileConfirmed
+	return e == DataSourceUserLogged || e == DataSourceUserProfileConfirmed || e == DataSourceBleedingLog
 }
 
 // labelFor is the shared body of the PHP labelFor(?string, locale) helpers:

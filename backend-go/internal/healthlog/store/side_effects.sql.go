@@ -130,7 +130,7 @@ func (q *Queries) GetLatestCycleHistory(ctx context.Context, userID uint64) (Cyc
 
 const getUserProfile = `-- name: GetUserProfile :one
 
-SELECT id, user_id, birthday, weight, height, period_duration, cycle_duration, last_period_start, user_goal, pregnancy_intention, chronic_conditions, subscription_type, calculation_status, calculation_started_at, calculation_completed_at, calculation_version, created_at, updated_at FROM ` + "`" + `user_profiles` + "`" + ` WHERE user_id = ? ORDER BY id LIMIT 1
+SELECT id, user_id, birthday, weight, height, period_duration, cycle_duration, last_period_start, user_goal, pregnancy_intention, chronic_conditions, subscription_type, calculation_status, calculation_started_at, calculation_completed_at, calculation_version, created_at, updated_at, onboarding_last_period_start, timezone FROM ` + "`" + `user_profiles` + "`" + ` WHERE user_id = ? ORDER BY id LIMIT 1
 `
 
 // Side effects of POST /health-logs on user_profiles and cycle_histories
@@ -158,6 +158,8 @@ func (q *Queries) GetUserProfile(ctx context.Context, userID uint64) (UserProfil
 		&i.CalculationVersion,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.OnboardingLastPeriodStart,
+		&i.Timezone,
 	)
 	return i, err
 }

@@ -20,6 +20,8 @@ type Querier interface {
 	GetEpdsCheckOn(ctx context.Context, arg GetEpdsCheckOnParams) (GetEpdsCheckOnRow, error)
 	GetLastEpdsCheck(ctx context.Context, userID uint64) (GetLastEpdsCheckRow, error)
 	GetLastEpdsCheckOfKind(ctx context.Context, arg GetLastEpdsCheckOfKindParams) (GetLastEpdsCheckOfKindRow, error)
+	// Engine v6 (T-M9-24, I-04, goose 00098): the delivery date and the breastfeeding answer (NULL = not answered).
+	GetPostpartumBreastfeeding(ctx context.Context, userID uint64) (GetPostpartumBreastfeedingRow, error)
 	// The stored life mode and gender (user_life_profiles, bloom B-N2-01).
 	GetPostpartumLifeProfile(ctx context.Context, userID uint64) (GetPostpartumLifeProfileRow, error)
 	// Postpartum mode (bloom B-N5-01, goose 00030). Every query is scoped by user_id (health data, IDOR).
@@ -38,6 +40,8 @@ type Querier interface {
 	// Serialises the lazy visit notices of one user (two app opens at once write one notice).
 	LockPostpartumProfile(ctx context.Context, userID uint64) (uint64, error)
 	SetLifeModePostpartum(ctx context.Context, arg SetLifeModePostpartumParams) error
+	// I-04: asked on the postpartum screens; NULL clears the answer. 0 rows = the user has no postpartum profile.
+	SetPostpartumBreastfeeding(ctx context.Context, arg SetPostpartumBreastfeedingParams) (int64, error)
 	// user_profiles kept in step with a non-TTC mode (PUT /profile/life-stage does the same): user_goal non_ttc, a
 	// trying / pregnant intention dropped.
 	SyncPostpartumLegacyGoal(ctx context.Context, arg SyncPostpartumLegacyGoalParams) error

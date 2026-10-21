@@ -125,3 +125,12 @@ WHERE user_id = sqlc.arg(user_id) AND `type` = 'postpartum'
 INSERT INTO `user_notifications` (user_id, type, title, body, action_url, data, created_at, updated_at)
 VALUES (sqlc.arg(user_id), 'postpartum', sqlc.arg(title), sqlc.arg(body), sqlc.arg(action_url), sqlc.arg(data),
   sqlc.arg(now), sqlc.arg(now));
+
+-- name: GetPostpartumBreastfeeding :one
+-- Engine v6 (T-M9-24, I-04, goose 00098): the delivery date and the breastfeeding answer (NULL = not answered).
+SELECT birth_date, breastfeeding FROM `postpartum_profiles` WHERE user_id = ? LIMIT 1;
+
+-- name: SetPostpartumBreastfeeding :execrows
+-- I-04: asked on the postpartum screens; NULL clears the answer. 0 rows = the user has no postpartum profile.
+UPDATE `postpartum_profiles` SET breastfeeding = sqlc.narg(breastfeeding), updated_at = sqlc.arg(now)
+WHERE user_id = sqlc.arg(user_id);

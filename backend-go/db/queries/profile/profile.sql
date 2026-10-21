@@ -73,3 +73,24 @@ WHERE id = sqlc.arg(id);
 SELECT payload FROM `message_contents`
 WHERE `group` = ? AND item_key = ? AND locale = ? AND is_active = 1 AND is_approved = 1
 LIMIT 1;
+
+-- name: GetProfileEngineInputs :one
+-- Engine v6 (T-M9-24, goose 00098): the declared onboarding LMP (I-01) and the stored IANA time zone (X-07).
+SELECT onboarding_last_period_start, timezone FROM `user_profiles` WHERE user_id = ? LIMIT 1;
+
+-- name: SetOnboardingLastPeriodStart :exec
+-- I-01: only onboarding writes the declared anchor. user_id is UNIQUE (00096), so a missing profile row is created
+-- with the DB defaults and an existing one keeps everything else.
+INSERT INTO `user_profiles` (user_id, onboarding_last_period_start, created_at, updated_at)
+VALUES (sqlc.arg(user_id), sqlc.narg(onboarding_last_period_start), sqlc.arg(now), sqlc.arg(now))
+ON DUPLICATE KEY UPDATE
+  onboarding_last_period_start = VALUES(onboarding_last_period_start),
+  updated_at = VALUES(updated_at);
+
+-- name: SetProfileTimezone :exec
+-- X-07: the validated X-Timezone zone (the caller decides when it changed). Same upsert as above.
+INSERT INTO `user_profiles` (user_id, timezone, created_at, updated_at)
+VALUES (sqlc.arg(user_id), sqlc.narg(timezone), sqlc.arg(now), sqlc.arg(now))
+ON DUPLICATE KEY UPDATE
+  timezone = VALUES(timezone),
+  updated_at = VALUES(updated_at);

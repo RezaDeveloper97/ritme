@@ -9,6 +9,8 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
 const deleteUser = `-- name: DeleteUser :execrows
@@ -68,7 +70,7 @@ func (q *Queries) GetLiveMessagePayload(ctx context.Context, arg GetLiveMessageP
 }
 
 const getProfileByID = `-- name: GetProfileByID :one
-SELECT id, user_id, birthday, weight, height, period_duration, cycle_duration, last_period_start, user_goal, pregnancy_intention, chronic_conditions, subscription_type, calculation_status, calculation_started_at, calculation_completed_at, calculation_version, created_at, updated_at FROM ` + "`" + `user_profiles` + "`" + ` WHERE id = ? LIMIT 1
+SELECT id, user_id, birthday, weight, height, period_duration, cycle_duration, last_period_start, user_goal, pregnancy_intention, chronic_conditions, subscription_type, calculation_status, calculation_started_at, calculation_completed_at, calculation_version, created_at, updated_at, onboarding_last_period_start, timezone FROM ` + "`" + `user_profiles` + "`" + ` WHERE id = ? LIMIT 1
 `
 
 // $profile->fresh().
@@ -94,12 +96,14 @@ func (q *Queries) GetProfileByID(ctx context.Context, id uint64) (UserProfile, e
 		&i.CalculationVersion,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.OnboardingLastPeriodStart,
+		&i.Timezone,
 	)
 	return i, err
 }
 
 const getProfileByUserID = `-- name: GetProfileByUserID :one
-SELECT id, user_id, birthday, weight, height, period_duration, cycle_duration, last_period_start, user_goal, pregnancy_intention, chronic_conditions, subscription_type, calculation_status, calculation_started_at, calculation_completed_at, calculation_version, created_at, updated_at FROM ` + "`" + `user_profiles` + "`" + ` WHERE user_id = ? ORDER BY id LIMIT 1
+SELECT id, user_id, birthday, weight, height, period_duration, cycle_duration, last_period_start, user_goal, pregnancy_intention, chronic_conditions, subscription_type, calculation_status, calculation_started_at, calculation_completed_at, calculation_version, created_at, updated_at, onboarding_last_period_start, timezone FROM ` + "`" + `user_profiles` + "`" + ` WHERE user_id = ? ORDER BY id LIMIT 1
 `
 
 // $user->profile (hasOne: the first row in index order).
@@ -125,7 +129,26 @@ func (q *Queries) GetProfileByUserID(ctx context.Context, userID uint64) (UserPr
 		&i.CalculationVersion,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.OnboardingLastPeriodStart,
+		&i.Timezone,
 	)
+	return i, err
+}
+
+const getProfileEngineInputs = `-- name: GetProfileEngineInputs :one
+SELECT onboarding_last_period_start, timezone FROM ` + "`" + `user_profiles` + "`" + ` WHERE user_id = ? LIMIT 1
+`
+
+type GetProfileEngineInputsRow struct {
+	OnboardingLastPeriodStart civildate.NullDate
+	Timezone                  sql.NullString
+}
+
+// Engine v6 (T-M9-24, goose 00098): the declared onboarding LMP (I-01) and the stored IANA time zone (X-07).
+func (q *Queries) GetProfileEngineInputs(ctx context.Context, userID uint64) (GetProfileEngineInputsRow, error) {
+	row := q.db.QueryRowContext(ctx, getProfileEngineInputs, userID)
+	var i GetProfileEngineInputsRow
+	err := row.Scan(&i.OnboardingLastPeriodStart, &i.Timezone)
 	return i, err
 }
 
@@ -197,6 +220,57 @@ func (q *Queries) MarkProfileRecalculated(ctx context.Context, arg MarkProfileRe
 		arg.Now,
 		arg.Now,
 		arg.ID,
+	)
+	return err
+}
+
+const setOnboardingLastPeriodStart = `-- name: SetOnboardingLastPeriodStart :exec
+INSERT INTO ` + "`" + `user_profiles` + "`" + ` (user_id, onboarding_last_period_start, created_at, updated_at)
+VALUES (?, ?, ?, ?)
+ON DUPLICATE KEY UPDATE
+  onboarding_last_period_start = VALUES(onboarding_last_period_start),
+  updated_at = VALUES(updated_at)
+`
+
+type SetOnboardingLastPeriodStartParams struct {
+	UserID                    uint64
+	OnboardingLastPeriodStart civildate.NullDate
+	Now                       sql.NullTime
+}
+
+// I-01: only onboarding writes the declared anchor. user_id is UNIQUE (00096), so a missing profile row is created
+// with the DB defaults and an existing one keeps everything else.
+func (q *Queries) SetOnboardingLastPeriodStart(ctx context.Context, arg SetOnboardingLastPeriodStartParams) error {
+	_, err := q.db.ExecContext(ctx, setOnboardingLastPeriodStart,
+		arg.UserID,
+		arg.OnboardingLastPeriodStart,
+		arg.Now,
+		arg.Now,
+	)
+	return err
+}
+
+const setProfileTimezone = `-- name: SetProfileTimezone :exec
+INSERT INTO ` + "`" + `user_profiles` + "`" + ` (user_id, timezone, created_at, updated_at)
+VALUES (?, ?, ?, ?)
+ON DUPLICATE KEY UPDATE
+  timezone = VALUES(timezone),
+  updated_at = VALUES(updated_at)
+`
+
+type SetProfileTimezoneParams struct {
+	UserID   uint64
+	Timezone sql.NullString
+	Now      sql.NullTime
+}
+
+// X-07: the validated X-Timezone zone (the caller decides when it changed). Same upsert as above.
+func (q *Queries) SetProfileTimezone(ctx context.Context, arg SetProfileTimezoneParams) error {
+	_, err := q.db.ExecContext(ctx, setProfileTimezone,
+		arg.UserID,
+		arg.Timezone,
+		arg.Now,
+		arg.Now,
 	)
 	return err
 }

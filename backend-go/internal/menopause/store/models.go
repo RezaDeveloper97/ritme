@@ -781,6 +781,14 @@ type CyclePreference struct {
 	UpdatedAt   sql.NullTime
 }
 
+type CycleSkip struct {
+	ID            uint64
+	UserID        uint64
+	ExpectedStart civildate.Date
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
 type DailyHealthLog struct {
 	ID                         uint64
 	UserID                     uint64
@@ -1962,6 +1970,7 @@ type PostpartumProfile struct {
 	PregnancyClosedAt  sql.NullTime
 	CreatedAt          sql.NullTime
 	UpdatedAt          sql.NullTime
+	Breastfeeding      sql.NullBool
 }
 
 type PostpartumRecoveryLog struct {
@@ -2965,24 +2974,33 @@ type UserNotification struct {
 }
 
 type UserProfile struct {
-	ID                     uint64
-	UserID                 uint64
-	Birthday               civildate.NullDate
-	Weight                 sql.NullString
-	Height                 sql.NullInt16
-	PeriodDuration         sql.NullInt16
-	CycleDuration          sql.NullInt16
-	LastPeriodStart        civildate.NullDate
-	UserGoal               string
-	PregnancyIntention     sql.NullString
-	ChronicConditions      db.NullRawJSON
-	SubscriptionType       string
-	CalculationStatus      string
-	CalculationStartedAt   sql.NullTime
-	CalculationCompletedAt sql.NullTime
-	CalculationVersion     int32
-	CreatedAt              sql.NullTime
-	UpdatedAt              sql.NullTime
+	ID                        uint64
+	UserID                    uint64
+	Birthday                  civildate.NullDate
+	Weight                    sql.NullString
+	Height                    sql.NullInt16
+	PeriodDuration            sql.NullInt16
+	CycleDuration             sql.NullInt16
+	LastPeriodStart           civildate.NullDate
+	UserGoal                  string
+	PregnancyIntention        sql.NullString
+	ChronicConditions         db.NullRawJSON
+	SubscriptionType          string
+	CalculationStatus         string
+	CalculationStartedAt      sql.NullTime
+	CalculationCompletedAt    sql.NullTime
+	CalculationVersion        int32
+	CreatedAt                 sql.NullTime
+	UpdatedAt                 sql.NullTime
+	OnboardingLastPeriodStart civildate.NullDate
+	Timezone                  sql.NullString
+}
+
+type UserRevision struct {
+	UserID      uint64
+	EngineRev   uint64
+	AnalysisRev uint64
+	UpdatedAt   sql.NullTime
 }
 
 type UserTaskCompletion struct {

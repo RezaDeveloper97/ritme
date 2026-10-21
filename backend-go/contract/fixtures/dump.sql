@@ -2011,6 +2011,25 @@ LOCK TABLES `cycle_preferences` WRITE;
 /*!40000 ALTER TABLE `cycle_preferences` DISABLE KEYS */;
 /*!40000 ALTER TABLE `cycle_preferences` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `cycle_skips`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cycle_skips` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `expected_start` date NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `cycle_skips_user_id_expected_start_unique` (`user_id`,`expected_start`),
+  CONSTRAINT `cycle_skips_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `cycle_skips` WRITE;
+/*!40000 ALTER TABLE `cycle_skips` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cycle_skips` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `daily_health_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -4606,6 +4625,7 @@ CREATE TABLE `postpartum_profiles` (
   `pregnancy_closed_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `breastfeeding` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `postpartum_profiles_user_id_unique` (`user_id`),
   KEY `postpartum_profiles_pregnancy_profile_id_foreign` (`pregnancy_profile_id`),
@@ -6489,6 +6509,8 @@ CREATE TABLE `user_profiles` (
   `calculation_version` int(11) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `onboarding_last_period_start` date DEFAULT NULL,
+  `timezone` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user_profiles_user_id_foreign` (`user_id`),
   CONSTRAINT `user_profiles_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -6498,24 +6520,41 @@ CREATE TABLE `user_profiles` (
 LOCK TABLES `user_profiles` WRITE;
 /*!40000 ALTER TABLE `user_profiles` DISABLE KEYS */;
 INSERT INTO `user_profiles` VALUES
-(1002,1002,'1996-04-12',60.50,165,5,28,'2026-09-13','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1003,1003,'1996-04-12',60.50,165,5,28,'2026-09-11','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1004,1004,'1996-04-12',60.50,165,5,28,'2026-09-14','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1005,1005,'1996-04-12',60.50,165,5,30,'2026-09-09','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1006,1006,'1996-04-12',60.50,165,5,28,'2026-09-03','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1007,1007,'1996-04-12',60.50,165,5,28,'2026-09-21','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1008,1008,'1996-04-12',60.50,165,5,28,'2026-09-13','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1009,1009,'1996-04-12',60.50,165,5,28,'2026-09-11','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1010,1010,'1996-04-12',60.50,165,5,28,'2026-08-16','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1011,1011,'1996-04-12',60.50,165,5,28,'2026-08-06','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1012,1012,'1996-04-12',60.50,165,5,28,'2026-09-11','ttc','trying',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1013,1013,'1996-04-12',60.50,165,5,28,'2026-09-07','non_ttc','avoiding','[\"pcos\"]','premium','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1014,1014,'1996-04-12',60.50,165,5,28,'2026-08-02','non_ttc','pregnant',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1015,1015,'1996-04-12',60.50,165,5,28,'2026-03-30','non_ttc','pregnant',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1016,1016,'1996-04-12',60.50,165,5,28,'2026-06-24','non_ttc','pregnant',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1017,1017,'1996-04-12',60.50,165,5,28,'2026-09-18','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1018,1018,'1996-04-12',60.50,165,5,28,'2026-09-17','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00');
+(1002,1002,'1996-04-12',60.50,165,5,28,'2026-09-13','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1003,1003,'1996-04-12',60.50,165,5,28,'2026-09-11','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1004,1004,'1996-04-12',60.50,165,5,28,'2026-09-14','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1005,1005,'1996-04-12',60.50,165,5,30,'2026-09-09','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1006,1006,'1996-04-12',60.50,165,5,28,'2026-09-03','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1007,1007,'1996-04-12',60.50,165,5,28,'2026-09-21','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1008,1008,'1996-04-12',60.50,165,5,28,'2026-09-13','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1009,1009,'1996-04-12',60.50,165,5,28,'2026-09-11','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1010,1010,'1996-04-12',60.50,165,5,28,'2026-08-16','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1011,1011,'1996-04-12',60.50,165,5,28,'2026-08-06','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1012,1012,'1996-04-12',60.50,165,5,28,'2026-09-11','ttc','trying',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1013,1013,'1996-04-12',60.50,165,5,28,'2026-09-07','non_ttc','avoiding','[\"pcos\"]','premium','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1014,1014,'1996-04-12',60.50,165,5,28,'2026-08-02','non_ttc','pregnant',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1015,1015,'1996-04-12',60.50,165,5,28,'2026-03-30','non_ttc','pregnant',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1016,1016,'1996-04-12',60.50,165,5,28,'2026-06-24','non_ttc','pregnant',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1017,1017,'1996-04-12',60.50,165,5,28,'2026-09-18','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL),
+(1018,1018,'1996-04-12',60.50,165,5,28,'2026-09-17','non_ttc','avoiding',NULL,'free','completed','2026-09-23 09:00:00','2026-09-23 09:00:00',1,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL,NULL);
 /*!40000 ALTER TABLE `user_profiles` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `user_revisions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_revisions` (
+  `user_id` bigint(20) unsigned NOT NULL,
+  `engine_rev` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `analysis_rev` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`user_id`),
+  CONSTRAINT `user_revisions_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `user_revisions` WRITE;
+/*!40000 ALTER TABLE `user_revisions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_revisions` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `user_task_completions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
