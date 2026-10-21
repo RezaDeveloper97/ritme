@@ -492,7 +492,7 @@ before they run.
 | A-11 | SPEC §4.3 lists "prediction source and confidence, BBT with confirmation, LH-based prediction" as Plus | The engine computes and returns the same output for everyone, and the free Today/calendar keep the plain confidence wording (honesty and safety). Plus gates only the detail surfaces: the "why this date" breakdown (source, basis cycles, confidence reasons), the BBT chart's coverline/confirmation view and the LH-based prediction explanation. | user · T-M10-29 |
 | A-12 | Where the §4.1 analysis minimums live | Product constants in one `analysis.Params` struct (documented, tested), not clinical config. | user · T-M10-26 |
 
-All M, H and A rows: **Status** proposed until T-M10-01 records the answer.
+**Approval (T-M10-01, 2026-10-21):** every M row (M-01…M-19), every A row (A-01…A-12, including A-11 as written) and the user-owned H rows (H-03, H-05, H-08, H-12, H-13, H-18) are **accepted** by the user — recommended defaults, no changes. Advisor rows (H-01, H-02, H-04, H-06, H-07, H-09, H-10, H-11, H-14, H-15, H-16, H-17) are **advisor-pending**: the safe default ships; see `clinical-signoff.md` (also appended to the review doc «بازبینی پزشکی محتوای ریتمی»).
 
 ### M10 deviation ids (X-08 block D-160 … D-189)
 T-M10-01 writes these rows in `docs/go-migration/deviations.md`; implementing tasks cite the id and never edit that file.

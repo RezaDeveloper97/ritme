@@ -3,7 +3,7 @@ id: T-M10-01
 title: Message, health and analysis decisions, advisor sheet and deviation rows (user OK)
 milestone: M10
 type: investigate
-status: todo
+status: done
 depends_on: [T-M9-01]
 parallel_group: M10-A
 touches: [docs/engine-v6/DECISIONS.md, docs/engine-v6/clinical-signoff.md, docs/go-migration/deviations.md]
