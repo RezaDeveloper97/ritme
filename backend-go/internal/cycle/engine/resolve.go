@@ -1,0 +1,259 @@
+package engine
+
+// anchor is the cycle a target falls in (§2.10): its start, where the start comes from, the logged end of that
+// period (NoDay = open, or a declared start) and the next real start after it (NoDay for the current cycle;
+// set = a completed cycle laid out retrospectively, E-22).
+type anchor struct {
+	start     Day
+	src       StartSource
+	loggedEnd Day
+	nextReal  Day
+}
+
+// anchorAt finds the anchor of target: the latest real start ≤ target by binary search (O(log H)); with no real
+// start ≤ target, the declared onboarding start when it is ≤ target (I-01: a declared date, never a real period).
+func (s *State) anchorAt(target Day) (anchor, bool) {
+	ps := s.periods
+	lo, hi := 0, len(ps)
+	for lo < hi { // lo = number of real starts ≤ target
+		m := int(uint(lo+hi) >> 1) //nolint:gosec // lo+hi ≥ 0
+		if ps[m].Start <= target {
+			lo = m + 1
+		} else {
+			hi = m
+		}
+	}
+	a := anchor{loggedEnd: NoDay, nextReal: NoDay}
+	if lo < len(ps) {
+		a.nextReal = ps[lo].Start
+	}
+	if lo > 0 {
+		p := ps[lo-1]
+		a.start, a.src, a.loggedEnd = p.Start, StartUserLogged, p.End
+		return a, true
+	}
+	if d := s.in.Declared.LastPeriodStart; d != NoDay && d <= target {
+		a.start, a.src = d, StartOnboardingDeclared
+		return a, true
+	}
+	return anchor{}, false
+}
+
+// layoutFor is the day map of the anchor's cycle: the end model §2.11, predicted_next §2.16 (or the actual next
+// start of a completed cycle, E-22) and the calendar ovulation §2.17 next − luteal (BBT/LH come in T-M9-17).
+func (s *State) layoutFor(a anchor) layout {
+	end, confirmed := a.loggedEnd, a.loggedEnd != NoDay
+	if !confirmed {
+		end = a.start + days(max(1, s.periodLen)) - 1
+	}
+	next := a.nextReal
+	if next == NoDay {
+		next = a.start + days(max(1, s.cycleLen))
+	}
+	return newLayout(a.start, end, confirmed, next, next-days(s.p.Luteal.Default), s.p.FertileBefore)
+}
+
+// facts are the resolve-time signals the grading step reads (§2.21/§2.22 tiers force them; T-M9-18 adds the
+// rest of §2.27–§2.29).
+type facts struct {
+	anchored      bool
+	forcedPoor    bool // a tier forces data_quality = poor
+	forcedLow     bool // a tier forces confidence = low
+	beyondHardCap bool // §2.21.5: confidence_reasons += missing_period_end_beyond_hard_cap
+}
+
+// Resolve is the engine status of one target date (§2.20–§2.26, §2.30–§2.34) for the current cycle and the
+// history. today is the user-local day; the future-cycle projection of targets after today (E-03) and the stale
+// anchor and skips (§2.41, E-15) arrive in T-M9-20, suppression in T-M9-19. It allocates nothing but the returned
+// value.
+func (s *State) Resolve(target, today Day) Status {
+	st, f := s.resolve(target, today)
+	s.grade(&st, f)
+	return st
+}
+
+func (s *State) resolve(target, _ Day) (Status, facts) {
+	p := &s.p
+	st := Status{
+		Date: target,
+		Metrics: Metrics{
+			EffectiveCycleLength:  s.cycleLen,
+			EffectivePeriodLength: s.periodLen,
+			CycleVariability:      s.variability,
+		},
+		Anchors: Anchors{CurrentPeriodStart: NoDay, CurrentPeriodEnd: NoDay, PredictedNextPeriodStart: NoDay,
+			EstimatedOvulationDate: NoDay},
+	}
+	var f facts
+
+	a, ok := s.anchorAt(target)
+	if !ok {
+		// §2.20.6 / §2.28 insufficient: no real start and no declared start on or before the target.
+		st.Warnings.Add(WarnInsufficientAnchorData)
+		return st, f
+	}
+	f.anchored = true
+	l := s.layoutFor(a)
+
+	cycleDay := int(target-a.start) + 1 // §2.5, 1-based
+	raw := int(l.next - target)         // §2.22
+	daysLate := max(0, -raw)
+
+	st.CycleDay = Some(cycleDay)
+	st.DaysToPeriod = Some(max(0, raw))
+	st.DaysLate = Some(daysLate)
+	st.Anchors = Anchors{
+		CurrentPeriodStart:          a.start,
+		CurrentPeriodStartSource:    a.src,
+		CurrentPeriodEnd:            l.end,
+		CurrentPeriodEndSource:      EndAssumedFromEffectiveDuration,
+		CurrentPeriodEndIsConfirmed: l.endConfirmed,
+		PredictedNextPeriodStart:    l.next,
+		EstimatedOvulationDate:      l.ov,
+		OvulationSource:             OvulationCalendar,
+	}
+	if l.endConfirmed {
+		st.Anchors.CurrentPeriodEndSource = EndUserLogged
+	}
+
+	sub, res, decided := s.menstrual(&st, &f, a, &l, cycleDay)
+
+	// 2. period_expected (§2.22) — never inside a completed cycle (E-22).
+	unresolvedLate := false
+	if !decided && a.nextReal == NoDay && target >= l.next {
+		decided, res = true, ResolutionPrediction
+		switch {
+		case daysLate < p.OverdueDaysLate:
+			sub = SubphasePeriodExpected
+		case daysLate <= p.MaxLateDays:
+			sub = SubphasePeriodExpected
+			st.Warnings.Add(WarnPredictedPeriodOverdue)
+			f.forcedLow = true
+		default: // E-11: unknown main phase, still resolution prediction; anchors and days_late stay.
+			sub, unresolvedLate = SubphaseUnknown, true
+			st.Warnings.Add(WarnPredictedPeriodOverdue)
+			st.Warnings.Add(WarnCycleUnresolvedAfterExpectedPeriod)
+			f.forcedLow, f.forcedPoor = true, true
+		}
+	}
+
+	// 3–5. display fertile window, luteal, follicular (§2.23–§2.25).
+	if !decided {
+		if sub = l.cyclePhase(target, p); sub != SubphaseUnknown {
+			decided, res = true, ResolutionPrediction
+		}
+	}
+
+	// 6. unknown: no rule covers the day (defensive; unreachable with a consistent layout).
+	if !decided {
+		res = ResolutionUnknown
+		st.Warnings.Add(WarnInsufficientAnchorData)
+		f.forcedPoor = true
+	}
+
+	// §2.30 / E-10: a declared onboarding anchor resolves every phase as onboarding_based (default_based when both
+	// lengths are defaults), period_expected days 0..max_late included; > max_late stays prediction (E-11).
+	if a.src == StartOnboardingDeclared && res != ResolutionUnknown && !unresolvedLate {
+		res = ResolutionOnboardingBased
+		if s.cycleSrc == LengthDefault && s.periodSrc == LengthDefault {
+			res = ResolutionDefaultBased
+		}
+	}
+
+	// §2.32 source warnings. Manual lengths (E-20) are not onboarding data.
+	d := s.in.Declared
+	if a.src == StartOnboardingDeclared ||
+		(!d.Manual && (s.cycleSrc == LengthDeclared || s.periodSrc == LengthDeclared)) {
+		st.Warnings.Add(WarnOnboardingDataUsed)
+	}
+	if s.cycleSrc == LengthDefault || s.periodSrc == LengthDefault {
+		st.Warnings.Add(WarnDefaultValuesUsed)
+	}
+	// prediction_based_output: only for a predicted_reference anchor or a future projection (E-01) — neither
+	// exists before T-M9-20, so ordinary prediction days carry no warning (§2.35 example).
+
+	st.Subphase = sub
+	st.MainPhase = sub.Main()
+	st.FertilityLevel = fertilityOf(sub)
+	st.ResolutionSource = res
+	if daysLate <= p.MaxLateDays { // §2.34; the suppression hook (§2.42) arrives in T-M9-19
+		st.DaysToOvulation = Some(int(l.ov - target))
+	}
+	st.SuggestPregnancyTest = s.suggestPregnancyTest(daysLate)
+	return st, f
+}
+
+// menstrual is priority 1 of §2.20 with the §2.21 tiers and the §2.12 caps (soft = EPL, warning = max(EPL + extra,
+// min), hard). decided is false when the day is not menstrual and resolves onward. The hard cap is checked before
+// the warning cap, so a warning cap above the hard cap (EPL ≥ 10) never keeps a day menstrual past the hard cap.
+func (s *State) menstrual(st *Status, f *facts, a anchor, l *layout, cycleDay int) (Subphase, ResolutionSource, bool) {
+	p := &s.p
+	soft := s.periodLen
+	warning := max(s.periodLen+p.WarningCapExtra, p.WarningCapMin)
+	switch {
+	case l.endConfirmed: // 21.1
+		if st.Date <= l.end {
+			return SubphaseMenstrual, ResolutionUserLogged, true
+		}
+	case a.src == StartUserLogged: // a real open period: 21.2–21.5
+		switch {
+		case cycleDay <= soft:
+			return SubphaseMenstrual, ResolutionUserLoggedWithAssumedEnd, true
+		case cycleDay > p.PeriodHardCap: // 21.5: resolves onward; warnings cumulative (E-12)
+			st.Warnings.Add(WarnPeriodEndMissing)
+			st.Warnings.Add(WarnPeriodEndMissingWarningCapExceeded)
+			st.Warnings.Add(WarnPeriodEndMissingHardCapExceeded)
+			f.forcedPoor, f.forcedLow, f.beyondHardCap = true, true, true
+		case cycleDay <= warning: // 21.3
+			st.Warnings.Add(WarnPeriodEndMissing)
+			return SubphaseMenstrualPossible, ResolutionUserLoggedWithAssumedEnd, true
+		default: // 21.4
+			st.Warnings.Add(WarnPeriodEndMissing)
+			st.Warnings.Add(WarnPeriodEndMissingWarningCapExceeded)
+			f.forcedPoor, f.forcedLow = true, true
+			return SubphaseMenstrualPossible, ResolutionUserLoggedWithAssumedEnd, true
+		}
+	default: // a declared onboarding start: menstrual over the assumed duration only, no end-missing tiers
+		if cycleDay <= soft {
+			return SubphaseMenstrual, ResolutionOnboardingBased, true
+		}
+	}
+	return SubphaseUnknown, ResolutionUnknown, false
+}
+
+// suggestPregnancyTest is §2.22: mode cycle or ttc, no hormonal contraception, and days_late ≥ the mode's
+// threshold (Params). A late period is the premise, so days_late 0 never suggests a test.
+func (s *State) suggestPregnancyTest(daysLate int) bool {
+	if s.in.Hormonal || daysLate < 1 {
+		return false
+	}
+	switch s.in.Mode {
+	case ModeTTC:
+		return daysLate >= s.p.PregnancyTestTTCDaysLate
+	case ModeCycle:
+		return daysLate >= s.p.PregnancyTestCycleDaysLate
+	default:
+		return false
+	}
+}
+
+// grade applies the quality values the §2.21/§2.22 tiers force and requires_user_input (§2.33). The full
+// data_quality / confidence / confidence_reasons grading (§2.27–§2.29) is T-M9-18; until then the other days keep
+// the zero values.
+func (s *State) grade(st *Status, f facts) {
+	if !f.anchored {
+		st.DataQuality = DataQualityInsufficient
+		st.Confidence = ConfidenceUnknown
+		st.ConfidenceReasons.Add(ReasonInsufficientAnchorData)
+	}
+	if f.forcedPoor {
+		st.DataQuality = DataQualityPoor
+	}
+	if f.forcedLow {
+		st.Confidence = ConfidenceLow
+	}
+	if f.beyondHardCap {
+		st.ConfidenceReasons.Add(ReasonMissingPeriodEndBeyondHardCap)
+	}
+	st.RequiresUserInput = st.Warnings.RequiresUserInput()
+}

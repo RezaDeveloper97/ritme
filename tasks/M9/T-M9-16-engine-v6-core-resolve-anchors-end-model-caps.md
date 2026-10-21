@@ -3,7 +3,7 @@ id: T-M9-16
 title: Engine v6 core resolve: anchors, end model, caps, phases (§2.11–§2.26)
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-15]
 parallel_group: M9-B
 touches: [backend-go/internal/cycle/engine]
