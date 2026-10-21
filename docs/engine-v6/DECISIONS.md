@@ -558,7 +558,7 @@ T-M10-01 writes these rows in `docs/go-migration/deviations.md`; implementing ta
 | F-25 | Household list for a mutual pair | One household list per owner; a member sees each owner's list labelled with the owner's name; lists are never merged in storage. |
 | F-26 | Child medication («دارو» in the child profile) | A dose log only (name, dose text, time, who gave it), written by guardians and visible to guardians; no schedule, reminders or dosing advice in M11. |
 
-All F rows: **Owner** user · **Status** proposed · **Blocks** T-M11-02 … T-M11-23 (each task names the rows it reads).
+All F rows: **Owner** user · **Status** accepted (user, 2026-10-21, T-M11-01 — every recommended default, no changes; F-18 kept, so T-M11-16 stays in the queue) · **Blocks** T-M11-02 … T-M11-23 (each task names the rows it reads). Reference: `family.md`.
 
 ### M11 deviation ids (X-08 block D-190 … D-209)
 T-M11-01 writes these rows; implementing tasks cite the id and never edit `deviations.md`.

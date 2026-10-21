@@ -3,7 +3,7 @@ id: T-M11-01
 title: Family decisions, family design doc and deviation rows (user OK)
 milestone: M11
 type: investigate
-status: todo
+status: done
 depends_on: [T-M9-01]
 parallel_group: M11-A
 touches: [docs/engine-v6/DECISIONS.md, docs/engine-v6/family.md, docs/go-migration/deviations.md]

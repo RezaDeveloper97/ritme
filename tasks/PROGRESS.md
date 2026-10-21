@@ -1110,3 +1110,9 @@ Nothing needed fixing.
 - **Follow-up (frontend, not here):** the offline outbox should send a stable `Idempotency-Key` per queued write (period start/end/store, health-log save, fertility day save).
 - Open: `api/openapi.yaml` not updated (outside touches) — document the `Idempotency-Key` header and the 422/409 refusals; the bleeding-log bridge still writes `cycle_histories` without the lock (T-M9-28); a dedicated `LockUser` query in `db/queries/cycle` could replace the `files/store` reuse.
 - Main session: OpenAPI (`Idempotency-Key` header, 422 `idempotency_key_reused`, 409 `idempotency_key_in_flight`) not documented yet — `api/openapi.yaml` outside touches; add with the next task that touches it (T-M9-06 or T-M9-31). Also add a `LockUser` query in `db/queries/cycle` later instead of `files/store.LockOwner`.
+
+## T-M11-01 — Engine v6 family decisions (user OK)
+- User accepted F-01…F-26 on 2026-10-21 (every recommended default; F-18 kept → T-M11-16 stays queued). Recorded in `docs/engine-v6/DECISIONS.md`.
+- New reference `docs/engine-v6/family.md`: levels, domain registry (max / role defaults / mode scope / male-owner rule / TTC switch), templates, carer time-box, legacy → v6 mapping, per-domain member allow-lists + never lists, `check()` order with F-23 and the mode epoch, nudge rules, activity actions / sealing / retention, invite rules, copy keys for owner and member notices.
+- `docs/go-migration/deviations.md`: D-190…D-206 added (`accepted — engine v6 M11, not shipped yet`); D-207…D-209 reserved.
+- Note: T-M9-02 (v1 privacy hotfix) was still in flight when this was written; family.md's allow-lists are the v6 target and match T-M9-02's never-shared rules (notes, mood, lateness, postpartum ≠ pregnancy). Re-check §4 against T-M9-02's final diff when it lands. No task scope changed.
