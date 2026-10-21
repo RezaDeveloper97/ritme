@@ -8,6 +8,7 @@ type anchor struct {
 	src       StartSource
 	loggedEnd Day
 	nextReal  Day
+	idx       int // index of the real period in State.periods; -1 for a declared start
 }
 
 // anchorAt finds the anchor of target: the latest real start ≤ target by binary search (O(log H)); with no real
@@ -23,30 +24,42 @@ func (s *State) anchorAt(target Day) (anchor, bool) {
 			hi = m
 		}
 	}
-	a := anchor{loggedEnd: NoDay, nextReal: NoDay}
+	a := anchor{loggedEnd: NoDay, nextReal: NoDay, idx: -1}
 	if lo < len(ps) {
 		a.nextReal = ps[lo].Start
 	}
 	if lo > 0 {
 		p := ps[lo-1]
-		a.start, a.src, a.loggedEnd = p.Start, StartUserLogged, p.End
+		a.start, a.src, a.loggedEnd, a.idx = p.Start, StartUserLogged, p.End, lo-1
 		return a, true
 	}
-	if d := s.in.Declared.LastPeriodStart; d != NoDay && d <= target {
+	if d := s.lmp; d != NoDay && d <= target {
 		a.start, a.src = d, StartOnboardingDeclared
 		return a, true
 	}
 	return anchor{}, false
 }
 
-// layoutFor is the day map of the anchor's cycle: the end model §2.11, predicted_next §2.16 (or the actual next
-// start of a completed cycle, E-22) and the calendar ovulation §2.17 next − luteal (BBT/LH come in T-M9-17).
+// layoutFor is the day map of the anchor's cycle: the end model §2.11, the ovulation §2.17 and predicted_next
+// §2.16. A real cycle with a BBT or LH ovulation uses it (BBT > LH, E-16); the current cycle then predicts next =
+// O + effective_luteal_length, a completed cycle keeps its actual next start (E-22). Otherwise next = start +
+// effective_cycle_length (or the actual next start) and the calendar ovulation is next − Luteal.Default.
 func (s *State) layoutFor(a anchor) layout {
 	end, confirmed := a.loggedEnd, a.loggedEnd != NoDay
 	if !confirmed {
 		end = a.start + days(max(1, s.periodLen)) - 1
 	}
 	next := a.nextReal
+	if a.idx >= 0 {
+		if o := s.ovulations[a.idx]; o.Source != OvulationUnknown {
+			if next == NoDay {
+				next = o.Date + days(s.luteal)
+			}
+			l := newLayout(a.start, end, confirmed, next, o.Date, s.p.FertileBefore)
+			l.ovSrc, l.conflict = o.Source, o.Conflict
+			return l
+		}
+	}
 	if next == NoDay {
 		next = a.start + days(max(1, s.cycleLen))
 	}
@@ -110,10 +123,13 @@ func (s *State) resolve(target, _ Day) (Status, facts) {
 		CurrentPeriodEndIsConfirmed: l.endConfirmed,
 		PredictedNextPeriodStart:    l.next,
 		EstimatedOvulationDate:      l.ov,
-		OvulationSource:             OvulationCalendar,
+		OvulationSource:             l.ovSrc,
 	}
 	if l.endConfirmed {
 		st.Anchors.CurrentPeriodEndSource = EndUserLogged
+	}
+	if l.conflict { // §2.17: every target of that cycle
+		st.Warnings.Add(WarnLHBBTConflict)
 	}
 
 	sub, res, decided := s.menstrual(&st, &f, a, &l, cycleDay)

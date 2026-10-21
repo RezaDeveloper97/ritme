@@ -36,19 +36,36 @@ type State struct {
 	cycleLen, periodLen int
 	cycleSrc, periodSrc LengthSource
 	variability         Opt[int]
+
+	// Declared dates, NoDay when absent (Opt none or Some(NoDay)).
+	lmp, birth, delivery Day
+
+	bbt        []BBTReading     // sorted by date, one per day
+	lh         []LHTest         // sorted by date
+	ovulations []CycleOvulation // parallel to periods (Prepare part 2)
+	luteal     int              // effective_luteal_length
+	lutealSrc  LengthSource
 }
 
-// Prepare builds the State (part 1, T-M9-15): sort and validate periods (E-02), real cycles and skips (§2.8,
-// E-15), outliers, effective lengths (§2.9, E-20) and cycle variability (§2.27). It computes over all stored
-// records and does not depend on any target date. It never panics on malformed input.
+// Prepare builds the State. Part 1 (T-M9-15): sort and validate periods (E-02), real cycles and skips (§2.8,
+// E-15), outliers, effective lengths (§2.9, E-20) and cycle variability (§2.27). Part 2 (T-M9-17): BBT and LH
+// ovulation per real cycle with the LH/BBT conflict (§2.17) and effective_luteal_length (§2.16, E-16). It computes
+// over all stored records and does not depend on any target date. It never panics on malformed input.
 func Prepare(in Input, p Params) *State {
 	s := &State{p: p, in: cloneInput(in)}
+	s.lmp = dayOr(s.in.Declared.LastPeriodStart)
+	s.birth = dayOr(s.in.BirthDate)
+	s.delivery = dayOr(s.in.DeliveryDate)
 	s.preparePeriods()
 	s.prepareSkips()
 	s.prepareCycles()
 	s.prepareLengths()
+	s.prepareOvulations()
 	return s
 }
+
+// dayOr is the date of an optional day, NoDay when absent.
+func dayOr(o Opt[Day]) Day { return o.Or(NoDay) }
 
 func cloneInput(in Input) Input {
 	in.Periods = slices.Clone(in.Periods)

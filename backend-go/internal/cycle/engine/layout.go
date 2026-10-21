@@ -7,15 +7,17 @@ func days(n int) Day { return Day(n) } //nolint:gosec // engine lengths and caps
 // the ovulation estimate and the display fertile window. Every phase rule from §2.21 to §2.25 reads it.
 type layout struct {
 	start        Day
-	end          Day  // current_period_end: the logged end, or the assumed end start + EPL − 1 (§2.11)
-	endConfirmed bool // the end is a logged one
-	next         Day  // predicted_next_period_start, or the actual next real start in a completed cycle (E-22)
-	ov           Day  // estimated_ovulation_date
-	fertileStart Day  // display_fertile_start = max(O − before, end + 1) (§2.19); the display end is ov
+	end          Day             // current_period_end: the logged end, or the assumed end start + EPL − 1 (§2.11)
+	endConfirmed bool            // the end is a logged one
+	next         Day             // predicted_next_period_start, or the actual next real start in a completed cycle (E-22)
+	ov           Day             // estimated_ovulation_date
+	fertileStart Day             // display_fertile_start = max(O − before, end + 1) (§2.19); the display end is ov
+	ovSrc        OvulationSource // ovulation_source of ov (§2.10)
+	conflict     bool            // lh_bbt_conflict in this cycle (§2.17)
 }
 
-// newLayout builds a layout from its anchors. ov is the ovulation estimate (calendar here; BBT/LH in T-M9-17), so
-// tests can inject any ovulation date.
+// newLayout builds a layout from its anchors with a calendar ovulation source; ov is the ovulation estimate, so
+// tests can inject any ovulation date (layoutFor sets the BBT/LH source).
 func newLayout(start, end Day, endConfirmed bool, next, ov Day, fertileBefore int) layout {
 	return layout{
 		start:        start,
@@ -24,6 +26,7 @@ func newLayout(start, end Day, endConfirmed bool, next, ov Day, fertileBefore in
 		next:         next,
 		ov:           ov,
 		fertileStart: max(ov-days(fertileBefore), end+1),
+		ovSrc:        OvulationCalendar,
 	}
 }
 

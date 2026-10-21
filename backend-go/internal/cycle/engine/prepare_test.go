@@ -275,7 +275,7 @@ func benchInput() Input {
 	return Input{
 		Periods:  periods,
 		Skips:    []Day{day("2027-06-01")},
-		Declared: Declared{LastPeriodStart: day("2024-12-01"), CycleLength: Some(28), PeriodLength: Some(5)},
+		Declared: Declared{LastPeriodStart: Some(day("2024-12-01")), CycleLength: Some(28), PeriodLength: Some(5)},
 	}
 }
 

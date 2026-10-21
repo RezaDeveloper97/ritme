@@ -10,7 +10,8 @@
 //   - The v6 enums are hand-written here; their String() is the spec spelling. They are independent of the v1.1
 //     generated enums, which stay frozen with the v1.1 resolver until T-M9-51.
 //
-// Pipeline: Prepare (today-independent: sort, validate, cycles, medians, variability) → State.Resolve / Range /
+// Pipeline: Prepare (today-independent: sort, validate, cycles, medians, variability, per-cycle BBT/LH ovulation via
+// the bbt sub-package, effective luteal length) → State.Resolve / Range /
 // FutureCycles (T-M9-16…20) → the §2.35 encoder (T-M9-21). A State never depends on "today", so it can be cached per
 // input revision and parameter fingerprint.
 package engine

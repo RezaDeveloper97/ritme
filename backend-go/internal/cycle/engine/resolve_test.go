@@ -28,10 +28,8 @@ func regular(cur Day, l, periodLen int) Input {
 	return withPeriods(periodsEnding(cur, periodLen, l, l))
 }
 
-// none is an Input with no data. Day 0 is a real date (1970-01-01), so "no date" fields must be NoDay explicitly.
-func none() Input {
-	return Input{Declared: Declared{LastPeriodStart: NoDay}, BirthDate: NoDay, DeliveryDate: NoDay}
-}
+// none is an Input with no data: the zero Input (optional dates are Opt[Day], so Day 0 = 1970-01-01 never sneaks in).
+func none() Input { return Input{} }
 
 func withPeriods(ps []Period) Input {
 	in := none()
@@ -344,7 +342,7 @@ func TestFollicularSplit(t *testing.T) {
 
 func TestResolve_Onboarding(t *testing.T) {
 	decl := day("2026-07-01")
-	s := prep(declared(Declared{LastPeriodStart: decl, CycleLength: Some(28), PeriodLength: Some(5)}))
+	s := prep(declared(Declared{LastPeriodStart: Some(decl), CycleLength: Some(28), PeriodLength: Some(5)}))
 	for d := 1; d <= 29+14; d++ {
 		st := s.Resolve(decl+Day(d-1), decl+Day(d-1))
 		assert.Equal(t, ResolutionOnboardingBased, st.ResolutionSource, "day %d (%s)", d, st.Subphase)
@@ -367,18 +365,18 @@ func TestResolve_Onboarding(t *testing.T) {
 	assert.Equal(t, ResolutionPrediction, st.ResolutionSource)
 
 	// Declared date without lengths → default_based.
-	s = prep(declared(Declared{LastPeriodStart: decl}))
+	s = prep(declared(Declared{LastPeriodStart: Some(decl)}))
 	st = s.Resolve(decl+10, decl+10)
 	assert.Equal(t, ResolutionDefaultBased, st.ResolutionSource)
 	assert.True(t, st.Warnings.Has(WarnDefaultValuesUsed))
 	assert.True(t, st.Warnings.Has(WarnOnboardingDataUsed))
 
 	// Only one length declared → onboarding_based.
-	s = prep(declared(Declared{LastPeriodStart: decl, CycleLength: Some(30)}))
+	s = prep(declared(Declared{LastPeriodStart: Some(decl), CycleLength: Some(30)}))
 	assert.Equal(t, ResolutionOnboardingBased, s.Resolve(decl+10, decl+10).ResolutionSource)
 
 	// A declared start after the target does not anchor it.
-	s = prep(declared(Declared{LastPeriodStart: decl}))
+	s = prep(declared(Declared{LastPeriodStart: Some(decl)}))
 	assert.Equal(t, ResolutionUnknown, s.Resolve(decl-1, decl).ResolutionSource)
 }
 
@@ -417,7 +415,7 @@ func TestResolve_NoAnchor(t *testing.T) {
 func TestResolve_RealStartBeatsDeclared(t *testing.T) {
 	cur := day("2026-07-01")
 	in := regular(cur, 28, 5)
-	in.Declared = Declared{LastPeriodStart: cur + 5, CycleLength: Some(30), PeriodLength: Some(4)}
+	in.Declared = Declared{LastPeriodStart: Some(cur + 5), CycleLength: Some(30), PeriodLength: Some(4)}
 	st := prep(in).Resolve(cur+10, cur+10)
 	assert.Equal(t, cur, st.Anchors.CurrentPeriodStart)
 	assert.Equal(t, StartUserLogged, st.Anchors.CurrentPeriodStartSource)
@@ -489,7 +487,7 @@ func TestResolve_Retrospective(t *testing.T) {
 func TestResolve_DeclaredThenReal(t *testing.T) {
 	decl := day("2026-06-01")
 	real := day("2026-07-10") // 39 days later
-	in := declared(Declared{LastPeriodStart: decl, CycleLength: Some(28), PeriodLength: Some(5)})
+	in := declared(Declared{LastPeriodStart: Some(decl), CycleLength: Some(28), PeriodLength: Some(5)})
 	in.Periods = []Period{{Start: real, End: real + 4}}
 	s := prep(in)
 	st := s.Resolve(decl+30, real)
@@ -503,7 +501,7 @@ func TestResolve_DeclaredThenReal(t *testing.T) {
 func TestResolve_ManualLengthsAreNotOnboarding(t *testing.T) {
 	cur := day("2026-07-01")
 	in := regular(cur, 28, 5)
-	in.Declared = Declared{LastPeriodStart: NoDay, CycleLength: Some(30), PeriodLength: Some(6), Manual: true}
+	in.Declared = Declared{CycleLength: Some(30), PeriodLength: Some(6), Manual: true}
 	st := prep(in).Resolve(cur+10, cur+10)
 	assert.Equal(t, cur+30, st.Anchors.PredictedNextPeriodStart)
 	assert.False(t, st.Warnings.Has(WarnOnboardingDataUsed), "E-20")

@@ -1,5 +1,7 @@
 package engine
 
+import "github.com/ritme/backend-go/internal/cycle/engine/bbt"
+
 // Period is one real period record (§2.2: actual data only — never a prediction, never the onboarding date).
 type Period struct {
 	Start  Day
@@ -12,7 +14,7 @@ func (p Period) Open() bool { return p.End == NoDay }
 
 // Declared is the onboarding/profile data (§2.6 "declared — not an actual log").
 type Declared struct {
-	LastPeriodStart Day      // last_period_start_from_onboarding (NoDay = none); never a real period (I-01)
+	LastPeriodStart Opt[Day] // last_period_start_from_onboarding; never a real period (I-01)
 	CycleLength     Opt[int] // declared_cycle_length
 	PeriodLength    Opt[int] // declared_period_length
 	// Manual is the user's "use my lengths" switch (E-20): the declared lengths override history medians.
@@ -25,11 +27,8 @@ type LHTest struct {
 	Positive bool
 }
 
-// BBTReading is one basal body temperature in hundredths of °C (E-16).
-type BBTReading struct {
-	Date  Day
-	Centi int32
-}
+// BBTReading is one basal body temperature {Date, Centi} in hundredths of °C (E-16).
+type BBTReading = bbt.Reading[Day]
 
 // PregnancyTest is one home pregnancy test (E-26).
 type PregnancyTest struct {
@@ -37,18 +36,20 @@ type PregnancyTest struct {
 	Positive bool
 }
 
-// Input is everything the engine knows about one user. Slices may be unsorted; Prepare copies what it keeps.
+// Input is everything the engine knows about one user. Slices may be unsorted; Prepare copies what it keeps. The
+// zero Input means "no data": every optional date is an Opt[Day] (Day 0 is the real date 1970-01-01), and Some(NoDay)
+// is treated as absent too.
 type Input struct {
 	Periods  []Period
 	Skips    []Day // the predicted starts the user marked «پریود نداشتم» (E-15)
 	Declared Declared
 
-	BirthDate    Day  // NoDay = unknown (no age rules, E-27)
-	TeenBandOnly bool // only a teen age band is known: treated as < 18 (E-27)
+	BirthDate    Opt[Day] // none = unknown (no age rules, E-27)
+	TeenBandOnly bool     // only a teen age band is known: treated as < 18 (E-27)
 
 	Mode          Mode
-	Hormonal      bool // active hormonal contraception (I-03)
-	DeliveryDate  Day  // NoDay = none (E-14)
+	Hormonal      bool     // active hormonal contraception (I-03)
+	DeliveryDate  Opt[Day] // none = no delivery (E-14)
 	Breastfeeding bool
 
 	LH             []LHTest

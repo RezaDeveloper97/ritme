@@ -1,5 +1,7 @@
 package engine
 
+import "github.com/ritme/backend-go/internal/cycle/engine/bbt"
+
 // Params holds every number the engine uses. Product constants come from DefaultParams (code, X-11); the clinical
 // values are filled by internal/cycle/engineparams.For from the clinical config valid on the target date, and their
 // DefaultParams values equal the registry's version 1. Params is comparable (==).
@@ -62,12 +64,9 @@ type LutealParams struct {
 	Max     int
 }
 
-// BBTParams is engine.bbt (§2.17, E-16).
-type BBTParams struct {
-	Strict      bool  // the third high reading must be ≥ RiseCenti over the max of the previous 6
-	MinReadings int   // readings needed in the cycle
-	RiseCenti   int32 // hundredths of °C
-}
+// BBTParams is engine.bbt (§2.17, E-16): Strict (the third high reading must be ≥ RiseCenti over the max of the
+// previous 6), MinReadings (readings needed in the cycle), RiseCenti (hundredths of °C).
+type BBTParams = bbt.Params
 
 // RangeParams is a min/max pair of days.
 type RangeParams struct {

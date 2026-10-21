@@ -3,7 +3,7 @@ id: T-M9-17
 title: Engine v6 ovulation sources: BBT 3-over-6, LH, luteal median, conflict
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-16]
 parallel_group: M9-B
 touches: [backend-go/internal/cycle/engine]
