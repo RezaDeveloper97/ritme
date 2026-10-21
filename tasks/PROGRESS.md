@@ -1193,3 +1193,47 @@ Nothing needed fixing.
   - perf-baseline numbers
   - deviation entry for the client-revoke delay
   - The query budget is pinned in `passport/verify_int_test.go`, because `internal/querybudget` doesn't exist yet (T-M9-08).
+
+## T-M9-18 — Engine v6 quality layer: regularity, clinical flags, data quality, confidence
+- New `engine/quality.go` (Prepare part 3 + `grade`):
+  - `cycle_regularity`: 12 months before ref = min(target, today), ≥ 3 cycles, skips out, outliers in, age bands young/adult/late.
+  - `clinical_flags`: frequency per E-06 (FIGO; teen 21–45), duration per E-07, `absent` per E-07 plus `long_absence_no_period`.
+  - data_quality, ordered insufficient → poor → good → partial (E-02/E-20/E-23).
+  - confidence, ordered unknown → low → high → medium. It includes the E-19 BBT exception and a medium cap at age ≥ 45 with `perimenopause_age_range`.
+  - All 14 reasons; `requires_user_input` is true for exactly the six warnings.
+  - Age is taken at the target (E-27).
+- `Period.End == 0` with `Start > 0` now means an open period. This guards against the 1970 trap; the loader should still set `NoDay`.
+- New product constant `HighVariabilityDays = 5`.
+- Benchmarks: Resolve 147 ns with **0 allocs**; Prepare 3.6 µs; Prepare with markers 24 µs. Engine coverage is 98.6 %.
+- Interpretations:
+  - Frequency and duration bases use the whole history, the same as the effective lengths.
+  - Duration counts closed real periods of any length.
+  - An open last period means absent = false. Only pregnancy and postpartum modes are exempt from absent.
+  - A contradiction adds `insufficient_anchor_data`, as in v1.1.
+  - `prediction_based_output` and `stale_onboarding_anchor` are mapped but have no producer until T-M9-20.
+- v6 vs v1.1:
+  - New: regularity, clinical_flags, `contradictory_anchor_data`, `long_absence_no_period` and `perimenopause_age_range`.
+  - New low conditions: a predicted_reference start, hormonal contraception, and postpartum with fewer than 2 periods.
+  - Cap reasons now add up (v1.1 used XOR).
+  - Skipped cycles never raise outlier warnings.
+  - `prediction_based_output` is no longer added on ordinary prediction days (E-01).
+- **Analysis tab (`analysis/cycle.go`) disagrees with v6** (input for T-M9-35):
+  1. Its window is the report range, not 12 months before ref.
+  2. It drops cycles outside 21–45; v6 counts them, so 18-day cycles read `frequent` in v6 and have no status in the tab.
+  3. `markOutlier` drops one lone outlier.
+  4. Its median covers every cycle in the range; v6 uses the last ≤ 3.
+  5. Its period median uses only closed periods of 2–10 days, including the current one.
+  6. Under 18 or over 45 it sets `Applies=false`, and it has no teen band.
+  7. It takes age at today.
+  8. It spells the empty value `not_enough_data`; v6 uses `insufficient_data`.
+  9. It has no `absent` flag and keeps skipped cycles.
+  10. It falls back to the v1.1 typical lengths, not the declared length.
+- Open items:
+  - T-M9-19:
+    - `postpartum_cycles_not_returned` plus E-14 `unknown` before the first postpartum period.
+    - Hormonal phase suppression.
+    - Pregnancy mode confidence `unknown` (E-25).
+  - T-M9-20: raise `stale_onboarding_anchor` and `prediction_based_output`; the future k ≥ 2 medium cap; skip anchors.
+  - T-M9-21: encode `clinical_flags` and `cycle_regularity` in §2.35.
+  - T-M9-24: the loader sets `NoDay` and maps `teen_profiles.age_band` to `TeenBandOnly`.
+  - Product question: should frequency and duration use the whole history even for past targets (today), or "as of ref"?

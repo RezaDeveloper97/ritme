@@ -133,7 +133,12 @@ func TestResolve_SpecAPIExample(t *testing.T) {
 		PredictedNextPeriodStart: day("2026-07-30"), EstimatedOvulationDate: day("2026-07-16"),
 		OvulationSource: OvulationCalendar,
 	}, st.Anchors)
-	assert.Equal(t, Metrics{EffectiveCycleLength: 29, EffectivePeriodLength: 5, CycleVariability: Some(3)}, st.Metrics)
+	assert.Equal(t, Metrics{EffectiveCycleLength: 29, EffectivePeriodLength: 5, CycleVariability: Some(3),
+		CycleRegularity: RegularityRegular}, st.Metrics)
+	assert.Equal(t, ClinicalFlags{Frequency: Some(FrequencyNormal), Duration: Some(DurationNormal), Absent: Some(false)},
+		st.ClinicalFlags)
+	assert.Equal(t, ConfidenceHigh, st.Confidence)
+	assert.Equal(t, DataQualityGood, st.DataQuality)
 	assert.False(t, st.SuggestPregnancyTest)
 	assert.Equal(t, ResolutionPrediction, st.ResolutionSource)
 	assert.True(t, st.IsPredicted())

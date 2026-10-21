@@ -3,7 +3,7 @@ id: T-M9-18
 title: Engine v6 quality layer: regularity, clinical flags, data quality, confidence
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-17]
 parallel_group: M9-B
 touches: [backend-go/internal/cycle/engine]

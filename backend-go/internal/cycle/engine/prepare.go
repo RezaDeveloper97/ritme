@@ -45,11 +45,18 @@ type State struct {
 	ovulations []CycleOvulation // parallel to periods (Prepare part 2)
 	luteal     int              // effective_luteal_length
 	lutealSrc  LengthSource
+
+	// Quality bases (Prepare part 3, quality.go).
+	freqBasis                 Opt[int]      // clinical_flags.frequency basis (E-06)
+	duration                  Opt[Duration] // clinical_flags.duration (E-07)
+	shortOutlier, longOutlier bool          // a non-skipped real cycle below / above the supported range (§2.7)
+	onlyOutliers              bool          // real cycles exist and none is valid (§2.28 poor)
 }
 
 // Prepare builds the State. Part 1 (T-M9-15): sort and validate periods (E-02), real cycles and skips (§2.8,
 // E-15), outliers, effective lengths (§2.9, E-20) and cycle variability (§2.27). Part 2 (T-M9-17): BBT and LH
-// ovulation per real cycle with the LH/BBT conflict (§2.17) and effective_luteal_length (§2.16, E-16). It computes
+// ovulation per real cycle with the LH/BBT conflict (§2.17) and effective_luteal_length (§2.16, E-16). Part 3
+// (T-M9-18): the clinical_flags bases and outlier signals of the quality layer. It computes
 // over all stored records and does not depend on any target date. It never panics on malformed input.
 func Prepare(in Input, p Params) *State {
 	s := &State{p: p, in: cloneInput(in)}
@@ -61,6 +68,7 @@ func Prepare(in Input, p Params) *State {
 	s.prepareCycles()
 	s.prepareLengths()
 	s.prepareOvulations()
+	s.prepareQuality()
 	return s
 }
 
@@ -84,6 +92,11 @@ func cloneInput(in Input) Input {
 func (s *State) preparePeriods() {
 	recs := make([]Period, 0, len(s.in.Periods))
 	for _, r := range s.in.Periods {
+		if r.End == 0 && r.Start > 0 {
+			// A zero End is the Day zero value (1970-01-01), never a real end after a later start: treat it as
+			// "no end logged" instead of an end-before-start contradiction (loader trap, T-M9-17).
+			r.End = NoDay
+		}
 		if r.Start != NoDay {
 			recs = append(recs, r)
 		}

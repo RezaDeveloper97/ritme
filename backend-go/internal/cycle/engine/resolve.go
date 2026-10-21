@@ -66,22 +66,22 @@ func (s *State) layoutFor(a anchor) layout {
 	return newLayout(a.start, end, confirmed, next, next-days(s.p.Luteal.Default), s.p.FertileBefore)
 }
 
-// facts are the resolve-time signals the grading step reads (§2.21/§2.22 tiers force them; T-M9-18 adds the
-// rest of §2.27–§2.29).
+// facts are the resolve-time signals the quality layer (grade, quality.go) reads besides the Status itself.
 type facts struct {
-	anchored      bool
-	forcedPoor    bool // a tier forces data_quality = poor
-	forcedLow     bool // a tier forces confidence = low
-	beyondHardCap bool // §2.21.5: confidence_reasons += missing_period_end_beyond_hard_cap
+	anchored    bool
+	forcedPoor  bool // a tier forces data_quality = poor
+	forcedLow   bool // a tier forces confidence = low
+	realOpen    bool // the anchor is a real period with no logged end (confidence_reasons += missing_period_end)
+	endInvolved bool // the target's phase depends on current_period_end (menstrual, follicular, a window at end + 1)
 }
 
-// Resolve is the engine status of one target date (§2.20–§2.26, §2.30–§2.34) for the current cycle and the
+// Resolve is the engine status of one target date (§2.20–§2.34) for the current cycle and the
 // history. today is the user-local day; the future-cycle projection of targets after today (E-03) and the stale
 // anchor and skips (§2.41, E-15) arrive in T-M9-20, suppression in T-M9-19. It allocates nothing but the returned
 // value.
 func (s *State) Resolve(target, today Day) Status {
 	st, f := s.resolve(target, today)
-	s.grade(&st, f)
+	s.grade(&st, f, today)
 	return st
 }
 
@@ -190,6 +190,9 @@ func (s *State) resolve(target, _ Day) (Status, facts) {
 
 	st.Subphase = sub
 	st.MainPhase = sub.Main()
+	f.realOpen = a.src == StartUserLogged && !l.endConfirmed
+	f.endInvolved = st.MainPhase == MainPhaseMenstrual || st.MainPhase == MainPhaseFollicular ||
+		(st.MainPhase == MainPhaseFertile && l.fertileStart == l.end+1)
 	st.FertilityLevel = fertilityOf(sub)
 	st.ResolutionSource = res
 	if daysLate <= p.MaxLateDays { // §2.34; the suppression hook (§2.42) arrives in T-M9-19
@@ -219,7 +222,7 @@ func (s *State) menstrual(st *Status, f *facts, a anchor, l *layout, cycleDay in
 			st.Warnings.Add(WarnPeriodEndMissing)
 			st.Warnings.Add(WarnPeriodEndMissingWarningCapExceeded)
 			st.Warnings.Add(WarnPeriodEndMissingHardCapExceeded)
-			f.forcedPoor, f.forcedLow, f.beyondHardCap = true, true, true
+			f.forcedPoor, f.forcedLow = true, true
 		case cycleDay <= warning: // 21.3
 			st.Warnings.Add(WarnPeriodEndMissing)
 			return SubphaseMenstrualPossible, ResolutionUserLoggedWithAssumedEnd, true
@@ -251,25 +254,4 @@ func (s *State) suggestPregnancyTest(daysLate int) bool {
 	default:
 		return false
 	}
-}
-
-// grade applies the quality values the §2.21/§2.22 tiers force and requires_user_input (§2.33). The full
-// data_quality / confidence / confidence_reasons grading (§2.27–§2.29) is T-M9-18; until then the other days keep
-// the zero values.
-func (s *State) grade(st *Status, f facts) {
-	if !f.anchored {
-		st.DataQuality = DataQualityInsufficient
-		st.Confidence = ConfidenceUnknown
-		st.ConfidenceReasons.Add(ReasonInsufficientAnchorData)
-	}
-	if f.forcedPoor {
-		st.DataQuality = DataQualityPoor
-	}
-	if f.forcedLow {
-		st.Confidence = ConfidenceLow
-	}
-	if f.beyondHardCap {
-		st.ConfidenceReasons.Add(ReasonMissingPeriodEndBeyondHardCap)
-	}
-	st.RequiresUserInput = st.Warnings.RequiresUserInput()
 }

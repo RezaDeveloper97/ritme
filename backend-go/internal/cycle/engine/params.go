@@ -16,6 +16,7 @@ type Params struct {
 	DefaultCycleLength  int // §2.9 fallback
 	DefaultPeriodLength int
 	HistoryWindow       int // medians and variability use the last ≤ HistoryWindow valid records (§2.9, §2.27)
+	HighVariabilityDays int // cycle_variability > this → high_cycle_variability (§2.29)
 
 	CycleMin  int // valid cycle length CycleMin..CycleMax; below = short outlier, above = long outlier (§2.7, §2.8)
 	CycleMax  int
@@ -94,6 +95,7 @@ func DefaultParams() Params {
 		DefaultCycleLength:  28,
 		DefaultPeriodLength: 5,
 		HistoryWindow:       3,
+		HighVariabilityDays: 5,
 
 		CycleMin:  21,
 		CycleMax:  45,
