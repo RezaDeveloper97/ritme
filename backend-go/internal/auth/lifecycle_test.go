@@ -70,7 +70,14 @@ func listenOnce(t *testing.T, app *fiber.App) {
 		t.Fatal("listener never started")
 	}
 	require.NoError(t, app.Shutdown())
-	<-done
+	// OnListen can fire before fasthttp enters Serve; a Shutdown that lands in that gap leaves Serve running.
+	// Closing the listener ends Serve either way (the pre-shutdown hooks already ran in Shutdown).
+	_ = ln.Close()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("listener never stopped")
+	}
 }
 
 // counted registers one lifecycle hook that counts its starts and stops.
