@@ -1657,3 +1657,21 @@ Nothing needed fixing.
   - **p95 ≤ 5 ms is not proven.** Load average was 58–71 and a bare `SELECT ?` took 3.4 ms; measured p50 5.7 / p95 15.8 ms. `TestLoad_Budget` asserts the limit only when a trivial round trip is < 1 ms, so re-run it on an idle machine.
   - **Import-cycle risk:** `inputs` → `contraception` pulls in care/notifications/i18n. If T-M9-32+ hits a cycle, move the I-03 table to a leaf package.
   - **T-M9-31:** the snapshot depends on `today` (the marker window), so key or validate the L2 snapshot by day as well as by revision.
+
+## T-M9-06b — Postpartum follow-ups: daily message red flags, goldens, translation seed, advisor doc
+- Daily message (`messages/manager/postpartum_engine.go`): the urgent red flags come first, in `guide.RedFlagAlerts` order (fever, pad_per_hour, severe_pain, breathless), with level `urgent` and 115. They use `cp.Urgent`, so an empty admin row falls back to the embedded copy. Then heavy_bleeding › large_clots › the due check-in, as before.
+- `contract/fixtures/dump.sql`: 00096 (`user_profiles_user_id_unique`) and 00097 (`postpartum_recovery_logs`).
+- 35 Go-only goldens re-recorded from Go (postpartum 17, analysis 6, analysis-ttc 7, logs 1, teen 1, pregnancy-tools 3), each diff read by hand.
+  - Causes: the missing dump tables, the new T-M9-06 fields, M8 Persian copy, and v2 emergency rules firing with embedded copy (D-134).
+  - New `contract/allowlist/pregnancy.yaml`: 11 entries, all D-134 (severe tier, shared alert ids, summary count).
+  - D-134/D-135 notes in `deviations.md`. No Laravel golden was touched.
+- OpenAPI: postpartum `visits`, the recovery red-flag fields and EPDS `thresholds.urgent_total` are now `required`.
+- Translation seed resynced (`postpartum.json` was the only drift); i18n testdata regenerated.
+- Advisor doc: H-20 (postpartum fever 38.0 °C) and H-21 (visits 21/42/84, severe pain) added; the lead now says 15 decisions.
+- Verify on the combined tree: `go vet ./...` and `go test ./...` green; `make contract ROUTES=all` → 1914 passed, 0 failed.
+- Open:
+  - **Export → T-M9-06c (blocked on a user decision):** D-96 keys, EPDS in the export.
+  - `postpartum_source.go` uses version-1 thresholds (`Alerts()` instead of `AlertsOn(date)`) → T-M9-06c.
+  - The v1 and v2 pregnancy alerts share one table, so `/pregnancy/alerts/summary` double-counts (3→6 in the fixture). Product question.
+  - `cmd/contract` has no `record-go` mode; this task used a scratch `go build -overlay` (scratchpad `recgo/main.go`).
+  - Laravel `translations:import` was not run.

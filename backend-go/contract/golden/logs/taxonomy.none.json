@@ -184,7 +184,7 @@
                 {
                   "code": "clot_size",
                   "type": "single",
-                  "label": "اندازه لخته",
+                  "label": "اندازهٔ لخته",
                   "modes": [
                     "cycle",
                     "ttc",
@@ -1760,7 +1760,7 @@
                     },
                     {
                       "value": "bleeding_after_intercourse",
-                      "label": "خون‌ریزی بعد از رابطه",
+                      "label": "خونریزی بعد از رابطه",
                       "modes": null,
                       "legacy_only": false
                     },
@@ -1832,7 +1832,7 @@
                 {
                   "code": "bbt",
                   "type": "number",
-                  "label": "دمای پایه بدن",
+                  "label": "دمای پایهٔ بدن",
                   "modes": [
                     "cycle",
                     "ttc"

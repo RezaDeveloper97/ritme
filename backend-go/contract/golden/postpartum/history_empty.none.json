@@ -19,7 +19,8 @@
           "thresholds": {
             "short_elevated": 6,
             "full_possible": 10,
-            "full_likely": 13
+            "full_likely": 13,
+            "urgent_total": 13
           }
         }
       }

@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"slices"
 
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -12,12 +13,13 @@ import (
 // The postpartum engine (bloom B-N5-01, deviations.md D-54): Laravel has no engine for the postpartum mode (its
 // MessageResult::empty()); Go serves the week's tip since the birth (admin message_contents postpartum_week_tip with
 // the embedded fallback of internal/postpartum/guide) and, as the override, the most pressing alert of the day —
-// heavy bleeding, large clots, then a due mood check-in. No correlations, patterns or supplements.
+// an urgent red flag (T-M9-06b: fever, pad per hour, severe pain, breathless), heavy bleeding, large clots, then a
+// due mood check-in. No correlations, patterns or supplements.
 
 // PostpartumState is what the postpartum engine reads about the user on the asked day.
 type PostpartumState struct {
 	BirthDate *civildate.Date // nil = no birth stored (mode chosen without one)
-	// Alerts are guide.AlertGroup keys raised by the day's recovery log (heavy_bleeding, large_clots).
+	// Alerts are guide.AlertGroup keys raised by the day's recovery log (the red flags, heavy_bleeding, large_clots).
 	Alerts []string
 	// CheckinDue is the due EPDS check ("short" | "full" | "").
 	CheckinDue string
@@ -106,11 +108,16 @@ func (m *Manager) postpartum(ctx context.Context, date civildate.Date) (*Result,
 func postpartumOverride(ctx context.Context, cp *guide.Copy, st PostpartumState) (*jsonx.OrderedMap, error) {
 	key, level := "", ""
 	var call any
+	// T-M9-06b: the urgent red flags (fever, a pad soaked within an hour, severe pain, breathlessness) come first,
+	// in guide.RedFlagAlerts order, then the lochia warnings.
+	for _, k := range guide.RedFlagAlerts {
+		if key == "" && slices.Contains(st.Alerts, k) {
+			key, level, call = k, "urgent", postpartumCall
+		}
+	}
 	for _, k := range []string{guide.AlertHeavyBleeding, guide.AlertLargeClots} {
-		for _, a := range st.Alerts {
-			if a == k && key == "" {
-				key, level, call = k, "warning", postpartumCall
-			}
+		if key == "" && slices.Contains(st.Alerts, k) {
+			key, level, call = k, "warning", postpartumCall
 		}
 	}
 	if key == "" {
@@ -123,7 +130,11 @@ func postpartumOverride(ctx context.Context, cp *guide.Copy, st PostpartumState)
 			return nil, nil
 		}
 	}
-	t, err := cp.Text(ctx, guide.AlertGroup, key)
+	text := cp.Text
+	if level == "urgent" {
+		text = cp.Urgent // an empty admin row never silences an emergency (embedded copy instead)
+	}
+	t, err := text(ctx, guide.AlertGroup, key)
 	if err != nil {
 		return nil, err
 	}

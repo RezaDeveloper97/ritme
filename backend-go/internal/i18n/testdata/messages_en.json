@@ -9180,6 +9180,30 @@
      "empty": "No visits booked.",
      "add": "Add a visit"
     },
+    "postpartumVisits": {
+     "title": "Postpartum visits",
+     "kinds": {
+      "contact": "First visit or call with your doctor",
+      "reminder": "6-week postpartum visit",
+      "comprehensive": "Full postpartum check-up"
+     },
+     "when": {
+      "contact": "By {date}",
+      "reminder": "Around {date}",
+      "comprehensive": "By {date}"
+     },
+     "doneOn": "Done · {date}",
+     "status": {
+      "done": "Done",
+      "upcoming": "Coming up",
+      "due": "Due now",
+      "overdue": "Overdue"
+     },
+     "logToday": "I had a visit today",
+     "undoToday": "Undo today’s visit",
+     "saveError": "Couldn’t save. Try again.",
+     "note": "These visits check your recovery, stitches, contraception, feeding and mood."
+    },
     "callWhen": {
      "hotlines": "Help lines",
      "emergency": "Emergency"
@@ -9278,6 +9302,20 @@
      "engorgement": "Engorged",
      "nipple_pain": "Sore nipple",
      "redness": "Red and painful"
+    },
+    "redFlags": {
+     "title": "Warning signs",
+     "hint": "If you have any of these, tick it and save so you know what to do right now.",
+     "temperature": "Body temperature",
+     "addTemperature": "I took my temperature",
+     "clearTemperature": "Clear temperature",
+     "celsius": "°C",
+     "signs": "Do you have any of these today?",
+     "flags": {
+      "padSoakedWithinHour": "A pad soaked in under an hour",
+      "severePain": "Severe pain (belly, chest, head or calf)",
+      "breathless": "Shortness of breath"
+     }
     }
    },
    "mood": {

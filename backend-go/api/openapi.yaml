@@ -5278,7 +5278,7 @@ paths:
                       checks: {type: array, items: {$ref: "#/components/schemas/EpdsCheck"}}
                       thresholds:
                         type: object
-                        required: [short_elevated, full_possible, full_likely]
+                        required: [short_elevated, full_possible, full_likely, urgent_total]
                         properties:
                           short_elevated: {type: integer}
                           full_possible: {type: integer}
@@ -28488,9 +28488,8 @@ components:
             kind: {type: string, enum: [short, full]}
     PostpartumRecovery:
       type: object
-      description: "The red-flag / visit keys (T-M9-06) are always sent by the API; not `required` here only until the
-        postpartum contract goldens are re-recorded."
-      required: [date, lochia_amount, lochia_color, pain_level, pain_locations, breasts, feeds_count, sleep_hours, alerts]
+      required: [date, lochia_amount, lochia_color, pain_level, pain_locations, breasts, feeds_count, sleep_hours,
+        temperature_c, pad_soaked_within_hour, severe_pain, breathless, postpartum_visit, alerts]
       properties:
         date: {$ref: "#/components/schemas/Date"}
         lochia_amount: {type: [string, "null"], enum: [none, spotting, light, medium, heavy, null]}
@@ -28590,9 +28589,7 @@ components:
         checkin: {$ref: "#/components/schemas/EpdsSchedule"}
     PostpartumOverview:
       type: object
-      description: "`visits` (T-M9-06) is always sent by the API; not `required` here only until the postpartum
-        contract goldens are re-recorded."
-      required: [active, mode, setup_required, profile, status, checkin, today, alerts, week_tip, call_when]
+      required: [active, mode, setup_required, profile, status, checkin, visits, today, alerts, week_tip, call_when]
       properties:
         active: {type: boolean}
         mode: {type: string}

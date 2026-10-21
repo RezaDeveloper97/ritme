@@ -11,6 +11,7 @@ import (
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
+	"github.com/ritme/backend-go/internal/postpartum"
 	"github.com/ritme/backend-go/internal/postpartum/guide"
 )
 
@@ -92,4 +93,48 @@ func TestPostpartum_AdminTipWins(t *testing.T) {
 	c := adminContent{rows: map[string]any{guide.TipGroup + "|1|en": row}}
 	pm := genJSON(t, &postpartumSource{state: &PostpartumState{BirthDate: &birth}}, c, "en")["primary_message"].(map[string]any)
 	assert.Equal(t, "Admin week 1", pm["short_message"])
+}
+
+// T-M9-06b: the urgent red flags of the recovery log (fever ≥ postpartum.redflags.fever_c, breathlessness, …) win
+// over the lochia warnings and the due check-in, with level urgent and the 115 call.
+func TestPostpartum_RedFlagOverride(t *testing.T) {
+	birth := day.AddDays(-10)
+	fever, yes := 38.0, true
+	rec := postpartum.Recovery{TemperatureC: &fever, LochiaAmount: "heavy"}
+	src := &postpartumSource{state: &PostpartumState{BirthDate: &birth, Alerts: rec.Alerts(), CheckinDue: "short"}}
+	pm := genJSON(t, src, defaultsContent{}, "en")["primary_message"].(map[string]any)
+	assert.Equal(t, true, pm["has_override"])
+	assert.Equal(t, guide.AlertFever, pm["override_type"])
+	assert.Equal(t, "urgent", pm["alert_level"])
+	assert.Equal(t, "115", pm["call_number"])
+	assert.Equal(t, "Your temperature is high", pm["short_message"])
+
+	below := 37.9
+	rec = postpartum.Recovery{TemperatureC: &below, Breathless: &yes}
+	src.state.Alerts = rec.Alerts()
+	pm = genJSON(t, src, defaultsContent{}, "en")["primary_message"].(map[string]any)
+	assert.Equal(t, guide.AlertBreathless, pm["override_type"])
+	assert.Equal(t, "urgent", pm["alert_level"])
+	assert.Equal(t, "115", pm["call_number"])
+	assert.Equal(t, "You are short of breath", pm["short_message"])
+
+	rec = postpartum.Recovery{TemperatureC: &below, LochiaAmount: "heavy"}
+	src.state.Alerts = rec.Alerts()
+	pm = genJSON(t, src, defaultsContent{}, "en")["primary_message"].(map[string]any)
+	assert.Equal(t, guide.AlertHeavyBleeding, pm["override_type"], "37.9 °C is no fever")
+	assert.Equal(t, "warning", pm["alert_level"])
+}
+
+// An admin row with an empty body never silences a red flag: the embedded copy is used instead.
+func TestPostpartum_RedFlagEmptyAdminRowFallsBack(t *testing.T) {
+	birth := day.AddDays(-5)
+	row := phpval.NewMap()
+	row.Set("title", "Admin title")
+	row.Set("body", "")
+	c := adminContent{rows: map[string]any{guide.AlertGroup + "|" + guide.AlertPadPerHour + "|en": row}}
+	src := &postpartumSource{state: &PostpartumState{BirthDate: &birth, Alerts: []string{guide.AlertPadPerHour}}}
+	pm := genJSON(t, src, c, "en")["primary_message"].(map[string]any)
+	assert.Equal(t, guide.AlertPadPerHour, pm["override_type"])
+	assert.NotEmpty(t, pm["long_message"])
+	assert.NotEqual(t, "Admin title", pm["short_message"])
 }

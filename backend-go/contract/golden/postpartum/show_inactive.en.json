@@ -22,6 +22,7 @@
           "profile": null,
           "status": null,
           "checkin": null,
+          "visits": [],
           "today": null,
           "alerts": [],
           "week_tip": null,

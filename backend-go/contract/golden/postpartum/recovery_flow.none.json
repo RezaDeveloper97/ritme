@@ -49,6 +49,29 @@
             "next_due_on": "2026-09-23",
             "last": null
           },
+          "visits": [
+            {
+              "kind": "contact",
+              "due_on": "2026-09-27",
+              "done": false,
+              "done_on": null,
+              "status": "upcoming"
+            },
+            {
+              "kind": "reminder",
+              "due_on": "2026-10-18",
+              "done": false,
+              "done_on": null,
+              "status": "upcoming"
+            },
+            {
+              "kind": "comprehensive",
+              "due_on": "2026-11-29",
+              "done": false,
+              "done_on": null,
+              "status": "upcoming"
+            }
+          ],
           "today": {
             "date": "2026-09-23",
             "lochia_amount": null,
@@ -58,6 +81,11 @@
             "breasts": null,
             "feeds_count": null,
             "sleep_hours": null,
+            "temperature_c": null,
+            "pad_soaked_within_hour": null,
+            "severe_pain": null,
+            "breathless": null,
+            "postpartum_visit": null,
             "alerts": []
           },
           "alerts": [
@@ -130,6 +158,11 @@
           ],
           "feeds_count": 8,
           "sleep_hours": 4.5,
+          "temperature_c": null,
+          "pad_soaked_within_hour": null,
+          "severe_pain": null,
+          "breathless": null,
+          "postpartum_visit": null,
           "alerts": [
             {
               "key": "heavy_bleeding",
@@ -179,6 +212,11 @@
           "breasts": [],
           "feeds_count": 8,
           "sleep_hours": null,
+          "temperature_c": null,
+          "pad_soaked_within_hour": null,
+          "severe_pain": null,
+          "breathless": null,
+          "postpartum_visit": null,
           "alerts": []
         }
       }
@@ -208,6 +246,11 @@
           "breasts": [],
           "feeds_count": 8,
           "sleep_hours": null,
+          "temperature_c": null,
+          "pad_soaked_within_hour": null,
+          "severe_pain": null,
+          "breathless": null,
+          "postpartum_visit": null,
           "alerts": []
         }
       }

@@ -1,0 +1,66 @@
+group: pregnancy
+entries:
+  # D-134 (task T-M9-05, engine v6, user OK 2026-10-21): a blood pressure at or above 160/110 is the severe tier.
+  # v1 (this Laravel route) answers an emergency alert with the severe copy and the call-now actions instead of
+  # Laravel's warning "High Blood Pressure" (the fixture week log sends 165/112).
+  - case: "weekly_store_upsert.*"
+    step: 1
+    where: data.alerts[0].alert_level
+    deviation: D-134
+    reason: ≥160/110 is the severe tier → emergency (Laravel warning)
+  - case: "weekly_store_upsert.*"
+    step: 1
+    where: data.alerts[0].title
+    deviation: D-134
+    reason: severe-tier title
+  - case: "weekly_store_upsert.*"
+    step: 1
+    where: data.alerts[0].message
+    deviation: D-134
+    reason: severe-tier message (contact now, 115 with warning signs)
+  - case: "weekly_store_upsert.*"
+    step: 1
+    where: data.alerts[0].trigger_symptoms.severe
+    deviation: D-134
+    reason: the severe tier is recorded on the alert
+  - case: "weekly_store_upsert.*"
+    step: 1
+    where: data.alerts[0].recommended_actions
+    deviation: D-134
+    reason: severe-tier actions (two instead of Laravel's three)
+  - case: "weekly_store_upsert.*"
+    step: 1
+    where: data.alerts[0].recommended_actions[*]
+    deviation: D-134
+    reason: severe-tier actions (call the doctor or midwife now, call 115)
+
+  # D-134 (task T-M9-05): the v2 emergency rules (bp_high, fetal_movement, critical_symptom) now fire with the
+  # embedded fa/en copy when the admin message_contents row is missing — the contract dump has none, so before
+  # T-M9-05 no v2 row was written there. v2 alerts share the pregnancy_alerts table (alert_type 'v2:<rule>',
+  # T-M7-04), so the extra rows move the auto-increment ids of later v1 alerts and are counted by the legacy
+  # /pregnancy/alerts/summary. The v1 alerts in the responses are otherwise unchanged.
+  - case: "weekly_store_upsert.*"
+    step: 2
+    where: data.alerts[*].id
+    deviation: D-134
+    reason: the step-1 v2 emergency rows (embedded copy) take two ids first
+  - case: "fetal_movement_store_reduced.*"
+    step: 2
+    where: data.alerts[*].id
+    deviation: D-134
+    reason: the step-1 v2 fetal_movement row (embedded copy) takes one id first
+  - case: "symptoms_store_alerts.*"
+    step: 2
+    where: data.counts.total
+    deviation: D-134
+    reason: three v2 critical_symptom rows (embedded copy) are counted next to the three v1 alerts
+  - case: "symptoms_store_alerts.*"
+    step: 2
+    where: data.counts.unread
+    deviation: D-134
+    reason: the v2 critical_symptom rows are unread
+  - case: "symptoms_store_alerts.*"
+    step: 2
+    where: data.counts.emergency
+    deviation: D-134
+    reason: the v2 critical_symptom rows are emergency level

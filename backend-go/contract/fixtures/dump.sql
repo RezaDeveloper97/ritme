@@ -4638,6 +4638,30 @@ LOCK TABLES `postpartum_profiles` WRITE;
 /*!40000 ALTER TABLE `postpartum_profiles` DISABLE KEYS */;
 /*!40000 ALTER TABLE `postpartum_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `postpartum_recovery_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `postpartum_recovery_logs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `log_date` date NOT NULL,
+  `temperature_c` decimal(3,1) DEFAULT NULL,
+  `pad_soaked_within_hour` tinyint(1) DEFAULT NULL,
+  `severe_pain` tinyint(1) DEFAULT NULL,
+  `breathless` tinyint(1) DEFAULT NULL,
+  `postpartum_visit` tinyint(1) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `postpartum_recovery_logs_user_id_log_date_unique` (`user_id`,`log_date`),
+  CONSTRAINT `postpartum_recovery_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `postpartum_recovery_logs` WRITE;
+/*!40000 ALTER TABLE `postpartum_recovery_logs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `postpartum_recovery_logs` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `pregnancy_alerts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -6512,7 +6536,7 @@ CREATE TABLE `user_profiles` (
   `onboarding_last_period_start` date DEFAULT NULL,
   `timezone` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `user_profiles_user_id_foreign` (`user_id`),
+  UNIQUE KEY `user_profiles_user_id_unique` (`user_id`),
   CONSTRAINT `user_profiles_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=1019 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
