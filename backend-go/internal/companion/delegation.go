@@ -4,6 +4,8 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/gofiber/fiber/v3"
+
 	"github.com/ritme/backend-go/internal/platform/clock"
 )
 
@@ -35,6 +37,9 @@ func (d *Delegation) svc(ctx context.Context) *Service {
 func (d *Delegation) Authorize(ctx context.Context, ownerID, actorID uint64, section Section, write bool) (bool, error) {
 	if ownerID == actorID {
 		return true, nil
+	}
+	if c, ok := ctx.(fiber.Ctx); ok { // a member reads or writes the owner's data: never cache the answer (T-M9-02)
+		NoStore(c)
 	}
 	svc := d.svc(ctx)
 	level, linkID, err := svc.access(ctx, ownerID, actorID, section)

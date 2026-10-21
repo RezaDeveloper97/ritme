@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ritme/backend-go/internal/companion"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -48,14 +49,15 @@ const (
 
 // Service is the postpartum API's logic.
 type Service struct {
-	db   *sql.DB // nil in tests that pass a transaction
+	db   *sql.DB    // nil in tests that pass a transaction
+	conn store.DBTX // what NewService got (the transaction when db is nil)
 	q    *store.Queries
 	logs *healthlog.Service
 }
 
 // NewService returns a Service on db (a *sql.DB, or a transaction).
 func NewService(db store.DBTX) *Service {
-	s := &Service{q: store.New(db), logs: healthlog.NewService(db)}
+	s := &Service{conn: db, q: store.New(db), logs: healthlog.NewService(db)}
 	if pool, ok := db.(*sql.DB); ok {
 		s.db = pool
 	}
@@ -112,9 +114,11 @@ type ActivateInput struct {
 
 // Activate switches the user to postpartum mode: an active pregnancy is closed as delivered (pregnancy_mode off, as
 // /pregnancy/deactivate does), the birth is stored (a later activation overwrites it), the life mode becomes
-// postpartum and user_goal / pregnancy_intention follow (non-TTC, no pregnant intention). One transaction.
+// postpartum and user_goal / pregnancy_intention follow (non-TTC, no pregnant intention), and every pregnancy grant of
+// her companion links goes back to none (companion.ResetModeScopedGrants, T-M9-02: postpartum is not pregnancy, and the
+// next pregnancy must not open to a stale grant). One transaction.
 func (s *Service) Activate(ctx context.Context, userID uint64, in ActivateInput, now time.Time) error {
-	return s.inTx(ctx, func(q *store.Queries) error {
+	return s.inTx(ctx, func(q *store.Queries, tx store.DBTX) error {
 		ts := tehranNow(now)
 		p := store.UpsertPostpartumProfileParams{
 			UserID: userID, BirthDate: in.BirthDate, BabyCount: uint8(in.BabyCount), Source: SourceDirect, Now: ts, //nolint:gosec // G115: validated 1–MaxBabyCount
@@ -144,19 +148,22 @@ func (s *Service) Activate(ctx context.Context, userID uint64, in ActivateInput,
 		if err := q.SyncPostpartumLegacyGoal(ctx, store.SyncPostpartumLegacyGoalParams{Now: ts, UserID: userID}); err != nil {
 			return fmt.Errorf("postpartum: legacy goal: %w", err)
 		}
+		if _, err := companion.ResetModeScopedGrants(ctx, tx, userID, companion.ResetPostpartumStarted, now); err != nil {
+			return fmt.Errorf("postpartum: reset pregnancy grants: %w", err)
+		}
 		return nil
 	})
 }
 
-func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries) error) error {
+func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries, tx store.DBTX) error) error {
 	if s.db == nil {
-		return fn(s.q)
+		return fn(s.q, s.conn)
 	}
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("postpartum: begin: %w", err)
 	}
-	if err := fn(store.New(tx)); err != nil {
+	if err := fn(store.New(tx), tx); err != nil {
 		_ = tx.Rollback()
 		return err
 	}

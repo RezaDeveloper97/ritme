@@ -5,6 +5,7 @@
 # companion. Every access combination (no grant, revoked link, another male, admin tip rows) is covered by
 # internal/http/routes_companion_home_int_test.go.
 # Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+# Re-recorded from Go for T-M9-02 (deviations D-133): the member cycle block has no days_late.
 group: companion-home
 defaults:
   persona: regular

@@ -408,6 +408,7 @@ func (h *Handlers) Audit(c fiber.Ctx) error {
 // expired, used, locked, bound to another number, the owner's own code, an existing link — is the same 422, so the
 // answer never tells whether a code exists. Rate-limited per user and per IP (internal/http).
 func (h *Handlers) Accept(c fiber.Ctx) error {
+	NoStore(c) // member-facing (T-M9-02)
 	viewerID, err := currentUser(c)
 	if err != nil {
 		return err
@@ -457,6 +458,7 @@ func (h *Handlers) Accept(c fiber.Ctx) error {
 
 // Links is GET /companions/links: the active links in which the caller is the companion (whose data she/he sees).
 func (h *Handlers) Links(c fiber.Ctx) error {
+	NoStore(c) // member-facing (T-M9-02)
 	viewerID, err := currentUser(c)
 	if err != nil {
 		return err
@@ -483,6 +485,7 @@ func (h *Handlers) Links(c fiber.Ctx) error {
 
 // Leave is DELETE /companions/links/{id}: the companion ends the link.
 func (h *Handlers) Leave(c fiber.Ctx) error {
+	NoStore(c) // member-facing (T-M9-02)
 	viewerID, err := currentUser(c)
 	if err != nil {
 		return err
@@ -508,6 +511,7 @@ func (h *Handlers) Leave(c fiber.Ctx) error {
 // at all: its only view is the teen card (GET /teen/linked). Every successful read is audited before the data is
 // built.
 func (h *Handlers) Section(c fiber.Ctx) error {
+	NoStore(c) // member-facing (T-M9-02)
 	viewerID, err := currentUser(c)
 	if err != nil {
 		return err

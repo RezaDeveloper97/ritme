@@ -16,6 +16,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/companion"
+	companionstore "github.com/ritme/backend-go/internal/companion/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
@@ -36,6 +38,7 @@ import (
 type Handlers struct {
 	q         store.Querier
 	afterSave AfterLogSave
+	family    companionstore.DBTX // SetFamilyGrants; nil = no companion links to reset (tests)
 }
 
 // AfterLogSave runs after every symptom / weekly / fetal-movement save (the v2 alert rules of
@@ -48,6 +51,20 @@ func NewHandlers(q store.Querier) *Handlers { return &Handlers{q: q} }
 
 // SetAfterLogSave installs the log-save hook.
 func (h *Handlers) SetAfterLogSave(f AfterLogSave) { h.afterSave = f }
+
+// SetFamilyGrants gives the handlers the database of the companion links (the API's *sql.DB): every start and end of
+// a pregnancy then resets the owner's pregnancy grants (companion.ResetModeScopedGrants, T-M9-02 / FAM-H3), so a
+// member who could see one pregnancy never sees the next one from its first day.
+func (h *Handlers) SetFamilyGrants(db companionstore.DBTX) { h.family = db }
+
+// resetFamilyGrants runs the reset right after the pregnancy profile was saved (these writes have no transaction).
+func (h *Handlers) resetFamilyGrants(r req, reason companion.ResetReason) error {
+	if h.family == nil {
+		return nil
+	}
+	_, err := companion.ResetModeScopedGrants(r.c.Context(), h.family, r.userID, reason, r.now)
+	return err
+}
 
 func (h *Handlers) afterLogSave(r req) {
 	if h.afterSave == nil {
@@ -122,6 +139,11 @@ func (h *Handlers) Activate(c fiber.Ctx) error {
 	if err := saveProfile(ctx, h.q, r.userID, p, jsonx.Obj("pregnancy_mode", true, "cycle_mode", false), r.now); err != nil {
 		return err
 	}
+	if p == nil || !p.PregnancyMode { // a new pregnancy episode starts: no grant carries over
+		if err := h.resetFamilyGrants(r, companion.ResetPregnancyActivated); err != nil {
+			return err
+		}
+	}
 	// A freshly created model has no onboarding_completed attribute (!null → true).
 	onboarded := p != nil && p.OnboardingCompleted
 	return httpx.OK(c, jsonx.Obj(
@@ -141,6 +163,11 @@ func (h *Handlers) Deactivate(c fiber.Ctx) error {
 	if p != nil {
 		if err := saveProfile(c.Context(), h.q, r.userID, p, jsonx.Obj("pregnancy_mode", false, "cycle_mode", true), r.now); err != nil {
 			return err
+		}
+		if p.PregnancyMode { // the pregnancy episode ends: its grants end with it
+			if err := h.resetFamilyGrants(r, companion.ResetPregnancyDeactivated); err != nil {
+				return err
+			}
 		}
 	}
 	return httpx.OK(c, jsonx.Obj("pregnancy_mode", false, "cycle_mode", true),
@@ -188,6 +215,11 @@ func (h *Handlers) Onboarding(c fiber.Ctx) error {
 	}
 	if err := saveProfile(ctx, h.q, r.userID, existing, validated, r.now); err != nil {
 		return err
+	}
+	if existing == nil || !existing.PregnancyMode { // setup (v1 and the v2 Setup screen) starts a new episode
+		if err := h.resetFamilyGrants(r, companion.ResetPregnancyActivated); err != nil {
+			return err
+		}
 	}
 	cl, err := h.calculator(r)
 	if err != nil {

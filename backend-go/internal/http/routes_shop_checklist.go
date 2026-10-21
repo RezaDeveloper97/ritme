@@ -34,7 +34,7 @@ func init() {
 		svc := checklist.NewService(shopstore.New(d.DB), shopDueDate{q: pregnancystore.New(d.DB)},
 			shopPeriodPredictor{cycle: cycleservice.New(d.DB, nil)})
 		h := checklist.NewHandlers(svc, teen.NewPolicy(d.DB),
-			shopChecklistShare{d: companion.NewDelegation(d.DB, clock.Real{}, d.Logger)}, clock.Real{})
+			shopChecklistShare{d: companion.NewDelegation(d.DB, clock.Real{}, d.Logger), preg: pregnancystore.New(d.DB)}, clock.Real{})
 		writes := writeThrottle(d)
 
 		r.Get("/api/v1/shop/checklist", locale, guard, delegatedReadThrottle(d), h.Show)
@@ -86,9 +86,24 @@ func (p shopPeriodPredictor) NextPeriodStart(ctx context.Context, userID uint64,
 }
 
 // shopChecklistShare is the family share: a companion with a live `pregnancy` grant (view or edit) reads the
-// owner's checklist; the read is audited by the companion delegation before any data is touched.
-type shopChecklistShare struct{ d *companion.Delegation }
+// owner's checklist while she is pregnant — the same pregnancy check as the companion pregnancy section (T-M9-02):
+// postpartum, after a loss or between pregnancies nothing is shared, and a grant reset by
+// companion.ResetModeScopedGrants opens nothing (so no due date or weeks left reach a member). The read is audited
+// by the companion delegation before any data is touched; a refused one is not.
+type shopChecklistShare struct {
+	d    *companion.Delegation
+	preg pregnancystore.Querier
+}
 
 func (s shopChecklistShare) CanView(ctx context.Context, ownerID, viewerID uint64) (bool, error) {
+	if ownerID != viewerID {
+		_, err := pregnancy.ActiveProfile(ctx, s.preg, ownerID)
+		if errors.Is(err, pregnancy.ErrNotPregnant) || errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		if err != nil {
+			return false, err
+		}
+	}
 	return s.d.Authorize(ctx, ownerID, viewerID, companion.SectionPregnancy, false)
 }

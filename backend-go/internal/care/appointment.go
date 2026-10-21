@@ -235,3 +235,28 @@ func (a Appointment) JSON(now time.Time) *jsonx.OrderedMap {
 		"updated_at", nullDateTime(r.UpdatedAt),
 	)
 }
+
+// MemberJSON is what a family member (companion) may see of the owner's appointment (T-M9-02, FAM-M2): an explicit
+// allow-list — title, kind, who it is with, where, when, status. Never the owner's notes, topic, result note, prep
+// checklist, specialty, visit stage or any other free text she typed for herself. JSON is the owner's.
+func (a Appointment) MemberJSON(now time.Time) *jsonx.OrderedMap {
+	r := a.Row
+	var scheduledAt, daysUntil any
+	if r.ScheduledAt.Valid {
+		at := r.ScheduledAt.Time.In(civildate.Tehran)
+		scheduledAt = at.Format(wallClock)
+		daysUntil = civildate.InTehran(now).DiffDays(civildate.FromTime(at))
+	}
+	return jsonx.Obj(
+		"id", r.ID,
+		"type", r.Type,
+		"title", r.Title,
+		"kind", a.Meta.Kind,
+		"with", a.Meta.With,
+		"location", a.Meta.Location,
+		"scheduled_at", scheduledAt,
+		"days_until", daysUntil,
+		"status", a.Meta.Status,
+		"is_active", r.IsActive,
+	)
+}

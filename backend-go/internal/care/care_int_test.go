@@ -24,6 +24,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth/passport"
 	authstore "github.com/ritme/backend-go/internal/auth/store"
 	"github.com/ritme/backend-go/internal/care"
+	"github.com/ritme/backend-go/internal/companion"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/clock"
@@ -83,6 +84,7 @@ func setup(t *testing.T) *env {
 	locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(db), nil, quiet))
 	counter := &countingDB{DB: db}
 	h := care.NewHandlers(counter, clock.Real{})
+	h.SetDelegation(companion.NewDelegation(db, clock.Real{}, quiet)) // «ثبت برای …» (for_user_id), as in routes_care.go
 	legacy := reminder.NewHandlers(db, clock.Real{})
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})

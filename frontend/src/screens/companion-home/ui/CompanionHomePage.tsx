@@ -125,12 +125,7 @@ function PartnerCard({ partner, name, t, locale }: { partner: CompanionPartner; 
             <span>{t('cycle.bar.luteal')}</span>
           </div>
         ) : null}
-        {cycle.daysLate > 0 ? (
-          <div className="cmh-next">
-            <Icon name="drop" size={16} className="cmh-next-ic" />
-            {t('cycle.late', { days: cycle.daysLate })}
-          </div>
-        ) : cycle.daysToPeriod != null && cycle.daysToPeriod >= 0 ? (
+        {cycle.daysToPeriod != null && cycle.daysToPeriod >= 0 ? (
           <div className="cmh-next">
             <Icon name="drop" size={16} className="cmh-next-ic" />
             {t('cycle.nextPeriod', { days: cycle.daysToPeriod })}

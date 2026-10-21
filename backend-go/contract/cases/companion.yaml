@@ -7,6 +7,8 @@
 # IDOR on every route, view-cannot-write, revoke-ends-access-now, the accept throttles (per user + per IP), expiry and
 # the production 503 are covered by internal/http/routes_companion_int_test.go; the section views' privacy filter by
 # internal/companion/shared/shared_int_test.go; the domain rules by internal/companion/*_test.go.
+# Re-recorded from Go for T-M9-02 (deviations D-133): the member cycle view has no days_late and «ثبت برای …» answers
+# a companion with the member projection (no notes / subtitle / amount / duration / notify / recurrence / timestamps).
 # Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
 group: companion
 defaults:

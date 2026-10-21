@@ -12,11 +12,6 @@ import (
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 )
 
-// MaxLateDays is the lateness the cycle view still shows (the cycle engine's own cap, resolver maxLateDays). Past it
-// days_late and cycle_day are null for every companion: a long lateness says more about the owner (a pregnancy she
-// keeps private) than about her cycle (CMP-H1).
-const MaxLateDays = 14
-
 // viewScope is what the cycle and symptoms views may reveal for one link: the owner's effective life mode
 // (enums.ResolveLifeMode: an active pregnancy wins) and whether the link holds the pregnancy grant.
 type viewScope struct {
@@ -33,25 +28,33 @@ func (r *Reader) scope(ctx context.Context, link companion.Link) (viewScope, err
 	return viewScope{mode: enums.LifeMode(mode), pregnancy: link.Grants.Of(companion.SectionPregnancy).CanRead()}, nil
 }
 
-// pregnancyMode reports whether the mode is pregnancy or postpartum (what the pregnancy grant covers).
-func (v viewScope) pregnancyMode() bool {
-	return v.mode == enums.LifeModePregnancy || v.mode == enums.LifeModePostpartum
-}
+// pregnant reports whether the owner's effective mode is pregnancy — the only mode the pregnancy grant covers.
+// Postpartum is not pregnancy (T-M9-02, FAM-M3): the grant never opens what a mother logs after the birth.
+func (v viewScope) pregnant() bool { return v.mode == enums.LifeModePregnancy }
 
-// neutralCycle reports whether the cycle view must say nothing: a pregnancy / postpartum owner whose link has no
-// pregnancy grant (her cycle numbers would reveal it), and every menopause owner (the cycle view means nothing there
-// and would reveal the life stage).
+// pregnancyShared reports whether the link may see the owner's pregnancy: the grant and a pregnancy right now.
+func (v viewScope) pregnancyShared() bool { return v.pregnancy && v.pregnant() }
+
+// neutralCycle reports whether the cycle view must say nothing: a pregnant owner whose link has no pregnancy grant
+// (her cycle numbers would reveal it), every postpartum owner (no grant covers that mode; FAM-M3) and every
+// menopause owner (the cycle view means nothing there and would reveal the life stage).
 func (v viewScope) neutralCycle() bool {
-	return v.mode == enums.LifeModeMenopause || (v.pregnancyMode() && !v.pregnancy)
+	switch v.mode {
+	case enums.LifeModeMenopause, enums.LifeModePostpartum:
+		return true
+	case enums.LifeModePregnancy:
+		return !v.pregnancy
+	}
+	return false
 }
 
 // symptomModes are the log modes whose options the symptoms view may pass on: always the cycle mode; with the
-// pregnancy grant also the owner's pregnancy / postpartum mode. Mode-only options of any other mode never leave
-// (leg cramps in pregnancy, stitches after birth, the menopause items).
+// pregnancy grant during a pregnancy also the pregnancy mode. Mode-only options of any other mode never leave
+// (stitches or the weekly check-in after birth, the menopause items).
 func (v viewScope) symptomModes() []string {
 	out := []string{taxonomy.ModeCycle}
-	if v.pregnancy && v.pregnancyMode() {
-		out = append(out, string(v.mode))
+	if v.pregnancyShared() {
+		out = append(out, taxonomy.ModePregnancy)
 	}
 	return out
 }
@@ -65,14 +68,10 @@ func neutralCycle(today civildate.Date) *jsonx.OrderedMap {
 		"cycle_length", nil,
 		"main_phase", nil,
 		"days_to_period", nil,
-		"days_late", nil,
 		"predicted_next_period_start", nil,
 		"confidence", nil,
 	)
 }
-
-// tooLate reports whether a lateness is past MaxLateDays.
-func tooLate(daysLate *int) bool { return daysLate != nil && *daysLate > MaxLateDays }
 
 // sharedPhase is the phase a companion sees: for an owner whose mode never gets fertility copy (teen; CMP-M1) the
 // fertile phase becomes its neighbour, follicular, so neither the card nor the tips name a fertile window.

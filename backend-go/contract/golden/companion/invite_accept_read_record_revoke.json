@@ -164,7 +164,6 @@
             "cycle_length": 28,
             "main_phase": "fertile",
             "days_to_period": 19,
-            "days_late": 0,
             "predicted_next_period_start": "2026-10-12",
             "confidence": "high"
           }
@@ -236,11 +235,10 @@
           "id": 101805,
           "type": "medication",
           "title": "Iron",
-          "subtitle": null,
-          "notes": null,
           "form": "tablet",
           "dose": null,
           "unit": null,
+          "unit_label": null,
           "times": [
             "21:00"
           ],
@@ -253,16 +251,9 @@
             5,
             6
           ],
-          "amount": 1,
-          "duration": "ongoing",
-          "notify": true,
           "starts_on": "2026-09-23",
           "ends_on": null,
-          "is_active": true,
-          "recurrence": "daily",
-          "recurrence_time": "21:00",
-          "created_at": "2026-09-23T06:30:00.000000Z",
-          "updated_at": "2026-09-23T06:30:00.000000Z"
+          "is_active": true
         }
       }
     },
@@ -291,11 +282,10 @@
               "id": 101805,
               "type": "medication",
               "title": "Iron",
-              "subtitle": null,
-              "notes": null,
               "form": "tablet",
               "dose": null,
               "unit": null,
+              "unit_label": null,
               "times": [
                 "21:00"
               ],
@@ -308,16 +298,9 @@
                 5,
                 6
               ],
-              "amount": 1,
-              "duration": "ongoing",
-              "notify": true,
               "starts_on": "2026-09-23",
               "ends_on": null,
-              "is_active": true,
-              "recurrence": "daily",
-              "recurrence_time": "21:00",
-              "created_at": "2026-09-23T06:30:00.000000Z",
-              "updated_at": "2026-09-23T06:30:00.000000Z"
+              "is_active": true
             }
           ]
         }

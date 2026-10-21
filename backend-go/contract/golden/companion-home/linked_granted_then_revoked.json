@@ -204,7 +204,6 @@
                 "cycle_length": 28,
                 "main_phase": "fertile",
                 "days_to_period": 19,
-                "days_late": 0,
                 "predicted_next_period_start": "2026-10-12",
                 "confidence": "high"
               },

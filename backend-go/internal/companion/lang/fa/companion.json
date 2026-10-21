@@ -45,6 +45,8 @@
         "recorded_appointments_title": ":name یک نوبت پزشک برایت ثبت کرد",
         "updated_meds_title": ":name یکی از داروهایت را ویرایش کرد",
         "updated_appointments_title": ":name یکی از نوبت‌هایت را ویرایش کرد",
-        "recorded_body": "برای دیدنش برنامه را باز کن."
+        "recorded_body": "برای دیدنش برنامه را باز کن.",
+        "pregnancy_reset_title": "اشتراک بارداری با همراهت متوقف شد؛ اگر بخواهی، دوباره روشنش کن.",
+        "pregnancy_reset_body": "در بخش همدم‌ها می‌توانی دوباره تصمیم بگیری چه چیزی را ببیند."
     }
 }

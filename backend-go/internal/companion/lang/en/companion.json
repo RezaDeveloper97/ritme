@@ -45,6 +45,8 @@
         "recorded_appointments_title": ":name added an appointment for you",
         "updated_meds_title": ":name edited one of your medications",
         "updated_appointments_title": ":name edited one of your appointments",
-        "recorded_body": "Open the app to review it."
+        "recorded_body": "Open the app to review it.",
+        "pregnancy_reset_title": "Pregnancy sharing with your companion was turned off; turn it back on if you want.",
+        "pregnancy_reset_body": "You can choose again what they see in Companions."
     }
 }

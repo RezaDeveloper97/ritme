@@ -12,6 +12,7 @@ import {
   type CompanionHome,
   type CompanionPartner,
   type SharedAppointment,
+  type SharedCycleView,
   type SharedMedication,
   type ViewerLink,
 } from '../model/companion-side';
@@ -68,6 +69,12 @@ export const viewerLinkSchema = z
     }),
   );
 
+/*
+ * Her cycle as a member sees it. Lateness is never shown on the member side
+ * (T-M9-02, SPEC v6 §1.7): the Go API no longer sends `days_late`, and an
+ * older payload (Laravel) that still carries it is ignored — the key is not
+ * even read. A late owner's cycle day / days-to-period arrive as null.
+ */
 const cycleSchema = z
   .object({
     date: z.string(),
@@ -76,24 +83,29 @@ const cycleSchema = z
     cycle_length: num.optional(),
     main_phase: str.optional(),
     days_to_period: num.optional(),
-    days_late: z.number().catch(0).optional(),
     predicted_next_period_start: str.optional(),
   })
-  .transform((c) => ({
-    date: c.date,
-    hasData: c.has_data,
-    cycleDay: c.cycle_day ?? null,
-    cycleLength: c.cycle_length ?? null,
-    mainPhase: c.main_phase ?? null,
-    daysToPeriod: c.days_to_period ?? null,
-    daysLate: c.days_late ?? 0,
-    predictedNextPeriodStart: c.predicted_next_period_start ?? null,
-  }));
+  .transform(
+    (c): SharedCycleView => ({
+      date: c.date,
+      hasData: c.has_data,
+      cycleDay: c.cycle_day ?? null,
+      cycleLength: c.cycle_length ?? null,
+      mainPhase: c.main_phase ?? null,
+      daysToPeriod: c.days_to_period ?? null,
+      predictedNextPeriodStart: c.predicted_next_period_start ?? null,
+    }),
+  );
 
 const pregnancySchema = z
   .object({ is_active: z.boolean().catch(false), current_week: num.optional(), trimester: num.optional() })
   .transform((p) => ({ isActive: p.is_active, currentWeek: p.current_week ?? null, trimester: p.trimester ?? null }));
 
+/*
+ * Meds and appointments: the member projection is an allow-list server-side
+ * (no notes, topic, result note, prep or other free text). Only the fields
+ * the card shows are read here, so an older, fuller payload changes nothing.
+ */
 const medSchema = z
   .object({ id: z.number(), title: z.string().catch(''), times: z.array(z.string()).nullable().catch([]).optional() })
   .transform((m): SharedMedication => ({ id: m.id, title: m.title, times: m.times ?? [] }));

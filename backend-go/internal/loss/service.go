@@ -104,7 +104,8 @@ func latest(ctx context.Context, q store.Querier, userID uint64) (store.Pregnanc
 // closed (pregnancy.EndForLoss), pregnancy-only reminders paused (medications «تا پایان بارداری» switched off,
 // upcoming pregnancy visits cancelled). A second POST on the same Tehran day corrects that event instead of
 // recording another loss. Afterwards the life-stage mode leaves pregnancy (→ cycle) and, when asked, companions with
-// the pregnancy grant get the one-line notice (best effort, once per loss). Reports whether a new row was created.
+// the pregnancy grant get the one-line notice (best effort, once per loss); then every pregnancy grant is reset
+// (companion.ResetModeScopedGrants). Reports whether a new row was created.
 func (s *Service) Record(ctx context.Context, u *auth.User, in RecordInput, now time.Time, langs i18n.Languages) (bool, error) {
 	today := civildate.InTehran(now)
 	var (
@@ -171,6 +172,12 @@ func (s *Service) Record(ctx context.Context, u *auth.User, in RecordInput, now 
 			// Best effort: the loss is stored and pregnancy content is stopped. No user or health detail is logged.
 			s.logger.ErrorContext(ctx, "companion notice failed", slog.String("error", err.Error()))
 		}
+	}
+	// T-M9-02 (FAM-H3): the pregnancy grants end with this pregnancy, so no member sees the next one from its first
+	// day. After the commit and after the one-line notice above (it goes to the companions who held the grant). Not
+	// best effort: a failure is an error, and a retry of the same day's POST runs the reset again.
+	if _, err := companion.ResetModeScopedGrants(ctx, s.db, u.ID, companion.ResetPregnancyLoss, now); err != nil {
+		return created, err
 	}
 	return created, nil
 }

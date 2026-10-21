@@ -169,6 +169,58 @@ func (m Medication) JSON(locale string) *jsonx.OrderedMap {
 	)
 }
 
+// MemberJSON is what a family member (companion) may see of the owner's medication (T-M9-02, FAM-M2): an explicit
+// allow-list — name, form and dose, schedule, status. Never the owner's notes, a free-text subtitle or unit, or any
+// other field the owner typed for herself; unknown forms and units are dropped, not echoed. JSON is the owner's.
+func (m Medication) MemberJSON(locale string) *jsonx.OrderedMap {
+	r := m.Row
+	var form, dose, unit, unitLabel any
+	if slices.Contains(Forms, m.Meta.Form) {
+		form = m.Meta.Form
+	}
+	if m.Meta.Dose != nil && isDoseNumber(*m.Meta.Dose) {
+		dose = *m.Meta.Dose
+	}
+	if m.Meta.Unit != nil && slices.Contains(Units, *m.Meta.Unit) {
+		unit = *m.Meta.Unit
+		if label, ok := Label("units", *m.Meta.Unit, locale); ok {
+			unitLabel = label
+		}
+	}
+	return jsonx.Obj(
+		"id", r.ID,
+		"type", r.Type,
+		"title", r.Title,
+		"form", form,
+		"dose", dose,
+		"unit", unit,
+		"unit_label", unitLabel,
+		"times", m.Meta.Times,
+		"weekdays", m.Meta.Weekdays,
+		"starts_on", nullDate(r.StartsOn),
+		"ends_on", nullDate(r.EndsOn),
+		"is_active", r.IsActive,
+	)
+}
+
+// isDoseNumber reports whether a stored dose is a plain number ("400", "0.5") — anything else is free text.
+func isDoseNumber(s string) bool {
+	if s == "" || len(s) > 12 {
+		return false
+	}
+	dot := false
+	for _, ch := range s {
+		switch {
+		case ch >= '0' && ch <= '9':
+		case ch == '.' && !dot:
+			dot = true
+		default:
+			return false
+		}
+	}
+	return true
+}
+
 func nullString(s sql.NullString) any {
 	if !s.Valid {
 		return nil

@@ -63,11 +63,13 @@ func rawOf(t *testing.T, v any) string {
 func assertNeutral(t *testing.T, view map[string]any, msg string) {
 	t.Helper()
 	assert.Equal(t, false, view["has_data"], msg)
-	for _, k := range []string{"cycle_day", "cycle_length", "main_phase", "days_to_period", "days_late", "predicted_next_period_start", "confidence"} {
+	for _, k := range []string{"cycle_day", "cycle_length", "main_phase", "days_to_period", "predicted_next_period_start", "confidence"} {
 		v, ok := view[k]
 		assert.True(t, ok, "%s: key %s kept", msg, k)
 		assert.Nil(t, v, "%s: %s", msg, k)
 	}
+	_, ok := view["days_late"]
+	assert.False(t, ok, "%s: days_late is never sent (T-M9-02)", msg)
 }
 
 // CMP-H1: a pregnant owner who shares cycle + symptoms but not pregnancy leaks neither lateness nor pregnancy-only
@@ -88,12 +90,13 @@ func TestReadFor_PregnancyWithoutGrantIsNeutral(t *testing.T) {
 	require.NoError(t, err)
 	cyc := jsonOf(t, v)
 	assert.Equal(t, true, cyc["has_data"])
-	assert.Nil(t, cyc["days_late"], "days_late past MaxLateDays is null")
-	assert.Nil(t, cyc["cycle_day"], "and so is the cycle day that would reveal it")
+	_, hasLate := cyc["days_late"]
+	assert.False(t, hasLate, "days_late is never sent")
+	assert.Nil(t, cyc["cycle_day"], "and neither is the cycle day that would reveal it")
 	v, err = r.ReadFor(ctx, noPreg, companion.SectionSymptoms, "en", now)
 	require.NoError(t, err)
 	s := rawOf(t, v)
-	assert.Contains(t, s, `"calm"`)
+	assert.NotContains(t, s, `"calm"`, "mood is never shared")
 	assert.Contains(t, s, `"fatigue"`)
 	for _, hidden := range []string{"leg_cramps", `"leg"`, "stitches", "night_sweats", "joints"} {
 		assert.NotContains(t, s, hidden, "cycle mode")
@@ -123,7 +126,8 @@ func TestReadFor_PregnancyWithoutGrantIsNeutral(t *testing.T) {
 	require.NoError(t, err)
 	cyc = jsonOf(t, v)
 	assert.Equal(t, true, cyc["has_data"], "the pregnancy grant shows the cycle view")
-	assert.Nil(t, cyc["days_late"])
+	_, hasLate = cyc["days_late"]
+	assert.False(t, hasLate)
 	v, err = r.ReadFor(ctx, withPreg, companion.SectionSymptoms, "en", now)
 	require.NoError(t, err)
 	s = rawOf(t, v)
@@ -134,7 +138,8 @@ func TestReadFor_PregnancyWithoutGrantIsNeutral(t *testing.T) {
 	}
 }
 
-// Postpartum without the pregnancy grant is neutral too; menopause is neutral whatever the grants.
+// Postpartum and menopause are neutral whatever the grants: the pregnancy grant does not cover postpartum (T-M9-02,
+// FAM-M3), so no postpartum-only item ever reaches a member.
 func TestReadFor_PostpartumAndMenopause(t *testing.T) {
 	db := testdb.New(t)
 	ctx := context.Background()
@@ -144,7 +149,7 @@ func TestReadFor_PostpartumAndMenopause(t *testing.T) {
 		companion.SectionPregnancy: companion.LevelView}
 
 	for _, tc := range []struct{ mode, mobile, keep, hide string }{
-		{"postpartum", "09120007002", "stitches", "leg_cramps"},
+		{"postpartum", "09120007002", "", "stitches"},
 		{"menopause", "09120007003", "", "night_sweats"},
 	} {
 		owner := modeOwner(t, db, tc.mobile)
@@ -159,11 +164,10 @@ func TestReadFor_PostpartumAndMenopause(t *testing.T) {
 
 		v, err = r.ReadFor(ctx, companion.Link{OwnerID: owner, Grants: all}, companion.SectionCycle, "en", now)
 		require.NoError(t, err)
-		if tc.mode == "menopause" {
-			assertNeutral(t, jsonOf(t, v), "menopause, whatever the grants")
-		} else {
-			assert.Equal(t, true, jsonOf(t, v)["has_data"], "postpartum with the pregnancy grant")
-		}
+		assertNeutral(t, jsonOf(t, v), tc.mode+", whatever the grants")
+		v, err = r.ReadFor(ctx, companion.Link{OwnerID: owner, Grants: all}, companion.SectionPregnancy, "en", now)
+		require.NoError(t, err)
+		assert.JSONEq(t, `{"is_active":false}`, rawOf(t, v), tc.mode)
 
 		v, err = r.ReadFor(ctx, companion.Link{OwnerID: owner, Grants: all}, companion.SectionSymptoms, "en", now)
 		require.NoError(t, err)

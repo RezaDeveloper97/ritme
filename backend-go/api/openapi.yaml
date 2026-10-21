@@ -1544,7 +1544,7 @@ paths:
                 properties:
                   success: {type: boolean}
                   message: {type: string}
-                  data: {$ref: "#/components/schemas/Medication"}
+                  data: {anyOf: [{$ref: "#/components/schemas/Medication"}, {$ref: "#/components/schemas/MemberMedication"}], description: "The owner's Medication; MemberMedication when a companion acts with `for_user_id` (T-M9-02, D-133)."}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '403': {$ref: "#/components/responses/CompanionForbidden"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
@@ -1553,7 +1553,7 @@ paths:
     get:
       tags: [Care]
       summary: Get a medication reminder
-      description: "With `for_user_id` (a companion with view/edit on the owner's meds) only what the meds section shows is reachable: a paused or ended medication is the same **404** as an unknown id (B-N4-08b, CMP-M2). Delegated GETs are throttled (120/hour per account, **429** `too_many_requests`)."
+      description: "With `for_user_id` (a companion with view/edit on the owner's meds) only what the meds section shows is reachable: a paused or ended medication is the same **404** as an unknown id (B-N4-08b, CMP-M2). Delegated GETs are throttled (120/hour per account, **429** `too_many_requests`). A companion's answer is the member projection (`MemberMedication` / `MemberAppointment`), never the owner's JSON (T-M9-02, D-133)."
       operationId: getCareMedicationsById
       security:
         - {bearerAuth: []}
@@ -1571,7 +1571,7 @@ paths:
                 required: [success, data]
                 properties:
                   success: {type: boolean}
-                  data: {$ref: "#/components/schemas/Medication"}
+                  data: {anyOf: [{$ref: "#/components/schemas/Medication"}, {$ref: "#/components/schemas/MemberMedication"}], description: "The owner's Medication; MemberMedication when a companion acts with `for_user_id` (T-M9-02, D-133)."}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '403': {$ref: "#/components/responses/CompanionForbidden"}
         '404': {$ref: "#/components/responses/CareNotFound"}
@@ -1603,7 +1603,7 @@ paths:
                 properties:
                   success: {type: boolean}
                   message: {type: string}
-                  data: {$ref: "#/components/schemas/Medication"}
+                  data: {anyOf: [{$ref: "#/components/schemas/Medication"}, {$ref: "#/components/schemas/MemberMedication"}], description: "The owner's Medication; MemberMedication when a companion acts with `for_user_id` (T-M9-02, D-133)."}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '403': {$ref: "#/components/responses/CompanionForbidden"}
         '404': {$ref: "#/components/responses/CareNotFound"}
@@ -1779,7 +1779,7 @@ paths:
                 properties:
                   success: {type: boolean}
                   message: {type: string}
-                  data: {$ref: "#/components/schemas/Appointment"}
+                  data: {anyOf: [{$ref: "#/components/schemas/Appointment"}, {$ref: "#/components/schemas/MemberAppointment"}], description: "The owner's Appointment; MemberAppointment when a companion acts with `for_user_id` (T-M9-02, D-133)."}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '403': {$ref: "#/components/responses/CompanionForbidden"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
@@ -1788,7 +1788,7 @@ paths:
     get:
       tags: [Care]
       summary: Get an appointment
-      description: "With `for_user_id` (a companion with view/edit on the owner's appointments) only what the appointments section shows is reachable: a past, cancelled or private appointment is the same **404** as an unknown id (B-N4-08b, CMP-M2). Delegated GETs are throttled (120/hour per account, **429** `too_many_requests`)."
+      description: "With `for_user_id` (a companion with view/edit on the owner's appointments) only what the appointments section shows is reachable: a past, cancelled or private appointment is the same **404** as an unknown id (B-N4-08b, CMP-M2). Delegated GETs are throttled (120/hour per account, **429** `too_many_requests`). A companion's answer is the member projection (`MemberMedication` / `MemberAppointment`), never the owner's JSON (T-M9-02, D-133)."
       operationId: getCareAppointmentsById
       security:
         - {bearerAuth: []}
@@ -1806,7 +1806,7 @@ paths:
                 required: [success, data]
                 properties:
                   success: {type: boolean}
-                  data: {$ref: "#/components/schemas/Appointment"}
+                  data: {anyOf: [{$ref: "#/components/schemas/Appointment"}, {$ref: "#/components/schemas/MemberAppointment"}], description: "The owner's Appointment; MemberAppointment when a companion acts with `for_user_id` (T-M9-02, D-133)."}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '403': {$ref: "#/components/responses/CompanionForbidden"}
         '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
@@ -1842,7 +1842,7 @@ paths:
                 properties:
                   success: {type: boolean}
                   message: {type: string}
-                  data: {$ref: "#/components/schemas/Appointment"}
+                  data: {anyOf: [{$ref: "#/components/schemas/Appointment"}, {$ref: "#/components/schemas/MemberAppointment"}], description: "The owner's Appointment; MemberAppointment when a companion acts with `for_user_id` (T-M9-02, D-133)."}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '403': {$ref: "#/components/responses/CompanionForbidden"}
         '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
@@ -17698,15 +17698,21 @@ paths:
       description: |
         The access-filtered view of one section, built by the owning domain and audited (read) before it is returned:
         `cycle` — today's cycle day, phase and next-period prediction; `symptoms` — the last 7 days of the day log
-        limited to pain, mood, symptoms, sleep, energy/appetite and skin & hair (never sex, discharge, urogenital,
-        measurements or notes); `meds` — active medication reminders; `appointments` — upcoming appointments;
-        `pregnancy` — week, trimester, due date (`is_active: false` outside pregnancy).
+        limited to pain, symptoms, sleep, energy/appetite and skin & hair (never mood or anything EPDS-derived, sex,
+        discharge, urogenital, measurements or notes — T-M9-02, D-133); `meds` — active medication reminders as
+        `MemberMedication`; `appointments` — upcoming appointments as `MemberAppointment` (explicit allow-lists: never
+        the owner's notes, topic, result note, prep, specialty, visit stage or other free text); `pregnancy` — week,
+        trimester, due date, only while the owner's effective mode is pregnancy (`is_active: false` otherwise,
+        postpartum included). Every pregnancy grant is reset to none when she activates or ends a pregnancy, records a
+        loss or starts postpartum, so after that the section is **403** `section_not_shared` until she shares again.
+        Member responses carry `Cache-Control: private, no-store`.
         **404** when the caller is not the active companion of the link (another owner's link, a revoked or pending
         one) or the section is unknown; **403** `section_not_shared` when the section is not granted (view or edit).
         A parent link (CB-TEEN-01) has no section reads at all (404 for every section): its card is `GET /teen/linked`.
         Mode-aware (B-N4-08b, CMP-H1 / CMP-M1): an owner in pregnancy or postpartum whose link has no `pregnancy` grant,
         and every owner in menopause, gets the neutral `cycle` view (`has_data: false`, every number and `main_phase`
-        null); `days_late` (and `cycle_day`) are null past 14 days late for everyone; `fertile` is shown as
+        null); the member cycle view never carries `days_late` or any lateness-derived value (a `cycle_day` past the
+        cycle length, a past prediction and `days_to_period` are null when she is late — T-M9-02); `fertile` is shown as
         `follicular` for an owner whose mode gets no fertility copy (teen); `symptoms` keeps only options of the cycle
         mode (plus the owner's pregnancy / postpartum options with the `pregnancy` grant). A partner / spouse link of
         an owner in teen mode grants nothing (**403** `section_not_shared` for every section; not revoked). Reads are
@@ -17737,7 +17743,7 @@ paths:
                       section: {type: string, enum: [cycle, symptoms, meds, appointments, pregnancy]}
                       level: {type: string, enum: [view, edit]}
                       data:
-                        description: "cycle/symptoms/pregnancy: an object; meds: Medication[]; appointments: Appointment[]"
+                        description: "cycle/symptoms/pregnancy: an object; meds: MemberMedication[]; appointments: MemberAppointment[]"
                         oneOf:
                           - {type: object}
                           - {type: array, items: {type: object}}
@@ -31184,7 +31190,7 @@ components:
       description: "Medication fields. POST requires `title`, `form`, `times`; PUT sends any subset."
       properties:
         title: {type: string, maxLength: 255, examples: [فولیک اسید]}
-        for_user_id: {type: integer, minimum: 1, description: "«ثبت برای …» (B-N4-02): record / edit in this owner's list as her companion with an edit grant on meds (403 `companion_forbidden` otherwise; the owner gets an in-app notice, the write is audited). Omitted or own id = own list."}
+        for_user_id: {type: integer, minimum: 1, description: "«ثبت برای …» (B-N4-02): record / edit in this owner's list as her companion with an edit grant on meds (403 `companion_forbidden` otherwise; the owner gets an in-app notice, the write is audited). The answer is then `MemberMedication` (T-M9-02). Omitted or own id = own list."}
         dose: {type: [string, number, "null"], description: "Free text (≤ 50); a number is stored as its string.", examples: ["400"]}
         unit: {type: [string, number, "null"], description: "One of `mg|mcg|ml|iu|drop` (labelled) or free text (≤ 50).", examples: [mcg]}
         form: {type: string, enum: [tablet, capsule, syrup, injection, drops]}
@@ -31199,6 +31205,26 @@ components:
         notify: {type: boolean, default: true}
         notes: {type: [string, "null"], maxLength: 2000}
         is_active: {type: boolean, default: true}
+    MemberMedication:
+      type: object
+      description: "What a family member (companion) sees of the owner's medication — the meds section items and every `for_user_id` show / store / update answer (T-M9-02, D-133). An explicit allow-list: never her notes, a free-text subtitle, dose or unit; an unknown form / unit / non-numeric dose is null."
+      required: [id, type, title, form, dose, unit, unit_label, times, weekdays, starts_on, ends_on, is_active]
+      properties:
+        id: {type: integer}
+        type: {type: string, const: medication}
+        title: {type: string}
+        form: {type: [string, "null"], enum: [tablet, capsule, syrup, injection, drops, null]}
+        dose: {type: [string, "null"], description: "Plain number only."}
+        unit: {type: [string, "null"]}
+        unit_label: {type: [string, "null"], description: "The unit in the request language."}
+        times: {type: array, items: {type: string}}
+        weekdays: {type: array, items: {type: integer, minimum: 0, maximum: 6}}
+        starts_on:
+          anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
+        ends_on:
+          anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
+        is_active: {type: boolean}
+      additionalProperties: false
     Medication:
       type: object
       required: [id, type, title, subtitle, notes, form, dose, unit, times, weekdays, amount, duration, notify, starts_on, ends_on, is_active, recurrence, recurrence_time, created_at, updated_at]
@@ -31285,7 +31311,7 @@ components:
       type: object
       description: "Flat body (no `meta` wrapper)."
       properties:
-        for_user_id: {type: integer, minimum: 1, description: "«ثبت برای …» (B-N4-02): record / edit in this owner's list as her companion with an edit grant on appointments (403 `companion_forbidden` otherwise; audited, owner notified)."}
+        for_user_id: {type: integer, minimum: 1, description: "«ثبت برای …» (B-N4-02): record / edit in this owner's list as her companion with an edit grant on appointments (403 `companion_forbidden` otherwise; audited, owner notified). The answer is then `MemberAppointment` (T-M9-02)."}
         kind: {type: string, enum: [in_person, phone, online]}
         with: {type: [string, "null"], maxLength: 255}
         specialty: {type: [string, "null"], maxLength: 255}
@@ -31310,6 +31336,22 @@ components:
         care_item_key: {type: [string, "null"], maxLength: 64, pattern: "^[A-Za-z0-9_-]+$", description: "Pregnancy v2 care-plan item this visit covers (T-M7-05)."}
         stage: {type: [string, "null"], enum: [booked, done, result, null], description: "Pregnancy visit stage."}
         result_note: {type: [string, "null"], maxLength: 2000}
+    MemberAppointment:
+      type: object
+      description: "What a family member (companion) sees of the owner's appointment — the appointments section items and every `for_user_id` show / store / update answer (T-M9-02, D-133). An explicit allow-list: never her notes, topic, result note, prep checklist, specialty, visit stage or subtitle."
+      required: [id, type, title, kind, with, location, scheduled_at, days_until, status, is_active]
+      properties:
+        id: {type: integer}
+        type: {type: string, const: appointment}
+        title: {type: string}
+        kind: {type: [string, "null"], enum: [in_person, phone, online, null]}
+        with: {type: [string, "null"]}
+        location: {type: [string, "null"]}
+        scheduled_at: {type: [string, "null"], description: "Tehran wall-clock `Y-m-d H:i:s`."}
+        days_until: {type: [integer, "null"]}
+        status: {type: [string, "null"], enum: [scheduled, cancelled, null]}
+        is_active: {type: boolean}
+      additionalProperties: false
     Appointment:
       type: object
       required: [id, type, title, subtitle, notes, kind, with, specialty, topic, location, scheduled_at, remind_before, remind_at, days_until, add_to_calendar, prep, status, is_active, created_at, updated_at]

@@ -75,6 +75,7 @@ func NewHandlers(conn companion.Conn, base clock.Clock, opt Options) *Handlers {
 
 // Show is GET /companion/home.
 func (h *Handlers) Show(c fiber.Ctx) error {
+	companion.NoStore(c) // member-facing (T-M9-02)
 	u := auth.CurrentUser(c)
 	if u == nil {
 		return &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}

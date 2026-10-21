@@ -57,19 +57,20 @@ func TestScopeAndPhase(t *testing.T) {
 		{enums.LifeModePregnancy, false, true, []string{"cycle"}},
 		{enums.LifeModePregnancy, true, false, []string{"cycle", "pregnancy"}},
 		{enums.LifeModePostpartum, false, true, []string{"cycle"}},
-		{enums.LifeModePostpartum, true, false, []string{"cycle", "postpartum"}},
+		{enums.LifeModePostpartum, true, true, []string{"cycle"}}, // postpartum is not pregnancy (T-M9-02, FAM-M3)
 		{enums.LifeModeMenopause, false, true, []string{"cycle"}},
 		{enums.LifeModeMenopause, true, true, []string{"cycle"}},
 	} {
 		v := viewScope{mode: tc.mode, pregnancy: tc.preg}
 		assert.Equal(t, tc.neutral, v.neutralCycle(), "%s/%v", tc.mode, tc.preg)
 		assert.Equal(t, tc.modes, v.symptomModes(), "%s/%v", tc.mode, tc.preg)
+		assert.Equal(t, tc.mode == enums.LifeModePregnancy && tc.preg, v.pregnancyShared(), "%s/%v", tc.mode, tc.preg)
 	}
 	assert.Equal(t, enums.MainPhaseFollicular, sharedPhase(enums.MainPhaseFertile, true), "teen: no fertile window")
 	assert.Equal(t, enums.MainPhaseFertile, sharedPhase(enums.MainPhaseFertile, false))
 	assert.Equal(t, enums.MainPhaseLuteal, sharedPhase(enums.MainPhaseLuteal, true))
 	n := func(i int) *int { return &i }
-	assert.False(t, tooLate(nil))
-	assert.False(t, tooLate(n(MaxLateDays)))
-	assert.True(t, tooLate(n(MaxLateDays+1)))
+	assert.False(t, late(nil))
+	assert.False(t, late(n(0)))
+	assert.True(t, late(n(1)), "any lateness hides the lateness-derived numbers (FAM-M1)")
 }

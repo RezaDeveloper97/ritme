@@ -20,7 +20,10 @@ export interface ViewerLink {
   family: { id: number; sharedChildIds: number[] } | null;
 }
 
-/** Her cycle today, minimised (`companion/shared` cycle view). */
+/**
+ * Her cycle today, minimised (`companion/shared` cycle view). No lateness:
+ * a member never sees how late her period is (T-M9-02).
+ */
 export interface SharedCycleView {
   date: string;
   hasData: boolean;
@@ -28,7 +31,6 @@ export interface SharedCycleView {
   cycleLength: number | null;
   mainPhase: string | null;
   daysToPeriod: number | null;
-  daysLate: number;
   predictedNextPeriodStart: string | null;
 }
 

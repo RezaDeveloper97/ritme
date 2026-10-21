@@ -16,7 +16,6 @@
     "dayOnly": "روز {day}",
     "phase": "فاز {phase}",
     "nextPeriod": "پریود بعدی حدود {days, plural, =0 {امروز} other {# روز دیگر}}",
-    "late": "پریود {days, plural, other {# روز}} دیرتر از پیش‌بینی است",
     "noData": "{name} هنوز چرخه‌اش را در ریتمی ثبت نکرده است.",
     "bar": {
       "period": "پریود",

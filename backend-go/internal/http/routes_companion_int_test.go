@@ -525,6 +525,10 @@ func TestCompanionRoutes_DelegatedWriteAuditFailClosed(t *testing.T) {
 	})
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	assert.Equal(t, "Clinic", r.data()["location"])
+	// T-M9-02 (D-133): the companion's answer is the member projection (no prep), so check the owner's own read.
+	assert.NotContains(t, r.data(), "prep")
+	r = e.do(fiber.MethodGet, fmt.Sprintf("/api/v1/care/appointments/%d", apptID), sara, nil)
+	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	prep, _ := r.data()["prep"].([]any)
 	require.Len(t, prep, 1)
 	assert.Equal(t, "Insurance card", prep[0].(map[string]any)["text"])

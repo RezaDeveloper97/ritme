@@ -4,17 +4,20 @@
 //
 // Each view is a deliberate subset of what the owner sees herself:
 //   - cycle: today's cycle day, phase and the next-period prediction (no logs, no fertility-test values);
-//   - symptoms: the last SymptomDays days of the day log, limited to SymptomCategories (pain, mood, symptoms, sleep,
-//     energy/appetite, skin & hair) — never sex, discharge, urogenital, measurements, bleeding detail or free-text
-//     notes;
-//   - meds: the owner's active medication reminders (the /care resource);
-//   - appointments: the owner's upcoming appointments (the /care resource) except private ones (loss follow-ups);
-//   - pregnancy: the pregnancy status (week, due date, trimester) or is_active=false.
+//   - symptoms: the last SymptomDays days of the day log, limited to SymptomCategories (pain, symptoms, sleep,
+//     energy/appetite, skin & hair) — never mood or anything EPDS-derived (SPEC v6 §1.7 never-shared, T-M9-02), sex,
+//     discharge, urogenital, measurements, bleeding detail or free-text notes;
+//   - meds: the owner's active medications as the member projection (care.Medication.MemberJSON: no notes, no
+//     free-text labels);
+//   - appointments: the owner's upcoming appointments as the member projection (care.Appointment.MemberJSON: no
+//     notes, topic, result note or prep) except private ones (loss follow-ups);
+//   - pregnancy: the pregnancy status (week, due date, trimester) while the owner's effective mode is pregnancy (not
+//     postpartum), else is_active=false.
 //
 // The views are mode-aware (B-N4-08b, CMP-H1 / CMP-M1 of docs/security/bloom-companion.md): ReadFor gets the link, so
 // a pregnancy / postpartum owner whose link has no pregnancy grant (and every menopause owner) gets the neutral cycle
-// view, the symptoms view keeps only what the cycle-mode log offers (mode.go), lateness past MaxLateDays is never
-// shown, and the fertile phase is mapped away for owners whose mode never gets fertility copy (teen).
+// view, the symptoms view keeps only what the cycle-mode log offers (mode.go), lateness is never shown (no days_late,
+// no lateness-derived number: T-M9-02, FAM-M1), and the fertile phase is mapped away for owners whose mode never gets fertility copy (teen).
 package shared
 
 import (
@@ -42,7 +45,8 @@ import (
 const SymptomDays = 7
 
 // SymptomCategories are the taxonomy-v2 categories the symptoms section shares («علائم و حال روزانه»).
-var SymptomCategories = []string{"pain", "mood", "symptoms", "sleep", "appetite_energy", "skin_hair"}
+// Mood is never shared (SPEC v6 §1.7; gap report 05 FAM-H1) — removing the whole section is decision F-03 (M11).
+var SymptomCategories = []string{"pain", "symptoms", "sleep", "appetite_energy", "skin_hair"}
 
 // DB is what the readers query through (a *sql.DB).
 type DB interface {
@@ -96,7 +100,11 @@ func (r *Reader) ReadFor(ctx context.Context, link companion.Link, section compa
 	case companion.SectionAppointments:
 		return r.appointmentsView(ctx, ownerID, now)
 	case companion.SectionPregnancy:
-		return r.pregnancyView(ctx, ownerID, locale, today)
+		scope, err := r.scope(ctx, link)
+		if err != nil {
+			return nil, err
+		}
+		return r.pregnancyView(ctx, ownerID, locale, today, scope)
 	default:
 		return nil, companion.ErrInvalidSection
 	}
@@ -113,16 +121,16 @@ func (r *Reader) cycleView(ctx context.Context, ownerID uint64, today civildate.
 	profile := sn.EngineProfile()
 	m := metrics.Calculate(sn.Histories, profile)
 	st := resolver.Resolve(sn.Histories, profile, today, today, m)
-	var cycleLength, nextStart, cycleDay, daysLate any
+	var cycleLength, nextStart, cycleDay, daysToPeriod any
 	if st.EffectiveCycleLength > 0 {
 		cycleLength = st.EffectiveCycleLength
 	}
 	if !st.PredictedNextPeriodStart.IsZero() {
 		nextStart = st.PredictedNextPeriodStart
 	}
-	cycleDay, daysLate = st.CycleDay, st.DaysLate
-	if tooLate(st.DaysLate) { // a long lateness is an inference, not a cycle state (CMP-H1)
-		cycleDay, daysLate = nil, nil
+	cycleDay, daysToPeriod = st.CycleDay, st.DaysToPeriod
+	if late(st.DaysLate) { // lateness is a pregnancy signal, never a member's business (T-M9-02, FAM-M1)
+		cycleDay, daysToPeriod, nextStart = nil, nil, nil
 	}
 	return jsonx.Obj(
 		"date", today,
@@ -130,8 +138,7 @@ func (r *Reader) cycleView(ctx context.Context, ownerID uint64, today civildate.
 		"cycle_day", cycleDay,
 		"cycle_length", cycleLength,
 		"main_phase", sharedPhase(st.MainPhase, profile != nil && profile.NoFertilityCopy),
-		"days_to_period", st.DaysToPeriod,
-		"days_late", daysLate,
+		"days_to_period", daysToPeriod,
 		"predicted_next_period_start", nextStart,
 		"confidence", st.Confidence,
 	), nil
@@ -167,7 +174,7 @@ func (r *Reader) medsView(ctx context.Context, ownerID uint64, locale string) (a
 	}
 	out := make([]*jsonx.OrderedMap, 0, len(rows))
 	for _, row := range rows {
-		out = append(out, care.ParseMedication(row).JSON(locale))
+		out = append(out, care.ParseMedication(row).MemberJSON(locale))
 	}
 	return out, nil
 }
@@ -180,13 +187,16 @@ func (r *Reader) appointmentsView(ctx context.Context, ownerID uint64, now time.
 	out := make([]*jsonx.OrderedMap, 0, len(rows))
 	for _, row := range rows {
 		if a := care.ParseAppointment(row); a.Upcoming(now) && !a.Meta.Private { // CB-LOSS-01: owner-only follow-ups
-			out = append(out, a.JSON(now))
+			out = append(out, a.MemberJSON(now))
 		}
 	}
 	return out, nil
 }
 
-func (r *Reader) pregnancyView(ctx context.Context, ownerID uint64, locale string, today civildate.Date) (any, error) {
+func (r *Reader) pregnancyView(ctx context.Context, ownerID uint64, locale string, today civildate.Date, scope viewScope) (any, error) {
+	if !scope.pregnant() { // postpartum, a loss or no pregnancy: nothing (T-M9-02, FAM-M3)
+		return jsonx.Obj("is_active", false), nil
+	}
 	p, err := pregnancy.LoadProfile(ctx, r.preg, ownerID)
 	if err != nil {
 		return nil, err
@@ -210,3 +220,7 @@ func (r *Reader) pregnancyView(ctx context.Context, ownerID uint64, locale strin
 		"estimated_due_date", due,
 	), nil
 }
+
+// late reports whether the owner is past her predicted period: then every number that would count the lateness
+// (cycle day past the length, days to period, a past prediction) stays null.
+func late(daysLate *int) bool { return daysLate != nil && *daysLate > 0 }

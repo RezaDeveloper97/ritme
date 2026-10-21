@@ -88,6 +88,7 @@ func (h *Handlers) owner(c fiber.Ctx, uid uint64, locale string) (uint64, error)
 	if id == uid {
 		return uid, nil
 	}
+	c.Set(fiber.HeaderCacheControl, "private, no-store") // a member reads the owner's list: never cached (T-M9-02)
 	if h.share == nil {
 		return 0, companionForbidden(locale)
 	}

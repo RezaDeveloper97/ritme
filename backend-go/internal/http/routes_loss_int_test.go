@@ -8,6 +8,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ritme/backend-go/internal/companion"
 )
 
 // CB-LOSS-01 through the production wiring: recording a loss stops every pregnancy surface — the owner's home,
@@ -63,15 +65,17 @@ func TestLoss_StopsPregnancyEverywhere(t *testing.T) {
 	require.Equal(t, fiber.StatusOK, daily.Status, daily.Raw)
 	assert.Equal(t, "cycle", daily.data()["mode"], "a forced pregnancy mode is ignored after a loss")
 
-	// The companion's pregnancy view stops; the home leaves the pregnancy phase.
+	// The companion's pregnancy view stops; the home leaves the pregnancy phase. T-M9-02 (D-133, FAM-H3): the loss
+	// resets every pregnancy grant to none, so the section is now a 403 (it used to answer 200 {is_active:false}) and
+	// the home carries no pregnancy block — a stale grant can never show the next pregnancy.
 	sec = e.do(fiber.MethodGet, "/api/v1/companions/links/"+strconv.FormatUint(aliLink, 10)+"/sections/pregnancy", ali, nil)
-	require.Equal(t, fiber.StatusOK, sec.Status, sec.Raw)
-	assert.Equal(t, map[string]any{"is_active": false}, sec.data()["data"], "nothing but is_active")
+	assert.Equal(t, fiber.StatusForbidden, sec.Status, sec.Raw)
+	assert.Zero(t, e.count(`SELECT COUNT(*) FROM companion_grants WHERE companion_id = ? AND section = 'pregnancy'`, aliLink))
 	home := e.home(ali)
 	require.Equal(t, fiber.StatusOK, home.Status, home.Raw)
 	p := partnersOf(home)[0].(map[string]any)
 	assert.NotEqual(t, "pregnancy", p["phase"])
-	assert.Equal(t, map[string]any{"is_active": false}, p["pregnancy"])
+	assert.Nil(t, p["pregnancy"], "no pregnancy block without the grant")
 
 	// One line to the companion with the pregnancy grant, nothing to the other, nothing about type or date.
 	aliID, rezaID := e.ids["Ali"], e.ids["Reza"]
@@ -81,7 +85,11 @@ func TestLoss_StopsPregnancyEverywhere(t *testing.T) {
 		AND JSON_UNQUOTE(JSON_EXTRACT(title, '$.en')) = 'Sara let you know that the pregnancy is not continuing.'`, aliID))
 	assert.Equal(t, 0, e.count(`SELECT COUNT(*) FROM user_notifications WHERE user_id = ?`, rezaID))
 	assert.Equal(t, 0, e.count(`SELECT COUNT(*) FROM user_notifications WHERE user_id = ? AND (title LIKE '%miscarriage%' OR data LIKE '%loss%')`, aliID))
-	assert.Equal(t, 0, e.count(`SELECT COUNT(*) FROM user_notifications WHERE user_id = ? AND data LIKE '%pregnancy%'`, saraID), "no notice to herself")
+	// No loss notice to herself; her only pregnancy notice is the T-M9-02 sharing reset («اشتراک بارداری … متوقف شد»).
+	assert.Equal(t, 0, e.count(`SELECT COUNT(*) FROM user_notifications WHERE user_id = ? AND data LIKE '%pregnancy%'
+		AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.event')) <> ?`, saraID, companion.EventPregnancySharingReset), "no notice to herself")
+	assert.Equal(t, 1, e.count(`SELECT COUNT(*) FROM user_notifications WHERE user_id = ? AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.event')) = ?`,
+		saraID, companion.EventPregnancySharingReset), "the grant reset is told to her once")
 
 	// Correcting the record the same day does not notify again.
 	require.Equal(t, fiber.StatusOK, e.do(fiber.MethodPost, "/api/v1/loss", sara, map[string]any{"notify_companion": true}).Status)
@@ -136,7 +144,8 @@ func TestLoss_PrivacyOfFollowupsAndNotices(t *testing.T) {
 		require.Equal(t, fiber.StatusOK, sec.Status, sec.Raw)
 		appts, _ := sec.data()["data"].([]any)
 		require.Len(t, appts, 1, sec.Raw)
-		assert.Equal(t, "other", appts[0].(map[string]any)["topic"])
+		// T-M9-02 (D-133, FAM-M2): the member projection never carries the owner's topic (or notes / prep / result).
+		assert.NotContains(t, appts[0].(map[string]any), "topic")
 		home := e.home(tok)
 		require.Equal(t, fiber.StatusOK, home.Status, home.Raw)
 		hp, _ := partnersOf(home)[0].(map[string]any)["appointments"].([]any)
@@ -169,11 +178,18 @@ func TestLoss_PrivacyOfFollowupsAndNotices(t *testing.T) {
 	assert.Equal(t, 0, notices(rezaID))
 	assert.Equal(t, 1, notices(aliID))
 
-	// Erasing the loss removes Ali's notice; a new loss notifies again, and her account deletion removes it too.
+	// Erasing the loss removes Ali's notice. T-M9-02 (D-133, FAM-H3): the first loss reset his pregnancy grant to
+	// none, so a second loss without a fresh grant sends no new notice (it used to notify again). A fresh grant brings
+	// the notice back, and her account deletion removes it.
 	require.Equal(t, fiber.StatusOK, e.do(fiber.MethodDelete, "/api/v1/loss", sara, nil).Status)
 	assert.Equal(t, 0, notices(aliID))
+	assert.Zero(t, e.count(`SELECT COUNT(*) FROM companion_grants WHERE companion_id = ? AND section = 'pregnancy'`, idOfLink(t, e, ali)))
 	require.Equal(t, fiber.StatusCreated, e.do(fiber.MethodPost, "/api/v1/loss", sara, map[string]any{"notify_companion": true}).Status)
-	assert.Equal(t, 1, notices(aliID))
+	assert.Equal(t, 0, notices(aliID), "no pregnancy grant → no notice")
+	require.Equal(t, fiber.StatusOK, e.do(fiber.MethodDelete, "/api/v1/loss", sara, nil).Status)
+	e.exec(`INSERT INTO companion_grants (companion_id, section, level, created_at, updated_at) VALUES (?, 'pregnancy', 'view', NOW(), NOW())`, idOfLink(t, e, ali))
+	require.Equal(t, fiber.StatusCreated, e.do(fiber.MethodPost, "/api/v1/loss", sara, map[string]any{"notify_companion": true}).Status)
+	assert.Equal(t, 1, notices(aliID), "a fresh grant → the notice again")
 	r = e.do(fiber.MethodDelete, "/api/v1/account", sara, nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	assert.Equal(t, 0, notices(aliID))

@@ -3,7 +3,7 @@ id: T-M9-02
 title: Family privacy hotfix: never-shared data and stale pregnancy grants
 milestone: M9
 type: fullstack
-status: todo
+status: done
 depends_on: []
 parallel_group: M9-A
 touches: [backend-go/internal/companion, backend-go/internal/care/medication.go, backend-go/internal/care/appointment.go, backend-go/internal/pregnancy/handlers.go, backend-go/internal/pregnancy/v2, backend-go/internal/loss/service.go, backend-go/internal/postpartum/service.go, backend-go/internal/http/routes_shop_checklist.go, backend-go/internal/shop/checklist/handlers.go, backend-go/db/migrations, frontend/src/entities/companion, frontend/src/screens/companion-home, frontend/messages/fa/companion-home.json, frontend/messages/en/companion-home.json]

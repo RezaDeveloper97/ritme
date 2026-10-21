@@ -88,7 +88,7 @@ func (h *Handlers) ShowAppointment(c fiber.Ctx) error {
 	if err := h.delegated(c, userID, actorID, companion.SectionAppointments, false, false); err != nil {
 		return err
 	}
-	return httpx.OK(c, a.JSON(h.now(c)))
+	return httpx.OK(c, appointmentOut(a, userID, actorID, h.now(c)))
 }
 
 // StoreAppointment is POST /care/appointments: 201 with the appointment ({for_user_id}: a companion with edit on
@@ -127,7 +127,7 @@ func (h *Handlers) StoreAppointment(c fiber.Ctx) error {
 	if err := h.delegated(c, userID, actorID, companion.SectionAppointments, true, true); err != nil {
 		return err
 	}
-	return httpx.Created(c, a.JSON(now), T("messages.appointment_created", locale))
+	return httpx.Created(c, appointmentOut(a, userID, actorID, now), T("messages.appointment_created", locale))
 }
 
 // UpdateAppointment is PUT /care/appointments/{id}: a partial update (only the keys sent
@@ -169,7 +169,7 @@ func (h *Handlers) UpdateAppointment(c fiber.Ctx) error {
 	if err := h.delegated(c, userID, actorID, companion.SectionAppointments, true, false); err != nil {
 		return err
 	}
-	return httpx.OK(c, fresh.JSON(now), T("messages.appointment_updated", locale))
+	return httpx.OK(c, appointmentOut(fresh, userID, actorID, now), T("messages.appointment_updated", locale))
 }
 
 // DestroyAppointment is DELETE /care/appointments/{id}.
@@ -308,4 +308,13 @@ func nullStr(s *string) sql.NullString {
 		return sql.NullString{}
 	}
 	return sql.NullString{String: *s, Valid: true}
+}
+
+// appointmentOut is the appointment a request may see: the owner's full JSON, or the member allow-list projection
+// when a companion acts for her (T-M9-02, D-133) — never notes, topic, result or prep.
+func appointmentOut(a Appointment, userID, actorID uint64, now time.Time) *jsonx.OrderedMap {
+	if userID != actorID {
+		return a.MemberJSON(now)
+	}
+	return a.JSON(now)
 }

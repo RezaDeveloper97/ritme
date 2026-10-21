@@ -92,7 +92,7 @@ func (h *Handlers) ShowMedication(c fiber.Ctx) error {
 	if err := h.delegated(c, userID, actorID, companion.SectionMeds, false, false); err != nil {
 		return err
 	}
-	return httpx.OK(c, m.JSON(i18n.Locale(c)))
+	return httpx.OK(c, medicationOut(m, userID, actorID, i18n.Locale(c)))
 }
 
 // StoreMedication is POST /care/medications: 201 with the medication ({for_user_id}: a companion with edit on the
@@ -134,7 +134,7 @@ func (h *Handlers) StoreMedication(c fiber.Ctx) error {
 	if err := h.delegated(c, userID, actorID, companion.SectionMeds, true, true); err != nil {
 		return err
 	}
-	return httpx.Created(c, m.JSON(locale), T("messages.medication_created", locale))
+	return httpx.Created(c, medicationOut(m, userID, actorID, locale), T("messages.medication_created", locale))
 }
 
 // UpdateMedication is PUT /care/medications/{id}: a partial update (only the keys sent
@@ -155,7 +155,7 @@ func (h *Handlers) UpdateMedication(c fiber.Ctx) error {
 	locale, now := i18n.Locale(c), h.now(c)
 	body := validation.Input(c)
 	if switchesOnly(body) {
-		if err := h.updateSwitches(c, m, body, locale, now); err != nil {
+		if err := h.updateSwitches(c, m, body, locale, now, userID != actorID); err != nil {
 			return err
 		}
 		return h.delegated(c, userID, actorID, companion.SectionMeds, true, false)
@@ -183,12 +183,12 @@ func (h *Handlers) UpdateMedication(c fiber.Ctx) error {
 	if err := h.delegated(c, userID, actorID, companion.SectionMeds, true, false); err != nil {
 		return err
 	}
-	return httpx.OK(c, fresh.JSON(locale), T("messages.medication_updated", locale))
+	return httpx.OK(c, medicationOut(fresh, userID, actorID, locale), T("messages.medication_updated", locale))
 }
 
 // updateSwitches is a PUT that only flips is_active and/or notify: only those change, the
 // rest of the row (including a legacy row's missing starts_on / times) is left as stored.
-func (h *Handlers) updateSwitches(c fiber.Ctx, m Medication, body phpval.Map, locale string, now time.Time) error {
+func (h *Handlers) updateSwitches(c fiber.Ctx, m Medication, body phpval.Map, locale string, now time.Time, member bool) error {
 	v := validation.Make(lang.Default(), locale, body, switchRules(),
 		validation.Now(now), validation.Attributes(attributes(locale)...))
 	if v.Fails() {
@@ -216,7 +216,11 @@ func (h *Handlers) updateSwitches(c fiber.Ctx, m Medication, body phpval.Map, lo
 	if err != nil {
 		return err
 	}
-	return httpx.OK(c, fresh.JSON(locale), T("messages.medication_updated", locale))
+	out := fresh.JSON(locale)
+	if member {
+		out = fresh.MemberJSON(locale) // T-M9-02: never the owner's JSON for a member
+	}
+	return httpx.OK(c, out, T("messages.medication_updated", locale))
 }
 
 // DestroyMedication is DELETE /care/medications/{id} (its intakes cascade).
@@ -385,4 +389,13 @@ func (h *Handlers) columns(ctx context.Context, userID uint64, in medicationInpu
 		}
 	}
 	return p, nil
+}
+
+// medicationOut is the medication a request may see: the owner's full JSON, or the member allow-list projection
+// when a companion acts for her (T-M9-02, D-133) — never her notes or other free text.
+func medicationOut(m Medication, userID, actorID uint64, locale string) *jsonx.OrderedMap {
+	if userID != actorID {
+		return m.MemberJSON(locale)
+	}
+	return m.JSON(locale)
 }

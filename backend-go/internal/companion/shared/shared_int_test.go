@@ -52,7 +52,7 @@ func TestReader_SectionsAreFilteredSubsets(t *testing.T) {
 	raw, err := json.Marshal(v)
 	require.NoError(t, err)
 	s := string(raw)
-	assert.Contains(t, s, `"calm"`)
+	assert.NotContains(t, s, `"calm"`, "mood is never shared (T-M9-02)")
 	for _, hidden := range []string{"intercourse", "unprotected", "private note", "egg_white", "sad", "angry", `"sex"`, `"note"`} {
 		assert.NotContains(t, s, hidden)
 	}

@@ -16,7 +16,6 @@
     "dayOnly": "Day {day}",
     "phase": "{phase} phase",
     "nextPeriod": "Next period in about {days, plural, =0 {today} one {# day} other {# days}}",
-    "late": "Period is {days, plural, one {# day} other {# days}} later than predicted",
     "noData": "{name} hasn't logged a cycle in Ritme yet.",
     "bar": {
       "period": "Period",
