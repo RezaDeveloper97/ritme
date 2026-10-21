@@ -1,7 +1,6 @@
 package http
 
 import (
-	"context"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -13,7 +12,6 @@ import (
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/labs"
-	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
 	"github.com/ritme/backend-go/internal/plus"
@@ -51,9 +49,7 @@ func init() {
 			public = ratelimit.New(d.Cache, clock.Real{}).Named("shared-report", SharedReportMax, time.Minute, nil)
 		}
 		if d.DB != nil {
-			ctx, cancel := context.WithCancel(context.Background())
-			now := func() time.Time { return time.Now().In(civildate.Tehran) }
-			auth.OnLifecycle(r, func() error { go svc.PurgeLoop(ctx, now); return nil }, cancel)
+			mustJobs(svc.RegisterJobs(auth.Jobs(r, d.Cache, d.Logger), tehranNow))
 		}
 
 		p := "/api/v1/health-record/share-links"

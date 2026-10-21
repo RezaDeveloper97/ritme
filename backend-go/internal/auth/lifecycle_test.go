@@ -11,6 +11,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/httpx"
+	"github.com/ritme/backend-go/internal/platform/queue"
 )
 
 func TestMustGuard_MissingKeysRefusesToStart(t *testing.T) {
@@ -33,4 +34,15 @@ func TestMustModule_MissingKeysRefusesToStart(t *testing.T) {
 	m := auth.MustModule(app, auth.Deps{Config: &config.Config{StoragePath: t.TempDir()}, Logger: quiet})
 	assert.Nil(t, m)
 	assert.Panics(t, func() { _ = app.Listen("127.0.0.1:0", fiber.ListenConfig{DisableStartupMessage: true}) })
+}
+
+// One job queue per app, shared by every registrar; the OTP job goes on the critical queue (T-M9-11).
+func TestJobs_OnePerAppAndOTPIsCritical(t *testing.T) {
+	app := fiber.New()
+	a := auth.Jobs(app, nil, quiet)
+	assert.Same(t, a, auth.Jobs(app, nil, quiet))
+	assert.NotSame(t, a, auth.Jobs(app.Group("/x"), nil, quiet), "a group gets its own never-started queue")
+	assert.NotSame(t, a, auth.Jobs(fiber.New(), nil, quiet))
+	assert.Equal(t, queue.ModeSync, a.Mode(), "no cache → sync")
+	assert.Equal(t, queue.Critical, auth.SendOTPJobSpec.Priority)
 }

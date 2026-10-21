@@ -1,7 +1,6 @@
 package http
 
 import (
-	"context"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -11,7 +10,6 @@ import (
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/learning"
 	"github.com/ritme/backend-go/internal/media"
-	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
 )
@@ -56,9 +54,7 @@ func init() {
 		h := media.NewHandlers(svc, lsvc, clock.Real{})
 		ins := learning.NewHandlers(lsvc, clock.Real{}).RequireInstructor
 		if root != "" && d.DB != nil {
-			ctx, cancel := context.WithCancel(context.Background())
-			now := func() time.Time { return time.Now().In(civildate.Tehran) }
-			auth.OnLifecycle(r, func() error { go svc.SweepLoop(ctx, now); return nil }, cancel)
+			mustJobs(svc.RegisterJobs(auth.Jobs(r, d.Cache, d.Logger), tehranNow))
 		}
 
 		r.Get("/api/v1/learning/lessons/:id/playback", locale, guard, h.LessonPlayback)

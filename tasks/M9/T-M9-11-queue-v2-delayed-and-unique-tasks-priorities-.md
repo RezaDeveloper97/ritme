@@ -3,7 +3,7 @@ id: T-M9-11
 title: Queue v2: delayed and unique tasks, priorities, scheduler; tickers migrated
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-07]
 parallel_group: M9-B
 touches: [backend-go/internal/platform/queue, backend-go/internal/auth/module.go, backend-go/internal/auth/lifecycle.go, backend-go/internal/http/routes_admin_core.go, backend-go/internal/http/routes_admin_safety.go, backend-go/internal/http/routes_files.go, backend-go/internal/http/routes_media.go, backend-go/internal/http/routes_partners.go, backend-go/internal/http/routes_sharelinks.go, backend-go/internal/http/routes_telemed.go, backend-go/internal/partners/service.go, backend-go/internal/telemed/booking_service.go, backend-go/internal/sharelinks/service.go, backend-go/internal/metrics/metrics.go, backend-go/internal/files/sweep.go, backend-go/internal/media/sweep.go, backend-go/internal/safety/scenarios.go, docs/engine-v6/jobs.md]

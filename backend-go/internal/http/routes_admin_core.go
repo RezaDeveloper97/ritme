@@ -16,7 +16,6 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/metrics"
 	"github.com/ritme/backend-go/internal/okr"
-	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
 )
@@ -61,9 +60,7 @@ func init() {
 			return okrSvc.Summary(ctx, now)
 		}).Routes(overview.Route(h), kit)
 		if d.DB != nil {
-			ctx, cancel := context.WithCancel(context.Background())
-			now := func() time.Time { return time.Now().In(civildate.Tehran) }
-			auth.OnLifecycle(r, func() error { go metricsSvc.Loop(ctx, now); return nil }, cancel)
+			mustJobs(metricsSvc.RegisterJobs(auth.Jobs(r, d.Cache, d.Logger), tehranNow))
 		}
 
 		h(get, "/users", kit.Admin(usersH.List))

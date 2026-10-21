@@ -13,6 +13,7 @@ import (
 	"github.com/ritme/backend-go/internal/catalog"
 	"github.com/ritme/backend-go/internal/payments"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/platform/queue"
 	"github.com/ritme/backend-go/internal/telemed/store"
 )
 
@@ -806,18 +807,25 @@ func (b *Bookings) Sweep(ctx context.Context, now time.Time) (expired, completed
 	return expired, completed, nil
 }
 
-// SweepLoop runs Sweep every SweepEvery until ctx ends.
-func (b *Bookings) SweepLoop(ctx context.Context, now func() time.Time) {
-	t := time.NewTicker(SweepEvery)
-	defer t.Stop()
-	for {
-		if _, _, err := b.Sweep(ctx, now()); err != nil && ctx.Err() == nil {
-			b.opts.Logger.Warn("telemed: booking sweep failed", "error", err)
-		}
-		select {
-		case <-ctx.Done():
-			return
-		case <-t.C:
-		}
+// Background job (T-M9-11, docs/engine-v6/jobs.md): the booking sweep every minute on the default queue, also at
+// start-up.
+const (
+	JobSweep  = "telemed:booking_sweep"
+	SweepCron = "* * * * *"
+)
+
+// RegisterJobs puts the sweep job on q.
+func (b *Bookings) RegisterJobs(q *queue.Queue, now func() time.Time) error {
+	return q.RegisterPeriodic(queue.Job{
+		Type: JobSweep, MaxTries: 2, Backoff: []time.Duration{10 * time.Second}, Timeout: 50 * time.Second,
+	}, b.SweepJob(now), SweepCron, queue.Unique(50*time.Second), queue.RunAtStart())
+}
+
+// SweepJob is the telemed:booking_sweep handler. Idempotent: ExpireHold only matches a hold that is still held and
+// lapsed, Complete only a booking that is still confirmed.
+func (b *Bookings) SweepJob(now func() time.Time) queue.Handler {
+	return func(ctx context.Context, _ []byte) error {
+		_, _, err := b.Sweep(ctx, now())
+		return err
 	}
 }

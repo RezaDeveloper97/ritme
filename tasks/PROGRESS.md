@@ -1237,3 +1237,28 @@ Nothing needed fixing.
   - T-M9-21: encode `clinical_flags` and `cycle_regularity` in §2.35.
   - T-M9-24: the loader sets `NoDay` and maps `teen_profiles.age_band` to `TeenBandOnly`.
   - Product question: should frequency and duration use the whole history even for past targets (today), or "as of ref"?
+
+## T-M9-11 — Queue v2: delayed and unique tasks, priorities, scheduler; tickers migrated
+- Queue API:
+  - `DispatchWith`, `DispatchIn`, `DispatchAt`; options `Unique(ttl)`, `TaskID(id)`, `RunAtStart()`. A dropped duplicate returns `ErrDuplicate`.
+  - `Job.Priority` / `Job.OnFailed`.
+  - `Dispatch` keeps its old signature.
+- Queues: `ritme-go-critical` (weight 6, the OTP SMS job), `ritme-go` (weight 3, the old name, so tasks queued before a deploy still run) and `ritme-go-low` (weight 1).
+- Scheduler (`platform/queue/scheduler.go`):
+  - Runs `asynq.Scheduler` on the Tehran clock behind the leader key `ritme-go:scheduler:leader` (SET NX PX 30 s, renewed every 10 s, deleted on shutdown).
+  - Sync mode runs an in-process cron.
+- `auth.Jobs(r, cache, logger)` gives one shared queue per `*fiber.App` (starts on listen, drains on shutdown).
+- Seven tickers became scheduled jobs: `partners:sync`, `partners:purge`, `telemed:booking_sweep`, `sharelinks:purge`, `admin_metrics:snapshot`, `files:sweep`, `media:sweep`, `safety:nightly_scenarios`.
+  - The old start-up run is kept through `RunAtStart`.
+  - Each job has a run-twice idempotency test.
+  - The labs, health-record extract and learning-dispatch pollers are unchanged.
+- Metrics:
+  - `asynq_queue_size{queue,state}` (read through the inspector at scrape)
+  - `asynq_archived_total{queue}`
+  - `asynq_task_duration_seconds{type,result}`
+- No new env vars. Docs: `docs/engine-v6/jobs.md`.
+- Behaviour change: migrated jobs now return errors, so asynq retries them with backoff, instead of logging and waiting for the next tick. The files and media sweeps still swallow their errors.
+- Open items:
+  - T-M9-12: the worker container must mount `STORAGE_PATH` and `MEDIA_STORAGE_PATH` for the sweeps.
+  - T-M10-24: the safety nightly result lives in process memory until it is persisted, so the API keeps a start-up run.
+  - No live smoke run against the shared test DB.

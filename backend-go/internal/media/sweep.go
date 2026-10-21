@@ -8,10 +8,8 @@ import (
 	"time"
 
 	"github.com/ritme/backend-go/internal/media/store"
+	"github.com/ritme/backend-go/internal/platform/queue"
 )
-
-// SweepInterval is how often SweepLoop runs.
-const SweepInterval = time.Hour
 
 // StuckProcessingAfter is how long a row may stay in `processing` (a finalize that crashed mid-scan) before the sweep
 // fails and removes it (B-N8-02b L4).
@@ -115,18 +113,27 @@ func (s *Service) Sweep(ctx context.Context, now time.Time) (int, error) {
 	return removed, errors.Join(errs...)
 }
 
-// SweepLoop runs Sweep every SweepInterval until ctx ends.
-func (s *Service) SweepLoop(ctx context.Context, now func() time.Time) {
-	t := time.NewTicker(SweepInterval)
-	defer t.Stop()
-	for {
+// Background job (T-M9-11, docs/engine-v6/jobs.md): the media sweep hourly on the low queue, also at start-up. It
+// reads the local media root, so it must run where that volume is mounted.
+const (
+	JobSweep  = "media:sweep"
+	SweepCron = "25 * * * *"
+)
+
+// RegisterJobs puts the sweep job on q.
+func (s *Service) RegisterJobs(q *queue.Queue, now func() time.Time) error {
+	return q.RegisterPeriodic(queue.Job{
+		Type: JobSweep, Priority: queue.Low, MaxTries: 1, Timeout: 30 * time.Minute,
+	}, s.SweepJob(now), SweepCron, queue.Unique(55*time.Minute), queue.RunAtStart())
+}
+
+// SweepJob is the media:sweep handler. Idempotent: removed rows and files are not listed again. A failure is logged
+// with the count removed so far; the next tick retries (no in-run retry, like the old loop).
+func (s *Service) SweepJob(now func() time.Time) queue.Handler {
+	return func(ctx context.Context, _ []byte) error {
 		if n, err := s.Sweep(ctx, now()); err != nil {
 			s.logger.ErrorContext(ctx, "media: sweep failed", slog.Int("removed", n), slog.String("error", err.Error()))
 		}
-		select {
-		case <-ctx.Done():
-			return
-		case <-t.C:
-		}
+		return nil
 	}
 }

@@ -15,7 +15,6 @@ import (
 	"github.com/ritme/backend-go/internal/labs/files"
 	"github.com/ritme/backend-go/internal/loss"
 	"github.com/ritme/backend-go/internal/partners"
-	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 )
 
@@ -58,9 +57,7 @@ func init() {
 		writes := writeThrottle(d)
 		svc := partnersService(d)
 		if d.DB != nil {
-			ctx, cancel := context.WithCancel(context.Background())
-			now := func() time.Time { return time.Now().In(civildate.Tehran) }
-			auth.OnLifecycle(r, func() error { go svc.Loop(ctx, now); return nil }, cancel)
+			mustJobs(svc.RegisterJobs(auth.Jobs(r, d.Cache, d.Logger), tehranNow))
 		}
 		h := partners.NewHandlers(svc, clock.Real{})
 

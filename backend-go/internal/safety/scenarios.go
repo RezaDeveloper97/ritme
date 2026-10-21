@@ -13,6 +13,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/platform/queue"
 	"github.com/ritme/backend-go/internal/postpartum"
 	"github.com/ritme/backend-go/internal/postpartum/guide"
 	"github.com/ritme/backend-go/internal/pregnancy/labor"
@@ -247,16 +248,28 @@ func record(r Run) {
 	lastMu.Unlock()
 }
 
-// NightlyHour is when the in-process run repeats (Asia/Tehran).
-const NightlyHour = 3
+// Background job (T-M9-11, docs/engine-v6/jobs.md): the nightly run at 03:00 Asia/Tehran on the low queue. The result
+// stays in the memory of the process that ran it until T-M10-24 persists it; the API also runs the set once at
+// start-up (RunAndRecord) so its own dashboard row is filled.
+const (
+	JobNightly  = "safety:nightly_scenarios"
+	NightlyCron = "0 3 * * *"
+)
 
-func nextNightly(now time.Time) time.Time {
-	t := now.In(civildate.Tehran)
-	next := time.Date(t.Year(), t.Month(), t.Day(), NightlyHour, 0, 0, 0, civildate.Tehran)
-	if !next.After(t) {
-		next = next.AddDate(0, 0, 1)
+// RegisterJobs puts the nightly job on q.
+func RegisterJobs(q *queue.Queue, logger *slog.Logger, now func() time.Time) error {
+	return q.RegisterPeriodic(queue.Job{
+		Type: JobNightly, Priority: queue.Low, MaxTries: 1, Timeout: time.Minute,
+	}, NightlyJob(logger, now), NightlyCron, queue.Unique(time.Hour))
+}
+
+// NightlyJob is the safety:nightly_scenarios handler. Idempotent: the scenarios are pure functions of the clinical
+// config in force today; a rerun replaces the recorded run with an equal one.
+func NightlyJob(logger *slog.Logger, now func() time.Time) queue.Handler {
+	return func(ctx context.Context, _ []byte) error {
+		RunAndRecord(ctx, logger, now())
+		return nil
 	}
-	return next
 }
 
 // RunAndRecord runs the scenarios now and keeps the result for the dashboard (failures are logged by name only).
@@ -267,20 +280,4 @@ func RunAndRecord(ctx context.Context, logger *slog.Logger, now time.Time) Run {
 		logger.ErrorContext(ctx, "safety: urgent scenarios failed", slog.Any("failed", r.Failed))
 	}
 	return r
-}
-
-// Loop runs the scenarios at start-up and every night at NightlyHour until ctx ends (the CI workflow
-// .github/workflows/safety-scenarios-nightly.yml runs the same set as TestUrgentScenarios).
-func Loop(ctx context.Context, logger *slog.Logger, now func() time.Time) {
-	RunAndRecord(ctx, logger, now())
-	for {
-		t := time.NewTimer(time.Until(nextNightly(now())))
-		select {
-		case <-ctx.Done():
-			t.Stop()
-			return
-		case <-t.C:
-			RunAndRecord(ctx, logger, now())
-		}
-	}
 }

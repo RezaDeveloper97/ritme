@@ -43,6 +43,7 @@ type Deps struct {
 	DB     *sql.DB
 	Cache  *cache.Client // nil → no limiter, sync queue (tests only)
 	Logger *slog.Logger
+	Queue  *queue.Queue // the process job queue (Jobs); nil → a queue of its own (tests)
 }
 
 // Module is the wired auth domain.
@@ -53,9 +54,10 @@ type Module struct {
 	Queue    *queue.Queue
 }
 
-// SendOTPJobSpec is SendOtpSmsJob: 3 tries, backoff 5 s then 15 s.
+// SendOTPJobSpec is SendOtpSmsJob: 3 tries, backoff 5 s then 15 s, on the critical queue (T-M9-11).
 var SendOTPJobSpec = queue.Job{
 	Type:     JobSendOTPSMS,
+	Priority: queue.Critical,
 	MaxTries: 3,
 	Backoff:  []time.Duration{5 * time.Second, 15 * time.Second},
 	Timeout:  60 * time.Second,
@@ -78,23 +80,22 @@ func NewModule(d Deps) (*Module, error) {
 	}
 	q := store.New(d.DB)
 
-	var rdbQueue *queue.Queue
+	rdbQueue := d.Queue
+	if rdbQueue == nil {
+		rdbQueue = NewJobQueue(d.Cache, logger)
+	}
 	var limiter *ratelimit.Limiter
 	if d.Cache != nil {
-		rdbQueue = queue.New(d.Cache.Redis(), queue.Options{
-			Name: queue.NameFromPrefix(d.Cache.Prefix()), Mode: queue.ModeFromEnv(), Logger: logger,
-		})
 		limiter = ratelimit.New(d.Cache, clock.Real{})
-	} else {
-		rdbQueue = queue.New(nil, queue.Options{Mode: queue.ModeSync, Logger: logger})
 	}
-	rdbQueue.Register(SendOTPJobSpec, SendOTPSMSHandler(smsSvc))
-	rdbQueue.OnFailed(func(ctx context.Context, _ string, payload []byte, err error) {
+	spec := SendOTPJobSpec
+	spec.OnFailed = func(ctx context.Context, payload []byte, err error) {
 		var job SendOTPJob
 		_ = json.Unmarshal(payload, &job)
 		logger.ErrorContext(ctx, "OTP SMS job exhausted all retries",
 			slog.String("mobile", sms.MaskMobile(job.Mobile)), slog.String("error", err.Error()))
-	})
+	}
+	rdbQueue.Register(spec, SendOTPSMSHandler(smsSvc))
 
 	issuer := passport.NewIssuer(keys.Private, q, clock.Real{}, d.Config.Passport.TokenLifetimeDays)
 	return &Module{
@@ -106,15 +107,17 @@ func NewModule(d Deps) (*Module, error) {
 }
 
 // MustModule is NewModule for the auth registrar: on error the server refuses to start
-// (FailStartup) and nil is returned. On success the queue worker starts with the listener
-// and stops (draining running jobs) before shutdown.
+// (FailStartup) and nil is returned. The OTP job goes on the process queue (Jobs), which
+// starts with the listener and stops (draining running jobs) before shutdown.
 func MustModule(r fiber.Router, d Deps) *Module {
+	if d.Queue == nil {
+		d.Queue = Jobs(r, d.Cache, d.Logger)
+	}
 	m, err := NewModule(d)
 	if err != nil {
 		FailStartup(r, d.Logger, err)
 		return nil
 	}
-	OnLifecycle(r, m.Queue.Start, m.Queue.Shutdown)
 	return m
 }
 

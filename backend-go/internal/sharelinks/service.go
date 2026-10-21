@@ -14,6 +14,7 @@ import (
 	"github.com/ritme/backend-go/internal/healthrecord"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
+	"github.com/ritme/backend-go/internal/platform/queue"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 	"github.com/ritme/backend-go/internal/sharelinks/store"
 )
@@ -298,18 +299,21 @@ func (s *Service) Purge(ctx context.Context, now time.Time) error {
 	return nil
 }
 
-// PurgeLoop runs Purge now and every PurgeEvery until ctx ends (errors are logged without any link data).
-func (s *Service) PurgeLoop(ctx context.Context, now func() time.Time) {
-	t := time.NewTicker(PurgeEvery)
-	defer t.Stop()
-	for {
-		if err := s.Purge(ctx, now()); err != nil && ctx.Err() == nil {
-			s.logger.Warn("share link purge failed", "error", err)
-		}
-		select {
-		case <-ctx.Done():
-			return
-		case <-t.C:
-		}
-	}
+// Background job (T-M9-11, docs/engine-v6/jobs.md): the purge hourly on the low queue, also at start-up.
+const (
+	JobPurge  = "sharelinks:purge"
+	PurgeCron = "10 * * * *"
+)
+
+// RegisterJobs puts the purge job on q (errors are logged by the queue without any link data).
+func (s *Service) RegisterJobs(q *queue.Queue, now func() time.Time) error {
+	return q.RegisterPeriodic(queue.Job{
+		Type: JobPurge, Priority: queue.Low, MaxTries: 3, Backoff: []time.Duration{time.Minute, 5 * time.Minute}, Timeout: 2 * time.Minute,
+	}, s.PurgeJob(now), PurgeCron, queue.Unique(55*time.Minute), queue.RunAtStart())
+}
+
+// PurgeJob is the sharelinks:purge handler. Idempotent: wiping an already-wiped report and deleting already-deleted
+// rows change nothing.
+func (s *Service) PurgeJob(now func() time.Time) queue.Handler {
+	return func(ctx context.Context, _ []byte) error { return s.Purge(ctx, now()) }
 }

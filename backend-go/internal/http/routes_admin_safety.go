@@ -22,8 +22,22 @@ func init() {
 		safetyreview.New(d.DB, d.Logger).Routes(func(method, path string, chain httpadmin.Chain) {
 			httpadmin.Handle(r, method, httpadmin.Prefix+path, chain)
 		}, kit)
-		ctx, cancel := context.WithCancel(context.Background())
-		now := func() time.Time { return time.Now().In(civildate.Tehran) }
-		auth.OnLifecycle(r, func() error { go safety.Loop(ctx, d.Logger, now); return nil }, cancel)
+		// The nightly run is a scheduled job (any process may run it); the start-up run stays in this process so its
+		// in-memory dashboard row is filled (persisted results: T-M10-24).
+		mustJobs(safety.RegisterJobs(auth.Jobs(r, d.Cache, d.Logger), d.Logger, tehranNow))
+		auth.OnLifecycle(r, func() error {
+			go safety.RunAndRecord(context.Background(), d.Logger, tehranNow())
+			return nil
+		}, func() {})
 	})
+}
+
+// tehranNow is the job clock of the routes files (Asia/Tehran wall clock, like the DB).
+func tehranNow() time.Time { return time.Now().In(civildate.Tehran) }
+
+// mustJobs fails the mount when a domain's job registration is wrong (a bad cron spec is a programming error).
+func mustJobs(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

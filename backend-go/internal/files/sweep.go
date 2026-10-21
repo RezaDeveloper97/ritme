@@ -7,14 +7,12 @@ import (
 	"time"
 
 	"github.com/ritme/backend-go/internal/files/store"
+	"github.com/ritme/backend-go/internal/platform/queue"
 )
 
-// SweepEvery / SweepGrace: the orphan sweep runs every 6 h and leaves blobs younger than an hour alone (an upload
-// writes its blob before its row commits).
-const (
-	SweepEvery = 6 * time.Hour
-	SweepGrace = time.Hour
-)
+// SweepGrace: the orphan sweep (every 6 h, SweepCron) leaves blobs younger than an hour alone (an upload writes its
+// blob before its row commits).
+const SweepGrace = time.Hour
 
 // Sweep removes generic blobs that have no `files` row (a failed removal after a delete, an account deleted by a path
 // that did not call RemoveUser) and older than grace. Lab sheets have their own sweep. Returns how many it removed.
@@ -65,16 +63,25 @@ func (s *Service) Sweep(ctx context.Context, now time.Time, grace time.Duration)
 	return removed, nil
 }
 
-// SweepLoop runs Sweep every SweepEvery until ctx ends (errors are skipped; nothing about a file is logged).
-func (s *Service) SweepLoop(ctx context.Context) {
-	t := time.NewTicker(SweepEvery)
-	defer t.Stop()
-	for {
-		_, _ = s.Sweep(ctx, time.Now(), SweepGrace)
-		select {
-		case <-ctx.Done():
-			return
-		case <-t.C:
-		}
+// Background job (T-M9-11, docs/engine-v6/jobs.md): the orphan-blob sweep every 6 h on the low queue, also at
+// start-up. It reads the local STORAGE_PATH, so it must run where that volume is mounted.
+const (
+	JobSweep  = "files:sweep"
+	SweepCron = "20 */6 * * *"
+)
+
+// RegisterJobs puts the sweep job on q.
+func (s *Service) RegisterJobs(q *queue.Queue, now func() time.Time) error {
+	return q.RegisterPeriodic(queue.Job{
+		Type: JobSweep, Priority: queue.Low, MaxTries: 1, Timeout: 30 * time.Minute,
+	}, s.SweepJob(now), SweepCron, queue.Unique(5*time.Hour), queue.RunAtStart())
+}
+
+// SweepJob is the files:sweep handler. Idempotent: a removed blob is not listed again. Errors are skipped (nothing
+// about a file is logged), the next tick retries.
+func (s *Service) SweepJob(now func() time.Time) queue.Handler {
+	return func(ctx context.Context, _ []byte) error {
+		_, _ = s.Sweep(ctx, now(), SweepGrace)
+		return nil
 	}
 }

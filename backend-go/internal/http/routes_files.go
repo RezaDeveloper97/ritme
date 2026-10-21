@@ -1,7 +1,6 @@
 package http
 
 import (
-	"context"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -46,9 +45,8 @@ func init() {
 		}
 		svc := files.NewService(files.Options{DB: d.DB, Vault: vault, BaseURL: d.Config.App.URL})
 		h := files.NewHandlers(svc, clock.Real{})
-		if d.Config.StoragePath != "" && d.DB != nil {
-			ctx, cancel := context.WithCancel(context.Background())
-			auth.OnLifecycle(r, func() error { go svc.SweepLoop(ctx); return nil }, cancel) // orphan blobs, every 6 h
+		if d.Config.StoragePath != "" && d.DB != nil { // orphan blobs, every 6 h
+			mustJobs(svc.RegisterJobs(auth.Jobs(r, d.Cache, d.Logger), time.Now))
 		}
 
 		const p = "/api/v1/files"

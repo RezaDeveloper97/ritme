@@ -15,6 +15,7 @@ import (
 	"github.com/ritme/backend-go/internal/partners/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
+	"github.com/ritme/backend-go/internal/platform/queue"
 )
 
 // Sealer encrypts the personal blob at rest (*loss.NoteBox, PRIVATE_NOTE_KEY).
@@ -358,27 +359,41 @@ func (s *Service) Purge(ctx context.Context, now time.Time) (int64, error) {
 	return n, nil
 }
 
-// Loop runs Sync every SyncEvery and Purge every PurgeEvery until ctx ends (errors are logged without request data).
-func (s *Service) Loop(ctx context.Context, now func() time.Time) {
-	t := time.NewTicker(SyncEvery)
-	defer t.Stop()
-	var lastPurge time.Time
-	for {
-		if _, err := s.Sync(ctx, now()); err != nil && ctx.Err() == nil {
-			s.logger.Warn("partners: sync failed", "error", err)
-		}
-		if now().Sub(lastPurge) >= PurgeEvery {
-			if _, err := s.Purge(ctx, now()); err != nil && ctx.Err() == nil {
-				s.logger.Warn("partners: purge failed", "error", err)
-			} else {
-				lastPurge = now()
-			}
-		}
-		select {
-		case <-ctx.Done():
-			return
-		case <-t.C:
-		}
+// Background jobs (T-M9-11, docs/engine-v6/jobs.md): the status sync every 10 minutes and the payload purge hourly,
+// both on the low queue, both also at start-up (when this process becomes the scheduling leader).
+const (
+	JobSync   = "partners:sync"
+	JobPurge  = "partners:purge"
+	SyncCron  = "*/10 * * * *"
+	PurgeCron = "5 * * * *"
+)
+
+// RegisterJobs puts the sync and purge jobs on q. Errors are logged by the queue without request data.
+func (s *Service) RegisterJobs(q *queue.Queue, now func() time.Time) error {
+	return errors.Join(
+		q.RegisterPeriodic(queue.Job{
+			Type: JobSync, Priority: queue.Low, MaxTries: 2, Backoff: []time.Duration{time.Minute}, Timeout: 5 * time.Minute,
+		}, s.SyncJob(now), SyncCron, queue.Unique(9*time.Minute), queue.RunAtStart()),
+		q.RegisterPeriodic(queue.Job{
+			Type: JobPurge, Priority: queue.Low, MaxTries: 3, Backoff: []time.Duration{time.Minute, 5 * time.Minute}, Timeout: 2 * time.Minute,
+		}, s.PurgeJob(now), PurgeCron, queue.Unique(55*time.Minute), queue.RunAtStart()),
+	)
+}
+
+// SyncJob is the partners:sync handler. Idempotent: a request only moves along its state machine (a repeated status
+// is a no-op, ErrBadTransition is skipped).
+func (s *Service) SyncJob(now func() time.Time) queue.Handler {
+	return func(ctx context.Context, _ []byte) error {
+		_, err := s.Sync(ctx, now())
+		return err
+	}
+}
+
+// PurgeJob is the partners:purge handler. Idempotent: it nulls blobs that are already past the cutoff.
+func (s *Service) PurgeJob(now func() time.Time) queue.Handler {
+	return func(ctx context.Context, _ []byte) error {
+		_, err := s.Purge(ctx, now())
+		return err
 	}
 }
 

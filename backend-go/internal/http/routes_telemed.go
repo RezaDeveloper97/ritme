@@ -14,7 +14,6 @@ import (
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/loss"
 	"github.com/ritme/backend-go/internal/payments"
-	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/plus"
 	"github.com/ritme/backend-go/internal/telemed"
@@ -35,9 +34,7 @@ func init() {
 		bh := telemed.NewBookingHandlers(bookings, clock.Real{}, d.Config.App.URL)
 		writes := writeThrottle(d)
 		if d.DB != nil {
-			ctx, cancel := context.WithCancel(context.Background())
-			now := func() time.Time { return time.Now().In(civildate.Tehran) }
-			auth.OnLifecycle(r, func() error { go bookings.SweepLoop(ctx, now); return nil }, cancel)
+			mustJobs(bookings.RegisterJobs(auth.Jobs(r, d.Cache, d.Logger), tehranNow))
 		}
 
 		p := "/api/v1/telemed/doctors"

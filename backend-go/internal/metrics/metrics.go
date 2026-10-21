@@ -17,13 +17,11 @@ import (
 	"time"
 
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/platform/queue"
 )
 
 // MinCohort is the k-anonymity floor: smaller groups are suppressed.
 const MinCohort = 10
-
-// Interval is how often Loop recomputes the snapshot (hourly; the first run is at start-up).
-const Interval = time.Hour
 
 // SeriesDays is the length of the daily series kept in each snapshot (the 90-day chart range).
 const SeriesDays = 90
@@ -398,18 +396,20 @@ func (s *Service) Latest(ctx context.Context) (*Snapshot, error) {
 	return &sn, nil
 }
 
-// Loop refreshes the snapshot at start-up and then every Interval until ctx ends.
-func (s *Service) Loop(ctx context.Context, now func() time.Time) {
-	t := time.NewTicker(Interval)
-	defer t.Stop()
-	for {
-		if err := s.Refresh(ctx, now()); err != nil && ctx.Err() == nil {
-			s.logger.ErrorContext(ctx, "metrics: refresh failed", slog.String("error", err.Error()))
-		}
-		select {
-		case <-ctx.Done():
-			return
-		case <-t.C:
-		}
-	}
+// Background job (T-M9-11, docs/engine-v6/jobs.md): the snapshot refresh hourly on the low queue, also at start-up.
+const (
+	JobRefresh  = "admin_metrics:snapshot"
+	RefreshCron = "15 * * * *"
+)
+
+// RegisterJobs puts the snapshot job on q.
+func (s *Service) RegisterJobs(q *queue.Queue, now func() time.Time) error {
+	return q.RegisterPeriodic(queue.Job{
+		Type: JobRefresh, Priority: queue.Low, MaxTries: 3, Backoff: []time.Duration{time.Minute, 5 * time.Minute}, Timeout: 10 * time.Minute,
+	}, s.RefreshJob(now), RefreshCron, queue.Unique(55*time.Minute), queue.RunAtStart())
+}
+
+// RefreshJob is the admin_metrics:snapshot handler. Idempotent: one row per Tehran day, upserted.
+func (s *Service) RefreshJob(now func() time.Time) queue.Handler {
+	return func(ctx context.Context, _ []byte) error { return s.Refresh(ctx, now()) }
 }
