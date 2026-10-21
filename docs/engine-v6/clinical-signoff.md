@@ -25,6 +25,7 @@ Sources are the SPEC §6.2 references.
 | H-15 | باند رشد «۳ ماهگی» (در CDC 2022 نیست) بماند یا حذف شود؟ | kept, labelled «باند خود ریتمی، نه CDC» | keep or drop | Zubler 2022 (CDC milestones) | milestone catalog (T-M10-22) | | advisor-pending |
 | H-16 | چکاپ‌های خارج از اسپک (معاینهٔ بالینی پستان، آزمایش خون سالانه): بمانند، اختیاری شوند یا حذف؟ | kept unchanged | keep / optional / retire | USPSTF breast 2024 | checkup catalog (T-M10-21) | | advisor-pending |
 | H-17 | کودک از کدام نسخهٔ جدول واکسن پیروی کند؟ نسخهٔ معتبر در تاریخ تولدش؛ جبران (catch-up) دستی بماند؟ | version in force on the birth date; catch-up manual | same | وزارت بهداشت — برنامهٔ کشوری ایمن‌سازی | `child.vaccine_schedule` rows | | advisor-pending |
+| H-19 | شمارش لگد که با کمتر از ۱۰ حرکت تمام شود (حتی شروع و توقف فوری با ۰ حرکت) الان هشدار فوری می‌دهد. حداقل مدت شمارش لازم است؟ | any session ending under target → urgent (T-M9-05) | spec: < 10 in 2 h → urgent; minimum duration unspecified | ACOG kick count; SPEC §3.1 | new key (e.g. `pregnancy.kicks.min_session_min`) if the advisor wants one | | advisor-pending |
 
 ## B. New registry keys (T-M10-16) — no behaviour change today, signature needed when changed
 
