@@ -1,0 +1,133 @@
+{
+  "date": "2026-07-18",
+  "cycle_day": 18,
+  "main_phase": "luteal",
+  "subphase": "early_luteal",
+  "fertility_level": "low",
+  "days_to_ovulation": -2,
+  "days_to_period": 12,
+  "days_late": 0,
+  "anchors": {
+    "current_period_start": "2026-07-01",
+    "current_period_start_source": "user_logged",
+    "current_period_end": "2026-07-05",
+    "current_period_end_source": "user_logged",
+    "current_period_end_is_confirmed": true,
+    "predicted_next_period_start": "2026-07-30",
+    "estimated_ovulation_date": "2026-07-16",
+    "ovulation_source": "calendar"
+  },
+  "metrics": {
+    "effective_cycle_length": 29,
+    "effective_period_length": 5,
+    "cycle_variability": 3,
+    "cycle_regularity": "regular"
+  },
+  "clinical_flags": {
+    "frequency": "normal",
+    "duration": "normal",
+    "absent": false
+  },
+  "future_cycles": [
+    {
+      "k": 1,
+      "period_start": "2026-07-30",
+      "period_end": "2026-08-03",
+      "fertile_start": "2026-07-11",
+      "fertile_end": "2026-07-16",
+      "ovulation": "2026-07-16",
+      "ovulation_source": "calendar",
+      "confidence": "high"
+    },
+    {
+      "k": 2,
+      "period_start": "2026-08-28",
+      "period_end": "2026-09-01",
+      "fertile_start": "2026-08-09",
+      "fertile_end": "2026-08-14",
+      "ovulation": "2026-08-14",
+      "ovulation_source": "calendar",
+      "confidence": "medium"
+    },
+    {
+      "k": 3,
+      "period_start": "2026-09-26",
+      "period_end": "2026-09-30",
+      "fertile_start": "2026-09-07",
+      "fertile_end": "2026-09-12",
+      "ovulation": "2026-09-12",
+      "ovulation_source": "calendar",
+      "confidence": "medium"
+    },
+    {
+      "k": 4,
+      "period_start": "2026-10-25",
+      "period_end": "2026-10-29",
+      "fertile_start": "2026-10-06",
+      "fertile_end": "2026-10-11",
+      "ovulation": "2026-10-11",
+      "ovulation_source": "calendar",
+      "confidence": "medium"
+    },
+    {
+      "k": 5,
+      "period_start": "2026-11-23",
+      "period_end": "2026-11-27",
+      "fertile_start": "2026-11-04",
+      "fertile_end": "2026-11-09",
+      "ovulation": "2026-11-09",
+      "ovulation_source": "calendar",
+      "confidence": "medium"
+    },
+    {
+      "k": 6,
+      "period_start": "2026-12-22",
+      "period_end": "2026-12-26",
+      "fertile_start": "2026-12-03",
+      "fertile_end": "2026-12-08",
+      "ovulation": "2026-12-08",
+      "ovulation_source": "calendar",
+      "confidence": "medium"
+    }
+  ],
+  "suggest_pregnancy_test": false,
+  "confidence": "high",
+  "confidence_reasons": [],
+  "data_quality": "good",
+  "resolution_source": "prediction",
+  "is_predicted": true,
+  "requires_user_input": false,
+  "warnings": [],
+  "limits": {
+    "fertility_suppressed": false,
+    "suppression_reason": null,
+    "engine_suspended": false,
+    "prompt_pregnancy_mode": false
+  },
+  "future_k": 0,
+  "today_ui": {
+    "ring_action": "edit",
+    "banner": null,
+    "show_pregnancy_test_button": false,
+    "prediction_card": {
+      "period": {
+        "start": "2026-07-30",
+        "end": "2026-08-03"
+      },
+      "pms": {
+        "start": "2026-07-27",
+        "end": "2026-07-29"
+      },
+      "fertile": {
+        "start": "2026-07-11",
+        "end": "2026-07-16"
+      },
+      "ovulation": {
+        "date": "2026-07-16",
+        "source": "calendar"
+      },
+      "cycle_length": 29,
+      "cycle_regularity": "regular"
+    }
+  }
+}

@@ -1394,3 +1394,37 @@ Nothing needed fixing.
   - Contexts derived with `WithValue(c)` / `WithCancel(c)` are not bounded. This is deliberate: they can't be told apart from detached work.
   - The database/sql pool wait still uses the caller's ctx.
   - `platform/db` now pulls in fiber through httpx (harmless).
+
+## T-M9-21 — Engine v6 today_ui mapping and §2.35 JSON encoding
+- New engine API:
+  - `(*State).TodayUI(st)`: 0 allocs.
+  - `(*State).Today(today) (Status, TodayUI)`: fills `FutureCycles`. Resolve and Range still leave it nil.
+  - `AppendJSON(dst, *Status, *TodayUI)`: a hand-written encoder into a caller-owned buffer, 1.7 µs and 0 allocs.
+  - `DecodeJSON`: strict (unknown keys and enums are rejected), for tests and the T-M9-32 shadow diff.
+- `TodayUI.PredictionCard` is now `Opt[…]`, so the card can be null.
+- Golden `engine/testdata/spec_2_35_today.json`: byte-identical to the encoder output. It follows the spec key order, with the additions `limits`, `future_k` and `today_ui` at the end.
+- Round trip: decode(encode(x)) == x over 1 000 statuses.
+- today_ui rules:
+  - The ring and start/end windows follow §2.43.
+  - The end prompt counts "days_since" as cycle_day.
+  - Banners follow table order, so late > 14 shows `overdue`; `ask_last_period` comes only from the stale anchor.
+  - The pregnancy-test button is shown only with the overdue banner.
+  - The prediction card is null with no next start or when the engine is suspended. Under suppression, fertile and ovulation are null.
+- Encoding:
+  - `future_cycles` is omitted when nil and written `[]` when empty.
+  - `warnings` and `reasons` are always arrays.
+  - Sources stay "unknown" when only the dates are null.
+  - `Diagnostics` is not exposed, because the spec is silent.
+- v6 vs v1.1 JSON (for T-M9-32):
+  - New keys: `clinical_flags`, `metrics.cycle_regularity`, `future_cycles`, `suggest_pregnancy_test`, `limits`, `future_k`, `today_ui`.
+  - New nullable fields: `cycle_day`, `days_to_*`, `days_late`, predicted next / ovulation, and `current_period_end` (skip anchors).
+  - New enum values: `predicted_reference`, `bbt_confirmed` / `lh_positive`, 8 warnings, `insufficient_data`.
+  - `future_cycles` carry the biological fertile window; the card carries the display window.
+- Open items:
+  - T-M9-22: lock EncodeDay / TodayUI / TodayPayload, and re-measure Range31 (29.9 µs under load, against 9.1 µs earlier).
+  - T-M9-24/32: serve through `State.Today` + `AppendJSON` with a pooled buffer.
+  - Product/frontend questions (T-M9-42):
+    - Should late > 14 show overdue, or ask for the last period?
+    - When the next date is past, should the card show future_cycles[1]?
+    - Should PMS be hidden under hormonal contraception?
+    - Should a user with no data get a start ring or a banner?

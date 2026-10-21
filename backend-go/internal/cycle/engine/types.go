@@ -161,10 +161,11 @@ type PredictionCard struct {
 	CycleRegularity CycleRegularity
 }
 
-// TodayUI is the E-17 today_ui block (the §2.43 mapping owned by the engine).
+// TodayUI is the E-17 today_ui block (the §2.43 mapping owned by the engine). PredictionCard is null when nothing is
+// predicted (no anchor, pregnancy E-25, postpartum not returned E-14).
 type TodayUI struct {
 	RingAction              RingAction
 	Banner                  Banner
 	ShowPregnancyTestButton bool
-	PredictionCard          PredictionCard
+	PredictionCard          Opt[PredictionCard]
 }

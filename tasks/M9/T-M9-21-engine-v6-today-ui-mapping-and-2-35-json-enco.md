@@ -3,7 +3,7 @@ id: T-M9-21
 title: Engine v6 today_ui mapping and §2.35 JSON encoder
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-20]
 parallel_group: M9-B
 touches: [backend-go/internal/cycle/engine]
