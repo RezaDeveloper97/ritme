@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/metrics"
 )
 
@@ -19,6 +20,12 @@ import (
 // conn/stmt below. database/sql itself still owns pooling, transactions, sql.ErrNoRows (Row.Scan) and context
 // cancellation; the wrapper only forwards, times and counts. Per query it records db_query_duration_seconds{query},
 // adds one to the request's metrics.QueryCounter and warns when it took longer than SlowQuery.
+
+// Request deadline (T-M9-10b): most service calls pass the fiber.Ctx itself as their context, and it never carries a
+// deadline. Every call into the base driver below therefore runs with httpx.DriverContext(ctx), the request's
+// deadline-bounded context in that case, so the driver cancels the query at the request deadline (the handler then
+// fails like any other DB error: 500, never 401). Metrics and logs still use the caller's ctx. database/sql's own
+// wait for a free pool connection happens before the driver and keeps the caller's ctx.
 
 // SlowQuery is the slow-query warning threshold.
 const SlowQuery = 200 * time.Millisecond
@@ -68,7 +75,7 @@ type instrumentedConnector struct{ base driver.Connector }
 func Instrument(c driver.Connector) driver.Connector { return instrumentedConnector{base: c} }
 
 func (c instrumentedConnector) Connect(ctx context.Context) (driver.Conn, error) {
-	conn, err := c.base.Connect(ctx)
+	conn, err := c.base.Connect(httpx.DriverContext(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +110,7 @@ func (c *instrumentedConn) PrepareContext(ctx context.Context, query string) (dr
 		err error
 	)
 	if p, ok := c.base.(driver.ConnPrepareContext); ok {
-		st, err = p.PrepareContext(ctx, query)
+		st, err = p.PrepareContext(httpx.DriverContext(ctx), query)
 	} else {
 		st, err = c.base.Prepare(query)
 	}
@@ -120,7 +127,7 @@ func (c *instrumentedConn) Begin() (driver.Tx, error) { return c.base.Begin() }
 
 func (c *instrumentedConn) BeginTx(ctx context.Context, opts driver.TxOptions) (driver.Tx, error) {
 	if b, ok := c.base.(driver.ConnBeginTx); ok {
-		return b.BeginTx(ctx, opts)
+		return b.BeginTx(httpx.DriverContext(ctx), opts)
 	}
 	if opts.Isolation != 0 || opts.ReadOnly {
 		return nil, errors.New("db: driver does not support non-default transaction options")
@@ -134,7 +141,7 @@ func (c *instrumentedConn) QueryContext(ctx context.Context, query string, args 
 		return nil, driver.ErrSkip
 	}
 	start := time.Now()
-	rows, err := q.QueryContext(ctx, query, args)
+	rows, err := q.QueryContext(httpx.DriverContext(ctx), query, args)
 	observe(ctx, query, start, err)
 	return rows, err
 }
@@ -145,14 +152,14 @@ func (c *instrumentedConn) ExecContext(ctx context.Context, query string, args [
 		return nil, driver.ErrSkip
 	}
 	start := time.Now()
-	res, err := e.ExecContext(ctx, query, args)
+	res, err := e.ExecContext(httpx.DriverContext(ctx), query, args)
 	observe(ctx, query, start, err)
 	return res, err
 }
 
 func (c *instrumentedConn) Ping(ctx context.Context) error {
 	if p, ok := c.base.(driver.Pinger); ok {
-		return p.Ping(ctx)
+		return p.Ping(httpx.DriverContext(ctx))
 	}
 	return nil
 }
@@ -215,16 +222,17 @@ func (s *instrumentedStmt) Query(args []driver.Value) (driver.Rows, error) {
 
 func (s *instrumentedStmt) QueryContext(ctx context.Context, args []driver.NamedValue) (driver.Rows, error) {
 	start := time.Now()
+	dctx := httpx.DriverContext(ctx)
 	var (
 		rows driver.Rows
 		err  error
 	)
 	if q, ok := s.base.(driver.StmtQueryContext); ok {
-		rows, err = q.QueryContext(ctx, args)
+		rows, err = q.QueryContext(dctx, args)
 	} else {
 		var vals []driver.Value
 		if vals, err = namedToValues(args); err == nil {
-			if err = ctx.Err(); err == nil {
+			if err = dctx.Err(); err == nil {
 				rows, err = s.base.Query(vals) //nolint:staticcheck // fallback for drivers without StmtQueryContext
 			}
 		}
@@ -235,16 +243,17 @@ func (s *instrumentedStmt) QueryContext(ctx context.Context, args []driver.Named
 
 func (s *instrumentedStmt) ExecContext(ctx context.Context, args []driver.NamedValue) (driver.Result, error) {
 	start := time.Now()
+	dctx := httpx.DriverContext(ctx)
 	var (
 		res driver.Result
 		err error
 	)
 	if e, ok := s.base.(driver.StmtExecContext); ok {
-		res, err = e.ExecContext(ctx, args)
+		res, err = e.ExecContext(dctx, args)
 	} else {
 		var vals []driver.Value
 		if vals, err = namedToValues(args); err == nil {
-			if err = ctx.Err(); err == nil {
+			if err = dctx.Err(); err == nil {
 				res, err = s.base.Exec(vals) //nolint:staticcheck // fallback for drivers without StmtExecContext
 			}
 		}

@@ -3,7 +3,7 @@ id: T-M9-10b
 title: Request deadline reaches every query (DB driver reads httpx.DeadlineFrom)
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-10]
 parallel_group: M9-B
 touches: [backend-go/internal/platform/db,backend-go/internal/platform/httpx]

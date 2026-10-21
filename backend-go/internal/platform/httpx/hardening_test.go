@@ -142,6 +142,34 @@ func TestRequestDeadline(t *testing.T) {
 	assert.Equal(t, "none", string(body))
 }
 
+// T-M9-10b: DriverContext bounds the fiber.Ctx itself and leaves every other context alone.
+func TestDriverContext(t *testing.T) {
+	app := fiber.New()
+	app.Use(httpx.RequestDeadline(5*time.Second, func(c fiber.Ctx) bool { return c.Path() == "/long" }))
+	report := func(c fiber.Ctx) error {
+		has := func(ctx context.Context) string {
+			if _, ok := httpx.DriverContext(ctx).Deadline(); ok {
+				return "1"
+			}
+			return "0"
+		}
+		type key struct{}
+		return c.SendString(has(c) + has(context.WithoutCancel(c)) + has(context.WithValue(c, key{}, 1)) + has(c.Context()))
+	}
+	app.Get("/short", report)
+	app.Get("/long", report)
+
+	// fiber.Ctx → bounded; WithoutCancel(c) / WithValue(c) → untouched; c.Context() already has the deadline.
+	_, _, body := get(t, app, "/short", "")
+	assert.Equal(t, "1001", string(body))
+	// Long-running routes: nothing is bounded.
+	_, _, body = get(t, app, "/long", "")
+	assert.Equal(t, "0000", string(body))
+
+	bg := context.Background()
+	assert.Equal(t, bg, httpx.DriverContext(bg))
+}
+
 // pingDriver is a database/sql driver whose connections only answer Ping (with err).
 type pingDriver struct{ err error }
 

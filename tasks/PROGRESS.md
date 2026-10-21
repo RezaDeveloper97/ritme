@@ -1380,3 +1380,17 @@ Nothing needed fixing.
     - Should an unmatched skip stop excluding its cycle?
     - Should stale/skip warnings carry onto future targets?
     - Should regularity for far-future targets use today as ref (as it does now)?
+
+## T-M9-10b — Request deadline reaches every query
+- New `httpx.DriverContext(ctx)`. When `ctx` is the `fiber.Ctx` itself, it returns the bounded context from `RequestDeadline`; any other context is returned unchanged.
+  - This covers the ~457 call sites that pass `c`.
+  - Only a direct `fiber.Ctx` matches, so `context.WithoutCancel(c)` detached work is never killed when the request ends.
+- `platform/db/instrument.go`: every call into the base driver goes through `DriverContext` (connect, prepare, begin, query, exec, ping, stmt). Metrics and the slow-query log still see the caller's ctx. `interpolateParams` is unchanged.
+- Integration tests:
+  - `SELECT SLEEP(6)` run with `c` is cancelled at about 5 s and the response is 500 (never 401).
+  - Queries with args, exec and transactions are bounded.
+  - Long-running routes and `WithoutCancel(c)` are not bounded.
+- Open items:
+  - Contexts derived with `WithValue(c)` / `WithCancel(c)` are not bounded. This is deliberate: they can't be told apart from detached work.
+  - The database/sql pool wait still uses the caller's ctx.
+  - `platform/db` now pulls in fiber through httpx (harmless).

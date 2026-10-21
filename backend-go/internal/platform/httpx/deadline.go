@@ -39,3 +39,19 @@ func DeadlineFrom(ctx context.Context) (context.Context, bool) {
 	}
 	return nil, false
 }
+
+// DriverContext is the context a DB driver should run a query with (T-M9-10b). Most service calls pass the fiber.Ctx
+// itself as their context.Context, and it never carries a deadline; for exactly that case DriverContext returns the
+// request's bounded context from RequestDeadline, so the query is cancelled at the request deadline too. Any other ctx
+// is returned unchanged: one with its own deadline or cancellation keeps it, and a context derived from the fiber.Ctx
+// (context.WithoutCancel(c) for work that must outlive the request, a WithValue wrapper) is left alone on purpose.
+// Long-running routes, jobs and migrations have no bounded context, so they are never bounded here.
+func DriverContext(ctx context.Context) context.Context {
+	if _, ok := ctx.(fiber.Ctx); !ok {
+		return ctx
+	}
+	if bounded, ok := DeadlineFrom(ctx); ok {
+		return bounded
+	}
+	return ctx
+}
