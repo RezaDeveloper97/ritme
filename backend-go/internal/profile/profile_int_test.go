@@ -252,3 +252,40 @@ func TestStore_NoLastPeriodStartSeedsNothing(t *testing.T) {
 	assert.Equal(t, "2026-09-10", lmp().String[:10])
 	assert.Equal(t, 1, cycles())
 }
+
+// T-M9-23 (D-127): ten concurrent first saves for a new user leave exactly one profile row, and every request
+// answers 200 (the losers of the INSERT race land on the winner's row).
+func TestStore_ConcurrentFirstSaveCreatesOneRow(t *testing.T) {
+	e := setup(t)
+	id, tok := e.user(t, "09120000023")
+
+	const n = 10
+	var wg sync.WaitGroup
+	statuses := make([]int, n)
+	raws := make([]string, n)
+	start := make(chan struct{})
+	for i := range n {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+			r := e.do(t, http.MethodPost, "/api/v1/profile", tok, `{"birthday":"1995-04-01","weight":60,"height":165,"cycle_duration":28}`)
+			statuses[i], raws[i] = r.status, r.raw
+		}()
+	}
+	close(start)
+	wg.Wait()
+	for i := range n {
+		assert.Equal(t, 200, statuses[i], raws[i])
+	}
+
+	var rows int
+	require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM user_profiles WHERE user_id=?`, id).Scan(&rows))
+	assert.Equal(t, 1, rows, "exactly one profile")
+	var weight string
+	var height, cycle int
+	require.NoError(t, e.db.QueryRow(`SELECT weight, height, cycle_duration FROM user_profiles WHERE user_id=?`, id).Scan(&weight, &height, &cycle))
+	assert.Equal(t, "60.00", weight)
+	assert.Equal(t, 165, height)
+	assert.Equal(t, 28, cycle)
+}

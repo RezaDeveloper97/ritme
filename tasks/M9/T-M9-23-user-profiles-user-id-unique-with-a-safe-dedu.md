@@ -3,7 +3,7 @@ id: T-M9-23
 title: user_profiles.user_id UNIQUE with a safe dedupe
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M9-A
 touches: [backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/profile/profile.sql, backend-go/internal/profile]

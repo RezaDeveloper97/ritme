@@ -34,7 +34,11 @@ SELECT * FROM `user_profiles` WHERE id = ? LIMIT 1;
 -- name: InsertProfile :execresult
 -- new UserProfile(['user_id' => …])->save(): the row starts with the DB defaults; the
 -- request's attributes follow in UpdateProfileAttributes inside the same transaction.
-INSERT INTO `user_profiles` (user_id, created_at, updated_at) VALUES (?, ?, ?);
+-- T-M9-23 (D-127): user_id is UNIQUE. A concurrent first save that lost the race changes
+-- nothing on the existing row and gets its id back as LastInsertId (id = LAST_INSERT_ID(id)),
+-- so the caller's attribute UPDATE lands on the one profile instead of failing with 1062.
+INSERT INTO `user_profiles` (user_id, created_at, updated_at) VALUES (?, ?, ?)
+ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id);
 
 -- name: UpdateProfileAttributes :exec
 -- $profile->fill($data)->save(): only the dirty attributes are written (set_* flags). The

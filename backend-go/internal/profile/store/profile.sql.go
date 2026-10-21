@@ -157,6 +157,7 @@ func (q *Queries) GetUser(ctx context.Context, id uint64) (User, error) {
 
 const insertProfile = `-- name: InsertProfile :execresult
 INSERT INTO ` + "`" + `user_profiles` + "`" + ` (user_id, created_at, updated_at) VALUES (?, ?, ?)
+ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)
 `
 
 type InsertProfileParams struct {
@@ -167,6 +168,9 @@ type InsertProfileParams struct {
 
 // new UserProfile(['user_id' => …])->save(): the row starts with the DB defaults; the
 // request's attributes follow in UpdateProfileAttributes inside the same transaction.
+// T-M9-23 (D-127): user_id is UNIQUE. A concurrent first save that lost the race changes
+// nothing on the existing row and gets its id back as LastInsertId (id = LAST_INSERT_ID(id)),
+// so the caller's attribute UPDATE lands on the one profile instead of failing with 1062.
 func (q *Queries) InsertProfile(ctx context.Context, arg InsertProfileParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, insertProfile, arg.UserID, arg.CreatedAt, arg.UpdatedAt)
 }

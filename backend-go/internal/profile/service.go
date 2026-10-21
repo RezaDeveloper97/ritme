@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
+
 	"github.com/ritme/backend-go/internal/auth"
 	companionstore "github.com/ritme/backend-go/internal/companion/store"
 	"github.com/ritme/backend-go/internal/enums"
@@ -228,10 +230,39 @@ func NameChangedNotice(userID uint64, previous, current any) string {
 	}, "\n")
 }
 
+// firstSaveAttempts bounds the retries of a first save that hit an InnoDB deadlock (T-M9-23).
+const firstSaveAttempts = 5
+
 // write is $profile->fill($data)->save(): a new profile is inserted (DB defaults, then the
 // attributes, in one transaction so a rejected value leaves no row, as a failed INSERT does);
 // an existing one gets an UPDATE of its dirty attributes only, and none when nothing changed.
+//
+// T-M9-23 (D-127): user_id is UNIQUE and InsertProfile is an upsert, so concurrent first saves
+// all land on one row. Racing inserts on the same unique key can still deadlock in InnoDB
+// (1213); the loser rolls back, re-reads the profile and saves again.
 func (s *Service) write(ctx context.Context, userID uint64, orig *store.UserProfile, data map[string]any, now time.Time) (uint64, error) {
+	for attempt := 1; ; attempt++ {
+		id, err := s.writeOnce(ctx, userID, orig, data, now)
+		if err == nil || orig != nil || attempt >= firstSaveAttempts || !isDeadlock(err) {
+			return id, err
+		}
+		current, err := s.Q.GetProfileByUserID(ctx, userID)
+		switch {
+		case err == nil:
+			orig = &current
+		case !errors.Is(err, sql.ErrNoRows):
+			return 0, dbErr("load profile", err)
+		}
+	}
+}
+
+// isDeadlock is MySQL 1213 (ER_LOCK_DEADLOCK): InnoDB rolled the transaction back.
+func isDeadlock(err error) bool {
+	var me *mysql.MySQLError
+	return errors.As(err, &me) && me.Number == 1213
+}
+
+func (s *Service) writeOnce(ctx context.Context, userID uint64, orig *store.UserProfile, data map[string]any, now time.Time) (uint64, error) {
 	params, dirty := updateParams(orig, data)
 	params.UpdatedAt = dbTime(now)
 	if orig != nil {

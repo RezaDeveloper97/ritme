@@ -1525,3 +1525,23 @@ Nothing needed fixing.
 - Tests: new unit tests and integration tests (`home/config_int_test.go`, i18n snapshot + pub/sub across two processes). `registry_ttl_test.go` was deleted (it tested the removed TTL).
 - Verify: `make test-int` for home/i18n/querybudget/admin/content is green. The full `make test-int PKG=./...` run was interrupted by a crash of the local test MariaDB (InnoDB semaphore timeout after the earlier Docker hang); after restarting it, all 56 affected packages passed.
 - Also fixed: `internal/auth/lifecycle_test.go` `listenOnce` hung when Shutdown landed before fasthttp entered Serve (a T-M9-12 test race). It now closes the listener after Shutdown; 20 runs in a row are green.
+
+## T-M9-23 — user_profiles.user_id UNIQUE with a safe dedupe (D-127)
+- Migration **00096** `user_profiles_user_id_unique`, mirrored by Laravel `2026_10_21_000096_add_unique_user_id_to_user_profiles.php`. `make schema-diff` is green.
+- Dedupe, deterministic by id:
+  - **Kept:** for each user_id, the row with the lowest id (the one every reader already returned).
+  - **Merged:** each NULL column on the kept row is filled from the newest removed row that has a value for it. Non-NULL kept values and the NOT NULL columns never change.
+  - **Removed:** the other rows. Each is first copied verbatim into `user_profiles_dedupe_backup` (original id as PK, plus `removed_at` in Tehran time).
+- Indexes: `UNIQUE user_profiles_user_id_unique` is added and the old `user_profiles_user_id_foreign` key is dropped (the unique key covers the FK).
+- Re-running is safe (`INSERT IGNORE`, merge fills only NULLs, `IF [NOT] EXISTS`).
+- Down: restores the FK index, drops the unique key, restores the backup rows with their original ids, drops the backup table. Columns that were filled on the kept row stay filled.
+- `profile.InsertProfile` is an upsert (`ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)`). The first save retries a deadlock (1213) up to 5 times. 10 concurrent first saves give one row and all 200.
+- Contract profile/onboarding: 124 passed, 0 failed.
+- Local count: 0 duplicates (the local sqlite has 18 rows for 18 users).
+- **Before beta/prod:**
+  - Run the read-only count `SELECT user_id, COUNT(*) FROM user_profiles GROUP BY user_id HAVING COUNT(*) > 1` on stage and beta (needs a user OK), and record the result here.
+  - Take a dump of `user_profiles_dedupe_backup` before any rollback.
+  - The `ALTER TABLE` locks `user_profiles` briefly; run it on prod at a quiet hour.
+- Open items:
+  - **T-M9-23b**: the admin writer still uses a plain INSERT (1062 in a race).
+  - On Laravel sqlite (local dev/phpunit) the dedupe is skipped, so a duplicate there stops the migration.

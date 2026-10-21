@@ -65,6 +65,9 @@ type Querier interface {
 	InsertOnboardingCycleHistory(ctx context.Context, arg InsertOnboardingCycleHistoryParams) error
 	// new UserProfile(['user_id' => …])->save(): the row starts with the DB defaults; the
 	// request's attributes follow in UpdateProfileAttributes inside the same transaction.
+	// T-M9-23 (D-127): user_id is UNIQUE. A concurrent first save that lost the race changes
+	// nothing on the existing row and gets its id back as LastInsertId (id = LAST_INSERT_ID(id)),
+	// so the caller's attribute UPDATE lands on the one profile instead of failing with 1062.
 	InsertProfile(ctx context.Context, arg InsertProfileParams) (sql.Result, error)
 	// ProfileController::syncOnboardingPeriodLog and export.
 	// CycleHistory::where('user_id', …)->get() / ->orderBy('period_start_date') (unique-index order).
