@@ -36,11 +36,16 @@ TEST_DB_ADMIN_DSN    ?= root:root@tcp(127.0.0.1:$(TEST_DB_PORT))/?parseTime=true
 
 PKG ?= ./...
 
+# Benchmarks (T-M9-08): bench/run.sh reads BENCH_PKGS / BENCH_COUNT / BENCH_TIME. benchstat from PATH, else pinned.
+BENCHSTAT_VERSION ?= v0.0.0-20261009192801-be2c69fb417e
+BENCHSTAT ?= $(shell command -v benchstat 2>/dev/null || { p="$$(go env GOPATH)/bin/benchstat"; [ -x "$$p" ] && echo "$$p"; } || echo "go run golang.org/x/perf/cmd/benchstat@$(BENCHSTAT_VERSION)")
+
 # sqlc from PATH, else $(go env GOPATH)/bin, else built on the fly (pinned; cached after the first run).
 SQLC_VERSION ?= v1.31.1
 SQLC ?= $(shell command -v sqlc 2>/dev/null || { p="$$(go env GOPATH)/bin/sqlc"; [ -x "$$p" ] && echo "$$p"; } || echo "go run github.com/sqlc-dev/sqlc/cmd/sqlc@$(SQLC_VERSION)")
 
-.PHONY: help run test test-int test-db-up test-db-down lint fmt vet sqlc schema-diff contract contract-record docker
+.PHONY: help run test test-int test-db-up test-db-down lint fmt vet sqlc schema-diff contract contract-record docker \
+	bench bench-baseline bench-compare bench-gate
 
 help: ## List targets
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-16s %s\n", $$1, $$2}'
@@ -84,3 +89,16 @@ contract-record: ## Record Laravel goldens (contract stack; CONTRACT_PORT, defau
 
 docker: ## Build the image
 	docker build -t ritme-backend-go:dev .
+
+bench: ## Benchmarks → bench/current.txt (BENCH_COUNT=6 BENCH_TIME=1s; header = machine + Go)
+	bench/run.sh bench/current.txt
+
+bench-baseline: ## Re-record bench/baseline.txt (quiet machine; commit it with the change that moved the numbers)
+	bench/run.sh bench/baseline.txt
+
+bench-compare: ## benchstat bench/baseline.txt vs bench/current.txt, then the CI gate
+	$(BENCHSTAT) bench/baseline.txt bench/current.txt
+	go run ./bench/gate -baseline bench/baseline.txt -current bench/current.txt
+
+bench-gate: ## Only the CI gate: fail on an allocs/op regression, warn on sec/op > 20 % (X-09)
+	go run ./bench/gate -baseline bench/baseline.txt -current bench/current.txt

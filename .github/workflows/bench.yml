@@ -1,0 +1,110 @@
+# Benchmark gate (T-M9-08, docs/engine-v6/DECISIONS.md X-09; how to read and re-record: docs/engine-v6/perf-baseline.md).
+#
+# - allocs/op is compared with the committed backend-go/bench/baseline.txt: any regression fails the job.
+#   Allocation counts are deterministic for one Go release, so the job runs the Go version named in the
+#   baseline's header ("# go: goX.Y.Z").
+# - sec/op is compared with a run of the base commit on the same runner (PR base, or the push's previous commit)
+#   and only warns (annotation) above +20 %: shared runners are too noisy to fail on time. Without a base run
+#   (first push, a base without benchmarks) time is not compared: the baseline file is from another machine.
+name: bench
+
+on:
+  push:
+    paths:
+      - "backend-go/**"
+      - ".github/workflows/bench.yml"
+  pull_request:
+    paths:
+      - "backend-go/**"
+      - ".github/workflows/bench.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bench-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BENCH_COUNT: "6"
+  BENCHSTAT: go run golang.org/x/perf/cmd/benchstat@v0.0.0-20261009192801-be2c69fb417e
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Go version of the baseline
+        id: gover
+        run: |
+          v="$(sed -n 's/^# go: go//p' bench/baseline.txt | head -n1)"
+          test -n "$v" || { echo "::error::bench/baseline.txt has no '# go:' header"; exit 1; }
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ steps.gover.outputs.version }}
+          cache-dependency-path: backend-go/go.sum
+
+      - name: Gate unit tests
+        run: go test -count=1 ./bench/...
+
+      - name: Benchmarks (this commit)
+        run: bench/run.sh bench/current.txt
+
+      - name: Benchmarks (base commit, same runner)
+        continue-on-error: true
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ] \
+            || ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "::notice title=bench::no base commit to compare time with; sec/op is not compared this run"
+            exit 0
+          fi
+          wt="$RUNNER_TEMP/base-ref"
+          git worktree add --detach "$wt" "$BASE_SHA"
+          if [ ! -x "$wt/backend-go/bench/run.sh" ]; then
+            echo "::notice title=bench::the base commit has no bench/run.sh; sec/op is not compared this run"
+            exit 0
+          fi
+          (cd "$wt/backend-go" && bench/run.sh "$GITHUB_WORKSPACE/backend-go/bench/base-ref.txt")
+
+      - name: Gate (fail on allocs/op, warn on sec/op > 20 %)
+        run: |
+          args=(-baseline bench/baseline.txt -current bench/current.txt)
+          if [ -s bench/base-ref.txt ]; then args+=(-time-base bench/base-ref.txt); else args+=(-skip-time); fi
+          go run ./bench/gate "${args[@]}"
+
+      - name: benchstat summary
+        if: always()
+        run: |
+          {
+            echo '## Benchmarks'
+            echo '```'
+            if [ -s bench/base-ref.txt ]; then
+              echo "base commit vs this commit (same runner)"
+              $BENCHSTAT bench/base-ref.txt bench/current.txt || true
+            elif [ -s bench/current.txt ]; then
+              echo "this commit (no base run)"
+              $BENCHSTAT bench/current.txt || true
+            fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bench-results
+          path: |
+            backend-go/bench/current.txt
+            backend-go/bench/base-ref.txt
+          if-no-files-found: ignore

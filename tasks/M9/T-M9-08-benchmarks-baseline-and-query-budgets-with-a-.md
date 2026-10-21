@@ -3,7 +3,7 @@ id: T-M9-08
 title: Benchmarks, baseline and query budgets with a CI gate
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-07]
 parallel_group: M9-B
 touches: [backend-go/internal/benchfixtures, backend-go/internal/querybudget, backend-go/internal/cycle/resolver/resolver_bench_test.go, backend-go/internal/cycle/view/view_bench_test.go, backend-go/internal/cycle/legacy/legacy_bench_test.go, backend-go/internal/cycle/cache/cache_bench_test.go, backend-go/internal/fertility/fertility_bench_test.go, backend-go/internal/analysis/analysis_bench_test.go, backend-go/internal/messages/rules/rules_bench_test.go, backend-go/internal/auth/passport/verify_bench_test.go, backend-go/bench, backend-go/Makefile, .github/workflows/bench.yml, docs/engine-v6/perf-baseline.md]

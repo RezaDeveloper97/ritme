@@ -1446,3 +1446,27 @@ Nothing needed fixing.
   - Lab and record-extract jobs can start up to about 5 s later (worker poll).
   - `asynq_queue_size` is now exported by the worker.
 - Open: after the next stage deploy, request an OTP and run `docker logs ritme-stage-backend-go-worker-1 | grep "OTP SMS"`, then record the result here.
+
+## T-M9-08 — Benchmarks, baseline and query budgets with a CI gate
+- `internal/benchfixtures`: deterministic fixtures (fixed day 2026-10-21, seeded PCG). Histories H = 6/24/60/120, a 365-day log with BBT/LH/mucus, and users in all six modes. `cyclesnap` builds `service.Snapshot` without a DB.
+- Bench files in resolver, view, legacy, cycle cache, fertility, analysis, messages/rules and auth/passport, all with `ReportAllocs`.
+- `internal/querybudget`: cold/warm query budgets for 14 routes plus auth, measured on the real router and MariaDB (`make test-int PKG=./internal/querybudget/...`).
+
+  | Route | Cold / warm queries (auth included) |
+  |---|---|
+  | today | 8 / 4 |
+  | month full | 8 / 4 |
+  | home | 20 / 15 (README target ≤ 8) |
+  | messages daily | 11 / 8 (target ≤ 4) |
+  | fertility insights | 8 / 5 (target ≤ 4) |
+  | analysis summary | 13 / 11 (target ≤ 6) |
+  | auth | 2 / 1 |
+
+- `bench/run.sh` + `bench/baseline.txt` (M4, go1.27.1, recorded under load). `bench/gate`: a Go gate that fails on any allocs/op increase and only warns on a > 20 % time slowdown.
+- New make targets: `bench`, `bench-baseline`, `bench-compare`, `bench-gate`. benchstat is pinned in the Makefile (not in go.mod).
+- `.github/workflows/bench.yml`: runs on push/PR under `backend-go/**`. Time is compared against the base commit on the same runner; allocs against `baseline.txt`. No secrets needed. Timeout 60 min.
+- Doc: `docs/engine-v6/perf-baseline.md`. Example baselines: `view.Build` H=24 36 µs; `DayJSON` 139 µs / 880 allocs; `MonthJSON` full 6.5 ms / ~27 k allocs; analysis summary 1y 2.3 ms.
+- Open items:
+  - CI goes green only after a push. The first amd64 run may differ in allocs from arm64 (M4); if so, re-record the baseline from the CI artifact.
+  - **Re-run `make bench-baseline`** after T-M9-22. The engine benches added by T-M9-20/21 (EncodeDay, TodayPayload) landed while the baseline was being recorded.
+  - Re-record later on an idle machine; only the time column changes.

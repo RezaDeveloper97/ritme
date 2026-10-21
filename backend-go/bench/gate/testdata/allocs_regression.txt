@@ -1,0 +1,12 @@
+# go: go1.27.1
+goos: linux
+goarch: amd64
+pkg: github.com/ritme/backend-go/internal/cycle/resolver
+cpu: AMD EPYC 7763 64-Core Processor
+BenchmarkResolve/H=24-4      	  700000	      1700 ns/op	      96 B/op	       8 allocs/op
+BenchmarkResolve/H=24-4      	  700000	      1690 ns/op	      96 B/op	       8 allocs/op
+BenchmarkResolve/H=24-4      	  700000	      1710 ns/op	      96 B/op	       8 allocs/op
+BenchmarkCalculate/H=24-4    	   70000	     17000 ns/op	    4280 B/op	      18 allocs/op
+BenchmarkCalculate/H=24-4    	   70000	     17100 ns/op	    4280 B/op	      18 allocs/op
+BenchmarkCalculate/H=24-4    	   70000	     16900 ns/op	    4280 B/op	      18 allocs/op
+PASS

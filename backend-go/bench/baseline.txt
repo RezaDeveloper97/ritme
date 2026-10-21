@@ -1,0 +1,411 @@
+# Ritme backend-go benchmarks (T-M9-08). Compare: make bench-compare. Re-record: make bench-baseline.
+# recorded: 2026-10-21T03:13:17Z
+# commit: 60a451c3 (dirty tree)
+# machine: Apple M4, 10 cores, 16 GB (darwin/arm64)
+# go: go1.27.1
+# load at start (1/5/15 min): 26.20 38.27 44.89
+# command: go test -run '^$' -bench . -benchmem -count 6 -benchtime 1s ./internal/cycle/... ./internal/fertility/... ./internal/analysis/... ./internal/messages/rules/... ./internal/auth/passport/...
+goos: darwin
+goarch: arm64
+pkg: github.com/ritme/backend-go/internal/cycle/cache
+cpu: Apple M4
+BenchmarkKeyString/day/H=6-10         	   10000	    181047 ns/op	    7043 B/op	      57 allocs/op
+BenchmarkKeyString/day/H=6-10         	    5443	    222873 ns/op	    7034 B/op	      57 allocs/op
+BenchmarkKeyString/day/H=6-10         	    3949	    325543 ns/op	    7032 B/op	      57 allocs/op
+BenchmarkKeyString/day/H=6-10         	   10000	    179173 ns/op	    7027 B/op	      57 allocs/op
+BenchmarkKeyString/day/H=6-10         	   12361	     97268 ns/op	    7032 B/op	      57 allocs/op
+BenchmarkKeyString/day/H=6-10         	   17924	     60041 ns/op	    7034 B/op	      57 allocs/op
+BenchmarkKeyString/month/H=6-10       	    3021	    533353 ns/op	   68370 B/op	     165 allocs/op
+BenchmarkKeyString/month/H=6-10       	    2468	   1354432 ns/op	   68488 B/op	     165 allocs/op
+BenchmarkKeyString/month/H=6-10       	     892	   1693399 ns/op	   68931 B/op	     165 allocs/op
+BenchmarkKeyString/month/H=6-10       	     426	   2874683 ns/op	   68663 B/op	     165 allocs/op
+BenchmarkKeyString/month/H=6-10       	     367	   3360435 ns/op	   68884 B/op	     165 allocs/op
+BenchmarkKeyString/month/H=6-10       	     591	   1854399 ns/op	   68298 B/op	     165 allocs/op
+BenchmarkKeyString/day/H=24-10        	    2500	    483053 ns/op	   15651 B/op	     147 allocs/op
+BenchmarkKeyString/day/H=24-10        	    3332	    402620 ns/op	   15657 B/op	     147 allocs/op
+BenchmarkKeyString/day/H=24-10        	   10000	    353745 ns/op	   15682 B/op	     147 allocs/op
+BenchmarkKeyString/day/H=24-10        	    8530	    469335 ns/op	   15660 B/op	     147 allocs/op
+BenchmarkKeyString/day/H=24-10        	   10000	    600413 ns/op	   15670 B/op	     147 allocs/op
+BenchmarkKeyString/day/H=24-10        	    2292	    480465 ns/op	   15656 B/op	     147 allocs/op
+BenchmarkKeyString/month/H=24-10      	    1357	   1737947 ns/op	   77520 B/op	     255 allocs/op
+BenchmarkKeyString/month/H=24-10      	    1032	   1703089 ns/op	   78339 B/op	     255 allocs/op
+BenchmarkKeyString/month/H=24-10      	     793	   2061826 ns/op	   78116 B/op	     255 allocs/op
+BenchmarkKeyString/month/H=24-10      	     624	   2561605 ns/op	   79420 B/op	     255 allocs/op
+BenchmarkKeyString/month/H=24-10      	     810	   2210553 ns/op	   78442 B/op	     255 allocs/op
+BenchmarkKeyString/month/H=24-10      	     841	   1438350 ns/op	   78036 B/op	     255 allocs/op
+BenchmarkKeyString/day/H=60-10        	    1986	    561323 ns/op	   32012 B/op	     327 allocs/op
+BenchmarkKeyString/day/H=60-10        	    2770	    453252 ns/op	   31856 B/op	     327 allocs/op
+BenchmarkKeyString/day/H=60-10        	    4836	    943132 ns/op	   31844 B/op	     327 allocs/op
+BenchmarkKeyString/day/H=60-10        	    3118	    832896 ns/op	   31827 B/op	     327 allocs/op
+BenchmarkKeyString/day/H=60-10        	    2583	    896952 ns/op	   31782 B/op	     327 allocs/op
+BenchmarkKeyString/day/H=60-10        	    1528	    880201 ns/op	   32128 B/op	     327 allocs/op
+BenchmarkKeyString/month/H=60-10      	     501	   2328210 ns/op	   97674 B/op	     435 allocs/op
+BenchmarkKeyString/month/H=60-10      	     619	   2568898 ns/op	   97861 B/op	     435 allocs/op
+BenchmarkKeyString/month/H=60-10      	     754	   2602656 ns/op	   97395 B/op	     435 allocs/op
+BenchmarkKeyString/month/H=60-10      	    1141	   2066097 ns/op	   99414 B/op	     435 allocs/op
+BenchmarkKeyString/month/H=60-10      	    1304	   1669448 ns/op	   98028 B/op	     435 allocs/op
+BenchmarkKeyString/month/H=60-10      	    1898	   1699119 ns/op	   97194 B/op	     435 allocs/op
+BenchmarkKeyString/day/H=120-10       	    1803	    874024 ns/op	   67080 B/op	     627 allocs/op
+BenchmarkKeyString/day/H=120-10       	    1064	   1047973 ns/op	   65952 B/op	     627 allocs/op
+BenchmarkKeyString/day/H=120-10       	     764	   1457697 ns/op	   66379 B/op	     627 allocs/op
+BenchmarkKeyString/day/H=120-10       	    3069	   1118104 ns/op	   66032 B/op	     627 allocs/op
+BenchmarkKeyString/day/H=120-10       	    1620	    701304 ns/op	   66207 B/op	     627 allocs/op
+BenchmarkKeyString/day/H=120-10       	    3290	    765681 ns/op	   66254 B/op	     627 allocs/op
+BenchmarkKeyString/month/H=120-10     	    1352	    947435 ns/op	  131450 B/op	     735 allocs/op
+BenchmarkKeyString/month/H=120-10     	    1431	   1507724 ns/op	  129580 B/op	     735 allocs/op
+BenchmarkKeyString/month/H=120-10     	    1006	   2173990 ns/op	  126358 B/op	     735 allocs/op
+BenchmarkKeyString/month/H=120-10     	     225	   5064408 ns/op	  137550 B/op	     735 allocs/op
+BenchmarkKeyString/month/H=120-10     	     736	   3038977 ns/op	  126596 B/op	     735 allocs/op
+BenchmarkKeyString/month/H=120-10     	     758	   3001399 ns/op	  125833 B/op	     735 allocs/op
+PASS
+ok  	github.com/ritme/backend-go/internal/cycle/cache	98.070s
+goos: darwin
+goarch: arm64
+pkg: github.com/ritme/backend-go/internal/cycle/engine
+cpu: Apple M4
+BenchmarkEncodeDay-10           	  373603	      6876 ns/op	 370.30 MB/s	       0 B/op	       0 allocs/op
+BenchmarkEncodeDay-10           	  343672	      8032 ns/op	 316.99 MB/s	       0 B/op	       0 allocs/op
+BenchmarkEncodeDay-10           	  851521	      6857 ns/op	 371.32 MB/s	       0 B/op	       0 allocs/op
+BenchmarkEncodeDay-10           	 1000000	      8275 ns/op	 307.67 MB/s	       0 B/op	       0 allocs/op
+BenchmarkEncodeDay-10           	 1000000	      7431 ns/op	 342.62 MB/s	       0 B/op	       0 allocs/op
+BenchmarkEncodeDay-10           	  448870	      9340 ns/op	 272.58 MB/s	       0 B/op	       0 allocs/op
+BenchmarkTodayPayload-10        	  114738	     15768 ns/op	     192 B/op	       1 allocs/op
+BenchmarkTodayPayload-10        	   75860	     20124 ns/op	     192 B/op	       1 allocs/op
+BenchmarkTodayPayload-10        	  368398	     12788 ns/op	     192 B/op	       1 allocs/op
+BenchmarkTodayPayload-10        	  469437	     16235 ns/op	     192 B/op	       1 allocs/op
+BenchmarkTodayPayload-10        	  353534	      9656 ns/op	     192 B/op	       1 allocs/op
+BenchmarkTodayPayload-10        	  662552	      2409 ns/op	     192 B/op	       1 allocs/op
+BenchmarkRange31-10             	  108886	     14307 ns/op	    6528 B/op	       1 allocs/op
+BenchmarkRange31-10             	  124012	     14640 ns/op	    6528 B/op	       1 allocs/op
+BenchmarkRange31-10             	  119622	     10902 ns/op	    6528 B/op	       1 allocs/op
+BenchmarkRange31-10             	  118540	     15363 ns/op	    6528 B/op	       1 allocs/op
+BenchmarkRange31-10             	  175419	      8524 ns/op	    6528 B/op	       1 allocs/op
+BenchmarkRange31-10             	  192200	      6236 ns/op	    6528 B/op	       1 allocs/op
+BenchmarkFutureCycles-10        	 4340736	       253.7 ns/op	     192 B/op	       1 allocs/op
+BenchmarkFutureCycles-10        	 4439872	       275.8 ns/op	     192 B/op	       1 allocs/op
+BenchmarkFutureCycles-10        	 5167299	       287.3 ns/op	     192 B/op	       1 allocs/op
+BenchmarkFutureCycles-10        	 3840261	       296.9 ns/op	     192 B/op	       1 allocs/op
+BenchmarkFutureCycles-10        	 4725962	       251.5 ns/op	     192 B/op	       1 allocs/op
+BenchmarkFutureCycles-10        	 4041752	       265.4 ns/op	     192 B/op	       1 allocs/op
+BenchmarkResolve_Hormonal-10    	 4808442	       224.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolve_Hormonal-10    	 6122132	       197.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolve_Hormonal-10    	 5111444	       213.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolve_Hormonal-10    	 5984131	       241.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolve_Hormonal-10    	 4716229	       408.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolve_Hormonal-10    	 3152888	       423.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPrepare_Markers-10     	   35898	     37613 ns/op	    8952 B/op	      10 allocs/op
+BenchmarkPrepare_Markers-10     	   28077	     37356 ns/op	    8952 B/op	      10 allocs/op
+BenchmarkPrepare_Markers-10     	   38271	     34723 ns/op	    8952 B/op	      10 allocs/op
+BenchmarkPrepare_Markers-10     	   26912	     40032 ns/op	    8952 B/op	      10 allocs/op
+BenchmarkPrepare_Markers-10     	   44080	     32223 ns/op	    8952 B/op	      10 allocs/op
+BenchmarkPrepare_Markers-10     	   42961	     27966 ns/op	    8952 B/op	      10 allocs/op
+BenchmarkPrepare-10             	  276910	      4381 ns/op	    5272 B/op	       8 allocs/op
+BenchmarkPrepare-10             	  232002	      4932 ns/op	    5272 B/op	       8 allocs/op
+BenchmarkPrepare-10             	  363523	      4653 ns/op	    5272 B/op	       8 allocs/op
+BenchmarkPrepare-10             	  369072	      3160 ns/op	    5272 B/op	       8 allocs/op
+BenchmarkPrepare-10             	  425703	      3439 ns/op	    5272 B/op	       8 allocs/op
+BenchmarkPrepare-10             	  442340	      3762 ns/op	    5272 B/op	       8 allocs/op
+BenchmarkResolve-10             	 3631436	       337.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolve-10             	 3064426	       363.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolve-10             	 3726865	       424.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolve-10             	 3317788	       433.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolve-10             	 3020792	       395.8 ns/op	       0 B/op	       0 allocs/op
+BenchmarkResolve-10             	 3558938	       405.6 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTodayUI-10             	72303856	        22.44 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTodayUI-10             	54820177	        20.60 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTodayUI-10             	53995680	        20.55 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTodayUI-10             	50204041	        21.24 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTodayUI-10             	79754090	        19.32 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTodayUI-10             	71750842	        19.22 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/ritme/backend-go/internal/cycle/engine	119.096s
+PASS
+ok  	github.com/ritme/backend-go/internal/cycle/engine/bbt	1.541s
+PASS
+ok  	github.com/ritme/backend-go/internal/cycle/engineparams	1.332s
+PASS
+ok  	github.com/ritme/backend-go/internal/cycle/insights	1.641s
+goos: darwin
+goarch: arm64
+pkg: github.com/ritme/backend-go/internal/cycle/legacy
+cpu: Apple M4
+BenchmarkSnapshotMonth/calendar/H=6-10         	    4111	    478740 ns/op	  334470 B/op	    1159 allocs/op
+BenchmarkSnapshotMonth/calendar/H=6-10         	    3174	    440963 ns/op	  334472 B/op	    1159 allocs/op
+BenchmarkSnapshotMonth/calendar/H=6-10         	    3379	    374443 ns/op	  334472 B/op	    1159 allocs/op
+BenchmarkSnapshotMonth/calendar/H=6-10         	    2680	    417039 ns/op	  334471 B/op	    1159 allocs/op
+BenchmarkSnapshotMonth/calendar/H=6-10         	    3492	    360767 ns/op	  334471 B/op	    1159 allocs/op
+BenchmarkSnapshotMonth/calendar/H=6-10         	    4166	    275962 ns/op	  334470 B/op	    1159 allocs/op
+BenchmarkSnapshotMonth/calendar/H=24-10        	    3510	    379368 ns/op	  342307 B/op	    1181 allocs/op
+BenchmarkSnapshotMonth/calendar/H=24-10        	    3412	    420008 ns/op	  342305 B/op	    1181 allocs/op
+BenchmarkSnapshotMonth/calendar/H=24-10        	    3271	    376792 ns/op	  342305 B/op	    1181 allocs/op
+BenchmarkSnapshotMonth/calendar/H=24-10        	    4635	    440860 ns/op	  342309 B/op	    1181 allocs/op
+BenchmarkSnapshotMonth/calendar/H=24-10        	    2787	    598066 ns/op	  342313 B/op	    1181 allocs/op
+BenchmarkSnapshotMonth/calendar/H=24-10        	    2974	    541869 ns/op	  342309 B/op	    1181 allocs/op
+BenchmarkSnapshotMonth/calendar/H=60-10        	    2518	    409171 ns/op	  358993 B/op	    1219 allocs/op
+BenchmarkSnapshotMonth/calendar/H=60-10        	    3399	    485262 ns/op	  358992 B/op	    1219 allocs/op
+BenchmarkSnapshotMonth/calendar/H=60-10        	    2959	    669064 ns/op	  358991 B/op	    1219 allocs/op
+BenchmarkSnapshotMonth/calendar/H=60-10        	    1704	    709936 ns/op	  358989 B/op	    1219 allocs/op
+BenchmarkSnapshotMonth/calendar/H=60-10        	    2607	    455929 ns/op	  358993 B/op	    1219 allocs/op
+BenchmarkSnapshotMonth/calendar/H=60-10        	    1461	    719735 ns/op	  358991 B/op	    1219 allocs/op
+BenchmarkSnapshotMonth/calendar/H=120-10       	    1983	    663428 ns/op	  386125 B/op	    1281 allocs/op
+BenchmarkSnapshotMonth/calendar/H=120-10       	    2460	    705341 ns/op	  386119 B/op	    1281 allocs/op
+BenchmarkSnapshotMonth/calendar/H=120-10       	    1558	    711646 ns/op	  386110 B/op	    1281 allocs/op
+BenchmarkSnapshotMonth/calendar/H=120-10       	    3087	    545868 ns/op	  386117 B/op	    1281 allocs/op
+BenchmarkSnapshotMonth/calendar/H=120-10       	    2480	    528560 ns/op	  386121 B/op	    1281 allocs/op
+BenchmarkSnapshotMonth/calendar/H=120-10       	    2181	    623239 ns/op	  386115 B/op	    1281 allocs/op
+BenchmarkSnapshotMonth/full/H=6-10             	    1866	    621805 ns/op	  361930 B/op	    1526 allocs/op
+BenchmarkSnapshotMonth/full/H=6-10             	    2934	    462829 ns/op	  361929 B/op	    1526 allocs/op
+BenchmarkSnapshotMonth/full/H=6-10             	    1780	    647911 ns/op	  361932 B/op	    1526 allocs/op
+BenchmarkSnapshotMonth/full/H=6-10             	    4075	    509500 ns/op	  361931 B/op	    1526 allocs/op
+BenchmarkSnapshotMonth/full/H=6-10             	    2380	    512104 ns/op	  361912 B/op	    1526 allocs/op
+BenchmarkSnapshotMonth/full/H=6-10             	    2791	    421413 ns/op	  361924 B/op	    1526 allocs/op
+BenchmarkSnapshotMonth/full/H=24-10            	    2466	    564412 ns/op	  369750 B/op	    1548 allocs/op
+BenchmarkSnapshotMonth/full/H=24-10            	    2491	    477078 ns/op	  369746 B/op	    1548 allocs/op
+BenchmarkSnapshotMonth/full/H=24-10            	    2353	    456416 ns/op	  369756 B/op	    1548 allocs/op
+BenchmarkSnapshotMonth/full/H=24-10            	    2949	    568759 ns/op	  369744 B/op	    1548 allocs/op
+BenchmarkSnapshotMonth/full/H=24-10            	    2848	    456914 ns/op	  369753 B/op	    1548 allocs/op
+BenchmarkSnapshotMonth/full/H=24-10            	    2196	    533544 ns/op	  369751 B/op	    1548 allocs/op
+BenchmarkSnapshotMonth/full/H=60-10            	    2340	    638696 ns/op	  386429 B/op	    1586 allocs/op
+BenchmarkSnapshotMonth/full/H=60-10            	    2372	    558309 ns/op	  386424 B/op	    1586 allocs/op
+BenchmarkSnapshotMonth/full/H=60-10            	    2427	    641286 ns/op	  386439 B/op	    1586 allocs/op
+BenchmarkSnapshotMonth/full/H=60-10            	    1348	    815872 ns/op	  386421 B/op	    1586 allocs/op
+BenchmarkSnapshotMonth/full/H=60-10            	    1918	    524702 ns/op	  386450 B/op	    1586 allocs/op
+BenchmarkSnapshotMonth/full/H=60-10            	    1356	    768509 ns/op	  386429 B/op	    1586 allocs/op
+BenchmarkSnapshotMonth/full/H=120-10           	    2329	    665034 ns/op	  413566 B/op	    1648 allocs/op
+BenchmarkSnapshotMonth/full/H=120-10           	    1784	    643268 ns/op	  413561 B/op	    1648 allocs/op
+BenchmarkSnapshotMonth/full/H=120-10           	    1608	    832959 ns/op	  413554 B/op	    1648 allocs/op
+BenchmarkSnapshotMonth/full/H=120-10           	    2833	    670825 ns/op	  413562 B/op	    1648 allocs/op
+BenchmarkSnapshotMonth/full/H=120-10           	    2007	    523882 ns/op	  413568 B/op	    1648 allocs/op
+BenchmarkSnapshotMonth/full/H=120-10           	    1893	    598305 ns/op	  413565 B/op	    1648 allocs/op
+BenchmarkMonthJSON/calendar-10                 	    3831	    445923 ns/op	  310152 B/op	    3844 allocs/op
+BenchmarkMonthJSON/calendar-10                 	    3531	    389638 ns/op	  310110 B/op	    3844 allocs/op
+BenchmarkMonthJSON/calendar-10                 	    2240	    519798 ns/op	  310179 B/op	    3844 allocs/op
+BenchmarkMonthJSON/calendar-10                 	    3169	    722944 ns/op	  310191 B/op	    3844 allocs/op
+BenchmarkMonthJSON/calendar-10                 	    1425	    793247 ns/op	  310127 B/op	    3844 allocs/op
+BenchmarkMonthJSON/calendar-10                 	    2450	    828511 ns/op	  310196 B/op	    3844 allocs/op
+BenchmarkMonthJSON/full-10                     	     186	   6088958 ns/op	 2663991 B/op	   26959 allocs/op
+BenchmarkMonthJSON/full-10                     	     175	   6277344 ns/op	 2655277 B/op	   26958 allocs/op
+BenchmarkMonthJSON/full-10                     	     228	   7440488 ns/op	 2652895 B/op	   26956 allocs/op
+BenchmarkMonthJSON/full-10                     	     230	   6723680 ns/op	 2662988 B/op	   26957 allocs/op
+BenchmarkMonthJSON/full-10                     	     148	   7215318 ns/op	 2656215 B/op	   26957 allocs/op
+BenchmarkMonthJSON/full-10                     	     226	   5958616 ns/op	 2658500 B/op	   26958 allocs/op
+PASS
+ok  	github.com/ritme/backend-go/internal/cycle/legacy	85.552s
+PASS
+ok  	github.com/ritme/backend-go/internal/cycle/metrics	3.444s
+PASS
+ok  	github.com/ritme/backend-go/internal/cycle/model	2.621s
+PASS
+ok  	github.com/ritme/backend-go/internal/cycle/periods	1.058s
+PASS
+ok  	github.com/ritme/backend-go/internal/cycle/recommendation	0.891s
+goos: darwin
+goarch: arm64
+pkg: github.com/ritme/backend-go/internal/cycle/resolver
+cpu: Apple M4
+BenchmarkResolve/H=6-10     	  689772	      1963 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=6-10     	  800892	      2057 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=6-10     	  829432	      2112 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=6-10     	  704814	      1828 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=6-10     	  619670	      1868 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=6-10     	  805224	      1681 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=24-10    	  428989	      2655 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=24-10    	  607003	      2183 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=24-10    	  697675	      2223 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=24-10    	  469393	      2310 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=24-10    	  513811	      2299 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=24-10    	  519178	      2462 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=60-10    	  336667	      4688 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=60-10    	  380782	      4294 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=60-10    	  324408	      4609 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=60-10    	  258783	      4481 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=60-10    	  365805	      4394 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=60-10    	  380238	      4092 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=120-10   	  189981	      5547 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=120-10   	  185838	      5951 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=120-10   	  218671	      7910 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=120-10   	  193273	      6696 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=120-10   	  112442	      9556 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=120-10   	  169700	      7959 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolveMonth-10    	   14270	     84722 ns/op	    2240 B/op	     202 allocs/op
+BenchmarkResolveMonth-10    	   12666	     90432 ns/op	    2240 B/op	     202 allocs/op
+BenchmarkResolveMonth-10    	   15350	     78714 ns/op	    2240 B/op	     202 allocs/op
+BenchmarkResolveMonth-10    	   13761	     83299 ns/op	    2240 B/op	     202 allocs/op
+BenchmarkResolveMonth-10    	   14822	     89006 ns/op	    2240 B/op	     202 allocs/op
+BenchmarkResolveMonth-10    	   14209	     80930 ns/op	    2240 B/op	     202 allocs/op
+BenchmarkCalculate/H=6-10   	  743005	      2449 ns/op	    1208 B/op	      14 allocs/op
+BenchmarkCalculate/H=6-10   	  705940	      2125 ns/op	    1208 B/op	      14 allocs/op
+BenchmarkCalculate/H=6-10   	  865140	      1819 ns/op	    1208 B/op	      14 allocs/op
+BenchmarkCalculate/H=6-10   	  577844	      2000 ns/op	    1208 B/op	      14 allocs/op
+BenchmarkCalculate/H=6-10   	  824170	      1992 ns/op	    1208 B/op	      14 allocs/op
+BenchmarkCalculate/H=6-10   	  589238	      1826 ns/op	    1208 B/op	      14 allocs/op
+BenchmarkCalculate/H=24-10  	   70095	     14296 ns/op	    4280 B/op	      18 allocs/op
+BenchmarkCalculate/H=24-10  	  107604	     15405 ns/op	    4280 B/op	      18 allocs/op
+BenchmarkCalculate/H=24-10  	   98184	     14949 ns/op	    4280 B/op	      18 allocs/op
+BenchmarkCalculate/H=24-10  	   86956	     12686 ns/op	    4280 B/op	      18 allocs/op
+BenchmarkCalculate/H=24-10  	  103080	     13678 ns/op	    4280 B/op	      18 allocs/op
+BenchmarkCalculate/H=24-10  	   97747	     13578 ns/op	    4280 B/op	      18 allocs/op
+BenchmarkCalculate/H=60-10  	   30181	     33975 ns/op	   10424 B/op	      20 allocs/op
+BenchmarkCalculate/H=60-10  	   37476	     34638 ns/op	   10424 B/op	      20 allocs/op
+BenchmarkCalculate/H=60-10  	   37442	     29830 ns/op	   10424 B/op	      20 allocs/op
+BenchmarkCalculate/H=60-10  	   27674	     42209 ns/op	   10424 B/op	      20 allocs/op
+BenchmarkCalculate/H=60-10  	   29472	     45637 ns/op	   10424 B/op	      20 allocs/op
+BenchmarkCalculate/H=60-10  	   27454	     40536 ns/op	   10424 B/op	      20 allocs/op
+BenchmarkCalculate/H=120-10 	   12986	     95842 ns/op	   20664 B/op	      22 allocs/op
+BenchmarkCalculate/H=120-10 	   19261	     66525 ns/op	   20664 B/op	      22 allocs/op
+BenchmarkCalculate/H=120-10 	   19263	     59006 ns/op	   20664 B/op	      22 allocs/op
+BenchmarkCalculate/H=120-10 	   24739	     63499 ns/op	   20664 B/op	      22 allocs/op
+BenchmarkCalculate/H=120-10 	   15447	     72766 ns/op	   20664 B/op	      22 allocs/op
+BenchmarkCalculate/H=120-10 	   13318	     83541 ns/op	   20664 B/op	      22 allocs/op
+PASS
+ok  	github.com/ritme/backend-go/internal/cycle/resolver	72.029s
+PASS
+ok  	github.com/ritme/backend-go/internal/cycle/service	1.071s
+?   	github.com/ritme/backend-go/internal/cycle/store	[no test files]
+goos: darwin
+goarch: arm64
+pkg: github.com/ritme/backend-go/internal/cycle/view
+cpu: Apple M4
+BenchmarkBuild/H=6-10  	  117685	      9823 ns/op	    5376 B/op	      61 allocs/op
+BenchmarkBuild/H=6-10  	  120220	      9361 ns/op	    5376 B/op	      61 allocs/op
+BenchmarkBuild/H=6-10  	  105789	      9796 ns/op	    5376 B/op	      61 allocs/op
+BenchmarkBuild/H=6-10  	  122395	      9190 ns/op	    5376 B/op	      61 allocs/op
+BenchmarkBuild/H=6-10  	  170514	      8864 ns/op	    5376 B/op	      61 allocs/op
+BenchmarkBuild/H=6-10  	  185038	      8498 ns/op	    5376 B/op	      61 allocs/op
+BenchmarkBuild/H=24-10 	   41706	     27537 ns/op	   15504 B/op	      83 allocs/op
+BenchmarkBuild/H=24-10 	   41529	     32506 ns/op	   15504 B/op	      83 allocs/op
+BenchmarkBuild/H=24-10 	   40812	     29401 ns/op	   15504 B/op	      83 allocs/op
+BenchmarkBuild/H=24-10 	   27024	     41264 ns/op	   15504 B/op	      83 allocs/op
+BenchmarkBuild/H=24-10 	   27702	     49249 ns/op	   15504 B/op	      83 allocs/op
+BenchmarkBuild/H=24-10 	   31218	     39791 ns/op	   15504 B/op	      83 allocs/op
+BenchmarkBuild/H=60-10 	   10000	    113207 ns/op	   37297 B/op	     121 allocs/op
+BenchmarkBuild/H=60-10 	   15362	     78797 ns/op	   37296 B/op	     121 allocs/op
+BenchmarkBuild/H=60-10 	   14510	     83125 ns/op	   37296 B/op	     121 allocs/op
+BenchmarkBuild/H=60-10 	   10000	    107242 ns/op	   37296 B/op	     121 allocs/op
+BenchmarkBuild/H=60-10 	   13100	     94357 ns/op	   37296 B/op	     121 allocs/op
+BenchmarkBuild/H=60-10 	   10000	    115701 ns/op	   37297 B/op	     121 allocs/op
+BenchmarkBuild/H=120-10         	    6703	    174584 ns/op	   72593 B/op	     183 allocs/op
+BenchmarkBuild/H=120-10         	    6303	    185388 ns/op	   72592 B/op	     183 allocs/op
+BenchmarkBuild/H=120-10         	    9924	    197866 ns/op	   72593 B/op	     183 allocs/op
+BenchmarkBuild/H=120-10         	    5368	    219562 ns/op	   72593 B/op	     183 allocs/op
+BenchmarkBuild/H=120-10         	    8354	    176509 ns/op	   72592 B/op	     183 allocs/op
+BenchmarkBuild/H=120-10         	    5718	    228568 ns/op	   72593 B/op	     183 allocs/op
+BenchmarkDayJSON-10             	    6776	    174990 ns/op	  103691 B/op	     880 allocs/op
+BenchmarkDayJSON-10             	   10000	    120783 ns/op	  103617 B/op	     880 allocs/op
+BenchmarkDayJSON-10             	   10000	    117995 ns/op	  103648 B/op	     880 allocs/op
+BenchmarkDayJSON-10             	   10000	    123869 ns/op	  103608 B/op	     880 allocs/op
+BenchmarkDayJSON-10             	    7993	    154544 ns/op	  103640 B/op	     880 allocs/op
+BenchmarkDayJSON-10             	    6944	    157801 ns/op	  103659 B/op	     880 allocs/op
+PASS
+ok  	github.com/ritme/backend-go/internal/cycle/view	38.376s
+goos: darwin
+goarch: arm64
+pkg: github.com/ritme/backend-go/internal/fertility
+cpu: Apple M4
+BenchmarkInsights/H=6-10         	    2934	    494250 ns/op	   69570 B/op	    1765 allocs/op
+BenchmarkInsights/H=6-10         	    2418	    491651 ns/op	   69547 B/op	    1765 allocs/op
+BenchmarkInsights/H=6-10         	    2324	    495187 ns/op	   69547 B/op	    1765 allocs/op
+BenchmarkInsights/H=6-10         	    3098	    436855 ns/op	   69549 B/op	    1765 allocs/op
+BenchmarkInsights/H=6-10         	    2938	    514639 ns/op	   69547 B/op	    1765 allocs/op
+BenchmarkInsights/H=6-10         	    2594	    695241 ns/op	   69549 B/op	    1765 allocs/op
+BenchmarkInsights/H=24-10        	    1014	   1251128 ns/op	   70426 B/op	    1765 allocs/op
+BenchmarkInsights/H=24-10        	    2132	    580005 ns/op	   70423 B/op	    1765 allocs/op
+BenchmarkInsights/H=24-10        	    1926	    666373 ns/op	   70424 B/op	    1765 allocs/op
+BenchmarkInsights/H=24-10        	    1756	    618549 ns/op	   70424 B/op	    1765 allocs/op
+BenchmarkInsights/H=24-10        	    2253	    546667 ns/op	   70423 B/op	    1765 allocs/op
+BenchmarkInsights/H=24-10        	    2356	    666421 ns/op	   70426 B/op	    1765 allocs/op
+BenchmarkInsights/H=60-10        	    1237	   1047324 ns/op	   72344 B/op	    1765 allocs/op
+BenchmarkInsights/H=60-10        	    1137	    979661 ns/op	   72343 B/op	    1765 allocs/op
+BenchmarkInsights/H=60-10        	    1004	   1152258 ns/op	   72344 B/op	    1765 allocs/op
+BenchmarkInsights/H=60-10        	     988	   1201223 ns/op	   72346 B/op	    1765 allocs/op
+BenchmarkInsights/H=60-10        	    1076	   1035053 ns/op	   72344 B/op	    1765 allocs/op
+BenchmarkInsights/H=60-10        	    1450	    926461 ns/op	   72344 B/op	    1765 allocs/op
+BenchmarkInsights/H=120-10       	     812	   1508048 ns/op	   75417 B/op	    1766 allocs/op
+BenchmarkInsights/H=120-10       	     816	   1711387 ns/op	   75418 B/op	    1766 allocs/op
+BenchmarkInsights/H=120-10       	     886	   1342673 ns/op	   75417 B/op	    1766 allocs/op
+BenchmarkInsights/H=120-10       	     806	   1506603 ns/op	   75417 B/op	    1766 allocs/op
+BenchmarkInsights/H=120-10       	     762	   1645471 ns/op	   75418 B/op	    1766 allocs/op
+BenchmarkInsights/H=120-10       	     914	   1280056 ns/op	   75416 B/op	    1766 allocs/op
+BenchmarkBBTChart/range=1-10     	    2071	    569607 ns/op	   55090 B/op	    1490 allocs/op
+BenchmarkBBTChart/range=1-10     	    2656	    680865 ns/op	   55093 B/op	    1490 allocs/op
+BenchmarkBBTChart/range=1-10     	    1953	    542297 ns/op	   55091 B/op	    1490 allocs/op
+BenchmarkBBTChart/range=1-10     	    2010	    520188 ns/op	   55089 B/op	    1490 allocs/op
+BenchmarkBBTChart/range=1-10     	    2113	    641760 ns/op	   55091 B/op	    1490 allocs/op
+BenchmarkBBTChart/range=1-10     	    1738	    658870 ns/op	   55092 B/op	    1490 allocs/op
+BenchmarkBBTChart/range=3-10     	    2353	    672368 ns/op	   83367 B/op	    1980 allocs/op
+BenchmarkBBTChart/range=3-10     	    2400	    620205 ns/op	   83368 B/op	    1980 allocs/op
+BenchmarkBBTChart/range=3-10     	    1873	    582148 ns/op	   83367 B/op	    1980 allocs/op
+BenchmarkBBTChart/range=3-10     	    1782	    662341 ns/op	   83369 B/op	    1980 allocs/op
+BenchmarkBBTChart/range=3-10     	    2234	    648381 ns/op	   83369 B/op	    1980 allocs/op
+BenchmarkBBTChart/range=3-10     	    1760	    605322 ns/op	   83365 B/op	    1980 allocs/op
+BenchmarkBBTChart/range=6-10     	    2236	    692420 ns/op	  133283 B/op	    2848 allocs/op
+BenchmarkBBTChart/range=6-10     	    1551	    675671 ns/op	  133283 B/op	    2848 allocs/op
+BenchmarkBBTChart/range=6-10     	    1311	    794830 ns/op	  133290 B/op	    2848 allocs/op
+BenchmarkBBTChart/range=6-10     	    1514	    795172 ns/op	  133289 B/op	    2848 allocs/op
+BenchmarkBBTChart/range=6-10     	    1800	    633186 ns/op	  133283 B/op	    2848 allocs/op
+BenchmarkBBTChart/range=6-10     	    2290	    727004 ns/op	  133282 B/op	    2848 allocs/op
+PASS
+ok  	github.com/ritme/backend-go/internal/fertility	58.628s
+PASS
+ok  	github.com/ritme/backend-go/internal/fertility/bbt	3.324s
+?   	github.com/ritme/backend-go/internal/fertility/store	[no test files]
+goos: darwin
+goarch: arm64
+pkg: github.com/ritme/backend-go/internal/analysis
+cpu: Apple M4
+BenchmarkSummary/1m-10 	    1222	   1137275 ns/op	  348575 B/op	    3152 allocs/op
+BenchmarkSummary/1m-10 	    1239	    903713 ns/op	  348413 B/op	    3152 allocs/op
+BenchmarkSummary/1m-10 	    1341	    955749 ns/op	  348612 B/op	    3153 allocs/op
+BenchmarkSummary/1m-10 	    1530	   1194932 ns/op	  348659 B/op	    3153 allocs/op
+BenchmarkSummary/1m-10 	    1138	   1330591 ns/op	  348463 B/op	    3152 allocs/op
+BenchmarkSummary/1m-10 	     795	   1328031 ns/op	  348645 B/op	    3153 allocs/op
+BenchmarkSummary/3m-10 	    1066	   1115170 ns/op	  385181 B/op	    3432 allocs/op
+BenchmarkSummary/3m-10 	    1041	   1296279 ns/op	  385082 B/op	    3432 allocs/op
+BenchmarkSummary/3m-10 	     524	   2114968 ns/op	  384781 B/op	    3432 allocs/op
+BenchmarkSummary/3m-10 	     793	   1681710 ns/op	  384859 B/op	    3432 allocs/op
+BenchmarkSummary/3m-10 	    1010	   1218059 ns/op	  385182 B/op	    3432 allocs/op
+BenchmarkSummary/3m-10 	     932	   1720615 ns/op	  384832 B/op	    3432 allocs/op
+BenchmarkSummary/1y-10 	     554	   2642478 ns/op	  644032 B/op	    4599 allocs/op
+BenchmarkSummary/1y-10 	     475	   2278400 ns/op	  644127 B/op	    4599 allocs/op
+BenchmarkSummary/1y-10 	     564	   2365226 ns/op	  644000 B/op	    4598 allocs/op
+BenchmarkSummary/1y-10 	     493	   2369309 ns/op	  644101 B/op	    4599 allocs/op
+BenchmarkSummary/1y-10 	     716	   1573271 ns/op	  644373 B/op	    4599 allocs/op
+BenchmarkSummary/1y-10 	     829	   1517342 ns/op	  644089 B/op	    4599 allocs/op
+PASS
+ok  	github.com/ritme/backend-go/internal/analysis	24.221s
+goos: darwin
+goarch: arm64
+pkg: github.com/ritme/backend-go/internal/messages/rules
+cpu: Apple M4
+BenchmarkSelect_200Rules-10             	   26838	     38922 ns/op	   82138 B/op	      14 allocs/op
+BenchmarkSelect_200Rules-10             	   39457	     44944 ns/op	   82138 B/op	      14 allocs/op
+BenchmarkSelect_200Rules-10             	   31399	     50635 ns/op	   82138 B/op	      14 allocs/op
+BenchmarkSelect_200Rules-10             	   23785	     44226 ns/op	   82137 B/op	      14 allocs/op
+BenchmarkSelect_200Rules-10             	   20672	     50259 ns/op	   82138 B/op	      14 allocs/op
+BenchmarkSelect_200Rules-10             	   31868	     34716 ns/op	   82137 B/op	      14 allocs/op
+BenchmarkSelect_PrefetchedStats50-10    	   48030	     21100 ns/op	   21496 B/op	     152 allocs/op
+BenchmarkSelect_PrefetchedStats50-10    	   80038	     21606 ns/op	   21496 B/op	     152 allocs/op
+BenchmarkSelect_PrefetchedStats50-10    	   84103	     22488 ns/op	   21496 B/op	     152 allocs/op
+BenchmarkSelect_PrefetchedStats50-10    	  109752	     16410 ns/op	   21496 B/op	     152 allocs/op
+BenchmarkSelect_PrefetchedStats50-10    	   68186	     18687 ns/op	   21496 B/op	     152 allocs/op
+BenchmarkSelect_PrefetchedStats50-10    	   82386	     13514 ns/op	   21496 B/op	     152 allocs/op
+PASS
+ok  	github.com/ritme/backend-go/internal/messages/rules	23.491s
+goos: darwin
+goarch: arm64
+pkg: github.com/ritme/backend-go/internal/auth/passport
+cpu: Apple M4
+BenchmarkVerifyParallel-10    	   97155	     25676 ns/op	    7019 B/op	      65 allocs/op
+BenchmarkVerifyParallel-10    	   52488	     22466 ns/op	    6953 B/op	      65 allocs/op
+BenchmarkVerifyParallel-10    	   70581	     25651 ns/op	    7102 B/op	      65 allocs/op
+BenchmarkVerifyParallel-10    	   59689	     20313 ns/op	    7043 B/op	      65 allocs/op
+BenchmarkVerifyParallel-10    	   97156	     12764 ns/op	    6877 B/op	      65 allocs/op
+BenchmarkVerifyParallel-10    	   85696	     21203 ns/op	    6923 B/op	      65 allocs/op
+BenchmarkVerify-10            	   24253	     53309 ns/op	    6835 B/op	      65 allocs/op
+BenchmarkVerify-10            	   17352	     64388 ns/op	    6851 B/op	      65 allocs/op
+BenchmarkVerify-10            	   20989	     60170 ns/op	    6839 B/op	      65 allocs/op
+BenchmarkVerify-10            	   24668	     51159 ns/op	    6850 B/op	      65 allocs/op
+BenchmarkVerify-10            	   15062	     71407 ns/op	    6833 B/op	      65 allocs/op
+BenchmarkVerify-10            	   23013	     56640 ns/op	    6850 B/op	      65 allocs/op
+PASS
+ok  	github.com/ritme/backend-go/internal/auth/passport	22.111s

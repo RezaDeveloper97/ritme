@@ -1,0 +1,13 @@
+# Ritme backend-go benchmarks (fixture)
+# go: go1.27.1
+goos: darwin
+goarch: arm64
+pkg: github.com/ritme/backend-go/internal/cycle/resolver
+cpu: Apple M4
+BenchmarkResolve/H=24-10     	  700000	      1700 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=24-10     	  700000	      1650 ns/op	      80 B/op	       7 allocs/op
+BenchmarkResolve/H=24-10     	  700000	      1750 ns/op	      80 B/op	       7 allocs/op
+BenchmarkCalculate/H=24-10   	   70000	     17000 ns/op	    4280 B/op	      18 allocs/op
+BenchmarkCalculate/H=24-10   	   70000	     17200 ns/op	    4280 B/op	      18 allocs/op
+BenchmarkCalculate/H=24-10   	   70000	     16800 ns/op	    4280 B/op	      18 allocs/op
+PASS
