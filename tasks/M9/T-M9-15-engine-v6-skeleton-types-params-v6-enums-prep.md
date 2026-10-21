@@ -3,7 +3,7 @@ id: T-M9-15
 title: Engine v6 skeleton: types, params, v6 enums, Prepare and effective values
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-01]
 parallel_group: M9-B
 touches: [backend-go/internal/cycle/engine, backend-go/internal/cycle/engineparams, backend-go/internal/clinicalconfig]

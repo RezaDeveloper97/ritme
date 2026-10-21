@@ -63,6 +63,15 @@ const (
 	KeyMaxLateDays    = "engine.max_late_days"
 	KeyFertileWindow  = "engine.fertile_window"
 
+	// Engine v6 (T-M9-15, DECISIONS.md X-11). engine.fertile_window.after stays for v1.1 and is ignored by v6
+	// (retired in T-M9-51).
+	KeyLuteal        = "engine.luteal"
+	KeyBBT           = "engine.bbt"
+	KeyLHBBTConflict = "engine.lh_bbt_conflict"
+	KeyPregnancyTest = "engine.pregnancy_test"
+	KeyStaleAnchor   = "engine.stale_anchor"
+	KeyTeenFrequency = "cycle.teen.frequency"
+
 	KeyFerritinLow = "lab.ferritin.low"
 
 	// Pregnancy emergency paths (T-M9-05, D-134, DECISIONS.md H-02…H-06).
@@ -75,14 +84,15 @@ const (
 )
 
 const (
-	srcBP      = "ACC/AHA 2017 (Whelton PK et al., Hypertension 2018;71:e13–e115)"
-	srcGlucose = "ADA Standards of Care 2025 §2 / §6"
-	srcHR      = "AHA — All About Heart Rate (resting 60–100 bpm)"
-	srcEPDS    = "Cox JL, Holden JM, Sagovsky R. Br J Psychiatry 1987 (EPDS-3: Kabir 2008)"
-	srcFIGO    = "FIGO 2018 (Munro MG et al., Int J Gynaecol Obstet 2018;143:393–408)"
-	srcEngine  = "Ritme cycle engine v1.1 (task.md §2.12)"
-	srcFertile = "Wilcox AJ et al., NEJM 1995;333:1517–21"
-	srcLab     = "WHO 2020 guideline on serum ferritin concentrations"
+	srcBP       = "ACC/AHA 2017 (Whelton PK et al., Hypertension 2018;71:e13–e115)"
+	srcGlucose  = "ADA Standards of Care 2025 §2 / §6"
+	srcHR       = "AHA — All About Heart Rate (resting 60–100 bpm)"
+	srcEPDS     = "Cox JL, Holden JM, Sagovsky R. Br J Psychiatry 1987 (EPDS-3: Kabir 2008)"
+	srcFIGO     = "FIGO 2018 (Munro MG et al., Int J Gynaecol Obstet 2018;143:393–408)"
+	srcEngine   = "Ritme cycle engine v1.1 (task.md §2.12)"
+	srcFertile  = "Wilcox AJ et al., NEJM 1995;333:1517–21"
+	srcLab      = "WHO 2020 guideline on serum ferritin concentrations"
+	srcEngineV6 = "Ritme cycle engine v6 (docs/engine-v6/SPEC.md Part 2)"
 
 	srcPregBP     = "ACOG Practice Bulletin No. 222, Gestational Hypertension and Preeclampsia (Obstet Gynecol 2020;135:e237–60): ≥ 140/90 hypertension, ≥ 160/110 severe range"
 	srcPregGDM    = "ADA Standards of Care 2024 §15 Management of Diabetes in Pregnancy (fasting < 95, 1 h < 140, 2 h < 120 mg/dL)"
@@ -102,11 +112,28 @@ var Defs = []Def{
 	{Key: KeyMaxLateDays, Group: GroupEngine, Unit: "day", Source: srcEngine, Fields: one("days", 14, 3, 60)},
 	{Key: KeyFertileWindow, Group: GroupEngine, Unit: "day", Source: srcFertile,
 		Fields: []Field{{"before", 5, 1, 10}, {"after", 1, 0, 3}}},
+	// Engine v6 (T-M9-15). luteal: §2.16 / E-16 BBT-confirmed luteal lengths in min..max count, else default.
+	{Key: KeyLuteal, Group: GroupEngine, Unit: "day", Source: srcEngineV6,
+		Fields: []Field{{"default", 14, 10, 16}, {"min", 10, 7, 14}, {"max", 16, 14, 20}},
+		Order:  [][2]string{{"min", "default"}, {"default", "max"}}},
+	// bbt: §2.17 / E-16 "3 over 6"; strict 1 = the third high reading must rise ≥ rise_centi (0.01 °C) over the max
+	// of the previous 6; min_readings per cycle.
+	{Key: KeyBBT, Group: GroupEngine, Unit: "flag / count / 0.01 °C", Source: srcEngineV6,
+		Fields: []Field{{"strict", 1, 0, 1}, {"min_readings", 10, 6, 20}, {"rise_centi", 20, 5, 50}}},
+	{Key: KeyLHBBTConflict, Group: GroupEngine, Unit: "day", Source: srcEngineV6, Fields: one("days", 2, 1, 5)},
+	// pregnancy_test: §2.22 suggest_pregnancy_test from days_late ≥ cycle_days_late (cycle) / ttc_days_late (ttc).
+	{Key: KeyPregnancyTest, Group: GroupEngine, Unit: "day", Source: srcEngineV6,
+		Fields: []Field{{"cycle_days_late", 8, 1, 21}, {"ttc_days_late", 1, 0, 14}}},
+	// stale_anchor: §2.41 the onboarding anchor is stale after effective_cycle_length + extra_days.
+	{Key: KeyStaleAnchor, Group: GroupEngine, Unit: "day", Source: srcEngineV6, Fields: one("extra_days", 14, 0, 60)},
 	{Key: KeyFIGOFrequency, Group: GroupEngine, Unit: "day", Source: srcFIGO,
 		Fields: []Field{{"min", 24, 14, 40}, {"max", 38, 20, 60}}, Order: [][2]string{{"min", "max"}}},
 	{Key: KeyFIGODuration, Group: GroupEngine, Unit: "day", Source: srcFIGO, Fields: one("max", 8, 3, 15)},
 	{Key: KeyFIGORegularity, Group: GroupEngine, Unit: "day", Source: srcFIGO,
 		Fields: []Field{{"young", 9, 2, 30}, {"adult", 7, 2, 30}, {"late", 9, 2, 30}}},
+	// Teen frequency band (< 18, E-08): ACOG Committee Opinion 651 (21–45 days); frequent < min, infrequent > max.
+	{Key: KeyTeenFrequency, Group: GroupEngine, Unit: "day", Source: srcEngineV6,
+		Fields: []Field{{"min", 21, 14, 30}, {"max", 45, 35, 60}}, Order: [][2]string{{"min", "max"}}},
 
 	{Key: KeyBPElevated, Group: GroupVitals, Unit: "mmHg", Source: srcBP, Fields: one("systolic", 120, 80, 200)},
 	{Key: KeyBPStage1, Group: GroupVitals, Unit: "mmHg", Source: srcBP,
