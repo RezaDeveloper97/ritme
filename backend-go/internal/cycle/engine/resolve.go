@@ -43,14 +43,15 @@ func (s *State) anchorAt(target Day) (anchor, bool) {
 // layoutFor is the day map of the anchor's cycle: the end model §2.11, the ovulation §2.17 and predicted_next
 // §2.16. A real cycle with a BBT or LH ovulation uses it (BBT > LH, E-16); the current cycle then predicts next =
 // O + effective_luteal_length, a completed cycle keeps its actual next start (E-22). Otherwise next = start +
-// effective_cycle_length (or the actual next start) and the calendar ovulation is next − Luteal.Default.
-func (s *State) layoutFor(a anchor) layout {
+// effective_cycle_length (or the actual next start) and the calendar ovulation is next − Luteal.Default. Under
+// fertility suppression (markers = false) no ovulation is computed (§2.42), so BBT/LH never move next.
+func (s *State) layoutFor(a anchor, markers bool) layout {
 	end, confirmed := a.loggedEnd, a.loggedEnd != NoDay
 	if !confirmed {
 		end = a.start + days(max(1, s.periodLen)) - 1
 	}
 	next := a.nextReal
-	if a.idx >= 0 {
+	if markers && a.idx >= 0 {
 		if o := s.ovulations[a.idx]; o.Source != OvulationUnknown {
 			if next == NoDay {
 				next = o.Date + days(s.luteal)
@@ -75,10 +76,9 @@ type facts struct {
 	endInvolved bool // the target's phase depends on current_period_end (menstrual, follicular, a window at end + 1)
 }
 
-// Resolve is the engine status of one target date (§2.20–§2.34) for the current cycle and the
-// history. today is the user-local day; the future-cycle projection of targets after today (E-03) and the stale
-// anchor and skips (§2.41, E-15) arrive in T-M9-20, suppression in T-M9-19. It allocates nothing but the returned
-// value.
+// Resolve is the engine status of one target date (§2.20–§2.34, §2.42) for the current cycle and the history. today
+// is the user-local day; the future-cycle projection of targets after today (E-03) and the stale anchor and skips
+// (§2.41, E-15) arrive in T-M9-20. It allocates nothing but the returned value.
 func (s *State) Resolve(target, today Day) Status {
 	st, f := s.resolve(target, today)
 	s.grade(&st, f, today)
@@ -99,14 +99,27 @@ func (s *State) resolve(target, _ Day) (Status, facts) {
 	}
 	var f facts
 
+	sup := s.suppressionAt(target)
+	// E-14 / E-25: no cycle is predicted at all (only real period days resolve); hormonal (E-13) keeps the period
+	// predictions and drops the fertile/ovulation layer only.
+	noPrediction := sup == SuppressionPregnancy || sup == SuppressionPostpartumNotReturned
+	if sup == SuppressionPostpartumNotReturned {
+		st.Warnings.Add(WarnPostpartumCyclesNotReturned)
+	}
+
 	a, ok := s.anchorAt(target)
 	if !ok {
-		// §2.20.6 / §2.28 insufficient: no real start and no declared start on or before the target.
-		st.Warnings.Add(WarnInsufficientAnchorData)
+		st.Limits = s.limitsFor(target, NoDay, sup)
+		// §2.20.6 / §2.28 insufficient: no real start and no declared start on or before the target. A suspended or
+		// postpartum status is complete without one (E-14, E-25: requires_user_input = false).
+		if !noPrediction {
+			st.Warnings.Add(WarnInsufficientAnchorData)
+		}
 		return st, f
 	}
 	f.anchored = true
-	l := s.layoutFor(a)
+	st.Limits = s.limitsFor(target, a.start, sup)
+	l := s.layoutFor(a, sup == SuppressionNone)
 
 	cycleDay := int(target-a.start) + 1 // §2.5, 1-based
 	raw := int(l.next - target)         // §2.22
@@ -128,13 +141,27 @@ func (s *State) resolve(target, _ Day) (Status, facts) {
 	if l.endConfirmed {
 		st.Anchors.CurrentPeriodEndSource = EndUserLogged
 	}
-	if l.conflict { // §2.17: every target of that cycle
+	if sup != SuppressionNone { // §2.42: ovulation is not computed
+		st.Anchors.EstimatedOvulationDate, st.Anchors.OvulationSource = NoDay, OvulationUnknown
+	}
+	if noPrediction {
+		st.Anchors.PredictedNextPeriodStart = NoDay
+		st.DaysToPeriod, st.DaysLate = None[int](), None[int]()
+		daysLate = 0
+	}
+	if l.conflict { // §2.17: every target of that cycle (never under suppression: the markers are not read)
 		st.Warnings.Add(WarnLHBBTConflict)
 	}
 
+	// 1. menstrual (§2.21): logged bleeding resolves under every limiting condition (E-13, E-14, E-25).
 	sub, res, decided := s.menstrual(&st, &f, a, &l, cycleDay)
 
-	// 2. period_expected (§2.22) — never inside a completed cycle (E-22).
+	// E-14 / E-25: every other day is unknown with nothing predicted.
+	if !decided && noPrediction {
+		decided, sub, res = true, SubphaseUnknown, ResolutionUnknown
+	}
+
+	// 2. period_expected (§2.22) — never inside a completed cycle (E-22); also under hormonal contraception (E-13).
 	unresolvedLate := false
 	if !decided && a.nextReal == NoDay && target >= l.next {
 		decided, res = true, ResolutionPrediction
@@ -151,6 +178,12 @@ func (s *State) resolve(target, _ Day) (Status, facts) {
 			st.Warnings.Add(WarnCycleUnresolvedAfterExpectedPeriod)
 			f.forcedLow, f.forcedPoor = true, true
 		}
+	}
+
+	// E-13: under hormonal contraception every other day is unknown — still a prediction (cycle day and the next
+	// withdrawal bleed are estimated), never "insufficient data".
+	if !decided && sup == SuppressionHormonalContraception {
+		decided, sub, res = true, SubphaseUnknown, ResolutionPrediction
 	}
 
 	// 3–5. display fertile window, luteal, follicular (§2.23–§2.25).
@@ -193,9 +226,16 @@ func (s *State) resolve(target, _ Day) (Status, facts) {
 	f.realOpen = a.src == StartUserLogged && !l.endConfirmed
 	f.endInvolved = st.MainPhase == MainPhaseMenstrual || st.MainPhase == MainPhaseFollicular ||
 		(st.MainPhase == MainPhaseFertile && l.fertileStart == l.end+1)
-	st.FertilityLevel = fertilityOf(sub)
 	st.ResolutionSource = res
-	if daysLate <= p.MaxLateDays { // §2.34; the suppression hook (§2.42) arrives in T-M9-19
+	if sup != SuppressionNone { // §2.26 / §2.34: suppressed fertility is unknown and has no countdown
+		st.FertilityLevel = FertilityUnknown
+		if sup == SuppressionPregnancy && st.MainPhase != MainPhaseMenstrual {
+			st.CycleDay = None[int]() // E-25: no cycle runs during a pregnancy; logged history keeps its day
+		}
+		return st, f
+	}
+	st.FertilityLevel = fertilityOf(sub)
+	if daysLate <= p.MaxLateDays { // §2.34
 		st.DaysToOvulation = Some(int(l.ov - target))
 	}
 	st.SuggestPregnancyTest = s.suggestPregnancyTest(daysLate)

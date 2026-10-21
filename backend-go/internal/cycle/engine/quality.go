@@ -177,22 +177,6 @@ func (s *State) lastRealAtOrBefore(d Day) int {
 	return i - 1
 }
 
-// postpartumNotReturned is the §2.29 low condition "postpartum with < PostpartumPeriods real periods" (E-14):
-// postpartum mode or breastfeeding, and fewer real periods started after the delivery date (every real period
-// without one) and on or before target.
-func (s *State) postpartumNotReturned(target Day) bool {
-	if s.in.Mode != ModePostpartum && !s.in.Breastfeeding {
-		return false
-	}
-	upto := s.lastRealAtOrBefore(target) + 1
-	after := 0
-	if s.delivery != NoDay {
-		after, _ = slices.BinarySearchFunc(s.periods, s.delivery+1,
-			func(p Period, d Day) int { return int(p.Start) - int(d) })
-	}
-	return upto-after < s.p.PostpartumPeriods
-}
-
 // highVariability is cycle_variability > HighVariabilityDays.
 func (s *State) highVariability() bool {
 	v, ok := s.variability.Get()
@@ -210,8 +194,10 @@ func (s *State) grade(st *Status, f facts, today Day) {
 	if !f.anchored { // §2.28 insufficient, §2.29 unknown
 		st.DataQuality = DataQualityInsufficient
 		st.Confidence = ConfidenceUnknown
-		st.ConfidenceReasons.Add(ReasonInsufficientAnchorData)
-		st.RequiresUserInput = st.Warnings.RequiresUserInput()
+		if st.Warnings.Has(WarnInsufficientAnchorData) { // not raised by a suspended or postpartum status
+			st.ConfidenceReasons.Add(ReasonInsufficientAnchorData)
+		}
+		s.limitGrade(st)
 		return
 	}
 
@@ -269,7 +255,7 @@ func (s *State) grade(st *Status, f facts, today Day) {
 		st.Confidence = ConfidenceUnknown
 	case f.forcedLow || st.MainPhase == MainPhaseUnknown || daysLate >= p.OverdueDaysLate ||
 		st.DataQuality == DataQualityPoor || s.validCycles < 2 || varLow || declaredRes ||
-		startSrc == StartPredictedReference || s.in.Hormonal || s.postpartumNotReturned(st.Date):
+		startSrc == StartPredictedReference || s.in.Hormonal:
 		st.Confidence = ConfidenceLow
 	case st.DataQuality == DataQualityGood && s.validCycles >= 2 && s.validPeriods >= 2 &&
 		startSrc == StartUserLogged && endOK && (!highVar || bbtCycle) &&
@@ -304,5 +290,26 @@ func (s *State) grade(st *Status, f facts, today Day) {
 	add(w.Has(WarnStaleOnboardingAnchor), ReasonStaleOnboardingAnchor)
 	add(s.in.Hormonal, ReasonHormonalContraceptionActive)
 
+	s.limitGrade(st)
+}
+
+// limitGrade applies the limiting conditions to the graded status (§2.42) and sets requires_user_input (§2.33).
+//   - Pregnancy (E-25): the engine is suspended — confidence unknown, no warnings or reasons (nothing to act on, so
+//     requires_user_input is false), data_quality insufficient (there is no cycle to grade).
+//   - Postpartum not returned (E-14): confidence unknown before the first real period after delivery and low from it
+//     on — the documented exception to §2.29, which lists only low.
+//   - Hormonal contraception (E-13) is already low through §2.29.
+func (s *State) limitGrade(st *Status) {
+	switch st.Limits.SuppressionReason {
+	case SuppressionPregnancy:
+		st.Warnings, st.ConfidenceReasons = 0, 0
+		st.Confidence = ConfidenceUnknown
+		st.DataQuality = DataQualityInsufficient
+	case SuppressionPostpartumNotReturned:
+		st.Confidence = ConfidenceUnknown
+		if n, _ := s.postpartumPeriods(st.Date); n > 0 {
+			st.Confidence = ConfidenceLow
+		}
+	}
 	st.RequiresUserInput = st.Warnings.RequiresUserInput()
 }

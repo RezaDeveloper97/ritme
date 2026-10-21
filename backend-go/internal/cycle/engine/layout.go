@@ -117,7 +117,7 @@ func assignableLuteal(t, ov, next Day, p *Params) Subphase {
 	return SubphaseMidLuteal
 }
 
-// fertilityOf is the §2.26 table. period_expected and unknown (and suppression, T-M9-19) are unknown.
+// fertilityOf is the §2.26 table. period_expected and unknown are unknown (suppressed statuses never call it, §2.42).
 func fertilityOf(s Subphase) FertilityLevel {
 	switch s {
 	case SubphaseMenstrual, SubphaseMenstrualPossible, SubphaseEarlyFollicular, SubphaseMidFollicular,

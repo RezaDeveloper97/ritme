@@ -3,7 +3,7 @@ id: T-M9-19
 title: Engine v6 limiting conditions: contraception, pregnancy, postpartum, positive test
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-18]
 parallel_group: M9-B
 touches: [backend-go/internal/cycle/engine]

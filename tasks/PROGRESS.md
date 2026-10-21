@@ -1262,3 +1262,29 @@ Nothing needed fixing.
   - T-M9-12: the worker container must mount `STORAGE_PATH` and `MEDIA_STORAGE_PATH` for the sweeps.
   - T-M10-24: the safety nightly result lives in process memory until it is persisted, so the API keeps a start-up run.
   - No live smoke run against the shared test DB.
+
+## T-M9-19 — Engine v6 limiting conditions: contraception, pregnancy, postpartum
+- New `engine/limits.go`:
+  - `State.Suppression(d) Limits`, 0 allocs. Precedence: pregnancy > postpartum not returned > hormonal.
+  - `limits` block: `fertility_suppressed`, `suppression_reason`, `engine_suspended`, `prompt_pregnancy_mode`.
+  - Positive pregnancy tests are prepared in Prepare part 4; E-26 prompts in cycle/ttc mode.
+- Hormonal contraception:
+  - No fertile window or ovulation; fertility level is unknown; BBT and LH are ignored, so the next period stays on the calendar.
+  - Period-expected tiers are kept; other days are unknown with resolution `prediction` (confidence low).
+- Pregnancy: a suspended status.
+  - Warnings and reasons cleared; data_quality `insufficient`; confidence unknown.
+  - `cycle_day` only on menstrual days.
+  - No next period, ovulation, `days_to_period` or `days_late`.
+- Postpartum and breastfeeding: no prediction until 2 real periods after delivery.
+  - Confidence is unknown before the first postpartum period and low after it (E-14).
+  - New warning `postpartum_cycles_not_returned`.
+- `suggest_pregnancy_test` is false under every suppression. The §2.40 rule-9 invariant is checked over 16 fixtures × 2 todays × 141 days.
+- Logged period days keep the full §2.21 menstrual tiers under every condition. A declared onboarding start keeps its assumed menstrual days.
+- Resolve: 0 allocs, ≈ 220 ns. Prepare: 7 allocs. Coverage 98.9 %.
+- Open items:
+  - T-M9-20: future_cycles reads `Suppression(today)`. Under hormonal only period dates are kept; under pregnancy or postpartum the list is empty.
+  - T-M9-21: encode `limits` (none → null) and the null `days_to_*` / `cycle_day` fields.
+  - T-M9-24 loader: fill `PregnancyTests` with positives, `Breastfeeding` (I-04) and `DeliveryDate`. The hormonal-method map is T-M9-25.
+  - Product questions:
+    - Should postpartum suppression skip targets before the delivery date? Today it applies to them too.
+    - Should hormonal suppression start only from a contraception start date? There is no such input today, so it covers the whole history.

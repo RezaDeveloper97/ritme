@@ -56,8 +56,8 @@ type State struct {
 // Prepare builds the State. Part 1 (T-M9-15): sort and validate periods (E-02), real cycles and skips (§2.8,
 // E-15), outliers, effective lengths (§2.9, E-20) and cycle variability (§2.27). Part 2 (T-M9-17): BBT and LH
 // ovulation per real cycle with the LH/BBT conflict (§2.17) and effective_luteal_length (§2.16, E-16). Part 3
-// (T-M9-18): the clinical_flags bases and outlier signals of the quality layer. It computes
-// over all stored records and does not depend on any target date. It never panics on malformed input.
+// (T-M9-18): the clinical_flags bases and outlier signals of the quality layer. Part 4 (T-M9-19): the positive
+// pregnancy tests (E-26). It computes over all stored records and does not depend on any target date. It never panics on malformed input.
 func Prepare(in Input, p Params) *State {
 	s := &State{p: p, in: cloneInput(in)}
 	s.lmp = dayOr(s.in.Declared.LastPeriodStart)
@@ -69,6 +69,7 @@ func Prepare(in Input, p Params) *State {
 	s.prepareLengths()
 	s.prepareOvulations()
 	s.prepareQuality()
+	s.preparePregnancyTests()
 	return s
 }
 
