@@ -18,9 +18,12 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
+
 	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/enums"
+	filestore "github.com/ritme/backend-go/internal/files/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/profile"
 	profilestore "github.com/ritme/backend-go/internal/profile/store"
@@ -93,7 +96,7 @@ func (s *Service) History(ctx context.Context, userID uint64) ([]store.CycleHist
 // Start is POST /cycle/period/start with the parsed start day.
 func (s *Service) Start(ctx context.Context, userID uint64, start civildate.Date, now time.Time) (*Result, error) {
 	var res *Result
-	err := s.tx(ctx, func(q *store.Queries, pq *profilestore.Queries) error {
+	err := s.tx(ctx, userID, func(q *store.Queries, pq *profilestore.Queries) error {
 		period, err := optional(q.GetPeriodByStart(ctx, store.GetPeriodByStartParams{UserID: userID, PeriodStartDate: start}))
 		if err != nil {
 			return err
@@ -163,13 +166,16 @@ func (s *Service) Start(ctx context.Context, userID uint64, start civildate.Date
 		res = &Result{Row: *period}
 		return nil
 	})
+	if errors.Is(err, errDuplicateStart) {
+		return s.existingStart(ctx, userID, start, refuseStartOverlap)
+	}
 	return res, err
 }
 
 // End is POST /cycle/period/end: closes the ongoing period on endDay (nil = today).
 func (s *Service) End(ctx context.Context, userID uint64, endDay *civildate.Date, now time.Time) (*Result, error) {
 	var res *Result
-	err := s.tx(ctx, func(q *store.Queries, _ *profilestore.Queries) error {
+	err := s.tx(ctx, userID, func(q *store.Queries, _ *profilestore.Queries) error {
 		period, err := optional(q.GetOngoingPeriod(ctx, userID))
 		if err != nil {
 			return err
@@ -201,7 +207,7 @@ func (s *Service) End(ctx context.Context, userID uint64, endDay *civildate.Date
 // Store is POST /cycle/period: a whole range (end nil = open), reusing the same-day row.
 func (s *Service) Store(ctx context.Context, userID uint64, start civildate.Date, end *civildate.Date, now time.Time) (*Result, error) {
 	var res *Result
-	err := s.tx(ctx, func(q *store.Queries, pq *profilestore.Queries) error {
+	err := s.tx(ctx, userID, func(q *store.Queries, pq *profilestore.Queries) error {
 		period, err := optional(q.GetPeriodByStart(ctx, store.GetPeriodByStartParams{UserID: userID, PeriodStartDate: start}))
 		if err != nil {
 			return err
@@ -243,13 +249,16 @@ func (s *Service) Store(ctx context.Context, userID uint64, start civildate.Date
 		res = &Result{Row: row}
 		return nil
 	})
+	if errors.Is(err, errDuplicateStart) {
+		return s.existingStart(ctx, userID, start, refuseRangeOverlap)
+	}
 	return res, err
 }
 
 // Update is PUT /cycle/period/{id}.
 func (s *Service) Update(ctx context.Context, userID, id uint64, start civildate.Date, end *civildate.Date, now time.Time) (*Result, error) {
 	var res *Result
-	err := s.tx(ctx, func(q *store.Queries, pq *profilestore.Queries) error {
+	err := s.tx(ctx, userID, func(q *store.Queries, pq *profilestore.Queries) error {
 		record, err := optional(q.GetUserPeriod(ctx, store.GetUserPeriodParams{UserID: userID, ID: id}))
 		if err != nil {
 			return err
@@ -282,7 +291,7 @@ func (s *Service) Update(ctx context.Context, userID, id uint64, start civildate
 
 // Destroy is DELETE /cycle/period/{id}.
 func (s *Service) Destroy(ctx context.Context, userID, id uint64, now time.Time) error {
-	return s.tx(ctx, func(q *store.Queries, pq *profilestore.Queries) error {
+	return s.tx(ctx, userID, func(q *store.Queries, pq *profilestore.Queries) error {
 		record, err := optional(q.GetUserPeriod(ctx, store.GetUserPeriodParams{UserID: userID, ID: id}))
 		if err != nil {
 			return err
@@ -441,16 +450,51 @@ func insert(ctx context.Context, q *store.Queries, r store.CycleHistory) (uint64
 		IsEstimated: r.IsEstimated, Source: r.Source, DataQualityFlags: r.DataQualityFlags,
 		CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
 	})
+	if isDuplicateKey(err) {
+		return 0, errDuplicateStart
+	}
 	if err != nil {
 		return 0, fmt.Errorf("periods: insert: %w", err)
 	}
 	return uint64(id), nil //nolint:gosec // G115: LAST_INSERT_ID is positive
 }
 
-func (s *Service) tx(ctx context.Context, fn func(q *store.Queries, pq *profilestore.Queries) error) error {
+// errDuplicateStart is MySQL 1062 on the period insert: a row with the same (user_id,
+// period_start_date) appeared after the reads (a writer outside this lock, e.g. the bleeding-log
+// bridge). The transaction is rolled back and the caller answers from the committed row (D-131).
+var errDuplicateStart = errors.New("periods: duplicate period start")
+
+func isDuplicateKey(err error) bool {
+	var me *mysql.MySQLError
+	return errors.As(err, &me) && me.Number == 1062
+}
+
+// existingStart answers a duplicate-start insert: the committed same-day period (idempotent 200),
+// or the overlap refusal when it cannot be read back. Never a 500.
+func (s *Service) existingStart(ctx context.Context, userID uint64, start civildate.Date, kind refusalKind) (*Result, error) {
+	row, err := optional(s.q.GetPeriodByStart(ctx, store.GetPeriodByStartParams{UserID: userID, PeriodStartDate: start}))
+	if err != nil {
+		return nil, err
+	}
+	if row == nil {
+		return nil, &Refusal{Status: 422, Code: "period_overlap", Kind: kind}
+	}
+	return &Result{Row: *row}, nil
+}
+
+// tx runs fn in one transaction that first takes the per-user lock (`SELECT id FROM users WHERE
+// id = ? FOR UPDATE`, D-131): every overlap / blocker check and write of one user is serialised,
+// so two concurrent writes (double tap, two devices, offline replay) can never both pass the
+// overlap check. The lock is a locking read, so the REPEATABLE READ snapshot is only taken by the
+// first plain read after it and sees whatever the previous holder committed.
+func (s *Service) tx(ctx context.Context, userID uint64, fn func(q *store.Queries, pq *profilestore.Queries) error) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("periods: begin: %w", err)
+	}
+	if _, err := filestore.New(tx).LockOwner(ctx, userID); err != nil {
+		_ = tx.Rollback()
+		return fmt.Errorf("periods: lock user: %w", err)
 	}
 	if err := fn(s.q.WithTx(tx), profilestore.New(tx)); err != nil {
 		_ = tx.Rollback()

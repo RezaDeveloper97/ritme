@@ -13,6 +13,7 @@ import (
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/clock"
+	"github.com/ritme/backend-go/internal/platform/idempotency"
 )
 
 // Cycle engine + period log (backend/routes/api.php `cycle` prefix, CycleCalculationController and
@@ -29,6 +30,8 @@ func init() {
 		svc := cycleservice.New(d.DB, cyclecache.New(d.Cache, cacheOn, d.Logger))
 		h := cycleservice.NewHandlers(svc, d.DB, clock.Real{})
 		p := periods.NewHandlers(periods.NewService(d.DB), clock.Real{})
+		// Optional Idempotency-Key on the period writes (D-131); the service also locks per user.
+		idem := idempotency.New(d.Cache, auth.CurrentUserID, d.Logger).Handler()
 
 		c := r.Group("/api/v1/cycle")
 		c.Get("/status", locale, guard, h.Status)
@@ -38,10 +41,10 @@ func init() {
 		c.Post("/recalculate", locale, guard, h.Recalculate)
 
 		c.Get("/period/status", locale, guard, p.Status)
-		c.Post("/period/start", locale, guard, p.Start)
-		c.Post("/period/end", locale, guard, p.End)
+		c.Post("/period/start", locale, guard, idem, p.Start)
+		c.Post("/period/end", locale, guard, idem, p.End)
 		c.Get("/period/history", locale, guard, p.History)
-		c.Post("/period", locale, guard, p.Store)
+		c.Post("/period", locale, guard, idem, p.Store)
 		c.Put("/period/:period", locale, guard, p.Update)
 		c.Delete("/period/:period", locale, guard, p.Destroy)
 	})

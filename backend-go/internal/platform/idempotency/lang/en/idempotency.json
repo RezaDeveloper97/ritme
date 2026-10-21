@@ -1,0 +1,4 @@
+{
+    "key_reused": "This Idempotency-Key was already used for a different request.",
+    "in_flight": "A request with this Idempotency-Key is still being processed. Please try again in a moment."
+}

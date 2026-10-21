@@ -3,7 +3,7 @@ id: T-M9-04
 title: Period writes: per-user lock, idempotent start, Idempotency-Key
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M9-A
 touches: [backend-go/internal/cycle/periods, backend-go/internal/fertility/service.go, backend-go/internal/platform/idempotency, backend-go/internal/http/routes_cycle.go, backend-go/internal/http/routes_fertility.go, backend-go/internal/http/routes_healthlog.go]

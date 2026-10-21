@@ -14,6 +14,7 @@ import (
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/fertility/store"
+	filestore "github.com/ritme/backend-go/internal/files/store"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
@@ -96,6 +97,12 @@ func (s *Service) Save(ctx context.Context, userID uint64, in DayInput, locale s
 		return nil, fmt.Errorf("fertility: begin: %w", err)
 	}
 	defer func() { _ = tx.Rollback() }()
+	// Per-user lock first (D-131): the fertility row is read, merged and upserted, and the health
+	// log is found then stored; two concurrent saves of one user (double tap, offline replay) would
+	// otherwise each merge over the same old row and drop the other's keys.
+	if _, err := filestore.New(tx).LockOwner(ctx, userID); err != nil {
+		return nil, fmt.Errorf("fertility: lock user: %w", err)
+	}
 
 	if in.sent("lh", "mucus", "bbt_time") {
 		if err := saveFertilityLog(ctx, store.New(tx), userID, in, now); err != nil {

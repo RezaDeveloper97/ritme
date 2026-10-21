@@ -8,6 +8,7 @@ import (
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/clock"
+	"github.com/ritme/backend-go/internal/platform/idempotency"
 )
 
 // Fertility / TTC tracking (docs/fertility-ttc/README.md), Go only — no Laravel counterpart
@@ -18,11 +19,13 @@ func init() {
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		h := fertility.NewHandlers(d.DB, clock.Real{})
 		writes := writeThrottle(d) // per-user write limit (security audit M3-M7 #5)
+		// Optional Idempotency-Key on the day save (D-131).
+		idem := idempotency.New(d.Cache, auth.CurrentUserID, d.Logger).Handler()
 
 		r.Get("/api/v1/fertility/today", locale, guard, h.Today)
 		r.Get("/api/v1/fertility/bbt", locale, guard, h.BBT)
 		r.Get("/api/v1/fertility/insights", locale, guard, h.Insights)
 		r.Get("/api/v1/fertility/days/:date", locale, guard, h.ShowDay)
-		r.Put("/api/v1/fertility/days/:date", locale, guard, writes, h.UpdateDay)
+		r.Put("/api/v1/fertility/days/:date", locale, guard, writes, idem, h.UpdateDay)
 	})
 }
