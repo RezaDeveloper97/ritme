@@ -126,7 +126,11 @@ var syntheticPersonas = []string{
 	"token_revoked", "token_expired", "token_near_expiry", "token_unknown", "token_garbage",
 }
 
-// MintSynthetic creates the synthetic sessions.
+// MintSynthetic creates the synthetic sessions. now is the real clock: the guards check the JWT's iat/nbf/exp
+// against it (league's SystemClock ignores X-Test-Now). refresh-session, however, compares the DB expires_at with
+// the request clock (X-Test-Now = DefaultNow), so token_near_expiry stores its row expiry on the contract clock
+// (DefaultNow + 10 days) — minted from time.Now() it drifted out of the 30-day window once the real date passed
+// DefaultNow + 20 days (T-M9-09b).
 func (m *Minter) MintSynthetic(now time.Time) ([]Session, error) {
 	const user = 1004
 	created, err := time.ParseInLocation(time.RFC3339, DefaultNow, m.tehran)
@@ -134,10 +138,14 @@ func (m *Minter) MintSynthetic(now time.Time) ([]Session, error) {
 		return nil, err
 	}
 	var out []Session
-	add := func(persona string, exp time.Time, revoked, withRow bool) error {
+	// rowExp is the stored expires_at; zero = the JWT's exp.
+	add := func(persona string, exp, rowExp time.Time, revoked, withRow bool) error {
 		tok, row, err := m.Mint(user, now, exp, created, revoked)
 		if err != nil {
 			return err
+		}
+		if !rowExp.IsZero() {
+			row.ExpiresAt = rowExp.In(m.tehran).Format(time.DateTime)
 		}
 		if !withRow {
 			row = nil
@@ -147,10 +155,10 @@ func (m *Minter) MintSynthetic(now time.Time) ([]Session, error) {
 	}
 	year := now.AddDate(1, 0, 0)
 	errs := errors.Join(
-		add("token_revoked", year, true, true),
-		add("token_expired", now.Add(-48*time.Hour), false, true),
-		add("token_near_expiry", now.AddDate(0, 0, 10), false, true),
-		add("token_unknown", year, false, false),
+		add("token_revoked", year, time.Time{}, true, true),
+		add("token_expired", now.Add(-48*time.Hour), time.Time{}, false, true),
+		add("token_near_expiry", now.AddDate(0, 0, 10), created.AddDate(0, 0, 10), false, true),
+		add("token_unknown", year, time.Time{}, false, false),
 	)
 	if errs != nil {
 		return nil, errs

@@ -538,3 +538,19 @@ still land inside the 8 s window, so the count above doesn't show them as remove
   **Kept** `widgets/day-tasks`: it is hidden "temporarily per product request" (commented-out mounts in `HomePage` and
   `LogPage`), not dead, and it costs no bundle bytes. `features/manage-account` is also kept, as the task says.
 - Pre-existing and unchanged: `/fa/cycle` throws React #418 (hydration text mismatch) on both builds.
+
+## T-M9-09 — Go auth hot path (2026-10-21)
+Go backend (`backend-go`), recorded by T-M9-09b from the T-M9-09 measurements (MariaDB 11.4 test stack, `metrics.QueryCounter`).
+
+| Metric | Before | After |
+|---|---|---|
+| Auth queries per authenticated request | 3 (token by jti, client by aud, user by sub) | **1** (`GetAccessTokenWithUser`: token joined with user; the client comes from the in-process cache) |
+| `BenchmarkVerify` (Apple M4) | — | ≈ **106 µs/op** (budget 150 µs/op) |
+| Round-trips per query with arguments | 2+ (server-side prepare + execute, then a statement close) | **1** (`interpolateParams=true`; `Com_stmt_prepare` stays 0) |
+
+- The client cache refreshes every 5 min, so revoking an OAuth *client* takes effect within ≤ 5 min (deviation
+  **D-140**). Tokens are never cached: token revocation is still immediate (X-02).
+- A miss (token or user missing) falls back to the old 3-step path only to pick the exact 401 code.
+- The 1-query budget is pinned in `internal/auth/passport/verify_int_test.go` (no `internal/querybudget` yet, T-M9-08).
+- DB pool sizing is now read from env (`DB_MAX_OPEN` 25, `DB_MAX_IDLE` = `DB_MAX_OPEN`, `DB_CONN_MAX_LIFETIME` 5m,
+  `DB_CONN_MAX_IDLE_TIME` 2m); see `backend-go/.env.example`.

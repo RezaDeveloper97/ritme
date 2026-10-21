@@ -322,6 +322,17 @@ func TestMinter_PassportShapedToken(t *testing.T) {
 	assert.Nil(t, byName["token_unknown"].Row)
 	assert.Equal(t, "not-a-jwt", byName["token_garbage"].Token)
 	assert.ElementsMatch(t, syntheticPersonas, sortedKeys(byName))
+
+	// T-M9-09b: the near-expiry row expires 10 days after the contract clock, whatever the real date is, so
+	// refresh-session (request clock = DefaultNow) always sees it inside the 30-day window.
+	late, err := m.MintSynthetic(time.Date(2027, 3, 1, 0, 0, 0, 0, time.UTC))
+	require.NoError(t, err)
+	for _, s := range late {
+		if s.Persona == "token_near_expiry" {
+			assert.Equal(t, "2026-10-03 10:00:00", s.Row.ExpiresAt)
+			assert.Equal(t, "2026-09-23 10:00:00", s.Row.CreatedAt)
+		}
+	}
 }
 
 func TestCleanDumpAndResetScript(t *testing.T) {

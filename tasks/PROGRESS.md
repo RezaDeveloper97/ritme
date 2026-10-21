@@ -1288,3 +1288,10 @@ Nothing needed fixing.
   - Product questions:
     - Should postpartum suppression skip targets before the delivery date? Today it applies to them too.
     - Should hormonal suppression start only from a contraception start date? There is no such input today, so it covers the whole history.
+
+## T-M9-09b — Auth follow-ups: contract clock, DB pool env docs, perf numbers, D-140
+- `cmd/contract/token.go`: the DB row for the `token_near_expiry` session now takes `expires_at` from the contract clock (`DefaultNow + 10d`). The JWT `exp` still uses real time, because the guard checks it against the real clock. A regression test is in `harness_test.go`. `make contract ROUTES=auth` → **45/45**.
+- New `backend-go/.env.example` (the file didn't exist before): the DB section plus `DB_MAX_OPEN`, `DB_MAX_IDLE`, `DB_CONN_MAX_LIFETIME` and `DB_CONN_MAX_IDLE_TIME`, with no secrets.
+- `docs/investigations/perf-baseline.md`: new T-M9-09 numbers (auth queries per request 3 → 1, Verify ≈ 106 µs/op, interpolateParams = 1 round-trip per query).
+- `docs/go-migration/deviations.md` **D-140**: revoking an OAuth client takes effect within ≤ 5 min; token revocation stays immediate. Status: awaiting user OK.
+- Not done: scope item 2, warming the client cache at startup. The auto-mode permission check refused the `guard.go` edit, and I did not try to work around it. It moved to **T-M9-09c**, which needs a user OK first.

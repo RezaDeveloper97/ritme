@@ -3,7 +3,7 @@ id: T-M9-09b
 title: Auth follow-ups: contract clock for near-expiry token, client cache warm-up, DB pool env docs
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-09]
 parallel_group: M9-B
 touches: [backend-go/cmd/contract,backend-go/internal/auth/guard.go,backend-go/.env.example,docs/investigations/perf-baseline.md,docs/go-migration/deviations.md]
