@@ -33,6 +33,17 @@ NO_BUILD=1 ./deploy-beta.sh           # restart only
 - The script never ships the working tree to `/opt/ritme`: it copies only the beta nginx files and adds the two
   mount lines to the server's `docker-compose.prod.yml` in place (the repo copy has them too).
 
+## Worker container (T-M9-12)
+
+- `backend-go-worker` (container `ritme-beta-backend-go-worker-1`) = backend-go's image as `api worker`: job
+  worker, scheduler and the labs / health-record extract / learning-dispatch pollers. backend-go runs with
+  `API_RUN_WORKERS=0` (dispatch only; one start-up safety run stays in it for its dashboard row until T-M10-24).
+- Same env and the same `ritme-beta_backend-storage` / `ritme-beta_media-storage` volumes as backend-go (the sweeps
+  read them; nothing is created or wiped). No migrations, no `ritme-edge`, no ports.
+- The script starts it with backend-go and waits on `api healthcheck worker ready` (`wait_worker`) after the API's
+  `wait_ready`; `SERVICES="backend-go"` brings the worker along. Without a running worker no OTP SMS goes out.
+- Check: `ssh root@89.251.8.115 'docker exec ritme-beta-backend-go-worker-1 /app/api healthcheck worker ready && echo ready'`.
+
 ## First deploy (automatic, once)
 
 - `/opt/ritme-beta/.env` generated on the server (fresh secrets, SMS keys copied from staging).

@@ -3,6 +3,10 @@
 // `api healthcheck` probes GET /up on HTTP_ADDR and exits 0/1; the Docker HEALTHCHECK
 // uses it because the runtime image has no shell or curl. `api healthcheck ready` probes
 // GET /ready instead (MariaDB + Redis reachable, T-M9-10): the deploy scripts wait on it.
+//
+// `api worker` is the background role (T-M9-12, worker.go): job worker, scheduler and pollers, no HTTP listener but
+// the private metrics one. `api healthcheck worker [ready]` probes its /up or /ready there (METRICS_ADDR).
+// API_RUN_WORKERS=0 keeps all of that out of the API process (stage and beta, which run a worker container).
 package main
 
 import (
@@ -21,6 +25,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/ritme/backend-go/internal/auth"
 	apihttp "github.com/ritme/backend-go/internal/http"
 	"github.com/ritme/backend-go/internal/platform/cache"
 	"github.com/ritme/backend-go/internal/platform/config"
@@ -28,6 +33,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/db"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/metrics"
+	"github.com/ritme/backend-go/internal/safety"
 )
 
 const shutdownTimeout = 10 * time.Second
@@ -38,10 +44,14 @@ func main() {
 	slog.SetDefault(logger)
 
 	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
-		os.Exit(healthcheck(healthPath(os.Args[2:])))
+		os.Exit(healthcheck(healthTarget(os.Args[2:])))
 	}
 
-	if err := run(logger); err != nil {
+	serve := run
+	if len(os.Args) > 1 && os.Args[1] == "worker" {
+		serve = runWorker
+	}
+	if err := serve(logger); err != nil {
 		logger.Error("fatal", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
@@ -52,32 +62,19 @@ func run(logger *slog.Logger) error {
 	if err != nil {
 		return err
 	}
+	runWorkers, err := auth.RunWorkersFromEnv()
+	if err != nil {
+		return err
+	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	pool, err := db.Open(ctx, cfg.DB, cfg.App.Location)
+	pool, rdb, closeDeps, err := openDeps(ctx, logger, cfg, cfg.RunMigrations)
 	if err != nil {
 		return err
 	}
-	defer func() { _ = pool.Close() }()
-
-	if cfg.RunMigrations {
-		if err := migrateOnStart(ctx, logger, pool); err != nil {
-			return err
-		}
-	}
-
-	rdb := cache.New(cfg.Redis)
-	defer func() { _ = rdb.Close() }()
-	if err := rdb.Ping(ctx); err != nil {
-		return err
-	}
-	// cache_requests_total{cache="cycle_engine"}: the cycle-engine cache reads through Redis() directly.
-	rdb.TrackGets("cycle-engine:", "cycle_engine")
-	// Config caches (T-M9-13): admin writes in any process invalidate every process through Redis pub/sub;
-	// without Redis the 60 s TTL still applies.
-	configcache.Start(ctx, rdb, logger)
+	defer closeDeps()
 
 	// A busy metrics port must not take the API down (a second local server, the contract harness): it is logged
 	// as an error and the API serves without the private listener.
@@ -88,6 +85,15 @@ func run(logger *slog.Logger) error {
 	}
 
 	app := newApp(apihttp.Default(), &apihttp.Deps{Config: cfg, DB: pool, Cache: rdb, Logger: logger})
+	auth.SetRunWorkers(app, runWorkers)
+	if !runWorkers {
+		// The `api worker` container runs the job worker, the scheduler and the pollers; this process only
+		// dispatches. The safety scenarios still run once here: their result lives in process memory and the admin
+		// dashboard of THIS process reads it (persisted results: T-M10-24).
+		logger.Info("background work off (API_RUN_WORKERS=0): jobs are dispatched for the worker",
+			slog.Int("hooks", auth.BackgroundHooks(app)))
+		go safety.RunAndRecord(context.Background(), logger, time.Now().In(cfg.App.Location))
+	}
 
 	logger.Info("listening",
 		slog.String("addr", cfg.HTTP.Addr),
@@ -103,10 +109,47 @@ func run(logger *slog.Logger) error {
 	return err
 }
 
+// openDeps opens MariaDB (running the goose migrations first when migrate is set) and Redis, and starts the config
+// cache invalidation. The returned func closes both.
+func openDeps(ctx context.Context, logger *slog.Logger, cfg *config.Config, migrate bool) (*sql.DB, *cache.Client, func(), error) {
+	pool, err := db.Open(ctx, cfg.DB, cfg.App.Location)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	if migrate {
+		if err := migrateOnStart(ctx, logger, pool); err != nil {
+			_ = pool.Close()
+			return nil, nil, nil, err
+		}
+	}
+
+	rdb := cache.New(cfg.Redis)
+	closeAll := func() {
+		_ = rdb.Close()
+		_ = pool.Close()
+	}
+	if err := rdb.Ping(ctx); err != nil {
+		closeAll()
+		return nil, nil, nil, err
+	}
+	// cache_requests_total{cache="cycle_engine"}: the cycle-engine cache reads through Redis() directly.
+	rdb.TrackGets("cycle-engine:", "cycle_engine")
+	// Config caches (T-M9-13): admin writes in any process invalidate every process through Redis pub/sub;
+	// without Redis the 60 s TTL still applies.
+	configcache.Start(ctx, rdb, logger)
+	return pool, rdb, closeAll, nil
+}
+
 // startMetrics serves /metrics and /debug/pprof/* on the private listener addr (METRICS_ADDR; "" = off). It binds
 // synchronously so a busy port is reported as an error. The returned func shuts it down; bound is the actual address
 // ("" when off).
 func startMetrics(ctx context.Context, logger *slog.Logger, addr string) (bound string, stop func(), err error) {
+	return serveMetrics(ctx, logger, addr, nil)
+}
+
+// serveMetrics is startMetrics with handler in place of metrics.Handler() (nil = metrics.Handler()); the worker adds
+// its /up and /ready to it.
+func serveMetrics(ctx context.Context, logger *slog.Logger, addr string, handler nethttp.Handler) (bound string, stop func(), err error) {
 	if addr == "" {
 		logger.Info("metrics listener off")
 		return "", func() {}, nil
@@ -117,6 +160,9 @@ func startMetrics(ctx context.Context, logger *slog.Logger, addr string) (bound 
 		return "", nil, fmt.Errorf("metrics: listen %s: %w", addr, err)
 	}
 	srv := metrics.NewServer(addr)
+	if handler != nil {
+		srv.Handler = handler
+	}
 	go func() {
 		if err := srv.Serve(ln); err != nil && !errors.Is(err, nethttp.ErrServerClosed) {
 			logger.Error("metrics listener", slog.String("error", err.Error()))
@@ -147,20 +193,33 @@ func migrateOnStart(ctx context.Context, logger *slog.Logger, pool *sql.DB) erro
 	return nil
 }
 
-// healthPath maps the `api healthcheck` arguments to the probed path: none → /up (liveness), "ready" → /ready.
-func healthPath(args []string) string {
-	if len(args) > 0 && args[0] == "ready" {
-		return "/ready"
-	}
-	return "/up"
-}
-
-// healthcheck returns the process exit code for `api healthcheck`: 0 when GET path answers 200.
-func healthcheck(path string) int {
-	addr := os.Getenv("HTTP_ADDR")
+// healthTarget maps the `api healthcheck` arguments to the probed listener and path: none → /up (liveness) on
+// HTTP_ADDR, "ready" → /ready there; "worker" → the worker's /up on METRICS_ADDR, "worker ready" → its /ready.
+func healthTarget(args []string) (addr, path string) {
+	addr = os.Getenv("HTTP_ADDR")
 	if addr == "" {
 		addr = ":8020"
 	}
+	if len(args) > 0 && args[0] == "worker" {
+		args = args[1:]
+		addr = metricsAddrFromEnv()
+	}
+	if len(args) > 0 && args[0] == "ready" {
+		return addr, "/ready"
+	}
+	return addr, "/up"
+}
+
+// metricsAddrFromEnv is METRICS_ADDR as config.Load reads it (unset = config.DefaultMetricsAddr).
+func metricsAddrFromEnv() string {
+	if v, ok := os.LookupEnv("METRICS_ADDR"); ok {
+		return v
+	}
+	return config.DefaultMetricsAddr
+}
+
+// healthcheck returns the process exit code for `api healthcheck`: 0 when GET path on addr answers 200.
+func healthcheck(addr, path string) int {
 	host, port, err := net.SplitHostPort(addr)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "healthcheck:", err)
@@ -171,7 +230,7 @@ func healthcheck(path string) int {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	// The target is our own listener from HTTP_ADDR, pinned to loopback above, not user input.
+	// The target is our own listener from HTTP_ADDR / METRICS_ADDR, pinned to loopback above, not user input.
 	url := "http://" + net.JoinHostPort(host, port) + path
 	req, err := nethttp.NewRequestWithContext(ctx, nethttp.MethodGet, url, nil) //nolint:gosec // G704: see above
 	if err != nil {

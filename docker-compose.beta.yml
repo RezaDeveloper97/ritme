@@ -67,12 +67,17 @@ services:
 
   backend-go:
     container_name: ritme-beta-backend-go-1
+    # Named explicitly (it is compose's default name anyway) so backend-go-worker below runs the very same image.
+    image: ritme-beta-backend-go
     depends_on: !override
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
-    environment:
+    environment: &go-env
+      # T-M9-12: the job worker, the scheduler and the pollers run in backend-go-worker (below); this container only
+      # dispatches. (The safety scenarios still run once at its start-up for its own admin dashboard row.)
+      API_RUN_WORKERS: "0"
       APP_ENV: production
       APP_DEBUG: "false"
       RUN_MIGRATIONS: "true"
@@ -128,6 +133,44 @@ services:
       ritme-edge:
         aliases: [beta-backend-go]
 
+
+  # Background role of the same binary and image (T-M9-12, docs/engine-v6/jobs.md): `api worker` runs the asynq
+  # server + the scheduler (leader key, so one enqueue per tick) and the labs, health-record extract and learning
+  # dispatch pollers. No HTTP listener but the private metrics one (METRICS_ADDR, container-local 127.0.0.1:9090),
+  # where `api healthcheck worker` probes /up. Same env (the base file's via `extends` + this file's via &go-env) and
+  # the same storage volumes as backend-go: files:sweep / media:sweep and the labs sweep read STORAGE_PATH and
+  # MEDIA_STORAGE_PATH. Not on ritme-edge, no aliases, no published ports: nothing outside the project can reach it.
+  # It never migrates (backend-go does, and is healthy before this starts).
+  backend-go-worker:
+    extends:
+      file: docker-compose.yml
+      service: backend-go
+    image: ritme-beta-backend-go
+    build: !reset null
+    # The image is built for backend-go (deploy script step 3); never look for it in a registry.
+    pull_policy: never
+    container_name: ritme-beta-backend-go-worker-1
+    command: ["worker"]
+    restart: unless-stopped
+    depends_on: !override
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend-go:
+        condition: service_healthy
+    environment:
+      <<: *go-env
+      RUN_MIGRATIONS: "false"
+    healthcheck:
+      test: ["CMD", "/app/api", "healthcheck", "worker"]
+      interval: 10s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+    # Running jobs drain on SIGTERM (asynq ShutdownTimeout 10 s, then the pollers); give it more than Docker's 10 s.
+    stop_grace_period: 30s
+    ports: !reset []
   frontend:
     container_name: ritme-beta-frontend-1
     depends_on: !override [backend-go]

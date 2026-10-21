@@ -1428,3 +1428,21 @@ Nothing needed fixing.
     - When the next date is past, should the card show future_cycles[1]?
     - Should PMS be hidden under hormonal contraception?
     - Should a user with no data get a start ring or a banner?
+
+## T-M9-12 — Worker process for stage and beta
+- New `api worker` (`cmd/api/worker.go`): it mounts the same routes, so every job, scheduler entry and poller registers exactly as in the API. It has no HTTP listener and never runs migrations. `/up`, `/ready` and `/metrics` are served on `METRICS_ADDR`. It drains on SIGTERM.
+- New `api healthcheck worker [ready]`.
+- `auth/lifecycle.go`: all `OnLifecycle` hooks go into one set per app. New `API_RUN_WORKERS` (default 1; 0 turns all background work off, and dispatch still enqueues). If a hook fails to start, the hooks already started are stopped.
+- Stage and beta compose:
+  - backend-go gets `API_RUN_WORKERS: "0"`.
+  - New `backend-go-worker` service: same image and env (except `RUN_MIGRATIONS=false`), `command: [worker]`, the `backend-storage` and `media-storage` volumes mounted for the sweeps, no ports, depends on a healthy backend-go, 30 s grace. No volume changes.
+- The deploy scripts start the worker together with backend-go. `wait_worker` health-checks it, and a `SERVICES` list that names backend-go adds the worker automatically. The deploy-stage and deploy-beta skills are updated. Nothing was deployed.
+- Local smoke run: with the API on `API_RUN_WORKERS=0`, the OTP job stayed pending; `api worker` then processed it and took the scheduler leader key.
+- The main session:
+  - fixed the verify command to `go build -o /dev/null ./cmd/api` (`backend-go/api/` is a directory);
+  - updated the `docs/engine-v6/jobs.md` header.
+- Behaviour on stage and beta:
+  - The safety nightly result lives in the worker's memory. The API runs it once at start-up, so its dashboard row refreshes only on deploy, until T-M10-24 persists it.
+  - Lab and record-extract jobs can start up to about 5 s later (worker poll).
+  - `asynq_queue_size` is now exported by the worker.
+- Open: after the next stage deploy, request an OTP and run `docker logs ritme-stage-backend-go-worker-1 | grep "OTP SMS"`, then record the result here.

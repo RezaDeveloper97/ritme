@@ -3,12 +3,12 @@ id: T-M9-12
 title: Worker process for stage and beta
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-11, T-M9-10]
 parallel_group: M9-B
 touches: [backend-go/cmd/api/main.go, backend-go/cmd/api/worker.go, backend-go/internal/auth/lifecycle.go, docker-compose.stage.yml, docker-compose.beta.yml, deploy-stage.sh, deploy-beta.sh, .claude/skills/deploy-stage/SKILL.md, .claude/skills/deploy-beta/SKILL.md]
 skills: []
-verify: cd backend-go && go vet ./... && go test ./cmd/... ./internal/auth/... && go build ./cmd/api
+verify: cd backend-go && go vet ./... && go test ./cmd/... ./internal/auth/... && go build -o /dev/null ./cmd/api
 ---
 
 # T-M9-12 — Worker process for stage and beta

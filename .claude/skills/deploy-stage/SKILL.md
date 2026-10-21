@@ -149,6 +149,30 @@ curl -s -o /dev/null -D - -u "$STAGE_BASIC_AUTH" -H "Accept: application/json" h
 ssh root@89.251.8.115 'docker logs ritme-stage-backend-go-1 2>&1 | grep "\"msg\":\"migrations\"" | tail -1'
 ```
 
+### Worker container (T-M9-12)
+
+`backend-go-worker` (container `ritme-stage-backend-go-worker-1`) is the same image as backend-go
+(`image: ritme-stage-backend-go`, `pull_policy: never`) started as **`api worker`**: the asynq server + scheduler
+(leader key), the labs / health-record extract / learning-dispatch pollers and every scheduled job of
+`docs/engine-v6/jobs.md`. backend-go runs with **`API_RUN_WORKERS=0`**: it only dispatches (OTP SMS and every
+other job wait in Redis for the worker), and keeps one start-up safety-scenario run for its own admin dashboard row
+(in-memory until T-M10-24).
+
+- Same env (base `extends` + the overlay's `&go-env`) and the same `backend-storage` / `media-storage` volumes
+  (files/media/labs sweeps read them). `RUN_MIGRATIONS=false` — backend-go migrates and is healthy first
+  (`depends_on`). Default network only: no `ritme-edge`, no alias, no port.
+- No HTTP listener but the private metrics one (`METRICS_ADDR`, container-local `127.0.0.1:9090`), which also
+  answers `/up` and `/ready`. Docker HEALTHCHECK: `api healthcheck worker`; the deploy waits on
+  `api healthcheck worker ready` (`wait_worker`, after `wait_ready`).
+- `deploy-stage.sh` starts it together with backend-go (`up -d --wait backend-go backend-go-worker`, before the
+  frontend build), so jobs never sit unconsumed during a deploy. `SERVICES="backend-go"` adds the worker itself.
+
+```bash
+ssh root@89.251.8.115 'docker logs ritme-stage-backend-go-worker-1 2>&1 | grep "\"msg\":\"worker started\"" | tail -1'
+ssh root@89.251.8.115 'docker exec ritme-stage-backend-go-worker-1 /app/api healthcheck worker ready && echo ready'
+ssh root@89.251.8.115 'docker logs ritme-stage-backend-go-1 2>&1 | grep "background work off" | tail -1'
+```
+
 Side-by-side Laravel (debugging only, not proxied):
 `docker compose -p ritme-stage -f docker-compose.yml -f docker-compose.stage.yml --profile laravel up -d backend`
 — its entrypoint runs Laravel's migrations on the goose-owned schema; remove it again with `docker rm -f

@@ -1,8 +1,9 @@
 # Background jobs (queue v2)
 
 T-M9-11. Code: `backend-go/internal/platform/queue` (wrapper over asynq on the shared Redis; README §6 and X-02: no
-RabbitMQ, NATS or Kafka). The worker container (`api worker`, `API_RUN_WORKERS=0` on the API) is T-M9-12; until then
-the API process runs the worker and the scheduler itself.
+RabbitMQ, NATS or Kafka). On stage and beta the worker, scheduler and pollers run in the `backend-go-worker` container (`api worker`,
+T-M9-12) and the API runs with `API_RUN_WORKERS=0`; elsewhere (`API_RUN_WORKERS=1`, the default) the API process runs
+them itself. The worker serves `/up`, `/ready` and `/metrics` (incl. `asynq_queue_size`) on `METRICS_ADDR`.
 
 ## Queues
 

@@ -26,6 +26,11 @@
 # ships mysql, redis, backend-go, frontend and admin-web; backend-go runs the
 # goose migrations on start. Leftover Laravel containers are removed.
 #
+# Worker (T-M9-12): backend-go-worker (`api worker`, same image) runs the jobs,
+# the scheduler and the pollers; backend-go runs with API_RUN_WORKERS=0. Both
+# start together, and the script waits on the API's /ready (wait_ready) and the
+# worker's (wait_worker). A SERVICES list naming backend-go gets the worker too.
+#
 # Build order (T-M2-33): backend-go is built and started (healthy) BEFORE the
 # frontend is built, and the frontend's `npm run build` never comes from cache,
 # because its SSG step bakes the messages the live API serves — see step 3.
@@ -128,6 +133,9 @@ ssh_run "test -s ${PROD_DIR}/stage.htpasswd" || {
 BUILD_REV="$(git rev-parse --short "${BRANCH}" 2>/dev/null || echo worktree)-$(date -u +%Y%m%dT%H%M%SZ)"
 # True when this run touches <service> (an empty SERVICES means all of them).
 wants() { [[ -z "$SERVICES" || " $SERVICES " == *" $1 "* ]]; }
+# backend-go-worker (T-M9-12) runs backend-go's image: whenever backend-go ships, the worker ships with it, so the two
+# never run different binaries. (SERVICES="backend-go-worker" alone just restarts it on the current image.)
+if [[ -n "$SERVICES" ]] && wants backend-go && ! wants backend-go-worker; then SERVICES="$SERVICES backend-go-worker"; fi
 
 # wait_ready — poll backend-go's GET /ready (MariaDB + Redis both answer, T-M9-10) until it is 200, from inside
 # the container: the image has no shell or curl, so `api healthcheck ready` makes the request. /up (the Docker
@@ -143,14 +151,32 @@ wait_ready() {
   exit 1'
 }
 
+# wait_worker — the same for backend-go-worker (`api worker`, T-M9-12): it has no HTTP listener, so `api healthcheck
+# worker ready` asks its private metrics listener for /ready (background hooks started + MariaDB + Redis answer).
+# Aborts the deploy after ~60 s: without the worker no job runs (OTP SMS, sweeps, snapshots, pollers), since the
+# API containers run with API_RUN_WORKERS=0.
+wait_worker() {
+  echo "==> Waiting for backend-go-worker /ready ..."
+  ssh_run 'for i in $(seq 1 30); do
+    if docker exec ritme-stage-backend-go-worker-1 /app/api healthcheck worker ready >/dev/null 2>&1; then echo "  ready"; exit 0; fi
+    sleep 2
+  done
+  echo "!! backend-go-worker is not ready (no background hooks running, or MariaDB / Redis unreachable)" >&2
+  docker exec ritme-stage-backend-go-worker-1 /app/api healthcheck worker ready >&2 || true
+  docker logs --tail 20 ritme-stage-backend-go-worker-1 >&2 || true
+  exit 1'
+  ssh_run "docker logs ritme-stage-backend-go-worker-1 2>&1 | grep '\"msg\":\"worker started\"' | tail -1" || true
+}
+
 if [[ "${NO_BUILD:-0}" != "1" ]]; then
   if wants backend-go; then
     echo "==> Building and starting backend-go first (the frontend build reads its messages)..."
     ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} build backend-go"
     # --wait: returns once the healthcheck passes, non-zero (=> abort under
     # set -e) if it goes unhealthy — nothing gets built against a dead API.
-    ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} up -d --wait --wait-timeout 180 backend-go"
+    ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} up -d --wait --wait-timeout 180 backend-go backend-go-worker"
     wait_ready
+    wait_worker
     ssh_run "docker logs ritme-stage-backend-go-1 2>&1 | grep '\"msg\":\"migrations\"' | tail -1" || true
     # The route-group upstream{} blocks in stage-ssl.conf resolve at nginx
     # load; the SSG fetch goes through the proxy, so point them at the new
@@ -165,6 +191,7 @@ fi
 echo "==> Starting staging stack..."
 ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} up -d ${SERVICES}"
 if wants backend-go; then wait_ready; fi
+if wants backend-go-worker; then wait_worker; fi
 
 # Laravel is retired on stage (T-M2-28). Its services are profiled out, so
 # `up -d` no longer touches the containers an older deploy started — stop and
