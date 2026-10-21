@@ -36,6 +36,43 @@ const typePrefix = "v2:"
 //go:embed lang/*/*.json
 var langFS embed.FS
 
+// emergencyFS is the embedded copy of the EmergencyRules (one payload per rule in the row shape, plus `variants`),
+// used when a rule's message_contents row is missing or disabled and for copy variants a row does not carry.
+//
+//go:embed emergency/*.json
+var emergencyFS embed.FS
+
+// emergencyCopy is locale → rule → payload of the embedded emergency copy.
+var emergencyCopy = sync.OnceValue(func() map[string]map[string]map[string]any {
+	out := map[string]map[string]map[string]any{}
+	entries, err := emergencyFS.ReadDir("emergency")
+	if err != nil {
+		panic(err)
+	}
+	for _, en := range entries {
+		b, err := emergencyFS.ReadFile("emergency/" + en.Name())
+		if err != nil {
+			panic(err)
+		}
+		var m map[string]map[string]any
+		if err := json.Unmarshal(b, &m); err != nil {
+			panic(fmt.Errorf("pregnancy alerts: emergency copy %s: %w", en.Name(), err))
+		}
+		out[strings.TrimSuffix(en.Name(), ".json")] = m
+	}
+	return out
+})
+
+// embeddedRule is the embedded payload of rule in locale (the fallback locale when the locale has none; nil when
+// the rule has no embedded copy).
+func embeddedRule(rule, locale string) map[string]any {
+	c := emergencyCopy()
+	if m, ok := c[locale][rule]; ok {
+		return m
+	}
+	return c[lang.FallbackLocale][rule]
+}
+
 var translator = sync.OnceValue(func() *lang.Translator {
 	sub, err := fs.Sub(langFS, "lang")
 	if err != nil {
@@ -60,7 +97,7 @@ func New(q store.Querier) *Engine { return &Engine{q: q} }
 // rows is the live pregnancy_alert group: item_key → locale → decoded payload.
 type rows map[string]map[string]map[string]any
 
-func (e *Engine) rows(ctx context.Context) (rows, error) {
+func (e *Engine) rows(ctx context.Context, l v2.Lang) (rows, error) {
 	list, err := e.q.ListLiveMessageGroup(ctx, Group)
 	if err != nil {
 		return nil, fmt.Errorf("pregnancy alerts: rules: %w", err)
@@ -76,7 +113,34 @@ func (e *Engine) rows(ctx context.Context) (rows, error) {
 		}
 		out[r.ItemKey][r.Locale] = m
 	}
+	out.withEmergency(l)
 	return out, nil
+}
+
+// withEmergency replaces the row of every EmergencyRules rule that is missing or disabled (in the default language)
+// by its embedded copy, marked forced, so the path still fires (T-M9-05).
+func (r rows) withEmergency(l v2.Lang) {
+	for _, rule := range EmergencyRules {
+		if m := r.behaviour(rule, l); m != nil {
+			if on, _ := m["enabled"].(bool); on {
+				continue
+			}
+		}
+		byLoc := map[string]map[string]any{}
+		for loc, rules := range emergencyCopy() {
+			p, ok := rules[rule]
+			if !ok {
+				continue
+			}
+			cp := make(map[string]any, len(p)+1)
+			for k, v := range p {
+				cp[k] = v
+			}
+			cp["forced"] = true
+			byLoc[loc] = cp
+		}
+		r[rule] = byLoc
+	}
 }
 
 // behaviour is the default-language row of an item (any row when it is missing).
@@ -110,6 +174,7 @@ func (r rows) config(rule string, l v2.Lang) (Config, bool) {
 	}
 	c := Config{Params: map[string]any{}}
 	c.Enabled, _ = m["enabled"].(bool)
+	c.Forced, _ = m["forced"].(bool)
 	c.Level, _ = m["level"].(string)
 	if n, ok := m["window_days"].(float64); ok {
 		c.WindowDays = int(n)
@@ -155,10 +220,11 @@ func (e *Engine) dating(ctx context.Context, userID uint64, today civildate.Date
 }
 
 // facts loads the user's logs of the longest window (at least ListWindowDays).
-func (e *Engine) facts(ctx context.Context, userID uint64, d v2.Dating, window int) (Facts, error) {
+func (e *Engine) facts(ctx context.Context, userID uint64, d v2.Dating, window int, now time.Time) (Facts, error) {
 	today := d.Today
 	from := today.AddDays(-(max(window, ListWindowDays) - 1))
-	f := Facts{Today: today, Week: d.CurrentWeek(), WeekDay: d.Days, Source: d.Source, Days: map[civildate.Date]Day{}}
+	f := Facts{Today: today, Week: d.CurrentWeek(), WeekDay: d.Days, Source: d.Source, Days: map[civildate.Date]Day{},
+		Now: now, TotalDays: d.TotalDays}
 
 	syms, err := e.q.ListV2SymptomLogsRange(ctx, store.ListV2SymptomLogsRangeParams{UserID: userID, DateFrom: from, DateTo: today})
 	if err != nil {
@@ -209,21 +275,41 @@ func (e *Engine) facts(ctx context.Context, userID uint64, d v2.Dating, window i
 		}
 		f.Contractions = append(f.Contractions, lc)
 	}
+	if f.Kicks, err = e.kicks(ctx, userID, today); err != nil {
+		return Facts{}, err
+	}
 	return f, nil
 }
 
-// RuleParams are the 5-1-1 thresholds of rule (contractions_511) from its live default-language row, whether or not
-// the rule is enabled (the timer shows the verdict either way); labor defaults when the row is missing.
-func (e *Engine) RuleParams(ctx context.Context, rule string, l v2.Lang) (labor.Params, error) {
-	rs, err := e.rows(ctx)
+// kicks are the ended kick sessions started in the last KickLookbackDays (plus one day for a session that expired
+// after midnight) and the running session, whenever it started.
+func (e *Engine) kicks(ctx context.Context, userID uint64, today civildate.Date) ([]Kick, error) {
+	ended, err := e.q.ListKickSessionsBetween(ctx, store.ListKickSessionsBetweenParams{
+		UserID: userID, DateFrom: today.AddDays(-KickLookbackDays).TehranMidnight(), DateTo: today.AddDays(1).TehranMidnight(),
+	})
 	if err != nil {
-		return labor.Params{}, err
+		return nil, fmt.Errorf("pregnancy alerts: kicks: %w", err)
 	}
-	c, ok := rs.config(rule, l)
-	if !ok {
-		return labor.DefaultParams(), nil
+	active, err := e.q.GetActiveKickSession(ctx, userID)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+	case err != nil:
+		return nil, fmt.Errorf("pregnancy alerts: active kicks: %w", err)
+	default:
+		ended = append(ended, active)
 	}
-	return LaborParams(c), nil
+	out := make([]Kick, 0, len(ended))
+	for _, k := range ended {
+		kk := Kick{ID: k.ID, Start: k.StartedAt, Count: int(k.Kicks)}
+		if k.EndedAt.Valid && !k.ActiveLock.Valid {
+			kk.End = k.EndedAt.Time
+		}
+		if k.TenthKickAt.Valid {
+			kk.TargetAt = k.TenthKickAt.Time
+		}
+		out = append(out, kk)
+	}
+	return out, nil
 }
 
 // SymptomDay reads the v2 symptoms of a v1 symptom log and / or an extras row (has_X → severity,
@@ -269,6 +355,8 @@ type meta struct {
 	Dedupe string            `json:"dedupe"`
 	Vars   map[string]string `json:"vars"`
 	Order  []string          `json:"order,omitempty"`
+	// Variant is the copy variant of the hit (Hit.Variant).
+	Variant string `json:"variant,omitempty"`
 	// On is the fact's day (YYYY-MM-DD) when it differs from the evaluation day (Hit.On).
 	On string `json:"on,omitempty"`
 }
@@ -303,7 +391,7 @@ func (e *Engine) evaluate(ctx context.Context, userID uint64, now time.Time, l v
 	if err != nil {
 		return nil, err
 	}
-	rs, err := e.rows(ctx)
+	rs, err := e.rows(ctx, l)
 	if err != nil {
 		return nil, err
 	}
@@ -321,7 +409,7 @@ func (e *Engine) evaluate(ctx context.Context, userID uint64, now time.Time, l v
 	if len(configs) == 0 {
 		return nil, nil
 	}
-	f, err := e.facts(ctx, userID, d, window)
+	f, err := e.facts(ctx, userID, d, window, now)
 	if err != nil {
 		return nil, err
 	}
@@ -356,7 +444,7 @@ type hitRow struct {
 }
 
 func buildHit(h Hit, c Config, f Facts, rs rows, l v2.Lang, pinOn bool) (hitRow, error) {
-	m := meta{Rule: h.Rule, Level4: c.Level, Dedupe: h.Dedupe, Vars: map[string]string{}}
+	m := meta{Rule: h.Rule, Level4: hitLevel(h, c), Dedupe: h.Dedupe, Vars: map[string]string{}, Variant: h.Variant}
 	// A refreshed row was created on another day, so its fact day is always pinned.
 	if !h.On.IsZero() && (pinOn || h.On != f.Today) {
 		m.On = h.On.String()
@@ -385,12 +473,24 @@ func buildHit(h Hit, c Config, f Facts, rs rows, l v2.Lang, pinOn bool) (hitRow,
 	return hitRow{trigger: trigger, actions: actions, title: truncate(title, 255), advice: txt.advice}, nil
 }
 
+// hitLevel is the hit's own level (the emergency tiers) or the row's.
+func hitLevel(h Hit, c Config) string {
+	if contains(Levels, h.Level) {
+		return h.Level
+	}
+	return c.Level
+}
+
 func (e *Engine) persist(ctx context.Context, userID uint64, h Hit, c Config, f Facts, now time.Time, rs rows, l v2.Lang,
 ) (*jsonx.OrderedMap, error) {
 	since := sql.NullTime{Time: f.windowStart(c.WindowDays).TehranMidnight(), Valid: true}
 	ts := sql.NullTime{Time: now.In(civildate.Tehran), Valid: true}
 	if contains(RefreshRules, h.Rule) {
 		return e.refresh(ctx, userID, h, c, f, since, ts, rs, l)
+	}
+	// A fact older than the window (a kick session that expired yesterday) is deduplicated back to its own day.
+	if !h.On.IsZero() && h.On.TehranMidnight().Before(since.Time) {
+		since.Time = h.On.TehranMidnight()
 	}
 	n, err := e.q.CountV2AlertDedupe(ctx, store.CountV2AlertDedupeParams{
 		UserID: userID, AlertType: typePrefix + h.Rule, Since: since, Dedupe: h.Dedupe,
@@ -411,7 +511,7 @@ func (e *Engine) insert(ctx context.Context, userID uint64, h Hit, c Config, f F
 		return nil, err
 	}
 	id, err := e.q.InsertAlert(ctx, store.InsertAlertParams{
-		UserID: userID, AlertLevel: V1Level(c.Level), AlertType: typePrefix + h.Rule,
+		UserID: userID, AlertLevel: V1Level(hitLevel(h, c)), AlertType: typePrefix + h.Rule,
 		Title: hr.title, Message: hr.advice,
 		PregnancyWeek:      sql.NullInt32{Int32: int32(f.Week), Valid: true}, //nolint:gosec // 1..42
 		TriggerSymptoms:    db.NullRawJSON{V: hr.trigger, Valid: true},
@@ -509,9 +609,31 @@ func value(name, v, locale string) string {
 	return v2.Digits(v, locale)
 }
 
+// render fills the rule's texts. A copy variant (meta.Variant) overrides the base texts with the row's
+// `variants.<name>`, else the embedded variant. An emergency rule falls back to its embedded copy for any text, action
+// or (urgent) contact its row lacks, so the urgent path never renders empty.
 func render(p map[string]any, m meta, locale string) texts {
+	emb := embeddedRule(m.Rule, locale)
+	var variant map[string]any
+	if m.Variant != "" {
+		if vs, ok := p["variants"].(map[string]any); ok {
+			variant, _ = vs[m.Variant].(map[string]any)
+		}
+		if variant == nil {
+			if vs, ok := emb["variants"].(map[string]any); ok {
+				variant, _ = vs[m.Variant].(map[string]any)
+			}
+		}
+	}
+	emergency := contains(EmergencyRules, m.Rule)
 	fill := func(k string) string {
-		s, _ := p[k].(string)
+		s, _ := variant[k].(string)
+		if s == "" {
+			s, _ = p[k].(string)
+		}
+		if s == "" && emergency && (k != "contact" || m.Level4 == "urgent") {
+			s, _ = emb[k].(string)
+		}
 		for name, v := range m.Vars {
 			s = strings.ReplaceAll(s, "{"+name+"}", value(name, v, locale))
 		}
@@ -522,6 +644,9 @@ func render(p map[string]any, m meta, locale string) texts {
 		advice: fill("advice"), contact: fill("contact"),
 	}
 	list, _ := p["actions"].([]any)
+	if len(list) == 0 && emergency {
+		list, _ = emb["actions"].([]any)
+	}
 	for _, raw := range list {
 		a, _ := raw.(map[string]any)
 		key, _ := a["key"].(string)
@@ -557,7 +682,7 @@ func alertJSON(r *store.PregnancyAlert, rs rows, l v2.Lang) *jsonx.OrderedMap {
 	m := decodeMeta(r)
 	p := rs.texts(m.Rule, l)
 	var t texts
-	if p != nil {
+	if p != nil || contains(EmergencyRules, m.Rule) {
 		t = render(p, m, l.Locale)
 	}
 	if t.title == "" {
@@ -634,7 +759,7 @@ func (e *Engine) List(ctx context.Context, userID uint64, now time.Time, l v2.La
 			return nil, err
 		}
 	}
-	rs, err := e.rows(ctx)
+	rs, err := e.rows(ctx, l)
 	if err != nil {
 		return nil, err
 	}
@@ -689,7 +814,7 @@ func (e *Engine) Act(ctx context.Context, userID, id uint64, act string, now tim
 	if err != nil {
 		return nil, fmt.Errorf("pregnancy alerts: get: %w", err)
 	}
-	rs, err := e.rows(ctx)
+	rs, err := e.rows(ctx, l)
 	if err != nil {
 		return nil, err
 	}
@@ -745,4 +870,88 @@ func (e *Engine) appendNote(ctx context.Context, userID uint64, today civildate.
 		return "", fmt.Errorf("pregnancy alerts: visit note: %w", err)
 	}
 	return next, nil
+}
+
+// ReadingRules are the rules a handed-over vitals reading runs through.
+var ReadingRules = []string{"bp_high", "sugar_high"}
+
+// EvaluateReadings hands vitals readings of a pregnant user to the BP and GDM rules (T-M9-05): the hits are persisted
+// like any other (deduplicated with the weekly-log hits of the same day and values, so one fact makes one row) and
+// the alerts of the readings are returned rendered in l: the ones created now and the ones that already existed for
+// the same fact. A user without an active pregnancy gets nothing.
+func (e *Engine) EvaluateReadings(ctx context.Context, userID uint64, readings []Reading, now time.Time, l v2.Lang,
+) ([]*jsonx.OrderedMap, error) {
+	d, err := e.dating(ctx, userID, civildate.InTehran(now))
+	if errors.Is(err, ErrNotActive) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	rs, err := e.rows(ctx, l)
+	if err != nil {
+		return nil, err
+	}
+	f := Facts{Today: d.Today, Week: d.CurrentWeek(), WeekDay: d.Days, Source: d.Source, Days: map[civildate.Date]Day{},
+		Now: now, TotalDays: d.TotalDays, Readings: readings}
+	out := []*jsonx.OrderedMap{}
+	for _, rule := range ReadingRules {
+		c, ok := rs.config(rule, l)
+		if !ok || !c.Enabled {
+			continue
+		}
+		for _, h := range Detect(rule, c, f) {
+			a, err := e.persist(ctx, userID, h, c, f, now, rs, l)
+			if err != nil {
+				return nil, err
+			}
+			if a == nil {
+				if a, err = e.existing(ctx, userID, h, c, f, rs, l); err != nil {
+					return nil, err
+				}
+			}
+			if a != nil {
+				out = append(out, a)
+			}
+		}
+	}
+	return out, nil
+}
+
+// existing is the alert a deduplicated hit already has in its window (nil when none).
+func (e *Engine) existing(ctx context.Context, userID uint64, h Hit, c Config, f Facts, rs rows, l v2.Lang,
+) (*jsonx.OrderedMap, error) {
+	list, err := e.q.ListV2AlertsByDedupe(ctx, store.ListV2AlertsByDedupeParams{
+		UserID: userID, AlertType: typePrefix + h.Rule,
+		Since: sql.NullTime{Time: f.windowStart(c.WindowDays).TehranMidnight(), Valid: true}, Dedupe: h.Dedupe,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("pregnancy alerts: dedupe: %w", err)
+	}
+	if len(list) == 0 {
+		return nil, nil
+	}
+	return alertJSON(&list[0], rs, l), nil
+}
+
+// FiresWithoutCopy runs rule on f with no message_contents rows at all (every row deleted) and reports the level and
+// rendered title of its first hit in locale ("" , "" when it does not fire). The nightly safety scenario
+// emergency_rule_without_copy calls it.
+func FiresWithoutCopy(rule string, f Facts, l v2.Lang) (level, title, contact string) {
+	rs := rows{}
+	rs.withEmergency(l)
+	c, ok := rs.config(rule, l)
+	if !ok {
+		return "", "", ""
+	}
+	hits := Detect(rule, c, f)
+	if len(hits) == 0 {
+		return "", "", ""
+	}
+	m := meta{Rule: rule, Level4: hitLevel(hits[0], c), Vars: map[string]string{}, Variant: hits[0].Variant}
+	for _, kv := range hits[0].Vars {
+		m.Vars[kv[0]] = kv[1]
+	}
+	t := render(rs.texts(rule, l), m, l.Locale)
+	return m.Level4, t.title, t.contact
 }

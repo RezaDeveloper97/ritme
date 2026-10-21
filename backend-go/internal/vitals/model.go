@@ -104,6 +104,8 @@ type Reading struct {
 	Note       string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
+	// Pregnant: the reading's day is in the user's active pregnancy (pregnancy.go) — the pregnancy table applies.
+	Pregnant bool
 }
 
 // Timed reports whether the reading has a time of day (log readings have none).
@@ -114,8 +116,14 @@ func (r Reading) Class() string {
 	t := ThresholdsOn(r.Date)
 	switch r.Type {
 	case TypeBP:
+		if r.Pregnant {
+			return pregnancyBP(r.Systolic, r.Diastolic, r.Date)
+		}
 		return t.ClassifyBP(r.Systolic, r.Diastolic)
 	case TypeGlucose:
+		if r.Pregnant {
+			return t.pregnancyGlucose(r.MgDl, r.Context)
+		}
 		return t.ClassifyGlucose(r.MgDl, r.Context)
 	case TypeHR:
 		return t.ClassifyHR(r.Pulse, r.Context)
@@ -123,11 +131,14 @@ func (r Reading) Class() string {
 	return ""
 }
 
-// Urgent reports whether the reading crosses a safety threshold.
+// Urgent reports whether the reading crosses a safety threshold (in pregnancy: BP in the severe range, 160/110).
 func (r Reading) Urgent() bool {
 	t := ThresholdsOn(r.Date)
 	switch r.Type {
 	case TypeBP:
+		if r.Pregnant && pregnancyBP(r.Systolic, r.Diastolic, r.Date) == ClassCrisis {
+			return true
+		}
 		return t.UrgentBP(r.Systolic, r.Diastolic)
 	case TypeGlucose:
 		return t.UrgentGlucose(r.MgDl)

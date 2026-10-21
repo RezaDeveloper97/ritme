@@ -73,20 +73,21 @@ func KickJSON(k store.PregnancyKickSession, now time.Time) *jsonx.OrderedMap {
 	if k.PregnancyWeek.Valid {
 		week = int(k.PregnancyWeek.Int16)
 	}
-	reached := int(k.Kicks) >= KickTarget
+	kp := KickParamsOn(civildate.InTehran(k.StartedAt))
+	reached := int(k.Kicks) >= kp.Target
 	return jsonx.Obj(
 		"id", k.ID,
 		"started_at", iso(k.StartedAt),
 		"ended_at", isoNull(k.EndedAt),
 		"is_active", k.ActiveLock.Valid,
 		"kicks", int(k.Kicks),
-		"target", KickTarget,
-		"window_minutes", KickWindowMinutes,
+		"target", kp.Target,
+		"window_minutes", int(kp.Window/time.Minute),
 		"elapsed_seconds", seconds(elapsed),
 		"time_to_target_seconds", toTarget,
 		"reached_target", reached,
 		// Fewer than the target once the window has passed: the «با پزشک یا ماما تماس بگیر» guidance.
-		"low_count", !reached && elapsed >= KickWindowMinutes*time.Minute,
+		"low_count", !reached && elapsed >= kp.Window,
 		"last_kick_at", isoNull(k.LastKickAt),
 		"pregnancy_week", week,
 	)
@@ -102,9 +103,10 @@ func KickOverviewJSON(o KickOverview, now time.Time) *jsonx.OrderedMap {
 	for _, k := range o.History {
 		history = append(history, KickJSON(k, now))
 	}
+	kp := KickParamsOn(civildate.InTehran(now))
 	return jsonx.Obj(
-		"target", KickTarget,
-		"window_minutes", KickWindowMinutes,
+		"target", kp.Target,
+		"window_minutes", int(kp.Window/time.Minute),
 		"active", active,
 		"today", jsonx.Obj("date", civildate.InTehran(now).String(), "kicks", o.Today, "sessions", o.Count),
 		"history", history,

@@ -1,14 +1,17 @@
 // Package labor is the contraction maths of the contraction timer (bloom B-N5-03, nbl_Log_Contraction): per-
 // contraction duration and interval, the averages of the last hour and the 5-1-1 rule — contractions about every 5
 // minutes, each lasting about 1 minute, for 1 hour. Pure functions, no I/O: the pregnancy tools service and the
-// pregnancy alert engine (rule contractions_511) both call it, with the thresholds read from the rule's
-// admin-editable params.
+// pregnancy alert engine (rule contractions_511) both call it, with the thresholds read from the clinical
+// config (ParamsOn, key pregnancy.contractions_511).
 package labor
 
 import (
 	"fmt"
 	"sort"
 	"time"
+
+	"github.com/ritme/backend-go/internal/clinicalconfig"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
 // Contraction is one timed contraction; a zero End means it is still in progress.
@@ -35,7 +38,7 @@ type Params struct {
 	Run         time.Duration // sustained for at least this long
 }
 
-// Defaults of the rule (the seeded contractions_511 row; [needs clinical review]).
+// Defaults of the rule: version 1 of the clinical config key pregnancy.contractions_511 (T-M9-05, H-06).
 const (
 	DefaultIntervalMaxMinutes = 5
 	DefaultDurationMinSeconds = 45
@@ -48,6 +51,17 @@ func DefaultParams() Params {
 		IntervalMax: DefaultIntervalMaxMinutes * time.Minute,
 		DurationMin: DefaultDurationMinSeconds * time.Second,
 		Run:         DefaultRunMinutes * time.Minute,
+	}
+}
+
+// ParamsOn are the 5-1-1 thresholds of the clinical config valid on d (pregnancy.contractions_511; a zero d reads
+// version 1 = DefaultParams). The timer and the alert rule both read them, never message_contents params (T-M9-05).
+func ParamsOn(d civildate.Date) Params {
+	n := func(f string) float64 { return clinicalconfig.Num(clinicalconfig.KeyPregnancyContractions511, f, d) }
+	return Params{
+		IntervalMax: time.Duration(n("interval_min") * float64(time.Minute)),
+		DurationMin: time.Duration(n("duration_s") * float64(time.Second)),
+		Run:         time.Duration(n("period_min") * float64(time.Minute)),
 	}
 }
 

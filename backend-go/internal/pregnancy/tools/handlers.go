@@ -13,6 +13,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
+	"github.com/ritme/backend-go/internal/pregnancy/store"
 	v2 "github.com/ritme/backend-go/internal/pregnancy/v2"
 )
 
@@ -103,6 +104,12 @@ func (h *Handlers) Kicks(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	// Lazy expiry (T-M9-05): a running session past its window is judged now.
+	if o.Active != nil && KickExpired(*o.Active, now) {
+		if _, err := h.svc.EvaluateKicks(c, userID, now, langOf(c)); err != nil {
+			return err
+		}
+	}
 	return httpx.OK(c, KickOverviewJSON(o, now))
 }
 
@@ -131,6 +138,9 @@ func (h *Handlers) Kick(c fiber.Ctx) error {
 	if err != nil {
 		return fail(err, i18n.Locale(c))
 	}
+	if err := h.lazyExpiry(c, userID, k, now); err != nil {
+		return err
+	}
 	return httpx.OK(c, KickJSON(k, now))
 }
 
@@ -145,7 +155,19 @@ func (h *Handlers) UndoKick(c fiber.Ctx) error {
 	if err != nil {
 		return fail(err, i18n.Locale(c))
 	}
+	if err := h.lazyExpiry(c, userID, k, now); err != nil {
+		return err
+	}
 	return httpx.OK(c, KickJSON(k, now))
+}
+
+// lazyExpiry judges a running session that a write found past its window.
+func (h *Handlers) lazyExpiry(c fiber.Ctx, userID uint64, k store.PregnancyKickSession, now time.Time) error {
+	if !KickExpired(k, now) {
+		return nil
+	}
+	_, err := h.svc.EvaluateKicks(c, userID, now, langOf(c))
+	return err
 }
 
 // StopKicks is POST /pregnancy/kick-sessions/{id}/stop («پایان و ذخیره»).
@@ -158,6 +180,11 @@ func (h *Handlers) StopKicks(c fiber.Ctx) error {
 	k, err := h.svc.StopKicks(c, userID, id, now)
 	if err != nil {
 		return fail(err, i18n.Locale(c))
+	}
+	// A session that ended short of the target raises the urgent fetal_movement alert (T-M9-05); the client reads it
+	// from the alert list, so the response shape stays.
+	if _, err := h.svc.EvaluateKicks(c, userID, now, langOf(c)); err != nil {
+		return err
 	}
 	return httpx.OK(c, KickJSON(k, now), T("messages.saved", i18n.Locale(c)))
 }
@@ -182,11 +209,8 @@ func (h *Handlers) Contractions(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	now, l := h.now(c), langOf(c)
-	p, err := h.svc.Params(c, l)
-	if err != nil {
-		return err
-	}
+	now := h.now(c)
+	p := h.svc.Params(now)
 	active, err := h.svc.ActiveTiming(c, userID)
 	if err != nil {
 		return err
@@ -209,10 +233,7 @@ func (h *Handlers) StartContraction(c fiber.Ctx) error {
 	if err != nil {
 		return fail(err, l.Locale)
 	}
-	p, err := h.svc.Params(c, l)
-	if err != nil {
-		return err
-	}
+	p := h.svc.Params(now)
 	return httpx.OK(c, TimingJSON(t, p, now, true))
 }
 
@@ -228,10 +249,7 @@ func (h *Handlers) StopContraction(c fiber.Ctx) error {
 	if err != nil {
 		return fail(err, l.Locale)
 	}
-	p, err := h.svc.Params(c, l)
-	if err != nil {
-		return err
-	}
+	p := h.svc.Params(now)
 	return httpx.OK(c, jsonx.Obj("session", TimingJSON(t, p, now, true), "alerts", jsonx.List(alerts)))
 }
 
@@ -246,10 +264,7 @@ func (h *Handlers) Timing(c fiber.Ctx) error {
 	if err != nil {
 		return fail(err, l.Locale)
 	}
-	p, err := h.svc.Params(c, l)
-	if err != nil {
-		return err
-	}
+	p := h.svc.Params(now)
 	return httpx.OK(c, TimingJSON(t, p, now, true))
 }
 
@@ -264,10 +279,7 @@ func (h *Handlers) FinishTiming(c fiber.Ctx) error {
 	if err != nil {
 		return fail(err, l.Locale)
 	}
-	p, err := h.svc.Params(c, l)
-	if err != nil {
-		return err
-	}
+	p := h.svc.Params(now)
 	return httpx.OK(c, TimingJSON(t, p, now, true), T("messages.saved", l.Locale))
 }
 

@@ -29,7 +29,7 @@
     "reached": "{target} movements in {time}",
     "reachedBody": "You reached the target. You can finish and save the count.",
     "lowTitle": "Fewer than {target} movements in {hours}",
-    "lowBody": "This alone is not a diagnosis, but it is worth talking to your doctor or midwife today. If you can't feel the baby move at all, don't wait.",
+    "lowBody": "This alone is not a diagnosis, but don't wait: contact your doctor or midwife now. If you can't reach them, call emergency services (115).",
     "call": "Call your doctor or midwife",
     "stop": "Finish and save",
     "saved": "Saved: {count} movements in {time}",
@@ -41,7 +41,9 @@
     "historyLength": "Took {time}",
     "helpTitle": "How does kick counting work?",
     "helpBody": "Pick a time when your baby is usually active, for example after a meal. Lie on your side and tap once for each kick, roll or flutter. Most people feel 10 movements well within 2 hours. What matters more than the number is a change in your baby's usual pattern.",
-    "helpNote": "This tool does not replace a check-up."
+    "helpNote": "This tool does not replace a check-up.",
+    "alertAck": "Got it, thanks",
+    "seeAlerts": "See it in alerts"
   },
   "contraction": {
     "title": "Contraction timer",

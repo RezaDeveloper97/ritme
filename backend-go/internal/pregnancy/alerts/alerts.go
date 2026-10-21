@@ -7,12 +7,20 @@
 // Persian, anything else → English); medical_history_flags is `[]` when empty, else an
 // object, and is only set on symptom alerts; blood-sugar trigger values are the decimal
 // strings of the `decimal:2` cast.
+//
+// T-M9-05 (D-134): the BP, GDM and fetal-movement thresholds are the clinical config (internal/clinicalconfig):
+// BP ≥ pregnancy.bp.severe (160/110) is an emergency, ≥ pregnancy.bp.high (140/90) the warning it always was; blood
+// sugar at or above the GDM targets (fasting 95, post-meal = 1 h 140) warns (≥, no longer >); reduced / no fetal
+// movement fires from pregnancy.fetal_movement.manual_from_week (24).
 package alerts
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/enums"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 	"github.com/ritme/backend-go/internal/pregnancy/calc"
@@ -43,6 +51,15 @@ type Context struct {
 	Locale  string
 	Week    int
 	Profile *store.PregnancyProfile
+	// Day selects the clinical config version (zero = today in Tehran).
+	Day civildate.Date
+}
+
+func (c Context) day() civildate.Date {
+	if !c.Day.IsZero() {
+		return c.Day
+	}
+	return civildate.InTehran(time.Now())
 }
 
 func (c Context) tr(fa, en string) string {
@@ -165,13 +182,27 @@ func (ctx Context) symptomAlert(symptom string, severity any) (Draft, bool) {
 	return Draft{}, false
 }
 
-// ForWeeklyLog is processWeeklyLog(): high blood pressure (≥140 / ≥90), high blood sugar
-// (fasting > 95, post-meal > 140), severe depression feelings.
+// ForWeeklyLog is processWeeklyLog(): severe blood pressure (≥ 160 / ≥ 110, emergency), high blood pressure
+// (≥ 140 / ≥ 90), high blood sugar (fasting ≥ 95, post-meal ≥ 140), severe depression feelings.
 func ForWeeklyLog(ctx Context, log Attrs) []Draft {
 	var out []Draft
 	sys, _ := log.Get("systolic_pressure")
 	dia, _ := log.Get("diastolic_pressure")
-	if HighBloodPressure(sys, dia) {
+	day := ctx.day()
+	if SevereBloodPressureOn(sys, dia, day) {
+		out = append(out, Draft{
+			Level: enums.AlertLevelEmergency,
+			Type:  "symptom_based",
+			Title: ctx.tr("اورژانس: فشار خون در محدودهٔ شدید", "Emergency: Severe Blood Pressure"),
+			Message: ctx.tr(
+				fmt.Sprintf("فشار خونت (%s/%s) در محدودهٔ شدید بارداری است. همین حالا با پزشک یا ماما تماس بگیر یا به بیمارستان برو؛ اگر سردرد شدید، تاری دید یا درد بالای شکم داری، با اورژانس ۱۱۵ تماس بگیر.", str(sys), str(dia)),
+				fmt.Sprintf("Your blood pressure (%s/%s) is in the severe range for pregnancy. Contact your doctor or midwife now or go to the hospital; if you have a severe headache, blurred vision or pain high in your belly, call emergency services (115).", str(sys), str(dia))),
+			Week:    ctx.Week,
+			Trigger: jsonx.Obj("systolic", sys, "diastolic", dia, "severe", true),
+			Actions: ctx.trList([]string{"همین حالا با پزشک یا ماما تماس بگیر", "با اورژانس ۱۱۵ تماس بگیر"},
+				[]string{"Contact your doctor or midwife now", "Call emergency services (115)"}),
+		})
+	} else if HighBloodPressureOn(sys, dia, day) {
 		out = append(out, Draft{
 			Level: enums.AlertLevelWarning,
 			Type:  "symptom_based",
@@ -187,7 +218,7 @@ func ForWeeklyLog(ctx Context, log Attrs) []Draft {
 	}
 	fasting, _ := log.Get("fasting_blood_sugar")
 	postMeal, _ := log.Get("post_meal_blood_sugar")
-	if HighBloodSugar(fasting, postMeal) {
+	if HighBloodSugarOn(fasting, postMeal, day) {
 		out = append(out, Draft{
 			Level: enums.AlertLevelWarning,
 			Type:  "symptom_based",
@@ -215,11 +246,11 @@ func ForWeeklyLog(ctx Context, log Attrs) []Draft {
 	return out
 }
 
-// ForFetalMovement is processFetalMovement(): from week 24, `none` is an emergency and
-// `reduced` a warning.
+// ForFetalMovement is processFetalMovement(): from pregnancy.fetal_movement.manual_from_week (24), `none` is an
+// emergency and `reduced` a warning.
 func ForFetalMovement(ctx Context, log Attrs) []Draft {
 	status, _ := log.Get("movement_status")
-	if ctx.Week < 24 || (status != string(enums.FetalMovementStatusReduced) && status != string(enums.FetalMovementStatusNone)) {
+	if ctx.Week < clinicalconfig.Int(clinicalconfig.KeyPregnancyManualFetalWeek, "week", ctx.day()) || (status != string(enums.FetalMovementStatusReduced) && status != string(enums.FetalMovementStatusNone)) {
 		return nil
 	}
 	d := Draft{Type: "symptom_based", Week: ctx.Week, Trigger: jsonx.Obj("fetal_movement", status)}
@@ -290,17 +321,39 @@ func MedicalHistoryFlags(p *store.PregnancyProfile) *jsonx.OrderedMap {
 	return flags
 }
 
-// HighBloodPressure is PregnancyWeeklyLog::hasHighBloodPressure().
-func HighBloodPressure(systolic, diastolic any) bool {
+// bpAtLeast: both numbers logged (PregnancyWeeklyLog::hasHighBloodPressure()) and either at or above key on day.
+func bpAtLeast(key string, systolic, diastolic any, day civildate.Date) bool {
 	if systolic == nil || diastolic == nil {
 		return false
 	}
-	return num(systolic) >= 140 || num(diastolic) >= 90
+	return num(systolic) >= clinicalconfig.Num(key, "systolic", day) || num(diastolic) >= clinicalconfig.Num(key, "diastolic", day)
 }
 
-// HighBloodSugar is PregnancyWeeklyLog::hasHighBloodSugar().
+// HighBloodPressureOn is PregnancyWeeklyLog::hasHighBloodPressure() with pregnancy.bp.high valid on day.
+func HighBloodPressureOn(systolic, diastolic any, day civildate.Date) bool {
+	return bpAtLeast(clinicalconfig.KeyPregnancyBPHigh, systolic, diastolic, day)
+}
+
+// SevereBloodPressureOn: at or above pregnancy.bp.severe valid on day (T-M9-05).
+func SevereBloodPressureOn(systolic, diastolic any, day civildate.Date) bool {
+	return bpAtLeast(clinicalconfig.KeyPregnancyBPSevere, systolic, diastolic, day)
+}
+
+// HighBloodPressure is HighBloodPressureOn with version 1 (≥ 140 / ≥ 90).
+func HighBloodPressure(systolic, diastolic any) bool {
+	return HighBloodPressureOn(systolic, diastolic, civildate.Date{})
+}
+
+// HighBloodSugarOn: fasting ≥ the GDM fasting target or post-meal (the 1 h slot) ≥ the 1 h target valid on day
+// (pregnancy.gdm.targets; ≥ since T-M9-05, Laravel used >).
+func HighBloodSugarOn(fasting, postMeal any, day civildate.Date) bool {
+	n := func(f string) float64 { return clinicalconfig.Num(clinicalconfig.KeyPregnancyGDMTargets, f, day) }
+	return (fasting != nil && num(fasting) >= n("fasting")) || (postMeal != nil && num(postMeal) >= n("one_hour"))
+}
+
+// HighBloodSugar is HighBloodSugarOn with version 1 (fasting ≥ 95, post-meal ≥ 140).
 func HighBloodSugar(fasting, postMeal any) bool {
-	return (fasting != nil && num(fasting) > 95) || (postMeal != nil && num(postMeal) > 140)
+	return HighBloodSugarOn(fasting, postMeal, civildate.Date{})
 }
 
 func truthy(a Attrs, key string) bool {

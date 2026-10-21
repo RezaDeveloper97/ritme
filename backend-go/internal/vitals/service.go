@@ -8,11 +8,21 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
 	"github.com/ritme/backend-go/internal/notifications"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/platform/jsonx"
+	pregstore "github.com/ritme/backend-go/internal/pregnancy/store"
+	v2 "github.com/ritme/backend-go/internal/pregnancy/v2"
 	profilestore "github.com/ritme/backend-go/internal/profile/store"
 	"github.com/ritme/backend-go/internal/vitals/store"
 )
+
+// PregnancyEngine is the part of the pregnancy alert engine vitals hands readings to.
+type PregnancyEngine interface {
+	EvaluateReadings(ctx context.Context, userID uint64, readings []pregnancyalerts.Reading, now time.Time, l v2.Lang,
+	) ([]*jsonx.OrderedMap, error)
+}
 
 // ErrNotFound: no such reading of this user (a foreign id is the same 404).
 var ErrNotFound = errors.New("vitals: reading not found")
@@ -25,14 +35,25 @@ const LatestLogLookbackDays = 90
 
 // Service is the vitals data access. Every query is scoped by user id.
 type Service struct {
-	db    *sql.DB
-	q     *store.Queries
-	prefs notifications.Getter
+	db     *sql.DB
+	q      *store.Queries
+	prefs  notifications.Getter
+	preg   pregstore.Querier // the pregnancy profile (vitals in pregnancy, T-M9-05)
+	alerts PregnancyEngine
+	now    func() time.Time // today for the pregnancy range
 }
 
-// NewService wires the service on db.
+// NewService wires the service on db (with the pregnancy alert engine on the same db).
 func NewService(db *sql.DB) *Service {
-	return &Service{db: db, q: store.New(db), prefs: profilestore.New(db)}
+	pq := pregstore.New(db)
+	return &Service{db: db, q: store.New(db), prefs: profilestore.New(db), preg: pq, alerts: pregnancyalerts.New(pq), now: time.Now}
+}
+
+// WithClock sets the clock that decides "today" for the pregnancy range (handlers pass the request clock).
+func (s *Service) WithClock(now func() time.Time) *Service {
+	cp := *s
+	cp.now = now
+	return &cp
 }
 
 // Input is a validated reading.
@@ -97,7 +118,11 @@ func (s *Service) Get(ctx context.Context, userID, id uint64) (Reading, error) {
 	if err != nil {
 		return Reading{}, fmt.Errorf("vitals: get: %w", err)
 	}
-	return FromRow(row), nil
+	r := []Reading{FromRow(row)}
+	if err := s.markPregnancy(ctx, userID, r); err != nil {
+		return Reading{}, err
+	}
+	return r[0], nil
 }
 
 // Update replaces a reading of the user.
@@ -130,6 +155,17 @@ func (s *Service) Delete(ctx context.Context, userID, id uint64) error {
 
 // Timed is the user's timed readings of [from, to] (days), newest first; typ "" = all types.
 func (s *Service) Timed(ctx context.Context, userID uint64, typ string, from, to civildate.Date) ([]Reading, error) {
+	out, err := s.timed(ctx, userID, typ, from, to)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.markPregnancy(ctx, userID, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *Service) timed(ctx context.Context, userID uint64, typ string, from, to civildate.Date) ([]Reading, error) {
 	rows, err := s.q.ListReadings(ctx, store.ListReadingsParams{
 		UserID: userID, Type: typ, DateFrom: from.TehranMidnight(), DateTo: to.AddDays(1).TehranMidnight(),
 		Limit: MaxListReadings,
@@ -146,7 +182,7 @@ func (s *Service) Timed(ctx context.Context, userID uint64, typ string, from, to
 
 // Merged is Timed plus the log-sheet day values of [from, to] (merge.go), newest first.
 func (s *Service) Merged(ctx context.Context, userID uint64, typ string, from, to civildate.Date) ([]Reading, error) {
-	timed, err := s.Timed(ctx, userID, "", from, to)
+	timed, err := s.timed(ctx, userID, "", from, to)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +190,11 @@ func (s *Service) Merged(ctx context.Context, userID uint64, typ string, from, t
 	if err != nil {
 		return nil, fmt.Errorf("vitals: log measurements: %w", err)
 	}
-	return OfType(Merge(timed, rows), typ), nil
+	out := OfType(Merge(timed, rows), typ)
+	if err := s.markPregnancy(ctx, userID, out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // Latest is the newest reading of each type (a timed one, or a log-sheet value of the last 90 days when newer).
@@ -180,8 +220,11 @@ func (s *Service) Latest(ctx context.Context, userID uint64, today civildate.Dat
 		if err != nil {
 			return nil, fmt.Errorf("vitals: latest: %w", err)
 		}
-		r := FromRow(row)
-		out[typ] = &r
+		r := []Reading{FromRow(row)}
+		if err := s.markPregnancy(ctx, userID, r); err != nil {
+			return nil, err
+		}
+		out[typ] = &r[0]
 	}
 	return out, nil
 }

@@ -101,8 +101,9 @@ func TestBPAndSugar(t *testing.T) {
 
 	sugar := cfg(7, map[string]any{"fasting_max": 95.0, "post_meal_max": 140.0})
 	hits = Detect("sugar_high", sugar, f)
-	require.Len(t, hits, 1)
-	assert.Equal(t, "140.50", hits[0].Vars[1][1])
+	require.Len(t, hits, 2, "fasting 95 is at the GDM target (≥, T-M9-05)")
+	assert.Equal(t, "95.00", hits[0].Vars[0][1])
+	assert.Equal(t, "140.50", hits[1].Vars[1][1])
 }
 
 func TestFetalMovement(t *testing.T) {
@@ -131,8 +132,8 @@ func TestContractions511(t *testing.T) {
 	require.Len(t, hits, 1)
 	assert.Equal(t, "s7", hits[0].Dedupe)
 	assert.Equal(t, [][2]string{{"count", "13"}, {"minutes", "60"}, {"interval", "5:00"}, {"duration", "0:52"}}, hits[0].Vars)
-	assert.Empty(t, Detect("contractions_511", cfg(1, map[string]any{"run_minutes": 90.0}), f), "admin run length")
-	assert.Equal(t, labor.DefaultParams(), LaborParams(cfg(1, map[string]any{})))
+	assert.Len(t, Detect("contractions_511", cfg(1, map[string]any{"run_minutes": 90.0}), f), 1,
+		"row params no longer change the clinical threshold (registry pregnancy.contractions_511, T-M9-05)")
 }
 
 func TestRenderAndLevels(t *testing.T) {

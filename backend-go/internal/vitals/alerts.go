@@ -27,10 +27,11 @@ const (
 	alertValueToken = "{value}"
 )
 
-// AlertRule is the rule a reading trips ("" = none).
+// AlertRule is the rule of the vitals urgent copy a reading trips ("" = none). A pregnant user's severe-range BP is the
+// pregnancy alert engine's (PregnancyModalJSON); the vitals copy stays for the crisis range (> 180/120).
 func AlertRule(r Reading) string {
 	switch {
-	case r.Type == TypeBP && r.Urgent():
+	case r.Type == TypeBP && ThresholdsOn(r.Date).UrgentBP(r.Systolic, r.Diastolic):
 		return RuleBPCrisis
 	case r.Type == TypeGlucose && r.Urgent():
 		return RuleGlucoseLow

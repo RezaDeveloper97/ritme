@@ -3,7 +3,7 @@ id: T-M9-05
 title: Pregnancy emergency paths: kick counter, severe BP, vitals in pregnancy, GDM
 milestone: M9
 type: fullstack
-status: todo
+status: done
 depends_on: []
 parallel_group: M9-A
 touches: [backend-go/internal/clinicalconfig, backend-go/internal/pregnancy/tools, backend-go/internal/pregnancy/alerts, backend-go/internal/pregnancy/labor, backend-go/internal/messages/pregnancyalerts, backend-go/internal/vitals, backend-go/internal/analysis/pregnancy_thresholds.go, backend-go/internal/safety, frontend/src/screens/log-kick, frontend/src/screens/vitals-add, frontend/messages/fa/pregnancy-tools.json, frontend/messages/en/pregnancy-tools.json, frontend/messages/fa/vitals.json, frontend/messages/en/vitals.json]

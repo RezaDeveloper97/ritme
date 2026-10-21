@@ -64,6 +64,14 @@ const (
 	KeyFertileWindow  = "engine.fertile_window"
 
 	KeyFerritinLow = "lab.ferritin.low"
+
+	// Pregnancy emergency paths (T-M9-05, D-134, DECISIONS.md H-02…H-06).
+	KeyPregnancyBPHigh          = "pregnancy.bp.high"
+	KeyPregnancyBPSevere        = "pregnancy.bp.severe"
+	KeyPregnancyGDMTargets      = "pregnancy.gdm.targets"
+	KeyPregnancyKicks           = "pregnancy.kicks"
+	KeyPregnancyManualFetalWeek = "pregnancy.fetal_movement.manual_from_week"
+	KeyPregnancyContractions511 = "pregnancy.contractions_511"
 )
 
 const (
@@ -75,6 +83,12 @@ const (
 	srcEngine  = "Ritme cycle engine v1.1 (task.md §2.12)"
 	srcFertile = "Wilcox AJ et al., NEJM 1995;333:1517–21"
 	srcLab     = "WHO 2020 guideline on serum ferritin concentrations"
+
+	srcPregBP     = "ACOG Practice Bulletin No. 222, Gestational Hypertension and Preeclampsia (Obstet Gynecol 2020;135:e237–60): ≥ 140/90 hypertension, ≥ 160/110 severe range"
+	srcPregGDM    = "ADA Standards of Care 2024 §15 Management of Diabetes in Pregnancy (fasting < 95, 1 h < 140, 2 h < 120 mg/dL)"
+	srcPregKicks  = "ACOG, Special Tests for Monitoring Fetal Well-Being (count to 10 within 2 hours, usually from week 28)"
+	srcPregManual = "Ritme pregnancy alerts v1 (reduced / no fetal movement from week 24, DECISIONS.md H-04)"
+	srcPreg511    = "ACOG, How to Tell When Labor Begins (5-1-1: every 5 min, about 1 min each, for 1 hour); duration 45 s, DECISIONS.md H-06"
 )
 
 func one(name string, def, lo, hi float64) []Field { return []Field{{name, def, lo, hi}} }
@@ -118,6 +132,21 @@ var Defs = []Def{
 
 	// Reference only: lab statuses compare with the range printed on the sheet or the admin catalog (B-N6-06), so no
 	// engine reads this key yet; it is versioned here so the medical team can approve the catalog fallback value.
+	// Pregnancy emergency paths (T-M9-05). pregnancy.bp.high.urgent: 1 = the urgent level the v2 rule has today, 0 =
+	// follow_up (advisor decision, H-02); the severe tier is always urgent.
+	{Key: KeyPregnancyBPHigh, Group: GroupPregnancy, Unit: "mmHg", Source: srcPregBP,
+		Fields: []Field{{"systolic", 140, 120, 160}, {"diastolic", 90, 80, 110}, {"urgent", 1, 0, 1}}},
+	{Key: KeyPregnancyBPSevere, Group: GroupPregnancy, Unit: "mmHg", Source: srcPregBP,
+		Fields: []Field{{"systolic", 160, 140, 200}, {"diastolic", 110, 90, 140}}},
+	{Key: KeyPregnancyGDMTargets, Group: GroupPregnancy, Unit: "mg/dL", Source: srcPregGDM,
+		Fields: []Field{{"fasting", 95, 80, 126}, {"one_hour", 140, 120, 200}, {"two_hour", 120, 100, 200}}},
+	{Key: KeyPregnancyKicks, Group: GroupPregnancy, Unit: "count / min / week", Source: srcPregKicks,
+		Fields: []Field{{"target", 10, 4, 20}, {"window_min", 120, 30, 240}, {"from_week", 28, 20, 34}}},
+	{Key: KeyPregnancyManualFetalWeek, Group: GroupPregnancy, Unit: "week", Source: srcPregManual,
+		Fields: one("week", 24, 16, 32)},
+	{Key: KeyPregnancyContractions511, Group: GroupPregnancy, Unit: "min / s / min", Source: srcPreg511,
+		Fields: []Field{{"interval_min", 5, 2, 15}, {"duration_s", 45, 20, 120}, {"period_min", 60, 20, 180}}},
+
 	{Key: KeyFerritinLow, Group: GroupLab, Unit: "ng/mL", Source: srcLab, Fields: one("ngml", 15, 1, 100)},
 }
 

@@ -231,25 +231,39 @@ func TestAlerts_VomitingStreakThresholdAndDedupe(t *testing.T) {
 func TestAlerts_DisableRuleAndEditTextsWithoutDeploy(t *testing.T) {
 	h := setup(t)
 	uid, tok := h.user(t, "09120000903", true)
+	// critical_symptom is an emergency rule (T-M9-05): a disabled row no longer switches the path off; the embedded
+	// copy is used and the alert stays urgent.
 	h.exec(`UPDATE message_contents SET payload = JSON_SET(payload, '$.enabled', false)
 		WHERE ` + "`group`" + ` = 'pregnancy_alert' AND item_key = 'critical_symptom'`)
 	r := h.do(t, http.MethodPut, base+"/days/2026-09-23", tok, "en", `{"symptoms":{"spotting":"severe"}}`)
-	assert.Empty(t, byRule(alertsOf(t, r), "critical_symptom"))
-	assert.Zero(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type = 'v2:critical_symptom'`, uid))
-
-	h.exec(`UPDATE message_contents SET payload = JSON_SET(payload, '$.enabled', true, '$.level', 'follow_up')
-		WHERE ` + "`group`" + ` = 'pregnancy_alert' AND item_key = 'critical_symptom'`)
-	r = h.do(t, http.MethodPut, base+"/days/2026-09-23", tok, "en", `{"symptoms":{"spotting":"severe","nausea":"mild"}}`)
 	got := byRule(alertsOf(t, r), "critical_symptom")
 	require.Len(t, got, 1, r.raw)
-	assert.Equal(t, "follow_up", got[0]["level"])
+	assert.Equal(t, "urgent", got[0]["level"])
 	assert.Equal(t, "Spotting logged", got[0]["title"])
+	assert.Equal(t, 1, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type = 'v2:critical_symptom'`, uid))
+
+	// Enabled again with the admin's level: the row's behaviour applies to new hits.
+	h.exec(`UPDATE message_contents SET payload = JSON_SET(payload, '$.enabled', true, '$.level', 'follow_up')
+		WHERE ` + "`group`" + ` = 'pregnancy_alert' AND item_key = 'critical_symptom'`)
+	r = h.do(t, http.MethodPost, "/api/v1/pregnancy/symptoms", tok, "en",
+		`{"log_date":"2026-09-23","has_spotting":true,"spotting_severity":"severe","has_bleeding":true,"bleeding_severity":"mild"}`)
+	require.Equal(t, http.StatusCreated, r.status, r.raw)
+	var bleeding []map[string]any
+	for _, a := range byRule(alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "en", "")), "critical_symptom") {
+		if a["title"] == "Bleeding logged" {
+			bleeding = append(bleeding, a)
+		}
+	}
+	require.Len(t, bleeding, 1)
+	assert.Equal(t, "follow_up", bleeding[0]["level"])
 
 	// An admin edit of the texts shows on the next read, for alerts already raised.
 	h.exec(`UPDATE message_contents SET payload = JSON_SET(payload, '$.title', 'Edited: {symptom}')
 		WHERE ` + "`group`" + ` = 'pregnancy_alert' AND item_key = 'critical_symptom' AND locale = 'en'`)
 	list := alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "en", ""))
-	assert.Equal(t, "Edited: Spotting", byRule(list, "critical_symptom")[0]["title"])
+	for _, a := range byRule(list, "critical_symptom") {
+		assert.Contains(t, a["title"], "Edited: ")
+	}
 }
 
 func TestAlerts_V1SaveRunsRules(t *testing.T) {

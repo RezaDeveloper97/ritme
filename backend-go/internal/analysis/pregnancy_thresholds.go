@@ -42,7 +42,10 @@ const (
 
 // Blood pressure in pregnancy (ACOG Practice Bulletin No. 222, «Gestational Hypertension and
 // Preeclampsia», Obstet Gynecol 2020;135:e237–60): a systolic ≥ 140 or diastolic ≥ 90 mmHg is the
-// hypertension threshold; ≥ 160 / ≥ 110 is the severe range.
+// hypertension threshold; ≥ 160 / ≥ 110 is the severe range. Since T-M9-05 the alert engines read these from the
+// clinical config (pregnancy.bp.high / pregnancy.bp.severe); the constants are its version 1 and
+// TestPregnancyThresholds_MatchClinicalConfig pins them to it. The card reads the constants until pregnancy.go reads
+// the config at the report's day (T-M9-05 open item: pregnancy.go is outside that task's touches).
 const (
 	BPHighSystolic    = 140
 	BPHighDiastolic   = 90
@@ -54,7 +57,7 @@ const (
 
 // Gestational diabetes glucose targets (American Diabetes Association, «Standards of Care in Diabetes —
 // 2024», section 15 Management of Diabetes in Pregnancy, Diabetes Care 2024;47(Suppl 1):S282–S294):
-// fasting < 95, 1 h after a meal < 140, 2 h after a meal < 120 mg/dL.
+// fasting < 95, 1 h after a meal < 140, 2 h after a meal < 120 mg/dL. Version 1 of pregnancy.gdm.targets (T-M9-05).
 const (
 	GDMFastingMax = 95
 	GDMOneHourMax = 140
@@ -75,7 +78,7 @@ var GlucoseTargets = []struct {
 }{{GlucoseFasting, GDMFastingMax}, {GlucoseOneHour, GDMOneHourMax}, {GlucoseTwoHour, GDMTwoHourMax}}
 
 // Fetal movement counting (ACOG, «Special Tests for Monitoring Fetal Well-Being», patient FAQ, and the
-// «count to 10» method): 10 movements within 2 hours, usually from week 28.
+// «count to 10» method): 10 movements within 2 hours, usually from week 28. Version 1 of pregnancy.kicks (T-M9-05).
 const (
 	KicksTarget        = 10
 	KicksWindowMinutes = 120

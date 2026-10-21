@@ -1,0 +1,119 @@
+{
+    "fetal_movement": {
+        "enabled": true,
+        "level": "urgent",
+        "window_days": 1,
+        "params": {
+            "statuses": [
+                "reduced",
+                "none"
+            ]
+        },
+        "title": "Fewer baby movements",
+        "what_we_saw": "You logged baby movements as \"{status}\" today.",
+        "how_sure": "This is your own log; only an exam can check on the baby.",
+        "advice": "Fewer or no movements should not wait until tomorrow. Contact your doctor or midwife now, or go to the hospital.",
+        "actions": [
+            {
+                "key": "call",
+                "label": "Call your doctor or midwife"
+            },
+            {
+                "key": "ack",
+                "label": "Got it, thanks"
+            }
+        ],
+        "contact": "Contact your doctor or midwife now; if you can't reach them or it gets worse, call emergency services (115).",
+        "variants": {
+            "kicks": {
+                "title": "Fewer than {target} movements in {minutes} minutes",
+                "what_we_saw": "You counted {count} movements in this session; the aim is {target} movements within {minutes} minutes.",
+                "how_sure": "This comes from your own count and is not a diagnosis; only an exam can check on the baby.",
+                "advice": "Contact your doctor or midwife now. Don't wait for the movements to come back, and don't leave it until tomorrow."
+            }
+        }
+    },
+    "contractions_511": {
+        "enabled": true,
+        "level": "urgent",
+        "window_days": 1,
+        "params": {},
+        "title": "Your contractions reached the 5-1-1 pattern",
+        "what_we_saw": "You timed {count} contractions in the last {minutes} minutes, on average {interval} apart and {duration} long",
+        "how_sure": "This is worked out from the times you logged; only an exam can confirm that labour has started",
+        "advice": "It is time to call your maternity unit or midwife and get your hospital bag ready. If your waters break, you are bleeding or the baby moves less, do not wait.",
+        "actions": [
+            {
+                "key": "call",
+                "label": "Call the maternity unit"
+            },
+            {
+                "key": "ack",
+                "label": "Got it, thanks"
+            }
+        ],
+        "contact": "If you have heavy bleeding, constant pain or the baby moves less, call emergency services (115) now."
+    },
+    "critical_symptom": {
+        "enabled": true,
+        "level": "urgent",
+        "window_days": 1,
+        "params": {
+            "symptoms": [
+                "bleeding",
+                "fluid_leakage",
+                "severe_sudden_pain",
+                "spotting"
+            ],
+            "spotting_until_week": 12
+        },
+        "title": "{symptom} logged",
+        "what_we_saw": "You logged \"{symptom}\" today.",
+        "how_sure": "This comes from your own log; only a doctor can tell the cause.",
+        "advice": "Don't ignore this symptom. Contact your doctor or midwife now.",
+        "actions": [
+            {
+                "key": "call",
+                "label": "Call your doctor or midwife"
+            },
+            {
+                "key": "ack",
+                "label": "Got it, thanks"
+            }
+        ],
+        "contact": "Contact your doctor or midwife now; if you can't reach them or it gets worse, call emergency services (115)."
+    },
+    "bp_high": {
+        "enabled": true,
+        "level": "urgent",
+        "window_days": 7,
+        "params": {},
+        "title": "High blood pressure logged",
+        "what_we_saw": "You logged {systolic}/{diastolic}.",
+        "how_sure": "One reading from your own log; measuring again at rest helps.",
+        "advice": "A reading of 140/90 or higher in pregnancy should be checked soon. Rest a few minutes, measure again and contact your doctor.",
+        "actions": [
+            {
+                "key": "call",
+                "label": "Call your doctor or midwife"
+            },
+            {
+                "key": "add_to_visit_note",
+                "label": "Add to visit note"
+            },
+            {
+                "key": "ack",
+                "label": "Got it, thanks"
+            }
+        ],
+        "contact": "Contact your doctor or midwife now; if you can't reach them or it gets worse, call emergency services (115).",
+        "variants": {
+            "severe": {
+                "title": "Your blood pressure is in the severe range for pregnancy",
+                "what_we_saw": "You logged {systolic}/{diastolic}; 160/110 or higher in pregnancy is urgent.",
+                "how_sure": "One reading from your own log; with a number like this, don't wait to measure again.",
+                "advice": "Contact your doctor or midwife now, or go to the hospital. If you have a severe headache, blurred vision, pain high in your belly or trouble breathing, call emergency services (115)."
+            }
+        }
+    }
+}

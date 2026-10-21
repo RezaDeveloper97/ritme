@@ -112,7 +112,8 @@ func TestWeeklyUpsertDecimalsAndAlerts(t *testing.T) {
 
 	cnt, err := q.CountActiveAlerts(ctx, uid)
 	require.NoError(t, err)
-	assert.Equal(t, store.CountActiveAlertsRow{Total: 2, Unread: 2, Warning: 2}, cnt)
+	// 165/112 is the severe pregnancy tier since T-M9-05 (D-134): one emergency + one warning.
+	assert.Equal(t, store.CountActiveAlertsRow{Total: 2, Unread: 2, Emergency: 1, UnreadEmergency: 1, Warning: 1}, cnt)
 	row, err := q.GetWeeklyLog(ctx, store.GetWeeklyLogParams{UserID: uid, PregnancyWeek: 27})
 	require.NoError(t, err)
 	assert.False(t, row.HasBloodPressureDevice)

@@ -5,9 +5,13 @@
 //   - kick counts are sessions (pregnancy_kick_sessions) that write their day total into the existing daily fetal
 //     movement log (pregnancy_fetal_movements, GET|POST /pregnancy/fetal-movement) when they end, so the log sheet's
 //     «حرکات جنین» tile, the pregnancy analysis and the alert engine keep reading one table;
-//   - the 5-1-1 rule is the pregnancy alert engine's rule contractions_511 (messages/pregnancyalerts): thresholds,
-//     call / hospital copy and actions are its admin-editable message_contents row; a hit is a v2 alert in the alert
-//     centre, deduplicated per session. The maths is package labor.
+//   - the 5-1-1 rule is the pregnancy alert engine's rule contractions_511 (messages/pregnancyalerts): call / hospital
+//     copy and actions are its admin-editable message_contents row, the thresholds the clinical config
+//     (pregnancy.contractions_511, T-M9-05); a hit is a v2 alert in the alert centre, deduplicated per session. The
+//     maths is package labor;
+//   - a kick session that ends, or runs past its window, short of the target raises the urgent fetal_movement alert
+//     of the same engine (T-M9-05, H-05): evaluated when the session stops and lazily on the next read / write of the
+//     kick sessions (and in the daily evaluation). The session keeps its real status.
 //
 // Both tools need an active, dated pregnancy to start; history stays readable. Every query is scoped by user id;
 // nothing is logged.
@@ -22,6 +26,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 
+	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/pregnancy/labor"
@@ -29,7 +34,9 @@ import (
 	v2 "github.com/ritme/backend-go/internal/pregnancy/v2"
 )
 
-// Kick counter rules (nbl_Log_Kick: «۱۰ حرکت», «اگر در ۲ ساعت کمتر از ۱۰ حرکت حس کردی …»).
+// Kick counter rules (nbl_Log_Kick: «۱۰ حرکت», «اگر در ۲ ساعت کمتر از ۱۰ حرکت حس کردی …»). KickTarget and
+// KickWindowMinutes are version 1 of the clinical config key pregnancy.kicks; the counter reads the version valid on
+// the day (KickParamsOn).
 const (
 	KickTarget        = 10
 	KickWindowMinutes = 120
@@ -54,7 +61,29 @@ var (
 // Alerts is the pregnancy alert engine (messages/pregnancyalerts.Engine).
 type Alerts interface {
 	Evaluate(ctx context.Context, userID uint64, now time.Time, l v2.Lang) ([]*jsonx.OrderedMap, error)
-	RuleParams(ctx context.Context, rule string, l v2.Lang) (labor.Params, error)
+}
+
+// KickParamsOn are the kick-count thresholds valid on day (clinical config pregnancy.kicks).
+func KickParamsOn(day civildate.Date) pregnancyalerts.KickParams {
+	return pregnancyalerts.KickParamsOn(day)
+}
+
+// KickExpired reports whether a running session has passed its counting window at now.
+func KickExpired(k store.PregnancyKickSession, now time.Time) bool {
+	return k.ActiveLock.Valid && !now.Before(k.StartedAt.Add(KickParamsOn(civildate.InTehran(k.StartedAt)).Window))
+}
+
+// EvaluateKicks runs the alert rules after a kick session ended or expired, so a short count raises the urgent
+// fetal_movement alert (no-op without an alert engine). It returns the alerts created.
+func (s *Service) EvaluateKicks(ctx context.Context, userID uint64, now time.Time, l v2.Lang) ([]*jsonx.OrderedMap, error) {
+	if s.alerts == nil {
+		return nil, nil
+	}
+	out, err := s.alerts.Evaluate(ctx, userID, now, l)
+	if err != nil {
+		return nil, fmt.Errorf("pregnancy tools: kick alerts: %w", err)
+	}
+	return out, nil
 }
 
 // Service is the kick counter and contraction timer logic.
@@ -206,7 +235,7 @@ func (s *Service) runningKicks(ctx context.Context, userID, id uint64) (store.Pr
 // Kick counts one movement on a running session.
 func (s *Service) Kick(ctx context.Context, userID, id uint64, now time.Time) (store.PregnancyKickSession, error) {
 	n, err := s.q.AddKick(ctx, store.AddKickParams{
-		Target: KickTarget, At: nullTime(now), Now: nullTime(now), ID: id, UserID: userID, MaxKicks: MaxKicks,
+		Target: kickTarget(now), At: nullTime(now), Now: nullTime(now), ID: id, UserID: userID, MaxKicks: MaxKicks,
 	})
 	if err != nil {
 		return store.PregnancyKickSession{}, fmt.Errorf("pregnancy tools: kick: %w", err)
@@ -221,9 +250,14 @@ func (s *Service) Kick(ctx context.Context, userID, id uint64, now time.Time) (s
 	return k, nil
 }
 
+// kickTarget is the target valid at now, for the tenth_kick_at bookkeeping.
+func kickTarget(now time.Time) uint16 {
+	return uint16(max(1, KickParamsOn(civildate.InTehran(now)).Target)) //nolint:gosec // registry bounds 4..20
+}
+
 // UndoKick takes the last movement back (a session at 0 stays at 0).
 func (s *Service) UndoKick(ctx context.Context, userID, id uint64, now time.Time) (store.PregnancyKickSession, error) {
-	if _, err := s.q.UndoKick(ctx, store.UndoKickParams{Target: KickTarget, Now: nullTime(now), ID: id, UserID: userID}); err != nil {
+	if _, err := s.q.UndoKick(ctx, store.UndoKickParams{Target: kickTarget(now), Now: nullTime(now), ID: id, UserID: userID}); err != nil {
 		return store.PregnancyKickSession{}, fmt.Errorf("pregnancy tools: undo kick: %w", err)
 	}
 	return s.runningKicks(ctx, userID, id)
@@ -298,7 +332,7 @@ func SummarizeDay(sessions []store.PregnancyKickSession) FetalDay {
 		if last.After(d.Last) {
 			d.Last = last
 		}
-		if k.TenthKickAt.Valid && k.TenthKickAt.Time.Sub(k.StartedAt) <= KickWindowMinutes*time.Minute {
+		if k.TenthKickAt.Valid && k.TenthKickAt.Time.Sub(k.StartedAt) <= KickParamsOn(civildate.InTehran(k.StartedAt)).Window {
 			d.Normal = true
 		}
 	}
@@ -395,13 +429,8 @@ func toLabor(c store.PregnancyContraction) labor.Contraction {
 	return lc
 }
 
-// Params are the live 5-1-1 thresholds (labor defaults without an alert engine).
-func (s *Service) Params(ctx context.Context, l v2.Lang) (labor.Params, error) {
-	if s.alerts == nil {
-		return labor.DefaultParams(), nil
-	}
-	return s.alerts.RuleParams(ctx, Rule, l)
-}
+// Params are the live 5-1-1 thresholds: the clinical config valid at now (pregnancy.contractions_511).
+func (s *Service) Params(now time.Time) labor.Params { return labor.ParamsOn(civildate.InTehran(now)) }
 
 func (s *Service) timing(ctx context.Context, q *store.Queries, userID uint64, sess store.PregnancyContractionSession) (Timing, error) {
 	cs, err := q.ListSessionContractions(ctx, store.ListSessionContractionsParams{SessionID: sess.ID, UserID: userID})
@@ -522,10 +551,7 @@ func (s *Service) StopContraction(ctx context.Context, userID uint64, now time.T
 	if err != nil {
 		return Timing{}, nil, err
 	}
-	p, err := s.Params(ctx, l)
-	if err != nil {
-		return Timing{}, nil, err
-	}
+	p := s.Params(now)
 	if r := labor.FiveOneOne(t.Labor(), p); r.Met && !t.Session.AlertAt.Valid {
 		if err := s.q.SetContractionAlertAt(ctx, store.SetContractionAlertAtParams{
 			AlertAt: nullTime(r.MetAt), Now: nullTime(now), ID: sess.ID, UserID: userID,
