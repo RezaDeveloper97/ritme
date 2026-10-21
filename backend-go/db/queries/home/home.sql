@@ -8,12 +8,11 @@
 -- $user->appNotifications()->unread()->count().
 SELECT COUNT(*) FROM `user_notifications` WHERE user_id = ? AND read_at IS NULL;
 
--- name: ListTaskTemplatesForPhase :many
--- TaskTemplate::active()->forPhase($phase): cycle_phase IS NULL, or = $phase when $phase is truthy.
-SELECT id, `key`, title, description, category, icon
+-- name: ListActiveTaskTemplates :many
+-- TaskTemplate::active(), whole table (T-M9-13b: a configcache snapshot; forPhase($phase) is applied in Go).
+SELECT id, `key`, title, description, category, icon, cycle_phase
 FROM `task_templates`
 WHERE is_active = 1
-  AND (cycle_phase IS NULL OR (CAST(sqlc.arg(has_phase) AS SIGNED) = 1 AND cycle_phase = sqlc.arg(phase)))
 ORDER BY sort_order, id;
 
 -- name: ListTaskCompletionIDsOn :many
@@ -22,16 +21,17 @@ SELECT task_template_id FROM `user_task_completions`
 WHERE user_id = ? AND completion_date = ?
 ORDER BY id;
 
--- name: ListAffirmationsForPhase :many
--- Affirmation::active()->forPhase($phase)->orderBy('sort_order')->orderBy('id').
-SELECT id, `text`
+-- name: ListActiveAffirmations :many
+-- Affirmation::active()->orderBy('sort_order')->orderBy('id'), whole table (T-M9-13b: a configcache snapshot;
+-- forPhase($phase) is applied in Go).
+SELECT id, `text`, cycle_phase
 FROM `affirmations`
 WHERE is_active = 1
-  AND (cycle_phase IS NULL OR (CAST(sqlc.arg(has_phase) AS SIGNED) = 1 AND cycle_phase = sqlc.arg(phase)))
 ORDER BY sort_order, id;
 
 -- name: ListActiveChallenges :many
--- DailyChallengeService::challengeFor(): Challenge::active()->orderBy('sort_order')->orderBy('id').
+-- DailyChallengeService::challengeFor(): Challenge::active()->orderBy('sort_order')->orderBy('id'), whole table
+-- (T-M9-13b: a configcache snapshot over challenges + challenge_programs).
 SELECT id, title, description, cycle_day_from, cycle_day_to, category
 FROM `challenges`
 WHERE is_active = 1
@@ -76,17 +76,13 @@ WHERE user_id = sqlc.arg(user_id) AND is_active = 1 AND `type` = 'medication'
 ORDER BY COALESCE(recurrence_time, TIME(scheduled_at)), id
 LIMIT 1;
 
--- name: ListHomeArticles :many
--- Article::published()->forPhase($candidates)->limit(6): untagged articles, or tagged with any
--- candidate (orWhereJsonContains per candidate = JSON_OVERLAPS with the candidate list);
--- ordered `cycle_phases is null`, sort_order.
+-- name: ListPublishedHomeArticles :many
+-- Article::published(), whole table in sort_order, id (T-M9-13b: a configcache snapshot). forPhase($candidates)
+-- (untagged, or JSON_OVERLAPS with the candidates), the `cycle_phases is null` ordering and limit(6) are applied in Go.
 SELECT id, slug, title, excerpt, cycle_phases, category, read_time_minutes, image_url, image_path
 FROM `articles`
 WHERE is_published = 1
-  AND (cycle_phases IS NULL
-    OR (CAST(sqlc.arg(has_phases) AS SIGNED) = 1 AND JSON_OVERLAPS(cycle_phases, sqlc.arg(phases))))
-ORDER BY (cycle_phases IS NULL), sort_order, id
-LIMIT 6;
+ORDER BY sort_order, id;
 
 -- name: GetTaskTemplateID :one
 -- Route-model binding {task}: TaskTemplate::where('id', $value)->firstOrFail().

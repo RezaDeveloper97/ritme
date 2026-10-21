@@ -89,9 +89,10 @@ func TestProvisionNewLanguage(t *testing.T) {
 		('pattern', 'b', 'fa', NULL, '{"tips":["x","y"]}', 0, 1, 1, NOW(), NOW()),
 		('pattern', 'a', 'en', 'A', '{"text":"Hi"}', 1, 1, 0, NOW(), NOW())`)
 
-	// Both stacks have the language list cached.
+	// Both stacks have the language list cached. Go keeps it in a configcache snapshot since T-M9-13b; the
+	// legacy Redis key is planted to check that a flush still removes it (older builds during a rolling deploy).
 	assert.Equal(t, []string{"fa", "en"}, codes(publicGet(t, e, "/api/v1/languages")))
-	require.True(t, e.Redis.Exists("ritme-go:languages.registry"))
+	require.NoError(t, e.Redis.Set("ritme-go:languages.registry", "[]"))
 	require.NoError(t, e.Redis.DB(1).Set(laravelKey, "a:0:{}"))
 
 	// Validation.

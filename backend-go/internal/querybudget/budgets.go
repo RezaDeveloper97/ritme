@@ -35,16 +35,16 @@ var Budgets = []Budget{
 	{"cycle date", "/api/v1/cycle/date/:date", "/api/v1/cycle/date/2026-10-25", enums.LifeModeCycle, 8, 4},
 	{"cycle month calendar", "/api/v1/cycle/month/:year/:month", "/api/v1/cycle/month/2026/10?view=calendar", enums.LifeModeCycle, 6, 4},
 	{"cycle month full", "/api/v1/cycle/month/:year/:month", "/api/v1/cycle/month/2026/10", enums.LifeModeCycle, 8, 4},
-	{"home", "/api/v1/home", "/api/v1/home", enums.LifeModeCycle, 20, 15},
+	{"home", "/api/v1/home", "/api/v1/home", enums.LifeModeCycle, 20, 11},
 	{"home cycle-overview", "/api/v1/home/cycle-overview", "/api/v1/home/cycle-overview", enums.LifeModeCycle, 9, 7},
 	{"messages daily", "/api/v1/messages/daily", "/api/v1/messages/daily", enums.LifeModeCycle, 11, 8},
 	{"messages selected", "/api/v1/messages/selected", "/api/v1/messages/selected?placement=smart_tip", enums.LifeModeCycle, 10, 7},
 	{"fertility insights", "/api/v1/fertility/insights", "/api/v1/fertility/insights", enums.LifeModeTTC, 8, 5},
 	{"fertility bbt", "/api/v1/fertility/bbt", "/api/v1/fertility/bbt", enums.LifeModeTTC, 7, 4},
-	{"analysis summary", "/api/v1/analysis/summary", "/api/v1/analysis/summary?range=3m", enums.LifeModeCycle, 13, 11},
-	{"analysis monthly", "/api/v1/analysis/monthly/:ym", "/api/v1/analysis/monthly/2026-09", enums.LifeModeCycle, 16, 14},
-	{"analysis ttc", "/api/v1/analysis/ttc", "/api/v1/analysis/ttc", enums.LifeModeTTC, 14, 11},
-	{"analysis pregnancy", "/api/v1/analysis/pregnancy", "/api/v1/analysis/pregnancy", enums.LifeModePregnancy, 17, 15},
+	{"analysis summary", "/api/v1/analysis/summary", "/api/v1/analysis/summary?range=3m", enums.LifeModeCycle, 14, 11},
+	{"analysis monthly", "/api/v1/analysis/monthly/:ym", "/api/v1/analysis/monthly/2026-09", enums.LifeModeCycle, 17, 14},
+	{"analysis ttc", "/api/v1/analysis/ttc", "/api/v1/analysis/ttc", enums.LifeModeTTC, 15, 11},
+	{"analysis pregnancy", "/api/v1/analysis/pregnancy", "/api/v1/analysis/pregnancy", enums.LifeModePregnancy, 18, 15},
 }
 
 // Auth is the auth step alone (passport Verify, T-M9-09): cold loads the OAuth client list once, warm is the one

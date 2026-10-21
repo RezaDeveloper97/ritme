@@ -1508,3 +1508,20 @@ Nothing needed fixing.
 - Tokens are minted with `passport.Issuer` straight into the scratch DB (the OTP rate limits make the API path impossible for 2 000 users). They go to `loadtest/.tokens.json`, mode 0600, git-ignored. No OTP bypass was added to the API.
 - Make targets: `loadtest-db`, `loadtest-seed`, `loadtest-api`, `loadtest SCENARIO=…`, `loadtest-lint`, `loadtest-drop`. The k6 image is pinned to `grafana/k6:1.3.0` (unverified); `K6_RUNNER=local` uses a local k6.
 - **Not measured:** the disk filled up (mostly per-agent Go build caches in the scratchpad) and Docker Desktop hung. The baseline moved to **T-M9-14b**.
+
+## T-M9-13b — Config caches on /home and the language registry
+- `/home`: task templates, affirmations, challenges (+ `challenge_programs`) and published articles are configcache snapshots (`internal/home/config.go`), with filtering in Go:
+  - phase match follows the `utf8mb4_unicode_ci` column rules;
+  - a copy of MariaDB's `JSON_OVERLAPS`;
+  - articles: tagged first, then untagged, limit 6.
+  - The queries now read whole tables: `ListActiveTaskTemplates`, `ListActiveAffirmations`, `ListPublishedHomeArticles`.
+- `internal/i18n/registry.go`: the language list is a configcache snapshot (no Redis GET per request). `Flush` publishes `languages` and also deletes the legacy key `ritme-go:languages.registry`, for older builds during a rolling deploy. `CacheTTL` is removed.
+- The main session:
+  - removed `content.RegistryTTL` (`routes_content.go`, `content.go`, its test);
+  - set the measured budgets in `internal/querybudget/budgets.go` (home 20/11; analysis cold +1);
+  - relaxed `TestMessagesSelectedConstantInRules` to warm + 1, because the seeded capped rules trigger the one stats prefetch;
+  - updated `admin/languages` `TestProvisionNewLanguage`: Go no longer writes the Redis key, so the test plants it;
+  - added the before/after table to `docs/engine-v6/perf-baseline.md`.
+- Tests: new unit tests and integration tests (`home/config_int_test.go`, i18n snapshot + pub/sub across two processes). `registry_ttl_test.go` was deleted (it tested the removed TTL).
+- Verify: `make test-int` for home/i18n/querybudget/admin/content is green. The full `make test-int PKG=./...` run was interrupted by a crash of the local test MariaDB (InnoDB semaphore timeout after the earlier Docker hang); after restarting it, all 56 affected packages passed.
+- Also fixed: `internal/auth/lifecycle_test.go` `listenOnce` hung when Shutdown landed before fasthttp entered Serve (a T-M9-12 test race). It now closes the listener after Shutdown; 20 runs in a row are green.

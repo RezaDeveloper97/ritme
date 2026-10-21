@@ -202,3 +202,19 @@ Re-record `bench/baseline.txt` (and update the tables here) in the same change w
 allocations — an optimisation that lowers them, or a feature that adds work — or when the Go toolchain changes
 (the CI job installs the version in the header). Lower the query budget rows in `budgets.go` whenever a count
 drops. Prefer a quiet machine: the time columns are only comparable between runs on the same machine.
+
+## T-M9-13b — config caches on /home and the language registry (2026-10-21)
+
+Measured with `make test-int PKG="-v ./internal/querybudget/..."` (cold = configcache off, warm = caches filled).
+
+| Route | Before (cold / warm) | After (cold / warm) |
+|---|---|---|
+| `/api/v1/home` | 20 / 15 | 20 / **11** |
+| `/api/v1/analysis/summary?range=3m` | 13 / 11 | 14 / 11 |
+| `/api/v1/analysis/monthly/:ym` | 16 / 14 | 17 / 14 |
+| `/api/v1/analysis/ttc` | 14 / 11 | 15 / 11 |
+| `/api/v1/analysis/pregnancy` | 17 / 15 | 18 / 15 |
+
+- Home warm drops by 4: task templates, affirmations, articles and challenges come from configcache snapshots.
+- The language list is a configcache snapshot, so there is no Redis read per request. The analysis cold rows gain one query because with configcache off the snapshot reloads on each call; warm is unchanged, and in production the snapshot loads once per process.
+- `messages selected` stays constant in the number of rules (1 rule and 50 rules: 8 warm queries). With capped or cooled-down candidate rules, the single `ListUserMessageEventStats` prefetch adds 1 over the table row.

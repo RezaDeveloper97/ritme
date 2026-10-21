@@ -1,8 +1,6 @@
 package http
 
 import (
-	"time"
-
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
@@ -14,10 +12,6 @@ import (
 	"github.com/ritme/backend-go/resources/translations"
 )
 
-// languageRegistryTTL bounds how long a language edited in the Laravel admin takes to
-// reach Go during the strangler period (the registry entry itself has no TTL).
-const languageRegistryTTL = 5 * time.Minute
-
 // Content (backend/routes/api.php: languages, info, privacy, banners, articles,
 // cycle/phase-content) plus the public disk under /storage. Middleware is attached per
 // route so nothing leaks onto other domains' /api/v1 routes.
@@ -26,7 +20,6 @@ func init() {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		reg := i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger)
 		locale := i18n.Middleware(reg)
-		ttl := content.RegistryTTL(d.Cache, languageRegistryTTL)
 		h := content.New(content.Deps{
 			Queries:      contentstore.New(d.DB),
 			Translations: i18n.NewTranslationStore(translations.FS, d.Config.StoragePath),
@@ -37,17 +30,17 @@ func init() {
 		})
 
 		// Public.
-		r.Get("/api/v1/languages", ttl, locale, h.Languages)
-		r.Get("/api/v1/languages/:code/messages", ttl, locale, h.Messages)
-		r.Get("/api/v1/info/:group", ttl, locale, h.Info)
-		r.Get("/api/v1/privacy", ttl, locale, h.Privacy)
-		r.Get("/api/v1/info-pages/:group", ttl, locale, h.InfoPage) // B-N1-12, Go only
+		r.Get("/api/v1/languages", locale, h.Languages)
+		r.Get("/api/v1/languages/:code/messages", locale, h.Messages)
+		r.Get("/api/v1/info/:group", locale, h.Info)
+		r.Get("/api/v1/privacy", locale, h.Privacy)
+		r.Get("/api/v1/info-pages/:group", locale, h.InfoPage) // B-N1-12, Go only
 
 		// auth:api.
-		r.Get("/api/v1/banners", ttl, locale, guard, h.Banners)
-		r.Get("/api/v1/articles", ttl, locale, guard, h.Articles)
-		r.Get("/api/v1/articles/:slug", ttl, locale, guard, h.Article)
-		r.Get("/api/v1/cycle/phase-content/:phase", ttl, locale, guard, h.PhaseContent)
+		r.Get("/api/v1/banners", locale, guard, h.Banners)
+		r.Get("/api/v1/articles", locale, guard, h.Articles)
+		r.Get("/api/v1/articles/:slug", locale, guard, h.Article)
+		r.Get("/api/v1/cycle/phase-content/:phase", locale, guard, h.PhaseContent)
 
 		// Public disk (Apache served it through the storage:link symlink).
 		r.Get("/storage/*", h.Storage)

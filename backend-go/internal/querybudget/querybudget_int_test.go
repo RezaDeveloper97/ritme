@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http/httptest"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -271,4 +272,51 @@ func nullJSON(v sql.Null[json.RawMessage]) any {
 		return nil
 	}
 	return string(v.V)
+}
+
+// TestMessagesSelectedConstantInRules: /messages/selected reads the active rules from the configcache snapshot and
+// their history in one grouped query (T-M9-13), so its warm count does not grow with the number of rules (T-M9-13b).
+func TestMessagesSelectedConstantInRules(t *testing.T) {
+	db := testdb.New(t)
+	keysPath, err := filepath.Abs(keysDir)
+	require.NoError(t, err)
+	keys, err := passport.LoadKeys(keysPath)
+	require.NoError(t, err)
+	exec(t, db, `INSERT INTO oauth_clients (id, name, secret, provider, redirect_uris, grant_types, revoked, created_at, updated_at)
+		VALUES (?, 'Ritme Personal Access Client', NULL, 'users', '[]', '["personal_access"]', 0, NOW(), NOW())`, clientID)
+	u, _ := benchfixtures.UserFor(enums.LifeModeCycle)
+	uid := seedUser(t, db, u, "09120007777")
+	tok, err := passport.NewIssuer(keys.Private, authstore.New(db), clock.Real{}, 365).Issue(context.Background(), uid, time.Now())
+	require.NoError(t, err)
+
+	const content = `{"a":{"title":"Hi","body":"body","cta_label":"Go","cta_target":"ritme://x"}}`
+	addRules := func(n int) {
+		for i := range n {
+			// capped and cooled-down rules: each one needs its own history (the probes T-M9-13 folded into one query)
+			exec(t, db, `INSERT INTO message_rules (title, level, kind, priority, placement, content, variants_enabled, ab_split,
+				conditions, exceptions, cap_count, cap_period, cooldown_days, audience_percent, status, is_active, version, created_at, updated_at)
+				VALUES (?, 'suggestion', 'product', ?, 'smart_tip', ?, 0, 50, '[]', '[]', 3, 'week', 1, 100, 'draft', 1, 1, NOW(), NOW())`,
+				fmt.Sprintf("rule %d", i), 1+i%50, content)
+		}
+		configcache.Changed(context.Background(), "message_rules")
+	}
+	path := querybudget.Budgets[slices.IndexFunc(querybudget.Budgets, func(b querybudget.Budget) bool { return b.Name == "messages selected" })]
+
+	configcache.SetEnabled(true)
+	defer configcache.SetEnabled(false)
+	app := newApp(t, db, keysPath)
+	warm := func() int64 {
+		_, _ = call(t, app, path.Path, tok.AccessToken) // reloads the snapshot after a change
+		n, _ := call(t, app, path.Path, tok.AccessToken)
+		return n
+	}
+	addRules(1)
+	one := warm()
+	addRules(49)
+	fifty := warm()
+	t.Logf("messages selected warm: 1 rule %d queries, 50 rules %d queries", one, fifty)
+	assert.Equal(t, one, fifty, "query count constant in the number of rules")
+	// The seeded rules are capped/cooled-down, so Select runs its one ListUserMessageEventStats prefetch
+	// (rules.Select): +1 over the table row, whose user has no such candidate.
+	assert.LessOrEqual(t, fifty, path.Warm+1)
 }

@@ -5,23 +5,22 @@ package i18n
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"log/slog"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/cache"
+	"github.com/ritme/backend-go/internal/platform/configcache"
 )
 
-// CacheKey is LanguageRegistry::CACHE_KEY, stored under the Go prefix (ritme-go:languages.registry).
-const CacheKey = "languages.registry"
+// Table is the table the registry snapshot reads; the admin language writers publish it (configcache.Changed).
+const Table = "languages"
 
-// CacheTTL bounds the cached list (B5, T-M9-03): admin writes Flush it at once, and a direct DB edit (or a Laravel
-// admin edit during the strangler period) is picked up within this time instead of never.
-const CacheTTL = 10 * time.Minute
+// CacheKey is LanguageRegistry::CACHE_KEY under the Go prefix (ritme-go:languages.registry). Since T-M9-13b the Go
+// registry no longer reads it (the list is a configcache snapshot); Flush still deletes it so a process of an older
+// build, which reads it with a 10-minute TTL, sees an admin write at once during a rolling deploy.
+const CacheKey = "languages.registry"
 
 // Language is one active row of the languages table (LanguageRegistry::all()).
 type Language struct {
@@ -130,48 +129,43 @@ type LanguageLister interface {
 	ListActiveLanguages(ctx context.Context) ([]store.ListActiveLanguagesRow, error)
 }
 
-// Registry is LanguageRegistry: the active languages, cached in Redis forever until
-// Flush (every write to the languages table must call it).
+// Registry is LanguageRegistry: the active languages as a process-wide configcache snapshot (T-M9-13b): no Redis
+// read per request; an admin write (Flush, or httpadmin.Publishes on "languages") reloads it here and, over
+// ritme-go:config-changed, in every other process; a direct DB edit is picked up within configcache.DefaultTTL.
 type Registry struct {
 	db     LanguageLister
-	cache  *cache.Client // nil: no caching
+	cache  *cache.Client // nil: no legacy key to delete on Flush
 	logger *slog.Logger
+	hub    *configcache.Hub
+	snap   *configcache.Cache[Languages]
 }
 
-// NewRegistry builds a registry. cache and logger may be nil.
+// NewRegistry builds a registry on configcache.Default. cache and logger may be nil.
 func NewRegistry(db LanguageLister, c *cache.Client, logger *slog.Logger) *Registry {
 	if logger == nil {
 		logger = slog.New(slog.DiscardHandler)
 	}
-	return &Registry{db: db, cache: c, logger: logger}
+	r := &Registry{db: db, cache: c, logger: logger}
+	return r.WithHub(configcache.Default)
 }
 
-// All returns the active languages. It never fails: an unreadable table yields Bootstrap
-// (not cached, so the next request retries); an empty table yields Bootstrap (cached).
-// The cached list lives CacheTTL (Laravel's rememberForever never refreshed a direct DB edit).
+// WithHub binds the registry's snapshot to h instead of configcache.Default (tests play a second process with it).
+// Call it right after NewRegistry, before the registry is shared.
+func (r *Registry) WithHub(h *configcache.Hub) *Registry {
+	r.hub = h
+	r.snap = configcache.New[Languages](Table, []string{Table}, r.load, configcache.WithHub(h))
+	return r
+}
+
+// All returns the active languages. It never fails: an unreadable table yields Bootstrap (no snapshot is stored, so
+// the next request retries; with a snapshot already loaded the previous list keeps being served); an empty table
+// yields Bootstrap (stored).
 func (r *Registry) All(ctx context.Context) Languages {
-	if r.cache != nil {
-		if raw, err := r.cache.Get(ctx, CacheKey); err == nil {
-			var langs Languages
-			if json.Unmarshal([]byte(raw), &langs) == nil && len(langs) > 0 {
-				return langs
-			}
-		} else if !errors.Is(err, cache.ErrMiss) {
-			r.logger.WarnContext(ctx, "language registry: cache read failed", slog.String("error", err.Error()))
-		}
-	}
-	langs, err := r.load(ctx)
+	langs, err := r.snap.Get(ctx)
 	if err != nil {
 		r.logger.ErrorContext(ctx, "language registry: load failed, using bootstrap languages",
 			slog.String("error", err.Error()))
 		return Bootstrap
-	}
-	if r.cache != nil {
-		if b, err := json.Marshal(langs); err == nil {
-			if err := r.cache.Set(ctx, CacheKey, string(b), CacheTTL); err != nil {
-				r.logger.WarnContext(ctx, "language registry: cache write failed", slog.String("error", err.Error()))
-			}
-		}
 	}
 	return langs
 }
@@ -192,8 +186,10 @@ func (r *Registry) load(ctx context.Context) (Languages, error) {
 	return langs, nil
 }
 
-// Flush drops the cached list (LanguageRegistry::flush) after any write to languages.
+// Flush (LanguageRegistry::flush) is what every write to languages calls after its commit: the snapshot reloads on
+// the next All here and, through configcache's pub/sub, in the other processes. It also deletes the legacy Redis key.
 func (r *Registry) Flush(ctx context.Context) error {
+	r.hub.Changed(ctx, Table)
 	if r.cache == nil {
 		return nil
 	}

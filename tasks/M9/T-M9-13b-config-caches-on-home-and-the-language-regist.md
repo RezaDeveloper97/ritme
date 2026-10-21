@@ -3,10 +3,10 @@ id: T-M9-13b
 title: Config caches on /home and the language registry, query budgets
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-13,T-M9-08]
 parallel_group: M9-B
-touches: [backend-go/db/queries/home,backend-go/internal/home,backend-go/internal/i18n/registry.go,backend-go/internal/querybudget,docs/engine-v6/perf-baseline.md]
+touches: [backend-go/db/queries/home,backend-go/internal/home,backend-go/internal/i18n/registry.go,backend-go/internal/querybudget]
 skills: []
 verify: cd backend-go && go vet ./... && go test ./internal/home/... ./internal/i18n/... ./internal/querybudget/... && make test-int PKG="./internal/home/... ./internal/i18n/..."
 ---
@@ -43,3 +43,12 @@ Admin writers for every table below already publish (`internal/admin/httpadmin/p
 
 ## Acceptance
 - `/home` config tables and the language list are served from snapshots; budgets recorded and enforced; verify green.
+
+> Note (main session, 2026-10-21): `docs/engine-v6/perf-baseline.md` was dropped from touches so this task can run next to T-M9-22. Report the numbers in the task report; the main session adds them to the doc.
+
+## Waiting for Docker (2026-10-21)
+The code is done and the unit tests, vet and lint are green. The main session also removed `content.RegistryTTL`: `routes_content.go`, `content.go` and `content_test.go`. The disk filled up and Docker Desktop hung, so these steps still have to run before the commit:
+1. `make test-int PKG="./internal/home/... ./internal/i18n/..."`
+2. `make test-int PKG="-v ./internal/querybudget/..."`: read the `/api/v1/home` row and the `TestMessagesSelectedConstantInRules` line, then set the `home` row in `internal/querybudget/budgets.go` to the measured numbers (it is 20/15 today; warm is expected to be about 11). Watch for a cold count rising by 1–2 because the language snapshot is reloaded on every cold call.
+3. `make test-int PKG=./internal/admin/...` (optional).
+4. Add the before/after counts to `docs/engine-v6/perf-baseline.md`.

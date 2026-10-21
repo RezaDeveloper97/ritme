@@ -16,7 +16,6 @@ import (
 
 	"github.com/ritme/backend-go/internal/content/store"
 	"github.com/ritme/backend-go/internal/i18n"
-	"github.com/ritme/backend-go/internal/platform/cache"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 )
@@ -108,18 +107,4 @@ func pickString(raw json.RawMessage, locale, def string) (string, bool) {
 		return "", false
 	}
 	return s, true
-}
-
-// RegistryTTL bounds the age of the shared language-registry cache entry
-// (ritme-go:languages.registry): during the strangler period Laravel's admin edits languages,
-// and Go must pick them up. It sets an expiry only when the key has none (EXPIRE … NX), so it
-// never extends one. Since T-M9-03 internal/i18n writes the key with i18n.CacheTTL, so this
-// is only a guard for an entry written without one (it is mounted in internal/http/routes_content.go).
-func RegistryTTL(c *cache.Client, ttl time.Duration) fiber.Handler {
-	return func(ctx fiber.Ctx) error {
-		if c != nil {
-			_ = c.Redis().ExpireNX(ctx, c.Key(i18n.CacheKey), ttl).Err()
-		}
-		return ctx.Next()
-	}
 }

@@ -75,9 +75,9 @@ func ChallengePayload(ctx context.Context, q store.Querier, userID uint64, date 
 func challengeFor(ctx context.Context, q store.Querier, userID uint64, date civildate.Date, cycleDay *int,
 	recentLogs []cyclestore.DailyHealthLog,
 ) (challengeRow, bool, error) {
-	pool, err := q.ListActiveChallenges(ctx)
+	pool, err := activeChallenges(ctx, q)
 	if err != nil {
-		return challengeRow{}, false, fmt.Errorf("home: challenges: %w", err)
+		return challengeRow{}, false, err
 	}
 	if len(pool) == 0 {
 		return challengeRow{}, false, nil

@@ -35,20 +35,21 @@ type Querier interface {
 	GetTaskTemplateID(ctx context.Context, id uint64) (uint64, error)
 	InsertChallengeCompletion(ctx context.Context, arg InsertChallengeCompletionParams) error
 	InsertTaskCompletion(ctx context.Context, arg InsertTaskCompletionParams) error
-	// DailyChallengeService::challengeFor(): Challenge::active()->orderBy('sort_order')->orderBy('id').
+	// Affirmation::active()->orderBy('sort_order')->orderBy('id'), whole table (T-M9-13b: a configcache snapshot;
+	// forPhase($phase) is applied in Go).
+	ListActiveAffirmations(ctx context.Context) ([]ListActiveAffirmationsRow, error)
+	// DailyChallengeService::challengeFor(): Challenge::active()->orderBy('sort_order')->orderBy('id'), whole table
+	// (T-M9-13b: a configcache snapshot over challenges + challenge_programs).
 	ListActiveChallenges(ctx context.Context) ([]ListActiveChallengesRow, error)
-	// Affirmation::active()->forPhase($phase)->orderBy('sort_order')->orderBy('id').
-	ListAffirmationsForPhase(ctx context.Context, arg ListAffirmationsForPhaseParams) ([]ListAffirmationsForPhaseRow, error)
+	// TaskTemplate::active(), whole table (T-M9-13b: a configcache snapshot; forPhase($phase) is applied in Go).
+	ListActiveTaskTemplates(ctx context.Context) ([]ListActiveTaskTemplatesRow, error)
 	// withoutRecentlyCompleted(): completions with from <= completion_date < before.
 	ListChallengeIDsCompletedBetween(ctx context.Context, arg ListChallengeIDsCompletedBetweenParams) ([]uint64, error)
-	// Article::published()->forPhase($candidates)->limit(6): untagged articles, or tagged with any
-	// candidate (orWhereJsonContains per candidate = JSON_OVERLAPS with the candidate list);
-	// ordered `cycle_phases is null`, sort_order.
-	ListHomeArticles(ctx context.Context, arg ListHomeArticlesParams) ([]ListHomeArticlesRow, error)
+	// Article::published(), whole table in sort_order, id (T-M9-13b: a configcache snapshot). forPhase($candidates)
+	// (untagged, or JSON_OVERLAPS with the candidates), the `cycle_phases is null` ordering and limit(6) are applied in Go.
+	ListPublishedHomeArticles(ctx context.Context) ([]ListPublishedHomeArticlesRow, error)
 	// $user->taskCompletions()->whereDate('completion_date', $date)->pluck('task_template_id').
 	ListTaskCompletionIDsOn(ctx context.Context, arg ListTaskCompletionIDsOnParams) ([]uint64, error)
-	// TaskTemplate::active()->forPhase($phase): cycle_phase IS NULL, or = $phase when $phase is truthy.
-	ListTaskTemplatesForPhase(ctx context.Context, arg ListTaskTemplatesForPhaseParams) ([]ListTaskTemplatesForPhaseRow, error)
 	// $user->appNotifications()->orderByDesc('created_at')->paginate($perPage).
 	ListUserNotifications(ctx context.Context, arg ListUserNotificationsParams) ([]ListUserNotificationsRow, error)
 	// $user->appNotifications()->unread()->update(['read_at' => now()]) (Eloquent adds updated_at).

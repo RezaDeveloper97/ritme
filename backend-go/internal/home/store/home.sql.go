@@ -318,6 +318,44 @@ func (q *Queries) InsertTaskCompletion(ctx context.Context, arg InsertTaskComple
 	return err
 }
 
+const listActiveAffirmations = `-- name: ListActiveAffirmations :many
+SELECT id, ` + "`" + `text` + "`" + `, cycle_phase
+FROM ` + "`" + `affirmations` + "`" + `
+WHERE is_active = 1
+ORDER BY sort_order, id
+`
+
+type ListActiveAffirmationsRow struct {
+	ID         uint64
+	Text       json.RawMessage
+	CyclePhase sql.NullString
+}
+
+// Affirmation::active()->orderBy('sort_order')->orderBy('id'), whole table (T-M9-13b: a configcache snapshot;
+// forPhase($phase) is applied in Go).
+func (q *Queries) ListActiveAffirmations(ctx context.Context) ([]ListActiveAffirmationsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveAffirmations)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListActiveAffirmationsRow{}
+	for rows.Next() {
+		var i ListActiveAffirmationsRow
+		if err := rows.Scan(&i.ID, &i.Text, &i.CyclePhase); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listActiveChallenges = `-- name: ListActiveChallenges :many
 SELECT id, title, description, cycle_day_from, cycle_day_to, category
 FROM ` + "`" + `challenges` + "`" + `
@@ -335,7 +373,8 @@ type ListActiveChallengesRow struct {
 	Category     sql.NullString
 }
 
-// DailyChallengeService::challengeFor(): Challenge::active()->orderBy('sort_order')->orderBy('id').
+// DailyChallengeService::challengeFor(): Challenge::active()->orderBy('sort_order')->orderBy('id'), whole table
+// (T-M9-13b: a configcache snapshot over challenges + challenge_programs).
 func (q *Queries) ListActiveChallenges(ctx context.Context) ([]ListActiveChallengesRow, error) {
 	rows, err := q.db.QueryContext(ctx, listActiveChallenges)
 	if err != nil {
@@ -366,35 +405,42 @@ func (q *Queries) ListActiveChallenges(ctx context.Context) ([]ListActiveChallen
 	return items, nil
 }
 
-const listAffirmationsForPhase = `-- name: ListAffirmationsForPhase :many
-SELECT id, ` + "`" + `text` + "`" + `
-FROM ` + "`" + `affirmations` + "`" + `
+const listActiveTaskTemplates = `-- name: ListActiveTaskTemplates :many
+SELECT id, ` + "`" + `key` + "`" + `, title, description, category, icon, cycle_phase
+FROM ` + "`" + `task_templates` + "`" + `
 WHERE is_active = 1
-  AND (cycle_phase IS NULL OR (CAST(? AS SIGNED) = 1 AND cycle_phase = ?))
 ORDER BY sort_order, id
 `
 
-type ListAffirmationsForPhaseParams struct {
-	HasPhase int64
-	Phase    sql.NullString
+type ListActiveTaskTemplatesRow struct {
+	ID          uint64
+	Key         string
+	Title       json.RawMessage
+	Description db.NullRawJSON
+	Category    string
+	Icon        sql.NullString
+	CyclePhase  sql.NullString
 }
 
-type ListAffirmationsForPhaseRow struct {
-	ID   uint64
-	Text json.RawMessage
-}
-
-// Affirmation::active()->forPhase($phase)->orderBy('sort_order')->orderBy('id').
-func (q *Queries) ListAffirmationsForPhase(ctx context.Context, arg ListAffirmationsForPhaseParams) ([]ListAffirmationsForPhaseRow, error) {
-	rows, err := q.db.QueryContext(ctx, listAffirmationsForPhase, arg.HasPhase, arg.Phase)
+// TaskTemplate::active(), whole table (T-M9-13b: a configcache snapshot; forPhase($phase) is applied in Go).
+func (q *Queries) ListActiveTaskTemplates(ctx context.Context) ([]ListActiveTaskTemplatesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveTaskTemplates)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []ListAffirmationsForPhaseRow{}
+	items := []ListActiveTaskTemplatesRow{}
 	for rows.Next() {
-		var i ListAffirmationsForPhaseRow
-		if err := rows.Scan(&i.ID, &i.Text); err != nil {
+		var i ListActiveTaskTemplatesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Key,
+			&i.Title,
+			&i.Description,
+			&i.Category,
+			&i.Icon,
+			&i.CyclePhase,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -445,22 +491,14 @@ func (q *Queries) ListChallengeIDsCompletedBetween(ctx context.Context, arg List
 	return items, nil
 }
 
-const listHomeArticles = `-- name: ListHomeArticles :many
+const listPublishedHomeArticles = `-- name: ListPublishedHomeArticles :many
 SELECT id, slug, title, excerpt, cycle_phases, category, read_time_minutes, image_url, image_path
 FROM ` + "`" + `articles` + "`" + `
 WHERE is_published = 1
-  AND (cycle_phases IS NULL
-    OR (CAST(? AS SIGNED) = 1 AND JSON_OVERLAPS(cycle_phases, ?)))
-ORDER BY (cycle_phases IS NULL), sort_order, id
-LIMIT 6
+ORDER BY sort_order, id
 `
 
-type ListHomeArticlesParams struct {
-	HasPhases int64
-	Phases    string
-}
-
-type ListHomeArticlesRow struct {
+type ListPublishedHomeArticlesRow struct {
 	ID              uint64
 	Slug            string
 	Title           json.RawMessage
@@ -472,18 +510,17 @@ type ListHomeArticlesRow struct {
 	ImagePath       sql.NullString
 }
 
-// Article::published()->forPhase($candidates)->limit(6): untagged articles, or tagged with any
-// candidate (orWhereJsonContains per candidate = JSON_OVERLAPS with the candidate list);
-// ordered `cycle_phases is null`, sort_order.
-func (q *Queries) ListHomeArticles(ctx context.Context, arg ListHomeArticlesParams) ([]ListHomeArticlesRow, error) {
-	rows, err := q.db.QueryContext(ctx, listHomeArticles, arg.HasPhases, arg.Phases)
+// Article::published(), whole table in sort_order, id (T-M9-13b: a configcache snapshot). forPhase($candidates)
+// (untagged, or JSON_OVERLAPS with the candidates), the `cycle_phases is null` ordering and limit(6) are applied in Go.
+func (q *Queries) ListPublishedHomeArticles(ctx context.Context) ([]ListPublishedHomeArticlesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPublishedHomeArticles)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []ListHomeArticlesRow{}
+	items := []ListPublishedHomeArticlesRow{}
 	for rows.Next() {
-		var i ListHomeArticlesRow
+		var i ListPublishedHomeArticlesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Slug,
@@ -533,59 +570,6 @@ func (q *Queries) ListTaskCompletionIDsOn(ctx context.Context, arg ListTaskCompl
 			return nil, err
 		}
 		items = append(items, task_template_id)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listTaskTemplatesForPhase = `-- name: ListTaskTemplatesForPhase :many
-SELECT id, ` + "`" + `key` + "`" + `, title, description, category, icon
-FROM ` + "`" + `task_templates` + "`" + `
-WHERE is_active = 1
-  AND (cycle_phase IS NULL OR (CAST(? AS SIGNED) = 1 AND cycle_phase = ?))
-ORDER BY sort_order, id
-`
-
-type ListTaskTemplatesForPhaseParams struct {
-	HasPhase int64
-	Phase    sql.NullString
-}
-
-type ListTaskTemplatesForPhaseRow struct {
-	ID          uint64
-	Key         string
-	Title       json.RawMessage
-	Description db.NullRawJSON
-	Category    string
-	Icon        sql.NullString
-}
-
-// TaskTemplate::active()->forPhase($phase): cycle_phase IS NULL, or = $phase when $phase is truthy.
-func (q *Queries) ListTaskTemplatesForPhase(ctx context.Context, arg ListTaskTemplatesForPhaseParams) ([]ListTaskTemplatesForPhaseRow, error) {
-	rows, err := q.db.QueryContext(ctx, listTaskTemplatesForPhase, arg.HasPhase, arg.Phase)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListTaskTemplatesForPhaseRow{}
-	for rows.Next() {
-		var i ListTaskTemplatesForPhaseRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Key,
-			&i.Title,
-			&i.Description,
-			&i.Category,
-			&i.Icon,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

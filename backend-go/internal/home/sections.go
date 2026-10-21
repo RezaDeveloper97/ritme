@@ -308,15 +308,9 @@ type tasksSection struct{ allModes }
 func (tasksSection) Key() string { return "tasks" }
 func (tasksSection) Order() int  { return 60 }
 
-// taskTemplates is TaskTemplate::active()->forPhase($phase)->get().
-func taskTemplates(hc *Context, phase string) ([]store.ListTaskTemplatesForPhaseRow, error) {
-	rows, err := hc.q().ListTaskTemplatesForPhase(hc.Ctx, store.ListTaskTemplatesForPhaseParams{
-		HasPhase: b2i(phpval.Truthy(phase)), Phase: sql.NullString{String: phase, Valid: phase != ""},
-	})
-	if err != nil {
-		return nil, fmt.Errorf("home: task templates: %w", err)
-	}
-	return rows, nil
+// taskTemplates is TaskTemplate::active()->forPhase($phase)->get() (configcache snapshot, T-M9-13b).
+func taskTemplates(hc *Context, phase string) ([]store.ListActiveTaskTemplatesRow, error) {
+	return activeTaskTemplates(hc.Ctx, hc.q(), phase)
 }
 
 // completedTaskIDs is the set of task templates the user completed on date.
@@ -591,11 +585,9 @@ func (s affirmationSection) Build(hc *Context) (*Rendered, error) {
 	if err != nil {
 		return nil, err
 	}
-	rows, err := hc.q().ListAffirmationsForPhase(hc.Ctx, store.ListAffirmationsForPhaseParams{
-		HasPhase: b2i(phpval.Truthy(phase)), Phase: sql.NullString{String: phase, Valid: phase != ""},
-	})
+	rows, err := activeAffirmations(hc.Ctx, hc.q(), phase)
 	if err != nil {
-		return nil, fmt.Errorf("home: affirmations: %w", err)
+		return nil, err
 	}
 	if len(rows) == 0 {
 		return nil, nil
@@ -795,13 +787,9 @@ func (s articlesSection) Build(hc *Context) (*Rendered, error) {
 	if err != nil {
 		return nil, err
 	}
-	phases, err := json.Marshal(append([]string{}, candidates...))
+	rows, err := homeArticles(hc.Ctx, hc.q(), candidates)
 	if err != nil {
 		return nil, err
-	}
-	rows, err := hc.q().ListHomeArticles(hc.Ctx, store.ListHomeArticlesParams{HasPhases: b2i(len(candidates) > 0), Phases: string(phases)})
-	if err != nil {
-		return nil, fmt.Errorf("home: articles: %w", err)
 	}
 	if len(rows) == 0 {
 		return nil, nil
@@ -1122,13 +1110,6 @@ func strOrNil(p *string) any {
 		return nil
 	}
 	return *p
-}
-
-func b2i(b bool) int64 {
-	if b {
-		return 1
-	}
-	return 0
 }
 
 // isoOrNil is `$t?->toIso8601String()`.

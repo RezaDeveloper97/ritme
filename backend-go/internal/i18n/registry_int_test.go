@@ -4,9 +4,9 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
@@ -15,6 +15,7 @@ import (
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/cache"
+	"github.com/ritme/backend-go/internal/platform/configcache"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 )
 
@@ -39,12 +40,12 @@ func testCache(t *testing.T) (*cache.Client, *redis.Client, string) {
 	return c, rdb, prefix
 }
 
-// Integration: `make test-int PKG=./internal/i18n/...`.
-func TestRegistry_DatabaseAndRedisCache(t *testing.T) {
+// Integration: `make test-int PKG=./internal/i18n/...`. The registry reads MariaDB once into its snapshot (T-M9-13b).
+func TestRegistry_DatabaseAndSnapshot(t *testing.T) {
 	db := testdb.New(t) // fa (default) + en, as seeded by the baseline migration
 	c, rdb, prefix := testCache(t)
 	ctx := context.Background()
-	reg := i18n.NewRegistry(store.New(db), c, nil)
+	reg := i18n.NewRegistry(store.New(db), c, nil).WithHub(configcache.NewHub())
 
 	_, err := db.ExecContext(ctx, `INSERT INTO languages (code, name, english_name, direction, is_active, is_default, sort_order)
 		VALUES ('ar', 'العربية', 'Arabic', 'rtl', 1, 0, 3), ('de', 'Deutsch', 'German', 'ltr', 0, 0, 4)`)
@@ -57,17 +58,11 @@ func TestRegistry_DatabaseAndRedisCache(t *testing.T) {
 	assert.Equal(t, "ar", reg.Resolve(ctx, "ar-SA,en;q=0.5"))
 	assert.Equal(t, "fa", reg.Resolve(ctx, "de"), "inactive language → default")
 
-	raw, err := rdb.Get(ctx, prefix+"languages.registry").Result()
-	require.NoError(t, err, "cached under <prefix>languages.registry")
-	var cached []map[string]any
-	require.NoError(t, json.Unmarshal([]byte(raw), &cached))
-	assert.Len(t, cached, 3)
-	ttl, err := rdb.TTL(ctx, prefix+i18n.CacheKey).Result()
+	n, err := rdb.Exists(ctx, prefix+i18n.CacheKey).Result()
 	require.NoError(t, err)
-	assert.Positive(t, ttl, "cached with a TTL (T-M9-03 B5)")
-	assert.LessOrEqual(t, ttl, i18n.CacheTTL)
+	assert.Zero(t, n, "the list is no longer written to Redis")
 
-	// A write without Flush is not seen until the entry expires …
+	// A write without Flush is not seen until the snapshot's TTL …
 	_, err = db.ExecContext(ctx, `UPDATE languages SET is_default = (code = 'en')`)
 	require.NoError(t, err)
 	assert.Equal(t, "fa", reg.DefaultCode(ctx))
@@ -82,6 +77,35 @@ func TestRegistry_DatabaseAndRedisCache(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, reg.Flush(ctx))
 	assert.Equal(t, i18n.Bootstrap, reg.All(ctx))
+}
+
+// Two hubs on one Redis play two API processes: a languages write flushed in one reaches the other's registry over
+// ritme-go:config-changed.
+func TestRegistry_FlushReachesSecondProcess(t *testing.T) {
+	db := testdb.New(t)
+	ca, _, _ := testCache(t)
+	cb := cache.NewFromClient(redis.NewClient(&redis.Options{Addr: os.Getenv("TEST_REDIS_ADDR")}), ca.Key(""))
+	t.Cleanup(func() { _ = cb.Close() })
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	hubA, hubB := configcache.NewHub(), configcache.NewHub()
+	hubA.Start(ctx, ca, nil)
+	hubB.Start(ctx, cb, nil)
+	a := i18n.NewRegistry(store.New(db), ca, nil).WithHub(hubA)
+	b := i18n.NewRegistry(store.New(db), cb, nil).WithHub(hubB)
+	require.Equal(t, "fa", a.DefaultCode(ctx))
+	require.Equal(t, "fa", b.DefaultCode(ctx))
+	require.Eventually(t, func() bool {
+		n, err := ca.Redis().PubSubNumSub(ctx, ca.Key(configcache.Channel)).Result()
+		return err == nil && n[ca.Key(configcache.Channel)] >= 2
+	}, 5*time.Second, 20*time.Millisecond)
+
+	_, err := db.ExecContext(ctx, `UPDATE languages SET is_default = (code = 'en')`)
+	require.NoError(t, err)
+	require.NoError(t, a.Flush(ctx))
+	assert.Equal(t, "en", a.DefaultCode(ctx), "same process: next request")
+	assert.Eventually(t, func() bool { return b.DefaultCode(ctx) == "en" }, 5*time.Second, 10*time.Millisecond,
+		"second process: via ritme-go:config-changed")
 }
 
 func TestRegistry_NoCache(t *testing.T) {
