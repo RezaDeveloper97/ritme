@@ -377,6 +377,7 @@ type CheckupRecord struct {
 	NextDueOn     civildate.NullDate
 	CreatedAt     sql.NullTime
 	UpdatedAt     sql.NullTime
+	TestKind      sql.NullString
 }
 
 type CheckupType struct {
@@ -407,6 +408,7 @@ type CheckupType struct {
 	CreatedAt         sql.NullTime
 	UpdatedAt         sql.NullTime
 	Audiences         db.NullRawJSON
+	Informational     bool
 }
 
 type Child struct {
@@ -1323,22 +1325,23 @@ type LabJob struct {
 }
 
 type LabMarker struct {
-	ID         uint64
-	LabID      uint64
-	UserID     uint64
-	Code       sql.NullString
-	Name       string
-	Value      sql.NullString
-	ValueText  sql.NullString
-	Unit       sql.NullString
-	RefLow     sql.NullString
-	RefHigh    sql.NullString
-	RefText    sql.NullString
-	Confidence sql.NullString
-	Source     string
-	SortOrder  uint16
-	CreatedAt  sql.NullTime
-	UpdatedAt  sql.NullTime
+	ID          uint64
+	LabID       uint64
+	UserID      uint64
+	Code        sql.NullString
+	Name        string
+	Value       sql.NullString
+	ValueText   sql.NullString
+	Unit        sql.NullString
+	RefLow      sql.NullString
+	RefHigh     sql.NullString
+	RefText     sql.NullString
+	Confidence  sql.NullString
+	Source      string
+	SortOrder   uint16
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+	ConfirmedAt sql.NullTime
 }
 
 type LabReport struct {
@@ -3042,4 +3045,16 @@ type VitalReading struct {
 	Note        sql.NullString
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+}
+
+type VitalTarget struct {
+	ID        uint64
+	UserID    uint64
+	Context   string
+	LowMgdl   sql.NullInt16
+	HighMgdl  sql.NullInt16
+	SetBy     string
+	Note      sql.NullString
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
 }

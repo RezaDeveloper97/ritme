@@ -88,12 +88,12 @@ LIMIT 1;
 
 -- name: InsertCheckupRecord :execlastid
 INSERT INTO `checkup_records` (
-  user_id, checkup_type_id, done_on, result, findings, note, has_attachment, next_due_on, created_at, updated_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+  user_id, checkup_type_id, done_on, result, findings, note, has_attachment, next_due_on, test_kind, created_at, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: UpdateCheckupRecord :exec
 UPDATE `checkup_records`
-SET done_on = ?, result = ?, findings = ?, note = ?, has_attachment = ?, next_due_on = ?, updated_at = ?
+SET done_on = ?, result = ?, findings = ?, note = ?, has_attachment = ?, next_due_on = ?, test_kind = ?, updated_at = ?
 WHERE id = ? AND user_id = ?;
 
 -- name: DeleteCheckupRecord :execrows

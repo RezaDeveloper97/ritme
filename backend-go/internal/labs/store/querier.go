@@ -15,6 +15,8 @@ type Querier interface {
 	ClaimLabJob(ctx context.Context, arg ClaimLabJobParams) (int64, error)
 	// Claims the refund of the reserved Plus use: only the first caller sees one affected row.
 	ClearLabQuota(ctx context.Context, id uint64) (int64, error)
+	// The user confirmed one value (T-M10-17, H-08; wired in T-M10-20). Scoped by user_id (IDOR).
+	ConfirmLabMarker(ctx context.Context, arg ConfirmLabMarkerParams) (int64, error)
 	// Extraction calls (one per page) of the user since a time, from the append-only AI usage log (B-N6-06b): deleting
 	// labs never resets the daily cap or the refund allowance.
 	CountLabExtractCallsSince(ctx context.Context, arg CountLabExtractCallsSinceParams) (int64, error)

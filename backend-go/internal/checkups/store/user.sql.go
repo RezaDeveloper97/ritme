@@ -79,7 +79,7 @@ func (q *Queries) DeleteCustomCheckupType(ctx context.Context, arg DeleteCustomC
 }
 
 const getCheckupRecord = `-- name: GetCheckupRecord :one
-SELECT id, user_id, checkup_type_id, done_on, result, findings, note, has_attachment, next_due_on, created_at, updated_at FROM ` + "`" + `checkup_records` + "`" + `
+SELECT id, user_id, checkup_type_id, done_on, result, findings, note, has_attachment, next_due_on, created_at, updated_at, test_kind FROM ` + "`" + `checkup_records` + "`" + `
 WHERE id = ? AND user_id = ?
 LIMIT 1
 `
@@ -104,6 +104,7 @@ func (q *Queries) GetCheckupRecord(ctx context.Context, arg GetCheckupRecordPara
 		&i.NextDueOn,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.TestKind,
 	)
 	return i, err
 }
@@ -135,7 +136,7 @@ func (q *Queries) GetCheckupSetting(ctx context.Context, arg GetCheckupSettingPa
 }
 
 const getCheckupTypeForUser = `-- name: GetCheckupTypeForUser :one
-SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at, audiences FROM ` + "`" + `checkup_types` + "`" + `
+SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at, audiences, informational FROM ` + "`" + `checkup_types` + "`" + `
 WHERE id = ? AND is_active = 1 AND (user_id IS NULL OR user_id = CAST(? AS UNSIGNED))
   AND (audiences IS NULL OR JSON_CONTAINS(audiences, JSON_QUOTE(?)))
 LIMIT 1
@@ -179,6 +180,7 @@ func (q *Queries) GetCheckupTypeForUser(ctx context.Context, arg GetCheckupTypeF
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Audiences,
+		&i.Informational,
 	)
 	return i, err
 }
@@ -235,7 +237,7 @@ func (q *Queries) GetCheckupUserContext(ctx context.Context, id uint64) (GetChec
 }
 
 const getCustomCheckupType = `-- name: GetCustomCheckupType :one
-SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at, audiences FROM ` + "`" + `checkup_types` + "`" + `
+SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at, audiences, informational FROM ` + "`" + `checkup_types` + "`" + `
 WHERE id = ? AND user_id = ? AND category = 'custom'
 LIMIT 1
 `
@@ -276,14 +278,15 @@ func (q *Queries) GetCustomCheckupType(ctx context.Context, arg GetCustomCheckup
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Audiences,
+		&i.Informational,
 	)
 	return i, err
 }
 
 const insertCheckupRecord = `-- name: InsertCheckupRecord :execlastid
 INSERT INTO ` + "`" + `checkup_records` + "`" + ` (
-  user_id, checkup_type_id, done_on, result, findings, note, has_attachment, next_due_on, created_at, updated_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  user_id, checkup_type_id, done_on, result, findings, note, has_attachment, next_due_on, test_kind, created_at, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type InsertCheckupRecordParams struct {
@@ -295,6 +298,7 @@ type InsertCheckupRecordParams struct {
 	Note          sql.NullString
 	HasAttachment bool
 	NextDueOn     civildate.NullDate
+	TestKind      sql.NullString
 	CreatedAt     sql.NullTime
 	UpdatedAt     sql.NullTime
 }
@@ -309,6 +313,7 @@ func (q *Queries) InsertCheckupRecord(ctx context.Context, arg InsertCheckupReco
 		arg.Note,
 		arg.HasAttachment,
 		arg.NextDueOn,
+		arg.TestKind,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
@@ -359,7 +364,7 @@ func (q *Queries) InsertCustomCheckupType(ctx context.Context, arg InsertCustomC
 
 const listCheckupPlanRows = `-- name: ListCheckupPlanRows :many
 SELECT
-  t.id, t.` + "`" + `key` + "`" + `, t.user_id, t.category, t.title, t.subtitle, t.why, t.performed_by, t.icon, t.tone, t.interval_months, t.interval_months_max, t.age_min, t.age_max, t.cycle_day_from, t.cycle_day_to, t.remind_lead_days, t.prep_steps, t.guide_steps, t.finding_options, t.hide_in_pregnancy, t.is_active, t.sort_order, t.source_note, t.created_at, t.updated_at, t.audiences,
+  t.id, t.` + "`" + `key` + "`" + `, t.user_id, t.category, t.title, t.subtitle, t.why, t.performed_by, t.icon, t.tone, t.interval_months, t.interval_months_max, t.age_min, t.age_max, t.cycle_day_from, t.cycle_day_to, t.remind_lead_days, t.prep_steps, t.guide_steps, t.finding_options, t.hide_in_pregnancy, t.is_active, t.sort_order, t.source_note, t.created_at, t.updated_at, t.audiences, t.informational,
   s.enabled AS setting_enabled,
   s.remind AS setting_remind,
   r.id AS record_id,
@@ -437,6 +442,7 @@ func (q *Queries) ListCheckupPlanRows(ctx context.Context, arg ListCheckupPlanRo
 			&i.CheckupType.CreatedAt,
 			&i.CheckupType.UpdatedAt,
 			&i.CheckupType.Audiences,
+			&i.CheckupType.Informational,
 			&i.SettingEnabled,
 			&i.SettingRemind,
 			&i.RecordID,
@@ -458,7 +464,7 @@ func (q *Queries) ListCheckupPlanRows(ctx context.Context, arg ListCheckupPlanRo
 
 const listCheckupRecordHistory = `-- name: ListCheckupRecordHistory :many
 SELECT
-  r.id, r.user_id, r.checkup_type_id, r.done_on, r.result, r.findings, r.note, r.has_attachment, r.next_due_on, r.created_at, r.updated_at,
+  r.id, r.user_id, r.checkup_type_id, r.done_on, r.result, r.findings, r.note, r.has_attachment, r.next_due_on, r.created_at, r.updated_at, r.test_kind,
   t.title AS checkup_title,
   t.` + "`" + `key` + "`" + ` AS checkup_key,
   t.icon AS checkup_icon,
@@ -520,6 +526,7 @@ func (q *Queries) ListCheckupRecordHistory(ctx context.Context, arg ListCheckupR
 			&i.CheckupRecord.NextDueOn,
 			&i.CheckupRecord.CreatedAt,
 			&i.CheckupRecord.UpdatedAt,
+			&i.CheckupRecord.TestKind,
 			&i.CheckupTitle,
 			&i.CheckupKey,
 			&i.CheckupIcon,
@@ -539,7 +546,7 @@ func (q *Queries) ListCheckupRecordHistory(ctx context.Context, arg ListCheckupR
 }
 
 const listCheckupRecordsOfType = `-- name: ListCheckupRecordsOfType :many
-SELECT id, user_id, checkup_type_id, done_on, result, findings, note, has_attachment, next_due_on, created_at, updated_at FROM ` + "`" + `checkup_records` + "`" + `
+SELECT id, user_id, checkup_type_id, done_on, result, findings, note, has_attachment, next_due_on, created_at, updated_at, test_kind FROM ` + "`" + `checkup_records` + "`" + `
 WHERE user_id = ? AND checkup_type_id = ?
 ORDER BY done_on DESC, id DESC
 LIMIT ?
@@ -572,6 +579,7 @@ func (q *Queries) ListCheckupRecordsOfType(ctx context.Context, arg ListCheckupR
 			&i.NextDueOn,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.TestKind,
 		); err != nil {
 			return nil, err
 		}
@@ -588,7 +596,7 @@ func (q *Queries) ListCheckupRecordsOfType(ctx context.Context, arg ListCheckupR
 
 const updateCheckupRecord = `-- name: UpdateCheckupRecord :exec
 UPDATE ` + "`" + `checkup_records` + "`" + `
-SET done_on = ?, result = ?, findings = ?, note = ?, has_attachment = ?, next_due_on = ?, updated_at = ?
+SET done_on = ?, result = ?, findings = ?, note = ?, has_attachment = ?, next_due_on = ?, test_kind = ?, updated_at = ?
 WHERE id = ? AND user_id = ?
 `
 
@@ -599,6 +607,7 @@ type UpdateCheckupRecordParams struct {
 	Note          sql.NullString
 	HasAttachment bool
 	NextDueOn     civildate.NullDate
+	TestKind      sql.NullString
 	UpdatedAt     sql.NullTime
 	ID            uint64
 	UserID        uint64
@@ -612,6 +621,7 @@ func (q *Queries) UpdateCheckupRecord(ctx context.Context, arg UpdateCheckupReco
 		arg.Note,
 		arg.HasAttachment,
 		arg.NextDueOn,
+		arg.TestKind,
 		arg.UpdatedAt,
 		arg.ID,
 		arg.UserID,

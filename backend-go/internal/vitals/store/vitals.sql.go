@@ -40,6 +40,23 @@ func (q *Queries) DeleteReading(ctx context.Context, arg DeleteReadingParams) (i
 	return result.RowsAffected()
 }
 
+const deleteVitalTarget = `-- name: DeleteVitalTarget :execrows
+DELETE FROM ` + "`" + `vital_targets` + "`" + ` WHERE user_id = ? AND context = ?
+`
+
+type DeleteVitalTargetParams struct {
+	UserID  uint64
+	Context string
+}
+
+func (q *Queries) DeleteVitalTarget(ctx context.Context, arg DeleteVitalTargetParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteVitalTarget, arg.UserID, arg.Context)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const getReading = `-- name: GetReading :one
 SELECT id, user_id, type, measured_at, systolic, diastolic, pulse, arm, position, glucose_mg_dl, glucose_unit, context, method, note, created_at, updated_at FROM ` + "`" + `vital_readings` + "`" + ` WHERE id = ? AND user_id = ? LIMIT 1
 `
@@ -379,6 +396,44 @@ func (q *Queries) ListReadings(ctx context.Context, arg ListReadingsParams) ([]V
 	return items, nil
 }
 
+const listVitalTargets = `-- name: ListVitalTargets :many
+SELECT id, user_id, context, low_mgdl, high_mgdl, set_by, note, created_at, updated_at FROM ` + "`" + `vital_targets` + "`" + ` WHERE user_id = ? ORDER BY context
+`
+
+// The user's glucose target ranges, one per context (T-M10-17; read by T-M10-19).
+func (q *Queries) ListVitalTargets(ctx context.Context, userID uint64) ([]VitalTarget, error) {
+	rows, err := q.db.QueryContext(ctx, listVitalTargets, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []VitalTarget{}
+	for rows.Next() {
+		var i VitalTarget
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Context,
+			&i.LowMgdl,
+			&i.HighMgdl,
+			&i.SetBy,
+			&i.Note,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateReading = `-- name: UpdateReading :execrows
 UPDATE ` + "`" + `vital_readings` + "`" + `
 SET type = ?, measured_at = ?, systolic = ?,
@@ -428,4 +483,41 @@ func (q *Queries) UpdateReading(ctx context.Context, arg UpdateReadingParams) (i
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+const upsertVitalTarget = `-- name: UpsertVitalTarget :exec
+INSERT INTO ` + "`" + `vital_targets` + "`" + ` (user_id, context, low_mgdl, high_mgdl, set_by, note, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?,
+        ?, ?, ?)
+ON DUPLICATE KEY UPDATE
+  low_mgdl = VALUES(low_mgdl),
+  high_mgdl = VALUES(high_mgdl),
+  set_by = VALUES(set_by),
+  note = VALUES(note),
+  updated_at = VALUES(updated_at)
+`
+
+type UpsertVitalTargetParams struct {
+	UserID   uint64
+	Context  string
+	LowMgdl  sql.NullInt16
+	HighMgdl sql.NullInt16
+	SetBy    string
+	Note     sql.NullString
+	Now      sql.NullTime
+}
+
+// One row per (user_id, context); created_at is kept on update.
+func (q *Queries) UpsertVitalTarget(ctx context.Context, arg UpsertVitalTargetParams) error {
+	_, err := q.db.ExecContext(ctx, upsertVitalTarget,
+		arg.UserID,
+		arg.Context,
+		arg.LowMgdl,
+		arg.HighMgdl,
+		arg.SetBy,
+		arg.Note,
+		arg.Now,
+		arg.Now,
+	)
+	return err
 }

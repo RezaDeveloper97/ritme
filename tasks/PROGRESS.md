@@ -1675,3 +1675,22 @@ Nothing needed fixing.
   - The v1 and v2 pregnancy alerts share one table, so `/pregnancy/alerts/summary` double-counts (3→6 in the fixture). Product question.
   - `cmd/contract` has no `record-go` mode; this task used a scratch `go build -overlay` (scratchpad `recgo/main.go`).
   - Laravel `translations:import` was not run.
+
+## T-M10-17 — Health schema for vitals targets, lab value confirmation and checkup test kind
+- Migration **00099** `health_targets_confirmation_test_kind`, with the Laravel twin `2026_10_21_000099_add_health_targets_confirmation_test_kind.php`:
+  - new table `vital_targets`: UNIQUE (user_id, context), FK cascade;
+  - `lab_markers.confirmed_at`, backfilled from `lab_reports.verified_at` only for verified reports;
+  - `checkup_records.test_kind`;
+  - `checkup_types.informational` (default 0).
+  - Down reverses everything; `IF [NOT] EXISTS` throughout.
+- sqlc:
+  - vitals: `ListVitalTargets`, `UpsertVitalTarget`, `DeleteVitalTarget`;
+  - labs: `ConfirmLabMarker(id, user_id, now)`;
+  - checkups: `InsertCheckupRecord`/`UpdateCheckupRecord` with `test_kind`; type reads pick up `informational` via `SELECT *`.
+  - `models.go` churn in every store package (inherent to `make sqlc`).
+- `contract/fixtures/dump.sql`: main session added `vital_targets`, the three columns, and `informational = 0` on the 15 seeded checkup types.
+- Verify: `schema-diff` OK (218 tables); `make test-int PKG=./db/migrations/...` ok; `make contract ROUTES=vitals,labs,health,profile` → 142 passed, 0 failed.
+- No behaviour change (T-M10-19/20/21).
+- Open:
+  - `UpdateCheckupRecord` now writes `test_kind`. Today's callers don't send it, so an edit sets it to NULL; T-M10-21 must pass the existing value.
+  - `low_mgdl`/`high_mgdl` are `sql.NullInt16` in Go (max 32767 is enough for mg/dL).

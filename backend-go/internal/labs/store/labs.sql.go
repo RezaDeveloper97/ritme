@@ -61,6 +61,32 @@ func (q *Queries) ClearLabQuota(ctx context.Context, id uint64) (int64, error) {
 	return result.RowsAffected()
 }
 
+const confirmLabMarker = `-- name: ConfirmLabMarker :execrows
+UPDATE ` + "`" + `lab_markers` + "`" + `
+SET confirmed_at = ?, updated_at = ?
+WHERE id = ? AND user_id = ?
+`
+
+type ConfirmLabMarkerParams struct {
+	Now    sql.NullTime
+	ID     uint64
+	UserID uint64
+}
+
+// The user confirmed one value (T-M10-17, H-08; wired in T-M10-20). Scoped by user_id (IDOR).
+func (q *Queries) ConfirmLabMarker(ctx context.Context, arg ConfirmLabMarkerParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, confirmLabMarker,
+		arg.Now,
+		arg.Now,
+		arg.ID,
+		arg.UserID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const countLabExtractCallsSince = `-- name: CountLabExtractCallsSince :one
 SELECT COUNT(*) FROM ` + "`" + `ai_usage_logs` + "`" + `
 WHERE user_id = ? AND feature = 'lab_analysis' AND op = 'extract' AND created_at >= ?
@@ -456,7 +482,7 @@ func (q *Queries) GetLabJob(ctx context.Context, id uint64) (LabJob, error) {
 }
 
 const getLabMarker = `-- name: GetLabMarker :one
-SELECT id, lab_id, user_id, code, name, value, value_text, unit, ref_low, ref_high, ref_text, confidence, source, sort_order, created_at, updated_at FROM ` + "`" + `lab_markers` + "`" + ` WHERE id = ? AND lab_id = ? AND user_id = ? LIMIT 1
+SELECT id, lab_id, user_id, code, name, value, value_text, unit, ref_low, ref_high, ref_text, confidence, source, sort_order, created_at, updated_at, confirmed_at FROM ` + "`" + `lab_markers` + "`" + ` WHERE id = ? AND lab_id = ? AND user_id = ? LIMIT 1
 `
 
 type GetLabMarkerParams struct {
@@ -485,6 +511,7 @@ func (q *Queries) GetLabMarker(ctx context.Context, arg GetLabMarkerParams) (Lab
 		&i.SortOrder,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ConfirmedAt,
 	)
 	return i, err
 }
@@ -711,7 +738,7 @@ func (q *Queries) ListLabFiles(ctx context.Context, arg ListLabFilesParams) ([]L
 }
 
 const listLabMarkers = `-- name: ListLabMarkers :many
-SELECT id, lab_id, user_id, code, name, value, value_text, unit, ref_low, ref_high, ref_text, confidence, source, sort_order, created_at, updated_at FROM ` + "`" + `lab_markers` + "`" + ` WHERE lab_id = ? AND user_id = ? ORDER BY sort_order, id
+SELECT id, lab_id, user_id, code, name, value, value_text, unit, ref_low, ref_high, ref_text, confidence, source, sort_order, created_at, updated_at, confirmed_at FROM ` + "`" + `lab_markers` + "`" + ` WHERE lab_id = ? AND user_id = ? ORDER BY sort_order, id
 `
 
 type ListLabMarkersParams struct {
@@ -745,6 +772,7 @@ func (q *Queries) ListLabMarkers(ctx context.Context, arg ListLabMarkersParams) 
 			&i.SortOrder,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ConfirmedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -901,7 +929,7 @@ func (q *Queries) ListOrphanBusyLabs(ctx context.Context, before sql.NullTime) (
 }
 
 const listUserLabMarkers = `-- name: ListUserLabMarkers :many
-SELECT m.id, m.lab_id, m.user_id, m.code, m.name, m.value, m.value_text, m.unit, m.ref_low, m.ref_high, m.ref_text, m.confidence, m.source, m.sort_order, m.created_at, m.updated_at, r.taken_on AS lab_taken_on, r.created_at AS lab_created_at, r.verified_at AS lab_verified_at,
+SELECT m.id, m.lab_id, m.user_id, m.code, m.name, m.value, m.value_text, m.unit, m.ref_low, m.ref_high, m.ref_text, m.confidence, m.source, m.sort_order, m.created_at, m.updated_at, m.confirmed_at, r.taken_on AS lab_taken_on, r.created_at AS lab_created_at, r.verified_at AS lab_verified_at,
        r.status AS lab_status, r.source AS lab_source
 FROM ` + "`" + `lab_markers` + "`" + ` m
 JOIN ` + "`" + `lab_reports` + "`" + ` r ON r.id = m.lab_id AND r.user_id = m.user_id
@@ -926,6 +954,7 @@ type ListUserLabMarkersRow struct {
 	SortOrder     uint16
 	CreatedAt     sql.NullTime
 	UpdatedAt     sql.NullTime
+	ConfirmedAt   sql.NullTime
 	LabTakenOn    civildate.NullDate
 	LabCreatedAt  sql.NullTime
 	LabVerifiedAt sql.NullTime
@@ -960,6 +989,7 @@ func (q *Queries) ListUserLabMarkers(ctx context.Context, userID uint64) ([]List
 			&i.SortOrder,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ConfirmedAt,
 			&i.LabTakenOn,
 			&i.LabCreatedAt,
 			&i.LabVerifiedAt,

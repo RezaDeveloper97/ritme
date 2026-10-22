@@ -66,3 +66,22 @@ VALUES (sqlc.arg(user_id), sqlc.arg(type), sqlc.arg(slot), sqlc.arg(days), sqlc.
 SELECT item_key, locale, payload FROM `message_contents`
 WHERE `group` = 'vitals_alert' AND is_active = 1 AND is_approved = 1
 ORDER BY item_key, locale;
+
+-- name: ListVitalTargets :many
+-- The user's glucose target ranges, one per context (T-M10-17; read by T-M10-19).
+SELECT * FROM `vital_targets` WHERE user_id = sqlc.arg(user_id) ORDER BY context;
+
+-- name: UpsertVitalTarget :exec
+-- One row per (user_id, context); created_at is kept on update.
+INSERT INTO `vital_targets` (user_id, context, low_mgdl, high_mgdl, set_by, note, created_at, updated_at)
+VALUES (sqlc.arg(user_id), sqlc.arg(context), sqlc.narg(low_mgdl), sqlc.narg(high_mgdl), sqlc.arg(set_by),
+        sqlc.narg(note), sqlc.arg(now), sqlc.arg(now))
+ON DUPLICATE KEY UPDATE
+  low_mgdl = VALUES(low_mgdl),
+  high_mgdl = VALUES(high_mgdl),
+  set_by = VALUES(set_by),
+  note = VALUES(note),
+  updated_at = VALUES(updated_at);
+
+-- name: DeleteVitalTarget :execrows
+DELETE FROM `vital_targets` WHERE user_id = sqlc.arg(user_id) AND context = sqlc.arg(context);

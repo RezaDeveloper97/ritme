@@ -3,7 +3,7 @@ id: T-M10-17
 title: Health schema for vitals targets, lab value confirmation and checkup test kind
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-01]
 parallel_group: M10-C
 touches: [backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/vitals, backend-go/db/queries/labs, backend-go/db/queries/checkups]

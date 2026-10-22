@@ -11,6 +11,7 @@ import (
 type Querier interface {
 	DeletePlanItems(ctx context.Context, userID uint64) error
 	DeleteReading(ctx context.Context, arg DeleteReadingParams) (int64, error)
+	DeleteVitalTarget(ctx context.Context, arg DeleteVitalTargetParams) (int64, error)
 	GetReading(ctx context.Context, arg GetReadingParams) (VitalReading, error)
 	InsertPlanItem(ctx context.Context, arg InsertPlanItemParams) error
 	// Vitals (bloom B-N6-01; internal/vitals): timed BP / glucose / heart-rate readings, the weekly measurement plan and
@@ -25,7 +26,11 @@ type Querier interface {
 	ListPlanItems(ctx context.Context, userID uint64) ([]VitalPlanItem, error)
 	// Readings of [from, to) newest first; an empty type = every type.
 	ListReadings(ctx context.Context, arg ListReadingsParams) ([]VitalReading, error)
+	// The user's glucose target ranges, one per context (T-M10-17; read by T-M10-19).
+	ListVitalTargets(ctx context.Context, userID uint64) ([]VitalTarget, error)
 	UpdateReading(ctx context.Context, arg UpdateReadingParams) (int64, error)
+	// One row per (user_id, context); created_at is kept on update.
+	UpsertVitalTarget(ctx context.Context, arg UpsertVitalTargetParams) error
 }
 
 var _ Querier = (*Queries)(nil)

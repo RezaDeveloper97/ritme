@@ -123,6 +123,12 @@ SET m.code = sqlc.narg(code), m.name = sqlc.arg(name), m.value = sqlc.narg(value
 WHERE m.id = sqlc.arg(id) AND m.lab_id = sqlc.arg(lab_id) AND m.user_id = sqlc.arg(user_id)
   AND r.status IN ('needs_review', 'ready');
 
+-- name: ConfirmLabMarker :execrows
+-- The user confirmed one value (T-M10-17, H-08; wired in T-M10-20). Scoped by user_id (IDOR).
+UPDATE `lab_markers`
+SET confirmed_at = sqlc.arg(now), updated_at = sqlc.arg(now)
+WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id);
+
 -- name: DeleteLabMarker :execrows
 -- Only while the lab is not being processed (B-N6-06b).
 DELETE m FROM `lab_markers` m

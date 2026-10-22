@@ -248,7 +248,7 @@ func (q *Queries) DeleteUnusedAdminCheckupType(ctx context.Context, arg DeleteUn
 }
 
 const getAdminCheckupType = `-- name: GetAdminCheckupType :one
-SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at, audiences FROM ` + "`" + `checkup_types` + "`" + ` WHERE id = ? AND user_id IS NULL LIMIT 1
+SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at, audiences, informational FROM ` + "`" + `checkup_types` + "`" + ` WHERE id = ? AND user_id IS NULL LIMIT 1
 `
 
 func (q *Queries) GetAdminCheckupType(ctx context.Context, id uint64) (CheckupType, error) {
@@ -282,6 +282,7 @@ func (q *Queries) GetAdminCheckupType(ctx context.Context, id uint64) (CheckupTy
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Audiences,
+		&i.Informational,
 	)
 	return i, err
 }
@@ -315,7 +316,7 @@ func (q *Queries) ListAdminCheckupTypeIDs(ctx context.Context) ([]uint64, error)
 }
 
 const listAdminCheckupTypes = `-- name: ListAdminCheckupTypes :many
-SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at, audiences FROM ` + "`" + `checkup_types` + "`" + `
+SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at, audiences, informational FROM ` + "`" + `checkup_types` + "`" + `
 WHERE user_id IS NULL
   AND (IFNULL(` + "`" + `key` + "`" + `, '') LIKE CAST(? AS CHAR)
        OR title LIKE CAST(? AS CHAR) OR title LIKE CAST(? AS CHAR))
@@ -378,6 +379,7 @@ func (q *Queries) ListAdminCheckupTypes(ctx context.Context, arg ListAdminChecku
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Audiences,
+			&i.Informational,
 		); err != nil {
 			return nil, err
 		}
