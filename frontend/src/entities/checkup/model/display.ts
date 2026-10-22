@@ -2,7 +2,7 @@ import type { Locale } from '@/shared/i18n';
 import { formatMonthLabel, fromApiDate, toParts } from '@/shared/lib/date';
 import type { IconName } from '@/shared/ui';
 
-import type { CheckupResult, CheckupStatus } from './types';
+import type { CheckupItem, CheckupResult, CheckupStatus } from './types';
 
 /*
  * Display helpers shared by every checkups screen (v14): the status / result
@@ -18,6 +18,8 @@ const STATUS_ICON: Record<CheckupStatus, IconName> = {
   up_to_date: 'check',
   not_yet: 'clock',
   disabled: 'x',
+  follow_up: 'doctor',
+  informational: 'eye',
 };
 
 const RESULT_ICON: Record<CheckupResult, IconName> = {
@@ -29,6 +31,38 @@ const RESULT_ICON: Record<CheckupResult, IconName> = {
 /** The glyph of a status pill (bell «موعدش رسیده», info «عقب‌افتاده», clock «به‌زودی», check «به‌روز»). */
 export function checkupStatusIcon(status: CheckupStatus): IconName {
   return STATUS_ICON[status];
+}
+
+/** What a plan row's pill shows: the status, or the after-pregnancy label that replaces it. */
+export type CheckupPillKind = CheckupStatus | 'after_pregnancy';
+
+export function checkupPillKind(item: Pick<CheckupItem, 'status' | 'label'>): CheckupPillKind {
+  return item.label === 'after_pregnancy' && item.status !== 'disabled' ? 'after_pregnancy' : item.status;
+}
+
+/*
+ * The palette class of a pill. The v6 states reuse existing palettes: a follow-up
+ * reads like the follow-up result (amber), informational and after-pregnancy
+ * like not_yet (calm neutral) — never the alarming overdue rose.
+ */
+const PILL_CLASS: Record<CheckupPillKind, string> = {
+  overdue: 'ck-status-overdue',
+  due: 'ck-status-due',
+  soon: 'ck-status-soon',
+  up_to_date: 'ck-status-up_to_date',
+  not_yet: 'ck-status-not_yet',
+  disabled: 'ck-status-disabled',
+  follow_up: 'ck-result-follow_up',
+  informational: 'ck-status-not_yet',
+  after_pregnancy: 'ck-status-not_yet',
+};
+
+export function checkupPillClass(kind: CheckupPillKind): string {
+  return PILL_CLASS[kind];
+}
+
+export function checkupPillIcon(kind: CheckupPillKind): IconName {
+  return kind === 'after_pregnancy' ? 'mother' : STATUS_ICON[kind];
 }
 
 /** The glyph of a result option / chip (check نرمال, info پیگیری, clock منتظر جواب). */

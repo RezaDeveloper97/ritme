@@ -86,7 +86,9 @@ function Hero({ detail }: { detail: CheckupDetail }) {
           <h2 className="font-['Lalezar'] text-[26px] leading-tight font-normal text-(--ink)">
             {t('selfExam.bestTimeTitle')}
           </h2>
-          <p className="text-[12.5px] leading-relaxed font-semibold text-(--ink-2)">{t('selfExam.bestTimeBody')}</p>
+          <p className="text-[12.5px] leading-relaxed font-semibold text-(--ink-2)">
+            {detail.readOnly ? t('selfExam.awarenessBody') : t('selfExam.bestTimeBody')}
+          </p>
         </div>
         {day !== null && total ? <CycleRing day={day} total={total} /> : null}
       </div>
@@ -153,7 +155,7 @@ function Body({ detail }: { detail: CheckupDetail }) {
                   key={o.key}
                   type="button"
                   aria-pressed={on}
-                  disabled={done}
+                  disabled={done && !detail.readOnly}
                   className={clsx(
                     'min-h-11 rounded-full border-[1.5px] px-4 text-[12.5px] font-bold',
                     on
@@ -179,16 +181,23 @@ function Body({ detail }: { detail: CheckupDetail }) {
         </section>
       )}
 
-      <button type="button" className="btn btn-primary w-full" disabled={done || create.isPending} onClick={submit}>
-        <Icon name="check" size={16} strokeWidth={2.2} />
-        {done ? t('selfExam.doneAlready') : t('selfExam.done')}
-      </button>
+      {/* Breast awareness (v6, H-10) is informational: nothing to log, the chips only show the nudge. */}
+      {detail.readOnly ? (
+        <p role="note" className="card p-4 text-start text-[12.5px] leading-relaxed font-semibold text-(--ink-2)">
+          {t('detail.informationalNote')}
+        </p>
+      ) : (
+        <button type="button" className="btn btn-primary w-full" disabled={done || create.isPending} onClick={submit}>
+          <Icon name="check" size={16} strokeWidth={2.2} />
+          {done ? t('selfExam.doneAlready') : t('selfExam.done')}
+        </button>
+      )}
       {create.isError && (
         <p className="text-center text-[12px] text-(--danger)" role="alert">
           {t('saveError')}
         </p>
       )}
-      {records.data && (
+      {records.data && !detail.readOnly && (
         <Link
           href={`/checkups/history?type=${detail.id}`}
           className="flex min-h-11 items-center justify-center gap-1.5 text-[12px] font-semibold text-(--ink-3)"

@@ -67,6 +67,7 @@ func TypeFromRow(t store.CheckupType) engine.Type {
 		CycleDayTo:        int(t.CycleDayTo.Int16),
 		RemindLeadDays:    int(t.RemindLeadDays),
 		HideInPregnancy:   t.HideInPregnancy,
+		Informational:     t.Informational,
 		IsActive:          t.IsActive,
 		SortOrder:         int(t.SortOrder),
 	}
@@ -74,7 +75,7 @@ func TypeFromRow(t store.CheckupType) engine.Type {
 
 // RecordFromRow converts a checkup_records row.
 func RecordFromRow(r store.CheckupRecord) engine.Record {
-	rec := engine.Record{ID: r.ID, TypeID: r.CheckupTypeID, DoneOn: r.DoneOn}
+	rec := engine.Record{ID: r.ID, TypeID: r.CheckupTypeID, DoneOn: r.DoneOn, Result: r.Result, TestKind: r.TestKind.String}
 	if r.NextDueOn.Valid {
 		rec.NextDueOn = r.NextDueOn.Date
 	}

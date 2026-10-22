@@ -7,8 +7,10 @@ import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import {
   CHECKUP_ATTACHMENT_IMAGE_TYPES,
   CHECKUP_RESULTS,
+  type CheckupDetail,
   type CheckupRecord,
   type CheckupResult,
+  type CheckupTestKind,
   checkupAttachments,
   checkupResultIcon,
   isCheckupAttachmentImage,
@@ -87,6 +89,15 @@ export function MarkDoneSheet({ arg }: SheetContentProps) {
     );
   }
 
+  // Informational (breast awareness): the history stays readable, no new or edited records.
+  if (detail.data.readOnly) {
+    return (
+      <p className="rmd-state" role="note">
+        {t('detail.informationalNote')}
+      </p>
+    );
+  }
+
   let record: CheckupRecord | null = null;
   if (target.recordId) {
     record =
@@ -107,10 +118,11 @@ export function MarkDoneSheet({ arg }: SheetContentProps) {
     }
   }
 
-  return <MarkDoneForm key={record?.id ?? 'new'} typeId={target.typeId} record={record} />;
+  return <MarkDoneForm key={record?.id ?? 'new'} detail={detail.data} record={record} />;
 }
 
-function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecord | null }) {
+function MarkDoneForm({ detail, record }: { detail: CheckupDetail; record: CheckupRecord | null }) {
+  const typeId = detail.id;
   const t = useTranslations('checkups');
   const tm = useTranslations('checkups.markDone');
   const locale = useLocale() as Locale;
@@ -119,6 +131,7 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
   const [doneOn, setDoneOn] = useState(record?.doneOn ?? toApiDate(today()));
   const [result, setResult] = useState<CheckupResult>(record?.result ?? 'normal');
   const [note, setNote] = useState(record?.note ?? '');
+  const [testKind, setTestKind] = useState<CheckupTestKind | null>(record?.testKind ?? null);
   const [nextOverride, setNextOverride] = useState<string | null>(record?.nextDueOn ?? null);
   const [picked, setPicked] = useState<PickedFile | null>(null);
   const [removedExisting, setRemovedExisting] = useState(false);
@@ -131,7 +144,7 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
   const pdfRef = useRef<HTMLInputElement>(null);
 
   const existing = useCheckupAttachment(record?.hasAttachment ? record.id : null);
-  const preview = useCheckupNextPreview(typeId, doneOn);
+  const preview = useCheckupNextPreview(typeId, doneOn, testKind);
   const create = useCreateCheckupRecord();
   const update = useUpdateCheckupRecord();
   const saving = create.isPending || update.isPending;
@@ -189,7 +202,17 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
 
   const onSubmit = () => {
     setFormError(null);
-    const input = { doneOn, result, note, nextDueOn: nextOverride };
+    if (detail.testKindRequired && !testKind) {
+      setFormError(tm('testKindMissing'));
+      return;
+    }
+    const input = {
+      doneOn,
+      result,
+      note,
+      nextDueOn: nextOverride,
+      ...(detail.testKinds.length > 0 ? { testKind } : {}),
+    };
     const attachment = picked ? { file: picked.file, name: picked.file.name } : undefined;
     const onSuccess = ({ attachmentError }: { attachmentError: LocalFilesErrorCode | null }) => {
       showToast(attachmentError ? tm('attachmentNotSaved') : tm('saved'), attachmentError ? 'warn' : 'ok');
@@ -233,6 +256,45 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
         </button>
       </div>
 
+      {detail.testKinds.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <span className="cfm-label" id="ckm-kind">
+            {tm('testKind')}
+            {!detail.testKindRequired && (
+              <>
+                {' '}
+                <span className="text-[12px] font-semibold text-(--ink-3)">{tm('optional')}</span>
+              </>
+            )}
+          </span>
+          <div
+            role="radiogroup"
+            aria-labelledby="ckm-kind"
+            aria-required={detail.testKindRequired}
+            className="grid grid-cols-3 gap-2"
+          >
+            {detail.testKinds.map((k) => (
+              <button
+                key={k}
+                type="button"
+                role="radio"
+                aria-checked={testKind === k}
+                className={clsx(
+                  'rounded-2xl border-[1.5px] px-2 py-3 text-[12.5px] font-extrabold',
+                  testKind === k
+                    ? 'border-(--brand) bg-(--pink-bg) text-(--brand-strong)'
+                    : 'border-(--line) bg-(--surface) text-(--ink-2)',
+                )}
+                onClick={() => setTestKind(testKind === k && !detail.testKindRequired ? null : k)}
+              >
+                {tm(`testKinds.${k}`)}
+              </button>
+            ))}
+          </div>
+          <p className="text-start text-[11.5px] text-(--ink-3)">{tm('testKindHint')}</p>
+        </div>
+      )}
+
       <div className="flex flex-col gap-2">
         <span className="cfm-label">{tm('result')}</span>
         <div role="radiogroup" aria-label={tm('result')} className="grid grid-cols-3 gap-2">
@@ -257,6 +319,9 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
             </button>
           ))}
         </div>
+        {result === 'follow_up' && !nextOverride && (
+          <p className="text-start text-[11.5px] font-semibold text-(--ink-2)">{tm('followUpNote')}</p>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">

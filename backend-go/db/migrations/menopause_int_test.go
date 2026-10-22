@@ -38,7 +38,9 @@ func TestMenopauseMigration_SeedsAndRoundTrip(t *testing.T) {
 	}
 	// Seeded inactive here; 00024_activate_menopause_checkups turns them on (menopause_checkups_int_test.go).
 	assert.Equal(t, 9, count("SELECT COUNT(*) FROM checkup_types WHERE `key` LIKE 'meno\\_%' AND JSON_CONTAINS(audiences, '\"menopause\"')"))
-	assert.Zero(t, count("SELECT COUNT(*) FROM checkup_types WHERE `key` NOT LIKE 'meno\\_%' AND audiences IS NOT NULL"),
+	// 00100 (T-M10-21) adds two USPSTF types with an audience list (not menopause); the M4 rows stay for everyone.
+	assert.Zero(t, count("SELECT COUNT(*) FROM checkup_types WHERE `key` NOT LIKE 'meno\\_%' AND audiences IS NOT NULL"+
+		" AND `key` NOT IN ('bp_screening', 'glucose_screening')"),
 		"existing M4 rows stay for everyone")
 
 	// Score items: 16/16/12 domain maxima and every `log` ref is a menopause-loggable taxonomy slot.

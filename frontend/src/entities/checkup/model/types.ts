@@ -22,8 +22,21 @@ export const CHECKUP_CATEGORIES = [
 ] as const;
 export type CheckupCategory = (typeof CHECKUP_CATEGORIES)[number];
 
-/** Worst → best; `not_yet` = below `age_min`. */
-export const CHECKUP_STATUSES = ['overdue', 'due', 'soon', 'up_to_date', 'not_yet', 'disabled'] as const;
+/**
+ * Worst → best; `not_yet` = below `age_min`. v6 (T-M10-21): `follow_up` = the
+ * latest record asked for a follow-up with the doctor and set no next date (no
+ * default due); `informational` = an item without a schedule (breast awareness).
+ */
+export const CHECKUP_STATUSES = [
+  'overdue',
+  'due',
+  'follow_up',
+  'soon',
+  'up_to_date',
+  'not_yet',
+  'disabled',
+  'informational',
+] as const;
 export type CheckupStatus = (typeof CHECKUP_STATUSES)[number];
 
 /** List sections in the order the artboard shows them (the server sends its own order). */
@@ -38,6 +51,14 @@ export type CheckupPerformer = (typeof CHECKUP_PERFORMERS)[number];
 
 export const CHECKUP_RESULTS = ['normal', 'follow_up', 'pending'] as const;
 export type CheckupResult = (typeof CHECKUP_RESULTS)[number];
+
+/** Cervical screening test kinds (`checkup_records.test_kind`, the Pap form's picker). */
+export const CHECKUP_TEST_KINDS = ['cytology', 'hpv', 'cotest'] as const;
+export type CheckupTestKind = (typeof CHECKUP_TEST_KINDS)[number];
+
+/** `after_pregnancy`: a non-urgent screening deferred while pregnant (no reminder, not in the summary). */
+export const CHECKUP_LABELS = ['after_pregnancy'] as const;
+export type CheckupLabel = (typeof CHECKUP_LABELS)[number];
 
 /** `?filter=` of GET /checkups (tabs همه / نیاز به اقدام / انجام‌شده). */
 export const CHECKUP_LIST_FILTERS = ['all', 'action', 'done'] as const;
@@ -80,6 +101,10 @@ export interface CheckupItem {
   /** «۳ روز دیگر» / «عقب‌افتاده از فروردین» / «از ۱۴۰۹ (۴۰ سالگی)». */
   nextDueLabel: string | null;
   isCustom: boolean;
+  /** No due date, no reminder, read-only history (breast awareness). */
+  informational: boolean;
+  /** `after_pregnancy` while pregnant, else null. */
+  label: CheckupLabel | null;
 }
 
 /** GET /checkups. */
@@ -131,6 +156,8 @@ export interface CheckupRecord {
   hasAttachment: boolean;
   /** The user's override of the computed next due date. */
   nextDueOn: string | null;
+  /** Cervical test kind; null for other types. */
+  testKind: CheckupTestKind | null;
 }
 
 /** GET /checkups/{id}. */
@@ -146,6 +173,15 @@ export interface CheckupDetail extends CheckupItem {
   /** Latest 2. */
   records: CheckupRecord[];
   settings: CheckupSettings;
+  /** Interval and ages come from the clinical registry (USPSTF); `intervalSource` cites it. */
+  registry: boolean;
+  intervalSource: string | null;
+  /** Test kinds a record may carry at her age (the cervical type only). */
+  testKinds: CheckupTestKind[];
+  /** Her age band offers a choice (Pap from 30): the form asks for one. */
+  testKindRequired: boolean;
+  /** Informational: no new or edited records. */
+  readOnly: boolean;
 }
 
 /** One page of GET /checkups/records. */

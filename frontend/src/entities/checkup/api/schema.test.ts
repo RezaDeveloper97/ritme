@@ -74,6 +74,8 @@ describe('checkupItemSchema', () => {
       nextDueOn: '2025-03-25',
       nextDueLabel: 'عقب‌افتاده از فروردین',
       isCustom: false,
+      informational: false,
+      label: null,
     });
   });
 
@@ -210,6 +212,7 @@ describe('checkupRecordSchema', () => {
       note: null,
       hasAttachment: true,
       nextDueOn: null,
+      testKind: null,
     });
   });
 
@@ -383,5 +386,16 @@ describe('checkupIcon', () => {
     expect(checkupIcon('unknown', { performedBy: 'lab' })).toBe('flask');
     expect(checkupIcon(null, { category: 'monthly' })).toBe('ribbon');
     expect(checkupIcon(undefined)).toBe('stetho');
+  });
+});
+
+describe('v6 fields (T-M10-21)', () => {
+  it('reads the informational item, the after-pregnancy label and the test kind', () => {
+    const item = checkupItemSchema.parse({ ...papItem, status: 'informational', informational: true, label: 'after_pregnancy', interval_label: null });
+    expect(item.informational).toBe(true);
+    expect(item.label).toBe('after_pregnancy');
+    expect(item.intervalLabel).toBeNull();
+    expect(checkupItemSchema.parse({ ...papItem, label: 'something_new' }).label).toBeNull();
+    expect(checkupRecordSchema.parse({ ...record, test_kind: 'hpv' }).testKind).toBe('hpv');
   });
 });

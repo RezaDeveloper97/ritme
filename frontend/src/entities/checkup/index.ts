@@ -3,12 +3,14 @@
 // ── Model: types & enums ───────────────────────────────────────
 export {
   CHECKUP_CATEGORIES,
+  CHECKUP_LABELS,
   CHECKUP_LIST_FILTERS,
   CHECKUP_PERFORMERS,
   CHECKUP_RECORD_FILTERS,
   CHECKUP_RESULTS,
   CHECKUP_SECTIONS,
   CHECKUP_STATUSES,
+  CHECKUP_TEST_KINDS,
   CHECKUP_TONES,
   CUSTOM_INTERVAL_MONTHS,
   type CheckupCategory,
@@ -17,6 +19,7 @@ export {
   type CheckupGuideStep,
   type CheckupHome,
   type CheckupItem,
+  type CheckupLabel,
   type CheckupList,
   type CheckupListFilter,
   type CheckupNextPreview,
@@ -30,10 +33,19 @@ export {
   type CheckupSettings,
   type CheckupStatus,
   type CheckupSummary,
+  type CheckupTestKind,
   type CheckupTone,
 } from './model/types';
 export { checkupIcon } from './model/icon';
-export { checkupResultIcon, checkupStatusIcon, formatCheckupMonth } from './model/display';
+export {
+  type CheckupPillKind,
+  checkupPillClass,
+  checkupPillIcon,
+  checkupPillKind,
+  checkupResultIcon,
+  checkupStatusIcon,
+  formatCheckupMonth,
+} from './model/display';
 export {
   CHECKUP_ATTACHMENT_ACCEPT,
   CHECKUP_ATTACHMENT_IMAGE_TYPES,

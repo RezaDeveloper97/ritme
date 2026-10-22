@@ -2,10 +2,12 @@ import { z } from 'zod';
 
 import {
   CHECKUP_CATEGORIES,
+  CHECKUP_LABELS,
   CHECKUP_PERFORMERS,
   CHECKUP_RESULTS,
   CHECKUP_SECTIONS,
   CHECKUP_STATUSES,
+  CHECKUP_TEST_KINDS,
   CHECKUP_TONES,
   type CheckupDetail,
   type CheckupFindingOption,
@@ -18,6 +20,7 @@ import {
   type CheckupRecordPage,
   type CheckupRecordResult,
   type CheckupSummary,
+  type CheckupTestKind,
 } from '../model/types';
 
 /**
@@ -85,6 +88,9 @@ const statusSchema = z.enum(CHECKUP_STATUSES).catch('up_to_date');
 const toneSchema = z.enum(CHECKUP_TONES).catch('neutral');
 const resultSchema = z.enum(CHECKUP_RESULTS).catch('pending');
 const performerSchema = z.enum(CHECKUP_PERFORMERS).catch('doctor');
+/** An unknown label is dropped (null), an unknown test kind too. */
+const labelSchema = z.enum(CHECKUP_LABELS).nullish().catch(null).transform((v) => v ?? null);
+const testKindSchema = z.enum(CHECKUP_TEST_KINDS).nullish().catch(null).transform((v) => v ?? null);
 
 /** Array whose malformed items are dropped one by one; a non-array → []. */
 function tolerantArray<T>(item: z.ZodType<T, z.ZodTypeDef, unknown>) {
@@ -122,11 +128,13 @@ function toSummary(s: z.infer<typeof summaryRowSchema>): CheckupSummary {
 
 /** Summary from the items, for a response that omits it. */
 function summarize(items: CheckupItem[]): CheckupSummary {
-  const applicable = items.filter((i) => i.status !== 'not_yet');
+  const applicable = items.filter(
+    (i) => i.status !== 'not_yet' && i.status !== 'disabled' && i.status !== 'informational' && i.label === null,
+  );
   return {
     total: applicable.length,
     upToDate: applicable.filter((i) => i.status === 'up_to_date' || i.status === 'soon').length,
-    due: applicable.filter((i) => i.status === 'due').length,
+    due: applicable.filter((i) => i.status === 'due' || i.status === 'follow_up').length,
     overdue: applicable.filter((i) => i.status === 'overdue').length,
   };
 }
@@ -151,6 +159,8 @@ const itemRowSchema = z.object({
   next_due_on: dateText,
   next_due_label: text,
   is_custom: z.unknown(),
+  informational: bool(false),
+  label: labelSchema,
 });
 
 function toItem(r: z.infer<typeof itemRowSchema>): CheckupItem {
@@ -175,6 +185,8 @@ function toItem(r: z.infer<typeof itemRowSchema>): CheckupItem {
     nextDueOn: r.next_due_on,
     nextDueLabel: r.next_due_label,
     isCustom,
+    informational: r.informational || r.status === 'informational',
+    label: r.label,
   };
 }
 
@@ -228,6 +240,7 @@ const recordRowSchema = z.object({
   note: text,
   has_attachment: bool(false),
   next_due_on: dateText,
+  test_kind: testKindSchema,
 });
 
 export const checkupRecordSchema = recordRowSchema.transform(
@@ -244,6 +257,7 @@ export const checkupRecordSchema = recordRowSchema.transform(
     note: r.note,
     hasAttachment: r.has_attachment,
     nextDueOn: r.next_due_on,
+    testKind: r.test_kind,
   }),
 );
 
@@ -350,6 +364,11 @@ export const checkupDetailSchema = itemRowSchema
     finding_options: tolerantArray(findingOptionSchema),
     records: tolerantArray(checkupRecordSchema),
     settings: settingsSchema,
+    registry: bool(false),
+    interval_source: text,
+    test_kinds: tolerantArray(z.enum(CHECKUP_TEST_KINDS)),
+    test_kind_required: bool(false),
+    read_only: bool(false),
   })
   .transform(
     (r): CheckupDetail => ({
@@ -364,6 +383,11 @@ export const checkupDetailSchema = itemRowSchema
       findingOptions: r.finding_options,
       records: [...r.records].sort((a, b) => b.doneOn.localeCompare(a.doneOn)).slice(0, 2),
       settings: r.settings,
+      registry: r.registry,
+      intervalSource: r.interval_source,
+      testKinds: r.test_kinds as CheckupTestKind[],
+      testKindRequired: r.test_kind_required,
+      readOnly: r.read_only || r.status === 'informational',
     }),
   );
 

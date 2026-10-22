@@ -13,6 +13,7 @@ import type {
   CheckupListFilter,
   CheckupNextPreview,
   CheckupRecordPage,
+  CheckupTestKind,
 } from '../model/types';
 import { type CheckupRecordFilters, checkupKeys } from './keys';
 import {
@@ -101,21 +102,29 @@ export function useCheckupRecords(filters: CheckupRecordFilters = {}) {
   });
 }
 
-/** GET /checkups/preview-next?type=&done_on= — the MarkDone «موعد بعدی» banner. */
+/**
+ * GET /checkups/preview-next?type=&done_on=[&test_kind=] — the MarkDone «موعد
+ * بعدی» banner; a cervical test kind previews its registry interval (HPV: ۵ سال).
+ */
 export async function fetchCheckupNextPreview(
   typeId: number,
   doneOn: string,
+  testKind: CheckupTestKind | null = null,
 ): Promise<CheckupNextPreview> {
   const { data } = await apiClient.get<ApiEnvelope<unknown>>('/checkups/preview-next', {
-    params: { type: typeId, done_on: doneOn },
+    params: testKind ? { type: typeId, done_on: doneOn, test_kind: testKind } : { type: typeId, done_on: doneOn },
   });
   return checkupNextPreviewSchema.parse(data.data ?? {});
 }
 
-export function useCheckupNextPreview(typeId: number | null, doneOn: string | null) {
+export function useCheckupNextPreview(
+  typeId: number | null,
+  doneOn: string | null,
+  testKind: CheckupTestKind | null = null,
+) {
   return useQuery({
-    queryKey: checkupKeys.previewNext(typeId ?? 0, doneOn ?? ''),
-    queryFn: () => fetchCheckupNextPreview(typeId as number, doneOn as string),
+    queryKey: [...checkupKeys.previewNext(typeId ?? 0, doneOn ?? ''), testKind ?? ''],
+    queryFn: () => fetchCheckupNextPreview(typeId as number, doneOn as string, testKind),
     enabled: isAuthenticated() && typeId !== null && !!doneOn,
     staleTime: 5 * 60_000,
     retry: false,

@@ -7011,8 +7011,16 @@ paths:
         listed — e.g. the nine `meno_*` checkups for menopause mode only; NULL = everyone. The same filter applies to
         `/checkups/home`, `/checkups/{id}` and its records / settings (404 outside the audience) and to search.
         Evaluated by the status engine (`internal/checkups/engine`) for today (Tehran). `age` is null without a
-        profile birthday. `summary` is always over the whole plan (disabled items excluded, `not_yet` counted as
-        up to date); `?filter=action` lists due/overdue items, `done` recorded items that need no action.
+        profile birthday. `summary` is always over the whole plan (disabled and informational items and items labelled
+        `after_pregnancy` excluded, `not_yet` counted as up to date, `follow_up` counted as due); `?filter=action`
+        lists due/overdue/follow-up items (never `after_pregnancy`), `done` recorded items that need no action.
+        **v6 (T-M10-21, D-172):** registry-driven types (keys with `screening.uspstf` rows: `pap_smear`, `mammography`,
+        `bp_screening`, `glucose_screening`, `dentist`) take interval and age span from that clinical-config key on
+        the evaluation day — Pap by the latest record's `test_kind` (cytology 36, HPV / co-test 60 months), glucose
+        only with BMI ≥ 25 (unknown BMI: shown); the catalog columns are the fallback. An informational type (breast
+        awareness, H-10) has status `informational`, no dates, no reminder. A latest record with result `follow_up`
+        and no `next_due_on` gives status `follow_up` with no default next due. While pregnant a `hide_in_pregnancy`
+        type is no longer hidden: `label: after_pregnancy`, reminders off, its category section.
         Labels follow `Accept-Language` (Jalali months and localized digits for fa). Three queries.
       operationId: getCheckups
       security:
@@ -7041,9 +7049,10 @@ paths:
                 success: true
                 data:
                   age: 34
-                  summary: {total: 6, up_to_date: 2, due: 3, overdue: 1}
+                  summary: {total: 7, up_to_date: 3, due: 3, overdue: 1}
                   items:
-                    - {id: 5, key: dentist, title: دندان‌پزشکی, subtitle: null, category: six_monthly, section: overdue, status: overdue, icon: tooth, tone: teal, interval_label: هر ۶ ماه, timing_label: null, last_done_on: "2026-01-10", next_due_on: "2026-07-10", next_due_label: عقب‌افتاده از تیر, is_custom: false}
+                    - {id: 5, key: dentist, title: دندان‌پزشکی, subtitle: null, category: six_monthly, section: overdue, status: overdue, icon: tooth, tone: teal, interval_label: هر ۶ ماه, timing_label: null, last_done_on: "2026-01-10", next_due_on: "2026-07-10", next_due_label: عقب‌افتاده از تیر, is_custom: false, informational: false, label: null}
+                    - {id: 1, key: breast_self_exam, title: آگاهی از سینه, subtitle: حالت طبیعی سینه‌هایت را بشناس, category: monthly, section: monthly, status: informational, icon: ribbon, tone: rose, interval_label: null, timing_label: null, last_done_on: null, next_due_on: null, next_due_label: بدون موعد, is_custom: false, informational: true, label: null}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/CheckupValidationFailed"}
   /api/v1/checkups/home:
@@ -7085,13 +7094,16 @@ paths:
         When a checkup done on `done_on` is next due (`next_due_on`; `due_by` = the day before it turns overdue — the
         range maximum or the end of the cycle window). A monthly cycle-timed type lands on the window of the first
         predicted cycle after `done_on` (`cycle_timed: true`). The user's own override is not applied.
-        `reminder_label` reflects the type's reminder switch.
+        `reminder_label` reflects the type's reminder switch (off for an `after_pregnancy` item). v6: `test_kind`
+        (optional) previews the registry interval of that cervical test kind (`hpv` → 60 months); an informational type
+        answers every field null and `cycle_timed: false`.
       operationId: getCheckupsPreviewNext
       security:
         - {bearerAuth: []}
       parameters:
         - {name: type, in: query, required: true, schema: {type: integer}}
         - {name: done_on, in: query, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {name: test_kind, in: query, required: false, schema: {type: string, enum: [cytology, hpv, cotest]}}
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
         '200':
@@ -7107,12 +7119,12 @@ paths:
                     type: object
                     required: [next_due_on, due_by, next_due_label, interval_label, timing_label, reminder_label, cycle_timed]
                     properties:
-                      next_due_on: {$ref: "#/components/schemas/Date"}
-                      due_by: {$ref: "#/components/schemas/Date"}
-                      next_due_label: {type: string}
-                      interval_label: {type: string}
+                      next_due_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                      due_by: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                      next_due_label: {type: [string, "null"]}
+                      interval_label: {type: [string, "null"]}
                       timing_label: {type: [string, "null"]}
-                      reminder_label: {type: string}
+                      reminder_label: {type: [string, "null"]}
                       cycle_timed: {type: boolean}
               example:
                 success: true
@@ -7330,8 +7342,11 @@ paths:
       description: |
         The item plus the catalog copy (localized `why`, `prep_steps`, `guide_steps`, `finding_options`), the latest two
         records and the user's switches. Any active type the user sees (a shared catalog row for her life mode — see
-        `GET /checkups` — or her own custom checkup; 404 otherwise); a type the plan leaves out (hidden in pregnancy, past `age_max`) still opens. Admin edits show
-        immediately (no cache).
+        `GET /checkups` — or her own custom checkup; 404 otherwise); a type the plan leaves out (past the age span,
+        outside the screening bands) still opens. Admin edits show immediately (no cache). v6: `registry` +
+        `interval_source` (the screening.uspstf citation) for a registry-driven type; `test_kinds` / `test_kind_required`
+        drive the record form's test-kind picker (cervical type only; required from 30); `read_only` for an
+        informational type (no new or edited records).
       operationId: getCheckup
       security:
         - {bearerAuth: []}
@@ -7359,6 +7374,9 @@ paths:
         `done_on` must not be in the future (Tehran); `findings` ⊆ the type's `finding_options` keys (none for a type
         without options), de-duplicated; `next_due_on` (after `done_on`) overrides the computed next due date;
         `has_attachment` only flags that a report is stored **on the device** (the file never reaches the server).
+        `test_kind` (cytology | hpv | cotest) is accepted only for a type whose screening.uspstf rows name test kinds
+        (the cervical type; ignored elsewhere) and is required when her age band offers a choice (30–65); a PUT keeps
+        the stored kind unless the body changes it. An informational type answers **422** (read-only history).
         Unknown keys are ignored. Returns **201** with `{item, record}` — the recomputed item and the new record, whose
         id keys the on-device attachment.
       operationId: postCheckupRecord
@@ -29447,7 +29465,7 @@ components:
             secondary: {type: [string, "null"]}
     CheckupSummary:
       type: object
-      description: "Over enabled items: `up_to_date` counts up_to_date + soon + not_yet."
+      description: "Over enabled items (informational and `after_pregnancy` items excluded): `up_to_date` counts up_to_date + soon + not_yet; `due` counts due + follow_up."
       required: [total, up_to_date, due, overdue]
       properties:
         total: {type: integer}
@@ -29456,7 +29474,8 @@ components:
         overdue: {type: integer}
     CheckupItem:
       type: object
-      description: "One evaluated checkup. Texts are localized; `next_due_label` e.g. «۳ روز دیگر», «عقب‌افتاده از فروردین», «از ۱۴۰۹ (۴۰ سالگی)», «مهر ۱۴۰۶», «غیرفعال»."
+      description: "One evaluated checkup. Texts are localized; `next_due_label` e.g. «۳ روز دیگر», «عقب‌افتاده از فروردین», «از ۱۴۰۹ (۴۰ سالگی)», «مهر ۱۴۰۶», «غیرفعال», «بدون موعد» (informational), «پیگیری با پزشک» (follow_up), «بعد از بارداری» (after_pregnancy)."
+      # informational, label: required once the menopause goldens are re-recorded (T-M10-21)
       required: [id, key, title, subtitle, category, section, status, icon, tone, interval_label, timing_label, last_done_on, next_due_on, next_due_label, is_custom]
       properties:
         id: {type: integer}
@@ -29465,18 +29484,20 @@ components:
         subtitle: {type: [string, "null"]}
         category: {type: string, enum: [monthly, six_monthly, annual, multi_year, age_based, custom]}
         section: {type: string, enum: [this_month, overdue, monthly, six_monthly, annual, multi_year, age_based, custom], description: "this_month: a cycle-timed type due inside the current month, or an overdue monthly one (self-exam); every other overdue item: overdue; else the category."}
-        status: {type: string, enum: [overdue, due, soon, up_to_date, not_yet, disabled]}
+        status: {type: string, enum: [overdue, due, soon, up_to_date, not_yet, disabled, follow_up, informational], description: "follow_up: the latest record asked for a follow-up and set no next date (no default due); informational: no schedule (H-10)."}
         icon: {type: [string, "null"]}
         tone: {type: string, enum: [rose, violet, amber, teal, green, neutral]}
-        interval_label: {type: string}
+        interval_label: {type: [string, "null"], description: "Null for an informational item; a registry-driven type shows the screening.uspstf interval."}
         timing_label: {type: [string, "null"], description: "Cycle-timed types only («روز ۷ تا ۱۰ سیکل»)."}
         last_done_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
         next_due_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "Null when never recorded and not cycle-timed; for not_yet the day the user reaches age_min."}
         next_due_label: {type: string}
         is_custom: {type: boolean}
+        informational: {type: boolean, description: "Breast awareness (H-10): no due date, no reminder, read-only history."}
+        label: {type: [string, "null"], enum: [after_pregnancy, null], description: "after_pregnancy: a non-urgent screening deferred while pregnant (no reminder, not in the summary)."}
     CheckupRecord:
       type: object
-      required: [id, checkup_type_id, checkup_title, done_on, result, findings, note, has_attachment, next_due_on]
+      required: [id, checkup_type_id, checkup_title, done_on, result, findings, note, has_attachment, next_due_on, test_kind]
       properties:
         id: {type: integer}
         checkup_type_id: {type: integer}
@@ -29487,6 +29508,7 @@ components:
         note: {type: [string, "null"]}
         has_attachment: {type: boolean, description: "A report is stored on the user's device (never on the server)."}
         next_due_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "The user's override of the next due date."}
+        test_kind: {type: [string, "null"], enum: [cytology, hpv, cotest, null], description: "Cervical test kind (T-M10-21); null for other types."}
     CheckupRecordInput:
       type: object
       properties:
@@ -29496,6 +29518,7 @@ components:
         note: {type: [string, "null"], maxLength: 2000}
         has_attachment: {type: boolean}
         next_due_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        test_kind: {type: [string, "null"], enum: [cytology, hpv, cotest, null], description: "Cervical type only (required from 30 on a create); ignored for other types."}
     CheckupRecordResult:
       type: object
       required: [success, message, data]
@@ -29520,7 +29543,7 @@ components:
       allOf:
         - {$ref: "#/components/schemas/CheckupItem"}
         - type: object
-          required: [why, performed_by, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, records, settings]
+          required: [why, performed_by, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, records, settings, registry, interval_source, test_kinds, test_kind_required, read_only]
           properties:
             why: {type: [string, "null"]}
             performed_by: {type: string, enum: [self, doctor, lab, dentist]}
@@ -29552,6 +29575,11 @@ components:
               type: object
               required: [enabled, remind]
               properties: {enabled: {type: boolean}, remind: {type: boolean}}
+            registry: {type: boolean, description: "Interval and ages come from the clinical-config key screening.uspstf (on the evaluation day)."}
+            interval_source: {type: [string, "null"], description: "The registry version's source citation; null when not registry-driven."}
+            test_kinds: {type: array, items: {type: string, enum: [cytology, hpv, cotest]}, description: "Test kinds a record may carry at her age (empty for non-cervical types)."}
+            test_kind_required: {type: boolean, description: "Her age band offers more than one kind (Pap 30–65)."}
+            read_only: {type: boolean, description: "Informational type: no new or edited records."}
     Date:
       type: string
       format: date

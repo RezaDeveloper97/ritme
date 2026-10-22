@@ -1762,3 +1762,37 @@ Nothing needed fixing.
 - Interpretations to review:
   - the fasting/pre-meal/bedtime upper bound is inclusive, post-meal `< 180`;
   - bedtime has a target only when the user set one (no fallback to fasting).
+
+## T-M10-21 — Checkups on the USPSTF v6 registry: intervals, HPV test kind, informational items (D-172)
+- Engine (`checkups/engine/screening.go`): cervical, mammography, BP, glucose and dental types read `screening.uspstf` rows on the evaluation day:
+  - age band;
+  - the last record's `test_kind` (cytology 36, HPV/co-test 60);
+  - BMI from the profile via `bmi.who` (≥ boundary; unknown BMI → shown).
+- Other types keep the catalog columns. A last record with `result = follow_up` gets no default next due.
+- Informational types have no due date or reminder; POST/PUT → 422, history readable, DELETE allowed.
+- While pregnant, non-urgent items get `label: after_pregnancy` and no reminder, and are excluded from the summary.
+- Migration **00100** `checkups_uspstf_catalog`, with the Laravel twin:
+  - new types `bp_screening` and `glucose_screening` (fa/en copy, USPSTF `source_note`);
+  - `breast_self_exam` → informational «آگاهی از سینه»;
+  - Pap copy mentions HPV; mammography 40–74 every 24 months.
+- Record API: `test_kind` is validated (required from age 30, must be a registry kind) and kept on PUT. This fixes the T-M10-17 NULLing.
+- admin-web checkup-types: an informational switch; registry-driven interval/age fields are read-only, with a link to clinical-config.
+- Frontend:
+  - informational card, «پیگیری با پزشک» and «بعد از بارداری» pills;
+  - test-kind picker on the Pap record form;
+  - self-exam in awareness mode;
+  - fa/en, light/dark.
+- Outside touches, all needed:
+  - sqlc `db/queries/checkups/{user,admin}.sql` (BMI fields, record result/test_kind, `informational`);
+  - `features/record-checkup/model/body.ts` (`test_kind`);
+  - `screens/home/ui/MenopauseHome.tsx` (the status-tone map);
+  - two test fixtures;
+  - admin-web message keys.
+- Main session:
+  - applied the OpenAPI diff;
+  - `dump.sql` `checkup_types` rebuilt by running 00100 Up on the dump (rows 16–17, updated rows 1/3/5/6, AUTO_INCREMENT 18);
+  - i18n goldens re-recorded;
+  - contract: D-172 allow-list in `menopause.yaml` and `messages.yaml`. That file also got the D-169 daily-message entries missed by T-M10-18; the other D-169 entries went in the previous commit.
+  - `CheckupItem.informational`/`label` stay optional until the menopause goldens are re-recorded.
+- Verify: `go vet ./...` and `go test ./...` green; checkups/admin/migrations test-int ok; `schema-diff` OK; `make contract ROUTES=all` → 1914 passed, 0 failed. Frontend: 1955 tests passed, copy:check clean. admin-web: 168 tests passed.
+- Open: H-10, H-11 and H-16 are advisor-pending; document admin-api §12 (`informational`, `registry_key`).

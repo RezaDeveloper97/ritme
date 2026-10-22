@@ -19,6 +19,7 @@ import (
 	"github.com/ritme/backend-go/internal/admin/content/form"
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
 	"github.com/ritme/backend-go/internal/checkups/store"
+	"github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 )
@@ -70,8 +71,14 @@ func nullInt(n sql.NullInt16) any {
 	return n.Int16
 }
 
-// typeJSON is the CheckupType record (columns in table order, JSON columns decoded).
-func typeJSON(t *store.CheckupType, recordsCount int64) *jsonx.OrderedMap {
+// typeJSON is the CheckupType record (columns in table order, JSON columns decoded). v6 (T-M10-21): informational,
+// and registry_key = the clinical-config key whose rows set the interval and ages of a registry-driven type on day
+// (those columns are then the fallback only and read-only in admin-web), else null.
+func typeJSON(t *store.CheckupType, recordsCount int64, day civildate.Date) *jsonx.OrderedMap {
+	var registry any
+	if registryDriven(t, day) {
+		registry = clinicalconfig.KeyScreeningUSPSTF
+	}
 	return jsonx.Obj(
 		"id", t.ID,
 		"key", httpadmin.NullString(t.Key),
@@ -97,6 +104,8 @@ func typeJSON(t *store.CheckupType, recordsCount int64) *jsonx.OrderedMap {
 		"is_active", t.IsActive,
 		"sort_order", t.SortOrder,
 		"source_note", httpadmin.NullString(t.SourceNote),
+		"informational", t.Informational,
+		"registry_key", registry,
 		"records_count", recordsCount,
 		"created_at", httpadmin.Time(t.CreatedAt),
 		"updated_at", httpadmin.Time(t.UpdatedAt),
@@ -154,7 +163,7 @@ func (h *Handlers) List(c fiber.Ctx) error {
 	}
 	items := make([]*jsonx.OrderedMap, 0, len(rows))
 	for i := range rows {
-		items = append(items, typeJSON(&rows[i], counts[rows[i].ID].RecordsTotal))
+		items = append(items, typeJSON(&rows[i], counts[rows[i].ID].RecordsTotal, civildate.InTehran(httpadmin.Now(c))))
 	}
 	page := httpadmin.Page(items, p, int(total))
 	page.Set("filters", jsonx.Obj("q", search, "status", status))
@@ -274,7 +283,7 @@ func (h *Handlers) respond(c fiber.Ctx, id uint64, created bool, msg string) err
 	if err != nil {
 		return err
 	}
-	body := jsonx.Obj("checkup_type", typeJSON(&t, n))
+	body := jsonx.Obj("checkup_type", typeJSON(&t, n, civildate.InTehran(httpadmin.Now(c))))
 	var msgs []string
 	if msg != "" {
 		msgs = []string{msg}
@@ -309,7 +318,7 @@ func (h *Handlers) Store(c fiber.Ctx) error {
 		PrepSteps: p.PrepSteps, GuideSteps: p.GuideSteps, FindingOptions: p.FindingOptions,
 		HideInPregnancy: p.HideInPregnancy, Audiences: p.Audiences, IsActive: p.IsActive,
 		SortOrder:  int32(sortOrder), //nolint:gosec // G115: clamped to int32 by form.Int / a small MAX()+1
-		SourceNote: p.SourceNote, Now: httpadmin.DBTime(httpadmin.Now(c)),
+		SourceNote: p.SourceNote, Informational: p.Informational, Now: httpadmin.DBTime(httpadmin.Now(c)),
 	})
 	if err != nil {
 		return err

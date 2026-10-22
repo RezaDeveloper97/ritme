@@ -194,6 +194,8 @@ SELECT
   p.cycle_duration,
   p.period_duration,
   p.user_goal,
+  p.weight,
+  p.height,
   CAST(EXISTS (
     SELECT 1 FROM ` + "`" + `pregnancy_profiles` + "`" + ` pp WHERE pp.user_id = u.id AND pp.pregnancy_mode = 1
   ) AS SIGNED) AS pregnant,
@@ -212,13 +214,15 @@ type GetCheckupUserContextRow struct {
 	CycleDuration   sql.NullInt16
 	PeriodDuration  sql.NullInt16
 	UserGoal        sql.NullString
+	Weight          sql.NullString
+	Height          sql.NullInt16
 	Pregnant        int64
 	LifeMode        sql.NullString
 }
 
 // Checkups user API (T-M4-02, /api/v1/checkups/*). Every query is scoped by user_id; a catalog
 // read returns the shared rows plus the user's own custom checkups only.
-// The profile columns the cycle engine and the age rules read, plus pregnancy mode and the stored life mode
+// The profile columns the cycle engine, the age rules and the BMI condition (T-M10-21) read, plus pregnancy mode and the stored life mode
 // (enums.ResolveLifeMode inputs, CB-MENO-01b audience filter), in one read.
 func (q *Queries) GetCheckupUserContext(ctx context.Context, id uint64) (GetCheckupUserContextRow, error) {
 	row := q.db.QueryRowContext(ctx, getCheckupUserContext, id)
@@ -230,6 +234,8 @@ func (q *Queries) GetCheckupUserContext(ctx context.Context, id uint64) (GetChec
 		&i.CycleDuration,
 		&i.PeriodDuration,
 		&i.UserGoal,
+		&i.Weight,
+		&i.Height,
 		&i.Pregnant,
 		&i.LifeMode,
 	)
@@ -369,7 +375,9 @@ SELECT
   s.remind AS setting_remind,
   r.id AS record_id,
   r.done_on AS record_done_on,
-  r.next_due_on AS record_next_due_on
+  r.next_due_on AS record_next_due_on,
+  r.result AS record_result,
+  r.test_kind AS record_test_kind
 FROM ` + "`" + `checkup_types` + "`" + ` t
 LEFT JOIN ` + "`" + `user_checkup_settings` + "`" + ` s
   ON s.checkup_type_id = t.id AND s.user_id = CAST(? AS UNSIGNED)
@@ -396,10 +404,13 @@ type ListCheckupPlanRowsRow struct {
 	RecordID        sql.NullInt64
 	RecordDoneOn    civildate.NullDate
 	RecordNextDueOn civildate.NullDate
+	RecordResult    sql.NullString
+	RecordTestKind  sql.NullString
 }
 
 // The active catalog the user's life mode sees (audiences NULL or listing life_mode, CB-MENO-01b) with the
-// user's setting and latest record per type, in one read (latest = highest done_on, ties → higher id, like the engine).
+// user's setting and latest record per type (its result and test kind too, T-M10-21), in one read (latest = highest
+// done_on, ties → higher id, like the engine).
 func (q *Queries) ListCheckupPlanRows(ctx context.Context, arg ListCheckupPlanRowsParams) ([]ListCheckupPlanRowsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listCheckupPlanRows,
 		arg.UserID,
@@ -448,6 +459,8 @@ func (q *Queries) ListCheckupPlanRows(ctx context.Context, arg ListCheckupPlanRo
 			&i.RecordID,
 			&i.RecordDoneOn,
 			&i.RecordNextDueOn,
+			&i.RecordResult,
+			&i.RecordTestKind,
 		); err != nil {
 			return nil, err
 		}

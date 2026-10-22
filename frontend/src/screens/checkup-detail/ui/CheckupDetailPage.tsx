@@ -7,8 +7,10 @@ import {
   type CheckupDetail,
   type CheckupRecord,
   checkupIcon,
+  checkupPillClass,
+  checkupPillIcon,
+  checkupPillKind,
   checkupResultIcon,
-  checkupStatusIcon,
   formatCheckupMonth,
   useCheckup,
 } from '@/entities/checkup';
@@ -20,7 +22,7 @@ import { withHandoff } from '@/shared/lib/handoff';
 import { openSheet } from '@/shared/sheet';
 import { Icon, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
-import { MARK_DONE_SHEET, bookPrefill, heroRelative, markDoneSheetArg } from '../model/view';
+import { MARK_DONE_SHEET, bookPrefill, heroNote, heroRelative, markDoneSheetArg } from '../model/view';
 
 const LIST_HREF = '/checkups';
 const GUIDE_HREF = '/checkups/self-exam';
@@ -65,6 +67,7 @@ function Hero({ detail }: { detail: CheckupDetail }) {
   const hasGuide = detail.guideSteps.length > 0;
   const next = detail.nextDueOn ? formatCheckupMonth(detail.nextDueOn, locale) : t('noDate');
   const rel = heroRelative(detail);
+  const pill = checkupPillKind(detail);
   // «حدود ۶ ماه از موعد گذشته، آخرین بار فروردین ۱۴۰۱» — months past the *due date*, and only when overdue.
   const relative =
     rel.kind === 'never'
@@ -83,9 +86,9 @@ function Hero({ detail }: { detail: CheckupDetail }) {
           <Icon name={checkupIcon(detail.icon, { performedBy: detail.performedBy })} size={13} />
           {detail.subtitle ?? t(`section.${detail.category}`)}
         </span>
-        <span className={clsx(`ck-status-${detail.status}`, 'ck-pill is-solid')}>
-          <Icon name={checkupStatusIcon(detail.status)} size={12} strokeWidth={2.2} />
-          {t(`status.${detail.status}`)}
+        <span className={clsx(checkupPillClass(pill), 'ck-pill is-solid')}>
+          <Icon name={checkupPillIcon(pill)} size={12} strokeWidth={2.2} />
+          {t(`status.${pill}`)}
         </span>
       </div>
       <div className="flex items-center gap-3">
@@ -99,7 +102,7 @@ function Hero({ detail }: { detail: CheckupDetail }) {
         </span>
       </div>
       <div className="flex gap-2">
-        {hasGuide ? (
+        {detail.readOnly ? null : hasGuide ? (
           <Link href={GUIDE_HREF} className="btn flex-1 bg-(--surface) text-(--brand-strong)">
             <Icon name="bookOpen" size={16} />
             {t('detail.openGuide')}
@@ -139,6 +142,7 @@ function RecordRow({ detail, record }: { detail: CheckupDetail; record: CheckupR
         type="button"
         className="flex w-full items-center gap-3 py-2.5 text-start"
         aria-label={t('detail.editRecord')}
+        disabled={detail.readOnly}
         onClick={() => openSheet(MARK_DONE_SHEET, markDoneSheetArg(detail.id, record.id))}
       >
         <span className="size-2.5 shrink-0 rounded-full bg-(--ck-ink)" aria-hidden />
@@ -189,9 +193,16 @@ export function CheckupDetailPage({ id }: { id: number }) {
     );
   } else {
     const hasCycleHint = detail.cycleDayFrom !== null && detail.cycleDayTo !== null;
+    const note = heroNote(detail);
     body = (
       <>
         <Hero detail={detail} />
+
+        {note && (
+          <p role="note" className="card p-4 text-start text-[12.5px] leading-relaxed font-semibold text-(--ink-2)">
+            {t(`detail.${note}`)}
+          </p>
+        )}
 
         {detail.why && (
           <section className="card flex flex-col gap-2 p-4 text-start">
@@ -251,6 +262,11 @@ export function CheckupDetailPage({ id }: { id: number }) {
           </Link>
         )}
 
+        {detail.intervalSource && (
+          <p className="text-center text-[11px] leading-relaxed text-(--ink-3)" dir="auto">
+            {t('detail.source', { source: detail.intervalSource })}
+          </p>
+        )}
         <p className="text-center text-[11.5px] leading-relaxed text-(--ink-3)">{t('detail.disclaimer')}</p>
       </>
     );

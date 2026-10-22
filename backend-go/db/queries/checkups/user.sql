@@ -2,7 +2,7 @@
 -- read returns the shared rows plus the user's own custom checkups only.
 
 -- name: GetCheckupUserContext :one
--- The profile columns the cycle engine and the age rules read, plus pregnancy mode and the stored life mode
+-- The profile columns the cycle engine, the age rules and the BMI condition (T-M10-21) read, plus pregnancy mode and the stored life mode
 -- (enums.ResolveLifeMode inputs, CB-MENO-01b audience filter), in one read.
 SELECT
   p.id AS profile_id,
@@ -11,6 +11,8 @@ SELECT
   p.cycle_duration,
   p.period_duration,
   p.user_goal,
+  p.weight,
+  p.height,
   CAST(EXISTS (
     SELECT 1 FROM `pregnancy_profiles` pp WHERE pp.user_id = u.id AND pp.pregnancy_mode = 1
   ) AS SIGNED) AS pregnant,
@@ -23,14 +25,17 @@ LIMIT 1;
 
 -- name: ListCheckupPlanRows :many
 -- The active catalog the user's life mode sees (audiences NULL or listing life_mode, CB-MENO-01b) with the
--- user's setting and latest record per type, in one read (latest = highest done_on, ties → higher id, like the engine).
+-- user's setting and latest record per type (its result and test kind too, T-M10-21), in one read (latest = highest
+-- done_on, ties → higher id, like the engine).
 SELECT
   sqlc.embed(t),
   s.enabled AS setting_enabled,
   s.remind AS setting_remind,
   r.id AS record_id,
   r.done_on AS record_done_on,
-  r.next_due_on AS record_next_due_on
+  r.next_due_on AS record_next_due_on,
+  r.result AS record_result,
+  r.test_kind AS record_test_kind
 FROM `checkup_types` t
 LEFT JOIN `user_checkup_settings` s
   ON s.checkup_type_id = t.id AND s.user_id = CAST(sqlc.arg(user_id) AS UNSIGNED)

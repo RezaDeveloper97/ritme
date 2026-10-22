@@ -40,9 +40,19 @@ export function rowToBody(row: CheckupType): Record<string, unknown> {
     guide_steps: row.guide_steps,
     finding_options: row.finding_options.map((f) => ({ key: f.key, label: f.label, ...(f.exclusive ? { exclusive: true } : {}) })),
     hide_in_pregnancy: row.hide_in_pregnancy,
+    informational: row.informational,
     audiences: row.audiences.length ? row.audiences : null,
     is_active: row.is_active,
     sort_order: row.sort_order,
     source_note: row.source_note,
   };
+}
+
+/**
+ * The clinical registry (`screening.uspstf`) owns the interval and age columns of
+ * this row: the form shows them read-only and links to the registry (the API
+ * keeps the stored values anyway). T-M10-21.
+ */
+export function registryLocked(row: Pick<CheckupType, 'registry_key'> | null | undefined): boolean {
+  return Boolean(row?.registry_key);
 }

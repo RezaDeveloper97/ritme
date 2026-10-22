@@ -20,6 +20,8 @@ const item = (over: Partial<CheckupItem>): CheckupItem => ({
   nextDueOn: '2025-04-10',
   nextDueLabel: 'عقب‌افتاده از فروردین',
   isCustom: false,
+  informational: false,
+  label: null,
   ...over,
 });
 

@@ -35,13 +35,13 @@ FROM `checkup_types` WHERE user_id IS NULL;
 INSERT INTO `checkup_types` (`key`, user_id, category, title, subtitle, why, performed_by, icon, tone,
                              interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to,
                              remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy,
-                             audiences, is_active, sort_order, source_note, created_at, updated_at)
+                             audiences, is_active, sort_order, source_note, informational, created_at, updated_at)
 VALUES (sqlc.arg(type_key), NULL, sqlc.arg(category), sqlc.arg(title), sqlc.narg(subtitle), sqlc.narg(why),
         sqlc.arg(performed_by), sqlc.narg(icon), sqlc.arg(tone), sqlc.arg(interval_months),
         sqlc.narg(interval_months_max), sqlc.narg(age_min), sqlc.narg(age_max), sqlc.narg(cycle_day_from),
         sqlc.narg(cycle_day_to), sqlc.arg(remind_lead_days), sqlc.narg(prep_steps), sqlc.narg(guide_steps),
         sqlc.narg(finding_options), sqlc.arg(hide_in_pregnancy), sqlc.narg(audiences), sqlc.arg(is_active), sqlc.arg(sort_order),
-        sqlc.narg(source_note), sqlc.arg(now), sqlc.arg(now));
+        sqlc.narg(source_note), sqlc.arg(informational), sqlc.arg(now), sqlc.arg(now));
 
 -- name: UpdateAdminCheckupType :exec
 UPDATE `checkup_types`
@@ -53,7 +53,8 @@ SET category = sqlc.arg(category), title = sqlc.arg(title), subtitle = sqlc.narg
     remind_lead_days = sqlc.arg(remind_lead_days), prep_steps = sqlc.narg(prep_steps),
     guide_steps = sqlc.narg(guide_steps), finding_options = sqlc.narg(finding_options),
     hide_in_pregnancy = sqlc.arg(hide_in_pregnancy), audiences = sqlc.narg(audiences), is_active = sqlc.arg(is_active),
-    sort_order = sqlc.arg(sort_order), source_note = sqlc.narg(source_note), updated_at = sqlc.arg(now)
+    sort_order = sqlc.arg(sort_order), source_note = sqlc.narg(source_note), informational = sqlc.arg(informational),
+    updated_at = sqlc.arg(now)
 WHERE id = sqlc.arg(id) AND user_id IS NULL;
 
 -- name: SetAdminCheckupTypeSortOrder :exec

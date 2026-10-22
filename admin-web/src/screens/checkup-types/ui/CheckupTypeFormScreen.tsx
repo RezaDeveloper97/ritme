@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 
@@ -32,7 +33,7 @@ import {
 } from '../api/checkup-types';
 import { audiencesBody, audiencesError } from '../lib/audience';
 import { checkupIcon } from '../lib/icon';
-import { cleanTranslations, moveItem } from '../lib/payload';
+import { cleanTranslations, moveItem, registryLocked } from '../lib/payload';
 import { toneClass } from '../lib/tone';
 import { CheckupPreview } from './CheckupPreview';
 import { useCheckupLabels } from './labels';
@@ -104,6 +105,8 @@ function CheckupTypeForm({
   const [cycleTo, setCycleTo] = useState(num(row?.cycle_day_to));
   const [remindLead, setRemindLead] = useState(num(row?.remind_lead_days ?? options.default_remind_lead_days));
   const [hideInPregnancy, setHideInPregnancy] = useState(row?.hide_in_pregnancy ?? false);
+  const [informational, setInformational] = useState(row?.informational ?? false);
+  const locked = registryLocked(row);
   const [audiences, setAudiences] = useState<string[]>(row?.audiences ?? []);
   const [active, setActive] = useState(row?.is_active ?? true);
   const [sortOrder, setSortOrder] = useState(num(row?.sort_order ?? options.next_sort_order));
@@ -138,6 +141,7 @@ function CheckupTypeForm({
         guide_steps: guide,
         finding_options: findings.map((f) => ({ key: f.key.trim(), label: f.label, ...(f.exclusive ? { exclusive: true } : {}) })),
         hide_in_pregnancy: hideInPregnancy,
+        informational,
         audiences: audiencesBody(audiences, options.audiences),
         is_active: active,
         sort_order: toIntOrNull(sortOrder) ?? undefined,
@@ -345,11 +349,19 @@ function CheckupTypeForm({
       </Section>
 
       <Section title={t('timing')}>
+        {locked ? (
+          <p className="text-sm text-muted" role="note">
+            {t('registryLocked', { key: row?.registry_key ?? '' })}{' '}
+            <Link href="/clinical-config" className="font-semibold underline">
+              {t('registryLink')}
+            </Link>
+          </p>
+        ) : null}
         <div className="form-grid">
-          <TextInput label={t('intervalMonths')} type="number" min={1} max={options.max_interval_months} required value={intervalMin} onChange={(e) => setIntervalMin(e.target.value)} error={err('interval_months')} />
-          <TextInput label={t('intervalMonthsMax')} hint={t('intervalMaxHint')} type="number" min={1} max={options.max_interval_months} value={intervalMax} onChange={(e) => setIntervalMax(e.target.value)} error={err('interval_months_max')} />
-          <TextInput label={t('ageMin')} type="number" min={0} max={120} value={ageMin} onChange={(e) => setAgeMin(e.target.value)} error={err('age_min')} />
-          <TextInput label={t('ageMax')} type="number" min={0} max={120} value={ageMax} onChange={(e) => setAgeMax(e.target.value)} error={err('age_max')} />
+          <TextInput label={t('intervalMonths')} type="number" min={1} max={options.max_interval_months} required readOnly={locked} value={intervalMin} onChange={(e) => setIntervalMin(e.target.value)} error={err('interval_months')} />
+          <TextInput label={t('intervalMonthsMax')} hint={t('intervalMaxHint')} type="number" min={1} max={options.max_interval_months} readOnly={locked} value={intervalMax} onChange={(e) => setIntervalMax(e.target.value)} error={err('interval_months_max')} />
+          <TextInput label={t('ageMin')} type="number" min={0} max={120} readOnly={locked} value={ageMin} onChange={(e) => setAgeMin(e.target.value)} error={err('age_min')} />
+          <TextInput label={t('ageMax')} type="number" min={0} max={120} readOnly={locked} value={ageMax} onChange={(e) => setAgeMax(e.target.value)} error={err('age_max')} />
           <TextInput label={t('cycleDayFrom')} hint={t('cycleDayHint')} type="number" min={1} max={options.max_cycle_day} value={cycleFrom} onChange={(e) => setCycleFrom(e.target.value)} error={err('cycle_day_from')} />
           <TextInput label={t('cycleDayTo')} type="number" min={1} max={options.max_cycle_day} value={cycleTo} onChange={(e) => setCycleTo(e.target.value)} error={err('cycle_day_to')} />
           <TextInput label={t('remindLead')} hint={t('remindLeadHint')} type="number" min={0} max={365} value={remindLead} onChange={(e) => setRemindLead(e.target.value)} error={err('remind_lead_days')} />
@@ -357,6 +369,7 @@ function CheckupTypeForm({
         </div>
         <div className="form-grid">
           <Switch label={t('hideInPregnancy')} hint={t('hideInPregnancyHint')} checked={hideInPregnancy} onChange={setHideInPregnancy} />
+          <Switch label={t('informational')} hint={t('informationalHint')} checked={informational} onChange={setInformational} />
           <Switch label={tc('isActive')} checked={active} onChange={setActive} />
         </div>
         <CheckboxGrid

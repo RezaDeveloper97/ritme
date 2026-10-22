@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/ritme/backend-go/internal/checkups/engine"
 	"github.com/ritme/backend-go/internal/checkups/store"
@@ -12,6 +13,7 @@ import (
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/profile"
 )
 
 // Plan is one user's evaluated screening plan plus the catalog rows behind it.
@@ -59,6 +61,7 @@ func LoadPlan(ctx context.Context, db store.DBTX, userID uint64, now civildate.N
 	if uc.Birthday.Valid {
 		in.Birthday = uc.Birthday.Date
 	}
+	in.BMI = profileBMI(uc.Weight, uc.Height)
 	var profile *cyclestore.UserProfile
 	if uc.ProfileID.Valid {
 		profile = &cyclestore.UserProfile{
@@ -90,6 +93,7 @@ func LoadPlan(ctx context.Context, db store.DBTX, userID uint64, now civildate.N
 			if r.RecordNextDueOn.Valid {
 				rec.NextDueOn = r.RecordNextDueOn.Date
 			}
+			rec.Result, rec.TestKind = r.RecordResult.String, r.RecordTestKind.String
 			in.Records = append(in.Records, rec)
 		}
 	}
@@ -119,8 +123,8 @@ func UserLifeMode(ctx context.Context, q store.Querier, userID uint64) (enums.Li
 }
 
 // Item is the evaluated item of a type the user sees. A type the engine left out of the plan
-// (hidden while pregnant, past age_max) is evaluated on its own so its detail page still opens;
-// ok=false when the type is not in the user's catalog at all.
+// (past the age span, outside the screening bands) is evaluated on its own so its detail page
+// still opens; ok=false when the type is not in the user's catalog at all.
 func (p *Plan) Item(typeID uint64) (engine.Item, bool) {
 	if i, ok := p.items[typeID]; ok {
 		return p.Result.Items[i], true
@@ -129,14 +133,26 @@ func (p *Plan) Item(typeID uint64) (engine.Item, bool) {
 	if !ok {
 		return engine.Item{}, false
 	}
-	t.HideInPregnancy, t.AgeMax = false, 0
-	in := p.Input
-	in.Types = []engine.Type{t}
-	res := engine.Evaluate(in, p.now)
-	if len(res.Items) == 0 {
-		return engine.Item{}, false
+	return engine.EvaluateType(t, p.Input, p.now)
+}
+
+// Schedule is the type's effective schedule for this user on the plan day when her latest record
+// carried testKind ("" = none): the registry interval for the MarkDone preview of a test kind.
+func (p *Plan) Schedule(t engine.Type, testKind string) engine.Schedule {
+	return engine.ScheduleFor(t, p.Result.Age, p.Input.BMI, testKind, p.Today)
+}
+
+// profileBMI is the profile BMI in kg/m² (0 when weight or height is missing; profile.RawBmi).
+func profileBMI(weight sql.NullString, height sql.NullInt16) float64 {
+	if !weight.Valid || !height.Valid || height.Int16 <= 0 {
+		return 0
 	}
-	return res.Items[0], true
+	w, err := strconv.ParseFloat(weight.String, 64)
+	if err != nil {
+		return 0
+	}
+	bmi, _ := profile.RawBmi(w, int(height.Int16))
+	return bmi
 }
 
 // Remind is the type's reminder switch (on without a settings row).

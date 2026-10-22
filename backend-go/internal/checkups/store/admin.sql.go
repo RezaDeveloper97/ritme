@@ -166,13 +166,13 @@ const createAdminCheckupType = `-- name: CreateAdminCheckupType :execresult
 INSERT INTO ` + "`" + `checkup_types` + "`" + ` (` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone,
                              interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to,
                              remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy,
-                             audiences, is_active, sort_order, source_note, created_at, updated_at)
+                             audiences, is_active, sort_order, source_note, informational, created_at, updated_at)
 VALUES (?, NULL, ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?, ?,
-        ?, ?, ?)
+        ?, ?, ?, ?)
 `
 
 type CreateAdminCheckupTypeParams struct {
@@ -199,6 +199,7 @@ type CreateAdminCheckupTypeParams struct {
 	IsActive          bool
 	SortOrder         int32
 	SourceNote        sql.NullString
+	Informational     bool
 	Now               sql.NullTime
 }
 
@@ -227,6 +228,7 @@ func (q *Queries) CreateAdminCheckupType(ctx context.Context, arg CreateAdminChe
 		arg.IsActive,
 		arg.SortOrder,
 		arg.SourceNote,
+		arg.Informational,
 		arg.Now,
 		arg.Now,
 	)
@@ -432,7 +434,8 @@ SET category = ?, title = ?, subtitle = ?, why = ?,
     remind_lead_days = ?, prep_steps = ?,
     guide_steps = ?, finding_options = ?,
     hide_in_pregnancy = ?, audiences = ?, is_active = ?,
-    sort_order = ?, source_note = ?, updated_at = ?
+    sort_order = ?, source_note = ?, informational = ?,
+    updated_at = ?
 WHERE id = ? AND user_id IS NULL
 `
 
@@ -459,6 +462,7 @@ type UpdateAdminCheckupTypeParams struct {
 	IsActive          bool
 	SortOrder         int32
 	SourceNote        sql.NullString
+	Informational     bool
 	Now               sql.NullTime
 	ID                uint64
 }
@@ -487,6 +491,7 @@ func (q *Queries) UpdateAdminCheckupType(ctx context.Context, arg UpdateAdminChe
 		arg.IsActive,
 		arg.SortOrder,
 		arg.SourceNote,
+		arg.Informational,
 		arg.Now,
 		arg.ID,
 	)

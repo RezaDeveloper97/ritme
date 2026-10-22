@@ -53,16 +53,19 @@ func TestSeededCatalog(t *testing.T) {
 		assert.True(t, r.Why.Valid && r.PrepSteps.Valid, r.Key.String)
 		assert.Positive(t, r.IntervalMonths)
 	}
-	assert.Equal(t, []string{"breast_self_exam", "clinical_breast_exam", "pap_smear", "blood_test", "dentist", "mammography"}, keys)
+	assert.Equal(t, []string{"breast_self_exam", "clinical_breast_exam", "pap_smear", "blood_test", "dentist", "mammography",
+		"bp_screening", "glucose_screening"}, keys)
 
 	self := checkups.TypeFromRow(rows[0])
 	assert.True(t, self.CycleTimed())
 	assert.Equal(t, engine.Type{ID: 1, Key: "breast_self_exam", Category: engine.CategoryMonthly, IntervalMonths: 1,
-		CycleDayFrom: 7, CycleDayTo: 10, RemindLeadDays: 3, HideInPregnancy: true, IsActive: true, SortOrder: 1}, self)
+		CycleDayFrom: 7, CycleDayTo: 10, RemindLeadDays: 3, HideInPregnancy: true, Informational: true, IsActive: true,
+		SortOrder: 1}, self, "00100: breast awareness is informational (H-10)")
 	mammo := checkups.TypeFromRow(rows[5])
-	assert.Equal(t, 12, mammo.IntervalMonths)
-	assert.Equal(t, 24, mammo.IntervalMonthsMax)
+	assert.Equal(t, 24, mammo.IntervalMonths, "00100: synced to screening.uspstf")
+	assert.Zero(t, mammo.IntervalMonthsMax)
 	assert.Equal(t, 40, mammo.AgeMin)
+	assert.Equal(t, 74, mammo.AgeMax)
 
 	var findings []struct {
 		Key       string `json:"key"`
@@ -108,7 +111,7 @@ func TestEngineInputs_ScopedToUser(t *testing.T) {
 		typeIDs = append(typeIDs, ty.ID)
 		assert.NotEqual(t, uint64(bobCustom), ty.ID, "bob's custom checkup leaked to alice") //nolint:gosec // test ids
 	}
-	assert.Equal(t, []uint64{1, 2, 3, 4, 5, 6, uint64(aliceCustom)}, typeIDs) //nolint:gosec // test ids
+	assert.Equal(t, []uint64{1, 2, 3, 4, 5, 6, 16, 17, uint64(aliceCustom)}, typeIDs) //nolint:gosec // test ids
 	require.Len(t, in.Records, 2)
 	for _, r := range in.Records {
 		assert.NotEqual(t, uint64(2), r.TypeID, "bob's record leaked to alice")
@@ -124,10 +127,11 @@ func TestEngineInputs_ScopedToUser(t *testing.T) {
 		status[it.TypeID] = it.Status
 	}
 	assert.Equal(t, map[uint64]engine.Status{
-		1: engine.StatusDue, 2: engine.StatusDue, 3: engine.StatusDisabled, 4: engine.StatusUpToDate,
-		5: engine.StatusOverdue, 6: engine.StatusNotYet, uint64(aliceCustom): engine.StatusDue, //nolint:gosec // test ids
+		1: engine.StatusInformational, 2: engine.StatusDue, 3: engine.StatusDisabled, 4: engine.StatusUpToDate,
+		5: engine.StatusOverdue, 6: engine.StatusNotYet, 16: engine.StatusDue, 17: engine.StatusNotYet,
+		uint64(aliceCustom): engine.StatusDue, //nolint:gosec // test ids
 	}, status)
-	assert.Equal(t, engine.Summary{Total: 6, UpToDate: 2, Due: 3, Overdue: 1}, res.Summary)
+	assert.Equal(t, engine.Summary{Total: 7, UpToDate: 3, Due: 3, Overdue: 1}, res.Summary)
 }
 
 // Deleting a user removes her records, settings and custom checkups (FK cascade).

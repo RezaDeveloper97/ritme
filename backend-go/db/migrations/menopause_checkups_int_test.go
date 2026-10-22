@@ -27,7 +27,9 @@ func TestActivateMenopauseCheckupsMigration(t *testing.T) {
 		return n
 	}
 	const meno = "SELECT COUNT(*) FROM checkup_types WHERE user_id IS NULL AND `key` LIKE 'meno\\_%' AND is_active = 1"
-	const shared = "SELECT COUNT(*) FROM checkup_types WHERE user_id IS NULL AND `key` NOT LIKE 'meno\\_%' AND is_active = 1"
+	// The 00003 shared rows (00100 adds bp_screening / glucose_screening after this version, T-M10-21).
+	const shared = "SELECT COUNT(*) FROM checkup_types WHERE user_id IS NULL AND `key` NOT LIKE 'meno\\_%' AND is_active = 1" +
+		" AND `key` NOT IN ('bp_screening', 'glucose_screening')"
 
 	assert.Equal(t, 9, count(meno))
 	sharedActive := count(shared)

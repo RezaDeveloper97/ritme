@@ -17,6 +17,7 @@ const rec = (id: number, hasAttachment: boolean): CheckupRecord => ({
   note: null,
   hasAttachment,
   nextDueOn: null,
+  testKind: null,
 });
 
 describe('checkup-history view', () => {

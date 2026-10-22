@@ -3,10 +3,10 @@ id: T-M10-21
 title: Checkups on USPSTF v6: registry intervals, HPV by last test, breast awareness, follow-up
 milestone: M10
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M10-16, T-M10-17]
 parallel_group: M10-C
-touches: [backend-go/internal/checkups, backend-go/internal/admin/checkups, backend-go/db/migrations, backend-go/api/openapi.yaml, backend-go/contract/allowlist, admin-web/src/screens/checkup-types, frontend/src/screens/checkups, frontend/src/screens/checkup-detail, frontend/src/screens/checkup-mark-done, frontend/src/screens/checkup-self-exam, frontend/src/entities/checkup, frontend/messages/fa/checkups.json, frontend/messages/en/checkups.json, backend-go/resources/translations/fa/checkups.json, backend-go/resources/translations/en/checkups.json]
+touches: [backend-go/internal/checkups, backend-go/internal/admin/checkups, backend-go/db/migrations, backend-go/contract/allowlist/checkups.yaml, admin-web/src/screens/checkup-types, frontend/src/screens/checkups, frontend/src/screens/checkup-detail, frontend/src/screens/checkup-mark-done, frontend/src/screens/checkup-self-exam, frontend/src/entities/checkup, frontend/messages/fa/checkups.json, frontend/messages/en/checkups.json, backend-go/resources/translations/fa/checkups.json, backend-go/resources/translations/en/checkups.json]
 skills: []
 verify: cd backend-go && go vet ./... && go test ./internal/checkups/... && make test-int PKG="./internal/checkups/... ./db/migrations/..." && cd ../frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:dark && npm run test && npm run copy:check -- checkups && cd ../admin-web && npm run typecheck && npm run test
 ---
@@ -52,3 +52,6 @@ labelled "after pregnancy". DECISIONS.md H-10, H-11, H-16; D-172.
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-172 and lists H-10, H-11, H-16 as advisor-pending.
+
+## Batch note (main session, 2026-10-22)
+`backend-go/api/openapi.yaml` was removed from touches so this task can run in parallel with T-M10-18. Write the needed OpenAPI change as a unified diff to the scratchpad and report its path; the main session applies it before the commit.

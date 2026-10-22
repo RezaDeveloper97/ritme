@@ -49,6 +49,8 @@ const STATUS_TONE: Record<CheckupStatus, Tone> = {
   not_yet: 'neutral',
   up_to_date: 'success',
   disabled: 'neutral',
+  follow_up: 'warm',
+  informational: 'neutral',
 };
 
 const MESSAGE_LOOK: Record<MenopauseMessage['kind'], { icon: IconName; tone: Tone }> = {

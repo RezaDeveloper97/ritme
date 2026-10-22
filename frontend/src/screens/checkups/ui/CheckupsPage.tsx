@@ -8,10 +8,12 @@ import {
   CHECKUP_LIST_FILTERS,
   type CheckupItem,
   type CheckupListFilter,
-  type CheckupStatus,
+  type CheckupPillKind,
   type CheckupSummary,
   checkupIcon,
-  checkupStatusIcon,
+  checkupPillClass,
+  checkupPillIcon,
+  checkupPillKind,
   formatCheckupMonth,
   useCheckups,
 } from '@/entities/checkup';
@@ -42,11 +44,15 @@ import { PlanSettingsSheet } from './PlanSettingsSheet';
 
 const PANEL_ID = 'ck-panel';
 
-/** v14 outlined pill with the status glyph (bell / info / clock / check). */
-function StatusPill({ status, label }: { status: CheckupStatus; label: string }) {
+/**
+ * v14 outlined pill with the status glyph (bell / info / clock / check). The v6
+ * states (follow-up, informational, after pregnancy) reuse the palettes of
+ * {@link checkupPillClass}.
+ */
+function StatusPill({ kind, label }: { kind: CheckupPillKind; label: string }) {
   return (
-    <span className={clsx(`ck-status-${status}`, 'ck-pill')}>
-      <Icon name={checkupStatusIcon(status)} size={12} strokeWidth={2.2} />
+    <span className={clsx(checkupPillClass(kind), 'ck-pill')}>
+      <Icon name={checkupPillIcon(kind)} size={12} strokeWidth={2.2} />
       {label}
     </span>
   );
@@ -73,7 +79,7 @@ function SummaryCard({ summary }: { summary: CheckupSummary }) {
             {t('list.upToDateOf', { upToDate: num(summary.upToDate), total: num(summary.total) })}
           </p>
         </div>
-        <StatusPill status={worst} label={t(`status.${worst}`)} />
+        <StatusPill kind={worst} label={t(`status.${worst}`)} />
       </div>
       <div dir="ltr" className="flex h-2.5 w-full overflow-hidden rounded-full bg-(--track)" aria-hidden>
         {segments.map((s) => (
@@ -103,6 +109,7 @@ function CheckupRow({ item }: { item: CheckupItem }) {
   const date = (d: string | null) => (d ? formatCheckupMonth(d, locale) : t('noDate'));
   const next = item.nextDueLabel ?? date(item.nextDueOn);
   const meta = rowMeta(item, t('separator'));
+  const pill = checkupPillKind(item);
 
   return (
     <li>
@@ -123,7 +130,7 @@ function CheckupRow({ item }: { item: CheckupItem }) {
             {t('list.lastNext', { last: date(item.lastDoneOn), next })}
           </span>
         </span>
-        <StatusPill status={item.status} label={t(`status.${item.status}`)} />
+        <StatusPill kind={pill} label={t(`status.${pill}`)} />
       </Link>
     </li>
   );

@@ -1,0 +1,13 @@
+group: menopause
+entries:
+  # D-172 (task T-M10-21, engine v6 M10, user OK 2026-10-21): every checkup item gains `informational` (bool, the
+  # breast-awareness kind) and `label` (null | "after_pregnancy"). Additive keys; the Go-only menopause goldens were
+  # recorded before them.
+  - case: "today_*"
+    where: data.checkups[*].informational
+    deviation: D-172
+    reason: new checkup item key (additive)
+  - case: "today_*"
+    where: data.checkups[*].label
+    deviation: D-172
+    reason: new checkup item key (additive)

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { bookPrefill, heroRelative, markDoneSheetArg, monthsSince } from './view';
+import { bookPrefill, heroNote, heroRelative, markDoneSheetArg, monthsSince } from './view';
 
 describe('checkup detail view', () => {
   it('counts whole months since the last visit', () => {
@@ -32,5 +32,14 @@ describe('checkup detail view', () => {
 describe('bookPrefill (B-4)', () => {
   it('hands the checkup title to the appointment form, like the home card', () => {
     expect(bookPrefill({ title: 'پاپ‌اسمیر / HPV' })).toEqual({ title: 'پاپ‌اسمیر / HPV' });
+  });
+});
+
+describe('heroNote (T-M10-21)', () => {
+  it('explains the v6 states and stays quiet for a scheduled item', () => {
+    expect(heroNote({ status: 'informational', label: null, readOnly: true })).toBe('informationalNote');
+    expect(heroNote({ status: 'due', label: 'after_pregnancy', readOnly: false })).toBe('afterPregnancyNote');
+    expect(heroNote({ status: 'follow_up', label: null, readOnly: false })).toBe('followUpNote');
+    expect(heroNote({ status: 'due', label: null, readOnly: false })).toBeNull();
   });
 });

@@ -32,6 +32,9 @@ var (
 	mammo = Type{ID: 6, Key: "mammography", Category: CategoryAgeBased, IntervalMonths: 12, IntervalMonthsMax: 24,
 		AgeMin: 40, RemindLeadDays: 30, HideInPregnancy: true, IsActive: true, SortOrder: 6}
 	catalog = []Type{selfExam, clinical, pap, blood, dentist, mammo}
+	// A catalog range interval that is not registry-driven (00022 menopause seed).
+	ranged = Type{ID: 8, Key: "meno_blood_sugar", Category: CategoryMultiYear, IntervalMonths: 12, IntervalMonthsMax: 24,
+		RemindLeadDays: 30, IsActive: true, SortOrder: 8}
 
 	// A 28-day cycle whose current period started on 2026-09-20 (today 2026-09-23 = cycle day 4).
 	cycle28 = Cycle{Start: d("2026-09-20"), Length: 28}
@@ -99,15 +102,21 @@ func TestEvaluate_Item(t *testing.T) {
 			want: StatusNotYet, sect: Section(CategoryAgeBased), next: "2032-06-15"},
 		{name: "unknown birthday skips the age rules", typ: mammo,
 			want: StatusDue, sect: Section(CategoryAgeBased)},
-		{name: "range interval: past the minimum is due, not overdue", typ: mammo,
-			in:   Input{Birthday: born46, Records: []Record{rec(1, 6, "2025-06-01")}},
-			want: StatusDue, sect: Section(CategoryAgeBased), next: "2026-06-01", by: "2027-06-01"},
-		{name: "range interval: past the maximum is overdue", typ: mammo,
-			in:   Input{Birthday: born46, Records: []Record{rec(1, 6, "2024-06-01")}},
+		{name: "range interval: past the minimum is due, not overdue", typ: ranged,
+			in:   Input{Birthday: born46, Records: []Record{rec(1, 8, "2025-06-01")}},
+			want: StatusDue, sect: Section(CategoryMultiYear), next: "2026-06-01", by: "2027-06-01"},
+		{name: "range interval: past the maximum is overdue", typ: ranged,
+			in:   Input{Birthday: born46, Records: []Record{rec(1, 8, "2024-06-01")}},
 			want: StatusOverdue, sect: SectionOverdue, next: "2025-06-01", by: "2026-06-01"},
-		{name: "range interval: before the minimum is up to date", typ: mammo,
-			in:   Input{Birthday: born46, Records: []Record{rec(1, 6, "2026-01-01")}},
-			want: StatusUpToDate, sect: Section(CategoryAgeBased), next: "2027-01-01", by: "2028-01-01"},
+		{name: "range interval: before the minimum is up to date", typ: ranged,
+			in:   Input{Birthday: born46, Records: []Record{rec(1, 8, "2026-01-01")}},
+			want: StatusUpToDate, sect: Section(CategoryMultiYear), next: "2027-01-01", by: "2028-01-01"},
+		{name: "mammography on the registry: 24 months, no range", typ: mammo,
+			in:   Input{Birthday: born46, Records: []Record{rec(1, 6, "2025-06-01")}},
+			want: StatusUpToDate, sect: Section(CategoryAgeBased), next: "2027-06-01"},
+		{name: "mammography on the registry: overdue after 24 months", typ: mammo,
+			in:   Input{Birthday: born46, Records: []Record{rec(1, 6, "2024-06-01")}},
+			want: StatusOverdue, sect: SectionOverdue, next: "2026-06-01"},
 		{name: "user next_due_on override in the past is overdue", typ: dentist,
 			in:   Input{Records: []Record{{ID: 1, TypeID: 5, DoneOn: d("2026-05-01"), NextDueOn: d("2026-09-20")}}},
 			want: StatusOverdue, sect: SectionOverdue, next: "2026-09-20"},
@@ -193,13 +202,21 @@ func TestEvaluate_Item(t *testing.T) {
 }
 
 func TestEvaluate_Applicability(t *testing.T) {
-	t.Run("pregnancy hides the marked types", func(t *testing.T) {
+	t.Run("pregnancy labels the marked types after_pregnancy instead of hiding them", func(t *testing.T) {
 		res := Evaluate(Input{Types: catalog, Birthday: born46, Pregnant: true}, at(today))
-		keys := []string{}
+		labels := map[string]Label{}
 		for _, it := range res.Items {
-			keys = append(keys, it.Key)
+			labels[it.Key] = it.Label
+			if it.Label != LabelNone {
+				assert.False(t, it.Remind, "%s: no reminder", it.Key)
+				assert.Equal(t, Section(it.Category), it.Section, it.Key)
+			}
 		}
-		assert.Equal(t, []string{"clinical_breast_exam", "pap_smear", "blood_test", "dentist"}, keys)
+		assert.Equal(t, map[string]Label{
+			"breast_self_exam": LabelAfterPregnancy, "clinical_breast_exam": "", "pap_smear": "", "blood_test": "",
+			"dentist": "", "mammography": LabelAfterPregnancy,
+		}, labels)
+		assert.Equal(t, 4, res.Summary.Total, "deferred items leave the summary")
 	})
 	t.Run("not pregnant shows them", func(t *testing.T) {
 		res := Evaluate(Input{Types: catalog, Birthday: born46}, at(today))
@@ -209,8 +226,9 @@ func TestEvaluate_Applicability(t *testing.T) {
 		res := Evaluate(Input{Types: catalog, Birthday: d("1950-01-01")}, at(today))
 		for _, it := range res.Items {
 			assert.NotEqual(t, "pap_smear", it.Key)
+			assert.NotEqual(t, "mammography", it.Key, "screening.uspstf: mammography 40–74")
 		}
-		assert.Len(t, res.Items, 5)
+		assert.Len(t, res.Items, 4)
 		require.NotNil(t, res.Age)
 		assert.Equal(t, 76, *res.Age)
 	})

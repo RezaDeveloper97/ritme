@@ -1529,7 +1529,11 @@
       "postpartum": "Postpartum",
       "menopause": "Menopause",
       "teen": "Teen"
-    }
+    },
+    "informational": "Informational only",
+    "informationalHint": "No due date or reminder, and users log nothing new for it; earlier history stays read-only.",
+    "registryLocked": "The interval and age window of this checkup come from the clinical registry ({key}) and can’t be edited here.",
+    "registryLink": "Clinical config"
   },
   "pregnancyCarePlan": {
     "title": "Pregnancy care plan",

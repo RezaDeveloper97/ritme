@@ -6,6 +6,7 @@ import (
 	rootdb "github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/checkups/engine"
 	"github.com/ritme/backend-go/internal/checkups/store"
+	"github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
@@ -55,9 +56,23 @@ func emptyToNil(s string) any {
 	return s
 }
 
-// ItemJSON is one plan row (GET /checkups items, /checkups/home highlights).
+// schedule is the item's effective type (the registry interval and ages), the catalog type when unset.
+func (p *Plan) schedule(it engine.Item) engine.Type {
+	if it.Schedule.ID != 0 {
+		return it.Schedule
+	}
+	return p.Types[it.TypeID]
+}
+
+// ItemJSON is one plan row (GET /checkups items, /checkups/home highlights). v6 (T-M10-21): status may be
+// follow_up / informational, `label` is after_pregnancy for a screening deferred while pregnant (else null), and an
+// informational item has no interval.
 func (p *Plan) ItemJSON(it engine.Item, l Lang) *jsonx.OrderedMap {
-	row, t := p.Rows[it.TypeID], p.Types[it.TypeID]
+	row, t := p.Rows[it.TypeID], p.schedule(it)
+	var interval, timing any = IntervalLabel(t.IntervalMonths, t.IntervalMonthsMax, l.Locale), emptyToNil(p.TimingLabel(t, l.Locale))
+	if it.Informational {
+		interval, timing = nil, nil
+	}
 	return jsonx.Obj(
 		"id", it.TypeID,
 		"key", emptyToNil(t.Key),
@@ -68,19 +83,21 @@ func (p *Plan) ItemJSON(it engine.Item, l Lang) *jsonx.OrderedMap {
 		"status", string(it.Status),
 		"icon", emptyToNil(row.Icon.String),
 		"tone", row.Tone,
-		"interval_label", IntervalLabel(t.IntervalMonths, t.IntervalMonthsMax, l.Locale),
-		"timing_label", emptyToNil(p.TimingLabel(t, l.Locale)),
+		"interval_label", interval,
+		"timing_label", timing,
 		"last_done_on", dateOrNil(it.LastDoneOn),
 		"next_due_on", dateOrNil(it.NextDueOn),
 		"next_due_label", NextDueLabel(it, t, p.Today, l.Locale),
 		"is_custom", it.IsCustom,
+		"informational", it.Informational,
+		"label", emptyToNil(string(it.Label)),
 	)
 }
 
 // DetailJSON is GET /checkups/{id}: the item plus the catalog copy, the latest records and the
 // user's switches.
 func (p *Plan) DetailJSON(it engine.Item, records []store.CheckupRecord, l Lang) *jsonx.OrderedMap {
-	row, t := p.Rows[it.TypeID], p.Types[it.TypeID]
+	row, t := p.Rows[it.TypeID], p.schedule(it)
 	out := p.ItemJSON(it, l)
 	title := l.pick(row.Title)
 	recs := make([]*jsonx.OrderedMap, 0, len(records))
@@ -100,7 +117,7 @@ func (p *Plan) DetailJSON(it engine.Item, records []store.CheckupRecord, l Lang)
 	out.Set("age_min", intOrNil(t.AgeMin))
 	out.Set("age_max", intOrNil(t.AgeMax))
 	cycleFrom, cycleTo := t.CycleDayFrom, t.CycleDayTo
-	if !p.LifeMode.TracksCycle() { // B-N2-11b: no «روز ۷ تا ۱۰ سیکل» hint without a cycle
+	if !p.LifeMode.TracksCycle() || it.Informational { // B-N2-11b: no «روز ۷ تا ۱۰ سیکل» hint without a cycle / schedule
 		cycleFrom, cycleTo = 0, 0
 	}
 	out.Set("cycle_day_from", intOrNil(cycleFrom))
@@ -111,6 +128,20 @@ func (p *Plan) DetailJSON(it engine.Item, records []store.CheckupRecord, l Lang)
 	out.Set("finding_options", findingOptionsJSON(row.FindingOptions, l))
 	out.Set("records", recs)
 	out.Set("settings", jsonx.Obj("enabled", it.Enabled, "remind", it.Remind))
+	// v6: where the interval comes from, and the record form's test-kind picker (cervical type only).
+	var source any
+	if it.Registry {
+		source = clinicalconfig.SourceOf(clinicalconfig.KeyScreeningUSPSTF, p.Today)
+	}
+	kinds := it.TestKinds
+	if kinds == nil {
+		kinds = []string{}
+	}
+	out.Set("registry", it.Registry)
+	out.Set("interval_source", source)
+	out.Set("test_kinds", kinds)
+	out.Set("test_kind_required", it.TestKindRequired)
+	out.Set("read_only", it.Informational)
 	return out
 }
 
@@ -221,6 +252,7 @@ func RecordJSON(r store.CheckupRecord, title any) *jsonx.OrderedMap {
 		"note", note,
 		"has_attachment", r.HasAttachment,
 		"next_due_on", nullDate(r.NextDueOn),
+		"test_kind", emptyToNil(r.TestKind.String),
 	)
 }
 

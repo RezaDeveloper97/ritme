@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/httpx"
@@ -33,13 +34,43 @@ const (
 
 // recordFields / customFields are the body keys each write accepts (anything else is ignored).
 var (
-	recordFields = []string{"done_on", "result", "findings", "note", "has_attachment", "next_due_on"}
+	recordFields = []string{"done_on", "result", "findings", "note", "has_attachment", "next_due_on", "test_kind"}
 	customFields = []string{"title", "interval_months", "performed_by", "note", "last_done_on"}
 )
 
+// testKindValues are the checkup_records.test_kind values (the screening.uspstf last_test_kind enum).
+func testKindValues() []string {
+	if def, ok := clinicalconfig.Lookup(clinicalconfig.KeyScreeningUSPSTF); ok && def.Table != nil {
+		if col, ok := def.Table.Column("last_test_kind"); ok {
+			return col.Enum
+		}
+	}
+	return nil
+}
+
 func pastDate() []any { return []any{"date_format:Y-m-d", "before_or_equal:today"} }
 
-func recordRules(findingKeys []string) validation.Rules {
+// testKindRule is the test_kind rule of a record write: accepted (one of kinds) only for a type whose screening rows
+// name test kinds (the cervical type), required when the user's band offers a choice (Pap from 30) on a create.
+type testKindRule struct {
+	kinds    []string
+	required bool
+}
+
+func recordRules(findingKeys []string, tk testKindRule) validation.Rules {
+	F, in := validation.F, validation.In
+	rules := recordFieldRules(findingKeys)
+	if len(tk.kinds) > 0 {
+		presence := "nullable"
+		if tk.required {
+			presence = "required"
+		}
+		rules = append(rules, F("test_kind", presence, "string", in(tk.kinds...)))
+	}
+	return rules
+}
+
+func recordFieldRules(findingKeys []string) validation.Rules {
 	F, in := validation.F, validation.In
 	return validation.Rules{
 		F("done_on", append([]any{"required"}, pastDate()...)...),

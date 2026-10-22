@@ -24,8 +24,19 @@
 //   - summary: total = every enabled item; up_to_date counts up_to_date + soon + not_yet (the
 //     artboard ring «۴ از ۶» counts the not-yet mammography as fine); due; overdue.
 //
-// Types are skipped (no item) when inactive, hidden in pregnancy while the user is pregnant, or
-// when the user is older than age_max.
+// Types are skipped (no item) when inactive or when the user is older than age_max.
+//
+// v6 (T-M10-21, D-172; DECISIONS.md H-10, H-11, H-16):
+//
+//   - registry-driven types (keys with screening.uspstf rows: cervical, mammography, BP, glucose,
+//     dental) take interval and age span from the registry on the evaluation day (screening.go);
+//     the registry can also leave a type out (BMI condition, a band gap).
+//   - informational types (breast awareness, H-10) have status informational: no due date, no
+//     reminder, left out of the summary.
+//   - a latest record with result follow_up and no next_due_on override has status follow_up and
+//     no default due date (the doctor decides the next visit); it counts as due in the summary.
+//   - while pregnant, a hide_in_pregnancy type is no longer hidden: it is returned with label
+//     after_pregnancy, reminders off, in its category section, and left out of the summary.
 package engine
 
 import (
@@ -60,6 +71,23 @@ const (
 	StatusUpToDate Status = "up_to_date"
 	StatusNotYet   Status = "not_yet"
 	StatusDisabled Status = "disabled"
+	// StatusFollowUp: the latest record asked for a follow-up with the doctor and set no next date.
+	StatusFollowUp Status = "follow_up"
+	// StatusInformational: an informational item (no schedule).
+	StatusInformational Status = "informational"
+)
+
+// ResultFollowUp is the checkup_records.result that stops the default interval.
+const ResultFollowUp = "follow_up"
+
+// Label is an item's extra state label.
+type Label string
+
+// Labels.
+const (
+	LabelNone Label = ""
+	// LabelAfterPregnancy: a non-urgent screening deferred while the user is pregnant.
+	LabelAfterPregnancy Label = "after_pregnancy"
 )
 
 // Section is the list section an item is shown in: this_month, overdue, or a Category value.
@@ -88,8 +116,10 @@ type Type struct {
 	CycleDayFrom, CycleDayTo int
 	RemindLeadDays           int
 	HideInPregnancy          bool
-	IsActive                 bool
-	SortOrder                int
+	// Informational: no schedule, no due date, no reminder (H-10 breast awareness).
+	Informational bool
+	IsActive      bool
+	SortOrder     int
 }
 
 // CycleTimed reports whether the type has a cycle-day window.
@@ -102,6 +132,10 @@ type Record struct {
 	DoneOn civildate.Date
 	// NextDueOn is the user's override; the zero Date is NULL.
 	NextDueOn civildate.Date
+	// Result is checkup_records.result (normal | follow_up | pending).
+	Result string
+	// TestKind is checkup_records.test_kind ("" = NULL): the cervical test kind.
+	TestKind string
 }
 
 // Setting is a user_checkup_settings row. A type without a row is enabled with reminders on.
@@ -118,8 +152,10 @@ type Input struct {
 	Settings []Setting
 	// Birthday is the profile birthday; the zero Date means unknown (age rules are not applied).
 	Birthday civildate.Date
-	// Pregnant hides the types marked hide_in_pregnancy.
+	// Pregnant labels the types marked hide_in_pregnancy after_pregnancy (reminders off).
 	Pregnant bool
+	// BMI is the profile BMI in kg/m² (0 = unknown), for the screening.uspstf min_bmi condition.
+	BMI float64
 	// Cycle is the cycle prediction (see CycleFromHistory); the zero value means no cycle data.
 	Cycle Cycle
 }
@@ -146,6 +182,18 @@ type Item struct {
 	CycleTimed bool
 	Enabled    bool
 	Remind     bool
+	// Informational: an informational item (status informational, no dates).
+	Informational bool
+	// Label is after_pregnancy for a deferred screening while pregnant, else empty.
+	Label Label
+	// Registry: the schedule comes from screening.uspstf.
+	Registry bool
+	// Schedule is the type with the effective interval and age span used for this item.
+	Schedule Type
+	// TestKinds are the cervical test kinds a record may carry at the user's age (empty for other types);
+	// TestKindRequired when the kind changes the interval.
+	TestKinds        []string
+	TestKindRequired bool
 }
 
 // Summary is the ring and counts line (disabled items excluded).
@@ -165,7 +213,20 @@ type Result struct {
 }
 
 // Evaluate runs the engine for the day `now` reports in Tehran.
-func Evaluate(in Input, now civildate.Nower) Result {
+func Evaluate(in Input, now civildate.Nower) Result { return evaluate(in, now, false) }
+
+// EvaluateType evaluates one type even when the plan leaves it out (past the age span, outside the
+// registry's bands): the detail page of such a type still opens. ok=false only for an inactive type.
+func EvaluateType(t Type, in Input, now civildate.Nower) (Item, bool) {
+	in.Types = []Type{t}
+	res := evaluate(in, now, true)
+	if len(res.Items) == 0 {
+		return Item{}, false
+	}
+	return res.Items[0], true
+}
+
+func evaluate(in Input, now civildate.Nower, keepAll bool) Result {
 	today := civildate.Today(now)
 	res := Result{Items: []Item{}}
 	var age int
@@ -186,32 +247,45 @@ func Evaluate(in Input, now civildate.Nower) Result {
 	})
 	monthEnd := JalaliMonthEnd(today)
 
-	for _, t := range types {
-		if !t.IsActive || (in.Pregnant && t.HideInPregnancy) {
+	for _, catalogType := range types {
+		if !catalogType.IsActive {
 			continue
 		}
-		if res.Age != nil && t.AgeMax > 0 && age > t.AgeMax {
+		last := latest[catalogType.ID]
+		sch := ScheduleFor(catalogType, res.Age, in.BMI, last.TestKind, today)
+		t := sch.Type
+		if !keepAll && (!sch.Applies || (res.Age != nil && t.AgeMax > 0 && age > t.AgeMax)) {
 			continue
 		}
-		item := evaluateType(t, latest[t.ID], in, res.Age, today)
+		item := evaluateType(t, last, in, res.Age, today)
+		item.Registry, item.Schedule = sch.Registry, t
+		item.TestKinds, item.TestKindRequired = sch.TestKinds, sch.TestKindRequired()
 		if s, ok := settings[t.ID]; ok {
 			item.Enabled, item.Remind = s.Enabled, s.Remind
+		}
+		if in.Pregnant && t.HideInPregnancy && !t.Informational {
+			item.Label = LabelAfterPregnancy
+		}
+		if t.Informational || item.Label != LabelNone {
+			item.Remind = false
 		}
 		if !item.Enabled {
 			item.Status = StatusDisabled
 		}
 		item.Section = section(t, item, monthEnd)
 		res.Items = append(res.Items, item)
-		res.Summary.add(item.Status)
+		if item.Label == LabelNone {
+			res.Summary.add(item.Status)
+		}
 	}
 	return res
 }
 
 func (s *Summary) add(st Status) {
 	switch st {
-	case StatusDisabled:
+	case StatusDisabled, StatusInformational:
 		return
-	case StatusDue:
+	case StatusDue, StatusFollowUp:
 		s.Due++
 	case StatusOverdue:
 		s.Overdue++
@@ -244,6 +318,10 @@ func evaluateType(t Type, last Record, in Input, age *int, today civildate.Date)
 		Remind:     true,
 	}
 
+	if t.Informational {
+		item.Informational, item.Status = true, StatusInformational
+		return item
+	}
 	if age != nil && t.AgeMin > 0 && *age < t.AgeMin {
 		item.Status = StatusNotYet
 		item.NextDueOn = addYears(in.Birthday, t.AgeMin)
@@ -254,6 +332,10 @@ func evaluateType(t Type, last Record, in Input, age *int, today civildate.Date)
 	switch {
 	case !last.NextDueOn.IsZero():
 		item.NextDueOn, item.DueBy, item.NextDueOverridden = last.NextDueOn, last.NextDueOn, true
+	case !last.DoneOn.IsZero() && last.Result == ResultFollowUp:
+		// A follow-up result stops the default interval: only an explicit next_due_on schedules it (D-172).
+		item.Status = StatusFollowUp
+		return item
 	case last.DoneOn.IsZero():
 		// Never recorded: due now; a cycle-timed type still gets its upcoming window.
 		if w, ok := upcomingWindow(t, in.Cycle, today); ok {
@@ -290,7 +372,7 @@ func status(t Type, item Item, today civildate.Date) Status {
 
 func section(t Type, item Item, monthEnd civildate.Date) Section {
 	switch {
-	case item.Status == StatusDisabled:
+	case item.Status == StatusDisabled, item.Informational, item.Label != LabelNone:
 		return Section(t.Category)
 	case t.CycleTimed() && item.Status == StatusOverdue && t.Category == CategoryMonthly:
 		// A missed monthly window (the self-exam) is this month's miss, not a long-overdue visit.

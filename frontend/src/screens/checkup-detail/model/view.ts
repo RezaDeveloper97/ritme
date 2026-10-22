@@ -45,3 +45,17 @@ export const MARK_DONE_SHEET = 'checkup-mark-done';
 export function bookPrefill(detail: Pick<CheckupDetail, 'title'>): { title: string } {
   return { title: detail.title };
 }
+
+export type HeroNote = 'informationalNote' | 'followUpNote' | 'afterPregnancyNote';
+
+/**
+ * The note under the hero for the v6 states (T-M10-21): informational (no
+ * schedule, read-only), follow-up with the doctor, deferred until after
+ * pregnancy. Null for a scheduled item.
+ */
+export function heroNote(detail: Pick<CheckupDetail, 'status' | 'label' | 'readOnly'>): HeroNote | null {
+  if (detail.readOnly || detail.status === 'informational') return 'informationalNote';
+  if (detail.label === 'after_pregnancy') return 'afterPregnancyNote';
+  if (detail.status === 'follow_up') return 'followUpNote';
+  return null;
+}

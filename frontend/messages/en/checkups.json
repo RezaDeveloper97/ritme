@@ -15,7 +15,10 @@
     "due": "Due",
     "overdue": "Overdue",
     "not_yet": "Not yet",
-    "disabled": "Off"
+    "disabled": "Off",
+    "follow_up": "Follow up with your doctor",
+    "informational": "For awareness",
+    "after_pregnancy": "After pregnancy"
   },
   "result": {
     "normal": "Normal",
@@ -86,7 +89,11 @@
     "noAttachment": "No attachment",
     "noHistory": "Nothing logged yet.",
     "disclaimer": "General information — it doesn't replace your doctor's advice.",
-    "editRecord": "Edit this record"
+    "editRecord": "Edit this record",
+    "informationalNote": "This is for awareness: no due date and no reminder. If you notice something new, talk to your doctor.",
+    "followUpNote": "Your last result needed follow-up; talk to your doctor about the next step.",
+    "afterPregnancyNote": "We pause this check during pregnancy and remind you again after the birth.",
+    "source": "Interval source: {source}"
   },
   "markDone": {
     "title": "I did my {title}",
@@ -120,7 +127,16 @@
     },
     "nextDueTitle": "Next due",
     "futureDate": "The date can’t be in the future.",
-    "nextBeforeDone": "The next due date must be after the done date."
+    "nextBeforeDone": "The next due date must be after the done date.",
+    "testKind": "Test type",
+    "testKindHint": "The test type changes when the next one is due.",
+    "testKinds": {
+      "cytology": "Pap test",
+      "hpv": "HPV test",
+      "cotest": "Both together"
+    },
+    "followUpNote": "This result needs follow-up; your doctor decides when the next one is due.",
+    "testKindMissing": "Choose the test type."
   },
   "history": {
     "title": "Checkup history",
@@ -170,7 +186,8 @@
     "doneAlready": "Logged this month",
     "adherence": "Done {done} of the last {total} months",
     "whenNow": "now is the best time",
-    "whenIn": "{count, plural, one {# day to go} other {# days to go}}"
+    "whenIn": "{count, plural, one {# day to go} other {# days to go}}",
+    "awarenessBody": "No need to log anything each month: get to know how your breasts usually feel, and talk to your doctor about any change."
   },
   "custom": {
     "newTitle": "Add a custom checkup",

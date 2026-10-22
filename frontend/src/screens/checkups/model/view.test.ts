@@ -20,6 +20,8 @@ const item = (id: number, section: CheckupItem['section']): CheckupItem => ({
   nextDueOn: null,
   nextDueLabel: null,
   isCustom: false,
+  informational: false,
+  label: null,
 });
 
 describe('checkups view', () => {

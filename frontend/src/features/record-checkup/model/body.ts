@@ -1,4 +1,4 @@
-import type { CheckupResult } from '@/entities/checkup';
+import type { CheckupResult, CheckupTestKind } from '@/entities/checkup';
 
 /** What the MarkDone sheet (v14_MarkDone) and the self-exam «این ماه انجام دادم» submit. */
 export interface CheckupRecordInput {
@@ -10,6 +10,8 @@ export interface CheckupRecordInput {
   note?: string | null;
   /** `Y-m-d` — the «تغییر» override of the computed next due date; null clears it. */
   nextDueOn?: string | null;
+  /** Cervical test kind (T-M10-21); the server ignores it for other types. */
+  testKind?: CheckupTestKind | null;
 }
 
 export type CheckupRecordPatch = Partial<CheckupRecordInput>;
@@ -30,6 +32,7 @@ export function toCheckupRecordBody(
   if (input.findings !== undefined) body.findings = [...new Set(input.findings)];
   if (input.note !== undefined) body.note = input.note?.trim() || null;
   if (input.nextDueOn !== undefined) body.next_due_on = input.nextDueOn || null;
+  if (input.testKind !== undefined) body.test_kind = input.testKind;
   if (hasAttachment !== undefined) body.has_attachment = hasAttachment;
   return body;
 }

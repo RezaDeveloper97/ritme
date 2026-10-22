@@ -25,3 +25,49 @@ entries:
     where: data.supplements.**
     deviation: D-28
     reason: nutrition / sleep / exercise modules keyed by the §19 phase
+
+  # D-169 (task T-M10-18, engine v6 M10, user OK 2026-10-21): the trimester is by completed days (ACOG CO 700: T1 to
+  # 13+6; Laravel's `weeks <= 12` put 13+0 … 13+6 in trimester 2). The manual 12+0 persona is 13+0 on the contract
+  # day, so /messages/daily in pregnancy mode reads trimester 1 and every trimester-keyed layer (base message,
+  # nutrition, sleep, exercise) carries the first-trimester copy.
+  - case: "daily.pregnant_manual_w14.*"
+    step: 1
+    where: data.context_info.trimester
+    deviation: D-169
+    reason: 13+0 is the first trimester (completed days)
+  - case: "daily.pregnant_manual_w14.*"
+    step: 1
+    where: data.primary_message.**
+    deviation: D-169
+    reason: base message of trimester 1 (trimester, label and copy)
+  - case: "daily.pregnant_manual_w14.*"
+    step: 1
+    where: data.supplements.**
+    deviation: D-169
+    reason: nutrition / sleep / exercise modules keyed by the trimester
+  - case: "daily_force_mode_pregnant.*"
+    step: 2
+    where: data.context_info.trimester
+    deviation: D-169
+    reason: 13+0 is the first trimester (completed days)
+  - case: "daily_force_mode_pregnant.*"
+    step: 2
+    where: data.primary_message.**
+    deviation: D-169
+    reason: base message of trimester 1 (trimester, label and copy)
+  - case: "daily_force_mode_pregnant.*"
+    step: 2
+    where: data.supplements.**
+    deviation: D-169
+    reason: nutrition / sleep / exercise modules keyed by the trimester
+
+  # D-172 (task T-M10-21, engine v6 M10, user OK 2026-10-21): the checkup inside a menopause message gains
+  # `informational` (bool) and `label` (null | "after_pregnancy"). Additive; the Go-only golden predates them.
+  - case: "menopause_flow.*"
+    where: data.messages[*].data.checkup.informational
+    deviation: D-172
+    reason: new checkup item key (additive)
+  - case: "menopause_flow.*"
+    where: data.messages[*].data.checkup.label
+    deviation: D-172
+    reason: new checkup item key (additive)

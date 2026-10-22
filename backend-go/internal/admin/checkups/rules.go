@@ -14,6 +14,7 @@ import (
 	"github.com/ritme/backend-go/internal/checkups/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
@@ -129,6 +130,7 @@ func rules(in phpval.Map, codes []string, create bool) validation.Rules {
 	}
 	return append(r,
 		validation.F("hide_in_pregnancy", "nullable"),
+		validation.F("informational", "nullable|boolean"),
 		validation.F("audiences", "nullable|array|max:"+strconv.Itoa(len(Audiences()))),
 		validation.F("audiences.*", "required|string", validation.In(Audiences()...)),
 		validation.F("is_active", "nullable"),
@@ -392,7 +394,22 @@ func buildParams(c fiber.Ctx, data phpval.Map, cur *store.CheckupType) store.Upd
 	default:
 		p.SourceNote = form.Str(data, "source_note")
 	}
+	// informational (H-10) keeps its stored value when absent, so a client that predates the flag never clears it.
+	if form.Has(data, "informational") {
+		p.Informational = httpadmin.Bool(data, "informational")
+	} else {
+		p.Informational = st.Informational
+	}
+	// A registry-driven type (T-M10-21): screening.uspstf owns interval and ages; the stored columns stay as they are.
+	if cur != nil && registryDriven(cur, civildate.InTehran(httpadmin.Now(c))) {
+		p.IntervalMonths, p.IntervalMonthsMax, p.AgeMin, p.AgeMax = st.IntervalMonths, st.IntervalMonthsMax, st.AgeMin, st.AgeMax
+	}
 	return p
+}
+
+// registryDriven: a shared catalog type whose key has screening.uspstf rows on day.
+func registryDriven(t *store.CheckupType, day civildate.Date) bool {
+	return !t.UserID.Valid && t.Key.Valid && engine.RegistryDriven(t.Key.String, day)
 }
 
 // audiences is the validated life modes, distinct, in the order sent (NULL when null or empty =

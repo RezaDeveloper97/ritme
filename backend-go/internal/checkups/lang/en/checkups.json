@@ -25,7 +25,10 @@
         "now": "Due now",
         "overdue_since": "Overdue since :month",
         "not_yet": "From :year (age :age)",
-        "disabled": "Off"
+        "disabled": "Off",
+        "informational": "No due date",
+        "follow_up": "Follow up with your doctor",
+        "after_pregnancy": "After pregnancy"
     },
     "reminder": {
         "days_before": "We'll remind you :n days before",
@@ -43,7 +46,8 @@
         "custom_updated": "Custom checkup updated",
         "custom_deleted": "Custom checkup deleted",
         "settings_updated": "Checkup settings saved",
-        "custom_limit": "You have reached the maximum number of custom checkups. Delete one you no longer need to add a new one."
+        "custom_limit": "You have reached the maximum number of custom checkups. Delete one you no longer need to add a new one.",
+        "informational_read_only": "This item is for awareness and takes no new entries."
     },
     "validation": {
         "date_future": "The date cannot be in the future.",
@@ -64,6 +68,7 @@
         "performed_by": "performed by",
         "last_done_on": "last done",
         "enabled": "enabled",
-        "remind": "reminder"
+        "remind": "reminder",
+        "test_kind": "test type"
     }
 }

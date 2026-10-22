@@ -38,15 +38,19 @@ const (
 	now = "2026-09-23T10:00:00+03:30"
 )
 
-// Seeded catalog ids (00003_checkups.sql).
+// Seeded catalog ids (00003_checkups.sql; 00022 adds the nine menopause-only rows 7–15; 00100 the USPSTF types).
 const (
-	selfExam      = 1
-	clinicalExam  = 2
-	papSmear      = 3
-	bloodTest     = 4
-	dentist       = 5
-	mammography   = 6
-	catalogLength = 6
+	selfExam         = 1 // informational «آگاهی از سینه» since 00100 (H-10)
+	clinicalExam     = 2
+	papSmear         = 3
+	bloodTest        = 4
+	dentist          = 5
+	mammography      = 6
+	bpScreening      = 16
+	glucoseScreening = 17
+	// catalogLength is the rows a cycle-mode user sees; summaryTotal leaves out the informational one.
+	catalogLength = 8
+	summaryTotal  = 7
 )
 
 var quiet = slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -125,6 +129,14 @@ func (e *env) user(t *testing.T, mobile, birthday string) (uint64, string) {
 	tok, err := e.iss.Issue(context.Background(), uint64(id), time.Now()) //nolint:gosec // test ids
 	require.NoError(t, err)
 	return uint64(id), tok.AccessToken //nolint:gosec // test ids
+}
+
+// recordableSelfExam turns the self-exam back into the pre-v6 monthly cycle-timed type with findings, for the tests
+// of that generic behaviour (since 00100 the seeded row is informational and read-only).
+func (e *env) recordableSelfExam(t *testing.T) {
+	t.Helper()
+	_, err := e.db.Exec(`UPDATE checkup_types SET informational = 0 WHERE id = ?`, selfExam)
+	require.NoError(t, err)
 }
 
 func (e *env) record(t *testing.T, userID uint64, typeID int, doneOn string) {
@@ -209,7 +221,9 @@ func TestList_Fixture(t *testing.T) {
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	d := r.data()
 	assert.EqualValues(t, 34, d["age"])
-	assert.Equal(t, map[string]any{"total": 6.0, "up_to_date": 2.0, "due": 3.0, "overdue": 1.0}, d["summary"])
+	// clinical, Pap, BP due; dentist overdue; blood up to date, mammography and glucose not yet; breast awareness
+	// is informational (not counted).
+	assert.Equal(t, map[string]any{"total": 7.0, "up_to_date": 3.0, "due": 3.0, "overdue": 1.0}, d["summary"])
 	items := itemsByID(t, d["items"])
 	require.Len(t, items, catalogLength)
 
@@ -234,14 +248,25 @@ func TestList_Fixture(t *testing.T) {
 	assert.Equal(t, "not_yet", mammo["status"])
 	assert.Equal(t, "2032-06-15", mammo["next_due_on"])
 	assert.Equal(t, "از ۱۴۱۱ (۴۰ سالگی)", mammo["next_due_label"])
-	assert.Equal(t, "هر ۱ تا ۲ سال", mammo["interval_label"])
+	assert.Equal(t, "هر ۲ سال", mammo["interval_label"], "screening.uspstf: every 24 months")
 
 	self := items[selfExam]
-	assert.Equal(t, "due", self["status"])
-	assert.Equal(t, "هر ماه", self["interval_label"])
-	assert.Equal(t, "روز ۷ تا ۱۰ سیکل", self["timing_label"])
-	assert.Equal(t, "زمانش رسیده", self["next_due_label"], "never recorded, no cycle data")
-	assert.Equal(t, "this_month", self["section"])
+	assert.Equal(t, "informational", self["status"])
+	assert.Equal(t, true, self["informational"])
+	assert.Equal(t, "آگاهی از سینه", self["title"])
+	assert.Nil(t, self["interval_label"])
+	assert.Nil(t, self["next_due_on"])
+	assert.Equal(t, "بدون موعد", self["next_due_label"])
+	assert.Equal(t, "monthly", self["section"])
+	assert.Nil(t, self["label"])
+
+	bp := items[bpScreening]
+	assert.Equal(t, "bp_screening", bp["key"])
+	assert.Equal(t, "due", bp["status"])
+	assert.Equal(t, "هر ۳ سال", bp["interval_label"], "18–39: every 36 months")
+	glucose := items[glucoseScreening]
+	assert.Equal(t, "not_yet", glucose["status"], "unknown BMI: shown from 35")
+	assert.Equal(t, "از ۱۴۰۶ (۳۵ سالگی)", glucose["next_due_label"])
 
 	pap := items[papSmear]
 	assert.Equal(t, "due", pap["status"])
@@ -254,14 +279,14 @@ func TestList_Fixture(t *testing.T) {
 	assert.Equal(t, "Overdue since July", items[dentist]["next_due_label"])
 	assert.Equal(t, "February 2027", items[bloodTest]["next_due_label"])
 	assert.Equal(t, "From 2032 (age 40)", items[mammography]["next_due_label"])
-	assert.Equal(t, "Every 1–2 years", items[mammography]["interval_label"])
-	assert.Equal(t, "Cycle day 7–10", items[selfExam]["timing_label"])
+	assert.Equal(t, "Every 2 years", items[mammography]["interval_label"])
+	assert.Equal(t, "No due date", items[selfExam]["next_due_label"])
 	assert.Equal(t, "Every 6 months", items[dentist]["interval_label"])
 
 	r = e.do(t, http.MethodGet, "/api/v1/checkups?filter=action", tok, "fa", "")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	assert.Len(t, r.data()["items"], 4, "due ×3 + overdue")
-	assert.EqualValues(t, 6, r.data()["summary"].(map[string]any)["total"], "the summary ignores the filter")
+	assert.EqualValues(t, summaryTotal, r.data()["summary"].(map[string]any)["total"], "the summary ignores the filter")
 
 	r = e.do(t, http.MethodGet, "/api/v1/checkups?filter=done", tok, "fa", "")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
@@ -291,13 +316,13 @@ func TestHome(t *testing.T) {
 	r := e.home(t, tok, "fa")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	d := r.data()
-	assert.Equal(t, map[string]any{"total": 6.0, "up_to_date": 2.0, "due": 3.0, "overdue": 1.0}, d["summary"])
+	assert.Equal(t, map[string]any{"total": 7.0, "up_to_date": 3.0, "due": 3.0, "overdue": 1.0}, d["summary"])
 	hl := d["highlights"].([]any)
 	require.Len(t, hl, 2)
-	assert.EqualValues(t, selfExam, hl[0].(map[string]any)["id"], "cycle-timed first")
-	assert.EqualValues(t, papSmear, hl[1].(map[string]any)["id"])
+	assert.EqualValues(t, papSmear, hl[0].(map[string]any)["id"], "cycle-timed first")
+	assert.EqualValues(t, dentist, hl[1].(map[string]any)["id"], "overdue before due")
 
-	// Pregnant: the self-exam and mammography leave the plan; the overdue dentist comes up.
+	// Pregnant: mammography, BP and glucose are labelled after_pregnancy and leave the summary and the highlights.
 	_, err := e.db.Exec(`INSERT INTO pregnancy_profiles (user_id, pregnancy_mode, created_at, updated_at) VALUES (?, 1, NOW(), NOW())`, id)
 	require.NoError(t, err)
 	r = e.home(t, tok, "fa")
@@ -308,7 +333,7 @@ func TestHome(t *testing.T) {
 	assert.EqualValues(t, dentist, hl[1].(map[string]any)["id"], "overdue before due")
 
 	// Everything switched off → nothing applies → data null.
-	for typeID := 1; typeID <= catalogLength; typeID++ {
+	for _, typeID := range []int{selfExam, clinicalExam, papSmear, bloodTest, dentist, mammography, bpScreening, glucoseScreening} {
 		r = e.do(t, http.MethodPut, fmt.Sprintf("/api/v1/checkups/%d/settings", typeID), tok, "fa", `{"enabled":false}`)
 		require.Equal(t, http.StatusOK, r.status, r.raw)
 	}
@@ -320,11 +345,12 @@ func TestHome(t *testing.T) {
 	_, tok2 := e.user(t, "09120000003", "")
 	r = e.home(t, tok2, "en")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
-	assert.EqualValues(t, 6, r.data()["summary"].(map[string]any)["total"])
+	assert.EqualValues(t, summaryTotal, r.data()["summary"].(map[string]any)["total"])
 }
 
 func TestShow_AndAdminEditVisible(t *testing.T) {
 	e := setup(t)
+	e.recordableSelfExam(t)
 	id, tok := e.user(t, "09120000004", "1992-06-15")
 	e.record(t, id, selfExam, "2026-06-01")
 	e.record(t, id, selfExam, "2026-07-01")
@@ -387,6 +413,7 @@ func TestShow_AndAdminEditVisible(t *testing.T) {
 
 func TestRecords_CRUDAndValidation(t *testing.T) {
 	e := setup(t)
+	e.recordableSelfExam(t)
 	_, tok := e.user(t, "09120000006", "1992-06-15")
 
 	// Findings: only the type's own option keys.
@@ -421,8 +448,9 @@ func TestRecords_CRUDAndValidation(t *testing.T) {
 	assert.NotEmpty(t, rec["checkup_title"])
 	item := r.data()["item"].(map[string]any)
 	assert.Equal(t, "2026-09-20", item["last_done_on"])
-	assert.Equal(t, "soon", item["status"], "next due a month later without cycle data")
-	assert.Equal(t, "2026-10-20", item["next_due_on"])
+	assert.Equal(t, "follow_up", item["status"], "a follow-up result sets no default next due (D-172)")
+	assert.Nil(t, item["next_due_on"])
+	assert.Equal(t, "پیگیری با پزشک", item["next_due_label"])
 
 	// Partial update: only has_attachment changes (the attachment rollback).
 	r = e.do(t, http.MethodPut, fmt.Sprintf("/api/v1/checkups/records/%d", recID), tok, "fa", `{"has_attachment":false}`)
@@ -531,9 +559,9 @@ func TestPreviewNext(t *testing.T) {
 	r = e.do(t, http.MethodGet, fmt.Sprintf("/api/v1/checkups/preview-next?type=%d&done_on=2026-01-31", mammography), tok, "en", "")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	d := r.data()
-	assert.Equal(t, "2027-01-31", d["next_due_on"])
+	assert.Equal(t, "2028-01-31", d["next_due_on"], "screening.uspstf: every 24 months")
 	assert.Equal(t, "2028-01-31", d["due_by"])
-	assert.Equal(t, "January 31, 2027", d["next_due_label"])
+	assert.Equal(t, "January 31, 2028", d["next_due_label"])
 
 	r = e.do(t, http.MethodPut, fmt.Sprintf("/api/v1/checkups/%d/settings", dentist), tok, "fa", `{"remind":false}`)
 	require.Equal(t, http.StatusOK, r.status, r.raw)
@@ -627,8 +655,8 @@ func TestSettings(t *testing.T) {
 
 	r = e.do(t, http.MethodGet, "/api/v1/checkups", tok, "fa", "")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
-	assert.EqualValues(t, 5, r.data()["summary"].(map[string]any)["total"], "a disabled type leaves the summary")
-	assert.Len(t, r.data()["items"], 6, "but stays listed")
+	assert.EqualValues(t, summaryTotal-1, r.data()["summary"].(map[string]any)["total"], "a disabled type leaves the summary")
+	assert.Len(t, r.data()["items"], catalogLength, "but stays listed")
 
 	r = e.do(t, http.MethodPut, fmt.Sprintf("/api/v1/checkups/%d/settings", dentist), tok, "fa", `{"remind":0}`)
 	require.Equal(t, http.StatusOK, r.status, r.raw)
@@ -641,6 +669,7 @@ func TestSettings(t *testing.T) {
 // With a cycle, the never-recorded self-exam is placed on the next predicted window.
 func TestList_CycleTimedSelfExam(t *testing.T) {
 	e := setup(t)
+	e.recordableSelfExam(t)
 	id, tok := e.user(t, "09120000014", "1992-06-15")
 	_, err := e.db.Exec(`UPDATE user_profiles SET last_period_start = '2026-09-10', cycle_duration = 28, period_duration = 5 WHERE user_id = ?`, id)
 	require.NoError(t, err)

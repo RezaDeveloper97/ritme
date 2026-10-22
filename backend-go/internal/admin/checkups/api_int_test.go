@@ -158,7 +158,17 @@ func TestListShowOptions(t *testing.T) {
 	assert.Equal(t, map[string]any{"q": "", "status": "all"}, r.Data()["filters"])
 
 	first := items[0].(map[string]any)
-	assert.Equal(t, map[string]any{"fa": "خودآزمایی سینه", "en": "Breast self-exam"}, first["title"])
+	assert.Equal(t, map[string]any{"fa": "آگاهی از سینه", "en": "Breast awareness"}, first["title"], "00100 (H-10)")
+	assert.Equal(t, true, first["informational"])
+	assert.Nil(t, first["registry_key"])
+	byKey := map[string]map[string]any{}
+	for _, it := range items {
+		byKey[it.(map[string]any)["key"].(string)] = it.(map[string]any)
+	}
+	for _, k := range []string{"pap_smear", "mammography", "dentist"} {
+		assert.Equal(t, "screening.uspstf", byKey[k]["registry_key"], k)
+	}
+	assert.Nil(t, byKey["blood_test"]["registry_key"], "H-16: unchanged catalog type")
 	assert.Len(t, first["guide_steps"], 3)
 	assert.Len(t, first["finding_options"], 5)
 	assert.Equal(t, 7.0, first["cycle_day_from"])
@@ -431,4 +441,46 @@ func TestStats(t *testing.T) {
 	assert.Equal(t, 0.0, by["breast_self_exam"]["overdue_users"])
 	assert.Equal(t, 0.0, by["mammography"]["users_with_records"])
 	assert.Equal(t, map[string]any{"fa": "دندان\u200cپزشکی", "en": "Dentist"}, by["dentist"]["title"])
+}
+
+// T-M10-21: the informational toggle round-trips (absent keeps it); a registry-driven type's interval and ages are
+// owned by screening.uspstf, so an edit leaves those columns as stored.
+func TestInformationalAndRegistryColumns(t *testing.T) {
+	e := newEnv(t)
+	c := e.As(admintest.EditorID)
+
+	r := c.JSON(fiber.MethodPost, "/checkup-types", with(validBody(), "informational", true))
+	require.Equal(t, 201, r.Status, r.Body)
+	ct := r.Obj("checkup_type")
+	id := int(ct["id"].(float64))
+	assert.Equal(t, true, ct["informational"])
+	assert.Nil(t, ct["registry_key"])
+
+	r = c.JSON(fiber.MethodPut, path(id), without(validBody(), "informational"))
+	require.Equal(t, 200, r.Status, r.Body)
+	assert.Equal(t, true, r.Obj("checkup_type")["informational"], "absent keeps it")
+	r = c.JSON(fiber.MethodPut, path(id), with(validBody(), "informational", false))
+	require.Equal(t, 200, r.Status, r.Body)
+	assert.Equal(t, false, r.Obj("checkup_type")["informational"])
+	r = c.JSON(fiber.MethodPut, path(id), with(validBody(), "informational", "maybe"))
+	require.Equal(t, 422, r.Status)
+	assert.Contains(t, r.Errors(), "informational")
+
+	mammo := typeID(e, "mammography")
+	r = c.Get(path(mammo))
+	require.Equal(t, 200, r.Status, r.Body)
+	ct = r.Obj("checkup_type")
+	assert.Equal(t, "screening.uspstf", ct["registry_key"])
+	body := map[string]any{
+		"title": ct["title"], "category": ct["category"], "performed_by": ct["performed_by"],
+		"interval_months": 6, "interval_months_max": nil, "age_min": 20, "age_max": 30, "is_active": true,
+		"source_note": "edited",
+	}
+	r = c.JSON(fiber.MethodPut, path(mammo), body)
+	require.Equal(t, 200, r.Status, r.Body)
+	ct = r.Obj("checkup_type")
+	assert.Equal(t, 24.0, ct["interval_months"], "registry-driven: kept")
+	assert.Equal(t, 40.0, ct["age_min"])
+	assert.Equal(t, 74.0, ct["age_max"])
+	assert.Equal(t, "edited", ct["source_note"], "the other columns save")
 }

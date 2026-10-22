@@ -38,6 +38,10 @@ export const checkupTypeSchema = z.object({
   guide_steps: listOf(guideStepSchema),
   finding_options: listOf(findingSchema),
   hide_in_pregnancy: z.boolean(),
+  /** v6 (T-M10-21): no due date, no reminder, read-only history in the app (breast awareness). */
+  informational: z.boolean().optional().default(false),
+  /** `screening.uspstf` when the clinical registry owns the interval and ages (read-only here), else null. */
+  registry_key: z.string().nullable().optional().default(null),
   /** Life modes the row is shown to; the API answers `null` for everyone — normalised to `[]`. */
   audiences: z.preprocess((v) => (Array.isArray(v) ? v : []), z.array(z.string())),
   is_active: z.boolean(),

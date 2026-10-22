@@ -171,11 +171,20 @@ func (p *Plan) TimingLabel(t engine.Type, locale string) string {
 const soonLabelDays = 30
 
 // NextDueLabel is the item's due line: «۳ روز دیگر», «امروز», «زمانش رسیده»,
-// «عقب‌افتاده از فروردین», «از ۱۴۰۹ (۴۰ سالگی)», «مهر ۱۴۰۶», «غیرفعال».
+// «عقب‌افتاده از فروردین», «از ۱۴۰۹ (۴۰ سالگی)», «مهر ۱۴۰۶», «غیرفعال»; v6: «بدون موعد»
+// (informational), «پیگیری با پزشک» (follow-up), «بعد از بارداری» (deferred while pregnant).
 func NextDueLabel(it engine.Item, t engine.Type, today civildate.Date, locale string) string {
-	switch it.Status {
-	case engine.StatusDisabled:
+	switch {
+	case it.Status == engine.StatusDisabled:
 		return T("due.disabled", locale)
+	case it.Informational:
+		return T("due.informational", locale)
+	case it.Label == engine.LabelAfterPregnancy:
+		return T("due.after_pregnancy", locale)
+	}
+	switch it.Status {
+	case engine.StatusFollowUp:
+		return T("due.follow_up", locale)
 	case engine.StatusNotYet:
 		y, _, _ := calendarDate(it.NextDueOn, locale)
 		return tr("due.not_yet", locale, "year", num(y, locale), "age", num(t.AgeMin, locale))

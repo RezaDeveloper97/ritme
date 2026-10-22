@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -69,6 +70,7 @@ func menoOf(items map[string]map[string]any) []string {
 // the shared catalog, whose items are the same for both.
 func TestAudience_ListByLifeMode(t *testing.T) {
 	e := setup(t)
+	e.recordableSelfExam(t) // the B-N2-11b timing of a monthly cycle-timed type
 	cycleID, cycleTok := e.fixture(t, "09120000101")
 	menoID, menoTok := e.fixture(t, "09120000102")
 	ttcID, ttcTok := e.fixture(t, "09120000103")
@@ -85,8 +87,13 @@ func TestAudience_ListByLifeMode(t *testing.T) {
 
 	meno := e.itemsByKey(t, menoTok)
 	assert.Equal(t, menoKeys, menoOf(meno))
-	assert.Len(t, meno, catalogLength+len(menoKeys))
+	// 00100: bp_screening / glucose_screening are not shown to menopause mode (its own meno_ rows cover them).
+	assert.Len(t, meno, catalogLength-len(uspstfOnly)+len(menoKeys))
 	for key, it := range cycle {
+		if slices.Contains(uspstfOnly, key) {
+			assert.NotContains(t, meno, key)
+			continue
+		}
 		mi, ok := meno[key]
 		require.True(t, ok, key)
 		if key == "breast_self_exam" || key == "pap_smear" { // B-N2-11b: no cycle-day timing in menopause
@@ -115,8 +122,8 @@ func TestAudience_ListByLifeMode(t *testing.T) {
 	menoTotal := r.data()["summary"].(map[string]any)["total"].(float64)
 	r = e.home(t, cycleTok, "fa")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
-	assert.EqualValues(t, 6, r.data()["summary"].(map[string]any)["total"])
-	assert.Greater(t, menoTotal, 6.0)
+	assert.EqualValues(t, catalogLength, r.data()["summary"].(map[string]any)["total"])
+	assert.Greater(t, menoTotal, float64(catalogLength-len(uspstfOnly)))
 
 	// An active pregnancy wins over a stored menopause mode.
 	_, err := e.db.Exec(`INSERT INTO pregnancy_profiles (user_id, pregnancy_mode, created_at, updated_at) VALUES (?, 1, NOW(), NOW())`, menoID)
@@ -169,5 +176,8 @@ func TestAudience_EngineInputs(t *testing.T) {
 	assert.Len(t, in.Types, catalogLength)
 	in, err = checkups.EngineInputs(ctx, q, menoID)
 	require.NoError(t, err)
-	assert.Len(t, in.Types, catalogLength+len(menoKeys))
+	assert.Len(t, in.Types, catalogLength-len(uspstfOnly)+len(menoKeys))
 }
+
+// uspstfOnly are the 00100 types whose audience leaves out menopause mode.
+var uspstfOnly = []string{"bp_screening", "glucose_screening"}

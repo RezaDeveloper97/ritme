@@ -27,6 +27,8 @@ const item = (id: number, key: string | null, over: Partial<CheckupItem> = {}): 
   nextDueOn: null,
   nextDueLabel: null,
   isCustom: false,
+  informational: false,
+  label: null,
   ...over,
 });
 

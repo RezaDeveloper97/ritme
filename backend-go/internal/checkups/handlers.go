@@ -109,11 +109,17 @@ func (h *Handlers) List(c fiber.Ctx) error {
 	return httpx.OK(c, jsonx.Obj("age", age, "summary", SummaryJSON(p.Result.Summary), "items", items))
 }
 
-// matchesFilter: action = due or overdue; done = recorded and not needing action.
+// needsAction: due, overdue or waiting for a follow-up — never a screening deferred until after pregnancy.
+func needsAction(it engine.Item) bool {
+	return it.Label == engine.LabelNone &&
+		(it.Status == engine.StatusDue || it.Status == engine.StatusOverdue || it.Status == engine.StatusFollowUp)
+}
+
+// matchesFilter: action = needsAction; done = recorded and not needing action.
 func matchesFilter(it engine.Item, filter string) bool {
 	switch filter {
 	case "action":
-		return it.Status == engine.StatusDue || it.Status == engine.StatusOverdue
+		return needsAction(it)
 	case "done":
 		return !it.LastDoneOn.IsZero() && (it.Status == engine.StatusUpToDate || it.Status == engine.StatusSoon)
 	default:
@@ -142,7 +148,7 @@ func (h *Handlers) Home(c fiber.Ctx) error {
 func Highlights(p *Plan, l Lang) []*jsonx.OrderedMap {
 	var action []engine.Item
 	for _, it := range p.Result.Items {
-		if it.Status == engine.StatusDue || it.Status == engine.StatusOverdue {
+		if needsAction(it) {
 			action = append(action, it)
 		}
 	}
@@ -221,9 +227,11 @@ type recordColumns struct {
 	Note          sql.NullString
 	HasAttachment bool
 	NextDueOn     civildate.NullDate
+	TestKind      sql.NullString
 }
 
-func recordColumnsOf(data phpval.Map) (recordColumns, error) {
+// recordColumnsOf reads validated record data; test_kind is kept only when the type takes one (acceptsKind).
+func recordColumnsOf(data phpval.Map, acceptsKind bool) (recordColumns, error) {
 	col := recordColumns{DoneOn: date(data, "done_on"), Result: *str(data, "result")}
 	if findings := stringList(data, "findings"); findings != nil {
 		b, err := json.Marshal(findings)
@@ -241,7 +249,25 @@ func recordColumnsOf(data phpval.Map) (recordColumns, error) {
 	if d := date(data, "next_due_on"); !d.IsZero() {
 		col.NextDueOn = civildate.NullDate{Date: d, Valid: true}
 	}
+	if s := str(data, "test_kind"); s != nil && acceptsKind {
+		col.TestKind = sql.NullString{String: *s, Valid: true}
+	}
 	return col, nil
+}
+
+// readOnly is the 422 of a record write on an informational type (H-10: its history is read-only).
+func readOnly(l Lang) error {
+	return httpx.Fail(fiber.StatusUnprocessableEntity, T("messages.informational_read_only", l.Locale))
+}
+
+// kindRule is the test_kind rule of a create on type t for this user: accepted when the type's screening rows name
+// test kinds, required when her age band offers a choice (Pap from 30).
+func kindRule(p *Plan, t store.CheckupType) testKindRule {
+	kinds := engine.TestKindsOf(t.Key.String, p.Today)
+	if t.UserID.Valid || len(kinds) == 0 {
+		return testKindRule{}
+	}
+	return testKindRule{kinds: kinds, required: p.Schedule(TypeFromRow(t), "").TestKindRequired()}
 }
 
 // StoreRecord is POST /checkups/{id}/records: 201 with {item, record} (the recomputed item and
@@ -260,17 +286,25 @@ func (h *Handlers) StoreRecord(c fiber.Ctx) error {
 		return err
 	}
 	l, now := langOf(c), h.now(c)
-	data := pick(phpval.NewMap(), validation.Input(c), recordFields)
-	if err := validate(l.Locale, data, recordRules(findingKeys(t.FindingOptions)), now); err != nil {
+	if t.Informational {
+		return readOnly(l)
+	}
+	p, err := LoadPlan(c, h.db, userID, h.clockOf(c))
+	if err != nil {
 		return err
 	}
-	col, err := recordColumnsOf(data)
+	tk := kindRule(p, t)
+	data := pick(phpval.NewMap(), validation.Input(c), recordFields)
+	if err := validate(l.Locale, data, recordRules(findingKeys(t.FindingOptions), tk), now); err != nil {
+		return err
+	}
+	col, err := recordColumnsOf(data, len(tk.kinds) > 0)
 	if err != nil {
 		return err
 	}
 	newID, err := h.q.InsertCheckupRecord(c, store.InsertCheckupRecordParams{
 		UserID: userID, CheckupTypeID: id, DoneOn: col.DoneOn, Result: col.Result, Findings: col.Findings,
-		Note: col.Note, HasAttachment: col.HasAttachment, NextDueOn: col.NextDueOn,
+		Note: col.Note, HasAttachment: col.HasAttachment, NextDueOn: col.NextDueOn, TestKind: col.TestKind,
 		CreatedAt: stamp(now), UpdatedAt: stamp(now),
 	})
 	if err != nil || newID <= 0 {
@@ -338,6 +372,9 @@ func storedRecord(r store.CheckupRecord) phpval.Map {
 	if r.NextDueOn.Valid {
 		data.Set("next_due_on", r.NextDueOn.Date.String())
 	}
+	if r.TestKind.Valid {
+		data.Set("test_kind", r.TestKind.String)
+	}
 	return data
 }
 
@@ -354,24 +391,36 @@ func (h *Handlers) UpdateRecord(c fiber.Ctx) error {
 	}
 	l, now := langOf(c), h.now(c)
 	// Findings are checked against the type's options; a type the admin has since switched off
-	// keeps accepting the findings already stored.
+	// keeps accepting the findings already stored (and its stored test kind).
 	var keys []string
+	tk := testKindRule{}
+	if rec.TestKind.Valid {
+		tk.kinds = []string{rec.TestKind.String}
+	}
 	if t, err := h.visibleType(c, rec.CheckupTypeID, userID); err == nil {
+		if t.Informational {
+			return readOnly(l)
+		}
 		keys = findingKeys(t.FindingOptions)
+		if kinds := engine.TestKindsOf(t.Key.String, civildate.InTehran(now)); !t.UserID.Valid && len(kinds) > 0 {
+			tk.kinds = kinds
+		}
 	} else if f := stringList(storedRecord(rec), "findings"); f != nil {
 		keys = f
 	}
 	data := pick(storedRecord(rec), validation.Input(c), recordFields)
-	if err := validate(l.Locale, data, recordRules(keys), now); err != nil {
+	if err := validate(l.Locale, data, recordRules(keys, tk), now); err != nil {
 		return err
 	}
-	col, err := recordColumnsOf(data)
+	// An edit keeps the stored test kind unless the body changes it (T-M10-17: the UPDATE writes the column).
+	col, err := recordColumnsOf(data, len(tk.kinds) > 0)
 	if err != nil {
 		return err
 	}
 	if err := h.q.UpdateCheckupRecord(c, store.UpdateCheckupRecordParams{
 		DoneOn: col.DoneOn, Result: col.Result, Findings: col.Findings, Note: col.Note,
-		HasAttachment: col.HasAttachment, NextDueOn: col.NextDueOn, UpdatedAt: stamp(now), ID: rec.ID, UserID: userID,
+		HasAttachment: col.HasAttachment, NextDueOn: col.NextDueOn, TestKind: col.TestKind,
+		UpdatedAt: stamp(now), ID: rec.ID, UserID: userID,
 	}); err != nil {
 		return fmt.Errorf("checkups: update record: %w", err)
 	}
@@ -458,10 +507,11 @@ func (h *Handlers) PreviewNext(c fiber.Ctx) error {
 		return err
 	}
 	l, now := langOf(c), h.now(c)
-	query := pick(phpval.NewMap(), validation.Query(c), []string{"type", "done_on"})
+	query := pick(phpval.NewMap(), validation.Query(c), []string{"type", "done_on", "test_kind"})
 	if err := validate(l.Locale, query, validation.Rules{
 		validation.F("type", "required", "integer", "min:1"),
 		validation.F("done_on", append([]any{"required"}, pastDate()...)...),
+		validation.F("test_kind", "nullable", "string", validation.In(testKindValues()...)),
 	}, now); err != nil {
 		return err
 	}
@@ -474,14 +524,28 @@ func (h *Handlers) PreviewNext(c fiber.Ctx) error {
 	if !ok {
 		return notFound(c, "checkup_not_found")
 	}
+	if t.Informational {
+		return httpx.OK(c, jsonx.Obj("next_due_on", nil, "due_by", nil, "next_due_label", nil, "interval_label", nil,
+			"timing_label", nil, "reminder_label", nil, "cycle_timed", false))
+	}
+	kind := ""
+	if s := str(query, "test_kind"); s != nil {
+		kind = *s
+	}
+	// The registry interval for the test kind being recorded (Pap with HPV: 60 months).
+	t = p.Schedule(t, kind).Type
 	due := engine.NextDueAfter(t, date(query, "done_on"), p.Input.Cycle)
+	remind := p.Remind(typeID)
+	if it, ok := p.Item(typeID); ok {
+		remind = remind && it.Remind // off while pregnant for an after-pregnancy item
+	}
 	return httpx.OK(c, jsonx.Obj(
 		"next_due_on", due.From.String(),
 		"due_by", due.By.String(),
 		"next_due_label", FullDate(due.From, l.Locale),
 		"interval_label", IntervalLabel(t.IntervalMonths, t.IntervalMonthsMax, l.Locale),
 		"timing_label", emptyToNil(p.TimingLabel(t, l.Locale)),
-		"reminder_label", ReminderLabel(t.RemindLeadDays, p.Remind(typeID), l.Locale),
+		"reminder_label", ReminderLabel(t.RemindLeadDays, remind, l.Locale),
 		"cycle_timed", due.CycleTimed,
 	))
 }
