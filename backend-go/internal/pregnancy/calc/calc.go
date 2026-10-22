@@ -30,14 +30,22 @@ import (
 // Calculator is one PregnancyCalculationService instance: a user's profile (nil when the
 // user has none), the request locale and the request's Tehran "today" (Carbon::today()).
 type Calculator struct {
-	p      *store.PregnancyProfile
-	locale string
-	today  civildate.Date
+	p         *store.PregnancyProfile
+	locale    string
+	today     civildate.Date
+	cycleDays int // effective cycle length for the optional EDD correction (0 = unknown)
 }
 
 // New returns a calculator. p may be nil ($user->pregnancyProfile === null).
 func New(p *store.PregnancyProfile, locale string, today civildate.Date) *Calculator {
 	return &Calculator{p: p, locale: locale, today: today}
+}
+
+// WithCycleLength sets the user's effective cycle length (days, from the cycle engine) that the optional
+// pregnancy.edd.cycle_correction adds to an LMP due date (off by default; 0 = unknown, no correction).
+func (c *Calculator) WithCycleLength(days int) *Calculator {
+	c.cycleDays = days
+	return c
 }
 
 // Profile returns the profile the calculator was built with (nil when none).
@@ -95,48 +103,37 @@ func (c *Calculator) GestationalAgeOn(ref civildate.Date) GestationalAge {
 		if !c.p.AgeSource.Valid || !c.p.LmpDate.Valid {
 			return GestationalAge{}
 		}
-		return c.format(c.p.LmpDate.Date.DiffDays(ref), enums.ConfidenceLevelMedium, 3)
+		return c.format(c.p.LmpDate.Date.DiffDays(ref), ref, enums.ConfidenceLevelMedium, 3)
 	case enums.PregnancyAgeSourceUltrasound:
 		if !c.p.UltrasoundDate.Valid || !c.p.UltrasoundWeeks.Valid || !c.p.UltrasoundDays.Valid {
 			return GestationalAge{}
 		}
 		atScan := int(c.p.UltrasoundWeeks.Int32)*7 + int(c.p.UltrasoundDays.Int32)
-		return c.format(atScan+c.p.UltrasoundDate.Date.DiffDays(ref), enums.ConfidenceLevelHigh, 1)
+		return c.format(atScan+c.p.UltrasoundDate.Date.DiffDays(ref), ref, enums.ConfidenceLevelHigh, 1)
 	case enums.PregnancyAgeSourceManual:
 		if !c.p.ManualWeeks.Valid || !c.p.ManualDays.Valid || !c.p.ManualEntryDate.Valid {
 			return GestationalAge{}
 		}
 		atEntry := int(c.p.ManualWeeks.Int32)*7 + int(c.p.ManualDays.Int32)
-		return c.format(atEntry+c.p.ManualEntryDate.Date.DiffDays(ref), enums.ConfidenceLevelLow, 5)
+		return c.format(atEntry+c.p.ManualEntryDate.Date.DiffDays(ref), ref, enums.ConfidenceLevelLow, 5)
 	}
 	return GestationalAge{}
 }
 
 // format is formatGestationalAge(): weeks = floor(d/7), days = d % 7 (PHP remainder keeps
-// the dividend's sign, like Go's %).
-func (c *Calculator) format(total int, conf enums.ConfidenceLevel, uncertainty int) GestationalAge {
+// the dividend's sign, like Go's %). The trimester is by completed days on ref (TrimesterOn, D-169).
+func (c *Calculator) format(total int, ref civildate.Date, conf enums.ConfidenceLevel, uncertainty int) GestationalAge {
 	weeks := int(math.Floor(float64(total) / 7))
 	return GestationalAge{
 		Valid:       true,
 		Weeks:       weeks,
 		Days:        total % 7,
 		TotalDays:   total,
-		Trimester:   Trimester(weeks),
+		Trimester:   TrimesterOn(total, ref),
 		Confidence:  conf,
 		Uncertainty: uncertainty,
 		locale:      c.locale,
 	}
-}
-
-// Trimester is calculateTrimester(): ≤12 → 1, ≤27 → 2, else 3.
-func Trimester(weeks int) int {
-	switch {
-	case weeks <= 12:
-		return 1
-	case weeks <= 27:
-		return 2
-	}
-	return 3
 }
 
 // DueDate is calculateEDD(): nil when it cannot be computed.
@@ -159,8 +156,9 @@ func (d *DueDate) JSON() any {
 	)
 }
 
-// EDDDate is the due date itself (LMP / estimated LMP + 280), or false when the profile
-// lacks the data of its age source.
+// EDDDate is the due date itself, or false when the profile lacks the data of its age source: EDDFromLMP for the LMP
+// (Naegele + the optional cycle correction), EDDFromStart of the start a scan or a manual entry implies. Version 1 of
+// pregnancy.edd is Laravel's `LmpDate.Date.AddDays(280)` (D-169).
 func (c *Calculator) EDDDate() (civildate.Date, bool) {
 	if c.p == nil {
 		return civildate.Date{}, false
@@ -170,19 +168,19 @@ func (c *Calculator) EDDDate() (civildate.Date, bool) {
 		if !c.p.AgeSource.Valid || !c.p.LmpDate.Valid {
 			return civildate.Date{}, false
 		}
-		return c.p.LmpDate.Date.AddDays(280), true
+		return EDDFromLMP(c.p.LmpDate.Date, c.cycleDays), true
 	case enums.PregnancyAgeSourceUltrasound:
 		if !c.p.UltrasoundDate.Valid || !c.p.UltrasoundWeeks.Valid || !c.p.UltrasoundDays.Valid {
 			return civildate.Date{}, false
 		}
 		atScan := int(c.p.UltrasoundWeeks.Int32)*7 + int(c.p.UltrasoundDays.Int32)
-		return c.p.UltrasoundDate.Date.AddDays(-atScan + 280), true
+		return EDDFromStart(c.p.UltrasoundDate.Date.AddDays(-atScan)), true
 	case enums.PregnancyAgeSourceManual:
 		if !c.p.ManualWeeks.Valid || !c.p.ManualDays.Valid || !c.p.ManualEntryDate.Valid {
 			return civildate.Date{}, false
 		}
 		atEntry := int(c.p.ManualWeeks.Int32)*7 + int(c.p.ManualDays.Int32)
-		return c.p.ManualEntryDate.Date.AddDays(-atEntry + 280), true
+		return EDDFromStart(c.p.ManualEntryDate.Date.AddDays(-atEntry)), true
 	}
 	return civildate.Date{}, false
 }
@@ -285,6 +283,7 @@ type Status struct {
 	IsHighRisk                  bool
 	FetalMovementTrackingActive bool
 	FetalMovementRequired       bool
+	Dating                      Redating
 	Flags                       *jsonx.OrderedMap
 }
 
@@ -309,6 +308,7 @@ func (c *Calculator) Status() Status {
 		IsHighRisk:                  c.IsHighRisk(),
 		FetalMovementTrackingActive: week >= 18,
 		FetalMovementRequired:       week >= 24,
+		Dating:                      c.Dating(),
 		Flags:                       c.statusFlags(ga, week),
 	}
 	if c.p.AgeSource.Valid {
@@ -332,6 +332,7 @@ func (s Status) JSON() *jsonx.OrderedMap {
 			"is_high_risk", false,
 			"fetal_movement_tracking_active", false,
 			"fetal_movement_required", false,
+			"dating", nil,
 			"flags", s.Flags,
 		)
 	}
@@ -354,6 +355,7 @@ func (s Status) JSON() *jsonx.OrderedMap {
 		"is_high_risk", s.IsHighRisk,
 		"fetal_movement_tracking_active", s.FetalMovementTrackingActive,
 		"fetal_movement_required", s.FetalMovementRequired,
+		"dating", s.Dating.JSON(),
 		"flags", s.Flags,
 	)
 }

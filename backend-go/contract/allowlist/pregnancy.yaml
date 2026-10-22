@@ -64,3 +64,44 @@ entries:
     where: data.counts.emergency
     deviation: D-134
     reason: the v2 critical_symptom rows are emergency level
+
+  # D-169 (task T-M10-18, engine v6 M10, user OK 2026-10-21): the trimester is by completed days (SPEC v6 §3.1, ACOG
+  # CO 700: T1 to 13+6, T2 14+0 … 27+6, T3 from 28+0, registry key pregnancy.trimester). Laravel's `weeks <= 12` put
+  # 13+0 … 13+6 in trimester 2. The manual 12+0 persona is 13+0 on the contract day, the onboarding scan (10+3 on
+  # 2026-09-01) 13+4 — both now trimester 1; nothing else in the payloads moves.
+  - case: "*.pregnant_manual_w14.*"
+    where: "**.trimester"
+    deviation: D-169
+    reason: 13+0 is the first trimester (completed days; Laravel weeks <= 12 → 2)
+  - case: "*.pregnant_manual_w14.*"
+    where: "**.trimester_info.*"
+    deviation: D-169
+    reason: the trimester flag text follows the trimester (13+0 → 1)
+  - case: "fetal_movement_store_first_felt.*"
+    where: "**.trimester"
+    deviation: D-169
+    reason: the persona is pregnant_manual_w14 (13+0 → trimester 1)
+  - case: "fetal_movement_store_first_felt.*"
+    where: "**.trimester_info.*"
+    deviation: D-169
+    reason: the trimester flag text follows the trimester (13+0 → 1)
+  - case: "onboarding_ultrasound.*"
+    where: "**.trimester"
+    deviation: D-169
+    reason: the 10+3 scan of 2026-09-01 is 13+4 on the contract day — first trimester
+  - case: "onboarding_ultrasound.*"
+    where: "**.trimester_info.*"
+    deviation: D-169
+    reason: the trimester flag text follows the trimester (13+4 → 1)
+
+  # D-169 (task T-M10-18): the pregnancy status (GET /pregnancy/status, and `status` of GET/PUT /pregnancy/profile)
+  # carries the new `dating` block {basis, replaced, discrepancy_days, band_until_days, limit_days} — the age source in
+  # effect and the ACOG re-dating comparison of an LMP and a scan (null without a profile). Laravel has no such key.
+  - case: "*"
+    where: data.dating
+    deviation: D-169
+    reason: new dating block on /pregnancy/status (Go-only, additive)
+  - case: "*"
+    where: data.status.dating
+    deviation: D-169
+    reason: new dating block in the profile's status (Go-only, additive)

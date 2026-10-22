@@ -221,7 +221,8 @@ func TestToday(t *testing.T) {
 	progress := d["progress"].(map[string]any)
 	assert.EqualValues(t, 30, progress["percent"])
 	assert.Len(t, progress["trimesters"], 3)
-	assert.Equal(t, "2026-09-30", progress["trimesters"].([]any)[1].(map[string]any)["start_date"])
+	// The second trimester starts at 14+0 (D-169; Laravel's rule started it at 13+0, 2026-09-30).
+	assert.Equal(t, "2026-10-07", progress["trimesters"].([]any)[1].(map[string]any)["start_date"])
 	tip, _ := d["tip"].(map[string]any)
 	require.NotNil(t, tip)
 	assert.EqualValues(t, 13, tip["week"])

@@ -30,7 +30,11 @@
       }
     },
     "dueDate": "Estimated due date",
-    "estimateNote": "This is an estimate, not a medical diagnosis."
+    "estimateNote": "This is an estimate, not a medical diagnosis.",
+    "datingResult": {
+      "replaced": "Your due date was updated from the ultrasound.",
+      "kept": "The difference was within the limit, so your date stays based on your last period."
+    }
   },
   "nav": {
     "label": "Main menu",

@@ -11848,6 +11848,7 @@ paths:
                           is_high_risk: {type: boolean}
                           fetal_movement_tracking_active: {type: boolean}
                           fetal_movement_required: {type: boolean}
+                          dating: {$ref: "#/components/schemas/PregnancyDating"}
                           flags:
                             type: object
                             required: [trimester_info, week_info]
@@ -12029,6 +12030,7 @@ paths:
                           is_high_risk: {type: boolean}
                           fetal_movement_tracking_active: {type: boolean}
                           fetal_movement_required: {type: boolean}
+                          dating: {$ref: "#/components/schemas/PregnancyDating"}
                           flags:
                             type: object
                             required: [trimester_info, week_info, rh_warning, high_risk]
@@ -12103,6 +12105,9 @@ paths:
                       is_high_risk: {type: boolean}
                       fetal_movement_tracking_active: {type: boolean}
                       fetal_movement_required: {type: boolean}
+                      dating:
+                        description: The dating block (D-169); null without a pregnancy profile.
+                        anyOf: [{$ref: "#/components/schemas/PregnancyDating"}, {type: "null"}]
                       flags:
                         type: object
                         properties:
@@ -31114,6 +31119,22 @@ components:
         uncertainty_days: {type: [integer, "null"]}
         formatted:
           anyOf: [{$ref: "#/components/schemas/RawTranslations"}, {type: "null"}]
+    PregnancyDating:
+      type: object
+      description: |
+        The dating basis and the ACOG re-dating comparison (T-M10-18, SPEC v6 §3.1, deviation D-169). `basis` is the
+        age source in effect. With both an LMP and a scan on the profile, `discrepancy_days` = |GA by scan − GA by LMP|
+        on the scan day, the band is the `pregnancy.redating` row (version valid on the scan day) of the GA by LMP on
+        the scan day (`band_until_days`, null = the open band from 28+0) and `replaced` is true when the discrepancy is
+        more than `limit_days` (the scan replaces the LMP dating). Without one of the two the comparison fields are
+        null and `replaced` is false.
+      required: [basis, replaced, discrepancy_days, band_until_days, limit_days]
+      properties:
+        basis: {type: [string, "null"], enum: [lmp, ultrasound, manual, null]}
+        replaced: {type: boolean}
+        discrepancy_days: {type: [integer, "null"], minimum: 0}
+        band_until_days: {type: [integer, "null"]}
+        limit_days: {type: [integer, "null"]}
     SymptomLog:
       type: object
       required:

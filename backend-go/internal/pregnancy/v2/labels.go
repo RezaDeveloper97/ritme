@@ -102,9 +102,13 @@ func RangeLabel(from, to civildate.Date, locale string) string {
 	return tr("date.range", locale, "from", DayMonth(from, locale), "to", DayMonth(to, locale))
 }
 
-// WeekLabel is «سه‌ماههٔ اول · هفتهٔ ۸ از ۴۰».
-func WeekLabel(week int, locale string) string {
-	return tr("week_label", locale, "tri", T("trimesters."+strconv.Itoa(calc.Trimester(week-1)), locale),
+// WeekLabel is «سه‌ماههٔ اول · هفتهٔ ۸ از ۴۰» (version 1 of pregnancy.trimester; WeekLabelOn reads the version
+// valid on a day).
+func WeekLabel(week int, locale string) string { return WeekLabelOn(week, civildate.Date{}, locale) }
+
+// WeekLabelOn is WeekLabel with the trimester of week by the pregnancy.trimester version valid on day.
+func WeekLabelOn(week int, day civildate.Date, locale string) string {
+	return tr("week_label", locale, "tri", T("trimesters."+strconv.Itoa(calc.TrimesterOfWeek(week, day)), locale),
 		"week", num(week, locale), "term", num(TermWeeks, locale))
 }
 

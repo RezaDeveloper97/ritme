@@ -44,33 +44,55 @@ func CurrentDue(p *store.PregnancyProfile, today civildate.Date) (civildate.Date
 	return calc.New(p, "en", today).EDDDate()
 }
 
-// ApplyUltrasoundDating dates the user's active pregnancy from a scan and returns the updated profile.
+// ApplyUltrasoundDating dates the user's active pregnancy from a scan the user explicitly chose as the basis and
+// returns the updated profile (the age source becomes ultrasound whatever the LMP says).
 func ApplyUltrasoundDating(ctx context.Context, q store.Querier, userID uint64, d UltrasoundDating, now time.Time,
 ) (*store.PregnancyProfile, error) {
+	p, _, err := applyScan(ctx, q, userID, d, true, now)
+	return p, err
+}
+
+// ApplyUltrasoundDatingByRule saves a scan onto the user's active pregnancy and lets the ACOG re-dating rule pick the
+// basis (ApplyScanRule, D-169): with an LMP the scan replaces it only when the discrepancy is more than the band's
+// limit. It returns the updated profile and the decision (the `dating` block).
+func ApplyUltrasoundDatingByRule(ctx context.Context, q store.Querier, userID uint64, d UltrasoundDating, now time.Time,
+) (*store.PregnancyProfile, calc.Redating, error) {
+	return applyScan(ctx, q, userID, d, false, now)
+}
+
+func applyScan(ctx context.Context, q store.Querier, userID uint64, d UltrasoundDating, explicit bool, now time.Time,
+) (*store.PregnancyProfile, calc.Redating, error) {
 	p, err := ActiveProfile(ctx, q, userID)
 	if err != nil {
-		return nil, err
+		return nil, calc.Redating{}, err
 	}
-	conf, unc, _ := confidenceFor(string(enums.PregnancyAgeSourceUltrasound))
 	attrs := jsonx.Obj(
-		"age_source", string(enums.PregnancyAgeSourceUltrasound),
 		"ultrasound_date", d.ScanDate,
 		"ultrasound_weeks", int64(d.Weeks),
 		"ultrasound_days", int64(d.Days),
-		"confidence_level", string(conf),
-		"uncertainty_days", int64(unc),
 	)
+	if explicit {
+		conf, unc, _ := confidenceFor(string(enums.PregnancyAgeSourceUltrasound))
+		attrs.Set("age_source", string(enums.PregnancyAgeSourceUltrasound)).
+			Set("confidence_level", string(conf)).
+			Set("uncertainty_days", int64(unc))
+	}
+	var decision calc.Redating
+	if r := ApplyScanRule(p, attrs, explicit); r != nil {
+		decision = *r
+	}
 	if err := saveProfile(ctx, q, userID, p, attrs, now); err != nil {
-		return nil, err
+		return nil, decision, err
 	}
 	p, err = LoadProfile(ctx, q, userID)
 	if err != nil {
-		return nil, err
+		return nil, decision, err
 	}
 	if due, ok := CurrentDue(p, civildate.InTehran(now)); ok {
 		if err := saveProfile(ctx, q, userID, p, jsonx.Obj("estimated_due_date", due), now); err != nil {
-			return nil, err
+			return nil, decision, err
 		}
 	}
-	return LoadProfile(ctx, q, userID)
+	p, err = LoadProfile(ctx, q, userID)
+	return p, decision, err
 }

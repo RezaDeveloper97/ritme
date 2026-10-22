@@ -3,10 +3,10 @@ id: T-M10-18
 title: Pregnancy dating: trimester by completed days, Naegele and ACOG re-dating
 milestone: M10
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M10-16]
 parallel_group: M10-C
-touches: [backend-go/internal/pregnancy/calc, backend-go/internal/pregnancy/v2/dating.go, backend-go/internal/pregnancy/v2/dating_apply.go, backend-go/internal/pregnancy/v2/labels.go, backend-go/internal/pregnancy/profile.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist, frontend/src/screens/pregnancy-onboarding, frontend/src/features/track-pregnancy, frontend/messages/fa/pregnancy-v2.json, frontend/messages/en/pregnancy-v2.json, backend-go/resources/translations/fa/pregnancy-v2.json, backend-go/resources/translations/en/pregnancy-v2.json]
+touches: [backend-go/internal/pregnancy/calc, backend-go/internal/pregnancy/v2/dating.go, backend-go/internal/pregnancy/v2/dating_apply.go, backend-go/internal/pregnancy/v2/labels.go, backend-go/internal/pregnancy/profile.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist/pregnancy.yaml, backend-go/contract/allowlist/pregnancy-v2.yaml, backend-go/contract/allowlist/analysis-pregnancy.yaml, frontend/src/screens/pregnancy-onboarding, frontend/src/features/track-pregnancy, frontend/messages/fa/pregnancy-v2.json, frontend/messages/en/pregnancy-v2.json, backend-go/resources/translations/fa/pregnancy-v2.json, backend-go/resources/translations/en/pregnancy-v2.json]
 skills: []
 verify: cd backend-go && go vet ./... && go test ./internal/pregnancy/... && make test-int PKG=./internal/pregnancy/... && make contract ROUTES=pregnancy,pregnancy-v2,analysis-pregnancy && cd ../frontend && npm run typecheck && npm run lint && npm run test && npm run copy:check -- pregnancy-v2
 ---

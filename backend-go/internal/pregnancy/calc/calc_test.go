@@ -39,7 +39,7 @@ func TestGestationalAgeBySource(t *testing.T) {
 		{"ultrasound", store.PregnancyProfile{AgeSource: ns("ultrasound"), UltrasoundDate: nd("2026-09-09"), UltrasoundWeeks: ni(23), UltrasoundDays: ni(2)},
 			25, 2, 177, 2, 26, "high", 1, "2027-01-04", 103, 14},
 		{"manual", store.PregnancyProfile{AgeSource: ns("manual"), ManualEntryDate: nd("2026-09-16"), ManualWeeks: ni(12), ManualDays: ni(0)},
-			13, 0, 91, 2, 14, "low", 5, "2027-03-31", 189, 27},
+			13, 0, 91, 1, 14, "low", 5, "2027-03-31", 189, 27}, // 13+0 is still the first trimester (D-169)
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -78,8 +78,9 @@ func TestEmptyAndClamp(t *testing.T) {
 	assert.Equal(t, 0, New(late, "en", today).EDD().WeeksRemaining)
 }
 
+// D-169 (SPEC v6 §3.1, ACOG CO 700): T1 to 13+6, T2 14+0 … 27+6, T3 from 28+0 — by completed days.
 func TestTrimesterBoundaries(t *testing.T) {
-	for weeks, want := range map[int]int{0: 1, 12: 1, 13: 2, 27: 2, 28: 3, 45: 3} {
+	for weeks, want := range map[int]int{0: 1, 12: 1, 13: 1, 14: 2, 27: 2, 28: 3, 45: 3} {
 		assert.Equal(t, want, Trimester(weeks), "weeks %d", weeks)
 	}
 }
@@ -135,13 +136,16 @@ func TestStatusJSON(t *testing.T) {
 	ga := got["gestational_age"].(map[string]any)
 	assert.Equal(t, "بالا", ga["confidence_label"])
 	assert.Equal(t, map[string]any{"en": "25 weeks, 2 days", "fa": "25 هفته و 2 روز"}, ga["formatted"])
+	// D-169: the dating block; a scan without an LMP has nothing to compare.
+	assert.Equal(t, map[string]any{"basis": "ultrasound", "replaced": false, "discrepancy_days": nil,
+		"band_until_days": nil, "limit_days": nil}, got["dating"])
 
 	b, err = json.Marshal(New(nil, "en", today).Status())
 	require.NoError(t, err)
 	assert.JSONEq(t, `{"is_active":false,"gestational_age":{"weeks":null,"days":null,"total_days":null,"trimester":null,
 		"confidence_level":null,"confidence_label":null,"uncertainty_days":null,"formatted":null},"estimated_due_date":null,
 		"current_week":null,"trimester":null,"age_source":null,"confidence_level":null,"is_high_risk":false,
-		"fetal_movement_tracking_active":false,"fetal_movement_required":false,
+		"fetal_movement_tracking_active":false,"fetal_movement_required":false,"dating":null,
 		"flags":{"no_profile":{"en":"Please complete pregnancy onboarding to get started.","fa":"لطفاً آنبوردینگ بارداری را تکمیل کنید."}}}`, string(b))
 }
 

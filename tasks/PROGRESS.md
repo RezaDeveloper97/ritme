@@ -1716,3 +1716,21 @@ Nothing needed fixing.
 - Open:
   - document `kind`/`schema`/`source` in `docs/go-migration/admin-api.md` §23;
   - `ListApprovedClinicalConfigVersions` is now unused (remove it or add `source`).
+
+## T-M10-18 — Pregnancy dating: trimester by completed days, ACOG re-dating, optional cycle correction (D-169)
+- New `internal/pregnancy/calc/dating.go`, the one place for the dating rules:
+  - `TrimesterOn(totalDays, day)` (`pregnancy.trimester`, 98/196 completed days);
+  - `EDDFromLMP` (`pregnancy.edd`, plus a cycle correction only when `pregnancy.edd.cycle_correction.enabled = 1`);
+  - `Redate(lmp, hasLMP, scanDate, gaAtScan)` → `{basis, replaced, discrepancy_days, band_until_days, limit_days}`. The band is chosen by GA by LMP on the scan day; replace only when the discrepancy is **more** than the limit.
+  - The registry version is the one valid on the subject day.
+- `calc.Status` and `/pregnancy/status` gain a `dating` block (OpenAPI `PregnancyDating`). v2 `Dating`/`labels.go:107` use completed days.
+- `pregnancy.ApplyScanRule` and `ApplyUltrasoundDatingByRule` are ready, but not yet wired into the save endpoints → **T-M10-18b**.
+- `TestNoSecondTrimesterRule` greps `internal/` for week-based trimester rules.
+- Fixed `v2_int_test.go:224`, which asserted the old T2 start.
+- Frontend: `features/track-pregnancy` `datingResultKey` + `DatingResultLine`; fa/en `common.datingResult.{replaced,kept}`; seed resynced.
+- Contract: `contract/allowlist/pregnancy.yaml` D-169 entries (13+x trimester, the additive `dating` block). Result: pregnancy, pregnancy-v2 and analysis-pregnancy 206 passed, 0 failed. Frontend tests 1952 passed; copy:check clean.
+- Open:
+  - **T-M10-18b:** handlers, healthrecord extract, analysis/v2 callers, frontend onboarding response, pin test.
+  - The i18n bundle goldens (`TestBundle_MatchesLaravelGoldens`) are re-recorded together with T-M10-19's commit (both changed seed files).
+  - `ApplyScanRule` always compares LMP vs scan when an LMP exists, even if the current basis is manual.
+  - The cycle correction moves only the EDD, not the GA.

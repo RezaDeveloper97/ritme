@@ -22,8 +22,13 @@ const (
 	birthRangeDays = 14
 )
 
-// trimesterStartWeeks are the completed weeks at which trimesters 2 and 3 begin (calc.Trimester).
-var trimesterStartWeeks = [3]int{0, 13, 28}
+// trimesterStartWeeks are the completed weeks at which trimesters 1, 2 and 3 begin, from version 1 of
+// pregnancy.trimester (calc.TrimesterStartDays: 0, 14, 28). Prefer Dating.TrimesterStartDays, which reads the version
+// valid on the day.
+var trimesterStartWeeks = func() [3]int {
+	d := calc.TrimesterStartDays(civildate.Date{})
+	return [3]int{d[0] / 7, d[1] / 7, d[2] / 7}
+}()
 
 // Dating is the resolved gestational age of a profile on a given day.
 type Dating struct {
@@ -70,14 +75,21 @@ func Resolve(p *store.PregnancyProfile, today civildate.Date) (Dating, bool) {
 	return d, true
 }
 
-// Start is the (estimated) LMP: day 0 of week 1.
-func (d Dating) Start() civildate.Date { return d.Due.AddDays(-280) }
+// Start is the (estimated) LMP: day 0 of week 1 (today − the gestational age, so the cycle-length correction of the
+// due date never shifts the weeks).
+func (d Dating) Start() civildate.Date { return d.Today.AddDays(-d.TotalDays) }
 
 // CurrentWeek is the 1-based week shown to the user, clamped to 1..MaxWeek.
 func (d Dating) CurrentWeek() int { return min(MaxWeek, max(1, d.Weeks+1)) }
 
-// Trimester of the current day.
-func (d Dating) Trimester() int { return calc.Trimester(d.Weeks) }
+// Trimester of the current day, by completed days (calc.TrimesterOn).
+func (d Dating) Trimester() int { return calc.TrimesterOn(d.TotalDays, d.Today) }
+
+// TrimesterOfWeek is the trimester of 1-based week n by the pregnancy.trimester version valid today.
+func (d Dating) TrimesterOfWeek(n int) int { return calc.TrimesterOfWeek(n, d.Today) }
+
+// TrimesterStartDays are the completed days at which trimesters 1, 2 and 3 begin (version valid today).
+func (d Dating) TrimesterStartDays() [3]int { return calc.TrimesterStartDays(d.Today) }
 
 // WeekRange is the first and last day of 1-based week n.
 func (d Dating) WeekRange(n int) (civildate.Date, civildate.Date) {

@@ -20,3 +20,12 @@ export {
   useUpdateWeekState,
 } from './api/v2-mutations';
 export { toPregnancyDayBody } from './model/v2-body';
+
+// ── Dating outcome after a scan (T-M10-18, D-169) ──────────────
+export {
+  type DatingResultKey,
+  datingResultKey,
+  type PregnancyDating,
+  pregnancyDatingSchema,
+} from './model/dating-result';
+export { DatingResultLine } from './ui/DatingResultLine';
