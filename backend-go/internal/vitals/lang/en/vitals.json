@@ -7,7 +7,9 @@
         "saved": "Saved",
         "updated": "Updated",
         "deleted": "Deleted",
-        "plan_saved": "Plan saved"
+        "plan_saved": "Plan saved",
+        "targets_saved": "Your glucose targets are saved",
+        "targets_cleared": "Your glucose targets are back to the defaults"
     },
     "validation": {
         "future": "The measurement time cannot be in the future.",
@@ -18,7 +20,10 @@
         "slot_mismatch": "This time slot is not valid for this measurement.",
         "duplicate_slot": "Each time slot can appear only once in the plan.",
         "range_too_long": "The date range can be at most 366 days.",
-        "to_before_from": "The end date must be after the start date."
+        "to_before_from": "The end date must be after the start date.",
+        "duplicate_target": "Each measurement time can have only one target.",
+        "target_bound_required": "Enter at least one of the two target numbers.",
+        "target_low_lt_high": "The lower target must be below the upper target."
     },
     "attributes": {
         "type": "type",
@@ -38,7 +43,12 @@
         "range": "range",
         "filter": "filter",
         "from": "from",
-        "to": "to"
+        "to": "to",
+        "items.*.context": "measurement time",
+        "items.*.low_mgdl": "lower target",
+        "items.*.high_mgdl": "upper target",
+        "items.*.set_by": "set by",
+        "items.*.note": "note"
     },
     "labels": {
         "type": {
@@ -63,8 +73,8 @@
         "bp_crisis": {
             "level": "urgent",
             "title": "Your blood pressure is in the crisis range",
-            "what_we_saw": "You logged {value}; a reading above 180/120 counts as an emergency.",
-            "advice": "Sit quietly for 5 minutes and measure again. If it is still above 180/120, or you have a severe headache, chest pain, shortness of breath, blurred vision, weakness or numbness on one side or trouble speaking, do not wait.",
+            "what_we_saw": "You logged {value}; a reading above {systolic}/{diastolic} counts as an emergency.",
+            "advice": "Sit quietly for 5 minutes and measure again. If it is still above {systolic}/{diastolic}, or you have a severe headache, chest pain, shortness of breath, blurred vision, weakness or numbness on one side or trouble speaking, do not wait.",
             "actions": [
                 {
                     "key": "call",
@@ -81,7 +91,7 @@
         "glucose_low": {
             "level": "urgent",
             "title": "Your blood sugar is very low",
-            "what_we_saw": "You logged {value}; below 54 mg/dL (3.0 mmol/L) counts as severe low blood sugar.",
+            "what_we_saw": "You logged {value}; below {mgdl} mg/dL ({mmol_l} mmol/L) counts as severe low blood sugar.",
             "advice": "Take 15 g of fast-acting sugar now (for example half a glass of juice or 3 to 4 sugar cubes) and measure again after 15 minutes. If you feel confused or drowsy, cannot eat or it does not go up, ask someone near you for help.",
             "actions": [
                 {

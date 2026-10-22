@@ -24,7 +24,9 @@ import { formatWeekday, formatWeekdayDayMonth, fromApiDate, today } from '@/shar
 import { Card, EmptyState, HubHeader, Icon, PrimaryButton, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
+import { readingsNeeded } from '../model/reports';
 import { PlanEditorSheet } from './PlanEditorSheet';
+import { TargetsCard } from './TargetsSheet';
 
 /**
  * `/vitals` — «علائم حیاتی» hub (nbl_/nbd_Vitals_Hub): the latest reading of
@@ -72,10 +74,11 @@ export function VitalsHubPage() {
       <div className="vt-hub">
         <div className="vt-latest">
           {(['bp', 'hr', 'glucose'] as const).map((type) => (
-            <LatestCard key={type} type={type} reading={h.latest[type]} />
+            <LatestCard key={type} type={type} reading={h.latest[type]} needed={readingsNeeded(h.reports[type], !!h.latest[type])} />
           ))}
         </div>
         <PlanCard week={h.plan} onEdit={() => setPlanOpen(true)} />
+        <TargetsCard />
         <RecentCard readings={h.recent} glucoseUnit={h.latest.glucose?.glucose?.unit} />
       </div>
     );
@@ -112,13 +115,16 @@ export function VitalsHubPage() {
   );
 }
 
-function LatestCard({ type, reading }: { type: VitalType; reading: VitalReading | null }) {
+function LatestCard({ type, reading, needed }: { type: VitalType; reading: VitalReading | null; needed: number | null }) {
   const t = useTranslations('vitals');
   const f = useVitalFormat();
   const rtl = useDirection() === 'rtl';
   const href = reading ? vitalReportPath(type) : vitalAddPath(type);
   const condition = reading ? f.conditions(reading)[0] : null;
   const verdict = reading?.classification ? f.classLabel(type, reading.classification.code) : null;
+  // SPEC v6: a random / bedtime value from the very-high cut-off carries the «if you have symptoms» advice.
+  const symptomNote =
+    reading?.classification?.code === 'very_high' && (reading.glucose?.context === 'random' || reading.glucose?.context === 'bedtime');
   const pill = type === 'glucose' && condition && verdict ? `${condition}${t('common.separator')}${verdict}` : type === 'hr' && condition ? condition : verdict;
   return (
     <Link href={href} className={clsx('nb-card vt-latest-card', `is-${type}`)} aria-label={reading ? t('hub.openReport', { type: t(`types.${type}`) }) : t('hub.addLabel', { type: t(`types.${type}`) })}>
@@ -145,6 +151,8 @@ function LatestCard({ type, reading }: { type: VitalType; reading: VitalReading 
             ) : null}
             <span className="vt-latest-when">{f.when(reading)}</span>
           </span>
+          {needed !== null ? <span className="vt-latest-when">{t('hub.notEnough', { n: f.num(needed) })}</span> : null}
+          {symptomNote ? <span className="vt-latest-when">{t('hub.veryHighNote')}</span> : null}
         </>
       ) : (
         <span className="vt-latest-empty">

@@ -49,7 +49,14 @@ const (
 var (
 	GlucoseContexts = []string{ContextFasting, ContextBeforeMeal, ContextAfterMeal, ContextBedtime, ContextRandom}
 	GlucoseUnits    = []string{UnitMgDl, UnitMmolL}
-	GlucoseMethods  = []string{"glucometer", "lab", "sensor"}
+	GlucoseMethods  = []string{MethodGlucometer, MethodLab, MethodSensor}
+)
+
+// Glucose methods.
+const (
+	MethodGlucometer = "glucometer"
+	MethodLab        = "lab"
+	MethodSensor     = "sensor"
 )
 
 // Heart-rate contexts.
@@ -106,6 +113,10 @@ type Reading struct {
 	UpdatedAt  time.Time
 	// Pregnant: the reading's day is in the user's active pregnancy (pregnancy.go) — the pregnancy table applies.
 	Pregnant bool
+	// Diabetic: the user's life profile lists diabetes — glucose readings use the target classes (targets.go) with
+	// Targets, the user's rows.
+	Diabetic bool
+	Targets  Targets
 }
 
 // Timed reports whether the reading has a time of day (log readings have none).
@@ -124,7 +135,12 @@ func (r Reading) Class() string {
 		if r.Pregnant {
 			return t.pregnancyGlucose(r.MgDl, r.Context)
 		}
-		return t.ClassifyGlucose(r.MgDl, r.Context)
+		if r.Diabetic {
+			if c, ok := t.classifyDiabetic(r.MgDl, r.Context, r.Targets); ok {
+				return c
+			}
+		}
+		return t.ClassifyGlucoseReading(r.MgDl, r.Context, r.Method)
 	case TypeHR:
 		return t.ClassifyHR(r.Pulse, r.Context)
 	}

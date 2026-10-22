@@ -1734,3 +1734,31 @@ Nothing needed fixing.
   - The i18n bundle goldens (`TestBundle_MatchesLaravelGoldens`) are re-recorded together with T-M10-19's commit (both changed seed files).
   - `ApplyScanRule` always compares LMP vs scan when an LMP exists, even if the current basis is manual.
   - The cycle correction moves only the EDD, not the GA.
+
+## T-M10-19 — Vitals: glucose contexts, diabetic targets, report minimums, copy placeholders (D-170)
+- `vitals/thresholds.go`:
+  - new classes `discuss`, `below_target`, `in_target`, `above_target`;
+  - `glucose.contexts` and `glucose.diabetic` are read from the registry version of the reading's date and are part of the version fingerprint;
+  - `ClassifyGlucoseReading` for the spec rule (H-09, default 0 = today);
+  - lab-method post-meal readings keep the 140/200 bands;
+  - order: hypo always wins, then pregnancy (unchanged, T-M9-05), then diabetic target, then the spec rule.
+- `vitals/targets.go` + `GET/PUT/DELETE /api/v1/vitals/targets`:
+  - owner only; 422 on bad values; bounds 50–300; `set_by` doctor|user;
+  - PUT replaces the whole set, DELETE clears it;
+  - diabetes comes from `chronic_illnesses`; non-diabetic users never get target classes.
+- Reports: stats only with ≥ 2 readings on ≥ 2 days. Otherwise `status: not_enough_data` + `readings_needed`, and the stats are null (the series stays).
+- Copy: `{systolic}/{diastolic}/{mgdl}/{mmol_l}` placeholders in the lang files and the translation seed, filled from the registry version of the reading's date.
+- Frontend: not-enough-data state on the hub and report; a «هدف‌های قندی که پزشکت تعیین کرده» card and sheet for diabetic users; classes and bands from the API.
+- Main session:
+  - applied the OpenAPI diff;
+  - left the new report/hub fields out of `required` until the vitals goldens are re-recorded (marked `T-M10-19b`);
+  - re-recorded the i18n bundle goldens (covers T-M10-18's pregnancy-v2 seed change too).
+- Verify: vitals unit + int ok; `internal/http` OpenAPI tests ok; contract vitals and public 39 passed, 0 failed; frontend 1952 tests; copy:check clean.
+- Open → **T-M10-19b**:
+  - the `message_contents` `vitals_alert` seed rows still hold the numbers (needs a data migration, and possibly safety-content approval);
+  - the add-form preview ignores `method` and targets;
+  - no contract cases yet for `/vitals/targets`;
+  - golden re-record, then `required`.
+- Interpretations to review:
+  - the fasting/pre-meal/bedtime upper bound is inclusive, post-meal `< 180`;
+  - bedtime has a target only when the user set one (no fallback to fasting).

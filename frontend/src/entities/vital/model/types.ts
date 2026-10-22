@@ -111,12 +111,23 @@ export interface PlanWeek {
   items: readonly PlanWeekItem[];
 }
 
+/** Whether a report has enough data (SPEC v6: ≥ 2 readings on ≥ 2 different days). */
+export type ReportStatus = 'ok' | 'not_enough_data';
+
+/** The hub's view of each type's default report. */
+export interface ReportState {
+  range: ReportRange;
+  status: ReportStatus;
+  readingsNeeded: number;
+}
+
 export interface VitalsHub {
   date: string;
   latest: Record<VitalType, VitalReading | null>;
   plan: PlanWeek;
   recent: readonly VitalReading[];
   remindersEnabled: boolean;
+  reports: Record<VitalType, ReportState | null>;
 }
 
 export interface PlanItem {
@@ -175,6 +186,9 @@ export interface HrAverage {
 
 interface ReportBase<A> {
   range: { key: ReportRange; from: string; to: string; days: number };
+  /** `not_enough_data`: average, min / max, distribution and time in range are null on the server. */
+  status: ReportStatus;
+  readingsNeeded: number;
   readings: number;
   average: A | null;
   min: VitalReading | null;
@@ -199,7 +213,8 @@ export interface GlucoseReport extends ReportBase<GlucoseAverage> {
     readings: number;
     average: GlucoseAverage | null;
     aboveTarget: number;
-    target: { min: number; max: number };
+    /** `max` null = open (a doctor's target without an upper bound). */
+    target: { min: number; max: number | null };
   }>;
   series: ReadonlyArray<{
     date: string;
@@ -234,6 +249,9 @@ export interface VitalThresholds {
     urgentBelow: number;
     mmolFactor: number;
     contexts: Record<GlucoseContext, { targetMin: number; targetMax: number; veryHighFrom: number }>;
+    /** glucose.contexts.spec = 1: glucometer post-meal in range / discuss, random & bedtime only very_high (≥ 200). */
+    contextsSpec: boolean;
+    diabetic: { fastingLo: number; fastingHi: number; postMealMax: number };
   };
   hr: { min: number; max: number; classifiedContexts: readonly string[] };
 }
@@ -260,3 +278,36 @@ export type ReadingInput =
       note: string | null;
     }
   | { type: 'hr'; bpm: number; context: HrContext; measuredAt: string | null; note: string | null };
+
+/** Target contexts of `vital_targets` (pre_meal = before a meal, post_meal = after a meal). */
+export const TARGET_CONTEXTS = ['fasting', 'pre_meal', 'post_meal', 'bedtime'] as const;
+export type TargetContext = (typeof TARGET_CONTEXTS)[number];
+export type TargetSetBy = 'doctor' | 'user';
+
+/** One diabetic glucose target (mg/dL; null = open). */
+export interface GlucoseTarget {
+  context: TargetContext;
+  lowMgDl: number | null;
+  highMgDl: number | null;
+  /** Fasting / pre-meal / bedtime ranges include the upper number; the post-meal ceiling does not («زیر ۱۸۰»). */
+  highInclusive: boolean;
+  setBy: TargetSetBy;
+  note: string | null;
+}
+
+/** `GET /vitals/targets` — target classes apply only when `diabetic`. */
+export interface GlucoseTargets {
+  diabetic: boolean;
+  bounds: { min: number; max: number };
+  defaults: Record<TargetContext, { lowMgDl: number | null; highMgDl: number | null; highInclusive: boolean } | null>;
+  items: readonly GlucoseTarget[];
+}
+
+/** One row of the targets form (PUT /vitals/targets). */
+export interface GlucoseTargetInput {
+  context: TargetContext;
+  lowMgDl: number | null;
+  highMgDl: number | null;
+  setBy: TargetSetBy;
+  note: string | null;
+}

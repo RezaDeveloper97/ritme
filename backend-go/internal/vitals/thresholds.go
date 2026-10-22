@@ -1,6 +1,9 @@
 package vitals
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
@@ -80,6 +83,13 @@ const (
 	ClassInRange   = "in_range"
 	ClassHigh      = "high"
 	ClassVeryHigh  = "very_high"
+
+	// SPEC v6 §3.2 (T-M10-19): a glucometer post-meal reading at or over the post-meal ceiling under
+	// glucose.contexts.spec = 1 («با پزشکت درباره‌اش صحبت کن»), and the diabetic target classes (targets.go).
+	ClassDiscuss     = "discuss"
+	ClassBelowTarget = "below_target"
+	ClassInTarget    = "in_target"
+	ClassAboveTarget = "above_target"
 )
 
 // Tones colour a class on the clients: ok · watch · high · urgent.
@@ -95,12 +105,21 @@ var (
 	BPClasses      = []string{ClassNormal, ClassElevated, ClassStage1, ClassStage2, ClassCrisis}
 	GlucoseClasses = []string{ClassUrgentLow, ClassLow, ClassInRange, ClassHigh, ClassVeryHigh}
 	HRClasses      = []string{ClassLow, ClassNormal, ClassHigh}
+
+	// GlucoseTargetClasses are the diabetic target classes (only a user with diabetes gets them).
+	GlucoseTargetClasses = []string{ClassBelowTarget, ClassInTarget, ClassAboveTarget}
+
+	// glucoseClassOrder is the distribution order of every glucose class; a report lists GlucoseClasses plus the
+	// others that occur.
+	glucoseClassOrder = []string{ClassUrgentLow, ClassLow, ClassBelowTarget, ClassInRange, ClassInTarget, ClassHigh,
+		ClassDiscuss, ClassAboveTarget, ClassVeryHigh}
 )
 
 var tones = map[string]map[string]string{
 	TypeBP: {ClassNormal: ToneOK, ClassElevated: ToneWatch, ClassStage1: ToneHigh, ClassStage2: ToneHigh, ClassCrisis: ToneUrgent},
 	TypeGlucose: {ClassUrgentLow: ToneUrgent, ClassLow: ToneHigh, ClassInRange: ToneOK, ClassHigh: ToneWatch,
-		ClassVeryHigh: ToneHigh},
+		ClassVeryHigh: ToneHigh, ClassDiscuss: ToneWatch, ClassBelowTarget: ToneWatch, ClassInTarget: ToneOK,
+		ClassAboveTarget: ToneWatch},
 	TypeHR: {ClassLow: ToneWatch, ClassNormal: ToneOK, ClassHigh: ToneWatch},
 }
 
@@ -117,13 +136,25 @@ type Thresholds struct {
 	GlucoseUrgentBelow, GlucoseLowBelow float64
 	GlucoseBands                        map[string]GlucoseBand
 	HRRestingMin, HRRestingMax          float64
+	// GlucoseContextsSpec is glucose.contexts.spec = 1 (H-09, advisor-pending): the SPEC v6 §3.2 post-meal / random /
+	// bedtime rule (ClassifyGlucoseReading). 0 keeps the 140 / 200 bands of every non-fasting context.
+	GlucoseContextsSpec bool
+	// Diabetic is glucose.diabetic (targets.go).
+	Diabetic DiabeticDefaults
+}
+
+// DiabeticDefaults are the registry's diabetic targets (mg/dL): fasting / pre-meal FastingLo ≤ v ≤ FastingHi,
+// post-meal v < PostMealMax.
+type DiabeticDefaults struct {
+	FastingLo, FastingHi, PostMealMax float64
 }
 
 // thresholdKeys are the clinical config keys of the vitals table.
 var thresholdKeys = []string{
 	clinicalconfig.KeyBPElevated, clinicalconfig.KeyBPStage1, clinicalconfig.KeyBPStage2, clinicalconfig.KeyBPCrisis,
 	clinicalconfig.KeyGlucoseUrgentLow, clinicalconfig.KeyGlucoseLow, clinicalconfig.KeyGlucoseFasting,
-	clinicalconfig.KeyGlucosePostMeal, clinicalconfig.KeyHRResting,
+	clinicalconfig.KeyGlucosePostMeal, clinicalconfig.KeyHRResting, clinicalconfig.KeyGlucoseContexts,
+	clinicalconfig.KeyGlucoseDiabetic,
 }
 
 // ThresholdsOn reads the bands valid on d from the clinical config (a zero d = version 1, the constants above).
@@ -149,8 +180,14 @@ func ThresholdsOn(d civildate.Date) Thresholds {
 			ContextFasting: fasting, ContextBeforeMeal: fasting,
 			ContextAfterMeal: post, ContextBedtime: post, ContextRandom: post,
 		},
-		HRRestingMin: n(clinicalconfig.KeyHRResting, "min"),
-		HRRestingMax: n(clinicalconfig.KeyHRResting, "max"),
+		HRRestingMin:        n(clinicalconfig.KeyHRResting, "min"),
+		HRRestingMax:        n(clinicalconfig.KeyHRResting, "max"),
+		GlucoseContextsSpec: n(clinicalconfig.KeyGlucoseContexts, "spec") >= 1,
+		Diabetic: DiabeticDefaults{
+			FastingLo:   n(clinicalconfig.KeyGlucoseDiabetic, "fasting_lo"),
+			FastingHi:   n(clinicalconfig.KeyGlucoseDiabetic, "fasting_hi"),
+			PostMealMax: n(clinicalconfig.KeyGlucoseDiabetic, "post_meal_max"),
+		},
 	}
 }
 
@@ -194,6 +231,55 @@ func (t Thresholds) ClassifyGlucose(mgdl float64, context string) string {
 		return ClassHigh
 	}
 	return ClassVeryHigh
+}
+
+// ClassifyGlucoseReading is the class of a reading outside pregnancy and outside a diabetic target. With
+// glucose.contexts.spec = 0 it is ClassifyGlucose. With 1 (SPEC v6 §3.2): fasting / before a meal unchanged; a
+// post-meal reading by glucometer (or sensor / no method) is in_range under the post-meal ceiling (140) and discuss
+// from it — the 200 class is a diagnostic (lab) cut-off, so a lab post-meal value keeps the 140 / 200 bands; random
+// and bedtime readings have no class under the very-high cut-off (200) and very_high from it. Hypoglycaemia wins.
+func (t Thresholds) ClassifyGlucoseReading(mgdl float64, context, method string) string {
+	if !t.GlucoseContextsSpec || context == ContextFasting || context == ContextBeforeMeal ||
+		(context == ContextAfterMeal && method == MethodLab) {
+		return t.ClassifyGlucose(mgdl, context)
+	}
+	b, ok := t.GlucoseBands[context]
+	if !ok {
+		b = t.GlucoseBands[ContextRandom]
+	}
+	switch {
+	case mgdl < t.GlucoseUrgentBelow:
+		return ClassUrgentLow
+	case mgdl < t.GlucoseLowBelow:
+		return ClassLow
+	case context == ContextAfterMeal && mgdl < b.TargetMax:
+		return ClassInRange
+	case context == ContextAfterMeal:
+		return ClassDiscuss
+	case mgdl < b.VeryHighFrom:
+		return ""
+	}
+	return ClassVeryHigh
+}
+
+// CopyParams are the numbers the vitals texts name, from the version valid on t's day (lang and message_contents
+// vitals_alert placeholders {systolic}, {diastolic}, {mgdl}, {mmol_l}), in the locale's digits.
+func (t Thresholds) CopyParams(locale string) map[string]string {
+	g := func(v float64) string { return Digits(strconv.FormatFloat(v, 'f', -1, 64), locale) }
+	return map[string]string{
+		"{systolic}":  g(t.BPCrisisSystolic),
+		"{diastolic}": g(t.BPCrisisDiastolic),
+		"{mgdl}":      g(t.GlucoseUrgentBelow),
+		"{mmol_l}":    Digits(strconv.FormatFloat(MmolL(t.GlucoseUrgentBelow), 'f', 1, 64), locale),
+	}
+}
+
+// FillCopy replaces the threshold placeholders of s with p.
+func FillCopy(s string, p map[string]string) string {
+	for k, v := range p {
+		s = strings.ReplaceAll(s, k, v)
+	}
+	return s
 }
 
 // HRClassified reports whether a heart-rate context is compared with the resting range.

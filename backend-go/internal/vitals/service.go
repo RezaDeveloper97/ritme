@@ -38,6 +38,7 @@ type Service struct {
 	db     *sql.DB
 	q      *store.Queries
 	prefs  notifications.Getter
+	life   lifeProfiles      // chronic_illnesses (diabetic targets, T-M10-19)
 	preg   pregstore.Querier // the pregnancy profile (vitals in pregnancy, T-M9-05)
 	alerts PregnancyEngine
 	now    func() time.Time // today for the pregnancy range
@@ -45,8 +46,9 @@ type Service struct {
 
 // NewService wires the service on db (with the pregnancy alert engine on the same db).
 func NewService(db *sql.DB) *Service {
-	pq := pregstore.New(db)
-	return &Service{db: db, q: store.New(db), prefs: profilestore.New(db), preg: pq, alerts: pregnancyalerts.New(pq), now: time.Now}
+	pq, profiles := pregstore.New(db), profilestore.New(db)
+	return &Service{db: db, q: store.New(db), prefs: profiles, life: profiles, preg: pq, alerts: pregnancyalerts.New(pq),
+		now: time.Now}
 }
 
 // WithClock sets the clock that decides "today" for the pregnancy range (handlers pass the request clock).
@@ -119,7 +121,7 @@ func (s *Service) Get(ctx context.Context, userID, id uint64) (Reading, error) {
 		return Reading{}, fmt.Errorf("vitals: get: %w", err)
 	}
 	r := []Reading{FromRow(row)}
-	if err := s.markPregnancy(ctx, userID, r); err != nil {
+	if err := s.mark(ctx, userID, r); err != nil {
 		return Reading{}, err
 	}
 	return r[0], nil
@@ -159,7 +161,7 @@ func (s *Service) Timed(ctx context.Context, userID uint64, typ string, from, to
 	if err != nil {
 		return nil, err
 	}
-	if err := s.markPregnancy(ctx, userID, out); err != nil {
+	if err := s.mark(ctx, userID, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -191,7 +193,7 @@ func (s *Service) Merged(ctx context.Context, userID uint64, typ string, from, t
 		return nil, fmt.Errorf("vitals: log measurements: %w", err)
 	}
 	out := OfType(Merge(timed, rows), typ)
-	if err := s.markPregnancy(ctx, userID, out); err != nil {
+	if err := s.mark(ctx, userID, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -221,12 +223,20 @@ func (s *Service) Latest(ctx context.Context, userID uint64, today civildate.Dat
 			return nil, fmt.Errorf("vitals: latest: %w", err)
 		}
 		r := []Reading{FromRow(row)}
-		if err := s.markPregnancy(ctx, userID, r); err != nil {
+		if err := s.mark(ctx, userID, r); err != nil {
 			return nil, err
 		}
 		out[typ] = &r[0]
 	}
 	return out, nil
+}
+
+// mark sets the user's context on rs: the pregnancy table (T-M9-05) and the diabetic targets (T-M10-19).
+func (s *Service) mark(ctx context.Context, userID uint64, rs []Reading) error {
+	if err := s.markPregnancy(ctx, userID, rs); err != nil {
+		return err
+	}
+	return s.markDiabetes(ctx, userID, rs)
 }
 
 // Plan is the user's plan.

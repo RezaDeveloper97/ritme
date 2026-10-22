@@ -19,6 +19,10 @@ import {
   type HrReport,
   type PlanItem,
   type PlanWeek,
+  type ReportState,
+  TARGET_CONTEXTS,
+  type GlucoseTargets,
+  type TargetContext,
   type SavedReading,
   type VitalAlert,
   type VitalClass,
@@ -157,6 +161,14 @@ const weekSchema = z
   })
   .transform((w): PlanWeek => w);
 
+const statusSchema = z.enum(['ok', 'not_enough_data']).catch('ok');
+
+const reportStateSchema = z
+  .object({ range: z.enum(REPORT_RANGES), status: statusSchema, readings_needed: int0 })
+  .nullable()
+  .catch(null)
+  .transform((s): ReportState | null => (s ? { range: s.range, status: s.status, readingsNeeded: s.readings_needed } : null));
+
 const notificationsSchema = z.object({ enabled: z.boolean().catch(false) }).catch({ enabled: false });
 
 export const hubSchema = z
@@ -168,6 +180,10 @@ export const hubSchema = z
     plan: weekSchema,
     recent: readingList,
     notifications: notificationsSchema,
+    reports: z
+      .object({ bp: reportStateSchema, hr: reportStateSchema, glucose: reportStateSchema })
+      .partial()
+      .catch({}),
   })
   .transform(
     (h): VitalsHub => ({
@@ -176,6 +192,7 @@ export const hubSchema = z
       plan: h.plan,
       recent: h.recent,
       remindersEnabled: h.notifications.enabled,
+      reports: { bp: h.reports.bp ?? null, hr: h.reports.hr ?? null, glucose: h.reports.glucose ?? null },
     }),
   );
 
@@ -279,6 +296,8 @@ function mvn<T extends z.ZodTypeAny>(avg: T) {
 
 const base = {
   range: rangeSchema,
+  status: statusSchema,
+  readings_needed: int0,
   readings: int0,
   min: nullableReading,
   max: nullableReading,
@@ -304,6 +323,8 @@ const bpReport = z
     (r): BpReport => ({
       type: 'bp',
       range: r.range,
+      status: r.status,
+      readingsNeeded: r.readings_needed,
       readings: r.readings,
       average: r.average,
       min: r.min,
@@ -331,7 +352,7 @@ const glucoseReport = z
           readings: int0,
           average: glucoseAvg,
           above_target: int0,
-          target: z.object({ min: z.number(), max: z.number() }),
+          target: z.object({ min: z.number(), max: z.number().nullable().catch(null) }),
         }),
       )
       .catch([]),
@@ -343,6 +364,8 @@ const glucoseReport = z
     (r): GlucoseReport => ({
       type: 'glucose',
       range: r.range,
+      status: r.status,
+      readingsNeeded: r.readings_needed,
       readings: r.readings,
       average: r.average,
       min: r.min,
@@ -379,6 +402,8 @@ const hrReport = z
     (r): HrReport => ({
       type: 'hr',
       range: r.range,
+      status: r.status,
+      readingsNeeded: r.readings_needed,
       readings: r.readings,
       average: r.average,
       min: r.min,
@@ -420,6 +445,10 @@ export const thresholdsSchema = z
       urgent_below: z.number(),
       mmol_factor: z.number(),
       contexts: z.object({ fasting: band, before_meal: band, after_meal: band, bedtime: band, random: band }),
+      contexts_spec: z.number().catch(0),
+      diabetic: z
+        .object({ fasting_lo: z.number(), fasting_hi: z.number(), post_meal_max: z.number() })
+        .catch({ fasting_lo: 80, fasting_hi: 130, post_meal_max: 180 }),
     }),
     heart_rate: z.object({
       resting: z.object({ min: z.number(), max: z.number() }),
@@ -448,6 +477,12 @@ export const thresholdsSchema = z
           bedtime: ctx(g.bedtime),
           random: ctx(g.random),
         },
+        contextsSpec: t.glucose.contexts_spec === 1,
+        diabetic: {
+          fastingLo: t.glucose.diabetic.fasting_lo,
+          fastingHi: t.glucose.diabetic.fasting_hi,
+          postMealMax: t.glucose.diabetic.post_meal_max,
+        },
       },
       hr: {
         min: t.heart_rate.resting.min,
@@ -456,3 +491,55 @@ export const thresholdsSchema = z
       },
     };
   });
+
+const targetNum = z.number().nullable().catch(null);
+const targetDefault = z
+  .object({ low_mgdl: targetNum, high_mgdl: targetNum, high_inclusive: z.boolean().catch(true) })
+  .nullable()
+  .catch(null)
+  .transform((d) => (d ? { lowMgDl: d.low_mgdl, highMgDl: d.high_mgdl, highInclusive: d.high_inclusive } : null));
+
+const targetItem = z.object({
+  context: z.enum(TARGET_CONTEXTS),
+  low_mgdl: targetNum,
+  high_mgdl: targetNum,
+  high_inclusive: z.boolean().catch(true),
+  set_by: z.enum(['doctor', 'user']).catch('user'),
+  note: z.string().nullable().catch(null),
+}).transform((i) => ({
+  context: i.context as TargetContext,
+  lowMgDl: i.low_mgdl,
+  highMgDl: i.high_mgdl,
+  highInclusive: i.high_inclusive,
+  setBy: i.set_by,
+  note: i.note,
+}));
+
+/** GET|PUT|DELETE /vitals/targets — the diabetic glucose targets (T-M10-19). */
+export const targetsSchema = z
+  .object({
+    diabetic: z.boolean().catch(false),
+    bounds: z.object({ min_mgdl: z.number(), max_mgdl: z.number() }).catch({ min_mgdl: 50, max_mgdl: 300 }),
+    defaults: z
+      .object({ fasting: targetDefault, pre_meal: targetDefault, post_meal: targetDefault, bedtime: targetDefault })
+      .partial()
+      .catch({}),
+    items: z.array(z.unknown()).catch([]),
+  })
+  .transform(
+    (t): GlucoseTargets => ({
+      diabetic: t.diabetic,
+      bounds: { min: t.bounds.min_mgdl, max: t.bounds.max_mgdl },
+      defaults: {
+        fasting: t.defaults.fasting ?? null,
+        pre_meal: t.defaults.pre_meal ?? null,
+        post_meal: t.defaults.post_meal ?? null,
+        bedtime: t.defaults.bedtime ?? null,
+      },
+      items: t.items.flatMap((raw) => {
+        const p = targetItem.safeParse(raw);
+        return p.success ? [p.data] : [];
+      }),
+    }),
+  );
+

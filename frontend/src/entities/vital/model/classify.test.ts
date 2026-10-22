@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { bpScalePosition, classifyBp, classifyGlucose, classifyHr, isUrgentBp, uiTone } from './classify';
+import { DEFAULT_THRESHOLDS, bpScalePosition, classifyBp, classifyGlucose, classifyHr, isUrgentBp, uiTone } from './classify';
 
 describe('client classification mirrors thresholds.go', () => {
   it('blood pressure (ACC/AHA 2017, the higher number decides)', () => {
@@ -15,13 +15,25 @@ describe('client classification mirrors thresholds.go', () => {
   });
 
   it('glucose (ADA 2025, half-open bands per context)', () => {
-    expect(classifyGlucose(53, 'fasting').code).toBe('urgent_low');
-    expect(classifyGlucose(69, 'fasting').code).toBe('low');
-    expect(classifyGlucose(99, 'fasting').code).toBe('in_range');
-    expect(classifyGlucose(100, 'fasting').code).toBe('high');
-    expect(classifyGlucose(126, 'fasting').code).toBe('very_high');
-    expect(classifyGlucose(139, 'after_meal').code).toBe('in_range');
-    expect(classifyGlucose(200, 'after_meal').code).toBe('very_high');
+    expect(classifyGlucose(53, 'fasting')?.code).toBe('urgent_low');
+    expect(classifyGlucose(69, 'fasting')?.code).toBe('low');
+    expect(classifyGlucose(99, 'fasting')?.code).toBe('in_range');
+    expect(classifyGlucose(100, 'fasting')?.code).toBe('high');
+    expect(classifyGlucose(126, 'fasting')?.code).toBe('very_high');
+    expect(classifyGlucose(139, 'after_meal')?.code).toBe('in_range');
+    expect(classifyGlucose(200, 'after_meal')?.code).toBe('very_high');
+  });
+
+  it('glucose with the SPEC v6 context rule (glucose.contexts.spec = 1)', () => {
+    const th = { ...DEFAULT_THRESHOLDS, glucose: { ...DEFAULT_THRESHOLDS.glucose, contextsSpec: true } };
+    expect(classifyGlucose(139, 'after_meal', th, 'glucometer')?.code).toBe('in_range');
+    expect(classifyGlucose(140, 'after_meal', th, 'glucometer')).toEqual({ code: 'discuss', tone: 'watch' });
+    expect(classifyGlucose(250, 'after_meal', th, null)?.code).toBe('discuss');
+    expect(classifyGlucose(250, 'after_meal', th, 'lab')?.code).toBe('very_high');
+    expect(classifyGlucose(199, 'random', th)).toBeNull();
+    expect(classifyGlucose(200, 'bedtime', th)?.code).toBe('very_high');
+    expect(classifyGlucose(60, 'random', th)?.code).toBe('low');
+    expect(classifyGlucose(100, 'fasting', th)?.code).toBe('high');
   });
 
   it('heart rate: resting range only for resting / after waking', () => {

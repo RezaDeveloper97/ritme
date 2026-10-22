@@ -11,8 +11,9 @@ import (
 )
 
 // Vitals (bloom B-N6-01, D-63), Go only: timed BP / glucose / heart-rate readings with classification, reports, the
-// weekly measurement plan and the urgent safety modal. All auth:api, localized by Accept-Language, writes per-user
-// throttled; every row is scoped by the user (a foreign id is a uniform 404). Readings are never logged.
+// weekly measurement plan, the diabetic glucose targets (T-M10-19) and the urgent safety modal. All auth:api,
+// localized by Accept-Language, writes per-user throttled; every row is scoped by the user (a foreign id is a uniform
+// 404, targets are only the caller's own). Readings are never logged.
 func init() {
 	Register("vitals", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
@@ -25,6 +26,9 @@ func init() {
 		r.Get(p+"/thresholds", locale, guard, h.Thresholds)
 		r.Get(p+"/plan", locale, guard, h.Plan)
 		r.Put(p+"/plan", locale, guard, writes, h.SavePlan)
+		r.Get(p+"/targets", locale, guard, h.Targets)
+		r.Put(p+"/targets", locale, guard, writes, h.SaveTargets)
+		r.Delete(p+"/targets", locale, guard, writes, h.ClearTargets)
 		r.Get(p+"/reports/:type", locale, guard, h.Report)
 		r.Get(p+"/readings", locale, guard, h.Readings)
 		r.Post(p+"/readings", locale, guard, writes, h.Store)

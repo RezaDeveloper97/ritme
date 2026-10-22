@@ -29,13 +29,25 @@ export const DEFAULT_THRESHOLDS: VitalThresholds = {
       bedtime: { targetMin: 70, targetMax: 140, veryHighFrom: 200 },
       random: { targetMin: 70, targetMax: 140, veryHighFrom: 200 },
     },
+    contextsSpec: false,
+    diabetic: { fastingLo: 80, fastingHi: 130, postMealMax: 180 },
   },
   hr: { min: 60, max: 100, classifiedContexts: ['resting', 'after_waking'] },
 };
 
 const TONES: Record<VitalType, Record<string, VitalTone>> = {
   bp: { normal: 'ok', elevated: 'watch', stage1: 'high', stage2: 'high', crisis: 'urgent' },
-  glucose: { urgent_low: 'urgent', low: 'high', in_range: 'ok', high: 'watch', very_high: 'high' },
+  glucose: {
+    urgent_low: 'urgent',
+    low: 'high',
+    in_range: 'ok',
+    high: 'watch',
+    very_high: 'high',
+    discuss: 'watch',
+    below_target: 'watch',
+    in_target: 'ok',
+    above_target: 'watch',
+  },
   hr: { low: 'watch', normal: 'ok', high: 'watch' },
 };
 
@@ -51,11 +63,24 @@ export function classifyBp(systolic: number, diastolic: number, th: VitalThresho
   return cls('bp', 'normal');
 }
 
-/** ADA class of a mg/dL value in a context (half-open bands). */
-export function classifyGlucose(mgdl: number, context: GlucoseContext, th: VitalThresholds = DEFAULT_THRESHOLDS): VitalClass {
+/**
+ * ADA class of a mg/dL value in a context (half-open bands). With the SPEC v6
+ * rule on (`contextsSpec`), a non-lab post-meal value is in range / discuss and
+ * random / bedtime values have no class under the very-high cut-off (null).
+ * Diabetic target classes are the server's (they need the user's targets).
+ */
+export function classifyGlucose(
+  mgdl: number,
+  context: GlucoseContext,
+  th: VitalThresholds = DEFAULT_THRESHOLDS,
+  method: string | null = null,
+): VitalClass | null {
   const band = th.glucose.contexts[context] ?? th.glucose.contexts.random;
   if (mgdl < th.glucose.urgentBelow) return cls('glucose', 'urgent_low');
   if (mgdl < band.targetMin) return cls('glucose', 'low');
+  const spec = th.glucose.contextsSpec && context !== 'fasting' && context !== 'before_meal' && !(context === 'after_meal' && method === 'lab');
+  if (spec && context === 'after_meal') return cls('glucose', mgdl < band.targetMax ? 'in_range' : 'discuss');
+  if (spec) return mgdl < band.veryHighFrom ? null : cls('glucose', 'very_high');
   if (mgdl < band.targetMax) return cls('glucose', 'in_range');
   if (mgdl < band.veryHighFrom) return cls('glucose', 'high');
   return cls('glucose', 'very_high');

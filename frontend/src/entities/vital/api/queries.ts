@@ -8,6 +8,8 @@ import { isAuthenticated } from '@/shared/session';
 import { DEFAULT_THRESHOLDS } from '../model/classify';
 import type {
   GlucoseFilter,
+  GlucoseTargetInput,
+  GlucoseTargets,
   PlanItem,
   ReadingInput,
   ReportRange,
@@ -20,7 +22,7 @@ import type {
   VitalType,
 } from '../model/types';
 import { vitalsKeys } from './keys';
-import { hubSchema, parseReport, planSchema, readingsSchema, savedSchema, thresholdsSchema } from './schema';
+import { hubSchema, parseReport, planSchema, readingsSchema, savedSchema, targetsSchema, thresholdsSchema } from './schema';
 
 /*
  * `/api/v1/vitals*` (B-N6-01), Go only. Health data (CLAUDE.md §11): never log
@@ -118,6 +120,49 @@ export function useSavePlan() {
     onSuccess: (plan) => {
       queryClient.setQueryData(vitalsKeys.plan(), plan);
       void queryClient.invalidateQueries({ queryKey: vitalsKeys.hub() });
+    },
+  });
+}
+
+export async function fetchTargets(): Promise<GlucoseTargets> {
+  const { data } = await apiClient.get<ApiEnvelope<unknown>>('/vitals/targets');
+  return targetsSchema.parse(data.data);
+}
+
+/** GET /vitals/targets — the diabetic glucose targets (owner only; classes apply only when `diabetic`). */
+export function useGlucoseTargets(enabled = true) {
+  return useQuery({ queryKey: vitalsKeys.targets(), queryFn: fetchTargets, enabled: enabled && isAuthenticated(), staleTime: 60_000, retry: 1 });
+}
+
+/** Body of PUT /vitals/targets (empty bounds are left out; a row with neither bound is not sent). */
+export function toTargetsBody(items: readonly GlucoseTargetInput[]): Record<string, unknown> {
+  return {
+    items: items
+      .filter((i) => i.lowMgDl !== null || i.highMgDl !== null)
+      .map((i) => ({
+        context: i.context,
+        ...(i.lowMgDl !== null ? { low_mgdl: i.lowMgDl } : {}),
+        ...(i.highMgDl !== null ? { high_mgdl: i.highMgDl } : {}),
+        set_by: i.setBy,
+        ...(i.note ? { note: i.note } : {}),
+      })),
+  };
+}
+
+/** PUT /vitals/targets replaces the targets; `null` = DELETE (back to the defaults). Readings re-classify. */
+export function useSaveTargets() {
+  const queryClient = useQueryClient();
+  return useMutation<GlucoseTargets, unknown, readonly GlucoseTargetInput[] | null>({
+    mutationFn: async (items) => {
+      const { data } =
+        items === null
+          ? await apiClient.delete<ApiEnvelope<unknown>>('/vitals/targets')
+          : await apiClient.put<ApiEnvelope<unknown>>('/vitals/targets', toTargetsBody(items));
+      return targetsSchema.parse(data.data);
+    },
+    onSuccess: (targets) => {
+      queryClient.setQueryData(vitalsKeys.targets(), targets);
+      void queryClient.invalidateQueries({ queryKey: vitalsKeys.all, predicate: (q) => q.queryKey[1] !== 'targets' });
     },
   });
 }

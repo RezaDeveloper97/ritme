@@ -63,6 +63,51 @@ func percent(n, total int) int {
 	return whole(100 * float64(n) / float64(total))
 }
 
+// Report minimums (SPEC v6 §3.2, §4.1; T-M10-19): the period's means (overall, per context, morning vs night), the
+// min–max, the class distribution and the time in range need at least MinReportReadings readings on MinReportDays
+// different days of the period; otherwise they are null and the report says not_enough_data with readings_needed. The
+// daily series stays (one point per day is not a statistic).
+const (
+	MinReportReadings = 2
+	MinReportDays     = 2
+
+	ReportStatusOK        = "ok"
+	ReportStatusNotEnough = "not_enough_data"
+)
+
+// ReadingsNeeded is how many more readings rs needs to reach the minimums (0 = enough). A missing day counts as a
+// reading: one reading on each of two days is the least that is enough.
+func ReadingsNeeded(rs []Reading) int {
+	days := map[civildate.Date]bool{}
+	for _, r := range rs {
+		days[r.Date] = true
+	}
+	return max(MinReportReadings-len(rs), MinReportDays-len(days), 0)
+}
+
+// enough reports whether rs meets the report minimums.
+func enough(rs []Reading) bool { return ReadingsNeeded(rs) == 0 }
+
+// glucoseClassesOf are the classes a glucose distribution lists: GlucoseClasses, plus the SPEC v6 / target classes
+// that occur in rs, in glucoseClassOrder.
+func glucoseClassesOf(rs []Reading) []string {
+	seen := map[string]bool{}
+	for _, c := range GlucoseClasses {
+		seen[c] = true
+	}
+	present := map[string]bool{}
+	for _, r := range rs {
+		present[r.Class()] = true
+	}
+	out := make([]string, 0, len(glucoseClassOrder))
+	for _, c := range glucoseClassOrder {
+		if seen[c] || present[c] {
+			out = append(out, c)
+		}
+	}
+	return out
+}
+
 // distribution counts classes in order: [{code, tone, count, percent}] over the classified readings.
 func distribution(typ string, classes []string, rs []Reading) []any {
 	counts := map[string]int{}
@@ -178,7 +223,7 @@ func morningVsNight(typ string, rs []Reading) *jsonx.OrderedMap {
 			morning = append(morning, r)
 		case PeriodNight:
 			night = append(night, r)
-			if c := r.Class(); c != "" && c != ClassNormal && c != ClassInRange {
+			if c := r.Class(); c != "" && c != ClassNormal && c != ClassInRange && c != ClassInTarget {
 				above++
 			}
 		}
@@ -259,8 +304,23 @@ func Report(typ string, rs []Reading, rng Range, filter string) *jsonx.OrderedMa
 		in = append(in, r)
 	}
 	SortNewestFirst(in)
+	ok := enough(in)
 	lo, hi := extremes(in)
-	out := jsonx.Obj("type", typ, "range", rng.JSON())
+	if !ok {
+		lo, hi = nil, nil
+	}
+	status := ReportStatusOK
+	if !ok {
+		status = ReportStatusNotEnough
+	}
+	// stat is v when the period meets the minimums, else null.
+	stat := func(v any) any {
+		if !ok {
+			return nil
+		}
+		return v
+	}
+	out := jsonx.Obj("type", typ, "range", rng.JSON(), "status", status, "readings_needed", ReadingsNeeded(in))
 	switch typ {
 	case TypeBP:
 		normal := 0
@@ -276,34 +336,37 @@ func Report(typ string, rs []Reading, rng Range, filter string) *jsonx.OrderedMa
 			}
 		}
 		var pulse any
-		if len(pulses) > 0 {
+		if ok && len(pulses) > 0 {
 			pulse = jsonx.Obj("bpm", whole(avg(pulses)), "readings", len(pulses))
 		}
 		out.Set("unit", "mmhg")
 		out.Set("readings", len(in))
-		out.Set("average", bpAverage(typ, in))
+		out.Set("average", stat(bpAverage(typ, in)))
 		out.Set("pulse", pulse)
 		out.Set("min", readingOrNull(lo))
 		out.Set("max", readingOrNull(hi))
-		out.Set("distribution", distribution(typ, BPClasses, in))
-		out.Set("morning_vs_night", morningVsNight(typ, in))
-		out.Set("time_in_range", jsonx.Obj("in_range", normal, "readings", len(in), "percent", percent(normal, len(in))))
+		out.Set("distribution", stat(distribution(typ, BPClasses, in)))
+		out.Set("morning_vs_night", stat(morningVsNight(typ, in)))
+		out.Set("time_in_range", stat(jsonx.Obj("in_range", normal, "readings", len(in), "percent", percent(normal, len(in)))))
 		out.Set("target", jsonx.Obj("systolic_max", th.BPElevatedSystolic, "diastolic_max", th.BPStage1Diastolic))
 		out.Set("series", series(typ, in, false))
 	case TypeGlucose:
 		if filter == "" {
 			filter = GlucoseFilterAll
 		}
-		inRange, below, above := 0, 0, 0
+		inRange, below, above, classified := 0, 0, 0, 0
 		for _, r := range in {
 			switch r.Class() {
-			case ClassInRange:
+			case "": // SPEC v6 random / bedtime under the very-high cut-off: no class
+				continue
+			case ClassInRange, ClassInTarget:
 				inRange++
-			case ClassLow, ClassUrgentLow:
+			case ClassLow, ClassUrgentLow, ClassBelowTarget:
 				below++
 			default:
 				above++
 			}
+			classified++
 		}
 		byContext := []any{}
 		for _, c := range GlucoseContexts {
@@ -312,7 +375,7 @@ func Report(typ string, rs []Reading, rng Range, filter string) *jsonx.OrderedMa
 			for _, r := range in {
 				if r.Context == c {
 					cs = append(cs, r)
-					if k := r.Class(); k == ClassHigh || k == ClassVeryHigh {
+					if k := r.Class(); k == ClassHigh || k == ClassVeryHigh || k == ClassDiscuss || k == ClassAboveTarget {
 						ab++
 					}
 				}
@@ -320,21 +383,20 @@ func Report(typ string, rs []Reading, rng Range, filter string) *jsonx.OrderedMa
 			if len(cs) == 0 {
 				continue
 			}
-			b := th.GlucoseBands[c]
-			byContext = append(byContext, jsonx.Obj("context", c, "readings", len(cs), "average", glucoseAverage(cs),
-				"above_target", ab, "target", jsonx.Obj("min", b.TargetMin, "max", b.TargetMax)))
+			byContext = append(byContext, jsonx.Obj("context", c, "readings", len(cs), "average", stat(average(typ, cs)),
+				"above_target", ab, "target", glucoseTargetJSON(th, c, cs[0])))
 		}
 		out.Set("filter", filter)
 		out.Set("unit", UnitMgDl)
 		out.Set("readings", len(in))
-		out.Set("average", glucoseAverage(in))
+		out.Set("average", stat(glucoseAverage(in)))
 		out.Set("by_context", byContext)
 		out.Set("min", readingOrNull(lo))
 		out.Set("max", readingOrNull(hi))
-		out.Set("distribution", distribution(typ, GlucoseClasses, in))
-		out.Set("morning_vs_night", morningVsNight(typ, in))
-		out.Set("time_in_range", jsonx.Obj("in_range", inRange, "below", below, "above", above, "readings", len(in),
-			"percent", percent(inRange, len(in))))
+		out.Set("distribution", stat(distribution(typ, glucoseClassesOf(in), in)))
+		out.Set("morning_vs_night", stat(morningVsNight(typ, in)))
+		out.Set("time_in_range", stat(jsonx.Obj("in_range", inRange, "below", below, "above", above,
+			"readings", classified, "percent", percent(inRange, classified))))
 		out.Set("series", series(typ, in, true))
 	case TypeHR:
 		var classified []Reading
@@ -356,22 +418,42 @@ func Report(typ string, rs []Reading, rng Range, filter string) *jsonx.OrderedMa
 				}
 			}
 			if len(cs) > 0 {
-				byContext = append(byContext, jsonx.Obj("context", c, "readings", len(cs), "average", hrAverage(cs)))
+				byContext = append(byContext, jsonx.Obj("context", c, "readings", len(cs), "average", average(typ, cs)))
 			}
 		}
 		out.Set("unit", "bpm")
 		out.Set("readings", len(in))
-		out.Set("average", hrAverage(in))
-		out.Set("resting_average", hrAverage(classified))
+		out.Set("average", stat(hrAverage(in)))
+		out.Set("resting_average", stat(hrAverage(classified)))
 		out.Set("by_context", byContext)
 		out.Set("min", readingOrNull(lo))
 		out.Set("max", readingOrNull(hi))
-		out.Set("distribution", distribution(typ, HRClasses, in))
-		out.Set("morning_vs_night", morningVsNight(typ, in))
-		out.Set("time_in_range", jsonx.Obj("in_range", normal, "readings", len(classified),
-			"percent", percent(normal, len(classified))))
+		out.Set("distribution", stat(distribution(typ, HRClasses, in)))
+		out.Set("morning_vs_night", stat(morningVsNight(typ, in)))
+		out.Set("time_in_range", stat(jsonx.Obj("in_range", normal, "readings", len(classified),
+			"percent", percent(normal, len(classified)))))
 		out.Set("target", jsonx.Obj("min", th.HRRestingMin, "max", th.HRRestingMax))
 		out.Set("series", series(typ, in, false))
 	}
 	return out
+}
+
+// glucoseTargetJSON is the target band of a context in a report: the diabetic band for a user with diabetes (r is one
+// of her readings; an open lower bound shows the low cut-off), else the context's band.
+func glucoseTargetJSON(th Thresholds, context string, r Reading) *jsonx.OrderedMap {
+	if r.Diabetic && !r.Pregnant {
+		if b, ok := th.DiabeticBand(context, r.Targets); ok {
+			lo := b.Low
+			if lo == 0 {
+				lo = th.GlucoseLowBelow
+			}
+			var hi any
+			if b.High > 0 {
+				hi = b.High
+			}
+			return jsonx.Obj("min", lo, "max", hi)
+		}
+	}
+	b := th.GlucoseBands[context]
+	return jsonx.Obj("min", b.TargetMin, "max", b.TargetMax)
 }

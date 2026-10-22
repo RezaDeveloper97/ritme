@@ -122,10 +122,19 @@ export function VitalsReportPage({ type }: { type: VitalType }) {
       </Card>
     );
   } else {
+    const glucoseUnit = r.type === 'glucose' ? displayUnit(r) : undefined;
     body = (
       <div className={clsx('vt-report', report.isPlaceholderData && 'is-stale')} aria-busy={report.isFetching || undefined}>
-        {r.type === 'bp' ? <BpBody r={r} /> : r.type === 'glucose' ? <GlucoseBody r={r} /> : <HrBody r={r} />}
-        <ReadingsList type={type} from={r.range.from} to={r.range.to} glucoseUnit={r.type === 'glucose' ? displayUnit(r) : undefined} />
+        {r.status === 'not_enough_data' ? (
+          <NotEnoughCard type={type} needed={r.readingsNeeded} />
+        ) : r.type === 'bp' ? (
+          <BpBody r={r} />
+        ) : r.type === 'glucose' ? (
+          <GlucoseBody r={r} />
+        ) : (
+          <HrBody r={r} />
+        )}
+        <ReadingsList type={type} from={r.range.from} to={r.range.to} glucoseUnit={glucoseUnit} />
         {r.type === 'glucose' ? <p className="vt-foot-note">{t('report.generalNote')}</p> : null}
       </div>
     );
@@ -175,6 +184,27 @@ export function VitalsReportPage({ type }: { type: VitalType }) {
         {body}
       </div>
     </div>
+  );
+}
+
+/** SPEC v6 report minimum: «داده کافی نیست؛ N اندازه‌گیری دیگر» (≥ 2 readings on ≥ 2 days). */
+function NotEnoughCard({ type, needed }: { type: VitalType; needed: number }) {
+  const t = useTranslations('vitals');
+  const f = useVitalFormat();
+  return (
+    <Card as="section" className="vt-card vt-not-enough" aria-labelledby="vt-not-enough-title">
+      <EmptyState
+        icon="chart"
+        title={<span id="vt-not-enough-title">{t('report.notEnough.title', { n: f.num(needed) })}</span>}
+        body={t('report.notEnough.body')}
+        action={
+          <Link href={vitalAddPath(type)} className="nb-btn is-primary is-block">
+            <Icon name="plus" size={18} />
+            {t('report.addCta', { type: t(`types.${type}`) })}
+          </Link>
+        }
+      />
+    </Card>
   );
 }
 
@@ -331,7 +361,14 @@ function BpBody({ r }: { r: BpReport }) {
       <MorningNight
         morning={r.morningVsNight.morning ? f.bp(r.morningVsNight.morning.systolic, r.morningVsNight.morning.diastolic) : null}
         night={r.morningVsNight.night ? f.bp(r.morningVsNight.night.systolic, r.morningVsNight.night.diastolic) : null}
-        note={r.morningVsNight.nightOutOfRange > 0 ? t('report.nightNote.bp', { n: f.num(r.morningVsNight.nightOutOfRange) }) : null}
+        note={
+          r.morningVsNight.nightOutOfRange > 0
+            ? `${t('report.nightNote.bp', { n: f.num(r.morningVsNight.nightOutOfRange) })} ${t('report.crisisNote', {
+                systolic: f.num(th.bp.urgentAbove.systolic),
+                diastolic: f.num(th.bp.urgentAbove.diastolic),
+              })}`
+            : null
+        }
       />
     </>
   );
@@ -342,9 +379,12 @@ function displayUnit(r: GlucoseReport): GlucoseUnit {
   return r.max?.glucose?.unit ?? r.min?.glucose?.unit ?? 'mg_dl';
 }
 
+const TARGET_CLASSES = new Set(['below_target', 'in_target', 'above_target']);
+
 function GlucoseBody({ r }: { r: GlucoseReport }) {
   const t = useTranslations('vitals');
   const f = useVitalFormat();
+  const th = useVitalThresholds();
   const unit = displayUnit(r);
   const g = (mg: number) => f.glucose(fromMgDl(mg, unit), unit);
   const ctx = (c: 'fasting' | 'after_meal') => r.byContext.find((x) => x.context === c);
@@ -352,7 +392,14 @@ function GlucoseBody({ r }: { r: GlucoseReport }) {
   const after = ctx('after_meal');
   const labels = r.series.map((p) => dayLabel(p.date, r.range.days, t, f.locale));
   const values = r.series.map((p) => [p.fasting, p.afterMeal, p.other].filter((v): v is number => v !== null).map(g).join('، '));
-  const band: [number, number] = r.filter === 'fasting' || r.filter === 'before_meal' ? [70, 100] : [70, 140];
+  // The target band comes from the server (the user's diabetic target when she has one).
+  const bandCtx = r.byContext.find((x) => x.context === (r.filter === 'all' ? 'fasting' : r.filter)) ?? r.byContext[0];
+  const fallback = th.glucose.contexts[r.filter === 'all' ? 'fasting' : r.filter];
+  const band: [number, number] = bandCtx ? [bandCtx.target.min, bandCtx.target.max ?? fallback.veryHighFrom] : [fallback.targetMin, fallback.targetMax];
+  const veryHighNoSymptomBand = [r.max, r.min].some(
+    (x) => x?.classification?.code === 'very_high' && (x.glucose?.context === 'random' || x.glucose?.context === 'bedtime'),
+  );
+  const ownTargets = [r.max, r.min].some((x) => !!x?.classification && TARGET_CLASSES.has(x.classification.code));
   const scaled = (v: number | null) => (v === null ? null : fromMgDl(v, unit));
   const avgBlock = (label: string, mg: number | null | undefined, main: boolean) => (
     <div className={clsx('vt-avg-main', !main && 'is-secondary')}>
@@ -424,6 +471,12 @@ function GlucoseBody({ r }: { r: GlucoseReport }) {
           { key: 'max', label: t('report.max'), value: r.max?.glucose ? g(r.max.glucose.mgDl) : '—', sub: r.max ? f.day(r.max.date) : undefined },
         ]}
       />
+      {veryHighNoSymptomBand ? (
+        <InfoNote icon="warning" className="vt-caution">
+          {t('report.veryHighNote')}
+        </InfoNote>
+      ) : null}
+      {ownTargets ? <p className="vt-foot-note">{t('report.targetNote')}</p> : null}
       {r.morningVsNight.morning && r.morningVsNight.night ? (
         <MorningNight
           morning={g(r.morningVsNight.morning.mgDl)}

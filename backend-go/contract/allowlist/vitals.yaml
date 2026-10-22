@@ -1,0 +1,75 @@
+group: vitals
+entries:
+  # D-170 (task T-M10-19, engine v6 M10, user OK 2026-10-21): the hub says per type whether its default report meets
+  # the SPEC v6 report minimum (≥ 2 readings on ≥ 2 different days) — «داده کافی نیست؛ N اندازه‌گیری دیگر».
+  - case: "hub"
+    where: data.reports
+    deviation: D-170
+    reason: new hub key — per-type report status and readings_needed
+  - case: "plan_flow.*"
+    where: data.reports
+    deviation: D-170
+    reason: new hub key — per-type report status and readings_needed
+
+  # D-170: /vitals/thresholds names the glucose.contexts rule flag (H-09, 0 = today's bands), the diabetic target
+  # classes and the registry's diabetic targets (glucose.diabetic), so the clients preview the same classes.
+  - case: "thresholds"
+    where: data.glucose.contexts_spec
+    deviation: D-170
+    reason: glucose.contexts.spec of today (0 = unchanged bands)
+  - case: "thresholds"
+    where: data.glucose.target_classes
+    deviation: D-170
+    reason: diabetic target class codes
+  - case: "thresholds"
+    where: data.glucose.diabetic
+    deviation: D-170
+    reason: glucose.diabetic registry targets
+
+  # D-170: every report carries status (ok | not_enough_data) and readings_needed.
+  - case: "*"
+    where: data.status
+    deviation: D-170
+    reason: report minimum status
+  - case: "*"
+    where: data.readings_needed
+    deviation: D-170
+    reason: report minimum — readings still needed
+
+  # D-170: the fasting-filtered glucose report of the fixture has one reading on one day, so its mean, min–max,
+  # distribution, morning vs night and time in range are null (not_enough_data) instead of a single-reading statistic.
+  - case: "glucose_flow.*"
+    step: 5
+    where: data.average
+    deviation: D-170
+    reason: one reading on one day — no mean
+  - case: "glucose_flow.*"
+    step: 5
+    where: data.by_context[*].average
+    deviation: D-170
+    reason: one reading on one day — no per-context mean
+  - case: "glucose_flow.*"
+    step: 5
+    where: data.min
+    deviation: D-170
+    reason: one reading on one day — no min–max
+  - case: "glucose_flow.*"
+    step: 5
+    where: data.max
+    deviation: D-170
+    reason: one reading on one day — no min–max
+  - case: "glucose_flow.*"
+    step: 5
+    where: data.distribution
+    deviation: D-170
+    reason: one reading on one day — no distribution
+  - case: "glucose_flow.*"
+    step: 5
+    where: data.morning_vs_night
+    deviation: D-170
+    reason: one reading on one day — no morning vs night means
+  - case: "glucose_flow.*"
+    step: 5
+    where: data.time_in_range
+    deviation: D-170
+    reason: one reading on one day — no time in range

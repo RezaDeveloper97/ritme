@@ -44,7 +44,11 @@
       "low": "Below target",
       "in_range": "In target",
       "high": "Above target",
-      "very_high": "Very high"
+      "very_high": "Very high",
+      "discuss": "Worth discussing with a doctor",
+      "below_target": "Below your target",
+      "in_target": "In your target",
+      "above_target": "Above your target"
     },
     "hr": {
       "low": "Lower than usual",
@@ -128,7 +132,9 @@
     "all": "All",
     "recentEmpty": "Your readings show up here. Add blood pressure, pulse or glucose with the buttons below.",
     "addLabel": "Add {type}",
-    "addGroup": "Add a reading"
+    "addGroup": "Add a reading",
+    "notEnough": "Not enough data yet; {n} more to go",
+    "veryHighNote": "This number is high. If you have strong thirst, frequent urination, blurred vision or unusual tiredness, see a doctor."
   },
   "plan": {
     "title": "Measuring plan",
@@ -184,7 +190,8 @@
       "low": "Below the target range ({min}–{max})",
       "urgent_low": "Very low; below {value}",
       "high": "Above the {context} target range ({min}–{max})",
-      "very_high": "Well above the {context} target range"
+      "very_high": "Well above the {context} target range",
+      "discuss": "Above {max}; if it keeps happening, talk to your doctor about it"
     },
     "hrVerdict": "{state} · {class} ({min}–{max})",
     "hrUnclassified": "{state} · not compared with the resting range",
@@ -249,7 +256,7 @@
     "night": "Night",
     "noReadings": "No readings",
     "nightNote": {
-      "bp": "{n} night readings were above normal. If it keeps happening or you have headaches or dizziness, talk to a doctor. Above 180/120 is an emergency.",
+      "bp": "{n} night readings were above normal. If it keeps happening or you have headaches or dizziness, talk to a doctor.",
       "glucose": "{n} night readings were outside the target range. If it keeps happening, talk to a doctor.",
       "hr": "{n} night readings were outside the resting range."
     },
@@ -270,6 +277,48 @@
     "chartHr": "Daily heart rate over {n} days: {list}",
     "colDate": "Day",
     "colValue": "Value",
-    "generalNote": "These ranges are general; if your doctor set a different target, follow their advice."
+    "generalNote": "These ranges are general; if your doctor set a different target, follow their advice.",
+    "notEnough": {
+      "title": "Not enough data yet; {n} more to go",
+      "body": "Averages and the distribution need at least two readings on two different days."
+    },
+    "veryHighNote": "This number is high. If you have strong thirst, frequent urination, blurred vision or unusual tiredness, see a doctor.",
+    "targetNote": "Your readings are classified against your own glucose targets.",
+    "crisisNote": "Above {systolic}/{diastolic} is an emergency."
+  },
+  "targets": {
+    "title": "Glucose targets set by your doctor",
+    "intro": "If your doctor gave you different blood sugar targets, enter them here so your readings are checked against them.",
+    "summaryDefault": "No targets yet; your readings are checked against the usual diabetes targets.",
+    "summaryCustom": "{n} targets set by you or your doctor.",
+    "contexts": {
+      "fasting": "Fasting",
+      "pre_meal": "Before a meal",
+      "post_meal": "2 hours after a meal",
+      "bedtime": "Bedtime"
+    },
+    "defaultRange": "Default: {range}",
+    "noDefault": "No default",
+    "range": "{low}–{high}",
+    "below": "under {high}",
+    "atMost": "up to {high}",
+    "from": "from {low}",
+    "low": "From",
+    "high": "To",
+    "lowAria": "Lower target, {context}",
+    "highAria": "Upper target, {context}",
+    "setBy": "Who set it?",
+    "setByDoctor": "My doctor",
+    "setByUser": "Me",
+    "unit": "mg/dL",
+    "open": "Set targets",
+    "edit": "Edit targets",
+    "save": "Save targets",
+    "reset": "Back to defaults",
+    "error": "Couldn't save. Try again.",
+    "errors": {
+      "lowHigh": "The lower number must be below the upper one.",
+      "bounds": "The number must be between {min} and {max}."
+    }
   }
 }

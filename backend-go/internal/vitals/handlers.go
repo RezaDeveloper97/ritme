@@ -121,13 +121,48 @@ func (h *Handlers) Hub(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	reports, err := h.reportStates(c, userID, today)
+	if err != nil {
+		return err
+	}
 	return httpx.OK(c, jsonx.Obj(
 		"date", today.String(),
 		"latest", latestJSON,
 		"plan", WeekJSON(plan, week, today),
 		"recent", ReadingsJSON(recent),
 		"notifications", notificationsJSON(prefs.Enabled(ReminderCategory)),
+		"reports", reports,
 	))
+}
+
+// reportStates is the hub's {type: {range, status, readings_needed}}: whether each type's default report meets the
+// report minimums (T-M10-19), so the hub can say «داده کافی نیست؛ N اندازه‌گیری دیگر».
+func (h *Handlers) reportStates(c fiber.Ctx, userID uint64, today civildate.Date) (*jsonx.OrderedMap, error) {
+	longest := 0
+	for _, t := range Types {
+		longest = max(longest, RangeDays[DefaultRange[t]])
+	}
+	rs, err := h.service(c).Merged(c, userID, "", today.AddDays(1-longest), today)
+	if err != nil {
+		return nil, err
+	}
+	out := jsonx.Obj()
+	for _, t := range Types {
+		rng := NewRange(DefaultRange[t], today)
+		var in []Reading
+		for _, r := range rs {
+			if r.Type == t && rng.Contains(r.Date) {
+				in = append(in, r)
+			}
+		}
+		need := ReadingsNeeded(in)
+		status := ReportStatusOK
+		if need > 0 {
+			status = ReportStatusNotEnough
+		}
+		out.Set(t, jsonx.Obj("range", rng.Key, "status", status, "readings_needed", need))
+	}
+	return out, nil
 }
 
 // Thresholds is GET /vitals/thresholds: the classification bands with their sources.
@@ -135,7 +170,57 @@ func (h *Handlers) Thresholds(c fiber.Ctx) error {
 	if _, err := user(c); err != nil {
 		return err
 	}
-	return httpx.OK(c, ThresholdsJSON(ThresholdsOn(civildate.InTehran(h.now(c)))))
+	t := ThresholdsOn(civildate.InTehran(h.now(c)))
+	body := ThresholdsJSON(t)
+	if g, ok := body.Get("glucose"); ok {
+		if gm, ok := g.(*jsonx.OrderedMap); ok {
+			addGlucoseRules(gm, t)
+		}
+	}
+	return httpx.OK(c, body)
+}
+
+// addGlucoseRules adds the SPEC v6 rule flag and the diabetic defaults to the glucose thresholds (T-M10-19).
+func addGlucoseRules(g *jsonx.OrderedMap, t Thresholds) {
+	spec := 0
+	if t.GlucoseContextsSpec {
+		spec = 1
+	}
+	g.Set("contexts_spec", spec)
+	g.Set("target_classes", GlucoseTargetClasses)
+	g.Set("diabetic", jsonx.Obj("fasting_lo", t.Diabetic.FastingLo, "fasting_hi", t.Diabetic.FastingHi,
+		"post_meal_max", t.Diabetic.PostMealMax))
+}
+
+// fillAlert writes the thresholds of the reading's day into the urgent copy ({systolic}, {diastolic}, {mgdl},
+// {mmol_l}), so a registry change never leaves a stale number in a text.
+func fillAlert(alert any, r Reading, locale string) any {
+	m, ok := alert.(*jsonx.OrderedMap)
+	if !ok || m == nil {
+		return alert
+	}
+	p := ThresholdsOn(r.Date).CopyParams(locale)
+	for _, k := range []string{"title", "what_we_saw", "advice", "contact"} {
+		if v, ok := m.Get(k); ok {
+			if s, ok := v.(string); ok {
+				m.Set(k, FillCopy(s, p))
+			}
+		}
+	}
+	if list, ok := m.Get("actions"); ok {
+		if acts, ok := list.([]any); ok {
+			for _, a := range acts {
+				if am, ok := a.(*jsonx.OrderedMap); ok {
+					if v, ok := am.Get("label"); ok {
+						if s, ok := v.(string); ok {
+							am.Set("label", FillCopy(s, p))
+						}
+					}
+				}
+			}
+		}
+	}
+	return m
 }
 
 // Readings is GET /vitals/readings?type&from&to: every reading of the range (timed + log sheet), newest first.
@@ -183,7 +268,7 @@ func (h *Handlers) saved(c fiber.Ctx, userID uint64, r Reading, now time.Time) (
 			}
 		}
 		if alert == nil && AlertRule(r) != "" {
-			alert = cp.AlertJSON(r, locale, def)
+			alert = fillAlert(cp.AlertJSON(r, locale, def), r, locale)
 		}
 	}
 	return jsonx.Obj("reading", ReadingJSON(r), "alert", alert), nil
@@ -356,4 +441,69 @@ func (h *Handlers) SavePlan(c fiber.Ctx) error {
 		return err
 	}
 	return httpx.OK(c, body, T("messages.plan_saved", locale))
+}
+
+// Targets is GET /vitals/targets: the diabetic glucose targets of the user (owner only), the registry defaults and
+// whether target classes apply (diabetes in the life profile).
+func (h *Handlers) Targets(c fiber.Ctx) error {
+	userID, err := user(c)
+	if err != nil {
+		return err
+	}
+	body, err := h.targetsJSON(c, userID, h.now(c))
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, body)
+}
+
+func (h *Handlers) targetsJSON(c fiber.Ctx, userID uint64, now time.Time) (*jsonx.OrderedMap, error) {
+	svc := h.service(c)
+	diabetic, err := svc.Diabetic(c, userID)
+	if err != nil {
+		return nil, err
+	}
+	targets, err := svc.Targets(c, userID)
+	if err != nil {
+		return nil, err
+	}
+	return TargetsJSON(diabetic, targets, targetsOn(now)), nil
+}
+
+// SaveTargets is PUT /vitals/targets {items}: replaces the user's targets (an empty list clears them).
+func (h *Handlers) SaveTargets(c fiber.Ctx) error {
+	userID, err := user(c)
+	if err != nil {
+		return err
+	}
+	now, locale := h.now(c), i18n.Locale(c)
+	items, err := ValidateTargets(validation.Input(c), locale, now)
+	if err != nil {
+		return err
+	}
+	if err := h.service(c).SaveTargets(c, userID, items, now); err != nil {
+		return err
+	}
+	body, err := h.targetsJSON(c, userID, now)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, body, T("messages.targets_saved", locale))
+}
+
+// ClearTargets is DELETE /vitals/targets: back to the registry defaults.
+func (h *Handlers) ClearTargets(c fiber.Ctx) error {
+	userID, err := user(c)
+	if err != nil {
+		return err
+	}
+	now, locale := h.now(c), i18n.Locale(c)
+	if err := h.service(c).ClearTargets(c, userID); err != nil {
+		return err
+	}
+	body, err := h.targetsJSON(c, userID, now)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, body, T("messages.targets_cleared", locale))
 }

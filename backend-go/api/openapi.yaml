@@ -18697,7 +18697,8 @@ paths:
       description: |
         nbl_Vitals_Hub: the latest reading of each type (bp · hr · glucose; a timed reading, or a log-sheet day value of
         the last 90 days when newer), this week's plan progress (Saturday–Friday), the 5 most recent readings of the last
-        30 days (timed + log sheet) and whether the `vitals` notification category is on.
+        30 days (timed + log sheet), whether the `vitals` notification category is on and, per type, whether its default
+        report meets the report minimum (≥ 2 readings on ≥ 2 different days, T-M10-19, D-170).
       operationId: vitalsHub
       security:
         - {bearerAuth: []}
@@ -18715,7 +18716,7 @@ paths:
                   success: {type: boolean}
                   data:
                     type: object
-                    required: [date, latest, plan, recent, notifications]
+                    required: [date, latest, plan, recent, notifications] # reports: required once the vitals goldens are re-recorded (T-M10-19b)
                     properties:
                       date: {$ref: "#/components/schemas/Date"}
                       latest:
@@ -18728,6 +18729,13 @@ paths:
                       plan: {$ref: "#/components/schemas/VitalPlanWeek"}
                       recent: {type: array, items: {$ref: "#/components/schemas/VitalReading"}}
                       notifications: {$ref: "#/components/schemas/VitalNotifications"}
+                      reports:
+                        type: object
+                        required: [bp, hr, glucose]
+                        properties:
+                          bp: {$ref: "#/components/schemas/VitalReportState"}
+                          hr: {$ref: "#/components/schemas/VitalReportState"}
+                          glucose: {$ref: "#/components/schemas/VitalReportState"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/vitals/thresholds:
     get:
@@ -18736,7 +18744,10 @@ paths:
       description: |
         The bands the server classifies with (ACC/AHA 2017 blood pressure, ADA 2025 glucose per context, AHA resting
         heart rate) with their sources and the urgent thresholds (BP > 180 and/or > 120, glucose < 54 mg/dL). Intervals
-        are min-inclusive / max-exclusive except the heart-rate resting max. Versioned config in B-N9-11.
+        are min-inclusive / max-exclusive except the heart-rate resting max. Versioned config in B-N9-11. `glucose` also
+        carries `contexts_spec` (glucose.contexts.spec, H-09: 1 = SPEC v6 rule — a non-lab post-meal value is in_range
+        below the post-meal ceiling and `discuss` from it, random / bedtime have no class below the very-high cut-off),
+        `target_classes` and `diabetic` (glucose.diabetic registry targets) (T-M10-19, D-170).
       operationId: vitalsThresholds
       security:
         - {bearerAuth: []}
@@ -18759,9 +18770,118 @@ paths:
                       version: {type: string}
                       intervals: {type: string}
                       blood_pressure: {type: object}
-                      glucose: {type: object}
+                      glucose:
+                        type: object
+                        properties:
+                          contexts_spec: {type: integer, enum: [0, 1]}
+                          target_classes: {type: array, items: {type: string, enum: [below_target, in_target, above_target]}}
+                          diabetic:
+                            type: object
+                            required: [fasting_lo, fasting_hi, post_meal_max]
+                            properties:
+                              fasting_lo: {type: number}
+                              fasting_hi: {type: number}
+                              post_meal_max: {type: number}
                       heart_rate: {type: object}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/vitals/targets:
+    get:
+      tags: [Vitals]
+      summary: Diabetic glucose targets
+      description: |
+        The caller's own glucose targets (T-M10-19, SPEC v6 §3.2, D-170). Target classes (below_target · in_target ·
+        above_target) apply only when the life profile lists `diabetes` in chronic_illnesses (`diabetic`): fasting and
+        pre-meal readings against glucose.diabetic fasting_lo–fasting_hi (80–130, inclusive), post-meal below
+        post_meal_max (< 180), unless a row of that context replaces it; a bedtime row adds a bedtime target; random
+        readings never have one. Hypoglycaemia (< 70, < 54) and the pregnancy table win. `defaults` are today's registry
+        values (bedtime: null).
+      operationId: vitalsTargets
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/VitalTargets"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    put:
+      tags: [Vitals]
+      summary: Replace the glucose targets
+      description: |
+        `items` (≤ 4, one per context fasting|pre_meal|post_meal|bedtime): `low_mgdl` / `high_mgdl` integers 50–300
+        (at least one; low < high), `set_by` doctor|user, `note` ≤ 160. Contexts left out are deleted; an empty list
+        clears every target. A user without diabetes may store rows; they are not used until the profile lists it.
+      operationId: saveVitalsTargets
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  maxItems: 4
+                  items:
+                    type: object
+                    required: [context, set_by]
+                    properties:
+                      context: {type: string, enum: [fasting, pre_meal, post_meal, bedtime]}
+                      low_mgdl: {type: [integer, "null"], minimum: 50, maximum: 300}
+                      high_mgdl: {type: [integer, "null"], minimum: 50, maximum: 300}
+                      set_by: {type: string, enum: [doctor, user]}
+                      note: {type: [string, "null"], maxLength: 160}
+      responses:
+        '200':
+          description: Saved; the targets
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/VitalTargets"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/VitalValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Vitals]
+      summary: Clear the glucose targets
+      description: Deletes every target of the caller (back to the registry defaults).
+      operationId: clearVitalsTargets
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Cleared; the targets
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/VitalTargets"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/vitals/plan:
     get:
       tags: [Vitals]
@@ -18834,7 +18954,12 @@ paths:
         averages, min / max reading, distribution by class, morning (04–12) vs night (18–04) — timed readings only —,
         time in range (bp normal, glucose in target, hr resting 60–100) and the daily series. Glucose takes
         `filter` all|fasting|before_meal|after_meal|bedtime|random and adds per-context averages; log-sheet values
-        (no time, no context) count as random. An unknown type is 404.
+        (no time, no context) count as random. An unknown type is 404. Report minimum (SPEC v6 §3.2, §4.1; T-M10-19,
+        D-170): with fewer than 2 readings or fewer than 2 different days in the period, `status` is not_enough_data
+        and average, pulse, resting_average, per-context averages, min, max, distribution, morning_vs_night and
+        time_in_range are null (`readings_needed` says how many more); the daily series stays. Glucose distributions
+        list urgent_low, low, in_range, high, very_high plus the SPEC v6 / diabetic classes that occur; time_in_range
+        counts classified readings only.
       operationId: vitalsReport
       security:
         - {bearerAuth: []}
@@ -27501,7 +27626,7 @@ components:
       type: [object, "null"]
       required: [code, tone]
       properties:
-        code: {type: string, enum: [normal, elevated, stage1, stage2, crisis, urgent_low, low, in_range, high, very_high]}
+        code: {type: string, enum: [normal, elevated, stage1, stage2, crisis, urgent_low, low, in_range, high, very_high, discuss, below_target, in_target, above_target]}
         tone: {type: string, enum: [ok, watch, high, urgent]}
     VitalReading:
       type: object
@@ -27633,11 +27758,56 @@ components:
           type: object
           additionalProperties: {type: array, items: {type: string}}
         notifications: {$ref: "#/components/schemas/VitalNotifications"}
+    VitalReportState:
+      type: object
+      required: [range] # status, readings_needed: required once the vitals goldens are re-recorded (T-M10-19b)
+      properties:
+        range: {type: string, enum: [7d, 14d, 30d, 90d]}
+        status: {type: string, enum: [ok, not_enough_data]}
+        readings_needed: {type: integer, minimum: 0}
+    VitalTargets:
+      type: object
+      required: [diabetic, contexts, bounds, defaults, source, items]
+      properties:
+        diabetic: {type: boolean, description: "Target classes apply (chronic_illnesses lists diabetes)"}
+        contexts: {type: array, items: {type: string, enum: [fasting, pre_meal, post_meal, bedtime]}}
+        bounds:
+          type: object
+          required: [min_mgdl, max_mgdl]
+          properties:
+            min_mgdl: {type: integer}
+            max_mgdl: {type: integer}
+        defaults:
+          type: object
+          description: "Registry band per context (null = no default: bedtime)"
+          additionalProperties:
+            type: [object, "null"]
+            required: [low_mgdl, high_mgdl, high_inclusive]
+            properties:
+              low_mgdl: {type: [integer, "null"]}
+              high_mgdl: {type: [integer, "null"]}
+              high_inclusive: {type: boolean}
+        source: {type: string}
+        items:
+          type: array
+          items:
+            type: object
+            required: [context, low_mgdl, high_mgdl, high_inclusive, set_by, note, updated_at]
+            properties:
+              context: {type: string, enum: [fasting, pre_meal, post_meal, bedtime]}
+              low_mgdl: {type: [integer, "null"]}
+              high_mgdl: {type: [integer, "null"]}
+              high_inclusive: {type: boolean, description: "post_meal: false (v < high)"}
+              set_by: {type: string, enum: [doctor, user]}
+              note: {type: [string, "null"]}
+              updated_at: {type: [string, "null"], format: date-time}
     VitalReport:
       type: object
       required: [type, range, unit, readings, average, min, max, distribution, morning_vs_night, time_in_range, series]
       properties:
         type: {type: string, enum: [bp, glucose, hr]}
+        status: {type: string, enum: [ok, not_enough_data]}
+        readings_needed: {type: integer, minimum: 0}
         range:
           type: object
           required: [key, from, to, days]
@@ -27656,7 +27826,7 @@ components:
         min: {oneOf: [{$ref: "#/components/schemas/VitalReading"}, {type: "null"}]}
         max: {oneOf: [{$ref: "#/components/schemas/VitalReading"}, {type: "null"}]}
         distribution:
-          type: array
+          type: [array, "null"]
           items:
             type: object
             required: [code, tone, count, percent]
@@ -27666,14 +27836,14 @@ components:
               count: {type: integer}
               percent: {type: integer}
         morning_vs_night:
-          type: object
+          type: [object, "null"]
           required: [morning, night, night_out_of_range]
           properties:
             morning: {type: [object, "null"]}
             night: {type: [object, "null"]}
             night_out_of_range: {type: integer}
         time_in_range:
-          type: object
+          type: [object, "null"]
           required: [in_range, readings, percent]
           properties:
             in_range: {type: integer}

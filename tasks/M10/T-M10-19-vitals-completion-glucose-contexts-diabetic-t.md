@@ -3,10 +3,10 @@ id: T-M10-19
 title: Vitals completion: glucose contexts, diabetic targets, report minimums, copy from the registry
 milestone: M10
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M10-16, T-M10-17]
 parallel_group: M10-C
-touches: [backend-go/internal/vitals/thresholds.go, backend-go/internal/vitals/reports.go, backend-go/internal/vitals/model.go, backend-go/internal/vitals/handlers.go, backend-go/internal/vitals/service.go, backend-go/internal/vitals/targets.go, backend-go/internal/vitals/lang, backend-go/internal/http/routes_vitals.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist, frontend/src/screens/vitals-hub, frontend/src/screens/vitals-report, frontend/src/screens/vitals-add, frontend/src/entities/vital, frontend/messages/fa/vitals.json, frontend/messages/en/vitals.json, backend-go/resources/translations/fa/vitals.json, backend-go/resources/translations/en/vitals.json]
+touches: [backend-go/internal/vitals/thresholds.go, backend-go/internal/vitals/reports.go, backend-go/internal/vitals/model.go, backend-go/internal/vitals/handlers.go, backend-go/internal/vitals/service.go, backend-go/internal/vitals/targets.go, backend-go/internal/vitals/lang, backend-go/internal/http/routes_vitals.go, backend-go/contract/allowlist/vitals.yaml, frontend/src/screens/vitals-hub, frontend/src/screens/vitals-report, frontend/src/screens/vitals-add, frontend/src/entities/vital, frontend/messages/fa/vitals.json, frontend/messages/en/vitals.json, backend-go/resources/translations/fa/vitals.json, backend-go/resources/translations/en/vitals.json]
 skills: [new-endpoint]
 verify: cd backend-go && go vet ./... && go test ./internal/vitals/... && make test-int PKG=./internal/vitals/... && make contract ROUTES=vitals && cd ../frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:dark && npm run test && npm run copy:check -- vitals
 ---
@@ -54,3 +54,6 @@ changes. Pregnancy-aware classification already shipped in T-M9-05. DECISIONS.md
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-170 and notes H-09 as advisor-pending.
+
+## Batch note (main session, 2026-10-22)
+`backend-go/api/openapi.yaml` was removed from touches so this task can run in parallel with T-M10-18. Write the needed OpenAPI change as a unified diff to the scratchpad and report its path; the main session applies it before the commit.

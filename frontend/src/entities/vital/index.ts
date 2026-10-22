@@ -10,6 +10,7 @@ export {
   LIMITS,
   POSITIONS,
   REPORT_RANGES,
+  TARGET_CONTEXTS,
   VITAL_TYPES,
   type Arm,
   type BpAverage,
@@ -20,6 +21,9 @@ export {
   type GlucoseFilter,
   type GlucoseMethod,
   type GlucoseReport,
+  type GlucoseTarget,
+  type GlucoseTargetInput,
+  type GlucoseTargets,
   type GlucoseUnit,
   type HrAverage,
   type HrContext,
@@ -30,6 +34,10 @@ export {
   type Position,
   type ReadingInput,
   type ReportRange,
+  type ReportState,
+  type ReportStatus,
+  type TargetContext,
+  type TargetSetBy,
   type SavedReading,
   type VitalAlert,
   type VitalClass,
@@ -64,11 +72,14 @@ export {
 } from './model/units';
 export { vitalAddPath, vitalReportPath, vitalSlug } from './model/paths';
 export { vitalsKeys } from './api/keys';
-export { alertSchema, hubSchema, parseReport, planSchema, readingsSchema, savedSchema, thresholdsSchema } from './api/schema';
+export { alertSchema, hubSchema, parseReport, planSchema, readingsSchema, savedSchema, targetsSchema, thresholdsSchema } from './api/schema';
 export {
   fieldErrors,
   toPlanBody,
   toReadingBody,
+  toTargetsBody,
+  useGlucoseTargets,
+  useSaveTargets,
   useCreateReading,
   useDeleteReading,
   useSavePlan,
