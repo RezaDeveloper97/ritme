@@ -1,0 +1,10 @@
+group: home
+entries:
+  # D-169 (task T-M10-18, engine v6 M10, user OK 2026-10-21): the trimester is by completed days (ACOG CO 700: T1 to
+  # 13+6; Laravel's `weeks <= 12` put 13+0 … 13+6 in trimester 2). The manual 12+0 persona is 13+0 on the contract
+  # day, so the trimester-keyed smart tip (sections[3]) carries the first-trimester copy.
+  - case: "index.pregnant_manual_w14.*"
+    step: 1
+    where: data.sections[3].data.text
+    deviation: D-169
+    reason: smart tip keyed by the trimester (13+0 → trimester 1 copy)
