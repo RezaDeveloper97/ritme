@@ -1833,3 +1833,43 @@ Nothing needed fixing.
   - no contract case yet for the confirm endpoint;
   - `ai/fake_chat.go` has no JSON labs fixture, so the contract stack always shows the rules summary;
   - `ConfirmLabMarker` should also be scoped by `lab_id` in SQL (checked in Go today).
+
+## T-M10-23 — Consent ledger: append-only consent events, scope, versioned signup consents (D-174)
+- Migration **00101** `consent_events`, with the Laravel twin `2026_10_22_000101_create_consent_events_table.php`:
+  - append-only, enforced by two triggers that refuse UPDATE and DELETE; a user delete still cascades (FK cascades don't fire triggers);
+  - backfilled from `user_consents`;
+  - `schema-diff` OK (219 tables).
+- `consent/ledger.go`: every grant and withdrawal writes an event with a source (settings, feature, signup, backfill, telemed, sharelink).
+  - Re-granting the same version is a no-op; a revoke is recorded only after a grant.
+  - The user row is locked, so writes are serialized.
+- Scoped evidence:
+  - `telemed_share` {booking_id, doctor_id, items};
+  - `share_link` {link_id, expires_at, items};
+  - `assistant_profile_items` {items}.
+- Versioned signup consents (`terms`, `health_data_processing`, v1) on verify-otp:
+  - a new account without them → 422 `consent_required`; no account is created and the OTP is not spent;
+  - existing accounts are never refused;
+  - token and session unchanged; only `user_id` is logged.
+- New owner-only `GET /api/v1/consents/pending` and `/consents/history` (newest first, capped at 200).
+- Frontend:
+  - the signup payload carries the consents;
+  - `PendingConsentsSheet`, once per app open, inside the app lock (mounted in `[locale]/layout.tsx`);
+  - consent history on the privacy screen;
+  - `consent_required` error copy;
+  - the `auth` namespace added to the shell/onboarding/profile message scopes.
+- Main session applied the agent's 4 diffs:
+  - OpenAPI;
+  - wiring in `routes_ai/privacy/auth`, `assistant/service.go` and `telemed/booking_service.go`;
+  - contract cases `auth.yaml`/`learning.yaml` (new-user verify-otp sends consents; Laravel ignores the field);
+  - the frontend shell.
+- Main session also added the `consent_events` table and triggers to `dump.sql`, and re-recorded the i18n goldens.
+- Verify on the combined tree:
+  - `go vet ./...` and `go test ./...` green; `schema-diff` OK;
+  - test-int ok for consent, auth, labs, profile, telemed, sharelinks, assistant, healthrecord and migrations;
+  - `make contract ROUTES=all` 1914 passed, 0 failed;
+  - frontend typecheck, lint and fsd:lint green, 1972 tests.
+- **Deploy note:** creating the triggers needs the TRIGGER privilege on stage/beta/prod. With binlog on, it also needs SUPER or `log_bin_trust_function_creators=1`; without them migration 00101 fails. Check this before the next stage/beta deploy.
+- Open:
+  - the codes in `consent/summary.go` record no evidence events;
+  - history has no pagination;
+  - Laravel `translations:import` not run.

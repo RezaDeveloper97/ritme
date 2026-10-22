@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"log/slog"
 	"math/big"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -75,6 +77,78 @@ type Handlers struct {
 	refreshWindowDays int
 	logger            *slog.Logger
 	signupHooks       []SignupHook
+	consents          SignupConsents // nil = verify-otp asks no signup consents (Laravel behaviour)
+}
+
+// SignupConsents are the mandatory signup consents (internal/consent.Signup; injected because consent imports auth).
+// T-M10-23, D-174: verify-otp for a new account must carry `consents: {<code>: <version shown>, …}` naming the version
+// in force of every Required code — otherwise 422 consent_required and nothing is created. The accepted versions are
+// recorded (consent ledger, source signup) before the token is issued. Laravel ignores the field.
+type SignupConsents interface {
+	Required() []SignupConsent
+	Record(ctx context.Context, userID uint64, versions map[string]int, now time.Time) error
+	RequiredMessage(locale string) string
+}
+
+// SignupConsent is one mandatory consent and the version in force.
+type SignupConsent = struct {
+	Code    string
+	Version int
+}
+
+// RequireSignupConsents makes verify-otp ask sc's consents of a new account. Call it while wiring routes.
+func (h *Handlers) RequireSignupConsents(sc SignupConsents) { h.consents = sc }
+
+// CodeConsentRequired is the error_code of a signup without the mandatory consents (422).
+const CodeConsentRequired = "consent_required"
+
+// signupVersions reads data.consents.<code> for every required consent: the versions and whether each one is an
+// integer equal to the version in force.
+func signupVersions(data phpval.Map, required []SignupConsent) (map[string]int, bool) {
+	out := make(map[string]int, len(required))
+	ok := true
+	for _, r := range required {
+		v, _ := phpval.Get(data, "consents."+r.Code)
+		n, isInt := intOf(v)
+		if !isInt || n != r.Version {
+			ok = false
+			continue
+		}
+		out[r.Code] = n
+	}
+	return out, ok
+}
+
+// intOf is a JSON number or a numeric string as an int.
+func intOf(v any) (int, bool) {
+	switch n := v.(type) {
+	case float64:
+		if n != float64(int(n)) {
+			return 0, false
+		}
+		return int(n), true
+	case int:
+		return n, true
+	case int64:
+		return int(n), true
+	case string:
+		i, err := strconv.Atoi(strings.TrimSpace(n))
+		return i, err == nil
+	}
+	return 0, false
+}
+
+// consentRequired is the 422 of a signup without the consents in force:
+//
+//	{success:false, message, error_code:"consent_required", consents:{<code>: <version>, …}}
+func (h *Handlers) consentRequired(c fiber.Ctx) error {
+	req := h.consents.Required()
+	kv := make([]any, 0, 2*len(req))
+	for _, r := range req {
+		kv = append(kv, r.Code, r.Version)
+	}
+	return httpx.Fail(fiber.StatusUnprocessableEntity, h.consents.RequiredMessage(i18n.Locale(c)),
+		"error_code", CodeConsentRequired, "consents", jsonx.Obj(kv...))
 }
 
 // SignupHook is told about an account verify-otp has just created (now = the request clock) (e.g. learning: pending course grants of that
@@ -239,6 +313,20 @@ func (h *Handlers) VerifyOTP(c fiber.Ctx) error {
 	if subtle.ConstantTimeCompare([]byte(otp.Code), []byte(code)) != 1 {
 		return httpx.Fail(fiber.StatusUnprocessableEntity, "Invalid OTP code")
 	}
+	// T-M10-23: only after the code matched (no account probing), and before the OTP is spent, so the same code can
+	// be sent again with the consents. Existing accounts are never refused here (H-18: the pending sheet asks them).
+	var signup map[string]int
+	signupOK := false
+	if h.consents != nil {
+		signup, signupOK = signupVersions(data, h.consents.Required())
+		if _, err := h.q.GetUserByMobile(ctx, sql.NullString{String: mobile, Valid: true}); errors.Is(err, sql.ErrNoRows) {
+			if !signupOK {
+				return h.consentRequired(c)
+			}
+		} else if err != nil {
+			return fmt.Errorf("auth: load user: %w", err)
+		}
+	}
 	if err := h.q.MarkOtpVerified(ctx, store.MarkOtpVerifiedParams{VerifiedAt: dbTime(now), UpdatedAt: dbTime(now), ID: otp.ID}); err != nil {
 		return fmt.Errorf("auth: mark otp verified: %w", err)
 	}
@@ -252,6 +340,21 @@ func (h *Handlers) VerifyOTP(c fiber.Ctx) error {
 	}
 	// Laravel's `$user->update(['mobile_verified_at' => now()])` is a no-op
 	// (mobile_verified_at is not $fillable), so it is intentionally not written here.
+
+	if h.consents != nil && signupOK {
+		// A new account's consents are recorded before it gets a token (fail closed). An existing account that ticked
+		// the boxes again accepts what it had not accepted yet; a failure there never blocks the login.
+		if err := h.consents.Record(ctx, user.ID, signup, now); err != nil {
+			if isNew {
+				return fmt.Errorf("auth: signup consents: %w", err)
+			}
+			h.logger.ErrorContext(ctx, "auth: signup consents of an existing user", slog.Uint64("user_id", user.ID), slog.String("error", err.Error()))
+		}
+	} else if h.consents != nil && isNew {
+		// The account was missing at the check above yet the request names no valid consents (a concurrent create):
+		// never issue a new account a token without them.
+		return h.consentRequired(c)
+	}
 
 	issued, err := h.issuer.Issue(ctx, user.ID, now)
 	if err != nil {

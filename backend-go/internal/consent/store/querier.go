@@ -16,7 +16,15 @@ type Querier interface {
 	// repeated accept of the same text leaves the row untouched. revoked_at keeps the last withdrawal.
 	// (MariaDB applies the assignments left to right: granted / version are read before they are overwritten.)
 	GrantConsent(ctx context.Context, arg GrantConsentParams) error
+	InsertConsentEvent(ctx context.Context, arg InsertConsentEventParams) error
+	// The user's own events, newest first.
+	ListConsentEvents(ctx context.Context, arg ListConsentEventsParams) ([]ListConsentEventsRow, error)
 	ListConsents(ctx context.Context, userID uint64) ([]ListConsentsRow, error)
+	// The consent ledger (T-M10-23, goose 00101): append-only `consent_events`; `user_consents` is its current-state
+	// projection (consents.sql). There is deliberately no UPDATE or DELETE here — the table's triggers refuse both, and
+	// only a user delete (FK cascade) removes rows. Always scoped by user_id.
+	// Serialises one user's consent writes: the event and the projection row change together under this lock.
+	LockConsentOwner(ctx context.Context, id uint64) (uint64, error)
 	// A withdrawal keeps granted_at and version (what was last accepted) and stamps revoked_at; revoking what was
 	// never granted stores an explicit «no» without a revoked_at.
 	RevokeConsent(ctx context.Context, arg RevokeConsentParams) error

@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
 
 import { OnboardingCalendarSync } from '@/entities/user';
 import { AppLockGate, appLockInitScript } from '@/features/app-lock';
-import { SessionRefresher } from '@/features/auth';
+import { PendingConsentsSheet, SessionRefresher } from '@/features/auth';
 import { BackGuard } from '@/shared/back-guard';
 import {
   BUNDLED_LOCALES,
@@ -185,6 +185,9 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
                       screen is a sheet over whatever is showing, and it has to
                       outlive the screen that opened it (see app/sheets). */}
                   <SheetHost />
+                  {/* T-M10-23: the one-time sheet of the mandatory consents an
+                      account made before they existed has not accepted yet. */}
+                  <PendingConsentsSheet />
                 </AppLockGate>
               </div>
             </div>

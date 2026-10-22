@@ -197,6 +197,9 @@ func (b *Bookings) Create(ctx context.Context, userID uint64, in BookInput, loc 
 				return fmt.Errorf("telemed: consent: %w", err)
 			}
 		}
+		if err := bookingShareEvidence(ctx, tx, id, userID, doctor.ID, in.Share, now); err != nil { // T-M10-23 ledger
+			return err
+		}
 		if pr.Total > 0 {
 			return nil
 		}

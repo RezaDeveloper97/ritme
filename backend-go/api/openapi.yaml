@@ -1123,6 +1123,13 @@ paths:
         Verifies the OTP code and returns access token. Creates user if new.
 
         403 for a blocked user (Persian message in every locale). 429 after 5 wrong attempts.
+
+        Go only (T-M10-23, D-174): a **new** account must send `consents` with the version shown of every mandatory
+        signup consent (`terms`, `health_data_processing`), else 422 `consent_required` (checked after the code matched,
+        before it is spent, so the same code can be resent with them) and no account is created. The grants are
+        recorded in the consent ledger (source `signup`) before the token is issued. An existing account is never
+        refused (its pending consents come from GET /consents/pending); if it sends valid versions they are recorded
+        once. The Laravel API ignores the field.
       operationId: postAuthVerifyOtp
       security: []
       parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
@@ -1135,6 +1142,11 @@ paths:
               properties:
                 mobile: {type: string, examples: ["09123456789"]}
                 code: {description: "4-digit OTP code", type: string, examples: ["1234"]}
+                consents:
+                  description: "Signup consents (T-M10-23): consent code → version of the text shown; required for a new account"
+                  type: object
+                  additionalProperties: {type: integer}
+                  examples: [{terms: 1, health_data_processing: 1}]
               type: object
       responses:
         '200':
@@ -1193,7 +1205,9 @@ paths:
                 properties: {success: {type: boolean}, message: {type: string}}
               example: {success: false, message: "حساب کاربری شما مسدود شده است."}
         '422':
-          description: Validation error or invalid code
+          description: |
+            Validation error or invalid code; or (Go only, T-M10-23) `error_code: consent_required` for a new account
+            without the signup consents in force, with `consents` = the versions to accept.
           content:
             application/json:
               schema:
@@ -1205,6 +1219,11 @@ paths:
                   errors:
                     type: object
                     additionalProperties: {type: array, items: {type: string}}
+                  error_code: {type: string, enum: [consent_required]}
+                  consents:
+                    type: object
+                    additionalProperties: {type: integer}
+                    examples: [{terms: 1, health_data_processing: 1}]
               example:
                 success: false
                 message: Validation failed
@@ -15734,7 +15753,9 @@ paths:
       description: |
         Go only (B-N6-05, D-58). Every consent of the catalog (internal/consent) in display order with the text of the
         version in force in the request language: `ai_lab_analysis`, `assistant_profile`, `anonymous_stats`,
-        `ai_assistant`, `ai_voice_log`, `ai_documents`. `granted` is true only while the version in force is accepted;
+        `ai_assistant`, `ai_voice_log`, `ai_documents` (the mandatory signup consents `terms` and
+        `health_data_processing` are listed by GET /consents/pending instead, T-M10-23). `granted` is true only while
+        the version in force is accepted;
         `accepted_version` is the version accepted last (kept after a withdrawal), `reason` why consent is needed
         (`missing` | `outdated`, null when granted). Same table as the B-N1-12 toggles, which grant only the version
         they name (B-N6-05b).
@@ -15758,6 +15779,67 @@ paths:
                     required: [consents]
                     properties:
                       consents: {type: array, items: {$ref: "#/components/schemas/VersionedConsent"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/consents/pending:
+    get:
+      tags: [Consents]
+      summary: Mandatory consents still to accept
+      description: |
+        Go only (T-M10-23, D-174; DECISIONS.md H-18). The mandatory signup consents (`terms`, `health_data_processing`)
+        the user has not accepted at the version in force, in display order, each with its text — empty once accepted.
+        The client shows them once as a sheet on the next app open and accepts each with PUT /consents/{code}
+        (source `settings` in the ledger). Nothing is blocked server-side while the list is non-empty.
+      operationId: listPendingConsents
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The pending consents
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [consents]
+                    properties:
+                      consents: {type: array, items: {$ref: "#/components/schemas/VersionedConsent"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/consents/history:
+    get:
+      tags: [Consents]
+      summary: The user's consent ledger
+      description: |
+        Go only (T-M10-23, D-174). The user's own append-only consent events, newest first (at most 200): every grant
+        and withdrawal of a consent (`source` signup | settings | feature | backfill …) and the scoped evidence of
+        shares (`telemed_share` with `{booking_id, doctor_id, items}`, `share_link` with `{link_id, expires_at, items}`,
+        `assistant_profile_items` with `{items}`). `title` is the consent's title in the request language (null for an
+        unknown code); `version` 0 is a grant from before versioned texts (backfill).
+      operationId: listConsentHistory
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The events
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [events]
+                    properties:
+                      events: {type: array, items: {$ref: "#/components/schemas/ConsentEvent"}}
         '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/consents/{code}:
     get:
@@ -29737,7 +29819,7 @@ components:
       description: "One consent of the catalog (B-N6-05) with the text of the version in force."
       required: [code, version, title, body, points, granted, accepted_version, needs_consent, reason, granted_at, revoked_at]
       properties:
-        code: {type: string, enum: [ai_lab_analysis, assistant_profile, anonymous_stats, ai_assistant, ai_voice_log, ai_documents]}
+        code: {type: string, enum: [ai_lab_analysis, assistant_profile, anonymous_stats, ai_assistant, ai_voice_log, ai_documents, terms, health_data_processing]}
         version: {type: integer, description: version in force}
         title: {type: string}
         body: {type: string}
@@ -29751,6 +29833,22 @@ components:
             - {$ref: "#/components/schemas/IsoDateTime"}
             - {type: "null"}
         revoked_at:
+          oneOf:
+            - {$ref: "#/components/schemas/IsoDateTime"}
+            - {type: "null"}
+    ConsentEvent:
+      type: object
+      description: "One consent-ledger event (T-M10-23, append-only consent_events)."
+      required: [id, consent, title, version, action, source, scope, created_at]
+      properties:
+        id: {type: integer}
+        consent: {type: string, description: "catalog code, or an evidence code: telemed_share, share_link, assistant_profile_items"}
+        title: {type: [string, "null"]}
+        version: {type: integer, minimum: 0}
+        action: {type: string, enum: [grant, revoke]}
+        source: {type: string, enum: [signup, settings, feature, family, telemed, sharelink, backfill, admin]}
+        scope: {type: [object, "null"]}
+        created_at:
           oneOf:
             - {$ref: "#/components/schemas/IsoDateTime"}
             - {type: "null"}

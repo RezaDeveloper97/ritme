@@ -1845,6 +1845,30 @@ LOCK TABLES `condition_pain_entries` WRITE;
 /*!40000 ALTER TABLE `condition_pain_entries` DISABLE KEYS */;
 /*!40000 ALTER TABLE `condition_pain_entries` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `consent_events`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `consent_events` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `consent` varchar(64) NOT NULL,
+  `version` int(10) unsigned NOT NULL,
+  `action` varchar(8) NOT NULL,
+  `scope` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`scope`)),
+  `source` varchar(24) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `consent_events_user_id_consent_id_index` (`user_id`,`consent`,`id`),
+  CONSTRAINT `consent_events_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TRIGGER `consent_events_no_update` BEFORE UPDATE ON `consent_events` FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'consent_events is append-only';
+CREATE TRIGGER `consent_events_no_delete` BEFORE DELETE ON `consent_events` FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'consent_events is append-only';
+
+LOCK TABLES `consent_events` WRITE;
+/*!40000 ALTER TABLE `consent_events` DISABLE KEYS */;
+/*!40000 ALTER TABLE `consent_events` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `contraception_methods`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;

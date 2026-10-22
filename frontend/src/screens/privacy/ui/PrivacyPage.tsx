@@ -33,6 +33,7 @@ import {
 
 import { useConsents, useUpdateConsent } from '../api/consents';
 import { useDiscreetNotifications, useSetDiscreetNotifications } from '../api/discreet';
+import { ConsentHistorySection } from './ConsentHistorySection';
 import { ShareLinksSection } from './ShareLinksSection';
 
 function SectionLabel({ id, children }: { id: string; children: string }) {
@@ -407,6 +408,7 @@ export function PrivacyPage() {
         <LockSection />
         <HideSection />
         <ConsentSection />
+        <ConsentHistorySection />
 
         <section className="prv-sec" aria-labelledby="prv-g-access">
           <SectionLabel id="prv-g-access">{t('groups.access')}</SectionLabel>

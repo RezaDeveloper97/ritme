@@ -14,6 +14,28 @@
    },
    "export": {
     "error": "Data export failed. Please try again."
+   },
+   "history": {
+    "title": "Consent history",
+    "lead": "Every time you give or withdraw a consent, it is recorded here with its date.",
+    "empty": "Nothing has been recorded yet.",
+    "error": "The history couldn't be loaded.",
+    "retry": "Try again",
+    "untitled": "Consent",
+    "grant": "You accepted",
+    "revoke": "You withdrew",
+    "line": "{action}, {source}, {date}",
+    "sources": {
+     "signup": "at sign-up",
+     "settings": "in settings",
+     "feature": "while using a feature",
+     "family": "in Family",
+     "telemed": "for a doctor visit",
+     "sharelink": "with a report link",
+     "backfill": "recorded earlier",
+     "admin": "with support",
+     "other": "in the app"
+    }
    }
   },
   "analysis": {
@@ -1137,7 +1159,8 @@
     "invalidCode": "The code is incorrect or has expired",
     "tooMany": "Too many attempts. Please try again in a moment",
     "network": "Couldn't connect. Please check your internet connection",
-    "generic": "Something went wrong. Please try again"
+    "generic": "Something went wrong. Please try again",
+    "consentRequired": "To create your account, you first need to accept the terms and the processing of your health data. Go back to the phone number screen and tick both boxes."
    },
    "phone": {
     "title": "Your mobile number",
@@ -1161,6 +1184,15 @@
     "autoRead": "The code is read from the SMS automatically.",
     "submit": "Verify",
     "verifying": "Checking…"
+   },
+   "pending": {
+    "title": "Before you continue",
+    "lead": "You haven't accepted these texts yet. Read them and confirm if you agree.",
+    "version": "Version {v}",
+    "agree": "I have read the texts above and accept them.",
+    "accept": "I accept",
+    "later": "Later",
+    "error": "It wasn't saved. Please try again."
    }
   },
   "baby-log": {
@@ -5829,8 +5861,8 @@
     "title": "Check the values",
     "heading": "Were these numbers read correctly?",
     "lead": "Before the analysis, compare the values read with your sheet.",
-    "lowConfidence": "{count, plural, one {# value was read with low confidence} other {# values were read with low confidence}}",
-    "lowOne": "read with low confidence",
+    "lowConfidence": "{count, plural, one {# value was read with low confidence; check it against your sheet and confirm it} other {# values were read with low confidence; check them against your sheet and confirm them}}",
+    "lowOne": "read with low confidence; waiting for your confirmation",
     "listLabel": "Values read",
     "empty": "No values were read; add the markers by hand.",
     "editLabel": "Edit {name}: {value} {unit}",
@@ -5856,7 +5888,12 @@
      "value": "Enter the value.",
      "number": "Enter a number.",
      "order": "The low bound must be below the high bound."
-    }
+    },
+    "confirm": "Confirm",
+    "confirmLabel": "Confirm {name}: {value} {unit}",
+    "confirmAll": "Confirm all",
+    "confirmError": "Could not confirm. Try again.",
+    "unconfirmedNote": "Until you confirm it, this value is left out of the analysis and the trends."
    },
    "result": {
     "title": "Analysis result",
@@ -5897,7 +5934,13 @@
     "keep": "Keep",
     "deleteError": "Couldn't delete. Try again.",
     "rangeLabel": "{value}, reference range {ref}",
-    "reference": "Reference: {ref}"
+    "reference": "Reference: {ref}",
+    "generalReference": "General range: {ref}",
+    "nearEdge": "Close to the edge of the range",
+    "explanations": "About the values outside the range",
+    "unconfirmed": "{count, plural, one {# value is not confirmed yet and is left out of this analysis} other {# values are not confirmed yet and are left out of this analysis}}",
+    "confirmValues": "Confirm values",
+    "explanationItem": "{name} ({state}): {text}"
    },
    "marker": {
     "title": "Marker",
@@ -5912,7 +5955,8 @@
     "chartCaption": "Marker trend",
     "chartDate": "Date",
     "chartValue": "Value",
-    "between": "{low} to {high}"
+    "between": "{low} to {high}",
+    "generalRange": "General range: {ref}"
    }
   },
   "learn": {

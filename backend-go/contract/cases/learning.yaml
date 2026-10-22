@@ -154,7 +154,7 @@ cases:
         otp_for: "09900000099"
         method: POST
         path: /api/v1/auth/verify-otp
-        body: {mobile: "09900000099", code: "{{otp}}"}
+        body: {mobile: "09900000099", code: "{{otp}}", consents: {terms: 1, health_data_processing: 1}} # T-M10-23: signup consents (Laravel ignores them)
         status: 200
         capture: {token: data.access_token}
         ignore: ["header:x-ratelimit-remaining"]

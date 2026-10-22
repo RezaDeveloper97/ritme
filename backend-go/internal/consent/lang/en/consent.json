@@ -6,7 +6,8 @@
         "version_stale": "This version of the consent is no longer current. Please read the new text and accept it again.",
         "saved": "Consent saved",
         "withdrawn": "Consent withdrawn",
-        "not_found": "This consent does not exist."
+        "not_found": "This consent does not exist.",
+        "signup_required": "To create your account, please accept the Ritme terms and privacy policy and the processing of your health data first."
     },
     "attributes": {
         "granted": "consent",
@@ -80,6 +81,49 @@
                     "The provider may not use this data to train its models.",
                     "You can withdraw this consent at any time."
                 ]
+            }
+        },
+        "terms": {
+            "1": {
+                "title": "Ritme terms and privacy",
+                "body": "By accepting this text you agree to the Ritme terms of use and its privacy policy.",
+                "points": [
+                    "The full terms and privacy policy are always available in the app.",
+                    "If these texts change, we show you the new version again.",
+                    "Your acceptance is recorded with its date and text version; you can see the list in Privacy."
+                ]
+            }
+        },
+        "health_data_processing": {
+            "1": {
+                "title": "Processing your health data",
+                "body": "Ritme processes the health data you enter yourself (such as periods, symptoms and pregnancy) to show you predictions and reminders.",
+                "points": [
+                    "This data is used only to provide the Ritme service to you.",
+                    "It is not shared with anyone without your permission.",
+                    "You can download your data or delete your account at any time."
+                ]
+            }
+        },
+        "assistant_profile_items": {
+            "1": {
+                "title": "What the assistant sees",
+                "body": "The profile items you allowed the health assistant to see.",
+                "points": []
+            }
+        },
+        "telemed_share": {
+            "1": {
+                "title": "Data shared with a doctor",
+                "body": "The data you shared with the doctor of one visit, for that visit.",
+                "points": []
+            }
+        },
+        "share_link": {
+            "1": {
+                "title": "Report link for a doctor",
+                "body": "A link you created to view your health report.",
+                "points": []
             }
         }
     }

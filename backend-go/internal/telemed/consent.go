@@ -8,6 +8,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/ritme/backend-go/internal/consent"
 	"github.com/ritme/backend-go/internal/telemed/store"
 )
 
@@ -17,15 +18,9 @@ import (
 
 // ActiveScopes are the scopes the user currently shares on a booking (Scopes order).
 func (b *Bookings) ActiveScopes(ctx context.Context, bookingID uint64) ([]string, error) {
-	rows, err := b.q.ListBookingConsents(ctx, bookingID)
+	active, err := activeScopes(ctx, b.q, bookingID)
 	if err != nil {
-		return nil, fmt.Errorf("telemed: consents: %w", err)
-	}
-	active := map[string]bool{}
-	for _, r := range rows {
-		if !r.RevokedAt.Valid {
-			active[r.Scope] = true
-		}
+		return nil, err
 	}
 	out := []string{}
 	for _, s := range Scopes {
@@ -56,7 +51,12 @@ func (b *Bookings) SetConsent(ctx context.Context, userID, id uint64, changes ma
 			return store.TelemedBooking{}, ErrBookingClosed
 		}
 	}
-	err = b.inTx(ctx, func(_ *sql.Tx, q *store.Queries) error {
+	err = b.inTx(ctx, func(tx *sql.Tx, q *store.Queries) error {
+		before, err := activeScopes(ctx, q, bk.ID)
+		if err != nil {
+			return err
+		}
+		var granted, revoked []string
 		for _, scope := range Scopes {
 			on, ok := changes[scope]
 			switch {
@@ -65,15 +65,61 @@ func (b *Bookings) SetConsent(ctx context.Context, userID, id uint64, changes ma
 				if err := q.UpsertConsent(ctx, store.UpsertConsentParams{BookingID: bk.ID, Scope: scope, GrantedAt: now, Stamp: nt(now)}); err != nil {
 					return fmt.Errorf("telemed: grant consent: %w", err)
 				}
+				if !before[scope] {
+					granted = append(granted, scope)
+				}
 			default:
 				if err := q.RevokeConsent(ctx, store.RevokeConsentParams{Now: nt(now), BookingID: bk.ID, Scope: scope}); err != nil {
 					return fmt.Errorf("telemed: revoke consent: %w", err)
 				}
+				if before[scope] {
+					revoked = append(revoked, scope)
+				}
 			}
 		}
-		return nil
+		if err := shareEvidence(ctx, tx, bk, consent.ActionGrant, granted, now); err != nil {
+			return err
+		}
+		return shareEvidence(ctx, tx, bk, consent.ActionRevoke, revoked, now)
 	})
 	return bk, err
+}
+
+// activeScopes is the set of scopes currently shared on a booking (read inside the write transaction).
+func activeScopes(ctx context.Context, q *store.Queries, bookingID uint64) (map[string]bool, error) {
+	rows, err := q.ListBookingConsents(ctx, bookingID)
+	if err != nil {
+		return nil, fmt.Errorf("telemed: consents: %w", err)
+	}
+	active := map[string]bool{}
+	for _, r := range rows {
+		if !r.RevokedAt.Valid {
+			active[r.Scope] = true
+		}
+	}
+	return active, nil
+}
+
+// shareEvidence appends the consent-ledger event of a share change on bk (T-M10-23, D-174): consent telemed_share,
+// scope {booking_id, doctor_id, items} with the scopes that actually changed; nothing when none did. Evidence only —
+// AuthorizeShare and telemed_booking_consents stay the gate.
+func shareEvidence(ctx context.Context, tx *sql.Tx, bk store.TelemedBooking, action string, items []string, now time.Time) error {
+	if len(items) == 0 {
+		return nil
+	}
+	err := consent.AppendScoped(ctx, tx, consent.Scoped{
+		UserID: bk.UserID, Consent: consent.TelemedShare, Action: action, Source: consent.SourceTelemed, At: now,
+		Scope: map[string]any{"booking_id": bk.ID, "doctor_id": bk.DoctorID, "items": items},
+	})
+	if err != nil {
+		return fmt.Errorf("telemed: consent evidence: %w", err)
+	}
+	return nil
+}
+
+// bookingShareEvidence is the grant event of the scopes shared when a booking is created (booking_service.go Book).
+func bookingShareEvidence(ctx context.Context, tx *sql.Tx, id, userID, doctorID uint64, scopes []string, now time.Time) error {
+	return shareEvidence(ctx, tx, store.TelemedBooking{ID: id, UserID: userID, DoctorID: doctorID}, consent.ActionGrant, scopes, now)
 }
 
 // RevokeConsent revokes every scope of the user's booking.
@@ -82,8 +128,25 @@ func (b *Bookings) RevokeConsent(ctx context.Context, userID, id uint64) (store.
 	if err != nil {
 		return store.TelemedBooking{}, err
 	}
-	if err := b.q.RevokeAllConsents(ctx, store.RevokeAllConsentsParams{Now: nt(b.now(ctx)), BookingID: bk.ID}); err != nil {
-		return store.TelemedBooking{}, fmt.Errorf("telemed: revoke consents: %w", err)
+	now := b.now(ctx)
+	err = b.inTx(ctx, func(tx *sql.Tx, q *store.Queries) error {
+		before, err := activeScopes(ctx, q, bk.ID)
+		if err != nil {
+			return err
+		}
+		if err := q.RevokeAllConsents(ctx, store.RevokeAllConsentsParams{Now: nt(now), BookingID: bk.ID}); err != nil {
+			return fmt.Errorf("telemed: revoke consents: %w", err)
+		}
+		var revoked []string
+		for _, s := range Scopes {
+			if before[s] {
+				revoked = append(revoked, s)
+			}
+		}
+		return shareEvidence(ctx, tx, bk, consent.ActionRevoke, revoked, now)
+	})
+	if err != nil {
+		return store.TelemedBooking{}, err
 	}
 	return bk, nil
 }

@@ -3,10 +3,10 @@ id: T-M10-23
 title: Consent ledger: append-only consent events, scope, versioned signup consents
 milestone: M10
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M10-01]
 parallel_group: M10-C
-touches: [backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/consent, backend-go/internal/consent, backend-go/internal/profile/consents.go, backend-go/internal/auth/handlers.go, backend-go/internal/assistant/consent.go, backend-go/internal/telemed/consent.go, backend-go/internal/sharelinks/service.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist, frontend/src/screens/auth-signup, frontend/src/features/auth, frontend/src/screens/privacy, frontend/src/entities/user, frontend/messages/fa/auth.json, frontend/messages/en/auth.json, frontend/messages/fa/account.json, frontend/messages/en/account.json, backend-go/resources/translations/fa/auth.json, backend-go/resources/translations/en/auth.json, backend-go/resources/translations/fa/account.json, backend-go/resources/translations/en/account.json]
+touches: [backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/consent, backend-go/internal/consent, backend-go/internal/profile/consents.go, backend-go/internal/auth/handlers.go, backend-go/internal/assistant/consent.go, backend-go/internal/telemed/consent.go, backend-go/internal/sharelinks/service.go, backend-go/contract/allowlist/consents.yaml, backend-go/contract/allowlist/privacy.yaml, backend-go/contract/allowlist/auth.yaml, frontend/src/screens/auth-signup, frontend/src/features/auth, frontend/src/screens/privacy, frontend/src/entities/user, frontend/messages/fa/auth.json, frontend/messages/en/auth.json, frontend/messages/fa/account.json, frontend/messages/en/account.json, backend-go/resources/translations/fa/auth.json, backend-go/resources/translations/en/auth.json, backend-go/resources/translations/fa/account.json, backend-go/resources/translations/en/account.json]
 skills: [new-endpoint]
 verify: cd backend-go && make sqlc && make schema-diff && go vet ./... && go test ./internal/consent/... ./internal/profile/... ./internal/auth/... && make test-int PKG="./internal/consent/... ./internal/auth/... ./db/migrations/..." && make contract ROUTES=consents,privacy,auth && cd ../frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run test && npm run copy:check -- auth account
 ---
@@ -55,3 +55,6 @@ checkboxes on the signup page are client-only (`screens/auth-signup/ui/SignupPag
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-174.
+
+## Batch note (main session, 2026-10-22)
+`backend-go/api/openapi.yaml` was removed from touches so this task can run in parallel with T-M10-18b. Write the needed OpenAPI change as a unified diff to the scratchpad and report its path; the main session applies it before the commit.

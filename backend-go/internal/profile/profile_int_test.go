@@ -22,6 +22,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/auth/passport"
 	authstore "github.com/ritme/backend-go/internal/auth/store"
+	"github.com/ritme/backend-go/internal/consent"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
@@ -57,7 +58,8 @@ func setup(t *testing.T) *env {
 	guard := auth.NewGuardWith(&key.PublicKey, q, clock.Real{}, quiet)
 	storage := t.TempDir()
 	h := profile.NewHandlers(profile.Options{DB: db, Logger: quiet, StoragePath: storage})
-	ph := profile.NewPrivacyHandlers(profile.PrivacyOptions{Store: profilestore.New(db), StoragePath: storage, Logger: quiet})
+	ph := profile.NewPrivacyHandlers(profile.PrivacyOptions{Store: profile.WithConsentLedger(profilestore.New(db), consent.NewService(db)),
+		StoragePath: storage, Logger: quiet}) // T-M10-23: wired like routes_privacy.go
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
 	app.Use(clock.Middleware(clock.Real{}, true))

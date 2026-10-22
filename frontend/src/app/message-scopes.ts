@@ -23,6 +23,7 @@ import type { MessageNamespace } from '@/shared/i18n';
  */
 export const SHELL_NAMESPACES = [
   'articles',
+  'auth', // T-M10-23: PendingConsentsSheet (features/auth) mounts in the layout, inside the app lock
   'care',
   'checkups',
   'children', // CB-NAV-03: the log sheet's «ثبت برای <child>» row (widgets/log-later → entities/child barrel)
@@ -46,7 +47,7 @@ export const SHELL_NAMESPACES = [
 // B-N2-02: every onboarding route mounts the one onboarding-flow screen slice
 // (`profileEdit` comes with the birthday wheels of features/edit-profile; `companions` with the
 // entities/companion barrel the partner step imports for the code field, B-N4-05).
-const ONBOARDING = ['common', 'companions', 'onboarding', 'profileEdit'] as const satisfies readonly MessageNamespace[];
+const ONBOARDING = ['auth', 'common', 'companions', 'onboarding', 'profileEdit'] as const satisfies readonly MessageNamespace[];
 const AUTH = ['auth', 'common'] as const satisfies readonly MessageNamespace[];
 const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly MessageNamespace[];
 
@@ -59,8 +60,8 @@ export const ROUTE_NAMESPACES = {
   cycle: ['common', 'cycle', 'logPeriod'], // B-N1-08 cycle history (back header, no nav)
   cycleSymptoms: ['common', 'cycle', 'logPeriod'], // B-N1-08 /cycle/symptoms (screen slice shares the editor)
   cycleSettings: ['common', 'me'], // B-N1-09 /cycle/settings (copy lives under me.cycleSettings)
-  profile: ['account', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit', 'teen'], // B-N2-08: entities/plus (Me Plus card) carries the PlusFeatureGate copy; B-N4-04 entities/companion (Me row); CB-TEEN-04b entities/teen (teen's parent row)
-  profileAccount: ['account', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit', 'teen'], // B-N1-10 /profile/account (+ plus: same Me hub slice; CB-TEEN-04b teen)
+  profile: ['account', 'auth', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit', 'teen'], // B-N2-08: entities/plus (Me Plus card) carries the PlusFeatureGate copy; B-N4-04 entities/companion (Me row); CB-TEEN-04b entities/teen (teen's parent row)
+  profileAccount: ['account', 'auth', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit', 'teen'], // B-N1-10 /profile/account (+ plus: same Me hub slice; CB-TEEN-04b teen)
   profileAppearance: ['common', 'me'], // B-N1-10 /profile/appearance
   profileDevices: ['common', 'me'], // B-N10-07 /profile/devices
   profileBackup: ['account', 'common', 'me'], // B-N10-07 /profile/backup (export hooks reuse me.privacy.mine copy)

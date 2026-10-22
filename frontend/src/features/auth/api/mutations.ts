@@ -15,8 +15,11 @@ import {
   authUserSchema,
   resetOnboardingFor,
   type AuthUser,
+  useOnboardingStore,
   userKeys,
 } from '@/entities/user';
+
+import { verifyOtpBody } from '../model/consents';
 
 /**
  * The OTP login/registration actions (CLAUDE.md §8.1). One backend account
@@ -67,7 +70,9 @@ interface VerifyOtpResult {
 /**
  * POST /auth/verify-otp — exchanges the code for a JWT. On success the token is
  * stored (so subsequent requests carry the bearer header) and the current-user
- * cache is seeded/invalidated via the entity's key factory.
+ * cache is seeded/invalidated via the entity's key factory. The signup consent
+ * versions the phone screen recorded ride along (T-M10-23) and are cleared once
+ * the code is verified.
  */
 export function useVerifyOtp() {
   const queryClient = useQueryClient();
@@ -80,7 +85,7 @@ export function useVerifyOtp() {
           profile_completed?: boolean;
           access_token: string;
         }>
-      >('/auth/verify-otp', { mobile, code });
+      >('/auth/verify-otp', verifyOtpBody(mobile, code, useOnboardingStore.getState().signupConsents));
 
       const token = data.data?.access_token;
       if (!token) throw new Error('Missing access token');
@@ -96,6 +101,7 @@ export function useVerifyOtp() {
       };
     },
     onSuccess: ({ user, profileCompleted }) => {
+      useOnboardingStore.getState().setSignupConsents(null);
       queryClient.setQueryData(userKeys.current(), user);
       // Answers are persisted per device; a different account signing in on this
       // one must not inherit them (nor a stale resume position).

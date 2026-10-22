@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/consent"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 )
@@ -19,6 +20,8 @@ func init() {
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		h, guard := m.Handlers, m.Guard.RequireUser
 		h.OnSignup(learningSignupHook(d)) // B-N8-01: pending course grants of the new number become active
+		// T-M10-23 (D-174): a new account must accept the mandatory signup consents (verify-otp `consents`).
+		h.RequireSignupConsents(consent.NewSignup(consent.NewService(d.DB)))
 
 		r.Post("/api/v1/auth/send-otp", locale, m.Throttle(5), h.SendOTP)
 		r.Post("/api/v1/auth/verify-otp", locale, m.Throttle(10), h.VerifyOTP)

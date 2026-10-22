@@ -194,16 +194,22 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 		return httpx.Fail(fiber.StatusUnprocessableEntity, T("validation_failed", locale), "errors", v.ErrorBag())
 	}
 	granted, _ := phpval.Get(body, "granted")
+	// A feature's consent sheet is source feature; the mandatory signup consents are accepted here from the one-time
+	// pending sheet (or withdrawn) — source settings.
+	source := SourceFeature
+	if d, _ := Lookup(code); d.Mandatory {
+		source = SourceSettings
+	}
 	msg := "withdrawn"
 	if phpval.Truthy(granted) {
 		raw, _ := phpval.Get(body, "version")
-		err = h.svc.Accept(c, id, code, toInt(raw), now)
+		err = h.svc.AcceptFrom(c, id, code, toInt(raw), source, now)
 		if errors.Is(err, ErrStaleVersion) {
 			return Stale(code, locale)
 		}
 		msg = "saved"
 	} else {
-		err = h.svc.Withdraw(c, id, code, now)
+		err = h.svc.WithdrawFrom(c, id, code, source, now)
 	}
 	if err != nil {
 		return err
@@ -213,4 +219,75 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 		return err
 	}
 	return httpx.OK(c, jsonx.Obj("consent", stateJSON(st, locale)), T(msg, locale))
+}
+
+// Pending is GET /consents/pending: the mandatory consents not accepted at the version in force, each with its text
+// ({consents: [...]}, display order; empty once accepted). Accept each with PUT /consents/{code}. Nothing is blocked
+// while it is non-empty (H-18).
+func (h *Handlers) Pending(c fiber.Ctx) error {
+	id, err := userID(c)
+	if err != nil {
+		return err
+	}
+	states, err := h.svc.Pending(c, id)
+	if err != nil {
+		return err
+	}
+	locale := i18n.Locale(c)
+	list := make([]any, len(states))
+	for i, st := range states {
+		list[i] = stateJSON(st, locale)
+	}
+	return httpx.OK(c, jsonx.Obj("consents", list))
+}
+
+// eventJSON is one ledger row: {id, consent, title, version, action, source, scope, created_at}. The title is the
+// one of the version the event names (the text in force when that version has none, e.g. a backfilled version 0).
+func eventJSON(e Event, locale string) *jsonx.OrderedMap {
+	text, ok := TextOf(e.Consent, e.Version, locale)
+	if !ok {
+		v := CurrentVersion(e.Consent)
+		if d, ev := lookupEvidence(e.Consent); ev {
+			v = d.Version
+		}
+		text, _ = TextOf(e.Consent, v, locale)
+	}
+	var title, scope, at any
+	if text.Title != "" {
+		title = text.Title
+	}
+	if e.Scope != nil {
+		scope = e.Scope
+	}
+	if e.At.Valid {
+		at = jsonx.ISO8601(e.At.Time)
+	}
+	return jsonx.Obj(
+		"id", e.ID,
+		"consent", e.Consent,
+		"title", title,
+		"version", e.Version,
+		"action", e.Action,
+		"source", e.Source,
+		"scope", scope,
+		"created_at", at,
+	)
+}
+
+// History is GET /consents/history: the user's own ledger, newest first ({events: [...]}, at most HistoryLimit).
+func (h *Handlers) History(c fiber.Ctx) error {
+	id, err := userID(c)
+	if err != nil {
+		return err
+	}
+	events, err := h.svc.History(c, id)
+	if err != nil {
+		return err
+	}
+	locale := i18n.Locale(c)
+	list := make([]any, len(events))
+	for i, e := range events {
+		list[i] = eventJSON(e, locale)
+	}
+	return httpx.OK(c, jsonx.Obj("events", list))
 }

@@ -7,7 +7,7 @@ import { useRouter } from '@/shared/i18n';
 import { Checkbox, Icon } from '@/shared/ui';
 import { isValidMobile, normalizeMobile } from '@/shared/lib/phone';
 import { useOnboardingStore } from '@/entities/user';
-import { authErrorKey, OnbFrame, OTP_LENGTH, useSendOtp } from '@/features/auth';
+import { authErrorKey, OnbFrame, OTP_LENGTH, SIGNUP_CONSENT_VERSIONS, useSendOtp } from '@/features/auth';
 
 /** `09123456789` → `912 345 6789` (the +98 box carries the country code). */
 function displayNational(mobile: string): string {
@@ -18,14 +18,16 @@ function displayNational(mobile: string): string {
 /**
  * nbl_Onb_Phone: +98 mobile number and the two consents (terms + privacy,
  * processing of self-entered health data). Both consents are required to ask
- * for a code; the API has no consent codes for them yet, so they gate the
- * button only (bloom/QUESTIONS — see the B-N2-02 report).
+ * for a code. T-M10-23: the versions of the two texts shown are kept for the
+ * verify-otp call, which records them in the consent ledger (a new account is
+ * refused without them).
  */
 export function SignupPage() {
   const t = useTranslations('auth.phone');
   const te = useTranslations('auth.errors');
   const router = useRouter();
   const setPhone = useOnboardingStore((s) => s.setPhone);
+  const setSignupConsents = useOnboardingStore((s) => s.setSignupConsents);
   const sendOtp = useSendOtp();
 
   // ASCII digits in the local `0…` form, for reliable validation.
@@ -42,6 +44,7 @@ export function SignupPage() {
     sendOtp.mutate(phone, {
       onSuccess: () => {
         setPhone(phone);
+        setSignupConsents({ ...SIGNUP_CONSENT_VERSIONS });
         router.push('/otp');
       },
     });

@@ -724,6 +724,17 @@ type ConditionPainEntry struct {
 	UpdatedAt       sql.NullTime
 }
 
+type ConsentEvent struct {
+	ID        uint64
+	UserID    uint64
+	Consent   string
+	Version   uint32
+	Action    string
+	Scope     db.NullRawJSON
+	Source    string
+	CreatedAt sql.NullTime
+}
+
 type ContraceptionMethod struct {
 	ID               uint64
 	UserID           uint64

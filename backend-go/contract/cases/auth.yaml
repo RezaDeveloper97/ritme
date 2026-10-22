@@ -97,7 +97,8 @@ cases:
         status: 200
         ignore: ["header:x-ratelimit-remaining"]
   - name: verify_otp_new_user_signup
-    doc: unknown mobile → user created (id 1019), new_user true; token works for /auth/user
+    doc: unknown mobile → user created (id 1019), new_user true; token works for /auth/user. The signup consents
+      (T-M10-23, D-174) are sent like the web client does; Laravel ignores them, Go requires them for a new account.
     steps:
       - method: POST
         path: /api/v1/auth/send-otp
@@ -106,7 +107,7 @@ cases:
       - method: POST
         path: /api/v1/auth/verify-otp
         otp_for: "09900009999"
-        body: {mobile: "09900009999", code: "{{otp}}"}
+        body: {mobile: "09900009999", code: "{{otp}}", consents: {terms: 1, health_data_processing: 1}}
         status: 200
         capture: {token: data.access_token}
         ignore: ["header:x-ratelimit-remaining"]

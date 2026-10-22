@@ -9,5 +9,27 @@
   },
   "export": {
     "error": "Data export failed. Please try again."
+  },
+  "history": {
+    "title": "Consent history",
+    "lead": "Every time you give or withdraw a consent, it is recorded here with its date.",
+    "empty": "Nothing has been recorded yet.",
+    "error": "The history couldn't be loaded.",
+    "retry": "Try again",
+    "untitled": "Consent",
+    "grant": "You accepted",
+    "revoke": "You withdrew",
+    "line": "{action}, {source}, {date}",
+    "sources": {
+      "signup": "at sign-up",
+      "settings": "in settings",
+      "feature": "while using a feature",
+      "family": "in Family",
+      "telemed": "for a doctor visit",
+      "sharelink": "with a report link",
+      "backfill": "recorded earlier",
+      "admin": "with support",
+      "other": "in the app"
+    }
   }
 }

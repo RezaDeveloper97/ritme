@@ -38,6 +38,12 @@ interface OnboardingStore {
   periodLen: number;
   cycleDuration: number;
   lastPeriod: DateParts | null;
+  /**
+   * T-M10-23: the version of each signup consent text the phone screen showed
+   * and the user ticked (`{terms: 1, health_data_processing: 1}`), sent with
+   * verify-otp. Not personal data; cleared once the code is verified.
+   */
+  signupConsents: Record<string, number> | null;
 
   /**
    * Claim the store for `userId`, wiping the answers when they belonged to a
@@ -57,6 +63,7 @@ interface OnboardingStore {
   setPeriodLen: (len: number) => void;
   setCycleDuration: (len: number) => void;
   setLastPeriod: (date: DateParts) => void;
+  setSignupConsents: (versions: Record<string, number> | null) => void;
   /**
    * Re-express every stored date in `next`'s calendar. Onboarding answers are
    * persisted, so switching the language mid-flow would otherwise re-read a
@@ -94,6 +101,7 @@ const emptyAnswers = {
   periodLen: 5,
   cycleDuration: 28,
   lastPeriod: null,
+  signupConsents: null as Record<string, number> | null,
 };
 
 export const useOnboardingStore = create<OnboardingStore>()(
@@ -134,6 +142,7 @@ export const useOnboardingStore = create<OnboardingStore>()(
       setPeriodLen: (periodLen) => set({ periodLen }),
       setCycleDuration: (cycleDuration) => set({ cycleDuration }),
       setLastPeriod: (lastPeriod) => set({ lastPeriod }),
+      setSignupConsents: (signupConsents) => set({ signupConsents }),
 
       syncCalendar: (next) => {
         // Return before `set`: persist writes the key on every set, even an

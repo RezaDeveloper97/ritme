@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/ritme/backend-go/internal/consent"
 	"github.com/ritme/backend-go/internal/healthrecord"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
@@ -62,19 +63,41 @@ func (s *Service) WithDB(db *sql.DB) *Service { s.db = db; return s }
 
 // inTx runs fn on queries bound to one transaction (or on s.q without WithDB).
 func (s *Service) inTx(ctx context.Context, fn func(q store.Querier) error) error {
+	return s.inTxWith(ctx, func(q store.Querier, _ *sql.Tx) error { return fn(q) })
+}
+
+// inTxWith is inTx that also hands fn the transaction (nil without WithDB), for writes outside this package's store
+// that must commit with the link (the consent-ledger evidence, T-M10-23).
+func (s *Service) inTxWith(ctx context.Context, fn func(q store.Querier, tx *sql.Tx) error) error {
 	if s.db == nil {
-		return fn(s.q)
+		return fn(s.q, nil)
 	}
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("sharelinks: begin: %w", err)
 	}
 	defer func() { _ = tx.Rollback() }()
-	if err := fn(store.New(tx)); err != nil {
+	if err := fn(store.New(tx), tx); err != nil {
 		return err
 	}
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("sharelinks: commit: %w", err)
+	}
+	return nil
+}
+
+// linkEvidence appends the consent-ledger event of a share link (T-M10-23, D-174): consent share_link, source
+// sharelink, scope {link_id, expires_at, items (the sections shared)} on create and {link_id} on revoke. Evidence
+// only — the token stays the gate. Without WithDB (unit wiring) there is no transaction to write it in.
+func linkEvidence(ctx context.Context, tx *sql.Tx, userID uint64, action string, scope map[string]any, now time.Time) error {
+	if tx == nil {
+		return nil
+	}
+	err := consent.AppendScoped(ctx, tx, consent.Scoped{
+		UserID: userID, Consent: consent.ShareLink, Action: action, Source: consent.SourceShareLink, Scope: scope, At: now,
+	})
+	if err != nil {
+		return fmt.Errorf("sharelinks: consent evidence: %w", err)
 	}
 	return nil
 }
@@ -212,7 +235,7 @@ func (s *Service) Create(ctx context.Context, userID uint64, req healthrecord.Re
 	expires := now.Add(LinkTTL)
 	var id int64
 	// The cap check and the insert share one transaction under the user row lock: parallel POSTs cannot pass MaxActive.
-	err = s.inTx(ctx, func(q store.Querier) error {
+	err = s.inTxWith(ctx, func(q store.Querier, tx *sql.Tx) error {
 		if err := s.lockOwner(ctx, q, userID); err != nil {
 			return err
 		}
@@ -231,7 +254,9 @@ func (s *Service) Create(ctx context.Context, userID uint64, req healthrecord.Re
 		if err != nil {
 			return fmt.Errorf("sharelinks: insert: %w", err)
 		}
-		return nil
+		return linkEvidence(ctx, tx, userID, consent.ActionGrant, map[string]any{
+			"link_id": id, "expires_at": jsonx.ISO8601(expires), "items": req.Sections,
+		}, now)
 	})
 	if err != nil {
 		return Created{}, err
@@ -261,16 +286,32 @@ func (s *Service) List(ctx context.Context, userID uint64, now time.Time) ([]Lin
 // Revoke ends a link of userID now and wipes its report (ErrNotFound for a foreign or unknown id). Revoking twice
 // keeps the first revocation time.
 func (s *Service) Revoke(ctx context.Context, userID, id uint64, now time.Time) (Link, error) {
-	n, err := s.q.RevokeShareLink(ctx, store.RevokeShareLinkParams{ID: id, UserID: userID, Now: stamp(now)})
+	var r store.GetShareLinkMetaRow
+	err := s.inTxWith(ctx, func(q store.Querier, tx *sql.Tx) error {
+		before, err := q.GetShareLinkMeta(ctx, store.GetShareLinkMetaParams{ID: id, UserID: userID})
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return fmt.Errorf("sharelinks: get: %w", err)
+		}
+		n, err := q.RevokeShareLink(ctx, store.RevokeShareLinkParams{ID: id, UserID: userID, Now: stamp(now)})
+		if err != nil {
+			return fmt.Errorf("sharelinks: revoke: %w", err)
+		}
+		if n == 0 {
+			return ErrNotFound
+		}
+		if r, err = q.GetShareLinkMeta(ctx, store.GetShareLinkMetaParams{ID: id, UserID: userID}); err != nil {
+			return fmt.Errorf("sharelinks: get: %w", err)
+		}
+		if before.RevokedAt.Valid {
+			return nil // revoked before: the ledger already has it
+		}
+		return linkEvidence(ctx, tx, userID, consent.ActionRevoke, map[string]any{"link_id": id}, now)
+	})
 	if err != nil {
-		return Link{}, fmt.Errorf("sharelinks: revoke: %w", err)
-	}
-	if n == 0 {
-		return Link{}, ErrNotFound
-	}
-	r, err := s.q.GetShareLinkMeta(ctx, store.GetShareLinkMetaParams{ID: id, UserID: userID})
-	if err != nil {
-		return Link{}, fmt.Errorf("sharelinks: get: %w", err)
+		return Link{}, err
 	}
 	return linkOf(store.ListShareLinksRow(r)), nil
 }

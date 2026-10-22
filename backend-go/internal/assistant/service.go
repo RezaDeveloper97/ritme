@@ -158,14 +158,9 @@ func orderedKeys(keys []string) []string {
 	return out
 }
 
-// SetShared saves the user's choice.
+// SetShared saves the user's choice with its consent-ledger evidence (consent.go, T-M10-23).
 func (s *Service) SetShared(ctx context.Context, userID uint64, keys []string, now time.Time) ([]string, error) {
-	keys = orderedKeys(keys)
-	raw, _ := json.Marshal(keys)
-	if err := s.q.UpsertProfileSettings(ctx, store.UpsertProfileSettingsParams{UserID: userID, Shared: string(raw), Now: nt(now)}); err != nil {
-		return nil, fmt.Errorf("assistant: save profile settings: %w", err)
-	}
-	return keys, nil
+	return s.SaveShared(ctx, userID, keys, now)
 }
 
 // ProfileConsent reports whether the user accepted the assistant_profile consent in force. A store error fails closed.

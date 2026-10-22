@@ -47,6 +47,10 @@ func init() {
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		h := consent.NewHandlers(consent.NewService(d.DB), clock.Real{})
 		r.Get("/api/v1/consents", locale, guard, h.List)
+		// T-M10-23 (D-174): the consent ledger — mandatory consents still to accept (one-time sheet, H-18) and the
+		// user's own events. Static paths before /consents/:code.
+		r.Get("/api/v1/consents/pending", locale, guard, h.Pending)
+		r.Get("/api/v1/consents/history", locale, guard, h.History)
 		r.Get("/api/v1/consents/:code", locale, guard, h.Show)
 		r.Put("/api/v1/consents/:code", locale, guard, writeThrottle(d), h.Update)
 	})
