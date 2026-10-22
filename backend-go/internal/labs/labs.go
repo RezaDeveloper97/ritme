@@ -10,11 +10,14 @@
 //	POST /labs/{id}/verify → job interpret → interpreting → ready (summary from the AI client, else rules)
 //	POST /labs/manual → typed-in markers, verified at once, rules interpretation (no AI, not Plus)
 //
-// Interpretation (interpret.go): per-marker status against the sheet's own reference range (the catalog's
-// typical range only when the sheet has none and the unit matches), red flags from the catalog's thresholds,
+// Interpretation (interpret.go, ranges.go): per-marker status against the sheet's own reference range (the general
+// range — registry lab.* keys by pregnancy / inflammation on the lab date, else the catalog's typical one — only
+// when the sheet has none and the unit matches; values read below lab.ocr min_confidence wait for the user's
+// confirmation and count nowhere until then), red flags from the catalog's thresholds,
 // doctor questions and «when to see a doctor» from the catalog, and a short plain-language summary written by the
 // AI client with the user's context (age band, life mode, approximate cycle phase, medication names) under
-// non-diagnostic guardrails; any AI failure falls back to a rules summary, so a lab never stays stuck.
+// non-diagnostic guardrails, as validated JSON with a condition-name / dose filter (guard.go); any AI failure or
+// filtered answer falls back to a rules summary, so a lab never stays stuck.
 //
 // Marker catalog: catalog_items group lab_markers (admin-editable, CB-CORE-03), seeded by migration 00034 with
 // common markers, needs_review. Trends: every verified value of a marker (catalog code, else the normalised
@@ -85,8 +88,6 @@ const (
 	// PagesPerDay caps the pages a user may send to the extractor in 24 h, on top of the monthly Plus quota (abuse /
 	// cost guard). Counted from the append-only AI usage log (B-N6-06b), so deleting labs never resets it.
 	PagesPerDay = 25
-	// LowConfidence marks a value the extractor was unsure about (nbl_Lab_Verify «با اطمینان کم»).
-	LowConfidence = 0.7
 	// MaxNameLen etc. are the column sizes.
 	MaxNameLen     = 120
 	MaxUnitLen     = 24

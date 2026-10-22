@@ -8,8 +8,10 @@ import {
   formatLabValue,
   isBusy,
   type LabMarker,
+  markersToConfirm,
   type MarkerInput,
   useAddLabMarker,
+  useConfirmLabMarker,
   useDeleteLabMarker,
   useLab,
   useLabCatalog,
@@ -63,7 +65,9 @@ function Shell({ header, children, footer }: { header: ReactNode; children: Reac
 
 /**
  * `/labs/[id]/verify` (nbl_Lab_Verify): the values read from the sheet, the
- * low-confidence ones highlighted, each correctable / removable in a sheet,
+ * ones read below the confidence threshold amber until the user taps «تأیید»
+ * on each (or «تأیید همه»; editing a value confirms it too — T-M10-20, H-08:
+ * an unconfirmed value counts nowhere), each correctable / removable in a sheet,
  * missed ones addable, then «تأیید و ادامه» (`POST /labs/{id}/verify`, 202) →
  * processing (the explanation) → result. Editing a ready lab sends it back to
  * review on the server, so this screen also serves «ویرایش مقادیر».
@@ -81,6 +85,7 @@ export function LabVerifyPage({ id }: { id: number }) {
   const update = useUpdateLabMarker(id);
   const remove = useDeleteLabMarker(id);
   const verify = useVerifyLab(id);
+  const confirm = useConfirmLabMarker(id);
   const [verifyError, setVerifyError] = useState<string | null>(null);
 
   const status = lab.data?.status;
@@ -130,7 +135,8 @@ export function LabVerifyPage({ id }: { id: number }) {
   }
 
   const data = lab.data;
-  const saving = add.isPending || update.isPending || remove.isPending;
+  const toConfirm = markersToConfirm(data.markers);
+  const saving = add.isPending || update.isPending || remove.isPending || confirm.isPending;
   const sheetError = add.error ?? update.error ?? remove.error;
   const closeSheet = () => {
     setEditing(null);
@@ -181,17 +187,28 @@ export function LabVerifyPage({ id }: { id: number }) {
         <h2 className="lab-display">{t('verify.heading')}</h2>
         <p className="lab-lead">{t('verify.lead')}</p>
       </div>
-      {data.lowConfidenceCount > 0 ? (
-        <p className="lab-banner is-warm" role="status">
+      {toConfirm.length > 0 ? (
+        <div className="lab-banner is-warm" role="status">
           <Icon name="warning" size={18} strokeWidth={2} />
-          <span>{t('verify.lowConfidence', { count: data.lowConfidenceCount, n: formatNumber(data.lowConfidenceCount, locale) })}</span>
+          <span>{t('verify.lowConfidence', { count: toConfirm.length, n: formatNumber(toConfirm.length, locale) })}</span>
+        </div>
+      ) : null}
+      {toConfirm.length > 0 ? <p className="lab-lead">{t('verify.unconfirmedNote')}</p> : null}
+      {toConfirm.length > 1 ? (
+        <SecondaryButton icon="check" block={false} loading={confirm.isPending} disabled={saving} onClick={() => confirm.mutate(toConfirm)}>
+          {t('verify.confirmAll')}
+        </SecondaryButton>
+      ) : null}
+      {confirm.isError ? (
+        <p className="lab-error is-block" role="alert">
+          {getApiErrorMessage(confirm.error) ?? t('verify.confirmError')}
         </p>
       ) : null}
       <Card as="section" className="lab-verify-card" aria-label={t('verify.listLabel')}>
         {data.markers.length === 0 ? <p className="lab-empty-body">{t('verify.empty')}</p> : null}
         <ul className="lab-vrows">
           {data.markers.map((m) => (
-            <li key={m.id} className={clsx('lab-vrow', m.lowConfidence && 'is-low')}>
+            <li key={m.id} className={clsx('lab-vrow', m.needsConfirmation && 'is-low')}>
               <span className="lab-vrow-name">{m.name}</span>
               <button
                 type="button"
@@ -202,10 +219,23 @@ export function LabVerifyPage({ id }: { id: number }) {
                 <span className="lab-vrow-num">{formatLabValue(m, locale)}</span>
                 {m.unit ? <span className="lab-vrow-unit">{m.unit}</span> : null}
               </button>
-              <span className="lab-vrow-mark" aria-hidden>
-                <Icon name={m.lowConfidence ? 'pencil' : 'check'} size={16} strokeWidth={2.2} />
-              </span>
-              {m.lowConfidence ? <span className="sr-only">{t('verify.lowOne')}</span> : null}
+              {m.needsConfirmation ? (
+                <SecondaryButton
+                  variant="text"
+                  icon="check"
+                  block={false}
+                  disabled={saving}
+                  aria-label={t('verify.confirmLabel', { name: m.name, value: formatLabValue(m, locale), unit: m.unit ?? '' })}
+                  onClick={() => confirm.mutate([m.id])}
+                >
+                  {t('verify.confirm')}
+                </SecondaryButton>
+              ) : (
+                <span className="lab-vrow-mark" aria-hidden>
+                  <Icon name="check" size={16} strokeWidth={2.2} />
+                </span>
+              )}
+              {m.needsConfirmation ? <span className="sr-only">{t('verify.lowOne')}</span> : null}
             </li>
           ))}
         </ul>

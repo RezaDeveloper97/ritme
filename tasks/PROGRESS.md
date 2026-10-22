@@ -1808,3 +1808,28 @@ Nothing needed fixing.
 - Frontend: `useCompleteOnboarding` returns `{profile, dating}`; the onboarding page shows `DatingResultLine` before continuing.
 - Verify: pregnancy, healthrecord, analysis and clinicalconfig unit + int ok; golangci 0 issues; frontend 1963 tests. Contract for pregnancy, pregnancy-v2, analysis-pregnancy, home, messages, loss, analysis and companion: 497 passed, 0 failed. The remaining `ROUTES=all` failures (labs, consents, auth, privacy, healthrecord-extract) were caused by T-M10-20/23, still in flight at commit time.
 - Open → **T-M10-18c:** extract kept-LMP copy, cycle-length source, schema dedupe, goldens + `required`, and a question about onboarding vs a previous pregnancy's LMP.
+
+## T-M10-20 — Labs v6: per-value OCR confirmation, mode-aware ranges, HbA1c bands, borderline as config, JSON summary (D-171)
+- Per-value confirmation:
+  - every value read below `lab.ocr.min_confidence` (0.9, H-08; was 0.7) waits for the user's confirmation;
+  - unconfirmed values are left out of status, red flags, trends and AI;
+  - editing a value confirms it;
+  - new owner-only `POST /api/v1/labs/{id}/markers/{mid}/confirm` (route wired by the main session from the agent's diff);
+  - "confirm" / "confirm all" in lab-verify.
+- `labs/ranges.go`: general ranges, always after the sheet's own range. They depend on mode and trimester on the lab date (via `calc.TrimesterOn`):
+  - Hb non-pregnant / pregnant / T2;
+  - ferritin with CRP;
+  - vitamin D bands, TSH in pregnancy, HbA1c bands, all without diagnosing.
+- Borderline enabled/margin come from `lab.borderline` (H-07), with a `near_edge` hint.
+- AI summary:
+  - validated JSON (`DisallowUnknownFields`);
+  - categories outside the rules, disease names and doses are rejected, falling back to the rules summary;
+  - `labs_ai_filtered_total{reason}` counts the rejections;
+  - `ai/pii.go` is unchanged; unconfirmed values are filtered before the prompt.
+- Contract: `contract/allowlist/labs.yaml` (D-171). The main session added the `data.marker.*` single-marker paths.
+- Verify on the combined tree: labs unit + int ok; `make contract ROUTES=all` 1914 passed, 0 failed; frontend 1972 tests; copy:check labs clean.
+- Open:
+  - H-07 is advisor-pending;
+  - no contract case yet for the confirm endpoint;
+  - `ai/fake_chat.go` has no JSON labs fixture, so the contract stack always shows the rules summary;
+  - `ConfirmLabMarker` should also be scoped by `lab_id` in SQL (checked in Go today).

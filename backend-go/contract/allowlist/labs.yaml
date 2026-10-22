@@ -1,0 +1,134 @@
+group: labs
+entries:
+  # D-171 (task T-M10-20, engine v6 M10, user OK 2026-10-21; DECISIONS.md H-07, H-08): every marker says whether its
+  # value waits for the user's confirmation (read below lab.ocr min_confidence 0.9), when it was confirmed, its
+  # registry band (vitamin D, HbA1c), the near-edge hint (lab.borderline) and the «محدوده عمومی» label / basis of a
+  # general range.
+  - case: "*"
+    where: "**.markers[*].needs_confirmation"
+    deviation: D-171
+    reason: per-value OCR confirmation (H-08)
+  - case: "*"
+    where: "**.markers[*].confirmed_at"
+    deviation: D-171
+    reason: per-value OCR confirmation (H-08)
+  - case: "*"
+    where: "**.markers[*].band"
+    deviation: D-171
+    reason: vitamin D / HbA1c registry bands
+  - case: "*"
+    where: "**.markers[*].near_edge"
+    deviation: D-171
+    reason: lab.borderline near-edge hint (H-07)
+  - case: "*"
+    where: "**.markers[*].reference.label"
+    deviation: D-171
+    reason: «محدوده عمومی» label of a general range
+  - case: "*"
+    where: "**.markers[*].reference.note"
+    deviation: D-171
+    reason: basis of a general range (pregnancy, trimester 2, inflammation)
+  - case: "*"
+    where: data.unconfirmed_count
+    deviation: D-171
+    reason: values waiting for confirmation
+  - case: "*"
+    where: data.min_confidence
+    deviation: D-171
+    reason: lab.ocr min_confidence of the lab date
+  - case: "*"
+    where: data.interpretation.out_of_range
+    deviation: D-171
+    reason: the JSON summary's out-of-range section (categories from the rules, AI explanation or null)
+
+  # D-171: lab_panel reads vitamin D at 0.88 and FBS at 0.62. With lab.ocr 0.9 both wait for a confirmation (FBS is
+  # confirmed by the user's edit; vitamin D stays unconfirmed in this flow), so vitamin D is unknown on every step —
+  # counts, attention, the history row, the trends (left out) and the summary change with it.
+  - case: "upload_verify_result.*"
+    where: "**.counts.*"
+    deviation: D-171
+    reason: the unconfirmed vitamin D counts as unknown
+  - case: "upload_verify_result.*"
+    where: data.low_confidence_count
+    deviation: D-171
+    reason: below 0.9 instead of 0.7 (vitamin D 0.88 now low confidence)
+  - case: "upload_verify_result.*"
+    where: "data.markers[*].state"
+    deviation: D-171
+    reason: the unconfirmed vitamin D is excluded from the status rules
+  - case: "upload_verify_result.*"
+    where: "data.markers[*].state_label"
+    deviation: D-171
+    reason: «منتظر تأیید تو» for the unconfirmed vitamin D
+  - case: "upload_verify_result.*"
+    where: "data.markers[*].attention"
+    deviation: D-171
+    reason: the unconfirmed vitamin D is excluded from the status rules
+  - case: "upload_verify_result.*"
+    where: "data.markers[*].low_confidence"
+    deviation: D-171
+    reason: below 0.9 instead of 0.7
+  - case: "upload_verify_result.*"
+    where: "data.labs[*].attention_count"
+    deviation: D-171
+    reason: the unconfirmed vitamin D is not out of range
+  - case: "upload_verify_result.*"
+    step: 13
+    where: "data.markers"
+    deviation: D-171
+    reason: the trends leave the unconfirmed vitamin D out (one series fewer)
+  - case: "upload_verify_result.*"
+    step: 13
+    where: "data.markers[*].**"
+    deviation: D-171
+    reason: the trends leave the unconfirmed vitamin D out (the later series move up one index)
+
+  # D-171: the AI summary must be the validated JSON {summary, out_of_range, doctor_questions}. The fake chat's
+  # default fixture is free text, so the contract stack (AI_PROVIDER fake) stores the rules summary: source rules,
+  # the rules disclaimer and the rules' doctor questions (without the vitamin D ones).
+  - case: "upload_verify_result.*"
+    where: data.interpretation.summary
+    deviation: D-171
+    reason: free-text fake reply → rules summary
+  - case: "upload_verify_result.*"
+    where: data.interpretation.source
+    deviation: D-171
+    reason: free-text fake reply → rules summary
+  - case: "upload_verify_result.*"
+    where: data.interpretation.disclaimer
+    deviation: D-171
+    reason: the rules disclaimer goes with the rules summary
+  - case: "upload_verify_result.*"
+    where: data.interpretation.doctor_questions
+    deviation: D-171
+    reason: no vitamin D questions while it waits for its confirmation
+  - case: "upload_verify_result.*"
+    where: "data.interpretation.doctor_questions[*]"
+    deviation: D-171
+    reason: no vitamin D questions while it waits for its confirmation
+
+  # D-171: the same per-marker keys on the single-marker endpoint (GET /labs/{id}/markers/{mid} → data.marker).
+  - case: "*"
+    where: data.marker.needs_confirmation
+    deviation: D-171
+    reason: per-value OCR confirmation (H-08)
+  - case: "*"
+    where: data.marker.confirmed_at
+    deviation: D-171
+    reason: per-value OCR confirmation (H-08)
+  - case: "*"
+    where: data.marker.band
+    deviation: D-171
+    reason: vitamin D / HbA1c registry bands
+  - case: "*"
+    where: data.marker.near_edge
+    deviation: D-171
+    reason: lab.borderline near-edge hint (H-07)
+  - case: "*"
+    where: data.marker.reference.label
+    deviation: D-171
+    reason: «محدوده عمومی» label of a general range
+  - case: "*"
+    where: data.marker.reference.note
+    deviation: D-171
+    reason: basis of a general range (pregnancy, trimester 2, inflammation)

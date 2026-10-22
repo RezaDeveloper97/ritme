@@ -123,8 +123,8 @@
     "title": "بررسی مقادیر",
     "heading": "این اعداد درست خوانده شده‌اند؟",
     "lead": "قبل از تحلیل، مقادیر خوانده‌شده را با برگه‌ات مقایسه کن.",
-    "lowConfidence": "{n} مورد با اطمینان کم خوانده شد",
-    "lowOne": "با اطمینان کم خوانده شد",
+    "lowConfidence": "{n} مقدار با اطمینان کم خوانده شد؛ با برگه مقایسه و تأییدش کن",
+    "lowOne": "با اطمینان کم خوانده شد؛ منتظر تأیید تو",
     "listLabel": "مقادیر خوانده‌شده",
     "empty": "هیچ مقداری خوانده نشد؛ شاخص‌ها را دستی اضافه کن.",
     "editLabel": "ویرایش {name}: {value} {unit}",
@@ -150,7 +150,12 @@
       "value": "مقدار را بنویس.",
       "number": "یک عدد بنویس.",
       "order": "حد پایین باید از حد بالا کمتر باشد."
-    }
+    },
+    "confirm": "تأیید",
+    "confirmLabel": "تأیید مقدار {name}: {value} {unit}",
+    "confirmAll": "تأیید همه",
+    "confirmError": "تأیید نشد. دوباره امتحان کن.",
+    "unconfirmedNote": "تا تأییدش نکنی، این مقدار در تحلیل و روند حساب نمی‌شود."
   },
   "result": {
     "title": "نتیجهٔ تحلیل",
@@ -191,7 +196,13 @@
     "keep": "نگه دار",
     "deleteError": "حذف نشد. دوباره امتحان کن.",
     "rangeLabel": "{value}، محدودهٔ مرجع {ref}",
-    "reference": "مرجع: {ref}"
+    "reference": "مرجع: {ref}",
+    "generalReference": "محدودهٔ عمومی: {ref}",
+    "nearEdge": "نزدیک مرز محدوده",
+    "explanations": "توضیح موارد خارج از محدوده",
+    "unconfirmed": "{n} مقدار هنوز تأیید نشده و در این تحلیل حساب نشده است.",
+    "confirmValues": "تأیید مقادیر",
+    "explanationItem": "{name} ({state}): {text}"
   },
   "marker": {
     "title": "شاخص",
@@ -206,6 +217,7 @@
     "chartCaption": "روند شاخص",
     "chartDate": "تاریخ",
     "chartValue": "مقدار",
-    "between": "{low} تا {high}"
+    "between": "{low} تا {high}",
+    "generalRange": "محدودهٔ عمومی: {ref}"
   }
 }

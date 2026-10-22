@@ -30,8 +30,9 @@ describe('rangeGeometry', () => {
 describe('lab marker helpers', () => {
   const m = (over: Partial<LabMarker>): LabMarker => ({
     id: 1, code: null, name: 'x', printedName: 'x', subtitle: null, value: 1, valueText: null, unit: null,
-    reference: { low: null, high: null, text: null, source: null }, state: 'normal', stateLabel: '',
-    attention: false, confidence: null, lowConfidence: false, source: 'extracted', ...over,
+    reference: { low: null, high: null, text: null, source: null, label: null, note: null }, state: 'normal', stateLabel: '',
+    attention: false, band: null, nearEdge: false, confidence: null, lowConfidence: false, needsConfirmation: false,
+    confirmedAt: null, source: 'extracted', ...over,
   });
 
   it('orders attention first (out of range before borderline)', () => {
@@ -60,8 +61,8 @@ describe('lab marker helpers', () => {
   it('formats values and ranges in the locale digits', () => {
     expect(formatLabValue({ value: 11.2, valueText: null }, 'fa')).toBe('۱۱٫۲');
     expect(formatLabValue({ value: null, valueText: 'Negative' }, 'en')).toBe('Negative');
-    expect(formatReference({ low: 12, high: 16, text: null, source: 'sheet' }, 'en')).toBe('12–16');
-    expect(formatReference({ low: null, high: null, text: '0.4–4', source: 'sheet' }, 'fa')).toBe('۰٫۴–۴');
-    expect(formatReference({ low: null, high: null, text: null, source: null }, 'fa')).toBeNull();
+    expect(formatReference({ low: 12, high: 16, text: null, source: 'sheet', label: null, note: null }, 'en')).toBe('12–16');
+    expect(formatReference({ low: null, high: null, text: '0.4–4', source: 'sheet', label: null, note: null }, 'fa')).toBe('۰٫۴–۴');
+    expect(formatReference({ low: null, high: null, text: null, source: null, label: null, note: null }, 'fa')).toBeNull();
   });
 });

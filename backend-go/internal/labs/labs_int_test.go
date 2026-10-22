@@ -47,6 +47,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
+	"github.com/ritme/backend-go/internal/platform/metrics"
 	"github.com/ritme/backend-go/internal/plus"
 	"github.com/ritme/backend-go/internal/profile"
 	profilestore "github.com/ritme/backend-go/internal/profile/store"
@@ -116,6 +117,7 @@ func setup(t *testing.T, sync bool) *env {
 	app.Get(p+"/:id/markers/:mid", locale, guard, h.ShowMarker)
 	app.Put(p+"/:id/markers/:mid", locale, guard, h.UpdateMarker)
 	app.Delete(p+"/:id/markers/:mid", locale, guard, h.DestroyMarker)
+	app.Post(p+"/:id/markers/:mid/confirm", locale, guard, h.ConfirmMarker)
 	app.Get(p+"/:id/files/:fid", locale, guard, h.File)
 	app.Delete(p+"/:id/files/:fid", locale, guard, h.DestroyFile)
 	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), svc: svc, runner: runner,
@@ -262,7 +264,9 @@ func TestGateAndUploadPipeline(t *testing.T) {
 	assert.Equal(t, "hemoglobin", first["code"])
 	assert.Equal(t, "هموگلوبین", first["name"])
 	assert.Equal(t, labs.StateBorderlineLow, first["state"])
-	assert.Equal(t, float64(1), data(r)["low_confidence_count"], "FBS read at 0.62")
+	assert.Equal(t, float64(2), data(r)["low_confidence_count"], "FBS read at 0.62, vitamin D at 0.88 (lab.ocr 0.9)")
+	assert.Equal(t, float64(2), data(r)["unconfirmed_count"])
+	assert.Equal(t, 0.9, data(r)["min_confidence"])
 	assert.Equal(t, 1, usage(t, e, a))
 	id := labID(r)
 
@@ -297,6 +301,7 @@ func TestGateAndUploadPipeline(t *testing.T) {
 		{http.MethodGet, fmt.Sprintf("/api/v1/labs/%d/markers/%d", id, mid)},
 		{http.MethodPut, fmt.Sprintf("/api/v1/labs/%d/markers/%d", id, mid)},
 		{http.MethodDelete, fmt.Sprintf("/api/v1/labs/%d/markers/%d", id, mid)},
+		{http.MethodPost, fmt.Sprintf("/api/v1/labs/%d/markers/%d/confirm", id, mid)},
 		{http.MethodGet, fileURL},
 		{http.MethodDelete, fileURL},
 	} {
@@ -341,18 +346,30 @@ func TestGateAndUploadPipeline(t *testing.T) {
 		}
 	}
 
+	fakeLabReply(t, labReplyOK)
 	v := e.json(t, http.MethodPost, fmt.Sprintf("/api/v1/labs/%d/verify", id), aTok, nil)
 	require.Equal(t, http.StatusAccepted, v.status, string(v.raw))
 	assert.Equal(t, labs.StatusReady, data(v)["status"])
 	in := data(v)["interpretation"].(map[string]any)
 	assert.Equal(t, labs.SummaryAI, in["source"])
 	assert.Contains(t, in["summary"], "پزشک", "the fake's non-diagnostic reply")
-	assert.NotEmpty(t, in["doctor_questions"])
+	assert.Equal(t, []any{"چند وقت دیگر آزمایش را تکرار کنم؟"}, in["doctor_questions"], "the AI's validated questions")
+	oor := in["out_of_range"].([]any)
+	require.Len(t, oor, 2, "hemoglobin (borderline) and ferritin; vitamin D waits for its confirmation")
+	for _, o := range oor {
+		om := o.(map[string]any)
+		if om["code"] == "ferritin" {
+			assert.Equal(t, "ممکن است با خونریزی پریود مرتبط باشد.", om["explanation"])
+		} else {
+			assert.Nil(t, om["explanation"])
+		}
+	}
 	assert.Contains(t, in["disclaimer"], "تشخیص یا درمان نیست")
 	assert.Equal(t, float64(labs.MaxInterpretations-1), data(v)["ai_interpretations_left"])
 	counts := data(v)["counts"].(map[string]any)
 	assert.Equal(t, float64(5), counts["total"])
-	assert.Equal(t, float64(3), counts["attention"]) // hemoglobin (borderline), ferritin, vitamin D
+	assert.Equal(t, float64(2), counts["attention"]) // hemoglobin (borderline), ferritin; vitamin D unconfirmed
+	assert.Equal(t, float64(1), counts["unknown"])
 
 	// Marker detail: about, factors, context notes (5-day periods, TTC), trend sentence.
 	var ferritin uint64
@@ -405,6 +422,141 @@ func TestGateAndUploadPipeline(t *testing.T) {
 	dl := e.json(t, http.MethodDelete, fmt.Sprintf("/api/v1/labs/%d", id), aTok, nil)
 	require.Equal(t, http.StatusOK, dl.status)
 	assert.Equal(t, http.StatusNotFound, e.json(t, http.MethodGet, fmt.Sprintf("/api/v1/labs/%d", id), aTok, nil).status)
+}
+
+const labReplyOK = `{"summary": "ذخیره آهن کمی پایین است؛ نتیجه را با پزشکت در میان بگذار.", "out_of_range": [{"code": "ferritin", "explanation": "ممکن است با خونریزی پریود مرتبط باشد."}], "doctor_questions": ["چند وقت دیگر آزمایش را تکرار کنم؟"]}`
+
+// fakeLabReply makes the fake chat answer reply (the default fixture is free text, which the JSON contract refuses).
+func fakeLabReply(t *testing.T, reply string) {
+	t.Helper()
+	prev := ai.FakeChatReplies["default"]
+	ai.FakeChatReplies["default"] = map[string]string{"en": reply}
+	t.Cleanup(func() { ai.FakeChatReplies["default"] = prev })
+}
+
+func markerBy(r resp, code string) map[string]any {
+	for _, m := range markers(r) {
+		if mm := m.(map[string]any); mm["code"] == code {
+			return mm
+		}
+	}
+	return nil
+}
+
+// T-M10-20 / D-171: per-value confirmation at lab.ocr 0.9, the JSON summary and its filter.
+func TestPerValueConfirmationAndAIFilter(t *testing.T) {
+	e := setup(t, true)
+	_, aTok := e.user(t, "09900006071", true, true)
+	_, bTok := e.user(t, "09900006072", true, true)
+
+	r := e.upload(t, aTok, map[string]string{"category": "blood", "taken_on": "2026-09-01"}, part{"files", "sheet.pdf", pdf("lab_panel")})
+	require.Equal(t, http.StatusAccepted, r.status, string(r.raw))
+	id := labID(r)
+	vd := markerBy(r, "vitamin_d")
+	require.NotNil(t, vd)
+	assert.Equal(t, true, vd["needs_confirmation"], "0.88 < 0.9")
+	assert.Equal(t, labs.StateUnknown, vd["state"])
+	assert.Nil(t, vd["confirmed_at"])
+	assert.Equal(t, false, markerBy(r, "ferritin")["needs_confirmation"], "0.9 is enough")
+	vdID := uint64(vd["id"].(float64))
+
+	// The report can be verified with unconfirmed values; they are left out of the summary and the trends.
+	fakeLabReply(t, labReplyOK)
+	v := e.json(t, http.MethodPost, fmt.Sprintf("/api/v1/labs/%d/verify", id), aTok, nil)
+	require.Equal(t, http.StatusAccepted, v.status, string(v.raw))
+	assert.Equal(t, labs.SummaryAI, data(v)["interpretation"].(map[string]any)["source"])
+	tr := e.json(t, http.MethodGet, "/api/v1/labs/trends", aTok, nil)
+	assert.NotContains(t, string(tr.raw), `"code":"vitamin_d"`)
+
+	// Another user's confirm is a 404; the owner's confirms the value and sends the ready lab back to review.
+	assert.Equal(t, http.StatusNotFound, e.json(t, http.MethodPost, fmt.Sprintf("/api/v1/labs/%d/markers/%d/confirm", id, vdID), bTok, nil).status)
+	assert.Equal(t, http.StatusNotFound, e.json(t, http.MethodPost, fmt.Sprintf("/api/v1/labs/%d/markers/999999/confirm", id), aTok, nil).status)
+	c := e.json(t, http.MethodPost, fmt.Sprintf("/api/v1/labs/%d/markers/%d/confirm", id, vdID), aTok, nil)
+	require.Equal(t, http.StatusOK, c.status, string(c.raw))
+	vd = markerBy(c, "vitamin_d")
+	assert.Equal(t, false, vd["needs_confirmation"])
+	assert.NotNil(t, vd["confirmed_at"])
+	assert.Equal(t, labs.StateLow, vd["state"], "14 against the sheet's 30–100")
+	assert.Equal(t, labs.StatusNeedsReview, data(c)["status"])
+	assert.Equal(t, float64(1), data(c)["unconfirmed_count"], "FBS still waits")
+	again := e.json(t, http.MethodPost, fmt.Sprintf("/api/v1/labs/%d/markers/%d/confirm", id, vdID), aTok, nil)
+	require.Equal(t, http.StatusOK, again.status)
+
+	// Editing a value confirms it.
+	fbs := markerBy(c, "glucose_fasting")
+	up := e.json(t, http.MethodPut, fmt.Sprintf("/api/v1/labs/%d/markers/%d", id, uint64(fbs["id"].(float64))), aTok,
+		map[string]any{"name": "FBS", "value": 92, "unit": "mg/dL", "ref_low": 70, "ref_high": 100})
+	require.Equal(t, http.StatusOK, up.status, string(up.raw))
+	assert.Equal(t, false, markerBy(up, "glucose_fasting")["needs_confirmation"])
+	assert.Equal(t, float64(0), data(up)["unconfirmed_count"])
+
+	// The confirmed value is in the next interpretation; a diagnosis in the AI text → the rules summary.
+	fakeLabReply(t, `{"summary": "دیابت داری.", "out_of_range": [], "doctor_questions": []}`)
+	v = e.json(t, http.MethodPost, fmt.Sprintf("/api/v1/labs/%d/verify", id), aTok, nil)
+	require.Equal(t, http.StatusAccepted, v.status, string(v.raw))
+	in := data(v)["interpretation"].(map[string]any)
+	assert.Equal(t, labs.SummaryRules, in["source"])
+	assert.NotContains(t, in["summary"], "دیابت")
+	assert.GreaterOrEqual(t, filtered(t, labs.FilterDiagnostic), 1.0, "labs_ai_filtered_total{reason=diagnostic}")
+	assert.Contains(t, in["summary"], "ویتامین D")
+	codes := []any{}
+	for _, o := range in["out_of_range"].([]any) {
+		codes = append(codes, o.(map[string]any)["code"])
+	}
+	assert.Contains(t, codes, "vitamin_d")
+
+	// A dose or invalid JSON → the rules summary too.
+	fakeLabReply(t, `{"summary": "take 500 mg of iron", "out_of_range": [], "doctor_questions": []}`)
+	v = e.json(t, http.MethodPost, fmt.Sprintf("/api/v1/labs/%d/verify", id), aTok, nil)
+	require.Equal(t, http.StatusAccepted, v.status, string(v.raw))
+	assert.Equal(t, labs.SummaryRules, data(v)["interpretation"].(map[string]any)["source"])
+}
+
+// filtered reads labs_ai_filtered_total{reason} from the process registry.
+func filtered(t *testing.T, reason string) float64 {
+	t.Helper()
+	mfs, err := metrics.Registry().Gather()
+	require.NoError(t, err)
+	for _, mf := range mfs {
+		if mf.GetName() != "labs_ai_filtered_total" {
+			continue
+		}
+		for _, m := range mf.GetMetric() {
+			for _, lp := range m.GetLabel() {
+				if lp.GetName() == "reason" && lp.GetValue() == reason {
+					return m.GetCounter().GetValue()
+				}
+			}
+		}
+	}
+	return 0
+}
+
+// T-M10-20: the general range of a typed-in lab follows the pregnancy on the lab date (trimester 2 → Hb < 10.5).
+func TestGeneralRangesByPregnancyOnTheLabDate(t *testing.T) {
+	e := setup(t, true)
+	a, aTok := e.user(t, "09900006081", false, false)
+	manual := func(date string) resp {
+		r := e.json(t, http.MethodPost, "/api/v1/labs/manual", aTok, map[string]any{"category": "blood", "taken_on": date,
+			"markers": []any{map[string]any{"name": "Hb", "value": 10.7, "unit": "g/dL"}}})
+		require.Equal(t, http.StatusCreated, r.status, string(r.raw))
+		return r
+	}
+	r := manual("2026-06-01")
+	hb := markerBy(r, "hemoglobin")
+	assert.Equal(t, labs.StateLow, hb["state"], "not pregnant: < 12")
+	assert.Equal(t, "محدوده عمومی", hb["reference"].(map[string]any)["label"])
+
+	// LMP 2026-03-01: 2026-06-15 is 15+1 weeks (trimester 2), 2026-04-01 is 4+3 (trimester 1).
+	_, err := e.db.Exec(`INSERT INTO pregnancy_profiles (user_id, pregnancy_mode, age_source, lmp_date, created_at, updated_at)
+		VALUES (?, 1, 'lmp', '2026-03-01', NOW(), NOW())`, a)
+	require.NoError(t, err)
+	r = manual("2026-06-15")
+	hb = markerBy(r, "hemoglobin")
+	assert.Equal(t, labs.StateNormal, hb["state"], "trimester 2: ≥ 10.5")
+	assert.Contains(t, hb["reference"].(map[string]any)["note"], "سه\u200cماهه دوم")
+	r = manual("2026-04-01")
+	assert.True(t, strings.Contains(fmt.Sprint(markerBy(r, "hemoglobin")["state"]), "low"), "trimester 1: < 11")
 }
 
 func TestFailedExtractionRefundsAndPhoto(t *testing.T) {

@@ -2,10 +2,23 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 
-import { formatLabValue, formatReference, type LabMarker, MarkerStatePill, RangeBar, stateTone } from '@/entities/lab';
+import {
+  formatLabValue,
+  formatReference,
+  type LabMarker,
+  MarkerStatePill,
+  RangeBar,
+  referenceKind,
+  showsNearEdge,
+  stateTone,
+} from '@/entities/lab';
 import type { Locale } from '@/shared/i18n';
 
-/** One marker of the result: name, value + unit in the state's tone, the state pill, the range bar and «مرجع: …». A button to the marker detail. */
+/**
+ * One marker of the result: name, value + unit in the state's tone, the state pill, the range bar and «مرجع: …»
+ * («محدودهٔ عمومی: …» when the sheet printed none, with why it differs), plus the near-edge hint. A button to the
+ * marker detail.
+ */
 export function MarkerRow({ marker, onOpen }: { marker: LabMarker; onOpen: () => void }) {
   const t = useTranslations('labs.result');
   const locale = useLocale() as Locale;
@@ -30,7 +43,14 @@ export function MarkerRow({ marker, onOpen }: { marker: LabMarker; onOpen: () =>
           tone={tone}
           label={ref ? t('rangeLabel', { value, ref }) : value}
         />
-        {ref ? <span className="lab-mrow-ref">{t('reference', { ref })}</span> : null}
+        {ref ? (
+          <span className="lab-mrow-ref">
+            {referenceKind(marker.reference) === 'general' ? t('generalReference', { ref }) : t('reference', { ref })}
+          </span>
+        ) : null}
+        {marker.reference.note ? <span className="lab-mrow-ref">{marker.reference.note}</span> : null}
+        {showsNearEdge(marker) ? <span className="lab-mrow-ref">{t('nearEdge')}</span> : null}
+        {marker.band?.note ? <span className="lab-mrow-ref">{marker.band.note}</span> : null}
       </button>
     </li>
   );

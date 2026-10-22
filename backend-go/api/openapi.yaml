@@ -18672,6 +18672,33 @@ paths:
         '404': {$ref: "#/components/responses/LabNotFound"}
         '409': {$ref: "#/components/responses/LabConflict"}
         '429': {$ref: "#/components/responses/TooManyAttempts"}
+  /api/v1/labs/{id}/markers/{mid}/confirm:
+    post:
+      tags: [Labs]
+      summary: Confirm a value read with low confidence
+      description: |
+        T-M10-20 (H-08, D-171): a value the extractor read below lab.ocr min_confidence (0.9) is amber on the verify
+        screen and counts nowhere (status rules, red flags, trends, the AI payload) until the user confirms it here
+        (or edits it). Confirming a confirmed value is a no-op. A ready upload goes back to needs_review (its summary
+        left the value out); a manual lab is re-interpreted by the rules. Owner only (another user's lab or marker is
+        the same 404); 409 while the lab is being processed or failed.
+      operationId: confirmLabMarker
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/LabId"}
+        - {$ref: "#/components/parameters/LabMarkerId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Confirmed; the lab
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LabEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LabNotFound"}
+        '409': {$ref: "#/components/responses/LabConflict"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/labs/{id}/files/{fid}:
     get:
       tags: [Labs]
@@ -27886,7 +27913,10 @@ components:
       enum: [queued, reading, extracting, review, explaining, done, failed]
     LabState:
       type: string
-      description: "Value against the range: below by ≤ 10 % of the bound = borderline"
+      description: |
+        Value against the range: outside by ≤ lab.borderline margin (10 %) of the bound = borderline while
+        lab.borderline enabled = 1 (H-07); with 0 there is no borderline class, only `near_edge`. `unknown` also for a
+        value read below lab.ocr min_confidence that the user has not confirmed yet (T-M10-20, D-171).
       enum: [low, borderline_low, normal, borderline_high, high, unknown]
     LabMarkerInput:
       type: object
@@ -27920,12 +27950,27 @@ components:
             low: {type: [number, "null"]}
             high: {type: [number, "null"]}
             text: {type: [string, "null"]}
-            source: {type: [string, "null"], enum: [sheet, typical, null]}
+            source: {type: [string, "null"], enum: [sheet, typical, null], description: "typical = the general range «محدوده عمومی» (registry lab.* keys on the lab date, else the catalog's), used only when the sheet printed none"}
+            label: {type: [string, "null"], description: "«محدوده عمومی» when source is typical (T-M10-20)"}
+            note: {type: [string, "null"], description: "why the general range differs: pregnancy, trimester 2 (calc.TrimesterOn on the lab date), inflammation (CRP above its range on the sheet)"}
         state: {$ref: "#/components/schemas/LabState"}
-        state_label: {type: string}
+        state_label: {type: string, description: "the band label for a banded marker; «منتظر تأیید تو» while unconfirmed"}
         attention: {type: boolean}
+        band:
+          description: "Registry band of vitamin D (lab.vitd) / HbA1c (lab.hba1c) on a general range — a category, never a diagnosis (T-M10-20)"
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [code, label, note]
+              properties:
+                code: {type: string, enum: [vitd_deficient, vitd_insufficient, vitd_sufficient, hba1c_typical, hba1c_raised, hba1c_high]}
+                label: {type: string}
+                note: {type: [string, "null"]}
+        near_edge: {type: boolean, description: "outside the range by ≤ the lab.borderline margin (a visual hint)"}
         confidence: {type: [number, "null"], description: "extractor confidence 0–1; null for typed values"}
-        low_confidence: {type: boolean}
+        low_confidence: {type: boolean, description: "read below lab.ocr min_confidence (0.9) of the lab date"}
+        needs_confirmation: {type: boolean, description: "low confidence and not confirmed: excluded from the status rules, red flags, trends and the AI payload until POST …/confirm or an edit (H-08)"}
+        confirmed_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
         source: {type: string, enum: [extracted, edited, manual]}
         catalog_needs_review: {type: boolean}
     LabRedFlag:
@@ -27972,6 +28017,8 @@ components:
         ai_interpretations_left: {type: integer}
         counts: {$ref: "#/components/schemas/LabCounts"}
         low_confidence_count: {type: integer}
+        unconfirmed_count: {type: integer, description: "markers waiting for the user's confirmation (T-M10-20)"}
+        min_confidence: {type: number, description: "lab.ocr min_confidence on the lab date"}
         markers: {type: array, items: {$ref: "#/components/schemas/LabMarker"}}
         files:
           type: array
@@ -27995,8 +28042,25 @@ components:
                 locale: {type: string}
                 generated_at: {$ref: "#/components/schemas/IsoDateTime"}
                 stale: {type: boolean}
+                out_of_range:
+                  type: array
+                  description: |
+                    T-M10-20: the markers the rules put out of range (categories always from the rules), each with the
+                    AI's plain explanation when the summary is the AI's validated JSON answer, else null. An AI answer
+                    that is not the JSON shape, names a condition or a dose, or argues with a category is discarded for
+                    the rules summary (labs_ai_filtered_total).
+                  items:
+                    type: object
+                    required: [marker_id, code, name, state, state_label, explanation]
+                    properties:
+                      marker_id: {type: integer}
+                      code: {type: [string, "null"]}
+                      name: {type: string}
+                      state: {$ref: "#/components/schemas/LabState"}
+                      state_label: {type: string}
+                      explanation: {type: [string, "null"]}
                 red_flags: {type: array, items: {$ref: "#/components/schemas/LabRedFlag"}}
-                doctor_questions: {type: array, maxItems: 5, items: {type: string}}
+                doctor_questions: {type: array, maxItems: 5, items: {type: string}, description: "the AI's validated questions when source is ai, else the catalog's"}
                 disclaimer: {type: string}
         feedback:
           oneOf:

@@ -361,9 +361,10 @@ func (s *Service) runInterpret(ctx context.Context, job store.LabJob, final bool
 		useAI = false
 	}
 	var retryErr error
-	err = s.storeInterpretation(wctx, lab.UserID, lab.ID, l, now, func(evals []Evaluated, uc UserContext) (string, string) {
+	err = s.storeInterpretation(wctx, lab.UserID, lab.ID, l, now, func(evals []Evaluated, uc UserContext) aiResult {
+		evals = promptEvals(evals) // a value waiting for its confirmation never leaves the server
 		if !useAI || len(evals) == 0 {
-			return "", SummaryRules
+			return aiResult{}
 		}
 		flags := map[uint64]RedFlag{}
 		for _, e := range evals {
@@ -371,14 +372,14 @@ func (s *Service) runInterpret(ctx context.Context, job store.LabJob, final bool
 				flags[e.Row.ID] = f
 			}
 		}
-		text, err := aiSummary(s.subject(ctx, lab.UserID), s.client, buildPrompt(evals, uc, l.Locale, flags), uc.Names)
+		res, err := aiSummary(s.subject(ctx, lab.UserID), s.client, buildPrompt(evals, uc, l.Locale, flags), evals, uc.Names)
 		if err != nil {
 			if je := classify(err); je.retry && !final {
 				retryErr = je
 			}
-			return "", SummaryRules
+			return aiResult{}
 		}
-		return text, SummaryAI
+		return res
 	})
 	if retryErr != nil {
 		// Undo nothing: the lab goes back to interpreting so the retry writes the AI summary over the rules one.

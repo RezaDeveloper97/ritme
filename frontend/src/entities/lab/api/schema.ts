@@ -13,6 +13,7 @@ import type {
   MarkerDetail,
   MarkerState,
   MarkerTrend,
+  OutOfRangeItem,
   RedFlag,
 } from '../model/types';
 
@@ -47,13 +48,21 @@ export const markerSchema = z
     value_text: text,
     unit: text,
     reference: z
-      .object({ low: num, high: num, text, source: text })
+      .object({ low: num, high: num, text, source: text, label: text.optional(), note: text.optional() })
       .catch({ low: null, high: null, text: null, source: null }),
     state,
     state_label: str,
     attention: z.boolean().catch(false),
+    band: z
+      .object({ code: z.string(), label: str, note: text })
+      .nullable()
+      .optional()
+      .catch(null),
+    near_edge: z.boolean().optional().catch(false),
     confidence: num,
     low_confidence: z.boolean().catch(false),
+    needs_confirmation: z.boolean().optional().catch(false),
+    confirmed_at: text.optional(),
     source: str,
   })
   .transform(
@@ -66,12 +75,23 @@ export const markerSchema = z
       value: m.value,
       valueText: m.value_text,
       unit: m.unit,
-      reference: m.reference,
+      reference: {
+        low: m.reference.low,
+        high: m.reference.high,
+        text: m.reference.text,
+        source: m.reference.source,
+        label: m.reference.label ?? null,
+        note: m.reference.note ?? null,
+      },
       state: m.state,
       stateLabel: m.state_label,
       attention: m.attention,
+      band: m.band ?? null,
+      nearEdge: m.near_edge ?? false,
       confidence: m.confidence,
       lowConfidence: m.low_confidence,
+      needsConfirmation: m.needs_confirmation ?? false,
+      confirmedAt: m.confirmed_at ?? null,
       source: m.source,
     }),
   );
@@ -90,11 +110,36 @@ const redFlags = z
   .catch([])
   .transform((l) => l.filter((f): f is RedFlag => f !== null && f.message !== ''));
 
+const outOfRangeSchema = z
+  .object({
+    marker_id: z.number().int(),
+    code: text,
+    name: str,
+    state,
+    state_label: str,
+    explanation: text,
+  })
+  .transform(
+    (o): OutOfRangeItem => ({
+      markerId: o.marker_id,
+      code: o.code,
+      name: o.name,
+      state: o.state,
+      stateLabel: o.state_label,
+      explanation: o.explanation && o.explanation.trim() !== '' ? o.explanation : null,
+    }),
+  );
+
 const interpretationSchema = z
   .object({
     summary: str,
     source: z.enum(['ai', 'rules']).catch('rules'),
     stale: z.boolean().catch(false),
+    out_of_range: z
+      .array(outOfRangeSchema.nullable().catch(null))
+      .catch([])
+      .optional()
+      .transform((l) => (l ?? []).filter((o): o is OutOfRangeItem => o !== null && o.name !== '')),
     red_flags: redFlags,
     doctor_questions: strings,
     disclaimer: str,
@@ -103,6 +148,7 @@ const interpretationSchema = z
     summary: i.summary,
     source: i.source,
     stale: i.stale,
+    outOfRange: i.out_of_range,
     redFlags: i.red_flags,
     doctorQuestions: i.doctor_questions,
     disclaimer: i.disclaimer,
@@ -153,6 +199,7 @@ export const labSchema = z
     editable: z.boolean().catch(false),
     counts: countsSchema,
     low_confidence_count: z.number().int().catch(0),
+    unconfirmed_count: z.number().int().optional().catch(0),
     markers,
     files: z
       .array(z.object({ id: z.number().int(), page: z.number().int().catch(1), mime: str }).nullable().catch(null))
@@ -179,6 +226,7 @@ export const labSchema = z
       editable: l.editable,
       counts: l.counts,
       lowConfidenceCount: l.low_confidence_count,
+      unconfirmedCount: l.unconfirmed_count ?? 0,
       markers: l.markers,
       files: l.files,
       interpretation: l.interpretation,

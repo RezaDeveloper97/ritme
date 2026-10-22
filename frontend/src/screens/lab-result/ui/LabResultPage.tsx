@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState, type ReactNode } from 'react';
 
 import { useModuleEnabled } from '@/entities/app-module';
-import { isBusy, type Lab, splitMarkers, useDeleteLab, useLab, useLabFeedback } from '@/entities/lab';
+import { explainedOutOfRange, isBusy, type Lab, splitMarkers, useDeleteLab, useLab, useLabFeedback } from '@/entities/lab';
 import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
@@ -149,6 +149,7 @@ export function LabResultPage({ id }: { id: number }) {
   const rest = [...groups.normal, ...groups.unknown];
   const shownRest = allNormal ? rest : rest.slice(0, NORMAL_PREVIEW);
   const interp = data.interpretation;
+  const explained = explainedOutOfRange(interp);
   const ringShare = data.counts.total ? data.counts.normal / data.counts.total : 0;
   const open = (markerId: number) => router.push(`/labs/${id}/markers/${markerId}`);
 
@@ -205,6 +206,18 @@ export function LabResultPage({ id }: { id: number }) {
         ) : null}
       </Card>
 
+      {data.unconfirmedCount > 0 ? (
+        <div className="lab-banner is-warm" role="status">
+          <Icon name="warning" size={18} strokeWidth={2} />
+          <span>{t('result.unconfirmed', { count: data.unconfirmedCount, n: formatNumber(data.unconfirmedCount, locale) })}</span>
+        </div>
+      ) : null}
+      {data.unconfirmedCount > 0 && data.editable ? (
+        <SecondaryButton icon="check" block={false} onClick={() => router.push(`/labs/${id}/verify`)}>
+          {t('result.confirmValues')}
+        </SecondaryButton>
+      ) : null}
+
       {groups.attention.length ? (
         <Card as="section" className="lab-res-card" aria-labelledby="lab-att">
           <h2 id="lab-att" className="lab-card-title">
@@ -236,6 +249,22 @@ export function LabResultPage({ id }: { id: number }) {
               {allNormal ? t('result.showLess') : t('result.showAll', { n: formatNumber(rest.length, locale) })}
             </button>
           ) : null}
+        </Card>
+      ) : null}
+
+      {explained.length ? (
+        <Card as="section" className="lab-res-card" aria-labelledby="lab-oor">
+          <h2 id="lab-oor" className="lab-card-title">
+            {t('result.explanations')}
+          </h2>
+          <ul className="lab-questions">
+            {explained.map((o) => (
+              <li key={o.markerId} className="lab-question">
+                <Icon name="info" size={17} strokeWidth={1.8} className="lab-question-icon" />
+                <span>{t('result.explanationItem', { name: o.name, state: o.stateLabel, text: o.explanation ?? '' })}</span>
+              </li>
+            ))}
+          </ul>
         </Card>
       ) : null}
 

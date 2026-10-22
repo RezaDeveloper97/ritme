@@ -16,7 +16,8 @@
         "saved": "Saved",
         "deleted": "Deleted",
         "verified": "Values confirmed; preparing the explanation",
-        "feedback_saved": "Thanks for your feedback"
+        "feedback_saved": "Thanks for your feedback",
+        "confirmed": "Value confirmed"
     },
     "validation": {
         "files_required": "Add at least one photo or PDF of the lab sheet.",
@@ -54,7 +55,27 @@
         "normal": "Normal",
         "borderline_high": "Borderline high",
         "high": "High",
-        "unknown": "No range"
+        "unknown": "No range",
+        "unconfirmed": "Waiting for your confirmation"
+    },
+    "range": {
+        "general": "General range",
+        "basis_pregnancy": "General range in pregnancy",
+        "basis_pregnancy_t2": "General range in the second trimester",
+        "basis_inflammation": "CRP on this sheet is high, so a higher ferritin range was used"
+    },
+    "bands": {
+        "vitd_deficient": "Low",
+        "vitd_deficient_note": "The 2024 Endocrine Society guideline sets no target level for most healthy adults; ask your doctor whether you need a supplement.",
+        "vitd_insufficient": "Less than enough",
+        "vitd_insufficient_note": "The 2024 Endocrine Society guideline sets no target level for most healthy adults; ask your doctor whether you need a supplement.",
+        "vitd_sufficient": "Enough",
+        "vitd_sufficient_note": "The 2024 Endocrine Society guideline sets no target level for most healthy adults; ask your doctor whether you need a supplement.",
+        "hba1c_typical": "In the usual range",
+        "hba1c_raised": "In a range where a doctor usually wants to look further",
+        "hba1c_raised_note": "This number alone is not a diagnosis; your doctor reads it together with other tests.",
+        "hba1c_high": "Higher, in a range where a doctor usually wants to look further",
+        "hba1c_high_note": "This number alone is not a diagnosis; your doctor reads it together with other tests."
     },
     "categories": {
         "blood": "Blood test",

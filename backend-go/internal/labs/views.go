@@ -116,9 +116,23 @@ func (l loc) markerJSON(e Evaluated) *jsonx.OrderedMap {
 	if e.Range.Source != "" {
 		rangeSource = e.Range.Source
 	}
-	var refText any
+	var refText, refLabel, refNote any
 	if e.Range.Text != "" {
 		refText = e.Range.Text
+	}
+	if e.Range.Source == RangeTypical {
+		refLabel = T("range.general", l.Locale, nil)
+		if e.Basis != "" {
+			refNote = T("range.basis_"+e.Basis, l.Locale, nil)
+		}
+	}
+	var bandJSON any
+	if e.Band != "" {
+		var note any
+		if n := T("bands."+e.Band+"_note", l.Locale, nil); n != "labs.bands."+e.Band+"_note" {
+			note = n
+		}
+		bandJSON = jsonx.Obj("code", e.Band, "label", T("bands."+e.Band, l.Locale, nil), "note", note)
 	}
 	return jsonx.Obj(
 		"id", e.Row.ID,
@@ -130,15 +144,31 @@ func (l loc) markerJSON(e Evaluated) *jsonx.OrderedMap {
 		"value", numOrNil(e.Value),
 		"value_text", strNull(e.Row.ValueText),
 		"unit", strNull(e.Row.Unit),
-		"reference", jsonx.Obj("low", numOrNil(e.Range.Low), "high", numOrNil(e.Range.High), "text", refText, "source", rangeSource),
+		"reference", jsonx.Obj("low", numOrNil(e.Range.Low), "high", numOrNil(e.Range.High), "text", refText, "source", rangeSource,
+			"label", refLabel, "note", refNote),
 		"state", e.State,
-		"state_label", T("states."+e.State, l.Locale, nil),
+		"state_label", l.stateLabel(e),
 		"attention", Attention(e.State),
+		"band", bandJSON,
+		"near_edge", e.NearEdge,
 		"confidence", conf,
 		"low_confidence", e.LowConfidence(),
+		"needs_confirmation", e.Unconfirmed,
+		"confirmed_at", isoNull(e.Row.ConfirmedAt),
 		"source", e.Row.Source,
 		"catalog_needs_review", needsReview,
 	)
+}
+
+// stateLabel is the state's words; a value waiting for confirmation and a banded value say so instead.
+func (l loc) stateLabel(e Evaluated) string {
+	switch {
+	case e.Unconfirmed:
+		return T("states.unconfirmed", l.Locale, nil)
+	case e.Band != "":
+		return T("bands."+e.Band, l.Locale, nil)
+	}
+	return T("states."+e.State, l.Locale, nil)
 }
 
 func redFlagsOf(evals []Evaluated, l loc) []RedFlag {
@@ -175,22 +205,64 @@ func (l loc) interpretationJSON(lab store.LabReport, evals []Evaluated) any {
 	if in.Source == SummaryAI {
 		disclaimer = T("disclaimer", l.Locale, nil)
 	}
+	qs := questions(evals, l)
+	if in.Source == SummaryAI && len(in.Questions) > 0 {
+		qs = in.Questions
+	}
 	return jsonx.Obj(
 		"summary", in.Summary,
 		"source", in.Source,
 		"locale", in.Locale,
 		"generated_at", iso(in.GeneratedAt),
 		"stale", lab.Status != StatusReady,
+		"out_of_range", l.outOfRangeJSON(evals, in),
 		"red_flags", l.redFlagsJSON(redFlagsOf(evals, l)),
-		"doctor_questions", questions(evals, l),
+		"doctor_questions", qs,
 		"disclaimer", disclaimer,
 	)
+}
+
+// outOfRangeJSON is the result's «خارج از محدوده» section: the markers the rules put out of range (the categories
+// always come from the rules), each with the AI's plain explanation when the summary is the AI's (null otherwise).
+func (l loc) outOfRangeJSON(evals []Evaluated, in Interpretation) []*jsonx.OrderedMap {
+	expl := map[uint64]string{}
+	if in.Source == SummaryAI {
+		for _, x := range in.Explanations {
+			expl[x.MarkerID] = x.Text
+		}
+	}
+	out := []*jsonx.OrderedMap{}
+	for _, e := range evals {
+		if !Attention(e.State) {
+			continue
+		}
+		var code, text any
+		if e.Marker != nil {
+			code = e.Marker.Code
+		}
+		if t, ok := expl[e.Row.ID]; ok {
+			text = t
+		}
+		out = append(out, jsonx.Obj("marker_id", e.Row.ID, "code", code, "name", l.name(e), "state", e.State,
+			"state_label", l.stateLabel(e), "explanation", text))
+	}
+	return out
 }
 
 func lowConfidenceCount(evals []Evaluated) int {
 	n := 0
 	for _, e := range evals {
 		if e.LowConfidence() {
+			n++
+		}
+	}
+	return n
+}
+
+func unconfirmedCount(evals []Evaluated) int {
+	n := 0
+	for _, e := range evals {
+		if e.Unconfirmed {
 			n++
 		}
 	}
@@ -244,6 +316,8 @@ func (l loc) labJSON(lab store.LabReport, evals []Evaluated, fs []store.LabFile)
 		"ai_interpretations_left", left,
 		"counts", countsJSON(countStates(evals)),
 		"low_confidence_count", lowConfidenceCount(evals),
+		"unconfirmed_count", unconfirmedCount(evals),
+		"min_confidence", MinConfidence(labDate(lab.TakenOn, lab.CreatedAt)),
 		"markers", markers,
 		"files", pages,
 		"interpretation", l.interpretationJSON(lab, evals),

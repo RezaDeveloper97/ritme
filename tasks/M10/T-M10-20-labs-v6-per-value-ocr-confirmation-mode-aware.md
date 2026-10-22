@@ -3,10 +3,10 @@ id: T-M10-20
 title: Labs v6: per-value OCR confirmation, mode-aware ranges, HbA1c, safe AI summary
 milestone: M10
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M10-16, T-M10-17, T-M10-18]
 parallel_group: M10-C
-touches: [backend-go/internal/labs, backend-go/internal/ai/pii.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist, frontend/src/screens/lab-verify, frontend/src/screens/lab-result, frontend/src/screens/lab-marker, frontend/src/entities/lab, frontend/messages/fa/labs.json, frontend/messages/en/labs.json, backend-go/resources/translations/fa/labs.json, backend-go/resources/translations/en/labs.json]
+touches: [backend-go/internal/labs, backend-go/internal/ai/pii.go, backend-go/contract/allowlist/labs.yaml, frontend/src/screens/lab-verify, frontend/src/screens/lab-result, frontend/src/screens/lab-marker, frontend/src/entities/lab, frontend/messages/fa/labs.json, frontend/messages/en/labs.json, backend-go/resources/translations/fa/labs.json, backend-go/resources/translations/en/labs.json]
 skills: []
 verify: cd backend-go && go vet ./... && go test ./internal/labs/... ./internal/ai/... && make test-int PKG=./internal/labs/... && make contract ROUTES=labs && cd ../frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:dark && npm run test && npm run copy:check -- labs
 ---
@@ -62,3 +62,6 @@ DECISIONS.md H-07, H-08; D-171.
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-171 and notes H-07 as advisor-pending.
+
+## Batch note (main session, 2026-10-22)
+`backend-go/api/openapi.yaml` was removed from touches so this task can run in parallel with T-M10-18b. Write the needed OpenAPI change as a unified diff to the scratchpad and report its path; the main session applies it before the commit.

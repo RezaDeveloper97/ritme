@@ -3,7 +3,17 @@
 import { useLocale, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 
-import { formatLabValue, formatReference, MarkerStatePill, RangeBar, stateTone, trimNumber, useLabMarker } from '@/entities/lab';
+import {
+  formatLabValue,
+  formatReference,
+  MarkerStatePill,
+  RangeBar,
+  referenceKind,
+  showsNearEdge,
+  stateTone,
+  trimNumber,
+  useLabMarker,
+} from '@/entities/lab';
 import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatDecimal, formatLongDate, formatNumber, fromApiDate, monthName, toParts } from '@/shared/lib/date';
@@ -114,8 +124,9 @@ export function LabMarkerPage({ id, markerId }: { id: number; markerId: number }
           high: formatDecimal(trimNumber(m.reference.high), locale),
         })
       : (ref ?? '');
-  const refLine =
-    m.reference.source === 'catalog' ? t('marker.typicalRange', { ref: between }) : t('marker.sheetRange', { ref: between });
+  // A general range may be one-sided or open-ended («< ۵٫۷»): it is shown as written, not as «… تا …».
+  const general = referenceKind(m.reference) === 'general';
+  const refLine = general ? t('marker.generalRange', { ref: ref ?? between }) : t('marker.sheetRange', { ref: between });
 
   return (
     <Shell header={header}>
@@ -143,6 +154,10 @@ export function LabMarkerPage({ id, markerId }: { id: number; markerId: number }
           label={ref ? t('result.rangeLabel', { value, ref }) : value}
         />
         {ref ? <p className="lab-mk-ref">{refLine}</p> : null}
+        {m.reference.note ? <p className="lab-mk-ref">{m.reference.note}</p> : null}
+        {showsNearEdge(m) ? <p className="lab-mk-ref">{t('result.nearEdge')}</p> : null}
+        {m.band?.note ? <p className="lab-mk-ref">{m.band.note}</p> : null}
+        {m.needsConfirmation ? <p className="lab-mk-ref">{t('verify.unconfirmedNote')}</p> : null}
       </Card>
 
       <Card as="section" className="lab-res-card" aria-labelledby="lab-mk-trend">

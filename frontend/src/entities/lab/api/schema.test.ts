@@ -24,7 +24,8 @@ describe.skipIf(!existsSync(GOLDEN_DIR))('lab parsers', () => {
     expect(lab.markers).toHaveLength(5);
     const fbs = lab.markers.find((m) => m.code === 'glucose_fasting')!;
     expect(fbs).toMatchObject({ lowConfidence: true, printedName: 'FBS', state: 'normal' });
-    expect(fbs.reference).toEqual({ low: 70, high: 100, text: '70–100', source: 'sheet' });
+    expect(fbs.reference).toEqual({ low: 70, high: 100, text: '70–100', source: 'sheet', label: null, note: null });
+    expect(fbs).toMatchObject({ needsConfirmation: false, nearEdge: false, band: null, confirmedAt: null });
     expect(lab.interpretation).toBeNull();
   });
 
@@ -69,6 +70,46 @@ describe.skipIf(!existsSync(GOLDEN_DIR))('lab parsers', () => {
     const c = consentSchema.parse(stepData('upload_failed.fa', 'PUT', '/api/v1/consents/ai_lab_analysis'));
     expect(c).toMatchObject({ code: 'ai_lab_analysis', version: 1, granted: true, needsConsent: false });
     expect(c.points.length).toBeGreaterThan(0);
+  });
+
+  it('parses the v6 fields: confirmation, band, general range and the JSON summary sections (D-171)', () => {
+    const base = stepData('upload_verify_result.fa', 'POST', '/api/v1/labs/1/verify') as Record<string, unknown>;
+    const markers = (base.markers as Record<string, unknown>[]).map((m, i) =>
+      i === 0
+        ? {
+            ...m,
+            needs_confirmation: true,
+            confirmed_at: null,
+            near_edge: true,
+            band: { code: 'vitd_insufficient', label: 'کمتر از حد کافی', note: 'یادداشت' },
+            reference: { low: 20, high: 100, text: '20–100', source: 'typical', label: 'محدوده عمومی', note: null },
+          }
+        : m,
+    );
+    const lab = labSchema.parse({
+      ...base,
+      markers,
+      unconfirmed_count: 1,
+      interpretation: {
+        ...(base.interpretation as Record<string, unknown>),
+        out_of_range: [
+          { marker_id: 2, code: 'ferritin', name: 'فریتین', state: 'low', state_label: 'پایین', explanation: 'ممکن است مرتبط باشد.' },
+          { marker_id: 1, code: null, name: 'Hb', state: 'bogus', state_label: 'x', explanation: '  ' },
+          null,
+        ],
+      },
+    });
+    expect(lab.unconfirmedCount).toBe(1);
+    expect(lab.markers[0]).toMatchObject({
+      needsConfirmation: true,
+      nearEdge: true,
+      band: { code: 'vitd_insufficient', label: 'کمتر از حد کافی', note: 'یادداشت' },
+      reference: { source: 'typical', label: 'محدوده عمومی', note: null },
+    });
+    expect(lab.interpretation?.outOfRange).toEqual([
+      { markerId: 2, code: 'ferritin', name: 'فریتین', state: 'low', stateLabel: 'پایین', explanation: 'ممکن است مرتبط باشد.' },
+      { markerId: 1, code: null, name: 'Hb', state: 'unknown', stateLabel: 'x', explanation: null },
+    ]);
   });
 
   it('sends a full marker body (PUT replaces the row)', () => {

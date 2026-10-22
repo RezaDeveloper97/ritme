@@ -20,12 +20,15 @@ import (
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/plus"
+	"github.com/ritme/backend-go/internal/pregnancy/calc"
+	pregstore "github.com/ritme/backend-go/internal/pregnancy/store"
 )
 
 // Service is the lab analysis domain: CRUD, the extraction / interpretation jobs (run by Runner) and the reads.
 type Service struct {
 	db       *sql.DB
 	q        *store.Queries
+	preg     *pregstore.Queries // the pregnancy profile: lab dates are read against it (fallback ranges)
 	files    *files.Box
 	client   *ai.Client
 	consents *consent.Service
@@ -56,7 +59,7 @@ func NewService(o Options) *Service {
 	if o.Clock == nil {
 		o.Clock = clock.Real{}
 	}
-	return &Service{db: o.DB, q: store.New(o.DB), files: o.Files, client: o.AI, consents: o.Consents, plus: o.Plus,
+	return &Service{db: o.DB, q: store.New(o.DB), preg: pregstore.New(o.DB), files: o.Files, client: o.AI, consents: o.Consents, plus: o.Plus,
 		cat: catalogLoader{reader: o.Catalog, logger: o.Logger}, logger: o.Logger, clock: o.Clock}
 }
 
@@ -78,6 +81,48 @@ func nullDecimal(f *float64) sql.NullString {
 
 // Catalog is the marker catalog.
 func (s *Service) Catalog(ctx context.Context) (*Catalog, error) { return s.cat.load(ctx) }
+
+// dating reads the user's active pregnancy (one query): the fallback ranges of a lab depend on whether, and in which
+// trimester, she was pregnant on the lab date (calc.TrimesterOn).
+func (s *Service) dating(ctx context.Context, userID uint64) (dating, error) {
+	p, err := s.preg.GetProfileByUser(ctx, userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return dating{}, nil
+	}
+	if err != nil {
+		return dating{}, fmt.Errorf("labs: pregnancy profile: %w", err)
+	}
+	if !p.PregnancyMode {
+		return dating{}, nil
+	}
+	return dating{calc: calc.New(&p, "", civildate.Date{})}, nil
+}
+
+// EvaluateLab evaluates a lab's markers on its sheet (date, pregnancy on that date, CRP on the sheet).
+func (s *Service) EvaluateLab(ctx context.Context, lab store.LabReport, rows []store.LabMarker, cat *Catalog) ([]Evaluated, error) {
+	p, err := s.dating(ctx, lab.UserID)
+	if err != nil {
+		return nil, err
+	}
+	return evaluateSheet(rows, cat, p.facts(labDate(lab.TakenOn, lab.CreatedAt))), nil
+}
+
+// EvaluateUserMarkers evaluates the user's markers of every lab, grouped by lab id (sheet order kept).
+func (s *Service) EvaluateUserMarkers(ctx context.Context, userID uint64, rows []store.ListUserLabMarkersRow, cat *Catalog) (map[uint64][]Evaluated, error) {
+	p, err := s.dating(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return groupByLab(rows, evaluateRows(rows, cat, p)), nil
+}
+
+func groupByLab(rows []store.ListUserLabMarkersRow, evals []Evaluated) map[uint64][]Evaluated {
+	out := map[uint64][]Evaluated{}
+	for i, r := range rows {
+		out[r.LabID] = append(out[r.LabID], evals[i])
+	}
+	return out
+}
 
 // busy reports whether the lab is being processed (no edits then).
 func busy(status string) bool {
@@ -453,10 +498,19 @@ func (s *Service) UpdateMarker(ctx context.Context, userID, labID, markerID uint
 	if cur.Source == MarkerManual {
 		source = MarkerManual
 	}
-	n, err := s.q.UpdateLabMarker(ctx, store.UpdateLabMarkerParams{Code: in.code(cat), Name: strings.TrimSpace(in.Name),
-		Value: nullDecimal(in.Value), ValueText: nullString(in.ValueText), Unit: nullString(in.Unit), RefLow: nullDecimal(in.RefLow),
-		RefHigh: nullDecimal(in.RefHigh), RefText: nullString(in.refText()), Source: source, Now: nullTime(now),
-		ID: markerID, LabID: labID, UserID: userID})
+	var n int64
+	err = s.inTx(ctx, func(q *store.Queries) error {
+		n, err = q.UpdateLabMarker(ctx, store.UpdateLabMarkerParams{Code: in.code(cat), Name: strings.TrimSpace(in.Name),
+			Value: nullDecimal(in.Value), ValueText: nullString(in.ValueText), Unit: nullString(in.Unit), RefLow: nullDecimal(in.RefLow),
+			RefHigh: nullDecimal(in.RefHigh), RefText: nullString(in.refText()), Source: source, Now: nullTime(now),
+			ID: markerID, LabID: labID, UserID: userID})
+		if err != nil || n == 0 || cur.ConfirmedAt.Valid {
+			return err
+		}
+		// Editing a value confirms it (H-08): the user has just read it.
+		_, err = q.ConfirmLabMarker(ctx, store.ConfirmLabMarkerParams{Now: nullTime(now), ID: markerID, UserID: userID})
+		return err
+	})
 	if err != nil {
 		return fmt.Errorf("labs: update marker: %w", err)
 	}
@@ -483,6 +537,30 @@ func (s *Service) DeleteMarker(ctx context.Context, userID, labID, markerID uint
 			return ErrBusy // the lab started processing meanwhile (checked in SQL)
 		}
 		return ErrMarkerNotFound
+	}
+	return s.afterEdit(ctx, lab, l, now)
+}
+
+// ConfirmMarker confirms one value the extractor read below lab.ocr min_confidence (nbl_Lab_Verify amber chip, H-08):
+// from now on it counts in the status rules, trends and the next interpretation. Confirming a confirmed value is a
+// no-op; a ready upload goes back to review like after an edit (its summary left the value out).
+func (s *Service) ConfirmMarker(ctx context.Context, userID, labID, markerID uint64, l loc, now time.Time) error {
+	lab, err := s.editable(ctx, userID, labID)
+	if err != nil {
+		return err
+	}
+	cur, err := s.q.GetLabMarker(ctx, store.GetLabMarkerParams{ID: markerID, LabID: labID, UserID: userID})
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrMarkerNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("labs: marker: %w", err)
+	}
+	if cur.ConfirmedAt.Valid {
+		return nil
+	}
+	if _, err := s.q.ConfirmLabMarker(ctx, store.ConfirmLabMarkerParams{Now: nullTime(now), ID: markerID, UserID: userID}); err != nil {
+		return fmt.Errorf("labs: confirm marker: %w", err)
 	}
 	return s.afterEdit(ctx, lab, l, now)
 }
@@ -548,25 +626,20 @@ func (s *Service) Feedback(ctx context.Context, userID, labID uint64, helpful bo
 	return nil
 }
 
-// evaluateAll evaluates a lab's markers against the catalog.
-func evaluateAll(rows []store.LabMarker, cat *Catalog) []Evaluated {
-	out := make([]Evaluated, 0, len(rows))
-	for _, r := range rows {
-		out = append(out, evaluate(r, cat))
-	}
-	return out
-}
-
 // interpretRules stores a rules-only interpretation (manual labs, AI unavailable or refused).
 func (s *Service) interpretRules(ctx context.Context, userID, labID uint64, l loc, now time.Time) error {
-	return s.storeInterpretation(ctx, userID, labID, l, now, func([]Evaluated, UserContext) (string, string) { return "", SummaryRules })
+	return s.storeInterpretation(ctx, userID, labID, l, now, func([]Evaluated, UserContext) aiResult { return aiResult{} })
 }
 
 // storeInterpretation evaluates the lab, asks summarize for a summary (empty → the rules summary) and stores it.
 func (s *Service) storeInterpretation(ctx context.Context, userID, labID uint64, l loc, now time.Time,
-	summarize func([]Evaluated, UserContext) (string, string),
+	summarize func([]Evaluated, UserContext) aiResult,
 ) error {
 	cat, err := s.Catalog(ctx)
+	if err != nil {
+		return err
+	}
+	lab, err := s.Get(ctx, userID, labID)
 	if err != nil {
 		return err
 	}
@@ -574,15 +647,19 @@ func (s *Service) storeInterpretation(ctx context.Context, userID, labID uint64,
 	if err != nil {
 		return err
 	}
-	evals := evaluateAll(rows, cat)
+	evals, err := s.EvaluateLab(ctx, lab, rows, cat)
+	if err != nil {
+		return err
+	}
 	uc, err := s.userContext(ctx, userID, civildate.InTehran(now))
 	if err != nil {
 		return err
 	}
-	in := Interpretation{Locale: l.Locale, GeneratedAt: tehranSecond(now)}
-	in.Summary, in.Source = summarize(evals, uc)
-	if in.Summary == "" {
-		in.Summary, in.Source = rulesSummary(evals, l), SummaryRules
+	in := Interpretation{Locale: l.Locale, GeneratedAt: tehranSecond(now), Source: SummaryRules}
+	if r := summarize(evals, uc); r.Summary != "" {
+		in.Summary, in.Source, in.Explanations, in.Questions = r.Summary, SummaryAI, r.Explanations, r.Questions
+	} else {
+		in.Summary = rulesSummary(evals, l)
 	}
 	in.Context.Mode, in.Context.Phase, in.Context.Medications = string(uc.Mode), uc.Phase, len(uc.Medications)
 	raw, err := json.Marshal(in)

@@ -25,10 +25,11 @@ func (s *Service) RecordLabs(ctx context.Context, userID uint64, locale, def str
 	if err != nil {
 		return nil, err
 	}
-	byLab := map[uint64][]Evaluated{}
-	for _, r := range rows {
-		byLab[r.LabID] = append(byLab[r.LabID], evaluate(rowMarker(r), cat))
+	p, err := s.dating(ctx, userID)
+	if err != nil {
+		return nil, err
 	}
+	byLab := groupByLab(rows, evaluateRows(rows, cat, p))
 	l := loc{Locale: locale, Default: def}
 	out := []*jsonx.OrderedMap{}
 	for _, lab := range labs {
@@ -46,7 +47,7 @@ func (s *Service) RecordLabs(ctx context.Context, userID uint64, locale, def str
 				continue
 			}
 			attention = append(attention, jsonx.Obj("name", l.name(e), "state", e.State,
-				"state_label", T("states."+e.State, l.Locale, nil)))
+				"state_label", l.stateLabel(e)))
 		}
 		out = append(out, jsonx.Obj(
 			"id", lab.ID,

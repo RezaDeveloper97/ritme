@@ -19,10 +19,12 @@ export {
   type LabStatusPoll,
   type LabTrends,
   type MarkerDetail,
+  type MarkerBand,
   type MarkerInput,
   type MarkerReference,
   type MarkerState,
   type MarkerTrend,
+  type OutOfRangeItem,
   type RedFlag,
   type TrendPoint,
   type TrendSeries,
@@ -45,6 +47,7 @@ export {
 } from './model/status';
 export { parseLabNumber, rangeGeometry, splitMarkers, stateTone, type RangeGeometry } from './model/range';
 export { formatLabValue, formatReference, trimNumber } from './model/format';
+export { explainedOutOfRange, markersToConfirm, referenceKind, showsNearEdge } from './model/confirm';
 export { labKeys } from './api/keys';
 export {
   catalogSchema,
@@ -59,6 +62,7 @@ export {
   fetchLab,
   toMarkerBody,
   useAddLabMarker,
+  useConfirmLabMarker,
   useDeleteLab,
   useDeleteLabMarker,
   useLab,

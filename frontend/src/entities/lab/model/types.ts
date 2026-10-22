@@ -47,8 +47,19 @@ export interface MarkerReference {
   low: number | null;
   high: number | null;
   text: string | null;
-  /** `sheet` (printed on the sheet) or `catalog` (typical range); null when there is none. */
+  /** `sheet` (printed on the sheet) or `typical` (the general range); null when there is none. */
   source: string | null;
+  /** «محدوده عمومی» when the range is the general one (the sheet printed none), else null. */
+  label: string | null;
+  /** Why the general range differs (pregnancy, trimester 2, inflammation), else null. */
+  note: string | null;
+}
+
+/** Registry band of a banded marker (vitamin D, HbA1c) — a category, never a diagnosis. */
+export interface MarkerBand {
+  code: string;
+  label: string;
+  note: string | null;
 }
 
 export interface LabMarker {
@@ -64,8 +75,14 @@ export interface LabMarker {
   state: MarkerState;
   stateLabel: string;
   attention: boolean;
+  band: MarkerBand | null;
+  /** Just outside the range (lab.borderline): a visual hint only. */
+  nearEdge: boolean;
   confidence: number | null;
   lowConfidence: boolean;
+  /** Read below the confidence threshold and not confirmed yet: counts nowhere until the user confirms it. */
+  needsConfirmation: boolean;
+  confirmedAt: string | null;
   source: string;
 }
 
@@ -82,11 +99,23 @@ export interface RedFlag {
   message: string;
 }
 
+/** One out-of-range marker of the summary: the category is the rules', the explanation the AI's (or null). */
+export interface OutOfRangeItem {
+  markerId: number;
+  code: string | null;
+  name: string;
+  state: MarkerState;
+  stateLabel: string;
+  /** Plain text — rendered as text, never as HTML. */
+  explanation: string | null;
+}
+
 export interface LabInterpretation {
   /** Plain text — rendered as text, never as HTML. */
   summary: string;
   source: 'ai' | 'rules';
   stale: boolean;
+  outOfRange: OutOfRangeItem[];
   redFlags: RedFlag[];
   doctorQuestions: string[];
   disclaimer: string;
@@ -120,6 +149,7 @@ export interface Lab {
   editable: boolean;
   counts: LabCounts;
   lowConfidenceCount: number;
+  unconfirmedCount: number;
   markers: LabMarker[];
   files: LabFile[];
   interpretation: LabInterpretation | null;

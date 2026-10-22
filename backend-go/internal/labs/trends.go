@@ -41,7 +41,7 @@ func trendRows(rows []store.ListUserLabMarkersRow) []store.ListUserLabMarkersRow
 func rowMarker(r store.ListUserLabMarkersRow) store.LabMarker {
 	return store.LabMarker{ID: r.ID, LabID: r.LabID, UserID: r.UserID, Code: r.Code, Name: r.Name, Value: r.Value,
 		ValueText: r.ValueText, Unit: r.Unit, RefLow: r.RefLow, RefHigh: r.RefHigh, RefText: r.RefText, Confidence: r.Confidence,
-		Source: r.Source, SortOrder: r.SortOrder, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
+		Source: r.Source, SortOrder: r.SortOrder, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt, ConfirmedAt: r.ConfirmedAt}
 }
 
 func seriesKey(code, name string) string {
@@ -52,14 +52,20 @@ func seriesKey(code, name string) string {
 }
 
 // buildSeries groups the rows (already oldest lab first) into series. A value in another unit than the latest one
-// is left out of the points (mg/dL and mmol/L never share a line).
-func buildSeries(rows []store.ListUserLabMarkersRow, cat *Catalog) []Series {
+// is left out of the points (mg/dL and mmol/L never share a line); a value waiting for its confirmation (read below
+// lab.ocr min_confidence) is left out of the series altogether.
+func buildSeries(rows []store.ListUserLabMarkersRow, cat *Catalog, p dating) []Series {
 	type acc struct {
 		evals []Evaluated
 		rows  []store.ListUserLabMarkersRow
 	}
 	groups, order := map[string]*acc{}, []string{}
-	for _, r := range trendRows(rows) {
+	rows = trendRows(rows)
+	evals := evaluateRows(rows, cat, p)
+	for i, r := range rows {
+		if evals[i].Unconfirmed {
+			continue
+		}
 		k := seriesKey(r.Code.String, r.Name)
 		g, ok := groups[k]
 		if !ok {
@@ -67,7 +73,7 @@ func buildSeries(rows []store.ListUserLabMarkersRow, cat *Catalog) []Series {
 			groups[k] = g
 			order = append(order, k)
 		}
-		g.evals = append(g.evals, evaluate(rowMarker(r), cat))
+		g.evals = append(g.evals, evals[i])
 		g.rows = append(g.rows, r)
 	}
 	out := make([]Series, 0, len(order))
@@ -142,7 +148,7 @@ func (l loc) seriesJSON(s Series) *jsonx.OrderedMap {
 		"unit", strNull(e.Row.Unit),
 		"reference_text", refText,
 		"latest", jsonx.Obj("lab_id", e.Row.LabID, "marker_id", e.Row.ID, "value", numOrNil(e.Value), "value_text", strNull(e.Row.ValueText),
-			"state", e.State, "state_label", T("states."+e.State, l.Locale, nil), "attention", Attention(e.State)),
+			"state", e.State, "state_label", l.stateLabel(e), "attention", Attention(e.State)),
 		"trend", l.trendJSON(s),
 	)
 }
@@ -196,7 +202,11 @@ func (s *Service) Trends(ctx context.Context, userID uint64) (Trends, *Catalog, 
 	if err != nil {
 		return Trends{}, nil, err
 	}
-	t := Trends{Series: buildSeries(rows, cat)}
+	p, err := s.dating(ctx, userID)
+	if err != nil {
+		return Trends{}, nil, err
+	}
+	t := Trends{Series: buildSeries(rows, cat, p)}
 	seen := map[uint64]bool{}
 	for _, r := range trendRows(rows) {
 		if seen[r.LabID] {
@@ -256,7 +266,7 @@ func (s *Service) HubLabs(ctx context.Context, userID uint64, locale, def string
 		}
 		e := sr.Latest
 		highlight = jsonx.Obj("key", sr.Key, "name", l.name(e), "unit", strNull(e.Row.Unit), "values", vals,
-			"state", e.State, "state_label", T("states."+e.State, l.Locale, nil), "direction", sr.Direction())
+			"state", e.State, "state_label", l.stateLabel(e), "direction", sr.Direction())
 		break
 	}
 	attention := 0

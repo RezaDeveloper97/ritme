@@ -132,7 +132,11 @@ func (h *Handlers) detail(c fiber.Ctx, userID uint64, lab store.LabReport) (*jso
 	if err != nil {
 		return nil, err
 	}
-	return h.loc(c).labJSON(lab, evaluateAll(rows, cat), fs), nil
+	evals, err := h.svc.EvaluateLab(c, lab, rows, cat)
+	if err != nil {
+		return nil, err
+	}
+	return h.loc(c).labJSON(lab, evals, fs), nil
 }
 
 func (h *Handlers) reload(c fiber.Ctx, userID, id uint64, status int, msg string) error {
@@ -165,9 +169,9 @@ func (h *Handlers) Index(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	byLab := map[uint64][]Evaluated{}
-	for _, r := range rows {
-		byLab[r.LabID] = append(byLab[r.LabID], evaluate(rowMarker(r), cat))
+	byLab, err := h.svc.EvaluateUserMarkers(c, userID, rows, cat)
+	if err != nil {
+		return err
 	}
 	l := h.loc(c)
 	list := make([]*jsonx.OrderedMap, 0, len(labs))
@@ -383,6 +387,24 @@ func (h *Handlers) UpdateMarker(c fiber.Ctx) error {
 	return h.reload(c, userID, lab.ID, fiber.StatusOK, T("messages.saved", l.Locale, nil))
 }
 
+// ConfirmMarker is POST /labs/{id}/markers/{mid}/confirm: the user confirms one value read below lab.ocr
+// min_confidence (nbl_Lab_Verify amber chip; H-08). 200 with the lab.
+func (h *Handlers) ConfirmMarker(c fiber.Ctx) error {
+	userID, lab, err := h.lab(c)
+	if err != nil {
+		return err
+	}
+	mid, err := h.markerID(c)
+	if err != nil {
+		return err
+	}
+	l := h.loc(c)
+	if err := h.svc.ConfirmMarker(c.Context(), userID, lab.ID, mid, l, h.now(c)); err != nil {
+		return fail(err, l.Locale)
+	}
+	return h.reload(c, userID, lab.ID, fiber.StatusOK, T("messages.confirmed", l.Locale, nil))
+}
+
 // DestroyMarker is DELETE /labs/{id}/markers/{mid}.
 func (h *Handlers) DestroyMarker(c fiber.Ctx) error {
 	userID, lab, err := h.lab(c)
@@ -415,21 +437,26 @@ func (h *Handlers) ShowMarker(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	var row *store.LabMarker
+	idx := -1
 	for i := range rows {
 		if rows[i].ID == mid {
-			row = &rows[i]
+			idx = i
 		}
 	}
 	l := h.loc(c)
-	if row == nil {
+	if idx < 0 {
 		return fail(ErrMarkerNotFound, l.Locale)
 	}
+	row := &rows[idx]
 	trends, cat, err := h.svc.Trends(c, userID)
 	if err != nil {
 		return err
 	}
-	e := evaluate(*row, cat)
+	evals, err := h.svc.EvaluateLab(c, lab, rows, cat)
+	if err != nil {
+		return err
+	}
+	e := evals[idx]
 	uc, err := h.svc.userContext(c, userID, civildate.InTehran(h.now(c)))
 	if err != nil {
 		return err

@@ -171,6 +171,26 @@ export function useUpdateLabMarker(id: number) {
   });
 }
 
+/**
+ * POST /labs/{id}/markers/{mid}/confirm — the user confirms values read with low confidence (one, or «تأیید همه»).
+ * Sent one after another so the server sees each confirmation in order; resolves with the lab after the last one.
+ */
+export function useConfirmLabMarker(id: number) {
+  const store = useStoreLab();
+  return useMutation<Lab, unknown, number[]>({
+    mutationFn: async (markerIds) => {
+      let lab: Lab | null = null;
+      for (const markerId of markerIds) {
+        const { data } = await apiClient.post<ApiEnvelope<unknown>>(`/labs/${id}/markers/${markerId}/confirm`);
+        lab = labSchema.parse(data.data);
+      }
+      if (lab === null) throw new Error('no marker to confirm');
+      return lab;
+    },
+    onSuccess: store,
+  });
+}
+
 /** DELETE /labs/{id}/markers/{mid} — a misread row. */
 export function useDeleteLabMarker(id: number) {
   const store = useStoreLab();

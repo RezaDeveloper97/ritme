@@ -24,7 +24,8 @@ const (
 )
 
 // BorderlineMargin: a value outside the range by at most this fraction of the bound is «مرزی» (borderline) —
-// nbl_Lab_Result: hemoglobin 11.2 against 12–15.5 is «پایین مرزی», ferritin 9 against 15–150 is «پایین».
+// nbl_Lab_Result: hemoglobin 11.2 against 12–15.5 is «پایین مرزی», ferritin 9 against 15–150 is «پایین». Version 1 of
+// lab.borderline margin (the registry value of the lab date is what evaluate uses, T-M10-20).
 const BorderlineMargin = 0.10
 
 // Range is a reference range; either bound may be missing («≥ 20», «< 200»).
@@ -37,25 +38,10 @@ type Range struct {
 // Empty reports whether the range has no bound.
 func (r Range) Empty() bool { return r.Low == nil && r.High == nil }
 
-// Classify is the status of v against r.
+// Classify is the status of v against r with version 1 of lab.borderline (enabled, BorderlineMargin).
 func Classify(v *float64, r Range) string {
-	if v == nil || r.Empty() {
-		return StateUnknown
-	}
-	x := *v
-	if r.Low != nil && x < *r.Low {
-		if *r.Low > 0 && x >= *r.Low*(1-BorderlineMargin) {
-			return StateBorderlineLow
-		}
-		return StateLow
-	}
-	if r.High != nil && x > *r.High {
-		if *r.High > 0 && x <= *r.High*(1+BorderlineMargin) {
-			return StateBorderlineHigh
-		}
-		return StateHigh
-	}
-	return StateNormal
+	s, _ := classifyRange(v, r, borderline{Enabled: true, Margin: BorderlineMargin})
+	return s
 }
 
 // Attention reports whether a status is outside the range (borderline included).

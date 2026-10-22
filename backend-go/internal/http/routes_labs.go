@@ -71,6 +71,7 @@ func init() {
 		r.Get(p+"/:id/markers/:mid", locale, guard, h.ShowMarker)
 		r.Put(p+"/:id/markers/:mid", locale, guard, writes, h.UpdateMarker)
 		r.Delete(p+"/:id/markers/:mid", locale, guard, writes, h.DestroyMarker)
+		r.Post(p+"/:id/markers/:mid/confirm", locale, guard, writes, h.ConfirmMarker) // T-M10-20: per-value OCR confirmation
 		r.Get(p+"/:id/files/:fid", locale, guard, h.File)
 		r.Delete(p+"/:id/files/:fid", locale, guard, writes, h.DestroyFile)
 	})
