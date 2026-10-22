@@ -81,7 +81,7 @@ func TestEmptyAndClamp(t *testing.T) {
 // D-169 (SPEC v6 §3.1, ACOG CO 700): T1 to 13+6, T2 14+0 … 27+6, T3 from 28+0 — by completed days.
 func TestTrimesterBoundaries(t *testing.T) {
 	for weeks, want := range map[int]int{0: 1, 12: 1, 13: 1, 14: 2, 27: 2, 28: 3, 45: 3} {
-		assert.Equal(t, want, Trimester(weeks), "weeks %d", weeks)
+		assert.Equal(t, want, TrimesterOn(weeks*7, civildate.Date{}), "weeks %d", weeks)
 	}
 }
 

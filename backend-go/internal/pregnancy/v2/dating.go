@@ -22,14 +22,6 @@ const (
 	birthRangeDays = 14
 )
 
-// trimesterStartWeeks are the completed weeks at which trimesters 1, 2 and 3 begin, from version 1 of
-// pregnancy.trimester (calc.TrimesterStartDays: 0, 14, 28). Prefer Dating.TrimesterStartDays, which reads the version
-// valid on the day.
-var trimesterStartWeeks = func() [3]int {
-	d := calc.TrimesterStartDays(civildate.Date{})
-	return [3]int{d[0] / 7, d[1] / 7, d[2] / 7}
-}()
-
 // Dating is the resolved gestational age of a profile on a given day.
 type Dating struct {
 	Source      string

@@ -305,7 +305,7 @@ func build(d v2.Dating, m Month, visits []Visit, items []store.PregnancyCareItem
 		week := weekOn(d, v.Date)
 		var weekAny, weekLabel any
 		if week > 0 {
-			weekAny, weekLabel = week, v2.WeekLabel(week, loc)
+			weekAny, weekLabel = week, v2.WeekLabelOn(week, d.Today, loc)
 		}
 		return jsonx.Obj(
 			"appointment_id", v.ID, "care_item_key", nullIf(v.CareItemKey), "title", v.Title,

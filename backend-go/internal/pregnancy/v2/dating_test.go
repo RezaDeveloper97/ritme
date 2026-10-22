@@ -55,10 +55,10 @@ func TestLabels(t *testing.T) {
 	d := civildate.MustParse("2026-10-07")
 	assert.Equal(t, "۱۵ مهر ۱۴۰۵", FullDate(d, "fa"))
 	assert.Equal(t, "October 7, 2026", FullDate(d, "en"))
-	assert.Equal(t, "سه\u200cماههٔ اول · هفتهٔ ۸ از ۴۰", WeekLabel(8, "fa"))
+	assert.Equal(t, "سه\u200cماههٔ اول · هفتهٔ ۸ از ۴۰", WeekLabelOn(8, d, "fa"))
 	// Week 14 is 13+0 … 13+6: still the first trimester (D-169); week 15 starts at 14+0.
-	assert.Equal(t, "First trimester · Week 14 of 40", WeekLabel(14, "en"))
-	assert.Equal(t, "Second trimester · Week 15 of 40", WeekLabel(15, "en"))
+	assert.Equal(t, "First trimester · Week 14 of 40", WeekLabelOn(14, d, "en"))
+	assert.Equal(t, "Second trimester · Week 15 of 40", WeekLabelOn(15, d, "en"))
 	for _, loc := range []string{"fa", "en"} {
 		assert.NotEqual(t, "pregnancy_v2.messages.not_active", T("messages.not_active", loc))
 		assert.NotEmpty(t, attributes(loc))

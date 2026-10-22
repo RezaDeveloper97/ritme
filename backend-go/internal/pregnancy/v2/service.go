@@ -14,7 +14,6 @@ import (
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
-	"github.com/ritme/backend-go/internal/pregnancy/calc"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
 )
 
@@ -130,7 +129,7 @@ func (s *Service) Today(ctx context.Context, userID uint64, now time.Time, l Lan
 			illustration = nullStr(det.IllustrationKey.String, det.IllustrationKey.Valid)
 		}
 		carousel = append(carousel, jsonx.Obj(
-			"week", w, "trimester", tri(w), "title", slideTitle(d, w, l.Locale),
+			"week", w, "trimester", d.TrimesterOfWeek(w), "title", slideTitle(d, w, l.Locale),
 			"headline", headline(det, l), "size_line", sizeLine(det, rel, l),
 			"illustration_key", illustration, "relation", rel,
 		))
@@ -144,11 +143,11 @@ func (s *Service) Today(ctx context.Context, userID uint64, now time.Time, l Lan
 		"range", rangeJSON(rFrom, rTo), "range_label", RangeLabel(rFrom, rTo, l.Locale),
 	)
 	trimesters := []any{}
-	for i, w := range trimesterStartWeeks {
-		start := d.Start().AddDays(w * 7)
+	for i, days := range d.TrimesterStartDays() { // completed days of the version valid today (0 / 98 / 196)
+		start := d.Start().AddDays(days)
 		trimesters = append(trimesters, jsonx.Obj(
 			"trimester", i+1, "start_date", start.String(), "start_label", FullDate(start, l.Locale),
-			"percent", w*100/TermWeeks,
+			"percent", days*100/(TermWeeks*7),
 		))
 	}
 
@@ -190,9 +189,6 @@ func slideTitle(d Dating, w int, locale string) string {
 	}
 	return AgeLabel(w-1, 0, locale)
 }
-
-// tri is the trimester of 1-based week w.
-func tri(w int) int { return calc.Trimester(w - 1) }
 
 func headline(d *store.PregnancyWeekDetail, l Lang) any {
 	if d == nil {
@@ -267,8 +263,8 @@ func (s *Service) Week(ctx context.Context, userID uint64, n int, now time.Time,
 	rel := d.Relation(n)
 	return jsonx.Obj(
 		"week", n,
-		"trimester", tri(n),
-		"title", WeekLabel(n, l.Locale),
+		"trimester", d.TrimesterOfWeek(n),
+		"title", WeekLabelOn(n, d.Today, l.Locale),
 		"relation", rel,
 		"current_week", d.CurrentWeek(),
 		"range", rangeJSON(from, to),

@@ -5,6 +5,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 import {
+  type OnboardingDating,
+  type OnboardingResult,
   useActivatePregnancy,
   useCompleteOnboarding,
   useDatingPreview,
@@ -12,6 +14,7 @@ import {
   useSetupCopy,
 } from '@/entities/pregnancy';
 import { useUpdateLifeStage, writeLifeModeHint } from '@/entities/user';
+import { DatingResultLine, datingResultKey } from '@/features/track-pregnancy';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
@@ -63,6 +66,8 @@ export function PregnancyOnboardingPage() {
   const [dating, setDating] = useState<SetupDating>(EMPTY_DATING);
   const [history, setHistory] = useState<SetupHistory | null>(EMPTY_HISTORY);
   const [error, setError] = useState<string | null>(null);
+  // The ACOG re-dating outcome of the saved scan (D-169): shown on the result step before `/pregnancy`.
+  const [saved, setSaved] = useState<OnboardingDating | null>(null);
 
   const copy = useSetupCopy().data;
   const preview = useDatingPreview(step === 4 ? toPreviewInput(dating, loc) : null);
@@ -92,6 +97,7 @@ export function PregnancyOnboardingPage() {
 
   const back = () => {
     setError(null);
+    if (saved) return router.replace('/pregnancy'); // already set up: nothing to go back to
     if (step === 1) router.push('/profile');
     else setStep((step - 1) as Step);
   };
@@ -107,15 +113,21 @@ export function PregnancyOnboardingPage() {
     if (!body || submitting) return;
     setError(null);
     try {
+      let result: OnboardingResult | null = null;
       await finishPregnancySetup({
         activate: () => activate.mutateAsync(),
-        onboard: () => onboard.mutateAsync(body),
+        onboard: async () => {
+          result = await onboard.mutateAsync(body);
+        },
         storeMode: () => storeMode.mutateAsync({ mode: 'pregnancy' }),
       });
       // A mode reshapes the whole app (nav, home, messages): refetch everything.
       writeLifeModeHint('pregnancy');
       void queryClient.invalidateQueries();
-      router.replace('/pregnancy');
+      // A scan saved next to an LMP was compared by the server: say what it decided before leaving.
+      const dating = (result as OnboardingResult | null)?.dating ?? null;
+      if (datingResultKey(dating)) setSaved(dating);
+      else router.replace('/pregnancy');
     } catch {
       setError(t('submitError'));
     }
@@ -164,6 +176,14 @@ export function PregnancyOnboardingPage() {
         </SecondaryButton>
       </>
     );
+  } else if (step === 4 && saved) {
+    content = (
+      <>
+        <ResultStep preview={preview.data} loading={preview.isLoading} failed={preview.isError} />
+        <DatingResultLine dating={saved} />
+      </>
+    );
+    actions = <PrimaryButton onClick={() => router.replace('/pregnancy')}>{t('continue')}</PrimaryButton>;
   } else if (step === 4) {
     content = <ResultStep preview={preview.data} loading={preview.isLoading} failed={preview.isError} />;
     actions = (

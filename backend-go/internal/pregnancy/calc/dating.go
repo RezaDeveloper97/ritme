@@ -28,10 +28,6 @@ func TrimesterOn(totalDays int, day civildate.Date) int {
 	return 3
 }
 
-// Trimester is the trimester at the start of a completed week (weeks × 7 days), version 1 of pregnancy.trimester.
-// Prefer TrimesterOn / TrimesterOfWeek, which read the version valid on the day.
-func Trimester(weeks int) int { return TrimesterOn(weeks*7, civildate.Date{}) }
-
 // TrimesterOfWeek is the trimester of 1-based pregnancy week n (its first day, (n−1)×7 completed days) by the version
 // valid on day.
 func TrimesterOfWeek(n int, day civildate.Date) int { return TrimesterOn((n-1)*7, day) }
@@ -113,7 +109,7 @@ func redatingBand(gaByLMP int, scanDate civildate.Date) (*int, int) {
 	for _, r := range rows {
 		lim, _ := r.Num("max_diff_days")
 		u, bounded := r.Num("ga_until_days")
-		limit, until = int(lim), nil
+		limit = int(lim)
 		if !bounded {
 			return nil, limit
 		}

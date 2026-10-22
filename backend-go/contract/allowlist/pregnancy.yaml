@@ -97,10 +97,12 @@ entries:
   # D-169 (task T-M10-18): the pregnancy status (GET /pregnancy/status, and `status` of GET/PUT /pregnancy/profile)
   # carries the new `dating` block {basis, replaced, discrepancy_days, band_until_days, limit_days} — the age source in
   # effect and the ACOG re-dating comparison of an LMP and a scan (null without a profile). Laravel has no such key.
+  # T-M10-18b: POST /pregnancy/onboarding returns the same block at data.dating (the re-dating decision of the saved
+  # dating; age_source is required there, so the user's basis stands) — the onboarding_* cases match this entry too.
   - case: "*"
     where: data.dating
     deviation: D-169
-    reason: new dating block on /pregnancy/status (Go-only, additive)
+    reason: new dating block on /pregnancy/status and POST /pregnancy/onboarding (Go-only, additive)
   - case: "*"
     where: data.status.dating
     deviation: D-169

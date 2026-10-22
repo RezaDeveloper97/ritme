@@ -1796,3 +1796,15 @@ Nothing needed fixing.
   - `CheckupItem.informational`/`label` stay optional until the menopause goldens are re-recorded.
 - Verify: `go vet ./...` and `go test ./...` green; checkups/admin/migrations test-int ok; `schema-diff` OK; `make contract ROUTES=all` → 1914 passed, 0 failed. Frontend: 1955 tests passed, copy:check clean. admin-web: 168 tests passed.
 - Open: H-10, H-11 and H-16 are advisor-pending; document admin-api §12 (`informational`, `registry_key`).
+
+## T-M10-18b — Wire the ACOG re-dating rule into the save endpoints and remaining trimester callers (D-169)
+- `pregnancy/handlers.go`: Onboarding and PUT profile run `ApplyScanRule` before saving. Explicit = `age_source` sent. Onboarding returns `data.dating`; PUT returns it in `status.dating`. An optional `CycleLength` source is not wired yet.
+- `healthrecord/extract/dating.go`: uses `ApplyUltrasoundDatingByRule`, with `Offer.Redating`. `same_dating` no longer needs `source == ultrasound`.
+  - `extract_int_test`: 12+3 with a 2-day difference keeps the LMP; a new 12-day case re-dates.
+- Callers switched to the dated functions: `analysis/pregnancy.go`, `v2/service.go` (`TrimesterStartDays`, `TrimesterOfWeek`, `WeekLabelOn`), `v2/calendar`. `v2/preview.go` returns `dating`.
+- Main session removed the v1 wrappers `calc.Trimester` and `v2.WeekLabel`, the unused `trimesterStartWeeks`, and an ineffassign in `redatingBand`.
+- `coverage_pin_test` pins `pregnancy.edd` through the calc functions.
+- OpenAPI: `dating` on onboarding and dating-preview (optional until goldens are re-recorded).
+- Frontend: `useCompleteOnboarding` returns `{profile, dating}`; the onboarding page shows `DatingResultLine` before continuing.
+- Verify: pregnancy, healthrecord, analysis and clinicalconfig unit + int ok; golangci 0 issues; frontend 1963 tests. Contract for pregnancy, pregnancy-v2, analysis-pregnancy, home, messages, loss, analysis and companion: 497 passed, 0 failed. The remaining `ROUTES=all` failures (labs, consents, auth, privacy, healthrecord-extract) were caused by T-M10-20/23, still in flight at commit time.
+- Open → **T-M10-18c:** extract kept-LMP copy, cycle-length source, schema dedupe, goldens + `required`, and a question about onboarding vs a previous pregnancy's LMP.

@@ -15,6 +15,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
+	"github.com/ritme/backend-go/internal/pregnancy/calc"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
 )
 
@@ -85,6 +86,19 @@ func previewProfile(body phpval.Map, locale string, now time.Time) (*store.Pregn
 		p.ManualEntryDate = civildate.NullDate{Date: civildate.InTehran(now), Valid: true}
 		p.ManualWeeks, p.ManualDays = integer("manual_weeks"), integer("manual_days")
 	}
+	if err != nil {
+		return p, err
+	}
+	// The other basis, when the body carries it complete, only feeds the re-dating comparison of the `dating` block
+	// (D-169); the chosen source still dates the preview.
+	if src != "lmp" && get("lmp_date") != "" {
+		p.LmpDate, err = date("lmp_date")
+	}
+	if src != "ultrasound" && get("ultrasound_date") != "" && get("ultrasound_weeks") != "" && get("ultrasound_days") != "" {
+		if p.UltrasoundDate, err = date("ultrasound_date"); err == nil {
+			p.UltrasoundWeeks, p.UltrasoundDays = integer("ultrasound_weeks"), integer("ultrasound_days")
+		}
+	}
 	return p, err
 }
 
@@ -96,6 +110,7 @@ func (s *Service) Preview(ctx context.Context, body phpval.Map, now time.Time, l
 		return nil, err
 	}
 	today := civildate.InTehran(now)
+	dating := calc.New(p, "en", today).Dating() // the source chosen + the ACOG LMP-vs-scan comparison (D-169)
 	d, ok := Resolve(p, today)
 	if !ok {
 		return nil, fmt.Errorf("pregnancy v2: preview: undated profile")
@@ -140,6 +155,7 @@ func (s *Service) Preview(ctx context.Context, body phpval.Map, now time.Time, l
 		"confidence", confidenceJSON(d.Confidence, l.Locale),
 		"basis", basis,
 		"copy", resultCopy,
+		"dating", dating.JSON(),
 	), nil
 }
 

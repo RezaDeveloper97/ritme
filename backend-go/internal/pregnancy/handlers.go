@@ -39,7 +39,12 @@ type Handlers struct {
 	q         store.Querier
 	afterSave AfterLogSave
 	family    companionstore.DBTX // SetFamilyGrants; nil = no companion links to reset (tests)
+	cycleLen  CycleLength         // SetCycleLength; nil = unknown (no cycle-length correction of the due date)
 }
+
+// CycleLength is the user's effective cycle length in days from the cycle engine (0 = unknown). The optional
+// pregnancy.edd.cycle_correction (off by default) adds its difference to 28 to an LMP due date (calc.EDDFromLMP).
+type CycleLength func(ctx context.Context, userID uint64) (int, error)
 
 // AfterLogSave runs after every symptom / weekly / fetal-movement save (the v2 alert rules of
 // messages/pregnancyalerts, T-M7-04). It is best-effort and never changes the v1 response
@@ -51,6 +56,9 @@ func NewHandlers(q store.Querier) *Handlers { return &Handlers{q: q} }
 
 // SetAfterLogSave installs the log-save hook.
 func (h *Handlers) SetAfterLogSave(f AfterLogSave) { h.afterSave = f }
+
+// SetCycleLength installs the cycle-length source of the optional due-date correction (T-M10-18b).
+func (h *Handlers) SetCycleLength(f CycleLength) { h.cycleLen = f }
 
 // SetFamilyGrants gives the handlers the database of the companion links (the API's *sql.DB): every start and end of
 // a pregnancy then resets the owner's pregnancy grants (companion.ResetModeScopedGrants, T-M9-02 / FAM-H3), so a
@@ -119,7 +127,15 @@ func (h *Handlers) calculator(r req) (*calc.Calculator, error) {
 	if err != nil {
 		return nil, err
 	}
-	return calc.New(p, r.locale, r.today()), nil
+	cl := calc.New(p, r.locale, r.today())
+	if h.cycleLen != nil && p != nil {
+		days, err := h.cycleLen(r.c.Context(), r.userID)
+		if err != nil {
+			return nil, err
+		}
+		cl.WithCycleLength(days)
+	}
+	return cl, nil
 }
 
 func (r req) profileNotFound() error {
@@ -187,11 +203,18 @@ func confidenceFor(source string) (enums.ConfidenceLevel, int, bool) {
 	return enums.ConfidenceLevelLow, 5, false
 }
 
+// explicitSource reports whether the request chose the age source itself (a non-null age_source).
+func explicitSource(validated phpval.Map) bool { return get(validated, "age_source") != nil }
+
 // Onboarding is POST /pregnancy/onboarding (201).
 func (h *Handlers) Onboarding(c fiber.Ctx) error {
 	r := h.request(c)
 	ctx := c.Context()
 	validated, err := r.validate(storeProfileRules(), storeProfileMessages)
+	if err != nil {
+		return err
+	}
+	existing, err := LoadProfile(ctx, h.q, r.userID)
 	if err != nil {
 		return err
 	}
@@ -208,11 +231,9 @@ func (h *Handlers) Onboarding(c fiber.Ctx) error {
 		Set("rh_negative_care_flag", hasRh && rh == string(enums.RhFactorNegative)).
 		Set("onboarding_completed", true).
 		Set("onboarding_completed_at", dbNow(r.now))
-
-	existing, err := LoadProfile(ctx, h.q, r.userID)
-	if err != nil {
-		return err
-	}
+	// The ACOG re-dating rule (D-169) on the scan being saved: age_source is required here, so the user's basis is
+	// kept and the decision only reports the LMP-vs-scan comparison.
+	decision := ApplyScanRule(existing, validated, explicitSource(validated))
 	if err := saveProfile(ctx, h.q, r.userID, existing, validated, r.now); err != nil {
 		return err
 	}
@@ -235,10 +256,15 @@ func (h *Handlers) Onboarding(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	dating := cl.Dating()
+	if decision != nil {
+		dating = *decision
+	}
 	return httpx.Created(c, jsonx.Obj(
 		"profile", ProfileJSON(p),
 		"gestational_age", ga.JSON(),
 		"estimated_due_date", edd.JSON(),
+		"dating", dating.JSON(),
 	), r.tr("آنبوردینگ بارداری تکمیل شد", "Pregnancy onboarding completed"))
 }
 
@@ -283,6 +309,9 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 	if rh := get(validated, "rh_factor"); rh != nil {
 		validated.Set("rh_negative_care_flag", rh == string(enums.RhFactorNegative))
 	}
+	// A scan in the body goes through the ACOG re-dating rule (D-169): without an age_source the rule picks the basis
+	// (and its confidence); with one the user's choice stands. The decision is the `dating` of the returned status.
+	ApplyScanRule(p, validated, explicitSource(validated))
 	if err := saveProfile(ctx, h.q, r.userID, p, validated, r.now); err != nil {
 		return err
 	}

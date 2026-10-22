@@ -235,7 +235,8 @@ export interface TrimesterSpan {
   startDate: string | null;
   startLabel: string | null;
   /**
-   * 0–100: where this trimester **starts** on the 40-week bar (0 / 32 / 70) —
+   * 0–100: where this trimester **starts** on the 40-week bar (0 / 35 / 70:
+   * 0, 14+0 and 28+0 of 280 days, D-169) —
    * not a fill. The fill of each segment comes from `trimesterFills`.
    */
   percent: number;

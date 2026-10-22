@@ -68,7 +68,9 @@ func (in *PregnancyInput) gaDays(d civildate.Date) int { return in.Start.DiffDay
 // CurrentWeek is the 1-based week of today (1..42).
 func (in *PregnancyInput) CurrentWeek() int { return min(42, max(1, in.gaDays(in.Today)/7+1)) }
 
-func trimesterOn(gaDays int) int { return calc.Trimester(max(0, gaDays) / 7) }
+// trimesterOn is the trimester of gaDays completed days on day d, by the pregnancy.trimester version valid on d
+// (calc.TrimesterOn, D-169).
+func trimesterOn(gaDays int, d civildate.Date) int { return calc.TrimesterOn(max(0, gaDays), d) }
 
 func (in *PregnancyInput) label(key string) string {
 	if in.Label == nil {
@@ -427,13 +429,13 @@ func (in *PregnancyInput) symptomsByTrimester() Section {
 			if g < 0 || d.After(in.Today) || len(set) == 0 {
 				continue
 			}
-			t := trimesterOn(g)
+			t := trimesterOn(g, d)
 			logged[t]++
 			for k := range set {
 				counts[t][k]++
 			}
 		}
-		cur := trimesterOn(in.gaDays(in.Today))
+		cur := trimesterOn(in.gaDays(in.Today), in.Today)
 		ready := false
 		out := []any{}
 		for t := 1; t <= 3; t++ {
@@ -491,7 +493,7 @@ func BuildPregnancy(in *PregnancyInput) *jsonx.OrderedMap {
 	return jsonx.Obj(
 		"pregnancy", jsonx.Obj(
 			"week", in.CurrentWeek(), "weeks", max(0, g)/7, "days", max(0, g)%7,
-			"trimester", trimesterOn(g), "due_date", in.Due.String(), "start_date", in.Start.String(),
+			"trimester", trimesterOn(g, in.Today), "due_date", in.Due.String(), "start_date", in.Start.String(),
 		),
 		"sections", jsonx.Obj(
 			"weight_gain", in.weightGain().JSON(),

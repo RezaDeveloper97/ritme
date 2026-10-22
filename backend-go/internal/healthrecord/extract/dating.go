@@ -12,6 +12,7 @@ import (
 	"github.com/ritme/backend-go/internal/healthrecord/extract/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/pregnancy"
+	"github.com/ritme/backend-go/internal/pregnancy/calc"
 	pregstore "github.com/ritme/backend-go/internal/pregnancy/store"
 )
 
@@ -57,6 +58,9 @@ type Offer struct {
 	CurrentDue    civildate.Date
 	// ProfileID is the pregnancy profile the offer applies to (0 when not pregnant).
 	ProfileID uint64
+	// Redating is the ACOG re-dating decision of an applied offer (D-169): Replaced = the scan now dates the
+	// pregnancy, otherwise the LMP dating was kept and the scan is only stored. Nil before an apply.
+	Redating *calc.Redating
 }
 
 // ErrDatingUnavailable: the offer is not open (its state / reason say why).
@@ -143,7 +147,9 @@ func offerFor(doc store.RecordDocument, p *pregstore.PregnancyProfile, today civ
 			o.Reason = ReasonOtherPregnancy
 			return o
 		}
-		if o.CurrentSource == "ultrasound" && p.UltrasoundDate.Valid && p.UltrasoundDate.Date == scan &&
+		// The profile already holds this scan — it dates the pregnancy, or the re-dating rule kept the LMP over it
+		// (D-169): offering it again would change nothing.
+		if p.UltrasoundDate.Valid && p.UltrasoundDate.Date == scan &&
 			int(p.UltrasoundWeeks.Int32)*7+int(p.UltrasoundDays.Int32) == o.AtScan {
 			o.Reason = ReasonSameDating
 			return o
@@ -186,7 +192,7 @@ func (s *Service) DatingOffer(ctx context.Context, userID, docID uint64, today c
 // re-dating, through a tx-bound pregnancy querier) runs, and the outcome + the «where used» link are written — all
 // or nothing.
 func (s *Service) setDating(ctx context.Context, userID, docID uint64, outcome string, now time.Time,
-	apply func(pq pregstore.Querier, o Offer) error,
+	apply func(pq pregstore.Querier, o Offer) (*calc.Redating, error),
 ) (Offer, error) {
 	today := civildate.InTehran(now)
 	var out Offer
@@ -216,9 +222,11 @@ func (s *Service) setDating(ctx context.Context, userID, docID uint64, outcome s
 		return out, &ErrDatingUnavailable{Offer: o}
 	}
 	if apply != nil {
-		if err := apply(pq, o); err != nil {
+		r, err := apply(pq, o)
+		if err != nil {
 			return out, err
 		}
+		o.Redating = r
 		if err := q.UpsertExtractDocumentLink(ctx, store.UpsertExtractDocumentLinkParams{UserID: userID, DocumentID: docID,
 			TargetType: healthrecord.LinkPregnancy, TargetID: o.ProfileID, State: healthrecord.LinkApplied, Now: nullTime(now),
 		}); err != nil {
@@ -247,14 +255,16 @@ func (s *Service) setDating(ctx context.Context, userID, docID uint64, outcome s
 	return o, nil
 }
 
-// ApplyDating re-dates the user's pregnancy from the document's scan — only on the user's explicit confirm — and links
-// the document to the pregnancy («سن بارداری از همین سند به‌روز شد»). ErrNotFound, *ErrDatingUnavailable.
+// ApplyDating saves the document's scan onto the user's pregnancy — only on the user's explicit confirm — and links
+// the document to the pregnancy. The ACOG re-dating rule picks the basis (ApplyUltrasoundDatingByRule, D-169): with an
+// LMP the scan re-dates the pregnancy («سن بارداری از همین سند به‌روز شد») only when the discrepancy is more than the
+// band's limit; otherwise the LMP dating is kept (Offer.Redating.Replaced false). ErrNotFound, *ErrDatingUnavailable.
 func (s *Service) ApplyDating(ctx context.Context, userID, docID uint64, now time.Time) (Offer, error) {
-	return s.setDating(ctx, userID, docID, DatingApplied, now, func(pq pregstore.Querier, o Offer) error {
-		_, err := pregnancy.ApplyUltrasoundDating(ctx, pq, userID, pregnancy.UltrasoundDating{
+	return s.setDating(ctx, userID, docID, DatingApplied, now, func(pq pregstore.Querier, o Offer) (*calc.Redating, error) {
+		_, r, err := pregnancy.ApplyUltrasoundDatingByRule(ctx, pq, userID, pregnancy.UltrasoundDating{
 			ScanDate: o.ScanDate, Weeks: o.AtScan / 7, Days: o.AtScan % 7,
 		}, now)
-		return err
+		return &r, err
 	})
 }
 

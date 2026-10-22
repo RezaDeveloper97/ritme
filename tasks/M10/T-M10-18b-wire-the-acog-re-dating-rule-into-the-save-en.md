@@ -3,12 +3,12 @@ id: T-M10-18b
 title: Wire the ACOG re-dating rule into the save endpoints and remaining trimester callers
 milestone: M10
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M10-18]
 parallel_group: M10-C
-touches: [backend-go/internal/pregnancy/handlers.go,backend-go/internal/healthrecord/extract/dating.go,backend-go/internal/healthrecord/extract/extract_int_test.go,backend-go/internal/analysis/pregnancy.go,backend-go/internal/pregnancy/v2/service.go,backend-go/internal/pregnancy/v2/calendar/calendar.go,backend-go/internal/pregnancy/v2/preview.go,backend-go/internal/clinicalconfig/coverage_pin_test.go,backend-go/api/openapi.yaml,backend-go/contract/allowlist/pregnancy.yaml,frontend/src/entities/pregnancy,frontend/src/screens/pregnancy-onboarding]
+touches: [backend-go/internal/pregnancy/handlers.go,backend-go/internal/healthrecord/extract/dating.go,backend-go/internal/healthrecord/extract/extract_int_test.go,backend-go/internal/analysis/pregnancy.go,backend-go/internal/pregnancy/v2/service.go,backend-go/internal/pregnancy/v2/calendar/calendar.go,backend-go/internal/pregnancy/v2/preview.go,backend-go/internal/clinicalconfig/coverage_pin_test.go,backend-go/api/openapi.yaml,backend-go/contract/allowlist/pregnancy.yaml,backend-go/contract/allowlist/healthrecord-extract.yaml,backend-go/contract/allowlist/home.yaml,backend-go/contract/allowlist/messages.yaml,backend-go/contract/allowlist/loss.yaml,frontend/src/entities/pregnancy,frontend/src/screens/pregnancy-onboarding]
 skills: []
-verify: cd backend-go && go vet ./... && go test ./internal/pregnancy/... ./internal/healthrecord/... ./internal/analysis/... ./internal/clinicalconfig/... && make test-int PKG='./internal/pregnancy/... ./internal/healthrecord/...' && make contract ROUTES=pregnancy,pregnancy-v2,analysis-pregnancy,healthrecord-extract && cd ../frontend && npm run typecheck && npm run lint && npm run test
+verify: cd backend-go && go vet ./... && go test ./internal/pregnancy/... ./internal/healthrecord/... ./internal/analysis/... ./internal/clinicalconfig/... && make test-int PKG='./internal/pregnancy/... ./internal/healthrecord/...' && make contract ROUTES=all && cd ../frontend && npm run typecheck && npm run lint && npm run test
 ---
 
 # T-M10-18b — Wire the ACOG re-dating rule into the save endpoints and remaining trimester callers

@@ -9,6 +9,7 @@ import type {
   AlertSummary,
   FetalMovementInput,
   OnboardingInput,
+  OnboardingResult,
   PregnancyActivation,
   PregnancyAlert,
   PregnancyEnums,
@@ -22,6 +23,7 @@ import type {
 } from '../model/types';
 import {
   alertSummarySchema,
+  onboardingDatingSchema,
   alertsEnvelopeSchema,
   pregnancyAlertSchema,
   pregnancyEnumsSchema,
@@ -394,17 +396,24 @@ export function useDeactivatePregnancy() {
   });
 }
 
-/** POST /pregnancy/onboarding — supply dating + history; returns the profile. */
+/**
+ * POST /pregnancy/onboarding — supply dating + history; returns the profile and
+ * the server's `dating` decision (the ACOG re-dating comparison when the profile
+ * holds both an LMP and a scan, D-169).
+ */
 export function useCompleteOnboarding() {
   const queryClient = useQueryClient();
-  return useMutation<PregnancyProfile, unknown, OnboardingInput>({
+  return useMutation<OnboardingResult, unknown, OnboardingInput>({
     mutationFn: async (input) => {
-      const { data } = await apiClient.post<ApiEnvelope<{ profile: unknown }>>(
+      const { data } = await apiClient.post<ApiEnvelope<{ profile: unknown; dating?: unknown }>>(
         '/pregnancy/onboarding',
         compact(input),
       );
-      const raw = (data.data as { profile: unknown }).profile;
-      return pregnancyProfileSchema.parse(raw);
+      const body = data.data as { profile: unknown; dating?: unknown };
+      return {
+        profile: pregnancyProfileSchema.parse(body.profile),
+        dating: onboardingDatingSchema.parse(body.dating ?? null),
+      };
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.all });

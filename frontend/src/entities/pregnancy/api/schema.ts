@@ -4,6 +4,7 @@ import type {
   AlertSummary,
   EstimatedDueDate,
   GestationalAge,
+  OnboardingDating,
   PregnancyAlert,
   PregnancyEnums,
   PregnancyProfile,
@@ -303,3 +304,18 @@ export const alertSummarySchema = z
       latestEmergency: s.latest_emergency ?? null,
     }),
   );
+
+// ── POST /pregnancy/onboarding `dating` (T-M10-18b, D-169) ─────
+const intOrNull = z.number().int().nullable().catch(null);
+/** The server's dating decision; anything malformed reads as «no comparison» (no result line). */
+export const onboardingDatingSchema = z
+  .object({
+    basis: z.string().nullable().catch(null),
+    replaced: z.boolean().catch(false),
+    discrepancy_days: intOrNull,
+    band_until_days: intOrNull,
+    limit_days: intOrNull,
+  })
+  .transform((d): OnboardingDating => d)
+  .nullable()
+  .catch(null);

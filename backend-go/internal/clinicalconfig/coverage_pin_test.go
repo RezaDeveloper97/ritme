@@ -17,6 +17,7 @@ import (
 	"github.com/ritme/backend-go/internal/labs"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/postpartum"
+	"github.com/ritme/backend-go/internal/pregnancy/calc"
 )
 
 func v1(t *testing.T, key string) cc.Version {
@@ -45,8 +46,9 @@ func TestCoverageKeys_PinnedToTheirOrigin(t *testing.T) {
 		want   cc.Value
 		origin string
 	}{
-		// internal/pregnancy/calc/calc.go:173 `LmpDate.Date.AddDays(280)` (also :179, :185; v2/dating.go:74).
-		{cc.KeyPregnancyEDD, cc.Value{"naegele_days": 280}, "calc.go:173"},
+		// Laravel's `LmpDate.Date.AddDays(280)` (PregnancyCalculationService); calc reads the key since T-M10-18 —
+		// pinned below through calc.EDDFromStart / calc.EDDFromLMP.
+		{cc.KeyPregnancyEDD, cc.Value{"naegele_days": 280}, "Laravel AddDays(280)"},
 		// No cycle-length correction anywhere today (SPEC §3.1: optional, off by default).
 		{cc.KeyPregnancyEDDCycleCorrect, cc.Value{"enabled": 0}, "SPEC §3.1"},
 		// SPEC §3.1 (ACOG CO 700): T2 from 14+0, T3 from 28+0. Today calc.go:132-139 starts T2 at 13 completed weeks
@@ -93,8 +95,16 @@ func TestCoverageKeys_PinnedToTheirOrigin(t *testing.T) {
 		assert.Equal(t, x.want, enums.BmiCategoryFromBmi(x.bmi), x.bmi)
 	}
 
-	// The two literals without an exported constant: read them where they live.
-	assert.Contains(t, readRepo(t, "internal/pregnancy/calc/calc.go"), "LmpDate.Date.AddDays(280)")
+	// pregnancy.edd v1: calc reads the key, and its due date is the former LMP + 280 days (no cycle correction while
+	// pregnancy.edd.cycle_correction v1 is off, whatever the cycle length).
+	cc.Reset()
+	day := civildate.MustParse("2026-10-21")
+	assert.Equal(t, 280, calc.NaegeleDays(day))
+	lmp := civildate.MustParse("2026-06-25")
+	assert.Equal(t, lmp.AddDays(280), calc.EDDFromStart(lmp))
+	assert.Equal(t, lmp.AddDays(280), calc.EDDFromLMP(lmp, 35))
+
+	// The literal without an exported constant: read it where it lives.
 	assert.Contains(t, readRepo(t, "internal/messages/pregnancyalerts/rules.go"), `c.intParam("spotting_until_week", 12)`)
 
 	// pregnancy.iom totals and BMI bands = analysis/pregnancy_thresholds.go:19-24 IOMBands (BMIMax 0 = open);

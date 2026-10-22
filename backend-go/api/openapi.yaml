@@ -11740,6 +11740,13 @@ paths:
                           days_remaining: {type: integer}
                           weeks_remaining: {type: integer}
                           formatted: {$ref: "#/components/schemas/RawTranslations"}
+                      dating:
+                        # required once the pregnancy goldens are re-recorded (T-M10-18b; Laravel has no such key)
+                        description: |
+                          The ACOG re-dating decision of the saved dating (T-M10-18b, D-169). `age_source` is required
+                          here, so the user's basis stands: with a scan in the body and an LMP on the profile (or in the
+                          body) the block reports the comparison; otherwise it is the profile's dating basis.
+                        allOf: [{$ref: "#/components/schemas/PregnancyDating"}]
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/ValidationFailed"}
   /api/v1/pregnancy/profile:
@@ -29463,6 +29470,12 @@ components:
             confidence: {type: [string, "null"]}
             primary: {type: [string, "null"]}
             secondary: {type: [string, "null"]}
+        dating:
+          # required once the pregnancy-v2 goldens are re-recorded (T-M10-18b)
+          description: |
+            The chosen source (`basis`) and, when the body also carries the other basis complete (an LMP next to a
+            scan), the ACOG re-dating comparison (D-169). The chosen source still dates the preview.
+          allOf: [{$ref: "#/components/schemas/PregnancyDating"}]
     CheckupSummary:
       type: object
       description: "Over enabled items (informational and `after_pregnancy` items excluded): `up_to_date` counts up_to_date + soon + not_yet; `due` counts due + follow_up."

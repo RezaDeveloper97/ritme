@@ -395,13 +395,15 @@ func TestExtract_PregnancyDating(t *testing.T) {
 	r = e.do(t, http.MethodPost, docsPath+"/"+id+"/dating", tok, map[string]any{"confirm": true})
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	assert.Equal(t, extract.OfferApplied, r.data()["state"])
-	assert.Equal(t, map[string]any{"source": "ultrasound", "due_date": "2027-03-30"}, r.data()["current"])
+	// The ACOG re-dating rule (D-169): the scan says 12+3, the LMP 12+1 on 2026-09-18 — 2 days apart, within the
+	// 7-day limit of the band up to 13+6 — so the scan is stored and the LMP keeps dating the pregnancy.
+	assert.Equal(t, map[string]any{"source": "lmp", "due_date": "2027-04-01"}, r.data()["current"])
 	src, us, w, d, due := profile(t, e, uid)
-	assert.Equal(t, "ultrasound", src)
+	assert.Equal(t, "lmp", src, "a 2-day difference at 12+3 keeps the LMP")
 	assert.Equal(t, "2026-09-18", us)
 	assert.Equal(t, int32(12), w.Int32)
 	assert.Equal(t, int32(3), d.Int32)
-	assert.Equal(t, "2027-03-30", due)
+	assert.Equal(t, "2027-04-01", due)
 
 	r = e.do(t, http.MethodGet, docsPath+"/"+id, tok, nil)
 	used, _ := r.data()["where_used"].([]any)
@@ -424,8 +426,24 @@ func TestExtract_PregnancyDating(t *testing.T) {
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	assert.Equal(t, extract.OfferDismissed, r.data()["state"])
 	_, _, _, _, due = profile(t, e, uid)
-	assert.Equal(t, "2027-03-30", due)
+	assert.Equal(t, "2027-04-01", due)
 	assert.Equal(t, extract.OfferDismissed, e.do(t, http.MethodGet, docsPath+"/"+id3+"/dating", tok, nil).data()["state"])
+
+	// A scan 12 days off the LMP (13+6 by the scan, 12+1 by the LMP) is more than the band's 7-day limit: it re-dates.
+	id4 := e.document(t, uid, tok, healthrecord.KindImaging, "imaging_edd")
+	require.Equal(t, http.StatusAccepted, e.do(t, http.MethodPost, docsPath+"/"+id4+"/extract", tok, nil).status)
+	r = e.do(t, http.MethodPost, docsPath+"/"+id4+"/review", tok, map[string]any{"fields": map[string]any{"edd": "2027-03-20"}})
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	require.Equal(t, extract.OfferOffered, r.data()["dating"].(map[string]any)["state"], r.raw)
+	r = e.do(t, http.MethodPost, docsPath+"/"+id4+"/dating", tok, map[string]any{"confirm": true})
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, map[string]any{"source": "ultrasound", "due_date": "2027-03-20"}, r.data()["current"])
+	src, us, w, d, due = profile(t, e, uid)
+	assert.Equal(t, "ultrasound", src)
+	assert.Equal(t, "2026-09-18", us)
+	assert.Equal(t, int32(13), w.Int32)
+	assert.Equal(t, int32(6), d.Int32)
+	assert.Equal(t, "2027-03-20", due)
 }
 
 func waitState(t *testing.T, e *env, tok, id, want string) resp {

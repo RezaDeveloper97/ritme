@@ -130,6 +130,26 @@ export interface OnboardingInput {
   rh_factor?: string;
 }
 
+/**
+ * The `dating` block of POST /pregnancy/onboarding (T-M10-18b, deviation D-169):
+ * the basis in effect and the ACOG LMP-vs-scan comparison the server made. Kept
+ * in the server's snake_case so it passes straight to `DatingResultLine`
+ * (features/track-pregnancy), which reads the same block.
+ */
+export interface OnboardingDating {
+  basis: string | null;
+  replaced: boolean;
+  discrepancy_days: number | null;
+  band_until_days: number | null;
+  limit_days: number | null;
+}
+
+/** POST /pregnancy/onboarding result: the saved profile + the dating decision (null on an older server). */
+export interface OnboardingResult {
+  profile: PregnancyProfile;
+  dating: OnboardingDating | null;
+}
+
 // ── Daily symptom log ──────────────────────────────────────────
 /** The 14 tracked symptoms. Four are "critical" (spotting, bleeding,
  *  fluid_leakage, severe_sudden_pain) and can raise alerts on save. */
