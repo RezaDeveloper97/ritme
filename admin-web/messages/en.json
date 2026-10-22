@@ -3009,7 +3009,9 @@
       "engine": "Cycle engine",
       "vitals": "Vitals",
       "pregnancy": "Pregnancy",
-      "lab": "Lab"
+      "lab": "Lab",
+      "child": "Children",
+      "screening": "Checkups & screening"
     },
     "propose": "Propose a change",
     "key": "Key",
@@ -3044,7 +3046,38 @@
     "note": "The server reads the version valid on target_date; past outputs stay reproducible with their own thresholds. A clinical threshold change cannot go live without 2 medical-advisor approvals.",
     "units": {
       "day": "days",
-      "score": "score"
+      "score": "score",
+      "week": "weeks",
+      "month": "months"
+    },
+    "sourceOf": "Source: {source}",
+    "rows": {
+      "count": "{count, plural, one {{n} row} other {{n} rows}}",
+      "caption": "Rows of the proposed table",
+      "bounds": "{min}–{max}",
+      "integer": "whole number",
+      "nullable": "empty = open / any",
+      "cellLabel": "Row {row}, {column}",
+      "any": "Any",
+      "open": "open",
+      "up": "Move row {row} up",
+      "down": "Move row {row} down",
+      "remove": "Remove row {row}",
+      "add": "Add row",
+      "limits": "{min} to {max} rows",
+      "inForce": "Version in force ({count} rows)",
+      "noChange": "Same as the version in force.",
+      "diff": "Against the version in force: {changed} changed · {added} added · {removed} removed",
+      "errors": {
+        "required": "Required",
+        "number": "Enter a number",
+        "integer": "Whole numbers only",
+        "range": "Out of the allowed range",
+        "enum": "Not an allowed value",
+        "length": "Too long",
+        "count": "The table has too few or too many rows.",
+        "sort": "Rows must be in ascending order of the sorted column; only the last row may be open."
+      }
     }
   },
   "kpi": {

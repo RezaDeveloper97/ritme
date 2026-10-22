@@ -3,7 +3,7 @@ id: T-M10-16
 title: Clinical registry v2: table-valued keys, per-version source, coverage keys
 milestone: M10
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M10-01, T-M9-05, T-M9-06, T-M9-15]
 parallel_group: M10-C
 touches: [backend-go/internal/clinicalconfig, backend-go/internal/admin/clinicalcfg, admin-web/src/screens/clinical-config, admin-web/messages/fa.json, admin-web/messages/en.json]

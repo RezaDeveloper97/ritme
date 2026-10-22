@@ -20,6 +20,7 @@ import (
 	"errors"
 	"log/slog"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
@@ -64,22 +65,31 @@ func NewHandlers(db *sql.DB, logger *slog.Logger) *Handlers {
 	return &Handlers{db: db, q: store.New(db), logger: logger}
 }
 
-// Loader reads the approved versions for clinicalconfig.Install.
+// Loader reads the approved versions (value and source) for clinicalconfig.Install. A rows value is parsed and
+// validated against its key's schema; a broken stored value is skipped, so the key keeps its previous version.
 func Loader(db *sql.DB) clinicalconfig.Loader {
 	q := store.New(db)
 	return func(ctx context.Context) ([]clinicalconfig.Version, error) {
-		rows, err := q.ListApprovedClinicalConfigVersions(ctx)
+		rows, err := q.ListClinicalConfigVersions(ctx)
 		if err != nil {
 			return nil, err
 		}
 		out := make([]clinicalconfig.Version, 0, len(rows))
 		for _, r := range rows {
-			var v clinicalconfig.Value
-			if json.Unmarshal([]byte(r.Value), &v) != nil {
-				continue // never trust a broken row: the key keeps its previous version
+			def, ok := clinicalconfig.Lookup(r.ConfigKey)
+			if !ok || r.Status != StatusApproved {
+				continue
 			}
-			out = append(out, clinicalconfig.Version{Key: r.ConfigKey, Version: int(r.Version), Value: v,
-				EffectiveFrom: r.EffectiveFrom})
+			v := clinicalconfig.Version{Key: r.ConfigKey, Version: int(r.Version), Source: r.Source,
+				EffectiveFrom: r.EffectiveFrom}
+			if def.IsRows() {
+				if v.Rows, _ = def.ParseRows([]byte(r.Value)); v.Rows == nil {
+					continue
+				}
+			} else if json.Unmarshal([]byte(r.Value), &v.Value) != nil {
+				continue
+			}
+			out = append(out, v)
 		}
 		return out, nil
 	}
@@ -119,15 +129,46 @@ func valueJSON(def *clinicalconfig.Def, v clinicalconfig.Value) *jsonx.OrderedMa
 	return out
 }
 
+// rowsJSON is a rows value {"rows":[{column: value} in column order]}.
+func rowsJSON(def *clinicalconfig.Def, rows []clinicalconfig.Row) *jsonx.OrderedMap {
+	items := make([]any, 0, len(rows))
+	for _, r := range rows {
+		o := jsonx.Obj()
+		for _, c := range def.Table.Columns {
+			o.Set(c.Name, r[c.Name])
+		}
+		items = append(items, o)
+	}
+	return jsonx.Obj("rows", items)
+}
+
+// versionValueJSON is the value of a version of either kind.
+func versionValueJSON(def *clinicalconfig.Def, v clinicalconfig.Version) *jsonx.OrderedMap {
+	if def.IsRows() {
+		return rowsJSON(def, v.Rows)
+	}
+	return valueJSON(def, v.Value)
+}
+
+// storedValueJSON is the value of a stored version (a broken rows value prints as no rows).
+func storedValueJSON(def *clinicalconfig.Def, raw string) *jsonx.OrderedMap {
+	if def.IsRows() {
+		rows, _ := def.ParseRows([]byte(raw))
+		return rowsJSON(def, rows)
+	}
+	var v clinicalconfig.Value
+	_ = json.Unmarshal([]byte(raw), &v)
+	return valueJSON(def, v)
+}
+
 func defaultVersionJSON(def *clinicalconfig.Def) *jsonx.OrderedMap {
-	return jsonx.Obj("id", nil, "version", 1, "value", valueJSON(def, def.DefaultValue()), "source", def.Source,
+	v1 := clinicalconfig.Version{Value: def.DefaultValue(), Rows: def.DefaultRows()}
+	return jsonx.Obj("id", nil, "version", 1, "value", versionValueJSON(def, v1), "source", def.Source,
 		"note", "", "effective_from", nil, "status", StatusApproved, "proposed_by", nil, "approvals", []any{},
 		"required_approvals", 0, "decided_at", nil, "created_at", nil)
 }
 
 func storedVersionJSON(def *clinicalconfig.Def, r versionRow, approvals []store.ListClinicalConfigApprovalsRow) *jsonx.OrderedMap {
-	var v clinicalconfig.Value
-	_ = json.Unmarshal([]byte(r.Value), &v)
 	aps := make([]any, 0, len(approvals))
 	for _, a := range approvals {
 		aps = append(aps, approver(a))
@@ -136,18 +177,70 @@ func storedVersionJSON(def *clinicalconfig.Def, r versionRow, approvals []store.
 	if r.ProposedBy.Valid {
 		proposer = jsonx.Obj("id", r.ProposedBy.Int64, "name", httpadmin.NullString(r.ProposerName))
 	}
-	return jsonx.Obj("id", r.ID, "version", r.Version, "value", valueJSON(def, v), "source", r.Source, "note", r.Note,
+	source := r.Source
+	if source == "" {
+		source = def.Source
+	}
+	return jsonx.Obj("id", r.ID, "version", r.Version, "value", storedValueJSON(def, r.Value), "source", source, "note", r.Note,
 		"effective_from", r.EffectiveFrom.String(), "status", r.Status, "proposed_by", proposer, "approvals", aps,
 		"required_approvals", RequiredApprovals, "decided_at", httpadmin.Time(r.DecidedAt),
 		"created_at", httpadmin.Time(r.CreatedAt))
 }
 
+// defJSON is a key's definition: kind, unit, the numbers fields (empty for a rows key) and the row schema (null for
+// a numbers key).
 func defJSON(def *clinicalconfig.Def) *jsonx.OrderedMap {
 	fields := make([]any, 0, len(def.Fields))
 	for _, f := range def.Fields {
 		fields = append(fields, jsonx.Obj("name", f.Name, "default", f.Default, "min", f.Min, "max", f.Max))
 	}
-	return jsonx.Obj("key", def.Key, "group", def.Group, "unit", def.Unit, "fields", fields)
+	return jsonx.Obj("key", def.Key, "group", def.Group, "kind", def.KindName(), "unit", def.Unit, "fields", fields,
+		"schema", schemaJSON(def))
+}
+
+func strs(s []string) []string {
+	if s == nil {
+		return []string{}
+	}
+	return s
+}
+
+func schemaJSON(def *clinicalconfig.Def) any {
+	t := def.Table
+	if !def.IsRows() || t == nil {
+		return nil
+	}
+	cols := make([]any, 0, len(t.Columns))
+	for _, c := range t.Columns {
+		col := jsonx.Obj("name", c.Name, "type", c.Type, "nullable", c.Nullable)
+		switch c.Type {
+		case clinicalconfig.ColNumber:
+			col.Set("min", c.Min).Set("max", c.Max).Set("integer", c.Integer)
+		case clinicalconfig.ColEnum:
+			col.Set("enum", strs(c.Enum))
+		case clinicalconfig.ColString:
+			n := c.MaxLen
+			if n == 0 {
+				n = 64
+			}
+			col.Set("max_length", n)
+		}
+		cols = append(cols, col)
+	}
+	var sortBy, rng any
+	if t.SortBy != "" {
+		sortBy = jsonx.Obj("column", t.SortBy, "strict", t.StrictSort)
+	}
+	if t.Range != nil {
+		rng = jsonx.Obj("from", t.Range.From, "to", t.Range.To, "to_inclusive", t.Range.ToInclusive,
+			"contiguous", t.Range.Contiguous, "group_by", strs(t.Range.GroupBy))
+	}
+	pairs := make([]any, 0, len(t.RowOrder))
+	for _, p := range t.RowOrder {
+		pairs = append(pairs, []string{p[0], p[1]})
+	}
+	return jsonx.Obj("columns", cols, "min_rows", t.MinRows, "max_rows", t.MaxRows, "sort_by", sortBy,
+		"range", rng, "unique", strs(t.Unique), "row_order", pairs)
 }
 
 // keyState splits a key's stored versions (newest version first) into the one in force today, the next approved
@@ -163,6 +256,7 @@ func keyState(def *clinicalconfig.Def, rows []versionRow, byVersion map[uint64][
 		case r.Status == StatusPending && pending == nil:
 			pending = storedVersionJSON(def, *r, byVersion[r.ID])
 		case r.Status != StatusApproved:
+		case !loadable(def, r.Value): // never loaded by clinicalconfig (Loader), so never in force
 		case !r.EffectiveFrom.After(today):
 			if cur == nil || r.EffectiveFrom.After(cur.EffectiveFrom) ||
 				(r.EffectiveFrom == cur.EffectiveFrom && r.Version > cur.Version) {
@@ -181,6 +275,16 @@ func keyState(def *clinicalconfig.Def, rows []versionRow, byVersion map[uint64][
 		upcoming = storedVersionJSON(def, *next, byVersion[next.ID])
 	}
 	return current, upcoming, pending
+}
+
+// loadable reports whether the Loader would load a stored value of def.
+func loadable(def *clinicalconfig.Def, raw string) bool {
+	if def.IsRows() {
+		_, problem := def.ParseRows([]byte(raw))
+		return problem == ""
+	}
+	var v clinicalconfig.Value
+	return json.Unmarshal([]byte(raw), &v) == nil
 }
 
 func (h *Handlers) approvals(ctx context.Context) (map[uint64][]store.ListClinicalConfigApprovalsRow, error) {
@@ -205,7 +309,8 @@ func today(c fiber.Ctx) civildate.Date { return civildate.InTehran(httpadmin.Now
 // ---------------------------------------------------------------------------
 // Reads
 
-// List is GET /clinical-config?group=: {groups, keys:[{key, group, unit, fields, current, upcoming, pending}],
+// List is GET /clinical-config?group=: {groups, keys:[{key, group, kind, unit, fields, schema, current, upcoming,
+// pending}] (every version with its own source),
 // can_approve, required_approvals, today}.
 func (h *Handlers) List(c fiber.Ctx) error {
 	group := c.Query("group")
@@ -281,7 +386,7 @@ func (h *Handlers) Show(c fiber.Ctx) error {
 		"versions", versions, "can_approve", canApprove(c), "required_approvals", RequiredApprovals))
 }
 
-// Resolve is GET /clinical-config/resolve?key=&date=: the version the server reads for key on date.
+// Resolve is GET /clinical-config/resolve?key=&date=: the version the server reads for key on date, with its source.
 func (h *Handlers) Resolve(c fiber.Ctx) error {
 	if _, err := httpadmin.Validate(c, validation.Rules{
 		validation.F("key", "required|string|max:64"),
@@ -303,13 +408,14 @@ func (h *Handlers) Resolve(c fiber.Ctx) error {
 		eff = v.EffectiveFrom.String()
 	}
 	return httpadmin.OK(c, jsonx.Obj("key", def.Key, "date", d.String(), "version", v.Version,
-		"value", valueJSON(def, v.Value), "effective_from", eff))
+		"value", versionValueJSON(def, v), "source", v.Source, "effective_from", eff))
 }
 
 // ---------------------------------------------------------------------------
 // Writes
 
-// Propose is POST /clinical-config/:key/proposals {value:{field:number}, effective_from, source?, note?} → 201.
+// Propose is POST /clinical-config/:key/proposals {value, effective_from, source?, note?} → 201. value is
+// {field:number} for a numbers key and {"rows":[{column:value}]} for a rows key (validated against its schema).
 func (h *Handlers) Propose(c fiber.Ctx) error {
 	def, err := lookup(c.Params("key"))
 	if err != nil {
@@ -324,14 +430,9 @@ func (h *Handlers) Propose(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	var body struct {
-		Value clinicalconfig.Value `json:"value"`
-	}
-	if json.Unmarshal(c.Body(), &body) != nil {
-		return httpadmin.FieldError("value", "The value must map every field to a number.")
-	}
-	if problem := def.Validate(body.Value); problem != "" {
-		return httpadmin.FieldError("value", valueMessage(problem))
+	raw, err := proposedValue(def, c.Body())
+	if err != nil {
+		return err
 	}
 	eff, err := civildate.Parse(httpadmin.String(data, "effective_from"))
 	if err != nil {
@@ -355,10 +456,6 @@ func (h *Handlers) Propose(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	raw, err := json.Marshal(body.Value)
-	if err != nil {
-		return err
-	}
 	a := httpadmin.CurrentAdmin(c)
 	now := httpadmin.DBTime(httpadmin.Now(c))
 	id, err := h.q.InsertClinicalConfigVersion(c.Context(), store.InsertClinicalConfigVersionParams{
@@ -379,6 +476,76 @@ func (h *Handlers) Propose(c fiber.Ctx) error {
 		return err
 	}
 	return httpadmin.Created(c, jsonx.Obj("proposal", out), "Proposal created.")
+}
+
+// proposedValue validates the proposed value of either kind and returns its stored JSON.
+func proposedValue(def *clinicalconfig.Def, body []byte) ([]byte, error) {
+	var in struct {
+		Value json.RawMessage `json:"value"`
+	}
+	if json.Unmarshal(body, &in) != nil {
+		return nil, httpadmin.FieldError("value", valueMessage("fields"))
+	}
+	if def.IsRows() {
+		rows, problem := def.ParseRows(in.Value)
+		if problem != "" {
+			return nil, httpadmin.FieldError("value", rowsMessage(problem))
+		}
+		return def.MarshalRows(rows)
+	}
+	var v clinicalconfig.Value
+	if json.Unmarshal(in.Value, &v) != nil {
+		return nil, httpadmin.FieldError("value", valueMessage("fields"))
+	}
+	if problem := def.Validate(v); problem != "" {
+		return nil, httpadmin.FieldError("value", valueMessage(problem))
+	}
+	return json.Marshal(v)
+}
+
+// rowsMessage is the 422 message of a rows problem code (clinicalconfig.Def.ValidateRows); rows count from 1.
+func rowsMessage(problem string) string {
+	parts := strings.Split(problem, ":")
+	row, col := "", ""
+	if len(parts) > 1 {
+		if n, err := strconv.Atoi(parts[1]); err == nil {
+			row = strconv.Itoa(n + 1)
+		}
+	}
+	if len(parts) > 2 {
+		col = parts[2]
+	}
+	switch parts[0] {
+	case "count":
+		return "The value has too few or too many rows."
+	case "column":
+		return "Row " + row + " has an unknown column " + col + "."
+	case "null":
+		return "Row " + row + ": " + col + " is required."
+	case "type":
+		return "Row " + row + ": " + col + " has the wrong type."
+	case "integer":
+		return "Row " + row + ": " + col + " must be a whole number."
+	case "range":
+		return "Row " + row + ": " + col + " is out of the allowed range."
+	case "enum":
+		return "Row " + row + ": " + col + " is not an allowed value."
+	case "length":
+		return "Row " + row + ": " + col + " is too long."
+	case "order":
+		return "Row " + row + ": " + col + " must be lower than its upper bound."
+	case "sort":
+		return "Row " + row + ": rows must be in ascending " + col + " order."
+	case "open":
+		return "Row " + row + ": only the last row may leave " + col + " open."
+	case "overlap":
+		return "Row " + row + " overlaps an earlier row."
+	case "gap":
+		return "Row " + row + " does not start where the previous row ends."
+	case "unique":
+		return "Row " + row + " repeats an earlier row."
+	}
+	return "The value must be {\"rows\": [ … ]} with every column of the key."
 }
 
 func valueMessage(problem string) string {

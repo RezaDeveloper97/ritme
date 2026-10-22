@@ -15,11 +15,15 @@ import (
 // Value is a key's value: named numbers.
 type Value map[string]float64
 
-// Version is one approved version of a key (version 1 = the code default, EffectiveFrom zero).
+// Version is one approved version of a key (version 1 = the code default, EffectiveFrom zero). A numbers key carries
+// Value, a rows key Rows. Source is the version's own source: Def.Source for version 1, the stored source column for
+// v2+ (Def.Source when that column is empty).
 type Version struct {
 	Key           string
 	Version       int
 	Value         Value
+	Rows          []Row
+	Source        string
 	EffectiveFrom civildate.Date
 }
 
@@ -40,8 +44,12 @@ type snapshot struct {
 func newSnapshot(vs []Version) *snapshot {
 	s := &snapshot{byKey: map[string][]Version{}}
 	for _, v := range vs {
-		if _, ok := byKey[v.Key]; !ok || v.Version < 2 || v.EffectiveFrom.IsZero() {
+		def, ok := byKey[v.Key]
+		if !ok || v.Version < 2 || v.EffectiveFrom.IsZero() || (def.IsRows() && len(v.Rows) == 0) {
 			continue
+		}
+		if v.Source == "" {
+			v.Source = def.Source
 		}
 		s.byKey[v.Key] = append(s.byKey[v.Key], v)
 	}
@@ -142,8 +150,14 @@ func At(key string, d civildate.Date) Version {
 	if v := current().at(key, d); v != nil {
 		return *v
 	}
-	return Version{Key: key, Version: 1, Value: defaults[def.Key]}
+	return Version{Key: key, Version: 1, Value: defaults[def.Key], Rows: defaultRows[def.Key], Source: def.Source}
 }
+
+// Rows is the table of a rows key valid on d (nil for a numbers or unknown key). Callers never mutate it.
+func Rows(key string, d civildate.Date) []Row { return At(key, d).Rows }
+
+// SourceOf is the source of the version of key valid on d ("" for an unknown key), so a payload can cite it.
+func SourceOf(key string, d civildate.Date) string { return At(key, d).Source }
 
 // Num is one field of key valid on d; a field missing from a stored version falls back to its code default.
 func Num(key, field string, d civildate.Date) float64 {
@@ -163,7 +177,7 @@ func Num(key, field string, d civildate.Date) float64 {
 // Int is Num rounded down to an int (day counts, scores).
 func Int(key, field string, d civildate.Date) int { return int(Num(key, field, d)) }
 
-// Fingerprint is "" when every key of keys is at version 1 on d, else "key@v,…" of the keys that are not (the
+// Fingerprint (numbers and rows keys alike) is "" when every key of keys is at version 1 on d, else "key@v,…" of the keys that are not (the
 // payload version suffix clients compare).
 func Fingerprint(d civildate.Date, keys ...string) string {
 	out := ""

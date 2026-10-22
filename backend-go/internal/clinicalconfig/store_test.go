@@ -14,6 +14,12 @@ func TestDefaultsAreVersionOne(t *testing.T) {
 	for _, def := range Defs {
 		v := At(def.Key, d)
 		assert.Equal(t, 1, v.Version, def.Key)
+		assert.Equal(t, def.Source, v.Source, def.Key)
+		if def.IsRows() {
+			assert.Equal(t, def.DefaultRows(), v.Rows, def.Key)
+			assert.Empty(t, def.ValidateRows(def.DefaultRows()), "default of %s must pass its own validation", def.Key)
+			continue
+		}
 		assert.Equal(t, def.DefaultValue(), v.Value, def.Key)
 		assert.Empty(t, def.Validate(def.DefaultValue()), "default of %s must pass its own validation", def.Key)
 	}

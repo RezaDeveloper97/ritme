@@ -1694,3 +1694,25 @@ Nothing needed fixing.
 - Open:
   - `UpdateCheckupRecord` now writes `test_kind`. Today's callers don't send it, so an edit sets it to NULL; T-M10-21 must pass the existing value.
   - `low_mgdl`/`high_mgdl` are `sql.NullInt16` in Go (max 32767 is enough for mg/dL).
+
+## T-M10-16 — Clinical registry v2: table-valued keys, per-version source, coverage keys
+- `clinicalconfig`:
+  - **`rows.go`:** `Def.Kind` (numbers | rows) plus a typed `Table` schema (number/string/enum columns with bounds, integer, nullable, max length; min/max rows; sort; range contiguity with group-by; unique; default). `ParseRows`/`ValidateRows` return problem codes with the row and column. The stored value is `{"rows":[…]}`.
+  - **`store.go`:** `Version.Rows` and `Version.Source` (v1 = `Def.Source`, v2+ = the stored column). New getters `Rows(key, d)` and `SourceOf(key, d)`.
+  - **`coverage.go`:** 21 new keys in two new groups, `child` and `screening`. None is in the engine group, so the cycle fingerprint is unchanged.
+- The full list of keys, v1 values and sources is in `docs/engine-v6/clinical-signoff.md` §B. A pin test ties every v1 value to the constant or seed it replaces.
+- Admin API: `kind`, `schema` and per-version `source`; propose accepts rows (422 names the row); the two-advisor flow is unchanged. The Loader now reads `ListClinicalConfigVersions` filtered to approved, for `source`.
+- admin-web: a rows table editor (add/remove/reorder, per-column validation, diff against the version in force) and the source shown per version. vitest 47 files / 166 tests.
+- Verify on the combined tree: `go vet ./...` ok; clinicalconfig/admin + consumer packages ok; `test-int clinicalcfg` ok; admin-web typecheck, lint and test green.
+- Notes for consumers:
+  - **T-M10-18:** `pregnancy.trimester` v1 = SPEC (t2 from day 98), but today's `calc.go` uses day 91, so weeks 13+0…13+6 differ until T-M10-18 switches.
+  - **T-M10-20:** `lab.ocr` = 0.9 (H-08), today 0.7.
+  - Re-dating: re-date when the difference is more than the limit; the band uses GA by LMP on the scan day (ACOG CO 700 footnote, from memory, not fetched).
+  - IOM weekly rates come from IOM 2009 Table S-1 (not in code or SPEC).
+  - `glucose.diabetic` field names say "fasting", but SPEC says "before meals".
+  - Spotting `until_week 12` is today's behaviour; SPEC has no limit.
+  - **Screening:** `type_key` uses checkup_types keys (`bp_screening`/`glucose_screening` are added by T-M10-21).
+  - **Vaccine schedule:** `vaccine_code` = `child_vaccine_doses.dose_code` (T-M10-22).
+- Open:
+  - document `kind`/`schema`/`source` in `docs/go-migration/admin-api.md` §23;
+  - `ListApprovedClinicalConfigVersions` is now unused (remove it or add `source`).

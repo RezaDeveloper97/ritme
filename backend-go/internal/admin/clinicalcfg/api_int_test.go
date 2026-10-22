@@ -187,3 +187,111 @@ func TestEffectiveFromAndHistory(t *testing.T) {
 	assert.Equal(t, 422, r.Status)
 	assert.Equal(t, clinicalcfg.CodeEffectivePassed, r.Code())
 }
+
+func keyOf(t *testing.T, list admintest.Resp, key string) map[string]any {
+	t.Helper()
+	for _, k := range list.Data()["keys"].([]any) {
+		if m := k.(map[string]any); m["key"] == key {
+			return m
+		}
+	}
+	t.Fatalf("key %s not listed", key)
+	return nil
+}
+
+func redatingRows(firstUntil, firstLimit any) map[string]any {
+	return map[string]any{"rows": []any{
+		map[string]any{"ga_until_days": firstUntil, "max_diff_days": firstLimit},
+		map[string]any{"ga_until_days": 97, "max_diff_days": 7},
+		map[string]any{"ga_until_days": nil, "max_diff_days": 21},
+	}}
+}
+
+// T-M10-16: rows keys in the list (kind, schema, v1 rows and source), proposals validated against the row schema,
+// the unchanged two-advisor flow, and the approved rows and source read on and after the effective date.
+func TestRowsKeys_ProposeApproveResolve(t *testing.T) {
+	e := newEnv(t)
+	day := today()
+	const url = "/clinical-config/" + clinicalconfig.KeyPregnancyRedating + "/proposals"
+
+	list := e.As(advisor1).Get("/clinical-config?group=pregnancy")
+	require.Equal(t, 200, list.Status, list.Body)
+	red := keyOf(t, list, clinicalconfig.KeyPregnancyRedating)
+	assert.Equal(t, "rows", red["kind"])
+	assert.Empty(t, red["fields"])
+	schema := red["schema"].(map[string]any)
+	assert.Len(t, schema["columns"], 2)
+	assert.Equal(t, map[string]any{"column": "ga_until_days", "strict": true}, schema["sort_by"])
+	cur := red["current"].(map[string]any)
+	assert.EqualValues(t, 1, cur["version"])
+	assert.Contains(t, cur["source"], "ACOG CO 700")
+	assert.Len(t, cur["value"].(map[string]any)["rows"], 6)
+	bp := keyOf(t, e.As(advisor1).Get("/clinical-config?group=vitals"), clinicalconfig.KeyBPCrisis)
+	assert.Equal(t, "numbers", bp["kind"])
+	assert.Nil(t, bp["schema"])
+	for _, g := range []string{"child", "screening"} {
+		assert.Equal(t, 200, e.As(advisor1).Get("/clinical-config?group="+g).Status, g)
+	}
+
+	// Validation: overlapping IOM bands, unsorted / out-of-range re-dating rows, a numbers value for a rows key, an
+	// unknown screening test kind → 422 with the row in the message.
+	iom := map[string]any{"rows": []any{
+		map[string]any{"bmi_from": 0, "bmi_to": 20, "total_lo": 12.5, "total_hi": 18, "weekly_lo": 0.44, "weekly_hi": 0.58},
+		map[string]any{"bmi_from": 18.5, "bmi_to": nil, "total_lo": 11.5, "total_hi": 16, "weekly_lo": 0.35, "weekly_hi": 0.5},
+	}}
+	r := e.As(advisor1).JSON(fiber.MethodPost, "/clinical-config/pregnancy.iom/proposals",
+		map[string]any{"value": iom, "effective_from": day.String()})
+	assert.Equal(t, 422, r.Status, r.Body)
+	assert.Contains(t, r.Body["errors"].(map[string]any)["value"].([]any)[0], "Row 2 overlaps")
+	for _, bad := range []any{redatingRows(120, 5), redatingRows(62, 50), redatingRows(62.5, 5), map[string]any{"days": 3},
+		map[string]any{"rows": []any{}}} {
+		r = e.As(advisor1).JSON(fiber.MethodPost, url, map[string]any{"value": bad, "effective_from": day.String()})
+		assert.Equal(t, 422, r.Status, "%v → %s", bad, r.Body)
+	}
+	scr := map[string]any{"rows": []any{map[string]any{"type_key": "pap_smear", "age_min": 21, "age_max": 29,
+		"interval_months": 36, "last_test_kind": "pap", "min_bmi": nil}}}
+	r = e.As(advisor1).JSON(fiber.MethodPost, "/clinical-config/screening.uspstf/proposals",
+		map[string]any{"value": scr, "effective_from": day.String()})
+	assert.Equal(t, 422, r.Status, r.Body)
+	assert.Equal(t, 0, e.Int(`SELECT COUNT(*) FROM clinical_config_versions`))
+
+	// A valid proposal (a missing nullable column reads null), approved by two advisors, effective tomorrow.
+	eff := day.AddDays(1)
+	value := redatingRows(62, 6)
+	value["rows"].([]any)[2] = map[string]any{"max_diff_days": 21}
+	p := e.As(engineering).JSON(fiber.MethodPost, url, map[string]any{"value": value, "effective_from": eff.String(),
+		"source": "ACOG CO 700 (advisor review)"})
+	require.Equal(t, 201, p.Status, p.Body)
+	assert.Equal(t, `{"rows":[{"ga_until_days":62,"max_diff_days":6},{"ga_until_days":97,"max_diff_days":7},{"ga_until_days":null,"max_diff_days":21}]}`,
+		e.String(`SELECT value FROM clinical_config_versions WHERE config_key = ?`, clinicalconfig.KeyPregnancyRedating))
+	id := proposalID(t, p)
+	pend := keyOf(t, e.As(advisor1).Get("/clinical-config"), clinicalconfig.KeyPregnancyRedating)["pending"].(map[string]any)
+	assert.Equal(t, "ACOG CO 700 (advisor review)", pend["source"])
+	assert.Len(t, pend["value"].(map[string]any)["rows"], 3)
+	assert.Equal(t, clinicalcfg.CodeAdvisorRequired, e.As(engineering).JSON(fiber.MethodPost, path(id, "approve"), nil).Code(),
+		"the two-advisor flow is unchanged")
+	require.Equal(t, 200, e.As(advisor1).JSON(fiber.MethodPost, path(id, "approve"), nil).Status)
+	r = e.As(advisor2).JSON(fiber.MethodPost, path(id, "approve"), nil)
+	require.Equal(t, 200, r.Status, r.Body)
+	assert.Equal(t, clinicalcfg.StatusApproved, r.Obj("proposal")["status"])
+
+	res := resolve(t, e, clinicalconfig.KeyPregnancyRedating, day)
+	assert.EqualValues(t, 1, res["version"])
+	assert.Len(t, res["value"].(map[string]any)["rows"], 6)
+	res = resolve(t, e, clinicalconfig.KeyPregnancyRedating, eff)
+	assert.EqualValues(t, 2, res["version"])
+	assert.Equal(t, "ACOG CO 700 (advisor review)", res["source"])
+	assert.Len(t, res["value"].(map[string]any)["rows"], 3)
+	assert.Equal(t, 6.0, clinicalconfig.Rows(clinicalconfig.KeyPregnancyRedating, eff)[0]["max_diff_days"])
+	assert.Equal(t, "ACOG CO 700 (advisor review)", clinicalconfig.SourceOf(clinicalconfig.KeyPregnancyRedating, eff.AddDays(1)))
+	assert.Equal(t, "pregnancy.redating@2", clinicalconfig.Fingerprint(eff, clinicalconfig.KeyPregnancyRedating))
+
+	// A broken stored rows value is never loaded: the key keeps its previous version.
+	e.Exec(`INSERT INTO clinical_config_versions (config_key, version, value, effective_from, status, created_at, updated_at)
+		VALUES ('pregnancy.iom', 2, '{"rows":[{"bmi_from":"x"}]}', ?, 'approved', NOW(), NOW())`, day.AddDays(-5))
+	require.NoError(t, clinicalconfig.Refresh(t.Context()))
+	assert.Equal(t, 1, clinicalconfig.At(clinicalconfig.KeyPregnancyIOM, day).Version)
+	assert.EqualValues(t, 1, resolve(t, e, clinicalconfig.KeyPregnancyIOM, day)["version"])
+	listed := keyOf(t, e.As(advisor1).Get("/clinical-config?group=pregnancy"), clinicalconfig.KeyPregnancyIOM)
+	assert.EqualValues(t, 1, listed["current"].(map[string]any)["version"], "the list shows what the engines read")
+}

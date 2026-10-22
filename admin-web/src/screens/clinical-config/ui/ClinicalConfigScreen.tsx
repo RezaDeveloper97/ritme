@@ -21,6 +21,8 @@ import {
 
 import {
   CONFIG_GROUPS,
+  numbersOf,
+  rowsOf,
   useClinicalConfig,
   useDecide,
   usePropose,
@@ -29,6 +31,8 @@ import {
   type ConfigVersion,
 } from '../api/clinical-config';
 import { formatValue, parseValue } from '../lib/format';
+import { diffRows, parseDraft, toDraft, type DraftRow } from '../lib/rows';
+import { RowsEditor } from './RowsEditor';
 
 /**
  * /clinical-config «آستانه‌ها و پیکربندی» (nbl_Admin_Config): every clinical key with the version in force today,
@@ -110,16 +114,28 @@ export function ClinicalConfigScreen() {
   );
 }
 
-/** day / score are words; mmHg, mg/dL, bpm, ng/mL stay as printed. */
+/** day / score / week / month are words; mmHg, mg/dL, bpm, ng/mL stay as printed. */
 function unitLabel(t: ReturnType<typeof useTranslations<'clinicalConfig'>>, unit: string): string {
   if (unit === 'day') return t('units.day');
   if (unit === 'score') return t('units.score');
+  if (unit === 'week') return t('units.week');
+  if (unit === 'month') return t('units.month');
   return unit;
 }
 
 function useNum() {
   const locale = useLocale();
   return (n: number) => formatNumber(n, locale);
+}
+
+/** The value cell: «180 / 120» for a numbers key, «6 rows» for a rows key. */
+function useValueText() {
+  const t = useTranslations('clinicalConfig');
+  const num = useNum();
+  return (k: ConfigKey, v: ConfigVersion) =>
+    k.kind === 'rows'
+      ? t('rows.count', { count: rowsOf(v.value).length, n: num(rowsOf(v.value).length) })
+      : formatValue(k.fields, numbersOf(v.value), num);
 }
 
 function approverNames(v: ConfigVersion): string {
@@ -142,6 +158,7 @@ function ConfigTable({
   const t = useTranslations('clinicalConfig');
   const locale = useLocale();
   const num = useNum();
+  const text = useValueText();
 
   const columns: Column<ConfigKey>[] = [
     {
@@ -159,12 +176,12 @@ function ConfigTable({
       cell: (k) => (
         <span className="flex flex-col gap-0.5">
           <span className="font-semibold" dir="ltr">
-            {formatValue(k.fields, k.current.value, num)}
+            {text(k, k.current)}
           </span>
           {k.upcoming ? (
             <span className="text-ink-3 text-xs">
               {t('upcoming', {
-                value: formatValue(k.fields, k.upcoming.value, num),
+                value: text(k, k.upcoming),
                 date: formatDate(k.upcoming.effective_from, locale),
               })}
             </span>
@@ -230,6 +247,7 @@ function PendingPanel({ items, canApprove }: { items: ConfigKey[]; canApprove: b
   const me = useCurrentAdmin();
   const decide = useDecide();
   const notifyError = useNotifyError();
+  const text = useValueText();
 
   const act = (id: number, action: 'approve' | 'reject') =>
     decide.mutate(
@@ -254,12 +272,13 @@ function PendingPanel({ items, canApprove }: { items: ConfigKey[]; canApprove: b
               </span>
               <span className="text-sm">
                 <span dir="ltr" className="text-ink-3 line-through">
-                  {formatValue(k.fields, k.current.value, num)}
+                  {text(k, k.current)}
                 </span>{' '}
                 ←{' '}
                 <span dir="ltr" className="font-semibold">
-                  {formatValue(k.fields, p.value, num)}
+                  {text(k, p)}
                 </span>
+                {k.kind === 'rows' && k.schema ? <PendingRowsDiff k={k} p={p} /> : null}
               </span>
               <span className="text-ink-3 text-xs">
                 {t('pendingMeta', {
@@ -270,6 +289,7 @@ function PendingPanel({ items, canApprove }: { items: ConfigKey[]; canApprove: b
                 })}
                 {p.approvals.length > 0 ? ` · ${approverNames(p)}` : ''}
               </span>
+              <span className="text-ink-3 text-xs">{t('sourceOf', { source: p.source })}</span>
               {p.note ? <span className="text-ink-2 text-xs">{p.note}</span> : null}
             </div>
             <span className="flex flex-wrap gap-2">
@@ -309,8 +329,12 @@ function ProposalForm({
   const notifyError = useNotifyError();
   const [keyName, setKeyName] = useState(initialKey);
   const def = keys.find((k) => k.key === keyName) ?? keys[0]!;
-  const initial = (k: ConfigKey) => Object.fromEntries(k.fields.map((f) => [f.name, String(k.current.value[f.name] ?? f.default)]));
+  const initial = (k: ConfigKey) =>
+    Object.fromEntries(k.fields.map((f) => [f.name, String(numbersOf(k.current.value)[f.name] ?? f.default)]));
+  const initialDraft = (k: ConfigKey) => (k.schema ? toDraft(k.schema, rowsOf(k.current.value)) : []);
   const [raw, setRaw] = useState<Record<string, string>>(() => initial(def));
+  const [draft, setDraft] = useState<DraftRow[]>(() => initialDraft(def));
+  const parsed = def.schema ? parseDraft(def.schema, draft) : null;
   const [effective, setEffective] = useState(today);
   const [source, setSource] = useState(def.current.source);
   const [note, setNote] = useState('');
@@ -329,7 +353,7 @@ function ProposalForm({
         className="grid gap-3 sm:grid-cols-2"
         onSubmit={(e) => {
           e.preventDefault();
-          const value = parseValue(def.fields, raw);
+          const value = parsed ? (parsed.rows ? { rows: parsed.rows } : null) : parseValue(def.fields, raw);
           if (!value) return;
           save.mutate(
             { key: def.key, value, effective_from: effective, source, note },
@@ -353,6 +377,7 @@ function ProposalForm({
             if (!next) return;
             setKeyName(next.key);
             setRaw(initial(next));
+            setDraft(initialDraft(next));
             setSource(next.current.source);
           }}
           options={keys.filter((k) => !k.pending).map((k) => ({ value: k.key, label: k.key }))}
@@ -367,6 +392,15 @@ function ProposalForm({
           onChange={(e) => setEffective(e.target.value)}
           error={err('effective_from')}
         />
+        {def.kind === 'rows' && def.schema && parsed ? (
+          <RowsEditor
+            table={def.schema}
+            draft={draft}
+            parsed={parsed}
+            current={rowsOf(def.current.value)}
+            onChange={setDraft}
+          />
+        ) : null}
         {def.fields.map((f) => (
           <TextInput
             key={f.name}
@@ -402,7 +436,7 @@ function ProposalForm({
         />
         <p className="text-ink-3 text-xs sm:col-span-2">{t('twoApprovals')}</p>
         <div className="flex gap-2 sm:col-span-2">
-          <Button type="submit" variant="primary" loading={save.isPending}>
+          <Button type="submit" variant="primary" loading={save.isPending} disabled={parsed ? !parsed.rows : false}>
             {t('submit')}
           </Button>
           <Button type="button" variant="ghost" onClick={onClose}>
@@ -411,5 +445,18 @@ function ProposalForm({
         </div>
       </form>
     </Panel>
+  );
+}
+
+/** The changed / added / removed rows of a pending rows proposal against the version in force. */
+function PendingRowsDiff({ k, p }: { k: ConfigKey; p: ConfigVersion }) {
+  const t = useTranslations('clinicalConfig');
+  const num = useNum();
+  const d = diffRows(k.schema!, rowsOf(k.current.value), rowsOf(p.value));
+  const count = (s: 'added' | 'changed') => d.rows.filter((r) => r.status === s).length;
+  return (
+    <span className="text-ink-3 block text-xs">
+      {t('rows.diff', { changed: num(count('changed')), added: num(count('added')), removed: num(d.removed) })}
+    </span>
   );
 }

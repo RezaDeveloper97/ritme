@@ -5,9 +5,14 @@
 // the proposer) and apply from their effective date; the engines read the version valid at their target date, so
 // historic outputs are reproducible with the thresholds of their day.
 //
+// A key is either named numbers (Kind numbers, the default) or a table (Kind rows, T-M10-16 / H-12): JSON rows
+// validated by the key's Table (column types, bounds, enums, sort order, band overlaps and gaps).
+//
 // This package is a leaf (no DB): the admin package installs a loader at startup; when none is installed, the store
 // is unreachable or a key / field is missing, every getter answers the code default.
 package clinicalconfig
+
+import "slices"
 
 // Groups (the artboard filter chips).
 const (
@@ -15,10 +20,12 @@ const (
 	GroupVitals    = "vitals"    // علائم حیاتی
 	GroupPregnancy = "pregnancy" // بارداری / پس از زایمان
 	GroupLab       = "lab"       // آزمایش
+	GroupChild     = "child"     // کودک (T-M10-16)
+	GroupScreening = "screening" // چکاپ و غربالگری (T-M10-16)
 )
 
 // Groups in display order.
-var Groups = []string{GroupEngine, GroupVitals, GroupPregnancy, GroupLab}
+var Groups = []string{GroupEngine, GroupVitals, GroupPregnancy, GroupLab, GroupChild, GroupScreening}
 
 // Field is one named number of a key's value with its code default (version 1).
 type Field struct {
@@ -34,9 +41,12 @@ type Def struct {
 	Group  string
 	Unit   string
 	Source string // version 1 source
+	Kind   Kind   // "" = KindNumbers
 	Fields []Field
 	// Order lists field pairs that must stay strictly increasing ({"min","max"}).
 	Order [][2]string
+	// Table is the row schema and version 1 of a KindRows key.
+	Table *Table
 }
 
 // Keys.
@@ -112,9 +122,12 @@ const (
 
 func one(name string, def, lo, hi float64) []Field { return []Field{{name, def, lo, hi}} }
 
-// Defs is the registry in display order. The defaults are the pre-B-N9-11 constants (vitals/thresholds.go,
+// Defs is the registry in display order: the B-N9-11 / T-M9 keys, then the T-M10-16 coverage keys (coverage.go).
+var Defs = slices.Concat(baseDefs, coverageDefs)
+
+// baseDefs are the B-N9-11 and T-M9 keys. The defaults are the pre-B-N9-11 constants (vitals/thresholds.go,
 // postpartum/epds.go, analysis FIGO, cycle resolver / view caps).
-var Defs = []Def{
+var baseDefs = []Def{
 	{Key: KeyPeriodHardCap, Group: GroupEngine, Unit: "day", Source: srcEngine, Fields: one("days", 12, 7, 20)},
 	{Key: KeyWarningCap, Group: GroupEngine, Unit: "day", Source: srcEngine,
 		Fields: []Field{{"extra_days", 3, 0, 10}, {"min_days", 8, 3, 15}}},
@@ -204,13 +217,17 @@ var byKey = func() map[string]*Def {
 	return m
 }()
 
-// defaults caches version 1 of every key (shared: callers never mutate a Version's Value).
-var defaults = func() map[string]Value {
+// defaults / defaultRows cache version 1 of every key (shared: callers never mutate a Version's Value or Rows).
+var defaults, defaultRows = func() (map[string]Value, map[string][]Row) {
 	m := make(map[string]Value, len(Defs))
+	r := map[string][]Row{}
 	for i := range Defs {
 		m[Defs[i].Key] = Defs[i].DefaultValue()
+		if Defs[i].IsRows() {
+			r[Defs[i].Key] = Defs[i].DefaultRows()
+		}
 	}
-	return m
+	return m, r
 }()
 
 // Lookup returns a key's definition.
@@ -219,7 +236,7 @@ func Lookup(key string) (*Def, bool) {
 	return d, ok
 }
 
-// DefaultValue is version 1 of a key (nil for an unknown key).
+// DefaultValue is version 1 of a numbers key (empty for a rows key: see DefaultRows).
 func (d *Def) DefaultValue() Value {
 	v := make(Value, len(d.Fields))
 	for _, f := range d.Fields {
@@ -229,8 +246,11 @@ func (d *Def) DefaultValue() Value {
 }
 
 // Validate reports the first problem of a proposed value ("" = valid): every field present, in range, and ordered
-// pairs strictly increasing. Unknown fields are rejected.
+// pairs strictly increasing. Unknown fields are rejected. A rows key never validates named numbers ("rows").
 func (d *Def) Validate(v Value) string {
+	if d.IsRows() {
+		return "rows"
+	}
 	if len(v) != len(d.Fields) {
 		return "fields"
 	}
