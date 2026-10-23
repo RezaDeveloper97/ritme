@@ -968,6 +968,13 @@ type Family struct {
 	UpdatedAt    sql.NullTime
 }
 
+type FamilyAttendance struct {
+	ID         uint64
+	ReminderID uint64
+	MemberID   uint64
+	CreatedAt  sql.NullTime
+}
+
 type FamilyChild struct {
 	ID        uint64
 	FamilyID  uint64
@@ -976,12 +983,85 @@ type FamilyChild struct {
 	UpdatedAt sql.NullTime
 }
 
+type FamilyMemberAlert struct {
+	ID            uint64
+	MemberID      uint64
+	OwnerID       uint64
+	LinkID        uint64
+	SourceAlertID uint64
+	SourceHit     uint32
+	Level         string
+	CreatedAt     sql.NullTime
+	SeenAt        sql.NullTime
+	SmsSentAt     sql.NullTime
+}
+
+type FamilyMemberNotice struct {
+	ID             uint64
+	MemberID       uint64
+	OwnerID        uint64
+	LinkID         uint64
+	Kind           string
+	DedupeKey      string
+	DueAt          time.Time
+	SentAt         sql.NullTime
+	DeferredReason sql.NullString
+	NotificationID sql.NullInt64
+	CreatedAt      sql.NullTime
+}
+
+type FamilyNudge struct {
+	ID         uint64
+	OwnerID    uint64
+	MemberID   uint64
+	LinkID     uint64
+	TargetType string
+	TargetID   uint64
+	LocalDate  civildate.Date
+	Slot       string
+	SentAt     time.Time
+}
+
 type FamilyOwnerState struct {
 	OwnerID       uint64
 	Mode          string
 	ModeEpoch     uint32
 	ReviewPending bool
 	UpdatedAt     sql.NullTime
+}
+
+type FamilyProposal struct {
+	ID            uint64
+	SubjectType   string
+	SubjectID     uint64
+	LinkID        sql.NullInt64
+	ActorID       uint64
+	ApproverID    uint64
+	Kind          string
+	Domain        string
+	PayloadSealed sql.NullString
+	PayloadKeyID  sql.NullInt16
+	Status        string
+	DedupeKey     sql.NullString
+	PendingKey    sql.NullString
+	ExpiresAt     time.Time
+	DecidedBy     sql.NullInt64
+	DecidedAt     sql.NullTime
+	AppliedRef    sql.NullString
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
+type FamilyShareRequest struct {
+	ID         uint64
+	FromUserID uint64
+	ToUserID   uint64
+	LinkID     sql.NullInt64
+	Domains    json.RawMessage
+	Status     string
+	ExpiresAt  time.Time
+	DecidedAt  sql.NullTime
+	CreatedAt  sql.NullTime
 }
 
 type FertilityLog struct {
@@ -3084,6 +3164,7 @@ type UserNotification struct {
 	ReadAt    sql.NullTime
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
+	LinkID    sql.NullInt64
 }
 
 type UserProfile struct {

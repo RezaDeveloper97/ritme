@@ -3,7 +3,7 @@ id: T-M11-03
 title: Family schema B: proposals, share requests, nudges, member alerts, member notices, attendance
 milestone: M11
 type: backend
-status: todo
+status: done
 depends_on: [T-M11-02]
 parallel_group: M11-B
 touches: [backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/companion, backend-go/contract/fixtures/dump.sql]

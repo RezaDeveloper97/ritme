@@ -2090,3 +2090,26 @@ Nothing needed fixing.
 - Open: `family.md` §3 says `parent → parent` but F-17/task say `teen_parent` (followed the task) — align the doc;
   sqlc maps `payload_sealed` to `sql.NullString` (T-M11-05 may want a `[]byte` override in sqlc.yaml); links created
   by v1 after Up keep role/template NULL until T-M11-05; D-190 status text to update once shipped.
+
+## T-M11-03 — Family schema B: proposals, share requests, nudges, member alerts, member notices, attendance (D-191)
+- goose **00107** `family_schema_b` + Laravel twin `2026_10_23_000107_add_family_schema_b` (schema only; schema-diff
+  green, 233 tables; twin also checked on MySQL 8.4.13):
+  - `family_proposals` (subject owner|child, nullable link FK, actor/approver FKs, sealed payload, status, `expires_at`;
+    STORED `pending_key` + UNIQUE → one pending proposal per dedupe key, decided ones never collide),
+    `family_share_requests` (domains JSON), `family_nudges` (UNIQUE owner/target/local_date/slot, named
+    `family_nudges_target_slot_unique` for the 64-char limit; slot '' for appointments), `family_member_alerts`
+    (UNIQUE member/source_alert_id/source_hit), `family_member_notices` (outbox, UNIQUE member/dedupe_key),
+    `family_attendance` (→ reminders).
+  - `user_notifications.link_id` + KEY + FK companions cascade — member notices purged by link (FAM-L4).
+  - Every link FK cascades: deleting a link removes its proposals, share requests, nudges, alerts, notices and linked
+    notifications.
+- sqlc (`companion/family.sql`, part B): 37 statements — proposal insert/get (lazy expiry)/lock/lists/quota/decide/
+  sweep/cancel-for-link, share requests, nudges, alert/notice idempotent inserts (`ON DUPLICATE KEY UPDATE id = id`,
+  FK still enforced), dispatcher reads, purge by link, linked notification insert, attendance. No readers/writers yet
+  (T-M11-05, T-M11-08…13).
+- Contract dump follows (before→after diff only). D-191 wording updated (no family consent table — `consent_events`).
+- Verify: schema-diff OK; full unit + `make test-int PKG=./...` green; contract all 1914/0; golangci-lint 0 issues.
+- Open: `family.md` §6 says `due_date`, schema uses `local_date`; `decided_by` / `notification_id` have no FK (spec
+  gives none); `payload_sealed` maps to `sql.NullString`; the revoke-path statements are a proposal the behaviour
+  tasks must call; pre-existing: Laravel migration 000096 fails on MySQL 8.4 (prod is MariaDB).
+- Migration 00107 runs with the next stage/beta deploy.

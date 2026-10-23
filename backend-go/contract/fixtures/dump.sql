@@ -2372,6 +2372,26 @@ LOCK TABLES `families` WRITE;
 /*!40000 ALTER TABLE `families` DISABLE KEYS */;
 /*!40000 ALTER TABLE `families` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `family_attendance`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `family_attendance` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `reminder_id` bigint(20) unsigned NOT NULL,
+  `member_id` bigint(20) unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `family_attendance_reminder_id_member_id_unique` (`reminder_id`,`member_id`),
+  KEY `family_attendance_member_id_foreign` (`member_id`),
+  CONSTRAINT `family_attendance_member_id_foreign` FOREIGN KEY (`member_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `family_attendance_reminder_id_foreign` FOREIGN KEY (`reminder_id`) REFERENCES `reminders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `family_attendance` WRITE;
+/*!40000 ALTER TABLE `family_attendance` DISABLE KEYS */;
+/*!40000 ALTER TABLE `family_attendance` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `family_children`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -2393,6 +2413,93 @@ LOCK TABLES `family_children` WRITE;
 /*!40000 ALTER TABLE `family_children` DISABLE KEYS */;
 /*!40000 ALTER TABLE `family_children` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `family_member_alerts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `family_member_alerts` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `member_id` bigint(20) unsigned NOT NULL,
+  `owner_id` bigint(20) unsigned NOT NULL,
+  `link_id` bigint(20) unsigned NOT NULL,
+  `source_alert_id` bigint(20) unsigned NOT NULL,
+  `source_hit` int(10) unsigned NOT NULL,
+  `level` varchar(12) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `seen_at` timestamp NULL DEFAULT NULL,
+  `sms_sent_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `family_member_alerts_member_id_source_alert_id_source_hit_unique` (`member_id`,`source_alert_id`,`source_hit`),
+  KEY `family_member_alerts_member_id_created_at_index` (`member_id`,`created_at`),
+  KEY `family_member_alerts_link_id_index` (`link_id`),
+  KEY `family_member_alerts_owner_id_foreign` (`owner_id`),
+  CONSTRAINT `family_member_alerts_link_id_foreign` FOREIGN KEY (`link_id`) REFERENCES `companions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `family_member_alerts_member_id_foreign` FOREIGN KEY (`member_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `family_member_alerts_owner_id_foreign` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `family_member_alerts` WRITE;
+/*!40000 ALTER TABLE `family_member_alerts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `family_member_alerts` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `family_member_notices`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `family_member_notices` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `member_id` bigint(20) unsigned NOT NULL,
+  `owner_id` bigint(20) unsigned NOT NULL,
+  `link_id` bigint(20) unsigned NOT NULL,
+  `kind` varchar(24) NOT NULL,
+  `dedupe_key` varchar(80) NOT NULL,
+  `due_at` timestamp NOT NULL,
+  `sent_at` timestamp NULL DEFAULT NULL,
+  `deferred_reason` varchar(24) DEFAULT NULL,
+  `notification_id` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `family_member_notices_member_id_dedupe_key_unique` (`member_id`,`dedupe_key`),
+  KEY `family_member_notices_sent_at_due_at_index` (`sent_at`,`due_at`),
+  KEY `family_member_notices_link_id_index` (`link_id`),
+  KEY `family_member_notices_owner_id_foreign` (`owner_id`),
+  CONSTRAINT `family_member_notices_link_id_foreign` FOREIGN KEY (`link_id`) REFERENCES `companions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `family_member_notices_member_id_foreign` FOREIGN KEY (`member_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `family_member_notices_owner_id_foreign` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `family_member_notices` WRITE;
+/*!40000 ALTER TABLE `family_member_notices` DISABLE KEYS */;
+/*!40000 ALTER TABLE `family_member_notices` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `family_nudges`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `family_nudges` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `owner_id` bigint(20) unsigned NOT NULL,
+  `member_id` bigint(20) unsigned NOT NULL,
+  `link_id` bigint(20) unsigned NOT NULL,
+  `target_type` varchar(12) NOT NULL,
+  `target_id` bigint(20) unsigned NOT NULL,
+  `local_date` date NOT NULL,
+  `slot` varchar(5) NOT NULL DEFAULT '',
+  `sent_at` timestamp NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `family_nudges_target_slot_unique` (`owner_id`,`target_type`,`target_id`,`local_date`,`slot`),
+  KEY `family_nudges_member_id_owner_id_sent_at_index` (`member_id`,`owner_id`,`sent_at`),
+  KEY `family_nudges_owner_id_sent_at_index` (`owner_id`,`sent_at`),
+  KEY `family_nudges_link_id_foreign` (`link_id`),
+  CONSTRAINT `family_nudges_link_id_foreign` FOREIGN KEY (`link_id`) REFERENCES `companions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `family_nudges_member_id_foreign` FOREIGN KEY (`member_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `family_nudges_owner_id_foreign` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `family_nudges` WRITE;
+/*!40000 ALTER TABLE `family_nudges` DISABLE KEYS */;
+/*!40000 ALTER TABLE `family_nudges` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `family_owner_state`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -2410,6 +2517,72 @@ CREATE TABLE `family_owner_state` (
 LOCK TABLES `family_owner_state` WRITE;
 /*!40000 ALTER TABLE `family_owner_state` DISABLE KEYS */;
 /*!40000 ALTER TABLE `family_owner_state` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `family_proposals`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `family_proposals` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `subject_type` varchar(8) NOT NULL,
+  `subject_id` bigint(20) unsigned NOT NULL,
+  `link_id` bigint(20) unsigned DEFAULT NULL,
+  `actor_id` bigint(20) unsigned NOT NULL,
+  `approver_id` bigint(20) unsigned NOT NULL,
+  `kind` varchar(24) NOT NULL,
+  `domain` varchar(24) NOT NULL,
+  `payload_sealed` mediumblob DEFAULT NULL,
+  `payload_key_id` tinyint(3) unsigned DEFAULT NULL,
+  `status` varchar(12) NOT NULL DEFAULT 'pending',
+  `dedupe_key` varchar(80) DEFAULT NULL,
+  `pending_key` varchar(80) GENERATED ALWAYS AS (if(`status` = 'pending',`dedupe_key`,NULL)) STORED,
+  `expires_at` timestamp NOT NULL,
+  `decided_by` bigint(20) unsigned DEFAULT NULL,
+  `decided_at` timestamp NULL DEFAULT NULL,
+  `applied_ref` varchar(64) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `family_proposals_pending_key_unique` (`pending_key`),
+  KEY `family_proposals_approver_id_status_created_at_index` (`approver_id`,`status`,`created_at`),
+  KEY `family_proposals_actor_id_status_created_at_index` (`actor_id`,`status`,`created_at`),
+  KEY `family_proposals_status_expires_at_index` (`status`,`expires_at`),
+  KEY `family_proposals_link_id_foreign` (`link_id`),
+  CONSTRAINT `family_proposals_actor_id_foreign` FOREIGN KEY (`actor_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `family_proposals_approver_id_foreign` FOREIGN KEY (`approver_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `family_proposals_link_id_foreign` FOREIGN KEY (`link_id`) REFERENCES `companions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `family_proposals` WRITE;
+/*!40000 ALTER TABLE `family_proposals` DISABLE KEYS */;
+/*!40000 ALTER TABLE `family_proposals` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `family_share_requests`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `family_share_requests` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `from_user_id` bigint(20) unsigned NOT NULL,
+  `to_user_id` bigint(20) unsigned NOT NULL,
+  `link_id` bigint(20) unsigned DEFAULT NULL,
+  `domains` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`domains`)),
+  `status` varchar(10) NOT NULL DEFAULT 'pending',
+  `expires_at` timestamp NOT NULL,
+  `decided_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `family_share_requests_to_user_id_status_created_at_index` (`to_user_id`,`status`,`created_at`),
+  KEY `family_share_requests_from_user_id_to_user_id_created_at_index` (`from_user_id`,`to_user_id`,`created_at`),
+  KEY `family_share_requests_link_id_foreign` (`link_id`),
+  CONSTRAINT `family_share_requests_from_user_id_foreign` FOREIGN KEY (`from_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `family_share_requests_link_id_foreign` FOREIGN KEY (`link_id`) REFERENCES `companions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `family_share_requests_to_user_id_foreign` FOREIGN KEY (`to_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `family_share_requests` WRITE;
+/*!40000 ALTER TABLE `family_share_requests` DISABLE KEYS */;
+/*!40000 ALTER TABLE `family_share_requests` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `fertility_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6747,8 +6920,11 @@ CREATE TABLE `user_notifications` (
   `read_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `link_id` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user_notifications_user_id_read_at_index` (`user_id`,`read_at`),
+  KEY `user_notifications_link_id_index` (`link_id`),
+  CONSTRAINT `user_notifications_link_id_foreign` FOREIGN KEY (`link_id`) REFERENCES `companions` (`id`) ON DELETE CASCADE,
   CONSTRAINT `user_notifications_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=101804 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -6756,9 +6932,9 @@ CREATE TABLE `user_notifications` (
 LOCK TABLES `user_notifications` WRITE;
 /*!40000 ALTER TABLE `user_notifications` DISABLE KEYS */;
 INSERT INTO `user_notifications` VALUES
-(101801,1018,'reminder','{\"fa\":\"\\u06cc\\u0627\\u062f\\u0622\\u0648\\u0631\\u06cc \\u062f\\u0627\\u0631\\u0648\",\"en\":\"Medication reminder\"}','{\"fa\":\"\\u0648\\u0642\\u062a \\u0642\\u0631\\u0635 \\u0622\\u0647\\u0646 \\u0627\\u0633\\u062a.\",\"en\":\"Time for your iron tablet.\"}','/reminders','{\"source\":\"contract\"}',NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(101802,1018,'tip','{\"fa\":\"\\u0646\\u06a9\\u062a\\u0647\\u200c\\u06cc \\u0627\\u0645\\u0631\\u0648\\u0632\",\"en\":\"Tip of the day\"}',NULL,NULL,'{\"source\":\"contract\"}','2026-09-22 08:00:00','2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(101803,1018,'achievement','{\"fa\":\"\\u0622\\u0641\\u0631\\u06cc\\u0646!\",\"en\":\"Well done!\"}','{\"fa\":\"\\u06f7 \\u0631\\u0648\\u0632 \\u067e\\u0634\\u062a \\u0633\\u0631 \\u0647\\u0645 \\u062b\\u0628\\u062a \\u06a9\\u0631\\u062f\\u06cc.\",\"en\":\"You logged 7 days in a row.\"}',NULL,'{\"source\":\"contract\"}',NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00');
+(101801,1018,'reminder','{\"fa\":\"\\u06cc\\u0627\\u062f\\u0622\\u0648\\u0631\\u06cc \\u062f\\u0627\\u0631\\u0648\",\"en\":\"Medication reminder\"}','{\"fa\":\"\\u0648\\u0642\\u062a \\u0642\\u0631\\u0635 \\u0622\\u0647\\u0646 \\u0627\\u0633\\u062a.\",\"en\":\"Time for your iron tablet.\"}','/reminders','{\"source\":\"contract\"}',NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(101802,1018,'tip','{\"fa\":\"\\u0646\\u06a9\\u062a\\u0647\\u200c\\u06cc \\u0627\\u0645\\u0631\\u0648\\u0632\",\"en\":\"Tip of the day\"}',NULL,NULL,'{\"source\":\"contract\"}','2026-09-22 08:00:00','2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(101803,1018,'achievement','{\"fa\":\"\\u0622\\u0641\\u0631\\u06cc\\u0646!\",\"en\":\"Well done!\"}','{\"fa\":\"\\u06f7 \\u0631\\u0648\\u0632 \\u067e\\u0634\\u062a \\u0633\\u0631 \\u0647\\u0645 \\u062b\\u0628\\u062a \\u06a9\\u0631\\u062f\\u06cc.\",\"en\":\"You logged 7 days in a row.\"}',NULL,'{\"source\":\"contract\"}',NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL);
 /*!40000 ALTER TABLE `user_notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `user_profiles`;

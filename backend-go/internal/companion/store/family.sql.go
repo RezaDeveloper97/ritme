@@ -8,9 +8,326 @@ package store
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"time"
 
 	"github.com/ritme/backend-go/db"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
+
+const cancelPendingFamilyProposalsForLink = `-- name: CancelPendingFamilyProposalsForLink :execrows
+UPDATE ` + "`" + `family_proposals` + "`" + ` SET status = 'cancelled', updated_at = ?
+WHERE link_id = ? AND status = 'pending'
+`
+
+type CancelPendingFamilyProposalsForLinkParams struct {
+	Now    sql.NullTime
+	LinkID sql.NullInt64
+}
+
+// Revoke / expiry of a link: its pending proposals can no longer be applied (rows kept for the activity log).
+func (q *Queries) CancelPendingFamilyProposalsForLink(ctx context.Context, arg CancelPendingFamilyProposalsForLinkParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, cancelPendingFamilyProposalsForLink, arg.Now, arg.LinkID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const countFamilyNudgesForPair = `-- name: CountFamilyNudgesForPair :one
+SELECT COUNT(*) FROM ` + "`" + `family_nudges` + "`" + `
+WHERE member_id = ? AND owner_id = ?
+  AND sent_at >= ? AND sent_at < ?
+`
+
+type CountFamilyNudgesForPairParams struct {
+	MemberID uint64
+	OwnerID  uint64
+	FromAt   time.Time
+	ToAt     time.Time
+}
+
+// Quota: nudges one member sent one owner in [from, to) — the owner-local day (3 per day, F-06). Index (member_id,
+// owner_id, sent_at).
+func (q *Queries) CountFamilyNudgesForPair(ctx context.Context, arg CountFamilyNudgesForPairParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countFamilyNudgesForPair,
+		arg.MemberID,
+		arg.OwnerID,
+		arg.FromAt,
+		arg.ToAt,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countFamilyShareRequestsForPairSince = `-- name: CountFamilyShareRequestsForPairSince :one
+SELECT COUNT(*) FROM ` + "`" + `family_share_requests` + "`" + `
+WHERE from_user_id = ? AND to_user_id = ? AND created_at >= ?
+`
+
+type CountFamilyShareRequestsForPairSinceParams struct {
+	FromUserID uint64
+	ToUserID   uint64
+	Since      sql.NullTime
+}
+
+// Throttle: requests one member sent one owner since a time. Index (from_user_id, to_user_id, created_at).
+func (q *Queries) CountFamilyShareRequestsForPairSince(ctx context.Context, arg CountFamilyShareRequestsForPairSinceParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countFamilyShareRequestsForPairSince, arg.FromUserID, arg.ToUserID, arg.Since)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countPendingFamilyProposalsByActor = `-- name: CountPendingFamilyProposalsByActor :one
+SELECT COUNT(*) FROM ` + "`" + `family_proposals` + "`" + `
+WHERE actor_id = ? AND status = 'pending' AND expires_at > ?
+`
+
+type CountPendingFamilyProposalsByActorParams struct {
+	ActorID uint64
+	Now     time.Time
+}
+
+// Quota: the member's live pending proposals. Index (actor_id, status, created_at).
+func (q *Queries) CountPendingFamilyProposalsByActor(ctx context.Context, arg CountPendingFamilyProposalsByActorParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countPendingFamilyProposalsByActor, arg.ActorID, arg.Now)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countUnseenFamilyMemberAlerts = `-- name: CountUnseenFamilyMemberAlerts :one
+SELECT COUNT(*) FROM ` + "`" + `family_member_alerts` + "`" + ` WHERE member_id = ? AND seen_at IS NULL
+`
+
+func (q *Queries) CountUnseenFamilyMemberAlerts(ctx context.Context, memberID uint64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUnseenFamilyMemberAlerts, memberID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const decideFamilyProposal = `-- name: DecideFamilyProposal :execrows
+UPDATE ` + "`" + `family_proposals` + "`" + `
+SET status = ?, decided_by = ?, decided_at = ?,
+  applied_ref = ?, updated_at = ?
+WHERE id = ? AND status = 'pending' AND expires_at > ?
+`
+
+type DecideFamilyProposalParams struct {
+	Status     string
+	DecidedBy  sql.NullInt64
+	DecidedAt  sql.NullTime
+	AppliedRef sql.NullString
+	ID         uint64
+	Now        time.Time
+}
+
+// pending → approved | rejected | cancelled, only while still live. 0 rows = already decided or expired (the caller
+// re-reads). applied_ref = the record an approval created.
+func (q *Queries) DecideFamilyProposal(ctx context.Context, arg DecideFamilyProposalParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, decideFamilyProposal,
+		arg.Status,
+		arg.DecidedBy,
+		arg.DecidedAt,
+		arg.AppliedRef,
+		arg.DecidedAt,
+		arg.ID,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const decideFamilyShareRequest = `-- name: DecideFamilyShareRequest :execrows
+UPDATE ` + "`" + `family_share_requests` + "`" + ` SET status = ?, decided_at = ?
+WHERE id = ? AND to_user_id = ? AND status = 'pending' AND expires_at > ?
+`
+
+type DecideFamilyShareRequestParams struct {
+	Status    string
+	DecidedAt sql.NullTime
+	ID        uint64
+	ToUserID  uint64
+	Now       time.Time
+}
+
+// pending → accepted | declined by the owner it was sent to, only while live. 0 rows = decided, expired or not hers.
+func (q *Queries) DecideFamilyShareRequest(ctx context.Context, arg DecideFamilyShareRequestParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, decideFamilyShareRequest,
+		arg.Status,
+		arg.DecidedAt,
+		arg.ID,
+		arg.ToUserID,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const deferFamilyMemberNotice = `-- name: DeferFamilyMemberNotice :execrows
+UPDATE ` + "`" + `family_member_notices` + "`" + ` SET due_at = ?, deferred_reason = ?
+WHERE id = ? AND sent_at IS NULL
+`
+
+type DeferFamilyMemberNoticeParams struct {
+	DueAt          time.Time
+	DeferredReason sql.NullString
+	ID             uint64
+}
+
+// Quiet hours / preferences (notifications.Decide): move due_at and record why.
+func (q *Queries) DeferFamilyMemberNotice(ctx context.Context, arg DeferFamilyMemberNoticeParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deferFamilyMemberNotice, arg.DueAt, arg.DeferredReason, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const deleteFamilyAttendance = `-- name: DeleteFamilyAttendance :execrows
+DELETE FROM ` + "`" + `family_attendance` + "`" + ` WHERE reminder_id = ? AND member_id = ?
+`
+
+type DeleteFamilyAttendanceParams struct {
+	ReminderID uint64
+	MemberID   uint64
+}
+
+func (q *Queries) DeleteFamilyAttendance(ctx context.Context, arg DeleteFamilyAttendanceParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteFamilyAttendance, arg.ReminderID, arg.MemberID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const deleteFamilyAttendanceForPair = `-- name: DeleteFamilyAttendanceForPair :execrows
+DELETE a FROM ` + "`" + `family_attendance` + "`" + ` a
+JOIN ` + "`" + `reminders` + "`" + ` r ON r.id = a.reminder_id
+WHERE r.user_id = ? AND a.member_id = ?
+`
+
+type DeleteFamilyAttendanceForPairParams struct {
+	OwnerID  uint64
+	MemberID uint64
+}
+
+// Revoke / expiry: the member's «میام» marks on the owner's appointments go.
+func (q *Queries) DeleteFamilyAttendanceForPair(ctx context.Context, arg DeleteFamilyAttendanceForPairParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteFamilyAttendanceForPair, arg.OwnerID, arg.MemberID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const deleteFamilyMemberAlertsForLink = `-- name: DeleteFamilyMemberAlertsForLink :execrows
+DELETE FROM ` + "`" + `family_member_alerts` + "`" + ` WHERE link_id = ?
+`
+
+// Revoke / expiry: the member loses the link's alerts. Index (link_id).
+func (q *Queries) DeleteFamilyMemberAlertsForLink(ctx context.Context, linkID uint64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteFamilyMemberAlertsForLink, linkID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const deleteFamilyMemberNoticesForLink = `-- name: DeleteFamilyMemberNoticesForLink :execrows
+DELETE FROM ` + "`" + `family_member_notices` + "`" + ` WHERE link_id = ?
+`
+
+// Revoke / expiry. Index (link_id).
+func (q *Queries) DeleteFamilyMemberNoticesForLink(ctx context.Context, linkID uint64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteFamilyMemberNoticesForLink, linkID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const deleteUserNotificationsForLink = `-- name: DeleteUserNotificationsForLink :execrows
+DELETE FROM ` + "`" + `user_notifications` + "`" + ` WHERE link_id = ?
+`
+
+// Revoke / expiry: every member notice of the link, by the indexed link_id (FAM-L4; no JSON scan).
+func (q *Queries) DeleteUserNotificationsForLink(ctx context.Context, linkID sql.NullInt64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteUserNotificationsForLink, linkID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const expireFamilyProposal = `-- name: ExpireFamilyProposal :execrows
+UPDATE ` + "`" + `family_proposals` + "`" + ` SET status = 'expired', updated_at = ?
+WHERE id = ? AND status = 'pending' AND expires_at <= ?
+`
+
+type ExpireFamilyProposalParams struct {
+	UpdatedAt sql.NullTime
+	ID        uint64
+	Now       time.Time
+}
+
+// Lazy expiry of one row found past expires_at on read or approve. updated_at = now (a nullable column, hence its own
+// parameter; the same holds for decided_at in the Decide statements).
+func (q *Queries) ExpireFamilyProposal(ctx context.Context, arg ExpireFamilyProposalParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, expireFamilyProposal, arg.UpdatedAt, arg.ID, arg.Now)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const expireFamilyProposals = `-- name: ExpireFamilyProposals :execrows
+UPDATE ` + "`" + `family_proposals` + "`" + ` SET status = 'expired', updated_at = ?
+WHERE status = 'pending' AND expires_at <= ?
+ORDER BY expires_at
+LIMIT ?
+`
+
+type ExpireFamilyProposalsParams struct {
+	UpdatedAt sql.NullTime
+	Now       time.Time
+	Limit     int32
+}
+
+// Hourly sweep (idempotent; batches until 0). Index (status, expires_at).
+func (q *Queries) ExpireFamilyProposals(ctx context.Context, arg ExpireFamilyProposalsParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, expireFamilyProposals, arg.UpdatedAt, arg.Now, arg.Limit)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const expirePendingFamilyShareRequestsForLink = `-- name: ExpirePendingFamilyShareRequestsForLink :execrows
+UPDATE ` + "`" + `family_share_requests` + "`" + ` SET status = 'expired', decided_at = ?
+WHERE link_id = ? AND status = 'pending'
+`
+
+type ExpirePendingFamilyShareRequestsForLinkParams struct {
+	Now    sql.NullTime
+	LinkID sql.NullInt64
+}
+
+// Revoke / expiry of a link: its open requests end.
+func (q *Queries) ExpirePendingFamilyShareRequestsForLink(ctx context.Context, arg ExpirePendingFamilyShareRequestsForLinkParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, expirePendingFamilyShareRequestsForLink, arg.Now, arg.LinkID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
 
 const familySnapshotForMember = `-- name: FamilySnapshotForMember :many
 SELECT c.id AS link_id, c.owner_id, c.companion_user_id AS member_id, c.type, c.role, c.template, c.status,
@@ -176,6 +493,112 @@ func (q *Queries) FamilySnapshotForPair(ctx context.Context, arg FamilySnapshotF
 	return items, nil
 }
 
+const getFamilyProposal = `-- name: GetFamilyProposal :one
+SELECT id, subject_type, subject_id, link_id, actor_id, approver_id, kind, domain, payload_sealed, payload_key_id,
+  status, CAST(status = 'pending' AND expires_at <= ? AS SIGNED) AS expired,
+  dedupe_key, expires_at, decided_by, decided_at, applied_ref, created_at, updated_at
+FROM ` + "`" + `family_proposals` + "`" + ` WHERE id = ? LIMIT 1
+`
+
+type GetFamilyProposalParams struct {
+	Now time.Time
+	ID  uint64
+}
+
+type GetFamilyProposalRow struct {
+	ID            uint64
+	SubjectType   string
+	SubjectID     uint64
+	LinkID        sql.NullInt64
+	ActorID       uint64
+	ApproverID    uint64
+	Kind          string
+	Domain        string
+	PayloadSealed sql.NullString
+	PayloadKeyID  sql.NullInt16
+	Status        string
+	Expired       int64
+	DedupeKey     sql.NullString
+	ExpiresAt     time.Time
+	DecidedBy     sql.NullInt64
+	DecidedAt     sql.NullTime
+	AppliedRef    sql.NullString
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
+// One proposal. expired = 1 for a pending row past expires_at (lazy expiry): the caller treats it as expired.
+func (q *Queries) GetFamilyProposal(ctx context.Context, arg GetFamilyProposalParams) (GetFamilyProposalRow, error) {
+	row := q.db.QueryRowContext(ctx, getFamilyProposal, arg.Now, arg.ID)
+	var i GetFamilyProposalRow
+	err := row.Scan(
+		&i.ID,
+		&i.SubjectType,
+		&i.SubjectID,
+		&i.LinkID,
+		&i.ActorID,
+		&i.ApproverID,
+		&i.Kind,
+		&i.Domain,
+		&i.PayloadSealed,
+		&i.PayloadKeyID,
+		&i.Status,
+		&i.Expired,
+		&i.DedupeKey,
+		&i.ExpiresAt,
+		&i.DecidedBy,
+		&i.DecidedAt,
+		&i.AppliedRef,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getFamilyShareRequest = `-- name: GetFamilyShareRequest :one
+SELECT id, from_user_id, to_user_id, link_id, domains,
+  status, CAST(status = 'pending' AND expires_at <= ? AS SIGNED) AS expired,
+  expires_at, decided_at, created_at
+FROM ` + "`" + `family_share_requests` + "`" + ` WHERE id = ? LIMIT 1
+`
+
+type GetFamilyShareRequestParams struct {
+	Now time.Time
+	ID  uint64
+}
+
+type GetFamilyShareRequestRow struct {
+	ID         uint64
+	FromUserID uint64
+	ToUserID   uint64
+	LinkID     sql.NullInt64
+	Domains    json.RawMessage
+	Status     string
+	Expired    int64
+	ExpiresAt  time.Time
+	DecidedAt  sql.NullTime
+	CreatedAt  sql.NullTime
+}
+
+// One request; expired = 1 for a pending row past expires_at (lazy expiry).
+func (q *Queries) GetFamilyShareRequest(ctx context.Context, arg GetFamilyShareRequestParams) (GetFamilyShareRequestRow, error) {
+	row := q.db.QueryRowContext(ctx, getFamilyShareRequest, arg.Now, arg.ID)
+	var i GetFamilyShareRequestRow
+	err := row.Scan(
+		&i.ID,
+		&i.FromUserID,
+		&i.ToUserID,
+		&i.LinkID,
+		&i.Domains,
+		&i.Status,
+		&i.Expired,
+		&i.ExpiresAt,
+		&i.DecidedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const insertFamilyActivity = `-- name: InsertFamilyActivity :execlastid
 INSERT INTO ` + "`" + `companion_audit_logs` + "`" + ` (owner_id, actor_id, companion_id, section, action, subject_type, subject_id,
   diff_json, payload_sealed, payload_key_id, undo_deadline, proposal_id, created_at)
@@ -222,6 +645,744 @@ func (q *Queries) InsertFamilyActivity(ctx context.Context, arg InsertFamilyActi
 		return 0, err
 	}
 	return result.LastInsertId()
+}
+
+const insertFamilyAttendance = `-- name: InsertFamilyAttendance :execrows
+INSERT INTO ` + "`" + `family_attendance` + "`" + ` (reminder_id, member_id, created_at)
+VALUES (?, ?, ?)
+ON DUPLICATE KEY UPDATE id = id
+`
+
+type InsertFamilyAttendanceParams struct {
+	ReminderID uint64
+	MemberID   uint64
+	Now        sql.NullTime
+}
+
+// «میام» on an owner appointment (reminders row). 1 = new, 0 = already marked.
+func (q *Queries) InsertFamilyAttendance(ctx context.Context, arg InsertFamilyAttendanceParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, insertFamilyAttendance, arg.ReminderID, arg.MemberID, arg.Now)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const insertFamilyMemberAlert = `-- name: InsertFamilyMemberAlert :execrows
+INSERT INTO ` + "`" + `family_member_alerts` + "`" + ` (member_id, owner_id, link_id, source_alert_id, source_hit, level, created_at)
+VALUES (?, ?, ?, ?, ?,
+  ?, ?)
+ON DUPLICATE KEY UPDATE id = id
+`
+
+type InsertFamilyMemberAlertParams struct {
+	MemberID      uint64
+	OwnerID       uint64
+	LinkID        uint64
+	SourceAlertID uint64
+	SourceHit     uint32
+	Level         string
+	Now           sql.NullTime
+}
+
+// Fan-out of one owner alert hit to one member (job family_member_alert, retried): 1 = new, 0 = already relayed.
+func (q *Queries) InsertFamilyMemberAlert(ctx context.Context, arg InsertFamilyMemberAlertParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, insertFamilyMemberAlert,
+		arg.MemberID,
+		arg.OwnerID,
+		arg.LinkID,
+		arg.SourceAlertID,
+		arg.SourceHit,
+		arg.Level,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const insertFamilyMemberNotice = `-- name: InsertFamilyMemberNotice :execrows
+INSERT INTO ` + "`" + `family_member_notices` + "`" + ` (member_id, owner_id, link_id, kind, dedupe_key, due_at, created_at)
+VALUES (?, ?, ?, ?, ?,
+  ?, ?)
+ON DUPLICATE KEY UPDATE id = id
+`
+
+type InsertFamilyMemberNoticeParams struct {
+	MemberID  uint64
+	OwnerID   uint64
+	LinkID    uint64
+	Kind      string
+	DedupeKey string
+	DueAt     time.Time
+	Now       sql.NullTime
+}
+
+// Queue one member notice; dedupe_key is unique per member (e.g. `appt_tomorrow:<reminder>:<date>`). 1 = queued, 0 =
+// already queued.
+func (q *Queries) InsertFamilyMemberNotice(ctx context.Context, arg InsertFamilyMemberNoticeParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, insertFamilyMemberNotice,
+		arg.MemberID,
+		arg.OwnerID,
+		arg.LinkID,
+		arg.Kind,
+		arg.DedupeKey,
+		arg.DueAt,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const insertFamilyNudge = `-- name: InsertFamilyNudge :execrows
+INSERT INTO ` + "`" + `family_nudges` + "`" + ` (owner_id, member_id, link_id, target_type, target_id, local_date, slot, sent_at)
+VALUES (?, ?, ?, ?, ?,
+  ?, ?, ?)
+ON DUPLICATE KEY UPDATE id = id
+`
+
+type InsertFamilyNudgeParams struct {
+	OwnerID    uint64
+	MemberID   uint64
+	LinkID     uint64
+	TargetType string
+	TargetID   uint64
+	LocalDate  civildate.Date
+	Slot       string
+	SentAt     time.Time
+}
+
+// One nudge per (owner, target, owner-local day, slot); slot = dose HH:MM, ” for an appointment. 1 = sent now, 0 =
+// already nudged (double tap). Run inside the link-row lock together with CountFamilyNudgesForPair (F-06).
+func (q *Queries) InsertFamilyNudge(ctx context.Context, arg InsertFamilyNudgeParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, insertFamilyNudge,
+		arg.OwnerID,
+		arg.MemberID,
+		arg.LinkID,
+		arg.TargetType,
+		arg.TargetID,
+		arg.LocalDate,
+		arg.Slot,
+		arg.SentAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const insertFamilyProposal = `-- name: InsertFamilyProposal :execlastid
+
+INSERT INTO ` + "`" + `family_proposals` + "`" + ` (subject_type, subject_id, link_id, actor_id, approver_id, kind, domain, payload_sealed,
+  payload_key_id, status, dedupe_key, expires_at, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?,
+  ?, ?, ?, ?, 'pending', ?,
+  ?, ?, ?)
+`
+
+type InsertFamilyProposalParams struct {
+	SubjectType   string
+	SubjectID     uint64
+	LinkID        sql.NullInt64
+	ActorID       uint64
+	ApproverID    uint64
+	Kind          string
+	Domain        string
+	PayloadSealed sql.NullString
+	PayloadKeyID  sql.NullInt16
+	DedupeKey     sql.NullString
+	ExpiresAt     time.Time
+	Now           sql.NullTime
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Family v6 storage, part B (T-M11-03, 00107; family.md §6–§8; gap 05 §5.4, §5.5). No reader or writer yet: proposals
+// (T-M11-09/11), share requests (T-M11-08), nudges (T-M11-10), member alerts and notices (T-M11-12/13) wire them up.
+// Expiry is lazy (every read and transition compares expires_at with `now`) so correctness never waits for a sweep.
+// Idempotent inserts use ON DUPLICATE KEY UPDATE id = id (rows affected 0 = already there); unlike INSERT IGNORE it
+// still fails on a missing link / user (FK) or a bad value.
+// A pending proposal. A second pending one with the same dedupe_key fails with 1062 (UNIQUE pending_key): the caller
+// answers with the existing one. expires_at = now + 7 days (family.md §7).
+func (q *Queries) InsertFamilyProposal(ctx context.Context, arg InsertFamilyProposalParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, insertFamilyProposal,
+		arg.SubjectType,
+		arg.SubjectID,
+		arg.LinkID,
+		arg.ActorID,
+		arg.ApproverID,
+		arg.Kind,
+		arg.Domain,
+		arg.PayloadSealed,
+		arg.PayloadKeyID,
+		arg.DedupeKey,
+		arg.ExpiresAt,
+		arg.Now,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
+const insertFamilyShareRequest = `-- name: InsertFamilyShareRequest :execlastid
+INSERT INTO ` + "`" + `family_share_requests` + "`" + ` (from_user_id, to_user_id, link_id, domains, status, expires_at, created_at)
+VALUES (?, ?, ?, ?, 'pending',
+  ?, ?)
+`
+
+type InsertFamilyShareRequestParams struct {
+	FromUserID uint64
+	ToUserID   uint64
+	LinkID     sql.NullInt64
+	Domains    json.RawMessage
+	ExpiresAt  time.Time
+	Now        sql.NullTime
+}
+
+// A member asks for more access; domains = {domain: level}. Nothing applies until the owner accepts.
+func (q *Queries) InsertFamilyShareRequest(ctx context.Context, arg InsertFamilyShareRequestParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, insertFamilyShareRequest,
+		arg.FromUserID,
+		arg.ToUserID,
+		arg.LinkID,
+		arg.Domains,
+		arg.ExpiresAt,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
+const insertLinkedUserNotification = `-- name: InsertLinkedUserNotification :execlastid
+INSERT INTO ` + "`" + `user_notifications` + "`" + ` (user_id, type, title, body, action_url, data, link_id, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?,
+  ?, ?, ?)
+`
+
+type InsertLinkedUserNotificationParams struct {
+	UserID    uint64
+	Type      string
+	Title     json.RawMessage
+	Body      db.NullRawJSON
+	ActionUrl sql.NullString
+	Data      db.NullRawJSON
+	LinkID    sql.NullInt64
+	Now       sql.NullTime
+}
+
+// A member inbox row tied to its link (neutral copy only, SPEC §1.8), so DeleteUserNotificationsForLink can purge it.
+func (q *Queries) InsertLinkedUserNotification(ctx context.Context, arg InsertLinkedUserNotificationParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, insertLinkedUserNotification,
+		arg.UserID,
+		arg.Type,
+		arg.Title,
+		arg.Body,
+		arg.ActionUrl,
+		arg.Data,
+		arg.LinkID,
+		arg.Now,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
+const listDueFamilyMemberNotices = `-- name: ListDueFamilyMemberNotices :many
+SELECT id, member_id, owner_id, link_id, kind, dedupe_key, due_at, sent_at, deferred_reason, notification_id, created_at
+FROM ` + "`" + `family_member_notices` + "`" + `
+WHERE sent_at IS NULL AND due_at <= ?
+ORDER BY due_at, id
+LIMIT ?
+`
+
+type ListDueFamilyMemberNoticesParams struct {
+	Now   time.Time
+	Limit int32
+}
+
+// Dispatcher: unsent notices that are due, oldest first. Index (sent_at, due_at).
+func (q *Queries) ListDueFamilyMemberNotices(ctx context.Context, arg ListDueFamilyMemberNoticesParams) ([]FamilyMemberNotice, error) {
+	rows, err := q.db.QueryContext(ctx, listDueFamilyMemberNotices, arg.Now, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FamilyMemberNotice{}
+	for rows.Next() {
+		var i FamilyMemberNotice
+		if err := rows.Scan(
+			&i.ID,
+			&i.MemberID,
+			&i.OwnerID,
+			&i.LinkID,
+			&i.Kind,
+			&i.DedupeKey,
+			&i.DueAt,
+			&i.SentAt,
+			&i.DeferredReason,
+			&i.NotificationID,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFamilyAttendanceForReminder = `-- name: ListFamilyAttendanceForReminder :many
+SELECT member_id, created_at FROM ` + "`" + `family_attendance` + "`" + ` WHERE reminder_id = ? ORDER BY id
+`
+
+type ListFamilyAttendanceForReminderRow struct {
+	MemberID  uint64
+	CreatedAt sql.NullTime
+}
+
+// Who is coming to one appointment. Index (reminder_id, member_id).
+func (q *Queries) ListFamilyAttendanceForReminder(ctx context.Context, reminderID uint64) ([]ListFamilyAttendanceForReminderRow, error) {
+	rows, err := q.db.QueryContext(ctx, listFamilyAttendanceForReminder, reminderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListFamilyAttendanceForReminderRow{}
+	for rows.Next() {
+		var i ListFamilyAttendanceForReminderRow
+		if err := rows.Scan(&i.MemberID, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFamilyMemberAlerts = `-- name: ListFamilyMemberAlerts :many
+SELECT id, member_id, owner_id, link_id, source_alert_id, source_hit, level, created_at, seen_at, sms_sent_at
+FROM ` + "`" + `family_member_alerts` + "`" + `
+WHERE member_id = ?
+ORDER BY created_at DESC, id DESC
+LIMIT ?
+`
+
+type ListFamilyMemberAlertsParams struct {
+	MemberID uint64
+	Limit    int32
+}
+
+// The member's alert slot, newest first. Index (member_id, created_at).
+func (q *Queries) ListFamilyMemberAlerts(ctx context.Context, arg ListFamilyMemberAlertsParams) ([]FamilyMemberAlert, error) {
+	rows, err := q.db.QueryContext(ctx, listFamilyMemberAlerts, arg.MemberID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FamilyMemberAlert{}
+	for rows.Next() {
+		var i FamilyMemberAlert
+		if err := rows.Scan(
+			&i.ID,
+			&i.MemberID,
+			&i.OwnerID,
+			&i.LinkID,
+			&i.SourceAlertID,
+			&i.SourceHit,
+			&i.Level,
+			&i.CreatedAt,
+			&i.SeenAt,
+			&i.SmsSentAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFamilyNudgesForOwnerDay = `-- name: ListFamilyNudgesForOwnerDay :many
+SELECT target_type, target_id, slot, member_id, sent_at FROM ` + "`" + `family_nudges` + "`" + `
+WHERE owner_id = ? AND local_date = ?
+`
+
+type ListFamilyNudgesForOwnerDayParams struct {
+	OwnerID   uint64
+	LocalDate civildate.Date
+}
+
+type ListFamilyNudgesForOwnerDayRow struct {
+	TargetType string
+	TargetID   uint64
+	Slot       string
+	MemberID   uint64
+	SentAt     time.Time
+}
+
+// Which of the owner's targets were already nudged on one local day (greys out the member's nudge buttons).
+func (q *Queries) ListFamilyNudgesForOwnerDay(ctx context.Context, arg ListFamilyNudgesForOwnerDayParams) ([]ListFamilyNudgesForOwnerDayRow, error) {
+	rows, err := q.db.QueryContext(ctx, listFamilyNudgesForOwnerDay, arg.OwnerID, arg.LocalDate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListFamilyNudgesForOwnerDayRow{}
+	for rows.Next() {
+		var i ListFamilyNudgesForOwnerDayRow
+		if err := rows.Scan(
+			&i.TargetType,
+			&i.TargetID,
+			&i.Slot,
+			&i.MemberID,
+			&i.SentAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFamilyProposalsByActor = `-- name: ListFamilyProposalsByActor :many
+SELECT id, subject_type, subject_id, link_id, actor_id, approver_id, kind, domain,
+  status, CAST(status = 'pending' AND expires_at <= ? AS SIGNED) AS expired,
+  expires_at, decided_at, applied_ref, created_at
+FROM ` + "`" + `family_proposals` + "`" + `
+WHERE actor_id = ?
+ORDER BY created_at DESC, id DESC
+LIMIT ?
+`
+
+type ListFamilyProposalsByActorParams struct {
+	Now     time.Time
+	ActorID uint64
+	Limit   int32
+}
+
+type ListFamilyProposalsByActorRow struct {
+	ID          uint64
+	SubjectType string
+	SubjectID   uint64
+	LinkID      sql.NullInt64
+	ActorID     uint64
+	ApproverID  uint64
+	Kind        string
+	Domain      string
+	Status      string
+	Expired     int64
+	ExpiresAt   time.Time
+	DecidedAt   sql.NullTime
+	AppliedRef  sql.NullString
+	CreatedAt   sql.NullTime
+}
+
+// The member's own proposals (outcome cards), newest first; expired = 1 marks a lapsed pending row. Index (actor_id, …).
+func (q *Queries) ListFamilyProposalsByActor(ctx context.Context, arg ListFamilyProposalsByActorParams) ([]ListFamilyProposalsByActorRow, error) {
+	rows, err := q.db.QueryContext(ctx, listFamilyProposalsByActor, arg.Now, arg.ActorID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListFamilyProposalsByActorRow{}
+	for rows.Next() {
+		var i ListFamilyProposalsByActorRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SubjectType,
+			&i.SubjectID,
+			&i.LinkID,
+			&i.ActorID,
+			&i.ApproverID,
+			&i.Kind,
+			&i.Domain,
+			&i.Status,
+			&i.Expired,
+			&i.ExpiresAt,
+			&i.DecidedAt,
+			&i.AppliedRef,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPendingFamilyProposalsForApprover = `-- name: ListPendingFamilyProposalsForApprover :many
+SELECT id, subject_type, subject_id, link_id, actor_id, approver_id, kind, domain, payload_sealed, payload_key_id, status,
+  dedupe_key, expires_at, decided_by, decided_at, applied_ref, created_at, updated_at
+FROM ` + "`" + `family_proposals` + "`" + `
+WHERE approver_id = ? AND status = 'pending' AND expires_at > ?
+ORDER BY created_at DESC, id DESC
+LIMIT ?
+`
+
+type ListPendingFamilyProposalsForApproverParams struct {
+	ApproverID uint64
+	Now        time.Time
+	Limit      int32
+}
+
+type ListPendingFamilyProposalsForApproverRow struct {
+	ID            uint64
+	SubjectType   string
+	SubjectID     uint64
+	LinkID        sql.NullInt64
+	ActorID       uint64
+	ApproverID    uint64
+	Kind          string
+	Domain        string
+	PayloadSealed sql.NullString
+	PayloadKeyID  sql.NullInt16
+	Status        string
+	DedupeKey     sql.NullString
+	ExpiresAt     time.Time
+	DecidedBy     sql.NullInt64
+	DecidedAt     sql.NullTime
+	AppliedRef    sql.NullString
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
+// The approver's waiting list, newest first; expired rows are left out. Index (approver_id, status, created_at).
+func (q *Queries) ListPendingFamilyProposalsForApprover(ctx context.Context, arg ListPendingFamilyProposalsForApproverParams) ([]ListPendingFamilyProposalsForApproverRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPendingFamilyProposalsForApprover, arg.ApproverID, arg.Now, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPendingFamilyProposalsForApproverRow{}
+	for rows.Next() {
+		var i ListPendingFamilyProposalsForApproverRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SubjectType,
+			&i.SubjectID,
+			&i.LinkID,
+			&i.ActorID,
+			&i.ApproverID,
+			&i.Kind,
+			&i.Domain,
+			&i.PayloadSealed,
+			&i.PayloadKeyID,
+			&i.Status,
+			&i.DedupeKey,
+			&i.ExpiresAt,
+			&i.DecidedBy,
+			&i.DecidedAt,
+			&i.AppliedRef,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPendingFamilyShareRequestsForOwner = `-- name: ListPendingFamilyShareRequestsForOwner :many
+SELECT id, from_user_id, to_user_id, link_id, domains, status, expires_at, decided_at, created_at
+FROM ` + "`" + `family_share_requests` + "`" + `
+WHERE to_user_id = ? AND status = 'pending' AND expires_at > ?
+ORDER BY created_at DESC, id DESC
+LIMIT ?
+`
+
+type ListPendingFamilyShareRequestsForOwnerParams struct {
+	ToUserID uint64
+	Now      time.Time
+	Limit    int32
+}
+
+// The owner's inbox of live requests, newest first. Index (to_user_id, status, created_at).
+func (q *Queries) ListPendingFamilyShareRequestsForOwner(ctx context.Context, arg ListPendingFamilyShareRequestsForOwnerParams) ([]FamilyShareRequest, error) {
+	rows, err := q.db.QueryContext(ctx, listPendingFamilyShareRequestsForOwner, arg.ToUserID, arg.Now, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FamilyShareRequest{}
+	for rows.Next() {
+		var i FamilyShareRequest
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromUserID,
+			&i.ToUserID,
+			&i.LinkID,
+			&i.Domains,
+			&i.Status,
+			&i.ExpiresAt,
+			&i.DecidedAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lockFamilyProposal = `-- name: LockFamilyProposal :one
+SELECT id, subject_type, subject_id, link_id, actor_id, approver_id, kind, domain, payload_sealed, payload_key_id, status,
+  dedupe_key, expires_at, decided_by, decided_at, applied_ref, created_at, updated_at
+FROM ` + "`" + `family_proposals` + "`" + ` WHERE id = ? LIMIT 1 FOR UPDATE
+`
+
+type LockFamilyProposalRow struct {
+	ID            uint64
+	SubjectType   string
+	SubjectID     uint64
+	LinkID        sql.NullInt64
+	ActorID       uint64
+	ApproverID    uint64
+	Kind          string
+	Domain        string
+	PayloadSealed sql.NullString
+	PayloadKeyID  sql.NullInt16
+	Status        string
+	DedupeKey     sql.NullString
+	ExpiresAt     time.Time
+	DecidedBy     sql.NullInt64
+	DecidedAt     sql.NullTime
+	AppliedRef    sql.NullString
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
+// Approve / reject / cancel: lock the row, then DecideFamilyProposal. The caller treats a pending row past expires_at as
+// expired (ExpireFamilyProposal) and never applies it.
+func (q *Queries) LockFamilyProposal(ctx context.Context, id uint64) (LockFamilyProposalRow, error) {
+	row := q.db.QueryRowContext(ctx, lockFamilyProposal, id)
+	var i LockFamilyProposalRow
+	err := row.Scan(
+		&i.ID,
+		&i.SubjectType,
+		&i.SubjectID,
+		&i.LinkID,
+		&i.ActorID,
+		&i.ApproverID,
+		&i.Kind,
+		&i.Domain,
+		&i.PayloadSealed,
+		&i.PayloadKeyID,
+		&i.Status,
+		&i.DedupeKey,
+		&i.ExpiresAt,
+		&i.DecidedBy,
+		&i.DecidedAt,
+		&i.AppliedRef,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const markFamilyMemberAlertSeen = `-- name: MarkFamilyMemberAlertSeen :execrows
+UPDATE ` + "`" + `family_member_alerts` + "`" + ` SET seen_at = ?
+WHERE id = ? AND member_id = ? AND seen_at IS NULL
+`
+
+type MarkFamilyMemberAlertSeenParams struct {
+	Now      sql.NullTime
+	ID       uint64
+	MemberID uint64
+}
+
+func (q *Queries) MarkFamilyMemberAlertSeen(ctx context.Context, arg MarkFamilyMemberAlertSeenParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, markFamilyMemberAlertSeen, arg.Now, arg.ID, arg.MemberID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const markFamilyMemberAlertSmsSent = `-- name: MarkFamilyMemberAlertSmsSent :execrows
+UPDATE ` + "`" + `family_member_alerts` + "`" + ` SET sms_sent_at = ? WHERE id = ? AND sms_sent_at IS NULL
+`
+
+type MarkFamilyMemberAlertSmsSentParams struct {
+	Now sql.NullTime
+	ID  uint64
+}
+
+// The optional neutral urgent SMS (F-09) goes once per alert row: 0 rows = already sent.
+func (q *Queries) MarkFamilyMemberAlertSmsSent(ctx context.Context, arg MarkFamilyMemberAlertSmsSentParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, markFamilyMemberAlertSmsSent, arg.Now, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const markFamilyMemberNoticeSent = `-- name: MarkFamilyMemberNoticeSent :execrows
+UPDATE ` + "`" + `family_member_notices` + "`" + ` SET sent_at = ?, notification_id = ?,
+  deferred_reason = NULL
+WHERE id = ? AND sent_at IS NULL
+`
+
+type MarkFamilyMemberNoticeSentParams struct {
+	Now            sql.NullTime
+	NotificationID sql.NullInt64
+	ID             uint64
+}
+
+// notification_id = the user_notifications row it produced (InsertLinkedUserNotification). 0 rows = already sent.
+func (q *Queries) MarkFamilyMemberNoticeSent(ctx context.Context, arg MarkFamilyMemberNoticeSentParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, markFamilyMemberNoticeSent, arg.Now, arg.NotificationID, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const upsertFamilyOwnerState = `-- name: UpsertFamilyOwnerState :execrows
