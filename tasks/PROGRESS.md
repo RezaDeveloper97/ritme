@@ -1965,3 +1965,16 @@ Nothing needed fixing.
   reopen the previous one; menopause flow still creates periods; Laravel `DataSource.php` needs `bleeding_log` before
   cutover; bridge revision bumps → T-M9-30; `TestLoad_Budget` timing flake.
 - Migration 00104 runs with the next stage/beta deploy.
+
+## T-M9-14b — Record the k6 load-test baseline (before table)
+- Ran app_open, calendar_browse, log_burst, analysis_tab and fertility_tab (no soak) at `b08f02c8`, all local:
+  `make loadtest-api` on 127.0.0.1:8020, scratch DB `ritme_loadtest` (2000 seeded users), local k6 v2.3.0
+  (`K6_RUNNER=local`), Apple M4 / 16 GB at load average 4–7 — read numbers ±30%.
+- `docs/engine-v6/perf-baseline.md` "Load-test baseline (before)": client cold/warm + server p50/p95/p99, error rate
+  (0% everywhere) and queries per request per endpoint.
+- All budgets pass except calendar_browse warm p95 29.7 ms (budget 20 ms; 4.0 queries/request vs target 1). Warm query
+  counts above README §8 targets: `/home` 11.1 (≤ 8), `/messages/selected` 6.9 (≤ 4), `/analysis/*` 11 (≤ 6),
+  `/fertility/insights` 5 (≤ 4); `POST /health-logs` 13.4. These are inputs for the later perf tasks.
+- Script fixes: none needed (POST /health-logs 200/201, `data.notes`, Idempotency-Key, `/cycle/month`,
+  `/messages/selected`, `/analysis/*` all as assumed). `grafana/k6:1.3.0` pin still unverified (image not pulled).
+- Scratch DB `ritme_loadtest` left in place (`make loadtest-drop` removes it).

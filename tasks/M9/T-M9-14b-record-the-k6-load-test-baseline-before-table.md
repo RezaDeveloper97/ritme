@@ -3,7 +3,7 @@ id: T-M9-14b
 title: Record the k6 load-test baseline (before table)
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-14]
 parallel_group: M9-B
 touches: [docs/engine-v6/perf-baseline.md,backend-go/loadtest]

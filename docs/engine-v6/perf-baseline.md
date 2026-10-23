@@ -218,3 +218,70 @@ Measured with `make test-int PKG="-v ./internal/querybudget/..."` (cold = config
 - Home warm drops by 4: task templates, affirmations, articles and challenges come from configcache snapshots.
 - The language list is a configcache snapshot, so there is no Redis read per request. The analysis cold rows gain one query because with configcache off the snapshot reloads on each call; warm is unchanged, and in production the snapshot loads once per process.
 - `messages selected` stays constant in the number of rules (1 rule and 50 rules: 8 warm queries). With capped or cooled-down candidate rules, the single `ListUserMessageEventStats` prefetch adds 1 over the table row.
+
+## Load-test baseline (before) (T-M9-14b)
+
+The "before" for the M9/M10 performance tasks. Recorded 2026-10-23 14:19–14:31 (Asia/Tehran) at commit **`b08f02c8`** (`stage`;
+the only uncommitted changes were task files). Several engine changes (T-M9-15…28) landed after T-M9-14, so this is
+the state *after* those and before later perf work.
+
+**Setup.** Local only: `make loadtest-api` (API on `127.0.0.1:8020`, `go run ./cmd/api`, `APP_ENV=local`) against the scratch
+DB `ritme_loadtest` on the docker test MariaDB (:13317) and Redis (:16380); 2 000 seeded users (6–36 months of
+history, ~516 k daily logs; persona mix in T-M9-14). k6 **v2.3.0 local binary** (`K6_RUNNER=local`; the pinned docker
+image `grafana/k6:1.3.0` was not pulled, so it is still unverified). `RPS`/`DURATION` defaults (200 / 2 m, log_burst 100 RPS).
+Each scenario = a *cold* phase (each of the 2 000 users touched once, 20 VUs) then a *warm* phase (2 min arrival-rate
+load, random users). Soak not run.
+
+**Machine.** Apple M4 (10 cores, 16 GB), macOS 27.0.1, go1.27.1. k6, the API, MariaDB and Redis (docker VM) all share
+this one machine, so the load generator competes with the server. Load average during the runs 7.0 → 4.3 (1 min); other
+things running: a docker VM (`Virtualization` ~80 % CPU), one other docker container, WindowServer, Spotify, the
+Claude session. **Numbers are noisy: read them to about ±30 %**, and the tail (p99) more than that. Treat only large
+changes as real.
+
+**Client side** (k6 `http_req_duration`, ms; p50 / p95 / p99). **Server side** = `/metrics` histogram of the route over
+the whole scenario (cold + warm), which excludes the network and k6's own scheduling. Queries/request is the per-request
+counter average (T-M9-07), cold and warm mixed; auth is included. Error rate is `http_req_failed` (5xx and any non-2xx): **0 % everywhere**.
+
+| Scenario | Endpoint | Client cold p50 / p95 / p99 | Client warm p50 / p95 / p99 | Server p50 / p95 / p99 | Queries/req | §8 warm p95 budget |
+|---|---|---|---|---|---:|---|
+| app_open (200 RPS) | `/cycle/today` | 8.7 / 18.0 / 29.4 | 2.9 / 5.2 / 8.4 | 4.0 / 17.4 / 24.1 | 4.29 | 15 ✔ |
+| app_open | `/cycle/month/:y/:m?view=calendar` | 10.1 / 22.9 / 35.6 | 2.8 / 5.3 / 8.2 | 3.9 / 20.5 / 26.1 | 4.00 | 20 ✔ |
+| app_open | `/home` | 19.2 / 33.0 / 45.8 | 4.8 / 8.8 / 13.7 | 6.6 / 26.6 / 46.0 | 11.11 | 40 ✔ |
+| app_open | `/messages/selected?placement=status_banner` | 10.2 / 19.9 / 30.6 | 2.4 / 4.8 / 8.0 | 3.2 / 20.3 / 24.6 | 6.90 | 20 ✔ |
+| app_open | `/banners` | 4.7 / 9.9 / 15.7 | 1.2 / 2.4 / 4.1 | 1.9 / 8.0 / 13.1 | 3.00 | 20 ✔ |
+| app_open | all warm requests (mixed) | – | 2.7 / 6.4 / 9.6 | – | – | 100 ✔ |
+| calendar_browse (12 months/user, 204 req/s) | `/cycle/month/:y/:m?view=calendar` | 9.1 / 15.9 / 21.5 | 4.3 / **29.7** / 58.9 | 7.6 / 24.2 / 47.7 | 4.00 | 20 **✘** |
+| log_burst (100 RPS) | `POST /health-logs` | – | 8.1 / 19.6 / 35.8 | 8.3 / 23.3 / 43.5 | 13.40 | 100 ✔ |
+| log_burst | `GET /health-logs/:date` | – | – (not tagged) | 1.5 / 3.7 / 6.6 | 2.00 | – |
+| log_burst | `GET /cycle/today` after a write | – | – (not tagged) | 3.5 / 9.1 / 20.0 | 4.01 | – |
+| analysis_tab (200 RPS) | `/analysis/summary` | 15.3 / 27.8 / 44.8 | 4.6 / 11.4 / 19.0 | 5.6 / 23.5 / 40.6 | 11.00 | 20 ✔ |
+| analysis_tab | `/analysis/cycle` | – | – (not tagged) | 4.8 / 23.3 / 39.3 | 11.00 | – |
+| analysis_tab | `/analysis/period` | – | – (not tagged) | 4.8 / 23.1 / 36.2 | 11.00 | – |
+| analysis_tab | `/analysis/symptoms` | – | – (not tagged) | 4.8 / 22.9 / 31.2 | 11.00 | – |
+| fertility_tab (200 RPS) | `/fertility/insights` | 12.6 / 26.5 / 33.6 | 3.1 / 6.4 / 10.4 | 3.9 / 20.7 / 26.1 | 5.00 | 25 ✔ |
+| fertility_tab | `/fertility/bbt` | – | – (not tagged) | 3.2 / 17.3 / 23.7 | 4.00 | – |
+| fertility_tab | `/fertility/today` | – | – (not tagged) | 2.4 / 15.0 / 23.2 | 4.00 | – |
+
+Volumes: app_open 34 000 requests (6 800 iterations), calendar_browse 48 480, log_burst 11 883 (3 961 iterations, **0 stale reads**),
+analysis_tab 32 000, fertility_tab 30 120. All checks passed in every scenario (0 failed checks).
+
+Reading it:
+
+- **calendar_browse is the one budget miss**: warm p95 29.7 ms against 20 ms (cold p95 15.9 ms passes). One iteration is
+  12 sequential months for one user, so the arrival rate (17 iterations/s ≈ 204 req/s) is higher than app_open's month
+  traffic and every iteration asks for 11 months that app_open never touches. The server p95 (24 ms) says it is not only
+  client noise. Queries per request are 4.0, against the README §8 warm target of 1: the month cache hit path still
+  costs the auth, module-gate and cache-key queries. A candidate target for the cycle-cache tasks.
+- Warm query counts match the §3 budget table for `/cycle/*`, `/home` (11, T-M9-13b) and fertility. `/messages/selected`
+  averages 6.9 here (§3: 7 warm) and `/analysis/*` 11.0 (§3: 11 for summary), both above the README §8 targets (≤ 4 and ≤ 6).
+  `POST /health-logs` is the most query-heavy request (13.4).
+- Server-side p95 is 15–27 ms for every read at 200 RPS while the client warm p95 is 2–12 ms: the server histogram
+  mixes in the cold phase (2 000 first touches), which is where the long tail comes from. Cold p95 stays within the §8 cold budgets everywhere.
+- Only endpoints with a threshold carry a k6 `endpoint` sub-metric in the summary; the others have server-side numbers only.
+
+**Script assumptions checked (T-M9-14b step 3).** All held on the first run, no script change was needed:
+`POST /health-logs` answers 200/201 (check passes 3 961/3 961); `data.notes` round-trips through `GET /health-logs/:date`
+(0 stale reads); the `Idempotency-Key` header is accepted; `/cycle/month/:y/:m?view=calendar`,
+`/messages/selected?placement=status_banner` and the four `/analysis/*` paths all return 200. The `grafana/k6:1.3.0` image pin could not be checked
+(not pulled, nothing in the docker image cache); these runs used the local k6 v2.3.0. The threshold exit code 99 of
+calendar_browse is the measured budget miss above, not a script error. Raw outputs: `backend-go/loadtest/results/*-20261023-14*` (git-ignored).
