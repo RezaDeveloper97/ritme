@@ -98,6 +98,13 @@
             "is_high_risk": false,
             "fetal_movement_tracking_active": false,
             "fetal_movement_required": false,
+            "dating": {
+              "basis": "lmp",
+              "replaced": false,
+              "discrepancy_days": null,
+              "band_until_days": null,
+              "limit_days": null
+            },
             "flags": {
               "trimester_info": {
                 "en": "You are in trimester 1.",

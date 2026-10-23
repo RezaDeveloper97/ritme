@@ -1873,3 +1873,25 @@ Nothing needed fixing.
   - the codes in `consent/summary.go` record no evidence events;
   - history has no pagination;
   - Laravel `translations:import` not run.
+
+## T-M10-18c — Re-dating follow-ups: extract kept-LMP copy, cycle-length source, dating schema dedupe, goldens
+- Health-record extract: an apply that keeps the LMP (`Redating != nil && !Replaced`) answers `messages.dating_kept`
+  and `offer.kept`; the apply response carries `dating` (`Redating.JSON()`); `same_dating` uses `offer.same_dating_kept`
+  when the profile's age source isn't ultrasound. New fa/en keys in `extract/lang`. Int + unit tests in
+  `extract_int_test.go` / `extract_test.go` (applied by the main session from the agent's diff).
+- `routes_pregnancy.go`: `h.SetCycleLength(effectiveCycleLength(...))` from the cycle engine profile + history
+  (`metrics.Calculate`; 0 when only the system default) — no effect until `pregnancy.edd.cycle_correction` is on.
+  Costs two queries per calculator call.
+- Frontend: `features/track-pregnancy` reuses `entities/pregnancy` `onboardingDatingSchema` (duplicate zod object gone).
+- Goldens: `dating` merged into 56 pregnancy goldens + healthrecord-extract (3) + loss (2) from Go (merge-only, other
+  Laravel values kept; no "record from Go" make target exists — done with a temporary test). pregnancy-v2 needed none.
+  `dating` is now `required` in openapi (onboarding, profile status GET/PUT, `/pregnancy/status`,
+  `PregnancyV2DatingPreview`); optional `RecordDatingOffer.dating`. D-169 `dating` allow-list entries dropped
+  (pregnancy, healthrecord-extract, loss → `entries: []`); trimester entries stay.
+- Verify (combined tree): `make contract ROUTES=all` 1914 passed, 0 failed; pregnancy/healthrecord int ok; frontend
+  1974 tests.
+- Open: product question — onboarding compares a scan against the profile's previous LMP even when it belongs to an
+  earlier pregnancy (ignore LMPs older than ~44 weeks / from a previous episode?). A later GET of an applied document
+  still shows the applied text when the LMP was kept (fix lives in `dating.go`). No test for `effectiveCycleLength`.
+  The health-record screen may want to show the new server message.
+

@@ -1,9 +1,2 @@
 group: loss
-entries:
-  # D-169 (task T-M10-18, engine v6 M10, user OK 2026-10-21): GET /pregnancy/status carries the new `dating` block
-  # {basis, replaced, discrepancy_days, band_until_days, limit_days} (Go-only, additive — recorded before it).
-  - case: "record_flow.*"
-    step: 2
-    where: data.dating
-    deviation: D-169
-    reason: new dating block on /pregnancy/status (Go-only, additive)
+entries: []

@@ -8,12 +8,14 @@
         "not_in_review": "This document has no read values waiting for your check",
         "review_confirmed": "Saved — thanks for checking",
         "dating_applied": "Your pregnancy dating was updated from this scan",
+        "dating_kept": "Scan saved. It was close to the date of your last period, so your pregnancy dating stays as it is.",
         "dating_dismissed": "Okay, your pregnancy dating stays as it is",
         "dating_unavailable": "This document cannot update your pregnancy dating"
     },
     "offer": {
         "offered": "This scan says :weeks weeks :days days on :date. Update your pregnancy dating from it?",
         "applied": "Your pregnancy dating was updated from this document",
+        "kept": "Scan saved. It was close to the date of your last period, so your pregnancy dating stays as it is.",
         "dismissed": "You kept your previous pregnancy dating",
         "not_imaging": "Only an imaging report can update the pregnancy dating",
         "not_confirmed": "Check and confirm the values read from the document first",
@@ -21,7 +23,8 @@
         "out_of_range": "The dating in this document does not look like the current pregnancy",
         "not_pregnant": "Pregnancy mode is not on",
         "other_pregnancy": "This scan seems to belong to another pregnancy",
-        "same_dating": "Your pregnancy is already dated from this scan"
+        "same_dating": "Your pregnancy is already dated from this scan",
+        "same_dating_kept": "You have already saved this scan"
     },
     "validation": {
         "no_files": "Add a photo or PDF of the document first.",

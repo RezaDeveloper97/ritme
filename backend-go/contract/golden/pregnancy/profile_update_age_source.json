@@ -85,6 +85,13 @@
             "is_high_risk": true,
             "fetal_movement_tracking_active": true,
             "fetal_movement_required": true,
+            "dating": {
+              "basis": "manual",
+              "replaced": false,
+              "discrepancy_days": null,
+              "band_until_days": null,
+              "limit_days": null
+            },
             "flags": {
               "trimester_info": {
                 "en": "You are in trimester 2.",
@@ -196,6 +203,13 @@
             "is_high_risk": true,
             "fetal_movement_tracking_active": true,
             "fetal_movement_required": true,
+            "dating": {
+              "basis": "lmp",
+              "replaced": false,
+              "discrepancy_days": 10,
+              "band_until_days": 195,
+              "limit_days": 14
+            },
             "flags": {
               "trimester_info": {
                 "en": "You are in trimester 2.",

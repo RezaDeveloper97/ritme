@@ -548,6 +548,13 @@
             "is_high_risk": false,
             "fetal_movement_tracking_active": false,
             "fetal_movement_required": false,
+            "dating": {
+              "basis": "lmp",
+              "replaced": false,
+              "discrepancy_days": null,
+              "band_until_days": null,
+              "limit_days": null
+            },
             "flags": {
               "trimester_info": {
                 "en": "You are in trimester 1.",
@@ -646,7 +653,14 @@
             "source": "ultrasound",
             "due_date": "2027-03-30"
           },
-          "difference_days": 0
+          "difference_days": 0,
+          "dating": {
+            "basis": "ultrasound",
+            "replaced": true,
+            "discrepancy_days": 40,
+            "band_until_days": 62,
+            "limit_days": 5
+          }
         }
       }
     },
@@ -727,6 +741,13 @@
             "is_high_risk": false,
             "fetal_movement_tracking_active": false,
             "fetal_movement_required": false,
+            "dating": {
+              "basis": "ultrasound",
+              "replaced": true,
+              "discrepancy_days": 40,
+              "band_until_days": 62,
+              "limit_days": 5
+            },
             "flags": {
               "trimester_info": {
                 "en": "You are in trimester 2.",

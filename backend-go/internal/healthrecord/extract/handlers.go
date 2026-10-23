@@ -15,6 +15,7 @@ import (
 	"github.com/ritme/backend-go/internal/ai"
 	"github.com/ritme/backend-go/internal/ai/access"
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/healthrecord"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
@@ -346,6 +347,14 @@ func offerJSON(o Offer, locale string) *jsonx.OrderedMap {
 	msgKey := o.State
 	if o.State == OfferUnavailable {
 		reason, msgKey = o.Reason, o.Reason
+		// The profile already holds this scan but the LMP still dates the pregnancy (D-169): «already saved», not
+		// «already dated from this scan».
+		if o.Reason == ReasonSameDating && o.CurrentSource != string(enums.PregnancyAgeSourceUltrasound) {
+			msgKey = "same_dating_kept"
+		}
+	}
+	if datingKept(o) {
+		msgKey = "kept"
 	}
 	if !o.Due.IsZero() {
 		today := o.AtScan + o.ScanDate.DiffDays(o.Today)
@@ -361,9 +370,16 @@ func offerJSON(o Offer, locale string) *jsonx.OrderedMap {
 	msg := tp("offer."+msgKey, map[string]string{
 		"weeks": strconv.Itoa(o.AtScan / 7), "days": strconv.Itoa(o.AtScan % 7), "date": o.ScanDate.String(),
 	}, locale)
-	return jsonx.Obj("state", o.State, "reason", reason, "message", msg, "scan_date", dateOrNil(o.ScanDate),
+	out := jsonx.Obj("state", o.State, "reason", reason, "message", msg, "scan_date", dateOrNil(o.ScanDate),
 		"proposed", proposed, "current", current, "difference_days", diff)
+	if o.Redating != nil { // the ACOG re-dating decision of an apply (D-169)
+		out.Set("dating", o.Redating.JSON())
+	}
+	return out
 }
+
+// datingKept: the apply stored the scan but the re-dating rule kept the LMP dating (D-169).
+func datingKept(o Offer) bool { return o.Redating != nil && !o.Redating.Replaced }
 
 // Dating is GET /health-record/documents/{id}/dating: the pregnancy dating offer of a confirmed imaging document
 // (state offered | applied | dismissed | unavailable with a reason). Nothing changes until POST … {confirm: true}.
@@ -409,7 +425,11 @@ func (h *Handlers) ApplyDating(c fiber.Ctx) error {
 	if err != nil {
 		return h.fail(err, locale)
 	}
-	return httpx.OK(c, offerJSON(o, locale), T("messages.dating_applied", locale))
+	msg := "messages.dating_applied"
+	if datingKept(o) {
+		msg = "messages.dating_kept"
+	}
+	return httpx.OK(c, offerJSON(o, locale), T(msg, locale))
 }
 
 // DismissDating is DELETE /health-record/documents/{id}/dating: «نه، همین بماند» — the offer closes, the pregnancy is

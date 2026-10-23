@@ -1,20 +1,15 @@
-import { z } from 'zod';
+import { type OnboardingDating, onboardingDatingSchema } from '@/entities/pregnancy';
 
 /*
  * The `dating` block of the pregnancy status (T-M10-18, deviation D-169):
  * the basis in effect and the ACOG re-dating comparison the server made
  * between the LMP and a scan. The server decides; this only maps the
- * decision to the short line shown after a scan is saved.
+ * decision to the short line shown after a scan is saved. The schema is the
+ * entity's (one parser for every `dating` block, T-M10-18c).
  */
-export const pregnancyDatingSchema = z.object({
-  basis: z.string().nullable(),
-  replaced: z.boolean(),
-  discrepancy_days: z.number().int().nullable(),
-  band_until_days: z.number().int().nullable(),
-  limit_days: z.number().int().nullable(),
-});
+export const pregnancyDatingSchema = onboardingDatingSchema;
 
-export type PregnancyDating = z.infer<typeof pregnancyDatingSchema>;
+export type PregnancyDating = OnboardingDating;
 
 /** Key under `pregnancyV2.common.datingResult`. */
 export type DatingResultKey = 'replaced' | 'kept';

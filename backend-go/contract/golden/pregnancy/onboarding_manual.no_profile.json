@@ -73,6 +73,13 @@
               "en": "February 10, 2027",
               "fa": "10 فوریه 2027"
             }
+          },
+          "dating": {
+            "basis": "manual",
+            "replaced": false,
+            "discrepancy_days": null,
+            "band_until_days": null,
+            "limit_days": null
           }
         }
       }
@@ -153,6 +160,13 @@
             "is_high_risk": false,
             "fetal_movement_tracking_active": true,
             "fetal_movement_required": false,
+            "dating": {
+              "basis": "manual",
+              "replaced": false,
+              "discrepancy_days": null,
+              "band_until_days": null,
+              "limit_days": null
+            },
             "flags": {
               "trimester_info": {
                 "en": "You are in trimester 2.",

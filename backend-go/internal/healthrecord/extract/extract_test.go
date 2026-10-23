@@ -61,7 +61,7 @@ func TestSchemas_FakeFixturePerKind(t *testing.T) {
 
 func TestLangFiles(t *testing.T) {
 	for _, loc := range []string{"fa", "en"} {
-		for _, k := range []string{"messages.extraction_started", "messages.dating_unavailable", "offer.offered", "offer.same_dating", "validation.no_files"} {
+		for _, k := range []string{"messages.extraction_started", "messages.dating_unavailable", "offer.offered", "offer.same_dating", "offer.same_dating_kept", "offer.kept", "messages.dating_kept", "validation.no_files"} {
 			assert.NotEqual(t, "extract."+k, T(k, loc), loc+" "+k)
 		}
 		assert.NotEmpty(t, attributes(loc))

@@ -11662,7 +11662,7 @@ paths:
                   message: {type: string}
                   data:
                     type: object
-                    required: [profile, gestational_age, estimated_due_date]
+                    required: [profile, gestational_age, estimated_due_date, dating]
                     properties:
                       profile:
                         type: object
@@ -11760,7 +11760,6 @@ paths:
                           weeks_remaining: {type: integer}
                           formatted: {$ref: "#/components/schemas/RawTranslations"}
                       dating:
-                        # required once the pregnancy goldens are re-recorded (T-M10-18b; Laravel has no such key)
                         description: |
                           The ACOG re-dating decision of the saved dating (T-M10-18b, D-169). `age_source` is required
                           here, so the user's basis stands: with a scan in the body and an LMP on the profile (or in the
@@ -11873,6 +11872,7 @@ paths:
                           - is_high_risk
                           - fetal_movement_tracking_active
                           - fetal_movement_required
+                          - dating
                           - flags
                         properties:
                           is_active: {type: boolean}
@@ -12036,6 +12036,7 @@ paths:
                           - is_high_risk
                           - fetal_movement_tracking_active
                           - fetal_movement_required
+                          - dating
                           - flags
                         properties:
                           is_active: {type: boolean}
@@ -12130,6 +12131,7 @@ paths:
                       - is_high_risk
                       - fetal_movement_tracking_active
                       - fetal_movement_required
+                      - dating
                       - flags
                     properties:
                       is_active: {type: boolean}
@@ -27756,6 +27758,11 @@ components:
             source: {type: string}
             due_date: {$ref: "#/components/schemas/Date"}
         difference_days: {type: [integer, "null"], description: "Proposed due date minus the current one, in days"}
+        dating:
+          description: |
+            Only on POST …/dating (the apply): the ACOG re-dating decision (T-M10-18c, D-169). `replaced` false = the
+            scan is stored but the LMP still dates the pregnancy (state `applied`, the `kept` message).
+          allOf: [{$ref: "#/components/schemas/PregnancyDating"}]
     VitalClass:
       type: [object, "null"]
       required: [code, tone]
@@ -29590,7 +29597,7 @@ components:
             link: {type: [string, "null"], description: "article_url; null → the week page"}
     PregnancyV2DatingPreview:
       type: object
-      required: [source, weeks, days, week, trimester, due_date, due_date_label, range, uncertainty_days, confidence, basis]
+      required: [source, weeks, days, week, trimester, due_date, due_date_label, range, uncertainty_days, confidence, basis, dating]
       properties:
         source: {type: string, enum: [lmp, ultrasound, manual]}
         weeks: {type: integer}
@@ -29617,7 +29624,6 @@ components:
             primary: {type: [string, "null"]}
             secondary: {type: [string, "null"]}
         dating:
-          # required once the pregnancy-v2 goldens are re-recorded (T-M10-18b)
           description: |
             The chosen source (`basis`) and, when the body also carries the other basis complete (an LMP next to a
             scan), the ACOG re-dating comparison (D-169). The chosen source still dates the preview.

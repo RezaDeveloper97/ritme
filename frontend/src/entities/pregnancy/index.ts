@@ -51,6 +51,7 @@ export type {
 
 // ── API: keys, hooks, fetchers ─────────────────────────────────
 export { pregnancyKeys } from './api/keys';
+export { onboardingDatingSchema } from './api/schema';
 export {
   // status & profile
   usePregnancyStatus,

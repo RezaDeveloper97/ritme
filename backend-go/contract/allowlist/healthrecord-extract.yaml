@@ -1,13 +1,5 @@
 group: healthrecord-extract
 entries:
-  # D-169 (task T-M10-18, engine v6 M10, user OK 2026-10-21): the pregnancy status of GET /pregnancy/profile carries
-  # the new `dating` block {basis, replaced, discrepancy_days, band_until_days, limit_days} (Go-only, additive — the
-  # goldens of this Go-only route were recorded before it).
-  - case: "dating_*"
-    where: data.status.dating
-    deviation: D-169
-    reason: new dating block in the profile's status (Go-only, additive)
-
   # D-169 (task T-M10-18): the trimester is by completed days (ACOG CO 700: T1 to 13+6). After the applied scan the
   # pregnant_lmp_w8 persona is 13+1 on the contract day — trimester 1 now (the golden had the old `weeks <= 12` → 2).
   - case: "dating_apply.*"

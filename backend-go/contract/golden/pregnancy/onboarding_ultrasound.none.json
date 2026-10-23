@@ -84,6 +84,13 @@
               "en": "March 27, 2027",
               "fa": "27 مارس 2027"
             }
+          },
+          "dating": {
+            "basis": "ultrasound",
+            "replaced": false,
+            "discrepancy_days": null,
+            "band_until_days": null,
+            "limit_days": null
           }
         }
       }
@@ -132,6 +139,13 @@
           "is_high_risk": true,
           "fetal_movement_tracking_active": false,
           "fetal_movement_required": false,
+          "dating": {
+            "basis": "ultrasound",
+            "replaced": false,
+            "discrepancy_days": null,
+            "band_until_days": null,
+            "limit_days": null
+          },
           "flags": {
             "trimester_info": {
               "en": "You are in trimester 2.",

@@ -1,9 +1,18 @@
 package http
 
 import (
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
+
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/cycle/metrics"
+	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
+	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
+	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
@@ -20,6 +29,7 @@ func init() {
 		h := pregnancy.NewHandlers(store.New(d.DB))
 		h.SetAfterLogSave(pregnancyalerts.New(store.New(d.DB)).AfterSave) // v2 alert rules (T-M7-04)
 		h.SetFamilyGrants(d.DB)                                           // reset stale pregnancy grants on activate/onboarding/deactivate (T-M9-02)
+		h.SetCycleLength(effectiveCycleLength(cyclestore.New(d.DB)))      // optional EDD cycle correction (D-169, T-M10-18c)
 		const p = "/api/v1/pregnancy"
 
 		r.Post(p+"/activate", locale, guard, h.Activate)
@@ -54,4 +64,35 @@ func init() {
 		r.Post(p+"/alerts/read-all", locale, guard, h.AlertReadAll)
 		r.Post(p+"/alerts/:id/dismiss", locale, guard, h.AlertDismiss)
 	})
+}
+
+// effectiveCycleLength is the pregnancy handlers' cycle-length source (T-M10-18c, D-169): the cycle engine's
+// effective cycle length (confirmed history → profile, «خودکار از داده‌ها» honoured), 0 when it only has the system
+// default. It moves the due date only while pregnancy.edd.cycle_correction is enabled (calc.EDDFromLMP).
+func effectiveCycleLength(cq *cyclestore.Queries) pregnancy.CycleLength {
+	return func(ctx context.Context, userID uint64) (int, error) {
+		var profile *cyclestore.UserProfile
+		manual := false
+		p, err := cq.GetEngineProfileByUserID(ctx, userID)
+		switch {
+		case err == nil:
+			profile = &p.UserProfile
+			manual = !p.LengthsAuto
+		case !errors.Is(err, sql.ErrNoRows):
+			return 0, fmt.Errorf("pregnancy: cycle profile: %w", err)
+		}
+		rows, err := cq.ListCycleHistoriesNewestFirst(ctx, userID)
+		if err != nil {
+			return 0, fmt.Errorf("pregnancy: cycle histories: %w", err)
+		}
+		engineProfile := cycleservice.ProfileFromRow(profile)
+		if engineProfile != nil {
+			engineProfile.LengthsManual = manual
+		}
+		m := metrics.Calculate(cycleservice.HistoriesFromRows(rows), engineProfile)
+		if m.CycleLengthSource == enums.EffectiveSourceDefault {
+			return 0, nil
+		}
+		return m.EffectiveCycleLength, nil
+	}
 }

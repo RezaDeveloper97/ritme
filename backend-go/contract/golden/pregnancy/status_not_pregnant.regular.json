@@ -34,6 +34,7 @@
           "is_high_risk": false,
           "fetal_movement_tracking_active": false,
           "fetal_movement_required": false,
+          "dating": null,
           "flags": {
             "no_profile": {
               "en": "Please complete pregnancy onboarding to get started.",

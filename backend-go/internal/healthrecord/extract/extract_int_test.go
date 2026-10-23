@@ -398,6 +398,13 @@ func TestExtract_PregnancyDating(t *testing.T) {
 	// The ACOG re-dating rule (D-169): the scan says 12+3, the LMP 12+1 on 2026-09-18 — 2 days apart, within the
 	// 7-day limit of the band up to 13+6 — so the scan is stored and the LMP keeps dating the pregnancy.
 	assert.Equal(t, map[string]any{"source": "lmp", "due_date": "2027-04-01"}, r.data()["current"])
+	// The kept-LMP copy (T-M10-18c): the scan is saved, the LMP still dates the pregnancy — not «updated».
+	assert.Equal(t, extract.T("messages.dating_kept", "en"), r.body["message"])
+	assert.Equal(t, extract.T("offer.kept", "en"), r.data()["message"])
+	kept, _ := r.data()["dating"].(map[string]any)
+	assert.Equal(t, "lmp", kept["basis"])
+	assert.Equal(t, false, kept["replaced"])
+	assert.Equal(t, 2.0, kept["discrepancy_days"])
 	src, us, w, d, due := profile(t, e, uid)
 	assert.Equal(t, "lmp", src, "a 2-day difference at 12+3 keeps the LMP")
 	assert.Equal(t, "2026-09-18", us)
@@ -417,6 +424,9 @@ func TestExtract_PregnancyDating(t *testing.T) {
 	require.Equal(t, http.StatusAccepted, e.do(t, http.MethodPost, docsPath+"/"+id2+"/extract", tok, nil).status)
 	r = e.do(t, http.MethodPost, docsPath+"/"+id2+"/review", tok, nil)
 	assert.Equal(t, extract.ReasonSameDating, r.data()["dating"].(map[string]any)["reason"])
+	assert.Equal(t, extract.T("offer.same_dating_kept", "en"), r.data()["dating"].(map[string]any)["message"],
+		"the LMP still dates the pregnancy: «already saved», not «already dated from this scan»")
+	assert.NotContains(t, r.data()["dating"].(map[string]any), "dating", "only an apply carries the re-dating decision")
 	id3 := e.document(t, uid, tok, healthrecord.KindImaging, "imaging_edd")
 	require.Equal(t, http.StatusAccepted, e.do(t, http.MethodPost, docsPath+"/"+id3+"/extract", tok, nil).status)
 	r = e.do(t, http.MethodPost, docsPath+"/"+id3+"/review", tok, map[string]any{"fields": map[string]any{"edd": "2027-04-02"}})
@@ -438,6 +448,9 @@ func TestExtract_PregnancyDating(t *testing.T) {
 	r = e.do(t, http.MethodPost, docsPath+"/"+id4+"/dating", tok, map[string]any{"confirm": true})
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	assert.Equal(t, map[string]any{"source": "ultrasound", "due_date": "2027-03-20"}, r.data()["current"])
+	assert.Equal(t, extract.T("messages.dating_applied", "en"), r.body["message"])
+	assert.Equal(t, extract.T("offer.applied", "en"), r.data()["message"])
+	assert.Equal(t, true, r.data()["dating"].(map[string]any)["replaced"])
 	src, us, w, d, due = profile(t, e, uid)
 	assert.Equal(t, "ultrasound", src)
 	assert.Equal(t, "2026-09-18", us)
