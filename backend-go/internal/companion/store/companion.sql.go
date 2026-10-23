@@ -276,7 +276,7 @@ func (q *Queries) GetAccess(ctx context.Context, arg GetAccessParams) (GetAccess
 }
 
 const getCompanion = `-- name: GetCompanion :one
-SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at FROM ` + "`" + `companions` + "`" + ` WHERE id = ? LIMIT 1
+SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at FROM ` + "`" + `companions` + "`" + ` WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) GetCompanion(ctx context.Context, id uint64) (Companion, error) {
@@ -295,6 +295,11 @@ func (q *Queries) GetCompanion(ctx context.Context, id uint64) (Companion, error
 		&i.RevokedBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Role,
+		&i.Template,
+		&i.ExpiresAt,
+		&i.UrgentSms,
+		&i.OwnerConfirmedAt,
 	)
 	return i, err
 }
@@ -504,7 +509,7 @@ func (q *Queries) InsertUserNotification(ctx context.Context, arg InsertUserNoti
 }
 
 const listCompanionLinks = `-- name: ListCompanionLinks :many
-SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at FROM ` + "`" + `companions` + "`" + ` WHERE companion_user_id = ? AND status = 'active' ORDER BY id
+SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at FROM ` + "`" + `companions` + "`" + ` WHERE companion_user_id = ? AND status = 'active' ORDER BY id
 `
 
 // The active links in which the user is the companion, oldest first.
@@ -530,6 +535,11 @@ func (q *Queries) ListCompanionLinks(ctx context.Context, companionUserID sql.Nu
 			&i.RevokedBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Role,
+			&i.Template,
+			&i.ExpiresAt,
+			&i.UrgentSms,
+			&i.OwnerConfirmedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -545,7 +555,7 @@ func (q *Queries) ListCompanionLinks(ctx context.Context, companionUserID sql.Nu
 }
 
 const listCompanionUserGrants = `-- name: ListCompanionUserGrants :many
-SELECT g.id, g.companion_id, g.section, g.level, g.created_at, g.updated_at FROM ` + "`" + `companion_grants` + "`" + ` g
+SELECT g.id, g.companion_id, g.section, g.level, g.created_at, g.updated_at, g.mode_epoch FROM ` + "`" + `companion_grants` + "`" + ` g
 JOIN ` + "`" + `companions` + "`" + ` c ON c.id = g.companion_id
 WHERE c.companion_user_id = ? AND c.status = 'active'
 ORDER BY g.id
@@ -568,6 +578,7 @@ func (q *Queries) ListCompanionUserGrants(ctx context.Context, companionUserID s
 			&i.Level,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ModeEpoch,
 		); err != nil {
 			return nil, err
 		}
@@ -610,7 +621,7 @@ func (q *Queries) ListFamilyChildIDs(ctx context.Context, familyID uint64) ([]ui
 }
 
 const listGrants = `-- name: ListGrants :many
-SELECT id, companion_id, section, level, created_at, updated_at FROM ` + "`" + `companion_grants` + "`" + ` WHERE companion_id = ? ORDER BY id
+SELECT id, companion_id, section, level, created_at, updated_at, mode_epoch FROM ` + "`" + `companion_grants` + "`" + ` WHERE companion_id = ? ORDER BY id
 `
 
 func (q *Queries) ListGrants(ctx context.Context, companionID uint64) ([]CompanionGrant, error) {
@@ -629,6 +640,7 @@ func (q *Queries) ListGrants(ctx context.Context, companionID uint64) ([]Compani
 			&i.Level,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ModeEpoch,
 		); err != nil {
 			return nil, err
 		}
@@ -738,7 +750,7 @@ func (q *Queries) ListOpenInvitesForOwner(ctx context.Context, arg ListOpenInvit
 }
 
 const listOwnerAudit = `-- name: ListOwnerAudit :many
-SELECT id, owner_id, actor_id, companion_id, section, action, created_at FROM ` + "`" + `companion_audit_logs` + "`" + ` WHERE owner_id = ? ORDER BY id DESC LIMIT ?
+SELECT id, owner_id, actor_id, companion_id, section, action, created_at, subject_type, subject_id, diff_json, payload_sealed, payload_key_id, undo_deadline, undone_at, undone_by, proposal_id FROM ` + "`" + `companion_audit_logs` + "`" + ` WHERE owner_id = ? ORDER BY id DESC LIMIT ?
 `
 
 type ListOwnerAuditParams struct {
@@ -764,6 +776,15 @@ func (q *Queries) ListOwnerAudit(ctx context.Context, arg ListOwnerAuditParams) 
 			&i.Section,
 			&i.Action,
 			&i.CreatedAt,
+			&i.SubjectType,
+			&i.SubjectID,
+			&i.DiffJson,
+			&i.PayloadSealed,
+			&i.PayloadKeyID,
+			&i.UndoDeadline,
+			&i.UndoneAt,
+			&i.UndoneBy,
+			&i.ProposalID,
 		); err != nil {
 			return nil, err
 		}
@@ -779,7 +800,7 @@ func (q *Queries) ListOwnerAudit(ctx context.Context, arg ListOwnerAuditParams) 
 }
 
 const listOwnerCompanions = `-- name: ListOwnerCompanions :many
-SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at FROM ` + "`" + `companions` + "`" + ` WHERE owner_id = ? AND status <> 'revoked' ORDER BY id
+SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at FROM ` + "`" + `companions` + "`" + ` WHERE owner_id = ? AND status <> 'revoked' ORDER BY id
 `
 
 // The owner's invited and active links, oldest first.
@@ -805,6 +826,11 @@ func (q *Queries) ListOwnerCompanions(ctx context.Context, ownerID uint64) ([]Co
 			&i.RevokedBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Role,
+			&i.Template,
+			&i.ExpiresAt,
+			&i.UrgentSms,
+			&i.OwnerConfirmedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -820,7 +846,7 @@ func (q *Queries) ListOwnerCompanions(ctx context.Context, ownerID uint64) ([]Co
 }
 
 const listOwnerGrants = `-- name: ListOwnerGrants :many
-SELECT g.id, g.companion_id, g.section, g.level, g.created_at, g.updated_at FROM ` + "`" + `companion_grants` + "`" + ` g
+SELECT g.id, g.companion_id, g.section, g.level, g.created_at, g.updated_at, g.mode_epoch FROM ` + "`" + `companion_grants` + "`" + ` g
 JOIN ` + "`" + `companions` + "`" + ` c ON c.id = g.companion_id
 WHERE c.owner_id = ? AND c.status <> 'revoked'
 ORDER BY g.id
@@ -843,6 +869,7 @@ func (q *Queries) ListOwnerGrants(ctx context.Context, ownerID uint64) ([]Compan
 			&i.Level,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ModeEpoch,
 		); err != nil {
 			return nil, err
 		}

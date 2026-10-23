@@ -686,28 +686,42 @@ type ClinicalConfigVersion struct {
 }
 
 type Companion struct {
-	ID              uint64
-	OwnerID         uint64
-	CompanionUserID sql.NullInt64
-	Type            string
-	Status          string
-	DisplayName     sql.NullString
-	InvitedAt       sql.NullTime
-	AcceptedAt      sql.NullTime
-	RevokedAt       sql.NullTime
-	RevokedBy       sql.NullString
-	CreatedAt       sql.NullTime
-	UpdatedAt       sql.NullTime
+	ID               uint64
+	OwnerID          uint64
+	CompanionUserID  sql.NullInt64
+	Type             string
+	Status           string
+	DisplayName      sql.NullString
+	InvitedAt        sql.NullTime
+	AcceptedAt       sql.NullTime
+	RevokedAt        sql.NullTime
+	RevokedBy        sql.NullString
+	CreatedAt        sql.NullTime
+	UpdatedAt        sql.NullTime
+	Role             sql.NullString
+	Template         sql.NullString
+	ExpiresAt        sql.NullTime
+	UrgentSms        bool
+	OwnerConfirmedAt sql.NullTime
 }
 
 type CompanionAuditLog struct {
-	ID          uint64
-	OwnerID     uint64
-	ActorID     sql.NullInt64
-	CompanionID sql.NullInt64
-	Section     sql.NullString
-	Action      string
-	CreatedAt   sql.NullTime
+	ID            uint64
+	OwnerID       uint64
+	ActorID       sql.NullInt64
+	CompanionID   sql.NullInt64
+	Section       sql.NullString
+	Action        string
+	CreatedAt     sql.NullTime
+	SubjectType   sql.NullString
+	SubjectID     sql.NullInt64
+	DiffJson      db.NullRawJSON
+	PayloadSealed sql.NullString
+	PayloadKeyID  sql.NullInt16
+	UndoDeadline  sql.NullTime
+	UndoneAt      sql.NullTime
+	UndoneBy      sql.NullInt64
+	ProposalID    sql.NullInt64
 }
 
 type CompanionGrant struct {
@@ -717,6 +731,7 @@ type CompanionGrant struct {
 	Level       string
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+	ModeEpoch   sql.NullInt32
 }
 
 type CompanionInvite struct {
@@ -959,6 +974,14 @@ type FamilyChild struct {
 	ChildID   uint64
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
+}
+
+type FamilyOwnerState struct {
+	OwnerID       uint64
+	Mode          string
+	ModeEpoch     uint32
+	ReviewPending bool
+	UpdatedAt     sql.NullTime
 }
 
 type FertilityLog struct {

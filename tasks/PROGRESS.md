@@ -2068,3 +2068,25 @@ Nothing needed fixing.
 - ⚠ Deploy: the 4 triggers need the TRIGGER privilege (+ SUPER or `log_bin_trust_function_creators=1` with binlog) for
   the migrating user on stage/beta (and prod via the Laravel twin) — grant first, else 00105 stops after the tables
   (re-run is safe: IF NOT EXISTS / INSERT IGNORE).
+
+## T-M11-02 — Family schema A: link role, template and expiry, grant mode epoch, owner mode state, activity columns (D-190)
+- goose **00106** `family_schema_a` + Laravel twin `2026_10_23_000106_add_family_schema_a` (schema only):
+  - `companions`: `role`, `template`, `expires_at`, `urgent_sms`, `owner_confirmed_at`; keys
+    `(companion_user_id, status, owner_id)` (replaces the prefix key `(companion_user_id, status)`; Down restores it),
+    `(owner_id, companion_user_id, status)`, `(status, expires_at)`. `status` / `revoked_by` / grant `section` / `level`
+    were already wide enough varchars — no widening.
+  - `companion_grants.mode_epoch`; new `family_owner_state` (owner_id PK, mode, mode_epoch, review_pending, updated_at;
+    cascades with the user).
+  - `companion_audit_logs`: subject_type/subject_id/diff_json/payload_sealed (MEDIUMBLOB)/payload_key_id/undo_deadline/
+    undone_at/undone_by/proposal_id + keys `(subject_type, subject_id, created_at)`, `(undo_deadline)`, `(created_at)`.
+- Goose backfill (idempotent): `role` from `type` (partner, spouse → partner; parent → teen_parent; F-17),
+  `template = 'legacy'`.
+- sqlc (companion): `FamilySnapshotForPair`, `FamilySnapshotForMember` (active links ⋈ grants ⋈ owner state ⋈ owner
+  `blocked_at`), `UpsertFamilyOwnerState` (epoch +1 and review_pending on a mode change; rows-affected 1/2/0),
+  `InsertFamilyActivity`. No readers/writers yet (T-M11-05). `contract/fixtures/dump.sql` updated via temp DB (D-47).
+- Tests: `family_schema_a_int_test.go` (up/down/up, backfill per legacy type, idempotency, EXPLAIN on the new keys,
+  upsert epoch, activity insert, owner-state cascade). Verify: schema-diff OK (227 tables); full unit +
+  `make test-int PKG=./...` green; contract all 1914/0.
+- Open: `family.md` §3 says `parent → parent` but F-17/task say `teen_parent` (followed the task) — align the doc;
+  sqlc maps `payload_sealed` to `sql.NullString` (T-M11-05 may want a `[]byte` override in sqlc.yaml); links created
+  by v1 after Up keep role/template NULL until T-M11-05; D-190 status text to update once shipped.

@@ -3,7 +3,7 @@ id: T-M11-02
 title: Family schema A: link role, template and expiry, grant mode epoch, owner mode state, activity columns
 milestone: M11
 type: backend
-status: todo
+status: done
 depends_on: [T-M11-01, T-M9-02]
 parallel_group: M11-B
 touches: [backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/companion, backend-go/contract/fixtures/dump.sql]

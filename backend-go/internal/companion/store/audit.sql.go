@@ -11,7 +11,7 @@ import (
 )
 
 const listOwnerAuditPage = `-- name: ListOwnerAuditPage :many
-SELECT id, owner_id, actor_id, companion_id, section, action, created_at FROM ` + "`" + `companion_audit_logs` + "`" + `
+SELECT id, owner_id, actor_id, companion_id, section, action, created_at, subject_type, subject_id, diff_json, payload_sealed, payload_key_id, undo_deadline, undone_at, undone_by, proposal_id FROM ` + "`" + `companion_audit_logs` + "`" + `
 WHERE owner_id = ?
   AND (? = 0 OR id < ?)
   AND (? = '' OR action = ?)
@@ -52,6 +52,15 @@ func (q *Queries) ListOwnerAuditPage(ctx context.Context, arg ListOwnerAuditPage
 			&i.Section,
 			&i.Action,
 			&i.CreatedAt,
+			&i.SubjectType,
+			&i.SubjectID,
+			&i.DiffJson,
+			&i.PayloadSealed,
+			&i.PayloadKeyID,
+			&i.UndoDeadline,
+			&i.UndoneAt,
+			&i.UndoneBy,
+			&i.ProposalID,
 		); err != nil {
 			return nil, err
 		}

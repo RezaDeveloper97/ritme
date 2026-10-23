@@ -1795,10 +1795,22 @@ CREATE TABLE `companion_audit_logs` (
   `section` varchar(32) DEFAULT NULL,
   `action` varchar(32) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
+  `subject_type` varchar(16) DEFAULT NULL,
+  `subject_id` bigint(20) unsigned DEFAULT NULL,
+  `diff_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`diff_json`)),
+  `payload_sealed` mediumblob DEFAULT NULL,
+  `payload_key_id` tinyint(3) unsigned DEFAULT NULL,
+  `undo_deadline` timestamp NULL DEFAULT NULL,
+  `undone_at` timestamp NULL DEFAULT NULL,
+  `undone_by` bigint(20) unsigned DEFAULT NULL,
+  `proposal_id` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `companion_audit_logs_actor_id_foreign` (`actor_id`),
   KEY `companion_audit_logs_companion_id_foreign` (`companion_id`),
   KEY `companion_audit_logs_owner_id_created_at_index` (`owner_id`,`created_at`),
+  KEY `companion_audit_logs_subject_type_subject_id_created_at_index` (`subject_type`,`subject_id`,`created_at`),
+  KEY `companion_audit_logs_undo_deadline_index` (`undo_deadline`),
+  KEY `companion_audit_logs_created_at_index` (`created_at`),
   CONSTRAINT `companion_audit_logs_actor_id_foreign` FOREIGN KEY (`actor_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `companion_audit_logs_companion_id_foreign` FOREIGN KEY (`companion_id`) REFERENCES `companions` (`id`) ON DELETE SET NULL,
   CONSTRAINT `companion_audit_logs_owner_id_foreign` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -1819,6 +1831,7 @@ CREATE TABLE `companion_grants` (
   `level` varchar(8) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `mode_epoch` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `companion_grants_companion_id_section_unique` (`companion_id`,`section`),
   CONSTRAINT `companion_grants_companion_id_foreign` FOREIGN KEY (`companion_id`) REFERENCES `companions` (`id`) ON DELETE CASCADE
@@ -1876,9 +1889,16 @@ CREATE TABLE `companions` (
   `revoked_by` varchar(16) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `role` varchar(16) DEFAULT NULL,
+  `template` varchar(24) DEFAULT NULL,
+  `expires_at` timestamp NULL DEFAULT NULL,
+  `urgent_sms` tinyint(1) NOT NULL DEFAULT 0,
+  `owner_confirmed_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `companions_owner_id_status_index` (`owner_id`,`status`),
-  KEY `companions_companion_user_id_status_index` (`companion_user_id`,`status`),
+  KEY `companions_companion_user_id_status_owner_id_index` (`companion_user_id`,`status`,`owner_id`),
+  KEY `companions_owner_id_companion_user_id_status_index` (`owner_id`,`companion_user_id`,`status`),
+  KEY `companions_status_expires_at_index` (`status`,`expires_at`),
   CONSTRAINT `companions_companion_user_id_foreign` FOREIGN KEY (`companion_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `companions_owner_id_foreign` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -2372,6 +2392,24 @@ CREATE TABLE `family_children` (
 LOCK TABLES `family_children` WRITE;
 /*!40000 ALTER TABLE `family_children` DISABLE KEYS */;
 /*!40000 ALTER TABLE `family_children` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `family_owner_state`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `family_owner_state` (
+  `owner_id` bigint(20) unsigned NOT NULL,
+  `mode` varchar(16) NOT NULL,
+  `mode_epoch` int(10) unsigned NOT NULL DEFAULT 1,
+  `review_pending` tinyint(1) NOT NULL DEFAULT 0,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`owner_id`),
+  CONSTRAINT `family_owner_state_owner_id_foreign` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `family_owner_state` WRITE;
+/*!40000 ALTER TABLE `family_owner_state` DISABLE KEYS */;
+/*!40000 ALTER TABLE `family_owner_state` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `fertility_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

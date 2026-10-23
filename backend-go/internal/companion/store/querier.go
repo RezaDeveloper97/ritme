@@ -28,6 +28,16 @@ type Querier interface {
 	DeletePregnancyNoticesForLink(ctx context.Context, companionID int64) error
 	// CB-LOSS-01: every such notice about the owner (all her links) — her account deletion and DELETE /loss.
 	DeletePregnancyNoticesForOwner(ctx context.Context, ownerID uint64) error
+	// Every owner of one member (member home). Index companions_companion_user_id_status_owner_id_index.
+	FamilySnapshotForMember(ctx context.Context, memberID sql.NullInt64) ([]FamilySnapshotForMemberRow, error)
+	// Family v6 storage (T-M11-02, 00106; docs/engine-v6/family.md §5, §7; gap 05 §5.3). No reader or writer yet: the
+	// family.Authorizer, SyncMode and the activity writer arrive with T-M11-05 and later tasks.
+	//
+	// Snapshot = links ⋈ grants ⋈ family_owner_state ⋈ users.blocked_at (the owner's), one row per (link, grant); a link
+	// without grants yields one row with NULL grant columns, an owner without a state row NULL state columns (SyncMode
+	// creates it lazily). Only active links: every other status denies (family.md §5 step 3), expiry is checked in Go.
+	// One owner and one member (check() on a member request): a one-row ref on either new composite companions key.
+	FamilySnapshotForPair(ctx context.Context, arg FamilySnapshotForPairParams) ([]FamilySnapshotForPairRow, error)
 	// The viewer's level on one section of the owner's data through an active link (no row = none), with the link type
 	// (Go refuses a section the type may not hold — CB-TEEN-01 parent links).
 	GetAccess(ctx context.Context, arg GetAccessParams) (GetAccessRow, error)
@@ -46,6 +56,9 @@ type Querier interface {
 	GetUserNames(ctx context.Context, ids []uint64) ([]GetUserNamesRow, error)
 	IncrementInviteAttempts(ctx context.Context, arg IncrementInviteAttemptsParams) error
 	InsertAudit(ctx context.Context, arg InsertAuditParams) error
+	// One family activity row (companion_audit_logs) with the v6 columns. payload_sealed is AES-256-GCM ciphertext (never
+	// plaintext health data); diff_json carries levels only.
+	InsertFamilyActivity(ctx context.Context, arg InsertFamilyActivityParams) (int64, error)
 	// Owner inbox row (accept / companion write, B-N4-02): title/body are {lang: text} JSON without any health payload.
 	InsertUserNotification(ctx context.Context, arg InsertUserNotificationParams) error
 	// «برای خواندن» on the companion home: published articles of category `companion`, then articles tagged with the
@@ -88,6 +101,11 @@ type Querier interface {
 	RevokeCompanion(ctx context.Context, arg RevokeCompanionParams) (int64, error)
 	RevokeOpenInvites(ctx context.Context, arg RevokeOpenInvitesParams) error
 	SetFamilySpouse(ctx context.Context, arg SetFamilySpouseParams) error
+	// SyncMode: store the owner's effective mode. A new owner starts at epoch 1, nothing to review; a different mode bumps
+	// the epoch, sets review_pending (F-23: owner-data domains pause until she reviews) and stamps updated_at; the same mode
+	// changes nothing. MariaDB evaluates the assignments left to right, so `mode` is compared before it is overwritten.
+	// Rows affected (no CLIENT_FOUND_ROWS): 1 = created, 2 = mode changed (epoch bumped), 0 = unchanged.
+	UpsertFamilyOwnerState(ctx context.Context, arg UpsertFamilyOwnerStateParams) (int64, error)
 	UpsertGrant(ctx context.Context, arg UpsertGrantParams) error
 }
 
