@@ -105,7 +105,38 @@ func Assess(ind who.Indicator, sex who.Sex, day int, y float64) (Result, bool) {
 	}
 	z := Z(ind, p, y)
 	pc := Percentile(z)
-	return Result{Z: z, Percentile: pc, InBand: pc >= BandLowPercentile && pc <= BandHighPercentile}, true
+	return Result{Z: z, Percentile: pc, InBand: Band(pc, BandLowPercentile, BandHighPercentile)}, true
+}
+
+// MajorLines are the percentile lines the growth chart draws (P3, P15, P50, P85, P97): a change between two
+// measurements of the same indicator across ≥ child.growth.cross_lines of them is worth discussing with the
+// child's doctor (SPEC v6 §3.5, D-173).
+var MajorLines = []float64{3, 15, 50, 85, 97}
+
+// LinesCrossed is how many major lines lie strictly between percentiles a and b (a value exactly on a line has not
+// crossed it). The order does not matter: up and down count alike.
+func LinesCrossed(a, b float64) int {
+	lo, hi := min(a, b), max(a, b)
+	n := 0
+	for _, l := range MajorLines {
+		if lo < l && l < hi {
+			n++
+		}
+	}
+	return n
+}
+
+// Band reports whether percentile pc lies in the normal band [low, high] (the band rule: below low or above high is
+// worth discussing).
+func Band(pc, low, high float64) bool { return pc >= low && pc <= high }
+
+// Discuss is the growth rule of one measurement (SPEC v6 §3.5): outside the [low, high] band, or ≥ crossLines major
+// lines crossed since the previous measurement of the same indicator (prev nil = none). crossed is the count.
+func Discuss(prev *float64, pc, low, high float64, crossLines int) (discuss bool, crossed int) {
+	if prev != nil {
+		crossed = LinesCrossed(*prev, pc)
+	}
+	return !Band(pc, low, high) || (crossLines > 0 && crossed >= crossLines), crossed
 }
 
 // Round rounds v to n decimals (half away from zero).

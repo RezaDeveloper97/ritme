@@ -2091,7 +2091,7 @@
     "addDoseToVisit": "Dose in this visit",
     "noVisit": "No visit (hidden in the app)",
     "approxDays": "about {days} days",
-    "vaccinesHint": "Doses that share a visit form one appointment; a visit is due at birth date + age (calendar months). Visits follow the catalog order. Iran national immunisation schedule; have it reviewed by a clinician before release.",
+    "vaccinesHint": "Each dose’s age comes from the clinical config (child.vaccine_schedule) and is shown read-only here; a child follows the version in force on their birth date. Doses of the same age form one visit, due at birth date + age (calendar months). The catalog keeps the dose names and copy. Iran national immunisation schedule; have it reviewed by a clinician before release.",
     "emptyVaccines": "No doses yet.",
     "milestonesHint": "Each month (age band) has its own milestones, activities, doctor notes and “this week …” note; a child sees the latest band ≤ their age. Observation, not scoring.",
     "monthsLabel": "Age bands",

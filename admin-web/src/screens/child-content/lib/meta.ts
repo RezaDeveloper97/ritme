@@ -24,7 +24,11 @@ export function isChildKind(value: string): value is ChildKind {
 /** The kinds of the milestones page, in section order. */
 export const MONTH_KINDS = ['milestones', 'activities', 'notes', 'age-notes'] as const satisfies readonly ChildKind[];
 
-/** The visits of the seeded Iran national schedule, in age order (a new snake-case code is allowed too). */
+/**
+ * The visits of the seeded Iran national schedule, in age order. Since T-M10-22 (D-173, H-17) a dose's due age and
+ * visit come from the clinical registry key `child.vaccine_schedule` (in force on the child's birth date); the
+ * catalog keeps the names and copy, and its `visit` / `age_months` are informational.
+ */
 export const VISITS = ['birth', 'm2', 'm4', 'm6', 'm12', 'm18', 'y6'] as const;
 /** The seeded age of each visit, used to prefill a new dose. */
 export const VISIT_MONTHS: Record<string, number> = { birth: 0, m2: 2, m4: 4, m6: 6, m12: 12, m18: 18, y6: 72 };
@@ -41,8 +45,6 @@ export function approxDays(months: number): number {
 
 /** Months 0–120 (10 years) are accepted by the forms; the app's age bands are data. */
 export const MAX_MONTHS = 120;
-
-const VISIT_RE = /^[a-z][a-z0-9_]*$/;
 
 /** The form state of every kind (strings, as the inputs hold them). */
 export interface MetaDraft {
@@ -125,18 +127,14 @@ export function buildMeta(
     out.minutes = minutes ?? 0;
     out.featured = draft.featured;
     setOptional('article_slug', slug);
+  } else if (kind === 'vaccines') {
+    // Ages and visits are read-only here (the registry owns them); stored keys are kept as they are.
+    setOptional('admin_note', draft.adminNote.trim());
   } else {
     const age = months(draft.ageMonths);
     if (draft.ageMonths.trim() === '') errors.ageMonths = 'required';
     else if (age === null) errors.ageMonths = 'months';
     out.age_months = age;
-    if (kind === 'vaccines') {
-      const visit = draft.visit.trim();
-      if (!visit) errors.visit = 'required';
-      else if (!VISIT_RE.test(visit) || visit.length > 32) errors.visit = 'visit';
-      out.visit = visit;
-      setOptional('admin_note', draft.adminNote.trim());
-    }
     if (kind === 'milestones') {
       if (!(DOMAINS as readonly string[]).includes(draft.domain)) errors.domain = 'required';
       out.domain = draft.domain;
@@ -184,6 +182,43 @@ export function groupByVisit<T extends { meta: Record<string, unknown> | null }>
     }
     out[i]?.rows.push(r);
   }
+  return out;
+}
+
+/** The visit code of a due age, as the app derives it: birth, m2 … m18, y6 for whole years from 24 months. */
+export function visitCodeOf(months: number): string {
+  if (months === 0) return 'birth';
+  if (months >= 24 && months % 12 === 0) return `y${months / 12}`;
+  return `m${months}`;
+}
+
+/**
+ * Doses grouped into visits the way the app builds the schedule since T-M10-22: by the registry's due age
+ * (`ages`: vaccine code → months of the version in force today), ascending, registry order within a visit; doses
+ * the registry does not list are collected under `''` (the app does not schedule them).
+ */
+export function groupBySchedule<T extends { code: string }>(
+  rows: readonly T[],
+  ages: ReadonlyMap<string, number>,
+): VisitGroup<T>[] {
+  const order = [...ages.keys()];
+  const scheduled = rows
+    .filter((r) => ages.has(r.code))
+    .sort((a, b) => order.indexOf(a.code) - order.indexOf(b.code));
+  const out: VisitGroup<T>[] = [];
+  for (const r of scheduled) {
+    const age = ages.get(r.code) ?? 0;
+    const visit = visitCodeOf(age);
+    let g = out.find((x) => x.visit === visit);
+    if (!g) {
+      g = { visit, ageMonths: age, rows: [] };
+      out.push(g);
+    }
+    g.rows.push(r);
+  }
+  out.sort((a, b) => (a.ageMonths ?? 0) - (b.ageMonths ?? 0));
+  const rest = rows.filter((r) => !ages.has(r.code));
+  if (rest.length) out.push({ visit: '', ageMonths: null, rows: rest });
   return out;
 }
 

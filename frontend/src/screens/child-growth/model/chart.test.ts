@@ -10,8 +10,8 @@ const ref: GrowthReferenceRow[] = [
   { month: 2, p3: 3.9, p15: 4.5, p50: 5.1, p85: 5.9, p97: 6.6 },
 ];
 const pts: GrowthPoint[] = [
-  { id: 1, measuredOn: '2026-08-12', ageMonths: 2, value: 5, percentile: 42, inBand: true },
-  { id: null, measuredOn: '2026-06-12', ageMonths: 0, value: 3.2, percentile: 47, inBand: true },
+  { id: 1, measuredOn: '2026-08-12', ageMonths: 2, value: 5, percentile: 42, inBand: true, crossedLines: 0, discuss: false },
+  { id: null, measuredOn: '2026-06-12', ageMonths: 0, value: 3.2, percentile: 47, inBand: true, crossedLines: null, discuss: false },
 ];
 
 describe('growth chart geometry', () => {

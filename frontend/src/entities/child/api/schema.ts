@@ -79,7 +79,7 @@ const vaccinesSchema = z
 const EMPTY_VACCINES: VaccineSummary = { given: 0, total: 0, completedVisits: 0, upToDate: false, complete: false, next: null };
 
 const growthSchema = z.object({
-  status: z.enum(['normal', 'check', 'unknown']).catch('unknown' as GrowthStatus),
+  status: z.enum(['normal', 'check', 'discuss', 'unknown']).catch('unknown' as GrowthStatus),
   label: z.string().catch(''),
 });
 

@@ -1,0 +1,60 @@
+group: children
+entries:
+  # D-173 (task T-M10-22, engine v6 M10, user OK 2026-10-21): the milestone tabs follow CDC 2022 — goose 00102 adds
+  # the 15- and 30-month bands, so the 11 tabs of the golden are 13 now and every tab from index 6 shifts (18 → 15,
+  # 24 → 18, …, 60 → 36 at index 10, then 48 and 60). The 3-month band stays (H-15).
+  - case: "milestones_and_learn.*"
+    where: data.bands
+    deviation: D-173
+    reason: CDC 2022 bands — 15 and 30 months added (13 tabs)
+  - case: "milestones_and_learn.*"
+    where: data.bands[*].months
+    deviation: D-173
+    reason: tabs after 12 months shift by the new 15- and 30-month bands
+  - case: "milestones_and_learn.*"
+    where: data.bands[*].label
+    deviation: D-173
+    reason: tabs after 12 months shift by the new 15- and 30-month bands
+
+  # D-173 / H-15: the band says where it comes from — "ritme" for the 3-month band (not in CDC 2022), "cdc_2022"
+  # for the others (additive).
+  - case: "milestones_and_learn.*"
+    where: data.band.source
+    deviation: D-173
+    reason: band source (ritme = Ritme's own 3-month band, cdc_2022 otherwise)
+
+  # D-173 (SPEC v6 §3.5): each chart point says how many major percentile lines it crossed since the previous value
+  # (null for the first) and whether it is worth discussing (band or crossing rule); the series carries the
+  # crossing hint of the latest pair (null in the fixture: its values stay near the median). Additive.
+  - case: "growth.*"
+    where: data.points[*].crossed_lines
+    deviation: D-173
+    reason: major percentile lines crossed since the previous measurement
+  - case: "growth.*"
+    where: data.points[*].discuss
+    deviation: D-173
+    reason: band or crossing rule says «با پزشک کودک در میان بگذار»
+  - case: "growth.*"
+    where: data.latest.crossed_lines
+    deviation: D-173
+    reason: latest point carries the crossing count too
+  - case: "growth.*"
+    where: data.latest.discuss
+    deviation: D-173
+    reason: latest point carries the discuss flag too
+  - case: "growth.*"
+    where: data.crossing
+    deviation: D-173
+    reason: chart hint of the latest pair (null when under child.growth.cross_lines)
+
+  # D-173 / H-17: the vaccine payload names the child.vaccine_schedule version (in force on the birth date) and its
+  # source, which the due ages come from (additive; the fixture child follows version 1 = the old catalog ages, so
+  # visits, dates and statuses are unchanged).
+  - case: "vaccines.*"
+    where: data.schedule
+    deviation: D-173
+    reason: registry schedule version and source of the due ages
+  - case: "shared_with_spouse"
+    where: data.schedule
+    deviation: D-173
+    reason: registry schedule version and source of the due ages

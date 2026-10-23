@@ -1,15 +1,20 @@
 package children
 
 import (
+	"database/sql"
 	"encoding/json"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ritme/backend-go/internal/children/growth"
 	"github.com/ritme/backend-go/internal/children/store"
+	cc "github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/notifications"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/seeds/who"
 )
 
 var d = civildate.MustParse
@@ -135,4 +140,110 @@ func TestLangFilesHaveTheSameKeys(t *testing.T) {
 			assert.NotEqual(t, "children."+key, translator().Trans("children."+key, nil, loc), "%s %s", loc, key)
 		}
 	}
+}
+
+// CDC 2022 bands plus Ritme's own 3-month band (goose 00102): a child sees the latest band not after their age.
+func TestBandForCDC2022(t *testing.T) {
+	bs := []int{2, 3, 4, 6, 9, 12, 15, 18, 24, 30, 36, 48, 60}
+	assert.Equal(t, 12, bandFor(bs, 14))
+	assert.Equal(t, 15, bandFor(bs, 15))
+	assert.Equal(t, 24, bandFor(bs, 29))
+	assert.Equal(t, 30, bandFor(bs, 30))
+	assert.Equal(t, BandSourceRitme, bandSource([]Entry{{BandSource: BandSourceRitme}}))
+	assert.Equal(t, BandSourceCDC, bandSource([]Entry{{BandSource: BandSourceCDC}}))
+}
+
+// H-17: the schedule a child follows is the version in force on the birth date.
+func TestScheduleVersionByBirthDate(t *testing.T) {
+	t.Cleanup(cc.Reset)
+	v2 := []cc.Row{
+		{"vaccine_code": "bcg", "dose": 1.0, "age_months": 0.0},
+		{"vaccine_code": "hepb_1", "dose": 1.0, "age_months": 0.0},
+		{"vaccine_code": "penta_1", "dose": 1.0, "age_months": 3.0}, // moved from 2 to 3 months
+		{"vaccine_code": "pcv_1", "dose": 1.0, "age_months": 3.0},
+		{"vaccine_code": "mmr_1", "dose": 1.0, "age_months": 12.0},
+	}
+	cc.SetVersions([]cc.Version{{Key: cc.KeyChildVaccineSchedule, Version: 2, Rows: v2, Source: "MoH 2027", EffectiveFrom: d("2027-01-01")}})
+
+	old := ScheduleOn(d("2026-12-31"))
+	assert.Equal(t, 1, old.Version)
+	s := BuildSchedule(ScheduleEntries(testSchedule, old.Rows), nil, d("2026-12-31"), d("2026-12-31"))
+	require.Len(t, s.Visits, 4, "v1 rows present in the test catalog: birth, m2, m4, m12")
+	assert.Equal(t, "m2", s.Visits[1].Code)
+	assert.Equal(t, d("2027-02-28"), s.Visits[1].DueDate)
+
+	nw := ScheduleOn(d("2027-01-01"))
+	assert.Equal(t, 2, nw.Version)
+	assert.Equal(t, "MoH 2027", nw.Source)
+	s = BuildSchedule(ScheduleEntries(testSchedule, nw.Rows), nil, d("2027-01-01"), d("2027-01-01"))
+	require.Len(t, s.Visits, 3, "penta_2 / pcv_2 are not in v2: not scheduled")
+	assert.Equal(t, "m3", s.Visits[1].Code)
+	assert.Equal(t, 3, s.Visits[1].AgeMonths)
+	assert.Equal(t, d("2027-04-01"), s.Visits[1].DueDate)
+	assert.Equal(t, []string{"penta_1", "pcv_1"}, []string{s.Visits[1].Doses[0].Code, s.Visits[1].Doses[1].Code})
+	assert.Equal(t, 5, s.TotalDoses)
+}
+
+func TestVisitCode(t *testing.T) {
+	assert.Equal(t, "birth", VisitCode(0))
+	assert.Equal(t, "m2", VisitCode(2))
+	assert.Equal(t, "m18", VisitCode(18))
+	assert.Equal(t, "m30", VisitCode(30))
+	assert.Equal(t, "y6", VisitCode(72))
+}
+
+// The default registry rows reproduce the catalog visits (version 1 = migration 00031).
+func TestScheduleEntriesV1MatchesCatalogVisits(t *testing.T) {
+	cat := []Entry{entry("bcg", "birth", 0), entry("penta_1", "m2", 2), entry("dtp_booster_2", "y6", 72), entry("not_in_registry", "m9", 9)}
+	es := ScheduleEntries(cat, ScheduleOn(d("2026-01-01")).Rows)
+	require.Len(t, es, 3)
+	for _, e := range es {
+		want := map[string]string{"bcg": "birth", "penta_1": "m2", "dtp_booster_2": "y6"}[e.Code]
+		assert.Equal(t, want, e.Visit, e.Code)
+	}
+}
+
+// weightAt is the weight (kg) of percentile pc for a girl aged day days.
+func weightAt(t *testing.T, day int, pc float64) string {
+	t.Helper()
+	p, ok := who.At(who.Weight, who.Girl, day)
+	require.True(t, ok)
+	// Φ⁻¹ by bisection (no inverse in the package): enough for a fixture.
+	lo, hi := -4.0, 4.0
+	for range 80 {
+		mid := (lo + hi) / 2
+		if growth.Percentile(mid) < pc {
+			lo = mid
+		} else {
+			hi = mid
+		}
+	}
+	return strconv.FormatFloat(growth.ValueAt(who.Weight, p, lo), 'f', 4, 64)
+}
+
+// SPEC v6 §3.5: two measurements of the same indicator crossing ≥ 2 major lines → discuss; the band rule stays check.
+func TestVerdictCrossing(t *testing.T) {
+	cc.Reset()
+	birth := d("2026-01-01")
+	c := store.Child{BirthDate: birth, Sex: sql.NullString{String: "girl", Valid: true}}
+	pt := func(day int, pc float64) store.ChildMeasurement {
+		return store.ChildMeasurement{ID: uint64(day), MeasuredOn: birth.AddDays(day), WeightKg: sql.NullString{String: weightAt(t, day, pc), Valid: true}}
+	}
+	verdict := func(ms ...store.ChildMeasurement) string { return Verdict(c, Points(c, ms)) } // newest first
+	assert.Equal(t, GrowthDiscuss, verdict(pt(120, 10), pt(60, 60)), "P60 → P10")
+	assert.Equal(t, GrowthNormal, verdict(pt(120, 20), pt(60, 60)), "P60 → P20")
+	assert.Equal(t, GrowthNormal, verdict(pt(120, 14), pt(60, 16)), "P16 → P14")
+	assert.Equal(t, GrowthCheck, verdict(pt(120, 2.9), pt(60, 60)), "out of band wins")
+	assert.Equal(t, GrowthNormal, verdict(pt(120, 60)), "one measurement: no crossing")
+
+	sr := SeriesJSON(c, who.Weight, Points(c, []store.ChildMeasurement{pt(120, 10), pt(60, 60)}), birth.AddDays(130), "fa")
+	cr, _ := sr.Get("crossing")
+	require.NotNil(t, cr)
+	b, err := json.Marshal(cr)
+	require.NoError(t, err)
+	assert.Contains(t, string(b), `"lines":2`)
+	assert.Contains(t, string(b), "با پزشک کودک در میان بگذار")
+	sr = SeriesJSON(c, who.Weight, Points(c, []store.ChildMeasurement{pt(120, 20), pt(60, 60)}), birth.AddDays(130), "fa")
+	cr, _ = sr.Get("crossing")
+	assert.Nil(t, cr)
 }

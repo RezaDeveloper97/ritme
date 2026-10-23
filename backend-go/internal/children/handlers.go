@@ -418,6 +418,7 @@ func vaccinesJSON(s Schedule, today civildate.Date, l Loc) *jsonx.OrderedMap {
 		"visits", visits,
 		"reminders", jsonx.Obj("days_before", RemindDaysBefore, "label", T("notes.reminders", l.Locale)),
 		"note", T("notes.vaccines", l.Locale),
+		"schedule", jsonx.Obj("version", s.Version, "source", s.Source),
 	)
 }
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { approxDays, bandsOf, buildMeta, draftOf, groupByVisit, isChildKind, isIncomplete } from './meta';
+import { approxDays, bandsOf, buildMeta, draftOf, groupBySchedule, groupByVisit, isChildKind, isIncomplete, visitCodeOf } from './meta';
 
 describe('child catalog meta', () => {
   it('round-trips a seeded vaccine and keeps keys it does not edit', () => {
@@ -11,10 +11,29 @@ describe('child catalog meta', () => {
     expect(res).toEqual({ ok: true, meta: { visit: 'm2', age_months: 2, source: 'epi', admin_note: 'check booster' } });
   });
 
-  it('requires a visit code and an age for vaccines', () => {
-    const res = buildMeta('vaccines', { ...draftOf(null), visit: 'Two Months', ageMonths: '2.5' });
-    expect(res).toEqual({ ok: false, errors: { visit: 'visit', ageMonths: 'months' } });
-    expect(buildMeta('vaccines', draftOf(null))).toEqual({ ok: false, errors: { ageMonths: 'required', visit: 'required' } });
+  it('never edits a vaccine age or visit: the registry owns them (T-M10-22, H-17)', () => {
+    const stored = { visit: 'm2', age_months: 2 };
+    const res = buildMeta('vaccines', { ...draftOf(stored), visit: 'Two Months', ageMonths: '2.5' }, stored);
+    expect(res).toEqual({ ok: true, meta: { visit: 'm2', age_months: 2 } });
+    expect(buildMeta('vaccines', draftOf(null))).toEqual({ ok: true, meta: {} });
+  });
+
+  it('groups doses by the registry ages and keeps unlisted doses apart', () => {
+    const ages = new Map([
+      ['bcg', 0],
+      ['penta_1', 3],
+      ['pcv_1', 3],
+      ['dtp_booster_2', 72],
+    ]);
+    const rows = [{ code: 'pcv_1' }, { code: 'dtp_booster_2' }, { code: 'gone' }, { code: 'penta_1' }, { code: 'bcg' }];
+    expect(groupBySchedule(rows, ages).map((g) => [g.visit, g.ageMonths, g.rows.map((r) => r.code)])).toEqual([
+      ['birth', 0, ['bcg']],
+      ['m3', 3, ['penta_1', 'pcv_1']],
+      ['y6', 72, ['dtp_booster_2']],
+      ['', null, ['gone']],
+    ]);
+    expect(visitCodeOf(30)).toBe('m30');
+    expect(visitCodeOf(24)).toBe('y2');
   });
 
   it('requires a domain for milestones only', () => {
@@ -34,8 +53,8 @@ describe('child catalog meta', () => {
   });
 
   it('flags rows the app would skip', () => {
-    expect(isIncomplete('vaccines', { age_months: 0 })).toBe(true);
-    expect(isIncomplete('vaccines', { age_months: 0, visit: 'birth' })).toBe(false);
+    expect(isIncomplete('vaccines', { age_months: 0 })).toBe(false); // ages come from the registry
+    expect(isIncomplete('milestones', { age_months: 3 })).toBe(true);
     expect(isIncomplete('learn', { topic: 'play', from_months: 0, to_months: 6, minutes: 3 })).toBe(false);
   });
 

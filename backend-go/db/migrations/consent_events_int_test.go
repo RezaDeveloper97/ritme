@@ -70,7 +70,9 @@ func TestConsentEventsMigration_BackfillTriggersDown(t *testing.T) {
 	require.NoError(t, err)
 	_, err = db.ExecContext(ctx, `DROP TRIGGER consent_events_no_update`)
 	require.NoError(t, err)
-	_, err = db.ExecContext(ctx, `DELETE FROM goose_db_version WHERE version_id = ?`, consentEventsVersion)
+	// Later migrations are forgotten too (goose refuses a missing version below the head); each is idempotent, as
+	// every migration whose Laravel twin may have run first must be.
+	_, err = db.ExecContext(ctx, `DELETE FROM goose_db_version WHERE version_id >= ?`, consentEventsVersion)
 	require.NoError(t, err)
 	_, err = p.Up(ctx) // CREATE TABLE / TRIGGER IF NOT EXISTS, guarded backfill
 	require.NoError(t, err)

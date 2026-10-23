@@ -58,3 +58,30 @@ these keys until T-M10-18 … T-M10-22 switch the consumers. Rows keys are table
 | `child.growth` | child | `low_pct 3, high_pct 97, cross_lines 2` | `children/growth/growth.go:24-25`; `cross_lines` SPEC §3.5 | WHO Child Growth Standards |
 | `child.vaccine_schedule` (rows `vaccine_code, dose, age_months`) | child | 21 rows = the `child_vaccines` seed (`00031_children.sql:100-204`): bcg, hepb_1, opv_0 @0 · penta_1, polio_m2, pcv_1, rota_1 @2 · penta_2, opv_m4, pcv_2, rota_2 @4 · penta_3, polio_m6, pcv_3 @6 · mmr_1, pcv_booster @12 · dtp_booster_1, opv_booster_1, mmr_2 @18 · dtp_booster_2, opv_booster_2 @72 months; `vaccine_code` = catalog code, `dose` = ordinal within the vaccine | seed | وزارت بهداشت — برنامهٔ کشوری ایمن‌سازی; version in force on the birth date (H-17) |
 | `screening.uspstf` (rows `type_key, age_min, age_max, interval_months, last_test_kind, min_bmi`) | screening | pap_smear 21–29 / 36 cytology · pap_smear 30–65 / 36 cytology, 60 hpv, 60 cotest · mammography 40–74 / 24 · bp_screening 18–39 / 36 · bp_screening ≥ 40 / 12 · glucose_screening 35–70, BMI ≥ 25 / 36 · dentist any age / 6 | SPEC §3.4 table (nothing reads it until T-M10-21) | USPSTF 2018 / 2021 / 2024; ADA (dental) |
+
+## C. New milestone copy (T-M10-22, D-173) — `needs_review = 1`, review before production
+
+Goose `00102_child_milestones_cdc2022.sql` (Laravel twin `2026_10_23_000102_child_milestones_cdc2022.php`) adds the
+CDC 2022 15- and 30-month bands (Zubler JM et al., *Pediatrics* 2022;149:e2021052138, «Learn the Signs. Act
+Early.»), adapted for observation, not scoring. Every row is `needs_review = 1` in `catalog_items`; the advisor
+marks them reviewed in the admin child-content screen (or edits the copy there). The 3-month band stays and is
+marked `meta.band_source = ritme` (H-15); the app labels it «این مرحله را ریتمی اضافه کرده و در فهرست CDC ۲۰۲۲ نیست».
+Growth (§3.5): crossing ≥ `child.growth.cross_lines` (2) major lines between two measurements → «با پزشک کودک در
+میان بگذار» (API copy `growth.discuss` / `growth.crossing`, app copy `children.growth.crossingBody`).
+
+| Band | Kind | Code | Domain | fa | en | Review |
+|---|---|---|---|---|---|---|
+| 15 mo | milestone | `m15_shows_object` | social | چیزی را که دوست دارد به تو نشان می‌دهد | Shows you an object they like | |
+| 15 mo | milestone | `m15_tries_words` | language | غیر از ماما و بابا، یکی دو کلمه دیگر هم امتحان می‌کند | Tries to say one or two words besides mama or dada | |
+| 15 mo | milestone | `m15_points_for_help` | language | برای خواستن چیزی یا کمک گرفتن اشاره می‌کند | Points to ask for something or to get help | |
+| 15 mo | milestone | `m15_stacks_two` | cognitive | دست‌کم دو چیز کوچک، مثل مکعب، را روی هم می‌گذارد | Stacks at least two small objects, like blocks | |
+| 15 mo | milestone | `m15_takes_steps` | motor | خودش چند قدم برمی‌دارد | Takes a few steps on their own | |
+| 30 mo | milestone | `m30_look_at_me` | social | با گفتن «ببین!» کاری را که بلد است نشانت می‌دهد | Shows you what they can do by saying “Look at me!” | |
+| 30 mo | milestone | `m30_says_50_words` | language | حدود ۵۰ کلمه می‌گوید | Says about 50 words | |
+| 30 mo | milestone | `m30_action_phrase` | language | دو کلمه یا بیشتر را همراه یک فعل می‌گوید، مثل «هاپو دوید» | Says two or more words together, with one action word, like “doggie run” | |
+| 30 mo | milestone | `m30_pretend_play` | cognitive | با چیزها بازی وانمودی می‌کند، مثلاً به عروسک مکعب می‌دهد که بخورد | Uses things to pretend, like feeding a block to a doll | |
+| 30 mo | milestone | `m30_jumps_both_feet` | motor | با هر دو پا از زمین می‌پرد | Jumps off the ground with both feet | |
+| 15 mo | play idea | `m15_build_knock` | — | **بساز و بریز** — دو سه مکعب یا لیوان را روی هم بگذار و بگذار او خرابشان کند. بعد نوبت خودش است که بسازد. | **Build and topple** — Stack two or three blocks or cups and let them knock them over. Then it’s their turn to build. | |
+| 30 mo | play idea | `m30_jump_line` | — | **پرش از روی خط** — با نوار چسب روی زمین خطی بکش و با هم از رویش بپرید. هر پرش را بلند بشمار. | **Jump the line** — Put a strip of tape on the floor and jump over it together, counting each jump out loud. | |
+| 15 mo | doctor note | `m15` | — | **مراحل رشد ۱۵ ماهگی** — اگر تا ۱۵ ماهگی هیچ کلمه‌ای نمی‌گوید، برای نشان دادن چیزی اشاره نمی‌کند یا مهارتی را که داشت از دست داده، در مراجعه بعدی با پزشک کودک در میان بگذار. | **15-month milestones** — If by 15 months they say no words, don’t point to show you things, or lose a skill they had, mention it to the paediatrician at the next visit. | |
+| 30 mo | doctor note | `m30` | — | **مراحل رشد ۳۰ ماهگی** — اگر تا ۳۰ ماهگی دو کلمه را با هم نمی‌گوید، کارهای ساده را تقلید نمی‌کند یا مهارتی را که داشت از دست داده، با پزشک کودک صحبت کن. | **30-month milestones** — If by 30 months they don’t put two words together, don’t copy simple actions, or lose a skill they had, talk to the paediatrician. | |

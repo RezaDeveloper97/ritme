@@ -78,13 +78,15 @@
     "growth": {
         "normal": "Within the normal range",
         "check": "Outside the usual range; mention it at the next visit",
+        "discuss": "In the usual range, but it crossed several percentile lines between the last two measurements; talk it over with the child's doctor",
         "unknown": "No measurements yet",
         "disclaimer": "Percentiles are estimated from the WHO growth curves and do not replace a doctor's assessment.",
         "median": {
             "girl": "Girls' median",
             "boy": "Boys' median"
         },
-        "band": "Normal range (3rd to 97th percentile)"
+        "band": "Normal range (3rd to 97th percentile)",
+        "crossing": "Crossed :n percentile lines between the last two measurements; talk it over with the child's doctor"
     },
     "indicators": {
         "weight": "Weight",

@@ -107,6 +107,48 @@ export function useRemoveChildItem(group: string) {
 }
 
 // ---------------------------------------------------------------------------
+// Vaccine schedule (T-M10-22, D-173, H-17): the due ages are the clinical registry key child.vaccine_schedule
+// (`/clinical-config/:key`, admin-api.md §23), read-only here.
+
+export const VACCINE_SCHEDULE_KEY = 'child.vaccine_schedule';
+
+const scheduleRowSchema = z.object({ vaccine_code: z.string(), age_months: z.number() });
+const scheduleSchema = z.object({
+  key: z.object({
+    current: z.object({
+      version: z.number(),
+      source: z.string().catch(''),
+      effective_from: z.string().nullable().catch(null),
+      value: z.object({ rows: z.array(z.unknown()) }),
+    }),
+  }),
+});
+
+export interface VaccineSchedule {
+  version: number;
+  source: string;
+  effectiveFrom: string | null;
+  /** vaccine code → due age in months, in registry order. */
+  ages: Map<string, number>;
+}
+
+export function useVaccineSchedule() {
+  return useQuery({
+    queryKey: ['clinical-config', 'key', VACCINE_SCHEDULE_KEY] as const,
+    queryFn: async ({ signal }): Promise<VaccineSchedule> => {
+      const res = await api.get(`/clinical-config/${encodeURIComponent(VACCINE_SCHEDULE_KEY)}`, { schema: scheduleSchema, signal });
+      const cur = res.key.current;
+      const ages = new Map<string, number>();
+      for (const raw of cur.value.rows) {
+        const row = scheduleRowSchema.safeParse(raw);
+        if (row.success) ages.set(row.data.vaccine_code, row.data.age_months);
+      }
+      return { version: cur.version, source: cur.source, effectiveFrom: cur.effective_from, ages };
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
 // WHO viewer
 
 export interface WhoQuery {

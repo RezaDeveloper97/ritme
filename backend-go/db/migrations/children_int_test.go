@@ -38,7 +38,7 @@ func TestChildrenMigration_UpDown(t *testing.T) {
 	seed := func() int { return count("SELECT COUNT(*) FROM catalog_items WHERE `group` LIKE 'child\\_%'") }
 	require.Equal(t, 4, tables())
 	require.Equal(t, 1, fk())
-	require.Equal(t, 132, seed())
+	require.Equal(t, 146, seed(), "00031 seeds 132; 00102 adds the CDC 2022 15- and 30-month bands (14 rows)")
 	assert.Equal(t, 21, count("SELECT COUNT(*) FROM catalog_items WHERE `group` = 'child_vaccines'"))
 
 	res, err := db.ExecContext(ctx, `INSERT INTO users (name, mobile, created_at, updated_at) VALUES ('Mother', '09129990031', NOW(), NOW())`)
@@ -85,5 +85,5 @@ func TestChildrenMigration_UpDown(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 4, tables())
 	assert.Equal(t, 1, fk())
-	assert.Equal(t, 132, seed())
+	assert.Equal(t, 146, seed())
 }

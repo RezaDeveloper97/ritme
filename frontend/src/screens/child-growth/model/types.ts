@@ -28,6 +28,21 @@ export interface GrowthPoint {
   value: number;
   percentile: number | null;
   inBand: boolean | null;
+  /** Major percentile lines crossed since the previous value (null for the first). */
+  crossedLines: number | null;
+  /** The band or the line-crossing rule says to talk it over with the doctor. */
+  discuss: boolean;
+}
+
+/** The latest value crossed ≥ 2 major percentile lines since the one before it (D-173, SPEC v6 §3.5). */
+export interface GrowthCrossing {
+  lines: number;
+  fromOn: string;
+  fromPercentile: number;
+  toOn: string;
+  toPercentile: number;
+  /** Server copy («… با پزشک کودک در میان بگذار»). */
+  label: string;
 }
 
 /** GET /children/{id}/growth?indicator= */
@@ -46,6 +61,7 @@ export interface GrowthSeries {
   points: GrowthPoint[];
   latest: GrowthPoint | null;
   verdict: GrowthVerdict;
+  crossing: GrowthCrossing | null;
   disclaimer: string | null;
 }
 

@@ -109,3 +109,31 @@ func TestPercentile(t *testing.T) {
 	assert.InDelta(t, 85, Percentile(ZP85), 1e-6)
 	assert.InDelta(t, 2.275, Percentile(-2), 0.001)
 }
+
+// SPEC v6 §3.5 / T-M10-22: the band rule (P3–P97 inclusive) and the line-crossing rule (≥ 2 major lines between two
+// measurements of the same indicator).
+func TestDiscussBandAndCrossing(t *testing.T) {
+	band := func(pc float64) bool { d, _ := Discuss(nil, pc, 3, 97, 2); return d }
+	assert.True(t, band(2.9), "P2.9 discuss")
+	assert.False(t, band(3.0), "P3.0 in band")
+	assert.False(t, band(97.0), "P97.0 in band")
+	assert.True(t, band(97.1), "P97.1 discuss")
+
+	p := func(v float64) *float64 { return &v }
+	d, n := Discuss(p(60), 10, 3, 97, 2)
+	assert.True(t, d, "P60 → P10 crosses 50 and 15")
+	assert.Equal(t, 2, n)
+	d, n = Discuss(p(60), 20, 3, 97, 2)
+	assert.False(t, d, "P60 → P20 crosses 50 only")
+	assert.Equal(t, 1, n)
+	d, n = Discuss(p(16), 14, 3, 97, 2)
+	assert.False(t, d, "P16 → P14 crosses 15 only")
+	assert.Equal(t, 1, n)
+	d, n = Discuss(p(10), 60, 3, 97, 2)
+	assert.True(t, d, "upward crossing counts the same")
+	assert.Equal(t, 2, n)
+	assert.Equal(t, 0, LinesCrossed(50, 15), "landing on a line is not crossing it")
+	assert.Equal(t, 5, LinesCrossed(1, 99))
+	d, _ = Discuss(p(60), 20, 3, 97, 1)
+	assert.True(t, d, "the threshold is the registry's cross_lines")
+}

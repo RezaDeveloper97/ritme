@@ -1,7 +1,10 @@
 package children
 
 import (
+	"strconv"
+
 	"github.com/ritme/backend-go/internal/children/store"
+	cc "github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
@@ -49,6 +52,56 @@ type Schedule struct {
 	CompletedVisits int
 	Next            *Visit // first visit not completed; nil when everything is given
 	UpToDate        bool   // no due or overdue visit
+	// Version / Source: the child.vaccine_schedule version the due ages come from (0 / "" when built without it).
+	Version int
+	Source  string
+}
+
+// ScheduleVersion is the child.vaccine_schedule version a child follows: the one in force on the birth date
+// (DECISIONS.md H-17), so a later schedule change never rewrites an older child's history.
+type ScheduleVersion struct {
+	Version int
+	Source  string
+	Rows    []cc.Row
+}
+
+// ScheduleOn is the registry schedule in force on birth.
+func ScheduleOn(birth civildate.Date) ScheduleVersion {
+	v := cc.At(cc.KeyChildVaccineSchedule, birth)
+	return ScheduleVersion{Version: v.Version, Source: v.Source, Rows: v.Rows}
+}
+
+// VisitCode is the visit of a due age: birth, m2 … m18, y6 for whole years from 24 months (the catalog's codes).
+func VisitCode(ageMonths int) string {
+	switch {
+	case ageMonths == 0:
+		return "birth"
+	case ageMonths >= 24 && ageMonths%12 == 0:
+		return "y" + strconv.Itoa(ageMonths/12)
+	}
+	return "m" + strconv.Itoa(ageMonths)
+}
+
+// ScheduleEntries are the doses of a registry schedule in its order (ascending age), each with its catalog name and
+// copy (the catalog entry of the same code) and the registry's due age and visit. A registry row without an active
+// catalog entry is left out (nothing to name it by); a catalog entry the registry does not list is not scheduled.
+func ScheduleEntries(catalog []Entry, rows []cc.Row) []Entry {
+	byCode := make(map[string]Entry, len(catalog))
+	for _, e := range catalog {
+		byCode[e.Code] = e
+	}
+	out := make([]Entry, 0, len(rows))
+	for _, r := range rows {
+		e, ok := byCode[r.Str("vaccine_code")]
+		age, hasAge := r.Num("age_months")
+		if !ok || !hasAge || age < 0 {
+			continue
+		}
+		e.AgeMonths = int(age)
+		e.Visit = VisitCode(e.AgeMonths)
+		out = append(out, e)
+	}
+	return out
 }
 
 // BuildSchedule groups the catalog doses into visits (catalog order; a visit sits where its first dose is), dates

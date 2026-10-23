@@ -34,6 +34,13 @@ describe.skipIf(!existsSync(GOLDEN_DIR))('milestones parser', () => {
     const six = milestonesSchema.parse(step('GET', '/api/v1/children/1/milestones?month=6'));
     expect(six.band.months).toBe(6);
   });
+
+  it('reads the band source (H-15: the 3-month band is Ritme\'s own), CDC by default', () => {
+    const raw = step('GET', '/api/v1/children/1/milestones') as { band: Record<string, unknown> } & Record<string, unknown>;
+    expect(milestonesSchema.parse(raw).band.source).toBe('cdc_2022');
+    expect(milestonesSchema.parse({ ...raw, band: { ...raw.band, source: 'ritme' } }).band.source).toBe('ritme');
+    expect(milestonesSchema.parse({ ...raw, band: { ...raw.band, source: 'other' } }).band.source).toBe('cdc_2022');
+  });
 });
 
 describe('month chips', () => {

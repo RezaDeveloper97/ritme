@@ -28326,7 +28326,9 @@ components:
       type: object
       required: [status, label]
       properties:
-        status: {type: string, enum: [normal, check, unknown]}
+        # discuss (D-173, T-M10-22): every latest value is in the band but one crossed ≥ child.growth.cross_lines major
+        # percentile lines since the measurement before it; check (outside the band) wins over it.
+        status: {type: string, enum: [normal, check, discuss, unknown]}
         label: {type: string}
     ChildVaccineVisit:
       type: object
@@ -28720,6 +28722,25 @@ components:
           items: {$ref: "#/components/schemas/ChildGrowthPoint"}
         latest: {anyOf: [{$ref: "#/components/schemas/ChildGrowthPoint"}, {type: "null"}]}
         verdict: {$ref: "#/components/schemas/ChildGrowthVerdict"}
+        # D-173 (T-M10-22, SPEC v6 §3.5): the hint when the latest value crossed ≥ child.growth.cross_lines major
+        # percentile lines (P3, P15, P50, P85, P97) since the one before it; null otherwise. Not in `required`: the
+        # goldens were not re-recorded for it (allow-listed in contract/allowlist/children.yaml).
+        crossing:
+          type: [object, "null"]
+          properties:
+            lines: {type: integer}
+            from:
+              type: object
+              properties:
+                measured_on: {$ref: "#/components/schemas/Date"}
+                percentile: {type: number}
+            to:
+              type: object
+              properties:
+                measured_on: {$ref: "#/components/schemas/Date"}
+                percentile: {type: number}
+            status: {type: string, enum: [discuss]}
+            label: {type: string}
         disclaimer: {type: string}
         source: {type: string}
     ChildGrowthPoint:
@@ -28733,6 +28754,11 @@ components:
         value: {type: number}
         percentile: {type: [number, "null"]}
         in_band: {type: [boolean, "null"]}
+        # D-173 (T-M10-22): major percentile lines crossed since the previous value of the indicator (null for the
+        # first), and whether the band or the crossing rule says to discuss it with the doctor. Not in `required`
+        # (goldens not re-recorded; allow-listed).
+        crossed_lines: {type: [integer, "null"]}
+        discuss: {type: boolean}
     ChildVaccines:
       type: object
       required: [summary, visits, reminders, note]
@@ -28745,6 +28771,13 @@ components:
             days_before: {type: integer}
             label: {type: string}
         note: {type: string}
+        # D-173 / H-17 (T-M10-22): the child.vaccine_schedule registry version in force on the child's birth date,
+        # which the due ages come from, and its source. Not in `required` (goldens not re-recorded; allow-listed).
+        schedule:
+          type: object
+          properties:
+            version: {type: integer}
+            source: {type: string}
     ChildMilestones:
       type: object
       required: [bands, band, intro]
@@ -28764,6 +28797,9 @@ components:
           properties:
             months: {type: integer}
             label: {type: string}
+            # D-173 / H-15 (T-M10-22): ritme = Ritme's own 3-month band (not in CDC 2022), cdc_2022 otherwise. Not in
+            # `required` (goldens not re-recorded; allow-listed).
+            source: {type: string, enum: [cdc_2022, ritme]}
             checked: {type: integer}
             total: {type: integer}
             items:

@@ -263,6 +263,19 @@ function ChartCard({ series, child, t }: { series: GrowthSeries; child: ChildHom
         </div>
       ) : null}
 
+      {series.crossing ? (
+        <InfoNote icon="info" className="cgr-note">
+          <b className="cgr-note-title">{t('growth.crossingTitle')}</b>
+          <span>
+            {t('growth.crossingBody', {
+              lines: formatNumber(series.crossing.lines, locale),
+              from: formatNumber(Math.round(series.crossing.fromPercentile), locale),
+              to: formatNumber(Math.round(series.crossing.toPercentile), locale),
+            })}
+          </span>
+        </InfoNote>
+      ) : null}
+
       {sexUnknown ? (
         <InfoNote icon="info" className="cgr-note">
           <b className="cgr-note-title">{t('growth.sexUnknownTitle')}</b>

@@ -7,18 +7,26 @@ import { useLocalized } from '@/shared/i18n';
 import { excerpt, useNumber } from '@/shared/lib';
 import { Badge, ErrorState, Icon, PageHeader, Panel, Skeleton } from '@/shared/ui';
 
-import { useChildItems, type ChildItem } from '../api/child-content';
-import { KINDS, approxDays, groupByVisit } from '../lib/meta';
+import { useChildItems, useVaccineSchedule, type ChildItem } from '../api/child-content';
+import { KINDS, approxDays, groupBySchedule, groupByVisit } from '../lib/meta';
 import { ChildTabs, ItemActions, ReadOnlyNotice, ReviewBadges, itemHref, useCanWrite } from './parts';
 import { useAgeLabel, useVisitLabel } from './labels';
 
-/** /children-content/vaccines — the vaccine schedule grouped into visits (catalog order, admin-api.md §18). */
+/**
+ * /children-content/vaccines — the doses grouped into visits. The due ages are the clinical registry key
+ * child.vaccine_schedule in force today (T-M10-22, D-173; a child follows the version in force on the birth date,
+ * H-17), shown read-only with a link to the clinical config; the catalog keeps names and copy (admin-api.md §18).
+ * When the registry cannot be read the catalog's own (informational) ages are shown.
+ */
 export function VaccinesScreen() {
   const t = useTranslations('childContent');
+  const tcc = useTranslations('clinicalConfig');
   const n = useNumber();
   const canWrite = useCanWrite();
   const query = useChildItems(KINDS.vaccines.group);
+  const schedule = useVaccineSchedule();
   const rows = query.data ?? [];
+  const groups = schedule.data ? groupBySchedule(rows, schedule.data.ages) : groupByVisit(rows);
   const pending = rows.filter((r) => r.needs_review).length;
 
   return (
@@ -44,6 +52,17 @@ export function VaccinesScreen() {
       />
       <ChildTabs active="vaccines" />
       <p className="field-hint m-0">{t('vaccinesHint')}</p>
+      <p className="m-0 flex flex-wrap items-center gap-2 text-sm">
+        <Badge tone="data">{t('readOnlyBadge')}</Badge>
+        <span>
+          {t('fields.ageMonths')} · <span dir="ltr" className="cell-mono">child.vaccine_schedule</span>
+          {schedule.data ? ` · ${tcc('version')} ${n(schedule.data.version)}` : null}
+        </span>
+        <Link href="/clinical-config" className="btn btn-sm">
+          <Icon name="gear" size={14} />
+          {tcc('title')}
+        </Link>
+      </p>
       {canWrite ? null : <ReadOnlyNotice />}
       {query.error && !query.data ? (
         <Panel>
@@ -62,7 +81,7 @@ export function VaccinesScreen() {
           <p className="cell-empty m-0 p-6 text-center text-muted">{t('emptyVaccines')}</p>
         </Panel>
       ) : (
-        groupByVisit(rows).map((g) => <VisitPanel key={g.visit || '_'} visit={g.visit} ageMonths={g.ageMonths} rows={g.rows} />)
+        groups.map((g) => <VisitPanel key={g.visit || '_'} visit={g.visit} ageMonths={g.ageMonths} rows={g.rows} />)
       )}
     </div>
   );
@@ -72,7 +91,6 @@ function VisitPanel({ visit, ageMonths, rows }: { visit: string; ageMonths: numb
   const t = useTranslations('childContent');
   const n = useNumber();
   const localize = useLocalized();
-  const canWrite = useCanWrite();
   const visitLabel = useVisitLabel();
   const ageLabel = useAgeLabel();
 
@@ -94,14 +112,6 @@ function VisitPanel({ visit, ageMonths, rows }: { visit: string; ageMonths: numb
             </Badge>
           ) : null}
         </span>
-      }
-      actions={
-        canWrite && visit ? (
-          <Link href={itemHref('vaccines', null, { visit, age: ageMonths ?? 0 })} className="btn btn-sm">
-            <Icon name="plus" size={14} />
-            {t('addDoseToVisit')}
-          </Link>
-        ) : null
       }
     >
       <div className="table-wrap">

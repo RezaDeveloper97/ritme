@@ -36,7 +36,8 @@ function dueText(t: T, locale: Locale, daysLeft: number, overdueLabel?: string |
 /**
  * The two status pills of a child card (v15_Children): next vaccine visit
  * (warm; danger when overdue) or «واکسن‌ها: کامل», and the growth verdict
- * (success when in band, warm when a value is outside P3–P97).
+ * (success when in band, warm when a value is outside P3–P97 or crossed two
+ * major percentile lines since the measurement before it).
  */
 export function ChildStatusChips({ child, className }: { child: Child; className?: string }) {
   const t = useTranslations('children');
@@ -60,7 +61,11 @@ export function ChildStatusChips({ child, className }: { child: Child; className
         <span
           className={clsx(
             'chd-chip',
-            growth.status === 'normal' ? 'nb-tone-success' : growth.status === 'check' ? 'nb-tone-warm' : 'nb-tone-neutral',
+            growth.status === 'normal'
+              ? 'nb-tone-success'
+              : growth.status === 'check' || growth.status === 'discuss'
+                ? 'nb-tone-warm'
+                : 'nb-tone-neutral',
           )}
         >
           {growth.status === 'normal' ? <Icon name="check" size={13} strokeWidth={2.4} /> : null}

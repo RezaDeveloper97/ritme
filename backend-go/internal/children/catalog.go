@@ -48,7 +48,16 @@ type Entry struct {
 	Article    string // article_slug
 	Order      int    // position in the group (sort_order order)
 	NeedsCheck bool   // needs_review
+	// BandSource is where a milestone band comes from: BandSourceCDC (meta absent) or BandSourceRitme (the 3-month
+	// band, not in CDC 2022 — DECISIONS.md H-15, goose 00102).
+	BandSource string
 }
+
+// Milestone band sources.
+const (
+	BandSourceCDC   = "cdc_2022"
+	BandSourceRitme = "ritme"
+)
 
 type entryMeta struct {
 	Visit       string `json:"visit"`
@@ -60,6 +69,7 @@ type entryMeta struct {
 	Minutes     int    `json:"minutes"`
 	Featured    bool   `json:"featured"`
 	ArticleSlug string `json:"article_slug"`
+	BandSource  string `json:"band_source"`
 }
 
 // entries reads a group; items whose meta lacks what the group needs are skipped (an admin typo never breaks a screen).
@@ -79,6 +89,10 @@ func entries(ctx context.Context, r ItemReader, group string) ([]Entry, error) {
 		e := Entry{
 			Code: it.Code, Title: it.Title, Body: it.Body, Order: i, NeedsCheck: it.NeedsReview,
 			Visit: m.Visit, Domain: m.Domain, Topic: m.Topic, Minutes: m.Minutes, Featured: m.Featured, Article: m.ArticleSlug,
+			BandSource: BandSourceCDC,
+		}
+		if m.BandSource == BandSourceRitme {
+			e.BandSource = BandSourceRitme
 		}
 		switch group {
 		case GroupLearn:
@@ -86,14 +100,17 @@ func entries(ctx context.Context, r ItemReader, group string) ([]Entry, error) {
 				continue
 			}
 			e.FromMonths, e.ToMonths = *m.FromMonths, *m.ToMonths
+		case GroupVaccines:
+			// The due age comes from the clinical registry (child.vaccine_schedule, ScheduleEntries); the catalog
+			// keeps the name and copy. Its age_months / visit are informational (version 1 of the registry).
+			if m.AgeMonths != nil && *m.AgeMonths >= 0 {
+				e.AgeMonths = *m.AgeMonths
+			}
 		default:
 			if m.AgeMonths == nil || *m.AgeMonths < 0 {
 				continue
 			}
 			e.AgeMonths = *m.AgeMonths
-			if group == GroupVaccines && e.Visit == "" {
-				continue
-			}
 		}
 		out = append(out, e)
 	}
@@ -124,6 +141,16 @@ func bandFor(bs []int, months int) int {
 		}
 	}
 	return b
+}
+
+// bandSource is BandSourceRitme when any entry of the band is marked as Ritme's own, else BandSourceCDC.
+func bandSource(es []Entry) string {
+	for _, e := range es {
+		if e.BandSource == BandSourceRitme {
+			return BandSourceRitme
+		}
+	}
+	return BandSourceCDC
 }
 
 // inBand filters entries of one age band.

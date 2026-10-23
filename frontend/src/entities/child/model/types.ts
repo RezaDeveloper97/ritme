@@ -64,7 +64,8 @@ export interface VaccineSummary {
   next: VaccineVisit | null;
 }
 
-export type GrowthStatus = 'normal' | 'check' | 'unknown';
+/** `discuss` (D-173): in the band, but a value crossed ≥ 2 major percentile lines since the one before it. */
+export type GrowthStatus = 'normal' | 'check' | 'discuss' | 'unknown';
 
 export interface GrowthVerdict {
   status: GrowthStatus;

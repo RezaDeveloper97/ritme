@@ -22,14 +22,14 @@ import {
   type Translations,
 } from '@/shared/ui';
 
-import { useChildItem, useSaveChildItem, type ChildItem } from '../api/child-content';
+import Link from 'next/link';
+
+import { useChildItem, useSaveChildItem, useVaccineSchedule, type ChildItem } from '../api/child-content';
 import {
   DOMAINS,
   KINDS,
   MAX_MONTHS,
   TOPICS,
-  VISITS,
-  VISIT_MONTHS,
   approxDays,
   buildMeta,
   draftOf,
@@ -37,11 +37,10 @@ import {
   type MetaDraft,
   type MetaErrors,
 } from '../lib/meta';
-import { useCodeLabels, useVisitLabel } from './labels';
+import { useAgeLabel, useCodeLabels } from './labels';
 import { ReadOnlyNotice, useCanWrite } from './parts';
 
 const CODE_RE = /^[a-z][a-z0-9_]*$/;
-const OTHER_VISIT = '__other';
 
 /** Prefill of a new item from the list page (`?month=` / `?visit=&age=`). */
 export interface ChildItemPrefill {
@@ -77,7 +76,6 @@ function ChildItemForm({ kind, id, row, prefill }: { kind: ChildKind; id: number
   const localize = useLocalized();
   const notifyError = useNotifyError();
   const labels = useCodeLabels();
-  const visitLabel = useVisitLabel();
   const canWrite = useCanWrite();
   const group = KINDS[kind].group;
   const save = useSaveChildItem(group, id);
@@ -96,7 +94,6 @@ function ChildItemForm({ kind, id, row, prefill }: { kind: ChildKind; id: number
   const [reviewed, setReviewed] = useState(row ? !row.needs_review : false);
   const [codeError, setCodeError] = useState<string | undefined>();
   const [metaErrors, setMetaErrors] = useState<MetaErrors>({});
-  const [otherVisit, setOtherVisit] = useState(() => draft.visit !== '' && !(VISITS as readonly string[]).includes(draft.visit));
 
   const set = <K extends keyof MetaDraft>(key: K, value: MetaDraft[K]) => setDraft((d) => ({ ...d, [key]: value }));
   const apiErrors = fieldErrorsOf(save.error);
@@ -198,50 +195,9 @@ function ChildItemForm({ kind, id, row, prefill }: { kind: ChildKind; id: number
         errors={apiErrors}
       />
 
-      {kind === 'vaccines' ? (
-        <div className="form-grid">
-          <Select
-            label={t('fields.visit')}
-            hint={t('visitHint')}
-            required
-            value={otherVisit ? OTHER_VISIT : draft.visit}
-            disabled={!canWrite}
-            error={otherVisit ? undefined : metaMsg('visit')}
-            onChange={(e) => {
-              const v = e.target.value;
-              if (v === OTHER_VISIT) {
-                setOtherVisit(true);
-                set('visit', '');
-                return;
-              }
-              setOtherVisit(false);
-              set('visit', v);
-              const m = VISIT_MONTHS[v];
-              if (m !== undefined && draft.ageMonths === '') set('ageMonths', String(m));
-            }}
-            options={[
-              { value: '', label: t('chooseVisit') },
-              ...VISITS.map((v) => ({ value: v, label: `${visitLabel(v)} (${v})` })),
-              { value: OTHER_VISIT, label: t('otherVisit') },
-            ]}
-          />
-          {otherVisit ? (
-            <TextInput
-              label={t('fields.visitCode')}
-              hint={t('visitCodeHint')}
-              dir="ltr"
-              maxLength={32}
-              required
-              value={draft.visit}
-              onChange={(e) => set('visit', e.target.value)}
-              error={metaMsg('visit')}
-              disabled={!canWrite}
-            />
-          ) : null}
-        </div>
-      ) : null}
+      {kind === 'vaccines' ? <ScheduleAge code={row?.code ?? code.trim()} /> : null}
 
-      {kind !== 'learn' ? (
+      {kind === 'vaccines' ? null : kind !== 'learn' ? (
         <div className="form-grid">
           {monthsInput(
             'ageMonths',
@@ -314,5 +270,39 @@ function ChildItemForm({ kind, id, row, prefill }: { kind: ChildKind; id: number
       <Switch label={tc('isActive')} hint={t('activeHint')} checked={active} onChange={setActive} disabled={!canWrite} />
       <Switch label={t('fields.reviewed')} hint={t('reviewedHint')} checked={reviewed} onChange={setReviewed} disabled={!canWrite} />
     </FormPage>
+  );
+}
+
+/**
+ * A dose's due age, read-only: the clinical registry key child.vaccine_schedule in force today owns it (T-M10-22,
+ * D-173, H-17), so it is changed through a new registry version with two medical approvals, not here.
+ */
+function ScheduleAge({ code }: { code: string }) {
+  const t = useTranslations('childContent');
+  const tcc = useTranslations('clinicalConfig');
+  const n = useNumber();
+  const ageLabel = useAgeLabel();
+  const schedule = useVaccineSchedule();
+  const age = code ? schedule.data?.ages.get(code) : undefined;
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-sm" role="group" aria-label={t('fields.ageMonths')}>
+      <strong>{t('fields.ageMonths')}</strong>
+      {schedule.data ? (
+        age !== undefined ? (
+          <Badge tone="data">
+            {ageLabel(age)}
+            {age > 0 ? ` · ${t('approxDays', { days: n(approxDays(age)) })}` : null}
+          </Badge>
+        ) : (
+          <Badge tone="amber">{t('noVisit')}</Badge>
+        )
+      ) : (
+        <span className="text-muted">—</span>
+      )}
+      <Badge>{t('readOnlyBadge')}</Badge>
+      <Link href="/clinical-config" className="btn btn-sm">
+        {tcc('title')}
+      </Link>
+    </div>
   );
 }

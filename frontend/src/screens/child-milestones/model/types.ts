@@ -25,6 +25,8 @@ export interface MilestonesView {
   band: {
     months: number;
     label: string;
+    /** `ritme` = Ritme's own band (the 3-month one, not in CDC 2022 — H-15); `cdc_2022` otherwise. */
+    source: 'cdc_2022' | 'ritme';
     checked: number;
     total: number;
     items: MilestoneItem[];

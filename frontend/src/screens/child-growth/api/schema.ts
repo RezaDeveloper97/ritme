@@ -2,7 +2,14 @@ import { z } from 'zod';
 
 import type { ChildMeasurement, GrowthVerdict, IndicatorValue } from '@/entities/child';
 
-import type { GrowthIndicator, GrowthPoint, GrowthReferenceRow, GrowthSeries, MeasurementList } from '../model/types';
+import type {
+  GrowthCrossing,
+  GrowthIndicator,
+  GrowthPoint,
+  GrowthReferenceRow,
+  GrowthSeries,
+  MeasurementList,
+} from '../model/types';
 
 /*
  * Parsers of `GET /children/{id}/measurements` and `GET /children/{id}/growth`
@@ -15,7 +22,7 @@ const num = z.number().nullable().catch(null);
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
 const verdictSchema = z
-  .object({ status: z.enum(['normal', 'check', 'unknown']).catch('unknown'), label: z.string().catch('') })
+  .object({ status: z.enum(['normal', 'check', 'discuss', 'unknown']).catch('unknown'), label: z.string().catch('') })
   .transform((d): GrowthVerdict => d)
   .catch({ status: 'unknown', label: '' });
 
@@ -80,6 +87,8 @@ const pointSchema = z
     value: z.number(),
     percentile: num,
     in_band: z.boolean().nullable().catch(null),
+    crossed_lines: z.number().int().nullable().catch(null).optional(),
+    discuss: z.boolean().catch(false).optional(),
   })
   .transform(
     (d): GrowthPoint => ({
@@ -89,8 +98,31 @@ const pointSchema = z
       value: d.value,
       percentile: d.percentile,
       inBand: d.in_band,
+      crossedLines: d.crossed_lines ?? null,
+      discuss: d.discuss ?? false,
     }),
   );
+
+/** The line-crossing hint of the latest pair (D-173); a malformed one is dropped, never fatal. */
+const crossingSchema = z
+  .object({
+    lines: z.number().int(),
+    from: z.object({ measured_on: date, percentile: z.number() }),
+    to: z.object({ measured_on: date, percentile: z.number() }),
+    label: z.string().catch(''),
+  })
+  .transform(
+    (d): GrowthCrossing => ({
+      lines: d.lines,
+      fromOn: d.from.measured_on,
+      fromPercentile: d.from.percentile,
+      toOn: d.to.measured_on,
+      toPercentile: d.to.percentile,
+      label: d.label,
+    }),
+  )
+  .nullable()
+  .catch(null);
 
 export const growthSeriesSchema = z
   .object({
@@ -108,6 +140,7 @@ export const growthSeriesSchema = z
     points: each(pointSchema),
     latest: pointSchema.nullable().catch(null),
     verdict: verdictSchema,
+    crossing: crossingSchema.optional(),
     disclaimer: text,
   })
   .transform(
@@ -125,6 +158,7 @@ export const growthSeriesSchema = z
       points: d.points,
       latest: d.latest,
       verdict: d.verdict,
+      crossing: d.crossing ?? null,
       disclaimer: d.disclaimer,
     }),
   );

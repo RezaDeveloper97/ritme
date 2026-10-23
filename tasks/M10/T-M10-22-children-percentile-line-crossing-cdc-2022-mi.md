@@ -3,10 +3,10 @@ id: T-M10-22
 title: Children: percentile-line crossing, CDC 2022 milestone bands, versioned vaccine schedule
 milestone: M10
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M10-16]
 parallel_group: M10-C
-touches: [backend-go/internal/children, backend-go/db/migrations, backend-go/api/openapi.yaml, backend-go/contract/allowlist, admin-web/src/screens/child-content, frontend/src/screens/child-growth, frontend/src/screens/child-milestones, frontend/src/screens/child-vaccines, frontend/src/entities/child, frontend/messages/fa/children.json, frontend/messages/en/children.json, backend-go/resources/translations/fa/children.json, backend-go/resources/translations/en/children.json]
+touches: [backend-go/internal/children, backend-go/db/migrations, backend/database/migrations, backend-go/contract/fixtures/dump.sql, docs/engine-v6/clinical-signoff.md, backend-go/api/openapi.yaml, backend-go/contract/allowlist/children.yaml, admin-web/src/screens/child-content, frontend/src/screens/child-growth, frontend/src/screens/child-milestones, frontend/src/screens/child-vaccines, frontend/src/entities/child, frontend/messages/fa/children.json, frontend/messages/en/children.json, backend-go/resources/translations/fa/children.json, backend-go/resources/translations/en/children.json]
 skills: []
 verify: cd backend-go && go vet ./... && go test ./internal/children/... && make test-int PKG="./internal/children/... ./db/migrations/..." && make contract ROUTES=children && cd ../frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:dark && npm run test && npm run copy:check -- children
 ---

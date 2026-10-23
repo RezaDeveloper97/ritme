@@ -367,7 +367,8 @@ func (s *Service) DeleteMeasurement(ctx context.Context, childID, id uint64) err
 	return nil
 }
 
-// Schedule is the child's vaccine schedule on today.
+// Schedule is the child's vaccine schedule on today: the due ages of child.vaccine_schedule in the version in force on
+// the birth date (H-17, D-173), the names from the catalog, the child's dose records unchanged.
 func (s *Service) Schedule(ctx context.Context, c store.Child, today civildate.Date) (Schedule, error) {
 	es, err := entries(ctx, s.cat, GroupVaccines)
 	if err != nil {
@@ -377,7 +378,10 @@ func (s *Service) Schedule(ctx context.Context, c store.Child, today civildate.D
 	if err != nil {
 		return Schedule{}, fmt.Errorf("children: doses: %w", err)
 	}
-	return BuildSchedule(es, given, c.BirthDate, today), nil
+	v := ScheduleOn(c.BirthDate)
+	sch := BuildSchedule(ScheduleEntries(es, v.Rows), given, c.BirthDate, today)
+	sch.Version, sch.Source = v.Version, v.Source
+	return sch, nil
 }
 
 // MarkDoses records doses as given on day (with an optional note, replacing an earlier record of the same dose).

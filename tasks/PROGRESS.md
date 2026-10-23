@@ -1895,3 +1895,25 @@ Nothing needed fixing.
   still shows the applied text when the LMP was kept (fix lives in `dating.go`). No test for `effectiveCycleLength`.
   The health-record screen may want to show the new server message.
 
+## T-M10-22 — Children: percentile-line crossing, CDC 2022 milestone bands, versioned vaccine schedule (D-173)
+- Growth: crossing ≥ `child.growth.cross_lines` major lines (P3/15/50/85/97, strict — on-the-line isn't a crossing)
+  between consecutive values of one indicator → `discuss` (verdict; point `discuss`/`crossed_lines`; series
+  `crossing {lines, from, to, status, label}`); band and threshold from `child.growth` in force on the measurement day;
+  the < P3 / > P97 band rule stays `check` (check > discuss > normal).
+- goose 00102 `child_milestones_cdc2022` + Laravel twin `2026_10_23_000102`: CDC 2022 15- and 30-month bands (5
+  milestones, 1 activity, doctor note each; `needs_review=1`, `band_source=cdc_2022`); 3-month band marked
+  `band_source=ritme` (H-15). Down removes the rows and user checks on them. API `band.source`; app note on the
+  Ritme band. `dump.sql` `catalog_items` rebuilt via temp DB (+14 rows).
+- Vaccines: due ages from `child.vaccine_schedule` in the version in force on the child's birth date (H-17); catalog
+  keeps names/copy; dose records unchanged; `GET /vaccines` adds `schedule {version, source}`. Admin child-content:
+  ages read-only from the registry + link to clinical-config; vaccine meta no longer edits age/visit.
+- `contract/allowlist/children.yaml` (D-173); openapi additive optional fields; i18n bundle goldens re-recorded
+  (3 new keys); milestone copy listed in `docs/engine-v6/clinical-signoff.md` §C for review.
+- Main session also kept: `db/migrations/consent_events_int_test.go` now clears `version_id >= 101` (assumed 101 was
+  the last migration); admin-web `childContent.vaccinesHint` copy updated.
+- Verify: children unit/int, migrations int, contract children 18 passed / 0 failed; frontend typecheck/lint/fsd/dark/
+  1974 tests/copy:check; admin-web 169 tests; schema-diff OK (219 tables).
+- Open: children goldens not re-recorded (new fields allow-listed); a catalog dose missing from the registry doesn't
+  appear in a child's schedule (admin shows it under "no visit"); no `child_age_notes` for 15/30 months while H-15 is
+  advisor-pending; milestone copy needs clinical review.
+- Migration 00102 must run on stage/beta with the next deploy.

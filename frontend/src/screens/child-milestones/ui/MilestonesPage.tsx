@@ -119,6 +119,12 @@ export function ChildMilestonesPage({ id }: { id: number }) {
   return (
     <Shell header={header}>
       <MonthChips data={data} onPick={setMonth} t={t} />
+      {data.band.source === 'ritme' ? (
+        <p className="cgr-readonly">
+          <Icon name="info" size={14} />
+          {t('milestones.ritmeBand')}
+        </p>
+      ) : null}
       {child.data.role === 'shared' ? (
         <p className="cgr-readonly">
           <Icon name="eye" size={14} />

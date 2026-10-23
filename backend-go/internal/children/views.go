@@ -189,6 +189,7 @@ func MilestoneBandJSON(b MilestoneBand, loc Loc) *jsonx.OrderedMap {
 	return jsonx.Obj(
 		"months", b.Months,
 		"label", VisitLabel(b.Months, loc.Locale),
+		"source", bandSource(b.Items),
 		"checked", b.CheckedCount(),
 		"total", len(b.Items),
 		"items", items,

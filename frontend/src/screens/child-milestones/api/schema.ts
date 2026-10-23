@@ -44,6 +44,7 @@ export const milestonesSchema = z
     band: z.object({
       months: z.number().int(),
       label: z.string().catch(''),
+      source: z.enum(['cdc_2022', 'ritme']).catch('cdc_2022').optional(),
       checked: z.number().int().catch(0),
       total: z.number().int().catch(0),
       items: each(itemSchema),
@@ -58,6 +59,7 @@ export const milestonesSchema = z
       band: {
         months: d.band.months,
         label: d.band.label,
+        source: d.band.source ?? 'cdc_2022',
         checked: d.band.checked,
         total: d.band.total,
         items: d.band.items,

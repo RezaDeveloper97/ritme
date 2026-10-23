@@ -45,6 +45,32 @@ describe.skipIf(!existsSync(GOLDEN_DIR))('growth parsers', () => {
     expect(s.bandLabel).toBeTruthy();
   });
 
+  it('reads the line-crossing hint and per-point flags (D-173), tolerating their absence', () => {
+    const [weight] = steps('growth.fa', 'GET', '/api/v1/children/1/growth?indicator=weight');
+    const base = weight as Record<string, unknown>;
+    expect(growthSeriesSchema.parse(base).crossing).toBeNull();
+    const s = growthSeriesSchema.parse({
+      ...base,
+      verdict: { status: 'discuss', label: 'x' },
+      crossing: {
+        lines: 2,
+        from: { measured_on: '2026-08-20', percentile: 59.8 },
+        to: { measured_on: '2026-10-02', percentile: 9.6 },
+        status: 'discuss',
+        label: 'با پزشک کودک در میان بگذار',
+      },
+      points: [
+        { id: 1, measured_on: '2026-08-20', age_days: 61, age_months: 2, value: 5.3, percentile: 59.8, in_band: true, crossed_lines: null, discuss: false },
+        { id: 2, measured_on: '2026-10-02', age_days: 104, age_months: 3.4, value: 5.2, percentile: 9.6, in_band: true, crossed_lines: 2, discuss: true },
+      ],
+    });
+    expect(s.verdict.status).toBe('discuss');
+    expect(s.crossing).toMatchObject({ lines: 2, fromPercentile: 59.8, toOn: '2026-10-02' });
+    expect(s.points[1]).toMatchObject({ crossedLines: 2, discuss: true });
+    expect(s.points[0]).toMatchObject({ crossedLines: null, discuss: false });
+    expect(growthSeriesSchema.parse({ ...base, crossing: { lines: 'x' } }).crossing).toBeNull();
+  });
+
   it('marks the curves unavailable when the sex is unknown', () => {
     const [length] = steps('growth.fa', 'GET', '/api/v1/children/1/growth?indicator=length');
     const s = growthSeriesSchema.parse(length);
