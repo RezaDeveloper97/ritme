@@ -231,7 +231,8 @@ func TestConsentEndpoints(t *testing.T) {
 	r := e.do(t, "GET", "/api/v1/consents", tok, "fa", "")
 	require.Equal(t, 200, r.status, r.raw)
 	list := r.data()["consents"].([]any)
-	require.Len(t, list, len(consent.Catalog()))
+	// GET /consents leaves out the mandatory signup consents (T-M10-23); /consents/pending lists those.
+	require.Len(t, list, len(consent.Catalog())-len(consent.Mandatory()))
 	first := list[0].(map[string]any)
 	assert.Equal(t, "ai_lab_analysis", first["code"])
 	assert.InDelta(t, 1, first["version"], 0)
