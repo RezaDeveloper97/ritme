@@ -185,7 +185,9 @@ func generalRange(mk *Marker, f sheetFacts) (Range, string) {
 	return r, basis
 }
 
-func sameBound(a, b *float64) bool { return (a == nil && b == nil) || (a != nil && b != nil && *a == *b) }
+func sameBound(a, b *float64) bool {
+	return (a == nil && b == nil) || (a != nil && b != nil && *a == *b)
+}
 
 // band is the registry band of a banded marker (vitamin D, HbA1c) and the state it implies; ok=false otherwise.
 func band(code string, v float64, r Range, d civildate.Date) (string, string, bool) {
