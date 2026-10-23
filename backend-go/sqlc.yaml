@@ -340,3 +340,11 @@ sql:
       go:
         <<: *go
         out: internal/cityservices/join/store
+  # T-M10-25: metric alert rules / alerts and per-day user activity. The raw-SQL KPI aggregation in internal/metrics
+  # keeps its own SQL.
+  - <<: *pkg
+    queries: db/queries/metrics
+    gen:
+      go:
+        <<: *go
+        out: internal/metrics/store

@@ -38,6 +38,9 @@ type Querier interface {
 	GetUserByID(ctx context.Context, id uint64) (User, error)
 	// User::where('mobile', $mobile)->first().
 	GetUserByMobile(ctx context.Context, mobile sql.NullString) (User, error)
+	// User reference codes (migration 00105, T-M10-25; SPEC v6 §5.2, DECISIONS.md A-09: `RT-` + 6 base32 chars of an HMAC
+	// of the id). Stored for search; the writer fills it, a backfill pages through the users without one.
+	GetUserIDByRefCode(ctx context.Context, refCode sql.NullString) (uint64, error)
 	// AccessTokenRepository::persistNewAccessToken + PersonalAccessTokenFactory (name, scopes '[]').
 	InsertAccessToken(ctx context.Context, arg InsertAccessTokenParams) error
 	InsertOtp(ctx context.Context, arg InsertOtpParams) error
@@ -47,11 +50,13 @@ type Querier interface {
 	// ClientRepository::personalAccessClient('users'): non-revoked, provider NULL or 'users',
 	// latest first; the caller picks the first whose grant_types contains "personal_access".
 	ListPersonalAccessClientCandidates(ctx context.Context) ([]ListPersonalAccessClientCandidatesRow, error)
+	ListUserIDsWithoutRefCode(ctx context.Context, arg ListUserIDsWithoutRefCodeParams) ([]uint64, error)
 	MarkOtpVerified(ctx context.Context, arg MarkOtpVerifiedParams) error
 	// AccessToken::revoke() (Eloquent update also touches updated_at).
 	RevokeAccessToken(ctx context.Context, arg RevokeAccessTokenParams) (int64, error)
 	// $user->tokens()->update(['revoked' => true]) — admin block / account deletion.
 	RevokeUserAccessTokens(ctx context.Context, arg RevokeUserAccessTokensParams) (int64, error)
+	SetUserRefCode(ctx context.Context, arg SetUserRefCodeParams) (int64, error)
 	// $user->profile()->exists(). B-N2-01: a v2 onboarding that was started and not completed (user_life_profiles)
 	// counts as no profile yet; users without that row (everyone created before it) keep the Laravel rule.
 	UserHasProfile(ctx context.Context, userID uint64) (bool, error)

@@ -20,6 +20,11 @@ type Querier interface {
 	CountReducedKickSessions(ctx context.Context, arg CountReducedKickSessionsParams) (int64, error)
 	// Live urgent-message copy rows that are not the approved version (the «approved-text parity» check).
 	CountUnapprovedUrgentCopy(ctx context.Context, copyGroups []string) (int64, error)
+	// Persisted nightly safety self-test runs (migration 00105, T-M10-25; SPEC v6 §5.8; written by T-M10-24). One row per
+	// scenario; run_id (ULID) groups the rows of one run.
+	InsertSafetyScenarioRun(ctx context.Context, arg InsertSafetyScenarioRunParams) error
+	// The latest runs, newest first, with their scenario and failure counts.
+	ListRecentSafetyRunIDs(ctx context.Context, limit int32) ([]ListRecentSafetyRunIDsRow, error)
 	// Assistant departments still flagged «needs clinical review» (B-N7-08).
 	ListSafetyAssistantDepartments(ctx context.Context) ([]ListSafetyAssistantDepartmentsRow, error)
 	// Catalog groups with rows flagged «needs clinical review», one row per group (its first row's id is the claim key).
@@ -32,6 +37,9 @@ type Querier interface {
 	ListSafetyPendingClinicalConfig(ctx context.Context) ([]ListSafetyPendingClinicalConfigRow, error)
 	// Smart messages v2 awaiting the medical approval (B-N9-05).
 	ListSafetyPendingMessageRules(ctx context.Context) ([]ListSafetyPendingMessageRulesRow, error)
+	// One scenario's latest results, newest first.
+	ListSafetyScenarioHistory(ctx context.Context, arg ListSafetyScenarioHistoryParams) ([]SafetyScenarioRun, error)
+	ListSafetyScenarioRunsByRun(ctx context.Context, runID string) ([]SafetyScenarioRun, error)
 }
 
 var _ Querier = (*Queries)(nil)

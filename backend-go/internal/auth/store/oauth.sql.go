@@ -39,7 +39,7 @@ func (q *Queries) GetAccessToken(ctx context.Context, id string) (GetAccessToken
 
 const getAccessTokenWithUser = `-- name: GetAccessTokenWithUser :one
 SELECT t.id AS token_id, t.user_id AS token_user_id, t.client_id AS token_client_id, t.revoked AS token_revoked,
-       t.expires_at AS token_expires_at, u.id, u.name, u.email, u.mobile, u.mobile_verified_at, u.blocked_at, u.email_verified_at, u.password, u.remember_token, u.created_at, u.updated_at,
+       t.expires_at AS token_expires_at, u.id, u.name, u.email, u.mobile, u.mobile_verified_at, u.blocked_at, u.email_verified_at, u.password, u.remember_token, u.created_at, u.updated_at, u.ref_code,
        r.engine_rev AS engine_rev, r.analysis_rev AS analysis_rev
 FROM ` + "`" + `oauth_access_tokens` + "`" + ` t
 CROSS JOIN ` + "`" + `users` + "`" + ` u
@@ -90,6 +90,7 @@ func (q *Queries) GetAccessTokenWithUser(ctx context.Context, arg GetAccessToken
 		&i.User.RememberToken,
 		&i.User.CreatedAt,
 		&i.User.UpdatedAt,
+		&i.User.RefCode,
 		&i.EngineRev,
 		&i.AnalysisRev,
 	)

@@ -3,7 +3,7 @@ id: T-M10-25
 title: Schema for metric alerts, user activity, segments, reference codes, audit chain and safety runs
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-01]
 parallel_group: M10-D
 touches: [backend-go/db/migrations, backend/database/migrations, backend-go/sqlc.yaml, backend-go/db/queries/metrics, backend-go/internal/metrics/store, backend-go/db/queries/admin, backend-go/db/queries/safety, backend-go/db/queries/auth]

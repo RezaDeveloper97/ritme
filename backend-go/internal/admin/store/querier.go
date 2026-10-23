@@ -163,6 +163,7 @@ type Querier interface {
 	// blocked = [1971-01-02, 2037-12-31]. See users.statusRange.
 	CountUsers(ctx context.Context, arg CountUsersParams) (int64, error)
 	CreateAdmin(ctx context.Context, arg CreateAdminParams) (sql.Result, error)
+	CreateAdminSegment(ctx context.Context, arg CreateAdminSegmentParams) (int64, error)
 	CreateAffirmation(ctx context.Context, arg CreateAffirmationParams) (sql.Result, error)
 	CreateArticle(ctx context.Context, arg CreateArticleParams) (sql.Result, error)
 	CreateBanner(ctx context.Context, arg CreateBannerParams) (sql.Result, error)
@@ -188,6 +189,7 @@ type Querier interface {
 	DecideHealthAccessRequest(ctx context.Context, arg DecideHealthAccessRequestParams) (int64, error)
 	DeleteAdmin(ctx context.Context, id uint64) (sql.Result, error)
 	DeleteAdminRole(ctx context.Context, role string) error
+	DeleteAdminSegment(ctx context.Context, id uint64) (int64, error)
 	DeleteAffirmation(ctx context.Context, id uint64) (sql.Result, error)
 	DeleteArticle(ctx context.Context, id uint64) (sql.Result, error)
 	DeleteBanner(ctx context.Context, id uint64) (sql.Result, error)
@@ -199,6 +201,8 @@ type Querier interface {
 	DeletePhaseContent(ctx context.Context, id uint64) (sql.Result, error)
 	DeletePregnancyWeek(ctx context.Context, id uint64) (sql.Result, error)
 	DeleteRecommendation(ctx context.Context, id uint64) (sql.Result, error)
+	// Rows the nightly rebuild did not touch (users no longer in scope).
+	DeleteStaleAdminUserActivity(ctx context.Context, beforeDay civildate.Date) (int64, error)
 	DeleteTaskTemplate(ctx context.Context, id uint64) (sql.Result, error)
 	DeleteUser(ctx context.Context, id uint64) (sql.Result, error)
 	FirstActiveLanguageID(ctx context.Context) (uint64, error)
@@ -211,6 +215,8 @@ type Querier interface {
 	// Admins
 	GetAdminByID(ctx context.Context, id uint64) (Admin, error)
 	GetAdminRolePermissions(ctx context.Context, role string) (string, error)
+	GetAdminSegment(ctx context.Context, id uint64) (AdminSegment, error)
+	GetAdminUserActivity(ctx context.Context, userID uint64) (AdminUserActivity, error)
 	GetAffirmation(ctx context.Context, id uint64) (Affirmation, error)
 	GetArticle(ctx context.Context, id uint64) (Article, error)
 	GetBanner(ctx context.Context, id uint64) (Banner, error)
@@ -237,6 +243,7 @@ type Querier interface {
 	// ---------------------------------------------------------------------------
 	// Audit log
 	InsertAdminAuditLog(ctx context.Context, arg InsertAdminAuditLogParams) error
+	InsertChainedAdminAuditLog(ctx context.Context, arg InsertChainedAdminAuditLogParams) (int64, error)
 	InsertClinicalConfigApproval(ctx context.Context, arg InsertClinicalConfigApprovalParams) error
 	InsertClinicalConfigVersion(ctx context.Context, arg InsertClinicalConfigVersionParams) (int64, error)
 	InsertCompanionTipRow(ctx context.Context, arg InsertCompanionTipRowParams) error
@@ -251,6 +258,8 @@ type Querier interface {
 	ListAdminArticles(ctx context.Context, arg ListAdminArticlesParams) ([]Article, error)
 	// Filters are optional: 0 / '' / NULL = no filter. action matches a prefix ("article." → every article action).
 	ListAdminAuditLogs(ctx context.Context, arg ListAdminAuditLogsParams) ([]ListAdminAuditLogsRow, error)
+	// Walk the log by id from after_id (verification and genesis), oldest first.
+	ListAdminAuditLogsForChain(ctx context.Context, arg ListAdminAuditLogsForChainParams) ([]AdminAuditLog, error)
 	ListAdminBanners(ctx context.Context, arg ListAdminBannersParams) ([]Banner, error)
 	ListAdminChallenges(ctx context.Context, arg ListAdminChallengesParams) ([]Challenge, error)
 	ListAdminCompanionLinks(ctx context.Context, arg ListAdminCompanionLinksParams) ([]ListAdminCompanionLinksRow, error)
@@ -261,7 +270,11 @@ type Querier interface {
 	// ---------------------------------------------------------------------------
 	// Roles
 	ListAdminRoles(ctx context.Context) ([]AdminRole, error)
+	// ---------------------------------------------------------------------------
+	// Saved segments
+	ListAdminSegments(ctx context.Context) ([]AdminSegment, error)
 	ListAdminTaskTemplates(ctx context.Context, arg ListAdminTaskTemplatesParams) ([]TaskTemplate, error)
+	ListAdminUserActivityByIDs(ctx context.Context, userIds []uint64) ([]AdminUserActivity, error)
 	// Admin::orderByDesc('id')->paginate(20).
 	ListAdmins(ctx context.Context, arg ListAdminsParams) ([]Admin, error)
 	// ---------------------------------------------------------------------------
@@ -312,10 +325,15 @@ type Querier interface {
 	ListSupportReports(ctx context.Context, arg ListSupportReportsParams) ([]ListSupportReportsRow, error)
 	// User::with('profile')->…->latest()->paginate(20). The profile is the user's first row (hasOne).
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
+	// Audit hash chain (migration 00105, T-M10-25; SPEC v6 §5.8; written by T-M10-33). admin_audit_logs is append-only
+	// (BEFORE UPDATE / DELETE triggers), so row_hash is computed before the insert. The writer locks the head's one row,
+	// never the log's tail, so inserts take no gap locks on the log.
+	LockAdminAuditChainHead(ctx context.Context) (AdminAuditChainHead, error)
 	MaxClinicalConfigVersion(ctx context.Context, configKey string) (int64, error)
 	MaxInfoSectionSortOrder(ctx context.Context, group string) (int64, error)
 	MaxLanguageSortOrder(ctx context.Context) (int64, error)
 	MessageLocaleExists(ctx context.Context, locale string) (bool, error)
+	MoveAdminAuditChainHead(ctx context.Context, arg MoveAdminAuditChainHeadParams) error
 	PhaseContentTaken(ctx context.Context, arg PhaseContentTakenParams) (bool, error)
 	PregnancyWeekTaken(ctx context.Context, arg PregnancyWeekTakenParams) (bool, error)
 	// User::latest()->take(8).
@@ -324,6 +342,8 @@ type Querier interface {
 	ReviewLearningLesson(ctx context.Context, arg ReviewLearningLessonParams) error
 	RevokeHealthAccessRequest(ctx context.Context, arg RevokeHealthAccessRequestParams) (int64, error)
 	RevokeLearningInstructor(ctx context.Context, arg RevokeLearningInstructorParams) error
+	// The one-off genesis job: the hash of every row written before the chain started (ids up to genesis_last_id).
+	SetAdminAuditChainGenesis(ctx context.Context, arg SetAdminAuditChainGenesisParams) error
 	SetArticlePublished(ctx context.Context, arg SetArticlePublishedParams) error
 	// An editor save makes the row live again (active + approved): the tips page is the copy the panel shows.
 	SetCompanionTipRow(ctx context.Context, arg SetCompanionTipRowParams) error
@@ -350,6 +370,7 @@ type Querier interface {
 	UnpublishLearningLesson(ctx context.Context, arg UnpublishLearningLessonParams) error
 	UpdateAdmin(ctx context.Context, arg UpdateAdminParams) error
 	UpdateAdminPassword(ctx context.Context, arg UpdateAdminPasswordParams) error
+	UpdateAdminSegment(ctx context.Context, arg UpdateAdminSegmentParams) (int64, error)
 	UpdateAffirmation(ctx context.Context, arg UpdateAffirmationParams) error
 	UpdateArticle(ctx context.Context, arg UpdateArticleParams) error
 	UpdateBanner(ctx context.Context, arg UpdateBannerParams) error
@@ -366,6 +387,9 @@ type Querier interface {
 	// MariaDB evaluates SET left to right, so updated_at is compared against the old name.
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error
 	UpsertAdminRole(ctx context.Context, arg UpsertAdminRoleParams) error
+	// Admin user directory projection and saved segments (migration 00105, T-M10-25; SPEC v6 §5.2, DECISIONS.md A-08).
+	// admin_user_activity is rebuilt nightly (T-M10-32); the list endpoint filters on its indexed columns.
+	UpsertAdminUserActivity(ctx context.Context, arg UpsertAdminUserActivityParams) error
 	UserExists(ctx context.Context, id uint64) (bool, error)
 	UserStats(ctx context.Context, arg UserStatsParams) (UserStatsRow, error)
 }

@@ -33,6 +33,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        // Admin-only reference code (Go backend, T-M10-25); kept out of the API user JSON.
+        'ref_code',
     ];
 
     /**

@@ -2044,3 +2044,27 @@ Nothing needed fixing.
 - Open: L2 snapshot keyed by rev only while `inputs.Load` bounds markers by today (future markers > 1 day, the −400 d
   edge) — verify mode measures it; Redis-down cold path waits for go-redis retries (consider MaxRetries / breaker);
   `LocalToday` may cost the stored-zone read on a 304; callers must list every config table in cfgFP.
+
+## T-M10-25 — Schema for metric alerts, user activity, segments, reference codes, audit chain and safety runs
+- goose **00105** `admin_metrics_audit_chain` + Laravel twin `2026_10_23_000105_create_admin_metrics_audit_chain_tables`
+  (schema-diff green, 226 tables; triggers are compared — `mariadb-dump --no-data` includes them, proven with a
+  deliberate mismatch).
+- New tables: `user_activity_days`, `metric_alert_rules` (5 seeded: `ocr_correction_rate gt .12/7d`, `message_ctr
+  drop_vs_mean .30/7d min_volume 200`, `rui_users rising_days 7`, `engine_mae gt 2.5/30d`, `safety_selftest_failed gt
+  0/1d` — window days chosen here, T-M10-31 may tune), `metric_alerts` (STORED `open_flag` + UNIQUE(rule_id, subject,
+  open_flag) → one open alert per subject), `admin_user_activity`, `admin_segments`, `admin_audit_chain_head` (CHECK
+  id = 1, one row), `safety_scenario_runs` (+ KEY run_id). Columns: `users.ref_code` UNIQUE,
+  `admin_audit_logs.prev_hash/row_hash`. KPI indexes: `daily_health_logs(log_date,user_id)`,
+  `cycle_histories(period_start_date)`, `users(created_at)`.
+- `admin_audit_logs` and `clinical_config_approvals` are append-only in the DB (BEFORE UPDATE/DELETE → SIGNAL 45000).
+  Writers must compute `row_hash` before INSERT (T-M10-33); neither table may gain an FK whose action updates rows.
+- sqlc: new `db/queries/metrics` → `internal/metrics/store`; queries in admin (user_directory, audit_chain), safety
+  (runs), auth (ref_code). No writers/readers yet (T-M10-24, T-M10-30…33).
+- Main session applied: `contract/fixtures/dump.sql` (new schema + triggers, `users.ref_code`), rbac security int test
+  drops/recreates the audit no-update trigger to backdate rows, `profile/model` column test glob fixed (`000*.sql`
+  missed migrations ≥ 00100), Laravel `User` hides `ref_code` so prod JSON is unchanged.
+- Tested on MariaDB 11.4.13 and MySQL 8.4.13. Verify: schema-diff OK, full unit + `make test-int PKG=./...` green,
+  contract all 1914/0, golangci-lint 0 issues.
+- ⚠ Deploy: the 4 triggers need the TRIGGER privilege (+ SUPER or `log_bin_trust_function_creators=1` with binlog) for
+  the migrating user on stage/beta (and prod via the Laravel twin) — grant first, else 00105 stops after the tables
+  (re-run is safe: IF NOT EXISTS / INSERT IGNORE).

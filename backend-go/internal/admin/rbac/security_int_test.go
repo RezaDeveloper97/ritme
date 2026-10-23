@@ -50,7 +50,10 @@ func TestHealthAccess_ApproverIndependence(t *testing.T) {
 	assert.Equal(t, rbac.CodeApproverNotIndependent, e.As(super2ID).JSON(fiber.MethodPost, path+"/approve", nil).Code())
 
 	// Older than 30 days the change no longer counts; the approval also raises the alert line (log only).
+	// admin_audit_logs is append-only (00105 trigger): lift the guard to backdate the rows, then put it back.
+	e.Exec(`DROP TRIGGER admin_audit_logs_no_update`)
 	e.Exec(`UPDATE admin_audit_logs SET created_at = NOW() - INTERVAL 31 DAY WHERE target_type = 'admin' AND target_id = ?`, super2ID)
+	e.Exec("CREATE TRIGGER `admin_audit_logs_no_update` BEFORE UPDATE ON `admin_audit_logs` FOR EACH ROW\n  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'admin_audit_logs is append-only'")
 	ok := e.As(super2ID).JSON(fiber.MethodPost, path+"/approve", nil)
 	require.Equal(t, 200, ok.Status, string(ok.Raw))
 	assert.Equal(t, rbac.StatusApproved, ok.Obj("request")["status"])

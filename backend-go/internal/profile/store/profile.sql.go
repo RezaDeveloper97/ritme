@@ -154,7 +154,7 @@ func (q *Queries) GetProfileEngineInputs(ctx context.Context, userID uint64) (Ge
 
 const getUser = `-- name: GetUser :one
 
-SELECT id, name, email, mobile, mobile_verified_at, blocked_at, email_verified_at, password, remember_token, created_at, updated_at FROM ` + "`" + `users` + "`" + ` WHERE id = ? LIMIT 1
+SELECT id, name, email, mobile, mobile_verified_at, blocked_at, email_verified_at, password, remember_token, created_at, updated_at, ref_code FROM ` + "`" + `users` + "`" + ` WHERE id = ? LIMIT 1
 `
 
 // ProfileController (backend/app/Http/Controllers/Api/V1/ProfileController.php) and UserProfile.
@@ -174,6 +174,7 @@ func (q *Queries) GetUser(ctx context.Context, id uint64) (User, error) {
 		&i.RememberToken,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.RefCode,
 	)
 	return i, err
 }

@@ -25,7 +25,7 @@ import (
 // to a table's column list, in migration order (AFTER honoured, so the result is the real table order).
 func laterColumns(t *testing.T, table string, cols []string) []string {
 	t.Helper()
-	files, err := filepath.Glob("../../../db/migrations/000*.sql")
+	files, err := filepath.Glob("../../../db/migrations/0*.sql") // 00001 … 00099 and 00100+
 	require.NoError(t, err)
 	slices.Sort(files)
 	stmt := regexp.MustCompile("(?i)ALTER TABLE `" + table + "` (ADD|DROP) COLUMN (?:IF (?:NOT )?EXISTS )?`([a-z0-9_]+)`([^;]*);")

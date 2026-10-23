@@ -9,6 +9,26 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
+DROP TABLE IF EXISTS `admin_audit_chain_head`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `admin_audit_chain_head` (
+  `id` tinyint(3) unsigned NOT NULL,
+  `last_id` bigint(20) unsigned DEFAULT NULL,
+  `last_hash` char(64) DEFAULT NULL,
+  `genesis_last_id` bigint(20) unsigned DEFAULT NULL,
+  `genesis_hash` char(64) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `admin_audit_chain_head_singleton` CHECK (`id` = 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `admin_audit_chain_head` WRITE;
+/*!40000 ALTER TABLE `admin_audit_chain_head` DISABLE KEYS */;
+INSERT INTO `admin_audit_chain_head` VALUES
+(1,NULL,NULL,NULL,NULL);
+/*!40000 ALTER TABLE `admin_audit_chain_head` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `admin_audit_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -21,6 +41,8 @@ CREATE TABLE `admin_audit_logs` (
   `ip` varchar(45) NOT NULL DEFAULT '',
   `detail` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
+  `prev_hash` char(64) DEFAULT NULL,
+  `row_hash` char(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `admin_audit_logs_created_at_index` (`created_at`),
   KEY `admin_audit_logs_admin_id_created_at_index` (`admin_id`,`created_at`),
@@ -28,6 +50,8 @@ CREATE TABLE `admin_audit_logs` (
   KEY `admin_audit_logs_action_index` (`action`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TRIGGER `admin_audit_logs_no_update` BEFORE UPDATE ON `admin_audit_logs` FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'admin_audit_logs is append-only';
+CREATE TRIGGER `admin_audit_logs_no_delete` BEFORE DELETE ON `admin_audit_logs` FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'admin_audit_logs is append-only';
 
 LOCK TABLES `admin_audit_logs` WRITE;
 /*!40000 ALTER TABLE `admin_audit_logs` DISABLE KEYS */;
@@ -76,6 +100,54 @@ CREATE TABLE `admin_roles` (
 LOCK TABLES `admin_roles` WRITE;
 /*!40000 ALTER TABLE `admin_roles` DISABLE KEYS */;
 /*!40000 ALTER TABLE `admin_roles` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `admin_segments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `admin_segments` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(80) NOT NULL,
+  `filters` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`filters`)),
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `admin_segments_name_unique` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `admin_segments` WRITE;
+/*!40000 ALTER TABLE `admin_segments` DISABLE KEYS */;
+/*!40000 ALTER TABLE `admin_segments` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `admin_user_activity`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `admin_user_activity` (
+  `user_id` bigint(20) unsigned NOT NULL,
+  `last_activity_at` timestamp NULL DEFAULT NULL,
+  `log_days_30` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `log_days_recent14` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `log_days_prior14` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `churn` varchar(8) NOT NULL,
+  `mode` varchar(16) NOT NULL,
+  `plan` varchar(16) NOT NULL,
+  `data_quality` varchar(16) DEFAULT NULL,
+  `main_warning` varchar(48) DEFAULT NULL,
+  `updated_on` date NOT NULL,
+  PRIMARY KEY (`user_id`),
+  KEY `admin_user_activity_churn_index` (`churn`),
+  KEY `admin_user_activity_plan_index` (`plan`),
+  KEY `admin_user_activity_mode_index` (`mode`),
+  KEY `admin_user_activity_data_quality_index` (`data_quality`),
+  KEY `admin_user_activity_last_activity_at_index` (`last_activity_at`),
+  CONSTRAINT `admin_user_activity_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `admin_user_activity` WRITE;
+/*!40000 ALTER TABLE `admin_user_activity` DISABLE KEYS */;
+/*!40000 ALTER TABLE `admin_user_activity` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `admins`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1678,6 +1750,8 @@ CREATE TABLE `clinical_config_approvals` (
   UNIQUE KEY `clinical_config_approvals_version_id_admin_id_unique` (`version_id`,`admin_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TRIGGER `clinical_config_approvals_no_update` BEFORE UPDATE ON `clinical_config_approvals` FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'clinical_config_approvals is append-only';
+CREATE TRIGGER `clinical_config_approvals_no_delete` BEFORE DELETE ON `clinical_config_approvals` FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'clinical_config_approvals is append-only';
 
 LOCK TABLES `clinical_config_approvals` WRITE;
 /*!40000 ALTER TABLE `clinical_config_approvals` DISABLE KEYS */;
@@ -1972,6 +2046,7 @@ CREATE TABLE `cycle_histories` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `cycle_histories_user_id_period_start_date_unique` (`user_id`,`period_start_date`),
+  KEY `cycle_histories_period_start_date_index` (`period_start_date`),
   CONSTRAINT `cycle_histories_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=101805 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -2143,6 +2218,7 @@ CREATE TABLE `daily_health_logs` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `daily_health_logs_user_id_log_date_unique` (`user_id`,`log_date`),
+  KEY `daily_health_logs_log_date_user_id_index` (`log_date`,`user_id`),
   CONSTRAINT `daily_health_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=101802 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -3896,6 +3972,59 @@ LOCK TABLES `message_rules` WRITE;
 /*!40000 ALTER TABLE `message_rules` DISABLE KEYS */;
 /*!40000 ALTER TABLE `message_rules` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `metric_alert_rules`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `metric_alert_rules` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `metric_key` varchar(64) NOT NULL,
+  `comparator` varchar(16) NOT NULL,
+  `threshold` decimal(12,4) NOT NULL,
+  `window_days` smallint(5) unsigned NOT NULL,
+  `min_volume` int(10) unsigned DEFAULT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `metric_alert_rules_metric_key_unique` (`metric_key`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `metric_alert_rules` WRITE;
+/*!40000 ALTER TABLE `metric_alert_rules` DISABLE KEYS */;
+INSERT INTO `metric_alert_rules` VALUES
+(1,'ocr_correction_rate','gt',0.1200,7,NULL,1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(2,'message_ctr','drop_vs_mean',0.3000,7,200,1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(3,'rui_users','rising_days',7.0000,7,NULL,1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(4,'engine_mae','gt',2.5000,30,NULL,1,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
+(5,'safety_selftest_failed','gt',0.0000,1,NULL,1,'2026-09-23 09:00:00','2026-09-23 09:00:00');
+/*!40000 ALTER TABLE `metric_alert_rules` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `metric_alerts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `metric_alerts` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `rule_id` bigint(20) unsigned NOT NULL,
+  `subject` varchar(64) NOT NULL DEFAULT '',
+  `day` date NOT NULL,
+  `value` decimal(12,4) NOT NULL,
+  `threshold` decimal(12,4) NOT NULL,
+  `state` varchar(12) NOT NULL DEFAULT 'open',
+  `open_flag` tinyint(1) GENERATED ALWAYS AS (if(`state` = 'open',1,NULL)) STORED,
+  `opened_at` timestamp NULL DEFAULT NULL,
+  `resolved_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `metric_alerts_rule_id_subject_open_flag_unique` (`rule_id`,`subject`,`open_flag`),
+  KEY `metric_alerts_state_opened_at_index` (`state`,`opened_at`),
+  CONSTRAINT `metric_alerts_rule_id_foreign` FOREIGN KEY (`rule_id`) REFERENCES `metric_alert_rules` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `metric_alerts` WRITE;
+/*!40000 ALTER TABLE `metric_alerts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `metric_alerts` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `metric_snapshots`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5322,6 +5451,28 @@ INSERT INTO `reminders` VALUES
 (101804,1018,'custom','نوشیدن آب',NULL,NULL,NULL,'weekly','12:00:00','2026-08-24',NULL,0,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `reminders` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `safety_scenario_runs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `safety_scenario_runs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `run_id` char(26) NOT NULL,
+  `scenario` varchar(64) NOT NULL,
+  `passed` tinyint(1) NOT NULL,
+  `detail` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`detail`)),
+  `duration_ms` int(10) unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `safety_scenario_runs_created_at_index` (`created_at`),
+  KEY `safety_scenario_runs_scenario_created_at_index` (`scenario`,`created_at`),
+  KEY `safety_scenario_runs_run_id_index` (`run_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `safety_scenario_runs` WRITE;
+/*!40000 ALTER TABLE `safety_scenario_runs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `safety_scenario_runs` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -6422,6 +6573,24 @@ LOCK TABLES `treatment_items` WRITE;
 /*!40000 ALTER TABLE `treatment_items` DISABLE KEYS */;
 /*!40000 ALTER TABLE `treatment_items` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `user_activity_days`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_activity_days` (
+  `user_id` bigint(20) unsigned NOT NULL,
+  `day` date NOT NULL,
+  `session` tinyint(1) NOT NULL DEFAULT 0,
+  `logged` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`day`,`user_id`),
+  KEY `user_activity_days_user_id_day_index` (`user_id`,`day`),
+  CONSTRAINT `user_activity_days_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `user_activity_days` WRITE;
+/*!40000 ALTER TABLE `user_activity_days` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_activity_days` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `user_challenge_completions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -6665,33 +6834,36 @@ CREATE TABLE `users` (
   `remember_token` varchar(100) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `ref_code` varchar(12) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `users_email_unique` (`email`),
-  UNIQUE KEY `users_mobile_unique` (`mobile`)
+  UNIQUE KEY `users_mobile_unique` (`mobile`),
+  UNIQUE KEY `users_ref_code_unique` (`ref_code`),
+  KEY `users_created_at_index` (`created_at`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1019 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 INSERT INTO `users` VALUES
-(1001,NULL,NULL,'09900000001','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1002,'Contract profile no history',NULL,'09900000002','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1003,'Contract onboarding declared',NULL,'09900000003','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1004,'Contract regular',NULL,'09900000004','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1005,'Contract irregular',NULL,'09900000005','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1006,'Contract short outlier',NULL,'09900000006','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1007,'Contract open period day3',NULL,'09900000007','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1008,'Contract open period day11',NULL,'09900000008','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1009,'Contract open period day13',NULL,'09900000009','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1010,'Contract overdue 10',NULL,'09900000010','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1011,'Contract overdue 20',NULL,'09900000011','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1012,'Contract ttc',NULL,'09900000012','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1013,'Contract premium',NULL,'09900000013','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1014,'Contract pregnant lmp w8',NULL,'09900000014','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1015,'Contract pregnant ultrasound w26',NULL,'09900000015','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1016,'Contract pregnant manual w14',NULL,'09900000016','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1017,'Contract blocked',NULL,'09900000017','2026-09-23 09:00:00','2026-09-20 12:00:00',NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
-(1018,'Contract engaged',NULL,'09900000018','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00');
+(1001,NULL,NULL,'09900000001','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1002,'Contract profile no history',NULL,'09900000002','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1003,'Contract onboarding declared',NULL,'09900000003','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1004,'Contract regular',NULL,'09900000004','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1005,'Contract irregular',NULL,'09900000005','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1006,'Contract short outlier',NULL,'09900000006','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1007,'Contract open period day3',NULL,'09900000007','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1008,'Contract open period day11',NULL,'09900000008','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1009,'Contract open period day13',NULL,'09900000009','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1010,'Contract overdue 10',NULL,'09900000010','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1011,'Contract overdue 20',NULL,'09900000011','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1012,'Contract ttc',NULL,'09900000012','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1013,'Contract premium',NULL,'09900000013','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1014,'Contract pregnant lmp w8',NULL,'09900000014','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1015,'Contract pregnant ultrasound w26',NULL,'09900000015','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1016,'Contract pregnant manual w14',NULL,'09900000016','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1017,'Contract blocked',NULL,'09900000017','2026-09-23 09:00:00','2026-09-20 12:00:00',NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL),
+(1018,'Contract engaged',NULL,'09900000018','2026-09-23 09:00:00',NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00',NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `vital_plan_items`;

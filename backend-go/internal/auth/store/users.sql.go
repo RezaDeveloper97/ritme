@@ -28,7 +28,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Res
 
 const getUserByID = `-- name: GetUserByID :one
 
-SELECT id, name, email, mobile, mobile_verified_at, blocked_at, email_verified_at, password, remember_token, created_at, updated_at FROM ` + "`" + `users` + "`" + ` WHERE id = ? LIMIT 1
+SELECT id, name, email, mobile, mobile_verified_at, blocked_at, email_verified_at, password, remember_token, created_at, updated_at, ref_code FROM ` + "`" + `users` + "`" + ` WHERE id = ? LIMIT 1
 `
 
 // Users as the auth guard and OtpAuthController see them (App\Models\User).
@@ -48,12 +48,13 @@ func (q *Queries) GetUserByID(ctx context.Context, id uint64) (User, error) {
 		&i.RememberToken,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.RefCode,
 	)
 	return i, err
 }
 
 const getUserByMobile = `-- name: GetUserByMobile :one
-SELECT id, name, email, mobile, mobile_verified_at, blocked_at, email_verified_at, password, remember_token, created_at, updated_at FROM ` + "`" + `users` + "`" + ` WHERE mobile = ? LIMIT 1
+SELECT id, name, email, mobile, mobile_verified_at, blocked_at, email_verified_at, password, remember_token, created_at, updated_at, ref_code FROM ` + "`" + `users` + "`" + ` WHERE mobile = ? LIMIT 1
 `
 
 // User::where('mobile', $mobile)->first().
@@ -72,6 +73,7 @@ func (q *Queries) GetUserByMobile(ctx context.Context, mobile sql.NullString) (U
 		&i.RememberToken,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.RefCode,
 	)
 	return i, err
 }

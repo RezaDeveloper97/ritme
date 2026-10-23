@@ -26,6 +26,14 @@ type Admin struct {
 	UpdatedAt     sql.NullTime
 }
 
+type AdminAuditChainHead struct {
+	ID            uint8
+	LastID        sql.NullInt64
+	LastHash      sql.NullString
+	GenesisLastID sql.NullInt64
+	GenesisHash   sql.NullString
+}
+
 type AdminAuditLog struct {
 	ID         uint64
 	AdminID    sql.NullInt64
@@ -35,6 +43,8 @@ type AdminAuditLog struct {
 	Ip         string
 	Detail     sql.NullString
 	CreatedAt  sql.NullTime
+	PrevHash   sql.NullString
+	RowHash    sql.NullString
 }
 
 type AdminHealthAccessRequest struct {
@@ -58,6 +68,29 @@ type AdminRole struct {
 	UpdatedBy   sql.NullInt64
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+}
+
+type AdminSegment struct {
+	ID        uint64
+	Name      string
+	Filters   json.RawMessage
+	CreatedBy sql.NullInt64
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type AdminUserActivity struct {
+	UserID          uint64
+	LastActivityAt  sql.NullTime
+	LogDays30       uint8
+	LogDaysRecent14 uint8
+	LogDaysPrior14  uint8
+	Churn           string
+	Mode            string
+	Plan            string
+	DataQuality     sql.NullString
+	MainWarning     sql.NullString
+	UpdatedOn       civildate.Date
 }
 
 type Affirmation struct {
@@ -1626,6 +1659,31 @@ type MessageRuleVersion struct {
 	CreatedAt sql.NullTime
 }
 
+type MetricAlert struct {
+	ID         uint64
+	RuleID     uint64
+	Subject    string
+	Day        civildate.Date
+	Value      string
+	Threshold  string
+	State      string
+	OpenFlag   sql.NullBool
+	OpenedAt   sql.NullTime
+	ResolvedAt sql.NullTime
+}
+
+type MetricAlertRule struct {
+	ID         uint64
+	MetricKey  string
+	Comparator string
+	Threshold  string
+	WindowDays uint16
+	MinVolume  sql.NullInt32
+	Enabled    bool
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
 type MetricSnapshot struct {
 	ID         uint64
 	Day        civildate.Date
@@ -2353,6 +2411,16 @@ type ReminderIntake struct {
 	UpdatedAt  sql.NullTime
 }
 
+type SafetyScenarioRun struct {
+	ID         uint64
+	RunID      string
+	Scenario   string
+	Passed     bool
+	Detail     db.NullRawJSON
+	DurationMs uint32
+	CreatedAt  sql.NullTime
+}
+
 type Session struct {
 	ID           string
 	UserID       sql.NullInt64
@@ -2920,6 +2988,14 @@ type User struct {
 	RememberToken    sql.NullString
 	CreatedAt        sql.NullTime
 	UpdatedAt        sql.NullTime
+	RefCode          sql.NullString
+}
+
+type UserActivityDay struct {
+	UserID  uint64
+	Day     civildate.Date
+	Session bool
+	Logged  bool
 }
 
 type UserChallengeCompletion struct {
