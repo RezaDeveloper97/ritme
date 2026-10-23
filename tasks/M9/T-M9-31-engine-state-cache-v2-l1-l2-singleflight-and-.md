@@ -3,7 +3,7 @@ id: T-M9-31
 title: Engine state cache v2 (L1 + L2 + singleflight) and ETag/304
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-09, T-M9-13, T-M9-25, T-M9-30]
 parallel_group: M9-C
 touches: [backend-go/internal/cycle/state, backend-go/internal/platform/etag, backend-go/internal/auth/passport, backend-go/db/queries/auth, backend-go/internal/platform/config, backend-go/go.mod, backend-go/go.sum]

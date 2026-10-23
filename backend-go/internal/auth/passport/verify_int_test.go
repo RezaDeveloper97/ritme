@@ -103,3 +103,45 @@ func TestVerifyInt_UnknownToken(t *testing.T) {
 	_, err = v.Verify(ctx, "Bearer "+mint(t, testKey, claims("no-such-jti", ts(now), ts(now.AddDate(1, 0, 0)))))
 	assert.Equal(t, passport.CodeRevoked, codeOf(t, err))
 }
+
+// T-M9-31: the auth query also returns the user's revisions (LEFT JOIN user_revisions) — 0 / 0 without a row, the
+// stored values after a bump — and stays one query.
+func TestVerifyInt_RevisionsInTheAuthQuery(t *testing.T) {
+	ctx := context.Background()
+	pool := testdb.New(t)
+	_, err := pool.Exec(`INSERT INTO oauth_clients (id, name, secret, provider, redirect_uris, grant_types, revoked, created_at, updated_at)
+		VALUES (?, 'c', NULL, 'users', '[]', '["personal_access"]', 0, NOW(), NOW())`, clientID)
+	require.NoError(t, err)
+	res, err := pool.Exec(`INSERT INTO users (mobile, created_at, updated_at) VALUES ('09120000911', NOW(), NOW())`)
+	require.NoError(t, err)
+	uid, err := res.LastInsertId()
+	require.NoError(t, err)
+
+	q := store.New(pool)
+	issuedAt := time.Now()
+	tok, err := passport.NewIssuer(testKey, q, clock.At(issuedAt), 365).Issue(ctx, uint64(uid), issuedAt)
+	require.NoError(t, err)
+	v := passport.NewVerifier(&testKey.PublicKey, q, clock.At(issuedAt))
+	verify := func() (passport.Revisions, int64) {
+		cctx, counter := metrics.WithQueryCounter(ctx)
+		s, err := v.Verify(cctx, "Bearer "+tok.AccessToken)
+		require.NoError(t, err)
+		return s.Revisions, counter.Load()
+	}
+	_, _ = verify() // warm the client cache
+
+	r, n := verify()
+	assert.Equal(t, passport.Revisions{}, r, "no user_revisions row → 0 / 0")
+	assert.Equal(t, int64(1), n)
+
+	_, err = pool.Exec(`INSERT INTO user_revisions (user_id, engine_rev, analysis_rev, updated_at) VALUES (?, 7, 9, NOW())`, uid)
+	require.NoError(t, err)
+	r, n = verify()
+	assert.Equal(t, passport.Revisions{Engine: 7, Analysis: 9}, r)
+	assert.Equal(t, int64(1), n, "still one query")
+
+	_, err = pool.Exec(`UPDATE user_revisions SET engine_rev = engine_rev + 1 WHERE user_id = ?`, uid)
+	require.NoError(t, err)
+	r, _ = verify()
+	assert.Equal(t, uint64(8), r.Engine, "never cached: the next request sees the bump")
+}

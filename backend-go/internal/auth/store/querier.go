@@ -23,6 +23,8 @@ type Querier interface {
 	// replacing GetAccessToken + GetUserByID. Both are primary-key lookups, so the join is two const reads. No row means
 	// the token or the user is missing: the verifier then falls back to the separate reads to answer the exact 401 code.
 	// Never cached (DECISIONS.md X-02): revocation must be read fresh on every request.
+	// T-M9-31: the user's engine/analysis revisions (user_revisions, X-02) ride along in the same round-trip (a third
+	// primary-key read); NULL when the user has no row yet, which callers read as 0.
 	GetAccessTokenWithUser(ctx context.Context, arg GetAccessTokenWithUserParams) (GetAccessTokenWithUserRow, error)
 	// ClientRepository::find($aud) (findActive checks `revoked`, the guard checks `provider`).
 	GetClient(ctx context.Context, id string) (GetClientRow, error)

@@ -4,7 +4,7 @@ title: cycle_view v6 on today/date with CYCLE_ENGINE flag and shadow diff
 milestone: M9
 type: backend
 status: todo
-depends_on: [T-M9-21, T-M9-26, T-M9-31]
+depends_on: [T-M9-21, T-M9-26, T-M9-31, T-M9-31b]
 parallel_group: M9-C
 touches: [backend-go/internal/cycle/service, backend-go/internal/cycle/view, backend-go/internal/cycle/shadow, backend-go/internal/platform/config, backend-go/cmd/api/engine_shadow.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist, backend-go/contract/golden-v6, backend-go/cmd/contract]
 skills: [new-endpoint]

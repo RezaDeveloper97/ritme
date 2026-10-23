@@ -58,6 +58,8 @@ type Config struct {
 	Sharing Sharing
 	// Telemed is the visit booking (bloom B-N7-03, internal/telemed): hold TTL, gateway return page, Plus discount.
 	Telemed Telemed
+	// EngineCache is the v6 engine state cache (T-M9-31, internal/cycle/state).
+	EngineCache EngineCache
 	// StoragePath is the mounted Laravel storage/ directory (backend-storage volume):
 	// Passport keys, translations, public uploads.
 	StoragePath string
@@ -860,6 +862,7 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	}
 	cfg.Media.StoragePath = e.str("MEDIA_STORAGE_PATH", "")
 	cfg.Sharing = loadSharing(e, cfg.App)
+	cfg.EngineCache = loadEngineCache(e)
 	if cfg.App.IsProduction() && cfg.App.Debug {
 		e.fail("APP_DEBUG must be false when APP_ENV=production")
 	}

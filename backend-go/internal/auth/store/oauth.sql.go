@@ -39,9 +39,11 @@ func (q *Queries) GetAccessToken(ctx context.Context, id string) (GetAccessToken
 
 const getAccessTokenWithUser = `-- name: GetAccessTokenWithUser :one
 SELECT t.id AS token_id, t.user_id AS token_user_id, t.client_id AS token_client_id, t.revoked AS token_revoked,
-       t.expires_at AS token_expires_at, u.id, u.name, u.email, u.mobile, u.mobile_verified_at, u.blocked_at, u.email_verified_at, u.password, u.remember_token, u.created_at, u.updated_at
+       t.expires_at AS token_expires_at, u.id, u.name, u.email, u.mobile, u.mobile_verified_at, u.blocked_at, u.email_verified_at, u.password, u.remember_token, u.created_at, u.updated_at,
+       r.engine_rev AS engine_rev, r.analysis_rev AS analysis_rev
 FROM ` + "`" + `oauth_access_tokens` + "`" + ` t
 CROSS JOIN ` + "`" + `users` + "`" + ` u
+LEFT JOIN ` + "`" + `user_revisions` + "`" + ` r ON r.user_id = u.id
 WHERE t.id = ? AND u.id = ?
 LIMIT 1
 `
@@ -58,12 +60,16 @@ type GetAccessTokenWithUserRow struct {
 	TokenRevoked   bool
 	TokenExpiresAt sql.NullTime
 	User           User
+	EngineRev      sql.NullInt64
+	AnalysisRev    sql.NullInt64
 }
 
 // The auth hot path (T-M9-09): the token row (id = jti) and the user (id = the JWT `sub`) in ONE round-trip,
 // replacing GetAccessToken + GetUserByID. Both are primary-key lookups, so the join is two const reads. No row means
 // the token or the user is missing: the verifier then falls back to the separate reads to answer the exact 401 code.
 // Never cached (DECISIONS.md X-02): revocation must be read fresh on every request.
+// T-M9-31: the user's engine/analysis revisions (user_revisions, X-02) ride along in the same round-trip (a third
+// primary-key read); NULL when the user has no row yet, which callers read as 0.
 func (q *Queries) GetAccessTokenWithUser(ctx context.Context, arg GetAccessTokenWithUserParams) (GetAccessTokenWithUserRow, error) {
 	row := q.db.QueryRowContext(ctx, getAccessTokenWithUser, arg.TokenID, arg.UserID)
 	var i GetAccessTokenWithUserRow
@@ -84,6 +90,8 @@ func (q *Queries) GetAccessTokenWithUser(ctx context.Context, arg GetAccessToken
 		&i.User.RememberToken,
 		&i.User.CreatedAt,
 		&i.User.UpdatedAt,
+		&i.EngineRev,
+		&i.AnalysisRev,
 	)
 	return i, err
 }

@@ -8,10 +8,14 @@ SELECT id, user_id, client_id, revoked, expires_at FROM `oauth_access_tokens` WH
 -- replacing GetAccessToken + GetUserByID. Both are primary-key lookups, so the join is two const reads. No row means
 -- the token or the user is missing: the verifier then falls back to the separate reads to answer the exact 401 code.
 -- Never cached (DECISIONS.md X-02): revocation must be read fresh on every request.
+-- T-M9-31: the user's engine/analysis revisions (user_revisions, X-02) ride along in the same round-trip (a third
+-- primary-key read); NULL when the user has no row yet, which callers read as 0.
 SELECT t.id AS token_id, t.user_id AS token_user_id, t.client_id AS token_client_id, t.revoked AS token_revoked,
-       t.expires_at AS token_expires_at, sqlc.embed(u)
+       t.expires_at AS token_expires_at, sqlc.embed(u),
+       r.engine_rev AS engine_rev, r.analysis_rev AS analysis_rev
 FROM `oauth_access_tokens` t
 CROSS JOIN `users` u
+LEFT JOIN `user_revisions` r ON r.user_id = u.id
 WHERE t.id = sqlc.arg(token_id) AND u.id = sqlc.arg(user_id)
 LIMIT 1;
 

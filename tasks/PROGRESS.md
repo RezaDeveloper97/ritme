@@ -2018,3 +2018,29 @@ Nothing needed fixing.
 - Open: until T-M9-32 the body is `{expected_start}` / empty 204 — switch to the today cycle_view encoder there; no
   contract case (cycle goldens are Laravel); on a declared-only history > 14 days late the roll-forward prediction
   can't be skipped (`prediction_mismatch`) — engine follow-up candidate.
+
+## T-M9-31 — Engine state cache v2 (L1 + L2 + singleflight) and ETag/304 (D-132)
+- Auth: `GetAccessTokenWithUser` LEFT JOINs `user_revisions` → `passport.Session.Revisions{Engine, Analysis}` (0/0
+  without a row), still **1 query** (int test). Exposing it on the request context (`auth.CurrentRevisions`) needs a
+  `guard.go` edit → split into **T-M9-31b** (blocked until the user OKs the auth-guard edit; diff in
+  `docs/engine-v6/drafts/T-M9-31b-guard-revisions.diff`). T-M9-32 and T-M10-28 now depend on T-M9-31b.
+- `internal/cycle/state`: `Provider.For(ctx, uid, rev, Params{Engine, FP})` — L1 golang-lru/v2 v2.0.7 keyed
+  (uid, rev, paramsFP, build), `ENGINE_L1_ENTRIES` default 20 000, shared immutable states; L2 Redis
+  `ritme-go:eng:in:{uid}:{rev}` = `inputs.Encode` snapshot, TTL 7 d, Redis error / corrupt / unknown `v` → DB + rewrite;
+  singleflight on uid:rev (detached ctx, 5 s); DB loads go through the snapshot format so DB- and L2-built states are
+  identical. `CYCLE_ENGINE_CACHE=off` bypasses both; `ENGINE_CACHE_VERIFY` (on under go test) /
+  `ENGINE_CACHE_VERIFY_SAMPLE` rebuild on hits → `engine_cache_verify_mismatch_total`. Metrics
+  `cache_requests_total{cache=engine_l1|engine_l2}`, `engine_build_seconds{source}`. Config `config.EngineCache`.
+- `internal/platform/etag`: `Engine{…}.Tag()` = `W/"u{uid36}.e{rev}-{localToday}-{locale}-{paramsFP}-{cfgFP}-{build}"`,
+  weak `Match`, `SetHeaders` (`private, no-cache`, Vary appended), `NotModified` / `Middleware` → 304 before the
+  handler; `Build()` = clean VCS revision else executable sha256. Not wired into routes (T-M9-32…35); v1 cache unchanged.
+- New env vars: `ENGINE_L1_ENTRIES`, `ENGINE_CACHE_VERIFY`, `ENGINE_CACHE_VERIFY_SAMPLE` (plus existing
+  `CYCLE_ENGINE_CACHE`). `go mod tidy` promoted golang-lru, x/sync and a few already-used modules to direct (no version
+  changes).
+- Benchmarks (M4, loaded): L1 hit 61–69 ns, 0 allocs (≤ 2 µs); L2 hit + Prepare 24 periods 12–14 µs in-memory,
+  218–230 µs with docker Redis (≤ 400 µs); 304 path p50 313 µs / p95 465 µs, 1 query (≤ 5 ms).
+- Verify (combined with T-M9-29): `-race` state/etag/auth ok; full unit + `make test-int PKG=./...` green; contract all
+  1914/0; golangci-lint 0 issues.
+- Open: L2 snapshot keyed by rev only while `inputs.Load` bounds markers by today (future markers > 1 day, the −400 d
+  edge) — verify mode measures it; Redis-down cold path waits for go-redis retries (consider MaxRetries / breaker);
+  `LocalToday` may cost the stored-zone read on a 304; callers must list every config table in cfgFP.

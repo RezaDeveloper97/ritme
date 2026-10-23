@@ -57,6 +57,27 @@ type VerifierStore interface {
 type Session struct {
 	User  store.User
 	Token store.GetAccessTokenRow // the oauth_access_tokens row (id = jti), incl. expires_at
+	// Revisions are the user's user_revisions row, read in the same auth query (T-M9-31, X-02); 0 / 0 when the user
+	// has no row yet. They key the engine state cache and the engine ETags, so they are never cached either.
+	Revisions Revisions
+}
+
+// Revisions is the user's DB-authoritative cache revision pair (user_revisions, README §3).
+type Revisions struct {
+	Engine   uint64 // engine_rev: bumped by every engine-input write (T-M9-30)
+	Analysis uint64 // analysis_rev: bumped by every engine- or analysis-input write
+}
+
+// revisionsOf reads the LEFT JOINed user_revisions columns (NULL = no row = 0).
+func revisionsOf(engine, analysis sql.NullInt64) Revisions {
+	return Revisions{Engine: nonNegative(engine), Analysis: nonNegative(analysis)}
+}
+
+func nonNegative(v sql.NullInt64) uint64 {
+	if !v.Valid || v.Int64 < 0 {
+		return 0
+	}
+	return uint64(v.Int64)
 }
 
 // Verifier is the `auth:api` guard (Passport TokenGuard + league BearerTokenValidator).
@@ -112,9 +133,9 @@ func jwtFromHeader(header string) string {
 // leeway → token row id=jti AND revoked=0 (DB expires_at is NOT checked) → client by aud
 // (exists, not revoked, provider NULL or "users") → user by sub.
 //
-// Cost (T-M9-09): one query on the hot path — the token row and the user come from a single
-// join and the client from the in-process cache. The token row is never cached, so a revoked
-// token is rejected on the very next request (DECISIONS.md X-02).
+// Cost (T-M9-09): one query on the hot path — the token row, the user and the user's revisions
+// (T-M9-31) come from a single join and the client from the in-process cache. The token row is
+// never cached, so a revoked token is rejected on the very next request (DECISIONS.md X-02).
 func (v *Verifier) Verify(ctx context.Context, authorization string) (*Session, error) {
 	if BearerToken(authorization) == "" {
 		return nil, reject(CodeUnauthenticated, "no bearer token")
@@ -138,7 +159,7 @@ func (v *Verifier) Verify(ctx context.Context, authorization string) (*Session, 
 			if err := v.checkClient(ctx, c.aud); err != nil {
 				return nil, err
 			}
-			return &Session{User: row.User, Token: tok}, nil
+			return &Session{User: row.User, Token: tok, Revisions: revisionsOf(row.EngineRev, row.AnalysisRev)}, nil
 		case !errors.Is(err, sql.ErrNoRows):
 			return nil, fmt.Errorf("passport: load token and user: %w", err)
 		}
@@ -149,6 +170,8 @@ func (v *Verifier) Verify(ctx context.Context, authorization string) (*Session, 
 
 // verifySlow is the original three-step path (token → client → user). It runs only when the
 // joined read found nothing or the token has no subject, i.e. for requests about to be rejected.
+// It does not read user_revisions: should it ever accept (a row appearing between the two reads),
+// the session carries revision 0, which only means a cache miss / no ETag match for that request.
 func (v *Verifier) verifySlow(ctx context.Context, c *claims) (*Session, error) {
 	row, err := v.store.GetAccessToken(ctx, c.jti)
 	switch {
