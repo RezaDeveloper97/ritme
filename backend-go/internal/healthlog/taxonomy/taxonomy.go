@@ -112,7 +112,19 @@ type Param struct {
 	Detail  bool     // optional detail behind «جزئیات» (colour, clots, odour…)
 	Alert   bool     // always discuss with a doctor in this mode set (bleeding in pregnancy)
 	Source  string   // link: the feature that owns the data
+	// Gates make the param available in a further mode only while the caller opens the gate (Gates): mode → gate.
+	// Postpartum `flow` (T-M9-28, I-05): offered from birth + postpartum.flow_from_day, earlier bleeding is lochia.
+	Gates map[string]string
 }
+
+// Gate codes (Param.Gates).
+const (
+	// GatePostpartumFlow is open for a postpartum day on or after birth + postpartum.flow_from_day (H-14).
+	GatePostpartumFlow = "postpartum_flow"
+)
+
+// Gates are the gates a caller opened for one user and day (nil = none).
+type Gates map[string]bool
 
 // Category is one accordion section / quick tile.
 type Category struct {
@@ -161,7 +173,8 @@ var odorOptions = join(opts("normal", "changed"), legacy("slightly_unusual", "st
 // registry is the taxonomy, in the default category order (nbl_Log_Customize). B-N3-02 orders per user.
 var registry = []Category{
 	{Code: "bleeding", Group: "body", Modes: modes(cycleish, preg, post), Params: []Param{
-		{Code: "flow", Type: Single, Options: opts("light", "medium", "heavy", "very_heavy"), Modes: modes(cycleish, preg), Alert: true},
+		{Code: "flow", Type: Single, Options: opts("light", "medium", "heavy", "very_heavy"), Modes: modes(cycleish, preg), Alert: true,
+			Gates: map[string]string{ModePostpartum: GatePostpartumFlow}},
 		{Code: "spotting", Type: Bool, Modes: modes(cycleish, preg)},
 		// CB-MENO-01: the menopause log's none · spotting · bleeding (any bleeding after menopause → alert).
 		{Code: "presence", Type: Single, Options: opts("none", "spotting", "bleeding"), Modes: []string{ModeMenopause}, Alert: true},
@@ -323,6 +336,15 @@ func (c *Category) ParamModes(p *Param) []string {
 // Available reports whether the param shows in mode.
 func (c *Category) Available(p *Param, mode string) bool {
 	return slices.Contains(c.Modes, mode) && slices.Contains(c.ParamModes(p), mode)
+}
+
+// AvailableWith is Available, plus a gated param (Param.Gates) in a mode whose gate is open.
+func (c *Category) AvailableWith(p *Param, mode string, open Gates) bool {
+	if c.Available(p, mode) {
+		return true
+	}
+	gate, ok := p.Gates[mode]
+	return ok && open[gate] && slices.Contains(c.Modes, mode)
 }
 
 // Option finds an option / item of the param.

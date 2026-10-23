@@ -64,6 +64,7 @@ func setup(t *testing.T) *env {
 	app.Use(clock.Middleware(clock.Real{}, true))
 	app.Get("/api/v1/postpartum", locale, guard, h.Show)
 	app.Post("/api/v1/postpartum/activate", locale, guard, h.Activate)
+	app.Patch("/api/v1/postpartum", locale, guard, h.Update) // T-M9-28: the breastfeeding answer
 	app.Get("/api/v1/postpartum/recovery", locale, guard, h.ShowRecovery)
 	app.Put("/api/v1/postpartum/recovery", locale, guard, h.SaveRecovery)
 	app.Get("/api/v1/postpartum/epds/questions", locale, guard, h.Questions)
@@ -671,4 +672,56 @@ func TestPostpartum_VisitNoticesPerKind(t *testing.T) {
 	}
 	assert.Equal(t, "2", e.scalar(t, `SELECT COUNT(*) FROM user_notifications WHERE user_id = ? AND type = 'postpartum'`, id))
 	assert.Equal(t, "1", e.scalar(t, `SELECT COUNT(*) FROM user_notifications WHERE user_id = ? AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.kind')) = 'comprehensive'`, id))
+}
+
+// T-M9-28 (I-04): the breastfeeding answer on the profile — null until asked, PATCH true / false / null, validated,
+// 409 outside the mode, never another user's row.
+func TestPostpartum_Breastfeeding(t *testing.T) {
+	e := setup(t)
+	id, tok := e.user(t, "09120000071")
+	other, otherTok := e.user(t, "09120000072")
+
+	r := e.do(t, http.MethodPatch, "/api/v1/postpartum", tok, "en", `{"breastfeeding":true}`)
+	assert.Equal(t, http.StatusConflict, r.status, "outside postpartum mode: %s", r.raw)
+
+	r = e.do(t, http.MethodPost, "/api/v1/postpartum/activate", tok, "en", `{"birth_date":"2026-09-20"}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	p := r.data()["profile"].(map[string]any)
+	v, has := p["breastfeeding"]
+	assert.True(t, has)
+	assert.Nil(t, v, "not asked yet")
+
+	for _, body := range []string{`{}`, `{"breastfeeding":"maybe"}`, `{"breastfeeding":[1]}`} {
+		r = e.do(t, http.MethodPatch, "/api/v1/postpartum", tok, "en", body)
+		require.Equal(t, http.StatusUnprocessableEntity, r.status, body)
+		assert.Contains(t, r.errors(), "breastfeeding", body)
+	}
+
+	r = e.do(t, http.MethodPatch, "/api/v1/postpartum", tok, "fa", `{"breastfeeding":true}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, "پاسخت ذخیره شد", r.body["message"])
+	assert.Equal(t, true, r.data()["profile"].(map[string]any)["breastfeeding"])
+	assert.Equal(t, "1", e.scalar(t, `SELECT breastfeeding FROM postpartum_profiles WHERE user_id = ?`, id))
+
+	r = e.do(t, http.MethodPatch, "/api/v1/postpartum", tok, "en", `{"breastfeeding":false}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, false, r.data()["profile"].(map[string]any)["breastfeeding"])
+
+	r = e.do(t, http.MethodPatch, "/api/v1/postpartum", tok, "en", `{"breastfeeding":null}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Nil(t, r.data()["profile"].(map[string]any)["breastfeeding"], "null clears the answer")
+
+	r = e.do(t, http.MethodPost, "/api/v1/postpartum/activate", otherTok, "en", `{"birth_date":"2026-09-21"}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	r = e.do(t, http.MethodPatch, "/api/v1/postpartum", otherTok, "en", `{"breastfeeding":true}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, "", e.scalar(t, `SELECT breastfeeding FROM postpartum_profiles WHERE user_id = ?`, id), "user isolation")
+	assert.Equal(t, "1", e.scalar(t, `SELECT breastfeeding FROM postpartum_profiles WHERE user_id = ?`, other))
+
+	r = e.do(t, http.MethodPost, "/api/v1/postpartum/activate", otherTok, "en", `{"birth_date":"2026-09-22"}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, true, r.data()["profile"].(map[string]any)["breastfeeding"], "editing the birth keeps the answer")
+
+	r = e.do(t, http.MethodPatch, "/api/v1/postpartum", "", "en", `{"breastfeeding":true}`)
+	assert.Equal(t, http.StatusUnauthorized, r.status)
 }

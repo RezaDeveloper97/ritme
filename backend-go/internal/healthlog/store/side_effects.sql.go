@@ -12,8 +12,24 @@ import (
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
+const deleteBleedingLogPeriod = `-- name: DeleteBleedingLogPeriod :exec
+DELETE FROM ` + "`" + `cycle_histories` + "`" + ` WHERE id = ? AND user_id = ? AND source = 'bleeding_log'
+`
+
+type DeleteBleedingLogPeriodParams struct {
+	ID     uint64
+	UserID uint64
+}
+
+// T-M9-28 (I-02): a bleeding_log period with no bleeding day left is deleted (never a button row).
+func (q *Queries) DeleteBleedingLogPeriod(ctx context.Context, arg DeleteBleedingLogPeriodParams) error {
+	_, err := q.db.ExecContext(ctx, deleteBleedingLogPeriod, arg.ID, arg.UserID)
+	return err
+}
+
 const getCycleHistoryAfter = `-- name: GetCycleHistoryAfter :one
 SELECT id, user_id, period_start_date, period_end_date, cycle_length, bleeding_length, is_confirmed, is_estimated, source, data_quality_flags, created_at, updated_at FROM ` + "`" + `cycle_histories` + "`" + ` WHERE user_id = ? AND period_start_date > ?
+  AND is_estimated = 0
 ORDER BY period_start_date ASC LIMIT 1
 `
 
@@ -23,6 +39,7 @@ type GetCycleHistoryAfterParams struct {
 }
 
 // B-N3-14b (D-55): the first period that starts after a bleeding day (it may start a day or two later).
+// Estimates are no periods for the bridge (T-M9-28).
 func (q *Queries) GetCycleHistoryAfter(ctx context.Context, arg GetCycleHistoryAfterParams) (CycleHistory, error) {
 	row := q.db.QueryRowContext(ctx, getCycleHistoryAfter, arg.UserID, arg.AfterDate)
 	var i CycleHistory
@@ -74,6 +91,7 @@ func (q *Queries) GetCycleHistoryByStart(ctx context.Context, arg GetCycleHistor
 
 const getCycleHistoryOnOrBefore = `-- name: GetCycleHistoryOnOrBefore :one
 SELECT id, user_id, period_start_date, period_end_date, cycle_length, bleeding_length, is_confirmed, is_estimated, source, data_quality_flags, created_at, updated_at FROM ` + "`" + `cycle_histories` + "`" + ` WHERE user_id = ? AND period_start_date <= ?
+  AND is_estimated = 0
 ORDER BY period_start_date DESC LIMIT 1
 `
 
@@ -83,6 +101,7 @@ type GetCycleHistoryOnOrBeforeParams struct {
 }
 
 // B-N3-14b (D-55): the period that starts on or before a back-dated bleeding day (it may contain the day).
+// Estimates are no periods for the bridge (T-M9-28).
 func (q *Queries) GetCycleHistoryOnOrBefore(ctx context.Context, arg GetCycleHistoryOnOrBeforeParams) (CycleHistory, error) {
 	row := q.db.QueryRowContext(ctx, getCycleHistoryOnOrBefore, arg.UserID, arg.OnDate)
 	var i CycleHistory
@@ -128,6 +147,18 @@ func (q *Queries) GetLatestCycleHistory(ctx context.Context, userID uint64) (Cyc
 	return i, err
 }
 
+const getLogPostpartumBirth = `-- name: GetLogPostpartumBirth :one
+SELECT birth_date FROM ` + "`" + `postpartum_profiles` + "`" + ` WHERE user_id = ? LIMIT 1
+`
+
+// T-M9-28 (I-05): the birth date of a postpartum user — flow before birth + postpartum.flow_from_day is lochia.
+func (q *Queries) GetLogPostpartumBirth(ctx context.Context, userID uint64) (civildate.Date, error) {
+	row := q.db.QueryRowContext(ctx, getLogPostpartumBirth, userID)
+	var birth_date civildate.Date
+	err := row.Scan(&birth_date)
+	return birth_date, err
+}
+
 const getUserProfile = `-- name: GetUserProfile :one
 
 SELECT id, user_id, birthday, weight, height, period_duration, cycle_duration, last_period_start, user_goal, pregnancy_intention, chronic_conditions, subscription_type, calculation_status, calculation_started_at, calculation_completed_at, calculation_version, created_at, updated_at, onboarding_last_period_start, timezone FROM ` + "`" + `user_profiles` + "`" + ` WHERE user_id = ? ORDER BY id LIMIT 1
@@ -165,32 +196,80 @@ func (q *Queries) GetUserProfile(ctx context.Context, userID uint64) (UserProfil
 }
 
 const insertCycleHistory = `-- name: InsertCycleHistory :execlastid
-INSERT INTO ` + "`" + `cycle_histories` + "`" + ` (user_id, period_start_date, cycle_length, is_confirmed, created_at, updated_at)
-VALUES (?, ?, ?, 0, ?, ?)
+INSERT INTO ` + "`" + `cycle_histories` + "`" + `
+  (user_id, period_start_date, period_end_date, cycle_length, bleeding_length, is_confirmed, source, created_at, updated_at)
+VALUES
+  (?, ?, ?, ?,
+   ?, 1, 'bleeding_log', ?, ?)
 `
 
 type InsertCycleHistoryParams struct {
 	UserID          uint64
 	PeriodStartDate civildate.Date
+	PeriodEndDate   civildate.NullDate
 	CycleLength     sql.NullInt32
-	CreatedAt       sql.NullTime
-	UpdatedAt       sql.NullTime
+	BleedingLength  sql.NullInt32
+	Now             sql.NullTime
 }
 
-// CycleHistory::create([user_id, period_start_date, cycle_length, is_confirmed => false]);
-// is_estimated / source / data_quality_flags keep their column defaults.
+// The bleeding-log bridge (engine v6, T-M9-28, DECISIONS.md I-02, D-124 / D-138): a period built from `flow` logs is
+// actual data — source bleeding_log, confirmed (Laravel's CycleHistory::create wrote an unconfirmed user_logged row,
+// D-55). period_end_date / bleeding_length are NULL for an open period. is_estimated / data_quality_flags keep their
+// column defaults; cycle_length is written by periods.RecomputeCycleLengths in the same transaction.
 func (q *Queries) InsertCycleHistory(ctx context.Context, arg InsertCycleHistoryParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, insertCycleHistory,
 		arg.UserID,
 		arg.PeriodStartDate,
+		arg.PeriodEndDate,
 		arg.CycleLength,
-		arg.CreatedAt,
-		arg.UpdatedAt,
+		arg.BleedingLength,
+		arg.Now,
+		arg.Now,
 	)
 	if err != nil {
 		return 0, err
 	}
 	return result.LastInsertId()
+}
+
+const listBleedingDaysBetween = `-- name: ListBleedingDaysBetween :many
+SELECT log_date FROM ` + "`" + `daily_health_logs` + "`" + `
+WHERE user_id = ?
+  AND log_date >= ?
+  AND log_date <= ?
+  AND bleeding_intensity IS NOT NULL AND bleeding_intensity <> ''
+ORDER BY log_date
+`
+
+type ListBleedingDaysBetweenParams struct {
+	UserID   uint64
+	FromDate civildate.Date
+	ToDate   civildate.Date
+}
+
+// T-M9-28 (I-02): the user's bleeding days (a `flow` value) in [from_date, to_date], oldest first — what a
+// bleeding_log period is rebuilt from.
+func (q *Queries) ListBleedingDaysBetween(ctx context.Context, arg ListBleedingDaysBetweenParams) ([]civildate.Date, error) {
+	rows, err := q.db.QueryContext(ctx, listBleedingDaysBetween, arg.UserID, arg.FromDate, arg.ToDate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []civildate.Date{}
+	for rows.Next() {
+		var log_date civildate.Date
+		if err := rows.Scan(&log_date); err != nil {
+			return nil, err
+		}
+		items = append(items, log_date)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const markProfileRecalculated = `-- name: MarkProfileRecalculated :exec
@@ -216,6 +295,35 @@ func (q *Queries) MarkProfileRecalculated(ctx context.Context, arg MarkProfileRe
 		arg.Now,
 		arg.Now,
 		arg.ID,
+	)
+	return err
+}
+
+const updateBleedingLogPeriod = `-- name: UpdateBleedingLogPeriod :exec
+UPDATE ` + "`" + `cycle_histories` + "`" + `
+SET period_start_date = ?, period_end_date = ?,
+    bleeding_length = ?, updated_at = ?
+WHERE id = ? AND user_id = ? AND source = 'bleeding_log'
+`
+
+type UpdateBleedingLogPeriodParams struct {
+	PeriodStartDate civildate.Date
+	PeriodEndDate   civildate.NullDate
+	BleedingLength  sql.NullInt32
+	Now             sql.NullTime
+	ID              uint64
+	UserID          uint64
+}
+
+// T-M9-28 (I-02): the bridge rewrites only its own rows (source bleeding_log); a button row is never touched.
+func (q *Queries) UpdateBleedingLogPeriod(ctx context.Context, arg UpdateBleedingLogPeriodParams) error {
+	_, err := q.db.ExecContext(ctx, updateBleedingLogPeriod,
+		arg.PeriodStartDate,
+		arg.PeriodEndDate,
+		arg.BleedingLength,
+		arg.Now,
+		arg.ID,
+		arg.UserID,
 	)
 	return err
 }

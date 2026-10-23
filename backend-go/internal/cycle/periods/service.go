@@ -276,6 +276,10 @@ func (s *Service) Update(ctx context.Context, userID, id uint64, start civildate
 		next := *record
 		next.PeriodStartDate = start
 		next.PeriodEndDate, next.BleedingLength = rangeEnd(start, end)
+		// Engine v6 (gap 02 S5, DECISIONS.md I-02, D-124): an edited row is the user's own data — a bleeding-log
+		// period (or a leftover estimate / seed) becomes a confirmed user_logged row the bridge never rebuilds.
+		next.IsConfirmed, next.IsEstimated = true, false
+		next.Source = string(enums.DataSourceUserLogged)
 		if _, err := saveDirty(ctx, q, *record, next, now); err != nil {
 			return err
 		}
@@ -302,20 +306,20 @@ func (s *Service) Destroy(ctx context.Context, userID, id uint64, now time.Time)
 		if err := q.DeletePeriod(ctx, record.ID); err != nil {
 			return fmt.Errorf("periods: delete: %w", err)
 		}
-		if err := recomputeCycleLengths(ctx, q, userID, now); err != nil {
+		if err := RecomputeCycleLengths(ctx, q, userID, now); err != nil {
 			return err
 		}
-		return reanchor(ctx, q, pq, userID, now)
+		return Reanchor(ctx, q, pq, userID, now)
 	})
 }
 
-// reconcile is the tail of store() / update(): recomputeCycleLengths, reanchor, then
+// reconcile is the tail of store() / update(): RecomputeCycleLengths, Reanchor, then
 // `$period->refresh()` and the quality flags of the re-anchored lengths.
 func (s *Service) reconcile(ctx context.Context, q *store.Queries, pq *profilestore.Queries, userID, id uint64, now time.Time) (store.CycleHistory, error) {
-	if err := recomputeCycleLengths(ctx, q, userID, now); err != nil {
+	if err := RecomputeCycleLengths(ctx, q, userID, now); err != nil {
 		return store.CycleHistory{}, err
 	}
-	if err := reanchor(ctx, q, pq, userID, now); err != nil {
+	if err := Reanchor(ctx, q, pq, userID, now); err != nil {
 		return store.CycleHistory{}, err
 	}
 	row, err := q.GetUserPeriod(ctx, store.GetUserPeriodParams{UserID: userID, ID: id})
@@ -327,8 +331,10 @@ func (s *Service) reconcile(ctx context.Context, q *store.Queries, pq *profilest
 	return saveDirty(ctx, q, row, next, now)
 }
 
-// recomputeCycleLengths: every row's cycle_length = days since the previous start (null first).
-func recomputeCycleLengths(ctx context.Context, q *store.Queries, userID uint64, now time.Time) error {
+// RecomputeCycleLengths: every row's cycle_length = days since the previous start (null first). Shared with the
+// bleeding-log bridge (internal/healthlog, gap 02 B5): every period write of either writer runs it on q (the
+// caller's transaction, after LockUser).
+func RecomputeCycleLengths(ctx context.Context, q *store.Queries, userID uint64, now time.Time) error {
 	rows, err := q.ListPeriodsOldestFirst(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("periods: recompute: %w", err)
@@ -351,8 +357,9 @@ func recomputeCycleLengths(ctx context.Context, q *store.Queries, userID uint64,
 	return nil
 }
 
-// reanchor: profile LMP = the latest period start (null without periods), then markRecalculated.
-func reanchor(ctx context.Context, q *store.Queries, pq *profilestore.Queries, userID uint64, now time.Time) error {
+// Reanchor: profile LMP = the latest period start (null without periods), then markRecalculated. Shared with the
+// bleeding-log bridge (internal/healthlog).
+func Reanchor(ctx context.Context, q *store.Queries, pq *profilestore.Queries, userID uint64, now time.Time) error {
 	prof, err := optional(q.GetProfileByUserID(ctx, userID))
 	if err != nil || prof == nil {
 		return err
@@ -460,8 +467,8 @@ func insert(ctx context.Context, q *store.Queries, r store.CycleHistory) (uint64
 }
 
 // errDuplicateStart is MySQL 1062 on the period insert: a row with the same (user_id,
-// period_start_date) appeared after the reads (a writer outside this lock, e.g. the bleeding-log
-// bridge). The transaction is rolled back and the caller answers from the committed row (D-131).
+// period_start_date) appeared after the reads (a writer that did not take LockUser; since T-M9-28 the bleeding-log
+// bridge takes it too). The transaction is rolled back and the caller answers from the committed row (D-131).
 var errDuplicateStart = errors.New("periods: duplicate period start")
 
 func isDuplicateKey(err error) bool {
@@ -492,9 +499,9 @@ func (s *Service) tx(ctx context.Context, userID uint64, fn func(q *store.Querie
 	if err != nil {
 		return fmt.Errorf("periods: begin: %w", err)
 	}
-	if _, err := filestore.New(tx).LockOwner(ctx, userID); err != nil {
+	if err := LockUser(ctx, tx, userID); err != nil {
 		_ = tx.Rollback()
-		return fmt.Errorf("periods: lock user: %w", err)
+		return err
 	}
 	if err := fn(s.q.WithTx(tx), profilestore.New(tx)); err != nil {
 		_ = tx.Rollback()
@@ -502,6 +509,17 @@ func (s *Service) tx(ctx context.Context, userID uint64, fn func(q *store.Querie
 	}
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("periods: commit: %w", err)
+	}
+	return nil
+}
+
+// LockUser takes the per-user period lock (D-131) on tx: `SELECT id FROM users WHERE id = ? FOR UPDATE`. Every
+// cycle_histories writer — the period button (Service.tx) and the bleeding-log bridge (internal/healthlog) — takes
+// it first in its transaction, so their overlap checks and writes of one user never interleave. Re-taking it in the
+// same transaction is a no-op.
+func LockUser(ctx context.Context, tx filestore.DBTX, userID uint64) error {
+	if _, err := filestore.New(tx).LockOwner(ctx, userID); err != nil {
+		return fmt.Errorf("periods: lock user: %w", err)
 	}
 	return nil
 }

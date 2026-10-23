@@ -103,6 +103,19 @@ func validateActivate(body phpval.Map, locale string, now time.Time) (ActivateIn
 	return in, nil
 }
 
+// validateBreastfeeding is PATCH /postpartum {breastfeeding: true | false | null} (I-04: null = not answered). The key
+// must be sent; the answer is returned as given (nil = clear).
+func validateBreastfeeding(body phpval.Map, locale string, now time.Time) (*bool, error) {
+	data, err := validate(body, []string{"breastfeeding"}, validation.Rules{
+		validation.F("breastfeeding", "present", "nullable", "boolean"),
+	}, locale, now)
+	if err != nil {
+		return nil, err
+	}
+	v, _ := data.Get("breastfeeding")
+	return boolPtr(v), nil
+}
+
 // validateDate is ?date= / body date (a past or current day; default today).
 func validateDate(src phpval.Map, locale string, now time.Time) (civildate.Date, error) {
 	data, err := validate(src, []string{"date"}, validation.Rules{

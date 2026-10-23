@@ -82,6 +82,7 @@ func setupLogs(t *testing.T) *logsEnv {
 	app.Delete("/api/v1/health-logs/:date", locale, guard, old.Destroy)
 	periodH := periods.NewHandlers(periods.NewService(db), clock.Real{}) // B-N3-14b: the period log the repro starts from
 	app.Post("/api/v1/cycle/period", locale, guard, periodH.Store)
+	app.Put("/api/v1/cycle/period/:period", locale, guard, periodH.Update) // T-M9-28: an edit confirms a bridge row
 	return &logsEnv{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365)}
 }
 

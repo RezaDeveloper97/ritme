@@ -17,6 +17,8 @@ func TestPostpartumKeys_DefaultsAndBounds(t *testing.T) {
 		KeyPostpartumRedFlags: {"fever_c": 38.0},
 		KeyPostpartumVisits:   {"contact_by_day": 21, "reminder_day": 42, "comprehensive_by_day": 84},
 		KeyEPDSUrgentTotal:    {"score": 13},
+		// T-M9-28 (I-05, H-14 advisor-pending): flow from delivery + 42 days.
+		KeyPostpartumFlowFromDay: {"day": 42},
 	}
 	for key, v := range want {
 		def, ok := Lookup(key)

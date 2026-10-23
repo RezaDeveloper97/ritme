@@ -101,6 +101,8 @@ const profileSchema = z
     delivery_type_label: text,
     baby_count: z.number().int().catch(1),
     source: z.string().catch('direct'),
+    // T-M9-28 (I-04): absent on older payloads, null until answered.
+    breastfeeding: z.boolean().nullable().optional().catch(null),
   })
   .transform(
     (d): PostpartumProfile => ({
@@ -109,6 +111,7 @@ const profileSchema = z
       deliveryTypeLabel: d.delivery_type_label,
       babyCount: d.baby_count,
       source: d.source,
+      breastfeeding: d.breastfeeding ?? null,
     }),
   );
 

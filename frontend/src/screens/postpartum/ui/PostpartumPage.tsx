@@ -15,6 +15,7 @@ import {
   type PostpartumStatus,
   postpartumKeys,
   usePostpartum,
+  useSaveBreastfeeding,
   useSaveRecovery,
 } from '@/entities/postpartum';
 import { useSaveLogDay } from '@/features/log-day';
@@ -38,6 +39,7 @@ import {
   Icon,
   type IconName,
   IconCircle,
+  ListRow,
   ProgressRing,
   SectionTitle,
   SecondaryButton,
@@ -45,6 +47,7 @@ import {
   SkeletonGroup,
   SkyLayer,
   StatusPill,
+  Switch,
   type Tone,
   UrgentCard,
 } from '@/shared/ui';
@@ -54,6 +57,7 @@ import { ModeChip } from '@/widgets/mode-chip';
 import { QuickAccess } from '@/widgets/quick-access';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
+import { breastfeedingAnswer, breastfeedingView } from '../model/breastfeeding';
 import { durationKey, headlineWeek, homeAlerts, splitScheduled, tileSummary } from '../model/home';
 import { MOOD_CHIPS, type MoodChip, pressedChips, toggleChip } from '../model/mood';
 import { VISIT_LOOK, visitAction, visitRows } from '../model/visits';
@@ -177,6 +181,7 @@ export function PostpartumPage() {
       <div className="pp-body">
         <AlertList alerts={homeAlerts(data.alerts, data.today)} t={t} />
         <MoodCard t={t} />
+        <BreastfeedingCard data={data} t={t} />
         <Tiles data={data} t={t} />
         {/* CB-NAV-03b (nbd_Nav_Today / IA_Map Today): «برای امروز» + the user-picked «دسترسی سریع». */}
         <ForToday reminders={<TodayRemindersCard />} />
@@ -372,6 +377,37 @@ function MoodCard({ t }: { t: T }) {
         </p>
       )}
       <p className="pp-mood-note">{t('home.mood.note')}</p>
+    </Card>
+  );
+}
+
+// ── «شیر می‌دهی؟» (I-04): null = not asked; PATCH /postpartum ──────
+function BreastfeedingCard({ data, t }: { data: PostpartumOverview; t: T }) {
+  const save = useSaveBreastfeeding();
+  const view = breastfeedingView(data.profile?.breastfeeding ?? null, save.isPending ? save.variables : undefined);
+  return (
+    <Card as="section" className="pp-breastfeeding" aria-labelledby="pp-bf-title">
+      <ListRow
+        id="pp-bf"
+        icon="bottle"
+        title={<span className="pp-card-title">{t('home.breastfeeding.title')}</span>}
+        description={<span id="pp-bf-desc">{t(`home.breastfeeding.${view.caption}`)}</span>}
+        trailing={
+          <Switch
+            checked={view.checked}
+            labelledBy="pp-bf-title"
+            describedBy="pp-bf-desc"
+            disabled={save.isPending}
+            onCheckedChange={(next) => save.mutate(breastfeedingAnswer(next))}
+          />
+        }
+      />
+      {save.isError && (
+        <p className="pp-error" role="alert">
+          {t('home.breastfeeding.saveError')}
+        </p>
+      )}
+      <p className="pp-mood-note">{t('home.breastfeeding.note')}</p>
     </Card>
   );
 }

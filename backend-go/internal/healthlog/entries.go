@@ -180,7 +180,7 @@ func (s *Service) Range(ctx context.Context, userID uint64, from, to civildate.D
 func (s *Service) SaveDay(ctx context.Context, userID uint64, date civildate.Date, changes []taxonomy.Change, locale string, now time.Time) ([]taxonomy.Entry, error) {
 	now = dbNow(now)
 	var day []taxonomy.Entry
-	err := s.inTx(ctx, func(t *Service) error {
+	err := s.inTxLocked(ctx, userID, func(t *Service) error {
 		existing, err := t.Day(ctx, userID, date)
 		if err != nil {
 			return err
@@ -245,9 +245,10 @@ func (s *Service) writeBackLegacy(ctx context.Context, userID uint64, date civil
 	return err
 }
 
-// DeleteDay removes every v2 entry of the day and the legacy row.
-func (s *Service) DeleteDay(ctx context.Context, userID uint64, date civildate.Date) error {
-	return s.inTx(ctx, func(t *Service) error {
+// DeleteDay removes every v2 entry of the day and the legacy row; a deleted flow day rebuilds its bleeding_log
+// period (T-M9-28).
+func (s *Service) DeleteDay(ctx context.Context, userID uint64, date civildate.Date, now time.Time) error {
+	return s.inTxLocked(ctx, userID, func(t *Service) error {
 		if err := t.q.DeleteLogEntriesOn(ctx, store.DeleteLogEntriesOnParams{UserID: userID, LogDate: date}); err != nil {
 			return fmt.Errorf("healthlog: delete day entries: %w", err)
 		}
@@ -261,7 +262,8 @@ func (s *Service) DeleteDay(ctx context.Context, userID uint64, date civildate.D
 		if err := t.q.DeleteDailyHealthLog(ctx, row.ID); err != nil {
 			return fmt.Errorf("healthlog: delete: %w", err)
 		}
-		return nil
+		_, err = t.bridge(ctx, userID, bleedingChange{date: date, before: row.BleedingIntensity.String}, "", dbNow(now))
+		return err
 	})
 }
 

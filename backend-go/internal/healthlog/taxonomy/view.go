@@ -159,8 +159,13 @@ func rangeJSON(r *Range) any {
 }
 
 // CategoriesJSON is GET /logs/taxonomy: the registry with labels. mode "" lists everything (legacy-only
-// values flagged); a mode keeps only what shows in it and drops legacy-only values.
-func CategoriesJSON(mode string, l Labels) []*jsonx.OrderedMap {
+// values flagged); a mode keeps only what shows in it and drops legacy-only values. gates (at most one set) opens
+// gated params in mode (T-M9-28: postpartum `flow`).
+func CategoriesJSON(mode string, l Labels, gates ...Gates) []*jsonx.OrderedMap {
+	var open Gates
+	if len(gates) > 0 {
+		open = gates[0]
+	}
 	out := []*jsonx.OrderedMap{}
 	for i := range registry {
 		c := &registry[i]
@@ -170,7 +175,7 @@ func CategoriesJSON(mode string, l Labels) []*jsonx.OrderedMap {
 		params := []*jsonx.OrderedMap{}
 		for j := range c.Params {
 			p := &c.Params[j]
-			if mode != "" && !c.Available(p, mode) {
+			if mode != "" && !c.AvailableWith(p, mode, open) {
 				continue
 			}
 			params = append(params, paramJSON(c, p, mode, l))

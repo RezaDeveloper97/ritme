@@ -62,6 +62,25 @@ export function useActivatePostpartum() {
   });
 }
 
+/** Snake-case body of the breastfeeding switch (I-04): `null` clears the answer («not asked»). */
+export function toBreastfeedingBody(breastfeeding: boolean | null): Record<string, unknown> {
+  return { breastfeeding };
+}
+
+/** PATCH /postpartum — the breastfeeding answer on the profile; the overview cache gets the answer. */
+export function useSaveBreastfeeding() {
+  const queryClient = useQueryClient();
+  return useMutation<PostpartumOverview, unknown, boolean | null>({
+    mutationFn: async (breastfeeding) => {
+      const { data } = await apiClient.patch<ApiEnvelope<unknown>>('/postpartum', toBreastfeedingBody(breastfeeding));
+      return overviewSchema.parse(data.data);
+    },
+    onSuccess: (overview) => {
+      queryClient.setQueryData(postpartumKeys.overview(), overview);
+    },
+  });
+}
+
 export async function fetchRecovery(date: string | null): Promise<PostpartumRecovery> {
   const { data } = await apiClient.get<ApiEnvelope<unknown>>('/postpartum/recovery', {
     params: date ? { date } : undefined,

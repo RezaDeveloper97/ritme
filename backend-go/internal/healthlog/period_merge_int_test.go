@@ -1,8 +1,9 @@
 package healthlog_test
 
 // B-N3-14b (N3 stage smoke B-1, deviations.md D-55): a bleeding day logged for a past date joins the period
-// it falls in (or sits right next to) instead of starting a new open, unconfirmed period with a negative
-// cycle_length, and the profile LMP never moves back to a back-dated day.
+// it falls in (or sits right next to) instead of starting a new open period with a negative cycle_length, and the
+// profile LMP never moves back to a back-dated day. Engine v6 (T-M9-28, I-02, D-124): bridge rows are confirmed
+// bleeding_log rows, and a period-button row is never edited by the bridge.
 
 import (
 	"database/sql"
@@ -90,23 +91,25 @@ func TestPastBleedingInsideConfirmedPeriod_Repro(t *testing.T) {
 	assert.Equal(t, "2026-06-01", e.lmp(t, uid), "the LMP does not move")
 }
 
-func TestPastBleedingNextToAPeriodExtendsIt(t *testing.T) {
+// T-M9-28 (I-02): a button row is never edited — flow right after its end or right before its start is only a log
+// (D-55 used to move the end / start).
+func TestFlowNextToAButtonPeriodLeavesIt(t *testing.T) {
 	e := setupLogs(t)
 	uid, tok := e.user(t, "09120000902", "")
 	e.withProfile(t, uid)
 	e.logPeriod(t, tok, "2026-06-01", "2026-06-05")
 
-	e.bleed(t, tok, "2026-06-07") // one day without a log after the end → same period, end moves
+	e.bleed(t, tok, "2026-06-07") // one day without a log after the end: covered by the button row, no new period
 	rows := e.periods(t, uid)
 	require.Len(t, rows, 1, "%+v", rows)
-	assert.Equal(t, "2026-06-07", rows[0].end)
+	assert.Equal(t, "2026-06-05", rows[0].end, "the button row's end is kept")
 
-	e.bleed(t, tok, "2026-05-30") // two days before the start → the start moves back
+	e.bleed(t, tok, "2026-05-30") // two days before the start: not moved, no new period
 	rows = e.periods(t, uid)
 	require.Len(t, rows, 1, "%+v", rows)
-	assert.Equal(t, "2026-05-30", rows[0].start)
-	assert.Equal(t, "2026-06-07", rows[0].end)
-	assert.Equal(t, "2026-05-30", e.lmp(t, uid), "the latest period's start is the LMP")
+	assert.Equal(t, "2026-06-01", rows[0].start)
+	assert.Equal(t, "2026-06-05", rows[0].end)
+	assert.Equal(t, "2026-06-01", e.lmp(t, uid))
 }
 
 func TestBackDatedBleedingBetweenPeriods(t *testing.T) {
@@ -120,8 +123,9 @@ func TestBackDatedBleedingBetweenPeriods(t *testing.T) {
 	e.bleed(t, tok, "2026-06-15")
 	rows := e.periods(t, uid)
 	require.Len(t, rows, 3, "%+v", rows)
-	assert.Equal(t, periodRow{start: "2026-06-15", end: "2026-06-15", cycleLength: sql.NullInt64{Int64: 14, Valid: true}}, rows[1],
-		"a closed one-day period with a positive cycle length")
+	assert.Equal(t, periodRow{start: "2026-06-15", end: "2026-06-15", cycleLength: sql.NullInt64{Int64: 14, Valid: true}, confirmed: true}, rows[1],
+		"a closed, confirmed one-day period with a positive cycle length")
+	assert.Equal(t, sql.NullInt64{Int64: 16, Valid: true}, rows[2].cycleLength, "the next row's cycle_length is recomputed (B5)")
 	assert.Equal(t, "2026-07-01", e.lmp(t, uid), "the LMP stays on the latest period")
 	assertNoNegativeLengths(t, rows)
 
@@ -140,7 +144,7 @@ func TestNewBleedingAfterTheLatestPeriodStartsOne(t *testing.T) {
 	e.bleed(t, tok, "2026-09-20") // a new cycle (Laravel behaviour kept)
 	rows := e.periods(t, uid)
 	require.Len(t, rows, 2, "%+v", rows)
-	assert.Equal(t, periodRow{start: "2026-09-20", cycleLength: sql.NullInt64{Int64: 31, Valid: true}}, rows[1], "open and unconfirmed")
+	assert.Equal(t, periodRow{start: "2026-09-20", cycleLength: sql.NullInt64{Int64: 31, Valid: true}, confirmed: true}, rows[1], "open and confirmed (I-02)")
 	assert.Equal(t, "2026-08-24", rows[0].end, "a logged end is never cut")
 	assert.Equal(t, "2026-09-20", e.lmp(t, uid))
 

@@ -219,6 +219,40 @@ func (h *Handlers) Activate(c fiber.Ctx) error {
 	return httpx.OK(c, out, T("messages.activated", locale))
 }
 
+// Update is PATCH /postpartum {breastfeeding: true | false | null}: the profile's breastfeeding answer (engine v6
+// I-04, T-M9-28; null = not answered). 409 outside postpartum mode or before the setup. Answers the GET /postpartum
+// payload.
+func (h *Handlers) Update(c fiber.Ctx) error {
+	userID, err := h.user(c)
+	if err != nil {
+		return err
+	}
+	if _, err := h.activeState(c, userID); err != nil {
+		return err
+	}
+	locale, now := i18n.Locale(c), h.now(c)
+	v, err := validateBreastfeeding(validation.Input(c), locale, now)
+	if err != nil {
+		return err
+	}
+	ok, err := h.svc.SetBreastfeeding(c, userID, v, now)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return notActive(locale)
+	}
+	st, err := h.svc.State(c, userID)
+	if err != nil {
+		return err
+	}
+	out, err := h.overview(c, userID, st, now)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, out, T("messages.breastfeeding_saved", locale))
+}
+
 // ShowRecovery is GET /postpartum/recovery?date=: the day's recovery log (409 outside postpartum mode).
 func (h *Handlers) ShowRecovery(c fiber.Ctx) error {
 	userID, err := h.user(c)

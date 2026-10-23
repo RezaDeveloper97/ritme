@@ -1,0 +1,8 @@
+group: postpartum
+entries:
+  # D-124 (task T-M9-28, DECISIONS.md I-04): the postpartum profile carries the breastfeeding answer (additive key,
+  # null until «شیر می‌دهی؟» is answered; set with PATCH /postpartum). The Go-only goldens predate it.
+  - case: "*"
+    where: data.profile.breastfeeding
+    deviation: D-124
+    reason: additive profile.breastfeeding (I-04), null = not asked

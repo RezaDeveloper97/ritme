@@ -43,14 +43,32 @@ func NewService(db store.DBTX) *Service {
 // inTx runs fn on a Service bound to one READ COMMITTED transaction (so createOrFirst's re-read sees a
 // concurrent insert, as it does without a transaction), or on s itself when s is already transactional.
 func (s *Service) inTx(ctx context.Context, fn func(t *Service) error) error {
+	return s.inTxLocked(ctx, 0, fn)
+}
+
+// inTxLocked is inTx that first takes the per-user period lock of userID (0 = none): every write that may run the
+// bleeding-log bridge (T-M9-28, D-131) is serialised with the period button and with the user's other log writes.
+func (s *Service) inTxLocked(ctx context.Context, userID uint64, fn func(t *Service) error) error {
 	if s.db == nil {
+		if userID != 0 {
+			if err := s.lockUser(ctx, userID); err != nil {
+				return err
+			}
+		}
 		return fn(s)
 	}
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 	if err != nil {
 		return fmt.Errorf("healthlog: begin: %w", err)
 	}
-	if err := fn(&Service{q: store.New(tx), raw: tx}); err != nil {
+	t := &Service{q: store.New(tx), raw: tx}
+	if userID != 0 {
+		if err := t.lockUser(ctx, userID); err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+	}
+	if err := fn(t); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
@@ -66,6 +84,8 @@ type StoreResult struct {
 	Created bool     // wasRecentlyCreated → 201
 	Keys    []string // attribute keys a freshly created model serialises (nil when updated)
 	Warning *jsonx.OrderedMap
+
+	prevBleeding string // the day's flow before the write ("" = none)
 }
 
 // Data is the response `data`: the created model's own attributes, or the full row.
@@ -77,13 +97,13 @@ func (r *StoreResult) Data() *jsonx.OrderedMap {
 }
 
 // Store is DailyHealthLogController::store after validation: updateOrCreate on
-// (user_id, log_date), then getSpottingWarning, checkAndUpdatePeriodStart and
-// markRecalculatedIfNeeded — in that order, as Laravel runs them. The columns written are then
-// projected into the log taxonomy v2 entries (B-N3-01) in the same transaction, so the v2 day keeps
-// matching the legacy row until the client switches (B-N3-03).
+// (user_id, log_date), then getSpottingWarning, the bleeding-log bridge (bridge.go; Laravel's
+// checkAndUpdatePeriodStart, D-124) and markRecalculatedIfNeeded — in that order, as Laravel runs them. The columns
+// written are then projected into the log taxonomy v2 entries (B-N3-01) in the same transaction, so the v2 day keeps
+// matching the legacy row until the client switches (B-N3-03). The transaction holds the per-user lock.
 func (s *Service) Store(ctx context.Context, userID uint64, attrs phpval.Map, locale string, now time.Time) (*StoreResult, error) {
 	var res *StoreResult
-	err := s.inTx(ctx, func(t *Service) error {
+	err := s.inTxLocked(ctx, userID, func(t *Service) error {
 		r, err := t.store(ctx, userID, attrs, locale, now)
 		if err != nil {
 			return err
@@ -122,11 +142,14 @@ func (s *Service) store(ctx context.Context, userID uint64, attrs phpval.Map, lo
 		return nil, err
 	}
 	res.Warning = SpottingWarning(profile, res.Log, locale)
-	if err := s.checkAndUpdatePeriodStart(ctx, userID, res.Log, profile, now); err != nil {
+	bridged, err := s.bridge(ctx, userID, bleedingChange{
+		date: logDate, before: res.prevBleeding, after: strVal(res.Log.BleedingIntensity()),
+	}, locale, now)
+	if err != nil {
 		return nil, err
 	}
-	// markRecalculatedIfNeeded: the log is an engine input.
-	if profile != nil && profile.LastPeriodStart.Valid {
+	// markRecalculatedIfNeeded: the log is an engine input (a bridge write has re-anchored and marked already).
+	if !bridged && profile != nil && profile.LastPeriodStart.Valid {
 		if err := s.q.MarkProfileRecalculated(ctx, store.MarkProfileRecalculatedParams{
 			Now: sql.NullTime{Time: now, Valid: true}, ID: profile.ID,
 		}); err != nil {
@@ -208,7 +231,7 @@ func (s *Service) update(ctx context.Context, row store.DailyHealthLog, attrs ph
 	if err != nil {
 		return nil, fmt.Errorf("healthlog: reload: %w", err)
 	}
-	return &StoreResult{Log: model.FromRow(fresh)}, nil
+	return &StoreResult{Log: model.FromRow(fresh), prevBleeding: strVal(before.BleedingIntensity())}, nil
 }
 
 // sameValue is Model::originalIsEquivalent on the cast values (strict for strings,
@@ -246,13 +269,17 @@ func (s *Service) Find(ctx context.Context, userID uint64, date string) (*model.
 }
 
 // Delete removes the log and the v2 entries its columns projected (entries only the v2 sheet can
-// write — custom items, pain scores… — stay).
-func (s *Service) Delete(ctx context.Context, l *model.DailyHealthLog) error {
-	return s.inTx(ctx, func(t *Service) error {
+// write — custom items, pain scores… — stay); a deleted flow day rebuilds its bleeding_log period (T-M9-28).
+func (s *Service) Delete(ctx context.Context, l *model.DailyHealthLog, now time.Time) error {
+	return s.inTxLocked(ctx, l.Row.UserID, func(t *Service) error {
 		if err := t.q.DeleteDailyHealthLog(ctx, l.Row.ID); err != nil {
 			return fmt.Errorf("healthlog: delete: %w", err)
 		}
-		return t.deleteLegacySlots(ctx, l.Row.UserID, l.Row.LogDate, nil)
+		if err := t.deleteLegacySlots(ctx, l.Row.UserID, l.Row.LogDate, nil); err != nil {
+			return err
+		}
+		_, err := t.bridge(ctx, l.Row.UserID, bleedingChange{date: l.Row.LogDate, before: strVal(l.BleedingIntensity())}, "", dbNow(now))
+		return err
 	})
 }
 

@@ -34,6 +34,14 @@
       "note": "Mood swings are common in the first weeks. If they last more than 2 weeks, talking to a doctor or counsellor helps.",
       "saveError": "Not saved. Please try again."
     },
+    "breastfeeding": {
+      "title": "Are you breastfeeding?",
+      "notAsked": "Not answered yet. Turn it on if you breastfeed your baby.",
+      "yes": "Yes, I'm breastfeeding",
+      "no": "No, I'm not breastfeeding",
+      "note": "Breastfeeding can delay the return of your period; your answer helps keep your calendar accurate.",
+      "saveError": "Not saved. Please try again."
+    },
     "tiles": {
       "bleeding": "Bleeding",
       "feeds": "Feeding",

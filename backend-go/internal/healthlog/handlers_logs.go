@@ -63,6 +63,20 @@ func (h *LogHandlers) Taxonomy(c fiber.Ctx) error {
 	case !taxonomy.IsMode(m):
 		return fieldFail(c, "mode", "validation.in", nil)
 	}
+	// T-M9-28 (I-05): postpartum `flow` from birth + postpartum.flow_from_day, for today (the user's own mode only).
+	var gates taxonomy.Gates
+	if m == taxonomy.ModePostpartum {
+		own, err := h.svc.LifeMode(c.Context(), userID)
+		if err != nil {
+			return err
+		}
+		if own == m {
+			today := civildate.InTehran(clock.FromContext(c, h.clock).Now())
+			if gates, err = h.svc.FlowGates(c.Context(), userID, m, today); err != nil {
+				return err
+			}
+		}
+	}
 	locale := i18n.Locale(c)
 	ns := h.bundles.NamespaceMessages(locale, TaxonomyNamespace, h.languages.DefaultCode(c.Context()))
 	var modeOut any
@@ -71,7 +85,7 @@ func (h *LogHandlers) Taxonomy(c fiber.Ctx) error {
 	}
 	return httpx.OK(c, jsonx.Obj(
 		"mode", modeOut,
-		"categories", taxonomy.CategoriesJSON(m, taxonomy.NewLabels(ns)),
+		"categories", taxonomy.CategoriesJSON(m, taxonomy.NewLabels(ns), gates),
 	))
 }
 
@@ -168,8 +182,12 @@ func (h *LogHandlers) Save(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	gates, err := h.svc.FlowGates(c.Context(), userID, mode, date)
+	if err != nil {
+		return err
+	}
 	input := validation.Input(c)
-	changes, err := taxonomy.Parse(input, mode, i18n.Locale(c), existing, custom)
+	changes, err := taxonomy.Parse(input, mode, i18n.Locale(c), existing, custom, gates)
 	if err != nil {
 		return err
 	}
@@ -231,7 +249,7 @@ func (h *LogHandlers) Destroy(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if err := h.svc.DeleteDay(c.Context(), userID, date); err != nil {
+	if err := h.svc.DeleteDay(c.Context(), userID, date, clock.FromContext(c, h.clock).Now()); err != nil {
 		return err
 	}
 	return httpx.OK(c, dayJSON(date, nil))

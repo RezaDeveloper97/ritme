@@ -1940,3 +1940,28 @@ Nothing needed fixing.
 - Open: pregnancy mode writes no anchor (kept the old seed rule; Scope says "whenever"); `Save` revision bump → T-M9-30;
   the Down can't rebuild seeds faithfully for users onboarded after Up; stale comment on `ListEngineInputPeriods`.
 - Migration 00103 runs with the next stage/beta deploy and is user-visible there.
+
+## T-M9-28 — Bleeding-log bridge v6, postpartum flow and breastfeeding switch
+- Bridge (`internal/healthlog/bridge.go`): a `flow` day write rebuilds the affected period in one transaction under
+  the per-user lock (`periods.LockUser`) — grow, shrink, split, delete or merge with the same adjacency rule — then
+  the exported `periods.RecomputeCycleLengths` and `Reanchor`. Rows are `source=bleeding_log`, confirmed (D-124
+  supersedes D-55; D-138: `bleeding_log` is Go-only until Laravel `DataSource` gets it). Button rows (`user_logged`)
+  are never rebuilt. `PUT /cycle/period/{id}` makes the row confirmed `user_logged`; `PromoteLoggedStart` removed.
+- Pregnancy (I-02): flow creates no period and leaves the LMP; `alerts.ForLoggedFlow` reuses the v1 bleeding symptom
+  alert (low→mild, medium→moderate, high/very_high→severe = emergency branch), raised only when the day's flow rank
+  goes up. No new copy.
+- Postpartum (I-05): flow counts as a period only from delivery + `postpartum.flow_from_day` (registry, group
+  pregnancy, default 42, range 21–84, H-14 advisor-pending; in `coverageDefs`); earlier bleeding stays lochia.
+- Breastfeeding (I-04): `PATCH /api/v1/postpartum {breastfeeding: bool|null}`, `breastfeeding` on the profile (OpenAPI,
+  optional); «شیر می‌دهی؟» switch card on the postpartum home (fa/en, RTL, tokens only). Screenshots not taken
+  (playwright MCP down).
+- Goose **00104** `bleeding_log_source` (data only): unconfirmed non-estimated `user_logged` → `bleeding_log`
+  confirmed; revisions bumped; Down reverts by source. Int test up/down/up.
+- `TestStoreSideEffectsMatchLaravel` `d124` overlay; allow-lists `healthlog.yaml`, `postpartum.yaml` (D-124/D-138);
+  translations seed + i18n goldens resynced (main session applied the route and seed diffs).
+- Verify (combined): full unit + `make test-int PKG=./...` green; schema-diff OK; contract all 1914/0; frontend 1977
+  tests, lint:dark, fsd:lint.
+- Open: a closed bridge period shrinks to its last bleeding day even when an end was set; deleting a period doesn't
+  reopen the previous one; menopause flow still creates periods; Laravel `DataSource.php` needs `bleeding_log` before
+  cutover; bridge revision bumps → T-M9-30; `TestLoad_Budget` timing flake.
+- Migration 00104 runs with the next stage/beta deploy.

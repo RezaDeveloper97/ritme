@@ -15,6 +15,8 @@ type Querier interface {
 	CountActiveLogCustomItems(ctx context.Context, userID uint64) (int64, error)
 	// Total of the index paginator; a NULL bound (?from_date= present but empty) matches nothing.
 	CountDailyHealthLogs(ctx context.Context, arg CountDailyHealthLogsParams) (int64, error)
+	// T-M9-28 (I-02): a bleeding_log period with no bleeding day left is deleted (never a button row).
+	DeleteBleedingLogPeriod(ctx context.Context, arg DeleteBleedingLogPeriodParams) error
 	DeleteDailyHealthLog(ctx context.Context, id uint64) error
 	DeleteLogEntriesOn(ctx context.Context, arg DeleteLogEntriesOnParams) error
 	// One param of a day (every item of a multi / items / text_items param).
@@ -22,9 +24,11 @@ type Querier interface {
 	DeleteLogEntrySlot(ctx context.Context, arg DeleteLogEntrySlotParams) error
 	DeleteLogPreferences(ctx context.Context, arg DeleteLogPreferencesParams) error
 	// B-N3-14b (D-55): the first period that starts after a bleeding day (it may start a day or two later).
+	// Estimates are no periods for the bridge (T-M9-28).
 	GetCycleHistoryAfter(ctx context.Context, arg GetCycleHistoryAfterParams) (CycleHistory, error)
 	GetCycleHistoryByStart(ctx context.Context, arg GetCycleHistoryByStartParams) (CycleHistory, error)
 	// B-N3-14b (D-55): the period that starts on or before a back-dated bleeding day (it may contain the day).
+	// Estimates are no periods for the bridge (T-M9-28).
 	GetCycleHistoryOnOrBefore(ctx context.Context, arg GetCycleHistoryOnOrBeforeParams) (CycleHistory, error)
 	// Daily health logs (App\Models\DailyHealthLog, DailyHealthLogController).
 	//
@@ -41,6 +45,8 @@ type Querier interface {
 	GetLogCustomItem(ctx context.Context, arg GetLogCustomItemParams) (HealthLogCustomItem, error)
 	// enums.ResolveLifeMode input: the stored life mode (no row / NULL = legacy detection).
 	GetLogLifeMode(ctx context.Context, userID uint64) (sql.NullString, error)
+	// T-M9-28 (I-05): the birth date of a postpartum user — flow before birth + postpartum.flow_from_day is lochia.
+	GetLogPostpartumBirth(ctx context.Context, userID uint64) (civildate.Date, error)
 	// Log preferences and custom items (B-N3-02, health_log_preferences / health_log_custom_items, migration
 	// 00021). Every query is scoped by user_id.
 	GetLogPreferences(ctx context.Context, arg GetLogPreferencesParams) (HealthLogPreference, error)
@@ -48,8 +54,10 @@ type Querier interface {
 	// (CycleHistoryService, UserProfile::markRecalculated).
 	// $user->profile (hasOne without ordering: the lowest id on MariaDB).
 	GetUserProfile(ctx context.Context, userID uint64) (UserProfile, error)
-	// CycleHistory::create([user_id, period_start_date, cycle_length, is_confirmed => false]);
-	// is_estimated / source / data_quality_flags keep their column defaults.
+	// The bleeding-log bridge (engine v6, T-M9-28, DECISIONS.md I-02, D-124 / D-138): a period built from `flow` logs is
+	// actual data — source bleeding_log, confirmed (Laravel's CycleHistory::create wrote an unconfirmed user_logged row,
+	// D-55). period_end_date / bleeding_length are NULL for an open period. is_estimated / data_quality_flags keep their
+	// column defaults; cycle_length is written by periods.RecomputeCycleLengths in the same transaction.
 	InsertCycleHistory(ctx context.Context, arg InsertCycleHistoryParams) (int64, error)
 	// Every column is written; the ones the request did not send are NULL (their DB default).
 	InsertDailyHealthLog(ctx context.Context, arg InsertDailyHealthLogParams) (int64, error)
@@ -58,6 +66,9 @@ type Querier interface {
 	// CycleHistoryService::updatePreviousPeriodEndDate: the last bleeding day in [from, before).
 	LastBleedingDateBetween(ctx context.Context, arg LastBleedingDateBetweenParams) (civildate.Date, error)
 	ListActiveLogCustomItems(ctx context.Context, userID uint64) ([]HealthLogCustomItem, error)
+	// T-M9-28 (I-02): the user's bleeding days (a `flow` value) in [from_date, to_date], oldest first — what a
+	// bleeding_log period is rebuilt from.
+	ListBleedingDaysBetween(ctx context.Context, arg ListBleedingDaysBetweenParams) ([]civildate.Date, error)
 	// $user->dailyHealthLogs()->orderBy('log_date', 'desc')->paginate(30) (log_date is unique per user).
 	ListDailyHealthLogs(ctx context.Context, arg ListDailyHealthLogsParams) ([]DailyHealthLog, error)
 	// Active and deleted (history labels), oldest first.
@@ -73,6 +84,8 @@ type Querier interface {
 	MarkProfileRecalculated(ctx context.Context, arg MarkProfileRecalculatedParams) error
 	RenameLogCustomItem(ctx context.Context, arg RenameLogCustomItemParams) error
 	SoftDeleteLogCustomItem(ctx context.Context, arg SoftDeleteLogCustomItemParams) error
+	// T-M9-28 (I-02): the bridge rewrites only its own rows (source bleeding_log); a button row is never touched.
+	UpdateBleedingLogPeriod(ctx context.Context, arg UpdateBleedingLogPeriodParams) error
 	UpdateCycleHistoryEnd(ctx context.Context, arg UpdateCycleHistoryEndParams) error
 	// B-N3-14b (D-55): a bleeding day logged right before a period moves its start back.
 	UpdateCycleHistoryStart(ctx context.Context, arg UpdateCycleHistoryStartParams) error

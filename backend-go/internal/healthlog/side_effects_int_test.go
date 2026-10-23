@@ -5,7 +5,8 @@ package healthlog_test
 // cycle_histories / user_profiles / daily_health_logs rows (snapshot.sql) plus each step's
 // status and warning must equal what the same steps did on the Laravel contract stack
 // (laravel.jsonl, recorded by capture_laravel.sh) — after applyD55, the documented Go fix of the
-// period reconciliation for back-dated and in-period bleeding days (deviations.md D-55, B-N3-14b).
+// period reconciliation for back-dated and in-period bleeding days (deviations.md D-55, B-N3-14b), and applyD124,
+// the engine v6 bleeding-log bridge on top of it (T-M9-28, D-124 / D-138).
 
 import (
 	"bufio"
@@ -87,7 +88,7 @@ func TestStoreSideEffectsMatchLaravel(t *testing.T) {
 		}()
 	}
 
-	want := applyD55(t, readLines(t, filepath.Join(dir, "laravel.jsonl")))
+	want := applyD124(t, applyD55(t, readLines(t, filepath.Join(dir, "laravel.jsonl"))))
 	require.Len(t, got, len(want))
 	for i := range want {
 		assert.Equal(t, normJSON(t, want[i]), normJSON(t, got[i]), "line %d", i+1)
@@ -126,6 +127,43 @@ func applyD55(t *testing.T, lines []string) []string {
 		}
 	}
 	require.Equal(t, len(d55), seen, "every D-55 line is in laravel.jsonl")
+	return out
+}
+
+// d124 maps the D-55 lines the engine v6 bridge changes (T-M9-28, DECISIONS.md I-02, gap 02 B2 / B5):
+//   - every row the bridge creates is a confirmed bleeding_log row (D-138) instead of an unconfirmed user_logged one;
+//   - every write recomputes the stored cycle_length of all the user's rows as days since the previous start (null
+//     for the first; the fixture holds Laravel's mixed values), so the fixture's button rows get the recomputed
+//     length and updated_at = the step time — their range, source and confirmation are never touched.
+var d124 = map[string]string{
+	`["cycle_histories", 101809, 1001, "2026-09-23", null, null, null, 0, 0, "user_logged", null, "2026-09-23 10:00:00", "2026-09-23 10:00:00"]`:      `["cycle_histories", 101809, 1001, "2026-09-23", null, null, null, 1, 0, "bleeding_log", null, "2026-09-23 10:00:00", "2026-09-23 10:00:00"]`,
+	`["cycle_histories", 100401, 1004, "2026-04-27", "2026-05-01", 28, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 09:00:00"]`:   `["cycle_histories", 100401, 1004, "2026-04-27", "2026-05-01", null, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 10:20:00"]`,
+	`["cycle_histories", 101808, 1004, "2026-09-01", "2026-09-01", 15, 1, 0, 0, "user_logged", null, "2026-09-23 10:00:00", "2026-09-23 10:00:00"]`:   `["cycle_histories", 101808, 1004, "2026-09-01", "2026-09-01", 15, 1, 1, 0, "bleeding_log", null, "2026-09-23 10:00:00", "2026-09-23 10:00:00"]`,
+	`["cycle_histories", 100406, 1004, "2026-09-14", "2026-09-18", null, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 09:00:00"]`: `["cycle_histories", 100406, 1004, "2026-09-14", "2026-09-18", 13, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 10:00:00"]`,
+	`["cycle_histories", 101807, 1004, "2026-09-21", null, 7, null, 0, 0, "user_logged", null, "2026-09-23 10:20:00", "2026-09-23 10:20:00"]`:         `["cycle_histories", 101807, 1004, "2026-09-21", null, 7, null, 1, 0, "bleeding_log", null, "2026-09-23 10:20:00", "2026-09-23 10:20:00"]`,
+	`["cycle_histories", 100601, 1006, "2026-05-24", "2026-05-28", 29, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 09:00:00"]`:   `["cycle_histories", 100601, 1006, "2026-05-24", "2026-05-28", null, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 10:00:00"]`,
+	`["cycle_histories", 100602, 1006, "2026-06-22", "2026-06-26", 28, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 09:00:00"]`:   `["cycle_histories", 100602, 1006, "2026-06-22", "2026-06-26", 29, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 10:00:00"]`,
+	`["cycle_histories", 100603, 1006, "2026-07-20", "2026-07-24", 17, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 09:00:00"]`:   `["cycle_histories", 100603, 1006, "2026-07-20", "2026-07-24", 28, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 10:00:00"]`,
+	`["cycle_histories", 100604, 1006, "2026-08-06", "2026-08-10", 28, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 09:00:00"]`:   `["cycle_histories", 100604, 1006, "2026-08-06", "2026-08-10", 17, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 10:00:00"]`,
+	`["cycle_histories", 100605, 1006, "2026-09-03", "2026-09-07", null, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 09:00:00"]`: `["cycle_histories", 100605, 1006, "2026-09-03", "2026-09-07", 28, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 10:00:00"]`,
+	`["cycle_histories", 101806, 1006, "2026-09-23", null, 20, null, 0, 0, "user_logged", null, "2026-09-23 10:00:00", "2026-09-23 10:00:00"]`:        `["cycle_histories", 101806, 1006, "2026-09-23", null, 20, null, 1, 0, "bleeding_log", null, "2026-09-23 10:00:00", "2026-09-23 10:00:00"]`,
+	`["cycle_histories", 101001, 1010, "2026-05-24", "2026-05-28", 28, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 09:00:00"]`:   `["cycle_histories", 101001, 1010, "2026-05-24", "2026-05-28", null, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 10:00:00"]`,
+	`["cycle_histories", 101004, 1010, "2026-08-16", "2026-08-20", null, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 09:00:00"]`: `["cycle_histories", 101004, 1010, "2026-08-16", "2026-08-20", 28, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 10:00:00"]`,
+	`["cycle_histories", 101805, 1010, "2026-09-23", null, 38, null, 0, 0, "user_logged", null, "2026-09-23 10:00:00", "2026-09-23 10:00:00"]`:        `["cycle_histories", 101805, 1010, "2026-09-23", null, 38, null, 1, 0, "bleeding_log", null, "2026-09-23 10:00:00", "2026-09-23 10:00:00"]`,
+}
+
+func applyD124(t *testing.T, lines []string) []string {
+	t.Helper()
+	out := make([]string, 0, len(lines))
+	seen := 0
+	for _, l := range lines {
+		if repl, ok := d124[l]; ok {
+			seen++
+			l = repl
+		}
+		out = append(out, l)
+	}
+	require.Equal(t, len(d124), seen, "every D-124 line is in the D-55 output")
 	return out
 }
 

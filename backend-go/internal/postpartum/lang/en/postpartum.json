@@ -4,7 +4,8 @@
         "not_active": "Postpartum mode is not active",
         "activated": "Postpartum mode is on",
         "recovery_saved": "Today's recovery log was saved",
-        "check_saved": "Your answers were saved"
+        "check_saved": "Your answers were saved",
+        "breastfeeding_saved": "Your answer was saved"
     },
     "validation": {
         "birth_date_future": "The birth date cannot be in the future.",

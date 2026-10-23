@@ -3,7 +3,7 @@ id: T-M9-28
 title: Bleeding-log bridge v6, postpartum flow and breastfeeding switch
 milestone: M9
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M9-01, T-M9-04, T-M9-24]
 parallel_group: M9-C
 touches: [backend-go/internal/healthlog, backend-go/db/queries/healthlog, backend-go/internal/cycle/periods, backend-go/internal/cycle/model, backend-go/internal/cycle/service/adapters.go, backend-go/internal/postpartum, backend-go/db/queries/postpartum, backend-go/internal/clinicalconfig, backend-go/internal/pregnancy/alerts, backend-go/db/migrations, backend-go/api/openapi.yaml, backend-go/contract/allowlist, frontend/src/screens/postpartum, frontend/src/entities/postpartum, frontend/messages/fa/postpartum.json, frontend/messages/en/postpartum.json]

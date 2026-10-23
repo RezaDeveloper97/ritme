@@ -43,6 +43,7 @@ func (c CustomItems) Add(cat, param, code string) { c[cat+"."+param+"."+code] = 
 type parser struct {
 	custom   CustomItems
 	mode     string
+	gates    Gates
 	locale   string
 	existing map[string]Entry // slot → stored entry (unchanged values always pass)
 	errs     *httpx.ValidationError
@@ -59,8 +60,14 @@ type parser struct {
 // param's range; texts inside their length; link params are read-only. Custom params (B-N3-02) take,
 // besides their options, only the user's active custom items (custom); a deleted custom item stays valid
 // where it is stored.
-func Parse(body phpval.Map, mode, locale string, existing []Entry, custom CustomItems) ([]Change, error) {
+//
+// gates opens gated params for this day (Param.Gates; T-M9-28: postpartum `flow` from birth + 42 days); at most one
+// set is used.
+func Parse(body phpval.Map, mode, locale string, existing []Entry, custom CustomItems, gates ...Gates) ([]Change, error) {
 	p := &parser{custom: custom, mode: mode, locale: locale, existing: map[string]Entry{}, errs: httpx.NewValidationError()}
+	if len(gates) > 0 {
+		p.gates = gates[0]
+	}
 	for _, e := range existing {
 		p.existing[e.Slot()] = e
 	}
@@ -131,7 +138,7 @@ func (p *parser) param(cat *Category, code string, v any) {
 	}
 	base := Entry{Category: cat.Code, Param: code}
 	// a whole new value must be available in the mode unless it is the stored one
-	paramOK := cat.Available(par, p.mode)
+	paramOK := cat.AvailableWith(par, p.mode, p.gates)
 	switch par.Type {
 	case Single:
 		s, isStr := v.(string)

@@ -157,6 +157,20 @@ func (s *Service) Activate(ctx context.Context, userID uint64, in ActivateInput,
 	})
 }
 
+// SetBreastfeeding stores the breastfeeding answer (I-04; nil = not answered). ok false when the user has no
+// postpartum profile.
+func (s *Service) SetBreastfeeding(ctx context.Context, userID uint64, v *bool, now time.Time) (bool, error) {
+	var b sql.NullBool
+	if v != nil {
+		b = sql.NullBool{Bool: *v, Valid: true}
+	}
+	n, err := s.q.SetPostpartumBreastfeeding(ctx, store.SetPostpartumBreastfeedingParams{Breastfeeding: b, Now: tehranNow(now), UserID: userID})
+	if err != nil {
+		return false, fmt.Errorf("postpartum: breastfeeding: %w", err)
+	}
+	return n > 0, nil
+}
+
 func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries, tx store.DBTX) error) error {
 	if s.db == nil {
 		return fn(s.q, s.conn)

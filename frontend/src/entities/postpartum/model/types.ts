@@ -35,6 +35,8 @@ export interface PostpartumProfile {
   deliveryTypeLabel: string | null;
   babyCount: number;
   source: string;
+  /** «شیر می‌دهی؟» (engine v6 I-04): null = not asked yet. */
+  breastfeeding: boolean | null;
 }
 
 export interface PostpartumStatus {

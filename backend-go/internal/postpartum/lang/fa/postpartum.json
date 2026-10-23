@@ -4,7 +4,8 @@
         "not_active": "حالت بعد از زایمان فعال نیست",
         "activated": "حالت بعد از زایمان فعال شد",
         "recovery_saved": "وضعیت امروز ذخیره شد",
-        "check_saved": "پاسخ‌هایت ذخیره شد"
+        "check_saved": "پاسخ‌هایت ذخیره شد",
+        "breastfeeding_saved": "پاسخت ذخیره شد"
     },
     "validation": {
         "birth_date_future": "تاریخ زایمان نمی‌تواند در آینده باشد.",

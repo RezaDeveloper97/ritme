@@ -49,9 +49,12 @@ func ProfileJSON(p *store.PostpartumProfile, locale string) any {
 		return nil
 	}
 	dt := p.DeliveryType.String
-	var closed any
+	var closed, breastfeeding any
 	if p.PregnancyClosedAt.Valid {
 		closed = jsonx.DateTime(p.PregnancyClosedAt.Time)
+	}
+	if p.Breastfeeding.Valid { // I-04: null = not asked yet
+		breastfeeding = p.Breastfeeding.Bool
 	}
 	return jsonx.Obj(
 		"birth_date", p.BirthDate.String(),
@@ -60,6 +63,7 @@ func ProfileJSON(p *store.PostpartumProfile, locale string) any {
 		"baby_count", int(p.BabyCount),
 		"source", p.Source,
 		"pregnancy_closed_at", closed,
+		"breastfeeding", breastfeeding,
 		"updated_at", jsonx.DateTime(p.UpdatedAt.Time),
 	)
 }

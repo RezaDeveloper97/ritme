@@ -31,6 +31,10 @@ const (
 	KeyChildGrowth          = "child.growth"
 	KeyChildVaccineSchedule = "child.vaccine_schedule" // rows
 	KeyScreeningUSPSTF      = "screening.uspstf"       // rows
+
+	// Postpartum: the day after the birth from which the log sheet offers `flow` and the bleeding-log bridge builds
+	// periods again; earlier bleeding is lochia (T-M9-28, DECISIONS.md I-05, H-14 advisor-pending).
+	KeyPostpartumFlowFromDay = "postpartum.flow_from_day"
 )
 
 const (
@@ -52,6 +56,7 @@ const (
 	srcGlucoseDM  = "ADA Standards of Care 2025 §6: preprandial (fasting / pre-meal) 80–130, peak post-meal < 180 mg/dL; replaceable by the doctor's target (SPEC v6 §3.2)"
 	srcGrowth     = "WHO Child Growth Standards (normal band P3–P97); crossing 2 major percentile lines between two measurements → discuss (SPEC v6 §3.5)"
 	srcVaccines   = "وزارت بهداشت — برنامه کشوری ایمن\u200cسازی (today's child_vaccines catalog ages, migration 00031); a child follows the version in force on the birth date (H-17)"
+	srcPPFlow     = "ACOG Committee Opinion 736, Optimizing Postpartum Care (2018): the puerperium (lochia) lasts about 6 weeks; flow logged from day 42 is a period (DECISIONS.md I-05, H-14 advisor-pending)"
 	srcScreening  = "USPSTF cervical 2018, breast 2024, hypertension 2021, prediabetes/diabetes 2021; American Dental Association (SPEC v6 §3.4)"
 )
 
@@ -178,4 +183,7 @@ var coverageDefs = []Def{
 				{"dentist", nil, nil, 6, nil, nil},
 			},
 		}},
+	// Postpartum flow (T-M9-28, I-05, H-14): days after the birth (birth day = day 0) from which `flow` is offered in
+	// postpartum mode and the bleeding-log bridge builds periods again (consumer: internal/healthlog).
+	{Key: KeyPostpartumFlowFromDay, Group: GroupPregnancy, Unit: "day", Source: srcPPFlow, Fields: one("day", 42, 21, 84)},
 }

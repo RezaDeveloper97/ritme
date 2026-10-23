@@ -127,7 +127,7 @@ func (h *Handlers) Destroy(c fiber.Ctx) error {
 	if l == nil {
 		return httpx.Fail(fiber.StatusNotFound, notFoundMessage)
 	}
-	if err := h.svc.Delete(c.Context(), l); err != nil {
+	if err := h.svc.Delete(c.Context(), l, clock.FromContext(c, h.clock).Now()); err != nil {
 		return err
 	}
 	return httpx.Message(c, "Health log deleted successfully")

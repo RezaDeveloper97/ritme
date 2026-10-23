@@ -3085,7 +3085,9 @@ paths:
         code). Without `mode` the user's current life-stage mode filters it (only what shows in that mode, no
         legacy-only values); `mode=all` lists everything with `legacy_only` flags. Param types: `single`, `multi`,
         `items` (per item a level, optional `score`), `number`, `integer`, `text`, `text_items`, `bool`, `link`
-        (read-only tile owned by another feature, `source`).
+        (read-only tile owned by another feature, `source`). Postpartum (T-M9-28, I-05): `bleeding.flow` is listed
+        for a user in postpartum mode from birth + `postpartum.flow_from_day` (clinical config, 42) on; earlier
+        bleeding is lochia.
       operationId: getLogTaxonomy
       security:
         - {bearerAuth: []}
@@ -3199,6 +3201,10 @@ paths:
         days are refused. The legacy-representable values of the changed params are written back into
         `daily_health_logs` through the `/health-logs` save (period-start reconciliation included), so the engines
         keep reading them; v2-only values (pain score, pink blood, custom items…) live only here.
+        Bleeding-log bridge (engine v6, T-M9-28, D-124): `bleeding.flow` builds confirmed `source: bleeding_log`
+        periods; clearing it rebuilds them (shrink, split, delete); period-button rows are never touched. In
+        pregnancy mode flow creates no period and raises the bleeding alert; in postpartum mode `flow` is accepted
+        only from birth + 42 days (422 on `categories.bleeding.flow` before).
       operationId: putLogDay
       security:
         - {bearerAuth: []}
@@ -3245,7 +3251,7 @@ paths:
     delete:
       tags: [Log Taxonomy]
       summary: Delete a day
-      description: "Removes every v2 entry of the day and its `daily_health_logs` row. Idempotent."
+      description: "Removes every v2 entry of the day and its `daily_health_logs` row; a deleted flow day rebuilds its `bleeding_log` period (T-M9-28). Idempotent."
       operationId: deleteLogDay
       security:
         - {bearerAuth: []}
@@ -5109,6 +5115,44 @@ paths:
                   success: {type: boolean}
                   data: {$ref: "#/components/schemas/PostpartumOverview"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+    patch:
+      tags: [Postpartum]
+      summary: Save the breastfeeding answer on the postpartum profile
+      description: |
+        Engine v6 (DECISIONS.md I-04, T-M9-28): `breastfeeding` true | false, or null to clear the answer (not asked).
+        The key must be sent. 409 `postpartum_not_active` outside postpartum mode or before the setup. Answers the
+        `GET /postpartum` payload.
+      operationId: updatePostpartumProfile
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [breastfeeding]
+              properties:
+                breastfeeding: {type: [boolean, "null"]}
+            example: {breastfeeding: true}
+      responses:
+        '200':
+          description: Saved; the overview
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/PostpartumOverview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/PostpartumNotActive"}
+        '422': {$ref: "#/components/responses/PostpartumValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/postpartum/activate:
     post:
       tags: [Postpartum]
@@ -8207,7 +8251,7 @@ paths:
     put:
       tags: [Period Log]
       summary: Edit a logged period
-      description: "Moves a logged period's start and/or end date, then re-anchors the cycle and recalculates predictions."
+      description: "Moves a logged period's start and/or end date, then re-anchors the cycle and recalculates predictions. The edited row becomes a confirmed `user_logged` row (engine v6, gap 02 S5, T-M9-28): a `bleeding_log` period the user edits is no longer rebuilt from the bleeding log."
       operationId: putCyclePeriodByPeriod
       security:
         - {bearerAuth: []}
@@ -8693,6 +8737,8 @@ paths:
         Create a new health log or update existing one for the specified date. Each user can have only one log per day.
 
         Upsert on `(user_id, log_date)`: **201** when the row is created, **200** when it is updated. On create `data` holds only the attributes that were sent plus `user_id`, `id` and timestamps (Eloquent); on update the full row. An optional top-level `warning` follows `data`.
+
+        `bleeding_intensity` runs the engine v6 bleeding-log bridge (T-M9-28, D-124): confirmed `source: bleeding_log` periods, rebuilt when it is cleared; no period in pregnancy mode (the bleeding alert instead) or before birth + 42 days in postpartum mode.
       operationId: postHealthLogs
       security:
         - {bearerAuth: []}
@@ -9073,7 +9119,7 @@ paths:
     delete:
       tags: [Daily Health Log]
       summary: Delete health log
-      description: Delete a health log entry for the specified date
+      description: Delete a health log entry for the specified date (a deleted bleeding day rebuilds its `bleeding_log` period, T-M9-28)
       operationId: deleteHealthLogsByDate
       security:
         - {bearerAuth: []}
@@ -28995,6 +29041,9 @@ components:
                 baby_count: {type: integer}
                 source: {type: string, enum: [pregnancy, direct]}
                 pregnancy_closed_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/LaravelDateTime"}]}
+                breastfeeding:
+                  type: [boolean, "null"]
+                  description: The answer to «شیر می‌دهی؟» (engine v6 I-04, T-M9-28); null = not asked yet. Set with `PATCH /postpartum`.
                 updated_at: {$ref: "#/components/schemas/LaravelDateTime"}
         status:
           oneOf:

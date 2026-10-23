@@ -1,0 +1,15 @@
+group: healthlog
+entries:
+  # D-124 / D-138 (task T-M9-28, DECISIONS.md I-02): a period the bleeding-log bridge builds from a logged flow day is
+  # actual data — a confirmed row with the Go-only source `bleeding_log`. Laravel's checkAndUpdatePeriodStart stored
+  # an unconfirmed `user_logged` row. The history read after the save shows the new source; nothing else differs.
+  - case: store_low_bleeding_warning
+    step: 2
+    where: data.periods[0].source
+    deviation: D-124
+    reason: bridge rows are confirmed source bleeding_log (D-138), Laravel wrote user_logged
+  - case: store_period_start_side_effect
+    step: 3
+    where: data.periods[0].source
+    deviation: D-124
+    reason: bridge rows are confirmed source bleeding_log (D-138), Laravel wrote user_logged

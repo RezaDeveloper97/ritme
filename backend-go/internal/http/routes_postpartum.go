@@ -20,6 +20,7 @@ func init() {
 		writes := writeThrottle(d)
 
 		r.Get("/api/v1/postpartum", locale, guard, h.Show)
+		r.Patch("/api/v1/postpartum", locale, guard, writes, h.Update) // T-M9-28: breastfeeding (I-04)
 		r.Post("/api/v1/postpartum/activate", locale, guard, writes, h.Activate)
 		r.Get("/api/v1/postpartum/recovery", locale, guard, h.ShowRecovery)
 		r.Put("/api/v1/postpartum/recovery", locale, guard, writes, h.SaveRecovery)
