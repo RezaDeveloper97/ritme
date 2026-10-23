@@ -3,7 +3,7 @@ id: T-M11-04
 title: Family schema C: child guardians, actor columns, child medication log, household to-do scope
 milestone: M11
 type: backend
-status: todo
+status: done
 depends_on: [T-M11-03]
 parallel_group: M11-B
 touches: [backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/children, backend-go/db/queries/babylog, backend-go/db/queries/todo, backend-go/contract/fixtures/dump.sql]

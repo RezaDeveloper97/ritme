@@ -10,8 +10,21 @@ import (
 	"database/sql"
 	"strings"
 
+	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
+
+const countActiveWriteGuardians = `-- name: CountActiveWriteGuardians :one
+SELECT COUNT(*) FROM ` + "`" + `child_guardians` + "`" + ` WHERE child_id = ? AND status = 'active' AND level = 'write'
+`
+
+// Active write guardians of a child (F-15: removing the other guardian needs both; T-M11-11 transfer on deletion).
+func (q *Queries) CountActiveWriteGuardians(ctx context.Context, childID uint64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countActiveWriteGuardians, childID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
 
 const countOwnedChildren = `-- name: CountOwnedChildren :one
 SELECT COUNT(*) FROM ` + "`" + `children` + "`" + ` WHERE owner_id = ?
@@ -134,7 +147,7 @@ func (q *Queries) DeleteMilestoneCheck(ctx context.Context, arg DeleteMilestoneC
 }
 
 const getChild = `-- name: GetChild :one
-SELECT id, owner_id, name, birth_date, sex, birth_weight_kg, birth_length_cm, birth_head_cm, delivery_type, created_at, updated_at FROM ` + "`" + `children` + "`" + ` WHERE id = ? LIMIT 1
+SELECT id, owner_id, name, birth_date, sex, birth_weight_kg, birth_length_cm, birth_head_cm, delivery_type, created_at, updated_at, created_by, updated_by FROM ` + "`" + `children` + "`" + ` WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) GetChild(ctx context.Context, id uint64) (Child, error) {
@@ -152,12 +165,41 @@ func (q *Queries) GetChild(ctx context.Context, id uint64) (Child, error) {
 		&i.DeliveryType,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+	)
+	return i, err
+}
+
+const getGuardian = `-- name: GetGuardian :one
+SELECT id, child_id, user_id, level, sub_scopes, status, invited_by, link_id, created_at, updated_at FROM ` + "`" + `child_guardians` + "`" + ` WHERE child_id = ? AND user_id = ? LIMIT 1
+`
+
+type GetGuardianParams struct {
+	ChildID uint64
+	UserID  uint64
+}
+
+func (q *Queries) GetGuardian(ctx context.Context, arg GetGuardianParams) (ChildGuardian, error) {
+	row := q.db.QueryRowContext(ctx, getGuardian, arg.ChildID, arg.UserID)
+	var i ChildGuardian
+	err := row.Scan(
+		&i.ID,
+		&i.ChildID,
+		&i.UserID,
+		&i.Level,
+		&i.SubScopes,
+		&i.Status,
+		&i.InvitedBy,
+		&i.LinkID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getMeasurement = `-- name: GetMeasurement :one
-SELECT id, child_id, measured_on, weight_kg, length_cm, head_cm, created_at, updated_at FROM ` + "`" + `child_measurements` + "`" + ` WHERE id = ? AND child_id = ? LIMIT 1
+SELECT id, child_id, measured_on, weight_kg, length_cm, head_cm, created_at, updated_at, created_by, updated_by FROM ` + "`" + `child_measurements` + "`" + ` WHERE id = ? AND child_id = ? LIMIT 1
 `
 
 type GetMeasurementParams struct {
@@ -177,12 +219,14 @@ func (q *Queries) GetMeasurement(ctx context.Context, arg GetMeasurementParams) 
 		&i.HeadCm,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
 	)
 	return i, err
 }
 
 const getMeasurementOn = `-- name: GetMeasurementOn :one
-SELECT id, child_id, measured_on, weight_kg, length_cm, head_cm, created_at, updated_at FROM ` + "`" + `child_measurements` + "`" + ` WHERE child_id = ? AND measured_on = ? LIMIT 1
+SELECT id, child_id, measured_on, weight_kg, length_cm, head_cm, created_at, updated_at, created_by, updated_by FROM ` + "`" + `child_measurements` + "`" + ` WHERE child_id = ? AND measured_on = ? LIMIT 1
 `
 
 type GetMeasurementOnParams struct {
@@ -202,6 +246,8 @@ func (q *Queries) GetMeasurementOn(ctx context.Context, arg GetMeasurementOnPara
 		&i.HeadCm,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
 	)
 	return i, err
 }
@@ -264,8 +310,67 @@ func (q *Queries) InsertChildAudit(ctx context.Context, arg InsertChildAuditPara
 	return err
 }
 
+const listActiveGuardianshipsForUser = `-- name: ListActiveGuardianshipsForUser :many
+SELECT g.id, g.child_id, g.user_id, g.level, g.sub_scopes, g.status, g.invited_by, g.link_id, g.created_at, g.updated_at,
+       c.owner_id
+FROM ` + "`" + `child_guardians` + "`" + ` g
+JOIN ` + "`" + `children` + "`" + ` c ON c.id = g.child_id
+WHERE g.user_id = ? AND g.status = 'active'
+ORDER BY c.birth_date DESC, c.id
+`
+
+type ListActiveGuardianshipsForUserRow struct {
+	ID        uint64
+	ChildID   uint64
+	UserID    uint64
+	Level     string
+	SubScopes db.NullRawJSON
+	Status    string
+	InvitedBy sql.NullInt64
+	LinkID    sql.NullInt64
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	OwnerID   uint64
+}
+
+// The children userID actively guards (owner or co-guardian), youngest first, with the child's owner.
+func (q *Queries) ListActiveGuardianshipsForUser(ctx context.Context, userID uint64) ([]ListActiveGuardianshipsForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveGuardianshipsForUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListActiveGuardianshipsForUserRow{}
+	for rows.Next() {
+		var i ListActiveGuardianshipsForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ChildID,
+			&i.UserID,
+			&i.Level,
+			&i.SubScopes,
+			&i.Status,
+			&i.InvitedBy,
+			&i.LinkID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.OwnerID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listDoses = `-- name: ListDoses :many
-SELECT id, child_id, dose_code, given_on, note, created_at, updated_at FROM ` + "`" + `child_vaccine_doses` + "`" + ` WHERE child_id = ? ORDER BY given_on, id
+SELECT id, child_id, dose_code, given_on, note, created_at, updated_at, created_by, updated_by FROM ` + "`" + `child_vaccine_doses` + "`" + ` WHERE child_id = ? ORDER BY given_on, id
 `
 
 func (q *Queries) ListDoses(ctx context.Context, childID uint64) ([]ChildVaccineDose, error) {
@@ -285,6 +390,81 @@ func (q *Queries) ListDoses(ctx context.Context, childID uint64) ([]ChildVaccine
 			&i.Note,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listGuardiansForChildren = `-- name: ListGuardiansForChildren :many
+
+SELECT g.id, g.child_id, g.user_id, g.level, g.sub_scopes, g.status, g.invited_by, g.link_id, g.created_at, g.updated_at,
+       u.name AS user_name
+FROM ` + "`" + `child_guardians` + "`" + ` g
+JOIN ` + "`" + `users` + "`" + ` u ON u.id = g.user_id
+WHERE g.child_id IN (/*SLICE:child_ids*/?)
+ORDER BY g.child_id, g.id
+`
+
+type ListGuardiansForChildrenRow struct {
+	ID        uint64
+	ChildID   uint64
+	UserID    uint64
+	Level     string
+	SubScopes db.NullRawJSON
+	Status    string
+	InvitedBy sql.NullInt64
+	LinkID    sql.NullInt64
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	UserName  sql.NullString
+}
+
+// Child guardians (engine v6 M11, T-M11-04 schema; goose 00108). Who may act on a child: the owner and every
+// co-guardian are rows here (level write | limited + sub_scopes, status invited | active | left | removed). Readers
+// check status = 'active' themselves; behaviour (invite, leave, two-guardian removal, undo) is T-M11-11.
+// Every guardian row (any status) of a set of children, with the guardian's display name; the caller filters.
+func (q *Queries) ListGuardiansForChildren(ctx context.Context, childIds []uint64) ([]ListGuardiansForChildrenRow, error) {
+	query := listGuardiansForChildren
+	var queryParams []interface{}
+	if len(childIds) > 0 {
+		for _, v := range childIds {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:child_ids*/?", strings.Repeat(",?", len(childIds))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:child_ids*/?", "NULL", 1)
+	}
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListGuardiansForChildrenRow{}
+	for rows.Next() {
+		var i ListGuardiansForChildrenRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ChildID,
+			&i.UserID,
+			&i.Level,
+			&i.SubScopes,
+			&i.Status,
+			&i.InvitedBy,
+			&i.LinkID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.UserName,
 		); err != nil {
 			return nil, err
 		}
@@ -354,7 +534,7 @@ func (q *Queries) ListLearnArticles(ctx context.Context, slugs []string) ([]List
 }
 
 const listMeasurements = `-- name: ListMeasurements :many
-SELECT id, child_id, measured_on, weight_kg, length_cm, head_cm, created_at, updated_at FROM ` + "`" + `child_measurements` + "`" + ` WHERE child_id = ? ORDER BY measured_on DESC, id DESC
+SELECT id, child_id, measured_on, weight_kg, length_cm, head_cm, created_at, updated_at, created_by, updated_by FROM ` + "`" + `child_measurements` + "`" + ` WHERE child_id = ? ORDER BY measured_on DESC, id DESC
 `
 
 func (q *Queries) ListMeasurements(ctx context.Context, childID uint64) ([]ChildMeasurement, error) {
@@ -375,6 +555,8 @@ func (q *Queries) ListMeasurements(ctx context.Context, childID uint64) ([]Child
 			&i.HeadCm,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.UpdatedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -390,7 +572,7 @@ func (q *Queries) ListMeasurements(ctx context.Context, childID uint64) ([]Child
 }
 
 const listMilestoneChecks = `-- name: ListMilestoneChecks :many
-SELECT id, child_id, milestone_code, checked_on, created_at, updated_at FROM ` + "`" + `child_milestone_checks` + "`" + ` WHERE child_id = ? ORDER BY checked_on, id
+SELECT id, child_id, milestone_code, checked_on, created_at, updated_at, created_by, updated_by FROM ` + "`" + `child_milestone_checks` + "`" + ` WHERE child_id = ? ORDER BY checked_on, id
 `
 
 func (q *Queries) ListMilestoneChecks(ctx context.Context, childID uint64) ([]ChildMilestoneCheck, error) {
@@ -409,6 +591,8 @@ func (q *Queries) ListMilestoneChecks(ctx context.Context, childID uint64) ([]Ch
 			&i.CheckedOn,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.UpdatedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -451,7 +635,7 @@ func (q *Queries) ListOwnedChildIDs(ctx context.Context, ownerID uint64) ([]uint
 }
 
 const listOwnedChildren = `-- name: ListOwnedChildren :many
-SELECT id, owner_id, name, birth_date, sex, birth_weight_kg, birth_length_cm, birth_head_cm, delivery_type, created_at, updated_at FROM ` + "`" + `children` + "`" + ` WHERE owner_id = ? ORDER BY birth_date DESC, id
+SELECT id, owner_id, name, birth_date, sex, birth_weight_kg, birth_length_cm, birth_head_cm, delivery_type, created_at, updated_at, created_by, updated_by FROM ` + "`" + `children` + "`" + ` WHERE owner_id = ? ORDER BY birth_date DESC, id
 `
 
 // Youngest first (the artboard lists the baby before the older child).
@@ -476,6 +660,8 @@ func (q *Queries) ListOwnedChildren(ctx context.Context, ownerID uint64) ([]Chil
 			&i.DeliveryType,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.UpdatedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -555,6 +741,34 @@ func (q *Queries) ListSharedChildren(ctx context.Context, arg ListSharedChildren
 		return nil, err
 	}
 	return items, nil
+}
+
+const setGuardianStatus = `-- name: SetGuardianStatus :execrows
+UPDATE ` + "`" + `child_guardians` + "`" + ` SET status = ?, updated_at = ?
+WHERE child_id = ? AND user_id = ? AND status = ?
+`
+
+type SetGuardianStatusParams struct {
+	Status     string
+	Now        sql.NullTime
+	ChildID    uint64
+	UserID     uint64
+	FromStatus string
+}
+
+// A guarded status move (invited → active, active → left | removed …): 0 rows when the row is not in from_status.
+func (q *Queries) SetGuardianStatus(ctx context.Context, arg SetGuardianStatusParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, setGuardianStatus,
+		arg.Status,
+		arg.Now,
+		arg.ChildID,
+		arg.UserID,
+		arg.FromStatus,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const updateChild = `-- name: UpdateChild :exec
@@ -644,6 +858,42 @@ func (q *Queries) UpsertDose(ctx context.Context, arg UpsertDoseParams) error {
 		arg.DoseCode,
 		arg.GivenOn,
 		arg.Note,
+		arg.Now,
+		arg.Now,
+	)
+	return err
+}
+
+const upsertGuardian = `-- name: UpsertGuardian :exec
+INSERT INTO ` + "`" + `child_guardians` + "`" + ` (child_id, user_id, level, sub_scopes, status, invited_by, link_id, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?,
+        ?, ?, ?)
+ON DUPLICATE KEY UPDATE
+  level = VALUES(level), sub_scopes = VALUES(sub_scopes), status = VALUES(status), invited_by = VALUES(invited_by),
+  link_id = VALUES(link_id), updated_at = VALUES(updated_at)
+`
+
+type UpsertGuardianParams struct {
+	ChildID   uint64
+	UserID    uint64
+	Level     string
+	SubScopes db.NullRawJSON
+	Status    string
+	InvitedBy sql.NullInt64
+	LinkID    sql.NullInt64
+	Now       sql.NullTime
+}
+
+// One row per (child, user): a re-invite or level change rewrites the row in place.
+func (q *Queries) UpsertGuardian(ctx context.Context, arg UpsertGuardianParams) error {
+	_, err := q.db.ExecContext(ctx, upsertGuardian,
+		arg.ChildID,
+		arg.UserID,
+		arg.Level,
+		arg.SubScopes,
+		arg.Status,
+		arg.InvitedBy,
+		arg.LinkID,
 		arg.Now,
 		arg.Now,
 	)

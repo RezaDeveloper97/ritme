@@ -505,9 +505,15 @@ CREATE TABLE `baby_diapers` (
   `note` varchar(500) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `baby_diapers_child_id_changed_at_index` (`child_id`,`changed_at`),
-  CONSTRAINT `baby_diapers_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE
+  KEY `baby_diapers_created_by_foreign` (`created_by`),
+  KEY `baby_diapers_updated_by_foreign` (`updated_by`),
+  CONSTRAINT `baby_diapers_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `baby_diapers_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `baby_diapers_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -535,16 +541,50 @@ CREATE TABLE `baby_feeds` (
   `active_lock` tinyint(3) unsigned DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `baby_feeds_child_id_active_lock_unique` (`child_id`,`active_lock`),
   KEY `baby_feeds_child_id_started_at_index` (`child_id`,`started_at`),
-  CONSTRAINT `baby_feeds_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE
+  KEY `baby_feeds_created_by_foreign` (`created_by`),
+  KEY `baby_feeds_updated_by_foreign` (`updated_by`),
+  CONSTRAINT `baby_feeds_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `baby_feeds_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `baby_feeds_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `baby_feeds` WRITE;
 /*!40000 ALTER TABLE `baby_feeds` DISABLE KEYS */;
 /*!40000 ALTER TABLE `baby_feeds` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `baby_med_doses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `baby_med_doses` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `child_id` bigint(20) unsigned NOT NULL,
+  `name` varchar(80) NOT NULL,
+  `dose_text` varchar(40) DEFAULT NULL,
+  `given_at` datetime NOT NULL,
+  `note` varchar(200) DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `baby_med_doses_child_id_given_at_index` (`child_id`,`given_at`),
+  KEY `baby_med_doses_created_by_foreign` (`created_by`),
+  KEY `baby_med_doses_updated_by_foreign` (`updated_by`),
+  CONSTRAINT `baby_med_doses_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `baby_med_doses_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `baby_med_doses_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `baby_med_doses` WRITE;
+/*!40000 ALTER TABLE `baby_med_doses` DISABLE KEYS */;
+/*!40000 ALTER TABLE `baby_med_doses` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `baby_sleeps`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -558,10 +598,16 @@ CREATE TABLE `baby_sleeps` (
   `active_lock` tinyint(3) unsigned DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `baby_sleeps_child_id_active_lock_unique` (`child_id`,`active_lock`),
   KEY `baby_sleeps_child_id_started_at_index` (`child_id`,`started_at`),
-  CONSTRAINT `baby_sleeps_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE
+  KEY `baby_sleeps_created_by_foreign` (`created_by`),
+  KEY `baby_sleeps_updated_by_foreign` (`updated_by`),
+  CONSTRAINT `baby_sleeps_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `baby_sleeps_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `baby_sleeps_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1311,6 +1357,36 @@ INSERT INTO `checkup_types` VALUES
 (17,'glucose_screening',NULL,'multi_year','{\"fa\":\"قند خون (غربالگری دیابت)\",\"en\":\"Blood sugar (diabetes screening)\"}','{\"fa\":\"قند ناشتا یا HbA1c\",\"en\":\"Fasting sugar or HbA1c\"}','{\"fa\":\"پیش‌دیابت و دیابت نوع ۲ می‌توانند سال‌ها بی‌صدا پیش بروند. اگر ۳۵ تا ۷۰ سال داری و BMI تو ۲۵ یا بیشتر است، هر ۳ سال یک آزمایش قند توصیه می‌شود. وقتی زود پیدا شود، اغلب با تغییر سبک زندگی می‌شود جلویش را گرفت.\",\"en\":\"Prediabetes and type 2 diabetes can progress silently for years. If you are 35 to 70 and your BMI is 25 or higher, a blood sugar test every 3 years is recommended. Found early, it can often be turned around with lifestyle changes.\"}','lab','blood','amber',36,NULL,35,70,NULL,NULL,14,'[{\"fa\":\"برای قند ناشتا، ۸ ساعت قبل از آزمایش فقط آب بنوش\",\"en\":\"For a fasting test, have only water for 8 hours before\"},{\"fa\":\"برای HbA1c ناشتا بودن لازم نیست\",\"en\":\"No fasting is needed for HbA1c\"},{\"fa\":\"داروهایی را که مصرف می‌کنی به آزمایشگاه بگو\",\"en\":\"Tell the lab which medicines you take\"}]',NULL,NULL,1,'[\"cycle\",\"ttc\",\"pregnancy\",\"postpartum\",\"teen\"]',1,8,'USPSTF 2021, Prediabetes and Type 2 Diabetes: Screening (35-70 with overweight or obesity, every 3 years). BMI condition, interval and ages from the clinical registry key screening.uspstf (T-M10-21, D-172). Needs medical review.','2026-10-22 13:47:31','2026-10-22 13:47:31',0);
 /*!40000 ALTER TABLE `checkup_types` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `child_guardians`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `child_guardians` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `child_id` bigint(20) unsigned NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `level` varchar(8) NOT NULL,
+  `sub_scopes` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`sub_scopes`)),
+  `status` varchar(10) NOT NULL,
+  `invited_by` bigint(20) unsigned DEFAULT NULL,
+  `link_id` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `child_guardians_child_id_user_id_unique` (`child_id`,`user_id`),
+  KEY `child_guardians_user_id_status_index` (`user_id`,`status`),
+  KEY `child_guardians_invited_by_foreign` (`invited_by`),
+  KEY `child_guardians_link_id_foreign` (`link_id`),
+  CONSTRAINT `child_guardians_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `child_guardians_invited_by_foreign` FOREIGN KEY (`invited_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `child_guardians_link_id_foreign` FOREIGN KEY (`link_id`) REFERENCES `companions` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `child_guardians_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `child_guardians` WRITE;
+/*!40000 ALTER TABLE `child_guardians` DISABLE KEYS */;
+/*!40000 ALTER TABLE `child_guardians` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `child_measurements`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -1323,9 +1399,15 @@ CREATE TABLE `child_measurements` (
   `head_cm` decimal(4,1) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `child_measurements_child_id_measured_on_unique` (`child_id`,`measured_on`),
-  CONSTRAINT `child_measurements_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE
+  KEY `child_measurements_created_by_foreign` (`created_by`),
+  KEY `child_measurements_updated_by_foreign` (`updated_by`),
+  CONSTRAINT `child_measurements_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `child_measurements_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `child_measurements_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1343,9 +1425,15 @@ CREATE TABLE `child_milestone_checks` (
   `checked_on` date NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `child_milestone_checks_child_id_milestone_code_unique` (`child_id`,`milestone_code`),
-  CONSTRAINT `child_milestone_checks_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE
+  KEY `child_milestone_checks_created_by_foreign` (`created_by`),
+  KEY `child_milestone_checks_updated_by_foreign` (`updated_by`),
+  CONSTRAINT `child_milestone_checks_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `child_milestone_checks_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `child_milestone_checks_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1364,9 +1452,15 @@ CREATE TABLE `child_vaccine_doses` (
   `note` varchar(500) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `child_vaccine_doses_child_id_dose_code_unique` (`child_id`,`dose_code`),
-  CONSTRAINT `child_vaccine_doses_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE
+  KEY `child_vaccine_doses_created_by_foreign` (`created_by`),
+  KEY `child_vaccine_doses_updated_by_foreign` (`updated_by`),
+  CONSTRAINT `child_vaccine_doses_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `child_vaccine_doses_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `child_vaccine_doses_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1389,9 +1483,15 @@ CREATE TABLE `children` (
   `delivery_type` varchar(16) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `children_owner_id_birth_date_index` (`owner_id`,`birth_date`),
-  CONSTRAINT `children_owner_id_foreign` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  KEY `children_created_by_foreign` (`created_by`),
+  KEY `children_updated_by_foreign` (`updated_by`),
+  CONSTRAINT `children_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `children_owner_id_foreign` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `children_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -6669,10 +6769,16 @@ CREATE TABLE `todo_items` (
   `sort_order` smallint(5) unsigned NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `todo_items_task_id_sort_order_index` (`task_id`,`sort_order`),
   KEY `todo_items_user_id_index` (`user_id`),
+  KEY `todo_items_created_by_foreign` (`created_by`),
+  KEY `todo_items_updated_by_foreign` (`updated_by`),
+  CONSTRAINT `todo_items_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `todo_items_task_id_foreign` FOREIGN KEY (`task_id`) REFERENCES `todo_tasks` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `todo_items_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `todo_items_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -6718,9 +6824,20 @@ CREATE TABLE `todo_tasks` (
   `suggestion_key` varchar(40) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  `scope` varchar(10) NOT NULL DEFAULT 'personal',
+  `assigned_to` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `todo_tasks_user_id_done_at_index` (`user_id`,`done_at`),
   KEY `todo_tasks_user_id_due_date_index` (`user_id`,`due_date`),
+  KEY `todo_tasks_created_by_foreign` (`created_by`),
+  KEY `todo_tasks_updated_by_foreign` (`updated_by`),
+  KEY `todo_tasks_user_id_scope_done_at_index` (`user_id`,`scope`,`done_at`),
+  KEY `todo_tasks_assigned_to_foreign` (`assigned_to`),
+  CONSTRAINT `todo_tasks_assigned_to_foreign` FOREIGN KEY (`assigned_to`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `todo_tasks_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `todo_tasks_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `todo_tasks_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

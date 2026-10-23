@@ -83,6 +83,23 @@ func (q *Queries) DeleteFeedsCount(ctx context.Context, arg DeleteFeedsCountPara
 	return err
 }
 
+const deleteMedDose = `-- name: DeleteMedDose :execrows
+DELETE FROM ` + "`" + `baby_med_doses` + "`" + ` WHERE id = ? AND child_id = ?
+`
+
+type DeleteMedDoseParams struct {
+	ID      uint64
+	ChildID uint64
+}
+
+func (q *Queries) DeleteMedDose(ctx context.Context, arg DeleteMedDoseParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteMedDose, arg.ID, arg.ChildID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const deleteSleep = `-- name: DeleteSleep :execrows
 DELETE FROM ` + "`" + `baby_sleeps` + "`" + ` WHERE id = ? AND child_id = ?
 `
@@ -101,7 +118,7 @@ func (q *Queries) DeleteSleep(ctx context.Context, arg DeleteSleepParams) (int64
 }
 
 const getActiveFeed = `-- name: GetActiveFeed :one
-SELECT id, child_id, type, started_at, ended_at, active_side, side_started_at, last_side, left_seconds, right_seconds, duration_seconds, amount_ml, note, active_lock, created_at, updated_at FROM ` + "`" + `baby_feeds` + "`" + ` WHERE child_id = ? AND active_lock = 1 LIMIT 1
+SELECT id, child_id, type, started_at, ended_at, active_side, side_started_at, last_side, left_seconds, right_seconds, duration_seconds, amount_ml, note, active_lock, created_at, updated_at, created_by, updated_by FROM ` + "`" + `baby_feeds` + "`" + ` WHERE child_id = ? AND active_lock = 1 LIMIT 1
 `
 
 func (q *Queries) GetActiveFeed(ctx context.Context, childID uint64) (BabyFeed, error) {
@@ -124,12 +141,14 @@ func (q *Queries) GetActiveFeed(ctx context.Context, childID uint64) (BabyFeed, 
 		&i.ActiveLock,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
 	)
 	return i, err
 }
 
 const getActiveSleep = `-- name: GetActiveSleep :one
-SELECT id, child_id, started_at, ended_at, note, active_lock, created_at, updated_at FROM ` + "`" + `baby_sleeps` + "`" + ` WHERE child_id = ? AND active_lock = 1 LIMIT 1
+SELECT id, child_id, started_at, ended_at, note, active_lock, created_at, updated_at, created_by, updated_by FROM ` + "`" + `baby_sleeps` + "`" + ` WHERE child_id = ? AND active_lock = 1 LIMIT 1
 `
 
 func (q *Queries) GetActiveSleep(ctx context.Context, childID uint64) (BabySleep, error) {
@@ -144,12 +163,14 @@ func (q *Queries) GetActiveSleep(ctx context.Context, childID uint64) (BabySleep
 		&i.ActiveLock,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
 	)
 	return i, err
 }
 
 const getDiaper = `-- name: GetDiaper :one
-SELECT id, child_id, changed_at, kind, note, created_at, updated_at FROM ` + "`" + `baby_diapers` + "`" + ` WHERE id = ? AND child_id = ? LIMIT 1
+SELECT id, child_id, changed_at, kind, note, created_at, updated_at, created_by, updated_by FROM ` + "`" + `baby_diapers` + "`" + ` WHERE id = ? AND child_id = ? LIMIT 1
 `
 
 type GetDiaperParams struct {
@@ -168,12 +189,14 @@ func (q *Queries) GetDiaper(ctx context.Context, arg GetDiaperParams) (BabyDiape
 		&i.Note,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
 	)
 	return i, err
 }
 
 const getFeed = `-- name: GetFeed :one
-SELECT id, child_id, type, started_at, ended_at, active_side, side_started_at, last_side, left_seconds, right_seconds, duration_seconds, amount_ml, note, active_lock, created_at, updated_at FROM ` + "`" + `baby_feeds` + "`" + ` WHERE id = ? AND child_id = ? LIMIT 1
+SELECT id, child_id, type, started_at, ended_at, active_side, side_started_at, last_side, left_seconds, right_seconds, duration_seconds, amount_ml, note, active_lock, created_at, updated_at, created_by, updated_by FROM ` + "`" + `baby_feeds` + "`" + ` WHERE id = ? AND child_id = ? LIMIT 1
 `
 
 type GetFeedParams struct {
@@ -201,12 +224,41 @@ func (q *Queries) GetFeed(ctx context.Context, arg GetFeedParams) (BabyFeed, err
 		&i.ActiveLock,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+	)
+	return i, err
+}
+
+const getMedDose = `-- name: GetMedDose :one
+SELECT id, child_id, name, dose_text, given_at, note, created_by, updated_by, created_at, updated_at FROM ` + "`" + `baby_med_doses` + "`" + ` WHERE id = ? AND child_id = ? LIMIT 1
+`
+
+type GetMedDoseParams struct {
+	ID      uint64
+	ChildID uint64
+}
+
+func (q *Queries) GetMedDose(ctx context.Context, arg GetMedDoseParams) (BabyMedDose, error) {
+	row := q.db.QueryRowContext(ctx, getMedDose, arg.ID, arg.ChildID)
+	var i BabyMedDose
+	err := row.Scan(
+		&i.ID,
+		&i.ChildID,
+		&i.Name,
+		&i.DoseText,
+		&i.GivenAt,
+		&i.Note,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getSleep = `-- name: GetSleep :one
-SELECT id, child_id, started_at, ended_at, note, active_lock, created_at, updated_at FROM ` + "`" + `baby_sleeps` + "`" + ` WHERE id = ? AND child_id = ? LIMIT 1
+SELECT id, child_id, started_at, ended_at, note, active_lock, created_at, updated_at, created_by, updated_by FROM ` + "`" + `baby_sleeps` + "`" + ` WHERE id = ? AND child_id = ? LIMIT 1
 `
 
 type GetSleepParams struct {
@@ -226,6 +278,8 @@ func (q *Queries) GetSleep(ctx context.Context, arg GetSleepParams) (BabySleep, 
 		&i.ActiveLock,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
 	)
 	return i, err
 }
@@ -326,6 +380,44 @@ func (q *Queries) InsertFeed(ctx context.Context, arg InsertFeedParams) (int64, 
 	return result.LastInsertId()
 }
 
+const insertMedDose = `-- name: InsertMedDose :execlastid
+
+INSERT INTO ` + "`" + `baby_med_doses` + "`" + ` (child_id, name, dose_text, given_at, note, created_by, updated_by, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?,
+        ?, ?, ?)
+`
+
+type InsertMedDoseParams struct {
+	ChildID  uint64
+	Name     string
+	DoseText sql.NullString
+	GivenAt  time.Time
+	Note     sql.NullString
+	ActorID  sql.NullInt64
+	Now      sql.NullTime
+}
+
+// Child medication dose log «دارو» (F-26; engine v6 M11, T-M11-04 schema, goose 00108): name, free dose text, time and
+// who gave it. No schedule, reminder or dosing advice. Every statement is scoped by child_id; the caller checks the
+// guardian first (T-M11-14). given_at is the local wall clock, like the other baby logs.
+func (q *Queries) InsertMedDose(ctx context.Context, arg InsertMedDoseParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, insertMedDose,
+		arg.ChildID,
+		arg.Name,
+		arg.DoseText,
+		arg.GivenAt,
+		arg.Note,
+		arg.ActorID,
+		arg.ActorID,
+		arg.Now,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
 const insertSleep = `-- name: InsertSleep :execlastid
 INSERT INTO ` + "`" + `baby_sleeps` + "`" + ` (child_id, started_at, ended_at, note, active_lock, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -371,7 +463,7 @@ func (q *Queries) LastBreastSide(ctx context.Context, childID uint64) (sql.NullS
 }
 
 const lastEndedFeed = `-- name: LastEndedFeed :one
-SELECT id, child_id, type, started_at, ended_at, active_side, side_started_at, last_side, left_seconds, right_seconds, duration_seconds, amount_ml, note, active_lock, created_at, updated_at FROM ` + "`" + `baby_feeds` + "`" + `
+SELECT id, child_id, type, started_at, ended_at, active_side, side_started_at, last_side, left_seconds, right_seconds, duration_seconds, amount_ml, note, active_lock, created_at, updated_at, created_by, updated_by FROM ` + "`" + `baby_feeds` + "`" + `
 WHERE child_id = ? AND ended_at IS NOT NULL
 ORDER BY ended_at DESC, id DESC LIMIT 1
 `
@@ -396,12 +488,14 @@ func (q *Queries) LastEndedFeed(ctx context.Context, childID uint64) (BabyFeed, 
 		&i.ActiveLock,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
 	)
 	return i, err
 }
 
 const listDiapersBetween = `-- name: ListDiapersBetween :many
-SELECT id, child_id, changed_at, kind, note, created_at, updated_at FROM ` + "`" + `baby_diapers` + "`" + `
+SELECT id, child_id, changed_at, kind, note, created_at, updated_at, created_by, updated_by FROM ` + "`" + `baby_diapers` + "`" + `
 WHERE child_id = ? AND changed_at >= ? AND changed_at < ?
 ORDER BY changed_at DESC, id DESC
 `
@@ -429,6 +523,8 @@ func (q *Queries) ListDiapersBetween(ctx context.Context, arg ListDiapersBetween
 			&i.Note,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.UpdatedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -444,7 +540,7 @@ func (q *Queries) ListDiapersBetween(ctx context.Context, arg ListDiapersBetween
 }
 
 const listFeedsBetween = `-- name: ListFeedsBetween :many
-SELECT id, child_id, type, started_at, ended_at, active_side, side_started_at, last_side, left_seconds, right_seconds, duration_seconds, amount_ml, note, active_lock, created_at, updated_at FROM ` + "`" + `baby_feeds` + "`" + `
+SELECT id, child_id, type, started_at, ended_at, active_side, side_started_at, last_side, left_seconds, right_seconds, duration_seconds, amount_ml, note, active_lock, created_at, updated_at, created_by, updated_by FROM ` + "`" + `baby_feeds` + "`" + `
 WHERE child_id = ? AND started_at >= ? AND started_at < ?
 ORDER BY started_at DESC, id DESC
 `
@@ -482,6 +578,80 @@ func (q *Queries) ListFeedsBetween(ctx context.Context, arg ListFeedsBetweenPara
 			&i.ActiveLock,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listMedDosesBetween = `-- name: ListMedDosesBetween :many
+SELECT d.id, d.child_id, d.name, d.dose_text, d.given_at, d.note, d.created_by, d.updated_by, d.created_at, d.updated_at,
+       u.name AS created_by_name
+FROM ` + "`" + `baby_med_doses` + "`" + ` d
+LEFT JOIN ` + "`" + `users` + "`" + ` u ON u.id = d.created_by
+WHERE d.child_id = ? AND d.given_at >= ? AND d.given_at < ?
+ORDER BY d.given_at DESC, d.id DESC
+LIMIT ?
+`
+
+type ListMedDosesBetweenParams struct {
+	ChildID uint64
+	FromAt  time.Time
+	ToAt    time.Time
+	Limit   int32
+}
+
+type ListMedDosesBetweenRow struct {
+	ID            uint64
+	ChildID       uint64
+	Name          string
+	DoseText      sql.NullString
+	GivenAt       time.Time
+	Note          sql.NullString
+	CreatedBy     sql.NullInt64
+	UpdatedBy     sql.NullInt64
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+	CreatedByName sql.NullString
+}
+
+// The dose timeline of a child in [from, to), newest first, with the writer's display name (NULL = deleted account).
+func (q *Queries) ListMedDosesBetween(ctx context.Context, arg ListMedDosesBetweenParams) ([]ListMedDosesBetweenRow, error) {
+	rows, err := q.db.QueryContext(ctx, listMedDosesBetween,
+		arg.ChildID,
+		arg.FromAt,
+		arg.ToAt,
+		arg.Limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListMedDosesBetweenRow{}
+	for rows.Next() {
+		var i ListMedDosesBetweenRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ChildID,
+			&i.Name,
+			&i.DoseText,
+			&i.GivenAt,
+			&i.Note,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CreatedByName,
 		); err != nil {
 			return nil, err
 		}
@@ -497,7 +667,7 @@ func (q *Queries) ListFeedsBetween(ctx context.Context, arg ListFeedsBetweenPara
 }
 
 const listSleepsOverlapping = `-- name: ListSleepsOverlapping :many
-SELECT id, child_id, started_at, ended_at, note, active_lock, created_at, updated_at FROM ` + "`" + `baby_sleeps` + "`" + `
+SELECT id, child_id, started_at, ended_at, note, active_lock, created_at, updated_at, created_by, updated_by FROM ` + "`" + `baby_sleeps` + "`" + `
 WHERE child_id = ? AND started_at < ?
   AND (ended_at IS NULL OR ended_at > ?)
 ORDER BY started_at DESC, id DESC
@@ -528,6 +698,8 @@ func (q *Queries) ListSleepsOverlapping(ctx context.Context, arg ListSleepsOverl
 			&i.ActiveLock,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.UpdatedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -543,7 +715,7 @@ func (q *Queries) ListSleepsOverlapping(ctx context.Context, arg ListSleepsOverl
 }
 
 const lockFeed = `-- name: LockFeed :one
-SELECT id, child_id, type, started_at, ended_at, active_side, side_started_at, last_side, left_seconds, right_seconds, duration_seconds, amount_ml, note, active_lock, created_at, updated_at FROM ` + "`" + `baby_feeds` + "`" + ` WHERE id = ? AND child_id = ? LIMIT 1 FOR UPDATE
+SELECT id, child_id, type, started_at, ended_at, active_side, side_started_at, last_side, left_seconds, right_seconds, duration_seconds, amount_ml, note, active_lock, created_at, updated_at, created_by, updated_by FROM ` + "`" + `baby_feeds` + "`" + ` WHERE id = ? AND child_id = ? LIMIT 1 FOR UPDATE
 `
 
 type LockFeedParams struct {
@@ -572,6 +744,8 @@ func (q *Queries) LockFeed(ctx context.Context, arg LockFeedParams) (BabyFeed, e
 		&i.ActiveLock,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
 	)
 	return i, err
 }
@@ -679,6 +853,41 @@ func (q *Queries) UpdateFeed(ctx context.Context, arg UpdateFeedParams) error {
 		arg.ChildID,
 	)
 	return err
+}
+
+const updateMedDose = `-- name: UpdateMedDose :execrows
+UPDATE ` + "`" + `baby_med_doses` + "`" + `
+SET name = ?, dose_text = ?, given_at = ?, note = ?,
+    updated_by = ?, updated_at = ?
+WHERE id = ? AND child_id = ?
+`
+
+type UpdateMedDoseParams struct {
+	Name     string
+	DoseText sql.NullString
+	GivenAt  time.Time
+	Note     sql.NullString
+	ActorID  sql.NullInt64
+	Now      sql.NullTime
+	ID       uint64
+	ChildID  uint64
+}
+
+func (q *Queries) UpdateMedDose(ctx context.Context, arg UpdateMedDoseParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateMedDose,
+		arg.Name,
+		arg.DoseText,
+		arg.GivenAt,
+		arg.Note,
+		arg.ActorID,
+		arg.Now,
+		arg.ID,
+		arg.ChildID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const updateSleep = `-- name: UpdateSleep :exec

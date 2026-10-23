@@ -85,3 +85,31 @@ VALUES (sqlc.arg(user_id), sqlc.arg(suggestion_key), sqlc.arg(ref_date), sqlc.ar
 -- The live (active + approved) todo_suggestion rows, all locales (admin-editable copy).
 SELECT item_key, locale, payload FROM `message_contents`
 WHERE `group` = 'todo_suggestion' AND is_active = 1 AND is_approved = 1;
+
+-- Household list (engine v6 M11, T-M11-04 schema, goose 00108; F-24, F-25): a todo_tasks row with scope = 'household'
+-- belongs to the owner's one household list (user_id = the owner) and is never merged with another owner's list. The
+-- personal statements above stay scope-agnostic until T-M11-14 adds the household writes; the caller checks the
+-- member's household grant before any of these reads.
+
+-- name: ListHouseholdTasks :many
+-- The household board of the given owners (one owner, or each owner a member holds a grant for), grouped by owner:
+-- every open task plus the ones ticked since done_since, with item counts and the assignee's display name.
+SELECT t.*,
+  (SELECT COUNT(*) FROM `todo_items` i WHERE i.task_id = t.id) AS items_total,
+  (SELECT COUNT(*) FROM `todo_items` i WHERE i.task_id = t.id AND i.done_at IS NULL) AS items_open,
+  a.name AS assignee_name
+FROM `todo_tasks` t
+LEFT JOIN `users` a ON a.id = t.assigned_to
+WHERE t.user_id IN (sqlc.slice(owner_ids)) AND t.scope = 'household'
+  AND (t.done_at IS NULL OR t.done_at >= sqlc.arg(done_since))
+ORDER BY t.user_id, t.id
+LIMIT ?;
+
+-- name: GetHouseholdTask :one
+SELECT * FROM `todo_tasks` WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(owner_id) AND scope = 'household' LIMIT 1;
+
+-- name: ListOpenHouseholdTasksAssignedTo :many
+-- Open household tasks assigned to one person across the given owners' lists («شیفت شب», F-24).
+SELECT * FROM `todo_tasks`
+WHERE assigned_to = sqlc.arg(assigned_to) AND user_id IN (sqlc.slice(owner_ids)) AND scope = 'household' AND done_at IS NULL
+ORDER BY due_date, id;

@@ -16,11 +16,13 @@ type Querier interface {
 	DeleteFeed(ctx context.Context, arg DeleteFeedParams) (int64, error)
 	// Only the slot the sessions wrote (a manual value from the log sheet stays).
 	DeleteFeedsCount(ctx context.Context, arg DeleteFeedsCountParams) error
+	DeleteMedDose(ctx context.Context, arg DeleteMedDoseParams) (int64, error)
 	DeleteSleep(ctx context.Context, arg DeleteSleepParams) (int64, error)
 	GetActiveFeed(ctx context.Context, childID uint64) (BabyFeed, error)
 	GetActiveSleep(ctx context.Context, childID uint64) (BabySleep, error)
 	GetDiaper(ctx context.Context, arg GetDiaperParams) (BabyDiaper, error)
 	GetFeed(ctx context.Context, arg GetFeedParams) (BabyFeed, error)
+	GetMedDose(ctx context.Context, arg GetMedDoseParams) (BabyMedDose, error)
 	GetSleep(ctx context.Context, arg GetSleepParams) (BabySleep, error)
 	// The mother's baby.feeds_count is written only while she has a postpartum profile.
 	HasPostpartumProfile(ctx context.Context, userID uint64) (bool, error)
@@ -29,6 +31,10 @@ type Querier interface {
 	// child_id; the caller resolved the child through children.Service.Access (owner, or spouse read-only) first.
 	// active_lock = 1 marks the running session (UNIQUE(child_id, active_lock)); NULL once it ended.
 	InsertFeed(ctx context.Context, arg InsertFeedParams) (int64, error)
+	// Child medication dose log «دارو» (F-26; engine v6 M11, T-M11-04 schema, goose 00108): name, free dose text, time and
+	// who gave it. No schedule, reminder or dosing advice. Every statement is scoped by child_id; the caller checks the
+	// guardian first (T-M11-14). given_at is the local wall clock, like the other baby logs.
+	InsertMedDose(ctx context.Context, arg InsertMedDoseParams) (int64, error)
 	InsertSleep(ctx context.Context, arg InsertSleepParams) (int64, error)
 	// The side the last ended breast feed ended on (the side to offer next is the other one).
 	LastBreastSide(ctx context.Context, childID uint64) (sql.NullString, error)
@@ -36,6 +42,8 @@ type Querier interface {
 	ListDiapersBetween(ctx context.Context, arg ListDiapersBetweenParams) ([]BabyDiaper, error)
 	// Feeds started in [date_from, date_to), newest first.
 	ListFeedsBetween(ctx context.Context, arg ListFeedsBetweenParams) ([]BabyFeed, error)
+	// The dose timeline of a child in [from, to), newest first, with the writer's display name (NULL = deleted account).
+	ListMedDosesBetween(ctx context.Context, arg ListMedDosesBetweenParams) ([]ListMedDosesBetweenRow, error)
 	// Sleeps overlapping [date_from, date_to) (running ones included), newest first.
 	ListSleepsOverlapping(ctx context.Context, arg ListSleepsOverlappingParams) ([]BabySleep, error)
 	// The feed row inside a write transaction (side switch / stop / edit read-modify-write).
@@ -44,6 +52,7 @@ type Querier interface {
 	StopSleep(ctx context.Context, arg StopSleepParams) (int64, error)
 	UpdateDiaper(ctx context.Context, arg UpdateDiaperParams) error
 	UpdateFeed(ctx context.Context, arg UpdateFeedParams) error
+	UpdateMedDose(ctx context.Context, arg UpdateMedDoseParams) (int64, error)
 	UpdateSleep(ctx context.Context, arg UpdateSleepParams) error
 	// The owner's taxonomy v2 slot baby.feeds_count of a day, owned by the feeding sessions (source baby_log).
 	UpsertFeedsCount(ctx context.Context, arg UpsertFeedsCountParams) error

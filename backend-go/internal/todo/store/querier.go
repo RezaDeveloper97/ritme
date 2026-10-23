@@ -14,6 +14,7 @@ type Querier interface {
 	CountTasks(ctx context.Context, userID uint64) (int64, error)
 	DeleteItem(ctx context.Context, arg DeleteItemParams) (int64, error)
 	DeleteTask(ctx context.Context, arg DeleteTaskParams) (int64, error)
+	GetHouseholdTask(ctx context.Context, arg GetHouseholdTaskParams) (TodoTask, error)
 	GetItem(ctx context.Context, arg GetItemParams) (TodoItem, error)
 	GetTask(ctx context.Context, arg GetTaskParams) (TodoTask, error)
 	InsertItem(ctx context.Context, arg InsertItemParams) (int64, error)
@@ -25,9 +26,18 @@ type Querier interface {
 	LatestOpenShoppingList(ctx context.Context, userID uint64) (TodoTask, error)
 	// The board of GET /todo: every open task plus the tasks ticked since done_since, with the item counts of each list.
 	ListBoardTasks(ctx context.Context, arg ListBoardTasksParams) ([]ListBoardTasksRow, error)
+	// Household list (engine v6 M11, T-M11-04 schema, goose 00108; F-24, F-25): a todo_tasks row with scope = 'household'
+	// belongs to the owner's one household list (user_id = the owner) and is never merged with another owner's list. The
+	// personal statements above stay scope-agnostic until T-M11-14 adds the household writes; the caller checks the
+	// member's household grant before any of these reads.
+	// The household board of the given owners (one owner, or each owner a member holds a grant for), grouped by owner:
+	// every open task plus the ones ticked since done_since, with item counts and the assignee's display name.
+	ListHouseholdTasks(ctx context.Context, arg ListHouseholdTasksParams) ([]ListHouseholdTasksRow, error)
 	ListItems(ctx context.Context, arg ListItemsParams) ([]TodoItem, error)
 	// The live (active + approved) todo_suggestion rows, all locales (admin-editable copy).
 	ListLiveSuggestionCopy(ctx context.Context) ([]ListLiveSuggestionCopyRow, error)
+	// Open household tasks assigned to one person across the given owners' lists («شیفت شب», F-24).
+	ListOpenHouseholdTasksAssignedTo(ctx context.Context, arg ListOpenHouseholdTasksAssignedToParams) ([]TodoTask, error)
 	MaxItemSort(ctx context.Context, arg MaxItemSortParams) (int64, error)
 	TouchTask(ctx context.Context, arg TouchTaskParams) error
 	UpdateItem(ctx context.Context, arg UpdateItemParams) (int64, error)

@@ -2113,3 +2113,24 @@ Nothing needed fixing.
   gives none); `payload_sealed` maps to `sql.NullString`; the revoke-path statements are a proposal the behaviour
   tasks must call; pre-existing: Laravel migration 000096 fails on MySQL 8.4 (prod is MariaDB).
 - Migration 00107 runs with the next stage/beta deploy.
+
+## T-M11-04 — Family schema C: child guardians, actor columns, child medication log, household to-do scope (D-192)
+- goose **00108** `family_schema_c` + Laravel twin `2026_10_23_000108_add_family_schema_c` (schema-diff green, 235 tables):
+  - `child_guardians` (level write|limited + sub_scopes JSON, status invited|active|left|removed, `invited_by` FK users
+    SET NULL — added beyond the spec so a deleted inviter leaves no dangling id, `link_id` FK companions SET NULL;
+    UNIQUE child/user, KEY user/status; child and user FKs cascade).
+  - `created_by` / `updated_by` (FK users SET NULL) on children, child_measurements, child_vaccine_doses,
+    child_milestone_checks, baby_feeds, baby_sleeps, baby_diapers, todo_tasks, todo_items — not backfilled.
+  - `baby_med_doses` (F-26), `todo_tasks.scope` (default personal) + `assigned_to` + KEY (user_id, scope, done_at).
+  - `children.owner_id` keeps ON DELETE CASCADE (frozen Laravel deletion; the Go transfer is T-M11-11).
+  - Goose backfill (INSERT IGNORE): owner → active write guardian; spouse of an active spouse link → active write
+    guardian of each shared `family_children` child (F-17); revoked / invited links give nothing.
+- sqlc: children (guardians by child set / by user, get, count active write, upsert, guarded status move), babylog
+  (dose-log CRUD + timeline), todo (household board, get, assigned-open list). No readers/writers yet.
+- Tests: `family_schema_c_int_test.go` (up/down, idempotent backfill on three fixtures, account deletion nulls actor
+  columns and still cascades a sole owner's child, every new statement). Contract dump follows (before→after diff).
+- Verify: schema-diff OK; full unit + `make test-int PKG=./...` green; contract all 1914/0. No JSON change (no Laravel
+  models for these tables; Go handlers use explicit DTOs). D-192 wording updated.
+- Open: T-M11-14 must add `scope = 'personal'` to the personal todo queries before household rows exist (note added to
+  its task file); writers don't set the actor columns yet (T-M11-11, T-M11-14); twin not run on MySQL 8.4.
+- Migration 00108 runs with the next stage/beta deploy.

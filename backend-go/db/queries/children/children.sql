@@ -115,3 +115,46 @@ DELETE FROM `child_milestone_checks` WHERE child_id = sqlc.arg(child_id) AND mil
 SELECT id, slug, read_time_minutes, image_url, image_path
 FROM `articles`
 WHERE is_published = 1 AND slug IN (sqlc.slice(slugs));
+
+-- Child guardians (engine v6 M11, T-M11-04 schema; goose 00108). Who may act on a child: the owner and every
+-- co-guardian are rows here (level write | limited + sub_scopes, status invited | active | left | removed). Readers
+-- check status = 'active' themselves; behaviour (invite, leave, two-guardian removal, undo) is T-M11-11.
+
+-- name: ListGuardiansForChildren :many
+-- Every guardian row (any status) of a set of children, with the guardian's display name; the caller filters.
+SELECT g.id, g.child_id, g.user_id, g.level, g.sub_scopes, g.status, g.invited_by, g.link_id, g.created_at, g.updated_at,
+       u.name AS user_name
+FROM `child_guardians` g
+JOIN `users` u ON u.id = g.user_id
+WHERE g.child_id IN (sqlc.slice(child_ids))
+ORDER BY g.child_id, g.id;
+
+-- name: ListActiveGuardianshipsForUser :many
+-- The children userID actively guards (owner or co-guardian), youngest first, with the child's owner.
+SELECT g.id, g.child_id, g.user_id, g.level, g.sub_scopes, g.status, g.invited_by, g.link_id, g.created_at, g.updated_at,
+       c.owner_id
+FROM `child_guardians` g
+JOIN `children` c ON c.id = g.child_id
+WHERE g.user_id = sqlc.arg(user_id) AND g.status = 'active'
+ORDER BY c.birth_date DESC, c.id;
+
+-- name: GetGuardian :one
+SELECT * FROM `child_guardians` WHERE child_id = sqlc.arg(child_id) AND user_id = sqlc.arg(user_id) LIMIT 1;
+
+-- name: CountActiveWriteGuardians :one
+-- Active write guardians of a child (F-15: removing the other guardian needs both; T-M11-11 transfer on deletion).
+SELECT COUNT(*) FROM `child_guardians` WHERE child_id = sqlc.arg(child_id) AND status = 'active' AND level = 'write';
+
+-- name: UpsertGuardian :exec
+-- One row per (child, user): a re-invite or level change rewrites the row in place.
+INSERT INTO `child_guardians` (child_id, user_id, level, sub_scopes, status, invited_by, link_id, created_at, updated_at)
+VALUES (sqlc.arg(child_id), sqlc.arg(user_id), sqlc.arg(level), sqlc.narg(sub_scopes), sqlc.arg(status), sqlc.narg(invited_by),
+        sqlc.narg(link_id), sqlc.arg(now), sqlc.arg(now))
+ON DUPLICATE KEY UPDATE
+  level = VALUES(level), sub_scopes = VALUES(sub_scopes), status = VALUES(status), invited_by = VALUES(invited_by),
+  link_id = VALUES(link_id), updated_at = VALUES(updated_at);
+
+-- name: SetGuardianStatus :execrows
+-- A guarded status move (invited → active, active → left | removed …): 0 rows when the row is not in from_status.
+UPDATE `child_guardians` SET status = sqlc.arg(status), updated_at = sqlc.arg(now)
+WHERE child_id = sqlc.arg(child_id) AND user_id = sqlc.arg(user_id) AND status = sqlc.arg(from_status);

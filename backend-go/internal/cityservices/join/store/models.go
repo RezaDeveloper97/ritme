@@ -242,6 +242,8 @@ type BabyDiaper struct {
 	Note      sql.NullString
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
+	CreatedBy sql.NullInt64
+	UpdatedBy sql.NullInt64
 }
 
 type BabyFeed struct {
@@ -261,6 +263,21 @@ type BabyFeed struct {
 	ActiveLock      sql.NullInt16
 	CreatedAt       sql.NullTime
 	UpdatedAt       sql.NullTime
+	CreatedBy       sql.NullInt64
+	UpdatedBy       sql.NullInt64
+}
+
+type BabyMedDose struct {
+	ID        uint64
+	ChildID   uint64
+	Name      string
+	DoseText  sql.NullString
+	GivenAt   time.Time
+	Note      sql.NullString
+	CreatedBy sql.NullInt64
+	UpdatedBy sql.NullInt64
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
 }
 
 type BabySleep struct {
@@ -272,6 +289,8 @@ type BabySleep struct {
 	ActiveLock sql.NullInt16
 	CreatedAt  sql.NullTime
 	UpdatedAt  sql.NullTime
+	CreatedBy  sql.NullInt64
+	UpdatedBy  sql.NullInt64
 }
 
 type Banner struct {
@@ -456,6 +475,21 @@ type Child struct {
 	DeliveryType  sql.NullString
 	CreatedAt     sql.NullTime
 	UpdatedAt     sql.NullTime
+	CreatedBy     sql.NullInt64
+	UpdatedBy     sql.NullInt64
+}
+
+type ChildGuardian struct {
+	ID        uint64
+	ChildID   uint64
+	UserID    uint64
+	Level     string
+	SubScopes db.NullRawJSON
+	Status    string
+	InvitedBy sql.NullInt64
+	LinkID    sql.NullInt64
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
 }
 
 type ChildMeasurement struct {
@@ -467,6 +501,8 @@ type ChildMeasurement struct {
 	HeadCm     sql.NullString
 	CreatedAt  sql.NullTime
 	UpdatedAt  sql.NullTime
+	CreatedBy  sql.NullInt64
+	UpdatedBy  sql.NullInt64
 }
 
 type ChildMilestoneCheck struct {
@@ -476,6 +512,8 @@ type ChildMilestoneCheck struct {
 	CheckedOn     civildate.Date
 	CreatedAt     sql.NullTime
 	UpdatedAt     sql.NullTime
+	CreatedBy     sql.NullInt64
+	UpdatedBy     sql.NullInt64
 }
 
 type ChildVaccineDose struct {
@@ -486,6 +524,8 @@ type ChildVaccineDose struct {
 	Note      sql.NullString
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
+	CreatedBy sql.NullInt64
+	UpdatedBy sql.NullInt64
 }
 
 type CityServiceApplication struct {
@@ -3023,6 +3063,8 @@ type TodoItem struct {
 	SortOrder uint16
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
+	CreatedBy sql.NullInt64
+	UpdatedBy sql.NullInt64
 }
 
 type TodoSuggestionEvent struct {
@@ -3048,6 +3090,10 @@ type TodoTask struct {
 	SuggestionKey sql.NullString
 	CreatedAt     sql.NullTime
 	UpdatedAt     sql.NullTime
+	CreatedBy     sql.NullInt64
+	UpdatedBy     sql.NullInt64
+	Scope         string
+	AssignedTo    sql.NullInt64
 }
 
 type TreatmentIntake struct {

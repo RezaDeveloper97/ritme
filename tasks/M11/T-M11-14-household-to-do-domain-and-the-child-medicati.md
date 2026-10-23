@@ -40,3 +40,6 @@ Fam_PPostpartum has a night shift. To-do is strictly personal and there is no ch
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-202.
+
+## Note from T-M11-04
+The existing personal todo queries (`ListBoardTasks`, `GetTask`, …) do not filter by `scope`. Add `scope = 'personal'` to them before the first household row is written, or household tasks appear on the owner's personal board. Writers must also start setting `created_by` / `updated_by`.

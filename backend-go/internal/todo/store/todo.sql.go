@@ -9,6 +9,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"strings"
 
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
@@ -99,8 +100,41 @@ func (q *Queries) DeleteTask(ctx context.Context, arg DeleteTaskParams) (int64, 
 	return result.RowsAffected()
 }
 
+const getHouseholdTask = `-- name: GetHouseholdTask :one
+SELECT id, user_id, title, note, category, due_date, due_time, remind, done_at, suggestion_key, created_at, updated_at, created_by, updated_by, scope, assigned_to FROM ` + "`" + `todo_tasks` + "`" + ` WHERE id = ? AND user_id = ? AND scope = 'household' LIMIT 1
+`
+
+type GetHouseholdTaskParams struct {
+	ID      uint64
+	OwnerID uint64
+}
+
+func (q *Queries) GetHouseholdTask(ctx context.Context, arg GetHouseholdTaskParams) (TodoTask, error) {
+	row := q.db.QueryRowContext(ctx, getHouseholdTask, arg.ID, arg.OwnerID)
+	var i TodoTask
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Title,
+		&i.Note,
+		&i.Category,
+		&i.DueDate,
+		&i.DueTime,
+		&i.Remind,
+		&i.DoneAt,
+		&i.SuggestionKey,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+		&i.Scope,
+		&i.AssignedTo,
+	)
+	return i, err
+}
+
 const getItem = `-- name: GetItem :one
-SELECT id, task_id, user_id, title, due_date, done_at, sort_order, created_at, updated_at FROM ` + "`" + `todo_items` + "`" + `
+SELECT id, task_id, user_id, title, due_date, done_at, sort_order, created_at, updated_at, created_by, updated_by FROM ` + "`" + `todo_items` + "`" + `
 WHERE id = ? AND task_id = ? AND user_id = ? LIMIT 1
 `
 
@@ -123,12 +157,14 @@ func (q *Queries) GetItem(ctx context.Context, arg GetItemParams) (TodoItem, err
 		&i.SortOrder,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
 	)
 	return i, err
 }
 
 const getTask = `-- name: GetTask :one
-SELECT id, user_id, title, note, category, due_date, due_time, remind, done_at, suggestion_key, created_at, updated_at FROM ` + "`" + `todo_tasks` + "`" + ` WHERE id = ? AND user_id = ? LIMIT 1
+SELECT id, user_id, title, note, category, due_date, due_time, remind, done_at, suggestion_key, created_at, updated_at, created_by, updated_by, scope, assigned_to FROM ` + "`" + `todo_tasks` + "`" + ` WHERE id = ? AND user_id = ? LIMIT 1
 `
 
 type GetTaskParams struct {
@@ -152,6 +188,10 @@ func (q *Queries) GetTask(ctx context.Context, arg GetTaskParams) (TodoTask, err
 		&i.SuggestionKey,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+		&i.Scope,
+		&i.AssignedTo,
 	)
 	return i, err
 }
@@ -259,7 +299,7 @@ func (q *Queries) InsertTask(ctx context.Context, arg InsertTaskParams) (int64, 
 }
 
 const latestOpenShoppingList = `-- name: LatestOpenShoppingList :one
-SELECT t.id, t.user_id, t.title, t.note, t.category, t.due_date, t.due_time, t.remind, t.done_at, t.suggestion_key, t.created_at, t.updated_at FROM ` + "`" + `todo_tasks` + "`" + ` t
+SELECT t.id, t.user_id, t.title, t.note, t.category, t.due_date, t.due_time, t.remind, t.done_at, t.suggestion_key, t.created_at, t.updated_at, t.created_by, t.updated_by, t.scope, t.assigned_to FROM ` + "`" + `todo_tasks` + "`" + ` t
 WHERE t.user_id = ? AND t.category = 'shopping' AND t.done_at IS NULL
   AND EXISTS (SELECT 1 FROM ` + "`" + `todo_items` + "`" + ` i WHERE i.task_id = t.id)
 ORDER BY t.id DESC
@@ -283,12 +323,16 @@ func (q *Queries) LatestOpenShoppingList(ctx context.Context, userID uint64) (To
 		&i.SuggestionKey,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+		&i.Scope,
+		&i.AssignedTo,
 	)
 	return i, err
 }
 
 const listBoardTasks = `-- name: ListBoardTasks :many
-SELECT t.id, t.user_id, t.title, t.note, t.category, t.due_date, t.due_time, t.remind, t.done_at, t.suggestion_key, t.created_at, t.updated_at,
+SELECT t.id, t.user_id, t.title, t.note, t.category, t.due_date, t.due_time, t.remind, t.done_at, t.suggestion_key, t.created_at, t.updated_at, t.created_by, t.updated_by, t.scope, t.assigned_to,
   (SELECT COUNT(*) FROM ` + "`" + `todo_items` + "`" + ` i WHERE i.task_id = t.id) AS items_total,
   (SELECT COUNT(*) FROM ` + "`" + `todo_items` + "`" + ` i WHERE i.task_id = t.id AND i.done_at IS NULL) AS items_open
 FROM ` + "`" + `todo_tasks` + "`" + ` t
@@ -316,6 +360,10 @@ type ListBoardTasksRow struct {
 	SuggestionKey sql.NullString
 	CreatedAt     sql.NullTime
 	UpdatedAt     sql.NullTime
+	CreatedBy     sql.NullInt64
+	UpdatedBy     sql.NullInt64
+	Scope         string
+	AssignedTo    sql.NullInt64
 	ItemsTotal    int64
 	ItemsOpen     int64
 }
@@ -343,6 +391,10 @@ func (q *Queries) ListBoardTasks(ctx context.Context, arg ListBoardTasksParams) 
 			&i.SuggestionKey,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+			&i.Scope,
+			&i.AssignedTo,
 			&i.ItemsTotal,
 			&i.ItemsOpen,
 		); err != nil {
@@ -359,8 +411,111 @@ func (q *Queries) ListBoardTasks(ctx context.Context, arg ListBoardTasksParams) 
 	return items, nil
 }
 
+const listHouseholdTasks = `-- name: ListHouseholdTasks :many
+
+SELECT t.id, t.user_id, t.title, t.note, t.category, t.due_date, t.due_time, t.remind, t.done_at, t.suggestion_key, t.created_at, t.updated_at, t.created_by, t.updated_by, t.scope, t.assigned_to,
+  (SELECT COUNT(*) FROM ` + "`" + `todo_items` + "`" + ` i WHERE i.task_id = t.id) AS items_total,
+  (SELECT COUNT(*) FROM ` + "`" + `todo_items` + "`" + ` i WHERE i.task_id = t.id AND i.done_at IS NULL) AS items_open,
+  a.name AS assignee_name
+FROM ` + "`" + `todo_tasks` + "`" + ` t
+LEFT JOIN ` + "`" + `users` + "`" + ` a ON a.id = t.assigned_to
+WHERE t.user_id IN (/*SLICE:owner_ids*/?) AND t.scope = 'household'
+  AND (t.done_at IS NULL OR t.done_at >= ?)
+ORDER BY t.user_id, t.id
+LIMIT ?
+`
+
+type ListHouseholdTasksParams struct {
+	OwnerIds  []uint64
+	DoneSince sql.NullTime
+	Limit     int32
+}
+
+type ListHouseholdTasksRow struct {
+	ID            uint64
+	UserID        uint64
+	Title         string
+	Note          sql.NullString
+	Category      string
+	DueDate       civildate.NullDate
+	DueTime       sql.NullString
+	Remind        bool
+	DoneAt        sql.NullTime
+	SuggestionKey sql.NullString
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+	CreatedBy     sql.NullInt64
+	UpdatedBy     sql.NullInt64
+	Scope         string
+	AssignedTo    sql.NullInt64
+	ItemsTotal    int64
+	ItemsOpen     int64
+	AssigneeName  sql.NullString
+}
+
+// Household list (engine v6 M11, T-M11-04 schema, goose 00108; F-24, F-25): a todo_tasks row with scope = 'household'
+// belongs to the owner's one household list (user_id = the owner) and is never merged with another owner's list. The
+// personal statements above stay scope-agnostic until T-M11-14 adds the household writes; the caller checks the
+// member's household grant before any of these reads.
+// The household board of the given owners (one owner, or each owner a member holds a grant for), grouped by owner:
+// every open task plus the ones ticked since done_since, with item counts and the assignee's display name.
+func (q *Queries) ListHouseholdTasks(ctx context.Context, arg ListHouseholdTasksParams) ([]ListHouseholdTasksRow, error) {
+	query := listHouseholdTasks
+	var queryParams []interface{}
+	if len(arg.OwnerIds) > 0 {
+		for _, v := range arg.OwnerIds {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:owner_ids*/?", strings.Repeat(",?", len(arg.OwnerIds))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:owner_ids*/?", "NULL", 1)
+	}
+	queryParams = append(queryParams, arg.DoneSince)
+	queryParams = append(queryParams, arg.Limit)
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListHouseholdTasksRow{}
+	for rows.Next() {
+		var i ListHouseholdTasksRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Title,
+			&i.Note,
+			&i.Category,
+			&i.DueDate,
+			&i.DueTime,
+			&i.Remind,
+			&i.DoneAt,
+			&i.SuggestionKey,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+			&i.Scope,
+			&i.AssignedTo,
+			&i.ItemsTotal,
+			&i.ItemsOpen,
+			&i.AssigneeName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listItems = `-- name: ListItems :many
-SELECT id, task_id, user_id, title, due_date, done_at, sort_order, created_at, updated_at FROM ` + "`" + `todo_items` + "`" + ` WHERE task_id = ? AND user_id = ? ORDER BY sort_order, id
+SELECT id, task_id, user_id, title, due_date, done_at, sort_order, created_at, updated_at, created_by, updated_by FROM ` + "`" + `todo_items` + "`" + ` WHERE task_id = ? AND user_id = ? ORDER BY sort_order, id
 `
 
 type ListItemsParams struct {
@@ -387,6 +542,8 @@ func (q *Queries) ListItems(ctx context.Context, arg ListItemsParams) ([]TodoIte
 			&i.SortOrder,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.UpdatedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -423,6 +580,69 @@ func (q *Queries) ListLiveSuggestionCopy(ctx context.Context) ([]ListLiveSuggest
 	for rows.Next() {
 		var i ListLiveSuggestionCopyRow
 		if err := rows.Scan(&i.ItemKey, &i.Locale, &i.Payload); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOpenHouseholdTasksAssignedTo = `-- name: ListOpenHouseholdTasksAssignedTo :many
+SELECT id, user_id, title, note, category, due_date, due_time, remind, done_at, suggestion_key, created_at, updated_at, created_by, updated_by, scope, assigned_to FROM ` + "`" + `todo_tasks` + "`" + `
+WHERE assigned_to = ? AND user_id IN (/*SLICE:owner_ids*/?) AND scope = 'household' AND done_at IS NULL
+ORDER BY due_date, id
+`
+
+type ListOpenHouseholdTasksAssignedToParams struct {
+	AssignedTo sql.NullInt64
+	OwnerIds   []uint64
+}
+
+// Open household tasks assigned to one person across the given owners' lists («شیفت شب», F-24).
+func (q *Queries) ListOpenHouseholdTasksAssignedTo(ctx context.Context, arg ListOpenHouseholdTasksAssignedToParams) ([]TodoTask, error) {
+	query := listOpenHouseholdTasksAssignedTo
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.AssignedTo)
+	if len(arg.OwnerIds) > 0 {
+		for _, v := range arg.OwnerIds {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:owner_ids*/?", strings.Repeat(",?", len(arg.OwnerIds))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:owner_ids*/?", "NULL", 1)
+	}
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []TodoTask{}
+	for rows.Next() {
+		var i TodoTask
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Title,
+			&i.Note,
+			&i.Category,
+			&i.DueDate,
+			&i.DueTime,
+			&i.Remind,
+			&i.DoneAt,
+			&i.SuggestionKey,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+			&i.Scope,
+			&i.AssignedTo,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

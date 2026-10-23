@@ -10,6 +10,8 @@ import (
 )
 
 type Querier interface {
+	// Active write guardians of a child (F-15: removing the other guardian needs both; T-M11-11 transfer on deletion).
+	CountActiveWriteGuardians(ctx context.Context, childID uint64) (int64, error)
 	CountOwnedChildren(ctx context.Context, ownerID uint64) (int64, error)
 	// Children (bloom B-N5-02, goose 00031). Health data: every child read is scoped by the owner (owner_id) or by an
 	// active spouse family (families.spouse_user_id + companions.status = 'active'); child sub-rows are only read after
@@ -20,6 +22,7 @@ type Querier interface {
 	DeleteMeasurement(ctx context.Context, arg DeleteMeasurementParams) (int64, error)
 	DeleteMilestoneCheck(ctx context.Context, arg DeleteMilestoneCheckParams) (int64, error)
 	GetChild(ctx context.Context, id uint64) (Child, error)
+	GetGuardian(ctx context.Context, arg GetGuardianParams) (ChildGuardian, error)
 	GetMeasurement(ctx context.Context, arg GetMeasurementParams) (ChildMeasurement, error)
 	GetMeasurementOn(ctx context.Context, arg GetMeasurementOnParams) (ChildMeasurement, error)
 	// The active spouse link through which user may see child (no row = not shared with them).
@@ -27,7 +30,14 @@ type Querier interface {
 	GetUserName(ctx context.Context, id uint64) (sql.NullString, error)
 	// The spouse's read of a shared child in the owner's companion audit trail (section children; never a payload).
 	InsertChildAudit(ctx context.Context, arg InsertChildAuditParams) error
+	// The children userID actively guards (owner or co-guardian), youngest first, with the child's owner.
+	ListActiveGuardianshipsForUser(ctx context.Context, userID uint64) ([]ListActiveGuardianshipsForUserRow, error)
 	ListDoses(ctx context.Context, childID uint64) ([]ChildVaccineDose, error)
+	// Child guardians (engine v6 M11, T-M11-04 schema; goose 00108). Who may act on a child: the owner and every
+	// co-guardian are rows here (level write | limited + sub_scopes, status invited | active | left | removed). Readers
+	// check status = 'active' themselves; behaviour (invite, leave, two-guardian removal, undo) is T-M11-11.
+	// Every guardian row (any status) of a set of children, with the guardian's display name; the caller filters.
+	ListGuardiansForChildren(ctx context.Context, childIds []uint64) ([]ListGuardiansForChildrenRow, error)
 	// Published articles a child_learn tip links by slug.
 	ListLearnArticles(ctx context.Context, slugs []string) ([]ListLearnArticlesRow, error)
 	ListMeasurements(ctx context.Context, childID uint64) ([]ChildMeasurement, error)
@@ -37,9 +47,13 @@ type Querier interface {
 	ListOwnedChildren(ctx context.Context, ownerID uint64) ([]Child, error)
 	// Children the owner shared with this spouse account through an active spouse link's family (B-N4-01).
 	ListSharedChildren(ctx context.Context, arg ListSharedChildrenParams) ([]ListSharedChildrenRow, error)
+	// A guarded status move (invited → active, active → left | removed …): 0 rows when the row is not in from_status.
+	SetGuardianStatus(ctx context.Context, arg SetGuardianStatusParams) (int64, error)
 	UpdateChild(ctx context.Context, arg UpdateChildParams) error
 	UpdateMeasurement(ctx context.Context, arg UpdateMeasurementParams) error
 	UpsertDose(ctx context.Context, arg UpsertDoseParams) error
+	// One row per (child, user): a re-invite or level change rewrites the row in place.
+	UpsertGuardian(ctx context.Context, arg UpsertGuardianParams) error
 	// One row per day: a second save of the same day merges (values sent replace, values not sent stay).
 	UpsertMeasurement(ctx context.Context, arg UpsertMeasurementParams) error
 	UpsertMilestoneCheck(ctx context.Context, arg UpsertMilestoneCheckParams) error

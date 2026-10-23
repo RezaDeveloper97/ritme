@@ -124,3 +124,34 @@ ON DUPLICATE KEY UPDATE
 DELETE FROM `health_log_entries`
 WHERE user_id = sqlc.arg(user_id) AND log_date = sqlc.arg(log_date) AND category = 'baby' AND param = 'feeds_count'
   AND item = '' AND source = 'baby_log';
+
+-- Child medication dose log «دارو» (F-26; engine v6 M11, T-M11-04 schema, goose 00108): name, free dose text, time and
+-- who gave it. No schedule, reminder or dosing advice. Every statement is scoped by child_id; the caller checks the
+-- guardian first (T-M11-14). given_at is the local wall clock, like the other baby logs.
+
+-- name: InsertMedDose :execlastid
+INSERT INTO `baby_med_doses` (child_id, name, dose_text, given_at, note, created_by, updated_by, created_at, updated_at)
+VALUES (sqlc.arg(child_id), sqlc.arg(name), sqlc.narg(dose_text), sqlc.arg(given_at), sqlc.narg(note), sqlc.narg(actor_id),
+        sqlc.narg(actor_id), sqlc.arg(now), sqlc.arg(now));
+
+-- name: GetMedDose :one
+SELECT * FROM `baby_med_doses` WHERE id = sqlc.arg(id) AND child_id = sqlc.arg(child_id) LIMIT 1;
+
+-- name: UpdateMedDose :execrows
+UPDATE `baby_med_doses`
+SET name = sqlc.arg(name), dose_text = sqlc.narg(dose_text), given_at = sqlc.arg(given_at), note = sqlc.narg(note),
+    updated_by = sqlc.narg(actor_id), updated_at = sqlc.arg(now)
+WHERE id = sqlc.arg(id) AND child_id = sqlc.arg(child_id);
+
+-- name: DeleteMedDose :execrows
+DELETE FROM `baby_med_doses` WHERE id = sqlc.arg(id) AND child_id = sqlc.arg(child_id);
+
+-- name: ListMedDosesBetween :many
+-- The dose timeline of a child in [from, to), newest first, with the writer's display name (NULL = deleted account).
+SELECT d.id, d.child_id, d.name, d.dose_text, d.given_at, d.note, d.created_by, d.updated_by, d.created_at, d.updated_at,
+       u.name AS created_by_name
+FROM `baby_med_doses` d
+LEFT JOIN `users` u ON u.id = d.created_by
+WHERE d.child_id = sqlc.arg(child_id) AND d.given_at >= sqlc.arg(from_at) AND d.given_at < sqlc.arg(to_at)
+ORDER BY d.given_at DESC, d.id DESC
+LIMIT ?;
