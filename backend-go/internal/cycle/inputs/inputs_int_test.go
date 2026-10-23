@@ -122,15 +122,16 @@ func wantFull() engine.Input {
 	}
 }
 
-// seedTeen: no birthday, a teen age band, onboarding pill, no anchor column but a seed row (pre-T-M9-27).
+// seedTeen: no birthday, a teen age band, onboarding pill, the declared anchor in its column and a stray
+// user_profile_confirmed row (T-M9-27: never a period, never the anchor).
 func seedTeen(t *testing.T, db *sql.DB) uint64 {
 	uid := newUser(t, db, "09120000002")
-	exec(t, db, `INSERT INTO user_profiles (user_id, period_duration, user_goal, calculation_status, created_at, updated_at)
-		VALUES (?, 6, 'non_ttc', 'completed', NOW(), NOW())`, uid)
+	exec(t, db, `INSERT INTO user_profiles (user_id, period_duration, onboarding_last_period_start, user_goal, calculation_status, created_at, updated_at)
+		VALUES (?, 6, '2026-09-20', 'non_ttc', 'completed', NOW(), NOW())`, uid)
 	exec(t, db, `INSERT INTO user_life_profiles (user_id, gender, life_mode, medications, created_at, updated_at)
 		VALUES (?, 'female', 'teen', '["contraceptive_pill"]', NOW(), NOW())`, uid)
 	exec(t, db, `INSERT INTO teen_profiles (user_id, age_band, menarche, created_at, updated_at) VALUES (?, '13_15', 'under_1y', NOW(), NOW())`, uid)
-	addPeriod(t, db, uid, "2026-09-20", "2026-09-24", "user_profile_confirmed", true, false)
+	addPeriod(t, db, uid, "2026-08-01", "2026-08-05", "user_profile_confirmed", true, false)
 	return uid
 }
 
@@ -212,6 +213,35 @@ func TestLoad_EveryInput(t *testing.T) {
 }
 
 // TestLoad_Budget: 120 periods and 400 markers in ≤ 4 queries; p95 ≤ 5 ms on the local test DB.
+// T-M9-27 (I-01, D-123): an onboarding-only user (declared LMP in its column, no cycle_histories row) resolves from
+// the onboarding_declared anchor; 90 days on, the anchor is stale (§2.41: > effective cycle + 14) and rolled forward.
+func TestLoad_OnboardingOnlyUserIsDeclaredThenStale(t *testing.T) {
+	db := testdb.New(t)
+	q := store.New(db)
+	uid := newUser(t, db, "09120000009")
+	exec(t, db, `INSERT INTO user_profiles (user_id, period_duration, cycle_duration, last_period_start, onboarding_last_period_start,
+		user_goal, calculation_status, created_at, updated_at) VALUES (?, 5, 28, '2026-10-10', '2026-10-10', 'non_ttc', 'completed', NOW(), NOW())`, uid)
+
+	in, err := inputs.Load(context.Background(), q, uid, today)
+	require.NoError(t, err)
+	assert.Empty(t, in.Periods, "the declared LMP is not a period")
+	assert.Equal(t, engine.Some(day("2026-10-10")), in.Declared.LastPeriodStart)
+
+	st := engine.Prepare(in, engine.DefaultParams())
+	now := st.Resolve(day(today.String()), day(today.String()))
+	assert.Equal(t, engine.StartOnboardingDeclared, now.Anchors.CurrentPeriodStartSource)
+	assert.Equal(t, day("2026-10-10"), now.Anchors.CurrentPeriodStart)
+	assert.NotEqual(t, engine.ResolutionUserLogged, now.ResolutionSource, "an onboarding-only user is never user_logged")
+	assert.False(t, now.Warnings.Has(engine.WarnStaleOnboardingAnchor))
+
+	later := day(today.AddDays(90).String())
+	in, err = inputs.Load(context.Background(), q, uid, today.AddDays(90))
+	require.NoError(t, err)
+	stale := engine.Prepare(in, engine.DefaultParams()).Resolve(later, later)
+	assert.True(t, stale.Warnings.Has(engine.WarnStaleOnboardingAnchor), "§2.41 stale anchor after 90 days")
+	assert.Equal(t, engine.StartPredictedReference, stale.Anchors.CurrentPeriodStartSource)
+}
+
 // seedBudget is the budget user: 120 periods and 400 markers (200 days of BBT + LH).
 func seedBudget(t *testing.T, db *sql.DB) uint64 {
 	uid := newUser(t, db, "09120000010")

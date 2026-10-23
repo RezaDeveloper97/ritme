@@ -143,37 +143,44 @@ func TestStore_ConcurrentUpdatesIncrementVersionTwice(t *testing.T) {
 	assert.Equal(t, "completed", status)
 }
 
-func TestStore_OnboardingSeedsAndResyncsPeriod(t *testing.T) {
+// T-M9-27 (I-01, D-123): the declared LMP goes to user_profiles.onboarding_last_period_start — no cycle_histories
+// row (the old seed stored an assumed end as real). Changing it updates only the column (and the legacy
+// last_period_start); re-sending the stored value is no declaration; pregnancy mode writes no anchor.
+func TestStore_DeclaredLMPWritesTheColumnNotAPeriod(t *testing.T) {
 	e := setup(t)
 	id, tok := e.user(t, "09120000002")
+	state := func() (declared, legacy string, rows int) {
+		var d, l sql.NullString
+		require.NoError(t, e.db.QueryRow(`SELECT DATE_FORMAT(onboarding_last_period_start,'%Y-%m-%d'), DATE_FORMAT(last_period_start,'%Y-%m-%d')
+			FROM user_profiles WHERE user_id=?`, id).Scan(&d, &l))
+		require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM cycle_histories WHERE user_id=?`, id).Scan(&rows))
+		return d.String, l.String, rows
+	}
+
 	r := e.do(t, http.MethodPost, "/api/v1/profile", tok, `{"period_duration":5,"last_period_start":"2026-09-10"}`)
 	require.Equal(t, 200, r.status, r.raw)
+	assert.Equal(t, "2026-09-10", r.body["data"].(map[string]any)["profile"].(map[string]any)["onboarding_last_period_start"], r.raw)
+	d, l, n := state()
+	assert.Equal(t, [3]any{"2026-09-10", "2026-09-10", 0}, [3]any{d, l, n})
 
-	row := func() (start, end string, bleeding sql.NullInt64, confirmed, estimated bool, source string, n int) {
-		require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM cycle_histories WHERE user_id=?`, id).Scan(&n))
-		var endN sql.NullString
-		require.NoError(t, e.db.QueryRow(`SELECT DATE_FORMAT(period_start_date,'%Y-%m-%d'), DATE_FORMAT(period_end_date,'%Y-%m-%d'),
-			bleeding_length, is_confirmed, is_estimated, source FROM cycle_histories WHERE user_id=?`, id).
-			Scan(&start, &endN, &bleeding, &confirmed, &estimated, &source))
-		return start, endN.String, bleeding, confirmed, estimated, source, n
-	}
-	start, end, bleeding, confirmed, estimated, source, n := row()
-	assert.Equal(t, 1, n)
-	assert.Equal(t, "2026-09-10", start)
-	assert.Equal(t, "2026-09-14", end)
-	assert.Equal(t, int64(5), bleeding.Int64)
-	assert.True(t, confirmed)
-	assert.False(t, estimated)
-	assert.Equal(t, "user_profile_confirmed", source)
-
-	// Editing the declared LMP re-syncs the same row; an end in the future leaves it open.
 	r = e.do(t, http.MethodPost, "/api/v1/profile", tok, `{"last_period_start":"2026-09-21"}`)
 	require.Equal(t, 200, r.status, r.raw)
-	start, end, bleeding, _, _, _, n = row()
-	assert.Equal(t, 1, n)
-	assert.Equal(t, "2026-09-21", start)
-	assert.Empty(t, end)
-	assert.False(t, bleeding.Valid)
+	d, l, n = state()
+	assert.Equal(t, [3]any{"2026-09-21", "2026-09-21", 0}, [3]any{d, l, n})
+
+	// A later actual start moves only the legacy column; re-sending it from the profile form is no declaration.
+	_, err := e.db.Exec(`UPDATE user_profiles SET last_period_start='2026-09-22' WHERE user_id=?`, id)
+	require.NoError(t, err)
+	r = e.do(t, http.MethodPost, "/api/v1/profile", tok, `{"last_period_start":"2026-09-22","cycle_duration":30}`)
+	require.Equal(t, 200, r.status, r.raw)
+	d, l, n = state()
+	assert.Equal(t, [3]any{"2026-09-21", "2026-09-22", 0}, [3]any{d, l, n})
+
+	// Pregnancy mode: period tracking is off, the anchor is left alone (the old seed was skipped there too).
+	r = e.do(t, http.MethodPost, "/api/v1/profile", tok, `{"pregnancy_intention":"pregnant","last_period_start":"2026-08-01"}`)
+	require.Equal(t, 200, r.status, r.raw)
+	d, l, n = state()
+	assert.Equal(t, [3]any{"2026-09-21", "2026-08-01", 0}, [3]any{d, l, n})
 }
 
 func TestStore_NullUserGoalIsA500WithNoRow(t *testing.T) {
@@ -248,11 +255,11 @@ func TestStore_NoLastPeriodStartSeedsNothing(t *testing.T) {
 	r = e.do(t, http.MethodGet, "/api/v1/profile", tok, "")
 	require.Equal(t, 200, r.status, r.raw)
 
-	// Logging the period later still seeds the onboarding row.
+	// Declaring the period later stores the onboarding anchor, still no row (T-M9-27, D-123).
 	r = e.do(t, http.MethodPost, "/api/v1/profile", tok, `{"last_period_start":"2026-09-10"}`)
 	require.Equal(t, 200, r.status, r.raw)
 	assert.Equal(t, "2026-09-10", lmp().String[:10])
-	assert.Equal(t, 1, cycles())
+	assert.Zero(t, cycles())
 }
 
 // T-M9-23 (D-127): ten concurrent first saves for a new user leave exactly one profile row, and every request

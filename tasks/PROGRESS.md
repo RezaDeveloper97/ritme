@@ -1917,3 +1917,26 @@ Nothing needed fixing.
   appear in a child's schedule (admin shows it under "no visit"); no `child_age_notes` for 15/30 months while H-15 is
   advisor-pending; milestone copy needs clinical review.
 - Migration 00102 must run on stage/beta with the next deploy.
+
+## T-M9-27 — Declared onboarding anchor replaces the seed period row
+- D-123 (I-01; user-visible, approved in T-M9-01): `profile.Save` writes `user_profiles.onboarding_last_period_start`
+  whenever `last_period_start` is set to a new value outside pregnancy mode (re-sending the stored value is no
+  declaration); `last_period_start` keeps its legacy meaning. `syncOnboardingPeriodLog` and
+  `InsertOnboardingCycleHistory` / `UpdateOnboardingCycleHistory` are gone.
+- Goose **00103** `onboarding_declared_anchor` (data only, Go-only, no Laravel twin; prod untouched):
+  untouched seed (end/length = the old re-sync rule, or both NULL for a running one; start = profile LMP unless a later
+  real period exists) → start copied into the column, row deleted; any other seed → `user_logged`, confirmed;
+  `user_revisions` +1 for every affected user. Down re-creates the seeds from the column with the old rule and NULLs
+  the column; converted rows stay `user_logged`. Int test: 5 personas, up → down → up.
+- `inputs.Load`: no seed fallback; a stray `user_profile_confirmed` row is neither a period nor the anchor. Int test:
+  onboarding-only user → `onboarding_declared`; +90 days → stale anchor (§2.41).
+- Visible (v1 mode too): onboarding-only users resolve `onboarding_based`, their period history is empty and the
+  calendar no longer paints the declared period as logged. Assumed-range rendering → T-M9-33/T-M9-45.
+- Main session: `routes_shop_checklist.go` supply-reminder predictor now also runs from the declared LMP when the
+  history is empty (else onboarding-only users lost the reminder); `TestConsentEndpoints` fixed separately (T-M10-23
+  leftover: GET /consents omits the mandatory signup consents).
+- Contract: `allowlist/profile.yaml` +3 entries (D-123). `ROUTES=all` 1914 passed, 0 failed; full `make test-int` green;
+  schema-diff OK (219 tables).
+- Open: pregnancy mode writes no anchor (kept the old seed rule; Scope says "whenever"); `Save` revision bump → T-M9-30;
+  the Down can't rebuild seeds faithfully for users onboarded after Up; stale comment on `ListEngineInputPeriods`.
+- Migration 00103 runs with the next stage/beta deploy and is user-visible there.

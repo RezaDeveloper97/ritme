@@ -99,11 +99,7 @@ func loadBatch(ctx context.Context, q Querier, ids []uint64, today engine.Day, o
 		if u == nil {
 			continue
 		}
-		periods, seed := mapPeriods(rows)
-		u.in.Periods = periods
-		if !u.in.Declared.LastPeriodStart.OK() {
-			u.in.Declared.LastPeriodStart = seed // pre-T-M9-27 data: the onboarding seed row is the declared anchor
-		}
+		u.in.Periods = mapPeriods(rows)
 	}
 	for uid, rows := range groupBy(skipRows, func(r store.ListEngineInputSkipsRow) uint64 { return r.UserID }) {
 		if u := users[uid]; u != nil {

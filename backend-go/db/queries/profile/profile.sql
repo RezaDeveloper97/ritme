@@ -79,8 +79,9 @@ LIMIT 1;
 SELECT onboarding_last_period_start, timezone FROM `user_profiles` WHERE user_id = ? LIMIT 1;
 
 -- name: SetOnboardingLastPeriodStart :exec
--- I-01: only onboarding writes the declared anchor. user_id is UNIQUE (00096), so a missing profile row is created
--- with the DB defaults and an existing one keeps everything else.
+-- I-01: only profile.Save (the onboarding cycle step and the profile form) writes the declared anchor (T-M9-27,
+-- D-123). user_id is UNIQUE (00096), so a missing profile row is created with the DB defaults and an existing one
+-- keeps everything else.
 INSERT INTO `user_profiles` (user_id, onboarding_last_period_start, created_at, updated_at)
 VALUES (sqlc.arg(user_id), sqlc.narg(onboarding_last_period_start), sqlc.arg(now), sqlc.arg(now))
 ON DUPLICATE KEY UPDATE

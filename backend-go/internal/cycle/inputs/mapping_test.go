@@ -220,10 +220,10 @@ func period(start, end, source string, confirmed, estimated bool) store.ListEngi
 }
 
 func TestMapPeriods(t *testing.T) {
-	periods, seed := mapPeriods([]store.ListEngineInputPeriodsRow{
+	periods := mapPeriods([]store.ListEngineInputPeriodsRow{
 		period("2026-07-01", "2026-07-05", "user_logged", true, false),
-		period("2026-05-01", "2026-05-04", "user_profile_confirmed", true, false), // older seed
-		period("2026-06-02", "2026-06-06", "user_profile_confirmed", true, false), // newest seed → anchor
+		period("2026-05-01", "2026-05-04", "user_profile_confirmed", true, false), // a stray seed: never a period
+		period("2026-06-02", "2026-06-06", "user_profile_confirmed", true, false), // … nor the anchor (T-M9-27)
 		period("2026-08-01", "2026-08-04", "bleeding_log", true, false),
 		period("2026-08-29", "2026-09-02", "user_logged", false, false), // unconfirmed user_logged is actual (I-02)
 		period("2026-09-15", "", "onboarding_estimate", false, true),    // estimated: ignored
@@ -236,11 +236,8 @@ func TestMapPeriods(t *testing.T) {
 		{Start: day("2026-09-27"), End: engine.NoDay, Source: engine.PeriodUserLogged},
 	}, periods)
 	assert.True(t, periods[3].Open())
-	assert.Equal(t, engine.Some(day("2026-06-02")), seed)
 
-	periods, seed = mapPeriods(nil)
-	assert.Nil(t, periods)
-	assert.False(t, seed.OK())
+	assert.Nil(t, mapPeriods(nil))
 }
 
 func TestMarkerWindowFrom(t *testing.T) {

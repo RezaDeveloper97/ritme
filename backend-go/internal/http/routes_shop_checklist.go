@@ -76,9 +76,11 @@ func (p shopPeriodPredictor) NextPeriodStart(ctx context.Context, userID uint64,
 	default:
 		return civildate.Date{}, false, nil
 	}
-	if len(sn.Histories) == 0 {
-		return civildate.Date{}, false, nil
+	if len(sn.Histories) == 0 && sn.Profile == nil {
+		return civildate.Date{}, false, nil // nothing logged and nothing declared
 	}
+	// T-M9-27 (D-123): an onboarding-only user has no period row any more; the declared LMP on the profile still
+	// predicts (onboarding_based), as the old seed row did.
 	profile := sn.EngineProfile()
 	st := resolver.Resolve(sn.Histories, profile, today, today, metrics.Calculate(sn.Histories, profile))
 	next := st.PredictedNextPeriodStart

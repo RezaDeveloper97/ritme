@@ -104,6 +104,7 @@ func (s *Service) Save(ctx context.Context, u *auth.User, input phpval.Map, now 
 	isPregnant := intention == string(enums.PregnancyIntentionPregnant)
 
 	changed := cycleFieldsChanged(orig, data)
+	declared := declaredLMPChanged(orig, data)
 
 	id, err := s.write(ctx, u.ID, orig, data, now)
 	if err != nil {
@@ -114,10 +115,17 @@ func (s *Service) Save(ctx context.Context, u *auth.User, input phpval.Map, now 
 	if err != nil {
 		return nil, dbErr("reload profile", err)
 	}
-	if !isPregnant && fresh.LastPeriodStart.Valid {
-		if err := s.syncOnboardingPeriodLog(ctx, u.ID, &fresh, now); err != nil {
-			return nil, err
+	// T-M9-27 (I-01, D-123): the declared LMP is the engine's onboarding anchor, stored in its own column — no
+	// cycle_histories row any more (the old seed stored an assumed end as real, §2.2/§2.40, and fed the medians,
+	// §2.9). last_period_start keeps its legacy meaning (latest actual start) for the legacy readers. Same scope as
+	// the old seed: not in pregnancy mode (period tracking is off there).
+	if !isPregnant && declared && fresh.OnboardingLastPeriodStart != fresh.LastPeriodStart {
+		if err := s.Q.SetOnboardingLastPeriodStart(ctx, store.SetOnboardingLastPeriodStartParams{
+			UserID: u.ID, OnboardingLastPeriodStart: fresh.LastPeriodStart, Now: dbTime(now),
+		}); err != nil {
+			return nil, dbErr("set declared last period", err)
 		}
+		fresh.OnboardingLastPeriodStart = fresh.LastPeriodStart
 	}
 	if changed && fresh.LastPeriodStart.Valid {
 		if err := MarkRecalculated(ctx, s.Q, fresh.ID, now); err != nil {
@@ -491,58 +499,17 @@ func cycleFieldsChanged(orig *store.UserProfile, data map[string]any) bool {
 	return false
 }
 
-// syncOnboardingPeriodLog turns the declared LMP + period duration into a confirmed
-// cycle_histories row while that seed is the user's whole history (ProfileController:462).
-func (s *Service) syncOnboardingPeriodLog(ctx context.Context, userID uint64, p *store.UserProfile, now time.Time) error {
-	histories, err := s.Q.ListCycleHistories(ctx, userID)
-	if err != nil {
-		return dbErr("load cycle histories", err)
+// declaredLMPChanged: the request sets last_period_start to a new value (a first value included) — the user
+// declared her last period (onboarding cycle step or the profile form). Re-sending the stored value is no declaration.
+func declaredLMPChanged(orig *store.UserProfile, data map[string]any) bool {
+	v, has := data["last_period_start"]
+	if !has {
+		return false
 	}
-	var seed *store.CycleHistory
-	for i := range histories {
-		if histories[i].Source == string(enums.DataSourceUserProfileConfirmed) {
-			seed = &histories[i]
-			break
-		}
+	if orig == nil {
+		return v != nil
 	}
-	if len(histories) > 0 && (seed == nil || len(histories) > 1) {
-		return nil // the user owns their history
-	}
-
-	start := p.LastPeriodStart.Date
-	duration := 5
-	if p.PeriodDuration.Valid && p.PeriodDuration.Int16 != 0 {
-		duration = int(p.PeriodDuration.Int16)
-	}
-	duration = max(1, duration)
-	end := start.AddDays(duration - 1)
-	ongoing := end.After(civildate.InTehran(now))
-
-	endDate := civildate.NullDate{Date: end, Valid: !ongoing}
-	bleeding := sql.NullInt32{Int32: int32(duration), Valid: !ongoing} //nolint:gosec // G115: ≤ 15
-	source := string(enums.DataSourceUserProfileConfirmed)
-
-	if seed == nil {
-		if err := s.Q.InsertOnboardingCycleHistory(ctx, store.InsertOnboardingCycleHistoryParams{
-			UserID: userID, PeriodStartDate: start, PeriodEndDate: endDate, BleedingLength: bleeding,
-			IsConfirmed: true, IsEstimated: false, Source: source,
-			CreatedAt: dbTime(now), UpdatedAt: dbTime(now),
-		}); err != nil {
-			return dbErr("create onboarding period", err)
-		}
-		return nil
-	}
-	if seed.PeriodStartDate == start && seed.PeriodEndDate == endDate && seed.BleedingLength == bleeding &&
-		seed.IsConfirmed && !seed.IsEstimated && seed.Source == source {
-		return nil // $seed->update() with nothing dirty writes nothing
-	}
-	if err := s.Q.UpdateOnboardingCycleHistory(ctx, store.UpdateOnboardingCycleHistoryParams{
-		PeriodStartDate: start, PeriodEndDate: endDate, BleedingLength: bleeding,
-		IsConfirmed: true, IsEstimated: false, Source: source, UpdatedAt: dbTime(now), ID: seed.ID,
-	}); err != nil {
-		return dbErr("update onboarding period", err)
-	}
-	return nil
+	return attributeDirty(originalAttribute(orig, "last_period_start"), v, model.UserProfileCasts["last_period_start"])
 }
 
 // dbTime is a Carbon value as Eloquent writes it: 'Y-m-d H:i:s' in Asia/Tehran.

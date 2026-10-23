@@ -68,14 +68,14 @@ type Querier interface {
 	// A grant keeps revoked_at (the last withdrawal), stamps granted_at and the version of the consent text in force
 	// (B-N6-05, internal/consent); a repeated grant of the same version leaves the row untouched.
 	GrantUserConsent(ctx context.Context, arg GrantUserConsentParams) error
-	InsertOnboardingCycleHistory(ctx context.Context, arg InsertOnboardingCycleHistoryParams) error
 	// new UserProfile(['user_id' => …])->save(): the row starts with the DB defaults; the
 	// request's attributes follow in UpdateProfileAttributes inside the same transaction.
 	// T-M9-23 (D-127): user_id is UNIQUE. A concurrent first save that lost the race changes
 	// nothing on the existing row and gets its id back as LastInsertId (id = LAST_INSERT_ID(id)),
 	// so the caller's attribute UPDATE lands on the one profile instead of failing with 1062.
 	InsertProfile(ctx context.Context, arg InsertProfileParams) (sql.Result, error)
-	// ProfileController::syncOnboardingPeriodLog and export.
+	// The cycle-history reads of ProfileController (show, export, cycle settings). Onboarding no longer writes a seed row
+	// here: the declared LMP lives in user_profiles.onboarding_last_period_start (T-M9-27, I-01, D-123).
 	// CycleHistory::where('user_id', …)->get() / ->orderBy('period_start_date') (unique-index order).
 	ListCycleHistories(ctx context.Context, userID uint64) ([]CycleHistory, error)
 	// Consents (B-N1-12, goose 00012): one row per (user, consent) once answered, Go only.
@@ -90,8 +90,9 @@ type Querier interface {
 	// A withdrawal keeps granted_at (the last grant) and stamps revoked_at; revoking what was never granted stores
 	// an explicit «no» without a revoked_at.
 	RevokeUserConsent(ctx context.Context, arg RevokeUserConsentParams) error
-	// I-01: only onboarding writes the declared anchor. user_id is UNIQUE (00096), so a missing profile row is created
-	// with the DB defaults and an existing one keeps everything else.
+	// I-01: only profile.Save (the onboarding cycle step and the profile form) writes the declared anchor (T-M9-27,
+	// D-123). user_id is UNIQUE (00096), so a missing profile row is created with the DB defaults and an existing one
+	// keeps everything else.
 	SetOnboardingLastPeriodStart(ctx context.Context, arg SetOnboardingLastPeriodStartParams) error
 	// X-07: the validated X-Timezone zone (the caller decides when it changed). Same upsert as above.
 	SetProfileTimezone(ctx context.Context, arg SetProfileTimezoneParams) error
@@ -99,7 +100,6 @@ type Querier interface {
 	// rows), only when the zone really changed, and updated_at is left alone: the zone moves "today" (which is in the
 	// ETag), not the engine state, so there is no revision bump either.
 	StoreUserTimezone(ctx context.Context, arg StoreUserTimezoneParams) (int64, error)
-	UpdateOnboardingCycleHistory(ctx context.Context, arg UpdateOnboardingCycleHistoryParams) error
 	// $profile->fill($data)->save(): only the dirty attributes are written (set_* flags). The
 	// values are bound as the raw request strings, as PDO binds them, so MariaDB does the same
 	// conversions (and rejects the same values) as it does for Laravel.

@@ -81,13 +81,15 @@ func TestOnboarding_WomenPathEndToEnd(t *testing.T) {
 	assert.Equal(t, map[string]any{"birthday": "1993-03-05", "height": float64(164), "weight": float64(58)}, d["health"])
 	assert.NotNil(t, d["started_at"])
 
-	// Legacy columns kept in step: user_goal ttc + intention trying; the cycle step seeded the period log.
-	var goal, intention string
-	require.NoError(t, e.db.QueryRow(`SELECT user_goal, pregnancy_intention FROM user_profiles WHERE user_id = ?`, id).Scan(&goal, &intention))
-	assert.Equal(t, [2]string{"ttc", "trying"}, [2]string{goal, intention})
+	// Legacy columns kept in step: user_goal ttc + intention trying. T-M9-27 (D-123): the cycle step stores the
+	// declared LMP as the onboarding anchor, not as a period row.
+	var goal, intention, declared string
+	require.NoError(t, e.db.QueryRow(`SELECT user_goal, pregnancy_intention, DATE_FORMAT(onboarding_last_period_start, '%Y-%m-%d')
+		FROM user_profiles WHERE user_id = ?`, id).Scan(&goal, &intention, &declared))
+	assert.Equal(t, [3]string{"ttc", "trying", "2026-09-10"}, [3]string{goal, intention, declared})
 	var seeds int
-	require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM cycle_histories WHERE user_id = ? AND period_start_date = '2026-09-10'`, id).Scan(&seeds))
-	assert.Equal(t, 1, seeds)
+	require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM cycle_histories WHERE user_id = ?`, id).Scan(&seeds))
+	assert.Zero(t, seeds)
 
 	r = e.do(t, "POST", "/api/v1/onboarding/complete", tok, "")
 	d = obData(t, r)

@@ -13390,7 +13390,7 @@ paths:
                           created_at: {$ref: "#/components/schemas/LaravelDateTime"}
                           updated_at: {$ref: "#/components/schemas/LaravelDateTime"}
                           onboarding_last_period_start:
-                            description: "Declared onboarding LMP (engine v6 I-01, goose 00098); raw Y-m-d, no cast."
+                            description: "Declared onboarding LMP (engine v6 I-01, goose 00098); raw Y-m-d, no cast. Written by POST /profile whenever last_period_start is set to a new value outside pregnancy mode; it is the engine's onboarding anchor, never a period row (T-M9-27, D-123)."
                             anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
                           timezone:
                             description: "Stored IANA time zone (engine v6 X-07, goose 00098)."
@@ -16115,7 +16115,7 @@ paths:
                           created_at: {$ref: "#/components/schemas/LaravelDateTime"}
                           updated_at: {$ref: "#/components/schemas/LaravelDateTime"}
                           onboarding_last_period_start:
-                            description: "Declared onboarding LMP (engine v6 I-01, goose 00098); raw Y-m-d, no cast."
+                            description: "Declared onboarding LMP (engine v6 I-01, goose 00098); raw Y-m-d, no cast. Written by POST /profile whenever last_period_start is set to a new value outside pregnancy mode; it is the engine's onboarding anchor, never a period row (T-M9-27, D-123)."
                             anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
                           timezone:
                             description: "Stored IANA time zone (engine v6 X-07, goose 00098)."
@@ -31647,7 +31647,7 @@ components:
         created_at: {$ref: "#/components/schemas/LaravelDateTime"}
         updated_at: {$ref: "#/components/schemas/LaravelDateTime"}
         onboarding_last_period_start:
-          description: "Declared onboarding LMP (engine v6 I-01, goose 00098); raw Y-m-d, no cast."
+          description: "Declared onboarding LMP (engine v6 I-01, goose 00098); raw Y-m-d, no cast. Written by POST /profile whenever last_period_start is set to a new value outside pregnancy mode; it is the engine's onboarding anchor, never a period row (T-M9-27, D-123)."
           anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
         timezone:
           description: "Stored IANA time zone (engine v6 X-07, goose 00098)."

@@ -238,8 +238,9 @@ type SetOnboardingLastPeriodStartParams struct {
 	Now                       sql.NullTime
 }
 
-// I-01: only onboarding writes the declared anchor. user_id is UNIQUE (00096), so a missing profile row is created
-// with the DB defaults and an existing one keeps everything else.
+// I-01: only profile.Save (the onboarding cycle step and the profile form) writes the declared anchor (T-M9-27,
+// D-123). user_id is UNIQUE (00096), so a missing profile row is created with the DB defaults and an existing one
+// keeps everything else.
 func (q *Queries) SetOnboardingLastPeriodStart(ctx context.Context, arg SetOnboardingLastPeriodStartParams) error {
 	_, err := q.db.ExecContext(ctx, setOnboardingLastPeriodStart,
 		arg.UserID,

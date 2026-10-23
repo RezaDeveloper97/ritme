@@ -3,7 +3,7 @@ id: T-M9-27
 title: Declared onboarding anchor replaces the seed period row
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-01, T-M9-24, T-M9-25]
 parallel_group: M9-C
 touches: [backend-go/internal/profile/service.go, backend-go/internal/profile/onboarding.go, backend-go/db/queries/profile, backend-go/db/migrations, backend-go/internal/cycle/inputs, backend-go/api/openapi.yaml, backend-go/contract/allowlist]

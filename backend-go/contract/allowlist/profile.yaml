@@ -97,3 +97,21 @@ entries:
     where: data.directory
     deviation: D-96
     reason: Go-only directory bookings, reviews, reports, applications and file metadata in the data export
+
+  # D-123 (task T-M9-27, engine v6, user OK 2026-10-21 in T-M9-01; DECISIONS.md I-01): a declared last_period_start is
+  # stored as the onboarding anchor user_profiles.onboarding_last_period_start (Laravel leaves the column null) and no
+  # longer as a confirmed user_profile_confirmed cycle_histories row with an assumed end, so the period history of an
+  # onboarding-only user is empty.
+  - case: "create_profile.*"
+    where: "**.onboarding_last_period_start"
+    deviation: D-123
+    reason: the declared LMP is the onboarding anchor column (Laravel null)
+  - case: "create_profile.*"
+    step: 3
+    where: data.periods
+    deviation: D-123
+    reason: no seed period row for the declared LMP (Laravel lists the user_profile_confirmed row)
+  - case: update_cycle_fields
+    where: "**.onboarding_last_period_start"
+    deviation: D-123
+    reason: a changed last_period_start is a new declaration → onboarding anchor column (Laravel null)

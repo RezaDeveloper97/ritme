@@ -93,27 +93,19 @@ func medications(raw json.RawMessage, valid bool) []string {
 	return list
 }
 
-// mapPeriods maps the cycle_histories rows (I-01, I-02): is_estimated rows are ignored; user_profile_confirmed seed
-// rows are never periods — the newest one is returned as the declared anchor for users whose
-// onboarding_last_period_start is still empty (pre-T-M9-27 data); every other row (user_logged confirmed or not,
-// bleeding_log, …) is an actual period. An open period has End = NoDay. The result is ordered by start.
-func mapPeriods(rows []store.ListEngineInputPeriodsRow) ([]engine.Period, engine.Opt[engine.Day]) {
-	var (
-		periods []engine.Period
-		seed    = engine.NoDay
-	)
+// mapPeriods maps the cycle_histories rows (I-01, I-02): is_estimated rows are ignored; user_profile_confirmed rows
+// are never periods and never the anchor — goose 00103 (T-M9-27, D-123) moved every onboarding seed into
+// user_profiles.onboarding_last_period_start (the only declared anchor) or turned it into a user_logged row, and
+// nothing writes the source any more; every other row (user_logged confirmed or not, bleeding_log, …) is an actual
+// period. An open period has End = NoDay. The result is ordered by start.
+func mapPeriods(rows []store.ListEngineInputPeriodsRow) []engine.Period {
+	var periods []engine.Period
 	for _, r := range rows {
-		if r.IsEstimated {
+		if r.IsEstimated || r.Source == string(enums.DataSourceUserProfileConfirmed) {
 			continue
 		}
 		start := engine.DayOf(r.PeriodStartDate)
 		if start == engine.NoDay {
-			continue
-		}
-		if r.Source == string(enums.DataSourceUserProfileConfirmed) {
-			if seed == engine.NoDay || start > seed {
-				seed = start
-			}
 			continue
 		}
 		p := engine.Period{Start: start, End: engine.NoDay, Source: engine.PeriodUserLogged}
@@ -126,10 +118,7 @@ func mapPeriods(rows []store.ListEngineInputPeriodsRow) ([]engine.Period, engine
 		periods = append(periods, p)
 	}
 	slices.SortStableFunc(periods, func(a, b engine.Period) int { return cmp.Compare(a.Start, b.Start) })
-	if seed == engine.NoDay {
-		return periods, engine.None[engine.Day]()
-	}
-	return periods, engine.Some(seed)
+	return periods
 }
 
 // mapSkips passes the skipped predicted starts as stored (E-15; the engine sorts, dedupes and ignores stale ones).

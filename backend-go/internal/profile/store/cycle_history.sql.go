@@ -7,50 +7,15 @@ package store
 
 import (
 	"context"
-	"database/sql"
-
-	"github.com/ritme/backend-go/internal/platform/civildate"
 )
-
-const insertOnboardingCycleHistory = `-- name: InsertOnboardingCycleHistory :exec
-INSERT INTO ` + "`" + `cycle_histories` + "`" + `
-    (user_id, period_start_date, period_end_date, bleeding_length, is_confirmed, is_estimated, source, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-`
-
-type InsertOnboardingCycleHistoryParams struct {
-	UserID          uint64
-	PeriodStartDate civildate.Date
-	PeriodEndDate   civildate.NullDate
-	BleedingLength  sql.NullInt32
-	IsConfirmed     bool
-	IsEstimated     bool
-	Source          string
-	CreatedAt       sql.NullTime
-	UpdatedAt       sql.NullTime
-}
-
-func (q *Queries) InsertOnboardingCycleHistory(ctx context.Context, arg InsertOnboardingCycleHistoryParams) error {
-	_, err := q.db.ExecContext(ctx, insertOnboardingCycleHistory,
-		arg.UserID,
-		arg.PeriodStartDate,
-		arg.PeriodEndDate,
-		arg.BleedingLength,
-		arg.IsConfirmed,
-		arg.IsEstimated,
-		arg.Source,
-		arg.CreatedAt,
-		arg.UpdatedAt,
-	)
-	return err
-}
 
 const listCycleHistories = `-- name: ListCycleHistories :many
 
 SELECT id, user_id, period_start_date, period_end_date, cycle_length, bleeding_length, is_confirmed, is_estimated, source, data_quality_flags, created_at, updated_at FROM ` + "`" + `cycle_histories` + "`" + ` WHERE user_id = ? ORDER BY period_start_date, id
 `
 
-// ProfileController::syncOnboardingPeriodLog and export.
+// The cycle-history reads of ProfileController (show, export, cycle settings). Onboarding no longer writes a seed row
+// here: the declared LMP lives in user_profiles.onboarding_last_period_start (T-M9-27, I-01, D-123).
 // CycleHistory::where('user_id', …)->get() / ->orderBy('period_start_date') (unique-index order).
 func (q *Queries) ListCycleHistories(ctx context.Context, userID uint64) ([]CycleHistory, error) {
 	rows, err := q.db.QueryContext(ctx, listCycleHistories, userID)
@@ -86,36 +51,4 @@ func (q *Queries) ListCycleHistories(ctx context.Context, userID uint64) ([]Cycl
 		return nil, err
 	}
 	return items, nil
-}
-
-const updateOnboardingCycleHistory = `-- name: UpdateOnboardingCycleHistory :exec
-UPDATE ` + "`" + `cycle_histories` + "`" + ` SET
-    period_start_date = ?, period_end_date = ?, bleeding_length = ?, is_confirmed = ?, is_estimated = ?,
-    source = ?, updated_at = ?
-WHERE id = ?
-`
-
-type UpdateOnboardingCycleHistoryParams struct {
-	PeriodStartDate civildate.Date
-	PeriodEndDate   civildate.NullDate
-	BleedingLength  sql.NullInt32
-	IsConfirmed     bool
-	IsEstimated     bool
-	Source          string
-	UpdatedAt       sql.NullTime
-	ID              uint64
-}
-
-func (q *Queries) UpdateOnboardingCycleHistory(ctx context.Context, arg UpdateOnboardingCycleHistoryParams) error {
-	_, err := q.db.ExecContext(ctx, updateOnboardingCycleHistory,
-		arg.PeriodStartDate,
-		arg.PeriodEndDate,
-		arg.BleedingLength,
-		arg.IsConfirmed,
-		arg.IsEstimated,
-		arg.Source,
-		arg.UpdatedAt,
-		arg.ID,
-	)
-	return err
 }
