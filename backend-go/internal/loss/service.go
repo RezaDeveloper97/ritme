@@ -18,6 +18,7 @@ import (
 	"github.com/ritme/backend-go/internal/catalog"
 	"github.com/ritme/backend-go/internal/companion"
 	companionstore "github.com/ritme/backend-go/internal/companion/store"
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/healthlog/taxonomy"
@@ -125,6 +126,11 @@ func (s *Service) Record(ctx context.Context, u *auth.User, in RecordInput, now 
 		sameDay := hasPrev && prev.CreatedAt.Valid && civildate.InTehran(prev.CreatedAt.Time) == today
 		if wasPregnant, err = pregnancy.EndForLoss(ctx, pregstore.New(tx), u.ID, now); err != nil {
 			return err
+		}
+		if wasPregnant { // pregnancy mode is an engine input; this transaction owns the bump (T-M9-30)
+			if err := revision.Bump(ctx, tx, u.ID); err != nil {
+				return err
+			}
 		}
 		paused, err := pauseReminders(ctx, q, u.ID, now)
 		if err != nil {

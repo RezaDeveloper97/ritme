@@ -23,6 +23,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/catalog"
 	"github.com/ritme/backend-go/internal/conditions/store"
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
@@ -75,7 +76,9 @@ func tehranNow(now time.Time) sql.NullTime {
 
 // inTx runs fn on one READ COMMITTED transaction (the isolation healthlog's day save runs under), with this
 // package's queries and a healthlog service bound to it.
-func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries, logs *healthlog.Service) error) error {
+// inTx runs fn on one transaction. bumpUser (0 = none) is the user whose day log fn writes through logs: the healthlog
+// service runs on this transaction and leaves the engine revision bump to its owner (T-M9-30).
+func (s *Service) inTx(ctx context.Context, bumpUser uint64, fn func(q *store.Queries, logs *healthlog.Service) error) error {
 	tx, err := s.conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 	if err != nil {
 		return fmt.Errorf("conditions: begin: %w", err)
@@ -83,6 +86,12 @@ func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries, logs *heal
 	if err := fn(store.New(tx), healthlog.NewService(tx)); err != nil {
 		_ = tx.Rollback()
 		return err
+	}
+	if bumpUser != 0 {
+		if err := revision.Bump(ctx, tx, bumpUser); err != nil {
+			_ = tx.Rollback()
+			return err
+		}
 	}
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("conditions: commit: %w", err)

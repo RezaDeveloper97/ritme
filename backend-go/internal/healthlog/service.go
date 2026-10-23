@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/healthlog/model"
 	"github.com/ritme/backend-go/internal/healthlog/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -48,6 +49,8 @@ func (s *Service) inTx(ctx context.Context, fn func(t *Service) error) error {
 
 // inTxLocked is inTx that first takes the per-user period lock of userID (0 = none): every write that may run the
 // bleeding-log bridge (T-M9-28, D-131) is serialised with the period button and with the user's other log writes.
+// Every such write is a day-log write — an engine input — so when s owns the transaction it also bumps userID's
+// engine revision before the commit (T-M9-30). On a caller's transaction (NewService(tx)) the caller bumps.
 func (s *Service) inTxLocked(ctx context.Context, userID uint64, fn func(t *Service) error) error {
 	if s.db == nil {
 		if userID != 0 {
@@ -71,6 +74,12 @@ func (s *Service) inTxLocked(ctx context.Context, userID uint64, fn func(t *Serv
 	if err := fn(t); err != nil {
 		_ = tx.Rollback()
 		return err
+	}
+	if userID != 0 {
+		if err := revision.Bump(ctx, tx, userID); err != nil {
+			_ = tx.Rollback()
+			return err
+		}
 	}
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("healthlog: commit: %w", err)

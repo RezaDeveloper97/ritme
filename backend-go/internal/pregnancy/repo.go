@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
@@ -25,6 +26,35 @@ func LoadProfile(ctx context.Context, q store.Querier, userID uint64) (*store.Pr
 		return nil, fmt.Errorf("pregnancy: load profile: %w", err)
 	}
 	return &p, nil
+}
+
+// engineWrite runs fn's pregnancy_profiles writes of userID in one transaction that bumps the engine revision before
+// the commit (T-M9-30: the pregnancy profile is an engine input — the mode and the dating). When q cannot begin one
+// (it already runs on a caller's transaction — pregnancy.EndForLoss, ApplyUltrasoundDating — or it is a test double)
+// fn runs on q and the transaction's owner bumps.
+func engineWrite(ctx context.Context, q store.Querier, userID uint64, fn func(q store.Querier) error) error {
+	qq, ok := q.(*store.Queries)
+	if !ok {
+		return fn(q)
+	}
+	tx, qtx, err := qq.BeginTx(ctx)
+	if err != nil {
+		return fmt.Errorf("pregnancy: begin: %w", err)
+	}
+	if tx == nil {
+		return fn(qtx)
+	}
+	defer func() { _ = tx.Rollback() }()
+	if err := fn(qtx); err != nil {
+		return err
+	}
+	if err := revision.Bump(ctx, tx, userID); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("pregnancy: commit: %w", err)
+	}
+	return nil
 }
 
 // fill overlays attrs (in order) onto m; it reports whether any value changed the way

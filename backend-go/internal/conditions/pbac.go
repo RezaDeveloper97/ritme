@@ -231,7 +231,7 @@ type PBACInput struct {
 // heavy-bleeding program.
 func (s *Service) SavePBAC(ctx context.Context, userID uint64, in PBACInput, locale string, now time.Time) (PBACView, error) {
 	var view PBACView
-	err := s.inTx(ctx, func(q *store.Queries, logs *healthlog.Service) error {
+	err := s.inTx(ctx, userID, func(q *store.Queries, logs *healthlog.Service) error {
 		if err := requireEnrolled(ctx, q, userID, ProgramHeavyBleeding); err != nil {
 			return err
 		}

@@ -8,6 +8,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/healthrecord"
 	"github.com/ritme/backend-go/internal/healthrecord/extract/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -227,6 +228,10 @@ func (s *Service) setDating(ctx context.Context, userID, docID uint64, outcome s
 			return out, err
 		}
 		o.Redating = r
+		// The re-dating wrote the pregnancy profile (an engine input) on tx: this transaction owns the bump (T-M9-30).
+		if err := revision.Bump(ctx, tx, userID); err != nil {
+			return out, err
+		}
 		if err := q.UpsertExtractDocumentLink(ctx, store.UpsertExtractDocumentLinkParams{UserID: userID, DocumentID: docID,
 			TargetType: healthrecord.LinkPregnancy, TargetID: o.ProfileID, State: healthrecord.LinkApplied, Now: nullTime(now),
 		}); err != nil {

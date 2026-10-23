@@ -122,8 +122,11 @@ func (r req) validate(rules validation.Rules, messages []string) (phpval.Map, er
 	return vd.Validated(), nil
 }
 
-func (h *Handlers) calculator(r req) (*calc.Calculator, error) {
-	p, err := LoadProfile(r.c.Context(), h.q, r.userID)
+func (h *Handlers) calculator(r req) (*calc.Calculator, error) { return h.calculatorOn(r, h.q) }
+
+// calculatorOn is calculator reading the profile through q (an engineWrite transaction sees its own writes).
+func (h *Handlers) calculatorOn(r req, q store.Querier) (*calc.Calculator, error) {
+	p, err := LoadProfile(r.c.Context(), q, r.userID)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +155,9 @@ func (h *Handlers) Activate(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if err := saveProfile(ctx, h.q, r.userID, p, jsonx.Obj("pregnancy_mode", true, "cycle_mode", false), r.now); err != nil {
+	if err := engineWrite(ctx, h.q, r.userID, func(q store.Querier) error {
+		return saveProfile(ctx, q, r.userID, p, jsonx.Obj("pregnancy_mode", true, "cycle_mode", false), r.now)
+	}); err != nil {
 		return err
 	}
 	if p == nil || !p.PregnancyMode { // a new pregnancy episode starts: no grant carries over
@@ -177,7 +182,9 @@ func (h *Handlers) Deactivate(c fiber.Ctx) error {
 		return err
 	}
 	if p != nil {
-		if err := saveProfile(c.Context(), h.q, r.userID, p, jsonx.Obj("pregnancy_mode", false, "cycle_mode", true), r.now); err != nil {
+		if err := engineWrite(c.Context(), h.q, r.userID, func(q store.Querier) error {
+			return saveProfile(c.Context(), q, r.userID, p, jsonx.Obj("pregnancy_mode", false, "cycle_mode", true), r.now)
+		}); err != nil {
 			return err
 		}
 		if p.PregnancyMode { // the pregnancy episode ends: its grants end with it
@@ -234,7 +241,21 @@ func (h *Handlers) Onboarding(c fiber.Ctx) error {
 	// The ACOG re-dating rule (D-169) on the scan being saved: age_source is required here, so the user's basis is
 	// kept and the decision only reports the LMP-vs-scan comparison.
 	decision := ApplyScanRule(existing, validated, explicitSource(validated))
-	if err := saveProfile(ctx, h.q, r.userID, existing, validated, r.now); err != nil {
+	var cl *calc.Calculator
+	// T-M9-30: the profile and its due date are one transaction with one engine revision bump.
+	if err := engineWrite(ctx, h.q, r.userID, func(q store.Querier) error {
+		if err := saveProfile(ctx, q, r.userID, existing, validated, r.now); err != nil {
+			return err
+		}
+		var err error
+		if cl, err = h.calculatorOn(r, q); err != nil {
+			return err
+		}
+		if edd := cl.EDD(); edd != nil {
+			return saveProfile(ctx, q, r.userID, cl.Profile(), jsonx.Obj("estimated_due_date", edd.Date), r.now)
+		}
+		return nil
+	}); err != nil {
 		return err
 	}
 	if existing == nil || !existing.PregnancyMode { // setup (v1 and the v2 Setup screen) starts a new episode
@@ -242,16 +263,7 @@ func (h *Handlers) Onboarding(c fiber.Ctx) error {
 			return err
 		}
 	}
-	cl, err := h.calculator(r)
-	if err != nil {
-		return err
-	}
 	ga, edd := cl.GestationalAge(), cl.EDD()
-	if edd != nil {
-		if err := saveProfile(ctx, h.q, r.userID, cl.Profile(), jsonx.Obj("estimated_due_date", edd.Date), r.now); err != nil {
-			return err
-		}
-	}
 	p, err := LoadProfile(ctx, h.q, r.userID)
 	if err != nil {
 		return err
@@ -312,17 +324,22 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 	// A scan in the body goes through the ACOG re-dating rule (D-169): without an age_source the rule picks the basis
 	// (and its confidence); with one the user's choice stands. The decision is the `dating` of the returned status.
 	ApplyScanRule(p, validated, explicitSource(validated))
-	if err := saveProfile(ctx, h.q, r.userID, p, validated, r.now); err != nil {
-		return err
-	}
-	cl, err := h.calculator(r)
-	if err != nil {
-		return err
-	}
-	if edd := cl.EDD(); edd != nil {
-		if err := saveProfile(ctx, h.q, r.userID, cl.Profile(), jsonx.Obj("estimated_due_date", edd.Date), r.now); err != nil {
+	var cl *calc.Calculator
+	// T-M9-30: the profile and its due date are one transaction with one engine revision bump.
+	if err := engineWrite(ctx, h.q, r.userID, func(q store.Querier) error {
+		if err := saveProfile(ctx, q, r.userID, p, validated, r.now); err != nil {
 			return err
 		}
+		var err error
+		if cl, err = h.calculatorOn(r, q); err != nil {
+			return err
+		}
+		if edd := cl.EDD(); edd != nil {
+			return saveProfile(ctx, q, r.userID, cl.Profile(), jsonx.Obj("estimated_due_date", edd.Date), r.now)
+		}
+		return nil
+	}); err != nil {
+		return err
 	}
 	fresh, err := LoadProfile(ctx, h.q, r.userID)
 	if err != nil {
@@ -342,7 +359,9 @@ func (h *Handlers) Confirm(c fiber.Ctx) error {
 	if p == nil {
 		return r.profileNotFound()
 	}
-	if err := saveProfile(c.Context(), h.q, r.userID, p, jsonx.Obj("is_locked", true), r.now); err != nil {
+	if err := engineWrite(c.Context(), h.q, r.userID, func(q store.Querier) error {
+		return saveProfile(c.Context(), q, r.userID, p, jsonx.Obj("is_locked", true), r.now)
+	}); err != nil {
 		return err
 	}
 	return httpx.OK(c, jsonx.Obj("is_locked", true), r.tr("پروفایل تأیید و قفل شد", "Profile confirmed and locked"))
@@ -651,8 +670,9 @@ func (h *Handlers) FetalStore(c fiber.Ctx) error {
 			if p.FirstFetalMovementDate.Valid {
 				first = p.FirstFetalMovementDate.Date
 			}
-			if err := saveProfile(ctx, h.q, r.userID, p,
-				jsonx.Obj("fetal_movement_felt", true, "first_fetal_movement_date", first), r.now); err != nil {
+			if err := engineWrite(ctx, h.q, r.userID, func(q store.Querier) error {
+				return saveProfile(ctx, q, r.userID, p, jsonx.Obj("fetal_movement_felt", true, "first_fetal_movement_date", first), r.now)
+			}); err != nil {
 				return err
 			}
 		}

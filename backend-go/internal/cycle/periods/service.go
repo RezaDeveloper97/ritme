@@ -21,6 +21,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 
 	"github.com/ritme/backend-go/db"
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/enums"
 	filestore "github.com/ritme/backend-go/internal/files/store"
@@ -490,7 +491,7 @@ func (s *Service) existingStart(ctx context.Context, userID uint64, start civild
 }
 
 // tx runs fn in one transaction that first takes the per-user lock (`SELECT id FROM users WHERE
-// id = ? FOR UPDATE`, D-131): every overlap / blocker check and write of one user is serialised,
+// id = ? FOR UPDATE`, D-131) and bumps the engine revision before the commit (T-M9-30): every overlap / blocker check and write of one user is serialised,
 // so two concurrent writes (double tap, two devices, offline replay) can never both pass the
 // overlap check. The lock is a locking read, so the REPEATABLE READ snapshot is only taken by the
 // first plain read after it and sees whatever the previous holder committed.
@@ -504,6 +505,11 @@ func (s *Service) tx(ctx context.Context, userID uint64, fn func(q *store.Querie
 		return err
 	}
 	if err := fn(s.q.WithTx(tx), profilestore.New(tx)); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	// T-M9-30: every period write is an engine-input write — the revision moves in the same transaction.
+	if err := revision.Bump(ctx, tx, userID); err != nil {
 		_ = tx.Rollback()
 		return err
 	}

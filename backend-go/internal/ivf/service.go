@@ -13,6 +13,7 @@ import (
 	carestore "github.com/ritme/backend-go/internal/care/store"
 	"github.com/ritme/backend-go/internal/catalog"
 	"github.com/ritme/backend-go/internal/companion"
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/ivf/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
@@ -50,6 +51,12 @@ func ts(now time.Time) sql.NullTime {
 }
 
 func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries, cq *carestore.Queries) error) error {
+	return s.inTxBump(ctx, 0, fn)
+}
+
+// inTxBump is inTx for a write that also changes an engine input of bumpUser (0 = none): the engine revision is
+// bumped in the same transaction (T-M9-30).
+func (s *Service) inTxBump(ctx context.Context, bumpUser uint64, fn func(q *store.Queries, cq *carestore.Queries) error) error {
 	tx, err := s.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("ivf: begin: %w", err)
@@ -57,6 +64,11 @@ func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries, cq *carest
 	defer func() { _ = tx.Rollback() }()
 	if err := fn(store.New(tx), carestore.New(tx)); err != nil {
 		return err
+	}
+	if bumpUser != 0 {
+		if err := revision.Bump(ctx, tx, bumpUser); err != nil {
+			return err
+		}
 	}
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("ivf: commit: %w", err)
@@ -161,7 +173,8 @@ func (s *Service) StartCycle(ctx context.Context, userID uint64, in StartInput, 
 			return err
 		}
 	}
-	err := s.inTx(ctx, func(q *store.Queries, _ *carestore.Queries) error {
+	// The IVF switch (user_life_profiles.ivf_iui) is a mode input: the cycle start bumps the engine revision (T-M9-30).
+	err := s.inTxBump(ctx, userID, func(q *store.Queries, _ *carestore.Queries) error {
 		open, err := activeCycle(ctx, q, userID, true)
 		if err != nil {
 			return err

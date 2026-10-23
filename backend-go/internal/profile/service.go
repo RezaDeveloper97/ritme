@@ -13,8 +13,10 @@ import (
 
 	"github.com/ritme/backend-go/internal/auth"
 	companionstore "github.com/ritme/backend-go/internal/companion/store"
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/files"
+	filestore "github.com/ritme/backend-go/internal/files/store"
 	"github.com/ritme/backend-go/internal/notify"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
@@ -50,6 +52,8 @@ type Service struct {
 	Telegram    *notify.Telegram
 	StoragePath string // STORAGE_PATH: support-report screenshots are removed with the account
 	Logger      *slog.Logger
+
+	tx *sql.Tx // set on a Service bound to a transaction by EngineTx (Q runs on it); nil otherwise
 }
 
 // SaveResult is what POST /profile answers with.
@@ -59,12 +63,69 @@ type SaveResult struct {
 }
 
 // Save is the body of ProfileController::store after validation. input is $request->all()
-// (validated); now is the request clock (Carbon::now()).
+// (validated); now is the request clock (Carbon::now()). The profile write runs in one transaction that bumps the
+// engine revision (EngineTx, T-M9-30); on a Service already bound to a transaction it joins that one.
 func (s *Service) Save(ctx context.Context, u *auth.User, input phpval.Map, now time.Time) (*SaveResult, error) {
 	if err := s.updateName(ctx, u, input, now); err != nil {
 		return nil, err
 	}
+	var res *SaveResult
+	err := s.EngineTx(ctx, u.ID, func(t *Service) error {
+		r, err := t.saveProfile(ctx, u, input, now)
+		res = r
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
 
+// EngineTx runs fn on a Service bound to one transaction and bumps userID's engine revision before the commit
+// (T-M9-30: user_profiles, user_life_profiles and cycle_preferences are engine inputs), so one write request moves
+// the revision by exactly 1 however many of those rows it writes. On a Service that is already bound to a
+// transaction fn runs on it and the transaction's owner bumps. A transaction InnoDB rolled back as a deadlock (1213:
+// racing first profile inserts on the UNIQUE user_id, T-M9-23 / D-127) runs again, up to firstSaveAttempts times,
+// so fn must be safe to re-run.
+func (s *Service) EngineTx(ctx context.Context, userID uint64, fn func(t *Service) error) error {
+	if s.tx != nil {
+		return fn(s)
+	}
+	for attempt := 1; ; attempt++ {
+		err := s.engineTxOnce(ctx, userID, fn)
+		if err == nil || attempt >= firstSaveAttempts || !isDeadlock(err) {
+			return err
+		}
+	}
+}
+
+func (s *Service) engineTxOnce(ctx context.Context, userID uint64, fn func(t *Service) error) error {
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return dbErr("begin", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	// The per-user lock first (D-131), as every other engine-input writer takes it: concurrent saves of one user
+	// (double tap, racing first inserts) queue here instead of deadlocking on the profile row and the revision row.
+	if _, err := filestore.New(tx).LockOwner(ctx, userID); err != nil {
+		return dbErr("lock user", err)
+	}
+	t := *s
+	t.Q, t.tx = s.Q.WithTx(tx), tx
+	if err := fn(&t); err != nil {
+		return err
+	}
+	if err := revision.Bump(ctx, tx, userID); err != nil {
+		return dbErr("bump revision", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return dbErr("commit", err)
+	}
+	return nil
+}
+
+// saveProfile is Save's profile write on s (bound to the transaction).
+func (s *Service) saveProfile(ctx context.Context, u *auth.User, input phpval.Map, now time.Time) (*SaveResult, error) {
 	current, err := s.Q.GetProfileByUserID(ctx, u.ID)
 	exists := err == nil
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -106,7 +167,7 @@ func (s *Service) Save(ctx context.Context, u *auth.User, input phpval.Map, now 
 	changed := cycleFieldsChanged(orig, data)
 	declared := declaredLMPChanged(orig, data)
 
-	id, err := s.write(ctx, u.ID, orig, data, now)
+	id, err := s.writeOnce(ctx, u.ID, orig, data, now)
 	if err != nil {
 		return nil, err
 	}
@@ -238,31 +299,8 @@ func NameChangedNotice(userID uint64, previous, current any) string {
 	}, "\n")
 }
 
-// firstSaveAttempts bounds the retries of a first save that hit an InnoDB deadlock (T-M9-23).
+// firstSaveAttempts bounds the runs of a transaction that hit an InnoDB deadlock (T-M9-23).
 const firstSaveAttempts = 5
-
-// write is $profile->fill($data)->save(): a new profile is inserted (DB defaults, then the
-// attributes, in one transaction so a rejected value leaves no row, as a failed INSERT does);
-// an existing one gets an UPDATE of its dirty attributes only, and none when nothing changed.
-//
-// T-M9-23 (D-127): user_id is UNIQUE and InsertProfile is an upsert, so concurrent first saves
-// all land on one row. Racing inserts on the same unique key can still deadlock in InnoDB
-// (1213); the loser rolls back, re-reads the profile and saves again.
-func (s *Service) write(ctx context.Context, userID uint64, orig *store.UserProfile, data map[string]any, now time.Time) (uint64, error) {
-	for attempt := 1; ; attempt++ {
-		id, err := s.writeOnce(ctx, userID, orig, data, now)
-		if err == nil || orig != nil || attempt >= firstSaveAttempts || !isDeadlock(err) {
-			return id, err
-		}
-		current, err := s.Q.GetProfileByUserID(ctx, userID)
-		switch {
-		case err == nil:
-			orig = &current
-		case !errors.Is(err, sql.ErrNoRows):
-			return 0, dbErr("load profile", err)
-		}
-	}
-}
 
 // isDeadlock is MySQL 1213 (ER_LOCK_DEADLOCK): InnoDB rolled the transaction back.
 func isDeadlock(err error) bool {
@@ -270,6 +308,13 @@ func isDeadlock(err error) bool {
 	return errors.As(err, &me) && me.Number == 1213
 }
 
+// writeOnce is $profile->fill($data)->save() on s (bound to Save's transaction): a new profile is inserted (DB
+// defaults, then the attributes — a rejected value rolls the whole save back, as a failed INSERT leaves no row); an
+// existing one gets an UPDATE of its dirty attributes only, and none when nothing changed.
+//
+// T-M9-23 (D-127): user_id is UNIQUE and InsertProfile is an upsert, so concurrent first saves all land on one row.
+// Racing inserts on the same unique key can still deadlock in InnoDB (1213); EngineTx runs the loser's save again,
+// which re-reads the profile.
 func (s *Service) writeOnce(ctx context.Context, userID uint64, orig *store.UserProfile, data map[string]any, now time.Time) (uint64, error) {
 	params, dirty := updateParams(orig, data)
 	params.UpdatedAt = dbTime(now)
@@ -283,12 +328,7 @@ func (s *Service) writeOnce(ctx context.Context, userID uint64, orig *store.User
 		return orig.ID, nil
 	}
 
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return 0, dbErr("begin", err)
-	}
-	defer func() { _ = tx.Rollback() }()
-	q := s.Q.WithTx(tx)
+	q := s.Q
 	res, err := q.InsertProfile(ctx, store.InsertProfileParams{UserID: userID, CreatedAt: dbTime(now), UpdatedAt: dbTime(now)})
 	if err != nil {
 		return 0, dbErr("insert profile", err)
@@ -302,9 +342,6 @@ func (s *Service) writeOnce(ctx context.Context, userID uint64, orig *store.User
 		if err := q.UpdateProfileAttributes(ctx, params); err != nil {
 			return 0, dbErr("insert profile", err)
 		}
-	}
-	if err := tx.Commit(); err != nil {
-		return 0, dbErr("commit", err)
 	}
 	return params.ID, nil
 }

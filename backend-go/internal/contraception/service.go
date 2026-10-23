@@ -9,6 +9,7 @@ import (
 
 	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/contraception/store"
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/notifications"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	profilestore "github.com/ritme/backend-go/internal/profile/store"
@@ -163,7 +164,7 @@ func methodFrom(in Input, today civildate.Date) Method {
 func (s *Service) SaveMethod(ctx context.Context, userID uint64, in Input, now time.Time, locale string) error {
 	today := civildate.InTehran(now)
 	m := methodFrom(in, today)
-	return s.inTx(ctx, func(q *store.Queries, pq *profilestore.Queries) error {
+	return s.inTx(ctx, userID, func(q *store.Queries, pq *profilestore.Queries) error {
 		if err := q.UpsertMethod(ctx, m.params(userID, tehranNow(now))); err != nil {
 			return fmt.Errorf("contraception: save method: %w", err)
 		}
@@ -183,7 +184,7 @@ func (s *Service) SaveMethod(ctx context.Context, userID uint64, in Input, now t
 // Stop is DELETE /contraception/method: the method and its care reminders go, the switch and the pill reminder
 // are turned off. The pill log stays (the user's own history).
 func (s *Service) Stop(ctx context.Context, userID uint64, now time.Time) error {
-	return s.inTx(ctx, func(q *store.Queries, pq *profilestore.Queries) error {
+	return s.inTx(ctx, userID, func(q *store.Queries, pq *profilestore.Queries) error {
 		if err := q.DeleteMethod(ctx, userID); err != nil {
 			return fmt.Errorf("contraception: delete method: %w", err)
 		}
@@ -199,13 +200,18 @@ func (s *Service) Stop(ctx context.Context, userID uint64, now time.Time) error 
 	})
 }
 
-func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries, pq *profilestore.Queries) error) error {
+// inTx runs one method write of userID. The method and the «track contraception» switch are engine inputs, so the
+// engine revision is bumped in the same transaction (T-M9-30).
+func (s *Service) inTx(ctx context.Context, userID uint64, fn func(q *store.Queries, pq *profilestore.Queries) error) error {
 	tx, err := s.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("contraception: begin: %w", err)
 	}
 	defer func() { _ = tx.Rollback() }()
 	if err := fn(store.New(tx), profilestore.New(tx)); err != nil {
+		return err
+	}
+	if err := revision.Bump(ctx, tx, userID); err != nil {
 		return err
 	}
 	if err := tx.Commit(); err != nil {

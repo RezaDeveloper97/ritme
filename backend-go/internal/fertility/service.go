@@ -11,6 +11,7 @@ import (
 	"github.com/ritme/backend-go/internal/cycle/metrics"
 	"github.com/ritme/backend-go/internal/cycle/model"
 	"github.com/ritme/backend-go/internal/cycle/resolver"
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/fertility/store"
@@ -114,6 +115,11 @@ func (s *Service) Save(ctx context.Context, userID uint64, in DayInput, locale s
 		if warning, err = saveHealthLog(ctx, healthlog.NewService(tx), userID, in, locale, now); err != nil {
 			return nil, err
 		}
+	}
+	// T-M9-30: fertility_logs and the day log are engine inputs. Save owns the transaction, so it bumps once (the
+	// health log above runs on tx and leaves the bump to its owner).
+	if err := revision.Bump(ctx, tx, userID); err != nil {
+		return nil, err
 	}
 	if err := tx.Commit(); err != nil {
 		return nil, fmt.Errorf("fertility: commit: %w", err)

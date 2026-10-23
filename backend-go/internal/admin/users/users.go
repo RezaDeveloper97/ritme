@@ -21,6 +21,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	authstore "github.com/ritme/backend-go/internal/auth/store"
 	companionstore "github.com/ritme/backend-go/internal/companion/store"
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/files"
 	"github.com/ritme/backend-go/internal/i18n"
@@ -272,7 +273,7 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 	now := httpadmin.DBTime(httpadmin.Now(c))
 	sub, goal := httpadmin.String(data, "subscription_type"), httpadmin.String(data, "user_goal")
 	goalSet := goal != ""
-	err = h.inTxRetry(c.Context(), func(q *store.Queries, _ *sql.Tx) error {
+	err = h.inTxRetry(c.Context(), func(q *store.Queries, tx *sql.Tx) error {
 		if setName {
 			if err := q.UpdateUserName(c.Context(), store.UpdateUserNameParams{Name: name, Now: now, ID: id}); err != nil {
 				return err
@@ -302,8 +303,12 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 		} else if err != nil {
 			return err
 		}
-		return q.UpdateProfilePlan(c.Context(), store.UpdateProfilePlanParams{
-			SubscriptionType: sub, UserGoal: goal, Now: now, ID: pid})
+		if err := q.UpdateProfilePlan(c.Context(), store.UpdateProfilePlanParams{
+			SubscriptionType: sub, UserGoal: goal, Now: now, ID: pid}); err != nil {
+			return err
+		}
+		// T-M9-30: user_goal is an engine input — the admin edit bumps the user's revision in the same transaction.
+		return revision.Bump(c.Context(), tx, id)
 	})
 	if err != nil {
 		return err

@@ -363,9 +363,11 @@ func LifeProfileExportJSON(l *store.UserLifeProfile) any {
 	)
 }
 
-func (h *OnboardingHandlers) save(ctx context.Context, l store.UserLifeProfile, now time.Time) error {
+// saveLife writes the life profile row through q (the EngineTx-bound profile store: the row is an engine input,
+// T-M9-30).
+func saveLife(ctx context.Context, q LifeProfileStore, l store.UserLifeProfile, now time.Time) error {
 	at := sql.NullTime{Time: now, Valid: true}
-	if err := h.q.UpsertLifeProfile(ctx, store.UpsertLifeProfileParams{
+	if err := q.UpsertLifeProfile(ctx, store.UpsertLifeProfileParams{
 		UserID: l.UserID, Gender: l.Gender, LifeMode: l.LifeMode, IvfIui: l.IvfIui,
 		TrackContraception: l.TrackContraception, ChronicIllnesses: l.ChronicIllnesses,
 		GynConditions: l.GynConditions, Medications: l.Medications, MenopauseStage: l.MenopauseStage,
@@ -393,8 +395,9 @@ func markStarted(l *store.UserLifeProfile, st lifeState, now time.Time) {
 }
 
 // syncLegacyGoal keeps user_profiles.user_goal / pregnancy_intention in step with a chosen mode (only ttc is TTC;
-// pregnancy → intention pregnant; any other mode drops a trying / pregnant intention), through Service.Save.
-func (h *OnboardingHandlers) syncLegacyGoal(ctx context.Context, u *auth.User, st lifeState, mode enums.LifeMode, now time.Time) error {
+// pregnancy → intention pregnant; any other mode drops a trying / pregnant intention), through Service.Save on svc
+// (the caller's EngineTx).
+func syncLegacyGoal(ctx context.Context, svc *Service, u *auth.User, st lifeState, mode enums.LifeMode, now time.Time) error {
 	input := phpval.NewMap()
 	input.Set("user_goal", string(mode.LegacyUserGoal()))
 	var current string
@@ -411,7 +414,7 @@ func (h *OnboardingHandlers) syncLegacyGoal(ctx context.Context, u *auth.User, s
 			input.Set("pregnancy_intention", nil)
 		}
 	}
-	_, err := h.svc.Save(ctx, u, input, now)
+	_, err := svc.Save(ctx, u, input, now)
 	return err
 }
 
@@ -553,9 +556,24 @@ func (h *OnboardingHandlers) UpdateStep(c fiber.Ctx) error {
 	l := st.lifeRow(u.ID)
 	markStarted(&l, st, now)
 
+	// T-M9-30: the step's profile writes and the life profile row are one transaction with one revision bump.
+	err = h.svc.EngineTx(ctx, u.ID, func(t *Service) error { return h.applyStep(ctx, t, u, st, l, step, body, locale, now) })
+	if err != nil {
+		return err
+	}
+	if st, err = h.load(ctx, u.ID); err != nil {
+		return err
+	}
+	return httpx.OK(c, OnboardingJSON(st), OT("messages.saved", locale))
+}
+
+// applyStep writes one onboarding step on t (the EngineTx-bound Service) and saves the life profile row l.
+func (h *OnboardingHandlers) applyStep(ctx context.Context, t *Service, u *auth.User, st lifeState, l store.UserLifeProfile,
+	step string, body phpval.Map, locale string, now time.Time,
+) error {
 	switch step {
 	case StepName:
-		if err := h.svc.updateName(ctx, u, profileInput(body, "name"), now); err != nil {
+		if err := t.updateName(ctx, u, profileInput(body, "name"), now); err != nil {
 			return err
 		}
 	case StepGender:
@@ -571,12 +589,12 @@ func (h *OnboardingHandlers) UpdateStep(c fiber.Ctx) error {
 		}
 		mode := enums.LifeMode(g)
 		l.LifeMode = sql.NullString{String: g, Valid: true}
-		if err := h.syncLegacyGoal(ctx, u, st, mode, now); err != nil {
+		if err := syncLegacyGoal(ctx, t, u, st, mode, now); err != nil {
 			return err
 		}
 	case StepCycle:
 		if in := profileInput(body, "last_period_start", "period_duration", "cycle_duration"); in.Len() > 0 {
-			if _, err := h.svc.Save(ctx, u, in, now); err != nil {
+			if _, err := t.Save(ctx, u, in, now); err != nil {
 				return err
 			}
 		}
@@ -596,18 +614,12 @@ func (h *OnboardingHandlers) UpdateStep(c fiber.Ctx) error {
 		l.Medications = pickList(body, "medications", enums.MedicationValues())
 	case StepHealth:
 		if in := profileInput(body, "birthday", "height", "weight"); in.Len() > 0 {
-			if _, err := h.svc.Save(ctx, u, in, now); err != nil {
+			if _, err := t.Save(ctx, u, in, now); err != nil {
 				return err
 			}
 		}
 	}
-	if err := h.save(ctx, l, now); err != nil {
-		return err
-	}
-	if st, err = h.load(ctx, u.ID); err != nil {
-		return err
-	}
-	return httpx.OK(c, OnboardingJSON(st), OT("messages.saved", locale))
+	return saveLife(ctx, t.Q, l, now)
 }
 
 // Complete is POST /onboarding/complete («ورود به ریتمی»). Needs a name and a gender, and for a woman the goal;
@@ -650,18 +662,21 @@ func (h *OnboardingHandlers) Complete(c fiber.Ctx) error {
 		return httpx.Fail(fiber.StatusUnprocessableEntity, OT("messages.incomplete", locale), "errors", errs)
 	}
 
-	if st.profile == nil {
-		if _, err := h.svc.Save(ctx, u, phpval.NewMap(), now); err != nil {
-			return err
-		}
-	}
 	if !l.OnboardingStartedAt.Valid {
 		l.OnboardingStartedAt = sql.NullTime{Time: now, Valid: true}
 	}
 	if !l.OnboardingCompletedAt.Valid {
 		l.OnboardingCompletedAt = sql.NullTime{Time: now, Valid: true}
 	}
-	if err := h.save(ctx, l, now); err != nil {
+	err = h.svc.EngineTx(ctx, u.ID, func(t *Service) error { // T-M9-30: one transaction, one revision bump
+		if st.profile == nil {
+			if _, err := t.Save(ctx, u, phpval.NewMap(), now); err != nil {
+				return err
+			}
+		}
+		return saveLife(ctx, t.Q, l, now)
+	})
+	if err != nil {
 		return err
 	}
 	if st, err = h.load(ctx, u.ID); err != nil {
@@ -711,6 +726,22 @@ func (h *OnboardingHandlers) UpdateLifeStage(c fiber.Ctx) error {
 		return err
 	}
 	l := st.lifeRow(u.ID)
+	err = h.svc.EngineTx(ctx, u.ID, func(t *Service) error { // T-M9-30: one transaction, one revision bump
+		return h.applyLifeStage(ctx, t, u, st, l, body, locale, now)
+	})
+	if err != nil {
+		return err
+	}
+	if st, err = h.load(ctx, u.ID); err != nil {
+		return err
+	}
+	return httpx.OK(c, LifeStageJSON(st), OT("messages.life_stage_saved", locale))
+}
+
+// applyLifeStage writes a PUT /profile/life-stage body on t (the EngineTx-bound Service).
+func (h *OnboardingHandlers) applyLifeStage(ctx context.Context, t *Service, u *auth.User, st lifeState, l store.UserLifeProfile,
+	body phpval.Map, locale string, now time.Time,
+) error {
 	if m, ok := pickString(body, "mode"); ok && st.mode() == enums.LifeModeCompanion {
 		// B-N4-03: a companion (male) account has no life stage to switch (no cycle, no pregnancy of his own).
 		return httpx.Fail(fiber.StatusUnprocessableEntity, OT("messages.validation_failed", locale),
@@ -720,7 +751,7 @@ func (h *OnboardingHandlers) UpdateLifeStage(c fiber.Ctx) error {
 			return moduleOff("mode", locale)
 		}
 		l.LifeMode = sql.NullString{String: m, Valid: true}
-		if err := h.syncLegacyGoal(ctx, u, st, enums.LifeMode(m), now); err != nil {
+		if err := syncLegacyGoal(ctx, t, u, st, enums.LifeMode(m), now); err != nil {
 			return err
 		}
 	}
@@ -736,13 +767,7 @@ func (h *OnboardingHandlers) UpdateLifeStage(c fiber.Ctx) error {
 		}
 		l.TrackContraception = b.Bool
 	}
-	if err := h.save(ctx, l, now); err != nil {
-		return err
-	}
-	if st, err = h.load(ctx, u.ID); err != nil {
-		return err
-	}
-	return httpx.OK(c, LifeStageJSON(st), OT("messages.life_stage_saved", locale))
+	return saveLife(ctx, t.Q, l, now)
 }
 
 // SwitchLifeMode stores mode as u's life-stage mode the way PUT /profile/life-stage {mode} does (user_goal and
@@ -758,8 +783,10 @@ func (h *OnboardingHandlers) SwitchLifeMode(ctx context.Context, u *auth.User, m
 	}
 	l := st.lifeRow(u.ID)
 	l.LifeMode = sql.NullString{String: string(mode), Valid: true}
-	if err := h.syncLegacyGoal(ctx, u, st, mode, now); err != nil {
-		return err
-	}
-	return h.save(ctx, l, now)
+	return h.svc.EngineTx(ctx, u.ID, func(t *Service) error { // T-M9-30: one transaction, one revision bump
+		if err := syncLegacyGoal(ctx, t, u, st, mode, now); err != nil {
+			return err
+		}
+		return saveLife(ctx, t.Q, l, now)
+	})
 }

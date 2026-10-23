@@ -1978,3 +1978,25 @@ Nothing needed fixing.
 - Script fixes: none needed (POST /health-logs 200/201, `data.notes`, Idempotency-Key, `/cycle/month`,
   `/messages/selected`, `/analysis/*` all as assumed). `grafana/k6:1.3.0` pin still unverified (image not pulled).
 - Scratch DB `ritme_loadtest` left in place (`make loadtest-drop` removes it).
+
+## T-M9-30 — Revision bump on every engine-input write, with a manifest test
+- New `internal/cycle/revision`: `Bump` / `BumpAnalysis(ctx, DBTX, uid)` over the T-M9-24 queries (request clock).
+  Rule: the transaction owner bumps once before commit; helpers on a caller's tx (healthlog on tx, profile `Service`
+  inside `EngineTx`, `pregnancy.saveProfile`, periods recompute/reanchor) never do — one write request = `engine_rev`
+  +1; a refused or rolled-back write = 0.
+- Writers: periods `tx`; healthlog `inTxLocked` (v1/v2 save + delete, bridge included); `fertility.Save`;
+  `profile.Service.EngineTx` (new: per-user lock D-131, deadlock retry ×5, joins a caller's tx) for `Save`, onboarding
+  steps/complete, life-stage, `SwitchLifeMode`, cycle-settings — an existing-profile save is now transactional;
+  postpartum activate + breastfeeding (now tx); `pregnancy.engineWrite` (activate/deactivate/onboarding/update/confirm/
+  fetal; profile + EDD in one tx; family-grant reset after commit); contraception set/stop; IVF cycle start; menopause
+  profile (now tx); admin user edit; conditions PBAC/pain, loss record, healthrecord re-dating (main session applied
+  these three diffs).
+- `revision/manifest.go`: 48 sqlc write queries on the README §3 tables → `Bumps: TestBump_*` or `Exempt` (cycle skips
+  with no caller yet, dead bridge queries, MarkProfileRecalculated, timezone D-126, baby feeds_count, fetal movement).
+  `TestManifest_CoversEveryEngineWrite` parses `db/queries/**/*.sql`; fixture `testdata/queries/fake` proves it fails.
+- `calculation_version` / `MarkRecalculated` unchanged. Verify (combined): full unit + `make test-int PKG=./...` green;
+  contract all 1914/0; golangci-lint clean after a separate gofmt fix of `labs/ranges.go`.
+- Open: `POST /loss` bumps +2 (two transactions); over-bumps on non-engine columns (is_locked, fetal, ivf_iui,
+  menopause, name-only profile save); `teen_profiles` isn't in the README §3 table list; raw SQL outside sqlc isn't
+  covered by the manifest; no int test for healthrecord re-dating bump; the cycle-skip endpoint task must move
+  `InsertCycleSkip`/`DeleteCycleSkip` to Bumps. Using the revision → T-M9-31.

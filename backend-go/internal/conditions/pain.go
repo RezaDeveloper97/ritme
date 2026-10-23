@@ -389,7 +389,7 @@ func (s *Service) SavePain(ctx context.Context, userID uint64, in PainInput, loc
 		return PainDay{}, fmt.Errorf("conditions: load catalog: %w", err)
 	}
 	var saved PainDay
-	err = s.inTx(ctx, func(q *store.Queries, logs *healthlog.Service) error {
+	err = s.inTx(ctx, userID, func(q *store.Queries, logs *healthlog.Service) error {
 		if err := requireEnrolled(ctx, q, userID, ProgramEndo); err != nil {
 			return err
 		}

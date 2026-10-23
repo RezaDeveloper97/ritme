@@ -72,16 +72,10 @@ type CycleSettingsStore interface {
 	UpsertReminderPreferences(ctx context.Context, arg store.UpsertReminderPreferencesParams) error
 }
 
-// LengthSaver writes manual cycle_duration / period_duration the way POST /profile does (dirty check,
-// calculation_version bump so the engine cache is dropped).
-type LengthSaver interface {
-	Save(ctx context.Context, u *auth.User, input phpval.Map, now time.Time) (*SaveResult, error)
-}
-
 // CycleSettingsHandlers are GET/PUT /profile/cycle-settings. Mount behind locale + auth RequireUser.
 type CycleSettingsHandlers struct {
 	q     CycleSettingsStore
-	save  LengthSaver
+	svc   *Service // the lengths_auto switch and the manual lengths (POST /profile's Save) in one EngineTx
 	clock clock.Clock
 }
 
@@ -91,7 +85,7 @@ func NewCycleSettingsHandlers(d *sql.DB, base clock.Clock) *CycleSettingsHandler
 	if base == nil {
 		base = clock.Real{}
 	}
-	return &CycleSettingsHandlers{q: q, save: &Service{DB: d, Q: q}, clock: base}
+	return &CycleSettingsHandlers{q: q, svc: &Service{DB: d, Q: q}, clock: base}
 }
 
 func (h *CycleSettingsHandlers) now(c fiber.Ctx) time.Time {
@@ -314,13 +308,7 @@ func (h *CycleSettingsHandlers) Update(c fiber.Ctx) error {
 	}
 
 	at := sql.NullTime{Time: now, Valid: true}
-	if val, ok := phpval.Get(body, "lengths_auto"); ok {
-		if err := h.q.UpsertCyclePreferences(c, store.UpsertCyclePreferencesParams{
-			UserID: u.ID, LengthsAuto: phpval.Truthy(val), Now: at,
-		}); err != nil {
-			return fmt.Errorf("profile: save cycle preferences: %w", err)
-		}
-	}
+	auto, hasAuto := phpval.Get(body, "lengths_auto")
 	lengths := phpval.NewMap()
 	if val, ok := phpval.Get(body, "cycle_length"); ok {
 		lengths.Set("cycle_duration", val)
@@ -328,8 +316,23 @@ func (h *CycleSettingsHandlers) Update(c fiber.Ctx) error {
 	if val, ok := phpval.Get(body, "period_length"); ok {
 		lengths.Set("period_duration", val)
 	}
-	if lengths.Len() > 0 {
-		if _, err := h.save.Save(c, u, lengths, now); err != nil {
+	if hasAuto || lengths.Len() > 0 {
+		// T-M9-30: the switch and the lengths are engine inputs — one transaction, one revision bump.
+		if err := h.svc.EngineTx(c, u.ID, func(t *Service) error {
+			if hasAuto {
+				if err := t.Q.UpsertCyclePreferences(c, store.UpsertCyclePreferencesParams{
+					UserID: u.ID, LengthsAuto: phpval.Truthy(auto), Now: at,
+				}); err != nil {
+					return fmt.Errorf("profile: save cycle preferences: %w", err)
+				}
+			}
+			if lengths.Len() > 0 {
+				if _, err := t.Save(c, u, lengths, now); err != nil {
+					return err
+				}
+			}
+			return nil
+		}); err != nil {
 			return err
 		}
 	}

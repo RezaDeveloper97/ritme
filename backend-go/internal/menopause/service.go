@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/ritme/backend-go/internal/catalog"
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/menopause/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -163,10 +164,39 @@ func (s *Service) SaveProfile(ctx context.Context, userID uint64, ch ProfileChan
 	if a.LastPeriod != nil {
 		p.MenopauseLastPeriod = civildate.NullDate{Date: *a.LastPeriod, Valid: true}
 	}
-	if err := s.q.UpsertMenopauseProfile(ctx, p); err != nil {
-		return Stage{}, fmt.Errorf("menopause: save profile: %w", err)
+	if err := s.engineWrite(ctx, userID, func(q *store.Queries) error {
+		if err := q.UpsertMenopauseProfile(ctx, p); err != nil {
+			return fmt.Errorf("menopause: save profile: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return Stage{}, err
 	}
 	return ResolveStage(a, civildate.InTehran(now)), nil
+}
+
+// engineWrite runs a write of the menopause columns of user_life_profiles (a mode input) in one transaction that
+// bumps userID's engine revision (T-M9-30). On a transaction already (tests) it runs on it and its owner bumps.
+func (s *Service) engineWrite(ctx context.Context, userID uint64, fn func(q *store.Queries) error) error {
+	conn, ok := s.db.(Conn)
+	if !ok {
+		return fn(s.q)
+	}
+	tx, err := conn.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("menopause: begin: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	if err := fn(store.New(tx)); err != nil {
+		return err
+	}
+	if err := revision.Bump(ctx, tx, userID); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("menopause: commit: %w", err)
+	}
+	return nil
 }
 
 // StageTip is the catalog meno_tips `stage_<stage>` item (nil when there is no stage or the tip is inactive).

@@ -24,6 +24,7 @@ import (
 
 	rootdb "github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/companion"
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -118,9 +119,9 @@ type ActivateInput struct {
 // /pregnancy/deactivate does), the birth is stored (a later activation overwrites it), the life mode becomes
 // postpartum and user_goal / pregnancy_intention follow (non-TTC, no pregnant intention), and every pregnancy grant of
 // her companion links goes back to none (companion.ResetModeScopedGrants, T-M9-02: postpartum is not pregnancy, and the
-// next pregnancy must not open to a stale grant). One transaction.
+// next pregnancy must not open to a stale grant). One transaction, which bumps the engine revision (T-M9-30).
 func (s *Service) Activate(ctx context.Context, userID uint64, in ActivateInput, now time.Time) error {
-	return s.inTx(ctx, func(q *store.Queries, tx store.DBTX) error {
+	return s.engineTx(ctx, userID, func(q *store.Queries, tx store.DBTX) error {
 		ts := tehranNow(now)
 		p := store.UpsertPostpartumProfileParams{
 			UserID: userID, BirthDate: in.BirthDate, BabyCount: uint8(in.BabyCount), Source: SourceDirect, Now: ts, //nolint:gosec // G115: validated 1–MaxBabyCount
@@ -158,20 +159,44 @@ func (s *Service) Activate(ctx context.Context, userID uint64, in ActivateInput,
 }
 
 // SetBreastfeeding stores the breastfeeding answer (I-04; nil = not answered). ok false when the user has no
-// postpartum profile.
+// postpartum profile. The flag is an engine input (I-04): the update and the revision bump are one transaction
+// (T-M9-30), rolled back — no bump — when there is no profile to update.
 func (s *Service) SetBreastfeeding(ctx context.Context, userID uint64, v *bool, now time.Time) (bool, error) {
 	var b sql.NullBool
 	if v != nil {
 		b = sql.NullBool{Bool: *v, Valid: true}
 	}
-	n, err := s.q.SetPostpartumBreastfeeding(ctx, store.SetPostpartumBreastfeedingParams{Breastfeeding: b, Now: tehranNow(now), UserID: userID})
-	if err != nil {
-		return false, fmt.Errorf("postpartum: breastfeeding: %w", err)
+	var n int64
+	err := s.engineTx(ctx, userID, func(q *store.Queries, _ store.DBTX) error {
+		var err error
+		if n, err = q.SetPostpartumBreastfeeding(ctx, store.SetPostpartumBreastfeedingParams{Breastfeeding: b, Now: tehranNow(now), UserID: userID}); err != nil {
+			return fmt.Errorf("postpartum: breastfeeding: %w", err)
+		}
+		if n == 0 {
+			return errNoProfile
+		}
+		return nil
+	})
+	if errors.Is(err, errNoProfile) {
+		return false, nil
 	}
-	return n > 0, nil
+	return err == nil, err
 }
 
+// errNoProfile rolls SetBreastfeeding's transaction back when the user has no postpartum profile.
+var errNoProfile = errors.New("postpartum: no profile")
+
 func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries, tx store.DBTX) error) error {
+	return s.inTxBump(ctx, 0, fn)
+}
+
+// engineTx is inTx for an engine-input write of userID: when s owns the transaction it bumps the engine revision
+// before the commit (T-M9-30); on a caller's transaction (db nil) the caller bumps.
+func (s *Service) engineTx(ctx context.Context, userID uint64, fn func(q *store.Queries, tx store.DBTX) error) error {
+	return s.inTxBump(ctx, userID, fn)
+}
+
+func (s *Service) inTxBump(ctx context.Context, bumpUser uint64, fn func(q *store.Queries, tx store.DBTX) error) error {
 	if s.db == nil {
 		return fn(s.q, s.conn)
 	}
@@ -182,6 +207,12 @@ func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries, tx store.D
 	if err := fn(store.New(tx), tx); err != nil {
 		_ = tx.Rollback()
 		return err
+	}
+	if bumpUser != 0 {
+		if err := revision.Bump(ctx, tx, bumpUser); err != nil {
+			_ = tx.Rollback()
+			return err
+		}
 	}
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("postpartum: commit: %w", err)

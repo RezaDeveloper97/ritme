@@ -141,7 +141,7 @@ type PMDDInput struct {
 // program.
 func (s *Service) SavePMDD(ctx context.Context, userID uint64, in PMDDInput, now time.Time) (PMDDDay, error) {
 	var saved PMDDDay
-	err := s.inTx(ctx, func(q *store.Queries, _ *healthlog.Service) error {
+	err := s.inTx(ctx, 0, func(q *store.Queries, _ *healthlog.Service) error {
 		if err := requireEnrolled(ctx, q, userID, ProgramPMDD); err != nil {
 			return err
 		}
