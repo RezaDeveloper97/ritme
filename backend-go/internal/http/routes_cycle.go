@@ -10,6 +10,7 @@ import (
 	cyclecache "github.com/ritme/backend-go/internal/cycle/cache"
 	"github.com/ritme/backend-go/internal/cycle/periods"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
+	"github.com/ritme/backend-go/internal/cycle/skips"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/clock"
@@ -32,6 +33,9 @@ func init() {
 		p := periods.NewHandlers(periods.NewService(d.DB), clock.Real{})
 		// Optional Idempotency-Key on the period writes (D-131); the service also locks per user.
 		idem := idempotency.New(d.Cache, auth.CurrentUserID, d.Logger).Handler()
+		// «پریود نداشتم» (T-M9-29, E-15): Go-only (D-125), per-user write throttle like the other Go-only writes.
+		sk := skips.NewHandlers(skips.NewService(d.DB), clock.Real{})
+		writes := writeThrottle(d)
 
 		c := r.Group("/api/v1/cycle")
 		c.Get("/status", locale, guard, h.Status)
@@ -47,5 +51,8 @@ func init() {
 		c.Post("/period", locale, guard, idem, p.Store)
 		c.Put("/period/:period", locale, guard, p.Update)
 		c.Delete("/period/:period", locale, guard, p.Destroy)
+
+		c.Post("/skips", locale, guard, writes, sk.Store)
+		c.Delete("/skips/:date", locale, guard, writes, sk.Destroy)
 	})
 }

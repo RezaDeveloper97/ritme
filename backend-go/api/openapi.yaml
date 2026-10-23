@@ -8477,6 +8477,86 @@ paths:
                 properties: {success: {type: boolean}, message: {type: string}}
               example: {success: false, message: Please complete your profile first}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/cycle/skips:
+    post:
+      tags: [Cycle]
+      summary: Record a skipped cycle («پریود نداشتم»)
+      description: |
+        Go-only (D-125, T-M9-29, E-15). Records that the expected period did not come. Allowed only when, by the
+        v6 engine state for the user's local today (D-126), `expected_start` equals today's
+        `predicted_next_period_start`, today is on or after it (any lateness, also beyond max_late) and no real
+        period has started since; otherwise 422 with `code` `not_expected_yet`, `period_started` or
+        `prediction_mismatch`. The skip becomes a virtual `predicted_reference` anchor: the next prediction moves by
+        one cycle and `skipped_cycle_recorded` is raised. Repeating an existing skip is idempotent (200, nothing
+        written). Serialised per user (D-131) and bumps the engine revision (T-M9-30). Until T-M9-32 the body is
+        `{expected_start}` (the new today `cycle_view` comes with T-M9-32).
+      operationId: postCycleSkips
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expected_start]
+              properties:
+                expected_start: {type: string, format: date, examples: ["2026-09-23"]}
+      responses:
+        '201':
+          description: Skip recorded
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/CycleSkipResponse"}
+              example: {success: true, data: {expected_start: "2026-09-23"}}
+        '200':
+          description: The skip already existed (idempotent repeat, nothing written)
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/CycleSkipResponse"}
+              example: {success: true, data: {expected_start: "2026-09-23"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422':
+          description: Validation error (`errors`) or a refused skip (`code`)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  errors:
+                    type: object
+                    additionalProperties: {type: array, items: {type: string}}
+                  code: {type: string, enum: [not_expected_yet, period_started, prediction_mismatch]}
+              example: {success: false, message: This date is not the predicted start of your next period., code: prediction_mismatch}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/cycle/skips/{date}:
+    delete:
+      tags: [Cycle]
+      summary: Undo a skipped cycle
+      description: "Go-only (D-125, T-M9-29, E-15). Deletes the user's skip of `date`, restoring the previous engine output. 404 when she has no skip on that date (also for another user's skip and for a value that is not Y-m-d). Serialised per user (D-131); bumps the engine revision (T-M9-30)."
+      operationId: deleteCycleSkipsByDate
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {type: string, format: date}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '204': {description: Skip deleted}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404':
+          description: No skip on that date
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties: {success: {type: boolean, const: false}, message: {type: string}}
+              example: {success: false, message: No skipped cycle is recorded for this date.}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/cycle/status:
     get:
       tags: [Cycle]
@@ -29991,6 +30071,17 @@ components:
         started_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
         completed_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
         completed: {type: boolean}
+    CycleSkipResponse:
+      description: "POST /cycle/skips body (T-M9-29). T-M9-32 replaces `data` with the new today cycle_view."
+      type: object
+      required: [success, data]
+      properties:
+        success: {type: boolean, const: true}
+        data:
+          type: object
+          required: [expected_start]
+          properties:
+            expected_start: {$ref: "#/components/schemas/Date"}
     CycleSettings:
       type: object
       required: [lengths, reminders]

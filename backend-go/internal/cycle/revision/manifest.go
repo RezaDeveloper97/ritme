@@ -25,9 +25,9 @@ var Manifest = map[string]Entry{
 	"cycle.DeleteEstimatesExcept":        {Bumps: "TestBump_Periods"},
 	"cycle.DeletePeriod":                 {Bumps: "TestBump_Periods"},
 	"cycle.UpdateProfileLastPeriodStart": {Bumps: "TestBump_Periods"},
-	// cycle_skips — the «پریود نداشتم» endpoint does not exist yet (E-15).
-	"cycle.InsertCycleSkip": {Exempt: "no caller yet: the skipped-cycle endpoint (later M9 task) must bump and move this to Bumps"},
-	"cycle.DeleteCycleSkip": {Exempt: "no caller yet: the skipped-cycle endpoint (later M9 task) must bump and move this to Bumps"},
+	// cycle_skips — the «پریود نداشتم» endpoint (skips.Service.tx bumps; T-M9-29, E-15).
+	"cycle.InsertCycleSkip": {Bumps: "TestBump_CycleSkips"},
+	"cycle.DeleteCycleSkip": {Bumps: "TestBump_CycleSkips"},
 
 	// daily_health_logs / health_log_entries / the bleeding-log bridge — healthlog.Service.inTxLocked bumps when it
 	// owns the transaction; fertility.Save and conditions (PBAC, pain) bump on theirs.

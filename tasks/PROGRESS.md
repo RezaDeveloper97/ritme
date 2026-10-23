@@ -2000,3 +2000,21 @@ Nothing needed fixing.
   menopause, name-only profile save); `teen_profiles` isn't in the README §3 table list; raw SQL outside sqlc isn't
   covered by the manifest; no int test for healthrecord re-dating bump; the cycle-skip endpoint task must move
   `InsertCycleSkip`/`DeleteCycleSkip` to Bumps. Using the revision → T-M9-31.
+
+## T-M9-29 — Skipped-cycle endpoint «پریود نداشتم» (D-125)
+- Go-only (D-125): `POST /api/v1/cycle/skips {expected_start}` and `DELETE /api/v1/cycle/skips/{date}` (locale → auth →
+  per-user write throttle 60/min). Prod's cycle group is still Laravel, so these 404 there until cutover.
+- `internal/cycle/skips`: `Check` runs the v6 engine for the user's local today (D-126). Allowed when `expected_start`
+  = today's `predicted_next_period_start`, today ≥ it (any lateness) and no real period started in [expected, today];
+  else 422 `code` `not_expected_yet` / `period_started` / `prediction_mismatch` (also when the engine would ignore the
+  skip). POST 201 `{expected_start}` when recorded, 200 for a repeat (no write, no bump); DELETE 204, 404 for unknown /
+  another user's / non-Y-m-d. Validation 422, never 401. Copy in `skips/lang`.
+- One transaction: `periods.LockUser` (D-131), write, `revision.Bump`; manifest `cycle.InsertCycleSkip` /
+  `DeleteCycleSkip` → `Bumps: TestBump_CycleSkips`. OpenAPI `postCycleSkips` / `deleteCycleSkipsByDate` +
+  `CycleSkipResponse`.
+- Tests: unit `Check` (expected day, 1/15/60 days late, before, wrong date, real start, pregnancy, no history, chained
+  skips); int through the router (bump +1 / 0, delete restores the identical engine status, 401/422, other user → 404,
+  8 concurrent taps → 1 row, 1 bump).
+- Open: until T-M9-32 the body is `{expected_start}` / empty 204 — switch to the today cycle_view encoder there; no
+  contract case (cycle goldens are Laravel); on a declared-only history > 14 days late the roll-forward prediction
+  can't be skipped (`prediction_mismatch`) — engine follow-up candidate.

@@ -3,7 +3,7 @@ id: T-M9-29
 title: Skipped-cycle endpoint («پریود نداشتم»)
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-20, T-M9-25, T-M9-30]
 parallel_group: M9-C
 touches: [backend-go/internal/cycle/skips, backend-go/internal/http/routes_cycle.go, backend-go/db/queries/cycle/skips.sql, backend-go/api/openapi.yaml, backend-go/internal/cycle/revision/manifest.go]

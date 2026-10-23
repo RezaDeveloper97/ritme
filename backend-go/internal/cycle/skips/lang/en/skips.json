@@ -1,0 +1,6 @@
+{
+    "not_expected_yet": "Your period is not due yet; you can record «no period» from the predicted day on.",
+    "period_started": "A period has been logged since that date, so this cycle cannot be skipped.",
+    "prediction_mismatch": "This date is not the predicted start of your next period.",
+    "not_found": "No skipped cycle is recorded for this date."
+}
