@@ -3,7 +3,7 @@ id: T-M9-31b
 title: Expose engine and analysis revisions on the request context (auth guard)
 milestone: M9
 type: backend
-status: blocked
+status: done
 depends_on: [T-M9-31]
 parallel_group: M9-B
 touches: [backend-go/internal/auth/guard.go,backend-go/internal/auth/revisions_int_test.go,docs/engine-v6/drafts/T-M9-31b-guard-revisions.diff]
@@ -28,5 +28,5 @@ touches, so routes cannot read them yet. T-M9-32…35 need `auth.CurrentRevision
 ## Acceptance
 - verify green; `make test-int PKG=./internal/http/...` green; a route can read the revision with no extra query.
 
-## Blocked
-Waiting for the user to OK editing `backend-go/internal/auth/guard.go` (auth guard).
+## Decision
+User OK to edit `guard.go` (2026-10-23, this session).

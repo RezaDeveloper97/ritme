@@ -3,7 +3,7 @@ id: T-M9-06c
 title: Postpartum data export and dated red-flag thresholds in the daily message
 milestone: M9
 type: backend
-status: blocked
+status: todo
 depends_on: [T-M9-06b]
 parallel_group: M9-A
 touches: [backend-go/db/queries/postpartum/export.sql,backend-go/internal/postpartum/store,backend-go/internal/accountexport,backend-go/internal/messages/postpartum_source.go,backend-go/contract/golden/profile,backend-go/contract/allowlist/profile.yaml,docs/go-migration/deviations.md]
@@ -22,6 +22,10 @@ Today the account export (`internal/accountexport`, wired in `internal/http/rout
 ## Needs a user decision first
 - Adding a postpartum key to the export goes past the nine top-level keys approved in D-96. Either extend D-96 or add a new deviation.
 - EPDS answers: D-54 says they are "never returned". Should the export include them (it is the user's own data), only the totals, or nothing?
+
+## Decision (user, 2026-10-23)
+- Export the postpartum profile and recovery logs; **no EPDS at all** (neither answers nor totals) — D-54 stands.
+- Extend D-96 with one postpartum top-level key (record it in deviations.md as part of this task).
 
 ## Scope
 1. `db/queries/postpartum/export.sql` (+ `make sqlc`): the user's postpartum profile, recovery logs, and EPDS per the decision.

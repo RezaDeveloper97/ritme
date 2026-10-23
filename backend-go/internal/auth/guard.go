@@ -48,11 +48,15 @@ type AccessToken struct {
 	ExpiresAt sql.NullTime // oauth_access_tokens.expires_at (Tehran wall-clock)
 }
 
+// Revisions is the user's cache revision pair (user_revisions), read in the auth query (T-M9-31).
+type Revisions = passport.Revisions
+
 type localsKey int
 
 const (
 	userKey localsKey = iota
 	tokenKey
+	revisionsKey
 )
 
 // Guard is `auth:api`. Build one per domain with NewGuard (or MustGuard in a registrar).
@@ -100,12 +104,14 @@ func MustGuard(r fiber.Router, cfg *config.Config, db *sql.DB, logger *slog.Logg
 // Attach it per route, or on a group whose prefix is unique to your domain — a Fiber group
 // middleware applies to every route under its prefix, including other domains' public ones.
 func (g *Guard) RequireUser(c fiber.Ctx) error {
-	user, tok, err := g.Authenticate(c.Context(), c.Get(fiber.HeaderAuthorization))
+	s, err := g.authenticate(c.Context(), c.Get(fiber.HeaderAuthorization))
 	if err != nil {
 		return err
 	}
-	c.Locals(userKey, user)
-	c.Locals(tokenKey, tok)
+	user := s.User
+	c.Locals(userKey, &user)
+	c.Locals(tokenKey, tokenOf(s))
+	c.Locals(revisionsKey, s.Revisions)
 	return c.Next()
 }
 
@@ -121,20 +127,32 @@ func (g *Guard) OptionalUser(c fiber.Ctx) error {
 // Authenticate validates an Authorization header value outside the middleware. Rejections
 // are *UnauthenticatedError; other errors are infrastructure failures (500).
 func (g *Guard) Authenticate(ctx context.Context, authorization string) (*User, *AccessToken, error) {
+	s, err := g.authenticate(ctx, authorization)
+	if err != nil {
+		return nil, nil, err
+	}
+	user := s.User
+	return &user, tokenOf(s), nil
+}
+
+func (g *Guard) authenticate(ctx context.Context, authorization string) (*passport.Session, error) {
 	if g.initErr != nil {
-		return nil, nil, g.initErr
+		return nil, g.initErr
 	}
 	s, err := g.verifier.Verify(ctx, authorization)
 	if err != nil {
 		var ae *passport.AuthError
 		if errors.As(err, &ae) {
 			g.logger.DebugContext(ctx, "auth rejected", slog.String("code", ae.Code), slog.String("reason", ae.Reason))
-			return nil, nil, &UnauthenticatedError{Code: ae.Code}
+			return nil, &UnauthenticatedError{Code: ae.Code}
 		}
-		return nil, nil, err
+		return nil, err
 	}
-	user := s.User
-	return &user, &AccessToken{ID: s.Token.ID, ClientID: s.Token.ClientID, ExpiresAt: s.Token.ExpiresAt}, nil
+	return s, nil
+}
+
+func tokenOf(s *passport.Session) *AccessToken {
+	return &AccessToken{ID: s.Token.ID, ClientID: s.Token.ClientID, ExpiresAt: s.Token.ExpiresAt}
 }
 
 // CurrentUser returns the authenticated user ($request->user()), or nil outside RequireUser.
@@ -149,6 +167,13 @@ func CurrentUserID(c fiber.Ctx) (uint64, bool) {
 		return u.ID, true
 	}
 	return 0, false
+}
+
+// CurrentRevisions returns the authenticated user's engine/analysis revisions (user_revisions, read in the same auth
+// query — T-M9-31), 0 / 0 when the user has no row; ok is false outside RequireUser.
+func CurrentRevisions(c fiber.Ctx) (Revisions, bool) {
+	r, ok := c.Locals(revisionsKey).(Revisions)
+	return r, ok
 }
 
 // CurrentToken returns the access token of the request, or nil outside RequireUser.

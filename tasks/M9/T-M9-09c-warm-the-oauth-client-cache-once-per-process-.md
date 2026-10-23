@@ -24,3 +24,6 @@ Split out of T-M9-09b, scope item 2. The auto-mode permission check refused an e
 ## Acceptance
 - A test with a counting fake store: many guards on one app plus many Authenticate calls give exactly `ListClients == 1`.
 - 401 codes and session rules unchanged; `make contract ROUTES=auth` stays 45/45.
+
+## Decision
+User OK to edit `guard.go` (2026-10-23).

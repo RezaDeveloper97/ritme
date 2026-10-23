@@ -33,3 +33,6 @@ The `vitals_alert` copy is safety content (D-90/D-160). Ask the user whether cha
 - No seeded vitals alert text holds a hard-coded threshold.
 - The add-form preview equals the saved reading's class for diabetic and spec=1 users.
 - verify green.
+
+## Decision
+User (2026-10-23): move the vitals alert copy into `message_contents` placeholders as-is, without the D-90/D-160 safety-content approval flow; any later wording change goes through that flow.

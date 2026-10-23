@@ -52,3 +52,6 @@ frontend still parses (X-05).
 
 ## Acceptance
 - Verify passes in v1 mode; v6 goldens committed; PROGRESS.md cites D-120.
+
+## Note from the T-M9-31b security review (Low)
+`Cache-Control: private, no-cache` lets the browser keep engine responses in its disk cache (shared-device risk after logout). When wiring ETags, pick one: send `Clear-Site-Data: "cache"` on logout, or have the frontend fetch engine GETs with `cache: "no-store"` and keep the ETag in memory. Never log `ETag` response headers (the rev is an activity signal).

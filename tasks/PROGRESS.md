@@ -2134,3 +2134,16 @@ Nothing needed fixing.
 - Open: T-M11-14 must add `scope = 'personal'` to the personal todo queries before household rows exist (note added to
   its task file); writers don't set the actor columns yet (T-M11-11, T-M11-14); twin not run on MySQL 8.4.
 - Migration 00108 runs with the next stage/beta deploy.
+
+## T-M9-31b — Expose engine and analysis revisions on the request context (auth guard)
+- User OK'd the `guard.go` edit (2026-10-23). Applied the T-M9-31 draft diff: `auth.Revisions` (alias of
+  `passport.Revisions`), `RequireUser` stores them in Locals, `auth.CurrentRevisions(c) (Revisions, bool)`;
+  `Authenticate` keeps its signature (private `authenticate` + `tokenOf`). New `revisions_int_test.go` (0/0 without a
+  row, 4/6 after an insert). Draft diff deleted.
+- security-auditor: nothing blocks — rejection paths, error types and locals unchanged; the LEFT JOIN is on a PK so it
+  can't change the authenticating row; tags carry the uid so no cross-user 304. Low: `private, no-cache` allows the
+  browser disk cache — note added to T-M9-32 (Clear-Site-Data on logout or `no-store` fetch); Info: don't log ETag
+  headers.
+- Verify: vet, `-race` auth, int auth + http green; golangci-lint 0 issues.
+- Also recorded user decisions: T-M10-19b (move vitals alert copy as-is, no approval flow), T-M9-06c (postpartum
+  export without EPDS; extend D-96) — both unblocked; T-M9-09c guard OK.
