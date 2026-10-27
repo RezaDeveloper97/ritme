@@ -18,7 +18,11 @@ import {
   daysUntilNextPeriod,
   deriveCycleSchedule,
   deriveCyclePredictions,
+  futureCycleDayMap,
   hasFertileWindow,
+  isFertilitySuppressed,
+  monthDayPaint,
+  serverFertileEvents,
   useCycleForDate,
   useCycleMonth,
   useCycleOverview,
@@ -26,6 +30,8 @@ import {
   useCycleToday,
   type CycleCalculation,
   type CycleDailyTip,
+  type CycleFutureCycle,
+  type CycleMonthDay,
   type CycleDayMarker,
   type CyclePhase,
   type CycleSchedule,
@@ -178,6 +184,8 @@ function useDayMarks(
   dates: Date[],
   schedule: CycleSchedule | null,
   periodLength: number,
+  engine: boolean,
+  suppressed: boolean,
 ): (date: Date) => CycleDayMarker | null {
   const sorted = [...dates].sort((a, b) => a.getTime() - b.getTime());
   const first = sorted[0] ?? today();
@@ -198,6 +206,29 @@ function useDayMarks(
     return map;
   }, [monthA.data, monthM.data, monthB.data]);
 
+  // v6: the server's per-day fields and `future_cycles` paint the dots — no browser cycle math.
+  const v6 = useMemo(() => {
+    const days = new Map<string, CycleMonthDay>();
+    let future: CycleFutureCycle[] = [];
+    let freshest = -1;
+    for (const q of [monthA, monthM, monthB]) {
+      if (!q.data) continue;
+      for (const d of q.data.days) days.set(d.date, d);
+      if (q.dataUpdatedAt > freshest && q.data.days.length > 0) {
+        freshest = q.dataUpdatedAt;
+        future = q.data.futureCycles;
+      }
+    }
+    return { days, futureMap: futureCycleDayMap(future, suppressed) };
+  }, [monthA.data, monthM.data, monthB.data, suppressed]);
+
+  if (engine) {
+    return (date: Date) => {
+      const iso = toApiDate(date);
+      const marker = monthDayPaint(v6.days.get(iso), iso, v6.futureMap, suppressed)?.marker ?? null;
+      return suppressed && (marker === 'fertile' || marker === 'ovulation') ? null : marker;
+    };
+  }
   return (date: Date) =>
     cycleDayMarkerAt(date, calcMap.get(toApiDate(date)), schedule, periodLength);
 }
@@ -640,7 +671,10 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   // The cycle's own calendar (engine anchors → absolute dates). Everything the
   // page shows about upcoming events hangs off this, so the dates stay tied to
   // the period start rather than being re-measured from today each render.
-  const schedule = deriveCycleSchedule(todayData?.cycleView ?? null, calc);
+  // Laravel payload only: a v6 payload (`today_ui` / `limits`) never gets a browser-side schedule.
+  const engine = isEnginePayload(todayData?.cycleView ?? null);
+  const schedule = engine ? null : deriveCycleSchedule(todayData?.cycleView ?? null, calc);
+  const fertilitySuppressed = isFertilitySuppressed(todayData?.cycleView ?? null);
   // Calendar formatting happens only here, at the display boundary (§7).
   const fmt = (date: Date) => formatDayMonth(date, loc);
   // «۱۷ تا ۲۱ مهر»: a range inside one month names the month once.
@@ -656,8 +690,12 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   // v6 (E-17): while the period is late there is no rolled-forward row — the late banner and the ring
   // already say so, and a made-up next date would hide the lateness.
   const todayView = todayData?.cycleView ?? null;
-  const periodIsLate = isEnginePayload(todayView) && (todayView?.daysLate ?? 0) > 0;
+  const periodIsLate = engine && (todayView?.daysLate ?? 0) > 0;
   const slotFor = (start: Date, end: Date, rollForward = true): TimelineSlot | null => {
+    if (engine) {
+      // v6: the server dates are shown as sent; a window that is over is simply not listed.
+      return diffInDays(end, base) < 0 ? null : { start, end, days: diffInDays(start, base) };
+    }
     if (!schedule) return null;
     if (!rollForward && diffInDays(end, base) < 0) return null;
     let from = start;
@@ -677,21 +715,47 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
     todayData?.cycleView?.effectiveValues.periodDuration ??
     profileQuery.data?.health?.periodDuration ??
     DEFAULT_PERIOD_DAYS;
+  // v6: this month's and next month's server days + `future_cycles` (same cache as the week strip).
+  const baseParts = gregYearMonth(base);
+  const nextMonthParts = gregYearMonth(addDays(base, 31));
+  const monthNow = useCycleMonth(baseParts.year, baseParts.month);
+  const monthNext = useCycleMonth(nextMonthParts.year, nextMonthParts.month);
+  const serverEvents = serverFertileEvents(
+    todayView?.anchors?.estimatedOvulationDate,
+    [...(monthNow.data?.days ?? []), ...(monthNext.data?.days ?? [])],
+    [...(monthNow.data?.futureCycles ?? []), ...(todayView?.futureCycles ?? [])],
+    toApiDate(base),
+    fertilitySuppressed,
+  );
+  const predictedStart = todayView?.anchors?.predictedNextPeriodStart ?? null;
   const nextPeriodSlot = overview?.nextPeriod
     ? slotFor(fromApiDate(overview.nextPeriod.start), fromApiDate(overview.nextPeriod.end), !periodIsLate)
+    : engine
+      ? predictedStart
+        ? slotFor(fromApiDate(predictedStart), fromApiDate(predictedStart), !periodIsLate)
+        : null
+      : schedule
+        ? slotFor(schedule.nextPeriodStart, addDays(schedule.nextPeriodStart, periodDays - 1), !periodIsLate)
+        : null;
+  const ovulationSlot = engine
+    ? serverEvents.ovulation
+      ? slotFor(fromApiDate(serverEvents.ovulation), fromApiDate(serverEvents.ovulation))
+      : null
     : schedule
-      ? slotFor(schedule.nextPeriodStart, addDays(schedule.nextPeriodStart, periodDays - 1), !periodIsLate)
+      ? slotFor(schedule.ovulation, schedule.ovulation)
       : null;
-  const ovulationSlot = schedule ? slotFor(schedule.ovulation, schedule.ovulation) : null;
   // The §19 display window — the same days `/fertility/bbt` and the insights
   // screen mark (none when a long period swallows it).
-  const windowSlot =
-    schedule && hasFertileWindow(schedule)
+  const windowSlot = engine
+    ? serverEvents.fertile
+      ? slotFor(fromApiDate(serverEvents.fertile.start), fromApiDate(serverEvents.fertile.end))
+      : null
+    : schedule && hasFertileWindow(schedule)
       ? slotFor(schedule.fertileStart, schedule.fertileEnd)
       : null;
   const pmsSlot = overview?.pmsWindow
     ? slotFor(fromApiDate(overview.pmsWindow.start), fromApiDate(overview.pmsWindow.end))
-    : schedule
+    : !engine && schedule
       ? slotFor(schedule.pmsStart, schedule.pmsEnd)
       : null;
   const nextPeriodDate = nextPeriodSlot ? fmt(nextPeriodSlot.start) : null;
@@ -723,8 +787,10 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   // shows the period it actually led to), and until then today's schedule rolled
   // whole cycles — so scrubbing counts down smoothly instead of jumping.
   const selectedSchedule: CycleSchedule | null =
-    (isToday ? null : deriveCycleSchedule(dateData?.cycleView ?? null, dateData?.calculation ?? null)) ??
-    (schedule ? cycleScheduleFor(schedule, selectedDate) : null);
+    engine
+      ? null
+      : (isToday ? null : deriveCycleSchedule(dateData?.cycleView ?? null, dateData?.calculation ?? null)) ??
+        (schedule ? cycleScheduleFor(schedule, selectedDate) : null);
   // The engine's own read-out for the selected day — the very same `cycle_view`
   // that renders the day-status card — so the ring can never disagree with it.
   const infoView = (isToday ? todayData : dateData)?.cycleView ?? null;
@@ -734,7 +800,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
     phaseFromMainPhase(infoView?.mainPhase) ?? (isEnginePayload(infoView) ? null : (infoPred?.phase ?? null));
   const infoDaysUntilNextPeriod =
     infoView?.daysToPeriod ??
-    (selectedSchedule ? daysUntilNextPeriod(selectedSchedule, selectedDate) : null);
+    (engine ? null : selectedSchedule ? daysUntilNextPeriod(selectedSchedule, selectedDate) : null);
   // Day X of N, again straight from the engine (falls back to the local derivation).
   const infoCycleDay = infoView?.cycleDay ?? infoPred?.cycleDay ?? null;
   const infoCycleLength =
@@ -809,7 +875,13 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
     : [];
   // Today's anchored schedule (not the tapped day's): the window it gives the
   // current and predicted cycles must not move when another day is selected.
-  const rawMarkOf = useDayMarks([...weekDays, ...ringDates], schedule ?? selectedSchedule, periodLength);
+  const rawMarkOf = useDayMarks(
+    [...weekDays, ...ringDates],
+    schedule ?? selectedSchedule,
+    periodLength,
+    engine,
+    fertilitySuppressed,
+  );
   // Teen (B-N2-10 audit): no fertile-window / ovulation dots on the ring or the week strip either.
   const markOf = (date: Date): CycleDayMarker | null => {
     const mark = rawMarkOf(date);

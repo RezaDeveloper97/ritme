@@ -4,11 +4,18 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
-import { deriveCycleSchedule, hasFertileWindow, useCycleToday } from '@/entities/cycle';
+import {
+  deriveCycleSchedule,
+  hasFertileWindow,
+  isFertilitySuppressed,
+  serverFertileEvents,
+  useCycleMonth,
+  useCycleToday,
+} from '@/entities/cycle';
 import { userKeys } from '@/entities/user';
 import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
-import { formatDayMonth } from '@/shared/lib/date';
+import { addDays, formatDayMonth, fromApiDate, toApiDate, today as todayDate } from '@/shared/lib/date';
 import { clearOnboardingPending, getAuthToken, setAuthToken } from '@/shared/session';
 import { Icon, IconCircle, Skeleton, Switch } from '@/shared/ui';
 import { OnbFrame } from '@/features/auth';
@@ -40,13 +47,60 @@ function Row({ dot, label, value }: { dot: 'period' | 'warm' | 'brand'; label: s
   );
 }
 
+/** Gregorian year/month of a date, read from its API serialization (§7). */
+function gregYearMonth(date: Date): { year: number; month: number } {
+  const [year, month] = toApiDate(date).split('-');
+  return { year: Number(year), month: Number(month) };
+}
+
+/** v6: next period + fertile window exactly as the server sent them (anchors, month days, future_cycles). */
+function EngineRows() {
+  const t = useTranslations('onboarding.flow.ready');
+  const locale = useLocale() as Locale;
+  const today = useCycleToday();
+  const now = todayDate();
+  const a = gregYearMonth(now);
+  const b = gregYearMonth(addDays(now, 31));
+  const monthNow = useCycleMonth(a.year, a.month);
+  const monthNext = useCycleMonth(b.year, b.month);
+  if (today.isPending) return <Skeleton width="medium" />;
+  const view = today.data?.cycleView ?? null;
+  const nextStart = view?.anchors?.predictedNextPeriodStart ?? null;
+  const events = serverFertileEvents(
+    view?.anchors?.estimatedOvulationDate,
+    [...(monthNow.data?.days ?? []), ...(monthNext.data?.days ?? [])],
+    [...(monthNow.data?.futureCycles ?? []), ...(view?.futureCycles ?? [])],
+    toApiDate(now),
+    isFertilitySuppressed(view),
+  );
+  if (!nextStart) return null;
+  return (
+    <>
+      <Row dot="period" label={t('nextPeriod')} value={t('about', { date: formatDayMonth(fromApiDate(nextStart), locale) })} />
+      {events.fertile ? (
+        <Row
+          dot="warm"
+          label={t('fertile')}
+          value={t('range', {
+            from: formatDayMonth(fromApiDate(events.fertile.start), locale),
+            to: formatDayMonth(fromApiDate(events.fertile.end), locale),
+          })}
+        />
+      ) : null}
+    </>
+  );
+}
+
 /** Next period + fertile window from the engine (cycle and TTC paths). */
 function CycleRows() {
   const t = useTranslations('onboarding.flow.ready');
   const locale = useLocale() as Locale;
   const today = useCycleToday();
   if (today.isPending) return <Skeleton width="medium" />;
-  const schedule = today.data ? deriveCycleSchedule(today.data.cycleView ?? null, today.data.calculation ?? null) : null;
+  const view = today.data?.cycleView ?? null;
+  if (view && (view.todayUi != null || view.limits != null)) return <EngineRows />;
+  // Laravel payload only (until T-M9-51): the legacy browser schedule.
+  const schedule = today.data ? deriveCycleSchedule(view, today.data.calculation ?? null) : null;
   if (!schedule) return null;
   return (
     <>

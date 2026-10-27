@@ -3,7 +3,7 @@ id: T-M9-42c
 title: Home timeline on v6 fields, delete legacy schedule helpers, Today/calendar screenshots
 milestone: M9
 type: frontend
-status: todo
+status: done
 depends_on: [T-M9-42b,T-M9-34]
 parallel_group: M9-C
 touches: [frontend/src/screens/home,frontend/src/screens/calendar/ui/CalendarPage.tsx,frontend/src/screens/onboarding-flow/ui/ReadyStep.tsx,frontend/src/entities/cycle/model,frontend/src/entities/cycle/index.ts]

@@ -18,6 +18,8 @@ export {
   cycleDayMarkerAt,
 } from './model/schedule';
 export type { CycleSchedule } from './model/schedule';
+export { serverFertileEvents } from './model/serverEvents';
+export type { ServerRange, ServerFertileEvents } from './model/serverEvents';
 export { isFertilitySuppressed } from './model/suppression';
 export {
   futureCycleDayMap,

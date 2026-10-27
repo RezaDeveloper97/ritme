@@ -2295,3 +2295,20 @@ Nothing needed fixing.
   calendar late-day style moved to `globals.css` (tokens, light+dark); `lateStyle.ts` deleted.
 - Moved to T-M9-42c: legacy schedule helpers (home week strip / fertile / ovulation / PMS slots, CalendarPage,
   ReadyStep) and the light/dark screenshots.
+
+## T-M9-38 — Messages read v6 facts (daily, selected, admin preview)
+- D-130, I-11: `/messages/daily`, `/messages/selected` and the admin rule preview read the v6 engine (`engineStates`) under shadow|v6. New `manager/v6.go` (`EngineSource`/`EngineDay`, `EngineFacts`, `cycleContextV6`, `neutralBase`); `source.go` `WithEngine(states)` loads engine state once per request for the user-local day.
+- New facts: main_phase, subphase, phase, cycle_day (no wrap), cycle_length, days_to_period (0 when late), days_late, data_quality, confidence, suggest_pregnancy_test, fertility_suppressed, is_pms_window, is_fertile_window. Fertile = O−5..O (O+1 never). Suppression/teen/menopause strip fertility (ovulation→follicular, `user_goal=non_ttc`); `suggest_pregnancy_test` false in teen/menopause. `unknown` day with data → neutral default copy, no supplements.
+- Rule variables: `pms_start_day`, `top_symptoms` removed (never filled), `days_late` added — admin meta endpoint list changes.
+- v1 path unchanged (contract messages 117/0, no allow-list change); `engineProfile`/`historyFromRow` replaced by `cycleservice.ProfileFromRow`/`HistoryFromRow`.
+- v6 goldens: `internal/messages/manager/testdata/golden-v6/` (rewrite with `UPDATE_GOLDEN_V6=1 go test ./internal/messages/manager/`). Agreement test daily phase == hero phase, 8 personas × 60 days.
+- Wiring outside the original touches (added to the task's `touches`): `messages/handlers.go` (`WithEngine`, `civildate.LocalToday`), `http/routes_messages.go`, `http/routes_admin_content.go`, `messages/v6_int_test.go`.
+- Open items → T-M9-38b: home `msgSource` still legacy, 400 without `last_period_start` under v6, admin preview uses Tehran time, query budget, product review of late=luteal / pill+TTC=non-TTC / teen+meno fertility_suppressed.
+
+## T-M9-42c — Home timeline on v6 fields, delete legacy schedule helpers, Today/calendar screenshots
+- HomePage on a v6 payload (`isEnginePayload`): no browser schedule; week strip/ring dots from `cycle/month` per-day fields (`monthDayPaint`, `futureCycleDayMap`); ovulation/fertile slots from new `entities/cycle/model/serverEvents.ts` (`serverFertileEvents`, first server window not over); PMS from cycle-overview; next period from overview or `anchors.predictedNextPeriodStart`; countdown from `cycle_view.days_to_period`. No roll-forward on v6.
+- CalendarPage: `legacySchedule` null on v6 month payloads. ReadyStep: new `EngineRows` on v6; `hasFertileWindow`/`deriveCycleSchedule` only for Laravel.
+- Nothing deleted: `cycleScheduleFor`, `daysUntilNextPeriod`, `hasFertileWindow`, `cycleDayMarkerAt` still have Laravel-branch importers (kept until T-M9-51).
+- Frontend does not fetch `/home` (`week_calendar`/`cycle_prediction` unparsed — would need `entities/cycle/api`); equivalent server fields from cycle/month, cycle_view, cycle-overview used instead.
+- Screenshots reviewed in the main session (late 10 overdue banner + pregnancy-test link, open period day 11 end_missing banner, regular calendar). Gaps → T-M9-42d. Found bug: v6 `/cycle/today` sends `final_probability: null`, zod rejects → Home load error → T-M9-40b.
+- Local note: screenshot personas needed `cycle_histories` shifted +34 days and terms/health consents inserted; `contract/fixtures/dump.sql` has no `app_modules` table (Go warns but runs).

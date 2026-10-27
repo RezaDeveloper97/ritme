@@ -221,7 +221,7 @@ export function CalendarPage() {
   );
   // While the period is late the legacy schedule must not roll a new period forward (E-04):
   // without it each day is read from its own calculation.
-  const legacySchedule = (cycleView?.daysLate ?? 0) > 0 ? null : schedule;
+  const legacySchedule = calc.isV6 || (cycleView?.daysLate ?? 0) > 0 ? null : schedule;
   const dayMarker = useMemo(
     () => (c: CycleCalculation) =>
       cycleDayMarkerAt(fromApiDate(c.calculationDate), c, legacySchedule, legacySchedule?.periodLength ?? periodDuration),
