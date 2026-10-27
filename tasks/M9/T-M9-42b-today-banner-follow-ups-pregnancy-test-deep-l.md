@@ -3,10 +3,10 @@ id: T-M9-42b
 title: Today banner follow-ups: pregnancy-test deep link, banner CSS, remove legacy schedule helpers
 milestone: M9
 type: frontend
-status: todo
+status: done
 depends_on: [T-M9-42,T-M9-45]
 parallel_group: M9-C
-touches: [frontend/src/features/log-day/ui/LogDay.tsx,frontend/src/screens/log/ui/LogSheet.tsx,frontend/src/screens/home,frontend/src/app/globals.css,frontend/src/widgets/cycle-calendar/ui/lateStyle.ts,frontend/src/widgets/cycle-calendar/ui/CalendarLegend.tsx,frontend/src/entities/cycle/model]
+touches: [frontend/src/features/log-day/ui/LogDay.tsx,frontend/src/screens/log/ui/LogSheet.tsx,frontend/src/screens/home,frontend/src/app/globals.css,frontend/src/widgets/cycle-calendar/ui/lateStyle.ts,frontend/src/widgets/cycle-calendar/ui/CalendarLegend.tsx,frontend/src/widgets/cycle-calendar/ui/MonthCard.tsx,frontend/src/widgets/cycle-calendar/ui/YearView.tsx,frontend/src/entities/cycle/model]
 skills: []
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test
 ---
@@ -38,3 +38,9 @@ client schedule helpers survive only because the home screen still imports them.
 - The overdue banner button lands on the pregnancy-test field.
 - No inline styles left for the banner/late day; style and dark gates green.
 - No importer left for the deleted helpers; verify green; screenshots reviewed in the main session.
+
+## Outcome
+Scope 1 and 2 shipped (MonthCard/YearView added to touches to drop the last inline late style; `lateStyle.ts` deleted).
+Scope 3 and 4 moved to T-M9-42c: the legacy helpers still drive the home week strip / fertile / ovulation / PMS slots
+and have importers in `screens/calendar` and `screens/onboarding-flow` (needs a home timeline rewrite on the v6
+`week_calendar` / `cycle_prediction` fields); screenshots need the local v6 stack.

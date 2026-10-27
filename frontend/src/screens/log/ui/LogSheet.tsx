@@ -9,16 +9,20 @@ import { LogLater } from '@/widgets/log-later';
 
 /**
  * `?sheet=log` — the nav FAB, home «ثبت امروز» and calendar «ثبت جزئیات» (B-N3-03). `arg` is the day to
- * log (`YYYY-MM-DD`, nothing else rides in the URL). Companions log nothing of their own, so they keep the
+ * log (`YYYY-MM-DD`, optionally `:pregnancy_test` to open on the test field). Companions log nothing of their own, so they keep the
  * interim reminder / checkup shortcuts.
  */
 export function LogSheet({ arg }: SheetContentProps) {
+  // `YYYY-MM-DD` or `YYYY-MM-DD:pregnancy_test` (the overdue banner's deep link into the measurement panel).
+  const [date, focusKey] = (arg ?? '').split(':');
+  const focus = focusKey === 'pregnancy_test' ? focusKey : undefined;
   const nav = useNavMode();
   if (nav.mode === 'companion') return <CompanionLogSheet />;
   return (
     <LogDay
       variant="sheet"
-      initialDate={arg}
+      initialDate={date || undefined}
+      focus={focus}
       BodyMap={BodyMap}
       VoiceLog={VoiceLogPanel}
       onSaved={closeSheet}

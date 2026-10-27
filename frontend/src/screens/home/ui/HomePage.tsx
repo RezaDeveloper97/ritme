@@ -1104,7 +1104,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
                 setDateEditorIntent(undefined);
                 setDateEditorOpen(true);
               }}
-              onLogPregnancyTest={() => openSheet('log', toApiDate(base))}
+              onLogPregnancyTest={() => openSheet('log', `${toApiDate(base)}:pregnancy_test`)}
             />
           ) : (
             hero.endMissing && (

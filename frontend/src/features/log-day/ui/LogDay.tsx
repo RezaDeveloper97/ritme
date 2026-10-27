@@ -86,6 +86,11 @@ export interface LogDayProps {
    * «ثبت برای <child>» (widgets/log-later, composed by screens/log; a feature can't import a widget).
    */
   extra?: ReactNode;
+  /**
+   * Deep link (T-M9-42b): opens the measurement panel on arrival — where the LH / pregnancy test chips are
+   * (the overdue banner's «ثبت تست بارداری»). Applied once; ignored when the mode has no such panel.
+   */
+  focus?: 'pregnancy_test';
 }
 
 function validDate(value: string | null | undefined): string {
@@ -115,6 +120,7 @@ export function LogDay({
   dateStrip = true,
   pregnancyDayHref = PREGNANCY_DAY_LOG_HREF,
   extra,
+  focus,
 }: LogDayProps) {
   const t = useTranslations('logSheet');
   const router = useRouter();
@@ -192,6 +198,15 @@ export function LogDay({
   const bleeding = category('bleeding');
   const pain = category('pain');
   const measurements = category('measurements');
+
+  // Deep link: open the measurement panel once its category has loaded.
+  const focusApplied = useRef(false);
+  const hasMeasure = Boolean(measurements);
+  useEffect(() => {
+    if (focus !== 'pregnancy_test' || focusApplied.current || !hasMeasure) return;
+    focusApplied.current = true;
+    setPanel('measure');
+  }, [focus, hasMeasure]);
 
   const header =
     variant === 'page' && pageHeader ? (

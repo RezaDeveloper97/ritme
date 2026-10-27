@@ -5378,6 +5378,13 @@ html[data-motion="reduce"] *::after {
 .cc-day.is-predicted { background: var(--period-soft); color: var(--period-deep); }
 .cc-day.is-fertile { background: var(--warm); color: var(--page); }
 .cc-day.is-pms { background: var(--brand-soft); color: var(--brand); }
+/* Late (past the predicted start, nothing logged): dashed period outline on a clear ground, never a fill. */
+.cc-day.is-late {
+  background: transparent; color: var(--period-deep);
+  border-block: 1.5px dashed var(--period);
+}
+.cc-day.is-late.is-band-start { border-inline-start: 1.5px dashed var(--period); }
+.cc-day.is-late.is-band-end { border-inline-end: 1.5px dashed var(--period); }
 [data-theme="dark"] .cc-day.is-predicted { background: color-mix(in srgb, var(--period) 25%, var(--surface)); }
 .cc-day.is-today:not(.is-selected)::before {
   content: ''; position: absolute; inset: 5px; border-radius: 50%;
@@ -5405,6 +5412,7 @@ html[data-motion="reduce"] *::after {
 .cc-legend-dot.is-fertile { background: var(--warm); }
 .cc-legend-dot.is-ovulation { background: var(--data); box-shadow: 0 0 8px var(--data); }
 .cc-legend-dot.is-pms { background: var(--brand-soft); }
+.cc-legend-dot.is-late { background: transparent; border: 1.5px dashed var(--period); }
 
 /* Year view: twelve mini months */
 .cc-year-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -5427,6 +5435,7 @@ html[data-motion="reduce"] *::after {
 [data-theme="dark"] .cc-mini-day.is-predicted { background: color-mix(in srgb, var(--period) 25%, var(--surface)); }
 .cc-mini-day.is-fertile { background: var(--warm); color: var(--page); }
 .cc-mini-day.is-pms { background: var(--brand-soft); color: var(--brand); }
+.cc-mini-day.is-late { background: transparent; color: var(--period-deep); border: 1.5px dashed var(--period); }
 .cc-mini-day.is-today { box-shadow: inset 0 0 0 1.5px var(--text-1); }
 
 /* Selected-day card */
@@ -5544,6 +5553,10 @@ html[data-motion="reduce"] *::after {
 .ch-alert-body { display: flex; flex-direction: column; flex: 1; min-width: 0; text-align: start; }
 .ch-alert-title { font-size: 13.5px; font-weight: 800; color: var(--text-1); }
 .ch-alert-text { font-size: 11.5px; font-weight: 600; line-height: 1.7; color: var(--text-2); }
+/* Banner actions: the .ch-link buttons stack under the text, start-aligned. */
+.ch-alert-body .ch-link { align-self: flex-start; border: 0; background: none; font-family: inherit; cursor: pointer; }
+.ch-alert-body .ch-link + .ch-link { margin-inline-start: 0; }
+.ch-pred-disclaimer { margin: 8px 0 0; font-size: 11px; line-height: 1.7; color: var(--text-3); text-align: start; }
 
 /* Error card (today's data failed) */
 .ch-error { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
