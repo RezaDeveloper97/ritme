@@ -161,6 +161,8 @@ config caches off); *warm* = the same request again with every cache filled. The
 | `GET /home/cycle-overview` | cycle | 9 | 7 | — |
 | `GET /messages/daily` | cycle | 11 | 8 | ≤ 4 |
 | `GET /messages/selected?placement=smart_tip` | cycle | 10 | 7 | ≤ 4 |
+| `GET /messages/daily` (v6, T-M9-38b) | cycle | 15 | 8 | ≤ 4 |
+| `GET /messages/selected?placement=smart_tip` (v6, T-M9-38b) | cycle | 14 | 7 | ≤ 4 |
 | `GET /fertility/insights` | ttc | 8 | 5 | ≤ 4 |
 | `GET /fertility/bbt` | ttc | 7 | 4 | — |
 | `GET /analysis/summary?range=3m` | cycle | 13 | 11 | ≤ 6 |

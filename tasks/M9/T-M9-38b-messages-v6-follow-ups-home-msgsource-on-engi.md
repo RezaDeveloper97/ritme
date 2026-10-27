@@ -3,10 +3,10 @@ id: T-M9-38b
 title: Messages v6 follow-ups: home msgSource on engine, no-last_period 400 under v6, admin preview user timezone, query budget
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-38]
 parallel_group: M9-C
-touches: [backend-go/internal/home/context.go,backend-go/internal/messages/handlers.go,backend-go/internal/admin/messages/rules.go,backend-go/internal/querybudget]
+touches: [backend-go/internal/home/context.go,backend-go/internal/messages/handlers.go,backend-go/internal/admin/messages/rules.go,backend-go/internal/querybudget,backend-go/contract/golden-v6/home/index.overdue_20.fa.json,docs/engine-v6/perf-baseline.md]
 skills: []
 verify: cd backend-go && go vet ./... && go test ./internal/messages/... ./internal/home/... && make test-int PKG="./internal/messages/... ./internal/home/... ./internal/querybudget/..."
 ---

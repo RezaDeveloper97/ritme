@@ -3,6 +3,12 @@
 package messages
 
 import (
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
+	"time"
+
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
@@ -18,10 +24,12 @@ import (
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
+	"github.com/ritme/backend-go/internal/platform/usertz"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 	"github.com/ritme/backend-go/internal/postpartum"
 	pstore "github.com/ritme/backend-go/internal/pregnancy/store"
+	profilestore "github.com/ritme/backend-go/internal/profile/store"
 )
 
 // Handlers are the MessageController actions. Mount them behind auth RequireUser and the
@@ -33,6 +41,12 @@ type Handlers struct {
 	accounts *companion.Accounts // B-N4-03: a companion (male) account has no daily cycle messages → 409
 	pp       PostpartumSignals   // B-N5-01: the postpartum engine's facts
 	states   state.UserStates    // T-M9-38: the v6 engine state source (nil = CYCLE_ENGINE=v1)
+	zones    zoneStore           // T-M9-38b: a user's stored zone (admin preview of another user's day)
+}
+
+// zoneStore reads user_profiles.timezone (*profilestore.Queries).
+type zoneStore interface {
+	GetUserTimezone(ctx context.Context, userID uint64) (sql.NullString, error)
 }
 
 // WithEngine reads the cycle facts from the v6 engine (CYCLE_ENGINE=shadow|v6, T-M9-38, D-130); nil keeps v1.
@@ -43,7 +57,24 @@ func (h *Handlers) WithEngine(states state.UserStates) *Handlers {
 
 // NewHandlers wires the handlers; base is the fallback clock.
 func NewHandlers(db store.DBTX, base clock.Clock) *Handlers {
-	return &Handlers{q: store.New(db), pq: pstore.New(db), clock: base, accounts: companion.NewAccounts(db), pp: postpartum.NewService(db)}
+	return &Handlers{
+		q: store.New(db), pq: pstore.New(db), clock: base, accounts: companion.NewAccounts(db), pp: postpartum.NewService(db),
+		zones: profilestore.New(db),
+	}
+}
+
+// UserToday is userID's calendar day at now for a caller that is not that user (the admin rule preview): under v6 the
+// user's local day from her stored zone (D-126; no request header to read — Tehran when none is stored), the same day
+// her own /messages/daily and /messages/selected resolve without a header; v1 keeps the Tehran day (T-M9-38b).
+func (h *Handlers) UserToday(ctx context.Context, userID uint64, now time.Time) (civildate.Date, error) {
+	if h.states == nil {
+		return civildate.InTehran(now), nil
+	}
+	name, err := h.zones.GetUserTimezone(ctx, userID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return civildate.Date{}, fmt.Errorf("messages: user zone: %w", err)
+	}
+	return civildate.FromTime(now.In(usertz.ZoneOf(name))), nil
 }
 
 // request is one request's manager and its source.
@@ -119,11 +150,11 @@ func (h *Handlers) Daily(c fiber.Ctx) error {
 	}
 	switch detected {
 	case enums.MessageModeCycle:
-		p, err := src.Profile(ctx)
+		has, err := hasCycleAnchor(ctx, src, today)
 		if err != nil {
 			return err
 		}
-		if p == nil || !p.HasLastPeriodStart {
+		if !has {
 			return httpx.Fail(fiber.StatusBadRequest, pick(locale,
 				"لطفاً ابتدا پروفایل خود را تکمیل کنید (تاریخ آخرین پریود)",
 				"Please complete your profile first (last period date)"))
@@ -145,6 +176,24 @@ func (h *Handlers) Daily(c fiber.Ctx) error {
 		return err
 	}
 	return httpx.OK(c, res.JSON())
+}
+
+// hasCycleAnchor is the daily's "has cycle data" gate: v1 keeps Laravel's `$profile->last_period_start`; under v6
+// (T-M9-38b) the engine has an anchor — a logged period or the declared onboarding start (I-01) — so a user with
+// logged periods and an empty profile field gets her message, as Home does (Context.HasCycleData).
+func hasCycleAnchor(ctx context.Context, src *StoreSource, today civildate.Date) (bool, error) {
+	d, ok, err := src.EngineDay(ctx, today)
+	if err != nil {
+		return false, err
+	}
+	if ok {
+		return d.HasAnchor, nil
+	}
+	p, err := src.Profile(ctx)
+	if err != nil {
+		return false, err
+	}
+	return p != nil && p.HasLastPeriodStart, nil
 }
 
 // pregnancyEnded drops a forced ?mode=pregnancy when her pregnancy has ended (a pregnancy profile with pregnancy mode

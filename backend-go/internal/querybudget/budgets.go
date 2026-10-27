@@ -55,6 +55,11 @@ var Budgets = []Budget{
 	{"home cycle-overview v6", "/api/v1/home/cycle-overview", "/api/v1/home/cycle-overview", enums.LifeModeCycle, 11, 5, config.CycleEngineV6},
 	{"messages daily", "/api/v1/messages/daily", "/api/v1/messages/daily", enums.LifeModeCycle, 11, 8, ""},
 	{"messages selected", "/api/v1/messages/selected", "/api/v1/messages/selected?placement=smart_tip", enums.LifeModeCycle, 10, 7, ""},
+	// T-M9-38b: daily and selected on the shared engine state (T-M9-38, D-130). Warm = v1's (the state comes from the
+	// cache: no profile/history read for the cycle); cold adds the 4 engine input queries. The daily's "has cycle data"
+	// gate reads the same engine state (its anchor), so it costs no query of its own.
+	{"messages daily v6", "/api/v1/messages/daily", "/api/v1/messages/daily", enums.LifeModeCycle, 15, 8, config.CycleEngineV6},
+	{"messages selected v6", "/api/v1/messages/selected", "/api/v1/messages/selected?placement=smart_tip", enums.LifeModeCycle, 14, 7, config.CycleEngineV6},
 	{"fertility insights", "/api/v1/fertility/insights", "/api/v1/fertility/insights", enums.LifeModeTTC, 8, 5, ""},
 	{"fertility bbt", "/api/v1/fertility/bbt", "/api/v1/fertility/bbt", enums.LifeModeTTC, 7, 4, ""},
 	{"analysis summary", "/api/v1/analysis/summary", "/api/v1/analysis/summary?range=3m", enums.LifeModeCycle, 14, 11, ""},

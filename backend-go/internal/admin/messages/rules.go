@@ -614,7 +614,11 @@ func (h *Handlers) RulePreview(c fiber.Ctx) error {
 		} else if err != nil {
 			return err
 		}
-		if facts, err = messages.BuildFacts(ctx, h.user, b.UserID, civildate.InTehran(now)); err != nil {
+		today, err := h.user.UserToday(ctx, b.UserID, now) // T-M9-38b: her local day under v6, not Tehran's
+		if err != nil {
+			return err
+		}
+		if facts, err = messages.BuildFacts(ctx, h.user, b.UserID, today); err != nil {
 			return err
 		}
 		hist = rules.DBHistory{Ctx: ctx, Q: h.mq, UserID: b.UserID}

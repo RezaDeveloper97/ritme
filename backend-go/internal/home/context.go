@@ -4,7 +4,8 @@
 // One request = one Context: the cycle service snapshot (profile, cycle_histories and the daily
 // logs of the log window, each read once), the pregnancy profile, and per-request memos of the
 // legacy engine's calculations, the history digest and the smart-message result. The message
-// system is fed from the same snapshot (msgSource), so the cycle is computed once per request.
+// system is fed from the same snapshot (msgSource), so the cycle is computed once per request; under v6 it reads the
+// same engine view as the sections (msgSource.EngineDay, T-M9-38b).
 package home
 
 import (
@@ -382,7 +383,10 @@ type msgSource struct {
 	hc *Context
 }
 
-var _ manager.Source = (*msgSource)(nil)
+var (
+	_ manager.Source       = (*msgSource)(nil)
+	_ manager.EngineSource = (*msgSource)(nil)
+)
 
 // Profile implements manager.Source.
 func (s *msgSource) Profile(context.Context) (*manager.Profile, error) {
@@ -448,9 +452,21 @@ func (s *msgSource) RecentLogs(ctx context.Context, from, to civildate.Date) ([]
 	return out, nil
 }
 
-// Cycle implements manager.Source: the home context's memoised calculation.
+// Cycle implements manager.Source: the home context's memoised calculation (CYCLE_ENGINE=v1 only: under v6 the
+// manager reads EngineDay and never calls Cycle).
 func (s *msgSource) Cycle(_ context.Context, date civildate.Date) (legacy.Calculation, error) {
 	return s.hc.CycleDataFor(date)
+}
+
+// EngineDay implements manager.EngineSource (T-M9-38b): under v6 the home's own engine view — the same state and
+// user-local today /messages/daily resolves (StoreSource.EngineDay), so Home's message is the daily message; no second
+// engine read. v1 (no view) keeps the legacy Cycle path.
+func (s *msgSource) EngineDay(_ context.Context, date civildate.Date) (manager.EngineDay, bool, error) {
+	v := s.hc.v6
+	if v == nil {
+		return manager.EngineDay{}, false, nil
+	}
+	return manager.EngineDay{Status: v.status(date), Mode: v.st.Mode(), HasAnchor: v.hasAnchor()}, true, nil
 }
 
 func nullStr(v sql.NullString) any {
