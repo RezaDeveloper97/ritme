@@ -6,12 +6,56 @@ package store
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
+
+type EnginePredictionLogKind string
+
+const (
+	EnginePredictionLogKindFirst EnginePredictionLogKind = "first"
+	EnginePredictionLogKindLast  EnginePredictionLogKind = "last"
+)
+
+func (e *EnginePredictionLogKind) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = EnginePredictionLogKind(s)
+	case string:
+		*e = EnginePredictionLogKind(s)
+	default:
+		return fmt.Errorf("unsupported scan type for EnginePredictionLogKind: %T", src)
+	}
+	return nil
+}
+
+type NullEnginePredictionLogKind struct {
+	EnginePredictionLogKind EnginePredictionLogKind
+	Valid                   bool // Valid is true if EnginePredictionLogKind is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullEnginePredictionLogKind) Scan(value interface{}) error {
+	if value == nil {
+		ns.EnginePredictionLogKind, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.EnginePredictionLogKind.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullEnginePredictionLogKind) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.EnginePredictionLogKind), nil
+}
 
 type Admin struct {
 	ID            uint64
@@ -974,6 +1018,34 @@ type EmergencyCard struct {
 	PublicLastViewedAt sql.NullTime
 	CreatedAt          sql.NullTime
 	UpdatedAt          sql.NullTime
+}
+
+type EngineDailySnapshot struct {
+	UserID       uint64
+	Day          civildate.Date
+	MainPhase    string
+	Subphase     string
+	Confidence   string
+	DataQuality  string
+	WarningsMask uint32
+	DaysLate     sql.NullInt16
+	Mode         string
+	EngineRev    uint64
+	CreatedAt    sql.NullTime
+}
+
+type EnginePredictionLog struct {
+	ID              uint64
+	UserID          uint64
+	CycleStart      civildate.Date
+	Kind            EnginePredictionLogKind
+	PredictedNext   civildate.Date
+	BasisCycles     uint8
+	OvulationSource string
+	Confidence      string
+	ActualStart     civildate.NullDate
+	ErrorDays       sql.NullInt16
+	CreatedAt       sql.NullTime
 }
 
 type EpdsCheck struct {

@@ -81,6 +81,9 @@ q.RegisterPeriodic(job, handler, "*/10 * * * *", opts...)        // Register + S
 | `files:sweep` | low | `20 */6 * * *` + at start | `Unique(5h)` | 1 / — / 30 m | blob path; removes only blobs with no row, older than 1 h | `internal/files` |
 | `media:sweep` | low | `25 * * * *` + at start | `Unique(55m)` | 1 / — / 30 m | media id / file path; removes only abandoned, orphan or stray ones | `internal/media` |
 | `safety:nightly_scenarios` | low | `0 3 * * *` | `Unique(1h)` | 1 / — / 60 s | Tehran day (pure scenarios; the run replaces the last) | `internal/safety` |
+| `engine:snapshot_nightly` | low | `30 3 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 30 m | (user, user-local day): `engine_daily_snapshots` PK, upsert | `internal/cycle/snapshots` |
+| `engine:snapshot_purge` | low | `50 3 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 10 m | Tehran day − 400; deletes only older rows, in chunks of 5 000 | `internal/cycle/snapshots` |
+| `engine:prediction_log` | low | on demand (a committed real period start, `periods.StartHook`) | `TaskID(engine:prediction_log:<uid>:<rev_after>)` | 3 / 1 m, 5 m / 60 s | (user, cycle_start, kind): `first` insert-once, `last` upsert, actual/error recomputed | `internal/cycle/snapshots` |
 
 Notes:
 
@@ -88,6 +91,16 @@ Notes:
   that runs the worker must mount them (T-M9-12).
 - `safety:nightly_scenarios` keeps its result in the memory of the process that ran it; the API also runs the set once
   at start-up so its own dashboard row is filled. Persisting the result is T-M10-24.
+- `engine:snapshot_nightly` (T-M9-39, D-137; A-06): active users = any token issued/refreshed, session or logged day
+  (`user_activity_days`), daily log, v2 log entry, period row or analytics event in the last 30 days; pages of 500 by
+  user id through `inputs.LoadMany` + `engine.Prepare` + `Resolve` on each user's local day (stored
+  `user_profiles.timezone`, Tehran without one). Rows hold codes only (phase, subphase, confidence, data_quality,
+  warning bits, days_late, mode, engine_rev).
+- `engine:prediction_log` (T-M9-39, A-05): payload = ids only (`user_id`, `period_id`, `rev_before`, `rev_after`).
+  `last` = the state without the new start resolved the day before it (anchored on a real start only: the declared
+  onboarding anchor and roll-forward references never count), then `actual_start` / `error_days` on that cycle's rows;
+  `first` = the new state resolved on the start day. An edit (`Update`), a backfilled older period, an estimate or a
+  skip writes nothing.
 - Not migrated, on purpose (replica-safe pollers with `SKIP LOCKED` / leases): the labs runner and its job sweep
   (`internal/labs/worker.go`), the health-record extract runner (`internal/healthrecord/extract/runner.go`) and the
   learning dispatch poller (`internal/learning/dispatch.go`).

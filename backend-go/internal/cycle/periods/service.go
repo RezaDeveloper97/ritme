@@ -32,12 +32,54 @@ import (
 
 // Service runs the period queries and writes.
 type Service struct {
-	db *sql.DB
-	q  *store.Queries
+	db   *sql.DB
+	q    *store.Queries
+	hook StartHook
 }
 
 // NewService returns the service over db.
 func NewService(conn *sql.DB) *Service { return &Service{db: conn, q: store.New(conn)} }
+
+// StartEvent is a committed real period start (T-M9-39, D-137): a new row, or an estimate / seed row promoted to a
+// real one, by Start or Store. RevBefore / RevAfter are the user's engine_rev around the write (the write bumps by 1).
+// It carries ids only, no dates.
+type StartEvent struct {
+	UserID    uint64 `json:"user_id"`
+	PeriodID  uint64 `json:"period_id"`
+	RevBefore uint64 `json:"rev_before"`
+	RevAfter  uint64 `json:"rev_after"`
+}
+
+// StartHook runs after the commit of a real period start (the prediction log, internal/cycle/snapshots). It must not
+// fail the write: errors are its own to log.
+type StartHook func(ctx context.Context, ev StartEvent)
+
+// WithStartHook sets the hook called after every committed real start (nil = none) and returns s.
+func (s *Service) WithStartHook(h StartHook) *Service {
+	s.hook = h
+	return s
+}
+
+// started records, inside a write, that it committed a real start of row id (read by tx and fired after commit).
+type started struct {
+	ok       bool
+	periodID uint64
+	rev      uint64
+}
+
+// isReal reports whether a cycle_histories row is a real period for the engine (inputs.mapPeriods): neither an
+// estimate nor the onboarding seed.
+func isReal(r store.CycleHistory) bool {
+	return !r.IsEstimated && r.Source != string(enums.DataSourceUserProfileConfirmed)
+}
+
+// fire calls the hook for a committed start.
+func (s *Service) fire(ctx context.Context, userID uint64, st *started) {
+	if s.hook == nil || !st.ok {
+		return
+	}
+	s.hook(ctx, StartEvent{UserID: userID, PeriodID: st.periodID, RevBefore: st.rev - min(st.rev, 1), RevAfter: st.rev})
+}
 
 // Refusal is a 4xx outcome of a write (the handler renders it).
 type Refusal struct {
@@ -97,7 +139,8 @@ func (s *Service) History(ctx context.Context, userID uint64) ([]store.CycleHist
 // Start is POST /cycle/period/start with the parsed start day.
 func (s *Service) Start(ctx context.Context, userID uint64, start civildate.Date, now time.Time) (*Result, error) {
 	var res *Result
-	err := s.tx(ctx, userID, func(q *store.Queries, pq *profilestore.Queries) error {
+	var st started
+	err := s.txStart(ctx, userID, &st, func(q *store.Queries, pq *profilestore.Queries) error {
 		period, err := optional(q.GetPeriodByStart(ctx, store.GetPeriodByStartParams{UserID: userID, PeriodStartDate: start}))
 		if err != nil {
 			return err
@@ -121,6 +164,7 @@ func (s *Service) Start(ctx context.Context, userID uint64, start civildate.Date
 		}
 
 		if period != nil {
+			st.ok, st.periodID = !isReal(*period), period.ID
 			next := *period
 			next.PeriodEndDate = civildate.NullDate{}
 			next.BleedingLength = sql.NullInt32{}
@@ -149,6 +193,7 @@ func (s *Service) Start(ctx context.Context, userID uint64, start civildate.Date
 			if row.ID, err = insert(ctx, q, row); err != nil {
 				return err
 			}
+			st.ok, st.periodID = true, row.ID
 			period = &row
 		}
 
@@ -169,6 +214,9 @@ func (s *Service) Start(ctx context.Context, userID uint64, start civildate.Date
 	})
 	if errors.Is(err, errDuplicateStart) {
 		return s.existingStart(ctx, userID, start, refuseStartOverlap)
+	}
+	if err == nil {
+		s.fire(ctx, userID, &st)
 	}
 	return res, err
 }
@@ -208,7 +256,8 @@ func (s *Service) End(ctx context.Context, userID uint64, endDay *civildate.Date
 // Store is POST /cycle/period: a whole range (end nil = open), reusing the same-day row.
 func (s *Service) Store(ctx context.Context, userID uint64, start civildate.Date, end *civildate.Date, now time.Time) (*Result, error) {
 	var res *Result
-	err := s.tx(ctx, userID, func(q *store.Queries, pq *profilestore.Queries) error {
+	var st started
+	err := s.txStart(ctx, userID, &st, func(q *store.Queries, pq *profilestore.Queries) error {
 		period, err := optional(q.GetPeriodByStart(ctx, store.GetPeriodByStartParams{UserID: userID, PeriodStartDate: start}))
 		if err != nil {
 			return err
@@ -234,12 +283,15 @@ func (s *Service) Store(ctx context.Context, userID uint64, start civildate.Date
 				return err
 			}
 			id = period.ID
+			st.ok = !isReal(*period)
 		} else {
 			row := apply(store.CycleHistory{UserID: userID, CreatedAt: dbTime(now), UpdatedAt: dbTime(now)})
 			if id, err = insert(ctx, q, row); err != nil {
 				return err
 			}
+			st.ok = true
 		}
+		st.periodID = id
 		if err := q.DeleteEstimatesExcept(ctx, store.DeleteEstimatesExceptParams{UserID: userID, ID: id}); err != nil {
 			return fmt.Errorf("periods: delete estimates: %w", err)
 		}
@@ -252,6 +304,9 @@ func (s *Service) Store(ctx context.Context, userID uint64, start civildate.Date
 	})
 	if errors.Is(err, errDuplicateStart) {
 		return s.existingStart(ctx, userID, start, refuseRangeOverlap)
+	}
+	if err == nil {
+		s.fire(ctx, userID, &st)
 	}
 	return res, err
 }
@@ -496,6 +551,12 @@ func (s *Service) existingStart(ctx context.Context, userID uint64, start civild
 // overlap check. The lock is a locking read, so the REPEATABLE READ snapshot is only taken by the
 // first plain read after it and sees whatever the previous holder committed.
 func (s *Service) tx(ctx context.Context, userID uint64, fn func(q *store.Queries, pq *profilestore.Queries) error) error {
+	return s.txStart(ctx, userID, nil, fn)
+}
+
+// txStart is tx for a write that may commit a real start (st non-nil): when fn marks one and a hook is set, the
+// engine revision after the bump is read in the same transaction (one PK read), so the event names the write exactly.
+func (s *Service) txStart(ctx context.Context, userID uint64, st *started, fn func(q *store.Queries, pq *profilestore.Queries) error) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("periods: begin: %w", err)
@@ -512,6 +573,14 @@ func (s *Service) tx(ctx context.Context, userID uint64, fn func(q *store.Querie
 	if err := revision.Bump(ctx, tx, userID); err != nil {
 		_ = tx.Rollback()
 		return err
+	}
+	if st != nil && st.ok && s.hook != nil {
+		r, err := s.q.WithTx(tx).GetUserRevisions(ctx, userID)
+		if err != nil {
+			_ = tx.Rollback()
+			return fmt.Errorf("periods: revision: %w", err)
+		}
+		st.rev = r.EngineRev
 	}
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("periods: commit: %w", err)

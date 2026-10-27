@@ -3,10 +3,10 @@ id: T-M9-39
 title: Engine daily snapshots and prediction log
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-11, T-M9-32]
 parallel_group: M9-C
-touches: [backend-go/internal/cycle/snapshots, backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/cycle/snapshots.sql, backend-go/internal/cycle/periods, backend-go/internal/platform/queue, docs/engine-v6/jobs.md]
+touches: [backend-go/internal/cycle/snapshots, backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/cycle/snapshots.sql, backend-go/internal/cycle/periods, backend-go/internal/platform/queue, docs/engine-v6/jobs.md, backend-go/internal/cycle/store, backend-go/internal/http/routes_cycle.go, backend-go/internal/*/store/models.go (sqlc-generated)]
 skills: []
 verify: cd backend-go && make sqlc && make schema-diff && go vet ./... && go test ./internal/cycle/snapshots/... && make test-int PKG="./internal/cycle/snapshots/... ./db/migrations/..."
 ---

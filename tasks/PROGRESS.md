@@ -2347,3 +2347,14 @@ Nothing needed fixing.
 - `entities/cycle/api/overview.ts`: `normalizeRegularity()` maps v6 + old overview enums to `regular | irregular | insufficient_data` (unknown → no pill).
 - Copy `home.nb.predictions.*`: sourceBbt «تأیید با دمای پایه», sourceLh «بر اساس تست LH», regularity منظم / «کمی متغیر» (was «نامنظم», calmer) / دادهٔ کم. Old `relatively_regular`/`irregular_possible`/`not_enough_data` keys kept (copy:check fails on removed keys) but unused.
 - Visual QA (3 states, light + dark) moved to T-M9-42d.
+
+## T-M9-39 — Engine daily snapshots and prediction log
+- D-137, A-05, A-06. Go-only analytics tables: goose `00109_engine_snapshots` + Laravel twin `2026_10_27_000109_create_engine_snapshot_tables` (schema-diff green, 237 tables). `engine_daily_snapshots` (PK user_id+day, KEY day; codes only: phases, confidence, data_quality, warnings_mask, days_late, mode, engine_rev) and `engine_prediction_log` (UNIQUE user_id+cycle_start+kind, kind first|last). Both cascade on user delete.
+- New package `internal/cycle/snapshots`:
+  - `engine:snapshot_nightly` (queue low, 03:30 Tehran, `Unique(23h)`): active users (A-06: token issued/refreshed, `user_activity_days`, daily/v2 log, period row or analytics event in the last 30 days), pages of 500, grouped by each user's stored zone (Tehran fallback), `inputs.LoadMany` + `Prepare` + `Resolve`, idempotent upsert in one transaction.
+  - `engine:snapshot_purge` (03:50): keeps 400 days. Prediction log is kept forever.
+  - `engine:prediction_log`: queued by the new `periods.StartHook` (`WithStartHook`) after a committed real start in `Start`/`Store` (new row or estimate/seed promoted). Payload = ids + `rev_before`/`rev_after`. Records `last` (state without the new start, real anchor only), fills `actual_start`/`error_days`, then `first` for the new cycle. Edits, backfills, estimates, the declared anchor and skips never resolve a cycle.
+- Wiring (main session): `internal/http/routes_cycle.go` registers the jobs and the start hook when a DB is present. In sync queue mode the job runs inline after the write (responses unchanged; contract cycle 125/0).
+- `make sqlc` added the two table structs to every `store/models.go` (additions only).
+- Catalogue rows in `docs/engine-v6/jobs.md`. No health data in logs.
+- Open: bleeding-log bridge starts not logged → T-M9-39b. T-M10-30 computes MAE and must exclude pregnancy/hormonal/postpartum via `engine_daily_snapshots.mode` (prediction log has no mode column).

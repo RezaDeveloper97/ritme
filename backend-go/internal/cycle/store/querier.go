@@ -6,6 +6,8 @@ package store
 
 import (
 	"context"
+
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
 type Querier interface {
@@ -50,10 +52,19 @@ type Querier interface {
 	GetUserRevisions(ctx context.Context, userID uint64) (GetUserRevisionsRow, error)
 	// Idempotent: skipping the same predicted start again changes nothing (0 rows).
 	InsertCycleSkip(ctx context.Context, arg InsertCycleSkipParams) (int64, error)
+	// The first prediction of a cycle: written once, a rerun keeps it.
+	InsertFirstPrediction(ctx context.Context, arg InsertFirstPredictionParams) error
 	// CycleHistory::create([...]); columns the controller does not set take the table defaults.
 	InsertPeriod(ctx context.Context, arg InsertPeriodParams) (int64, error)
 	// RecommendationRepository::rows(): Recommendation::active()->orderBy('sort_order')->orderBy('id').
 	ListActiveRecommendations(ctx context.Context) ([]Recommendation, error)
+	// Engine daily snapshots and the prediction log (T-M9-39, D-137; goose 00109; DECISIONS.md A-05, A-06). Analytics
+	// only: written by internal/cycle/snapshots, never read by the engine.
+	// One page (keyset on users.id) of the users active since the cutoff (A-06: any session, log or event in the last
+	// 30 days) with their stored zone. Session = a token issued or refreshed, or a session day; log = a daily log, a v2
+	// log entry, a period row or a logged day; event = a first-party analytics event. `since` is the Tehran wall clock
+	// (the DB timestamps), `since_day` its date.
+	ListActiveSnapshotUsers(ctx context.Context, arg ListActiveSnapshotUsersParams) ([]ListActiveSnapshotUsersRow, error)
 	// HealthDataEngine::getCycleHistories: CycleHistory::where('user_id')->orderBy('period_start_date', 'desc').
 	ListCycleHistoriesNewestFirst(ctx context.Context, userID uint64) ([]CycleHistory, error)
 	// Skipped cycles «پریود نداشتم» (T-M9-24, DECISIONS.md E-15; table cycle_skips, goose 00098). One row per skipped
@@ -83,11 +94,21 @@ type Querier interface {
 	ListLoggedPeriods(ctx context.Context, userID uint64) ([]CycleHistory, error)
 	// recomputeCycleLengths(): CycleHistory::where('user_id')->orderBy('period_start_date')->get().
 	ListPeriodsOldestFirst(ctx context.Context, userID uint64) ([]CycleHistory, error)
+	// engine_rev of each user that has a user_revisions row (a missing row is revision 0).
+	ListUserEngineRevs(ctx context.Context, userIds []uint64) ([]ListUserEngineRevsRow, error)
+	// Retention (400 days): one chunk of rows older than `before`; the job repeats until a chunk is short.
+	PurgeEngineDailySnapshots(ctx context.Context, before civildate.Date) (int64, error)
+	// The next real start of cycle_start is known: actual_start and error_days (actual − predicted, signed) on its rows.
+	ResolvePredictionCycle(ctx context.Context, arg ResolvePredictionCycleParams) (int64, error)
 	// $period->update([...]) when at least one attribute is dirty (every column written; the clean ones
 	// keep their value).
 	UpdatePeriod(ctx context.Context, arg UpdatePeriodParams) error
 	// $profile->update(['last_period_start' => …]) when dirty.
 	UpdateProfileLastPeriodStart(ctx context.Context, arg UpdateProfileLastPeriodStartParams) error
+	// One user and day; a rerun the same day overwrites the codes (created_at keeps the first run).
+	UpsertEngineDailySnapshot(ctx context.Context, arg UpsertEngineDailySnapshotParams) error
+	// The last prediction of a cycle before its next real start; a corrected next start replaces it.
+	UpsertLastPrediction(ctx context.Context, arg UpsertLastPredictionParams) error
 }
 
 var _ Querier = (*Queries)(nil)

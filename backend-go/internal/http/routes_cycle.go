@@ -11,6 +11,7 @@ import (
 	"github.com/ritme/backend-go/internal/cycle/periods"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
 	"github.com/ritme/backend-go/internal/cycle/skips"
+	"github.com/ritme/backend-go/internal/cycle/snapshots"
 	"github.com/ritme/backend-go/internal/cycle/state"
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/i18n"
@@ -37,7 +38,15 @@ func init() {
 		cacheOn := !strings.EqualFold(strings.TrimSpace(os.Getenv("CYCLE_ENGINE_CACHE")), "off")
 		svc := cycleservice.New(d.DB, cyclecache.New(d.Cache, cacheOn, d.Logger))
 		h := cycleservice.NewHandlers(svc, d.DB, clock.Real{}).WithEngine(cycleEngine(r, d))
-		p := periods.NewHandlers(periods.NewService(d.DB), clock.Real{})
+		periodSvc := periods.NewService(d.DB)
+		if d.DB != nil {
+			// Engine snapshots + prediction log (T-M9-39, D-137): nightly jobs, and a job after each real period start.
+			jobs := auth.Jobs(r, d.Cache, d.Logger)
+			snaps := snapshots.New(d.DB, d.Logger)
+			mustJobs(snaps.RegisterJobs(jobs, tehranNow))
+			periodSvc.WithStartHook(snapshots.Hook(jobs, d.Logger))
+		}
+		p := periods.NewHandlers(periodSvc, clock.Real{})
 		// Optional Idempotency-Key on the period writes (D-131); the service also locks per user.
 		idem := idempotency.New(d.Cache, auth.CurrentUserID, d.Logger).Handler()
 		// «پریود نداشتم» (T-M9-29, E-15): Go-only (D-125), per-user write throttle like the other Go-only writes.
