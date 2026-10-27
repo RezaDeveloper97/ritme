@@ -3,7 +3,7 @@ id: T-M9-34b
 title: Home v6 warm query budget to 8: merged challenge-completion and reminder queries
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-34]
 parallel_group: M9-C
 touches: [backend-go/db/queries/home,backend-go/internal/home,backend-go/internal/querybudget/budgets.go]

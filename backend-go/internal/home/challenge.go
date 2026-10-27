@@ -69,12 +69,14 @@ func challengeSeed(userID uint64, date civildate.Date) uint32 {
 func ChallengePayload(ctx context.Context, q store.Querier, userID uint64, date civildate.Date, locale, defLocale string,
 	cycleDay *int, recentLogs []cyclestore.DailyHealthLog, strictDay bool,
 ) (*jsonx.OrderedMap, error) {
-	c, ok, err := challengeFor(ctx, q, userID, date, cycleDay, recentLogs, strictDay)
+	c, ok, today, err := challengeFor(ctx, q, userID, date, cycleDay, recentLogs, strictDay)
 	if err != nil || !ok {
 		return nil, err
 	}
-	done, err := q.ChallengeCompletedOn(ctx, store.ChallengeCompletedOnParams{UserID: userID, ChallengeID: c.ID, CompletionDate: date})
-	if err != nil {
+	var done bool
+	if strictDay {
+		done = slices.Contains(today, c.ID) // v6: the window read already holds the day's completions (T-M9-34b)
+	} else if done, err = q.ChallengeCompletedOn(ctx, store.ChallengeCompletedOnParams{UserID: userID, ChallengeID: c.ID, CompletionDate: date}); err != nil {
 		return nil, fmt.Errorf("home: challenge completion: %w", err)
 	}
 	return jsonx.Obj(
@@ -89,20 +91,22 @@ func ChallengePayload(ctx context.Context, q store.Querier, userID uint64, date 
 	), nil
 }
 
+// challengeFor is DailyChallengeService::challengeFor(). strictDay is the v6 path: besides the day rule it reads the repeat window and the day's completions in one query
+// and returns the challenge ids completed on date (today); v1 leaves today nil and keeps its two reads.
 func challengeFor(ctx context.Context, q store.Querier, userID uint64, date civildate.Date, cycleDay *int,
 	recentLogs []cyclestore.DailyHealthLog, strictDay bool,
-) (challengeRow, bool, error) {
+) (picked challengeRow, ok bool, today []uint64, err error) {
 	pool, err := activeChallenges(ctx, q)
 	if err != nil {
-		return challengeRow{}, false, err
+		return challengeRow{}, false, nil, err
 	}
 	if len(pool) == 0 {
-		return challengeRow{}, false, nil
+		return challengeRow{}, false, nil, nil
 	}
 	// v6 (T-M9-34): the cycle day never wraps, so a late cycle can run past the authored content. A day beyond every
 	// day-targeted challenge gets no daily challenge (the admin validator should warn about uncovered days).
 	if strictDay && cycleDay != nil && beyondChallengeContent(pool, *cycleDay) {
-		return challengeRow{}, false, nil
+		return challengeRow{}, false, nil, nil
 	}
 
 	// narrowToCycleDay
@@ -116,11 +120,9 @@ func challengeFor(ctx context.Context, q store.Querier, userID uint64, date civi
 	}
 
 	// withoutRecentlyCompleted (today excluded)
-	recent, err := q.ListChallengeIDsCompletedBetween(ctx, store.ListChallengeIDsCompletedBetweenParams{
-		UserID: userID, FromDate: date.AddDays(-challengeRepeatWindowDays), BeforeDate: date,
-	})
+	recent, today, err := challengeCompletions(ctx, q, userID, date, strictDay)
 	if err != nil {
-		return challengeRow{}, false, fmt.Errorf("home: recent challenge completions: %w", err)
+		return challengeRow{}, false, nil, err
 	}
 	if kept := filter(pool, func(c challengeRow) bool { return !slices.Contains(recent, c.ID) }); len(kept) > 0 {
 		pool = kept
@@ -133,7 +135,36 @@ func challengeFor(ctx context.Context, q store.Querier, userID uint64, date civi
 		}
 	}
 
-	return pool[int(challengeSeed(userID, date)%uint32(len(pool)))], true, nil //nolint:gosec // G115: len > 0
+	return pool[int(challengeSeed(userID, date)%uint32(len(pool)))], true, today, nil //nolint:gosec // G115: len > 0
+}
+
+// challengeCompletions returns the challenge ids completed in [date − 14, date) (recent) and, with merged (v6), the
+// ids completed on date from the same read; v1 reads only the window (ListChallengeIDsCompletedBetween).
+func challengeCompletions(ctx context.Context, q store.Querier, userID uint64, date civildate.Date, merged bool,
+) (recent, today []uint64, err error) {
+	from := date.AddDays(-challengeRepeatWindowDays)
+	if !merged {
+		recent, err = q.ListChallengeIDsCompletedBetween(ctx, store.ListChallengeIDsCompletedBetweenParams{
+			UserID: userID, FromDate: from, BeforeDate: date,
+		})
+		if err != nil {
+			return nil, nil, fmt.Errorf("home: recent challenge completions: %w", err)
+		}
+		return recent, nil, nil
+	}
+	rows, err := q.ListChallengeCompletionsSince(ctx, store.ListChallengeCompletionsSinceParams{UserID: userID, FromDate: from, Day: date})
+	if err != nil {
+		return nil, nil, fmt.Errorf("home: challenge completions: %w", err)
+	}
+	recent = []uint64{}
+	for _, r := range rows {
+		if r.CompletionDate == date {
+			today = append(today, r.ChallengeID)
+		} else {
+			recent = append(recent, r.ChallengeID)
+		}
+	}
+	return recent, today, nil
 }
 
 // signalCategory names the category the last three days of logs point at ("" = none).

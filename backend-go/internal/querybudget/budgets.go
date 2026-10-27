@@ -49,8 +49,9 @@ var Budgets = []Budget{
 	{"home cycle-overview", "/api/v1/home/cycle-overview", "/api/v1/home/cycle-overview", enums.LifeModeCycle, 9, 7, ""},
 	// T-M9-34 (D-122): /home and the overview on the shared engine state (warm: no engine read, the message system's
 	// life mode and 90-day logs from the home snapshot; cold adds the engine inputs). The overview's warm 5 = auth,
-	// companion check, Plus banner and the 90-day logs (a 304 skips the logs).
-	{"home v6", "/api/v1/home", "/api/v1/home", enums.LifeModeCycle, 22, 9, config.CycleEngineV6},
+	// companion check, Plus banner and the 90-day logs (a 304 skips the logs). T-M9-34b: the challenge completions
+	// (14-day window + today) and the doctor + medication reminders are one read each under v6.
+	{"home v6", "/api/v1/home", "/api/v1/home", enums.LifeModeCycle, 21, 8, config.CycleEngineV6},
 	{"home cycle-overview v6", "/api/v1/home/cycle-overview", "/api/v1/home/cycle-overview", enums.LifeModeCycle, 11, 5, config.CycleEngineV6},
 	{"messages daily", "/api/v1/messages/daily", "/api/v1/messages/daily", enums.LifeModeCycle, 11, 8, ""},
 	{"messages selected", "/api/v1/messages/selected", "/api/v1/messages/selected?placement=smart_tip", enums.LifeModeCycle, 10, 7, ""},

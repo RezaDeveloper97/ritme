@@ -454,6 +454,49 @@ func (q *Queries) ListActiveTaskTemplates(ctx context.Context) ([]ListActiveTask
 	return items, nil
 }
 
+const listChallengeCompletionsSince = `-- name: ListChallengeCompletionsSince :many
+SELECT challenge_id, completion_date FROM ` + "`" + `user_challenge_completions` + "`" + `
+WHERE user_id = ?
+  AND completion_date >= ?
+  AND completion_date <= ?
+`
+
+type ListChallengeCompletionsSinceParams struct {
+	UserID   uint64
+	FromDate civildate.Date
+	Day      civildate.Date
+}
+
+type ListChallengeCompletionsSinceRow struct {
+	ChallengeID    uint64
+	CompletionDate civildate.Date
+}
+
+// v6 home (T-M9-34b): ListChallengeIDsCompletedBetween (from <= completion_date < day) and ChallengeCompletedOn
+// (completion_date = day) in one read; the caller splits the rows on completion_date.
+func (q *Queries) ListChallengeCompletionsSince(ctx context.Context, arg ListChallengeCompletionsSinceParams) ([]ListChallengeCompletionsSinceRow, error) {
+	rows, err := q.db.QueryContext(ctx, listChallengeCompletionsSince, arg.UserID, arg.FromDate, arg.Day)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListChallengeCompletionsSinceRow{}
+	for rows.Next() {
+		var i ListChallengeCompletionsSinceRow
+		if err := rows.Scan(&i.ChallengeID, &i.CompletionDate); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listChallengeIDsCompletedBetween = `-- name: ListChallengeIDsCompletedBetween :many
 SELECT challenge_id FROM ` + "`" + `user_challenge_completions` + "`" + `
 WHERE user_id = ?
@@ -481,6 +524,85 @@ func (q *Queries) ListChallengeIDsCompletedBetween(ctx context.Context, arg List
 			return nil, err
 		}
 		items = append(items, challenge_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listHomeRemindersV6 = `-- name: ListHomeRemindersV6 :many
+SELECT id, ` + "`" + `type` + "`" + `, title, subtitle, notes, scheduled_at, recurrence, recurrence_time, meta
+FROM (
+    SELECT id, ` + "`" + `type` + "`" + `, title, subtitle, notes, scheduled_at, recurrence, recurrence_time, meta,
+           ROW_NUMBER() OVER (
+               PARTITION BY ` + "`" + `type` + "`" + `
+               ORDER BY CASE WHEN ` + "`" + `type` + "`" + ` = 'doctor' THEN scheduled_at END,
+                        CASE WHEN ` + "`" + `type` + "`" + ` = 'medication' THEN COALESCE(recurrence_time, TIME(scheduled_at)) END,
+                        id
+           ) AS rn
+    FROM ` + "`" + `reminders` + "`" + `
+    WHERE user_id = ? AND is_active = 1 AND ` + "`" + `type` + "`" + ` IN ('doctor', 'medication')
+      AND ((recurrence <> 'none'
+            AND (starts_on IS NULL OR starts_on <= ?)
+            AND (ends_on IS NULL OR ends_on >= ?))
+        OR (recurrence = 'none' AND scheduled_at IS NOT NULL AND scheduled_at >= ?))
+) AS r
+WHERE rn = 1
+`
+
+type ListHomeRemindersV6Params struct {
+	UserID   uint64
+	Day      civildate.NullDate
+	DayStart sql.NullTime
+}
+
+type ListHomeRemindersV6Row struct {
+	ID             uint64
+	Type           string
+	Title          string
+	Subtitle       sql.NullString
+	Notes          sql.NullString
+	ScheduledAt    sql.NullTime
+	Recurrence     string
+	RecurrenceTime sql.NullString
+	Meta           db.NullRawJSON
+}
+
+// v6 home (T-M9-34b): GetDoctorReminder and GetMedicationReminder in one read — the first relevant reminder of each
+// type in that query's own order (doctor: scheduled_at, id; medication: COALESCE(recurrence_time, TIME(scheduled_at)),
+// id). At most one row per type.
+func (q *Queries) ListHomeRemindersV6(ctx context.Context, arg ListHomeRemindersV6Params) ([]ListHomeRemindersV6Row, error) {
+	rows, err := q.db.QueryContext(ctx, listHomeRemindersV6,
+		arg.UserID,
+		arg.Day,
+		arg.Day,
+		arg.DayStart,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListHomeRemindersV6Row{}
+	for rows.Next() {
+		var i ListHomeRemindersV6Row
+		if err := rows.Scan(
+			&i.ID,
+			&i.Type,
+			&i.Title,
+			&i.Subtitle,
+			&i.Notes,
+			&i.ScheduledAt,
+			&i.Recurrence,
+			&i.RecurrenceTime,
+			&i.Meta,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

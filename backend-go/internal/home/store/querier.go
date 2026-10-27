@@ -43,8 +43,15 @@ type Querier interface {
 	ListActiveChallenges(ctx context.Context) ([]ListActiveChallengesRow, error)
 	// TaskTemplate::active(), whole table (T-M9-13b: a configcache snapshot; forPhase($phase) is applied in Go).
 	ListActiveTaskTemplates(ctx context.Context) ([]ListActiveTaskTemplatesRow, error)
+	// v6 home (T-M9-34b): ListChallengeIDsCompletedBetween (from <= completion_date < day) and ChallengeCompletedOn
+	// (completion_date = day) in one read; the caller splits the rows on completion_date.
+	ListChallengeCompletionsSince(ctx context.Context, arg ListChallengeCompletionsSinceParams) ([]ListChallengeCompletionsSinceRow, error)
 	// withoutRecentlyCompleted(): completions with from <= completion_date < before.
 	ListChallengeIDsCompletedBetween(ctx context.Context, arg ListChallengeIDsCompletedBetweenParams) ([]uint64, error)
+	// v6 home (T-M9-34b): GetDoctorReminder and GetMedicationReminder in one read — the first relevant reminder of each
+	// type in that query's own order (doctor: scheduled_at, id; medication: COALESCE(recurrence_time, TIME(scheduled_at)),
+	// id). At most one row per type.
+	ListHomeRemindersV6(ctx context.Context, arg ListHomeRemindersV6Params) ([]ListHomeRemindersV6Row, error)
 	// Article::published(), whole table in sort_order, id (T-M9-13b: a configcache snapshot). forPhase($candidates)
 	// (untagged, or JSON_OVERLAPS with the candidates), the `cycle_phases is null` ordering and limit(6) are applied in Go.
 	ListPublishedHomeArticles(ctx context.Context) ([]ListPublishedHomeArticlesRow, error)

@@ -428,10 +428,7 @@ func (doctorReminderSection) Key() string { return "doctor_reminder" }
 func (doctorReminderSection) Order() int  { return 80 }
 
 func (s doctorReminderSection) Build(hc *Context) (*Rendered, error) {
-	r, err := hc.q().GetDoctorReminder(hc.Ctx, store.GetDoctorReminderParams{
-		UserID: hc.UserID, Day: civildate.NullDate{Date: hc.Date, Valid: true},
-		DayStart: sql.NullTime{Time: hc.Date.TehranMidnight(), Valid: true},
-	})
+	r, err := hc.doctorReminder()
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -469,10 +466,7 @@ func (medicationReminderSection) Key() string { return "medication_reminder" }
 func (medicationReminderSection) Order() int  { return 90 }
 
 func (s medicationReminderSection) Build(hc *Context) (*Rendered, error) {
-	r, err := hc.q().GetMedicationReminder(hc.Ctx, store.GetMedicationReminderParams{
-		UserID: hc.UserID, Day: civildate.NullDate{Date: hc.Date, Valid: true},
-		DayStart: sql.NullTime{Time: hc.Date.TehranMidnight(), Valid: true},
-	})
+	r, err := hc.medicationReminder()
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -500,6 +494,70 @@ func (s medicationReminderSection) Build(hc *Context) (*Rendered, error) {
 			"icon", enums.ReminderTypeMedication.Icon(),
 		),
 	}, nil
+}
+
+// doctorReminder is the doctor_reminder row of the day (sql.ErrNoRows = none): GetDoctorReminder under v1, the merged
+// read under v6.
+func (hc *Context) doctorReminder() (store.GetDoctorReminderRow, error) {
+	if hc.v6 == nil {
+		return hc.q().GetDoctorReminder(hc.Ctx, store.GetDoctorReminderParams{
+			UserID: hc.UserID, Day: civildate.NullDate{Date: hc.Date, Valid: true},
+			DayStart: sql.NullTime{Time: hc.Date.TehranMidnight(), Valid: true},
+		})
+	}
+	if err := hc.loadRemindersV6(); err != nil {
+		return store.GetDoctorReminderRow{}, err
+	}
+	if hc.doctorRem == nil {
+		return store.GetDoctorReminderRow{}, sql.ErrNoRows
+	}
+	return *hc.doctorRem, nil
+}
+
+// medicationReminder is the medication_reminder row of the day (sql.ErrNoRows = none): GetMedicationReminder under
+// v1, the merged read under v6.
+func (hc *Context) medicationReminder() (store.GetMedicationReminderRow, error) {
+	if hc.v6 == nil {
+		return hc.q().GetMedicationReminder(hc.Ctx, store.GetMedicationReminderParams{
+			UserID: hc.UserID, Day: civildate.NullDate{Date: hc.Date, Valid: true},
+			DayStart: sql.NullTime{Time: hc.Date.TehranMidnight(), Valid: true},
+		})
+	}
+	if err := hc.loadRemindersV6(); err != nil {
+		return store.GetMedicationReminderRow{}, err
+	}
+	if hc.medicationRem == nil {
+		return store.GetMedicationReminderRow{}, sql.ErrNoRows
+	}
+	return store.GetMedicationReminderRow(*hc.medicationRem), nil
+}
+
+// loadRemindersV6 reads the day's first doctor and medication reminders in one query (T-M9-34b), once per request.
+func (hc *Context) loadRemindersV6() error {
+	if hc.remindersLoaded {
+		return nil
+	}
+	rows, err := hc.q().ListHomeRemindersV6(hc.Ctx, store.ListHomeRemindersV6Params{
+		UserID: hc.UserID, Day: civildate.NullDate{Date: hc.Date, Valid: true},
+		DayStart: sql.NullTime{Time: hc.Date.TehranMidnight(), Valid: true},
+	})
+	if err != nil {
+		return fmt.Errorf("home: reminders: %w", err)
+	}
+	hc.remindersLoaded = true
+	for _, r := range rows {
+		row := store.GetDoctorReminderRow{
+			ID: r.ID, Title: r.Title, Subtitle: r.Subtitle, Notes: r.Notes, ScheduledAt: r.ScheduledAt,
+			Recurrence: r.Recurrence, RecurrenceTime: r.RecurrenceTime, Meta: r.Meta,
+		}
+		switch r.Type {
+		case "doctor":
+			hc.doctorRem = &row
+		case "medication":
+			hc.medicationRem = &row
+		}
+	}
+	return nil
 }
 
 // substr is substr($s, 0, n) on bytes.

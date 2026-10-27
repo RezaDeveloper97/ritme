@@ -52,6 +52,14 @@ SELECT EXISTS (
     WHERE user_id = ? AND challenge_id = ? AND completion_date = ?
 ) AS completed;
 
+-- name: ListChallengeCompletionsSince :many
+-- v6 home (T-M9-34b): ListChallengeIDsCompletedBetween (from <= completion_date < day) and ChallengeCompletedOn
+-- (completion_date = day) in one read; the caller splits the rows on completion_date.
+SELECT challenge_id, completion_date FROM `user_challenge_completions`
+WHERE user_id = sqlc.arg(user_id)
+  AND completion_date >= sqlc.arg(from_date)
+  AND completion_date <= sqlc.arg(day);
+
 -- name: GetDoctorReminder :one
 -- $user->reminders()->active()->ofType('doctor')->relevantOn($date)->orderBy('scheduled_at')->first().
 SELECT id, title, subtitle, notes, scheduled_at, recurrence, recurrence_time, meta
@@ -75,6 +83,28 @@ WHERE user_id = sqlc.arg(user_id) AND is_active = 1 AND `type` = 'medication'
     OR (recurrence = 'none' AND scheduled_at IS NOT NULL AND scheduled_at >= sqlc.arg(day_start)))
 ORDER BY COALESCE(recurrence_time, TIME(scheduled_at)), id
 LIMIT 1;
+
+-- name: ListHomeRemindersV6 :many
+-- v6 home (T-M9-34b): GetDoctorReminder and GetMedicationReminder in one read — the first relevant reminder of each
+-- type in that query's own order (doctor: scheduled_at, id; medication: COALESCE(recurrence_time, TIME(scheduled_at)),
+-- id). At most one row per type.
+SELECT id, `type`, title, subtitle, notes, scheduled_at, recurrence, recurrence_time, meta
+FROM (
+    SELECT id, `type`, title, subtitle, notes, scheduled_at, recurrence, recurrence_time, meta,
+           ROW_NUMBER() OVER (
+               PARTITION BY `type`
+               ORDER BY CASE WHEN `type` = 'doctor' THEN scheduled_at END,
+                        CASE WHEN `type` = 'medication' THEN COALESCE(recurrence_time, TIME(scheduled_at)) END,
+                        id
+           ) AS rn
+    FROM `reminders`
+    WHERE user_id = sqlc.arg(user_id) AND is_active = 1 AND `type` IN ('doctor', 'medication')
+      AND ((recurrence <> 'none'
+            AND (starts_on IS NULL OR starts_on <= sqlc.arg(day))
+            AND (ends_on IS NULL OR ends_on >= sqlc.arg(day)))
+        OR (recurrence = 'none' AND scheduled_at IS NOT NULL AND scheduled_at >= sqlc.arg(day_start)))
+) AS r
+WHERE rn = 1;
 
 -- name: ListPublishedHomeArticles :many
 -- Article::published(), whole table in sort_order, id (T-M9-13b: a configcache snapshot). forPhase($candidates)

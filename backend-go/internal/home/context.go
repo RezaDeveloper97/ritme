@@ -88,6 +88,10 @@ type Context struct {
 	digest         *Digest
 	messagesLoaded bool
 	messages       *manager.Result
+	// remindersLoaded / doctorRem / medicationRem memoise the v6 merged reminder read (T-M9-34b).
+	remindersLoaded bool
+	doctorRem       *store.GetDoctorReminderRow
+	medicationRem   *store.GetDoctorReminderRow
 }
 
 // LogWindow is HomeContext::logWindow(): 29 days before date through the end of its
