@@ -1,0 +1,279 @@
+{
+  "case": "cycle/today.open_period_day11.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/today",
+        "persona": "open_period_day11",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-23",
+            "cycle_day": 11,
+            "phase": "menstruation",
+            "subphase": "menstrual_possible",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": null,
+            "cycle_score": null,
+            "age_factor": null,
+            "base_probability": null,
+            "symptom_score": null,
+            "final_probability": null,
+            "cycle_variability": "regular",
+            "uncertainty_range": null,
+            "text_flags": null,
+            "daily_tips": [
+              {
+                "type": "hydration",
+                "title": "آب‌رسانی",
+                "icon": "water-glass",
+                "text": "آب کافی بنوشید و هیدراته بمانید."
+              },
+              {
+                "type": "warmth",
+                "title": "گرما درمانی",
+                "icon": "heat",
+                "text": "کمپرس گرم روی شکم قرار دهید تا دردها کاهش یابد."
+              },
+              {
+                "type": "rest",
+                "title": "استراحت",
+                "icon": "bed",
+                "text": "استراحت کافی داشته باشید و از فعالیت‌های سنگین اجتناب کنید."
+              },
+              {
+                "type": "nutrition",
+                "title": "تغذیه",
+                "icon": "apple",
+                "text": "غذاهای غنی از آهن مثل اسفناج و گوشت قرمز بخورید."
+              }
+            ],
+            "source_profile_data": null,
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-09-23",
+            "cycle_day": 11,
+            "main_phase": "menstrual",
+            "subphase": "menstrual_possible",
+            "fertility_level": "low",
+            "days_to_ovulation": 4,
+            "days_to_period": 18,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2026-09-13",
+              "current_period_start_source": "user_logged",
+              "current_period_end": "2026-09-17",
+              "current_period_end_source": "assumed_from_effective_duration",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": "2026-10-11",
+              "estimated_ovulation_date": "2026-09-27",
+              "ovulation_source": "calendar"
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": 0,
+              "cycle_regularity": "regular"
+            },
+            "clinical_flags": {
+              "frequency": "normal",
+              "duration": "normal",
+              "absent": false
+            },
+            "future_cycles": [
+              {
+                "k": 1,
+                "period_start": "2026-10-11",
+                "period_end": "2026-10-15",
+                "fertile_start": "2026-09-22",
+                "fertile_end": "2026-09-27",
+                "ovulation": "2026-09-27",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 2,
+                "period_start": "2026-11-08",
+                "period_end": "2026-11-12",
+                "fertile_start": "2026-10-20",
+                "fertile_end": "2026-10-25",
+                "ovulation": "2026-10-25",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 3,
+                "period_start": "2026-12-06",
+                "period_end": "2026-12-10",
+                "fertile_start": "2026-11-17",
+                "fertile_end": "2026-11-22",
+                "ovulation": "2026-11-22",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 4,
+                "period_start": "2027-01-03",
+                "period_end": "2027-01-07",
+                "fertile_start": "2026-12-15",
+                "fertile_end": "2026-12-20",
+                "ovulation": "2026-12-20",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 5,
+                "period_start": "2027-01-31",
+                "period_end": "2027-02-04",
+                "fertile_start": "2027-01-12",
+                "fertile_end": "2027-01-17",
+                "ovulation": "2027-01-17",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 6,
+                "period_start": "2027-02-28",
+                "period_end": "2027-03-04",
+                "fertile_start": "2027-02-09",
+                "fertile_end": "2027-02-14",
+                "ovulation": "2027-02-14",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              }
+            ],
+            "suggest_pregnancy_test": false,
+            "confidence": "low",
+            "confidence_reasons": [
+              "missing_period_end",
+              "missing_period_end_beyond_warning_cap",
+              "poor_data_quality"
+            ],
+            "data_quality": "poor",
+            "resolution_source": "user_logged_with_assumed_end",
+            "is_predicted": true,
+            "requires_user_input": true,
+            "warnings": [
+              "period_end_missing",
+              "period_end_missing_warning_cap_exceeded"
+            ],
+            "limits": {
+              "fertility_suppressed": false,
+              "suppression_reason": null,
+              "engine_suspended": false,
+              "prompt_pregnancy_mode": false
+            },
+            "future_k": 0,
+            "today_ui": {
+              "ring_action": "end",
+              "banner": "end_missing",
+              "show_pregnancy_test_button": false,
+              "prediction_card": {
+                "period": {
+                  "start": "2026-10-11",
+                  "end": "2026-10-15"
+                },
+                "pms": {
+                  "start": "2026-10-08",
+                  "end": "2026-10-10"
+                },
+                "fertile": {
+                  "start": "2026-09-22",
+                  "end": "2026-09-27"
+                },
+                "ovulation": {
+                  "date": "2026-09-27",
+                  "source": "calendar"
+                },
+                "cycle_length": 28,
+                "cycle_regularity": "regular"
+              }
+            },
+            "phase": "menstruation",
+            "data_status": "incomplete",
+            "predictions": {
+              "next_period_start": "2026-10-11",
+              "next_period_end": "2026-10-15",
+              "estimated_ovulation_date": "2026-09-27",
+              "fertile_window_start": "2026-09-22",
+              "fertile_window_end": "2026-09-27",
+              "source": "recent_valid_cycles",
+              "confidence": "low",
+              "confidence_reasons": [
+                "missing_period_end",
+                "missing_period_end_beyond_warning_cap",
+                "poor_data_quality"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "based_on_cycles": 3
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "low",
+              "confidence_reasons": [
+                "missing_period_end",
+                "missing_period_end_beyond_warning_cap",
+                "poor_data_quality"
+              ],
+              "regularity_status": "relatively_regular",
+              "is_irregular_possible": false,
+              "missing_period_end": true
+            },
+            "daily_card": {
+              "title": "پایان پریود هنوز ثبت نشده",
+              "subtitle": "برای دقیق‌تر شدن تقویم، مشخص کن خون‌ریزی چه زمانی تمام شده است.",
+              "data_status": "incomplete",
+              "fertility_level": "low",
+              "fertility_label": "پایین",
+              "badges": [
+                "روز ۱۱ چرخه",
+                "اطلاعات ناقص"
+              ],
+              "primary_action": {
+                "type": "log_period_end",
+                "label": "ثبت پایان پریود"
+              },
+              "secondary_actions": [
+                {
+                  "type": "still_bleeding",
+                  "label": "هنوز ادامه دارد"
+                },
+                {
+                  "type": "view_details",
+                  "label": "جزئیات امروز"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    }
+  ]
+}

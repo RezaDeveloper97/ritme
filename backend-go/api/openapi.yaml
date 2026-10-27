@@ -7576,7 +7576,9 @@ paths:
                           is_fertile_window: {type: boolean}
                           is_pms_window: {type: boolean}
                           is_period_tomorrow: {type: boolean}
-                          is_luteal_spotting: {type: boolean}
+                          is_luteal_spotting:
+                            type: [boolean, "null"]
+                            description: "Null when CYCLE_ENGINE=v6 serves the day (D-120: v6 has no luteal-spotting rule)."
                           cycle_score: {type: [number, "null"]}
                           age_factor: {type: [number, "null"]}
                           base_probability: {type: [number, "null"]}
@@ -7585,7 +7587,8 @@ paths:
                           cycle_variability: {type: [string, "null"]}
                           uncertainty_range: {type: [number, "null"]}
                           text_flags:
-                            type: object
+                            type: [object, "null"]
+                            description: "Null under CYCLE_ENGINE=v6 (D-120): the copy lives in cycle_view.today_ui and daily_card."
                             properties:
                               probability_message: {type: string}
                               phase_info: {type: string}
@@ -7623,6 +7626,9 @@ paths:
                       cycle_view: {$ref: "#/components/schemas/CycleView"}
                       calculation_status: {type: string}
                       is_recalculating: {type: boolean}
+          headers:
+            ETag: {description: "CYCLE_ENGINE=v6 only (D-120): weak validator of the user's engine revision, the date and the content; sent with `Cache-Control: private, no-cache`.", schema: {type: string}}
+        '304': {description: "CYCLE_ENGINE=v6 only (D-120): `If-None-Match` matched the current ETag; no body."}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422':
           description: Validation failed
@@ -8657,7 +8663,9 @@ paths:
                           is_fertile_window: {type: boolean}
                           is_pms_window: {type: boolean}
                           is_period_tomorrow: {type: boolean}
-                          is_luteal_spotting: {type: boolean}
+                          is_luteal_spotting:
+                            type: [boolean, "null"]
+                            description: "Null when CYCLE_ENGINE=v6 serves the day (D-120: v6 has no luteal-spotting rule)."
                           cycle_score: {type: [number, "null"]}
                           age_factor: {type: [number, "null"]}
                           base_probability: {type: [number, "null"]}
@@ -8666,7 +8674,8 @@ paths:
                           cycle_variability: {type: [string, "null"]}
                           uncertainty_range: {type: [number, "null"]}
                           text_flags:
-                            type: object
+                            type: [object, "null"]
+                            description: "Null under CYCLE_ENGINE=v6 (D-120): the copy lives in cycle_view.today_ui and daily_card."
                             properties:
                               fertility_status:
                                 anyOf: [{$ref: "#/components/schemas/RawTranslations"}, {type: string}]
@@ -8707,6 +8716,9 @@ paths:
                       cycle_view: {$ref: "#/components/schemas/CycleView"}
                       calculation_status: {type: string}
                       is_recalculating: {type: boolean}
+          headers:
+            ETag: {description: "CYCLE_ENGINE=v6 only (D-120): weak validator of the user's engine revision, the date and the content; sent with `Cache-Control: private, no-cache`.", schema: {type: string}}
+        '304': {description: "CYCLE_ENGINE=v6 only (D-120): `If-None-Match` matched the current ETag; no body."}
         '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/health-logs:
     get:
@@ -31488,6 +31500,73 @@ components:
             effective_cycle_length: {type: number}
             effective_period_length: {type: number}
             cycle_variability: {type: [number, "null"]}
+            cycle_regularity: {type: string, description: "v6 only (CYCLE_ENGINE=v6, D-120)."}
+        clinical_flags:
+          type: object
+          description: "v6 only (CYCLE_ENGINE=v6, D-120): FIGO-style frequency/duration flags of the history."
+          properties:
+            frequency: {type: [string, "null"]}
+            duration: {type: [string, "null"]}
+            absent: {type: [boolean, "null"]}
+        future_cycles:
+          type: array
+          description: "v6 only (CYCLE_ENGINE=v6, D-120): the next predicted cycles; fertile/ovulation dates are null when fertility is suppressed."
+          items:
+            type: object
+            properties:
+              k: {type: integer}
+              period_start: {$ref: "#/components/schemas/Date"}
+              period_end: {$ref: "#/components/schemas/Date"}
+              fertile_start:
+                anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
+              fertile_end:
+                anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
+              ovulation:
+                anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
+              ovulation_source: {type: string}
+              confidence: {type: string}
+        suggest_pregnancy_test: {type: boolean, description: "v6 only (CYCLE_ENGINE=v6, D-120)."}
+        limits:
+          type: object
+          description: "v6 only (CYCLE_ENGINE=v6, D-120)."
+          properties:
+            fertility_suppressed: {type: boolean}
+            suppression_reason: {type: [string, "null"]}
+            engine_suspended: {type: boolean}
+            prompt_pregnancy_mode: {type: boolean}
+        future_k: {type: integer, description: "v6 only (CYCLE_ENGINE=v6, D-120): which future cycle the date falls in (0 = current)."}
+        today_ui:
+          type: object
+          description: "v6 only (CYCLE_ENGINE=v6, D-120): what the today screen renders."
+          properties:
+            ring_action: {type: string}
+            banner: {type: [string, "null"]}
+            show_pregnancy_test_button: {type: boolean}
+            prediction_card:
+              type: [object, "null"]
+              properties:
+                period:
+                  type: object
+                  properties:
+                    start: {$ref: "#/components/schemas/Date"}
+                    end: {$ref: "#/components/schemas/Date"}
+                pms:
+                  type: [object, "null"]
+                  properties:
+                    start: {$ref: "#/components/schemas/Date"}
+                    end: {$ref: "#/components/schemas/Date"}
+                fertile:
+                  type: [object, "null"]
+                  properties:
+                    start: {$ref: "#/components/schemas/Date"}
+                    end: {$ref: "#/components/schemas/Date"}
+                ovulation:
+                  type: [object, "null"]
+                  properties:
+                    date: {$ref: "#/components/schemas/Date"}
+                    source: {type: string}
+                cycle_length: {type: integer}
+                cycle_regularity: {type: string}
         confidence: {type: string}
         confidence_reasons: {type: array, items: {type: string}}
         data_quality: {type: string}
@@ -31556,6 +31635,7 @@ components:
           anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
         estimated_ovulation_date:
           anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
+        ovulation_source: {type: string, description: "v6 only (CYCLE_ENGINE=v6, D-120)."}
     Predictions:
       type: [object, "null"]
       required:
@@ -31570,9 +31650,14 @@ components:
       properties:
         next_period_start: {$ref: "#/components/schemas/Date"}
         next_period_end: {$ref: "#/components/schemas/Date"}
-        estimated_ovulation_date: {$ref: "#/components/schemas/Date"}
-        fertile_window_start: {$ref: "#/components/schemas/Date"}
-        fertile_window_end: {$ref: "#/components/schemas/Date"}
+        estimated_ovulation_date:
+          description: "Null under CYCLE_ENGINE=v6 when fertility is suppressed (hormonal contraception, D-120)."
+          anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
+        fertile_window_start:
+          anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
+        fertile_window_end:
+          description: "v1: ovulation + 1; v6: the display window ends on ovulation (X-06, D-120)."
+          anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
         source: {type: string}
         confidence: {type: string}
         confidence_reasons: {type: array, items: {type: string}}

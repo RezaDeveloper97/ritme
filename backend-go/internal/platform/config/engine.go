@@ -38,3 +38,40 @@ func loadEngineCache(e *env) EngineCache {
 	}
 	return c
 }
+
+// CycleEngine is the rollout flag of the v6 engine on /cycle/today and /cycle/date (T-M9-32, DECISIONS.md X-03):
+//
+//	v1      the v1.1 resolver and the legacy engine (the Laravel-compatible payload; the contract goldens)
+//	shadow  serve v1 unchanged and compute v6 after the response in a bounded pool, recording classified differences
+//	v6      serve cycle_view from the v6 engine (§2.35 + today_ui + limits) with the legacy keys rebuilt (X-05, D-120)
+type CycleEngine string
+
+// The CYCLE_ENGINE values.
+const (
+	CycleEngineV1     CycleEngine = "v1"
+	CycleEngineShadow CycleEngine = "shadow"
+	CycleEngineV6     CycleEngine = "v6"
+)
+
+// ParseCycleEngine reads a CYCLE_ENGINE value (case-insensitive; "" is the default v1).
+func ParseCycleEngine(s string) (CycleEngine, bool) {
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "", string(CycleEngineV1):
+		return CycleEngineV1, true
+	case string(CycleEngineShadow):
+		return CycleEngineShadow, true
+	case string(CycleEngineV6):
+		return CycleEngineV6, true
+	}
+	return CycleEngineV1, false
+}
+
+// loadCycleEngine fails the start on an unknown value: a typo must never silently serve another engine.
+func loadCycleEngine(e *env) CycleEngine {
+	raw := e.raw("CYCLE_ENGINE")
+	m, ok := ParseCycleEngine(raw)
+	if !ok {
+		e.fail("CYCLE_ENGINE: %q must be one of v1, shadow, v6", raw)
+	}
+	return m
+}

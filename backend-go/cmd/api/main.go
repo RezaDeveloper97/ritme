@@ -4,6 +4,9 @@
 // uses it because the runtime image has no shell or curl. `api healthcheck ready` probes
 // GET /ready instead (MariaDB + Redis reachable, T-M9-10): the deploy scripts wait on it.
 //
+// `api engine-shadow-report [-n N]` prints the CYCLE_ENGINE=shadow difference counts and samples (T-M9-32,
+// engine_shadow.go).
+//
 // `api worker` is the background role (T-M9-12, worker.go): job worker, scheduler and pollers, no HTTP listener but
 // the private metrics one. `api healthcheck worker [ready]` probes its /up or /ready there (METRICS_ADDR).
 // API_RUN_WORKERS=0 keeps all of that out of the API process (stage and beta, which run a worker container).
@@ -45,6 +48,9 @@ func main() {
 
 	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
 		os.Exit(healthcheck(healthTarget(os.Args[2:])))
+	}
+	if len(os.Args) > 1 && os.Args[1] == "engine-shadow-report" {
+		os.Exit(engineShadowReport(os.Args[2:], os.Stdout))
 	}
 
 	serve := run

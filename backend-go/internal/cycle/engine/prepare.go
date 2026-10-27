@@ -239,6 +239,12 @@ func median(v []int) int {
 // Params is the parameter set the state was prepared with.
 func (s *State) Params() Params { return s.p }
 
+// Mode is the life mode of the input (the legacy daily card drops its fertility copy in teen and menopause, T-M9-32).
+func (s *State) Mode() Mode { return s.in.Mode }
+
+// Declared is the onboarding/profile data of the input (the legacy profile_values block, T-M9-32).
+func (s *State) Declared() Declared { return s.in.Declared }
+
 // Periods are the consistent real periods, sorted by start (do not modify).
 func (s *State) Periods() []Period { return s.periods }
 

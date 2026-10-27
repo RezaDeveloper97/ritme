@@ -1,0 +1,1173 @@
+{
+  "case": "cycle/date.irregular.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/date/2026-09-14",
+        "persona": "irregular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-14",
+            "cycle_day": 6,
+            "phase": "follicular",
+            "subphase": "early_follicular",
+            "estimated_ovulation_day": 16,
+            "cycle_length_used": 29,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": null,
+            "cycle_score": null,
+            "age_factor": null,
+            "base_probability": null,
+            "symptom_score": null,
+            "final_probability": null,
+            "cycle_variability": "irregular",
+            "uncertainty_range": null,
+            "text_flags": null,
+            "daily_tips": [
+              {
+                "type": "energy",
+                "title": "انرژی",
+                "icon": "bolt",
+                "text": "سطح انرژی شما در حال افزایش است. زمان مناسبی برای پروژه‌های جدید!"
+              },
+              {
+                "type": "exercise",
+                "title": "ورزش",
+                "icon": "walking",
+                "text": "زمان مناسبی برای ورزش‌های سنگین است."
+              },
+              {
+                "type": "nutrition",
+                "title": "تغذیه",
+                "icon": "apple",
+                "text": "پروتئین و سبزیجات تازه بخورید تا ذخیره انرژی‌تان دوباره پر شود."
+              },
+              {
+                "type": "mental_health",
+                "title": "سلامت روان",
+                "icon": "brain",
+                "text": "فرصت خوبی برای برنامه‌ریزی و یادگیری چیزهای تازه است."
+              }
+            ],
+            "source_profile_data": null,
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-09-14",
+            "cycle_day": 6,
+            "main_phase": "follicular",
+            "subphase": "early_follicular",
+            "fertility_level": "low",
+            "days_to_ovulation": 10,
+            "days_to_period": 24,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2026-09-09",
+              "current_period_start_source": "user_logged",
+              "current_period_end": "2026-09-13",
+              "current_period_end_source": "user_logged",
+              "current_period_end_is_confirmed": true,
+              "predicted_next_period_start": "2026-10-08",
+              "estimated_ovulation_date": "2026-09-24",
+              "ovulation_source": "calendar"
+            },
+            "metrics": {
+              "effective_cycle_length": 29,
+              "effective_period_length": 5,
+              "cycle_variability": 15,
+              "cycle_regularity": "irregular"
+            },
+            "clinical_flags": {
+              "frequency": "normal",
+              "duration": "normal",
+              "absent": false
+            },
+            "future_cycles": [
+              {
+                "k": 1,
+                "period_start": "2026-10-08",
+                "period_end": "2026-10-12",
+                "fertile_start": "2026-09-19",
+                "fertile_end": "2026-09-24",
+                "ovulation": "2026-09-24",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 2,
+                "period_start": "2026-11-06",
+                "period_end": "2026-11-10",
+                "fertile_start": "2026-10-18",
+                "fertile_end": "2026-10-23",
+                "ovulation": "2026-10-23",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 3,
+                "period_start": "2026-12-05",
+                "period_end": "2026-12-09",
+                "fertile_start": "2026-11-16",
+                "fertile_end": "2026-11-21",
+                "ovulation": "2026-11-21",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 4,
+                "period_start": "2027-01-03",
+                "period_end": "2027-01-07",
+                "fertile_start": "2026-12-15",
+                "fertile_end": "2026-12-20",
+                "ovulation": "2026-12-20",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 5,
+                "period_start": "2027-02-01",
+                "period_end": "2027-02-05",
+                "fertile_start": "2027-01-13",
+                "fertile_end": "2027-01-18",
+                "ovulation": "2027-01-18",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 6,
+                "period_start": "2027-03-02",
+                "period_end": "2027-03-06",
+                "fertile_start": "2027-02-11",
+                "fertile_end": "2027-02-16",
+                "ovulation": "2027-02-16",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              }
+            ],
+            "suggest_pregnancy_test": false,
+            "confidence": "low",
+            "confidence_reasons": [
+              "high_cycle_variability"
+            ],
+            "data_quality": "good",
+            "resolution_source": "prediction",
+            "is_predicted": true,
+            "requires_user_input": false,
+            "warnings": [
+              "high_cycle_variability"
+            ],
+            "limits": {
+              "fertility_suppressed": false,
+              "suppression_reason": null,
+              "engine_suspended": false,
+              "prompt_pregnancy_mode": false
+            },
+            "future_k": 0,
+            "today_ui": {
+              "ring_action": "edit",
+              "banner": null,
+              "show_pregnancy_test_button": false,
+              "prediction_card": {
+                "period": {
+                  "start": "2026-10-08",
+                  "end": "2026-10-12"
+                },
+                "pms": {
+                  "start": "2026-10-05",
+                  "end": "2026-10-07"
+                },
+                "fertile": {
+                  "start": "2026-09-19",
+                  "end": "2026-09-24"
+                },
+                "ovulation": {
+                  "date": "2026-09-24",
+                  "source": "calendar"
+                },
+                "cycle_length": 29,
+                "cycle_regularity": "irregular"
+              }
+            },
+            "phase": "follicular",
+            "data_status": "predicted",
+            "predictions": {
+              "next_period_start": "2026-10-08",
+              "next_period_end": "2026-10-12",
+              "estimated_ovulation_date": "2026-09-24",
+              "fertile_window_start": "2026-09-19",
+              "fertile_window_end": "2026-09-24",
+              "source": "recent_valid_cycles",
+              "confidence": "low",
+              "confidence_reasons": [
+                "high_cycle_variability"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 30,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 29,
+              "period_duration": 5,
+              "based_on_cycles": 3
+            },
+            "effective_values": {
+              "cycle_length": 29,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "low",
+              "confidence_reasons": [
+                "high_cycle_variability"
+              ],
+              "regularity_status": "irregular_possible",
+              "is_irregular_possible": true,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "۵ روز تا پنجره باروری",
+              "subtitle": "بر اساس پیش‌بینی چرخه، پنجره باروری از حدود ۵ روز دیگر شروع می‌شود.",
+              "data_status": "predicted",
+              "fertility_level": "low",
+              "fertility_label": "پایین",
+              "badges": [
+                "روز ۶ چرخه",
+                "پیش‌بینی‌شده"
+              ],
+              "primary_action": {
+                "type": "complete_day",
+                "label": "تکمیل اطلاعات این روز"
+              },
+              "secondary_actions": [
+                {
+                  "type": "view_details",
+                  "label": "جزئیات این روز"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/date/2026-09-23",
+        "persona": "irregular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-23",
+            "cycle_day": 15,
+            "phase": "ovulation",
+            "subphase": "high_fertility",
+            "estimated_ovulation_day": 16,
+            "cycle_length_used": 29,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": null,
+            "cycle_score": null,
+            "age_factor": null,
+            "base_probability": null,
+            "symptom_score": null,
+            "final_probability": null,
+            "cycle_variability": "irregular",
+            "uncertainty_range": null,
+            "text_flags": null,
+            "daily_tips": [
+              {
+                "type": "fertility",
+                "title": "باروری",
+                "icon": "heart",
+                "text": "روزهای اوج باروری. اگر قصد بارداری دارید، بهترین زمان است."
+              },
+              {
+                "type": "energy",
+                "title": "انرژی",
+                "icon": "bolt",
+                "text": "ممکن است احساس اعتماد به نفس و اجتماعی بودن بیشتری داشته باشید."
+              },
+              {
+                "type": "hydration",
+                "title": "آب‌رسانی",
+                "icon": "water-glass",
+                "text": "مرتب آب بنوشید؛ هیدراته بودن به کیفیت ترشحات کمک می‌کند."
+              },
+              {
+                "type": "sleep",
+                "title": "خواب",
+                "icon": "moon",
+                "text": "برنامه خواب منظمی داشته باشید تا تعادل هورمونی حفظ شود."
+              }
+            ],
+            "source_profile_data": null,
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-09-23",
+            "cycle_day": 15,
+            "main_phase": "fertile",
+            "subphase": "high_fertility",
+            "fertility_level": "high",
+            "days_to_ovulation": 1,
+            "days_to_period": 15,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2026-09-09",
+              "current_period_start_source": "user_logged",
+              "current_period_end": "2026-09-13",
+              "current_period_end_source": "user_logged",
+              "current_period_end_is_confirmed": true,
+              "predicted_next_period_start": "2026-10-08",
+              "estimated_ovulation_date": "2026-09-24",
+              "ovulation_source": "calendar"
+            },
+            "metrics": {
+              "effective_cycle_length": 29,
+              "effective_period_length": 5,
+              "cycle_variability": 15,
+              "cycle_regularity": "irregular"
+            },
+            "clinical_flags": {
+              "frequency": "normal",
+              "duration": "normal",
+              "absent": false
+            },
+            "future_cycles": [
+              {
+                "k": 1,
+                "period_start": "2026-10-08",
+                "period_end": "2026-10-12",
+                "fertile_start": "2026-09-19",
+                "fertile_end": "2026-09-24",
+                "ovulation": "2026-09-24",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 2,
+                "period_start": "2026-11-06",
+                "period_end": "2026-11-10",
+                "fertile_start": "2026-10-18",
+                "fertile_end": "2026-10-23",
+                "ovulation": "2026-10-23",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 3,
+                "period_start": "2026-12-05",
+                "period_end": "2026-12-09",
+                "fertile_start": "2026-11-16",
+                "fertile_end": "2026-11-21",
+                "ovulation": "2026-11-21",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 4,
+                "period_start": "2027-01-03",
+                "period_end": "2027-01-07",
+                "fertile_start": "2026-12-15",
+                "fertile_end": "2026-12-20",
+                "ovulation": "2026-12-20",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 5,
+                "period_start": "2027-02-01",
+                "period_end": "2027-02-05",
+                "fertile_start": "2027-01-13",
+                "fertile_end": "2027-01-18",
+                "ovulation": "2027-01-18",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 6,
+                "period_start": "2027-03-02",
+                "period_end": "2027-03-06",
+                "fertile_start": "2027-02-11",
+                "fertile_end": "2027-02-16",
+                "ovulation": "2027-02-16",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              }
+            ],
+            "suggest_pregnancy_test": false,
+            "confidence": "low",
+            "confidence_reasons": [
+              "high_cycle_variability"
+            ],
+            "data_quality": "good",
+            "resolution_source": "prediction",
+            "is_predicted": true,
+            "requires_user_input": false,
+            "warnings": [
+              "high_cycle_variability"
+            ],
+            "limits": {
+              "fertility_suppressed": false,
+              "suppression_reason": null,
+              "engine_suspended": false,
+              "prompt_pregnancy_mode": false
+            },
+            "future_k": 0,
+            "today_ui": {
+              "ring_action": "edit",
+              "banner": null,
+              "show_pregnancy_test_button": false,
+              "prediction_card": {
+                "period": {
+                  "start": "2026-10-08",
+                  "end": "2026-10-12"
+                },
+                "pms": {
+                  "start": "2026-10-05",
+                  "end": "2026-10-07"
+                },
+                "fertile": {
+                  "start": "2026-09-19",
+                  "end": "2026-09-24"
+                },
+                "ovulation": {
+                  "date": "2026-09-24",
+                  "source": "calendar"
+                },
+                "cycle_length": 29,
+                "cycle_regularity": "irregular"
+              }
+            },
+            "phase": "ovulation",
+            "data_status": "predicted",
+            "predictions": {
+              "next_period_start": "2026-10-08",
+              "next_period_end": "2026-10-12",
+              "estimated_ovulation_date": "2026-09-24",
+              "fertile_window_start": "2026-09-19",
+              "fertile_window_end": "2026-09-24",
+              "source": "recent_valid_cycles",
+              "confidence": "low",
+              "confidence_reasons": [
+                "high_cycle_variability"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 30,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 29,
+              "period_duration": 5,
+              "based_on_cycles": 3
+            },
+            "effective_values": {
+              "cycle_length": 29,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "low",
+              "confidence_reasons": [
+                "high_cycle_variability"
+              ],
+              "regularity_status": "irregular_possible",
+              "is_irregular_possible": true,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "احتمالاً در پنجره باروری هستی",
+              "subtitle": "در این بازه احتمال باروری بر اساس پیش‌بینی چرخه بالاتر است، اما زمان واقعی تخمک‌گذاری می‌تواند متفاوت باشد.",
+              "data_status": "predicted",
+              "fertility_level": "high",
+              "fertility_label": "بالا",
+              "badges": [
+                "روز ۱۵ چرخه",
+                "پیش‌بینی‌شده"
+              ],
+              "primary_action": {
+                "type": "log_symptoms",
+                "label": "ثبت علائم امروز"
+              },
+              "secondary_actions": [
+                {
+                  "type": "view_details",
+                  "label": "جزئیات امروز"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/date/2026-10-12",
+        "persona": "irregular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-10-12",
+            "cycle_day": 5,
+            "phase": "menstruation",
+            "subphase": "menstrual",
+            "estimated_ovulation_day": 16,
+            "cycle_length_used": 29,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": null,
+            "cycle_score": null,
+            "age_factor": null,
+            "base_probability": null,
+            "symptom_score": null,
+            "final_probability": null,
+            "cycle_variability": "irregular",
+            "uncertainty_range": null,
+            "text_flags": null,
+            "daily_tips": [
+              {
+                "type": "hydration",
+                "title": "آب‌رسانی",
+                "icon": "water-glass",
+                "text": "آب کافی بنوشید و هیدراته بمانید."
+              },
+              {
+                "type": "warmth",
+                "title": "گرما درمانی",
+                "icon": "heat",
+                "text": "کمپرس گرم روی شکم قرار دهید تا دردها کاهش یابد."
+              },
+              {
+                "type": "rest",
+                "title": "استراحت",
+                "icon": "bed",
+                "text": "استراحت کافی داشته باشید و از فعالیت‌های سنگین اجتناب کنید."
+              },
+              {
+                "type": "nutrition",
+                "title": "تغذیه",
+                "icon": "apple",
+                "text": "غذاهای غنی از آهن مثل اسفناج و گوشت قرمز بخورید."
+              }
+            ],
+            "source_profile_data": null,
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-10-12",
+            "cycle_day": 5,
+            "main_phase": "menstrual",
+            "subphase": "menstrual",
+            "fertility_level": "low",
+            "days_to_ovulation": 11,
+            "days_to_period": 25,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2026-10-08",
+              "current_period_start_source": "predicted_reference",
+              "current_period_end": "2026-10-12",
+              "current_period_end_source": "assumed_from_effective_duration",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": "2026-11-06",
+              "estimated_ovulation_date": "2026-10-23",
+              "ovulation_source": "calendar"
+            },
+            "metrics": {
+              "effective_cycle_length": 29,
+              "effective_period_length": 5,
+              "cycle_variability": 15,
+              "cycle_regularity": "irregular"
+            },
+            "clinical_flags": {
+              "frequency": "normal",
+              "duration": "normal",
+              "absent": false
+            },
+            "future_cycles": [
+              {
+                "k": 1,
+                "period_start": "2026-10-08",
+                "period_end": "2026-10-12",
+                "fertile_start": "2026-09-19",
+                "fertile_end": "2026-09-24",
+                "ovulation": "2026-09-24",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 2,
+                "period_start": "2026-11-06",
+                "period_end": "2026-11-10",
+                "fertile_start": "2026-10-18",
+                "fertile_end": "2026-10-23",
+                "ovulation": "2026-10-23",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 3,
+                "period_start": "2026-12-05",
+                "period_end": "2026-12-09",
+                "fertile_start": "2026-11-16",
+                "fertile_end": "2026-11-21",
+                "ovulation": "2026-11-21",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 4,
+                "period_start": "2027-01-03",
+                "period_end": "2027-01-07",
+                "fertile_start": "2026-12-15",
+                "fertile_end": "2026-12-20",
+                "ovulation": "2026-12-20",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 5,
+                "period_start": "2027-02-01",
+                "period_end": "2027-02-05",
+                "fertile_start": "2027-01-13",
+                "fertile_end": "2027-01-18",
+                "ovulation": "2027-01-18",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 6,
+                "period_start": "2027-03-02",
+                "period_end": "2027-03-06",
+                "fertile_start": "2027-02-11",
+                "fertile_end": "2027-02-16",
+                "ovulation": "2027-02-16",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              }
+            ],
+            "suggest_pregnancy_test": false,
+            "confidence": "low",
+            "confidence_reasons": [
+              "high_cycle_variability",
+              "prediction_based_output"
+            ],
+            "data_quality": "partial",
+            "resolution_source": "prediction",
+            "is_predicted": true,
+            "requires_user_input": false,
+            "warnings": [
+              "high_cycle_variability",
+              "prediction_based_output"
+            ],
+            "limits": {
+              "fertility_suppressed": false,
+              "suppression_reason": null,
+              "engine_suspended": false,
+              "prompt_pregnancy_mode": false
+            },
+            "future_k": 1,
+            "today_ui": {
+              "ring_action": "edit",
+              "banner": null,
+              "show_pregnancy_test_button": false,
+              "prediction_card": {
+                "period": {
+                  "start": "2026-11-06",
+                  "end": "2026-11-10"
+                },
+                "pms": {
+                  "start": "2026-11-03",
+                  "end": "2026-11-05"
+                },
+                "fertile": {
+                  "start": "2026-10-18",
+                  "end": "2026-10-23"
+                },
+                "ovulation": {
+                  "date": "2026-10-23",
+                  "source": "calendar"
+                },
+                "cycle_length": 29,
+                "cycle_regularity": "irregular"
+              }
+            },
+            "phase": "menstruation",
+            "data_status": "predicted",
+            "predictions": {
+              "next_period_start": "2026-11-06",
+              "next_period_end": "2026-11-10",
+              "estimated_ovulation_date": "2026-10-23",
+              "fertile_window_start": "2026-10-18",
+              "fertile_window_end": "2026-10-23",
+              "source": "recent_valid_cycles",
+              "confidence": "low",
+              "confidence_reasons": [
+                "high_cycle_variability",
+                "prediction_based_output"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 30,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 29,
+              "period_duration": 5,
+              "based_on_cycles": 3
+            },
+            "effective_values": {
+              "cycle_length": 29,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "low",
+              "confidence_reasons": [
+                "high_cycle_variability",
+                "prediction_based_output"
+              ],
+              "regularity_status": "irregular_possible",
+              "is_irregular_possible": true,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "۶ روز تا پنجره باروری",
+              "subtitle": "بر اساس پیش‌بینی چرخه، پنجره باروری از حدود ۶ روز دیگر شروع می‌شود.",
+              "data_status": "predicted",
+              "fertility_level": "low",
+              "fertility_label": "پایین",
+              "badges": [
+                "روز ۵ چرخه",
+                "پیش‌بینی‌شده"
+              ],
+              "primary_action": {
+                "type": "set_reminder",
+                "label": "یادآوری برای این روز"
+              },
+              "secondary_actions": [
+                {
+                  "type": "view_details",
+                  "label": "جزئیات پیش‌بینی"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/date/2026-01-01",
+        "persona": "irregular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-01-01",
+            "cycle_day": null,
+            "phase": null,
+            "subphase": null,
+            "estimated_ovulation_day": null,
+            "cycle_length_used": null,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": null,
+            "cycle_score": null,
+            "age_factor": null,
+            "base_probability": null,
+            "symptom_score": null,
+            "final_probability": null,
+            "cycle_variability": null,
+            "uncertainty_range": null,
+            "text_flags": null,
+            "daily_tips": [],
+            "source_profile_data": null,
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-01-01",
+            "cycle_day": null,
+            "main_phase": "unknown",
+            "subphase": "unknown",
+            "fertility_level": "unknown",
+            "days_to_ovulation": null,
+            "days_to_period": null,
+            "days_late": null,
+            "anchors": {
+              "current_period_start": null,
+              "current_period_start_source": "unknown",
+              "current_period_end": null,
+              "current_period_end_source": "unknown",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": null,
+              "estimated_ovulation_date": null,
+              "ovulation_source": "unknown"
+            },
+            "metrics": {
+              "effective_cycle_length": 29,
+              "effective_period_length": 5,
+              "cycle_variability": 15,
+              "cycle_regularity": "insufficient_data"
+            },
+            "clinical_flags": {
+              "frequency": "normal",
+              "duration": "normal",
+              "absent": null
+            },
+            "future_cycles": [
+              {
+                "k": 1,
+                "period_start": "2026-10-08",
+                "period_end": "2026-10-12",
+                "fertile_start": "2026-09-19",
+                "fertile_end": "2026-09-24",
+                "ovulation": "2026-09-24",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 2,
+                "period_start": "2026-11-06",
+                "period_end": "2026-11-10",
+                "fertile_start": "2026-10-18",
+                "fertile_end": "2026-10-23",
+                "ovulation": "2026-10-23",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 3,
+                "period_start": "2026-12-05",
+                "period_end": "2026-12-09",
+                "fertile_start": "2026-11-16",
+                "fertile_end": "2026-11-21",
+                "ovulation": "2026-11-21",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 4,
+                "period_start": "2027-01-03",
+                "period_end": "2027-01-07",
+                "fertile_start": "2026-12-15",
+                "fertile_end": "2026-12-20",
+                "ovulation": "2026-12-20",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 5,
+                "period_start": "2027-02-01",
+                "period_end": "2027-02-05",
+                "fertile_start": "2027-01-13",
+                "fertile_end": "2027-01-18",
+                "ovulation": "2027-01-18",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 6,
+                "period_start": "2027-03-02",
+                "period_end": "2027-03-06",
+                "fertile_start": "2027-02-11",
+                "fertile_end": "2027-02-16",
+                "ovulation": "2027-02-16",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              }
+            ],
+            "suggest_pregnancy_test": false,
+            "confidence": "unknown",
+            "confidence_reasons": [
+              "insufficient_anchor_data"
+            ],
+            "data_quality": "insufficient",
+            "resolution_source": "unknown",
+            "is_predicted": true,
+            "requires_user_input": true,
+            "warnings": [
+              "insufficient_anchor_data"
+            ],
+            "limits": {
+              "fertility_suppressed": false,
+              "suppression_reason": null,
+              "engine_suspended": false,
+              "prompt_pregnancy_mode": false
+            },
+            "future_k": 0,
+            "today_ui": {
+              "ring_action": "edit",
+              "banner": null,
+              "show_pregnancy_test_button": false,
+              "prediction_card": null
+            },
+            "phase": null,
+            "data_status": null,
+            "predictions": null,
+            "profile_values": {
+              "cycle_length": 30,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 29,
+              "period_duration": 5,
+              "based_on_cycles": 3
+            },
+            "effective_values": {
+              "cycle_length": 29,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "unknown",
+              "confidence_reasons": [
+                "insufficient_anchor_data"
+              ],
+              "regularity_status": "not_enough_data",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": null
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/date/2027-03-15",
+        "persona": "irregular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2027-03-15",
+            "cycle_day": null,
+            "phase": null,
+            "subphase": null,
+            "estimated_ovulation_day": null,
+            "cycle_length_used": null,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": null,
+            "cycle_score": null,
+            "age_factor": null,
+            "base_probability": null,
+            "symptom_score": null,
+            "final_probability": null,
+            "cycle_variability": "irregular",
+            "uncertainty_range": null,
+            "text_flags": null,
+            "daily_tips": [],
+            "source_profile_data": null,
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2027-03-15",
+            "cycle_day": null,
+            "main_phase": "unknown",
+            "subphase": "unknown",
+            "fertility_level": "unknown",
+            "days_to_ovulation": null,
+            "days_to_period": null,
+            "days_late": null,
+            "anchors": {
+              "current_period_start": null,
+              "current_period_start_source": "unknown",
+              "current_period_end": null,
+              "current_period_end_source": "unknown",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": null,
+              "estimated_ovulation_date": null,
+              "ovulation_source": "unknown"
+            },
+            "metrics": {
+              "effective_cycle_length": 29,
+              "effective_period_length": 5,
+              "cycle_variability": 15,
+              "cycle_regularity": "irregular"
+            },
+            "clinical_flags": {
+              "frequency": "normal",
+              "duration": "normal",
+              "absent": false
+            },
+            "future_cycles": [
+              {
+                "k": 1,
+                "period_start": "2026-10-08",
+                "period_end": "2026-10-12",
+                "fertile_start": "2026-09-19",
+                "fertile_end": "2026-09-24",
+                "ovulation": "2026-09-24",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 2,
+                "period_start": "2026-11-06",
+                "period_end": "2026-11-10",
+                "fertile_start": "2026-10-18",
+                "fertile_end": "2026-10-23",
+                "ovulation": "2026-10-23",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 3,
+                "period_start": "2026-12-05",
+                "period_end": "2026-12-09",
+                "fertile_start": "2026-11-16",
+                "fertile_end": "2026-11-21",
+                "ovulation": "2026-11-21",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 4,
+                "period_start": "2027-01-03",
+                "period_end": "2027-01-07",
+                "fertile_start": "2026-12-15",
+                "fertile_end": "2026-12-20",
+                "ovulation": "2026-12-20",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 5,
+                "period_start": "2027-02-01",
+                "period_end": "2027-02-05",
+                "fertile_start": "2027-01-13",
+                "fertile_end": "2027-01-18",
+                "ovulation": "2027-01-18",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              },
+              {
+                "k": 6,
+                "period_start": "2027-03-02",
+                "period_end": "2027-03-06",
+                "fertile_start": "2027-02-11",
+                "fertile_end": "2027-02-16",
+                "ovulation": "2027-02-16",
+                "ovulation_source": "calendar",
+                "confidence": "low"
+              }
+            ],
+            "suggest_pregnancy_test": false,
+            "confidence": "unknown",
+            "confidence_reasons": [],
+            "data_quality": "insufficient",
+            "resolution_source": "unknown",
+            "is_predicted": true,
+            "requires_user_input": false,
+            "warnings": [],
+            "limits": {
+              "fertility_suppressed": false,
+              "suppression_reason": null,
+              "engine_suspended": false,
+              "prompt_pregnancy_mode": false
+            },
+            "future_k": 0,
+            "today_ui": {
+              "ring_action": "edit",
+              "banner": null,
+              "show_pregnancy_test_button": false,
+              "prediction_card": null
+            },
+            "phase": null,
+            "data_status": null,
+            "predictions": null,
+            "profile_values": {
+              "cycle_length": 30,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 29,
+              "period_duration": 5,
+              "based_on_cycles": 3
+            },
+            "effective_values": {
+              "cycle_length": 29,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "unknown",
+              "confidence_reasons": [],
+              "regularity_status": "irregular_possible",
+              "is_irregular_possible": true,
+              "missing_period_end": false
+            },
+            "daily_card": null
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    }
+  ]
+}

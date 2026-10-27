@@ -88,6 +88,7 @@ type response struct {
 	status int
 	body   map[string]any
 	raw    string
+	header http.Header
 }
 
 func (e *env) do(t *testing.T, method, path, token, body, now string) response {
@@ -107,7 +108,7 @@ func (e *env) do(t *testing.T, method, path, token, body, now string) response {
 	raw, _ := io.ReadAll(resp.Body)
 	var m map[string]any
 	_ = json.Unmarshal(raw, &m)
-	return response{status: resp.StatusCode, body: m, raw: string(raw)}
+	return response{status: resp.StatusCode, body: m, raw: string(raw), header: resp.Header}
 }
 
 func (e *env) otp(t *testing.T, mobile string) string {
@@ -210,6 +211,7 @@ func TestLoginFlow_UserLogoutRevoked(t *testing.T) {
 	r = e.do(t, http.MethodPost, "/api/v1/auth/logout", tok, "", "")
 	assert.Equal(t, 200, r.status)
 	assert.Equal(t, `{"success":true,"message":"Successfully logged out"}`, r.raw)
+	assert.Equal(t, `"cache"`, r.header.Get("Clear-Site-Data"), "T-M9-32: drop the cached engine GETs on logout")
 	r = e.do(t, http.MethodGet, "/api/v1/auth/user", tok, "", "")
 	assert.Equal(t, 401, r.status)
 	assert.Equal(t, `{"message":"Unauthenticated.","error_code":"token_revoked"}`, r.raw)

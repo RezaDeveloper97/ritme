@@ -427,6 +427,10 @@ func (h *Handlers) Logout(c fiber.Ctx) error {
 	if err := RevokeToken(c.Context(), h.q, tok.ID, h.now(c)); err != nil {
 		return fmt.Errorf("auth: revoke: %w", err)
 	}
+	// The engine GETs are `Cache-Control: private, no-cache` with an ETag (T-M9-32, D-132): the browser keeps their
+	// bodies in its disk cache. Clearing the API origin's HTTP cache on logout keeps a shared device from holding the
+	// last user's cycle data (T-M9-31b security note). Only "cache": storage and cookies belong to the frontend.
+	c.Set("Clear-Site-Data", `"cache"`)
 	return httpx.Message(c, "Successfully logged out")
 }
 

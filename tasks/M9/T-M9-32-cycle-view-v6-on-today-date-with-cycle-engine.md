@@ -3,10 +3,10 @@ id: T-M9-32
 title: cycle_view v6 on today/date with CYCLE_ENGINE flag and shadow diff
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-21, T-M9-26, T-M9-31, T-M9-31b]
 parallel_group: M9-C
-touches: [backend-go/internal/cycle/service, backend-go/internal/cycle/view, backend-go/internal/cycle/shadow, backend-go/internal/platform/config, backend-go/cmd/api/engine_shadow.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist, backend-go/contract/golden-v6, backend-go/cmd/contract]
+touches: [backend-go/internal/cycle/service, backend-go/internal/cycle/view, backend-go/internal/cycle/shadow, backend-go/internal/platform/config, backend-go/cmd/api/engine_shadow.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist, backend-go/contract/golden-v6, backend-go/cmd/contract, backend-go/cmd/api/main.go, backend-go/internal/http/routes_cycle.go, backend-go/internal/cycle/engine/prepare.go, backend-go/internal/auth/handlers.go, backend-go/internal/auth/auth_int_test.go, backend-go/internal/querybudget, backend-go/Makefile]
 skills: [new-endpoint]
 verify: cd backend-go && go vet ./... && go test ./internal/cycle/... ./cmd/... && make test-int PKG=./internal/cycle/service/... && make contract ROUTES=cycle,period
 ---
@@ -55,3 +55,8 @@ frontend still parses (X-05).
 
 ## Note from the T-M9-31b security review (Low)
 `Cache-Control: private, no-cache` lets the browser keep engine responses in its disk cache (shared-device risk after logout). When wiring ETags, pick one: send `Clear-Site-Data: "cache"` on logout, or have the frontend fetch engine GETs with `cache: "no-store"` and keep the ETag in memory. Never log `ETag` response headers (the rev is an activity signal).
+
+## Touches added during the work
+Wiring the flag needed `cmd/api/main.go` (report subcommand), `internal/http/routes_cycle.go` (engine wiring),
+`engine/prepare.go` (`State.Mode()`/`Declared()` accessors), `internal/querybudget` (v6 rows), the Makefile
+(`contract-v6` targets) and `auth/handlers.go` + its test (`Clear-Site-Data: "cache"` on logout — the T-M9-31b note).

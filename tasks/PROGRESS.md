@@ -2147,3 +2147,26 @@ Nothing needed fixing.
 - Verify: vet, `-race` auth, int auth + http green; golangci-lint 0 issues.
 - Also recorded user decisions: T-M10-19b (move vitals alert copy as-is, no approval flow), T-M9-06c (postpartum
   export without EPDS; extend D-96) — both unblocked; T-M9-09c guard OK.
+
+## T-M9-32 — cycle_view v6 on today/date with CYCLE_ENGINE flag and shadow diff
+- Shipped (D-120, D-132): `CYCLE_ENGINE = v1 | shadow | v6` (config, default `v1`, invalid fails at start).
+  - `v6`: `GET /cycle/today` and `/cycle/date/:date` answer from the engine state cache (`internal/cycle/service/v6.go`,
+    encoder + legacy keys rebuilt in `internal/cycle/view/v6.go`, X-05); ETag/304 (`Cache-Control: private, no-cache`).
+  - `shadow`: v1 served unchanged; a bounded pool (2 workers, drop when full, `internal/cycle/shadow`) computes v6
+    after the response, classifies into `engine_shadow_diff_total{class}` and keeps ≤1 000 samples in Redis
+    (`ritme-go:eng:shadow:samples`, 7 d, uid hashed). `go run ./cmd/api engine-shadow-report [-n N]` prints them.
+  - Logout now sends `Clear-Site-Data: "cache"` (T-M9-31b security note: shared-device disk cache).
+- Goldens: Laravel goldens unchanged under `v1` (`make contract ROUTES=cycle,period` 211 passed / 12 allow-listed, no
+  new allow-list entries — v1 bytes are identical). Go-native goldens: `contract/golden-v6/cycle` (80 cases),
+  `make contract-v6` / `make contract-v6-update` (`cmd/contract v6 [--update]`).
+- OpenAPI: v6 fields, `today_ui`, `limits`, nullable legacy fields (cites D-120).
+- Budgets: v6 today/date cold 9 / warm 1 queries (`internal/querybudget`); one request-scoped recommendation
+  repository shared by the ETag and the daily tips (was read twice cold). Local latency: warm p95 0.6 ms,
+  cold-after-write p95 3 ms.
+- Null in v6 but non-nullable in the current frontend zod schema (pill persona, until T-M9-40):
+  `data.calculation.final_probability`, `data.calculation.phase`. Other legacy nulls (pill persona): calculation
+  `age_factor`, `base_probability`, `cycle_score`, `estimated_ovulation_day`, `is_luteal_spotting`, `subphase`,
+  `symptom_score`, `text_flags`, `uncertainty_range`, `source_*_data`; cycle_view `phase`, `days_to_ovulation`,
+  ovulation/fertile dates in `anchors`, `predictions` and `future_cycles[]` (fertility suppressed).
+- Open: frontend nullable fields (T-M9-40); `/cycle/month` (T-M9-33), `/home` (T-M9-34); stage switch to `shadow`
+  then `v6` is a deploy step (T-M9-48).

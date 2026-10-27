@@ -29,6 +29,7 @@ type Handlers struct {
 	svc   *Service
 	db    store.DBTX
 	clock clock.Clock
+	eng   *Engine // CYCLE_ENGINE rollout (nil = v1); WithEngine
 }
 
 // NewHandlers wires the handlers; base is the fallback clock (clock.Middleware's request clock
@@ -55,6 +56,9 @@ func userID(c fiber.Ctx) (uint64, error) {
 // Today is GET /cycle/today.
 func (h *Handlers) Today(c fiber.Ctx) error {
 	today := h.today(c)
+	if h.servesV6() {
+		return h.dayV6(c, today, today)
+	}
 	return h.day(c, today, today)
 }
 
@@ -68,6 +72,9 @@ func (h *Handlers) ForDate(c fiber.Ctx) error {
 	t, err := civildate.ParseLenient(raw, now, civildate.Tehran)
 	if err != nil {
 		return httpx.Fail(fiber.StatusUnprocessableEntity, "Invalid date format. Use YYYY-MM-DD.")
+	}
+	if h.servesV6() {
+		return h.dayV6(c, civildate.FromTime(t), h.today(c))
 	}
 	return h.day(c, civildate.FromTime(t), h.today(c))
 }
@@ -87,6 +94,9 @@ func (h *Handlers) day(c fiber.Ctx, date, today civildate.Date) error {
 	}
 	if err := json.Unmarshal(p.JSON, &parts); err != nil {
 		return err
+	}
+	if h.eng.Shadow() != nil { // CYCLE_ENGINE=shadow: v1 is served unchanged, v6 runs after it in the pool
+		defer h.shadowSubmit(c, uid, date, today, p.JSON)
 	}
 	return httpx.OK(c, jsonx.Obj(
 		"calculation", parts.Calculation,

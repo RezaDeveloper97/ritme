@@ -37,6 +37,8 @@ type GoServer struct {
 	exited   chan struct{}
 	workDir  string
 	logPath  string
+	// ExtraEnv is added to the server environment (contract v6: CYCLE_ENGINE=v6).
+	ExtraEnv map[string]string
 }
 
 // Environment knobs (all optional):
@@ -202,6 +204,9 @@ func (g *GoServer) startServer(ctx context.Context, cfg *mysql.Config) error {
 		// Contract-only private-note key (base64 of "contract-only-note-key-not-secret"[:32]); APP_ENV=contract gets no
 		// development key, and the loss note goldens need the routes up. Never a real secret.
 		"PRIVATE_NOTE_KEY": "Y29udHJhY3Qtb25seS1ub3RlLWtleS1ub3Qtc2VjcmU=",
+	}
+	for k, v := range g.ExtraEnv {
+		env[k] = v
 	}
 	g.logPath = filepath.Join(g.workDir, "api.log")
 	logFile, err := os.Create(g.logPath)

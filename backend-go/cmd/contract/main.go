@@ -2,6 +2,7 @@
 //
 //	contract record [--routes <groups|all>] [--case <glob>]   record Laravel goldens
 //	contract diff   [--routes <groups|all>] [--case <glob>]   diff a fresh Go server against them
+//	contract v6     [--routes cycle] [--case <glob>] [--update] Go-native CYCLE_ENGINE=v6 goldens (v6.go, T-M9-32)
 //
 // Cases: contract/cases/<group>.yaml. Goldens: contract/golden/<group>/<case>.json.
 // Fixtures: contract/fixtures/dump.sql (seeded DB) and contract/fixtures/keys/ (the
@@ -39,6 +40,7 @@ func run() int {
 	caseGlob := fs.String("case", "", "only cases whose id matches this glob")
 	verbose := fs.Bool("v", false, "print passing cases too")
 	reseed := fs.Bool("reseed", false, "record: re-run contract-reset and re-export dump.sql (implied by --routes all)")
+	update := fs.Bool("update", false, "v6: rewrite contract/golden-v6 from the Go server instead of diffing")
 	_ = fs.Parse(os.Args[2:])
 
 	paths, err := findPaths()
@@ -51,6 +53,8 @@ func run() int {
 		err = record(ctx, paths, opts)
 	case "diff":
 		err = diff(ctx, paths, opts)
+	case "v6":
+		err = runV6(ctx, paths, opts, *update)
 	default:
 		usage()
 		return 2
@@ -69,7 +73,7 @@ type options struct {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: contract record|diff [--routes <groups|all>] [--case <glob>] [-v]")
+	fmt.Fprintln(os.Stderr, "usage: contract record|diff|v6 [--routes <groups|all>] [--case <glob>] [--update] [-v]")
 }
 
 func fail(err error) int {

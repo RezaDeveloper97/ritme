@@ -1,0 +1,132 @@
+{
+  "case": "cycle/today.profile_no_history.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/today",
+        "persona": "profile_no_history",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-23",
+            "cycle_day": null,
+            "phase": null,
+            "subphase": null,
+            "estimated_ovulation_day": null,
+            "cycle_length_used": null,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": null,
+            "cycle_score": null,
+            "age_factor": null,
+            "base_probability": null,
+            "symptom_score": null,
+            "final_probability": null,
+            "cycle_variability": null,
+            "uncertainty_range": null,
+            "text_flags": null,
+            "daily_tips": [],
+            "source_profile_data": null,
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-09-23",
+            "cycle_day": null,
+            "main_phase": "unknown",
+            "subphase": "unknown",
+            "fertility_level": "unknown",
+            "days_to_ovulation": null,
+            "days_to_period": null,
+            "days_late": null,
+            "anchors": {
+              "current_period_start": null,
+              "current_period_start_source": "unknown",
+              "current_period_end": null,
+              "current_period_end_source": "unknown",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": null,
+              "estimated_ovulation_date": null,
+              "ovulation_source": "unknown"
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": null,
+              "cycle_regularity": "insufficient_data"
+            },
+            "clinical_flags": {
+              "frequency": "normal",
+              "duration": null,
+              "absent": null
+            },
+            "future_cycles": [],
+            "suggest_pregnancy_test": false,
+            "confidence": "unknown",
+            "confidence_reasons": [
+              "insufficient_anchor_data"
+            ],
+            "data_quality": "insufficient",
+            "resolution_source": "unknown",
+            "is_predicted": true,
+            "requires_user_input": true,
+            "warnings": [
+              "insufficient_anchor_data"
+            ],
+            "limits": {
+              "fertility_suppressed": false,
+              "suppression_reason": null,
+              "engine_suspended": false,
+              "prompt_pregnancy_mode": false
+            },
+            "future_k": 0,
+            "today_ui": {
+              "ring_action": "edit",
+              "banner": null,
+              "show_pregnancy_test_button": false,
+              "prediction_card": null
+            },
+            "phase": null,
+            "data_status": null,
+            "predictions": null,
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": null,
+              "period_duration": null,
+              "based_on_cycles": null
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "profile",
+              "period_duration_source": "profile"
+            },
+            "data_quality_details": {
+              "confidence": "unknown",
+              "confidence_reasons": [
+                "insufficient_anchor_data"
+              ],
+              "regularity_status": "not_enough_data",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": null
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    }
+  ]
+}

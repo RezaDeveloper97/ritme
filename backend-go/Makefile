@@ -44,7 +44,7 @@ BENCHSTAT ?= $(shell command -v benchstat 2>/dev/null || { p="$$(go env GOPATH)/
 SQLC_VERSION ?= v1.31.1
 SQLC ?= $(shell command -v sqlc 2>/dev/null || { p="$$(go env GOPATH)/bin/sqlc"; [ -x "$$p" ] && echo "$$p"; } || echo "go run github.com/sqlc-dev/sqlc/cmd/sqlc@$(SQLC_VERSION)")
 
-.PHONY: help run test test-int test-db-up test-db-down lint fmt vet sqlc schema-diff contract contract-record docker \
+.PHONY: help run test test-int test-db-up test-db-down lint fmt vet sqlc schema-diff contract contract-record contract-v6 contract-v6-update docker \
 	bench bench-baseline bench-compare bench-gate
 
 help: ## List targets
@@ -86,6 +86,12 @@ contract: ## Diff a fresh Go server against the Laravel goldens: make contract R
 
 contract-record: ## Record Laravel goldens (contract stack; CONTRACT_PORT, default 8090): make contract-record ROUTES=<group|all>
 	go run ./cmd/contract record --routes '$(or $(ROUTES),all)'
+
+contract-v6: ## Diff Go (CYCLE_ENGINE=v6) against contract/golden-v6 (cycle today/date cases): make contract-v6 [ROUTES=cycle]
+	go run ./cmd/contract v6 --routes '$(or $(ROUTES),cycle)'
+
+contract-v6-update: ## Rewrite contract/golden-v6 from Go (CYCLE_ENGINE=v6); review the diff by hand
+	go run ./cmd/contract v6 --update --routes '$(or $(ROUTES),cycle)'
 
 docker: ## Build the image
 	docker build -t ritme-backend-go:dev .

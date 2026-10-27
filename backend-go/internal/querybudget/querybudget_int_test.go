@@ -79,12 +79,12 @@ func TestQueryBudgets(t *testing.T) {
 			require.NotEmpty(t, tok, "no fixture user for %s", b.Mode)
 
 			configcache.SetEnabled(false) // cold: every config read goes to the database
-			app := newApp(t, db, keysPath)
+			app := newApp(t, db, keysPath, b.Engine)
 			cold, body := call(t, app, b.Path, tok)
 			configcache.SetEnabled(true)
 			_, _ = call(t, app, b.Path, tok) // fills the config caches
 			warm, _ := call(t, app, b.Path, tok)
-			if b.Name == "cycle today" { // the counts are only meaningful over the seeded history
+			if b.Name == "cycle today" || b.Name == "cycle today v6" { // the counts are only meaningful over the seeded history
 				assert.Contains(t, body, `"cycle_day":10`, "the fixture's cycle day 10")
 			}
 
@@ -129,7 +129,8 @@ func TestAuthBudget(t *testing.T) {
 
 // newApp is cmd/api's middleware order that matters for counting (metrics counter → test clock → module gate →
 // the registry) on a fresh in-memory Redis, plus a probe that copies the request's query count into a header.
-func newApp(t *testing.T, db *sql.DB, keysPath string) *fiber.App {
+// engine is the CYCLE_ENGINE ("" = v1); the v6 state cache runs with verify sampled at 0 so the serving path is counted.
+func newApp(t *testing.T, db *sql.DB, keysPath string, engine config.CycleEngine) *fiber.App {
 	t.Helper()
 	quiet := slog.New(slog.NewJSONHandler(io.Discard, nil))
 	mr := miniredis.RunT(t)
@@ -152,6 +153,8 @@ func newApp(t *testing.T, db *sql.DB, keysPath string) *fiber.App {
 			SMS:         config.SMS{Provider: "log"},
 			Passport:    config.Passport{TokenLifetimeDays: 365, RefreshWindowDays: 30},
 			StoragePath: keysPath,
+			CycleEngine: engine,
+			EngineCache: config.EngineCache{Enabled: true, L1Entries: 1000, VerifySample: 0},
 		},
 		DB: db, Cache: rc, Logger: quiet,
 	})
@@ -304,7 +307,7 @@ func TestMessagesSelectedConstantInRules(t *testing.T) {
 
 	configcache.SetEnabled(true)
 	defer configcache.SetEnabled(false)
-	app := newApp(t, db, keysPath)
+	app := newApp(t, db, keysPath, "")
 	warm := func() int64 {
 		_, _ = call(t, app, path.Path, tok.AccessToken) // reloads the snapshot after a change
 		n, _ := call(t, app, path.Path, tok.AccessToken)

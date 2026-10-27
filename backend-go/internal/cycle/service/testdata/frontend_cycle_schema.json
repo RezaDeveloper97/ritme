@@ -1,0 +1,24 @@
+{
+  "source": "frontend/src/entities/cycle/api/schema.ts (cycleCalculationEnvelopeSchema) as of 2026-10-23",
+  "note": "Paths the zod schema parses as a non-nullable type: null there throws the whole envelope (a field wrapped in .catch() or .nullable(), or an object that collapses on null, is not listed). The calculation paths apply only when calculation.cycle_day is not null (the empty-calculation preprocess). T-M9-40 makes the v6 nulls tolerated.",
+  "non_null": [
+    "data.calculation.calculation_date",
+    "data.calculation.cycle_day",
+    "data.calculation.phase",
+    "data.calculation.cycle_length_used",
+    "data.calculation.is_fertile_window",
+    "data.calculation.is_pms_window",
+    "data.calculation.is_period_tomorrow",
+    "data.calculation.final_probability",
+    "data.calculation.daily_tips",
+    "data.cycle_view.date",
+    "data.cycle_view.confidence_reasons",
+    "data.cycle_view.is_predicted",
+    "data.cycle_view.requires_user_input",
+    "data.cycle_view.warnings",
+    "data.cycle_view.effective_values.source",
+    "data.cycle_view.effective_values.period_duration_source",
+    "data.calculation_status",
+    "data.is_recalculating"
+  ]
+}
