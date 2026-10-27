@@ -1,9 +1,7 @@
 // Public API of the `cycle` entity. Import only from here (CLAUDE.md §3.3).
-export { cycleDayInfo } from './model/phase';
 export {
   deriveCyclePredictions,
   normalizePhase,
-  calcToPhase,
   calcMainPhase,
   calcInFertileWindow,
   calcInPmsWindow,
@@ -15,21 +13,21 @@ export {
   deriveCycleSchedule,
   cycleScheduleFor,
   daysUntilNextPeriod,
-  cycleProgressPercent,
   scheduleDayMarker,
   hasFertileWindow,
-  fertileWindowDays,
   cycleDayMarkerAt,
 } from './model/schedule';
 export type { CycleSchedule } from './model/schedule';
 export { isFertilitySuppressed } from './model/suppression';
-export { cycleMarkerStyle, cycleMarkerBg, markerIntensityByDate } from './model/markers';
-export { fertilityBadgeStyle } from './model/fertilityStyle';
-export type { FertilityBadgeStyle } from './model/fertilityStyle';
-export { deriveDayHighlights } from './model/highlights';
-export type { CycleDayHighlight } from './model/highlights';
-export { DailyStatusCard } from './ui/DailyStatusCard';
-export type { DailyStatusCardProps } from './ui/DailyStatusCard';
+export {
+  futureCycleDayMap,
+  monthDayPaint,
+  isLateDay,
+  openPeriodEnd,
+  MAX_FUTURE_CYCLES,
+} from './model/monthPaint';
+export type { MonthDayPaint } from './model/monthPaint';
+export { cycleMarkerStyle, cycleMarkerBg } from './model/markers';
 export { CycleValuesCard } from './ui/CycleValuesCard';
 export type { CycleValuesCardProps, CycleValuesSuggestion } from './ui/CycleValuesCard';
 export type {
@@ -61,6 +59,8 @@ export type {
   CycleAnchors,
   CycleEngineMetrics,
   CycleFutureCycle,
+  CycleMonthDay,
+  MonthPeriodKind,
   CycleClinicalFlags,
   CycleTodayUi,
   CycleLimits,

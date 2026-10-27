@@ -1,17 +1,21 @@
-import type { CycleDayMarker } from '@/entities/cycle';
+import type { CycleDayMarker, MonthDayPaint } from '@/entities/cycle';
 
 /**
  * How one calendar day is painted (Night & Bloom `Cycle_Calendar` / `TTC_Calendar`):
  * a logged period is a solid red band, an engine-predicted period a soft red one,
  * the fertile window (ovulation included) a solid amber band and PMS a lavender one.
+ * A `late` day (past the predicted start, nothing logged) is an outlined red band — never a period.
  */
-export type DayTone = 'period' | 'predicted' | 'fertile' | 'pms';
+export type DayTone = 'period' | 'predicted' | 'fertile' | 'pms' | 'late';
 
 /** Legend order of the artboards; `ovulation` is drawn as a dot, only in the TTC variant. */
 export type LegendKey = DayTone | 'ovulation';
 
 export const CYCLE_LEGEND: readonly LegendKey[] = ['period', 'predicted', 'fertile', 'pms'];
 export const TTC_LEGEND: readonly LegendKey[] = ['period', 'predicted', 'fertile', 'ovulation', 'pms'];
+/** The cycle legend plus the «late» key — shown only while a late day is on screen. */
+export const LATE_LEGEND_KEY: LegendKey = 'late';
+
 /** Teen / menopause (CB-TEEN-04b): no fertile window or ovulation anywhere on the calendar. */
 export const NO_FERTILITY_LEGEND: readonly LegendKey[] = ['period', 'predicted', 'pms'];
 
@@ -52,4 +56,18 @@ export function bandEdges(row: readonly (DayTone | null)[]): (BandEdge | null)[]
     if (!tone) return null;
     return { start: row[i - 1] !== tone, end: row[i + 1] !== tone };
   });
+}
+
+/**
+ * Paint of a v6 month day (T-M9-45). `logged` is the solid period; `assumed`
+ * (an open period's assumed days, the declared onboarding range) and `predicted`
+ * share the soft predicted style, so only what the user logged reads as solid.
+ * A late day gets its own outlined style; other markers follow {@link dayTone}.
+ */
+export function monthPaintTone(paint: MonthDayPaint | null): DayTone | null {
+  if (!paint) return null;
+  if (paint.late) return 'late';
+  if (paint.periodKind === 'logged') return 'period';
+  if (paint.periodKind) return 'predicted';
+  return dayTone(paint.marker, false);
 }

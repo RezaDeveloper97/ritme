@@ -7,6 +7,7 @@ import { diffInDays, formatYear, monthMatrix, monthName, today } from '@/shared/
 import { HeaderButton } from '@/shared/ui';
 
 import type { DayTone } from '../model/tones';
+import { lateDayStyle } from './lateStyle';
 
 interface YearViewProps {
   year: number;
@@ -86,6 +87,7 @@ export function YearView({
                           tone && `is-${tone}`,
                           diffInDays(cell.date, now) === 0 && 'is-today',
                         )}
+                        style={tone === 'late' ? lateDayStyle({ start: true, end: true }) : undefined}
                       >
                         {formatDay(cell.day)}
                       </span>

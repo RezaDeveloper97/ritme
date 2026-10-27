@@ -195,13 +195,6 @@ export function daysUntilNextPeriod(schedule: CycleSchedule, date: Date): number
   return Math.max(0, diffInDays(cycleScheduleFor(schedule, date).nextPeriodStart, date));
 }
 
-/** How far through its cycle `date` sits, 0–100 — for the hero progress bar. */
-export function cycleProgressPercent(schedule: CycleSchedule, date: Date): number {
-  const rolled = cycleScheduleFor(schedule, date);
-  const elapsed = diffInDays(date, rolled.cycleStart);
-  return Math.min(100, Math.max(0, Math.round((elapsed / rolled.cycleLength) * 100)));
-}
-
 /**
  * The marker a day carries according to the schedule alone — period → ovulation
  * → fertile window → PMS, the same priority as {@link cycleDayMarker}. For
@@ -221,22 +214,6 @@ export function scheduleDayMarker(
   if (s.hasOvulation && within(s.fertileStart, s.fertileEnd)) return 'fertile';
   if (within(s.pmsStart, s.pmsEnd)) return 'pms';
   return null;
-}
-
-/**
- * The §19 window of the schedule's own cycle as 1-based cycle days (for linear
- * day-1 → day-N charts), or `null` when a long period swallowed it.
- */
-export function fertileWindowDays(
-  schedule: CycleSchedule,
-): { startDay: number; endDay: number; ovulationDay: number } | null {
-  if (!hasFertileWindow(schedule)) return null;
-  const day = (d: Date) => diffInDays(d, schedule.cycleStart) + 1;
-  return {
-    startDay: day(schedule.fertileStart),
-    endDay: day(schedule.fertileEnd),
-    ovulationDay: day(schedule.ovulation),
-  };
 }
 
 /**

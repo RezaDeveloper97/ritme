@@ -8,6 +8,7 @@ import { diffInDays, formatMonthLabel, monthMatrix, today } from '@/shared/lib/d
 import { HeaderButton } from '@/shared/ui';
 
 import { bandEdges, type DayTone } from '../model/tones';
+import { lateDayStyle } from './lateStyle';
 
 /** What a day cell needs to know about its date (computed by the screen). */
 export interface CalendarDayInfo {
@@ -123,6 +124,7 @@ export function MonthCard({
                       isSelected && 'is-selected',
                       isToday && 'is-today',
                     )}
+                    style={info.tone === 'late' ? lateDayStyle(edge) : undefined}
                     onClick={() => onSelect(cell.date)}
                     aria-label={info.label}
                     aria-pressed={isSelected}

@@ -3,10 +3,10 @@ id: T-M9-45
 title: Calendar on v6: future cycles, lateness, assumed ranges, suppression
 milestone: M9
 type: frontend
-status: todo
+status: done
 depends_on: [T-M9-40, T-M9-33]
 parallel_group: M9-C
-touches: [frontend/src/screens/calendar, frontend/src/widgets/cycle-calendar, frontend/src/entities/cycle/model, frontend/messages/fa/calendar.json, frontend/messages/en/calendar.json, backend-go/resources/translations/fa/calendar.json, backend-go/resources/translations/en/calendar.json]
+touches: [frontend/src/screens/calendar, frontend/src/widgets/cycle-calendar, frontend/src/entities/cycle/model, frontend/src/entities/cycle/api/schema.ts, frontend/src/entities/cycle/index.ts, frontend/messages/fa/calendar.json, frontend/messages/en/calendar.json, backend-go/resources/translations/fa/calendar.json, backend-go/resources/translations/en/calendar.json]
 skills: []
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run copy:check -- calendar
 ---
@@ -44,3 +44,6 @@ calendar shows fertile days under the pill (gap 02c C, D.3, D.7). DECISIONS.md E
 
 ## Acceptance
 - Verify passes; screenshots reviewed.
+
+## Touches added during the work
+`entities/cycle/api/schema.ts` and `entities/cycle/index.ts`: the /cycle/month envelope parser dropped every v6 month field and null-`cycle_day` days, so the calendar could not see them.

@@ -90,7 +90,8 @@
       "predicted": "Predicted period",
       "fertile": "Fertile window",
       "ovulation": "Estimated ovulation",
-      "pms": "PMS"
+      "pms": "PMS",
+      "late": "Late period"
     },
     "phase": {
       "period": "Period",

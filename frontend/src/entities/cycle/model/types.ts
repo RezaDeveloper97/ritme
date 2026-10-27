@@ -293,6 +293,38 @@ export interface CycleFutureCycle {
   k: number;
   periodStart: string | null;
   ovulation: string | null;
+  /** Month payload only (v6 `/cycle/month`): the predicted period's last day. */
+  periodEnd?: string | null;
+  /** Month payload only: the display fertile window, null under suppression. */
+  fertileStart?: string | null;
+  fertileEnd?: string | null;
+}
+
+/** How a v6 month day relates to bleeding (`period_kind`, D-121). */
+export type MonthPeriodKind = 'logged' | 'assumed' | 'predicted';
+
+/**
+ * One day of a v6 `/cycle/month` payload (D-121, T-M9-33). Unlike
+ * {@link CycleCalculation} it keeps the days the engine could not place
+ * (`mainPhase = unknown`, null cycle day) and carries the paint fields the
+ * calendar reads: the period kind, the late counters and the main phase.
+ * Absent (empty list) on a Laravel / v1 payload.
+ */
+export interface CycleMonthDay {
+  /** Gregorian `YYYY-MM-DD`. */
+  date: string;
+  mainPhase: MainPhase | null;
+  fertilityLevel: CycleFertilityLevel | null;
+  cycleDay: number | null;
+  /** Cycle day of the estimated ovulation (null when none, e.g. suppressed fertility). */
+  estimatedOvulationDay: number | null;
+  /** Raw content phase (`ovulation` marks the ovulation day itself). */
+  phase: string | null;
+  isPredicted: boolean;
+  isPeriod: boolean;
+  periodKind: MonthPeriodKind | null;
+  daysToPeriod: number | null;
+  daysLate: number | null;
 }
 
 /** FIGO-style flags (v6 §2.27); labels are open strings so a new one never throws. */

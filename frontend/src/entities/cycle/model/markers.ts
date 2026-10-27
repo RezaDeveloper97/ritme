@@ -1,5 +1,4 @@
-import { cycleDayMarker } from './predictions';
-import type { CycleCalculation, CycleDayMarker, MarkerIntensity } from './types';
+import type { CycleDayMarker, MarkerIntensity } from './types';
 
 /**
  * The one palette for cycle day markers, shared by every calendar surface (the
@@ -19,9 +18,7 @@ export const cycleMarkerStyle: Record<CycleDayMarker, { bg: string; color: strin
 };
 
 /**
- * Cell background per marker at each intensity step. The step comes from
- * {@link markerIntensityByDate}: days with a higher conception probability get
- * the deeper tint, so the calendar reads as a gradient within each color.
+ * Cell background per marker at each intensity step.
  */
 export const cycleMarkerBg: Record<CycleDayMarker, Record<MarkerIntensity, string>> = {
   period: {
@@ -45,74 +42,3 @@ export const cycleMarkerBg: Record<CycleDayMarker, Record<MarkerIntensity, strin
     strong: 'var(--violet-soft-strong)',
   },
 };
-
-/**
- * Only the fertility-related markers are graded by conception probability;
- * period and PMS days keep their single base tint (product decision — the
- * ramp is about visualizing pregnancy chance, which those days don't carry).
- */
-const GRADED_MARKERS: ReadonlySet<CycleDayMarker> = new Set(['fertile', 'ovulation']);
-
-/**
- * Below this spread (in percentage points of conception probability) a set of
- * days reads as "all the same" and no gradient is drawn from it.
- */
-const FLAT_RANGE_PP = 0.5;
-
-const bucket = (t: number): MarkerIntensity =>
-  t < 1 / 3 ? 'faint' : t < 2 / 3 ? 'medium' : 'strong';
-
-/**
- * Marker intensity for each calendar day (keyed by `calculationDate`), from the
- * day's conception probability (`fertilityPercent`). Only fertile-window and
- * ovulation days are graded ({@link GRADED_MARKERS}); period/PMS days are left
- * out and render at their base tint. Graded days are normalized within their
- * own marker group — the fertile-window day closest to ovulation paints strong,
- * the opening day faint. A group with no internal spread (e.g. a lone ovulation
- * day) falls back to its position in the graded days' overall probability
- * range, and to `medium` when even that is flat. Purely visual and
- * informational (§11).
- *
- * `markerOf` is how the surface paints each day — pass the same resolver the
- * cells use (e.g. `cycleDayMarkerAt` with the anchored schedule) so the
- * grading groups exactly the days that carry each marker.
- */
-export function markerIntensityByDate(
-  calcs: Iterable<CycleCalculation>,
-  markerOf: (calc: CycleCalculation) => CycleDayMarker | null = cycleDayMarker,
-): Map<string, MarkerIntensity> {
-  const groups = new Map<CycleDayMarker, CycleCalculation[]>();
-  let globalMin = Infinity;
-  let globalMax = -Infinity;
-  for (const calc of calcs) {
-    const marker = markerOf(calc);
-    if (!marker || !GRADED_MARKERS.has(marker)) continue;
-    const group = groups.get(marker);
-    if (group) group.push(calc);
-    else groups.set(marker, [calc]);
-    globalMin = Math.min(globalMin, calc.fertilityPercent);
-    globalMax = Math.max(globalMax, calc.fertilityPercent);
-  }
-
-  const out = new Map<string, MarkerIntensity>();
-  for (const days of groups.values()) {
-    let min = Infinity;
-    let max = -Infinity;
-    for (const d of days) {
-      min = Math.min(min, d.fertilityPercent);
-      max = Math.max(max, d.fertilityPercent);
-    }
-    for (const d of days) {
-      let intensity: MarkerIntensity;
-      if (max - min >= FLAT_RANGE_PP) {
-        intensity = bucket((d.fertilityPercent - min) / (max - min));
-      } else if (globalMax - globalMin >= FLAT_RANGE_PP) {
-        intensity = bucket((d.fertilityPercent - globalMin) / (globalMax - globalMin));
-      } else {
-        intensity = 'medium';
-      }
-      out.set(d.calculationDate, intensity);
-    }
-  }
-  return out;
-}

@@ -308,4 +308,95 @@ describe('envelopes — v6', () => {
 
     expect(e.cycleView?.todayUi?.banner).toBeNull();
   });
+  describe('month payload (T-M9-45)', () => {
+    const v1Day = (date: string) => ({
+      calculation_date: date,
+      cycle_day: 3,
+      phase: 'menstruation',
+      cycle_length_used: 28,
+    });
+    const v6Day = (date: string, over: Record<string, unknown> = {}) => ({
+      ...v1Day(date),
+      main_phase: 'menstrual',
+      fertility_level: 'low',
+      is_predicted: false,
+      is_period: true,
+      period_kind: 'logged',
+      days_to_period: 25,
+      days_late: 0,
+      ...over,
+    });
+
+    it('keeps a Laravel / v1 month exactly as before: no v6 days, cycles or limits', () => {
+      const e = cycleMonthEnvelopeSchema.parse({ calculations: [v1Day('2026-07-01')] });
+
+      expect(e.calculations).toHaveLength(1);
+      expect(e.days).toEqual([]);
+      expect(e.futureCycles).toEqual([]);
+      expect(e.limits).toBeNull();
+    });
+
+    it('reads the per-day v6 fields, future_cycles and limits', () => {
+      const e = cycleMonthEnvelopeSchema.parse({
+        calculations: [
+          v6Day('2026-07-01'),
+          v6Day('2026-07-02', { period_kind: 'assumed' }),
+          v6Day('2026-07-20', { main_phase: 'period_expected', period_kind: null, is_period: false, days_late: 3 }),
+        ],
+        future_cycles: [
+          {
+            k: 1,
+            period_start: '2026-07-30',
+            period_end: '2026-08-03',
+            fertile_start: '2026-07-11',
+            fertile_end: '2026-07-16',
+            ovulation: '2026-07-16',
+          },
+          { k: 'x' },
+        ],
+        limits: { fertility_suppressed: true, suppression_reason: 'hormonal_contraception' },
+      });
+
+      expect(e.days.map((d) => d.periodKind)).toEqual(['logged', 'assumed', null]);
+      expect(e.days[2]).toMatchObject({ mainPhase: 'period_expected', daysLate: 3, isPeriod: false });
+      expect(e.futureCycles).toEqual([
+        {
+          k: 1,
+          periodStart: '2026-07-30',
+          periodEnd: '2026-08-03',
+          fertileStart: '2026-07-11',
+          fertileEnd: '2026-07-16',
+          ovulation: '2026-07-16',
+        },
+      ]);
+      expect(e.limits?.fertilitySuppressed).toBe(true);
+    });
+
+    it('keeps days the engine could not place (null cycle day) in `days` only', () => {
+      const e = cycleMonthEnvelopeSchema.parse({
+        calculations: [
+          v6Day('2026-10-01', {
+            cycle_day: null,
+            phase: null,
+            main_phase: 'unknown',
+            fertility_level: 'unknown',
+            period_kind: null,
+            is_period: false,
+            days_to_period: null,
+            days_late: null,
+          }),
+        ],
+      });
+
+      expect(e.calculations).toEqual([]);
+      expect(e.days).toHaveLength(1);
+      expect(e.days[0]).toMatchObject({ mainPhase: 'unknown', cycleDay: null, periodKind: null });
+    });
+
+    it('degrades an unknown period_kind to null instead of dropping the day', () => {
+      const e = cycleMonthEnvelopeSchema.parse({ calculations: [v6Day('2026-07-01', { period_kind: 'weird' })] });
+
+      expect(e.days[0]?.periodKind).toBeNull();
+    });
+  });
 });

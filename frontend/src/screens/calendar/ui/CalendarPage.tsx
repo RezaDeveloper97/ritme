@@ -8,6 +8,11 @@ import { useModuleEnabled } from '@/entities/app-module';
 import {
   cycleDayMarkerAt,
   deriveCycleSchedule,
+  futureCycleDayMap,
+  isFertilitySuppressed,
+  isLateDay,
+  monthDayPaint,
+  openPeriodEnd,
   markerPhase,
   normalizePhase,
   useCycleStatus,
@@ -60,13 +65,16 @@ import { BottomNav, useNavMode } from '@/widgets/bottom-nav';
 import {
   CalendarLegend,
   CYCLE_LEGEND,
+  LATE_LEGEND_KEY,
   MonthCard,
   NO_FERTILITY_LEGEND,
   TTC_LEGEND,
   YearView,
   dayTone,
+  monthPaintTone,
   withoutFertility,
   type CalendarDayInfo,
+  type DayTone,
   type LegendKey,
 } from '@/widgets/cycle-calendar';
 
@@ -133,9 +141,9 @@ export function CalendarPage() {
   // CB-TEEN-04b: teen and menopause see no fertile window, ovulation or fertile phase anywhere on the
   // calendar (the home does the same with `hideFertility`) — and never the TTC layout.
   const navMode = useNavMode();
-  const hideFertility = navMode.mode === 'teen' || navMode.mode === 'menopause';
+  const modeHidesFertility = navMode.mode === 'teen' || navMode.mode === 'menopause';
   const ttcOn = useModuleEnabled('ttc'); // admin switch «اقدام به بارداری»
-  const isTtc = !hideFertility && ttcOn && (modeQuery.data?.isTtc ?? false);
+  const isTtc = !modeHidesFertility && ttcOn && (modeQuery.data?.isTtc ?? false);
   // Queries are gated on the token (client-only): hold the skeleton until mount so
   // the first client render matches the server HTML, and until the mode is known
   // so a TTC user never sees the cycle layout flash first.
@@ -203,29 +211,52 @@ export function CalendarPage() {
     else if (!watching && calc.freshness > overlay.since) setOverlay(null);
   }, [overlay, calcMap, watching, calc.freshness]);
 
-  // Anchored engine schedule (same as home) decides fertile window / ovulation.
+  // Anchored engine schedule (same as home) — the Laravel / v1 fallback only. A v6 month
+  // is painted from the server's own per-day fields and `future_cycles`, never rolled forward here.
   const todayCycle = useCycleToday();
+  const cycleView = todayCycle.data?.cycleView ?? null;
   const schedule = useMemo(
-    () => deriveCycleSchedule(todayCycle.data?.cycleView ?? null, todayCycle.data?.calculation ?? null),
-    [todayCycle.data],
+    () => deriveCycleSchedule(cycleView, todayCycle.data?.calculation ?? null),
+    [cycleView, todayCycle.data],
   );
+  // While the period is late the legacy schedule must not roll a new period forward (E-04):
+  // without it each day is read from its own calculation.
+  const legacySchedule = (cycleView?.daysLate ?? 0) > 0 ? null : schedule;
   const dayMarker = useMemo(
     () => (c: CycleCalculation) =>
-      cycleDayMarkerAt(fromApiDate(c.calculationDate), c, schedule, schedule?.periodLength ?? periodDuration),
-    [schedule, periodDuration],
+      cycleDayMarkerAt(fromApiDate(c.calculationDate), c, legacySchedule, legacySchedule?.periodLength ?? periodDuration),
+    [legacySchedule, periodDuration],
   );
+
+  // Clinical suppression (hormonal contraception, postpartum before cycles return): no
+  // fertile window or ovulation anywhere, and the legend loses its fertile keys.
+  const suppressed = (calc.limits?.fertilitySuppressed ?? false) || isFertilitySuppressed(cycleView);
+  const hideFertility = modeHidesFertility || suppressed;
+  const futureMap = useMemo(
+    () => futureCycleDayMap(calc.futureCycles, hideFertility),
+    [calc.futureCycles, hideFertility],
+  );
+
+  const legacyMarker = (iso: string): CycleDayMarker | null => {
+    const c = calcMap.get(iso);
+    return c ? dayMarker(c) : null;
+  };
+  const v6Paint = (iso: string) => monthDayPaint(calc.days.get(iso), iso, futureMap, hideFertility);
 
   const markerFor = (date: Date): CycleDayMarker | null => {
     const iso = toApiDate(date);
     if (overlay?.paint.has(iso)) return 'period';
     if (overlay?.clear.has(iso)) return null;
-    const c = calcMap.get(iso);
-    const marker = c ? dayMarker(c) : null;
+    const marker = calc.isV6 ? (v6Paint(iso)?.marker ?? null) : legacyMarker(iso);
     return hideFertility ? withoutFertility(marker) : marker;
   };
 
+  // Open period's end: the engine's anchor (E-04) on v6; the profile length otherwise.
+  const anchors = cycleView?.anchors ?? null;
   const effectiveEndOf = (p: LoggedPeriod): string =>
-    p.period_end_date ?? toApiDate(addDays(fromApiDate(p.period_start_date), periodDuration - 1));
+    p.period_end_date ??
+    (calc.isV6 ? openPeriodEnd(anchors, p.period_start_date)?.end : undefined) ??
+    toApiDate(addDays(fromApiDate(p.period_start_date), periodDuration - 1));
 
   // Last day of a period that has actually happened (edits never reach the future).
   const realEndOf = (p: LoggedPeriod): string => {
@@ -281,16 +312,26 @@ export function CalendarPage() {
 
   const legendLabel = (key: LegendKey): string => tn(`legend.${key}`);
 
+  // Paint of a day: v6 reads the server's `period_kind` / late flag, Laravel the old rule.
+  const toneFor = (date: Date): DayTone | null => {
+    const iso = toApiDate(date);
+    if (overlay?.paint.has(iso)) return 'period';
+    if (overlay?.clear.has(iso)) return null;
+    if (!calc.isV6) return dayTone(markerFor(date), isActualPeriodDay(date));
+    const paint = v6Paint(iso);
+    return monthPaintTone(paint && hideFertility ? { ...paint, marker: withoutFertility(paint.marker) } : paint);
+  };
+
   const dayInfo = (date: Date): CalendarDayInfo => {
     const marker = markerFor(date);
-    const tone = dayTone(marker, isActualPeriodDay(date));
+    const tone = toneFor(date);
     const parts = [formatDayMonth(date, locale)];
     if (tone) parts.push(legendLabel(tone));
     if (marker === 'ovulation') parts.push(legendLabel('ovulation'));
     if (isSameDay(date, today())) parts.push(t('today'));
     return { tone, ovulation: marker === 'ovulation', label: parts.join('، ') };
   };
-  const toneOf = (date: Date) => dayTone(markerFor(date), isActualPeriodDay(date));
+  const toneOf = toneFor;
 
   const onMutationError = (error: unknown) => {
     setOverlay(null);
@@ -456,6 +497,9 @@ export function CalendarPage() {
   const formatDay = (n: number) => format.number(n);
   const currentCal = todayParts(locale);
   const isFutureMonth = (anchor.year - currentCal.year) * 12 + (anchor.month - currentCal.month) > 1;
+  const baseLegend = hideFertility ? NO_FERTILITY_LEGEND : isTtc ? TTC_LEGEND : CYCLE_LEGEND;
+  const legendItems =
+    calc.isV6 && Array.from(calc.days.values()).some(isLateDay) ? [...baseLegend, LATE_LEGEND_KEY] : baseLegend;
   const noHistory = historyQuery.isSuccess && (historyQuery.data?.length ?? 0) === 0 && !overlay;
 
   const body = calc.error ? (
@@ -506,7 +550,7 @@ export function CalendarPage() {
         formatDay={formatDay}
         selected={selectedDate}
         onSelect={onDaySelect}
-        showOvulation={isTtc}
+        showOvulation={isTtc && !hideFertility}
         nav={i === 0 ? { onPrev: () => goMonth(-1), onNext: () => goMonth(1), prevLabel: t('prevMonth'), nextLabel: t('nextMonth') } : undefined}
         onTouchStart={i === 0 ? onTouchStart : undefined}
         onTouchMove={i === 0 ? onTouchMove : undefined}
@@ -573,7 +617,7 @@ export function CalendarPage() {
 
           {!calc.error && !loading ? (
             <CalendarLegend
-              items={isTtc ? TTC_LEGEND : hideFertility ? NO_FERTILITY_LEGEND : CYCLE_LEGEND}
+              items={legendItems}
               label={legendLabel}
               title={tn('legendTitle')}
             />

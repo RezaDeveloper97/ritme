@@ -14,7 +14,11 @@ export function CalendarLegend({ items, label, title }: CalendarLegendProps) {
       <ul className="cc-legend-list" aria-label={title}>
         {items.map((key) => (
           <li key={key} className="cc-legend-item">
-            <span aria-hidden className={`cc-legend-dot is-${key}`} />
+            <span
+              aria-hidden
+              className={`cc-legend-dot is-${key}`}
+              style={key === 'late' ? { background: 'transparent', border: '1.5px dashed var(--period)' } : undefined}
+            />
             {label(key)}
           </li>
         ))}

@@ -3,5 +3,5 @@ export { MonthCard } from './ui/MonthCard';
 export type { CalendarDayInfo, MonthNavProps } from './ui/MonthCard';
 export { YearView } from './ui/YearView';
 export { CalendarLegend } from './ui/CalendarLegend';
-export { dayTone, bandEdges, CYCLE_LEGEND, TTC_LEGEND, NO_FERTILITY_LEGEND, withoutFertility } from './model/tones';
+export { dayTone, monthPaintTone, bandEdges, LATE_LEGEND_KEY, CYCLE_LEGEND, TTC_LEGEND, NO_FERTILITY_LEGEND, withoutFertility } from './model/tones';
 export type { DayTone, LegendKey, BandEdge } from './model/tones';

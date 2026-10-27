@@ -9,6 +9,7 @@ import type {
   CycleCalculation,
   CycleClinicalFlags,
   CycleFutureCycle,
+  CycleMonthDay,
   CycleLimits,
   CycleRegularity,
   CycleTodayUi,
@@ -502,30 +503,106 @@ const monthSummarySchema = z
     pmsDays: s.pms_days,
   }));
 
+/** One v6 month day (D-121): the paint fields, parsed leniently — a bad field degrades to null. */
+const monthDaySchema = z
+  .object({
+    calculation_date: z.string(),
+    main_phase: lenientEnum(MAIN_PHASES),
+    fertility_level: lenientEnum(CYCLE_FERTILITY_LEVELS),
+    cycle_day: z.number().nullable().catch(null),
+    estimated_ovulation_day: z.number().nullable().catch(null),
+    phase: z.string().nullable().catch(null),
+    is_predicted: z.boolean().catch(true),
+    is_period: z.boolean().catch(false),
+    period_kind: z.enum(['logged', 'assumed', 'predicted']).nullable().catch(null),
+    days_to_period: z.number().nullable().catch(null),
+    days_late: z.number().nullable().catch(null),
+  })
+  .transform((d): CycleMonthDay => ({
+    date: d.calculation_date,
+    mainPhase: d.main_phase as MainPhase | null,
+    fertilityLevel: d.fertility_level as CycleFertilityLevel | null,
+    cycleDay: d.cycle_day,
+    estimatedOvulationDay: d.estimated_ovulation_day,
+    phase: d.phase,
+    isPredicted: d.is_predicted,
+    isPeriod: d.is_period,
+    periodKind: d.period_kind,
+    daysToPeriod: d.days_to_period,
+    daysLate: d.days_late,
+  }));
+
+/** Whether a raw month day carries the v6 keys (Laravel / v1 days never do). */
+const isV6MonthDay = (v: unknown): boolean =>
+  !!v && typeof v === 'object' && ('period_kind' in v || 'main_phase' in v);
+
+/** One predicted future cycle of the month payload (k ≤ 6). Dates are Gregorian. */
+const monthFutureCycleSchema = z
+  .object({
+    k: z.number(),
+    period_start: z.string().nullable().catch(null),
+    period_end: z.string().nullable().catch(null),
+    fertile_start: z.string().nullable().catch(null),
+    fertile_end: z.string().nullable().catch(null),
+    ovulation: z.string().nullable().catch(null),
+  })
+  .transform((f): CycleFutureCycle => ({
+    k: f.k,
+    periodStart: f.period_start,
+    periodEnd: f.period_end,
+    fertileStart: f.fertile_start,
+    fertileEnd: f.fertile_end,
+    ovulation: f.ovulation,
+  }));
+
 /** `{ calculations[], month_summary, … }` — a month of calculations. */
 export const cycleMonthEnvelopeSchema = z
   .object({
     // Days before `last_period_start` (or any incomplete day) come back as the
     // same empty-calculation sentinel — drop those rather than throwing.
     // Parsed one by one: a malformed day is dropped, never the whole month.
+    // v6 days the engine could not place (null cycle day) are dropped from
+    // `calculations` too; they live on in `days`.
     calculations: z
       .array(z.unknown())
       .catch([])
-      .transform((days) =>
-        days.flatMap((d) => {
+      .transform((days) => ({
+        calculations: days.flatMap((d) => {
           const r = nullableCalculationSchema.safeParse(d);
           return r.success && r.data !== null ? [r.data] : [];
         }),
-      ),
+        days: days.flatMap((d) => {
+          if (!isV6MonthDay(d)) return [];
+          const r = monthDaySchema.safeParse(d);
+          return r.success ? [r.data] : [];
+        }),
+      })),
     calculation_status: z.string().default('completed'),
     is_recalculating: z.boolean().default(false),
     month_summary: monthSummarySchema.optional(),
+    // --- v6 additions (D-121): absent on a Laravel payload ---
+    future_cycles: z
+      .array(z.unknown())
+      .catch([])
+      .transform((items) =>
+        items.flatMap((i) => {
+          const r = monthFutureCycleSchema.safeParse(i);
+          return r.success ? [r.data] : [];
+        }),
+      ),
+    limits: limitsSchema.nullable().catch(null),
   })
   .transform((e) => ({
-    calculations: e.calculations as CycleCalculation[],
+    calculations: e.calculations.calculations as CycleCalculation[],
+    /** v6 per-day paint data; empty on a Laravel / v1 payload. */
+    days: e.calculations.days,
     calculationStatus: e.calculation_status,
     isRecalculating: e.is_recalculating,
     monthSummary: e.month_summary ?? null,
+    /** v6 `future_cycles` (k ≤ 6); empty on Laravel and when nothing is predicted. */
+    futureCycles: e.future_cycles,
+    /** v6 `limits`; null on Laravel. */
+    limits: e.limits,
   }));
 
 /** `{ status, is_processing, version, … }` — calculation processing status. */

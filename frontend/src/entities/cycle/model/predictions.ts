@@ -93,19 +93,6 @@ export function calcInPmsWindow(calc: CycleCalculation): boolean {
 }
 
 /**
- * Phase for calendar/day coloring. Like {@link normalizePhase}, but surfaces the
- * fertile window as its own `fertile` color — the backend flags it separately
- * (`is_fertile_window`) during the follicular phase rather than as a phase of
- * its own. Period and ovulation always win over the fertile tint; the window is
- * the §19 one ({@link calcInFertileWindow}).
- */
-export function calcToPhase(calc: CycleCalculation): CyclePhase {
-  const phase = calcMainPhase(calc);
-  if (phase === 'period' || phase === 'ovulation') return phase;
-  return calcInFertileWindow(calc) ? 'fertile' : phase;
-}
-
-/**
  * The colored marker for a calendar day, or `null` for a neutral day. Priority:
  * period → ovulation → fertile window → PMS window. Ovulation and the fertile
  * window overlap (ovulation sits inside it), so ovulation wins; period always

@@ -4,11 +4,9 @@ import { addDays, diffInDays, fromApiDate, toApiDate } from '@/shared/lib/date';
 
 import {
   cycleDayMarkerAt,
-  cycleProgressPercent,
   cycleScheduleFor,
   daysUntilNextPeriod,
   deriveCycleSchedule,
-  fertileWindowDays,
   hasFertileWindow,
   scheduleDayMarker,
 } from './schedule';
@@ -229,7 +227,6 @@ describe('deriveCycleSchedule — v6 payloads', () => {
 
     expect(s.hasOvulation).toBe(false);
     expect(hasFertileWindow(s)).toBe(false);
-    expect(fertileWindowDays(s)).toBeNull();
     // Day 14 of the cycle would be the placeholder; it must not be painted.
     expect(scheduleDayMarker(s, addDays(s.cycleStart, 13), 3)).toBeNull();
     expect(scheduleDayMarker(s, addDays(s.cycleStart, 9), 3)).toBeNull();
@@ -311,16 +308,6 @@ describe('daysUntilNextPeriod', () => {
 
   it('never counts down to a period that has already started', () => {
     expect(daysUntilNextPeriod(schedule, fromApiDate('2026-08-11'))).toBe(28);
-  });
-});
-
-describe('cycleProgressPercent', () => {
-  const schedule = deriveCycleSchedule(makeView(), makeCalc())!;
-
-  it('is 0 on day 1 and grows through the cycle', () => {
-    expect(cycleProgressPercent(schedule, fromApiDate('2026-07-14'))).toBe(0);
-    expect(cycleProgressPercent(schedule, fromApiDate('2026-07-28'))).toBe(50);
-    expect(cycleProgressPercent(schedule, fromApiDate('2026-08-10'))).toBe(96);
   });
 });
 
@@ -472,11 +459,6 @@ describe('cycleDayMarkerAt — one §19 window for every surface (T-M5-13)', () 
     expect(m['2026-10-08']).toBe('pms');
     expect(m['2026-10-10']).toBe('pms');
     // The same days as the timeline bar (cycle days) and the home rows (dates).
-    expect(fertileWindowDays(schedule)).toEqual({
-      startDay: 10,
-      endDay: 15,
-      ovulationDay: 15,
-    });
     expect(iso(schedule.fertileStart)).toBe('2026-09-22');
     expect(iso(schedule.fertileEnd)).toBe('2026-09-27');
   });
@@ -562,11 +544,6 @@ describe('short cycle whose period runs past O−5', () => {
     legacyDay(isoDate, isoDate >= '2026-07-22' ? '2026-07-22' : '2026-07-01', 8, 21, 7);
 
   it('the window is the ovulation day alone, in the schedule and on the calendar', () => {
-    expect(fertileWindowDays(schedule)).toEqual({
-      startDay: 8,
-      endDay: 8,
-      ovulationDay: 8,
-    });
     const m = markers(schedule, '2026-07-01', '2026-07-21', legacy, 7);
     expect(fertileDays(m)).toEqual(['2026-07-08*']);
     // Legacy O+1 (flag + `ovulation` phase) is not part of it.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { bandEdges, dayTone, NO_FERTILITY_LEGEND, withoutFertility } from './tones';
+import { bandEdges, dayTone, monthPaintTone, NO_FERTILITY_LEGEND, withoutFertility } from './tones';
 
 describe('withoutFertility (CB-TEEN-04b)', () => {
   it('turns the fertile window and ovulation into plain days', () => {
@@ -58,5 +58,29 @@ describe('bandEdges', () => {
       { start: true, end: false },
       { start: false, end: true },
     ]);
+  });
+});
+
+describe('monthPaintTone (v6)', () => {
+  const paint = (periodKind: 'logged' | 'assumed' | 'predicted' | null, marker: 'period' | 'fertile' | null = 'period', late = false) => ({
+    marker,
+    periodKind,
+    late,
+  });
+
+  it('paints only logged days solid; assumed and predicted share the soft style', () => {
+    expect(monthPaintTone(paint('logged'))).toBe('period');
+    expect(monthPaintTone(paint('assumed'))).toBe('predicted');
+    expect(monthPaintTone(paint('predicted'))).toBe('predicted');
+  });
+
+  it('gives a late day its own tone and never the period one', () => {
+    expect(monthPaintTone(paint(null, null, true))).toBe('late');
+  });
+
+  it('falls through to the marker tones, null for a neutral day', () => {
+    expect(monthPaintTone(paint(null, 'fertile'))).toBe('fertile');
+    expect(monthPaintTone(paint(null, null))).toBeNull();
+    expect(monthPaintTone(null)).toBeNull();
   });
 });

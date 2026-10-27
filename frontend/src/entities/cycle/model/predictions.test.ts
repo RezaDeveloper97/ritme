@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import {
   calcInFertileWindow,
   calcMainPhase,
-  calcToPhase,
   cycleDayMarker,
   deriveCyclePredictions,
   markerPhase,
@@ -42,22 +41,6 @@ describe('normalizePhase', () => {
   it('falls back to luteal for unknown backend strings', () => {
     expect(normalizePhase('some_future_phase')).toBe('luteal');
     expect(normalizePhase('')).toBe('luteal');
-  });
-});
-
-describe('calcToPhase', () => {
-  it('surfaces the fertile window as its own phase', () => {
-    expect(calcToPhase(makeCalc({ phase: 'follicular', isFertileWindow: true }))).toBe('fertile');
-  });
-
-  it('lets period and ovulation win over the fertile flag', () => {
-    expect(calcToPhase(makeCalc({ phase: 'menstruation', isFertileWindow: true }))).toBe('period');
-    expect(calcToPhase(makeCalc({ phase: 'ovulation', isFertileWindow: true }))).toBe('ovulation');
-  });
-
-  it('passes non-fertile phases through', () => {
-    expect(calcToPhase(makeCalc({ phase: 'luteal', isFertileWindow: false }))).toBe('luteal');
-    expect(calcToPhase(makeCalc({ phase: 'follicular', isFertileWindow: false }))).toBe('follicular');
   });
 });
 
@@ -137,7 +120,6 @@ describe('§19 reading of a legacy calculation', () => {
     expect(calcMainPhase(o1)).toBe('luteal');
     expect(calcInFertileWindow(o1)).toBe(false);
     expect(cycleDayMarker(o1)).toBeNull();
-    expect(calcToPhase(o1)).toBe('luteal');
     expect(deriveCyclePredictions(o1).phase).toBe('luteal');
     expect(deriveCyclePredictions(o1).isFertileWindow).toBe(false);
   });
