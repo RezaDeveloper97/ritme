@@ -3,7 +3,7 @@ id: T-M9-40b
 title: Frontend: nullable final_probability (and other null v6 fields) in cycle/today schema
 milestone: M9
 type: frontend
-status: todo
+status: done
 depends_on: [T-M9-40]
 parallel_group: M9-C
 touches: [frontend/src/entities/cycle/api/schema.ts,frontend/src/entities/cycle/api/schema.test.ts]

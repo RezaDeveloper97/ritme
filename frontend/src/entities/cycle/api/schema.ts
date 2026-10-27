@@ -65,7 +65,8 @@ export const cycleCalculationSchema = z
     // maps to the right dates (§7 — converted to the locale's calendar only for display).
     calculation_date: z.string(),
     cycle_day: z.number(),
-    phase: z.string(),
+    // v6 sends null while the cycle is unresolved (e.g. 20 days late) — never throw on it.
+    phase: z.string().nullish(),
     subphase: z.string().nullable().default(null),
     // Null under hormonal contraception / suppressed fertility (v6) — never throw on it.
     estimated_ovulation_day: z.number().nullable().default(null),
@@ -73,7 +74,8 @@ export const cycleCalculationSchema = z
     is_fertile_window: z.boolean().default(false),
     is_pms_window: z.boolean().default(false),
     is_period_tomorrow: z.boolean().default(false),
-    final_probability: z.number().default(0),
+    // v6 sends null (no probability computed) — must not become 0%.
+    final_probability: z.number().nullish(),
     cycle_variability: z.string().nullable().default(null),
     // Tolerate the pre-localization shape (`{type, en, fa}`) an older backend
     // still sends by dropping entries without a `text` rather than throwing.
@@ -87,14 +89,16 @@ export const cycleCalculationSchema = z
   .transform((c): CycleCalculation => ({
     calculationDate: c.calculation_date,
     cycleDay: c.cycle_day,
-    phase: c.phase,
+    // Types (outside this task's touches) still say `string` / `number`: '' = no phase,
+    // NaN = "no fertility number" (never 0%). Report: widen to `| null` in model/types.ts.
+    phase: c.phase ?? '',
     subphase: c.subphase,
     estimatedOvulationDay: c.estimated_ovulation_day,
     cycleLength: c.cycle_length_used,
     isFertileWindow: c.is_fertile_window,
     isPmsWindow: c.is_pms_window,
     isPeriodTomorrow: c.is_period_tomorrow,
-    fertilityPercent: c.final_probability,
+    fertilityPercent: c.final_probability ?? Number.NaN,
     cycleVariability: c.cycle_variability,
     dailyTips: c.daily_tips,
   }));
