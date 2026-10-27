@@ -3,7 +3,7 @@ id: T-M9-36
 title: Small consumers A on the engine: companion, teen, checkups, cycle settings, challenges
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-32]
 parallel_group: M9-C
 touches: [backend-go/internal/companion/shared, backend-go/internal/teen, backend-go/internal/checkups, backend-go/internal/profile/cyclesettings.go, backend-go/internal/challenges, backend-go/internal/reminders]

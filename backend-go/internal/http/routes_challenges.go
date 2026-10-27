@@ -17,7 +17,7 @@ func init() {
 	Register("challenges", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
-		h := challenges.NewHandlers(challenges.NewService(d.DB), clock.Real{})
+		h := challenges.NewHandlers(challenges.NewService(d.DB).WithEngine(engineStates(r, d)), clock.Real{})
 		writes := writeThrottle(d)
 
 		p := "/api/v1/challenges"

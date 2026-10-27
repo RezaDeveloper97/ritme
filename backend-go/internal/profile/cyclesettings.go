@@ -6,14 +6,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/cycle/engine"
 	cyclemetrics "github.com/ritme/backend-go/internal/cycle/metrics"
 	cyclemodel "github.com/ritme/backend-go/internal/cycle/model"
+	"github.com/ritme/backend-go/internal/cycle/state"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/notifications"
@@ -77,6 +80,14 @@ type CycleSettingsHandlers struct {
 	q     CycleSettingsStore
 	svc   *Service // the lengths_auto switch and the manual lengths (POST /profile's Save) in one EngineTx
 	clock clock.Clock
+	// states feeds the metrics from the v6 engine (CYCLE_ENGINE ≠ v1, T-M9-36, D-136); nil = the v1.1 metrics.
+	states state.UserStates
+}
+
+// WithEngine reads the lengths and the PMS window from the v6 engine state. nil keeps v1.
+func (h *CycleSettingsHandlers) WithEngine(s state.UserStates) *CycleSettingsHandlers {
+	h.states = s
+	return h
 }
 
 // NewCycleSettingsHandlers wires the handlers on d (base = fallback clock; tests pin it per request).
@@ -97,6 +108,8 @@ type cycleState struct {
 	auto    bool
 	metrics cyclemetrics.Metrics
 	prefs   notifications.Preferences
+	// pmsDays is the engine's PMS window length (Params.PMSDays); 0 = the planner default.
+	pmsDays int
 }
 
 func (h *CycleSettingsHandlers) load(ctx context.Context, userID uint64) (cycleState, error) {
@@ -108,26 +121,89 @@ func (h *CycleSettingsHandlers) load(ctx context.Context, userID uint64) (cycleS
 	case !errors.Is(err, sql.ErrNoRows):
 		return st, fmt.Errorf("profile: cycle preferences: %w", err)
 	}
-	var prof *cyclemodel.Profile
-	row, err := h.q.GetProfileByUserID(ctx, userID)
-	switch {
-	case err == nil:
-		prof = cycleProfile(row)
-	case !errors.Is(err, sql.ErrNoRows):
-		return st, fmt.Errorf("profile: load: %w", err)
+	if h.states != nil {
+		es, err := h.states.ForUser(ctx, userID, civildate.LocalToday(ctx, clock.FromContext(ctx, h.clock)))
+		if err != nil {
+			return st, fmt.Errorf("profile: engine state: %w", err)
+		}
+		st.metrics, st.pmsDays = engineMetrics(es), es.Params().PMSDays
+	} else {
+		var prof *cyclemodel.Profile
+		row, err := h.q.GetProfileByUserID(ctx, userID)
+		switch {
+		case err == nil:
+			prof = cycleProfile(row)
+		case !errors.Is(err, sql.ErrNoRows):
+			return st, fmt.Errorf("profile: load: %w", err)
+		}
+		rows, err := h.q.ListCycleHistories(ctx, userID)
+		if err != nil {
+			return st, fmt.Errorf("profile: cycle histories: %w", err)
+		}
+		if prof != nil {
+			prof.LengthsManual = !st.auto // the same resolution the engine runs (cycle/service Snapshot)
+		}
+		st.metrics = cyclemetrics.Calculate(cycleHistories(rows), prof)
 	}
-	rows, err := h.q.ListCycleHistories(ctx, userID)
-	if err != nil {
-		return st, fmt.Errorf("profile: cycle histories: %w", err)
-	}
-	if prof != nil {
-		prof.LengthsManual = !st.auto // the same resolution the engine runs (cycle/service Snapshot)
-	}
-	st.metrics = cyclemetrics.Calculate(cycleHistories(rows), prof)
 	if st.prefs, err = notifications.Load(ctx, h.q, userID); err != nil {
 		return st, err
 	}
 	return st, nil
+}
+
+// engineMetrics maps the v6 state onto the response's metrics (T-M9-36): every real period counts (the v1.1 metrics
+// skipped the newest bleeding-log period), the effective lengths follow E-20 (a manual declared length wins), the
+// calculated lengths are the half-up median of the last Params.HistoryWindow valid cycles / periods whatever the
+// switch says, and the manual values are the declared ones as stored.
+func engineMetrics(es *engine.State) cyclemetrics.Metrics {
+	p := es.Params()
+	w := max(p.HistoryWindow, 1)
+	var cyc, per []int
+	cycles := es.Cycles()
+	for i := len(cycles) - 1; i >= 0 && len(cyc) < w; i-- {
+		if cycles[i].Valid {
+			cyc = append(cyc, cycles[i].Length)
+		}
+	}
+	periods := es.Periods()
+	for i := len(periods) - 1; i >= 0 && len(per) < w; i-- {
+		if !periods[i].Open() {
+			if n := int(periods[i].End-periods[i].Start) + 1; n >= p.PeriodMin && n <= p.PeriodMax {
+				per = append(per, n)
+			}
+		}
+	}
+	m := cyclemetrics.Metrics{
+		CalculatedCycleLength:     medianOf(cyc),
+		CalculatedPeriodDuration:  medianOf(per),
+		ValidCyclesCount:          es.ValidCycleCount(),
+		ValidPeriodDurationsCount: es.ValidPeriodCount(),
+	}
+	m.EffectiveCycleLength, _ = es.CycleLength()
+	m.EffectivePeriodDuration, _ = es.PeriodLength()
+	d := es.Declared()
+	if v, ok := d.CycleLength.Get(); ok {
+		m.ProfileCycleLength = &v
+	}
+	if v, ok := d.PeriodLength.Get(); ok {
+		m.ProfilePeriodDuration = &v
+	}
+	return m
+}
+
+// medianOf is the engine's §2.9 median (an even count averages the middle two and rounds half up); nil for none.
+func medianOf(v []int) *int {
+	if len(v) == 0 {
+		return nil
+	}
+	s := slices.Clone(v)
+	slices.Sort(s)
+	mid := len(s) / 2
+	out := s[mid]
+	if len(s)%2 == 0 {
+		out = (s[mid-1] + s[mid] + 1) / 2
+	}
+	return &out
 }
 
 // cycleProfile / cycleHistories map the profile store rows onto the engine's pure inputs (the same casts as
@@ -176,6 +252,14 @@ func cycleHistories(rows []store.CycleHistory) []cyclemodel.History {
 	return out
 }
 
+// pmsCycleDay is the cycle day the PMS window next − pmsDays .. next − 1 starts on (the planner default when unset).
+func pmsCycleDay(cycleLen, pmsDays int) int {
+	if pmsDays <= 0 {
+		return reminders.PMSCycleDay(cycleLen)
+	}
+	return reminders.PMSCycleDayOf(cycleLen, pmsDays)
+}
+
 func intOrNil(p *int) any {
 	if p == nil {
 		return nil
@@ -199,7 +283,7 @@ func CycleSettingsJSON(st cycleState) *jsonx.OrderedMap {
 		case notifications.BeforePeriod:
 			kv = append(kv, "days_before", st.prefs.DaysBeforePeriod())
 		case notifications.PMS:
-			kv = append(kv, "cycle_day", reminders.PMSCycleDay(cycleLen))
+			kv = append(kv, "cycle_day", pmsCycleDay(cycleLen, st.pmsDays))
 		}
 		items = append(items, jsonx.Obj(kv...))
 	}

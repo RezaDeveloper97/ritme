@@ -50,7 +50,7 @@ func init() {
 		h := companion.NewHandlers(d.DB, clock.Real{}, companion.HandlerOptions{
 			Service:  companion.Options{CodePepper: []byte(d.Config.Companion.CodePepper)},
 			SMS:      sender,
-			Reader:   shared.NewReader(d.DB),
+			Reader:   shared.NewReader(d.DB).WithEngine(engineStates(r, d)),
 			Children: children.NewService(d.DB, nil), // spouse shared children: owner's own children only (B-N5-02)
 			Disabled: disabled,
 			Logger:   d.Logger,

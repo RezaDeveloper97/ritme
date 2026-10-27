@@ -100,7 +100,7 @@ func seedRecord(c fiber.Ctx, q *store.Queries, userID, typeID uint64, doneOn civ
 
 // itemOf is the recomputed plan item of a type (null when it is not in the plan).
 func (h *Handlers) itemOf(c fiber.Ctx, userID, typeID uint64, l Lang) (any, error) {
-	p, err := LoadPlan(c, h.db, userID, h.clockOf(c))
+	p, err := LoadPlanWith(c, h.db, userID, h.clockOf(c), h.states)
 	if err != nil {
 		return nil, err
 	}

@@ -10,10 +10,11 @@ import (
 	"github.com/go-sql-driver/mysql"
 
 	"github.com/ritme/backend-go/internal/challenges/store"
+	"github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/cycle/metrics"
 	"github.com/ritme/backend-go/internal/cycle/resolver"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
-	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
+	"github.com/ritme/backend-go/internal/cycle/state"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/configcache"
@@ -42,6 +43,13 @@ type Service struct {
 	db      DB
 	q       *store.Queries
 	catalog *configcache.Cache[catalog]
+	states  state.UserStates // nil = CYCLE_ENGINE=v1
+}
+
+// WithEngine gates phase eligibility on the v6 engine state (T-M9-36, D-136). nil keeps v1.
+func (s *Service) WithEngine(st state.UserStates) *Service {
+	s.states = st
+	return s
 }
 
 // Tables are what the catalog snapshot reads; the admin challenge writers publish them (configcache.Changed).
@@ -96,29 +104,24 @@ func (s *Service) Context(ctx context.Context, userID uint64, today civildate.Da
 	return uc, nil
 }
 
-// phase is the cycle engine's main phase of today ("" when the user has no usable cycle).
+// phase is the cycle engine's main phase of today ("unknown" when the user has no usable cycle). With the v6 state
+// provider (CYCLE_ENGINE ≠ v1, T-M9-36, D-136) the phase is the engine's, so a challenge gate and the home card
+// agree; v1 keeps the legacy resolver.
 func (s *Service) phase(ctx context.Context, userID uint64, today civildate.Date) (string, error) {
-	cq := cyclestore.New(s.db)
-	var profile *cyclestore.UserProfile
-	manual := false
-	p, err := cq.GetEngineProfileByUserID(ctx, userID)
-	switch {
-	case err == nil:
-		profile = &p.UserProfile
-		manual = !p.LengthsAuto
-	case !errors.Is(err, sql.ErrNoRows):
-		return "", fmt.Errorf("challenges: load profile: %w", err)
+	if s.states != nil {
+		es, err := s.states.ForUser(ctx, userID, today)
+		if err != nil {
+			return "", fmt.Errorf("challenges: engine state: %w", err)
+		}
+		d := engine.DayOf(today)
+		return es.Resolve(d, d).MainPhase.String(), nil
 	}
-	rows, err := cq.ListCycleHistoriesNewestFirst(ctx, userID)
+	sn, err := cycleservice.New(s.db, nil).Load(ctx, userID, today, today, today) // the one shared v1 loader
 	if err != nil {
-		return "", fmt.Errorf("challenges: load histories: %w", err)
+		return "", fmt.Errorf("challenges: cycle: %w", err)
 	}
-	histories := cycleservice.HistoriesFromRows(rows)
-	engineProfile := cycleservice.ProfileFromRow(profile)
-	if engineProfile != nil {
-		engineProfile.LengthsManual = manual
-	}
-	st := resolver.Resolve(histories, engineProfile, today, today, metrics.Calculate(histories, engineProfile))
+	profile := sn.EngineProfile()
+	st := resolver.Resolve(sn.Histories, profile, today, today, metrics.Calculate(sn.Histories, profile))
 	return string(st.MainPhase), nil
 }
 

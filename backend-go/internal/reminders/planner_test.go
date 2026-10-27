@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/notifications"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
@@ -21,18 +22,43 @@ func codes(occ []Occurrence) []notifications.Category {
 	return out
 }
 
+// cycleOn is the planner's cycle from a v6 engine state: one real period starting at anchor, the user's own
+// (manual) lengths, today as given.
+func cycleOn(anchor string, cycleLen, periodLen int, today string, mutate ...func(*engine.Input)) Cycle {
+	start := engine.DayOf(d(anchor))
+	in := engine.Input{
+		Periods:  []engine.Period{{Start: start, End: start + engine.Day(periodLen-1)}},
+		Declared: engine.Declared{CycleLength: engine.Some(cycleLen), PeriodLength: engine.Some(periodLen), Manual: true},
+	}
+	for _, m := range mutate {
+		m(&in)
+	}
+	return CycleFrom(engine.Prepare(in, engine.DefaultParams()), d(today))
+}
+
 func TestCycleFrom_ProjectsToUpcomingDates(t *testing.T) {
-	// 29-day cycle anchored 2026-09-01: next period 09-30, PMS 09-27, ovulation 09-16 → window 09-11.
-	c := CycleFrom(d("2026-09-01"), 29, 5, d("2026-09-05"))
+	// 29-day cycle anchored 2026-09-01: next period 09-30, PMS 09-27 (next − 3), ovulation 09-16 → window 09-11.
+	c := cycleOn("2026-09-01", 29, 5, "2026-09-05")
 	assert.Equal(t, d("2026-09-30"), c.NextPeriodStart)
 	assert.Equal(t, d("2026-09-27"), c.PMSStart)
 	assert.Equal(t, d("2026-09-11"), c.FertileWindowStart)
+	assert.Equal(t, 29, c.CycleLength)
 
 	// After this cycle's window, the next window is planned.
-	c = CycleFrom(d("2026-09-01"), 29, 5, d("2026-09-20"))
+	c = cycleOn("2026-09-01", 29, 5, "2026-09-20")
 	assert.Equal(t, d("2026-10-10"), c.FertileWindowStart)
 
-	assert.Equal(t, Cycle{}, CycleFrom(civildate.Date{}, 29, 5, d("2026-09-20")))
+	// 15 days late: the engine's display chain starts after today (E-04) or is empty past the cap, never the past.
+	c = cycleOn("2026-09-01", 29, 5, "2026-10-15")
+	assert.True(t, c.NextPeriodStart.IsZero() || c.NextPeriodStart.After(d("2026-10-15")))
+
+	assert.Equal(t, Cycle{}, CycleFrom(engine.Prepare(engine.Input{}, engine.DefaultParams()), d("2026-09-20")))
+}
+
+func TestCycleFrom_HormonalHasNoFertileWindow(t *testing.T) {
+	c := cycleOn("2026-09-01", 29, 5, "2026-09-05", func(in *engine.Input) { in.Hormonal = true })
+	assert.Equal(t, d("2026-09-30"), c.NextPeriodStart)
+	assert.True(t, c.FertileWindowStart.IsZero(), "E-13: no fertile dates under hormonal contraception")
 }
 
 func TestPMSCycleDay(t *testing.T) {
@@ -42,7 +68,7 @@ func TestPMSCycleDay(t *testing.T) {
 }
 
 func TestPlan_HonoursSwitchesTimesAndDaysBefore(t *testing.T) {
-	c := CycleFrom(d("2026-09-01"), 29, 5, d("2026-09-05"))
+	c := cycleOn("2026-09-01", 29, 5, "2026-09-05")
 	p := notifications.Defaults()
 
 	// Default: before-period fires 2 days before (09-28) at 09:00; daily log every day; pill is opt-in.

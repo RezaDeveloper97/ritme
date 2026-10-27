@@ -16,7 +16,7 @@ func init() {
 	Register("checkups", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
-		h := checkups.NewHandlers(d.DB, clock.Real{})
+		h := checkups.NewHandlers(d.DB, clock.Real{}).WithEngine(engineStates(r, d))
 		writes := writeThrottle(d) // per-user write limit (security audit M3-M7 #5)
 
 		r.Get("/api/v1/checkups", locale, guard, h.List)

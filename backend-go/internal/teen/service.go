@@ -12,9 +12,11 @@ import (
 
 	"github.com/ritme/backend-go/internal/catalog"
 	"github.com/ritme/backend-go/internal/companion"
+	"github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/cycle/metrics"
 	"github.com/ritme/backend-go/internal/cycle/resolver"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
+	"github.com/ritme/backend-go/internal/cycle/state"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
@@ -33,6 +35,13 @@ type Service struct {
 	q       *store.Queries
 	catalog CatalogSource
 	cycle   *cycleservice.Service
+	states  state.UserStates // nil = CYCLE_ENGINE=v1: the week bucket keeps the v1.1 resolver
+}
+
+// WithEngine feeds the parent card's week bucket from the v6 engine (T-M9-36, D-136). nil keeps v1.
+func (s *Service) WithEngine(st state.UserStates) *Service {
+	s.states = st
+	return s
 }
 
 // NewService returns a Service on conn (a *sql.DB).
@@ -249,6 +258,9 @@ func (s *Service) NextPeriodWeek(ctx context.Context, userID uint64, p *Profile,
 	if p == nil || p.Menarche == MenarcheNotYet {
 		return WeekUnknown, nil
 	}
+	if s.states != nil {
+		return s.nextPeriodWeekV6(ctx, userID, today)
+	}
 	sn, err := s.cycle.Load(ctx, userID, today, today, today)
 	if err != nil {
 		return "", fmt.Errorf("teen: cycle: %w", err)
@@ -259,6 +271,25 @@ func (s *Service) NextPeriodWeek(ctx context.Context, userID uint64, p *Profile,
 	profile := sn.EngineProfile()
 	st := resolver.Resolve(sn.Histories, profile, today, today, metrics.Calculate(sn.Histories, profile))
 	return WeekBucket(st.PredictedNextPeriodStart, st.EffectiveCycleLength, today), nil
+}
+
+// nextPeriodWeekV6 buckets the v6 predicted_next_period_start. The deliberate lateness hiding stays in WeekBucket: an
+// overdue prediction is never shown as such (only the date and the cycle length leave the engine, never days_late).
+func (s *Service) nextPeriodWeekV6(ctx context.Context, userID uint64, today civildate.Date) (PeriodWeek, error) {
+	es, err := s.states.ForUser(ctx, userID, today)
+	if err != nil {
+		return "", fmt.Errorf("teen: cycle: %w", err)
+	}
+	if d := es.Declared(); len(es.Periods()) == 0 && !d.LastPeriodStart.OK() && !d.CycleLength.OK() && !d.PeriodLength.OK() {
+		return WeekUnknown, nil
+	}
+	day := engine.DayOf(today)
+	st := es.Resolve(day, day)
+	var next civildate.Date
+	if n := st.Anchors.PredictedNextPeriodStart; n.IsSet() {
+		next = n.Civil()
+	}
+	return WeekBucket(next, st.Metrics.EffectiveCycleLength, today), nil
 }
 
 // OverdueGraceDays is how long an overdue prediction may still show as «this week» (an ordinary few-days variation).
@@ -313,8 +344,7 @@ type Today struct {
 
 // Today builds the teen home for userID.
 func (s *Service) Today(ctx context.Context, userID uint64, clk clock.Clock) (Today, error) {
-	now := clk.Now()
-	today := civildate.InTehran(now)
+	today := civildate.LocalToday(ctx, clk)
 	p, err := s.Profile(ctx, userID)
 	if err != nil {
 		return Today{}, err
@@ -381,7 +411,7 @@ func (s *Service) ParentCards(ctx context.Context, viewerID uint64, clk clock.Cl
 	if err != nil {
 		return nil, err
 	}
-	today := civildate.InTehran(clk.Now())
+	today := civildate.LocalToday(ctx, clk)
 	cards := []ParentCard{}
 	ownerIDs := []uint64{}
 	for _, l := range links {

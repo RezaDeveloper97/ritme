@@ -22,7 +22,7 @@ func init() {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		cat := catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger)
-		h := teen.NewHandlers(teen.NewService(d.DB, cat), clock.Real{})
+		h := teen.NewHandlers(teen.NewService(d.DB, cat).WithEngine(engineStates(r, d)), clock.Real{})
 		writes := writeThrottle(d)
 
 		r.Get("/api/v1/teen/profile", locale, guard, h.ShowProfile)

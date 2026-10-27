@@ -43,6 +43,11 @@ func (h *Handlers) now(c fiber.Ctx) time.Time {
 	return clock.FromContext(c, h.clock).Now().In(civildate.Tehran).Truncate(time.Second)
 }
 
+// today is the user-local calendar day of the request (T-M9-26).
+func (h *Handlers) today(c fiber.Ctx) civildate.Date {
+	return civildate.LocalToday(c.Context(), clock.FromContext(c, h.clock))
+}
+
 func user(c fiber.Ctx) (uint64, error) {
 	id, ok := auth.CurrentUserID(c)
 	if !ok {
@@ -154,7 +159,7 @@ func (h *Handlers) Index(c fiber.Ctx) error {
 		return err
 	}
 	locale, def := i18n.Locale(c), i18n.LanguagesOf(c).DefaultCode()
-	items, err := h.svc.List(c.Context(), userID, civildate.InTehran(h.now(c)))
+	items, err := h.svc.List(c.Context(), userID, h.today(c))
 	if err != nil {
 		return err
 	}
@@ -177,7 +182,7 @@ func (h *Handlers) Join(c fiber.Ctx) error {
 		return fail(ErrNotFound, locale)
 	}
 	now := h.now(c)
-	it, created, err := h.svc.Join(c.Context(), userID, id, civildate.InTehran(now), now)
+	it, created, err := h.svc.Join(c.Context(), userID, id, h.today(c), now)
 	if err != nil {
 		return fail(err, locale)
 	}
@@ -213,7 +218,7 @@ func (h *Handlers) CompleteTask(c fiber.Ctx) error {
 		n, _ := strconv.Atoi(phpval.ToString(raw))
 		day = &n
 	}
-	res, err := h.svc.CompleteTask(c.Context(), userID, id, taskID, day, civildate.InTehran(now), now)
+	res, err := h.svc.CompleteTask(c.Context(), userID, id, taskID, day, h.today(c), now)
 	if err != nil {
 		return fail(err, locale)
 	}

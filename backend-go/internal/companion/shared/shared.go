@@ -29,12 +29,16 @@ import (
 	"github.com/ritme/backend-go/internal/care"
 	carestore "github.com/ritme/backend-go/internal/care/store"
 	"github.com/ritme/backend-go/internal/companion"
+	"github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/cycle/metrics"
 	"github.com/ritme/backend-go/internal/cycle/resolver"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
+	"github.com/ritme/backend-go/internal/cycle/state"
+	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/healthlog/taxonomy"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/pregnancy"
 	"github.com/ritme/backend-go/internal/pregnancy/calc"
@@ -59,6 +63,13 @@ type Reader struct {
 	healthlg *healthlog.Service
 	care     *carestore.Queries
 	preg     *pregstore.Queries
+	states   state.UserStates // nil = CYCLE_ENGINE=v1: the cycle view keeps the v1.1 resolver
+}
+
+// WithEngine serves the cycle view from the v6 engine state of the owner (T-M9-36, D-136). nil keeps v1.
+func (r *Reader) WithEngine(s state.UserStates) *Reader {
+	r.states = s
+	return r
 }
 
 // NewReader returns a Reader on db.
@@ -81,7 +92,7 @@ func (r *Reader) Read(ctx context.Context, ownerID uint64, section companion.Sec
 // the link's grants decide whether pregnancy-derived signals may show in the cycle and symptoms views.
 func (r *Reader) ReadFor(ctx context.Context, link companion.Link, section companion.Section, locale string, now time.Time) (any, error) {
 	ownerID := link.OwnerID
-	today := civildate.InTehran(now)
+	today := civildate.LocalToday(ctx, clock.At(now))
 	switch section {
 	case companion.SectionCycle:
 		scope, err := r.scope(ctx, link)
@@ -114,6 +125,9 @@ func (r *Reader) cycleView(ctx context.Context, ownerID uint64, today civildate.
 	if scope.neutralCycle() {
 		return neutralCycle(today), nil
 	}
+	if r.states != nil {
+		return r.cycleViewV6(ctx, ownerID, today)
+	}
 	sn, err := r.cycle.Load(ctx, ownerID, today, today, today)
 	if err != nil {
 		return nil, err
@@ -141,6 +155,49 @@ func (r *Reader) cycleView(ctx context.Context, ownerID uint64, today civildate.
 		"days_to_period", daysToPeriod,
 		"predicted_next_period_start", nextStart,
 		"confidence", st.Confidence,
+	), nil
+}
+
+// cycleViewV6 is the same subset from the v6 engine (T-M9-36, D-136; the keys and their meaning are unchanged, nothing
+// is added). The lateness rule of T-M9-02 holds: a late owner (days_late ≥ 1) gets no cycle day, days_to_period or
+// prediction. Fertility suppression (limits, E-24: hormonal contraception, pregnancy, postpartum) maps the fertile
+// phase away exactly like a mode without fertility copy, and the flag itself is never passed on.
+func (r *Reader) cycleViewV6(ctx context.Context, ownerID uint64, today civildate.Date) (any, error) {
+	es, err := r.states.ForUser(ctx, ownerID, today)
+	if err != nil {
+		return nil, err
+	}
+	d := engine.DayOf(today)
+	st := es.Resolve(d, d)
+	decl := es.Declared()
+	hasData := len(es.Periods()) > 0 || decl.LastPeriodStart.OK() || decl.CycleLength.OK() || decl.PeriodLength.OK()
+
+	var cycleLength, nextStart, cycleDay, daysToPeriod any
+	if st.Metrics.EffectiveCycleLength > 0 {
+		cycleLength = st.Metrics.EffectiveCycleLength
+	}
+	if st.Anchors.PredictedNextPeriodStart.IsSet() {
+		nextStart = st.Anchors.PredictedNextPeriodStart.Civil()
+	}
+	if v, ok := st.CycleDay.Get(); ok {
+		cycleDay = v
+	}
+	if v, ok := st.DaysToPeriod.Get(); ok {
+		daysToPeriod = v
+	}
+	if st.DaysLate.Or(0) > 0 { // lateness is a pregnancy signal, never a member's business (T-M9-02, FAM-M1)
+		cycleDay, daysToPeriod, nextStart = nil, nil, nil
+	}
+	phase := enums.MainPhase(st.MainPhase.String())
+	return jsonx.Obj(
+		"date", today,
+		"has_data", hasData,
+		"cycle_day", cycleDay,
+		"cycle_length", cycleLength,
+		"main_phase", sharedPhase(phase, es.Mode() == engine.ModeTeen || st.Limits.FertilitySuppressed),
+		"days_to_period", daysToPeriod,
+		"predicted_next_period_start", nextStart,
+		"confidence", st.Confidence.String(),
 	), nil
 }
 

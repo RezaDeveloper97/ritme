@@ -2170,3 +2170,53 @@ Nothing needed fixing.
   ovulation/fertile dates in `anchors`, `predictions` and `future_cycles[]` (fertility suppressed).
 - Open: frontend nullable fields (T-M9-40); `/cycle/month` (T-M9-33), `/home` (T-M9-34); stage switch to `shadow`
   then `v6` is a deploy step (T-M9-48).
+
+## T-M9-36 — Small consumers A on the engine: companion, teen, checkups, cycle settings, challenges
+- Shipped (D-136): companion, teen, checkups, cycle settings, challenges and the reminders planner read the v6 engine
+  under `CYCLE_ENGINE=shadow|v6`; v1 unchanged (contract companion/companion-home/teen/cycle-settings 62/0/0).
+- New shared provider: `state.UserStates` / `state.Source` (`ForUser(ctx, uid, today)`, reads `user_revisions` for the
+  user it serves — companion/parent cards read other users) and `engineStates(r, d)` in `internal/http/engine_source.go`
+  (nil under v1). Each consumer has `WithEngine(...)`.
+- Companion: phase from engine status, cap from `Params`, same eight keys as v1 (pinned by a test), lateness nulls
+  `cycle_day`/`days_to_period`/next date. `fertility_suppressed` is only used to map fertile → follicular and is never
+  emitted (partners can't infer contraception/pregnancy).
+- Checkups: `LoadPlanWith(..., states)`, projections from `FutureCycles`. Reminders: `CycleFrom(*engine.State, today)`
+  on `FutureCycles` + `Params.PMSDays`. Challenges: shared `cycleservice.Load` replaces the duplicated loader.
+- Edits outside touches (wiring): `internal/cycle/state/source.go` (+ int test), `internal/http/engine_source.go`,
+  one-line `.WithEngine` in six `routes_*.go`.
+- Open: menopause still calls `checkups.LoadPlan` (v1); `LocalToday` now applies in v1 mode too (challenges, checkups,
+  teen); companion uses the partner's zone for the owner's day (decision pending); two L1 state caches under v6
+  (routes_cycle + engineStates) to merge later; no dedicated "pregnant, no stored life_mode" fixture.
+
+## T-M9-33 — /cycle/month on the v6 Range: lateness, future cycles, assumed ranges
+- Shipped (D-121): `/cycle/month` under `shadow|v6` is built from one `State.Range(first, last, LocalToday)`
+  (`internal/cycle/service/month.go`); legacy keys via `calculationV6`; new day fields `main_phase`, `fertility_level`,
+  `is_predicted`, `is_period`, `period_kind` (logged|assumed|predicted|null), `days_to_period`, `days_late`; month
+  `future_cycles` (k ≤ 6) and `limits`; ETag (`MonthTag`, per month+view) / 304. v1 byte-identical
+  (contract cycle,cycle-sweep 227/0).
+- Shadow: `ClassifyMonthDay` into `engine_shadow_month_diff_total{class}` and `engine_shadow_month_jobs_total{result}`
+  (Prometheus only — not in the Redis samples / `engine-shadow-report`).
+- Goldens: `contract/golden-v6/cycle-month/` (19 files), rewritten by
+  `UPDATE_GOLDEN_V6=1 make test-int PKG=./internal/cycle/service/...` (not under `make contract-v6` yet).
+- Budgets: warm 1 query, warm p95 ~1.4 ms, cold-after-write p95 2.5 ms (≤ 5 queries), cold process 8 queries.
+- v6 nulls per month day: `final_probability`, `is_luteal_spotting`, scores, `uncertainty_range`, `text_flags`,
+  `source_*`; unknown days also null `phase`/`subphase`/`cycle_day` (T-M9-40/45).
+- Outside touches: `internal/cycle/service/handlers.go` (`Month()` v6 branch + shadow submit).
+- Open (product question): open-period `menstrual_possible` days up to the hard cap (day 12) are `assumed` +
+  `is_period=true` — should the calendar colour them? `onboarding_declared` fixture persona has no anchor in v6.
+
+## T-M9-37 — Small consumers B on the engine: todo, shop, labs, conditions, search, nudges
+- Shipped (D-136, I-10): todo, shop checklist, labs, conditions (PMDD/PBAC), condition nudges, search and the
+  luteal-spotting warning read v6 via `engineStates` (T-M9-36) under `shadow|v6`; v1 unchanged
+  (contract todo,shop-checklist,labs,conditions,search 95/0).
+- Shop reminder stores `meta.engine_rev` and re-syncs when the revision moves (query `UpdateSupplyCareReminder` now
+  writes `meta`). Labs store the phase of the lab date with `context.phase_on`; prompt key
+  `approximate_cycle_phase_on_lab_date`. PMDD/PBAC use the engine's actual periods; current cycle ends at
+  predicted_next − 1 (skips respected). Nudges/search: no current-cycle window without anchor/prediction or > 14 days late.
+  `todo_suggestion_events.ref_date` unchanged.
+- Outside touches: `db/queries/shop/checklist.sql` + `internal/shop/store`, `labs/interpret.go`,
+  `healthlog/service.go`, route wiring in six `routes_*.go`.
+- Open: `labs.phaseOn` kept on the v1 path (remove in T-M9-51); `PUT /fertility/days` still uses the v1 spotting rule
+  (fertility's `saveHealthLog` not wired — T-M9-35); nudges under v6 lose the 28-day fallback for users with no anchor;
+  shop stored-row shortcut keys on `engine_rev` only; `currentCycleStart` (search) and `EngineCycleWindow` (nudges) are
+  near-duplicates.

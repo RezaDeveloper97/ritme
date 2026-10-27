@@ -1,6 +1,7 @@
 package engine
 
 import (
+	cycleengine "github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/cycle/metrics"
 	"github.com/ritme/backend-go/internal/cycle/model"
 	"github.com/ritme/backend-go/internal/cycle/resolver"
@@ -10,9 +11,14 @@ import (
 // Cycle is the cycle prediction the engine places cycle-timed checkups on: a known period start
 // and the effective cycle length. Predicted starts are Start + k·Length for every integer k.
 // The zero value means "no cycle data" (monthly fallback).
+//
+// Future (v6 engine, T-M9-36) are the engine's own display chain: the period starts of State.FutureCycles after Start,
+// ascending. When set they are the predicted starts after Start (a late cycle's next start is then never in the past);
+// beyond the last one, and before Start, the rule Start + k·Length applies.
 type Cycle struct {
 	Start  civildate.Date
 	Length int
+	Future []civildate.Date
 }
 
 // Known reports whether the prediction is usable.
@@ -32,8 +38,47 @@ func CycleFromHistory(histories []model.History, profile *model.Profile, now civ
 	return Cycle{Start: st.CurrentPeriodStart, Length: max(1, st.EffectiveCycleLength)}
 }
 
+// CycleFromEngine derives the prediction from the v6 engine state (D-136): the current period start and the effective
+// cycle length (E-20: a manual declared length wins) of today, and the FutureCycles chain as projections. No resolvable
+// anchor → the zero Cycle.
+func CycleFromEngine(es *cycleengine.State, today civildate.Date) Cycle {
+	day := cycleengine.DayOf(today)
+	st := es.Resolve(day, day)
+	start := st.Anchors.CurrentPeriodStart
+	if !start.IsSet() {
+		return Cycle{}
+	}
+	c := Cycle{Start: start.Civil(), Length: max(1, st.Metrics.EffectiveCycleLength)}
+	for _, f := range es.FutureCycles(day) {
+		if f.PeriodStart > start {
+			c.Future = append(c.Future, f.PeriodStart.Civil())
+		}
+	}
+	return c
+}
+
+// startAfter is the predicted cycle start following the cycle that starts at s.
+func (c Cycle) startAfter(s civildate.Date) civildate.Date {
+	for _, f := range c.Future {
+		if f.After(s) {
+			return f
+		}
+	}
+	return s.AddDays(c.Length)
+}
+
 // startOnOrBefore is the predicted cycle start on or before d.
 func (c Cycle) startOnOrBefore(d civildate.Date) civildate.Date {
+	if len(c.Future) > 0 && !d.Before(c.Start) {
+		last := c.Start
+		for _, f := range c.Future {
+			if f.After(d) {
+				return last
+			}
+			last = f
+		}
+		return last.AddDays(last.DiffDays(d) / c.Length * c.Length)
+	}
 	diff := c.Start.DiffDays(d)
 	k := diff / c.Length
 	if diff%c.Length < 0 {
@@ -59,7 +104,7 @@ func windowAfter(t Type, c Cycle, doneOn civildate.Date) (window, bool) {
 	if !placesOnCycle(t, c) {
 		return window{}, false
 	}
-	return t.windowOf(c.startOnOrBefore(doneOn).AddDays(c.Length)), true
+	return t.windowOf(c.startAfter(c.startOnOrBefore(doneOn))), true
 }
 
 // upcomingWindow is the current cycle's window while it has not ended, else the next cycle's.
@@ -69,7 +114,7 @@ func upcomingWindow(t Type, c Cycle, today civildate.Date) (window, bool) {
 	}
 	w := t.windowOf(c.startOnOrBefore(today))
 	if today.After(w.to) {
-		w = t.windowOf(c.startOnOrBefore(today).AddDays(c.Length))
+		w = t.windowOf(c.startAfter(c.startOnOrBefore(today)))
 	}
 	return w, true
 }

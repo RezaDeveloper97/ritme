@@ -16,6 +16,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/checkups/engine"
 	"github.com/ritme/backend-go/internal/checkups/store"
+	"github.com/ritme/backend-go/internal/cycle/state"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
@@ -37,6 +38,14 @@ type Handlers struct {
 	db    DB
 	q     *store.Queries
 	clock clock.Clock
+	// states feeds the cycle prediction from the v6 engine (CYCLE_ENGINE ≠ v1, T-M9-36); nil = v1.1.
+	states state.UserStates
+}
+
+// WithEngine reads the cycle prediction from the v6 engine state. nil keeps v1.
+func (h *Handlers) WithEngine(s state.UserStates) *Handlers {
+	h.states = s
+	return h
 }
 
 // NewHandlers wires the handlers; base is the fallback clock (tests pin it per request).
@@ -92,7 +101,7 @@ func (h *Handlers) List(c fiber.Ctx) error {
 	if s := str(query, "filter"); s != nil {
 		filter = *s
 	}
-	p, err := LoadPlan(c, h.db, userID, h.clockOf(c))
+	p, err := LoadPlanWith(c, h.db, userID, h.clockOf(c), h.states)
 	if err != nil {
 		return err
 	}
@@ -134,7 +143,7 @@ func (h *Handlers) Home(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	p, err := LoadPlan(c, h.db, userID, h.clockOf(c))
+	p, err := LoadPlanWith(c, h.db, userID, h.clockOf(c), h.states)
 	if err != nil {
 		return err
 	}
@@ -184,7 +193,7 @@ func (h *Handlers) Show(c fiber.Ctx) error {
 	if !ok {
 		return notFound(c, "checkup_not_found")
 	}
-	p, err := LoadPlan(c, h.db, userID, h.clockOf(c))
+	p, err := LoadPlanWith(c, h.db, userID, h.clockOf(c), h.states)
 	if err != nil {
 		return err
 	}
@@ -289,7 +298,7 @@ func (h *Handlers) StoreRecord(c fiber.Ctx) error {
 	if t.Informational {
 		return readOnly(l)
 	}
-	p, err := LoadPlan(c, h.db, userID, h.clockOf(c))
+	p, err := LoadPlanWith(c, h.db, userID, h.clockOf(c), h.states)
 	if err != nil {
 		return err
 	}
@@ -323,7 +332,7 @@ func (h *Handlers) recordResult(c fiber.Ctx, userID, recordID uint64, l Lang) (*
 	if err != nil {
 		return nil, fmt.Errorf("checkups: reload record: %w", err)
 	}
-	p, err := LoadPlan(c, h.db, userID, h.clockOf(c))
+	p, err := LoadPlanWith(c, h.db, userID, h.clockOf(c), h.states)
 	if err != nil {
 		return nil, err
 	}
@@ -516,7 +525,7 @@ func (h *Handlers) PreviewNext(c fiber.Ctx) error {
 		return err
 	}
 	typeID, _ := parseID(*str(query, "type"))
-	p, err := LoadPlan(c, h.db, userID, h.clockOf(c))
+	p, err := LoadPlanWith(c, h.db, userID, h.clockOf(c), h.states)
 	if err != nil {
 		return err
 	}

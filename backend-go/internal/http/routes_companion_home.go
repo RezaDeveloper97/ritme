@@ -22,7 +22,7 @@ func init() {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		h := companionhome.NewHandlers(d.DB, clock.Real{}, companionhome.Options{
-			Reader: shared.NewReader(d.DB),
+			Reader: shared.NewReader(d.DB).WithEngine(engineStates(r, d)),
 			AppURL: d.Config.App.URL,
 			Logger: d.Logger,
 			// shared children card (bloom B-N5-02)

@@ -10,6 +10,7 @@ import (
 	"github.com/ritme/backend-go/internal/checkups/engine"
 	"github.com/ritme/backend-go/internal/checkups/store"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
+	"github.com/ritme/backend-go/internal/cycle/state"
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -37,14 +38,16 @@ type Plan struct {
 // the catalog for her life mode (CB-MENO-01b audiences) joined with the user's settings and latest
 // record per type.
 func LoadPlan(ctx context.Context, db store.DBTX, userID uint64, now civildate.Nower) (*Plan, error) {
+	return LoadPlanWith(ctx, db, userID, now, nil)
+}
+
+// LoadPlanWith is LoadPlan with the cycle prediction from the v6 engine state of the user (CYCLE_ENGINE ≠ v1,
+// T-M9-36, D-136): manual lengths are honoured and the projections are State.FutureCycles. states nil = v1.1.
+func LoadPlanWith(ctx context.Context, db store.DBTX, userID uint64, now civildate.Nower, states state.UserStates) (*Plan, error) {
 	q := store.New(db)
 	uc, err := q.GetCheckupUserContext(ctx, userID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("checkups: load profile: %w", err)
-	}
-	histories, err := cyclestore.New(db).ListCycleHistoriesNewestFirst(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("checkups: load cycle history: %w", err)
 	}
 	mode := lifeModeOf(uc)
 	rows, err := q.ListCheckupPlanRows(ctx, store.ListCheckupPlanRowsParams{UserID: int64(userID), LifeMode: string(mode)}) //nolint:gosec // ids fit int64
@@ -57,6 +60,7 @@ func LoadPlan(ctx context.Context, db store.DBTX, userID uint64, now civildate.N
 		Records:  []engine.Record{},
 		Settings: []engine.Setting{},
 		Pregnant: uc.Pregnant != 0,
+		Today:    civildate.LocalToday(ctx, now),
 	}
 	if uc.Birthday.Valid {
 		in.Birthday = uc.Birthday.Date
@@ -69,12 +73,27 @@ func LoadPlan(ctx context.Context, db store.DBTX, userID uint64, now civildate.N
 			CycleDuration: uc.CycleDuration, PeriodDuration: uc.PeriodDuration, UserGoal: uc.UserGoal.String,
 		}
 	}
-	if mode.TracksCycle() { // B-N2-11b: menopause has no cycle to place a window on — interval scheduling only
-		in.Cycle = engine.CycleFromHistory(cycleservice.HistoriesFromRows(histories), cycleservice.ProfileFromRow(profile), now)
+	switch {
+	case states != nil:
+		if mode.TracksCycle() { // B-N2-11b: menopause has no cycle to place a window on — interval scheduling only
+			es, err := states.ForUser(ctx, userID, in.Today)
+			if err != nil {
+				return nil, fmt.Errorf("checkups: engine state: %w", err)
+			}
+			in.Cycle = engine.CycleFromEngine(es, in.Today)
+		}
+	default: // v1.1: the history is read for every mode (the three-query home budget)
+		histories, err := cyclestore.New(db).ListCycleHistoriesNewestFirst(ctx, userID)
+		if err != nil {
+			return nil, fmt.Errorf("checkups: load cycle history: %w", err)
+		}
+		if mode.TracksCycle() {
+			in.Cycle = engine.CycleFromHistory(cycleservice.HistoriesFromRows(histories), cycleservice.ProfileFromRow(profile), now)
+		}
 	}
 
 	p := &Plan{
-		Today:    civildate.Today(now),
+		Today:    in.Today,
 		LifeMode: mode,
 		now:      now,
 		Rows:     make(map[uint64]store.CheckupType, len(rows)),

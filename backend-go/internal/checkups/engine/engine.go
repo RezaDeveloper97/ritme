@@ -158,6 +158,9 @@ type Input struct {
 	BMI float64
 	// Cycle is the cycle prediction (see CycleFromHistory); the zero value means no cycle data.
 	Cycle Cycle
+	// Today is the user-local day the plan is evaluated on (civildate.LocalToday); the zero Date means the Tehran day of
+	// the clock.
+	Today civildate.Date
 }
 
 // Item is the evaluated state of one checkup.
@@ -227,7 +230,10 @@ func EvaluateType(t Type, in Input, now civildate.Nower) (Item, bool) {
 }
 
 func evaluate(in Input, now civildate.Nower, keepAll bool) Result {
-	today := civildate.Today(now)
+	today := in.Today
+	if today.IsZero() {
+		today = civildate.Today(now)
+	}
 	res := Result{Items: []Item{}}
 	var age int
 	if !in.Birthday.IsZero() {
