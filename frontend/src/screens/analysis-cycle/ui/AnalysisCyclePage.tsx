@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { useCycleToday } from '@/entities/cycle';
 import { REPORT_DEFAULT_RANGE, REPORT_RANGES, useCycleReport } from '@/entities/analysis';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber, fromApiDate, monthName, toParts } from '@/shared/lib/date';
@@ -12,6 +13,7 @@ import { EmptyState, InfoNote, PrimaryButton, type Tone } from '@/shared/ui';
 import { BottomNav, useNavMode } from '@/widgets/bottom-nav';
 import { ChartCard, ColumnChart, CycleDots, PhaseBar, ReportFrame, StatTiles, type StatTile } from '@/widgets/charts';
 
+import { flagHintKind } from '../model/flag-hint';
 import { chronological, cycleVerdict, dayLayout, excludedCycles, MIN_CYCLES, periodVerdict, variationVerdict, type Verdict } from '../model/cycle';
 
 type Range = (typeof REPORT_RANGES.cycle)[number];
@@ -33,6 +35,7 @@ export function AnalysisCyclePage() {
   const [range, setRange] = useState<Range>(REPORT_DEFAULT_RANGE.cycle);
   const query = useCycleReport(range);
   const r = query.data;
+  const hint = flagHintKind(useCycleToday().data?.cycleView?.clinicalFlags);
   const num = (n: number) => formatNumber(n, loc);
   const month = (iso: string) => monthName(toParts(fromApiDate(iso), loc).month, loc);
   const abbr = Number(tA('hub.cycle.monthAbbrLength')) || 3;
@@ -187,6 +190,11 @@ export function AnalysisCyclePage() {
             </ChartCard>
           ) : null}
 
+          {hint ? (
+            <InfoNote>
+              <strong>{t('cycle.flagHint.title')}</strong> {t(`cycle.flagHint.${hint}`)}
+            </InfoNote>
+          ) : null}
           <InfoNote>{figo.applies ? t('cycle.figo') : t('cycle.figoNotApplied')}</InfoNote>
         </>
       );

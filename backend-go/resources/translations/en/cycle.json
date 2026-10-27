@@ -30,6 +30,13 @@
     "title": "Body mass index (BMI)"
   },
   "back": "Back",
+  "flagHint": {
+    "title": "Worth mentioning to your doctor",
+    "frequent": "Your recent cycles have been shorter than the usual range. If you have questions, ask your doctor or midwife at your next visit.",
+    "infrequent": "Your recent cycles have been longer than the usual range. If you have questions, ask your doctor or midwife at your next visit.",
+    "prolonged": "Your recent periods have lasted longer than usual. If you have questions, ask your doctor or midwife at your next visit.",
+    "absent": "No period has been logged for a while. If you have questions, ask your doctor or midwife at your next visit."
+  },
   "loading": "Loading",
   "retry": "Try again",
   "history": {

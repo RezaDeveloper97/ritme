@@ -46,6 +46,18 @@ describe('heat strips', () => {
 
 describe('typicalBands', () => {
   it('derives the bands of a 28-day cycle', () => {
-    expect(typicalBands(28, 5, 14)).toEqual({ period: [1, 5], fertile: [9, 15], ovulation: 14, pms: [24, 28] });
+    expect(typicalBands(28, 5, 14)).toEqual({ period: [1, 5], fertile: [9, 14], ovulation: 14, pms: [26, 28] });
+  });
+
+  // SPEC §2.36: O = L − 14, fertile = O−5 … O (never O+1), PMS = last 3 days.
+  it.each([
+    { L: 21, O: 7, fertile: [2, 7], pms: [19, 21] },
+    { L: 28, O: 14, fertile: [9, 14], pms: [26, 28] },
+    { L: 35, O: 21, fertile: [16, 21], pms: [33, 35] },
+  ])('matches the §2.36 table for a $L-day cycle', ({ L, O, fertile, pms }) => {
+    const b = typicalBands(L, 5, O);
+    expect(b.fertile).toEqual(fertile);
+    expect(b.pms).toEqual(pms);
+    expect(b.ovulation).toBe(O);
   });
 });

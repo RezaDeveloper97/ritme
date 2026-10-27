@@ -30,8 +30,8 @@
     "cycle": {
       "regular": "Your cycles are regular (variation {days} days).",
       "irregular": "Your cycle length varied by {days} days, more than the regular range (≤{limit} days).",
-      "frequent": "Your median cycle is {days} days, shorter than the normal range ({min}–{max}).",
-      "infrequent": "Your median cycle is {days} days, longer than the normal range ({min}–{max})."
+      "frequent": "Your median cycle is {days} days, shorter than the usual range ({min}–{max}).",
+      "infrequent": "Your median cycle is {days} days, longer than the usual range ({min}–{max})."
     },
     "period": {
       "prolonged": "Your median period is {days} days; talk to a doctor about periods longer than {max} days."
@@ -246,6 +246,13 @@
     "days": "{n} days",
     "none": "—",
     "cycle": {
+      "flagHint": {
+        "title": "Worth mentioning to your doctor",
+        "frequent": "Your recent cycles have been shorter than the usual range. If you have questions, ask your doctor or midwife at your next visit.",
+        "infrequent": "Your recent cycles have been longer than the usual range. If you have questions, ask your doctor or midwife at your next visit.",
+        "prolonged": "Your recent periods have lasted longer than usual. If you have questions, ask your doctor or midwife at your next visit.",
+        "absent": "No period has been logged for a while. If you have questions, ask your doctor or midwife at your next visit."
+      },
       "title": "Cycle analysis",
       "sub": "Last {n} cycles",
       "tilesLabel": "Cycle summary",
@@ -255,10 +262,10 @@
         "variation": "Variation"
       },
       "verdict": {
-        "normal": "Normal ({min}–{max})",
+        "normal": "In the usual range ({min}–{max})",
         "frequent": "Shorter than range ({min}–{max})",
         "infrequent": "Longer than range ({min}–{max})",
-        "periodNormal": "Normal (≤{max})",
+        "periodNormal": "In the usual range (≤{max})",
         "prolonged": "Over {max} days",
         "regular": "Regular (≤{max})",
         "irregular": "Irregular (over {max})",
@@ -301,7 +308,7 @@
         "spotting": "Spotting"
       },
       "verdict": {
-        "normal": "Normal (≤{max})",
+        "normal": "In the usual range (≤{max})",
         "prolonged": "Over {max} days"
       },
       "peakSub": "Heaviest",

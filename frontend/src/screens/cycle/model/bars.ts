@@ -68,13 +68,17 @@ export interface TypicalBands {
   pms: [number, number];
 }
 
-/** Fertile window = the 5 days before ovulation through the day after; PMS = the last 5 days. */
+/** Days before ovulation the fertile window opens (v6: O−5 … O) and the length of the PMS run. */
+const FERTILE_LEAD = 5;
+const PMS_DAYS = 3;
+
+/** Fertile window = the 5 days before ovulation through ovulation (O+1 is never fertile); PMS = the last 3 days. */
 export function typicalBands(cycleLength: number, periodLength: number, ovulationDay: number): TypicalBands {
   const clamp = (d: number) => Math.min(cycleLength, Math.max(1, d));
   return {
     period: [1, clamp(periodLength)],
-    fertile: [clamp(ovulationDay - 5), clamp(ovulationDay + 1)],
+    fertile: [clamp(ovulationDay - FERTILE_LEAD), clamp(ovulationDay)],
     ovulation: clamp(ovulationDay),
-    pms: [clamp(cycleLength - 4), cycleLength],
+    pms: [clamp(cycleLength - PMS_DAYS + 1), cycleLength],
   };
 }

@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { useCycleToday } from '@/entities/cycle';
 import { PeriodDateEditor } from '@/features/log-period';
 import { Link, useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { formatDayMonth, fromApiDate, monthName, shiftMonth, toParts, today } from '@/shared/lib/date';
@@ -12,6 +13,7 @@ import {
   Card,
   EmptyState,
   Icon,
+  InfoNote,
   PrimaryButton,
   ScreenHeader,
   SecondaryButton,
@@ -22,6 +24,7 @@ import {
 
 import { useCycleHistory } from '../api/queries';
 import { barGeometry, barScale } from '../model/bars';
+import { flagHintKind } from '../model/flag-hint';
 import type { CycleHistory, CycleHistoryRow } from '../model/schema';
 
 /**
@@ -44,6 +47,7 @@ export function CyclePage() {
   const lastMonth = shiftMonth(now.year, now.month, -1);
 
   const data = query.data;
+  const hint = flagHintKind(useCycleToday().data?.cycleView?.clinicalFlags);
   const loading = !mounted || query.isLoading;
 
   return (
@@ -78,7 +82,14 @@ export function CyclePage() {
             }
           />
         ) : (
-          <HistoryBody data={data} onAdd={() => setEditorOpen(true)} />
+          <>
+            <HistoryBody data={data} onAdd={() => setEditorOpen(true)} />
+            {hint ? (
+              <InfoNote>
+                <strong>{t('flagHint.title')}</strong> {t(`flagHint.${hint}`)}
+              </InfoNote>
+            ) : null}
+          </>
         )}
       </div>
 

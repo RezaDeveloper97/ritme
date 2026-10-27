@@ -1,4 +1,4 @@
-import type { CycleView, MainPhase } from '@/entities/cycle';
+import { isFertilitySuppressed, type CycleView, type MainPhase } from '@/entities/cycle';
 import type { PhaseSectionKey } from '@/entities/phase-content';
 import { diffInDays, fromApiDate } from '@/shared/lib/date';
 
@@ -31,24 +31,31 @@ const RANGED: readonly MainPhase[] = ['menstrual', 'follicular', 'fertile', 'lut
  * Cycle-day range of the current main phase, from the engine's anchors and
  * effective lengths (the same numbers the calendar paints): period = day 1 …
  * period length, fertile = the 5 days before the estimated ovulation through
- * ovulation (the §19 display window), follicular in between, luteal after
- * ovulation to the cycle's end. Null when the engine can't place it.
+ * ovulation (the §19 display window, never starting inside the period),
+ * follicular in between, luteal after ovulation to the cycle's end.
+ *
+ * Ovulation comes from the engine only — there is no `length − 14` guess. With
+ * no ovulation date (or under clinical suppression) the fertile and luteal
+ * phases have no range and the follicular one runs from the period's end to the
+ * cycle's end. Null when the engine can't place the phase.
  */
 export function phaseDayRange(view: CycleView | null | undefined): { from: number; to: number } | null {
   if (!view?.mainPhase || !RANGED.includes(view.mainPhase)) return null;
   const start = view.anchors?.currentPeriodStart;
-  const ovulation = view.anchors?.estimatedOvulationDate;
+  const ovulation = isFertilitySuppressed(view) ? null : view.anchors?.estimatedOvulationDate;
   const cycleLength = view.metrics?.effectiveCycleLength;
   const periodLength = view.metrics?.effectivePeriodLength;
   if (!start || !cycleLength || !periodLength) return null;
-  const ovDay = ovulation ? diffInDays(fromApiDate(ovulation), fromApiDate(start)) + 1 : cycleLength - 14;
-  const fertileFrom = Math.max(periodLength + 1, ovDay - 5);
-  const ranges: Record<string, [number, number]> = {
+  const ovDay = ovulation ? diffInDays(fromApiDate(ovulation), fromApiDate(start)) + 1 : null;
+  const fertileFrom = ovDay == null ? null : Math.max(periodLength + 1, ovDay - 5);
+  const ranges: Record<string, [number, number] | null> = {
     menstrual: [1, periodLength],
-    follicular: [periodLength + 1, fertileFrom - 1],
-    fertile: [fertileFrom, ovDay],
-    luteal: [ovDay + 1, cycleLength],
+    follicular: [periodLength + 1, fertileFrom == null ? cycleLength : fertileFrom - 1],
+    fertile: fertileFrom == null || ovDay == null ? null : [fertileFrom, ovDay],
+    luteal: ovDay == null ? null : [ovDay + 1, cycleLength],
   };
-  const [from, to] = ranges[view.mainPhase];
+  const range = ranges[view.mainPhase];
+  if (!range) return null;
+  const [from, to] = range;
   return from >= 1 && to >= from ? { from, to } : null;
 }

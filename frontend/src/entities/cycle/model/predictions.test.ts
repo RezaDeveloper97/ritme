@@ -42,6 +42,15 @@ describe('normalizePhase', () => {
     expect(normalizePhase('some_future_phase')).toBe('luteal');
     expect(normalizePhase('')).toBe('luteal');
   });
+
+  it('reads the engine `unknown` as no phase, never luteal', () => {
+    expect(normalizePhase('unknown')).toBeNull();
+    const calc = makeCalc({ phase: 'unknown', isFertileWindow: true });
+    expect(calcMainPhase(calc)).toBeNull();
+    expect(calcInFertileWindow(calc)).toBe(false);
+    expect(cycleDayMarker(calc)).toBeNull();
+    expect(deriveCyclePredictions(calc).phase).not.toBe('luteal');
+  });
 });
 
 describe('cycleDayMarker', () => {
@@ -149,4 +158,30 @@ describe('markerPhase', () => {
     );
     expect(markerPhase(makeCalc({ phase: 'luteal', cycleDay: 20 }), 'pms')).toBe('luteal');
   });
+});
+
+// SPEC §2.36 (21 / 28 / 35): fertile window = O−5 … O (O = L−14), PMS = the last 3 days.
+describe('§2.36 table on the legacy calculation', () => {
+  const table = [
+    { L: 21, ovulation: 7, fertile: [2, 7], pms: [19, 21] },
+    { L: 28, ovulation: 14, fertile: [9, 14], pms: [26, 28] },
+    { L: 35, ovulation: 21, fertile: [16, 21], pms: [33, 35] },
+  ] as const;
+
+  for (const row of table) {
+    it(`${row.L}-day cycle`, () => {
+      const at = (cycleDay: number, over: Partial<CycleCalculation> = {}) =>
+        makeCalc({ cycleLength: row.L, cycleDay, estimatedOvulationDay: row.ovulation, phase: 'follicular', ...over });
+      // Predictions: the fertile window opens 5 days before O and PMS is 3 days.
+      const p = deriveCyclePredictions(at(1));
+      expect(p.daysUntilOvulation).toBe(row.ovulation - 1);
+      expect(p.daysUntilFertileWindow).toBe(row.fertile[0] - 1);
+      expect(p.daysUntilPmsStart).toBe(row.pms[0] - 1);
+      // PMS markers cover exactly the last three days.
+      for (let d = 1; d <= row.L; d++) {
+        const marker = cycleDayMarker(at(d, { phase: 'luteal', isPmsWindow: true, isFertileWindow: false }));
+        expect(marker === 'pms').toBe(d >= row.pms[0] && d <= row.pms[1]);
+      }
+    });
+  }
 });

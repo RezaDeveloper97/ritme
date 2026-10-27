@@ -3,10 +3,10 @@ id: T-M9-46
 title: Remaining browser cycle math, clinical-flag hints and "normal" copy audit
 milestone: M9
 type: frontend
-status: todo
+status: done
 depends_on: [T-M9-40, T-M9-32]
 parallel_group: M9-C
-touches: [frontend/src/screens/cycle, frontend/src/screens/phase-details, frontend/src/screens/companion-home/model/phase-bar.ts, frontend/src/screens/companion-home/model/phase-bar.test.ts, frontend/src/screens/analysis-cycle, frontend/src/entities/cycle/model/predictions.ts, frontend/src/entities/cycle/model/predictions.test.ts, frontend/src/entities/cycle/api/sections.ts, frontend/messages/fa/cycle.json, frontend/messages/en/cycle.json, frontend/messages/fa/analysis.json, frontend/messages/en/analysis.json, backend-go/resources/translations/fa/cycle.json, backend-go/resources/translations/en/cycle.json, backend-go/resources/translations/fa/analysis.json, backend-go/resources/translations/en/analysis.json]
+touches: [frontend/src/screens/cycle, frontend/src/screens/phase-details, frontend/src/screens/companion-home/model/phase-bar.ts, frontend/src/screens/companion-home/model/phase-bar.test.ts, frontend/src/screens/analysis-cycle, frontend/src/entities/cycle/model/predictions.ts, frontend/src/entities/cycle/model/predictions.test.ts, frontend/src/entities/cycle/api/sections.ts, frontend/src/entities/cycle/index.ts, frontend/messages/fa/cycle.json, frontend/messages/en/cycle.json, frontend/messages/fa/analysis.json, frontend/messages/en/analysis.json, backend-go/resources/translations/fa/cycle.json, backend-go/resources/translations/en/cycle.json, backend-go/resources/translations/fa/analysis.json, backend-go/resources/translations/en/analysis.json]
 skills: []
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run copy:check -- cycle analysis
 ---
