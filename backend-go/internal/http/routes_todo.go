@@ -17,7 +17,7 @@ func init() {
 	Register("todo", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
-		h := todo.NewHandlers(todo.NewService(d.DB), clock.Real{})
+		h := todo.NewHandlers(todo.NewService(d.DB).WithEngine(engineStates(r, d)), clock.Real{})
 		writes := writeThrottle(d)
 
 		p := "/api/v1/todo"

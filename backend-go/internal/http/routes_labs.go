@@ -49,6 +49,7 @@ func init() {
 			Plus:     plusSvc,
 			Catalog:  catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger),
 			Logger:   d.Logger,
+			Cycle:    engineStates(r, d),
 		})
 		runner := labs.NewRunner(svc, labs.RunnerOptions{Sync: queue.ModeFromEnv() == queue.ModeSync, StoragePath: d.Config.StoragePath})
 		auth.OnLifecycle(r, runner.Start, runner.Shutdown)

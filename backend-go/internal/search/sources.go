@@ -11,6 +11,7 @@ import (
 	checkupsvc "github.com/ritme/backend-go/internal/checkups"
 	checkupstore "github.com/ritme/backend-go/internal/checkups/store"
 	contentstore "github.com/ritme/backend-go/internal/content/store"
+	"github.com/ritme/backend-go/internal/cycle/engine"
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -25,7 +26,12 @@ type LogSource interface {
 	Range(ctx context.Context, userID uint64, from, to civildate.Date) ([]healthlog.DayEntries, error)
 }
 
-// PeriodSource is the start of the user's latest period (cycle_histories, else the profile's
+// CycleStates hands out a user's prepared v6 engine state for the user-local day (state.Source satisfies it).
+type CycleStates interface {
+	ForUser(ctx context.Context, uid uint64, today civildate.Date) (*engine.State, error)
+}
+
+// PeriodSource (CYCLE_ENGINE v1) is the start of the user's latest period (cycle_histories, else the profile's
 // last_period_start); ok false when she has none.
 type PeriodSource interface {
 	LatestPeriodStart(ctx context.Context, userID uint64) (civildate.Date, bool, error)

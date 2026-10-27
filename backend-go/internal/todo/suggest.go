@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
@@ -50,6 +51,28 @@ func PeriodSuggestion(next, today civildate.Date, mode enums.LifeMode) (Suggesti
 		return Suggestion{}, false
 	}
 	return Suggestion{Key: SuggestionPeriodSupplies, PeriodStart: next, Days: days}, true
+}
+
+// EngineSuggestion is the offer from the v6 engine state (T-M9-37, D-136): the engine's resolved mode (an active
+// pregnancy wins over the stored mode, so a pregnant user without a stored mode gets none) must be cycle, ttc or teen,
+// and its limits must predict a period (pregnancy and postpartum-not-returned predict none); the date is today's
+// predicted_next_period_start, 1–SuggestionWindowDays days away (a late period has none).
+func EngineSuggestion(st *engine.State, today civildate.Date) (Suggestion, bool) {
+	switch st.Mode() {
+	case engine.ModeCycle, engine.ModeTTC, engine.ModeTeen:
+	default:
+		return Suggestion{}, false
+	}
+	t := engine.DayOf(today)
+	s := st.Resolve(t, t)
+	if s.Limits.EngineSuspended || s.Limits.SuppressionReason == engine.SuppressionPostpartumNotReturned {
+		return Suggestion{}, false
+	}
+	next := s.Anchors.PredictedNextPeriodStart
+	if next == engine.NoDay {
+		return Suggestion{}, false
+	}
+	return PeriodSuggestion(next.Civil(), today, enums.LifeModeCycle)
 }
 
 func modeAllowed(mode enums.LifeMode) bool {

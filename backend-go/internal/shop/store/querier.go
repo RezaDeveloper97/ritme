@@ -219,7 +219,8 @@ type Querier interface {
 	SumOpenReturnQuantity(ctx context.Context, orderItemID uint64) (int64, error)
 	UpdateAddressForUser(ctx context.Context, arg UpdateAddressForUserParams) (int64, error)
 	UpdateCustomChecklistItem(ctx context.Context, arg UpdateCustomChecklistItemParams) (int64, error)
-	// Moves the reminder to the current prediction; the user's own switch (is_active) stays.
+	// Moves the reminder to the current prediction; the user's own switch (is_active) stays. meta is rewritten whole
+	// (source + the engine revision the day was computed from, T-M9-37 / I-10).
 	UpdateSupplyCareReminder(ctx context.Context, arg UpdateSupplyCareReminderParams) error
 	UpsertCartItem(ctx context.Context, arg UpsertCartItemParams) error
 	UpsertSupplyReminder(ctx context.Context, arg UpsertSupplyReminderParams) error

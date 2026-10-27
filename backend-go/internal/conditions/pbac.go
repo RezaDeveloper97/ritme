@@ -114,9 +114,9 @@ func clotsFromLog(day []taxonomy.Entry) *string {
 	return &out
 }
 
-// PeriodStartFor finds the period a day belongs to: the latest cycle_histories start within PeriodSpan days before
-// it (unless its recorded period_end_date + 1 day is past), else the first day of the run of consecutive logged
-// days ending on it (at most PeriodSpan days). ok = false when the day is in no period (nothing logged, no
+// PeriodStartFor finds the period a day belongs to: the latest period start (cycle_histories under v1, the engine's
+// actual periods under v6) within PeriodSpan days before it (unless its recorded end + 1 day is past), else the first
+// day of the run of consecutive logged days ending on it (at most PeriodSpan days). ok = false when the day is in no period (nothing logged, no
 // recorded start).
 func PeriodStartFor(starts []PeriodStart, date civildate.Date, logged func(civildate.Date) bool) (civildate.Date, bool) {
 	if len(starts) > 0 {
@@ -170,10 +170,11 @@ func (s *Service) pbacView(ctx context.Context, q *store.Queries, logs *healthlo
 	if err != nil {
 		return PBACView{}, err
 	}
-	starts, err := periodStarts(ctx, q, userID, date)
+	b, err := s.bounds(ctx, q, userID, date, localToday(ctx))
 	if err != nil {
 		return PBACView{}, err
 	}
+	starts := b.starts
 	v := PBACView{Day: PBACDay{Date: date}}
 	if d, ok := days[date]; ok {
 		v.Day = d

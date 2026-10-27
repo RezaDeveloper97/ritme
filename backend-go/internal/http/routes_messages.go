@@ -39,7 +39,7 @@ func init() {
 		r.Post(p+"/events", locale, guard, events, h.Event)
 
 		// Heavy pain / heavy bleeding nudges of the condition programs (CB-COND-06b): Go-only, D-41.
-		nudges := conditionnudges.NewHandlers(d.DB, clock.Real{})
+		nudges := conditionnudges.NewHandlers(d.DB, clock.Real{}).WithEngine(engineStates(r, d))
 		r.Get(p+"/nudges", locale, guard, nudges.Index)
 
 		// Menopause alerts and stage tips (CB-MENO-12): Go-only, D-43. Facts from the menopause API's rules, texts

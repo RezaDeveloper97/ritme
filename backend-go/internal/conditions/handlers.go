@@ -166,7 +166,7 @@ func (h *Handlers) PMDDChart(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	ch, err := h.svc.PMDDChart(c, userID, civildate.InTehran(h.now(c)))
+	ch, err := h.svc.PMDDChart(c, userID, civildate.LocalToday(c, clock.FromContext(c, h.clock)))
 	if err != nil {
 		return err
 	}

@@ -65,6 +65,7 @@ type Conn interface {
 type Service struct {
 	conn    Conn
 	catalog CatalogSource
+	cycle   CycleStates // nil = CYCLE_ENGINE v1 (cycle.go)
 }
 
 // NewService returns a Service on conn.

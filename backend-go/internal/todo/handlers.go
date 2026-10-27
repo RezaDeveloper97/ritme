@@ -36,6 +36,11 @@ func (h *Handlers) now(c fiber.Ctx) time.Time {
 	return clock.FromContext(c, h.clock).Now().In(civildate.Tehran).Truncate(time.Second)
 }
 
+// localToday is the user-local day (engine v6 §2.3) the cycle suggestion is computed for.
+func (h *Handlers) localToday(c fiber.Ctx) civildate.Date {
+	return civildate.LocalToday(c, clock.FromContext(c, h.clock))
+}
+
 func user(c fiber.Ctx) (uint64, error) {
 	id, ok := auth.CurrentUserID(c)
 	if !ok {
@@ -81,7 +86,7 @@ func (h *Handlers) Board(c fiber.Ctx) error {
 		return err
 	}
 	b := BuildBoard(tasks, today)
-	suggestion, err := h.suggestionJSON(c, userID, today, locale)
+	suggestion, err := h.suggestionJSON(c, userID, h.localToday(c), locale)
 	if err != nil {
 		return err
 	}
@@ -313,7 +318,7 @@ func (h *Handlers) AcceptSuggestion(c fiber.Ctx) error {
 		return err
 	}
 	now, locale := h.now(c), i18n.Locale(c)
-	today := civildate.InTehran(now)
+	today := h.localToday(c)
 	sg, err := h.currentSuggestion(c, userID, today, locale)
 	if err != nil {
 		return err
@@ -340,7 +345,7 @@ func (h *Handlers) DismissSuggestion(c fiber.Ctx) error {
 		return err
 	}
 	now, locale := h.now(c), i18n.Locale(c)
-	sg, err := h.currentSuggestion(c, userID, civildate.InTehran(now), locale)
+	sg, err := h.currentSuggestion(c, userID, h.localToday(c), locale)
 	if err != nil {
 		return err
 	}

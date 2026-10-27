@@ -52,6 +52,11 @@ func (h *Handlers) now(c fiber.Ctx) time.Time {
 	return clock.FromContext(c, h.clock).Now().In(civildate.Tehran).Truncate(time.Second)
 }
 
+// localToday is the user-local day (engine v6 §2.3): the cycle prediction the supply reminder follows is per local day.
+func (h *Handlers) localToday(c fiber.Ctx) civildate.Date {
+	return civildate.LocalToday(c, clock.FromContext(c, h.clock))
+}
+
 // user is the caller, after the commercial policy (a teen-mode account has no shop: 404).
 func (h *Handlers) user(c fiber.Ctx) (uint64, error) {
 	uid, ok := auth.CurrentUserID(c)
@@ -332,7 +337,7 @@ func (h *Handlers) ShowSupply(c fiber.Ctx) error {
 	}
 	st := SupplyState{Supply: sup}
 	if sup.Enabled {
-		if st, err = h.svc.SyncSupply(c, uid, civildate.InTehran(now), now, i18n.Locale(c)); err != nil {
+		if st, err = h.svc.SyncSupply(c, uid, h.localToday(c), now, i18n.Locale(c)); err != nil {
 			return err
 		}
 	}
@@ -365,7 +370,7 @@ func (h *Handlers) UpdateSupply(c fiber.Ctx) error {
 			return fieldFail(locale, "product_id", "product_invalid")
 		}
 	}
-	st, err := h.svc.SaveSupply(c, uid, in, civildate.InTehran(now), now, locale)
+	st, err := h.svc.SaveSupply(c, uid, in, h.localToday(c), now, locale)
 	if err != nil {
 		return err
 	}

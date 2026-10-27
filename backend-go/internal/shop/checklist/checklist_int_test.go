@@ -51,15 +51,23 @@ func (f fakeDue) DueDate(_ context.Context, userID uint64, _ civildate.Date) (ci
 	return d, ok, nil
 }
 
+// fakePredictor predicts next[user]; with revs set it is a v6 predictor whose prediction carries revs[user].
 type fakePredictor struct {
 	next  map[uint64]civildate.Date
+	revs  map[uint64]uint64
 	calls int
 }
 
-func (f *fakePredictor) NextPeriodStart(_ context.Context, userID uint64, _ civildate.Date) (civildate.Date, bool, error) {
+func (f *fakePredictor) NextPeriodStart(_ context.Context, userID uint64, _ civildate.Date) (checklist.Prediction, error) {
 	f.calls++
 	d, ok := f.next[userID]
-	return d, ok, nil
+	rev, revisioned := f.revs[userID]
+	return checklist.Prediction{Next: d, Known: ok, Rev: rev, Revisioned: revisioned}, nil
+}
+
+func (f *fakePredictor) Revision(_ context.Context, userID uint64) (uint64, bool, error) {
+	rev, ok := f.revs[userID]
+	return rev, ok, nil
 }
 
 // fakeShare: viewer → owner pairs with a pregnancy grant.
@@ -363,4 +371,44 @@ func TestSupplyReminder_OnCreatesOneDiscreetCareReminderOffRemovesIt(t *testing.
 	require.Equal(t, 200, r.status, r.body)
 	assert.Empty(t, e.careReminders(t, u))
 	assert.Len(t, e.careReminders(t, other), 1)
+}
+
+// I-10 (T-M9-37): under the v6 engine the reminder stores the engine revision it was computed from; a read at the
+// same revision serves it without reading the engine, a moved revision (a period edit) re-syncs it on the next read.
+func TestSupplyReminder_ResyncsWhenTheEngineRevisionMoves(t *testing.T) {
+	e := setup(t)
+	u, tok := e.user(t, "09120000451")
+	e.predict.revs = map[uint64]uint64{u: 4}
+	e.predict.next[u] = civildate.MustParse("2026-10-20")
+
+	r := e.do(t, http.MethodPut, "/api/v1/shop/supply-reminder", tok, "en", map[string]any{"enabled": true})
+	require.Equal(t, 200, r.status, r.body)
+	assert.Equal(t, "2026-10-17", r.data()["remind_on"])
+	var meta string
+	require.NoError(t, e.db.QueryRow(`SELECT meta FROM reminders WHERE user_id = ?`, u).Scan(&meta))
+	assert.JSONEq(t, `{"source":"shop_supply","engine_rev":4}`, meta)
+
+	// Same revision: served as stored, the engine is not read (even if it would now answer differently).
+	calls := e.predict.calls
+	e.predict.next[u] = civildate.MustParse("2026-11-17")
+	r = e.do(t, http.MethodGet, "/api/v1/shop/supply-reminder", tok, "en", nil)
+	require.Equal(t, 200, r.status, r.body)
+	assert.Equal(t, "2026-10-17", r.data()["remind_on"])
+	assert.Equal(t, calls, e.predict.calls)
+
+	// A period edit bumps the revision: the next read moves the stored reminder and records the new revision.
+	e.predict.revs[u] = 5
+	r = e.do(t, http.MethodGet, "/api/v1/shop/supply-reminder", tok, "en", nil)
+	assert.Equal(t, "2026-11-14", r.data()["remind_on"])
+	assert.Equal(t, []string{"2026-11-14 09:00"}, e.careReminders(t, u))
+	require.NoError(t, e.db.QueryRow(`SELECT meta FROM reminders WHERE user_id = ?`, u).Scan(&meta))
+	assert.JSONEq(t, `{"source":"shop_supply","engine_rev":5}`, meta)
+	assert.Equal(t, calls+1, e.predict.calls)
+
+	// No prediction any more at a new revision (e.g. she is pregnant): the reminder is removed.
+	delete(e.predict.next, u)
+	e.predict.revs[u] = 6
+	r = e.do(t, http.MethodGet, "/api/v1/shop/supply-reminder", tok, "en", nil)
+	assert.Nil(t, r.data()["remind_on"])
+	assert.Empty(t, e.careReminders(t, u))
 }

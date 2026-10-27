@@ -4,14 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/companion"
+	"github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/cycle/metrics"
 	"github.com/ritme/backend-go/internal/cycle/resolver"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
+	"github.com/ritme/backend-go/internal/cycle/state"
+	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
@@ -31,8 +35,11 @@ func init() {
 	Register("shop_checklist", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
-		svc := checklist.NewService(shopstore.New(d.DB), shopDueDate{q: pregnancystore.New(d.DB)},
-			shopPeriodPredictor{cycle: cycleservice.New(d.DB, nil)})
+		var predict checklist.PeriodPredictor = shopPeriodPredictor{cycle: cycleservice.New(d.DB, nil)}
+		if states := engineStates(r, d); states != nil {
+			predict = shopEnginePredictor{states: states, revs: cyclestore.New(d.DB)}
+		}
+		svc := checklist.NewService(shopstore.New(d.DB), shopDueDate{q: pregnancystore.New(d.DB)}, predict)
 		h := checklist.NewHandlers(svc, teen.NewPolicy(d.DB),
 			shopChecklistShare{d: companion.NewDelegation(d.DB, clock.Real{}, d.Logger), preg: pregnancystore.New(d.DB)}, clock.Real{})
 		writes := writeThrottle(d)
@@ -66,25 +73,75 @@ func (s shopDueDate) DueDate(ctx context.Context, userID uint64, today civildate
 // cycle, TTC): pregnancy, postpartum and menopause modes get no supply reminder. Never logs the date.
 type shopPeriodPredictor struct{ cycle *cycleservice.Service }
 
-func (p shopPeriodPredictor) NextPeriodStart(ctx context.Context, userID uint64, today civildate.Date) (civildate.Date, bool, error) {
+func (p shopPeriodPredictor) NextPeriodStart(ctx context.Context, userID uint64, today civildate.Date) (checklist.Prediction, error) {
 	sn, err := p.cycle.Load(ctx, userID, today, today, today)
 	if err != nil {
-		return civildate.Date{}, false, err
+		return checklist.Prediction{}, err
 	}
 	switch sn.LifeMode {
 	case "", enums.LifeModeCycle, enums.LifeModeTTC:
 	default:
-		return civildate.Date{}, false, nil
+		return checklist.Prediction{}, nil
 	}
 	if len(sn.Histories) == 0 && sn.Profile == nil {
-		return civildate.Date{}, false, nil // nothing logged and nothing declared
+		return checklist.Prediction{}, nil // nothing logged and nothing declared
 	}
 	// T-M9-27 (D-123): an onboarding-only user has no period row any more; the declared LMP on the profile still
 	// predicts (onboarding_based), as the old seed row did.
 	profile := sn.EngineProfile()
 	st := resolver.Resolve(sn.Histories, profile, today, today, metrics.Calculate(sn.Histories, profile))
 	next := st.PredictedNextPeriodStart
-	return next, !next.IsZero(), nil
+	return checklist.Prediction{Next: next, Known: !next.IsZero()}, nil
+}
+
+// Revision is unknown under v1: every read re-syncs the reminder.
+func (shopPeriodPredictor) Revision(context.Context, uint64) (uint64, bool, error) {
+	return 0, false, nil
+}
+
+// shopEnginePredictor is the v6 engine's predicted_next_period_start (CYCLE_ENGINE shadow / v6, T-M9-37, D-136):
+// gated on the engine's resolved mode (cycle or ttc — a pregnant user without a stored mode is pregnancy here) and on
+// its limits (pregnancy and postpartum-not-returned predict nothing). The prediction carries the engine revision it
+// was computed from (I-10), so the stored reminder is re-synced only when that revision moves. Never logs the date.
+type shopEnginePredictor struct {
+	states state.UserStates
+	revs   state.RevisionReader
+}
+
+func (p shopEnginePredictor) NextPeriodStart(ctx context.Context, userID uint64, today civildate.Date) (checklist.Prediction, error) {
+	rev, _, err := p.Revision(ctx, userID)
+	if err != nil {
+		return checklist.Prediction{}, err
+	}
+	st, err := p.states.ForUser(ctx, userID, today)
+	if err != nil {
+		return checklist.Prediction{}, err
+	}
+	out := checklist.Prediction{Rev: rev, Revisioned: true}
+	if m := st.Mode(); m != engine.ModeCycle && m != engine.ModeTTC {
+		return out, nil
+	}
+	t := engine.DayOf(today)
+	s := st.Resolve(t, t)
+	if s.Limits.EngineSuspended || s.Limits.SuppressionReason == engine.SuppressionPostpartumNotReturned {
+		return out, nil
+	}
+	if next := s.Anchors.PredictedNextPeriodStart; next != engine.NoDay {
+		out.Next, out.Known = next.Civil(), true
+	}
+	return out, nil
+}
+
+// Revision is the user's engine revision (user_revisions.engine_rev, 0 without a row).
+func (p shopEnginePredictor) Revision(ctx context.Context, userID uint64) (uint64, bool, error) {
+	r, err := p.revs.GetUserRevisions(ctx, userID)
+	switch {
+	case err == nil:
+		return r.EngineRev, true, nil
+	case errors.Is(err, sql.ErrNoRows):
+		return 0, true, nil
+	}
+	return 0, false, fmt.Errorf("shop: engine revision: %w", err)
 }
 
 // shopChecklistShare is the family share: a companion with a live `pregnancy` grant (view or edit) reads the

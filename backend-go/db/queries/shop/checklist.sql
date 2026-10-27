@@ -74,8 +74,10 @@ VALUES (sqlc.arg(user_id), 'custom', sqlc.arg(title), NULL, NULL, sqlc.arg(sched
   sqlc.arg(meta), sqlc.arg(now), sqlc.arg(now));
 
 -- name: UpdateSupplyCareReminder :exec
--- Moves the reminder to the current prediction; the user's own switch (is_active) stays.
-UPDATE `reminders` SET title = sqlc.arg(title), scheduled_at = sqlc.arg(scheduled_at), updated_at = sqlc.arg(now)
+-- Moves the reminder to the current prediction; the user's own switch (is_active) stays. meta is rewritten whole
+-- (source + the engine revision the day was computed from, T-M9-37 / I-10).
+UPDATE `reminders` SET title = sqlc.arg(title), scheduled_at = sqlc.arg(scheduled_at), meta = sqlc.arg(meta),
+  updated_at = sqlc.arg(now)
 WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id);
 
 -- name: DeleteSupplyCareReminders :exec

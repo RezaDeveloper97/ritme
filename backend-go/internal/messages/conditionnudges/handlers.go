@@ -22,13 +22,19 @@ func NewHandlers(db store.DBTX, base clock.Clock) *Handlers {
 	return &Handlers{eng: NewEngine(db, nil), clock: base}
 }
 
+// WithEngine makes the nudges read the v6 engine (CYCLE_ENGINE shadow / v6, T-M9-37); nil keeps v1.
+func (h *Handlers) WithEngine(states CycleStates) *Handlers {
+	h.eng.WithCycle(states)
+	return h
+}
+
 // Index is the caller's nudges for today's cycle: {success, data: Result.JSON()}.
 func (h *Handlers) Index(c fiber.Ctx) error {
 	uid, ok := auth.CurrentUserID(c)
 	if !ok {
 		return &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
 	}
-	today := civildate.Today(clock.FromContext(c, h.clock))
+	today := civildate.LocalToday(c, clock.FromContext(c, h.clock))
 	res, err := h.eng.Evaluate(c.Context(), uid, today, i18n.Locale(c))
 	if err != nil {
 		return err

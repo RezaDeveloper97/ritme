@@ -30,6 +30,8 @@ type Service struct {
 	q   *store.Queries
 	db  *sql.DB    // nil when the Service already runs inside a transaction
 	raw store.DBTX // the pool or the transaction (cross-domain reads: the cycle phase)
+	// cycle is the v6 engine (nil = CYCLE_ENGINE v1) for the luteal-spotting warning (cyclehistory.go, T-M9-37).
+	cycle CycleStates
 }
 
 // NewService returns a Service on db (a *sql.DB or a transaction).
@@ -64,7 +66,7 @@ func (s *Service) inTxLocked(ctx context.Context, userID uint64, fn func(t *Serv
 	if err != nil {
 		return fmt.Errorf("healthlog: begin: %w", err)
 	}
-	t := &Service{q: store.New(tx), raw: tx}
+	t := &Service{q: store.New(tx), raw: tx, cycle: s.cycle}
 	if userID != 0 {
 		if err := t.lockUser(ctx, userID); err != nil {
 			_ = tx.Rollback()
@@ -150,7 +152,9 @@ func (s *Service) store(ctx context.Context, userID uint64, attrs phpval.Map, lo
 	if err != nil {
 		return nil, err
 	}
-	res.Warning = SpottingWarning(profile, res.Log, locale)
+	if res.Warning, err = s.spottingWarning(ctx, userID, profile, res.Log, locale, now); err != nil {
+		return nil, err
+	}
 	bridged, err := s.bridge(ctx, userID, bleedingChange{
 		date: logDate, before: res.prevBleeding, after: strVal(res.Log.BleedingIntensity()),
 	}, locale, now)

@@ -97,11 +97,19 @@ type Service struct {
 	articles  ArticleSource
 	checkups  CheckupSource
 	reminders ReminderSource
+	cycle     CycleStates // nil = CYCLE_ENGINE v1 (the PeriodSource window)
 }
 
 // NewService wires the sources.
 func NewService(logs LogSource, periods PeriodSource, articles ArticleSource, checkups CheckupSource, reminders ReminderSource) *Service {
 	return &Service{logs: logs, periods: periods, articles: articles, checkups: checkups, reminders: reminders}
+}
+
+// WithEngine makes the insight window the v6 engine's current cycle (CYCLE_ENGINE shadow / v6, T-M9-37, D-136); nil
+// keeps v1.
+func (s *Service) WithEngine(states CycleStates) *Service {
+	s.cycle = states
+	return s
 }
 
 // Search runs q over the groups of its scope. Only the sources of those groups are read.

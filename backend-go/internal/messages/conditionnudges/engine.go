@@ -7,11 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
 
 	cstore "github.com/ritme/backend-go/internal/conditions/store"
+	"github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/messages/content"
@@ -57,12 +59,25 @@ type DoctorDirectory interface {
 	DoctorLink(ctx context.Context, rule string) (link string, ok bool, err error)
 }
 
+// CycleStates hands out a user's prepared v6 engine state for the user-local day (state.Source satisfies it). nil
+// means CYCLE_ENGINE=v1: the window keeps the v1 rule (CycleWindow).
+type CycleStates interface {
+	ForUser(ctx context.Context, uid uint64, today civildate.Date) (*engine.State, error)
+}
+
 // Engine evaluates the nudges of one user. Reads only, all scoped to the user.
 type Engine struct {
 	mq      store.Querier
 	cq      cstore.Querier
 	logs    *healthlog.Service
 	doctors DoctorDirectory
+	states  CycleStates
+}
+
+// WithCycle makes the window and the mode come from the v6 engine (CYCLE_ENGINE shadow / v6, T-M9-37); nil keeps v1.
+func (e *Engine) WithCycle(states CycleStates) *Engine {
+	e.states = states
+	return e
 }
 
 // NewEngine wires the engine on db; doctors may be nil (no directory yet).
@@ -131,17 +146,16 @@ func (e *Engine) Evaluate(ctx context.Context, userID uint64, today civildate.Da
 
 // facts loads the user's mode, enrolments, cycle window and day logs of the window.
 func (e *Engine) facts(ctx context.Context, userID uint64, today civildate.Date) (Facts, error) {
+	if e.states != nil {
+		return e.factsV6(ctx, userID, today)
+	}
 	mode, err := e.logs.LifeMode(ctx, userID)
 	if err != nil {
 		return Facts{}, fmt.Errorf("condition nudges: %w", err)
 	}
 	f := Facts{Mode: mode, Enrolled: map[string]bool{}}
-	enrolments, err := e.cq.ListEnrolments(ctx, userID)
-	if err != nil {
-		return Facts{}, fmt.Errorf("condition nudges: enrolments: %w", err)
-	}
-	for _, r := range enrolments {
-		f.Enrolled[r.Program] = true
+	if err := e.enrolments(ctx, userID, &f); err != nil {
+		return Facts{}, err
 	}
 
 	var latest *civildate.Date
@@ -176,6 +190,42 @@ func (e *Engine) facts(ctx context.Context, userID uint64, today civildate.Date)
 	return f, nil
 }
 
+// factsV6 is facts on the v6 engine: the engine's resolved mode and its current cycle (EngineCycleWindow); without a
+// current cycle no day log is read and nothing is nudged.
+func (e *Engine) factsV6(ctx context.Context, userID uint64, today civildate.Date) (Facts, error) {
+	st, err := e.states.ForUser(ctx, userID, today)
+	if err != nil {
+		return Facts{}, fmt.Errorf("condition nudges: engine state: %w", err)
+	}
+	f := Facts{Mode: st.Mode().String(), Enrolled: map[string]bool{}}
+	if !slices.Contains(nudgedModes, f.Mode) {
+		return f, nil
+	}
+	from, to, ok := EngineCycleWindow(st, today)
+	if !ok {
+		return f, nil
+	}
+	f.From, f.To = from, to
+	if err := e.enrolments(ctx, userID, &f); err != nil {
+		return Facts{}, err
+	}
+	if f.Days, err = e.logs.Range(ctx, userID, f.From, f.To); err != nil {
+		return Facts{}, fmt.Errorf("condition nudges: %w", err)
+	}
+	return f, nil
+}
+
+func (e *Engine) enrolments(ctx context.Context, userID uint64, f *Facts) error {
+	rows, err := e.cq.ListEnrolments(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("condition nudges: enrolments: %w", err)
+	}
+	for _, r := range rows {
+		f.Enrolled[r.Program] = true
+	}
+	return nil
+}
+
 // JSON renders the result: {from, to, nudges: [{key, program, title, body, action, link, doctor, days, dates,
 // needs_review}]}. doctor is {action, link} or null while no doctors directory exists.
 func (r Result) JSON() *jsonx.OrderedMap {
@@ -201,6 +251,9 @@ func (r Result) JSON() *jsonx.OrderedMap {
 			"dates", dates,
 			"needs_review", n.NeedsReview,
 		))
+	}
+	if r.From.IsZero() { // v6 without a current cycle
+		return jsonx.Obj("from", nil, "to", nil, "nudges", list)
 	}
 	return jsonx.Obj("from", r.From.String(), "to", r.To.String(), "nudges", list)
 }

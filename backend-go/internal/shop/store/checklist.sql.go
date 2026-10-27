@@ -425,23 +425,27 @@ func (q *Queries) UpdateCustomChecklistItem(ctx context.Context, arg UpdateCusto
 }
 
 const updateSupplyCareReminder = `-- name: UpdateSupplyCareReminder :exec
-UPDATE ` + "`" + `reminders` + "`" + ` SET title = ?, scheduled_at = ?, updated_at = ?
+UPDATE ` + "`" + `reminders` + "`" + ` SET title = ?, scheduled_at = ?, meta = ?,
+  updated_at = ?
 WHERE id = ? AND user_id = ?
 `
 
 type UpdateSupplyCareReminderParams struct {
 	Title       string
 	ScheduledAt sql.NullTime
+	Meta        db.NullRawJSON
 	Now         sql.NullTime
 	ID          uint64
 	UserID      uint64
 }
 
-// Moves the reminder to the current prediction; the user's own switch (is_active) stays.
+// Moves the reminder to the current prediction; the user's own switch (is_active) stays. meta is rewritten whole
+// (source + the engine revision the day was computed from, T-M9-37 / I-10).
 func (q *Queries) UpdateSupplyCareReminder(ctx context.Context, arg UpdateSupplyCareReminderParams) error {
 	_, err := q.db.ExecContext(ctx, updateSupplyCareReminder,
 		arg.Title,
 		arg.ScheduledAt,
+		arg.Meta,
 		arg.Now,
 		arg.ID,
 		arg.UserID,

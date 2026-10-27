@@ -21,6 +21,7 @@ import (
 	"slices"
 	"strconv"
 
+	"github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/healthlog/taxonomy"
@@ -52,8 +53,9 @@ const (
 	PainMinScore = 7
 	// MinDays is how many qualifying days of the cycle raise a nudge.
 	MinDays = 2
-	// MaxCycleDays: a latest period start older than this is not "the current cycle" (no period logged since);
-	// the window is then the last FallbackCycleDays (or the profile's cycle length).
+	// MaxCycleDays (CYCLE_ENGINE v1 only): a latest period start older than this is not "the current cycle" (no period
+	// logged since); the window is then the last FallbackCycleDays (or the profile's cycle length). The v6 window is
+	// EngineCycleWindow.
 	MaxCycleDays = 45
 	// FallbackCycleDays is the window without a usable period start or profile cycle length.
 	FallbackCycleDays = 28
@@ -84,7 +86,7 @@ var rules = []rule{
 type Facts struct {
 	Mode     string          // effective life mode (enums.ResolveLifeMode)
 	Enrolled map[string]bool // program → enrolled
-	From, To civildate.Date  // the current cycle window (inclusive)
+	From, To civildate.Date  // the current cycle window (inclusive); zero = no current cycle (v6): nothing is nudged
 	Days     []healthlog.DayEntries
 }
 
@@ -96,7 +98,7 @@ type Hit struct {
 
 // Detect runs every rule on f (pure).
 func Detect(f Facts) []Hit {
-	if !slices.Contains(nudgedModes, f.Mode) {
+	if !slices.Contains(nudgedModes, f.Mode) || f.From.IsZero() {
 		return nil
 	}
 	var out []Hit
@@ -163,4 +165,19 @@ func CycleWindow(today civildate.Date, latestStart *civildate.Date, cycleLen int
 		cycleLen = FallbackCycleDays
 	}
 	return today.AddDays(-(cycleLen - 1)), today
+}
+
+// EngineCycleWindow is the v6 current cycle [current_period_start, today] of the engine status of today (T-M9-37,
+// D-136): the engine's anchor (real periods, skips, the declared start) and its lateness rule replace MaxCycleDays and
+// the profile length. ok=false — no current cycle, nothing is nudged — without an anchor, when the period is late
+// beyond max_late_days (unresolved cycle), or when nothing is predicted (pregnancy, postpartum not returned).
+func EngineCycleWindow(st *engine.State, today civildate.Date) (from, to civildate.Date, ok bool) {
+	t := engine.DayOf(today)
+	s := st.Resolve(t, t)
+	start, next := s.Anchors.CurrentPeriodStart, s.Anchors.PredictedNextPeriodStart
+	if start == engine.NoDay || next == engine.NoDay || start > t ||
+		s.Warnings.Has(engine.WarnCycleUnresolvedAfterExpectedPeriod) {
+		return civildate.Date{}, civildate.Date{}, false
+	}
+	return start.Civil(), today, true
 }

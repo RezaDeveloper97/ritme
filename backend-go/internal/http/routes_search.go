@@ -17,7 +17,7 @@ func init() {
 	Register("search", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
-		h := search.NewHandlers(search.NewService(search.NewSources(d.DB)), clock.Real{},
+		h := search.NewHandlers(search.NewService(search.NewSources(d.DB)).WithEngine(engineStates(r, d)), clock.Real{},
 			i18n.NewTranslationStore(translations.FS, d.Config.StoragePath))
 
 		r.Get("/api/v1/search", locale, guard, h.Search)

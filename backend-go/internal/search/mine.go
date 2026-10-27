@@ -2,10 +2,12 @@ package search
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"slices"
 	"strconv"
 
+	"github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/healthlog/taxonomy"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -17,7 +19,7 @@ import (
 // last fallbackDays days (pregnancy, postpartum, menopause, or no period logged).
 const (
 	fallbackDays  = 30
-	maxCycleSpan  = 60 // a «current cycle» older than this is stale data: use the fallback window
+	maxCycleSpan  = 60 // v1: a «current cycle» older than this is stale data (v6: the engine's lateness rule)
 	windowCycle   = "cycle"
 	windowDays    = "days"
 	analysisRoute = "/analysis"
@@ -46,11 +48,35 @@ func (s *Service) window(ctx context.Context, userID uint64, mode string, today 
 	if !slices.Contains(cycleModes, mode) {
 		return fallback, nil
 	}
+	if s.cycle != nil {
+		st, err := s.cycle.ForUser(ctx, userID, today)
+		if err != nil {
+			return Window{}, fmt.Errorf("search: engine state: %w", err)
+		}
+		if start, ok := currentCycleStart(st, today); ok {
+			return Window{Kind: windowCycle, From: start, To: today}, nil
+		}
+		return fallback, nil
+	}
 	start, ok, err := s.periods.LatestPeriodStart(ctx, userID)
 	if err != nil || !ok || start.After(today) || start.DiffDays(today) >= maxCycleSpan {
 		return fallback, err
 	}
 	return Window{Kind: windowCycle, From: start, To: today}, nil
+}
+
+// currentCycleStart is the v6 engine's current cycle start of today (T-M9-37, D-136): its anchor (real periods,
+// skips, the declared start), ok=false without one, when the period is late beyond max_late_days (unresolved cycle)
+// or when nothing is predicted (pregnancy, postpartum not returned) — the window is then the last fallbackDays.
+func currentCycleStart(st *engine.State, today civildate.Date) (civildate.Date, bool) {
+	t := engine.DayOf(today)
+	s := st.Resolve(t, t)
+	start, next := s.Anchors.CurrentPeriodStart, s.Anchors.PredictedNextPeriodStart
+	if start == engine.NoDay || next == engine.NoDay || start > t ||
+		s.Warnings.Has(engine.WarnCycleUnresolvedAfterExpectedPeriod) {
+		return civildate.Date{}, false
+	}
+	return start.Civil(), true
 }
 
 // target is one searchable log item: a category, a yes/no or numeric param, or an item / option.

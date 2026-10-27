@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ritme/backend-go/internal/cycle/engine"
+	"github.com/ritme/backend-go/internal/cycle/engineparams"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/healthlog/taxonomy"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -178,3 +180,40 @@ func TestFallbackCopy_EveryRuleAndText(t *testing.T) {
 	}
 	assert.Contains(t, fallbackText(RuleHeavyPain, "body", "en"), "{days}")
 }
+
+// T-M9-37 (D-136): the v6 window is the engine's current cycle; 15 days late (unresolved cycle) there is none, so
+// nothing is nudged even with qualifying days — v1's 45-day rule would still have given a window.
+func TestEngineCycleWindow(t *testing.T) {
+	today := d("2026-09-23")
+	prep := func(starts ...string) *engine.State {
+		var in engine.Input
+		for _, s := range starts {
+			x := engine.DayOf(d(s))
+			in.Periods = append(in.Periods, engine.Period{Start: x, End: x + 4})
+		}
+		return engine.Prepare(in, engineparams.For(today))
+	}
+	from, to, ok := EngineCycleWindow(prep("2026-08-16", "2026-09-14"), today)
+	require.True(t, ok)
+	assert.Equal(t, d("2026-09-14"), from)
+	assert.Equal(t, today, to)
+
+	_, _, ok = EngineCycleWindow(prep("2026-07-14", "2026-08-11"), today) // next 09-08: 15 days late
+	assert.False(t, ok)
+	_, _, ok = EngineCycleWindow(prep("2026-07-17", "2026-08-14"), today) // next 09-11: 12 days late, still current
+	assert.True(t, ok)
+	_, _, ok = EngineCycleWindow(prep(), today)
+	assert.False(t, ok)
+
+	f, _ := CycleWindow(today, ptr(d("2026-08-11")), 28)
+	assert.Equal(t, d("2026-08-11"), f, "v1: 43 days < MaxCycleDays is still the current cycle")
+
+	heavy := []healthlog.DayEntries{
+		{Date: d("2026-09-20"), Entries: []taxonomy.Entry{{Category: "bleeding", Param: "flow", Code: sql.NullString{String: "heavy", Valid: true}}}},
+		{Date: d("2026-09-21"), Entries: []taxonomy.Entry{{Category: "bleeding", Param: "flow", Code: sql.NullString{String: "heavy", Valid: true}}}},
+	}
+	assert.Empty(t, Detect(Facts{Mode: "cycle", Enrolled: map[string]bool{}, Days: heavy}), "no window → no nudge")
+	assert.Len(t, Detect(Facts{Mode: "cycle", Enrolled: map[string]bool{}, From: d("2026-09-14"), To: today, Days: heavy}), 1)
+}
+
+func ptr[T any](v T) *T { return &v }

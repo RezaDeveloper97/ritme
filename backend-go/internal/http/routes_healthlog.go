@@ -17,7 +17,7 @@ func init() {
 	Register("healthlog", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
-		h := healthlog.NewHandlers(healthlog.NewService(d.DB), clock.Real{})
+		h := healthlog.NewHandlers(healthlog.NewService(d.DB).WithEngine(engineStates(r, d)), clock.Real{})
 		// Optional Idempotency-Key on the save (D-131).
 		idem := idempotency.New(d.Cache, auth.CurrentUserID, d.Logger).Handler()
 

@@ -233,12 +233,21 @@ func BuildCycles(starts []PeriodStart, today civildate.Date, cycleLen, periodLen
 	if cycleLen < 15 || cycleLen > 60 {
 		cycleLen = defaultCycleDays
 	}
+	var end civildate.Date
+	if len(starts) > 0 {
+		end = starts[0].Start.AddDays(cycleLen - 1)
+	}
+	return layoutCycles(starts, today, end, periodLen, days)
+}
+
+// layoutCycles is BuildCycles with the current cycle's expected last day given (v6: predicted next start − 1).
+func layoutCycles(starts []PeriodStart, today, currentEnd civildate.Date, periodLen int, days []PMDDDay) []ChartCycle {
 	out := []ChartCycle{}
 	var next *civildate.Date // the start of the cycle after this one (nil for the current cycle)
 	for _, p := range starts {
 		c := ChartCycle{Start: p.Start}
 		if next == nil {
-			c.End = p.Start.AddDays(cycleLen - 1)
+			c.End = currentEnd
 			if c.End.Before(today) { // overdue: the cycle runs at least until today
 				c.End = today
 			}
@@ -328,21 +337,26 @@ func maxDate(a, b civildate.Date) civildate.Date {
 // pmdd_needs_two_cycles until RequiredCycles cycles are complete.
 func (s *Service) PMDDChart(ctx context.Context, userID uint64, today civildate.Date) (Chart, error) {
 	q := store.New(s.conn)
-	starts, err := periodStarts(ctx, q, userID, today)
+	b, err := s.bounds(ctx, q, userID, today, today)
 	if err != nil {
 		return Chart{}, err
 	}
-	cycleLen, periodLen, err := cycleDefaults(ctx, q, userID)
-	if err != nil {
-		return Chart{}, err
-	}
+	starts := b.starts
 	var days []PMDDDay
 	if len(starts) > 0 {
 		if days, err = s.pmddDays(ctx, q, userID, starts[len(starts)-1].Start, today); err != nil {
 			return Chart{}, err
 		}
 	}
-	cycles := BuildCycles(starts, today, cycleLen, periodLen, days)
+	var cycles []ChartCycle
+	switch {
+	case s.cycle == nil:
+		cycles = BuildCycles(starts, today, b.cycleLen, b.periodLen, days)
+	case b.currentEnd.IsZero(): // nothing predicted (e.g. pregnancy): the effective length
+		cycles = BuildCycles(starts, today, b.cycleLen, b.periodLen, days)
+	default:
+		cycles = layoutCycles(starts, today, b.currentEnd, b.periodLen, days)
+	}
 	complete, pattern := Summarise(cycles)
 	ch := Chart{Cycles: cycles, CompleteCycles: min(complete, RequiredCycles), Ready: complete >= RequiredCycles, Pattern: pattern}
 	codes := []string{"pmdd_pattern_" + pattern}

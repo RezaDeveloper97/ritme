@@ -18,10 +18,22 @@ type DueDateSource interface {
 	DueDate(ctx context.Context, userID uint64, today civildate.Date) (civildate.Date, bool, error)
 }
 
-// PeriodPredictor is the cycle engine's predicted next period start (ok=false when unknown or not applicable). It is
-// the supply reminder's only health input; implementations must not log it.
+// PeriodPredictor is the cycle engine's predicted next period start. It is the supply reminder's only health input;
+// implementations must not log it.
 type PeriodPredictor interface {
-	NextPeriodStart(ctx context.Context, userID uint64, today civildate.Date) (civildate.Date, bool, error)
+	NextPeriodStart(ctx context.Context, userID uint64, today civildate.Date) (Prediction, error)
+	// Revision is the user's engine revision (ok=false: the predictor has none — CYCLE_ENGINE=v1 — and every read
+	// re-syncs the reminder).
+	Revision(ctx context.Context, userID uint64) (rev uint64, ok bool, err error)
+}
+
+// Prediction is one predicted next period start (Known=false: unknown or not applicable) and, under the v6 engine,
+// the engine revision it was computed from (I-10: the stored reminder is re-synced when that revision moves).
+type Prediction struct {
+	Next       civildate.Date
+	Known      bool
+	Rev        uint64
+	Revisioned bool
 }
 
 // ErrNotFound is a missing (or someone else's) custom row, or an inactive template item.
@@ -253,15 +265,27 @@ func (s *Service) SyncSupply(ctx context.Context, userID uint64, today civildate
 		return SupplyState{}, err
 	}
 	st := SupplyState{Supply: sup}
+	title := T("reminder.title", locale)
+	if sup.Enabled && s.predict != nil {
+		// I-10: the stored reminder was computed from an engine revision; while that revision has not moved (and
+		// its day is not past) it is still current, so it is served as stored without reading the engine.
+		if day, ok, err := s.storedSupply(ctx, userID, today, title); err != nil {
+			return SupplyState{}, err
+		} else if ok {
+			st.RemindOn = day
+			return st, nil
+		}
+	}
 	var day civildate.Date
 	ok := false
+	var pred Prediction
 	if sup.Enabled && s.predict != nil {
-		next, known, err := s.predict.NextPeriodStart(ctx, userID, today)
-		if err != nil {
+		var err error
+		if pred, err = s.predict.NextPeriodStart(ctx, userID, today); err != nil {
 			return SupplyState{}, fmt.Errorf("checklist: prediction: %w", err)
 		}
-		if known {
-			day, ok = RemindOn(sup, next, today)
+		if pred.Known {
+			day, ok = RemindOn(sup, pred.Next, today)
 		}
 	}
 	if !ok {
@@ -272,24 +296,88 @@ func (s *Service) SyncSupply(ctx context.Context, userID uint64, today civildate
 	}
 	st.RemindOn = day
 	at := sql.NullTime{Time: ReminderAt(day), Valid: true}
-	title := T("reminder.title", locale)
+	meta := supplyMeta(pred)
 	cur, err := s.q.FindSupplyCareReminder(ctx, userID)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		meta, _ := json.Marshal(map[string]string{"source": ReminderSource}) // a string map always marshals
 		_, err = s.q.InsertSupplyCareReminder(ctx, store.InsertSupplyCareReminderParams{
 			UserID: userID, Title: title, ScheduledAt: at, Meta: db.NullRawJSON{V: meta, Valid: true}, Now: nullTime(now),
 		})
 	case err == nil:
-		if cur.ScheduledAt.Valid && cur.ScheduledAt.Time.Equal(at.Time) && cur.Title == title {
+		if cur.ScheduledAt.Valid && cur.ScheduledAt.Time.Equal(at.Time) && cur.Title == title &&
+			sameRevision(cur.Meta, pred) {
 			return st, nil
 		}
 		err = s.q.UpdateSupplyCareReminder(ctx, store.UpdateSupplyCareReminderParams{
-			Title: title, ScheduledAt: at, Now: nullTime(now), ID: cur.ID, UserID: userID,
+			Title: title, ScheduledAt: at, Meta: db.NullRawJSON{V: meta, Valid: true}, Now: nullTime(now),
+			ID: cur.ID, UserID: userID,
 		})
 	}
 	if err != nil {
 		return SupplyState{}, fmt.Errorf("checklist: set reminder: %w", err)
 	}
 	return st, nil
+}
+
+// supplyMeta is the reminder's meta: its source, plus the engine revision of the prediction under the v6 engine.
+func supplyMeta(p Prediction) []byte {
+	m := map[string]any{"source": ReminderSource}
+	if p.Revisioned {
+		m["engine_rev"] = p.Rev
+	}
+	b, _ := json.Marshal(m) // a map of a string and a number always marshals
+	return b
+}
+
+// storedRevision is the engine revision a stored reminder was computed from (ok=false: none recorded — a v1 row).
+func storedRevision(meta db.NullRawJSON) (uint64, bool) {
+	if !meta.Valid {
+		return 0, false
+	}
+	var m struct {
+		Rev *uint64 `json:"engine_rev"`
+	}
+	if json.Unmarshal(meta.V, &m) != nil || m.Rev == nil {
+		return 0, false
+	}
+	return *m.Rev, true
+}
+
+// sameRevision reports whether the stored meta already names the prediction's revision (a v1 prediction never
+// rewrites the meta of an unchanged reminder).
+func sameRevision(meta db.NullRawJSON, p Prediction) bool {
+	if !p.Revisioned {
+		return true
+	}
+	rev, ok := storedRevision(meta)
+	return ok && rev == p.Rev
+}
+
+// storedSupply is the stored reminder's day when it is still current (I-10): the predictor has a revision, the row
+// was computed at that same revision, its day is today or later and its title is in the request locale. ok=false
+// means re-sync from the engine.
+func (s *Service) storedSupply(ctx context.Context, userID uint64, today civildate.Date, title string) (civildate.Date, bool, error) {
+	rev, has, err := s.predict.Revision(ctx, userID)
+	if err != nil {
+		return civildate.Date{}, false, fmt.Errorf("checklist: engine revision: %w", err)
+	}
+	if !has {
+		return civildate.Date{}, false, nil
+	}
+	cur, err := s.q.FindSupplyCareReminder(ctx, userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return civildate.Date{}, false, nil
+	}
+	if err != nil {
+		return civildate.Date{}, false, fmt.Errorf("checklist: find reminder: %w", err)
+	}
+	stored, ok := storedRevision(cur.Meta)
+	if !ok || stored != rev || !cur.ScheduledAt.Valid || cur.Title != title {
+		return civildate.Date{}, false, nil
+	}
+	day := civildate.InTehran(cur.ScheduledAt.Time)
+	if day.Before(today) {
+		return civildate.Date{}, false, nil
+	}
+	return day, true, nil
 }

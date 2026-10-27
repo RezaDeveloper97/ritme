@@ -267,6 +267,7 @@ type Interpretation struct {
 	Context      struct {
 		Mode        string `json:"mode"`
 		Phase       string `json:"phase,omitempty"`
+		PhaseOn     string `json:"phase_on,omitempty"` // the day Phase is for (v6: the lab date, I-10)
 		Medications int    `json:"medications"`
 	} `json:"context"`
 }
@@ -390,9 +391,11 @@ type promptResult struct {
 
 // promptData is the whole prompt data (no name, no id, no date of birth: an age band only).
 type promptData struct {
-	LifeStage   string         `json:"life_stage"`
-	AgeBand     string         `json:"age_band,omitempty"`
-	CyclePhase  string         `json:"approximate_cycle_phase_today,omitempty"`
+	LifeStage  string `json:"life_stage"`
+	AgeBand    string `json:"age_band,omitempty"`
+	CyclePhase string `json:"approximate_cycle_phase_today,omitempty"`
+	// LabDayPhase replaces CyclePhase under the v6 engine: the phase on the day the sample was taken (I-10).
+	LabDayPhase string         `json:"approximate_cycle_phase_on_lab_date,omitempty"`
 	Medications []string       `json:"medications,omitempty"`
 	Results     []promptResult `json:"results"`
 }
@@ -430,6 +433,9 @@ func promptCode(e Evaluated, i int) string {
 // evals must be promptEvals.
 func buildPrompt(evals []Evaluated, uc UserContext, locale string, flags map[uint64]RedFlag) ai.ChatRequest {
 	d := promptData{LifeStage: modeLabel(uc.Mode), AgeBand: ageBand(uc.Age), CyclePhase: cleanField(uc.Phase), Results: []promptResult{}}
+	if !uc.PhaseOn.IsZero() {
+		d.CyclePhase, d.LabDayPhase = "", d.CyclePhase
+	}
 	for _, m := range uc.Medications {
 		if c := cleanField(m); c != "" && len(d.Medications) < promptMaxMedications {
 			d.Medications = append(d.Medications, c)

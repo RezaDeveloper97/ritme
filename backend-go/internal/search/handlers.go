@@ -61,7 +61,7 @@ func (h *Handlers) Search(c fiber.Ctx) error {
 		Scope:   ScopeAll,
 		Locale:  locale,
 		Default: i18n.LanguagesOf(c).DefaultCode(),
-		Today:   civildate.InTehran(now),
+		Today:   civildate.LocalToday(c, clock.FromContext(c, h.clock)),
 	}
 	if s, ok := input.Get("scope"); ok && s != nil {
 		q.Scope = phpval.ToString(s)

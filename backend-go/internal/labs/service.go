@@ -37,6 +37,7 @@ type Service struct {
 	logger   *slog.Logger
 	clock    clock.Clock
 	runner   *Runner
+	cycle    CycleStates // nil = CYCLE_ENGINE v1
 }
 
 // Options wires a Service.
@@ -49,6 +50,9 @@ type Options struct {
 	Catalog  *catalog.Reader  // the lab_markers group (nil = empty catalog)
 	Logger   *slog.Logger
 	Clock    clock.Clock
+	// Cycle is the v6 engine (CYCLE_ENGINE shadow / v6): the interpretation's phase is the engine's phase of the lab
+	// date. nil keeps v1 (today's profile-LMP estimate).
+	Cycle CycleStates
 }
 
 // NewService wires the service.
@@ -60,7 +64,7 @@ func NewService(o Options) *Service {
 		o.Clock = clock.Real{}
 	}
 	return &Service{db: o.DB, q: store.New(o.DB), preg: pregstore.New(o.DB), files: o.Files, client: o.AI, consents: o.Consents, plus: o.Plus,
-		cat: catalogLoader{reader: o.Catalog, logger: o.Logger}, logger: o.Logger, clock: o.Clock}
+		cat: catalogLoader{reader: o.Catalog, logger: o.Logger}, logger: o.Logger, clock: o.Clock, cycle: o.Cycle}
 }
 
 func nullTime(t time.Time) sql.NullTime { return sql.NullTime{Time: tehranSecond(t), Valid: true} }
@@ -655,6 +659,16 @@ func (s *Service) storeInterpretation(ctx context.Context, userID, labID uint64,
 	if err != nil {
 		return err
 	}
+	if s.cycle != nil { // I-10: the phase of the lab's own date, stored labelled with that date
+		uc.PhaseOn = labDate(lab.TakenOn, lab.CreatedAt)
+		today := civildate.FromTime(now.In(civildate.Zone(ctx)))
+		if uc.Phase, err = s.labPhase(ctx, userID, uc.Mode, uc.PhaseOn, today); err != nil {
+			return err
+		}
+		if uc.Phase == "" {
+			uc.PhaseOn = civildate.Date{}
+		}
+	}
 	in := Interpretation{Locale: l.Locale, GeneratedAt: tehranSecond(now), Source: SummaryRules}
 	if r := summarize(evals, uc); r.Summary != "" {
 		in.Summary, in.Source, in.Explanations, in.Questions = r.Summary, SummaryAI, r.Explanations, r.Questions
@@ -662,6 +676,9 @@ func (s *Service) storeInterpretation(ctx context.Context, userID, labID uint64,
 		in.Summary = rulesSummary(evals, l)
 	}
 	in.Context.Mode, in.Context.Phase, in.Context.Medications = string(uc.Mode), uc.Phase, len(uc.Medications)
+	if !uc.PhaseOn.IsZero() {
+		in.Context.PhaseOn = uc.PhaseOn.String()
+	}
 	raw, err := json.Marshal(in)
 	if err != nil {
 		return fmt.Errorf("labs: interpretation: %w", err)

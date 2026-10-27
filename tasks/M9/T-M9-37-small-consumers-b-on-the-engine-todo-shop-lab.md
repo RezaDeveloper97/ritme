@@ -3,7 +3,7 @@ id: T-M9-37
 title: Small consumers B on the engine: todo, shop, labs, conditions, search, nudges
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-32]
 parallel_group: M9-C
 touches: [backend-go/internal/todo, backend-go/internal/shop/checklist, backend-go/internal/http/routes_shop_checklist.go, backend-go/internal/labs/context.go, backend-go/internal/labs/service.go, backend-go/internal/conditions, backend-go/internal/messages/conditionnudges, backend-go/internal/search, backend-go/internal/healthlog/cyclehistory.go, backend-go/db/queries/conditions]

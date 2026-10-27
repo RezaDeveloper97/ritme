@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/cycle/metrics"
 	"github.com/ritme/backend-go/internal/cycle/resolver"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
@@ -25,17 +26,30 @@ var (
 	ErrTooManyItems       = errors.New("todo: item limit reached")
 )
 
+// CycleStates hands out a user's prepared v6 engine state for the user-local day (state.Source satisfies it). nil
+// means CYCLE_ENGINE=v1: the suggestion keeps the v1.1 resolver.
+type CycleStates interface {
+	ForUser(ctx context.Context, uid uint64, today civildate.Date) (*engine.State, error)
+}
+
 // Service is the to-do data access. Every query is scoped by user id.
 type Service struct {
-	db    *sql.DB
-	q     *store.Queries
-	cycle *cycleservice.Service
-	prefs notifications.Getter
+	db     *sql.DB
+	q      *store.Queries
+	cycle  *cycleservice.Service
+	states CycleStates
+	prefs  notifications.Getter
 }
 
 // NewService wires the service on db.
 func NewService(db *sql.DB) *Service {
 	return &Service{db: db, q: store.New(db), cycle: cycleservice.New(db, nil), prefs: profilestore.New(db)}
+}
+
+// WithEngine makes the cycle suggestion read the v6 engine (CYCLE_ENGINE shadow / v6, T-M9-37); nil keeps v1.
+func (s *Service) WithEngine(states CycleStates) *Service {
+	s.states = states
+	return s
 }
 
 func nullStr(s string) sql.NullString { return sql.NullString{String: s, Valid: s != ""} }
@@ -271,15 +285,30 @@ func (s *Service) DeleteItem(ctx context.Context, userID, taskID, id uint64) err
 
 // Suggestion is the cycle suggestion due today (ok=false: none), from the engine's predicted next period, unless the
 // user already answered it for that period.
+//
+// todo_suggestion_events.ref_date is the predicted start the answer was given for (DECISIONS.md I-10, kept as is): when
+// a period edit moves the prediction, the offer for the new date is a new offer.
 func (s *Service) Suggestion(ctx context.Context, userID uint64, today civildate.Date) (Suggestion, bool, error) {
-	sn, err := s.cycle.Load(ctx, userID, today, today, today)
-	if err != nil {
-		return Suggestion{}, false, err
+	var (
+		sg Suggestion
+		ok bool
+	)
+	if s.states != nil {
+		st, err := s.states.ForUser(ctx, userID, today)
+		if err != nil {
+			return Suggestion{}, false, fmt.Errorf("todo: engine state: %w", err)
+		}
+		sg, ok = EngineSuggestion(st, today)
+	} else {
+		sn, err := s.cycle.Load(ctx, userID, today, today, today)
+		if err != nil {
+			return Suggestion{}, false, err
+		}
+		profile := sn.EngineProfile()
+		m := metrics.Calculate(sn.Histories, profile)
+		st := resolver.Resolve(sn.Histories, profile, today, today, m)
+		sg, ok = PeriodSuggestion(st.PredictedNextPeriodStart, today, sn.LifeMode)
 	}
-	profile := sn.EngineProfile()
-	m := metrics.Calculate(sn.Histories, profile)
-	st := resolver.Resolve(sn.Histories, profile, today, today, m)
-	sg, ok := PeriodSuggestion(st.PredictedNextPeriodStart, today, sn.LifeMode)
 	if !ok {
 		return Suggestion{}, false, nil
 	}
