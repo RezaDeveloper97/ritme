@@ -1,4 +1,9 @@
-import type { CycleCalculation, CycleDayMarker, CyclePhase, CyclePredictions } from './types';
+import type {
+  CycleCalculation,
+  CycleDayMarker,
+  CyclePhase,
+  CyclePredictions,
+} from "./types";
 
 /**
  * Days before ovulation the fertile window opens (task.md §18/§19: the window
@@ -16,11 +21,11 @@ export const FERTILE_WINDOW_LEAD_DAYS = 5;
 export const PMS_WINDOW_DAYS = 3;
 
 const KNOWN_PHASES: readonly CyclePhase[] = [
-  'period',
-  'follicular',
-  'fertile',
-  'ovulation',
-  'luteal',
+  "period",
+  "follicular",
+  "fertile",
+  "ovulation",
+  "luteal",
 ];
 
 /**
@@ -29,10 +34,10 @@ const KNOWN_PHASES: readonly CyclePhase[] = [
  * `period`. Map those synonyms so the phase renders correctly everywhere.
  */
 const PHASE_ALIASES: Record<string, CyclePhase> = {
-  menstruation: 'period',
+  menstruation: "period",
   // v1.1 engine main-phase values (task.md §13).
-  menstrual: 'period',
-  period_expected: 'luteal',
+  menstrual: "period",
+  period_expected: "luteal",
 };
 
 /**
@@ -42,12 +47,12 @@ const PHASE_ALIASES: Record<string, CyclePhase> = {
  * events" phase) rather than throwing — a new backend label should never blank
  * the home screen.
  */
-export function normalizePhase(phase: string): CyclePhase | null {
-  if (phase === 'unknown') return null;
+export function normalizePhase(phase: string | null): CyclePhase | null {
+  if (phase === null || phase === "unknown") return null;
   if ((KNOWN_PHASES as readonly string[]).includes(phase)) {
     return phase as CyclePhase;
   }
-  return PHASE_ALIASES[phase] ?? 'luteal';
+  return PHASE_ALIASES[phase] ?? "luteal";
 }
 
 /**
@@ -59,7 +64,10 @@ export function normalizePhase(phase: string): CyclePhase | null {
  * all it takes to read a calculation by the §19 rule.
  */
 function isAfterOvulation(calc: CycleCalculation): boolean {
-  return calc.estimatedOvulationDay != null && calc.cycleDay > calc.estimatedOvulationDay;
+  return (
+    calc.estimatedOvulationDay != null &&
+    calc.cycleDay > calc.estimatedOvulationDay
+  );
 }
 
 /**
@@ -69,7 +77,7 @@ function isAfterOvulation(calc: CycleCalculation): boolean {
  */
 export function calcMainPhase(calc: CycleCalculation): CyclePhase | null {
   const phase = normalizePhase(calc.phase);
-  return phase === 'ovulation' && isAfterOvulation(calc) ? 'luteal' : phase;
+  return phase === "ovulation" && isAfterOvulation(calc) ? "luteal" : phase;
 }
 
 /**
@@ -79,8 +87,9 @@ export function calcMainPhase(calc: CycleCalculation): CyclePhase | null {
  */
 export function calcInFertileWindow(calc: CycleCalculation): boolean {
   const phase = calcMainPhase(calc);
-  if (phase === null || phase === 'period' || isAfterOvulation(calc)) return false;
-  return phase === 'ovulation' || calc.isFertileWindow;
+  if (phase === null || phase === "period" || isAfterOvulation(calc))
+    return false;
+  return phase === "ovulation" || calc.isFertileWindow;
 }
 
 /**
@@ -104,10 +113,10 @@ export function calcInPmsWindow(calc: CycleCalculation): boolean {
  */
 export function cycleDayMarker(calc: CycleCalculation): CycleDayMarker | null {
   const phase = calcMainPhase(calc);
-  if (phase === 'period') return 'period';
-  if (phase === 'ovulation') return 'ovulation';
-  if (calcInFertileWindow(calc)) return 'fertile';
-  if (calcInPmsWindow(calc)) return 'pms';
+  if (phase === "period") return "period";
+  if (phase === "ovulation") return "ovulation";
+  if (calcInFertileWindow(calc)) return "fertile";
+  if (calcInPmsWindow(calc)) return "pms";
   return null;
 }
 
@@ -117,14 +126,19 @@ export function cycleDayMarker(calc: CycleCalculation): CycleDayMarker | null {
  * one (e.g. the anchored window says "not fertile" where the legacy flag
  * disagreed) reads as follicular before ovulation and luteal after it.
  */
-export function markerPhase(calc: CycleCalculation, marker: CycleDayMarker | null): CyclePhase {
-  if (marker === 'period' || marker === 'ovulation' || marker === 'fertile') return marker;
+export function markerPhase(
+  calc: CycleCalculation,
+  marker: CycleDayMarker | null,
+): CyclePhase | null {
+  if (marker === "period" || marker === "ovulation" || marker === "fertile")
+    return marker;
   const phase = calcMainPhase(calc);
-  if (phase === null) return 'follicular';
-  if (phase !== 'ovulation' && phase !== 'fertile') return phase;
-  return calc.estimatedOvulationDay != null && calc.cycleDay < calc.estimatedOvulationDay
-    ? 'follicular'
-    : 'luteal';
+  if (phase === null) return null;
+  if (phase !== "ovulation" && phase !== "fertile") return phase;
+  return calc.estimatedOvulationDay != null &&
+    calc.cycleDay < calc.estimatedOvulationDay
+    ? "follicular"
+    : "luteal";
 }
 
 /**
@@ -133,13 +147,16 @@ export function markerPhase(calc: CycleCalculation, marker: CycleDayMarker | nul
  * localized dates. Offsets are clamped to sane bounds so a slightly stale
  * calculation can't produce nonsense like a negative "days until next period".
  */
-export function deriveCyclePredictions(calc: CycleCalculation): CyclePredictions {
+export function deriveCyclePredictions(
+  calc: CycleCalculation,
+): CyclePredictions {
   // +1: the next period starts on cycle day cycleLength+1, not cycleLength, so the
   // offset reaches the next period start (matches the backend forecast date).
   const daysUntilNextPeriod = Math.max(0, calc.cycleLength - calc.cycleDay + 1);
   // No estimate (v6, fertility suppressed): the fixed luteal offset keeps this
   // legacy number finite; screens must gate on the suppression flag, not on it.
-  const daysUntilOvulation = (calc.estimatedOvulationDay ?? calc.cycleLength - 14) - calc.cycleDay;
+  const daysUntilOvulation =
+    (calc.estimatedOvulationDay ?? calc.cycleLength - 14) - calc.cycleDay;
   // PMS is the short run of days ending the day before the next period. Clamp to
   // today so an imminent/overdue period never yields a negative window.
   const daysUntilPmsEnd = Math.max(0, daysUntilNextPeriod - 1);
@@ -147,11 +164,13 @@ export function deriveCyclePredictions(calc: CycleCalculation): CyclePredictions
 
   return {
     cycleDay: calc.cycleDay,
-    // `CyclePredictions.phase` is non-null; an `unknown` day has no phase to show, so the
-    // neutral pre-ovulation label stands in (never luteal) and `isFertileWindow` stays false.
-    phase: calcMainPhase(calc) ?? 'follicular',
+    // An unknown day has no phase (null), never a placeholder.
+    phase: calcMainPhase(calc),
     cycleLength: calc.cycleLength,
-    fertilityPercent: Math.round(Math.min(100, Math.max(0, calc.fertilityPercent))),
+    fertilityPercent:
+      calc.fertilityPercent === null
+        ? null
+        : Math.round(Math.min(100, Math.max(0, calc.fertilityPercent))),
     daysUntilNextPeriod,
     daysUntilOvulation,
     daysUntilFertileWindow: daysUntilOvulation - FERTILE_WINDOW_LEAD_DAYS,

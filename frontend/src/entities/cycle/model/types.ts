@@ -69,7 +69,7 @@ export interface CycleCalculation {
   /** 1-based day within the current cycle. */
   cycleDay: number;
   /** Raw phase string from the API (normalized to `CyclePhase` in selectors). */
-  phase: string;
+  phase: string | null;
   /** Finer-grained phase label, when the backend provides one. */
   subphase: string | null;
   /** Estimated ovulation day, as a 1-based cycle day; null when none is estimated (v6, e.g. hormonal contraception). */
@@ -80,7 +80,7 @@ export interface CycleCalculation {
   isPmsWindow: boolean;
   isPeriodTomorrow: boolean;
   /** Conception probability for the day, as a percentage (0–100). Informational. */
-  fertilityPercent: number;
+  fertilityPercent: number | null;
   /** e.g. "regular" / "irregular"; null when unknown. */
   cycleVariability: string | null;
   /** Today's recommendations for this day; empty when the engine has none. */
@@ -101,11 +101,11 @@ export interface MonthSummary {
  */
 export interface CyclePredictions {
   cycleDay: number;
-  /** Normalized phase (falls back to `luteal` for unknown backend strings). */
-  phase: CyclePhase;
+  /** Normalized phase; null when the engine has no phase for the day (never shown as luteal/follicular). */
+  phase: CyclePhase | null;
   cycleLength: number;
-  /** Conception probability today, 0–100 (rounded). Informational only (§11). */
-  fertilityPercent: number;
+  /** Conception probability today, 0–100 (rounded); null when the engine sends no number. Informational only (§11). */
+  fertilityPercent: number | null;
   /** Days from today until the next period starts (never negative). */
   daysUntilNextPeriod: number;
   /** Days from today until estimated ovulation (negative once it has passed). */

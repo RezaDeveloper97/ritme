@@ -3,7 +3,7 @@ id: T-M9-40c
 title: Frontend: real nulls for unknown phase and missing fertility number (drop NaN/'' sentinels)
 milestone: M9
 type: frontend
-status: todo
+status: done
 depends_on: [T-M9-40b,T-M9-46]
 parallel_group: M9-C
 touches: [frontend/src/entities/cycle/model,frontend/src/entities/cycle/api/schema.ts,frontend/src/entities/cycle/api/schema.test.ts,frontend/src/screens/companion-home]

@@ -89,16 +89,14 @@ export const cycleCalculationSchema = z
   .transform((c): CycleCalculation => ({
     calculationDate: c.calculation_date,
     cycleDay: c.cycle_day,
-    // Types (outside this task's touches) still say `string` / `number`: '' = no phase,
-    // NaN = "no fertility number" (never 0%). Report: widen to `| null` in model/types.ts.
-    phase: c.phase ?? '',
+    phase: c.phase ?? null,
     subphase: c.subphase,
     estimatedOvulationDay: c.estimated_ovulation_day,
     cycleLength: c.cycle_length_used,
     isFertileWindow: c.is_fertile_window,
     isPmsWindow: c.is_pms_window,
     isPeriodTomorrow: c.is_period_tomorrow,
-    fertilityPercent: c.final_probability ?? Number.NaN,
+    fertilityPercent: c.final_probability ?? null,
     cycleVariability: c.cycle_variability,
     dailyTips: c.daily_tips,
   }));

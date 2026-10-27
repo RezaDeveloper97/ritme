@@ -91,8 +91,7 @@ describe('cycleCalculationSchema — v6 nulls', () => {
   it('parses final_probability: null as "no number", not 0%', () => {
     const c = cycleCalculationSchema.parse({ ...v6, phase: 'follicular' });
 
-    expect(Number.isNaN(c.fertilityPercent)).toBe(true);
-    expect(c.fertilityPercent).not.toBe(0);
+    expect(c.fertilityPercent).toBeNull();
   });
 
   it('keeps a real probability', () => {
@@ -102,7 +101,7 @@ describe('cycleCalculationSchema — v6 nulls', () => {
   });
 
   it('parses phase: null (late 15+ persona, overdue_20)', () => {
-    expect(cycleCalculationSchema.parse(v6).phase).toBe('');
+    expect(cycleCalculationSchema.parse(v6).phase).toBeNull();
   });
 
   it('parses subphase / cycle_variability / estimated_ovulation_day null', () => {
