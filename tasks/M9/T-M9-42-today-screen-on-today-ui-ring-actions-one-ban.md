@@ -3,7 +3,7 @@ id: T-M9-42
 title: Today screen on today_ui: ring actions, one banner, lateness tiers, disclaimer
 milestone: M9
 type: frontend
-status: todo
+status: done
 depends_on: [T-M9-40, T-M9-32]
 parallel_group: M9-C
 touches: [frontend/src/screens/home, frontend/messages/fa/home.json, frontend/messages/en/home.json, backend-go/resources/translations/fa/home.json, backend-go/resources/translations/en/home.json]

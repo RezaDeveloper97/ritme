@@ -220,7 +220,7 @@
     "usually": "Usually {n, plural, one{# day} other{# days}}",
     "cycleDay": "Cycle day {n, number}",
     "editPeriod": "Edit period",
-    "noData": "No period logged yet",
+    "noData": "No period yet",
     "logPeriod": "Log period"
   },
   "phaseCard": {
@@ -254,10 +254,27 @@
     },
     "endMissing": {
       "title": "Period end not logged yet",
-      "text": "If it has ended, log it; if it's still going, there's nothing to do."
+      "text": "If it has ended, log it; if it's still going, there's nothing to do.",
+      "cta": "Log period end"
     },
     "nearText": "{days, plural, =0 {Your period will likely start today.} =1 {Your period will likely start tomorrow.} other {Your period will likely start in {n} days.}} If it starts, log it right here so the next prediction gets sharper.",
     "lateText": "Your period is {n} days past the predicted date. If it has started, log it here; a few days late is usually normal.",
+    "lateTextLong": "Your period is {n} days past the predicted date. If it has started, log it here. If not, check the date of your last period.",
+    "banner": {
+      "overdue": {
+        "title": "Your period is {n} days late",
+        "text": "If your period has started, log it. If you might be pregnant, you can log a test result.",
+        "textLong": "It has been over two weeks past the predicted date. Check the date of your last period. If you are worried or might be pregnant, talk to a doctor.",
+        "test": "Log pregnancy test",
+        "textNoTest": "If your period has started, log it.",
+        "textLongNoTest": "It has been over two weeks past the predicted date. Check the date of your last period. If you are worried, talk to a doctor."
+      },
+      "askLast": {
+        "title": "Tell us your last period date",
+        "text": "Predictions are counted from your last period date, and right now they are out of date.",
+        "cta": "Log last period date"
+      }
+    },
     "phasePill": {
       "period": "Period",
       "follicular": "Follicular",
@@ -298,7 +315,8 @@
         "relatively_regular": "Regular",
         "irregular_possible": "Irregular",
         "not_enough_data": "Little data"
-      }
+      },
+      "disclaimer": "Predictions are not contraception"
     },
     "insight": {
       "pmsTomorrow": "PMS likely from tomorrow",

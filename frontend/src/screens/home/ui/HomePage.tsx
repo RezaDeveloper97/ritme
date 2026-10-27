@@ -94,11 +94,13 @@ import { TodayChallengeCard } from '@/widgets/today-challenge';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
 import { needsPeriodData } from '../model/cycle-data';
-import { heroState, phaseFromMainPhase } from '../model/hero-state';
+import { phaseFromMainPhase } from '../model/hero-state';
 import { dismissPrompt, isPromptDismissed } from '../model/prompt-dismiss';
 import { readTtcHint, writeTtcHint } from '../model/ttc-hint';
+import { isEnginePayload, todayHero } from '../model/today-ui';
 
 import { PmsInsightCard, PredictionsCard, type PredictionSlot } from './PredictionsCard';
+import { TodayBanner } from './TodayBanner';
 import { MenopauseHome } from './MenopauseHome';
 import { PlusTrialOffer } from './PlusTrialOffer';
 import { TodayLogCard } from './TodayLogCard';
@@ -590,6 +592,8 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   // anyway, so nothing meaningful is lost from the prerendered HTML.
   const mounted = useMounted();
   const [dateEditorOpen, setDateEditorOpen] = useState(false);
+  // The banner's «پایان پریود» opens the editor on the open period; every other entry uses its default.
+  const [dateEditorIntent, setDateEditorIntent] = useState<'edit' | undefined>(undefined);
   // The §12 sync nudge edits the profile in place, in the same bottom sheet the
   // profile screen uses for cycle length — no detour through /profile/health.
   const [cycleSheetOpen, setCycleSheetOpen] = useState(false);
@@ -649,8 +653,13 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   // Every prediction row describes the occurrence the user is actually waiting on:
   // an event whose window is already running is reported as in-progress, and one
   // that is wholly behind us rolls forward a cycle.
-  const slotFor = (start: Date, end: Date): TimelineSlot | null => {
+  // v6 (E-17): while the period is late there is no rolled-forward row — the late banner and the ring
+  // already say so, and a made-up next date would hide the lateness.
+  const todayView = todayData?.cycleView ?? null;
+  const periodIsLate = isEnginePayload(todayView) && (todayView?.daysLate ?? 0) > 0;
+  const slotFor = (start: Date, end: Date, rollForward = true): TimelineSlot | null => {
     if (!schedule) return null;
+    if (!rollForward && diffInDays(end, base) < 0) return null;
     let from = start;
     let to = end;
     while (diffInDays(to, base) < 0) {
@@ -669,9 +678,9 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
     profileQuery.data?.health?.periodDuration ??
     DEFAULT_PERIOD_DAYS;
   const nextPeriodSlot = overview?.nextPeriod
-    ? slotFor(fromApiDate(overview.nextPeriod.start), fromApiDate(overview.nextPeriod.end))
+    ? slotFor(fromApiDate(overview.nextPeriod.start), fromApiDate(overview.nextPeriod.end), !periodIsLate)
     : schedule
-      ? slotFor(schedule.nextPeriodStart, addDays(schedule.nextPeriodStart, periodDays - 1))
+      ? slotFor(schedule.nextPeriodStart, addDays(schedule.nextPeriodStart, periodDays - 1), !periodIsLate)
       : null;
   const ovulationSlot = schedule ? slotFor(schedule.ovulation, schedule.ovulation) : null;
   // The §19 display window — the same days `/fertility/bbt` and the insights
@@ -720,7 +729,9 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   // that renders the day-status card — so the ring can never disagree with it.
   const infoView = (isToday ? todayData : dateData)?.cycleView ?? null;
   // The engine's main phase wins over the legacy calculation's phase.
-  const infoPhase: CyclePhase | null = phaseFromMainPhase(infoView?.mainPhase) ?? infoPred?.phase ?? null;
+  // A v6 payload that says `unknown` stays neutral: no legacy-phase guess behind the engine's back.
+  const infoPhase: CyclePhase | null =
+    phaseFromMainPhase(infoView?.mainPhase) ?? (isEnginePayload(infoView) ? null : (infoPred?.phase ?? null));
   const infoDaysUntilNextPeriod =
     infoView?.daysToPeriod ??
     (selectedSchedule ? daysUntilNextPeriod(selectedSchedule, selectedDate) : null);
@@ -824,7 +835,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
     dismissPrompt(kind, todayIso);
     setDismissTick((n) => n + 1);
   };
-  const hero = heroState({
+  const hero = todayHero({
     isToday: isToday && !loadingInfo && !noPeriodData,
     inPeriod,
     daysLeft,
@@ -834,10 +845,12 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
     periodLength,
     startDismissed,
     endDismissed,
+    todayUi: infoView?.todayUi ?? null,
   });
   const startPeriod = useStartPeriod();
   const endPeriod = useEndPeriod();
   const daysLate = infoView?.daysLate ?? 0;
+  const lateTier = hero.tier;
 
   // TTC ring centre (`v19_Main`): «تخمک‌گذاری تا N روز» while ovulation is still
   // ahead in this cycle; once it has passed (or during the period) the ring
@@ -909,7 +922,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
     !isToday || loadingInfo
       ? infoPhaseDesc
       : hero.variant === 'late'
-        ? t('nb.lateText', { n: formatNumber(daysLate, loc) })
+        ? t(lateTier === 'calm' ? 'nb.lateText' : 'nb.lateTextLong', { n: formatNumber(daysLate, loc) })
         : hero.variant === 'near' && daysLeft != null
           ? t('nb.nearText', { days: daysLeft, n: formatNumber(daysLeft, loc) })
           : infoPhaseDesc;
@@ -1076,14 +1089,33 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
               )}
             </CycleRing>
           </section>
-          {hero.endMissing && (
-            <div role="status" className="ch-alert">
-              <IconCircle icon="info" tone="warm" size="sm" />
-              <span className="ch-alert-body">
-                <b className="ch-alert-title">{t('nb.endMissing.title')}</b>
-                <span className="ch-alert-text">{t('nb.endMissing.text')}</span>
-              </span>
-            </div>
+          {hero.fromEngine && hero.banner ? (
+            // §2.43: one banner at a time, chosen by the engine (`today_ui.banner`).
+            <TodayBanner
+              banner={hero.banner}
+              daysLate={daysLate}
+              tier={hero.tier}
+              showPregnancyTest={hero.showPregnancyTest}
+              onEditEnd={() => {
+                setDateEditorIntent('edit');
+                setDateEditorOpen(true);
+              }}
+              onAskLastPeriod={() => {
+                setDateEditorIntent(undefined);
+                setDateEditorOpen(true);
+              }}
+              onLogPregnancyTest={() => openSheet('log', toApiDate(base))}
+            />
+          ) : (
+            hero.endMissing && (
+              <div role="status" className="ch-alert">
+                <IconCircle icon="info" tone="warm" size="sm" />
+                <span className="ch-alert-body">
+                  <b className="ch-alert-title">{t('nb.endMissing.title')}</b>
+                  <span className="ch-alert-text">{t('nb.endMissing.text')}</span>
+                </span>
+              </div>
+            )
           )}
           {loadFailed ? (
             <Card as="section" className="ch-error" role="alert">
@@ -1212,7 +1244,14 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
 
       {/* It portals to `.app-shell`, so mounting it here still covers the
           whole screen. */}
-      <PeriodDateEditor open={dateEditorOpen} onClose={() => setDateEditorOpen(false)} />
+      <PeriodDateEditor
+        open={dateEditorOpen}
+        intent={dateEditorIntent}
+        onClose={() => {
+          setDateEditorOpen(false);
+          setDateEditorIntent(undefined);
+        }}
+      />
 
       {/* B-N2-08: trial-offer banner + sheet — never for teen (QUESTIONS #70/#72). */}
       {!teen && <PlusTrialOffer />}

@@ -119,6 +119,8 @@ export function PredictionsCard({
           )}
         </Link>
       )}
+      {/* Fixed, always shown: the forecast is not a contraceptive method. */}
+      <p className="ch-alert-text ch-pred-disclaimer">{t('disclaimer')}</p>
       {footer}
     </Card>
   );
