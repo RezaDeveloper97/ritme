@@ -27,7 +27,7 @@ func init() {
 		})
 		bundles := i18n.NewTranslationStore(translations.FS, d.Config.StoragePath)
 		h := healthrecord.NewHandlers(healthrecord.NewService(d.DB, labsSvc).WithBundles(bundles).
-			WithProviders(menopauseReportSection(d, bundles)), clock.Real{})
+			WithEngine(engineStates(r, d)).WithProviders(menopauseReportSection(d, bundles)), clock.Real{})
 		writes := writeThrottle(d)
 
 		p := "/api/v1/health-record"

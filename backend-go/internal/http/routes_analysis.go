@@ -37,6 +37,7 @@ func init() {
 		).WithLabs(labs.NewService(labs.Options{ // B-N6-06: the hub's labs card (reads only)
 			DB: d.DB, Catalog: catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger), Logger: d.Logger,
 		})).WithVitals(vitals.NewService(d.DB)) // B-N6-03: vitals averages read vital_readings merged with the log sheet
+		h.WithEngine(engineStates(r, d)) // T-M9-35: v6 under shadow|v6
 
 		r.Get("/api/v1/analysis/summary", locale, guard, h.Summary)
 		r.Get("/api/v1/analysis/cycle", locale, guard, h.Cycle)

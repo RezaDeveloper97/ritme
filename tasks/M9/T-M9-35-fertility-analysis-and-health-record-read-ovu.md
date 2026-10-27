@@ -3,10 +3,10 @@ id: T-M9-35
 title: Fertility, analysis and health record read ovulation and regularity from the engine
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-32]
 parallel_group: M9-C
-touches: [backend-go/internal/fertility, backend-go/internal/analysis, backend-go/internal/healthrecord, backend-go/internal/assistant/profile.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist/fertility.yaml, backend-go/contract/allowlist/analysis.yaml, backend-go/contract/allowlist/analysis-ttc.yaml]
+touches: [backend-go/internal/fertility, backend-go/internal/http/routes_fertility.go, backend-go/internal/http/routes_analysis.go, backend-go/internal/http/routes_analysis_ttc.go, backend-go/internal/http/routes_healthrecord.go, backend-go/internal/http/routes_sharelinks.go, backend-go/internal/http/routes_recordsharing.go, backend-go/internal/http/routes_assistant.go, backend-go/internal/analysis, backend-go/internal/healthrecord, backend-go/internal/assistant/profile.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist/fertility.yaml, backend-go/contract/allowlist/analysis.yaml, backend-go/contract/allowlist/analysis-ttc.yaml]
 skills: []
 verify: cd backend-go && go vet ./... && go test ./internal/fertility/... ./internal/analysis/... ./internal/healthrecord/... ./internal/assistant/... && make test-int PKG="./internal/fertility/... ./internal/analysis/..." && make contract ROUTES=fertility,analysis,analysis-ttc,healthrecord
 ---

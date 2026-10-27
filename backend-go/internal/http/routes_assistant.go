@@ -42,7 +42,7 @@ func init() {
 			DB:              d.DB,
 			AI:              platform.client,
 			Consents:        consent.NewService(d.DB),
-			Profile:         assistant.RecordProfile(healthrecord.NewService(d.DB, nil)),
+			Profile:         assistant.RecordProfile(healthrecord.NewService(d.DB, nil).WithEngine(engineStates(r, d))), // T-M9-35
 			Photos:          recordShareFiles(d),
 			Bookings:        telemedBookings(d, false),
 			Box:             box,

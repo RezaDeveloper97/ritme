@@ -1,0 +1,23 @@
+{
+  "success": true,
+  "data": {
+    "date": "2026-09-23",
+    "cycle_day": 10,
+    "chance": {
+      "level": "medium",
+      "label": "\u0645\u062a\u0648\u0633\u0637",
+      "bars": 3
+    },
+    "lh": {
+      "value": null,
+      "label": null
+    },
+    "bbt": {
+      "value": null
+    },
+    "intercourse": {
+      "value": null,
+      "label": null
+    }
+  }
+}

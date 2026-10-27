@@ -1,0 +1,18 @@
+{
+  "success": true,
+  "data": {
+    "range": 3,
+    "cycles": [],
+    "stats": {
+      "pre_ovulation_avg": null,
+      "logged_days": 0,
+      "cycle_days_so_far": 0,
+      "gaps": 0
+    },
+    "past_shift_days": [],
+    "tip": {
+      "title": "Look for a 0.2\u20130.5 \u00b0C rise",
+      "body": "If your temperature stays above the coverline for three days in a row, you probably ovulated the day before the first high day."
+    }
+  }
+}

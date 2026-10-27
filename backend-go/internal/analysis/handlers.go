@@ -2,6 +2,7 @@ package analysis
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"time"
@@ -9,7 +10,10 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/cycle/engine"
+	"github.com/ritme/backend-go/internal/cycle/engineparams"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
+	"github.com/ritme/backend-go/internal/cycle/state"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/i18n"
@@ -33,6 +37,32 @@ type Handlers struct {
 	clock     clock.Clock
 	labs      LabsHub
 	vitals    VitalsSource
+	states    state.UserStates // v6 engine (nil = CYCLE_ENGINE v1, engine.go)
+}
+
+// WithEngine makes the reports read the v6 engine (CYCLE_ENGINE shadow|v6, T-M9-35, D-129); nil keeps v1 unchanged.
+func (h *Handlers) WithEngine(states state.UserStates) *Handlers {
+	h.states = states
+	return h
+}
+
+// engineState is uid's v6 state on today: the request's engine revision from the auth query on the shared provider
+// (no query on an L1 hit), else Source.ForUser.
+func (h *Handlers) engineState(c fiber.Ctx, uid uint64, today civildate.Date) (*engine.State, error) {
+	if src, ok := h.states.(state.Source); ok && src.P != nil {
+		if r, ok := auth.CurrentRevisions(c); ok {
+			st, err := src.P.For(c.Context(), uid, r.Engine, state.Params{Engine: engineparams.For(today), FP: engineparams.Fingerprint(today)})
+			if err != nil {
+				return nil, fmt.Errorf("analysis: engine state: %w", err)
+			}
+			return st, nil
+		}
+	}
+	st, err := h.states.ForUser(c.Context(), uid, today)
+	if err != nil {
+		return nil, fmt.Errorf("analysis: engine state: %w", err)
+	}
+	return st, nil
 }
 
 // NewHandlers wires the handlers; base is the fallback clock (clock.Middleware's request clock wins).
@@ -75,6 +105,9 @@ func (h *Handlers) load(c fiber.Ctx, rng func(today civildate.Date) Range, logsF
 	ctx := c.Context()
 	now := clock.FromContext(c, h.clock).Now()
 	today := civildate.InTehran(now)
+	if h.states != nil {
+		today = civildate.LocalToday(c, clock.FromContext(c, h.clock)) // D-126
+	}
 	r := rng(today)
 	ent, err := h.plus.Entitlement(ctx, uid, plus.DeepAnalysis, now)
 	if err != nil {
@@ -86,6 +119,11 @@ func (h *Handlers) load(c fiber.Ctx, rng func(today civildate.Date) Range, logsF
 		return nil, err
 	}
 	in.Histories, in.Profile = sn.Histories, sn.EngineProfile()
+	if h.states != nil {
+		if in.Engine, err = h.engineState(c, uid, today); err != nil {
+			return nil, err
+		}
+	}
 	in.NoCycleNudge = sn.LifeMode == enums.LifeModeMenopause
 	if p := sn.Profile; p != nil {
 		if p.Height.Valid {

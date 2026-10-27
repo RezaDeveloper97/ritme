@@ -1,0 +1,52 @@
+{
+  "success": true,
+  "data": {
+    "range": 3,
+    "cycles": [
+      {
+        "start_date": "2026-09-21",
+        "points": [],
+        "coverline": null,
+        "fertile_window": {
+          "from_day": 13,
+          "to_day": 15
+        },
+        "shift_day": null,
+        "phase": "pre_shift"
+      },
+      {
+        "start_date": "2026-08-24",
+        "points": [],
+        "coverline": null,
+        "fertile_window": {
+          "from_day": 10,
+          "to_day": 15
+        },
+        "shift_day": null,
+        "phase": "pre_shift"
+      },
+      {
+        "start_date": "2026-07-27",
+        "points": [],
+        "coverline": null,
+        "fertile_window": {
+          "from_day": 10,
+          "to_day": 15
+        },
+        "shift_day": null,
+        "phase": "pre_shift"
+      }
+    ],
+    "stats": {
+      "pre_ovulation_avg": null,
+      "logged_days": 0,
+      "cycle_days_so_far": 3,
+      "gaps": 3
+    },
+    "past_shift_days": [],
+    "tip": {
+      "title": "Look for a 0.2\u20130.5 \u00b0C rise",
+      "body": "If your temperature stays above the coverline for three days in a row, you probably ovulated the day before the first high day."
+    }
+  }
+}

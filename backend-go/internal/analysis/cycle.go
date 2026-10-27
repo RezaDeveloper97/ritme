@@ -16,6 +16,8 @@ const (
 	RegularityRegular       = "regular"
 	RegularityIrregular     = "irregular"
 	RegularityNotEnoughData = "not_enough_data"
+	// RegularityInsufficientData is the v6 spelling (the engine's cycle_regularity, D-129).
+	RegularityInsufficientData = "insufficient_data"
 )
 
 // CycleRow is one completed cycle of the window.
@@ -111,12 +113,17 @@ func BuildCycle(in *Input) CycleReport {
 		if !row.Counted {
 			row.Excluded = ExcludedImplausible
 		}
+		if c.Skipped {
+			row.Counted, row.Excluded = false, ExcludedSkipped
+		}
 		if c.PeriodDays > 0 {
 			bleeds = append(bleeds, c.PeriodDays)
 		}
 		out.Cycles = append(out.Cycles, row)
 	}
-	markOutlier(out.Cycles, out.VariationLimit)
+	if in.Engine == nil {
+		markOutlier(out.Cycles, out.VariationLimit) // v6: no outlier exclusion (E-09)
+	}
 	for _, row := range out.Cycles {
 		if row.Counted {
 			lens = append(lens, row.Length)
@@ -147,7 +154,13 @@ func BuildCycle(in *Input) CycleReport {
 			out.PeriodStatus = StatusProlonged
 		}
 	}
-	if len(lens) >= MinPatternCycles {
+	if in.Engine != nil {
+		ref := in.Today // as of the report's end (the monthly report's month), never after today
+		if !in.Range.To.IsZero() && in.Range.To.Before(ref) {
+			ref = in.Range.To
+		}
+		out.Regularity, out.Variation, out.VariationLimit = in.engineRegularity(ref)
+	} else if len(lens) >= MinPatternCycles {
 		lo, hi := lens[0], lens[0]
 		for _, n := range lens {
 			lo, hi = min(lo, n), max(hi, n)

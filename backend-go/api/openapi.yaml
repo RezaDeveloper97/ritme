@@ -167,6 +167,14 @@ paths:
         two or more stay counted). `figo`: cycle 24–38 d, period ≤ 8 d, variation ≤ 9 d (18–25 y) / ≤ 7 d (26–41) /
         ≤ 9 d (42–45); `applies` false outside 18–45. `variation` needs ≥ 3 counted cycles, `ready` (bars) ≥ 2.
         `typical` = the phase split of the typical cycle (ovulation = next start − 14, 6-day fertile window).
+        CYCLE_ENGINE=shadow|v6 (T-M9-35, D-129, A-01, E-09): the cycles are the engine's real periods (never the
+        onboarding date); the verdict `variation.status` is the engine's `cycle_regularity` (the value of
+        `cycle_view.metrics.cycle_regularity`) — `regular` | `irregular` | `insufficient_data` (v1 spells the empty
+        value `not_enough_data`); the FIGO band is the reference only. There is no `outlier` exclusion in v6;
+        `variation.days` is max − min of the engine's regularity cycles (real complete cycles that started in the 12
+        months before the report day, skips excluded, outliers included) and `max` the band of the age, `days` null
+        when it would contradict the verdict. A cycle holding a recorded skip is `excluded: skipped`. Medians stay
+        window-based, falling back to the engine's effective lengths.
       operationId: getAnalysisCycle
       security:
         - {bearerAuth: []}
@@ -209,7 +217,10 @@ paths:
                         properties:
                           days: {type: [integer, "null"]}
                           max: {type: integer}
-                          status: {type: string, enum: [regular, irregular, not_enough_data]}
+                          status:
+                            type: string
+                            description: "v1: regular | irregular | not_enough_data; CYCLE_ENGINE=shadow|v6 (D-129): the engine's cycle_regularity — regular | irregular | insufficient_data."
+                            enum: [regular, irregular, not_enough_data, insufficient_data]
                           cycles_needed: {type: integer}
                       typical: {$ref: "#/components/schemas/AnalysisLayout"}
                       current:
@@ -230,7 +241,10 @@ paths:
                             period_days: {type: [integer, "null"]}
                             in_figo_range: {type: boolean}
                             counted: {type: boolean}
-                            excluded: {type: [string, "null"], enum: [implausible, outlier, null]}
+                            excluded:
+                              type: [string, "null"]
+                              description: "v1: implausible | outlier; v6 (E-09): implausible | skipped (no outlier exclusion)."
+                              enum: [implausible, outlier, skipped, null]
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/ValidationFailed"}
   /api/v1/analysis/period:
@@ -525,6 +539,13 @@ paths:
         `advice` are localized sentences, never a diagnosis. Plus (`plus.deep_analysis`): `timing` (unprotected
         intercourse days in the fertile window), `mucus` (egg-white days before ovulation), `luteal` (median BBT
         luteal length; ≤ 10 d short, 11–17 usual, ≥ 18 long) — `locked: true, data: null` for a free user.
+
+        CYCLE_ENGINE=shadow|v6 (T-M9-35, D-128, D-129): cycles are the engine's real periods; each cycle's ovulation
+        and source are the engine's (BBT > LH > calendar; an LH/BBT conflict is shown with BBT), then the chart's shift
+        and the logged LH for cycles older than the engine's marker window, else the engine's calendar `estimate`; the
+        BBT chart uses the engine's rule (strict: the third high reading ≥ coverline + 0.20 °C, ≥ 10 readings in the
+        cycle). `regularity.data.status` is the engine's `cycle_regularity` (`insufficient_data` instead of
+        `not_enough_data`), `variation` / `limit` as in /analysis/cycle v6.
       operationId: getAnalysisTtc
       security:
         - {bearerAuth: []}
@@ -1979,6 +2000,14 @@ paths:
         null without any), `logged_days`, `cycle_days_so_far` (up to today) and `gaps` = days so far without a reading.
         `past_shift_days` = the confirmed shift days of the previous cycles (up to 5, newest first), independent of
         `range`. `tip` is localized (`Accept-Language`, localized digits) and names the past shift days when known.
+
+        CYCLE_ENGINE=shadow|v6 (T-M9-35, D-128): no query besides auth — the cycles are the engine's current anchor and
+        its real periods (never the onboarding date or an estimated row), the readings are the engine's BBT input
+        (34.00–43.00 °C, the log sheet over the legacy column), and the shift rule is the engine's (E-16): the 3 high
+        readings above the maximum of the 6 before, the third ≥ that maximum + 0.20 °C, at least 10 readings in the
+        cycle (so 9 readings never confirm); the provisional coverline is the baseline of the first unconfirmed rise,
+        else the maximum of the latest 6. `fertile_window` comes from one engine `Range` per cycle. The user-local day
+        and a weak `ETag` / 304 as on /fertility/today (the range is part of the tag).
       operationId: getFertilityBbt
       security:
         - {bearerAuth: []}
@@ -1986,6 +2015,7 @@ paths:
         - {name: range, in: query, required: false, schema: {type: integer, enum: [1, 3, 6], default: 1}, description: "Cycles shown."}
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
+        '304': {description: "CYCLE_ENGINE=shadow|v6 only (T-M9-35): `If-None-Match` matched the current ETag; no body."}
         '200':
           description: The chart
           content:
@@ -2063,12 +2093,22 @@ paths:
         `month_label` = the month of that day in the locale's calendar (Jalali for fa); `period_days` = that cycle's own
         logged period length (end − start + 1, else its `bleeding_length`; `null` when unknown). `tips` are localized strings
         chosen by what is missing (daily BBT, LH from the window's first cycle day, logging periods).
+
+        CYCLE_ENGINE=shadow|v6 (T-M9-35, D-128): ≤ 4 queries (auth, user zone, the current cycle's LH tests; the state
+        from the shared engine cache). `window` = today's prediction-card fertile window (§2.19, `today_ui`) while today
+        is on or before its ovulation day or the period is late, else the next cycle's (`future_cycles[2]`); null under
+        fertility suppression. `cycles_used` / the `cycles` row = the engine's valid cycles, effective length,
+        variability and `cycle_regularity` (strong = regular). `bbt_shift` uses the engine's BBT rule. `history`
+        ovulation and `source` are the engine's per-cycle anchors (BBT > LH > calendar; an LH/BBT conflict is shown
+        with BBT), `period_days` the engine's real period. At most one engine `Range` per chart cycle (no per-day
+        resolves). The user-local day and a weak `ETag` / 304 as on /fertility/today.
       operationId: getFertilityInsights
       security:
         - {bearerAuth: []}
       parameters:
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
+        '304': {description: "CYCLE_ENGINE=shadow|v6 only (T-M9-35): `If-None-Match` matched the current ETag; no body."}
         '200':
           description: The insights
           content:
@@ -2144,11 +2184,17 @@ paths:
         `chance` comes from the cycle engine's `fertility_level` for today (the same value as `cycle_view.fertility_level`;
         no second prediction model): `low` → 1 bar, `medium` → 3, `high` → 4, `peak` → 5; no resolvable cycle →
         `level: null`, the localized "unknown" label and 0 bars. Labels follow `Accept-Language`.
+
+        CYCLE_ENGINE=shadow|v6 (T-M9-35, D-128): `date` is the user-local day (D-126) and the response carries a weak
+        `ETag` (user, engine revision, local day, locale, engine params, build; `Cache-Control: private, no-cache`); a
+        matching `If-None-Match` answers 304 without a body. Under v6 the cycle day and chance come from
+        the engine (`State.Resolve`); fertility suppressed (hormonal contraception, pregnancy) → the unknown chance.
       operationId: getFertilityToday
       security:
         - {bearerAuth: []}
       parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
       responses:
+        '304': {description: "CYCLE_ENGINE=shadow|v6 only (T-M9-35): `If-None-Match` matched the current ETag; no body."}
         '200':
           description: Today's tiles
           content:
@@ -27747,7 +27793,10 @@ components:
             medications {items [{id, title, dose, form, recurrence, weekdays, times, notes}], profile_medications};
             allergies {items|null, answered};
             cycle {range, based_on, median_cycle, variation, median_period, regularity, cycle_status, period_status,
-            last_period_start, current_day, top_symptoms [{key, label, days}]};
+            last_period_start, current_day, top_symptoms [{key, label, days}]}; under CYCLE_ENGINE=shadow|v6 (T-M9-35)
+            the cycles and `regularity` are the engine's (regular | irregular | insufficient_data), `last_period_start` is
+            the latest actual period start (never the declared onboarding date) and the section adds
+            `effective_cycle_length` / `effective_period_length` (the engine's §2.9 lengths);
             vitals {from, to, days, blood_pressure {systolic, diastolic, min, max, readings, classification, tone, unit}|null,
             heart_rate / glucose_fasting / glucose_after_meal / glucose_other {avg, min, max, readings[, in_target, in_target_percent], unit}|null};
             pregnancies {pregnancies_count, births_count, items [HealthRecordPregnancy]};

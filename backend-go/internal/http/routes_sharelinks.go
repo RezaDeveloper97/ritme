@@ -37,7 +37,7 @@ func init() {
 		})
 		bundles := i18n.NewTranslationStore(translations.FS, d.Config.StoragePath)
 		reports := healthrecord.NewService(d.DB, labsSvc).WithBundles(bundles).
-			WithProviders(menopauseReportSection(d, bundles))
+			WithEngine(engineStates(r, d)).WithProviders(menopauseReportSection(d, bundles))
 		svc := sharelinks.NewService(sharelinkstore.New(d.DB), reports, d.Logger).WithDB(d.DB).
 			WithDocuments(sharelinks.NewRecordDocuments(d.DB), recordShareFiles(d)). // CB-REC-03 summaries opened by QR
 			WithSharingGate(teenSharing{p: teen.NewPolicy(d.DB)})                    // teen: links only with a parent link

@@ -2266,3 +2266,32 @@ Nothing needed fixing.
   (`internal/i18n/testdata/messages_*.json`) re-recorded with `-update` for the home + calendar copy.
 - Open: `cycleScheduleFor` / legacy `cycleDayMarkerAt` stay while home imports them (T-M9-42b); late style inline
   until globals.css (T-M9-42b); assumed days look the same as predicted (product question); screenshots (T-M9-42b).
+
+## T-M9-35 — Fertility, analysis and health record read ovulation and regularity from the engine
+- Shipped (D-128, D-129, A-01, E-09) under `CYCLE_ENGINE=shadow|v6`; v1 unchanged (contract
+  fertility,analysis,analysis-ttc,healthrecord 54/0/0).
+  - Fertility: today/days/bbt/insights from `State.Resolve`/`Range`/`BBT()`; BBT chart on the engine rule
+    (`bbt.BuildRule`, `engine/bbt.Detect`, provisional coverline until confirmed); per-cycle ovulation + source from engine
+    anchors (BBT > LH > calendar; conflict shows BBT); insights ≤ 1 Range per cycle, 3 queries warm; ETag/304 on
+    today/bbt/insights; `PUT /fertility/days` now uses the v6 luteal-spotting rule (T-M9-37 open item closed).
+  - Analysis: verdict = engine `cycle_regularity` (incl. `insufficient_data`), no `markOutlier` (E-09), cycles = engine
+    real periods (`excluded: skipped`); TTC ovulation engine marker → chart shift → LH → calendar.
+  - Health record: v6 `last_period_start` = latest actual start; adds `effective_cycle_length`/`effective_period_length`.
+- Goldens: `internal/{fertility,analysis}/testdata/golden-v6`, rewritten with `UPDATE_GOLDEN_V6=1 make test-int`.
+- Outside touches (added to the task): seven one-line `.WithEngine(engineStates(r, d))` in `internal/http/routes_*.go`.
+- Open: analysis median/`counted` still window-based (21–45) while regularity counts outliers; `CycleStatus` not yet
+  tied to `clinical_flags.frequency`; FIGO age band copied into analysis (needs a public engine helper);
+  `querybudget` fertility bbt row still has v1 numbers; `onboarding_declared` fixture has no v6 anchor.
+
+## T-M9-34b — Home v6 warm query budget to 8
+- Shipped: `db/queries/home` `ListChallengeCompletionsSince` (window incl. today) and `ListHomeRemindersV6`
+  (ROW_NUMBER per type, v1 ordering kept), used on the v6 path only and memoised per request; v1 unchanged (20/11).
+- Budget `home v6`: cold 22 → 21, warm 9 → **8**. `TestMergedReads_MatchV1Queries` pins merged = v1 results.
+- Verify: contract home 76/0, contract-v6 80/0.
+
+## T-M9-42b — Today banner follow-ups
+- Shipped: overdue banner «ثبت تست بارداری» opens the log sheet on the measurement panel (`openSheet('log',
+  'YYYY-MM-DD:pregnancy_test')`, parsed in `LogSheet`, `LogDay focus`); banner buttons, `.ch-pred-disclaimer` and the
+  calendar late-day style moved to `globals.css` (tokens, light+dark); `lateStyle.ts` deleted.
+- Moved to T-M9-42c: legacy schedule helpers (home week strip / fertile / ovulation / PMS slots, CalendarPage,
+  ReadyStep) and the light/dark screenshots.

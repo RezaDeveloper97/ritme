@@ -2,6 +2,11 @@
 // T-M5-02): per-cycle series by cycle day, the coverline and the 3-over-6 shift rule, the phase and
 // the chart stats. Pure: no DB, no clock (today is a parameter), no HTTP. Temperatures are whole
 // hundredths of a degree (decimal(4,2) → 3655), so the comparisons carry no float noise.
+//
+// Two shift rules (T-M9-35, D-128): the legacy rule below (CYCLE_ENGINE=v1, the first high reading ≥ +0.20 °C,
+// pinned by the v1 goldens) and the cycle engine's rule (engine/bbt, E-16: strict third reading ≥ baseline +
+// RiseCenti, at least MinReadings readings in the cycle), which the v6 chart and TTC analysis use so they always
+// agree with the engine's per-cycle ovulation. AnalyzeRule / BuildRule pick one: a nil rule is the legacy one.
 package bbt
 
 import (
@@ -10,8 +15,12 @@ import (
 	"strconv"
 	"strings"
 
+	enginebbt "github.com/ritme/backend-go/internal/cycle/engine/bbt"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
+
+// Rule is the engine's shift rule (engine.bbt params); nil is the legacy rule.
+type Rule = *enginebbt.Params
 
 // Rule constants (README → BBT shift rule).
 const (
@@ -92,9 +101,14 @@ func (c Cycle) OvulationDay() *int {
 	return &d
 }
 
-// Analyze places the readings that fall in the cycle (up to today) on it and runs the shift rule.
-// readings may be in any order and may include other cycles' readings.
+// Analyze places the readings that fall in the cycle (up to today) on it and runs the legacy shift
+// rule. readings may be in any order and may include other cycles' readings.
 func Analyze(in CycleInput, readings []Reading, today civildate.Date) Cycle {
+	return AnalyzeRule(in, readings, today, nil)
+}
+
+// AnalyzeRule is Analyze with the given shift rule (nil = legacy).
+func AnalyzeRule(in CycleInput, readings []Reading, today civildate.Date, rule Rule) Cycle {
 	last := in.End
 	if today.Before(last) {
 		last = today
@@ -120,7 +134,13 @@ func Analyze(in CycleInput, readings []Reading, today civildate.Date) Cycle {
 	c.Stats.Gaps = c.Stats.CycleDaysSoFar - c.Stats.LoggedDays
 	c.Stats.PreOvulationAvg = average(c.Points[:min(BaselineReadings, len(c.Points))])
 
-	coverline, shift := detectShift(c.Points)
+	var coverline *int
+	var shift int
+	if rule == nil {
+		coverline, shift = detectShift(c.Points)
+	} else {
+		coverline, shift = detectEngineShift(c.Points, *rule)
+	}
 	c.Coverline = coverline
 	if shift >= 0 {
 		day := c.Points[shift].CycleDay
@@ -172,6 +192,42 @@ func detectShift(points []Point) (*int, int) {
 	return &cover, -1
 }
 
+// detectEngineShift is the engine's rule (engine/bbt.Detect over the cycle's readings, E-16): the
+// coverline of a confirmed shift is the engine's baseline (the maximum of the 6 readings before the
+// first high one). Without a confirmed shift the coverline is provisional, as in the legacy rule:
+// the baseline of the first run of readings that all stay above their baseline (a started rise, or
+// one the strict / minimum-readings checks do not confirm yet), else the maximum of the latest
+// BaselineReadings readings; nil with fewer readings.
+func detectEngineShift(points []Point, p enginebbt.Params) (*int, int) {
+	n := len(points)
+	if n < BaselineReadings {
+		return nil, -1
+	}
+	rs := make([]enginebbt.Reading[int32], n)
+	for i, pt := range points {
+		rs[i] = enginebbt.Reading[int32]{Date: int32(pt.CycleDay), Centi: int32(pt.Value)} //nolint:gosec // cycle days and hundredths °C are small
+	}
+	if r := enginebbt.Detect(rs, p); r.OK {
+		cover := int(r.Baseline)
+		return &cover, r.First
+	}
+	for i := BaselineReadings; i < n; i++ {
+		cover := maxValue(points[i-BaselineReadings : i])
+		above := true
+		for j := i; j < min(n, i+HighReadings); j++ {
+			if points[j].Value <= cover {
+				above = false
+				break
+			}
+		}
+		if above {
+			return &cover, -1
+		}
+	}
+	cover := maxValue(points[n-BaselineReadings:])
+	return &cover, -1
+}
+
 func maxValue(points []Point) int {
 	m := points[0].Value
 	for _, p := range points[1:] {
@@ -203,13 +259,18 @@ type Result struct {
 	PastShiftDays []int
 }
 
-// Build analyses cycles (newest first; cycles[0] is the current one). rangeSize limits the
-// returned Cycles; PastShiftDays always looks at every previous cycle given, so the tip does not
-// change with the range tab.
+// Build analyses cycles (newest first; cycles[0] is the current one) with the legacy rule. rangeSize
+// limits the returned Cycles; PastShiftDays always looks at every previous cycle given, so the tip
+// does not change with the range tab.
 func Build(cycles []CycleInput, readings []Reading, today civildate.Date, rangeSize int) Result {
+	return BuildRule(cycles, readings, today, rangeSize, nil)
+}
+
+// BuildRule is Build with the given shift rule (nil = legacy).
+func BuildRule(cycles []CycleInput, readings []Reading, today civildate.Date, rangeSize int, rule Rule) Result {
 	res := Result{Cycles: []Cycle{}, PastShiftDays: []int{}}
 	for i, in := range cycles {
-		c := Analyze(in, readings, today)
+		c := AnalyzeRule(in, readings, today, rule)
 		if i < rangeSize {
 			res.Cycles = append(res.Cycles, c)
 		}

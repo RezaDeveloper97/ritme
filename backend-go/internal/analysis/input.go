@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/cycle/insights"
 	"github.com/ritme/backend-go/internal/cycle/metrics"
 	"github.com/ritme/backend-go/internal/cycle/model"
@@ -30,6 +31,8 @@ type Input struct {
 	// averages fall back to the log sheet's day values in Days.
 	VitalReadings []VitalReading
 	VitalsLoaded  bool
+	// Engine is the user's prepared v6 engine state (CYCLE_ENGINE shadow|v6, T-M9-35, engine.go); nil = v1.
+	Engine *engine.State
 }
 
 // LookbackDays is how far before Range.From the handlers load day logs: a 30-day delta of a 7-day
@@ -54,6 +57,8 @@ type Cycle struct {
 	// PeriodDays is the logged bleed length of a closed period (0 when open or implausible).
 	PeriodDays int
 	Current    bool
+	// Skipped: the cycle holds a recorded skip (v6 only, E-15): shown, never counted.
+	Skipped bool
 }
 
 // End is the cycle's last day (the day before the next start); for the current cycle the request day.
@@ -66,6 +71,9 @@ func (c Cycle) End(today civildate.Date) civildate.Date {
 
 // cycles are the confirmed cycles oldest first; the last one is the current cycle (when any).
 func (in *Input) cycles() []Cycle {
+	if in.Engine != nil {
+		return in.engineCycles()
+	}
 	periods := insights.ConfirmedStarts(in.Histories, in.Today)
 	out := make([]Cycle, 0, len(periods))
 	for i, p := range periods {
@@ -104,11 +112,17 @@ func (in *Input) currentCycle() (Cycle, bool) {
 // typical is the typical cycle and period length: the medians of the range's plausible completed
 // cycles, falling back to the engine's effective lengths.
 func (in *Input) typical() (cycleLen, periodLen int) {
-	m := metrics.Calculate(in.Histories, in.Profile)
-	cycleLen, periodLen = m.EffectiveCycleLength, max(1, m.EffectivePeriodDuration)
+	if in.Engine != nil {
+		cl, _ := in.Engine.CycleLength()
+		pl, _ := in.Engine.PeriodLength()
+		cycleLen, periodLen = cl, max(1, pl)
+	} else {
+		m := metrics.Calculate(in.Histories, in.Profile)
+		cycleLen, periodLen = m.EffectiveCycleLength, max(1, m.EffectivePeriodDuration)
+	}
 	var lens, bleeds []int
 	for _, c := range in.windowCycles() {
-		if insights.ValidCycleLength(c.Length) {
+		if !c.Skipped && insights.ValidCycleLength(c.Length) {
 			lens = append(lens, c.Length)
 		}
 		if c.PeriodDays > 0 {
@@ -172,7 +186,7 @@ func (in *Input) phaseDays() map[civildate.Date]string {
 		length, bleed := c.Length, c.PeriodDays
 		if c.Current {
 			length = typCycle
-		} else if !insights.ValidCycleLength(length) {
+		} else if c.Skipped || !insights.ValidCycleLength(length) {
 			continue // a gap (missed log), not a cycle
 		}
 		if bleed == 0 {

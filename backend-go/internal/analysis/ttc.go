@@ -289,7 +289,7 @@ func (in *TTCInput) analyseCycle(c Cycle, readings []bbt.Reading, typCycle, typP
 	if tc.PeriodLen == 0 {
 		tc.PeriodLen = typPeriod
 	}
-	tc.BBT = bbt.Analyze(bbt.CycleInput{Start: c.Start, End: end}, readings, in.Today)
+	tc.BBT = bbt.AnalyzeRule(bbt.CycleInput{Start: c.Start, End: end}, readings, in.Today, in.engineRule())
 	if tc.BBT.ShiftDay != nil {
 		for i, p := range tc.BBT.Points {
 			if p.CycleDay == *tc.BBT.ShiftDay {
@@ -314,11 +314,21 @@ func (in *TTCInput) analyseCycle(c Cycle, readings []bbt.Reading, typCycle, typP
 			tc.Intercourse = append(tc.Intercourse, n)
 		}
 	}
+	marker, markerSrc := 0, ""
+	if in.Engine != nil { // v6: the engine's per-cycle ovulation first (D-128)
+		marker, markerSrc = in.engineMarker(c, tc.Days)
+	}
 	switch {
+	case marker > 0:
+		tc.OvulationDay, tc.OvulationSource = marker, markerSrc
 	case tc.BBT.OvulationDay() != nil:
 		tc.OvulationDay, tc.OvulationSource = *tc.BBT.OvulationDay(), OvulationBBT
 	case tc.LHDay > 0 && tc.LHDay < tc.Days:
 		tc.OvulationDay, tc.OvulationSource = tc.LHDay+1, OvulationLH
+	case in.Engine != nil:
+		if day := in.engineEstimate(c); day > 0 {
+			tc.OvulationDay, tc.OvulationSource = day, OvulationEstimate
+		}
 	default:
 		length := c.Length
 		if c.Current {
@@ -626,7 +636,7 @@ func (r TTCReport) regularityCard() Section {
 		length := c.Length
 		if c.Current {
 			length = c.Days
-		} else if insights.ValidCycleLength(c.Length) {
+		} else if !c.Skipped && insights.ValidCycleLength(c.Length) {
 			lens = append(lens, c.Length)
 		}
 		bars = append(bars, jsonx.Obj("index", c.Index, "start", c.Start.String(), "length", length, "current", c.Current))
@@ -634,7 +644,13 @@ func (r TTCReport) regularityCard() Section {
 	limit := FIGOOn(r.in.Today).VariationLimit(r.in.Age())
 	status := RegularityNotEnoughData
 	var variation any
-	if len(lens) >= MinTrendPoints {
+	if r.in.Engine != nil { // v6: the engine's verdict (D-129, A-01)
+		var v *int
+		status, v, limit = r.in.engineRegularity(r.in.Today)
+		if v != nil {
+			variation = *v
+		}
+	} else if len(lens) >= MinTrendPoints {
 		v := slices.Max(lens) - slices.Min(lens)
 		variation = v
 		if len(lens) >= MinPatternCycles {

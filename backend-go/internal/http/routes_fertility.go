@@ -17,7 +17,8 @@ func init() {
 	Register("fertility", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
-		h := fertility.NewHandlers(d.DB, clock.Real{})
+		// T-M9-35: v6 under shadow|v6.
+		h := fertility.NewHandlers(d.DB, clock.Real{}).WithEngine(engineStates(r, d))
 		writes := writeThrottle(d) // per-user write limit (security audit M3-M7 #5)
 		// Optional Idempotency-Key on the day save (D-131).
 		idem := idempotency.New(d.Cache, auth.CurrentUserID, d.Logger).Handler()

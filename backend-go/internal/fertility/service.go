@@ -13,6 +13,7 @@ import (
 	"github.com/ritme/backend-go/internal/cycle/resolver"
 	"github.com/ritme/backend-go/internal/cycle/revision"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
+	"github.com/ritme/backend-go/internal/cycle/state"
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/fertility/store"
 	filestore "github.com/ritme/backend-go/internal/files/store"
@@ -31,6 +32,8 @@ type DB interface {
 // Service reads and writes fertility days.
 type Service struct {
 	db DB
+	// states is the v6 engine state source (nil = CYCLE_ENGINE v1; v6.go, T-M9-35).
+	states state.UserStates
 }
 
 // NewService returns a Service on db.
@@ -44,11 +47,20 @@ func (s *Service) Load(ctx context.Context, userID uint64, date, today civildate
 	if err != nil {
 		return Day{}, Context{}, err
 	}
-	row, err := store.New(s.db).GetMergedDay(ctx, store.GetMergedDayParams{UserID: userID, LogDate: date})
+	row, err := s.mergedDay(ctx, userID, date)
 	if err != nil {
-		return Day{}, Context{}, fmt.Errorf("fertility: load day: %w", err)
+		return Day{}, Context{}, err
 	}
 	return DayFromRow(date, row), ContextOf(in.resolve(date, today)), nil
+}
+
+// mergedDay is the merged fertility day of date (one query).
+func (s *Service) mergedDay(ctx context.Context, userID uint64, date civildate.Date) (store.GetMergedDayRow, error) {
+	row, err := store.New(s.db).GetMergedDay(ctx, store.GetMergedDayParams{UserID: userID, LogDate: date})
+	if err != nil {
+		return row, fmt.Errorf("fertility: load day: %w", err)
+	}
+	return row, nil
 }
 
 // cycleInputs are the cycle engine's inputs for a user (read-only reuse of internal/cycle).
@@ -112,7 +124,7 @@ func (s *Service) Save(ctx context.Context, userID uint64, in DayInput, locale s
 	}
 	var warning *jsonx.OrderedMap
 	if in.sent("bbt", "intercourse", "symptoms", "note") {
-		if warning, err = saveHealthLog(ctx, healthlog.NewService(tx), userID, in, locale, now); err != nil {
+		if warning, err = saveHealthLog(ctx, s.healthLog(tx), userID, in, locale, now); err != nil {
 			return nil, err
 		}
 	}
@@ -125,6 +137,16 @@ func (s *Service) Save(ctx context.Context, userID uint64, in DayInput, locale s
 		return nil, fmt.Errorf("fertility: commit: %w", err)
 	}
 	return warning, nil
+}
+
+// healthLog is the health-log service on tx; under v6 its luteal-spotting warning reads the engine phase (T-M9-37
+// open item, D-136).
+func (s *Service) healthLog(tx *sql.Tx) *healthlog.Service {
+	svc := healthlog.NewService(tx)
+	if s.states != nil {
+		svc = svc.WithEngine(s.states)
+	}
+	return svc
 }
 
 func nullString(p *string) sql.NullString {

@@ -128,7 +128,7 @@ func init() {
 		labsSvc := labs.NewService(labs.Options{ // the summary's lab rows (reads only)
 			DB: d.DB, Catalog: catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger), Logger: d.Logger,
 		})
-		reports := healthrecord.NewService(d.DB, labsSvc).
+		reports := healthrecord.NewService(d.DB, labsSvc).WithEngine(engineStates(r, d)).
 			WithBundles(i18n.NewTranslationStore(translations.FS, d.Config.StoragePath))
 
 		fileSvc := recordShareFiles(d)

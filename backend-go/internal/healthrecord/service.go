@@ -15,6 +15,7 @@ import (
 	"github.com/ritme/backend-go/internal/care"
 	carestore "github.com/ritme/backend-go/internal/care/store"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
+	"github.com/ritme/backend-go/internal/cycle/state"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/healthrecord/store"
@@ -54,6 +55,15 @@ type Service struct {
 	labs      LabsSource
 	bundles   *i18n.TranslationStore
 	providers []SectionProvider
+	states    state.UserStates // v6 engine (nil = CYCLE_ENGINE v1)
+}
+
+// WithEngine makes the cycle section read the v6 engine (CYCLE_ENGINE shadow|v6, T-M9-35): the engine's cycles and
+// cycle_regularity, the latest actual period start (never the onboarding date) and the effective lengths. nil keeps
+// v1 unchanged.
+func (s *Service) WithEngine(states state.UserStates) *Service {
+	s.states = states
+	return s
 }
 
 // WithBundles wires the translation bundles the cycle section labels its symptoms from (the `analysis` and log
@@ -460,6 +470,11 @@ func (s *Service) cycleSection(ctx context.Context, userID uint64, f facts, opts
 	if !opts.From.IsZero() && !opts.From.After(today) {
 		in.Range = analysis.Range{Key: ReportRangeCustom, From: opts.From, To: today}
 	}
+	if s.states != nil {
+		if in.Engine, err = s.states.ForUser(ctx, userID, today); err != nil {
+			return Section{}, fmt.Errorf("healthrecord: engine state: %w", err)
+		}
+	}
 	if f.profile != nil {
 		if f.profile.Height.Valid {
 			in.HeightCM = int(f.profile.Height.Int16)
@@ -484,11 +499,13 @@ func (s *Service) cycleSection(ctx context.Context, userID uint64, f facts, opts
 	if c.Current != nil {
 		last = c.Current.Start
 	}
-	for _, h := range sn.Histories {
-		if !h.PeriodStart.After(today) && h.PeriodStart.After(last) {
-			last = h.PeriodStart
+	if in.Engine == nil {
+		for _, h := range sn.Histories {
+			if !h.PeriodStart.After(today) && h.PeriodStart.After(last) {
+				last = h.PeriodStart
+			}
 		}
-	}
+	} // v6: the current cycle is the latest actual start (engine periods, no declared anchor)
 	var lastStart, currentDay any
 	if !last.IsZero() {
 		lastStart = last.String()
@@ -507,22 +524,26 @@ func (s *Service) cycleSection(ctx context.Context, userID uint64, f facts, opts
 		}
 		top = append(top, jsonx.Obj("key", t.Key, "label", cp.SymptomLabel(t.Key), "days", t.Days))
 	}
-	return Section{
-		Key: SectionCycle, Empty: c.BasedOn == 0 && last.IsZero(),
-		Data: jsonx.Obj(
-			"range", in.Range.JSON(),
-			"based_on", c.BasedOn,
-			"median_cycle", intOrNil(c.MedianCycle),
-			"variation", intOrNil(c.Variation),
-			"median_period", intOrNil(c.MedianPeriod),
-			"regularity", c.Regularity,
-			"cycle_status", strOrNil(c.CycleStatus),
-			"period_status", strOrNil(c.PeriodStatus),
-			"last_period_start", lastStart,
-			"current_day", currentDay,
-			"top_symptoms", top,
-		),
-	}, nil
+	data := jsonx.Obj(
+		"range", in.Range.JSON(),
+		"based_on", c.BasedOn,
+		"median_cycle", intOrNil(c.MedianCycle),
+		"variation", intOrNil(c.Variation),
+		"median_period", intOrNil(c.MedianPeriod),
+		"regularity", c.Regularity,
+		"cycle_status", strOrNil(c.CycleStatus),
+		"period_status", strOrNil(c.PeriodStatus),
+		"last_period_start", lastStart,
+		"current_day", currentDay,
+		"top_symptoms", top,
+	)
+	if in.Engine != nil { // v6 only: the engine's effective lengths (§2.9)
+		cl, _ := in.Engine.CycleLength()
+		pl, _ := in.Engine.PeriodLength()
+		data.Set("effective_cycle_length", cl)
+		data.Set("effective_period_length", pl)
+	}
+	return Section{Key: SectionCycle, Empty: c.BasedOn == 0 && last.IsZero(), Data: data}, nil
 }
 
 func intOrNil(p *int) any {
