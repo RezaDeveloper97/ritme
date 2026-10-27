@@ -1,0 +1,1964 @@
+{
+  "success": true,
+  "data": {
+    "calculations": [
+      {
+        "calculation_date": "2026-09-01",
+        "cycle_day": 16,
+        "phase": "luteal",
+        "subphase": "post_ovulation",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "luteal",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 13,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-02",
+        "cycle_day": 17,
+        "phase": "luteal",
+        "subphase": "early_luteal",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "nutrition",
+            "fa": "روی غذاهای غنی از منیزیم و ویتامین B6 تمرکز کنید.",
+            "en": "Focus on foods rich in magnesium and vitamin B6.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "exercise",
+            "fa": "به حرکات ملایم‌تر مثل یوگا، پیلاتس یا پیاده‌روی رو بیاورید.",
+            "en": "Switch to gentler movement like yoga, pilates or walking.",
+            "title": {
+              "fa": "ورزش",
+              "en": "Exercise"
+            }
+          },
+          {
+            "type": "sleep",
+            "fa": "کمی زودتر بخوابید؛ در این فاز انرژی کم‌کم افت می‌کند.",
+            "en": "Go to bed a little earlier — energy dips in this phase.",
+            "title": {
+              "fa": "خواب",
+              "en": "Sleep"
+            }
+          },
+          {
+            "type": "mental_health",
+            "fa": "زمان خوبی برای تمام‌کردن کارهای نیمه‌تمام است تا شروع کارهای جدید.",
+            "en": "A good time to finish what you started rather than begin new things.",
+            "title": {
+              "fa": "سلامت روان",
+              "en": "Mental health"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "luteal",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 12,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-03",
+        "cycle_day": 18,
+        "phase": "luteal",
+        "subphase": "early_luteal",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "nutrition",
+            "fa": "روی غذاهای غنی از منیزیم و ویتامین B6 تمرکز کنید.",
+            "en": "Focus on foods rich in magnesium and vitamin B6.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "exercise",
+            "fa": "به حرکات ملایم‌تر مثل یوگا، پیلاتس یا پیاده‌روی رو بیاورید.",
+            "en": "Switch to gentler movement like yoga, pilates or walking.",
+            "title": {
+              "fa": "ورزش",
+              "en": "Exercise"
+            }
+          },
+          {
+            "type": "sleep",
+            "fa": "کمی زودتر بخوابید؛ در این فاز انرژی کم‌کم افت می‌کند.",
+            "en": "Go to bed a little earlier — energy dips in this phase.",
+            "title": {
+              "fa": "خواب",
+              "en": "Sleep"
+            }
+          },
+          {
+            "type": "mental_health",
+            "fa": "زمان خوبی برای تمام‌کردن کارهای نیمه‌تمام است تا شروع کارهای جدید.",
+            "en": "A good time to finish what you started rather than begin new things.",
+            "title": {
+              "fa": "سلامت روان",
+              "en": "Mental health"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "luteal",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 11,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-04",
+        "cycle_day": 19,
+        "phase": "luteal",
+        "subphase": "early_luteal",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "nutrition",
+            "fa": "روی غذاهای غنی از منیزیم و ویتامین B6 تمرکز کنید.",
+            "en": "Focus on foods rich in magnesium and vitamin B6.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "exercise",
+            "fa": "به حرکات ملایم‌تر مثل یوگا، پیلاتس یا پیاده‌روی رو بیاورید.",
+            "en": "Switch to gentler movement like yoga, pilates or walking.",
+            "title": {
+              "fa": "ورزش",
+              "en": "Exercise"
+            }
+          },
+          {
+            "type": "sleep",
+            "fa": "کمی زودتر بخوابید؛ در این فاز انرژی کم‌کم افت می‌کند.",
+            "en": "Go to bed a little earlier — energy dips in this phase.",
+            "title": {
+              "fa": "خواب",
+              "en": "Sleep"
+            }
+          },
+          {
+            "type": "mental_health",
+            "fa": "زمان خوبی برای تمام‌کردن کارهای نیمه‌تمام است تا شروع کارهای جدید.",
+            "en": "A good time to finish what you started rather than begin new things.",
+            "title": {
+              "fa": "سلامت روان",
+              "en": "Mental health"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "luteal",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 10,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-05",
+        "cycle_day": 20,
+        "phase": "luteal",
+        "subphase": "mid_luteal",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "nutrition",
+            "fa": "روی غذاهای غنی از منیزیم و ویتامین B6 تمرکز کنید.",
+            "en": "Focus on foods rich in magnesium and vitamin B6.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "exercise",
+            "fa": "به حرکات ملایم‌تر مثل یوگا، پیلاتس یا پیاده‌روی رو بیاورید.",
+            "en": "Switch to gentler movement like yoga, pilates or walking.",
+            "title": {
+              "fa": "ورزش",
+              "en": "Exercise"
+            }
+          },
+          {
+            "type": "sleep",
+            "fa": "کمی زودتر بخوابید؛ در این فاز انرژی کم‌کم افت می‌کند.",
+            "en": "Go to bed a little earlier — energy dips in this phase.",
+            "title": {
+              "fa": "خواب",
+              "en": "Sleep"
+            }
+          },
+          {
+            "type": "mental_health",
+            "fa": "زمان خوبی برای تمام‌کردن کارهای نیمه‌تمام است تا شروع کارهای جدید.",
+            "en": "A good time to finish what you started rather than begin new things.",
+            "title": {
+              "fa": "سلامت روان",
+              "en": "Mental health"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "luteal",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 9,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-06",
+        "cycle_day": 21,
+        "phase": "luteal",
+        "subphase": "mid_luteal",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "nutrition",
+            "fa": "روی غذاهای غنی از منیزیم و ویتامین B6 تمرکز کنید.",
+            "en": "Focus on foods rich in magnesium and vitamin B6.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "exercise",
+            "fa": "به حرکات ملایم‌تر مثل یوگا، پیلاتس یا پیاده‌روی رو بیاورید.",
+            "en": "Switch to gentler movement like yoga, pilates or walking.",
+            "title": {
+              "fa": "ورزش",
+              "en": "Exercise"
+            }
+          },
+          {
+            "type": "sleep",
+            "fa": "کمی زودتر بخوابید؛ در این فاز انرژی کم‌کم افت می‌کند.",
+            "en": "Go to bed a little earlier — energy dips in this phase.",
+            "title": {
+              "fa": "خواب",
+              "en": "Sleep"
+            }
+          },
+          {
+            "type": "mental_health",
+            "fa": "زمان خوبی برای تمام‌کردن کارهای نیمه‌تمام است تا شروع کارهای جدید.",
+            "en": "A good time to finish what you started rather than begin new things.",
+            "title": {
+              "fa": "سلامت روان",
+              "en": "Mental health"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "luteal",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 8,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-07",
+        "cycle_day": 22,
+        "phase": "luteal",
+        "subphase": "mid_luteal",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "nutrition",
+            "fa": "روی غذاهای غنی از منیزیم و ویتامین B6 تمرکز کنید.",
+            "en": "Focus on foods rich in magnesium and vitamin B6.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "exercise",
+            "fa": "به حرکات ملایم‌تر مثل یوگا، پیلاتس یا پیاده‌روی رو بیاورید.",
+            "en": "Switch to gentler movement like yoga, pilates or walking.",
+            "title": {
+              "fa": "ورزش",
+              "en": "Exercise"
+            }
+          },
+          {
+            "type": "sleep",
+            "fa": "کمی زودتر بخوابید؛ در این فاز انرژی کم‌کم افت می‌کند.",
+            "en": "Go to bed a little earlier — energy dips in this phase.",
+            "title": {
+              "fa": "خواب",
+              "en": "Sleep"
+            }
+          },
+          {
+            "type": "mental_health",
+            "fa": "زمان خوبی برای تمام‌کردن کارهای نیمه‌تمام است تا شروع کارهای جدید.",
+            "en": "A good time to finish what you started rather than begin new things.",
+            "title": {
+              "fa": "سلامت روان",
+              "en": "Mental health"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "luteal",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 7,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-08",
+        "cycle_day": 23,
+        "phase": "luteal",
+        "subphase": "late_luteal",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "pms",
+            "fa": "علائم PMS ممکن است ظاهر شوند. مراقبت از خود و آرامش را تمرین کنید.",
+            "en": "PMS symptoms may appear. Practice self-care and relaxation.",
+            "title": {
+              "fa": "پی‌ام‌اس",
+              "en": "PMS"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "مصرف نمک و کافئین را کاهش دهید تا نفخ کم شود.",
+            "en": "Reduce salt and caffeine intake to minimize bloating.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "mood",
+            "fa": "استراحت کنید و اگر احساس تحریک‌پذیری دارید تنفس عمیق تمرین کنید.",
+            "en": "Take breaks and practice deep breathing if feeling irritable.",
+            "title": {
+              "fa": "خلق‌وخو",
+              "en": "Mood"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "luteal",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 6,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-09",
+        "cycle_day": 24,
+        "phase": "luteal",
+        "subphase": "late_luteal",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "pms",
+            "fa": "علائم PMS ممکن است ظاهر شوند. مراقبت از خود و آرامش را تمرین کنید.",
+            "en": "PMS symptoms may appear. Practice self-care and relaxation.",
+            "title": {
+              "fa": "پی‌ام‌اس",
+              "en": "PMS"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "مصرف نمک و کافئین را کاهش دهید تا نفخ کم شود.",
+            "en": "Reduce salt and caffeine intake to minimize bloating.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "mood",
+            "fa": "استراحت کنید و اگر احساس تحریک‌پذیری دارید تنفس عمیق تمرین کنید.",
+            "en": "Take breaks and practice deep breathing if feeling irritable.",
+            "title": {
+              "fa": "خلق‌وخو",
+              "en": "Mood"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "luteal",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 5,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-10",
+        "cycle_day": 25,
+        "phase": "luteal",
+        "subphase": "late_luteal",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "pms",
+            "fa": "علائم PMS ممکن است ظاهر شوند. مراقبت از خود و آرامش را تمرین کنید.",
+            "en": "PMS symptoms may appear. Practice self-care and relaxation.",
+            "title": {
+              "fa": "پی‌ام‌اس",
+              "en": "PMS"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "مصرف نمک و کافئین را کاهش دهید تا نفخ کم شود.",
+            "en": "Reduce salt and caffeine intake to minimize bloating.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "mood",
+            "fa": "استراحت کنید و اگر احساس تحریک‌پذیری دارید تنفس عمیق تمرین کنید.",
+            "en": "Take breaks and practice deep breathing if feeling irritable.",
+            "title": {
+              "fa": "خلق‌وخو",
+              "en": "Mood"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "luteal",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 4,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-11",
+        "cycle_day": 26,
+        "phase": "luteal",
+        "subphase": "pms_possible",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": true,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "pms",
+            "fa": "علائم PMS ممکن است ظاهر شوند. مراقبت از خود و آرامش را تمرین کنید.",
+            "en": "PMS symptoms may appear. Practice self-care and relaxation.",
+            "title": {
+              "fa": "پی‌ام‌اس",
+              "en": "PMS"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "مصرف نمک و کافئین را کاهش دهید تا نفخ کم شود.",
+            "en": "Reduce salt and caffeine intake to minimize bloating.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "mood",
+            "fa": "استراحت کنید و اگر احساس تحریک‌پذیری دارید تنفس عمیق تمرین کنید.",
+            "en": "Take breaks and practice deep breathing if feeling irritable.",
+            "title": {
+              "fa": "خلق‌وخو",
+              "en": "Mood"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "luteal",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 3,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-12",
+        "cycle_day": 27,
+        "phase": "luteal",
+        "subphase": "pms_possible",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": true,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "pms",
+            "fa": "علائم PMS ممکن است ظاهر شوند. مراقبت از خود و آرامش را تمرین کنید.",
+            "en": "PMS symptoms may appear. Practice self-care and relaxation.",
+            "title": {
+              "fa": "پی‌ام‌اس",
+              "en": "PMS"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "مصرف نمک و کافئین را کاهش دهید تا نفخ کم شود.",
+            "en": "Reduce salt and caffeine intake to minimize bloating.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "mood",
+            "fa": "استراحت کنید و اگر احساس تحریک‌پذیری دارید تنفس عمیق تمرین کنید.",
+            "en": "Take breaks and practice deep breathing if feeling irritable.",
+            "title": {
+              "fa": "خلق‌وخو",
+              "en": "Mood"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "luteal",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 2,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-13",
+        "cycle_day": 28,
+        "phase": "luteal",
+        "subphase": "pms_possible",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": true,
+        "is_period_tomorrow": true,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "pms",
+            "fa": "علائم PMS ممکن است ظاهر شوند. مراقبت از خود و آرامش را تمرین کنید.",
+            "en": "PMS symptoms may appear. Practice self-care and relaxation.",
+            "title": {
+              "fa": "پی‌ام‌اس",
+              "en": "PMS"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "مصرف نمک و کافئین را کاهش دهید تا نفخ کم شود.",
+            "en": "Reduce salt and caffeine intake to minimize bloating.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "mood",
+            "fa": "استراحت کنید و اگر احساس تحریک‌پذیری دارید تنفس عمیق تمرین کنید.",
+            "en": "Take breaks and practice deep breathing if feeling irritable.",
+            "title": {
+              "fa": "خلق‌وخو",
+              "en": "Mood"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "luteal",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 1,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-14",
+        "cycle_day": 1,
+        "phase": "menstruation",
+        "subphase": "menstrual",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "hydration",
+            "fa": "آب کافی بنوشید و هیدراته بمانید.",
+            "en": "Stay hydrated and drink plenty of water.",
+            "title": {
+              "fa": "آب‌رسانی",
+              "en": "Hydration"
+            }
+          },
+          {
+            "type": "warmth",
+            "fa": "کمپرس گرم روی شکم قرار دهید تا دردها کاهش یابد.",
+            "en": "Apply a warm compress to your lower abdomen to relieve cramps.",
+            "title": {
+              "fa": "گرما درمانی",
+              "en": "Warmth"
+            }
+          },
+          {
+            "type": "rest",
+            "fa": "استراحت کافی داشته باشید و از فعالیت‌های سنگین اجتناب کنید.",
+            "en": "Get enough rest and avoid strenuous activities.",
+            "title": {
+              "fa": "استراحت",
+              "en": "Rest"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "غذاهای غنی از آهن مثل اسفناج و گوشت قرمز بخورید.",
+            "en": "Eat iron-rich foods like spinach and red meat.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "menstrual",
+        "fertility_level": "low",
+        "is_predicted": false,
+        "is_period": true,
+        "period_kind": "logged",
+        "days_to_period": 28,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-15",
+        "cycle_day": 2,
+        "phase": "menstruation",
+        "subphase": "menstrual",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "hydration",
+            "fa": "آب کافی بنوشید و هیدراته بمانید.",
+            "en": "Stay hydrated and drink plenty of water.",
+            "title": {
+              "fa": "آب‌رسانی",
+              "en": "Hydration"
+            }
+          },
+          {
+            "type": "warmth",
+            "fa": "کمپرس گرم روی شکم قرار دهید تا دردها کاهش یابد.",
+            "en": "Apply a warm compress to your lower abdomen to relieve cramps.",
+            "title": {
+              "fa": "گرما درمانی",
+              "en": "Warmth"
+            }
+          },
+          {
+            "type": "rest",
+            "fa": "استراحت کافی داشته باشید و از فعالیت‌های سنگین اجتناب کنید.",
+            "en": "Get enough rest and avoid strenuous activities.",
+            "title": {
+              "fa": "استراحت",
+              "en": "Rest"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "غذاهای غنی از آهن مثل اسفناج و گوشت قرمز بخورید.",
+            "en": "Eat iron-rich foods like spinach and red meat.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "menstrual",
+        "fertility_level": "low",
+        "is_predicted": false,
+        "is_period": true,
+        "period_kind": "logged",
+        "days_to_period": 27,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-16",
+        "cycle_day": 3,
+        "phase": "menstruation",
+        "subphase": "menstrual",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "hydration",
+            "fa": "آب کافی بنوشید و هیدراته بمانید.",
+            "en": "Stay hydrated and drink plenty of water.",
+            "title": {
+              "fa": "آب‌رسانی",
+              "en": "Hydration"
+            }
+          },
+          {
+            "type": "warmth",
+            "fa": "کمپرس گرم روی شکم قرار دهید تا دردها کاهش یابد.",
+            "en": "Apply a warm compress to your lower abdomen to relieve cramps.",
+            "title": {
+              "fa": "گرما درمانی",
+              "en": "Warmth"
+            }
+          },
+          {
+            "type": "rest",
+            "fa": "استراحت کافی داشته باشید و از فعالیت‌های سنگین اجتناب کنید.",
+            "en": "Get enough rest and avoid strenuous activities.",
+            "title": {
+              "fa": "استراحت",
+              "en": "Rest"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "غذاهای غنی از آهن مثل اسفناج و گوشت قرمز بخورید.",
+            "en": "Eat iron-rich foods like spinach and red meat.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "menstrual",
+        "fertility_level": "low",
+        "is_predicted": false,
+        "is_period": true,
+        "period_kind": "logged",
+        "days_to_period": 26,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-17",
+        "cycle_day": 4,
+        "phase": "menstruation",
+        "subphase": "menstrual",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "hydration",
+            "fa": "آب کافی بنوشید و هیدراته بمانید.",
+            "en": "Stay hydrated and drink plenty of water.",
+            "title": {
+              "fa": "آب‌رسانی",
+              "en": "Hydration"
+            }
+          },
+          {
+            "type": "warmth",
+            "fa": "کمپرس گرم روی شکم قرار دهید تا دردها کاهش یابد.",
+            "en": "Apply a warm compress to your lower abdomen to relieve cramps.",
+            "title": {
+              "fa": "گرما درمانی",
+              "en": "Warmth"
+            }
+          },
+          {
+            "type": "rest",
+            "fa": "استراحت کافی داشته باشید و از فعالیت‌های سنگین اجتناب کنید.",
+            "en": "Get enough rest and avoid strenuous activities.",
+            "title": {
+              "fa": "استراحت",
+              "en": "Rest"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "غذاهای غنی از آهن مثل اسفناج و گوشت قرمز بخورید.",
+            "en": "Eat iron-rich foods like spinach and red meat.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "menstrual",
+        "fertility_level": "low",
+        "is_predicted": false,
+        "is_period": true,
+        "period_kind": "logged",
+        "days_to_period": 25,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-18",
+        "cycle_day": 5,
+        "phase": "menstruation",
+        "subphase": "menstrual",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "hydration",
+            "fa": "آب کافی بنوشید و هیدراته بمانید.",
+            "en": "Stay hydrated and drink plenty of water.",
+            "title": {
+              "fa": "آب‌رسانی",
+              "en": "Hydration"
+            }
+          },
+          {
+            "type": "warmth",
+            "fa": "کمپرس گرم روی شکم قرار دهید تا دردها کاهش یابد.",
+            "en": "Apply a warm compress to your lower abdomen to relieve cramps.",
+            "title": {
+              "fa": "گرما درمانی",
+              "en": "Warmth"
+            }
+          },
+          {
+            "type": "rest",
+            "fa": "استراحت کافی داشته باشید و از فعالیت‌های سنگین اجتناب کنید.",
+            "en": "Get enough rest and avoid strenuous activities.",
+            "title": {
+              "fa": "استراحت",
+              "en": "Rest"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "غذاهای غنی از آهن مثل اسفناج و گوشت قرمز بخورید.",
+            "en": "Eat iron-rich foods like spinach and red meat.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "menstrual",
+        "fertility_level": "low",
+        "is_predicted": false,
+        "is_period": true,
+        "period_kind": "logged",
+        "days_to_period": 24,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-19",
+        "cycle_day": 6,
+        "phase": "follicular",
+        "subphase": "early_follicular",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "energy",
+            "fa": "سطح انرژی شما در حال افزایش است. زمان مناسبی برای پروژه‌های جدید!",
+            "en": "Your energy levels are rising. Great time for new projects!",
+            "title": {
+              "fa": "انرژی",
+              "en": "Energy"
+            }
+          },
+          {
+            "type": "exercise",
+            "fa": "زمان مناسبی برای ورزش‌های سنگین است.",
+            "en": "Perfect time for high-intensity workouts.",
+            "title": {
+              "fa": "ورزش",
+              "en": "Exercise"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "پروتئین و سبزیجات تازه بخورید تا ذخیره انرژی‌تان دوباره پر شود.",
+            "en": "Add protein and fresh vegetables to rebuild your energy stores.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "mental_health",
+            "fa": "فرصت خوبی برای برنامه‌ریزی و یادگیری چیزهای تازه است.",
+            "en": "A good window for planning and learning something new.",
+            "title": {
+              "fa": "سلامت روان",
+              "en": "Mental health"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "follicular",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 23,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-20",
+        "cycle_day": 7,
+        "phase": "follicular",
+        "subphase": "mid_follicular",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "energy",
+            "fa": "سطح انرژی شما در حال افزایش است. زمان مناسبی برای پروژه‌های جدید!",
+            "en": "Your energy levels are rising. Great time for new projects!",
+            "title": {
+              "fa": "انرژی",
+              "en": "Energy"
+            }
+          },
+          {
+            "type": "exercise",
+            "fa": "زمان مناسبی برای ورزش‌های سنگین است.",
+            "en": "Perfect time for high-intensity workouts.",
+            "title": {
+              "fa": "ورزش",
+              "en": "Exercise"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "پروتئین و سبزیجات تازه بخورید تا ذخیره انرژی‌تان دوباره پر شود.",
+            "en": "Add protein and fresh vegetables to rebuild your energy stores.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "mental_health",
+            "fa": "فرصت خوبی برای برنامه‌ریزی و یادگیری چیزهای تازه است.",
+            "en": "A good window for planning and learning something new.",
+            "title": {
+              "fa": "سلامت روان",
+              "en": "Mental health"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "follicular",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 22,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-21",
+        "cycle_day": 8,
+        "phase": "follicular",
+        "subphase": "late_follicular_transition",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "energy",
+            "fa": "سطح انرژی شما در حال افزایش است. زمان مناسبی برای پروژه‌های جدید!",
+            "en": "Your energy levels are rising. Great time for new projects!",
+            "title": {
+              "fa": "انرژی",
+              "en": "Energy"
+            }
+          },
+          {
+            "type": "exercise",
+            "fa": "زمان مناسبی برای ورزش‌های سنگین است.",
+            "en": "Perfect time for high-intensity workouts.",
+            "title": {
+              "fa": "ورزش",
+              "en": "Exercise"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "پروتئین و سبزیجات تازه بخورید تا ذخیره انرژی‌تان دوباره پر شود.",
+            "en": "Add protein and fresh vegetables to rebuild your energy stores.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "mental_health",
+            "fa": "فرصت خوبی برای برنامه‌ریزی و یادگیری چیزهای تازه است.",
+            "en": "A good window for planning and learning something new.",
+            "title": {
+              "fa": "سلامت روان",
+              "en": "Mental health"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "follicular",
+        "fertility_level": "medium",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 21,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-22",
+        "cycle_day": 9,
+        "phase": "follicular",
+        "subphase": "late_follicular_transition",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "energy",
+            "fa": "سطح انرژی شما در حال افزایش است. زمان مناسبی برای پروژه‌های جدید!",
+            "en": "Your energy levels are rising. Great time for new projects!",
+            "title": {
+              "fa": "انرژی",
+              "en": "Energy"
+            }
+          },
+          {
+            "type": "exercise",
+            "fa": "زمان مناسبی برای ورزش‌های سنگین است.",
+            "en": "Perfect time for high-intensity workouts.",
+            "title": {
+              "fa": "ورزش",
+              "en": "Exercise"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "پروتئین و سبزیجات تازه بخورید تا ذخیره انرژی‌تان دوباره پر شود.",
+            "en": "Add protein and fresh vegetables to rebuild your energy stores.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "mental_health",
+            "fa": "فرصت خوبی برای برنامه‌ریزی و یادگیری چیزهای تازه است.",
+            "en": "A good window for planning and learning something new.",
+            "title": {
+              "fa": "سلامت روان",
+              "en": "Mental health"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "follicular",
+        "fertility_level": "medium",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 20,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-23",
+        "cycle_day": 10,
+        "phase": "follicular",
+        "subphase": "fertile_rising",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": true,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "energy",
+            "fa": "سطح انرژی شما در حال افزایش است. زمان مناسبی برای پروژه‌های جدید!",
+            "en": "Your energy levels are rising. Great time for new projects!",
+            "title": {
+              "fa": "انرژی",
+              "en": "Energy"
+            }
+          },
+          {
+            "type": "exercise",
+            "fa": "زمان مناسبی برای ورزش‌های سنگین است.",
+            "en": "Perfect time for high-intensity workouts.",
+            "title": {
+              "fa": "ورزش",
+              "en": "Exercise"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "پروتئین و سبزیجات تازه بخورید تا ذخیره انرژی‌تان دوباره پر شود.",
+            "en": "Add protein and fresh vegetables to rebuild your energy stores.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "mental_health",
+            "fa": "فرصت خوبی برای برنامه‌ریزی و یادگیری چیزهای تازه است.",
+            "en": "A good window for planning and learning something new.",
+            "title": {
+              "fa": "سلامت روان",
+              "en": "Mental health"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "fertile",
+        "fertility_level": "medium",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 19,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-24",
+        "cycle_day": 11,
+        "phase": "follicular",
+        "subphase": "fertile_rising",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": true,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "energy",
+            "fa": "سطح انرژی شما در حال افزایش است. زمان مناسبی برای پروژه‌های جدید!",
+            "en": "Your energy levels are rising. Great time for new projects!",
+            "title": {
+              "fa": "انرژی",
+              "en": "Energy"
+            }
+          },
+          {
+            "type": "exercise",
+            "fa": "زمان مناسبی برای ورزش‌های سنگین است.",
+            "en": "Perfect time for high-intensity workouts.",
+            "title": {
+              "fa": "ورزش",
+              "en": "Exercise"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "پروتئین و سبزیجات تازه بخورید تا ذخیره انرژی‌تان دوباره پر شود.",
+            "en": "Add protein and fresh vegetables to rebuild your energy stores.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "mental_health",
+            "fa": "فرصت خوبی برای برنامه‌ریزی و یادگیری چیزهای تازه است.",
+            "en": "A good window for planning and learning something new.",
+            "title": {
+              "fa": "سلامت روان",
+              "en": "Mental health"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "fertile",
+        "fertility_level": "medium",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 18,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-25",
+        "cycle_day": 12,
+        "phase": "follicular",
+        "subphase": "fertile_rising",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": true,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "energy",
+            "fa": "سطح انرژی شما در حال افزایش است. زمان مناسبی برای پروژه‌های جدید!",
+            "en": "Your energy levels are rising. Great time for new projects!",
+            "title": {
+              "fa": "انرژی",
+              "en": "Energy"
+            }
+          },
+          {
+            "type": "exercise",
+            "fa": "زمان مناسبی برای ورزش‌های سنگین است.",
+            "en": "Perfect time for high-intensity workouts.",
+            "title": {
+              "fa": "ورزش",
+              "en": "Exercise"
+            }
+          },
+          {
+            "type": "nutrition",
+            "fa": "پروتئین و سبزیجات تازه بخورید تا ذخیره انرژی‌تان دوباره پر شود.",
+            "en": "Add protein and fresh vegetables to rebuild your energy stores.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "mental_health",
+            "fa": "فرصت خوبی برای برنامه‌ریزی و یادگیری چیزهای تازه است.",
+            "en": "A good window for planning and learning something new.",
+            "title": {
+              "fa": "سلامت روان",
+              "en": "Mental health"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "fertile",
+        "fertility_level": "medium",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 17,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-26",
+        "cycle_day": 13,
+        "phase": "ovulation",
+        "subphase": "high_fertility",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": true,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "fertility",
+            "fa": "روزهای اوج باروری. اگر قصد بارداری دارید، بهترین زمان است.",
+            "en": "Peak fertility days. If trying to conceive, this is the best time.",
+            "title": {
+              "fa": "باروری",
+              "en": "Fertility"
+            }
+          },
+          {
+            "type": "energy",
+            "fa": "ممکن است احساس اعتماد به نفس و اجتماعی بودن بیشتری داشته باشید.",
+            "en": "You may feel more confident and social.",
+            "title": {
+              "fa": "انرژی",
+              "en": "Energy"
+            }
+          },
+          {
+            "type": "hydration",
+            "fa": "مرتب آب بنوشید؛ هیدراته بودن به کیفیت ترشحات کمک می‌کند.",
+            "en": "Drink water regularly — hydration supports cervical fluid.",
+            "title": {
+              "fa": "آب‌رسانی",
+              "en": "Hydration"
+            }
+          },
+          {
+            "type": "sleep",
+            "fa": "برنامه خواب منظمی داشته باشید تا تعادل هورمونی حفظ شود.",
+            "en": "Keep a steady sleep schedule to support hormone balance.",
+            "title": {
+              "fa": "خواب",
+              "en": "Sleep"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "fertile",
+        "fertility_level": "high",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 16,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-27",
+        "cycle_day": 14,
+        "phase": "ovulation",
+        "subphase": "high_fertility",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": true,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "fertility",
+            "fa": "روزهای اوج باروری. اگر قصد بارداری دارید، بهترین زمان است.",
+            "en": "Peak fertility days. If trying to conceive, this is the best time.",
+            "title": {
+              "fa": "باروری",
+              "en": "Fertility"
+            }
+          },
+          {
+            "type": "energy",
+            "fa": "ممکن است احساس اعتماد به نفس و اجتماعی بودن بیشتری داشته باشید.",
+            "en": "You may feel more confident and social.",
+            "title": {
+              "fa": "انرژی",
+              "en": "Energy"
+            }
+          },
+          {
+            "type": "hydration",
+            "fa": "مرتب آب بنوشید؛ هیدراته بودن به کیفیت ترشحات کمک می‌کند.",
+            "en": "Drink water regularly — hydration supports cervical fluid.",
+            "title": {
+              "fa": "آب‌رسانی",
+              "en": "Hydration"
+            }
+          },
+          {
+            "type": "sleep",
+            "fa": "برنامه خواب منظمی داشته باشید تا تعادل هورمونی حفظ شود.",
+            "en": "Keep a steady sleep schedule to support hormone balance.",
+            "title": {
+              "fa": "خواب",
+              "en": "Sleep"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "fertile",
+        "fertility_level": "high",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 15,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-28",
+        "cycle_day": 15,
+        "phase": "ovulation",
+        "subphase": "ovulation_likely",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": true,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "fertility",
+            "fa": "روزهای اوج باروری. اگر قصد بارداری دارید، بهترین زمان است.",
+            "en": "Peak fertility days. If trying to conceive, this is the best time.",
+            "title": {
+              "fa": "باروری",
+              "en": "Fertility"
+            }
+          },
+          {
+            "type": "energy",
+            "fa": "ممکن است احساس اعتماد به نفس و اجتماعی بودن بیشتری داشته باشید.",
+            "en": "You may feel more confident and social.",
+            "title": {
+              "fa": "انرژی",
+              "en": "Energy"
+            }
+          },
+          {
+            "type": "hydration",
+            "fa": "مرتب آب بنوشید؛ هیدراته بودن به کیفیت ترشحات کمک می‌کند.",
+            "en": "Drink water regularly — hydration supports cervical fluid.",
+            "title": {
+              "fa": "آب‌رسانی",
+              "en": "Hydration"
+            }
+          },
+          {
+            "type": "sleep",
+            "fa": "برنامه خواب منظمی داشته باشید تا تعادل هورمونی حفظ شود.",
+            "en": "Keep a steady sleep schedule to support hormone balance.",
+            "title": {
+              "fa": "خواب",
+              "en": "Sleep"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "fertile",
+        "fertility_level": "peak",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 14,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-29",
+        "cycle_day": 16,
+        "phase": "luteal",
+        "subphase": "post_ovulation",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "luteal",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 13,
+        "days_late": 0
+      },
+      {
+        "calculation_date": "2026-09-30",
+        "cycle_day": 17,
+        "phase": "luteal",
+        "subphase": "early_luteal",
+        "estimated_ovulation_day": 15,
+        "cycle_length_used": 28,
+        "is_fertile_window": false,
+        "is_pms_window": false,
+        "is_period_tomorrow": false,
+        "is_luteal_spotting": null,
+        "cycle_score": null,
+        "age_factor": null,
+        "base_probability": null,
+        "symptom_score": null,
+        "final_probability": null,
+        "cycle_variability": "regular",
+        "uncertainty_range": null,
+        "text_flags": null,
+        "daily_tips": [
+          {
+            "type": "nutrition",
+            "fa": "روی غذاهای غنی از منیزیم و ویتامین B6 تمرکز کنید.",
+            "en": "Focus on foods rich in magnesium and vitamin B6.",
+            "title": {
+              "fa": "تغذیه",
+              "en": "Nutrition"
+            }
+          },
+          {
+            "type": "exercise",
+            "fa": "به حرکات ملایم‌تر مثل یوگا، پیلاتس یا پیاده‌روی رو بیاورید.",
+            "en": "Switch to gentler movement like yoga, pilates or walking.",
+            "title": {
+              "fa": "ورزش",
+              "en": "Exercise"
+            }
+          },
+          {
+            "type": "sleep",
+            "fa": "کمی زودتر بخوابید؛ در این فاز انرژی کم‌کم افت می‌کند.",
+            "en": "Go to bed a little earlier — energy dips in this phase.",
+            "title": {
+              "fa": "خواب",
+              "en": "Sleep"
+            }
+          },
+          {
+            "type": "mental_health",
+            "fa": "زمان خوبی برای تمام‌کردن کارهای نیمه‌تمام است تا شروع کارهای جدید.",
+            "en": "A good time to finish what you started rather than begin new things.",
+            "title": {
+              "fa": "سلامت روان",
+              "en": "Mental health"
+            }
+          }
+        ],
+        "source_profile_data": null,
+        "source_daily_log_data": null,
+        "main_phase": "luteal",
+        "fertility_level": "low",
+        "is_predicted": true,
+        "is_period": false,
+        "period_kind": null,
+        "days_to_period": 12,
+        "days_late": 0
+      }
+    ],
+    "calculation_status": "completed",
+    "is_recalculating": false,
+    "month_summary": {
+      "fertile_days": 6,
+      "period_days": 5,
+      "pms_days": 3
+    },
+    "future_cycles": [
+      {
+        "k": 1,
+        "period_start": "2026-10-12",
+        "period_end": "2026-10-16",
+        "fertile_start": "2026-09-23",
+        "fertile_end": "2026-09-28",
+        "ovulation": "2026-09-28",
+        "ovulation_source": "calendar",
+        "confidence": "high"
+      },
+      {
+        "k": 2,
+        "period_start": "2026-11-09",
+        "period_end": "2026-11-13",
+        "fertile_start": "2026-10-21",
+        "fertile_end": "2026-10-26",
+        "ovulation": "2026-10-26",
+        "ovulation_source": "calendar",
+        "confidence": "medium"
+      },
+      {
+        "k": 3,
+        "period_start": "2026-12-07",
+        "period_end": "2026-12-11",
+        "fertile_start": "2026-11-18",
+        "fertile_end": "2026-11-23",
+        "ovulation": "2026-11-23",
+        "ovulation_source": "calendar",
+        "confidence": "medium"
+      },
+      {
+        "k": 4,
+        "period_start": "2027-01-04",
+        "period_end": "2027-01-08",
+        "fertile_start": "2026-12-16",
+        "fertile_end": "2026-12-21",
+        "ovulation": "2026-12-21",
+        "ovulation_source": "calendar",
+        "confidence": "medium"
+      },
+      {
+        "k": 5,
+        "period_start": "2027-02-01",
+        "period_end": "2027-02-05",
+        "fertile_start": "2027-01-13",
+        "fertile_end": "2027-01-18",
+        "ovulation": "2027-01-18",
+        "ovulation_source": "calendar",
+        "confidence": "medium"
+      },
+      {
+        "k": 6,
+        "period_start": "2027-03-01",
+        "period_end": "2027-03-05",
+        "fertile_start": "2027-02-10",
+        "fertile_end": "2027-02-15",
+        "ovulation": "2027-02-15",
+        "ovulation_source": "calendar",
+        "confidence": "medium"
+      }
+    ],
+    "limits": {
+      "fertility_suppressed": false,
+      "suppression_reason": null,
+      "engine_suspended": false,
+      "prompt_pregnancy_mode": false
+    }
+  }
+}

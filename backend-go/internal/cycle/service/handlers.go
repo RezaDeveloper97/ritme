@@ -133,7 +133,11 @@ func (h *Handlers) Month(c fiber.Ctx) error {
 	if !slices.Contains(monthViews, viewName) {
 		return httpx.Fail(fiber.StatusUnprocessableEntity, "Invalid view. Must be one of: full, calendar.")
 	}
-	p, err := h.svc.MonthJSON(c.Context(), uid, year, month, viewName, h.today(c), i18n.ResolveLocale(c, ""))
+	if h.servesV6() {
+		return h.monthV6(c, uid, year, month, viewName) // T-M9-33 (month.go)
+	}
+	today := h.today(c)
+	p, err := h.svc.MonthJSON(c.Context(), uid, year, month, viewName, today, i18n.ResolveLocale(c, ""))
 	if err != nil {
 		return err
 	}
@@ -143,6 +147,9 @@ func (h *Handlers) Month(c fiber.Ctx) error {
 	}
 	if err := json.Unmarshal(p.JSON, &parts); err != nil {
 		return err
+	}
+	if h.eng.Shadow() != nil { // CYCLE_ENGINE=shadow: v1 served unchanged, the month is classified after it
+		defer h.monthShadowSubmit(c, uid, year, month, today, parts.Calculations)
 	}
 	body := httpx.Envelope(jsonx.Obj(
 		"calculations", parts.Calculations,

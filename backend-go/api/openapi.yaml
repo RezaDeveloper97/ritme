@@ -7815,6 +7815,16 @@ paths:
         Retrieve all calculated cycle data for a specific month (calendar view)
 
         Encoded with `JSON_UNESCAPED_UNICODE`. In the default `full` view `text_flags`, `daily_tips` and `source_*` stay raw `{en, fa}` blobs.
+
+        Under `CYCLE_ENGINE=v6` (D-121, T-M9-33) every day comes from the v6 engine's range resolve (the same engine as
+        `/cycle/today`): the cycle day never wraps (a late cycle keeps counting), `is_fertile_window` is the display
+        window O−5..O, `is_pms_window` the `pms_possible` days, `phase` the I-11 content phase. Days from the predicted
+        start through today are `period_expected`; from tomorrow the rebased chain is predicted (E-04); late beyond 14
+        days or after `future_cycles[6]` nothing is predicted (E-04, E-28); completed cycles use the retrospective layout
+        (E-22); pregnancy shows logged periods only (E-25); hormonal contraception has no fertile day (E-13). v6 adds per
+        day `main_phase`, `fertility_level`, `is_predicted`, `is_period`, `period_kind`, `days_to_period`, `days_late`
+        and per month `future_cycles` and `limits`; legacy scores, `text_flags` and `source_*` are null, and
+        `calculation_status` is always `completed`.
       operationId: getCycleMonthByYearByMonth
       security:
         - {bearerAuth: []}
@@ -7877,7 +7887,17 @@ paths:
                             is_period_tomorrow: {type: boolean}
                             final_probability: {type: [number, "null"]}
                             cycle_variability: {type: [string, "null"]}
-                            is_luteal_spotting: {type: boolean}
+                            main_phase: {type: string, description: "v6 only (D-121): §2.13 main phase (unknown when nothing is resolved)."}
+                            fertility_level: {type: string, description: "v6 only (D-121)."}
+                            is_predicted: {type: boolean, description: "v6 only (D-121): false only for user_logged days."}
+                            is_period: {type: boolean, description: "v6 only (D-121): a menstrual day (logged, assumed or predicted)."}
+                            period_kind:
+                              type: [string, "null"]
+                              enum: [logged, assumed, predicted, null]
+                              description: "v6 only (D-121): logged = a logged period (or an open period's logged start); assumed = an open period's assumed days or the declared onboarding period (I-01); predicted = a future cycle or a stale onboarding roll-forward; null = not a period day."
+                            days_to_period: {type: [integer, "null"], description: "v6 only (D-121)."}
+                            days_late: {type: [integer, "null"], description: "v6 only (D-121)."}
+                            is_luteal_spotting: {type: [boolean, "null"], description: "Null under CYCLE_ENGINE=v6 (D-121)."}
                             cycle_score: {type: [number, "null"]}
                             age_factor: {type: [number, "null"]}
                             base_probability: {type: [number, "null"]}
@@ -7928,6 +7948,34 @@ paths:
                           fertile_days: {type: integer}
                           period_days: {type: integer}
                           pms_days: {type: integer}
+                      future_cycles:
+                        type: array
+                        description: "v6 only (D-121): today's future cycles (k ≤ 6, E-05); [] late beyond 14 days, in pregnancy or postpartum before cycles return; fertile/ovulation null under hormonal contraception."
+                        items:
+                          type: object
+                          properties:
+                            k: {type: integer}
+                            period_start: {$ref: "#/components/schemas/Date"}
+                            period_end: {$ref: "#/components/schemas/Date"}
+                            fertile_start:
+                              anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
+                            fertile_end:
+                              anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
+                            ovulation:
+                              anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
+                            ovulation_source: {type: string}
+                            confidence: {type: string}
+                      limits:
+                        type: object
+                        description: "v6 only (D-121): the E-24 limits of the user-local day."
+                        properties:
+                          fertility_suppressed: {type: boolean}
+                          suppression_reason: {type: [string, "null"]}
+                          engine_suspended: {type: boolean}
+                          prompt_pregnancy_mode: {type: boolean}
+          headers:
+            ETag: {description: "CYCLE_ENGINE=v6 only (D-121): weak validator of the user's engine revision, the local day, the locale, the month and view and the content; sent with `Cache-Control: private, no-cache`.", schema: {type: string}}
+        '304': {description: "CYCLE_ENGINE=v6 only (D-121): `If-None-Match` matched the current ETag; no body."}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422':
           description: Invalid month or unknown view

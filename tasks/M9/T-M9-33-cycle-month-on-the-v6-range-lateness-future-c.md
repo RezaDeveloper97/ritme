@@ -3,7 +3,7 @@ id: T-M9-33
 title: /cycle/month on the v6 Range: lateness, future cycles, assumed ranges
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-32]
 parallel_group: M9-C
 touches: [backend-go/internal/cycle/service/month.go, backend-go/internal/cycle/service/month_test.go, backend-go/internal/cycle/service/month_int_test.go, backend-go/contract/golden-v6/cycle-month, backend-go/api/openapi.yaml, backend-go/contract/allowlist/cycle-sweep.yaml]
