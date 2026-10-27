@@ -30,7 +30,7 @@ func init() {
 			AppURL: d.Config.App.URL, Logger: d.Logger,
 		}).Routes(route, kit)
 
-		messages.New(d.DB, d.Logger).Routes(route, kit)
+		messages.New(d.DB, d.Logger).WithEngine(engineStates(r, d)).Routes(route, kit) // T-M9-38: preview on the v6 facts
 
 		laravel, err := languages.NewLaravelCache(d.Cache)
 		if err != nil {

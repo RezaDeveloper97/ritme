@@ -7,6 +7,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/companion"
+	"github.com/ritme/backend-go/internal/cycle/state"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
@@ -31,6 +32,13 @@ type Handlers struct {
 	clock    clock.Clock
 	accounts *companion.Accounts // B-N4-03: a companion (male) account has no daily cycle messages → 409
 	pp       PostpartumSignals   // B-N5-01: the postpartum engine's facts
+	states   state.UserStates    // T-M9-38: the v6 engine state source (nil = CYCLE_ENGINE=v1)
+}
+
+// WithEngine reads the cycle facts from the v6 engine (CYCLE_ENGINE=shadow|v6, T-M9-38, D-130); nil keeps v1.
+func (h *Handlers) WithEngine(states state.UserStates) *Handlers {
+	h.states = states
+	return h
 }
 
 // NewHandlers wires the handlers; base is the fallback clock.
@@ -53,7 +61,10 @@ func (h *Handlers) request(c fiber.Ctx) (*manager.Manager, *StoreSource, string,
 	}
 	locale := i18n.ResolveLocale(c, "")
 	today := civildate.Today(clock.FromContext(c, h.clock))
-	src := NewStoreSource(h.q, h.pq, uid, today)
+	if h.states != nil { // v6: the user-local day, as every engine consumer (D-126)
+		today = civildate.LocalToday(c, clock.FromContext(c, h.clock))
+	}
+	src := NewStoreSource(h.q, h.pq, uid, today).WithEngine(h.states)
 	return manager.New(WithPostpartum(src, h.pp), content.NewRepository(h.q), locale, today), src, locale, today, nil
 }
 

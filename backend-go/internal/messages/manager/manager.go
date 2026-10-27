@@ -189,7 +189,9 @@ var fertileSubphases = []enums.CycleSubphase{
 // base message and the nutrition / sleep / exercise modules never pick their ovulation copy), a
 // fertility-worded sub-phase is null, and there is no fertile window or ovulation day.
 func (mc *Context) withoutFertility() {
-	if mc.CycleDay != nil && mc.EstimatedOvulationDay != nil {
+	if mc.V6 { // T-M9-38: the I-11 ovulation content days precede or are the ovulation
+		mc.CyclePhase = string(strippedPhase(enums.CyclePhase(mc.CyclePhase)))
+	} else if mc.CycleDay != nil && mc.EstimatedOvulationDay != nil {
 		mc.CyclePhase = string(legacy.NeutralPhase(enums.CyclePhase(mc.CyclePhase), *mc.CycleDay, *mc.EstimatedOvulationDay))
 	}
 	if slices.Contains(fertileSubphases, enums.CycleSubphase(mc.CycleSubphase)) {
@@ -201,6 +203,12 @@ func (mc *Context) withoutFertility() {
 
 // cycleContext is buildCycleContext: the legacy engine's day.
 func (m *Manager) cycleContext(ctx context.Context, mc *Context) error {
+	if d, err := m.engineDay(ctx, mc.Date); err != nil || d != nil { // T-M9-38: the v6 engine's day
+		if d != nil {
+			cycleContextV6(mc, d)
+		}
+		return err
+	}
 	c, err := m.src.Cycle(ctx, mc.Date)
 	if err != nil {
 		return err

@@ -51,6 +51,11 @@ type Context struct {
 	IsFertileWindow       bool
 	IsPmsWindow           bool
 	EstimatedOvulationDay *int
+	// V6 is true when the cycle context came from the v6 engine (T-M9-38): a cycle day without a content phase is
+	// then neutral (unknown, I-11), never «enter your last period».
+	V6 bool
+	// V6Anchor is the engine having an anchor (EngineDay.HasAnchor).
+	V6Anchor bool
 
 	// Pregnancy mode (0-based gestational weeks, as the manager reads them).
 	PregnancyWeek *int

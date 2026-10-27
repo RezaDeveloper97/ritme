@@ -10178,6 +10178,14 @@ paths:
         Automatically detects user's current mode (cycle/pregnancy) and returns personalized messages including base message, correlations, patterns (premium), and supplement tips (nutrition, sleep, exercise).
 
         Premium users with an override case that has no content get a 500 (D-11, kept as Laravel).
+
+        Under `CYCLE_ENGINE=shadow|v6` (T-M9-38, D-130) the cycle context comes from the v6 engine on the user-local day
+        (same shape): `cycle_day` never wraps (a late cycle keeps counting, never "day N of a new cycle"); `phase` is the
+        I-11 content phase (menstrual → menstruation; follicular, fertile_rising → follicular; high_fertility,
+        ovulation_likely → ovulation; luteal, period_expected → luteal); `is_fertile_window` is the display window
+        O−5..O (O+1 is not fertile); `is_pms_window` = pms_possible days. An `unknown` day has `phase` null, the neutral
+        "default" base copy and empty supplements. Under fertility suppression (hormonal contraception) and in teen /
+        menopause modes there is no fertile window, no ovulation day or content and no TTC copy.
       operationId: getMessagesDaily
       security:
         - {bearerAuth: []}
@@ -10473,6 +10481,13 @@ paths:
         is recorded here; the client reports `impression` / `click` / `dismiss` / `goal` to `POST /messages/events`.
         `seen`, `confidence` (levels worth_followup, follow_soon) and `contact` (follow_soon) are present only for
         those levels. Companion accounts get 409.
+        Facts (T-M9-38, D-130): under `CYCLE_ENGINE=shadow|v6` the cycle facts come from the v6 engine — `main_phase`,
+        `subphase`, `phase` (I-11 content phase), `cycle_day` (no wrap), `cycle_length`, `days_to_period` (0 when late),
+        `days_late`, `data_quality`, `confidence`, `suggest_pregnancy_test`, `fertility_suppressed`, `is_pms_window`
+        (pms_possible) and `is_fertile_window` (display window O−5..O). Fertility facts (`is_fertile_window`, the
+        ovulation phase, fertility-worded subphases, the fertile main phase) are stripped and `user_goal` reads
+        non_ttc when fertility is suppressed or in teen / menopause modes. Text variables: name, days_to_period,
+        days_late, cycle_day, pregnancy_week, phase, subphase. The admin rule preview reads the same facts.
       operationId: getMessagesSelected
       security:
         - {bearerAuth: []}

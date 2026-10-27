@@ -286,3 +286,23 @@ func TestSimulate_MatchesSelectAndExplains(t *testing.T) {
 	assert.Equal(t, rules.ReasonInactive, byID[5].Reason)
 	assert.Equal(t, uint64(4), vs[0].Rule.ID, "ordered by priority")
 }
+
+// T-M9-38: every allowed {variable} is a fact the engine supplies; pms_start_day and top_symptoms (never filled) are
+// rejected by the editor, and a text using one never renders.
+func TestValidate_VariablesAreSuppliedFacts(t *testing.T) {
+	cap := 1
+	in := rules.Input{Title: "x", Level: rules.LevelSuggestion, Kind: rules.KindProduct, Priority: 30, Placement: "smart_tip",
+		CapCount: &cap, CapPeriod: "day"}
+	for _, v := range []string{"pms_start_day", "top_symptoms"} {
+		assert.NotContains(t, rules.Variables, v)
+		in.Content = rules.Content{A: rules.Variant{Title: "{" + v + "}", Body: "b"}}
+		assert.Contains(t, in.Validate(), "content.a", v)
+	}
+	for _, v := range []string{"days_late", "days_to_period", "cycle_day", "phase", "subphase"} {
+		in.Content = rules.Content{A: rules.Variant{Title: "{" + v + "}", Body: "b"}}
+		assert.Empty(t, in.Validate(), v)
+	}
+	out, ok := rules.Render("{days_late}", rules.Facts{"days_late": 8.0})
+	assert.True(t, ok)
+	assert.Equal(t, "8", out)
+}

@@ -3,14 +3,17 @@ package messages
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 
 	"github.com/go-sql-driver/mysql"
 
+	"github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/cycle/legacy"
 	"github.com/ritme/backend-go/internal/cycle/model"
+	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
+	"github.com/ritme/backend-go/internal/cycle/state"
+	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/messages/manager"
 	"github.com/ritme/backend-go/internal/messages/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -20,8 +23,8 @@ import (
 
 // StoreSource is the sqlc-backed manager.Source for one user and request. It memoises every
 // read (Laravel's relation cache and HealthDataEngine's per-request caches) and builds the
-// legacy engine once. The cycle day is computed with the committed cycle libraries directly
-// (profile + cycle_histories → legacy.New), so it does not depend on the cycle service.
+// legacy engine once (CYCLE_ENGINE=v1). With an engine source (WithEngine, shadow|v6) the cycle facts come from the
+// shared v6 engine state instead (EngineDay, T-M9-38).
 type StoreSource struct {
 	q      store.Querier
 	pq     pstore.Querier
@@ -35,6 +38,8 @@ type StoreSource struct {
 	lifeMode      string
 	lifeLoaded    bool
 	engine        *legacy.Engine
+	states        state.UserStates // nil = CYCLE_ENGINE=v1
+	state         *engine.State
 }
 
 // NewStoreSource returns the source for userID; today is the request's Tehran day.
@@ -133,7 +138,8 @@ func (s *StoreSource) RecentLogs(ctx context.Context, from, to civildate.Date) (
 }
 
 // Cycle implements manager.Source: HealthDataEngine::calculateForDate in calendar mode (the
-// fields the manager reads do not depend on the content part).
+// fields the manager reads do not depend on the content part). CYCLE_ENGINE=v1 only: with an engine the manager reads
+// EngineDay and never calls Cycle. The rows map through the cycle service's adapters (one mapping for every reader).
 func (s *StoreSource) Cycle(ctx context.Context, date civildate.Date) (legacy.Calculation, error) {
 	if s.engine == nil {
 		row, err := s.profile(ctx)
@@ -146,59 +152,48 @@ func (s *StoreSource) Cycle(ctx context.Context, date civildate.Date) (legacy.Ca
 		}
 		histories := make([]model.History, len(rows))
 		for i, r := range rows {
-			histories[i] = historyFromRow(r)
+			histories[i] = cycleservice.HistoryFromRow(cyclestore.CycleHistory{
+				ID: r.ID, PeriodStartDate: r.PeriodStartDate, PeriodEndDate: r.PeriodEndDate, CycleLength: r.CycleLength,
+				BleedingLength: r.BleedingLength, IsConfirmed: r.IsConfirmed, IsEstimated: r.IsEstimated, Source: r.Source,
+				DataQualityFlags: r.DataQualityFlags,
+			})
 		}
-		s.engine = legacy.New(legacy.Input{Profile: engineProfile(row), Histories: histories, Today: s.today})
+		var profile *model.Profile
+		if row != nil {
+			profile = cycleservice.ProfileFromRow(&cyclestore.UserProfile{
+				UserGoal: row.UserGoal, LastPeriodStart: row.LastPeriodStart, Birthday: row.Birthday,
+				CycleDuration: row.CycleDuration, PeriodDuration: row.PeriodDuration,
+			})
+		}
+		s.engine = legacy.New(legacy.Input{Profile: profile, Histories: histories, Today: s.today})
 	}
 	return s.engine.CalculateForDate(ctx, date, false)
 }
 
-// engineProfile maps the profile row onto model.Profile (nil = no profile).
-func engineProfile(r *store.GetMessageProfileRow) *model.Profile {
-	if r == nil {
-		return nil
-	}
-	p := &model.Profile{Goal: r.UserGoal}
-	if r.LastPeriodStart.Valid {
-		p.LastPeriodStart = r.LastPeriodStart.Date
-	}
-	if r.Birthday.Valid {
-		p.Birthday = r.Birthday.Date
-	}
-	if r.CycleDuration.Valid {
-		p.CycleDuration = model.Int(int(r.CycleDuration.Int16))
-	}
-	if r.PeriodDuration.Valid {
-		p.PeriodDuration = model.Int(int(r.PeriodDuration.Int16))
-	}
-	return p
+// WithEngine attaches the v6 engine state source (T-M9-38, D-130; nil = CYCLE_ENGINE=v1, the legacy Cycle path).
+func (s *StoreSource) WithEngine(states state.UserStates) *StoreSource {
+	s.states = states
+	return s
 }
 
-// historyFromRow maps a cycle_histories row onto model.History (CycleHistory casts).
-func historyFromRow(r store.ListMessageCycleHistoriesRow) model.History {
-	h := model.History{
-		ID:          int64(r.ID), //nolint:gosec // G115: auto-increment ids fit int64
-		PeriodStart: r.PeriodStartDate,
-		IsConfirmed: r.IsConfirmed,
-		IsEstimated: r.IsEstimated,
-		Source:      r.Source,
+// EngineDay implements manager.EngineSource: the v6 status of date resolved for the source's today (the user-local
+// day). ok is false without an engine.
+func (s *StoreSource) EngineDay(ctx context.Context, date civildate.Date) (manager.EngineDay, bool, error) {
+	if s.states == nil {
+		return manager.EngineDay{}, false, nil
 	}
-	if r.PeriodEndDate.Valid {
-		h.PeriodEnd = r.PeriodEndDate.Date
-	}
-	if r.CycleLength.Valid {
-		h.CycleLength = model.Int(int(r.CycleLength.Int32))
-	}
-	if r.BleedingLength.Valid {
-		h.BleedingLength = model.Int(int(r.BleedingLength.Int32))
-	}
-	if r.DataQualityFlags.Valid {
-		var flags []string
-		if json.Unmarshal(r.DataQualityFlags.V, &flags) == nil {
-			h.DataQualityFlags = flags
+	if s.state == nil {
+		st, err := s.states.ForUser(ctx, s.userID, s.today)
+		if err != nil {
+			return manager.EngineDay{}, false, fmt.Errorf("messages: engine state: %w", err)
 		}
+		s.state = st
 	}
-	return h
+	return manager.EngineDay{
+		Status:    s.state.Resolve(engine.DayOf(date), engine.DayOf(s.today)),
+		Mode:      s.state.Mode(),
+		HasAnchor: len(s.state.Periods()) > 0 || s.state.Declared().LastPeriodStart.OK(),
+	}, true, nil
 }
 
 // PregnancySymptoms implements manager.PregnancySymptomSource: the day's pregnancy symptom log

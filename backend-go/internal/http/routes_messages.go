@@ -23,7 +23,7 @@ func init() {
 	Register("messages", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
-		h := messages.NewHandlers(d.DB, clock.Real{})
+		h := messages.NewHandlers(d.DB, clock.Real{}).WithEngine(engineStates(r, d)) // T-M9-38: v6 facts under shadow|v6
 		const p = "/api/v1/messages"
 
 		r.Get(p+"/daily", locale, guard, h.Daily)

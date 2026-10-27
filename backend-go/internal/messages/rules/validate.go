@@ -10,7 +10,8 @@ import (
 )
 
 // Variables are the placeholders a message text may use ({name}); each must be a fact the engine supplies.
-var Variables = []string{"name", "days_to_period", "top_symptoms", "pms_start_day", "cycle_day", "pregnancy_week", "phase", "subphase"}
+// T-M9-38: pms_start_day and top_symptoms were removed — no fact ever filled them, so a text using them never rendered.
+var Variables = []string{"name", "days_to_period", "days_late", "cycle_day", "pregnancy_week", "phase", "subphase"}
 
 // CapPeriods are the valid cap periods.
 var CapPeriods = []string{"day", "week", "cycle"}

@@ -44,6 +44,9 @@ func (m modules) nutrition(ctx context.Context, mc *Context) (*jsonx.OrderedMap,
 		), nil
 	}
 
+	if mc.neutral() { // T-M9-38: a v6 day without a content phase gets no phase supplement
+		return nil, nil
+	}
 	const group = "nutrition_cycle"
 	p, err := m.content.Resolve(ctx, group, phaseItem(group, mc.CyclePhase), m.locale)
 	if err != nil {
@@ -114,6 +117,9 @@ func (m modules) sleep(ctx context.Context, mc *Context) (*jsonx.OrderedMap, err
 		), nil
 	}
 
+	if mc.neutral() { // T-M9-38: a v6 day without a content phase gets no phase supplement
+		return nil, nil
+	}
 	const group = "sleep_cycle"
 	p, err := m.content.Resolve(ctx, group, phaseItem(group, mc.CyclePhase), m.locale)
 	if err != nil {
@@ -153,6 +159,9 @@ func (m modules) exercise(ctx context.Context, mc *Context) (*jsonx.OrderedMap, 
 		), nil
 	}
 
+	if mc.neutral() { // T-M9-38: a v6 day without a content phase gets no phase supplement
+		return nil, nil
+	}
 	const group = "exercise_cycle"
 	p, err := m.content.Resolve(ctx, group, phaseItem(group, mc.CyclePhase), m.locale)
 	if err != nil {

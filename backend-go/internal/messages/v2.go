@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/messages/content"
 	"github.com/ritme/backend-go/internal/messages/manager"
@@ -31,9 +32,10 @@ import (
 // EventKinds are the accepted event names.
 var EventKinds = []string{"impression", "click", "dismiss", "goal"}
 
-// BuildFacts computes the facts of one user (mode via the message manager, cycle numbers via the legacy engine).
+// BuildFacts computes the facts of one user (mode via the message manager; cycle numbers via the v6 engine under
+// CYCLE_ENGINE=shadow|v6 — T-M9-38, D-130 — else the legacy engine).
 func BuildFacts(ctx context.Context, h *Handlers, userID uint64, today civildate.Date) (rules.Facts, error) {
-	src := NewStoreSource(h.q, h.pq, userID, today)
+	src := NewStoreSource(h.q, h.pq, userID, today).WithEngine(h.states)
 	return buildFacts(ctx, h, src, userID, today)
 }
 
@@ -51,15 +53,28 @@ func buildFacts(ctx context.Context, h *Handlers, src *StoreSource, userID uint6
 		f["user_goal"] = p.UserGoal
 		f["is_premium"] = p.SubscriptionType == "premium"
 	}
-	if lm, err := src.LifeMode(ctx); err == nil && lm != "" {
+	lm, err := src.LifeMode(ctx)
+	if err == nil && lm != "" {
 		f["life_mode"] = lm
 	}
+	noFertilityMode := lm != "" && !enums.LifeMode(lm).AllowsFertilityContent()
 	if name, err := h.q.GetMessageUserName(ctx, userID); err == nil {
 		if first, _, _ := strings.Cut(strings.TrimSpace(name.String), " "); first != "" {
 			f["name"] = first
 		}
 	}
 	if string(mode) == "cycle" {
+		if d, ok, err := src.EngineDay(ctx, today); err != nil {
+			return nil, err
+		} else if ok { // T-M9-38 (D-130): the v6 engine's facts
+			for k, v := range manager.EngineFacts(&d, noFertilityMode) {
+				f[k] = v
+			}
+			if f["fertility_suppressed"] == true { // teen, menopause, suppression: never TTC targeting (as the daily)
+				f["user_goal"] = string(enums.UserGoalNonTtc)
+			}
+			return withPregnancy(ctx, f, mode, src, today), nil
+		}
 		if c, err := src.Cycle(ctx, today); err == nil && c.Complete {
 			f["cycle_day"] = float64(c.Day)
 			f["cycle_length"] = float64(c.CycleLength)
@@ -70,14 +85,19 @@ func buildFacts(ctx context.Context, h *Handlers, src *StoreSource, userID uint6
 			f["is_fertile_window"] = c.IsFertileWindow
 		}
 	}
-	if string(mode) == "pregnancy" {
+	return withPregnancy(ctx, f, mode, src, today), nil
+}
+
+// withPregnancy adds the gestational week in pregnancy mode.
+func withPregnancy(ctx context.Context, f rules.Facts, mode enums.MessageMode, src *StoreSource, today civildate.Date) rules.Facts {
+	if mode == enums.MessageModePregnancy {
 		if p, err := src.PregnancyProfile(ctx); err == nil {
 			if week, ok := pregnancyWeek(p, today); ok {
 				f["pregnancy_week"] = week
 			}
 		}
 	}
-	return f, nil
+	return f
 }
 
 // pregnancyWeek is the 1-based gestational week of p on today, read from the pregnancy v2 dating the pregnancy screens

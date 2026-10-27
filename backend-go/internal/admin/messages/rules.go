@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
+	"github.com/ritme/backend-go/internal/cycle/state"
 	"github.com/ritme/backend-go/internal/messages"
 	"github.com/ritme/backend-go/internal/messages/rules"
 	mstore "github.com/ritme/backend-go/internal/messages/store"
@@ -586,6 +587,13 @@ type previewBody struct {
 	Rule   *rules.Input   `json:"rule"`
 	UserID uint64         `json:"user_id"`
 	Facts  map[string]any `json:"facts"`
+}
+
+// WithEngine gives the rule preview the user-facing v6 facts (T-M9-38, D-130: the same facts /messages/selected
+// reads under CYCLE_ENGINE=shadow|v6); nil keeps v1.
+func (h *Handlers) WithEngine(states state.UserStates) *Handlers {
+	h.user = h.user.WithEngine(states)
+	return h
 }
 
 // RulePreview is POST /messages/rules/preview {rule_id | rule, user_id?, facts?}: what that user (or those facts)

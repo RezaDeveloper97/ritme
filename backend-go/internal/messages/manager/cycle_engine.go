@@ -22,6 +22,9 @@ type cycleEngine struct {
 
 // base is getBaseMessage (Layer 1).
 func (e cycleEngine) base(ctx context.Context, mc *Context) (*jsonx.OrderedMap, error) {
+	if mc.neutral() && mc.V6Anchor {
+		return e.neutralBase(ctx, mc)
+	}
 	if mc.CyclePhase == "" {
 		return e.defaultMessage(), nil
 	}

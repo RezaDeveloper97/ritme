@@ -3,10 +3,10 @@ id: T-M9-38
 title: Messages read v6 facts (daily, selected, admin preview)
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-32]
 parallel_group: M9-C
-touches: [backend-go/internal/messages/source.go, backend-go/internal/messages/manager, backend-go/internal/messages/v2.go, backend-go/internal/messages/rules, backend-go/internal/admin/messages/rules.go, backend-go/db/queries/messages, backend-go/contract/allowlist/messages.yaml, backend-go/api/openapi.yaml]
+touches: [backend-go/internal/messages/source.go, backend-go/internal/messages/manager, backend-go/internal/messages/v2.go, backend-go/internal/messages/rules, backend-go/internal/admin/messages/rules.go, backend-go/db/queries/messages, backend-go/contract/allowlist/messages.yaml, backend-go/api/openapi.yaml, backend-go/internal/messages/handlers.go, backend-go/internal/messages/v6_int_test.go, backend-go/internal/http/routes_messages.go, backend-go/internal/http/routes_admin_content.go]
 skills: []
 verify: cd backend-go && make sqlc && go vet ./... && go test ./internal/messages/... ./internal/admin/messages/... && make test-int PKG=./internal/messages/... && make contract ROUTES=messages
 ---
