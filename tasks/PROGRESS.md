@@ -2334,3 +2334,16 @@ Nothing needed fixing.
 - "Normal" copy reworded to «در بازهٔ معمول» / "In the usual range"; backend-go translations kept identical.
 - Main session: deleted dead `entities/cycle/api/sections.ts` (no importer of hooks or types) and its exports in `entities/cycle/index.ts` (added to touches).
 - Open → T-M9-40c: unknown day shows a 'follicular' placeholder (types non-null); companion bar still uses the fallback (`SharedCycleView` lacks the fields).
+
+## T-M9-40c — Frontend: real nulls for unknown phase and missing fertility number
+- `model/types.ts`: `CycleCalculation.phase` `string | null`; `fertilityPercent` (calculation + predictions) `number | null`; `CyclePredictions.phase` `CyclePhase | null`.
+- `predictions.ts`: `normalizePhase` accepts null; `markerPhase` → null for an unknown day (no 'follicular' placeholder); `deriveCyclePredictions` passes nulls through (no NaN, no 0%). `schema.ts` sentinels (`NaN`, `''`) replaced with `?? null`.
+- No consumer outside touches broke (CalendarPage/HomePage already tolerate null).
+- Open: companion bar keeps the L−14 fallback — `SharedCycleView` (`entities/companion`) has no periodLength/ovulationDay/fertilitySuppressed; needs the companion payload + schema extended (not queued yet).
+
+## T-M9-43 — Prediction card v6: ovulation source, regularity badge, engine ranges
+- New `screens/home/model/prediction-card.ts` `enginePredictionRows(todayUi)` maps `today_ui.prediction_card`; when present it owns period/PMS/fertile/ovulation slots, cycle length and regularity on Home; null card → old Laravel path.
+- `PredictionsCard.tsx`: `ovulationSource` (BBT/LH-confirmed shows the plain date, no «حدود») and `hideWindow` (fertile row hidden when null).
+- `entities/cycle/api/overview.ts`: `normalizeRegularity()` maps v6 + old overview enums to `regular | irregular | insufficient_data` (unknown → no pill).
+- Copy `home.nb.predictions.*`: sourceBbt «تأیید با دمای پایه», sourceLh «بر اساس تست LH», regularity منظم / «کمی متغیر» (was «نامنظم», calmer) / دادهٔ کم. Old `relatively_regular`/`irregular_possible`/`not_enough_data` keys kept (copy:check fails on removed keys) but unused.
+- Visual QA (3 states, light + dark) moved to T-M9-42d.

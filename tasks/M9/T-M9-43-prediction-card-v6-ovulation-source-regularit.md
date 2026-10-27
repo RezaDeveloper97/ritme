@@ -3,7 +3,7 @@ id: T-M9-43
 title: Prediction card v6: ovulation source, regularity badge, engine ranges
 milestone: M9
 type: frontend
-status: todo
+status: done
 depends_on: [T-M9-42]
 parallel_group: M9-C
 touches: [frontend/src/screens/home, frontend/src/entities/cycle/api/overview.ts, frontend/messages/fa/home.json, frontend/messages/en/home.json, backend-go/resources/translations/fa/home.json, backend-go/resources/translations/en/home.json]

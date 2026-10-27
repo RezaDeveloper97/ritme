@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 
+import type { CycleRegularity, OvulationSource } from '@/entities/cycle';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Card, Icon, IconCircle, StatusPill, type IconName, type Tone } from '@/shared/ui';
@@ -19,13 +20,21 @@ export interface CycleLengthSummary {
   median: number;
   basedOnCycles: number | null;
   spreadDays: number | null;
-  regularity: string | null;
+  regularity: CycleRegularity | null;
 }
 
-const REGULARITY: Record<string, { tone: Tone; icon?: IconName }> = {
-  relatively_regular: { tone: 'data', icon: 'check' },
-  irregular_possible: { tone: 'warm' },
-  not_enough_data: { tone: 'neutral' },
+const REGULARITY: Record<CycleRegularity, { tone: Tone; icon?: IconName }> = {
+  regular: { tone: 'data', icon: 'check' },
+  irregular: { tone: 'warm' },
+  insufficient_data: { tone: 'neutral' },
+};
+
+/** How the ovulation day was reached (v6 `prediction_card.ovulation.source`). */
+const OVULATION_SOURCE_KEY: Record<OvulationSource, 'sourceBbt' | 'sourceLh' | 'estimated'> = {
+  bbt_confirmed: 'sourceBbt',
+  lh_positive: 'sourceLh',
+  calendar: 'estimated',
+  unknown: 'estimated',
 };
 
 /**
@@ -39,19 +48,25 @@ export function PredictionsCard({
   pms,
   window,
   ovulation,
+  ovulationSource = null,
   length,
   footer,
   hideFertility = false,
+  hideWindow = false,
 }: {
   nextPeriod: PredictionSlot | null;
   pms: PredictionSlot | null;
   window: PredictionSlot | null;
   ovulation: string | null;
+  /** v6 only: BBT / LH confirmed the day. Null keeps the plain «تخمینی» (Laravel path). */
+  ovulationSource?: OvulationSource | null;
   length: CycleLengthSummary | null;
   /** Optional extra (the profile-vs-recent-cycles sync nudge). */
   footer?: ReactNode;
   /** Teen mode (B-N2-03): no fertile-window / ovulation rows. */
   hideFertility?: boolean;
+  /** v6: the engine sent no fertile display window — only that row goes. */
+  hideWindow?: boolean;
 }) {
   const t = useTranslations('home.nb.predictions');
   const tHome = useTranslations('home');
@@ -67,6 +82,7 @@ export function PredictionsCard({
     return slot.endIn >= 0 ? t('ongoing') : null;
   };
 
+  const confirmed = ovulationSource === 'bbt_confirmed' || ovulationSource === 'lh_positive';
   const allRows = [
     { key: 'period', label: t('nextPeriod'), value: nextPeriod?.text ?? dash, rel: when(nextPeriod, false) },
     { key: 'pms', label: t('pms'), value: pms?.text ?? dash, rel: when(pms, true) },
@@ -74,11 +90,15 @@ export function PredictionsCard({
     {
       key: 'ovulation',
       label: t('ovulation'),
-      value: ovulation ? t('about', { date: ovulation }) : dash,
-      rel: ovulation ? t('estimated') : null,
+      value: ovulation ? (confirmed ? ovulation : t('about', { date: ovulation })) : dash,
+      rel: ovulation ? t(OVULATION_SOURCE_KEY[ovulationSource ?? 'calendar']) : null,
     },
   ];
-  const rows = hideFertility ? allRows.filter((r) => r.key !== 'fertile' && r.key !== 'ovulation') : allRows;
+  const rows = hideFertility
+    ? allRows.filter((r) => r.key !== 'fertile' && r.key !== 'ovulation')
+    : hideWindow
+      ? allRows.filter((r) => r.key !== 'fertile')
+      : allRows;
 
   const reg = length?.regularity ? REGULARITY[length.regularity] : undefined;
 
@@ -114,7 +134,7 @@ export function PredictionsCard({
           </span>
           {reg && length.regularity && (
             <StatusPill tone={reg.tone} icon={reg.icon} className="ch-len-pill">
-              {t(`regularity.${length.regularity}` as 'regularity.relatively_regular')}
+              {t(`regularity.${length.regularity}`)}
             </StatusPill>
           )}
         </Link>

@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
+import type { CycleRegularity } from '../model/types';
+
 import { cycleKeys } from './queries';
 
 /**
@@ -20,6 +22,27 @@ import { cycleKeys } from './queries';
  * `cycleKeys.all`) refreshes it.
  */
 export const cycleOverviewKey = () => [...cycleKeys.all, 'overview'] as const;
+
+/**
+ * Both regularity vocabularies in one union: the v6 engine's (`regular | irregular | insufficient_data`)
+ * and the old overview enum (`relatively_regular | irregular_possible | not_enough_data`).
+ * Anything else becomes null so the pill is simply not drawn.
+ */
+export function normalizeRegularity(raw: string | null | undefined): CycleRegularity | null {
+  switch (raw) {
+    case 'regular':
+    case 'relatively_regular':
+      return 'regular';
+    case 'irregular':
+    case 'irregular_possible':
+      return 'irregular';
+    case 'insufficient_data':
+    case 'not_enough_data':
+      return 'insufficient_data';
+    default:
+      return null;
+  }
+}
 
 const rangeSchema = z.object({ start: z.string(), end: z.string() }).nullable();
 
@@ -48,7 +71,7 @@ const overviewSchema = z
       source: o.cycle_length.source,
       basedOnCycles: o.cycle_length.based_on_cycles,
       spreadDays: o.cycle_length.spread_days,
-      regularity: o.cycle_length.regularity,
+      regularity: normalizeRegularity(o.cycle_length.regularity),
     },
   }));
 

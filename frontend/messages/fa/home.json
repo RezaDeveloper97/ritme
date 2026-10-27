@@ -302,6 +302,8 @@
       "ovulation": "تخمک‌گذاری",
       "about": "حدود {date}",
       "estimated": "تخمینی",
+      "sourceBbt": "تأیید با دمای پایه",
+      "sourceLh": "بر اساس تست LH",
       "inDays": "{n} روز دیگر",
       "tomorrow": "فردا",
       "fromTomorrow": "از فردا",
@@ -312,6 +314,9 @@
       "lengthUnit": "روز",
       "lengthSpread": "روز · نوسان ±{n}",
       "regularity": {
+        "regular": "منظم",
+        "irregular": "کمی متغیر",
+        "insufficient_data": "دادهٔ کم",
         "relatively_regular": "منظم",
         "irregular_possible": "نامنظم",
         "not_enough_data": "دادهٔ کم"

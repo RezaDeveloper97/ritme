@@ -103,6 +103,7 @@ import { needsPeriodData } from '../model/cycle-data';
 import { phaseFromMainPhase } from '../model/hero-state';
 import { dismissPrompt, isPromptDismissed } from '../model/prompt-dismiss';
 import { readTtcHint, writeTtcHint } from '../model/ttc-hint';
+import { enginePredictionRows } from '../model/prediction-card';
 import { isEnginePayload, todayHero } from '../model/today-ui';
 
 import { PmsInsightCard, PredictionsCard, type PredictionSlot } from './PredictionsCard';
@@ -728,7 +729,13 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
     fertilitySuppressed,
   );
   const predictedStart = todayView?.anchors?.predictedNextPeriodStart ?? null;
-  const nextPeriodSlot = overview?.nextPeriod
+  // v6 `today_ui.prediction_card`: when present it owns every row of the «پیش‌بینی‌ها» card.
+  const card = enginePredictionRows(todayView?.todayUi);
+  const cardSlot = (r: { start: string; end: string } | null) =>
+    r ? slotFor(fromApiDate(r.start), fromApiDate(r.end)) : null;
+  const nextPeriodSlot = card
+    ? cardSlot(card.period)
+    : overview?.nextPeriod
     ? slotFor(fromApiDate(overview.nextPeriod.start), fromApiDate(overview.nextPeriod.end), !periodIsLate)
     : engine
       ? predictedStart
@@ -737,7 +744,9 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
       : schedule
         ? slotFor(schedule.nextPeriodStart, addDays(schedule.nextPeriodStart, periodDays - 1), !periodIsLate)
         : null;
-  const ovulationSlot = engine
+  const ovulationSlot = card
+    ? cardSlot(card.ovulation ? { start: card.ovulation.date, end: card.ovulation.date } : null)
+    : engine
     ? serverEvents.ovulation
       ? slotFor(fromApiDate(serverEvents.ovulation), fromApiDate(serverEvents.ovulation))
       : null
@@ -746,14 +755,18 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
       : null;
   // The §19 display window — the same days `/fertility/bbt` and the insights
   // screen mark (none when a long period swallows it).
-  const windowSlot = engine
+  const windowSlot = card
+    ? cardSlot(card.fertile)
+    : engine
     ? serverEvents.fertile
       ? slotFor(fromApiDate(serverEvents.fertile.start), fromApiDate(serverEvents.fertile.end))
       : null
     : schedule && hasFertileWindow(schedule)
       ? slotFor(schedule.fertileStart, schedule.fertileEnd)
       : null;
-  const pmsSlot = overview?.pmsWindow
+  const pmsSlot = card
+    ? cardSlot(card.pms)
+    : overview?.pmsWindow
     ? slotFor(fromApiDate(overview.pmsWindow.start), fromApiDate(overview.pmsWindow.end))
     : !engine && schedule
       ? slotFor(schedule.pmsStart, schedule.pmsEnd)
@@ -1027,17 +1040,17 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   // route the effective length alone stands in.
   const cycleLengthSummary = overview
     ? {
-        median: overview.cycleLength.median,
+        median: card?.cycleLength ?? overview.cycleLength.median,
         basedOnCycles: overview.cycleLength.basedOnCycles,
         spreadDays: overview.cycleLength.spreadDays,
-        regularity: overview.cycleLength.regularity,
+        regularity: card?.regularity ?? overview.cycleLength.regularity,
       }
     : todayData?.cycleView?.effectiveValues.cycleLength != null
       ? {
-          median: todayData.cycleView.effectiveValues.cycleLength,
+          median: card?.cycleLength ?? todayData.cycleView.effectiveValues.cycleLength,
           basedOnCycles: null,
           spreadDays: null,
-          regularity: null,
+          regularity: card?.regularity ?? null,
         }
       : null;
 
@@ -1273,6 +1286,8 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
                 pms={toPrediction(pmsSlot)}
                 window={teen ? null : toPrediction(windowSlot)}
                 ovulation={teen ? null : ovulationDate}
+                ovulationSource={card?.ovulation?.source ?? null}
+                hideWindow={card != null && card.fertile == null}
                 hideFertility={teen}
                 length={cycleLengthSummary}
                 footer={syncNudge}

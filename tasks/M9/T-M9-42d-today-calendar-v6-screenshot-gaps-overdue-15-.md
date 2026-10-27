@@ -21,6 +21,8 @@ schema bug fixed in T-M9-40b; pill/onboarding-only fixtures were not found).
 - Screenshots light + dark (local Go `CYCLE_ENGINE=v6`, `local-dev` skill, headless CDP): Today with the overdue 15+
   and ask_last_period banners, the `unknown` phase ring, the overdue banner button landing on the pregnancy-test chip,
   calendar for pill and onboarding-only personas.
+- Also the T-M9-43 visual QA: prediction card light + dark in three states (calendar-estimated ovulation, BBT/LH-confirmed
+  ovulation, fertile window null / suppressed) with the regularity badge; save under `docs/engine-v6/qa/`.
 - Fix any v6 display bug they reveal inside `touches`; otherwise file a follow-up task.
 
 ## Out of scope

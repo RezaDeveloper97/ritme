@@ -302,6 +302,8 @@
       "ovulation": "Ovulation",
       "about": "Around {date}",
       "estimated": "Estimated",
+      "sourceBbt": "Confirmed by basal temperature",
+      "sourceLh": "Based on LH test",
       "inDays": "In {n} days",
       "tomorrow": "Tomorrow",
       "fromTomorrow": "From tomorrow",
@@ -312,6 +314,9 @@
       "lengthUnit": "days",
       "lengthSpread": "days · ±{n} variation",
       "regularity": {
+        "regular": "Regular",
+        "irregular": "Varies",
+        "insufficient_data": "Not enough data",
         "relatively_regular": "Regular",
         "irregular_possible": "Irregular",
         "not_enough_data": "Little data"
