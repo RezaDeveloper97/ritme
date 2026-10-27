@@ -55,10 +55,20 @@ func (c DigestCycle) JSON() *jsonx.OrderedMap {
 }
 
 // Digest is the per-cycle facts of a user's period history, newest first.
-type Digest struct{ cycles []DigestCycle }
+type Digest struct {
+	cycles []DigestCycle
+	bounds digestBounds
+}
+
+// digestBounds are the valid cycle / period lengths the averages use (v1: 21..45 / 2..10; v6: the engine's §2.8).
+type digestBounds struct{ cycleMin, cycleMax, periodMin, periodMax int }
+
+var legacyDigestBounds = digestBounds{digestValidCycleMin, digestValidCycleMax, digestValidDurationMin, digestValidDurationMax}
 
 // NewDigest is CycleHistoryDigest::fromHistories (histories in any order).
-func NewDigest(histories []model.History) *Digest {
+func NewDigest(histories []model.History) *Digest { return newDigest(histories, legacyDigestBounds) }
+
+func newDigest(histories []model.History, bounds digestBounds) *Digest {
 	ordered := slices.Clone(histories)
 	slices.SortStableFunc(ordered, func(a, b model.History) int { return a.PeriodStart.Compare(b.PeriodStart) })
 
@@ -81,7 +91,7 @@ func NewDigest(histories []model.History) *Digest {
 		cycles = append(cycles, c)
 	}
 	slices.Reverse(cycles)
-	return &Digest{cycles: cycles}
+	return &Digest{cycles: cycles, bounds: bounds}
 }
 
 // StartingOn is the cycle that started on d, if recorded.
@@ -136,14 +146,14 @@ func (d *Digest) collectValid(field func(DigestCycle) *int, lo, hi int) []int {
 	return out
 }
 
-// ValidCycleLengths are the cycle lengths within 21..45, newest first.
+// ValidCycleLengths are the cycle lengths within the valid bounds (v1 21..45), newest first.
 func (d *Digest) ValidCycleLengths() []int {
-	return d.collectValid(func(c DigestCycle) *int { return c.CycleLength }, digestValidCycleMin, digestValidCycleMax)
+	return d.collectValid(func(c DigestCycle) *int { return c.CycleLength }, d.bounds.cycleMin, d.bounds.cycleMax)
 }
 
-// ValidPeriodLengths are the durations within 2..10, newest first.
+// ValidPeriodLengths are the durations within the valid bounds (v1 2..10), newest first.
 func (d *Digest) ValidPeriodLengths() []int {
-	return d.collectValid(func(c DigestCycle) *int { return c.PeriodLength }, digestValidDurationMin, digestValidDurationMax)
+	return d.collectValid(func(c DigestCycle) *int { return c.PeriodLength }, d.bounds.periodMin, d.bounds.periodMax)
 }
 
 // AverageCycleLength is (int) round(mean) of the valid cycle lengths.

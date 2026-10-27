@@ -44,7 +44,7 @@ func TestEveryPersonaBuildsWithoutSectionFailures(t *testing.T) {
 		for _, locale := range []string{"fa", "en", "ar"} {
 			for _, date := range []string{"2026-09-23", "2026-09-30", "2026-08-01"} {
 				user := &auth.User{ID: uid}
-				hc, err := h.newContext(ctx, user, civildate.MustParse(date), today, locale, "fa")
+				hc, err := h.newContext(ctx, user, civildate.MustParse(date), today, locale, "fa", nil)
 				require.NoError(t, err)
 				sections := h.page.Build(hc)
 				require.NotEmpty(t, sections, "user %d %s %s", uid, locale, date)

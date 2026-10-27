@@ -6,7 +6,16 @@ package home
 // the lengths from the cycle metrics, exactly what `/cycle/today` and `/fertility/insights` read.
 
 import (
+	"fmt"
+	"hash/crc32"
+
 	"github.com/gofiber/fiber/v3"
+
+	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/cycle/engine"
+	"github.com/ritme/backend-go/internal/cycle/engineparams"
+	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
+	"github.com/ritme/backend-go/internal/platform/etag"
 
 	"github.com/ritme/backend-go/internal/cycle/metrics"
 	"github.com/ritme/backend-go/internal/cycle/model"
@@ -130,6 +139,9 @@ func (h *Handlers) CycleOverview(c fiber.Ctx) error {
 	if err := h.refuseCompanion(c); err != nil {
 		return err
 	}
+	if h.states != nil {
+		return h.cycleOverviewV6(c, user.ID)
+	}
 	today := civildate.InTehran(h.now(c))
 	sn, err := h.cycle.Load(c.Context(), user.ID, today.AddDays(-streakWindowDays), today, today)
 	if err != nil {
@@ -146,4 +158,84 @@ func (h *Handlers) CycleOverview(c fiber.Ctx) error {
 		}
 	}
 	return httpx.OK(c, BuildCycleOverview(sn.Histories, sn.EngineProfile(), dates, today).JSON().Set("plus_trial_offer", banner))
+}
+
+// BuildCycleOverviewV6 is the overview from the v6 engine (T-M9-34, D-122): the predicted period and the PMS window
+// (next − PMSDays .. next − 1, §2.43) from today_ui.prediction_card, the effective cycle length and its source, the
+// valid-cycle count, the spread ceil(variability / 2) and the v6 regularity enum (regular | irregular |
+// insufficient_data). Without a prediction card (no anchor, pregnancy, suspended) both ranges are null.
+func BuildCycleOverviewV6(st *engine.State, logDates []civildate.Date, today civildate.Date) *jsonx.OrderedMap {
+	status := st.Resolve(engine.DayOf(today), engine.DayOf(today))
+	ui := st.TodayUI(status)
+	var next, pms any
+	if card, ok := ui.PredictionCard.Get(); ok {
+		next = jsonx.Obj("start", card.Period.Start.String(), "end", card.Period.End.String())
+		pms = jsonx.Obj("start", card.PMS.Start.String(), "end", card.PMS.End.String())
+	}
+	var spread, basedOn any
+	if v, ok := status.Metrics.CycleVariability.Get(); ok && status.Metrics.CycleRegularity != engine.RegularityInsufficientData {
+		spread = (v + 1) / 2
+	}
+	if n := st.ValidCycleCount(); n > 0 {
+		basedOn = n
+	}
+	_, src := st.CycleLength()
+	streak, loggedToday := loggingStreak(logDates, today)
+	return jsonx.Obj(
+		"date", today.String(),
+		"logging", jsonx.Obj("streak_days", streak, "logged_today", loggedToday),
+		"next_period", next,
+		"pms_window", pms,
+		"cycle_length", jsonx.Obj(
+			"median", status.Metrics.EffectiveCycleLength,
+			"source", string(lengthSource(src)),
+			"based_on_cycles", basedOn,
+			"spread_days", spread,
+			"regularity", status.Metrics.CycleRegularity.String(),
+		),
+	)
+}
+
+// cycleOverviewV6 answers /home/cycle-overview from the engine state: the Plus banner first (it has its own state),
+// then the ETag (engine revision — every daily log bumps it — local day, locale, params, the banner's hash, build) and
+// a 304 on If-None-Match; otherwise one query for the 90-day log dates.
+func (h *Handlers) cycleOverviewV6(c fiber.Ctx, uid uint64) error {
+	today := h.localToday(c)
+	st, err := h.engineState(c, uid, today)
+	if err != nil {
+		return err
+	}
+	var banner any
+	if h.deps.Plus != nil && st.Mode() != engine.ModeTeen { // CB-TEEN-01: no Plus upsell for a teen-mode account
+		if banner, err = h.deps.Plus.TrialBannerJSON(c.Context(), uid, h.now(c), i18n.Locale(c), i18n.LanguagesOf(c).DefaultCode()); err != nil {
+			return err
+		}
+	}
+	bannerJSON, err := jsonx.Marshal(banner, jsonx.UnescapedSlashes|jsonx.UnescapedUnicode)
+	if err != nil {
+		return fmt.Errorf("home: encode plus banner: %w", err)
+	}
+	var rev uint64
+	if r, ok := auth.CurrentRevisions(c); ok {
+		rev = r.Engine
+	}
+	locale := i18n.ResolveLocale(c, "")
+	tag := etag.Engine{
+		UserID: uid, Rev: rev, Today: today, Locale: locale, ParamsFP: engineparams.Fingerprint(today),
+		ConfigFP: fmt.Sprintf("ov%08x", crc32.ChecksumIEEE(bannerJSON)), Build: etag.Build(),
+	}.Tag()
+	if etag.NotModified(c, tag) {
+		return nil
+	}
+	rows, err := h.logs.ListDailyLogsBetween(c.Context(), cyclestore.ListDailyLogsBetweenParams{
+		UserID: uid, FromDate: today.AddDays(-streakWindowDays), ToDate: today,
+	})
+	if err != nil {
+		return fmt.Errorf("home: daily logs: %w", err)
+	}
+	dates := make([]civildate.Date, len(rows))
+	for i, r := range rows {
+		dates[i] = r.LogDate
+	}
+	return httpx.OK(c, BuildCycleOverviewV6(st, dates, today).Set("plus_trial_offer", banner))
 }

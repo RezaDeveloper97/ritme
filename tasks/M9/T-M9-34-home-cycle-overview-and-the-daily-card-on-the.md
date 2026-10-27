@@ -3,7 +3,7 @@ id: T-M9-34
 title: /home, cycle-overview and the daily card on the v6 engine
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-32, T-M9-13]
 parallel_group: M9-C
 touches: [backend-go/internal/home, backend-go/contract/golden-v6/home, backend-go/contract/allowlist/home.yaml, backend-go/api/openapi.yaml]

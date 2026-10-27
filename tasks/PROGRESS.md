@@ -2220,3 +2220,49 @@ Nothing needed fixing.
   (fertility's `saveHealthLog` not wired — T-M9-35); nudges under v6 lose the 28-day fallback for users with no anchor;
   shop stored-row shortcut keys on `engine_rev` only; `currentCycleStart` (search) and `EngineCycleWindow` (nudges) are
   near-duplicates.
+
+## T-M9-34 — /home, cycle-overview and the daily card on the v6 engine
+- Shipped (D-122, I-08): under `CYCLE_ENGINE=shadow|v6`, `/home` and `/home/cycle-overview` read the shared engine
+  state (`engineStates`; engine_rev from auth → no query on an L1 hit) on `LocalToday`; v1 unchanged (contract home 76/0).
+  - week_calendar from `State.Range` (+ main_phase, fertility_level, period_kind, is_predicted, days_late); next_period
+    with days_to_period/days_late (late title); cycle_prediction from `today_ui.prediction_card` (null under
+    suppression; + pms_window, cycle_regularity); challenges use the v6 cycle day (no challenge past the last
+    day-targeted `cycle_day_to` — admin validator should warn); `HasCycleData` = engine anchor.
+  - cycle_summary health check on clinical flags / v6 regularity; digest from actual periods with §2.8 bounds (v1
+    21–35 / 2–8 constants stay for v1 until T-M9-51). smart_tip falls back to `DailyCardV6`'s subtitle.
+  - cycle-overview: ETag (engine rev, local day, locale, params FP, Plus banner crc, build) / 304.
+- Goldens: `contract/golden-v6/home` (9 personas × index fa + cycle_overview en), rewritten by
+  `UPDATE_GOLDEN_V6=1 make test-int PKG=./internal/home/...`.
+- Budgets: home v6 cold 22 / warm 9 (v1 20/11), cycle-overview v6 11/5. **Acceptance "warm /home ≤ 8" not met (9)** →
+  follow-up T-M9-34b (merged challenge-completion + reminder queries).
+- Copy (main-session review): late title «پریودت N روز دیر کرده», subtitle «تاریخ پیش‌بینی‌شده DATE بود»,
+  regularity hint uses «چرخه» (glossary), flag labels «کوتاه‌تر/طولانی‌تر از محدودهٔ معمول».
+- Outside touches: `internal/http/routes_home.go` (`.WithEngine`), `internal/querybudget/budgets.go` (2 rows).
+- Open: overdue beyond max_late still shows the past prediction card (product call); fixture persona
+  `onboarding_declared` has no v6 anchor (dump predates goose 00103?).
+- Local env note: the macOS SDK 27 linker breaks cgo (`tapi ... unknown architecture`); run Go tests/contract with
+  `CGO_ENABLED=0` until Command Line Tools are fixed.
+
+## T-M9-42 — Today screen on today_ui: ring actions, one banner, lateness tiers, disclaimer
+- Shipped: `screens/home/model/today-ui.ts` (`todayHero`, `latenessTier` 1–7 calm / 8–14 overdue / 15+ ask,
+  `bannerActions`), `ui/TodayBanner.tsx` (one banner: end_missing | overdue | ask_last_period), fixed disclaimer
+  «پیش‌بینی روش پیشگیری نیست» on PredictionsCard; no client roll-forward while `days_late > 0`; `unknown` phase shows the
+  neutral ring. Laravel payload keeps the old path (tested).
+- Copy reviewed in the main session; added `nb.banner.overdue.textNoTest` / `textLongNoTest` so the overdue banner
+  never mentions pregnancy when the test button is hidden (teen, menopause, suppression). `ring.noData` shortened to
+  «پریود ثبت نشده» (ring label ≤ 14 chars, pinned by `ring-copy.test.ts`).
+- Open → T-M9-42b: pregnancy-test deep link into the log sheet's measurement panel, banner CSS, legacy schedule
+  helpers, light/dark screenshots.
+
+## T-M9-45 — Calendar on v6: future cycles, lateness, assumed ranges
+- Shipped: month schema parses the v6 per-day fields, `future_cycles` and `limits` (Laravel month parses as before;
+  unplaced null-`cycle_day` days go to a new `days: CycleMonthDay[]` list); painting from the server
+  (`entities/cycle/model/monthPaint.ts`): logged solid, assumed + predicted soft, late day outlined, fertile/ovulation/PMS
+  from per-day fields, `future_cycles` day map (k ≤ 6) as fallback; suppression hides fertility + ovulation dot.
+- Deleted (no importers): `phase.ts`, `highlights.ts`, `fertilityStyle.ts`, `ui/DailyStatusCard.tsx`,
+  `markerIntensityByDate`, `cycleProgressPercent`, `fertileWindowDays`, `calcToPhase` (+ tests).
+- Touches extended with `entities/cycle/api/schema.ts` and `entities/cycle/index.ts` (the parser dropped every v6 field).
+- New copy: `calendar.nb.legend.late` «دیرکرد پریود» / "Late period". i18n goldens
+  (`internal/i18n/testdata/messages_*.json`) re-recorded with `-update` for the home + calendar copy.
+- Open: `cycleScheduleFor` / legacy `cycleDayMarkerAt` stay while home imports them (T-M9-42b); late style inline
+  until globals.css (T-M9-42b); assumed days look the same as predicted (product question); screenshots (T-M9-42b).

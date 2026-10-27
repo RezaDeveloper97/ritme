@@ -6,6 +6,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/companion"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
+	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/home"
 	homestore "github.com/ritme/backend-go/internal/home/store"
 	"github.com/ritme/backend-go/internal/i18n"
@@ -30,7 +31,7 @@ func init() {
 			Logger:    d.Logger,
 			Plus:      plus.NewService(d.DB, d.Config.Plus, nil, d.Logger), // trial banner only: no gateway needed
 			Accounts:  companion.NewAccounts(d.DB),                         // B-N4-03: 409 companion_account for a male account
-		}, cycleservice.New(d.DB, nil), clock.Real{})
+		}, cycleservice.New(d.DB, nil), clock.Real{}).WithEngine(engineStates(r, d), cyclestore.New(d.DB)) // T-M9-34: v6 under shadow|v6
 
 		g := r.Group("/api/v1/home")
 		g.Get("", locale, guard, h.Index)

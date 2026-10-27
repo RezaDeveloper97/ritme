@@ -16,7 +16,11 @@ import (
 
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/companion"
+	"github.com/ritme/backend-go/internal/cycle/engine"
+	"github.com/ritme/backend-go/internal/cycle/engineparams"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
+	"github.com/ritme/backend-go/internal/cycle/state"
+	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/home/store"
 	"github.com/ritme/backend-go/internal/i18n"
@@ -44,6 +48,14 @@ type Handlers struct {
 	cycle *cycleservice.Service
 	page  *Page
 	clock clock.Clock
+	// states is the engine v6 state source (CYCLE_ENGINE=shadow|v6, T-M9-34); nil = the legacy engine (v1).
+	states state.UserStates
+	logs   LogReader
+}
+
+// LogReader reads the daily logs of a range (*cyclestore.Queries): the 90-day streak of the v6 cycle overview.
+type LogReader interface {
+	ListDailyLogsBetween(ctx context.Context, arg cyclestore.ListDailyLogsBetweenParams) ([]cyclestore.DailyHealthLog, error)
 }
 
 // NewHandlers wires the handlers; cycle loads the engine inputs (no engine cache: HomeContext
@@ -53,6 +65,40 @@ func NewHandlers(d Deps, cycle *cycleservice.Service, base clock.Clock) *Handler
 		d.Logger = slog.Default()
 	}
 	return &Handlers{deps: &d, cycle: cycle, page: NewPage(d.Logger), clock: base}
+}
+
+// WithEngine attaches the shared engine state source (engineStates, T-M9-36) and the daily-log reader of the v6
+// cycle overview; a nil states keeps v1.
+func (h *Handlers) WithEngine(states state.UserStates, logs LogReader) *Handlers {
+	h.states, h.logs = states, logs
+	return h
+}
+
+// engineState is uid's prepared v6 state at the parameters of the local day: the request's engine revision from the
+// auth query on the shared provider (no query on an L1 hit), else Source.ForUser (reads user_revisions).
+func (h *Handlers) engineState(c fiber.Ctx, uid uint64, today civildate.Date) (*engine.State, error) {
+	if src, ok := h.states.(state.Source); ok && src.P != nil {
+		if r, ok := auth.CurrentRevisions(c); ok {
+			st, err := src.P.For(c.Context(), uid, r.Engine, state.Params{Engine: engineparams.For(today), FP: engineparams.Fingerprint(today)})
+			if err != nil {
+				return nil, fmt.Errorf("home: engine state: %w", err)
+			}
+			return st, nil
+		}
+	}
+	st, err := h.states.ForUser(c.Context(), uid, today)
+	if err != nil {
+		return nil, fmt.Errorf("home: engine state: %w", err)
+	}
+	return st, nil
+}
+
+// localToday is the user-local day (D-126) under v6 and the Tehran day under v1 (unchanged).
+func (h *Handlers) localToday(c fiber.Ctx) civildate.Date {
+	if h.states == nil {
+		return civildate.InTehran(h.now(c))
+	}
+	return civildate.LocalToday(c, clock.FromContext(c, h.clock))
 }
 
 func (h *Handlers) now(c fiber.Ctx) time.Time { return clock.FromContext(c, h.clock).Now() }
@@ -79,7 +125,7 @@ func (h *Handlers) buildContext(c fiber.Ctx) (*Context, error) {
 	if err != nil {
 		return nil, err
 	}
-	today := civildate.InTehran(now)
+	today := h.localToday(c)
 	date := today
 	if raw, _ := query.Get("date"); phpval.Truthy(raw) {
 		t, err := civildate.ParseLenient(phpval.ToString(raw), now, civildate.Tehran)
@@ -88,11 +134,17 @@ func (h *Handlers) buildContext(c fiber.Ctx) (*Context, error) {
 		}
 		date = civildate.FromTime(t)
 	}
-	return h.newContext(c.Context(), user, date, today, i18n.ResolveLocale(c, ""), i18n.LanguagesOf(c).DefaultCode())
+	var st *engine.State
+	if h.states != nil {
+		if st, err = h.engineState(c, user.ID, today); err != nil {
+			return nil, err
+		}
+	}
+	return h.newContext(c.Context(), user, date, today, i18n.ResolveLocale(c, ""), i18n.LanguagesOf(c).DefaultCode(), st)
 }
 
-// newContext loads the per-request inputs of a Context.
-func (h *Handlers) newContext(ctx context.Context, user *auth.User, date, today civildate.Date, locale, def string) (*Context, error) {
+// newContext loads the per-request inputs of a Context; st is the v6 engine state (nil = v1).
+func (h *Handlers) newContext(ctx context.Context, user *auth.User, date, today civildate.Date, locale, def string, st *engine.State) (*Context, error) {
 	hc := newContext(ctx, h.deps)
 	hc.UserID, hc.UserName = user.ID, user.Name
 	hc.Date, hc.Today, hc.Locale, hc.DefaultLocale = date, today, locale, def
@@ -107,8 +159,14 @@ func (h *Handlers) newContext(ctx context.Context, user *auth.User, date, today 
 		hc.Mode = enums.MessageModePregnancy
 	}
 	from, to := LogWindow(date)
+	if st != nil {
+		from = date.AddDays(-messageLogDays) // v6: the message system's 90 days come from the same read (msgSource)
+	}
 	if hc.Snapshot, err = h.cycle.Load(ctx, user.ID, from, to, today); err != nil {
 		return nil, err
+	}
+	if st != nil {
+		hc.v6 = newEngineView(st, today)
 	}
 	return hc, nil
 }

@@ -32,6 +32,10 @@ import (
 // logWindowPastDays is HomeContext::LOG_WINDOW_PAST_DAYS.
 const logWindowPastDays = 29
 
+// messageLogDays is the message system's log history (MessageManager: date − 90 … date); under v6 the home loads it
+// with its own window so the smart tip reads no logs of its own (T-M9-34 query budget).
+const messageLogDays = 90
+
 // Deps are the data sources a Context reads.
 type Deps struct {
 	Queries store.Querier
@@ -75,6 +79,8 @@ type Context struct {
 	Snapshot *cycleservice.Snapshot
 
 	deps *Deps
+	// v6 is the engine v6 view (CYCLE_ENGINE=shadow|v6, T-M9-34); nil = the legacy engine (v1).
+	v6 *engineView
 
 	cycleByDate    map[civildate.Date]legacy.Calculation
 	calendarByDate map[civildate.Date]legacy.Calculation
@@ -148,8 +154,12 @@ func (hc *Context) Num(v any) string {
 // IsCycleMode is `$mode === MessageMode::CYCLE`.
 func (hc *Context) IsCycleMode() bool { return hc.Mode == enums.MessageModeCycle }
 
-// HasCycleData is `$profile && $profile->last_period_start`.
+// HasCycleData is `$profile && $profile->last_period_start` (v1); under v6 the engine has an anchor (a real period
+// or the declared onboarding start).
 func (hc *Context) HasCycleData() bool {
+	if hc.v6 != nil {
+		return hc.v6.hasAnchor()
+	}
 	p := hc.Profile()
 	return p != nil && p.LastPeriodStart.Valid
 }
@@ -161,6 +171,13 @@ func (hc *Context) engine() *legacy.Engine { return hc.Snapshot.Engine() }
 func (hc *Context) CycleDataFor(date civildate.Date) (legacy.Calculation, error) {
 	if c, ok := hc.cycleByDate[date]; ok {
 		return c, nil
+	}
+	if hc.v6 != nil {
+		c, err := hc.v6Calculation(date, true)
+		if err == nil {
+			hc.cycleByDate[date] = c
+		}
+		return c, err
 	}
 	c, err := hc.engine().CalculateForDate(hc.Ctx, date, true)
 	if err != nil {
@@ -177,6 +194,9 @@ func (hc *Context) CalendarDataFor(date civildate.Date) (legacy.Calculation, err
 	}
 	if c, ok := hc.calendarByDate[date]; ok {
 		return c, nil
+	}
+	if hc.v6 != nil {
+		return hc.v6Calculation(date, false)
 	}
 	c, err := hc.engine().CalculateForDate(hc.Ctx, date, false)
 	if err != nil {
@@ -216,8 +236,18 @@ func (hc *Context) Subphase() (string, error) {
 	return string(c.CurrentSubphase), nil
 }
 
-// CycleDay is cycleDay() (nil = unknown).
+// CycleDay is cycleDay() (nil = unknown); under v6 the status's cycle day (it never wraps).
 func (hc *Context) CycleDay() (*int, error) {
+	if hc.v6 != nil {
+		if !hc.HasCycleData() {
+			return nil, nil
+		}
+		d, ok := hc.v6.status(hc.Date).CycleDay.Get()
+		if !ok {
+			return nil, nil
+		}
+		return &d, nil
+	}
 	c, err := hc.CycleData()
 	if err != nil || c == nil || !c.Complete {
 		return nil, err
@@ -228,6 +258,13 @@ func (hc *Context) CycleDay() (*int, error) {
 
 // CurrentCycleStart is currentCycleStart(): date − (cycle_day − 1), ok=false when unknown.
 func (hc *Context) CurrentCycleStart() (civildate.Date, bool, error) {
+	if hc.v6 != nil {
+		s := hc.v6.status(hc.Date)
+		if start := s.Anchors.CurrentPeriodStart; start.IsSet() && s.CycleDay.OK() && hc.HasCycleData() {
+			return start.Civil(), true, nil
+		}
+		return civildate.Date{}, false, nil
+	}
 	day, err := hc.CycleDay()
 	if err != nil || day == nil {
 		return civildate.Date{}, false, err
@@ -275,7 +312,7 @@ func (hc *Context) HistoryDigest() *Digest {
 	return hc.digest
 }
 
-// Metrics is cycleMetrics(): the engine's three-layer metrics (same history and profile).
+// Metrics is cycleMetrics(): the legacy engine's three-layer metrics (same history and profile; v1 only).
 func (hc *Context) Metrics() metrics.Metrics { return hc.engine().Metrics() }
 
 // Messages is messages(): the smart-message result, nil when it cannot be produced (failures
@@ -376,6 +413,35 @@ func (s *msgSource) DailyLog(ctx context.Context, date civildate.Date) (*manager
 		}
 	}
 	return nil, nil
+}
+
+// LifeMode implements manager.LifeModeSource: under v6 the stored life-stage mode the snapshot's profile query
+// already joined (no second read); v1 (and a user without a profile) keeps the message system's own query.
+func (s *msgSource) LifeMode(ctx context.Context) (string, error) {
+	if s.hc.v6 != nil && s.hc.Profile() != nil {
+		return string(s.hc.Snapshot.LifeMode), nil
+	}
+	return s.StoreSource.LifeMode(ctx)
+}
+
+// RecentLogs implements manager.Source: under v6 the snapshot's rows of from..to, newest first, when the snapshot
+// covers the range (ListMessageRecentLogs' order); otherwise the message system's own query.
+func (s *msgSource) RecentLogs(ctx context.Context, from, to civildate.Date) ([]manager.Log, error) {
+	sn := s.hc.Snapshot
+	if s.hc.v6 == nil || from.Before(sn.From) || to.After(sn.To) {
+		return s.StoreSource.RecentLogs(ctx, from, to)
+	}
+	out := []manager.Log{}
+	for i := len(sn.LogRows) - 1; i >= 0; i-- {
+		r := sn.LogRows[i]
+		if !r.LogDate.Before(from) && !r.LogDate.After(to) {
+			out = append(out, manager.NewLog(map[string]any{
+				"energy_level":  nullStr(r.EnergyLevel),
+				"sleep_quality": nullStr(r.SleepQuality),
+			}))
+		}
+	}
+	return out, nil
 }
 
 // Cycle implements manager.Source: the home context's memoised calculation.

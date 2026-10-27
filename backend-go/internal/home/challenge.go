@@ -43,6 +43,23 @@ func appliesToCycleDay(c challengeRow, day *int) bool {
 		(!c.CycleDayTo.Valid || *day <= int(c.CycleDayTo.Int16))
 }
 
+// beyondChallengeContent reports whether day lies after the last cycle day any day-targeted challenge covers (false
+// without day-targeted challenges or when one is open-ended).
+func beyondChallengeContent(pool []challengeRow, day int) bool {
+	last, targeted := 0, false
+	for _, c := range pool {
+		if !isDayTargeted(c) {
+			continue
+		}
+		if !c.CycleDayTo.Valid {
+			return false
+		}
+		targeted = true
+		last = max(last, int(c.CycleDayTo.Int16))
+	}
+	return targeted && day > last
+}
+
 // challengeSeed is crc32($user->id.':'.$date->toDateString()).
 func challengeSeed(userID uint64, date civildate.Date) uint32 {
 	return crc32.ChecksumIEEE([]byte(strconv.FormatUint(userID, 10) + ":" + date.String()))
@@ -50,9 +67,9 @@ func challengeSeed(userID uint64, date civildate.Date) uint32 {
 
 // ChallengePayload is DailyChallengeService::payload(): nil when no challenge is available.
 func ChallengePayload(ctx context.Context, q store.Querier, userID uint64, date civildate.Date, locale, defLocale string,
-	cycleDay *int, recentLogs []cyclestore.DailyHealthLog,
+	cycleDay *int, recentLogs []cyclestore.DailyHealthLog, strictDay bool,
 ) (*jsonx.OrderedMap, error) {
-	c, ok, err := challengeFor(ctx, q, userID, date, cycleDay, recentLogs)
+	c, ok, err := challengeFor(ctx, q, userID, date, cycleDay, recentLogs, strictDay)
 	if err != nil || !ok {
 		return nil, err
 	}
@@ -73,13 +90,18 @@ func ChallengePayload(ctx context.Context, q store.Querier, userID uint64, date 
 }
 
 func challengeFor(ctx context.Context, q store.Querier, userID uint64, date civildate.Date, cycleDay *int,
-	recentLogs []cyclestore.DailyHealthLog,
+	recentLogs []cyclestore.DailyHealthLog, strictDay bool,
 ) (challengeRow, bool, error) {
 	pool, err := activeChallenges(ctx, q)
 	if err != nil {
 		return challengeRow{}, false, err
 	}
 	if len(pool) == 0 {
+		return challengeRow{}, false, nil
+	}
+	// v6 (T-M9-34): the cycle day never wraps, so a late cycle can run past the authored content. A day beyond every
+	// day-targeted challenge gets no daily challenge (the admin validator should warn about uncovered days).
+	if strictDay && cycleDay != nil && beyondChallengeContent(pool, *cycleDay) {
 		return challengeRow{}, false, nil
 	}
 

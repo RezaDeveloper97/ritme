@@ -1,0 +1,701 @@
+{
+  "success": true,
+  "data": {
+    "mode": "cycle",
+    "mode_label": "\u0633\u06cc\u06a9\u0644 \u0642\u0627\u0639\u062f\u06af\u06cc",
+    "date": "2026-09-23",
+    "locale": "fa",
+    "profile_complete": true,
+    "sections": [
+      {
+        "key": "header",
+        "type": "header",
+        "title": null,
+        "subtitle": null,
+        "order": 10,
+        "action": null,
+        "data": {
+          "app_name": "\u0631\u06cc\u062a\u0645\u06cc",
+          "tagline": "\u0647\u0645\u0631\u0627\u0647 \u0633\u0644\u0627\u0645\u062a\u06cc \u0634\u0645\u0627",
+          "greeting": "\u0633\u0644\u0627\u0645 Contract open period day3",
+          "user": {
+            "id": 1007,
+            "name": "Contract open period day3"
+          },
+          "mode": "cycle",
+          "mode_label": "\u0633\u06cc\u06a9\u0644 \u0642\u0627\u0639\u062f\u06af\u06cc",
+          "is_premium": false,
+          "date": "2026-09-23",
+          "weekday_iso": 3,
+          "moon_phase": {
+            "key": "waxing_gibbous",
+            "label": "\u0645\u062d\u062f\u0628 \u0627\u0641\u0632\u0627\u06cc\u0646\u062f\u0647",
+            "illumination": 0.85,
+            "age_days": 11
+          },
+          "notifications": {
+            "unread_count": 0,
+            "has_unread": false
+          }
+        },
+        "meta": null
+      },
+      {
+        "key": "week_calendar",
+        "type": "week_calendar",
+        "title": null,
+        "subtitle": null,
+        "order": 20,
+        "action": null,
+        "data": {
+          "week_start": "2026-09-19",
+          "days": [
+            {
+              "date": "2026-09-19",
+              "weekday_iso": 6,
+              "is_today": false,
+              "cycle_day": 27,
+              "phase": "luteal",
+              "phase_label": "\u0644\u0648\u062a\u0626\u0627\u0644",
+              "color": "#9C8BD6",
+              "is_period": false,
+              "is_fertile": false,
+              "is_ovulation": false,
+              "main_phase": "luteal",
+              "fertility_level": "low",
+              "period_kind": null,
+              "is_predicted": true,
+              "days_late": 0
+            },
+            {
+              "date": "2026-09-20",
+              "weekday_iso": 7,
+              "is_today": false,
+              "cycle_day": 28,
+              "phase": "luteal",
+              "phase_label": "\u0644\u0648\u062a\u0626\u0627\u0644",
+              "color": "#9C8BD6",
+              "is_period": false,
+              "is_fertile": false,
+              "is_ovulation": false,
+              "main_phase": "luteal",
+              "fertility_level": "low",
+              "period_kind": null,
+              "is_predicted": true,
+              "days_late": 0
+            },
+            {
+              "date": "2026-09-21",
+              "weekday_iso": 1,
+              "is_today": false,
+              "cycle_day": 1,
+              "phase": "menstruation",
+              "phase_label": "\u0642\u0627\u0639\u062f\u06af\u06cc",
+              "color": "#F2567C",
+              "is_period": true,
+              "is_fertile": false,
+              "is_ovulation": false,
+              "main_phase": "menstrual",
+              "fertility_level": "low",
+              "period_kind": "logged",
+              "is_predicted": true,
+              "days_late": 0
+            },
+            {
+              "date": "2026-09-22",
+              "weekday_iso": 2,
+              "is_today": false,
+              "cycle_day": 2,
+              "phase": "menstruation",
+              "phase_label": "\u0642\u0627\u0639\u062f\u06af\u06cc",
+              "color": "#F2567C",
+              "is_period": true,
+              "is_fertile": false,
+              "is_ovulation": false,
+              "main_phase": "menstrual",
+              "fertility_level": "low",
+              "period_kind": "assumed",
+              "is_predicted": true,
+              "days_late": 0
+            },
+            {
+              "date": "2026-09-23",
+              "weekday_iso": 3,
+              "is_today": true,
+              "cycle_day": 3,
+              "phase": "menstruation",
+              "phase_label": "\u0642\u0627\u0639\u062f\u06af\u06cc",
+              "color": "#F2567C",
+              "is_period": true,
+              "is_fertile": false,
+              "is_ovulation": false,
+              "main_phase": "menstrual",
+              "fertility_level": "low",
+              "period_kind": "assumed",
+              "is_predicted": true,
+              "days_late": 0
+            },
+            {
+              "date": "2026-09-24",
+              "weekday_iso": 4,
+              "is_today": false,
+              "cycle_day": 4,
+              "phase": "menstruation",
+              "phase_label": "\u0642\u0627\u0639\u062f\u06af\u06cc",
+              "color": "#F2567C",
+              "is_period": true,
+              "is_fertile": false,
+              "is_ovulation": false,
+              "main_phase": "menstrual",
+              "fertility_level": "low",
+              "period_kind": "assumed",
+              "is_predicted": true,
+              "days_late": 0
+            },
+            {
+              "date": "2026-09-25",
+              "weekday_iso": 5,
+              "is_today": false,
+              "cycle_day": 5,
+              "phase": "menstruation",
+              "phase_label": "\u0642\u0627\u0639\u062f\u06af\u06cc",
+              "color": "#F2567C",
+              "is_period": true,
+              "is_fertile": false,
+              "is_ovulation": false,
+              "main_phase": "menstrual",
+              "fertility_level": "low",
+              "period_kind": "assumed",
+              "is_predicted": true,
+              "days_late": 0
+            }
+          ]
+        },
+        "meta": null
+      },
+      {
+        "key": "next_period",
+        "type": "next_period",
+        "title": "26 \u0631\u0648\u0632 \u062a\u0627 \u067e\u0631\u06cc\u0648\u062f \u0628\u0639\u062f\u06cc",
+        "subtitle": "\u067e\u0631\u06cc\u0648\u062f \u0628\u0639\u062f\u06cc \u0634\u0645\u0627 \u062d\u062f\u0648\u062f\u0627\u064b 2026-10-19",
+        "order": 30,
+        "action": {
+          "key": "log_period_start",
+          "label": "\u0634\u0631\u0648\u0639 \u067e\u0631\u06cc\u0648\u062f"
+        },
+        "data": {
+          "days_until_period": 26,
+          "next_period_date": "2026-10-19",
+          "cycle_day": 3,
+          "cycle_length": 28,
+          "progress_percent": 11,
+          "is_in_period": true,
+          "is_period_tomorrow": false,
+          "is_fertile_window": false,
+          "uncertainty_range": null,
+          "pregnancy_probability": {
+            "percent": null,
+            "level": "low",
+            "label": "\u067e\u0627\u06cc\u06cc\u0646"
+          },
+          "days_to_period": 26,
+          "days_late": 0,
+          "main_phase": "menstrual"
+        },
+        "meta": null
+      },
+      {
+        "key": "cycle_prediction",
+        "type": "cycle_prediction",
+        "title": null,
+        "subtitle": null,
+        "order": 40,
+        "action": null,
+        "data": {
+          "cards": [
+            {
+              "key": "fertile_window",
+              "label": "\u067e\u0646\u062c\u0631\u0647 \u0628\u0627\u0631\u0648\u0631\u06cc",
+              "start_date": "2026-09-30",
+              "end_date": "2026-10-05",
+              "days_until": 7,
+              "is_active": false
+            },
+            {
+              "key": "ovulation",
+              "label": "\u062a\u062e\u0645\u06a9\u200c\u06af\u0630\u0627\u0631\u06cc",
+              "date": "2026-10-05",
+              "days_until": 12,
+              "source": "calendar"
+            },
+            {
+              "key": "next_period",
+              "label": "\u067e\u0631\u06cc\u0648\u062f \u0628\u0639\u062f\u06cc",
+              "date": "2026-10-19",
+              "days_until": 26,
+              "end_date": "2026-10-23",
+              "days_late": 0
+            }
+          ],
+          "uncertainty_range": null,
+          "pms_window": {
+            "start": "2026-10-16",
+            "end": "2026-10-18"
+          },
+          "cycle_length": 28,
+          "cycle_regularity": "regular"
+        },
+        "meta": null
+      },
+      {
+        "key": "recommendations",
+        "type": "recommendations",
+        "title": "\u062a\u0648\u0635\u06cc\u0647\u200c\u0647\u0627\u06cc \u0627\u0645\u0631\u0648\u0632",
+        "subtitle": null,
+        "order": 50,
+        "action": null,
+        "data": {
+          "tags": [
+            {
+              "type": "hydration",
+              "icon": "water-glass"
+            },
+            {
+              "type": "warmth",
+              "icon": "heat"
+            },
+            {
+              "type": "rest",
+              "icon": "bed"
+            },
+            {
+              "type": "nutrition",
+              "icon": "apple"
+            }
+          ],
+          "items": [
+            {
+              "type": "hydration",
+              "icon": "water-glass",
+              "title": "\u0622\u0628\u200c\u0631\u0633\u0627\u0646\u06cc",
+              "text": "\u0622\u0628 \u06a9\u0627\u0641\u06cc \u0628\u0646\u0648\u0634\u06cc\u062f \u0648 \u0647\u06cc\u062f\u0631\u0627\u062a\u0647 \u0628\u0645\u0627\u0646\u06cc\u062f."
+            },
+            {
+              "type": "warmth",
+              "icon": "heat",
+              "title": "\u06af\u0631\u0645\u0627 \u062f\u0631\u0645\u0627\u0646\u06cc",
+              "text": "\u06a9\u0645\u067e\u0631\u0633 \u06af\u0631\u0645 \u0631\u0648\u06cc \u0634\u06a9\u0645 \u0642\u0631\u0627\u0631 \u062f\u0647\u06cc\u062f \u062a\u0627 \u062f\u0631\u062f\u0647\u0627 \u06a9\u0627\u0647\u0634 \u06cc\u0627\u0628\u062f."
+            },
+            {
+              "type": "rest",
+              "icon": "bed",
+              "title": "\u0627\u0633\u062a\u0631\u0627\u062d\u062a",
+              "text": "\u0627\u0633\u062a\u0631\u0627\u062d\u062a \u06a9\u0627\u0641\u06cc \u062f\u0627\u0634\u062a\u0647 \u0628\u0627\u0634\u06cc\u062f \u0648 \u0627\u0632 \u0641\u0639\u0627\u0644\u06cc\u062a\u200c\u0647\u0627\u06cc \u0633\u0646\u06af\u06cc\u0646 \u0627\u062c\u062a\u0646\u0627\u0628 \u06a9\u0646\u06cc\u062f."
+            },
+            {
+              "type": "nutrition",
+              "icon": "apple",
+              "title": "\u062a\u063a\u0630\u06cc\u0647",
+              "text": "\u063a\u0630\u0627\u0647\u0627\u06cc \u063a\u0646\u06cc \u0627\u0632 \u0622\u0647\u0646 \u0645\u062b\u0644 \u0627\u0633\u0641\u0646\u0627\u062c \u0648 \u06af\u0648\u0634\u062a \u0642\u0631\u0645\u0632 \u0628\u062e\u0648\u0631\u06cc\u062f."
+            }
+          ]
+        },
+        "meta": null
+      },
+      {
+        "key": "tasks",
+        "type": "tasks",
+        "title": "\u0648\u0638\u0627\u06cc\u0641 \u0627\u0645\u0631\u0648\u0632",
+        "subtitle": "0\/3",
+        "order": 60,
+        "action": null,
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "key": "task-1",
+              "title": "t",
+              "description": null,
+              "category": "self_care",
+              "category_label": null,
+              "icon": "clipboard-check",
+              "is_completed": false
+            },
+            {
+              "id": 2,
+              "key": "task-2",
+              "title": "t",
+              "description": null,
+              "category": "self_care",
+              "category_label": null,
+              "icon": "clipboard-check",
+              "is_completed": false
+            },
+            {
+              "id": 3,
+              "key": "task-3",
+              "title": "t",
+              "description": null,
+              "category": "self_care",
+              "category_label": null,
+              "icon": "clipboard-check",
+              "is_completed": false
+            }
+          ],
+          "progress": {
+            "completed": 0,
+            "total": 3,
+            "percent": 0
+          }
+        },
+        "meta": null
+      },
+      {
+        "key": "challenge",
+        "type": "challenge",
+        "title": "\u0686\u0627\u0644\u0634 \u0627\u0645\u0631\u0648\u0632",
+        "subtitle": null,
+        "order": 70,
+        "action": null,
+        "data": {
+          "id": 2,
+          "title": "c",
+          "description": null,
+          "category": null,
+          "cycle_day": 3,
+          "cycle_day_from": null,
+          "cycle_day_to": null,
+          "is_completed": false
+        },
+        "meta": null
+      },
+      {
+        "key": "smart_tip",
+        "type": "smart_tip",
+        "title": "\u0646\u06a9\u062a\u0647 \u0647\u0648\u0634\u0645\u0646\u062f",
+        "subtitle": null,
+        "order": 100,
+        "action": null,
+        "data": {
+          "text": "\u062f\u0631 \u062f\u0648\u0631\u0627\u0646 \u0642\u0627\u0639\u062f\u06af\u06cc\u060c \u0628\u062f\u0646\u062a \u0646\u06cc\u0627\u0632 \u0628\u0647 \u0627\u0633\u062a\u0631\u0627\u062d\u062a \u0648 \u062a\u0648\u062c\u0647 \u0628\u06cc\u0634\u062a\u0631\u06cc \u062f\u0627\u0631\u0647. \u0628\u0647 \u062e\u0648\u062f\u062a \u0627\u062c\u0627\u0632\u0647 \u0628\u062f\u0647 \u06a9\u0645\u06cc \u0622\u0631\u0648\u0645\u200c\u062a\u0631 \u0628\u0627\u0634\u06cc \u0648 \u0627\u0632 \u0641\u0639\u0627\u0644\u06cc\u062a\u200c\u0647\u0627\u06cc \u0633\u0646\u06af\u06cc\u0646 \u0627\u062c\u062a\u0646\u0627\u0628 \u06a9\u0646\u06cc.",
+          "source": "message_engine"
+        },
+        "meta": null
+      },
+      {
+        "key": "affirmation",
+        "type": "affirmation",
+        "title": null,
+        "subtitle": null,
+        "order": 110,
+        "action": null,
+        "data": {
+          "id": 3,
+          "text": "aff-3",
+          "icon": "sparkle"
+        },
+        "meta": null
+      },
+      {
+        "key": "weekly_summary",
+        "type": "weekly_summary",
+        "title": "\u062e\u0644\u0627\u0635\u0647 \u0647\u0641\u062a\u0647",
+        "subtitle": null,
+        "order": 120,
+        "action": {
+          "key": "view_all",
+          "label": "\u0645\u0634\u0627\u0647\u062f\u0647 \u06a9\u0627\u0645\u0644"
+        },
+        "data": {
+          "items": [
+            {
+              "key": "mood",
+              "label": "\u0631\u0648\u062d\u06cc\u0647",
+              "icon": "smile",
+              "percent": null,
+              "previous_percent": null,
+              "delta": null
+            },
+            {
+              "key": "sleep",
+              "label": "\u062e\u0648\u0627\u0628",
+              "icon": "moon",
+              "percent": null,
+              "previous_percent": null,
+              "delta": null
+            },
+            {
+              "key": "energy",
+              "label": "\u0627\u0646\u0631\u0698\u06cc",
+              "icon": "bolt",
+              "percent": null,
+              "previous_percent": null,
+              "delta": null
+            }
+          ],
+          "range": {
+            "from": "2026-09-17",
+            "to": "2026-09-23"
+          },
+          "logged_days": 0,
+          "previous_logged_days": 0,
+          "overall_percent": null
+        },
+        "meta": null
+      },
+      {
+        "key": "vitals",
+        "type": "vitals",
+        "title": "\u0648\u0636\u0639\u06cc\u062a \u0627\u0645\u0631\u0648\u0632",
+        "subtitle": null,
+        "order": 130,
+        "action": {
+          "key": "view_all",
+          "label": "\u0645\u0634\u0627\u0647\u062f\u0647 \u06a9\u0627\u0645\u0644"
+        },
+        "data": {
+          "items": [
+            {
+              "key": "heart_rate",
+              "label": "\u0636\u0631\u0628\u0627\u0646 \u0642\u0644\u0628",
+              "value": null,
+              "unit": "bpm",
+              "icon": "heart-pulse"
+            },
+            {
+              "key": "blood_pressure",
+              "label": "\u0641\u0634\u0627\u0631 \u062e\u0648\u0646",
+              "value": null,
+              "unit": "mmHg",
+              "icon": "gauge"
+            },
+            {
+              "key": "blood_sugar",
+              "label": "\u0642\u0646\u062f \u062e\u0648\u0646",
+              "value": null,
+              "unit": "mg\/dl",
+              "icon": "droplet"
+            }
+          ],
+          "has_data": false,
+          "date": "2026-09-23"
+        },
+        "meta": null
+      },
+      {
+        "key": "articles",
+        "type": "articles",
+        "title": "\u0628\u0631 \u0627\u0633\u0627\u0633 \u0633\u06cc\u06a9\u0644 \u0641\u0639\u0644\u06cc \u0634\u0645\u0627",
+        "subtitle": null,
+        "order": 150,
+        "action": {
+          "key": "view_more",
+          "label": "\u0645\u0634\u0627\u0647\u062f\u0647 \u0628\u06cc\u0634\u062a\u0631"
+        },
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "slug": "art-1",
+              "title": "a",
+              "excerpt": null,
+              "read_time_minutes": null,
+              "image_url": null,
+              "category": null,
+              "cycle_phases": []
+            },
+            {
+              "id": 2,
+              "slug": "art-2",
+              "title": "a",
+              "excerpt": null,
+              "read_time_minutes": null,
+              "image_url": null,
+              "category": null,
+              "cycle_phases": []
+            },
+            {
+              "id": 3,
+              "slug": "art-3",
+              "title": "a",
+              "excerpt": null,
+              "read_time_minutes": null,
+              "image_url": null,
+              "category": null,
+              "cycle_phases": []
+            }
+          ]
+        },
+        "meta": null
+      },
+      {
+        "key": "my_cycles",
+        "type": "my_cycles",
+        "title": "\u0633\u06cc\u06a9\u0644\u200c\u0647\u0627\u06cc \u0645\u0646",
+        "subtitle": null,
+        "order": 160,
+        "action": {
+          "key": "add_previous",
+          "label": "\u062b\u0628\u062a \u0633\u06cc\u06a9\u0644\u200c\u0647\u0627\u06cc \u0642\u0628\u0644\u06cc"
+        },
+        "data": {
+          "current": {
+            "id": 100704,
+            "cycle_day": 3,
+            "started_at": "2026-09-21",
+            "period_end_date": null,
+            "period_length": null,
+            "is_ongoing": true,
+            "cycle_length": 28,
+            "cycle_length_source": "recent_valid_cycles"
+          },
+          "previous_count": 3,
+          "previous": [
+            {
+              "id": 100703,
+              "period_start_date": "2026-08-24",
+              "period_end_date": "2026-08-28",
+              "cycle_length": 28,
+              "period_length": 5,
+              "is_ongoing": false,
+              "is_current": false,
+              "is_confirmed": true,
+              "is_estimated": false,
+              "source": "user_logged"
+            },
+            {
+              "id": 100702,
+              "period_start_date": "2026-07-27",
+              "period_end_date": "2026-07-31",
+              "cycle_length": 28,
+              "period_length": 5,
+              "is_ongoing": false,
+              "is_current": false,
+              "is_confirmed": true,
+              "is_estimated": false,
+              "source": "user_logged"
+            },
+            {
+              "id": 100701,
+              "period_start_date": "2026-06-29",
+              "period_end_date": "2026-07-03",
+              "cycle_length": 28,
+              "period_length": 5,
+              "is_ongoing": false,
+              "is_current": false,
+              "is_confirmed": true,
+              "is_estimated": false,
+              "source": "user_logged"
+            }
+          ],
+          "averages": {
+            "cycle_length": 28,
+            "period_length": 5,
+            "based_on_cycles": 3
+          }
+        },
+        "meta": null
+      },
+      {
+        "key": "cycle_summary",
+        "type": "cycle_summary",
+        "title": "\u062e\u0644\u0627\u0635\u0647 \u0633\u06cc\u06a9\u0644",
+        "subtitle": null,
+        "order": 170,
+        "action": {
+          "key": "view_more",
+          "label": "\u0645\u0634\u0627\u0647\u062f\u0647 \u0628\u06cc\u0634\u062a\u0631"
+        },
+        "data": {
+          "items": [
+            {
+              "key": "last_cycle_length",
+              "label": "\u0637\u0648\u0644 \u0633\u06cc\u06a9\u0644 \u0642\u0628\u0644\u06cc",
+              "value": 28,
+              "value_min": null,
+              "value_max": null,
+              "text": null,
+              "unit": "days",
+              "unit_label": "\u0631\u0648\u0632",
+              "status": "normal",
+              "status_label": "\u062f\u0631 \u0645\u062d\u062f\u0648\u062f\u0647\u0654 \u0645\u0639\u0645\u0648\u0644",
+              "hint": null,
+              "normal_range": null,
+              "flag": "normal"
+            },
+            {
+              "key": "last_period_duration",
+              "label": "\u0645\u062f\u062a \u067e\u0631\u06cc\u0648\u062f \u0642\u0628\u0644\u06cc",
+              "value": 5,
+              "value_min": null,
+              "value_max": null,
+              "text": null,
+              "unit": "days",
+              "unit_label": "\u0631\u0648\u0632",
+              "status": "normal",
+              "status_label": "\u062f\u0631 \u0645\u062d\u062f\u0648\u062f\u0647\u0654 \u0645\u0639\u0645\u0648\u0644",
+              "hint": null,
+              "normal_range": null,
+              "flag": "normal"
+            },
+            {
+              "key": "cycle_variability",
+              "label": "\u0646\u0648\u0633\u0627\u0646 \u0637\u0648\u0644 \u0633\u06cc\u06a9\u0644",
+              "value": 0,
+              "value_min": null,
+              "value_max": null,
+              "text": "\u0645\u0646\u0638\u0645",
+              "unit": "days",
+              "unit_label": "\u0631\u0648\u0632",
+              "status": "normal",
+              "status_label": "\u0645\u0646\u0638\u0645",
+              "hint": "\u0627\u062e\u062a\u0644\u0627\u0641 \u06a9\u0648\u062a\u0627\u0647\u200c\u062a\u0631\u06cc\u0646 \u0648 \u0628\u0644\u0646\u062f\u062a\u0631\u06cc\u0646 \u0633\u06cc\u06a9\u0644 \u0627\u062e\u06cc\u0631: \u06f0 \u0631\u0648\u0632",
+              "normal_range": null,
+              "flag": "regular"
+            },
+            {
+              "key": "average_cycle_length",
+              "label": "\u0645\u06cc\u0627\u0646\u06af\u06cc\u0646 \u0637\u0648\u0644 \u0633\u06cc\u06a9\u0644",
+              "value": 28,
+              "value_min": null,
+              "value_max": null,
+              "text": null,
+              "unit": "days",
+              "unit_label": "\u0631\u0648\u0632",
+              "status": "normal",
+              "status_label": "\u062f\u0631 \u0645\u062d\u062f\u0648\u062f\u0647\u0654 \u0645\u0639\u0645\u0648\u0644",
+              "hint": "\u0628\u0631 \u067e\u0627\u06cc\u0647 \u06f3 \u0633\u06cc\u06a9\u0644 \u062b\u0628\u062a\u200c\u0634\u062f\u0647",
+              "normal_range": null,
+              "flag": "normal"
+            },
+            {
+              "key": "cycle_length_range",
+              "label": "\u06a9\u0648\u062a\u0627\u0647\u200c\u062a\u0631\u06cc\u0646 \u062a\u0627 \u0628\u0644\u0646\u062f\u062a\u0631\u06cc\u0646 \u0633\u06cc\u06a9\u0644",
+              "value": null,
+              "value_min": 28,
+              "value_max": 28,
+              "text": null,
+              "unit": "days",
+              "unit_label": "\u0631\u0648\u0632",
+              "status": "normal",
+              "status_label": "\u0645\u0646\u0638\u0645",
+              "hint": null,
+              "normal_range": null,
+              "flag": "regular"
+            }
+          ],
+          "based_on_cycles": 3,
+          "has_history": true,
+          "normal_ranges": null,
+          "clinical_flags": {
+            "frequency": "normal",
+            "duration": "normal",
+            "absent": false
+          },
+          "cycle_regularity": "regular"
+        },
+        "meta": null
+      }
+    ]
+  }
+}

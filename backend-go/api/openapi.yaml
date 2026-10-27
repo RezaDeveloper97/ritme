@@ -9294,7 +9294,32 @@ paths:
     get:
       tags: [Home]
       summary: Get the full home page
-      description: "Aggregates every home-page section into a single, ordered, server-driven feed. Each item is a self-describing section ({key, type, title, order, data}); the frontend renders by `type` and iterates by `order`. Sections with nothing to show are omitted."
+      description: |
+        Aggregates every home-page section into a single, ordered, server-driven feed. Each item is a self-describing section ({key, type, title, order, data}); the frontend renders by `type` and iterates by `order`. Sections with nothing to show are omitted.
+
+        **CYCLE_ENGINE=shadow|v6 (T-M9-34, D-122, I-08):** the cycle facts come from the v6 engine (the same values
+        `/cycle/date` shows) and the day is the user-local day (D-126). `profile_complete` = the engine has an anchor
+        (a real period or the declared onboarding start).
+        - `week_calendar.days[]`: the cycle day never wraps (a late cycle keeps counting through today; from tomorrow the
+          rebased chain predicts, E-04); `phase` = the I-11 content phase; `is_period` = any menstrual day with a
+          `period_kind`; `is_fertile` / `is_ovulation` false under fertility suppression (hormonal contraception: no
+          fertile dots); new `main_phase`, `fertility_level`, `period_kind` (logged | assumed | predicted | null),
+          `is_predicted`, `days_late`.
+        - `next_period.data`: new `days_to_period`, `days_late`, `main_phase`; a late cycle has `days_until_period` 0 and
+          the title says how late it is; `uncertainty_range` null; `pregnancy_probability.percent` null and `level` /
+          `label` the v6 fertility level (unknown under suppression, on period_expected and in teen / menopause).
+        - `cycle_prediction.data`: from `today_ui.prediction_card` (no section without a card): fertile window
+          O − 5 … O (§2.19) and ovulation with `source` — both cards keep their keys with null dates under suppression;
+          the next-period card adds `end_date`, `days_late`; plus `pms_window` {start, end}, `cycle_length`,
+          `cycle_regularity`; `uncertainty_range` null.
+        - `cycle_summary.data`: the health check reads `clinical_flags` / `cycle_regularity` (FIGO, I-08): each item
+          gains `flag` (frequent | normal | infrequent | prolonged | regular | irregular | insufficient_data | null),
+          `status` is normal only for a FIGO normal / regular, `normal_range` and `normal_ranges` are null (21–45 is
+          never "normal", §2.40); new `clinical_flags` {frequency, duration, absent} and `cycle_regularity`.
+        - `my_cycles` / `cycle_summary` history: actual periods only (no estimated row, no onboarding seed), valid
+          lengths by the engine's bounds.
+        - `challenge.data.cycle_day`: the v6 cycle day; a day beyond every day-targeted challenge gets no challenge.
+        - `smart_tip`: without a message, the daily card's subtitle (`source` cycle_engine).
       operationId: getHome
       security:
         - {bearerAuth: []}
@@ -9443,6 +9468,13 @@ paths:
         regularity status. `logging.streak_days` = consecutive days with a daily health log ending today, or
         yesterday while today has none yet (capped at 90). `plus_trial_offer` is the Ritme Plus trial banner
         (`nbl_Prem_TrialHome`, B-N2-06): the running trial offer with its countdown, null when none runs.
+
+        **CYCLE_ENGINE=shadow|v6 (T-M9-34, D-122):** from the engine state on the user-local day: `next_period` /
+        `pms_window` = `today_ui.prediction_card` period and PMS (next − 3 … next − 1), null without a card;
+        `median` = effective cycle length, `based_on_cycles` = valid cycles, `spread_days` = ceil(variability / 2) (null
+        with insufficient data), `regularity` ∈ regular | irregular | insufficient_data (v6 FIGO enum). Sends a weak
+        `ETag` (engine revision — every daily log bumps it —, local day, locale, params, the Plus banner, build) with
+        `Cache-Control: private, no-cache`; a matching `If-None-Match` answers 304.
       operationId: getHomeCycleOverview
       security:
         - {bearerAuth: []}
@@ -9489,7 +9521,10 @@ paths:
                           source: {type: string, enum: [recent_valid_cycles, profile, default]}
                           based_on_cycles: {type: [integer, "null"]}
                           spread_days: {type: [integer, "null"]}
-                          regularity: {type: string, enum: [not_enough_data, relatively_regular, irregular_possible]}
+                          regularity:
+                            type: string
+                            description: "v1: not_enough_data | relatively_regular | irregular_possible; CYCLE_ENGINE=shadow|v6 (D-122): regular | irregular | insufficient_data."
+                            enum: [not_enough_data, relatively_regular, irregular_possible, regular, irregular, insufficient_data]
                       plus_trial_offer: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/PlusTrialOffer"}]}
               example:
                 success: true
@@ -9500,6 +9535,9 @@ paths:
                   pms_window: {start: "2026-10-09", end: "2026-10-11"}
                   cycle_length: {median: 28, source: recent_valid_cycles, based_on_cycles: 5, spread_days: 1, regularity: relatively_regular}
                   plus_trial_offer: null
+          headers:
+            ETag: {description: "CYCLE_ENGINE=shadow|v6 only (D-122): weak validator; sent with `Cache-Control: private, no-cache`.", schema: {type: string}}
+        '304': {description: "CYCLE_ENGINE=shadow|v6 only (D-122): `If-None-Match` matched the current ETag; no body."}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '409': {$ref: "#/components/responses/CompanionAccount"}
   /api/v1/home/notifications:

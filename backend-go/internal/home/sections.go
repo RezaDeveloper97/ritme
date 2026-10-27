@@ -86,6 +86,9 @@ func (weekCalendarSection) Key() string { return "week_calendar" }
 func (weekCalendarSection) Order() int  { return 20 }
 
 func (s weekCalendarSection) Build(hc *Context) (*Rendered, error) {
+	if hc.v6 != nil {
+		return s.buildV6(hc)
+	}
 	hasCycle := hc.HasCycleData()
 	weekStart := hc.Date.StartOfWeek()
 	days := make([]*jsonx.OrderedMap, 0, 7)
@@ -135,6 +138,9 @@ func (nextPeriodSection) Key() string { return "next_period" }
 func (nextPeriodSection) Order() int  { return 30 }
 
 func (s nextPeriodSection) Build(hc *Context) (*Rendered, error) {
+	if hc.v6 != nil {
+		return s.buildV6(hc)
+	}
 	calc, err := hc.CycleData()
 	if err != nil || calc == nil || !calc.Complete {
 		return nil, err
@@ -185,6 +191,9 @@ func (cyclePredictionSection) Key() string { return "cycle_prediction" }
 func (cyclePredictionSection) Order() int  { return 40 }
 
 func (s cyclePredictionSection) Build(hc *Context) (*Rendered, error) {
+	if hc.v6 != nil {
+		return s.buildV6(hc)
+	}
 	calc, err := hc.CycleData()
 	if err != nil {
 		return nil, err
@@ -399,7 +408,7 @@ func (s challengeSection) Build(hc *Context) (*Rendered, error) {
 	if err != nil {
 		return nil, err
 	}
-	payload, err := ChallengePayload(hc.Ctx, hc.q(), hc.UserID, hc.Date, hc.Locale, hc.DefaultLocale, day, hc.RecentLogs(3))
+	payload, err := ChallengePayload(hc.Ctx, hc.q(), hc.UserID, hc.Date, hc.Locale, hc.DefaultLocale, day, hc.RecentLogs(3), hc.v6 != nil)
 	if err != nil || payload == nil {
 		return nil, err
 	}
@@ -535,6 +544,12 @@ func (s smartTipSection) Build(hc *Context) (*Rendered, error) {
 		if calc != nil {
 			if f, ok := findFlag(calc.TextFlags); ok {
 				text, source = tipPick(hc.Locale, f.FA, f.EN), "cycle_engine"
+			}
+		}
+		// v6 has no text flags: the daily card of the same status is the engine's own copy (T-M9-32, T-M9-34).
+		if hc.v6 != nil && hc.HasCycleData() {
+			if card := hc.v6DailyCard(); card != nil && card.Subtitle != "" {
+				text, source = card.Subtitle, "cycle_engine"
 			}
 		}
 	}
@@ -846,6 +861,9 @@ func (myCyclesSection) Order() int  { return 160 }
 const myCyclesPreviousLimit = 12
 
 func (s myCyclesSection) Build(hc *Context) (*Rendered, error) {
+	if hc.v6 != nil {
+		return s.buildV6(hc)
+	}
 	calc, err := hc.CycleData()
 	if err != nil {
 		return nil, err
@@ -906,6 +924,8 @@ type cycleSummarySection struct{ cycleOnly }
 func (cycleSummarySection) Key() string { return "cycle_summary" }
 func (cycleSummarySection) Order() int  { return 170 }
 
+// The v1 health-check ranges (Laravel's CycleSummarySection). They are not a clinical criterion (I-08): the v6 path
+// (cycleSummarySection.buildV6) reads clinical_flags / cycle_regularity instead; these go with v1 in T-M9-51.
 var (
 	normalCycleRange  = [2]int{21, 35}
 	normalPeriodRange = [2]int{2, 8}
@@ -978,6 +998,9 @@ func numericItem(hc *Context, key, label string, value *int, r [2]int, hint, emp
 }
 
 func (s cycleSummarySection) Build(hc *Context) (*Rendered, error) {
+	if hc.v6 != nil {
+		return s.buildV6(hc)
+	}
 	calc, err := hc.CycleData()
 	if err != nil || calc == nil {
 		return nil, err
