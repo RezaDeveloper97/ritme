@@ -3,12 +3,12 @@ id: T-M9-39b
 title: Prediction log: count real starts from the bleeding-log bridge (healthlog StartHook)
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-39]
 parallel_group: M9-C
-touches: [backend-go/internal/healthlog,backend-go/internal/http/routes_healthlog.go,backend-go/internal/cycle/snapshots]
+touches: [backend-go/internal/healthlog,backend-go/internal/http/routes_healthlog.go,backend-go/internal/cycle/snapshots,backend-go/internal/http/routes_logs.go]
 skills: []
-verify: cd backend-go && go vet ./... && go test ./internal/healthlog/... ./internal/cycle/snapshots/... && make test-int PKG="./internal/healthlog/... ./internal/cycle/snapshots/..." && make contract ROUTES=health-logs
+verify: cd backend-go && go vet ./... && go test ./internal/healthlog/... ./internal/cycle/snapshots/... && make test-int PKG="./internal/healthlog/... ./internal/cycle/snapshots/..." && make contract ROUTES=healthlog && make contract ROUTES=logs
 ---
 
 # T-M9-39b — Prediction log: count real starts from the bleeding-log bridge (healthlog StartHook)

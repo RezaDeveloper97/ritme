@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/cycle/snapshots"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
@@ -17,7 +18,13 @@ func init() {
 	Register("healthlog", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
-		h := healthlog.NewHandlers(healthlog.NewService(d.DB).WithEngine(engineStates(r, d)), clock.Real{})
+		svc := healthlog.NewService(d.DB).WithEngine(engineStates(r, d))
+		if d.DB != nil {
+			// Prediction log (T-M9-39b, D-137): a bleeding log that starts a new real period queues the same job as the
+			// period button (the handler is registered by routes_cycle.go on the shared job queue).
+			svc.WithStartHook(snapshots.Hook(auth.Jobs(r, d.Cache, d.Logger), d.Logger))
+		}
+		h := healthlog.NewHandlers(svc, clock.Real{})
 		// Optional Idempotency-Key on the save (D-131).
 		idem := idempotency.New(d.Cache, auth.CurrentUserID, d.Logger).Handler()
 

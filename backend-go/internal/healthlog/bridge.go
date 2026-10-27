@@ -205,9 +205,13 @@ func (s *Service) addBleedingDay(ctx context.Context, userID uint64, d, flowFrom
 			return false, err
 		}
 	}
-	if _, err := s.q.InsertCycleHistory(ctx, params); err != nil {
+	id, err := s.q.InsertCycleHistory(ctx, params)
+	if err != nil {
 		return false, fmt.Errorf("healthlog: create period: %w", err)
 	}
+	// A new confirmed bleeding_log row is a real period start (the prediction log, T-M9-39b). Moving a start back,
+	// extending, merging or a split on removal is an edit of existing periods, not a new start.
+	s.markStart(uint64(id)) //nolint:gosec // G115: AUTO_INCREMENT ids are positive
 	return true, nil
 }
 

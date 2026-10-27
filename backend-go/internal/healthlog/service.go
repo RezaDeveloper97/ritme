@@ -14,7 +14,9 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 
+	"github.com/ritme/backend-go/internal/cycle/periods"
 	"github.com/ritme/backend-go/internal/cycle/revision"
+	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/healthlog/model"
 	"github.com/ritme/backend-go/internal/healthlog/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -32,6 +34,33 @@ type Service struct {
 	raw store.DBTX // the pool or the transaction (cross-domain reads: the cycle phase)
 	// cycle is the v6 engine (nil = CYCLE_ENGINE v1) for the luteal-spotting warning (cyclehistory.go, T-M9-37).
 	cycle CycleStates
+	// startHook runs after the commit of a real period start the bleeding-log bridge created (T-M9-39b, D-137);
+	// nil = none. started is the transaction's record of it (nil outside a transaction this Service owns).
+	startHook periods.StartHook
+	started   *bridgeStart
+}
+
+// bridgeStart records, inside a write, the new real period row the bridge inserted (read after the revision bump and
+// fired after commit). Ids only.
+type bridgeStart struct {
+	ok       bool
+	periodID uint64
+	rev      uint64
+}
+
+// WithStartHook sets the hook called after a committed write whose bleeding log started a new real period (nil =
+// none; the prediction log, internal/cycle/snapshots) and returns s. Services bound to a transaction by this one
+// carry the record; a Service on a caller's transaction (NewService(tx)) never fires, its caller owns the commit.
+func (s *Service) WithStartHook(h periods.StartHook) *Service {
+	s.startHook = h
+	return s
+}
+
+// markStart records that this write inserted the real period row id (no-op without a hook or an owned transaction).
+func (s *Service) markStart(id uint64) {
+	if s.started != nil {
+		s.started.ok, s.started.periodID = true, id
+	}
 }
 
 // NewService returns a Service on db (a *sql.DB or a transaction).
@@ -67,6 +96,9 @@ func (s *Service) inTxLocked(ctx context.Context, userID uint64, fn func(t *Serv
 		return fmt.Errorf("healthlog: begin: %w", err)
 	}
 	t := &Service{q: store.New(tx), raw: tx, cycle: s.cycle}
+	if s.startHook != nil && userID != 0 {
+		t.started = &bridgeStart{}
+	}
 	if userID != 0 {
 		if err := t.lockUser(ctx, userID); err != nil {
 			_ = tx.Rollback()
@@ -83,8 +115,21 @@ func (s *Service) inTxLocked(ctx context.Context, userID uint64, fn func(t *Serv
 			return err
 		}
 	}
+	st := t.started
+	if st != nil && st.ok {
+		// The engine revision after the bump, in the same transaction (one PK read): the event names the write.
+		r, err := cyclestore.New(tx).GetUserRevisions(ctx, userID)
+		if err != nil {
+			_ = tx.Rollback()
+			return fmt.Errorf("healthlog: revision: %w", err)
+		}
+		st.rev = r.EngineRev
+	}
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("healthlog: commit: %w", err)
+	}
+	if st != nil && st.ok {
+		s.startHook(ctx, periods.StartEvent{UserID: userID, PeriodID: st.periodID, RevBefore: st.rev - min(st.rev, 1), RevAfter: st.rev})
 	}
 	return nil
 }

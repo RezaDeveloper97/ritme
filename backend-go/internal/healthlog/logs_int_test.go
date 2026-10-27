@@ -48,6 +48,12 @@ type logsEnv struct {
 
 func setupLogs(t *testing.T) *logsEnv {
 	t.Helper()
+	return setupLogsWith(t, nil)
+}
+
+// setupLogsWith is setupLogs with the bleeding-log start hook built on the test DB (nil = none).
+func setupLogsWith(t *testing.T, hook func(db *sql.DB) periods.StartHook) *logsEnv {
+	t.Helper()
 	quiet := slog.New(slog.NewTextHandler(io.Discard, nil))
 	db := testdb.New(t)
 	_, err := db.Exec(`INSERT INTO oauth_clients (id, name, secret, provider, redirect_uris, grant_types, revoked, created_at, updated_at)
@@ -60,6 +66,9 @@ func setupLogs(t *testing.T) *logsEnv {
 	languages := i18n.NewRegistry(i18nstore.New(db), nil, quiet)
 	locale := i18n.Middleware(languages)
 	svc := healthlog.NewService(db)
+	if hook != nil {
+		svc.WithStartHook(hook(db))
+	}
 	h := healthlog.NewLogHandlers(svc, clock.Real{}, i18n.NewTranslationStore(translations.FS, ""), languages)
 	old := healthlog.NewHandlers(svc, clock.Real{})
 

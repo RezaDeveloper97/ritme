@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/cycle/snapshots"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
@@ -19,7 +20,12 @@ func init() {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		languages := i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger)
 		locale := i18n.Middleware(languages)
-		h := healthlog.NewLogHandlers(healthlog.NewService(d.DB), clock.Real{},
+		svc := healthlog.NewService(d.DB)
+		if d.DB != nil {
+			// Prediction log (T-M9-39b, D-137): a v2 day log whose flow starts a new real period queues the same job.
+			svc.WithStartHook(snapshots.Hook(auth.Jobs(r, d.Cache, d.Logger), d.Logger))
+		}
+		h := healthlog.NewLogHandlers(svc, clock.Real{},
 			i18n.NewTranslationStore(translations.FS, d.Config.StoragePath), languages)
 		writes := writeThrottle(d)
 

@@ -2358,3 +2358,10 @@ Nothing needed fixing.
 - `make sqlc` added the two table structs to every `store/models.go` (additions only).
 - Catalogue rows in `docs/engine-v6/jobs.md`. No health data in logs.
 - Open: bleeding-log bridge starts not logged → T-M9-39b. T-M10-30 computes MAE and must exclude pregnancy/hormonal/postpartum via `engine_daily_snapshots.mode` (prediction log has no mode column).
+
+## T-M9-39b — Prediction log: count real starts from the bleeding-log bridge
+- `healthlog.Service.WithStartHook(periods.StartHook)`: `inTxLocked` (service-owned tx only) records a bridge start, reads `engine_rev` after `revision.Bump` in the same tx and fires the hook after commit with ids + `rev_before`/`rev_after` only. A caller-owned tx (`NewService(tx)` from fertility/conditions/healthrecord) never fires it.
+- `bridge.go`: only a new `bleeding_log` row from `addBleedingDay` is a new start; moving a start earlier, extend, merge and split-on-delete are not.
+- Wired in `routes_healthlog.go` (v1 `/health-logs`) and, by the main session, `routes_logs.go` (v2 `PUT /logs/days/:date`). The job handler stays registered by `routes_cycle.go` on the shared queue.
+- Int test `TestBridgePredictionLog_NewStartsOnly`. Contract `healthlog` 45/0, `logs` 34/0 (task verify fixed: group is `healthlog`, not `health-logs`).
+- Open: flow written through a caller tx (fertility/conditions/healthrecord) isn't logged; moving the newest start earlier leaves the old `first` row (same as `periods` Update).
