@@ -1,5 +1,5 @@
 {
-  "case": "period/start_onboarding_estimate",
+  "case": "period/start_on_declared_lmp",
   "steps": [
     {
       "request": {
@@ -42,7 +42,7 @@
         "data": {
           "periods": [
             {
-              "id": 100301,
+              "id": 101805,
               "period_start_date": "2026-09-11",
               "period_end_date": null,
               "source": "user_logged"

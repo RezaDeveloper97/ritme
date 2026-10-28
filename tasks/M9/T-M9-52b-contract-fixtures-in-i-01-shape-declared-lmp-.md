@@ -3,10 +3,10 @@ id: T-M9-52b
 title: Contract fixtures in I-01 shape: declared LMP in onboarding_last_period_start, no estimate seed rows
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-52]
 parallel_group: M9-C
-touches: [backend/database/seeders/ContractFixtureSeeder.php,backend-go/contract/fixtures,backend-go/contract/golden,backend-go/contract/golden-v6,backend-go/internal/fertility/testdata,backend-go/internal/cycle/service/testdata,backend-go/internal/home/testdata]
+touches: [backend/database/seeders/ContractFixtureSeeder.php,backend-go/internal/cycle/periods/testdata,backend-go/internal/analysis,docs/go-migration/contract.md,backend-go/contract/cases/period.yaml,backend-go/contract/fixtures,backend-go/contract/golden,backend-go/contract/golden-v6,backend-go/internal/fertility/testdata,backend-go/internal/cycle/service/testdata,backend-go/internal/home/testdata]
 skills: []
 verify: cd backend-go && make contract ROUTES=cycle && make contract-v6 ROUTES=cycle && make test-int PKG="./internal/cycle/... ./internal/fertility/... ./internal/home/..."
 ---
@@ -34,3 +34,6 @@ fixtures, no engine fallback.
 ## Acceptance
 - No `onboarding_estimate` rows left in fixtures; v1 contract green with no new allow-list entries; v6 goldens
   regenerated and explained; verify green.
+
+## Resolved
+2026-10-28: Docker back; sequence capture re-taken, case renamed to `period/start_on_declared_lmp`, verify green.

@@ -83,8 +83,8 @@ Profile defaults unless noted: birthday 1996-04-12, 60.5 kg, 165 cm, period 5 d,
 | id | mobile | persona key | what it exercises |
 |---|---|---|---|
 | 1001 | 09900000001 | `no_profile` | verified user, no name, no profile → `profile_completed=false`, empty cycle/home paths |
-| 1002 | 09900000002 | `profile_no_history` | profile LMP 2026-09-13, no `cycle_histories` → resolver falls back to profile LMP |
-| 1003 | 09900000003 | `onboarding_declared` | single `is_estimated` / unconfirmed `onboarding_estimate` row starting 2026-09-11 |
+| 1002 | 09900000002 | `profile_no_history` | profile LMP 2026-09-13 (also in `onboarding_last_period_start`, I-01 shape), no `cycle_histories` → resolver falls back to profile LMP |
+| 1003 | 09900000003 | `onboarding_declared` | I-01 shape (DECISIONS I-01, goose 00103): declared LMP 2026-09-11 only in `user_profiles.onboarding_last_period_start` (+ legacy `last_period_start`), no `cycle_histories` row → v6 declared anchor |
 | 1004 | 09900000004 | `regular` | 6 confirmed 28-day cycles, last start 2026-09-14 (cycle day 10, fertile window); 4 daily logs (2 bleeding, 1 today) |
 | 1005 | 09900000005 | `irregular` | lengths 24/35/29/41/26 (latest three span > 7 d), last start 2026-09-09, profile cycle 30 |
 | 1006 | 09900000006 | `short_outlier` | a 17-day outlier among 28/29-day cycles, last start 2026-09-03 |

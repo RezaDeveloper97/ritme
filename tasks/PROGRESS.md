@@ -2407,3 +2407,10 @@ Nothing needed fixing.
 - `auth/guard.go` keeps one shared `*passport.Verifier` per `*fiber.App` (in `app.State()`, same pattern as `auth.Jobs`), warmed once with a 5 s timeout; on failure it logs and falls back to lazy load; skipped when `db == nil`.
 - No snapshot wrapper; the client revocation bound stays ≤ 5 min (D-140). Security review: no critical/high/medium findings. One low, pre-existing item (a stale client snapshot can outlive the 5-min bound) → T-M9-09d (needs user OK).
 - Verify: `go vet` + `go test ./internal/auth/...` green (`-race` needs CGO, which the macOS SDK linker bug blocks); `make contract ROUTES=auth` 45/45.
+
+## T-M9-52b — Contract fixtures in I-01 shape
+- `ContractFixtureSeeder.php` + `contract/fixtures/dump.sql`: the declared LMP lives only in `user_profiles.onboarding_last_period_start`; no `onboarding_estimate` cycle_histories rows (mirrors the promote migration).
+- v1 goldens re-recorded (only history row ids move: insert instead of promote); contract all 1914/0, no new allow-list entries. Case `period/start_onboarding_estimate` renamed to `period/start_on_declared_lmp`.
+- v6 goldens (cycle, cycle-month, home, fertility) regenerated: `onboarding_declared` now gets a declared anchor instead of `insufficient_anchor_data`. Analysis goldens unchanged (no confirmed cycles).
+- `periods/testdata/sequence/laravel.jsonl` re-captured (step 13 inserts); `docs/go-migration/contract.md` persona table updated.
+- Verify: contract cycle 125/0, contract-v6 80/0, test-int cycle/fertility/home green.

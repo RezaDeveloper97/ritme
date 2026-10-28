@@ -630,7 +630,68 @@
       "period_days": 0,
       "pms_days": 0
     },
-    "future_cycles": [],
+    "future_cycles": [
+      {
+        "k": 1,
+        "period_start": "2026-10-09",
+        "period_end": "2026-10-13",
+        "fertile_start": "2026-09-20",
+        "fertile_end": "2026-09-25",
+        "ovulation": "2026-09-25",
+        "ovulation_source": "calendar",
+        "confidence": "low"
+      },
+      {
+        "k": 2,
+        "period_start": "2026-11-06",
+        "period_end": "2026-11-10",
+        "fertile_start": "2026-10-18",
+        "fertile_end": "2026-10-23",
+        "ovulation": "2026-10-23",
+        "ovulation_source": "calendar",
+        "confidence": "low"
+      },
+      {
+        "k": 3,
+        "period_start": "2026-12-04",
+        "period_end": "2026-12-08",
+        "fertile_start": "2026-11-15",
+        "fertile_end": "2026-11-20",
+        "ovulation": "2026-11-20",
+        "ovulation_source": "calendar",
+        "confidence": "low"
+      },
+      {
+        "k": 4,
+        "period_start": "2027-01-01",
+        "period_end": "2027-01-05",
+        "fertile_start": "2026-12-13",
+        "fertile_end": "2026-12-18",
+        "ovulation": "2026-12-18",
+        "ovulation_source": "calendar",
+        "confidence": "low"
+      },
+      {
+        "k": 5,
+        "period_start": "2027-01-29",
+        "period_end": "2027-02-02",
+        "fertile_start": "2027-01-10",
+        "fertile_end": "2027-01-15",
+        "ovulation": "2027-01-15",
+        "ovulation_source": "calendar",
+        "confidence": "low"
+      },
+      {
+        "k": 6,
+        "period_start": "2027-02-26",
+        "period_end": "2027-03-02",
+        "fertile_start": "2027-02-07",
+        "fertile_end": "2027-02-12",
+        "ovulation": "2027-02-12",
+        "ovulation_source": "calendar",
+        "confidence": "low"
+      }
+    ],
     "limits": {
       "fertility_suppressed": false,
       "suppression_reason": null,

@@ -160,12 +160,11 @@ class ContractFixtureSeeder extends Seeder
 
         $p = fn (string $key): int => self::PERSONAS[$key][0];
 
-        // No history at all: the resolver falls back to the profile LMP.
-        $this->profile($p('profile_no_history'), ['last_period_start' => $this->day(-10)]);
-
-        // Only the onboarding estimate row (pre-2026-08 shape: estimated, unconfirmed).
-        $this->profile($p('onboarding_declared'), ['last_period_start' => $this->day(-12)]);
-        $this->cycle($p('onboarding_declared'), 1, $this->day(-12), $this->day(-8), null, confirmed: false, estimated: true, source: 'onboarding_estimate');
+        // Onboarding-only users in the I-01 shape (DECISIONS I-01, goose 00103): the declared LMP lives only in
+        // user_profiles.onboarding_last_period_start (the v6 engine's declared anchor) next to the legacy
+        // last_period_start; there is no cycle_histories row. The v1 resolver falls back to the profile LMP.
+        $this->profile($p('profile_no_history'), ['last_period_start' => $this->day(-10), 'onboarding_last_period_start' => $this->day(-10)]);
+        $this->profile($p('onboarding_declared'), ['last_period_start' => $this->day(-12), 'onboarding_last_period_start' => $this->day(-12)]);
 
         // Regular 28d, 6 confirmed cycles, last started 9 days ago (cycle day 10).
         $this->profile($p('regular'), ['last_period_start' => $this->day(-9)]);

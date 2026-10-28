@@ -46,8 +46,8 @@ cases:
     steps:
       - {method: POST, path: /api/v1/cycle/period/start, body: {date: "2026-09-21"}, status: 200}
       - {method: GET, path: /api/v1/cycle/period/history, status: 200}
-  - name: start_onboarding_estimate
-    doc: promotes the onboarding estimate row (same day)
+  - name: start_on_declared_lmp
+    doc: start on the declared onboarding LMP day (I-01 shape, no estimate row) inserts a new confirmed row
     persona: onboarding_declared
     steps:
       - {method: POST, path: /api/v1/cycle/period/start, body: {date: "2026-09-11"}, status: 200}

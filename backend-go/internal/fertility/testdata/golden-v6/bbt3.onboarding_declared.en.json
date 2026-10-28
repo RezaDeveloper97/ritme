@@ -2,12 +2,24 @@
   "success": true,
   "data": {
     "range": 3,
-    "cycles": [],
+    "cycles": [
+      {
+        "start_date": "2026-09-11",
+        "points": [],
+        "coverline": null,
+        "fertile_window": {
+          "from_day": 10,
+          "to_day": 15
+        },
+        "shift_day": null,
+        "phase": "pre_shift"
+      }
+    ],
     "stats": {
       "pre_ovulation_avg": null,
       "logged_days": 0,
-      "cycle_days_so_far": 0,
-      "gaps": 0
+      "cycle_days_so_far": 13,
+      "gaps": 13
     },
     "past_shift_days": [],
     "tip": {

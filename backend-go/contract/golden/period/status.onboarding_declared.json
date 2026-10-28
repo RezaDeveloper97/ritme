@@ -16,8 +16,8 @@
         "success": true,
         "data": {
           "active": false,
-          "period_start_date": "2026-09-11",
-          "period_end_date": "2026-09-15"
+          "period_start_date": null,
+          "period_end_date": null
         }
       }
     }

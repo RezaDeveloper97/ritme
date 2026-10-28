@@ -520,11 +520,11 @@
               },
               "data": {
                 "current": {
-                  "id": 100301,
+                  "id": null,
                   "cycle_day": 13,
                   "started_at": "2026-09-11",
-                  "period_end_date": "2026-09-15",
-                  "period_length": 5,
+                  "period_end_date": null,
+                  "period_length": null,
                   "is_ongoing": false,
                   "cycle_length": 28,
                   "cycle_length_source": "profile"
@@ -533,7 +533,7 @@
                 "previous": [],
                 "averages": {
                   "cycle_length": null,
-                  "period_length": 5,
+                  "period_length": null,
                   "based_on_cycles": 0
                 }
               },
@@ -571,15 +571,15 @@
                   {
                     "key": "last_period_duration",
                     "label": "Last period duration",
-                    "value": 5,
+                    "value": null,
                     "value_min": null,
                     "value_max": null,
                     "text": null,
                     "unit": "days",
                     "unit_label": "days",
-                    "status": "normal",
-                    "status_label": "Within the usual range",
-                    "hint": null,
+                    "status": "unknown",
+                    "status_label": "Not known yet",
+                    "hint": "Record when your period ends to see its duration.",
                     "normal_range": {
                       "min": 2,
                       "max": 8
@@ -601,7 +601,7 @@
                   }
                 ],
                 "based_on_cycles": 0,
-                "has_history": true,
+                "has_history": false,
                 "normal_ranges": {
                   "cycle_length": {
                     "min": 21,
