@@ -34,7 +34,9 @@ func (s *postpartumSource) Postpartum(ctx context.Context, date civildate.Date) 
 	if err != nil {
 		return nil, err
 	}
-	st := &manager.PostpartumState{BirthDate: sig.BirthDate, Alerts: sig.Recovery.Alerts()}
+	// sig.Recovery is the log of `date`, so the red flags use the clinical config version in force on that day
+	// (postpartum.redflags.fever_c; T-M9-06c), not the version-1 thresholds.
+	st := &manager.PostpartumState{BirthDate: sig.BirthDate, Alerts: sig.Recovery.AlertsOn(date)}
 	if sig.Schedule != nil {
 		st.CheckinDue = sig.Schedule.Due
 	}

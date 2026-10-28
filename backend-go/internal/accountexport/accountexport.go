@@ -1,6 +1,6 @@
 // Package accountexport adds the canvas health data to the account data export (GET /profile/export, user decision
 // 2026-10-12, deviations.md D-96): pelvic floor, contraception, menopause, IVF, condition programs, the loss path,
-// insurance, the shop and the mother & child directory. Each section is a Go-only top-level key of the export
+// insurance, the shop and the mother & child directory, plus the postpartum profile and recovery logs (T-M9-06c, no EPDS). Each section is a Go-only top-level key of the export
 // (internal/profile ExportSection), read through the owning domain's sqlc store with every statement scoped by the
 // owner's user id, and serialised like the rest of the export (raw model attributes with the model casts,
 // internal/profile/model). Text a domain seals at rest (insurance notes and questionnaire evidence, the loss private
@@ -46,6 +46,7 @@ func Sections(db *sql.DB, box Box) []profile.ExportSection {
 		{Key: "insurance", Load: insuranceData(db, insurance.NewService(db, box))},
 		{Key: "shop", Load: shopData(db, order.NewService(db).WithSealer(box))},
 		{Key: "directory", Load: directory(db)},
+		{Key: "postpartum", Load: postpartumData(db)},
 	}
 }
 

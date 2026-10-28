@@ -2435,3 +2435,9 @@ Nothing needed fixing.
 - Behaviour change (F-23): any owner mode change pauses owner-data grants until she re-approves (`PUT /companions/{id}/grants`); the review card comes in T-M11-07.
 - Not wired here: `children.Access` → Decide; `/family/me` contract case.
 - Verify: vet, golangci-lint, schema-diff, unit + test-int family/companion/care/http/shop green; contract companion,companion-home,reminders,shop-checklist,teen 104/0 (58 allow-listed); partners,pregnancy,loss 252/0. `-race` skipped (CGO).
+
+## T-M9-06c — Postpartum data export and dated red-flag thresholds
+- Account export gains a tenth Go-only section `postpartum` = `{profile|null, recovery_logs}` (`db/queries/postpartum/export.sql`, scoped by `user_id`); EPDS deliberately excluded (D-54). Allow-listed under D-96 (`data.postpartum` on `export*`); profile goldens untouched (recorded from Laravel).
+- Daily message: postpartum red flags use the threshold version in force on the log date (`Recovery.AlertsOn(date)`).
+- Tests: `TestPostpartumExport_OwnerRowsOnlyNoEPDS` (other user's rows never appear, no EPDS keys), `postpartum_source_test.go` (fever threshold by date).
+- Verify: accountexport, messages, postpartum, http export, migrations (Postpartum) green; contract profile,postpartum 136/0 (107 allow-listed). The full `go test ./...` was red only on T-M10-26 in-flight analysis code at the time.

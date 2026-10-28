@@ -15,6 +15,11 @@ type Querier interface {
 	ClosePregnancyAsDelivered(ctx context.Context, arg ClosePregnancyAsDeliveredParams) error
 	// The visit notices of one kind already written for this birth (idempotency of the lazy notice).
 	CountPostpartumVisitNotices(ctx context.Context, arg CountPostpartumVisitNoticesParams) (int64, error)
+	// Account data export (GET /profile/export, D-96 extended by T-M9-06c, user decision 2026-10-23): the owner's
+	// postpartum profile and her red-flag / visit recovery logs. EPDS checks are never exported (D-54: neither the answers
+	// nor the totals), so there is deliberately no epds_checks statement here.
+	ExportPostpartumProfile(ctx context.Context, userID uint64) ([]PostpartumProfile, error)
+	ExportPostpartumRecoveryLogs(ctx context.Context, userID uint64) ([]PostpartumRecoveryLog, error)
 	// The user's active pregnancy (pregnancy_mode = 1): the effective mode is then pregnancy.
 	GetActivePregnancyProfile(ctx context.Context, userID uint64) (uint64, error)
 	GetEpdsCheckOn(ctx context.Context, arg GetEpdsCheckOnParams) (GetEpdsCheckOnRow, error)

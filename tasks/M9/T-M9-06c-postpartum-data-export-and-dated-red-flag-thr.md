@@ -3,10 +3,10 @@ id: T-M9-06c
 title: Postpartum data export and dated red-flag thresholds in the daily message
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-06b]
 parallel_group: M9-A
-touches: [backend-go/db/queries/postpartum/export.sql,backend-go/internal/postpartum/store,backend-go/internal/accountexport,backend-go/internal/messages/postpartum_source.go,backend-go/contract/golden/profile,backend-go/contract/allowlist/profile.yaml,docs/go-migration/deviations.md]
+touches: [backend-go/db/queries/postpartum/export.sql,backend-go/internal/postpartum/store,backend-go/internal/accountexport,backend-go/internal/messages/postpartum_source.go,backend-go/internal/messages/postpartum_source_test.go,backend-go/contract/golden/profile,backend-go/contract/allowlist/profile.yaml,docs/go-migration/deviations.md]
 skills: []
 verify: cd backend-go && make sqlc && go vet ./... && go test ./... && make contract ROUTES=profile,postpartum
 ---

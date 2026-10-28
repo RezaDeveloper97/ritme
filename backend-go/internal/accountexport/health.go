@@ -11,6 +11,7 @@ import (
 	menostore "github.com/ritme/backend-go/internal/menopause/store"
 	pelvicstore "github.com/ritme/backend-go/internal/pelvic/store"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
+	ppstore "github.com/ritme/backend-go/internal/postpartum/store"
 	"github.com/ritme/backend-go/internal/profile/model"
 )
 
@@ -191,6 +192,28 @@ func lossPath(db *sql.DB, box Box) loader {
 			part{key: "moods", load: func() ([]any, error) {
 				l, err := q.ExportPregnancyLossMoods(ctx, uid)
 				return rows("pregnancy loss moods", l, err, nil, nil, nil)
+			}},
+		)
+	}
+}
+
+// postpartumData: {profile (the birth, null when none), recovery_logs (the daily red-flag / postpartum-visit rows)}
+// (B-N5-01, T-M9-06; D-96 extended by T-M9-06c). EPDS checks are left out on purpose (D-54, user decision 2026-10-23:
+// neither the answers nor the totals). The recovery sheet's lochia / pain / breasts / feeds / sleep answers are
+// health_log_entries rows, already exported under menopause.logs (every health_log_entries row of the owner).
+func postpartumData(db *sql.DB) loader {
+	q := ppstore.New(db)
+	return func(ctx context.Context, uid uint64) (any, error) {
+		return object(
+			part{key: "profile", one: true, load: func() ([]any, error) {
+				l, err := q.ExportPostpartumProfile(ctx, uid)
+				return rows("postpartum profile", l, err, model.Casts{"pregnancy_closed_at": model.CastDateTime,
+					"breastfeeding": model.CastBoolean}, nil, nil)
+			}},
+			part{key: "recovery_logs", load: func() ([]any, error) {
+				l, err := q.ExportPostpartumRecoveryLogs(ctx, uid)
+				return rows("postpartum recovery logs", l, err, model.Casts{"pad_soaked_within_hour": model.CastBoolean,
+					"severe_pain": model.CastBoolean, "breathless": model.CastBoolean, "postpartum_visit": model.CastBoolean}, nil, nil)
 			}},
 		)
 	}

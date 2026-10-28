@@ -97,6 +97,12 @@ entries:
     where: data.directory
     deviation: D-96
     reason: Go-only directory bookings, reviews, reports, applications and file metadata in the data export
+  # D-96 extended (task T-M9-06c, user decision 2026-10-23): one more Go-only key, the postpartum profile and recovery
+  # logs (never EPDS, D-54).
+  - case: "export*"
+    where: data.postpartum
+    deviation: D-96
+    reason: Go-only postpartum profile and red-flag / visit recovery logs in the data export (no EPDS)
 
   # D-123 (task T-M9-27, engine v6, user OK 2026-10-21 in T-M9-01; DECISIONS.md I-01): a declared last_period_start is
   # stored as the onboarding anchor user_profiles.onboarding_last_period_start (Laravel leaves the column null) and no
