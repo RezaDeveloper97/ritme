@@ -9,6 +9,8 @@ import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Card, Icon, IconCircle, StatusPill, type IconName, type Tone } from '@/shared/ui';
 
+import type { LimitNote } from '../model/limits';
+
 /** One predicted event: its display dates and the days from today to its start / end. */
 export interface PredictionSlot {
   text: string;
@@ -53,6 +55,8 @@ export function PredictionsCard({
   footer,
   hideFertility = false,
   hideWindow = false,
+  withdrawalBleed = false,
+  note = null,
 }: {
   nextPeriod: PredictionSlot | null;
   pms: PredictionSlot | null;
@@ -67,6 +71,10 @@ export function PredictionsCard({
   hideFertility?: boolean;
   /** v6: the engine sent no fertile display window — only that row goes. */
   hideWindow?: boolean;
+  /** Hormonal contraception: the next bleed is a withdrawal bleed, not a predicted period. */
+  withdrawalBleed?: boolean;
+  /** One calm line explaining a limit (hormonal, postpartum, 45+). */
+  note?: LimitNote | null;
 }) {
   const t = useTranslations('home.nb.predictions');
   const tHome = useTranslations('home');
@@ -84,7 +92,7 @@ export function PredictionsCard({
 
   const confirmed = ovulationSource === 'bbt_confirmed' || ovulationSource === 'lh_positive';
   const allRows = [
-    { key: 'period', label: t('nextPeriod'), value: nextPeriod?.text ?? dash, rel: when(nextPeriod, false) },
+    { key: 'period', label: withdrawalBleed ? t('withdrawalBleed') : t('nextPeriod'), value: nextPeriod?.text ?? dash, rel: when(nextPeriod, false) },
     { key: 'pms', label: t('pms'), value: pms?.text ?? dash, rel: when(pms, true) },
     { key: 'fertile', label: t('window'), value: window?.text ?? dash, rel: when(window, true) },
     {
@@ -139,6 +147,7 @@ export function PredictionsCard({
           )}
         </Link>
       )}
+      {note && <p className="ch-alert-text">{t(`note.${note}`)}</p>}
       {/* Fixed, always shown: the forecast is not a contraceptive method. */}
       <p className="ch-alert-text ch-pred-disclaimer">{t('disclaimer')}</p>
       {footer}

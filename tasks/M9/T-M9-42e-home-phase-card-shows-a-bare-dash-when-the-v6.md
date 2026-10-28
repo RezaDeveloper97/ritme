@@ -21,6 +21,9 @@ broken.
 ## Scope
 - When the v6 phase is null/unknown, give the card a calm neutral header (e.g. a day/cycle label or "Today"), not a
   dash; for hormonal contraception prefer wording that doesn't imply a natural phase. Persian via `persian-writing`.
+- Same bug in the hero ring: when the countdown is null (postpartum, periods not back) the Lalezar numeral slot
+  renders a huge «▬» under «پریود بعدی» (T-M9-44 QA, postpartum persona). Show a calm label instead of a dash and
+  don't say «پریود بعدی» when there is no prediction.
 - Keep the Laravel path unchanged.
 
 ## Out of scope

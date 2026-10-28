@@ -101,12 +101,14 @@ import { TodayRemindersCard } from '@/widgets/today-reminders';
 
 import { needsPeriodData } from '../model/cycle-data';
 import { phaseFromMainPhase } from '../model/hero-state';
+import { homeLimits } from '../model/limits';
 import { dismissPrompt, isPromptDismissed } from '../model/prompt-dismiss';
 import { readTtcHint, writeTtcHint } from '../model/ttc-hint';
 import { enginePredictionRows } from '../model/prediction-card';
 import { isEnginePayload, todayHero } from '../model/today-ui';
 
 import { PmsInsightCard, PredictionsCard, type PredictionSlot } from './PredictionsCard';
+import { PregnancyPromptCard } from './PregnancyPromptCard';
 import { TodayBanner } from './TodayBanner';
 import { MenopauseHome } from './MenopauseHome';
 import { PlusTrialOffer } from './PlusTrialOffer';
@@ -643,12 +645,12 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   const ttcHint = useMemo(() => (mounted ? readTtcHint() : null), [mounted]);
   // TTC home (`v19_Main`): only while trying to conceive; pregnancy mode never matches.
   // The fresh profile wins; until it lands, the remembered layout stands in.
-  const isTtc =
+  const ttcProfile =
     ttcAllowed &&
     (profileQuery.data ? profileQuery.data.health?.pregnancyIntention === 'trying' : ttcHint === true);
   useEffect(() => {
-    if (profileQuery.data) writeTtcHint(isTtc);
-  }, [profileQuery.data, isTtc]);
+    if (profileQuery.data) writeTtcHint(ttcProfile);
+  }, [profileQuery.data, ttcProfile]);
   // Same cache as the tiles (no extra request): the LH tip hides once today's test is logged.
   const fertilityToday = useFertilityToday();
 
@@ -676,6 +678,10 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   const engine = isEnginePayload(todayData?.cycleView ?? null);
   const schedule = engine ? null : deriveCycleSchedule(todayData?.cycleView ?? null, calc);
   const fertilitySuppressed = isFertilitySuppressed(todayData?.cycleView ?? null);
+  // §2.40 / E-24: the engine's limits (hormonal contraception, postpartum, 45+, positive test).
+  const limits = homeLimits(todayData?.cycleView ?? null);
+  // A suppressed user gets the plain cycle home: no TTC chance card, tiles, LH tip or ovulation ring.
+  const isTtc = ttcProfile && !limits.hideFertility;
   // Calendar formatting happens only here, at the display boundary (§7).
   const fmt = (date: Date) => formatDayMonth(date, loc);
   // «۱۷ تا ۲۱ مهر»: a range inside one month names the month once.
@@ -827,7 +833,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   // daily card's legacy calendar mapping; `unknown` shows no pill (audit #1).
   const infoFertilityLevel = infoView?.fertilityLevel ?? null;
   const infoFertilityLabel =
-    !teen && infoFertilityLevel && infoFertilityLevel !== 'unknown'
+    !teen && !limits.hideFertility && infoFertilityLevel && infoFertilityLevel !== 'unknown'
       ? tf(`chance.levels.${infoFertilityLevel}`)
       : null;
   const infoPhaseDesc =
@@ -916,7 +922,8 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   const [dismissTick, setDismissTick] = useState(0);
   const startDismissed = mounted && dismissTick >= 0 && isPromptDismissed('start', todayIso);
   const endDismissed = mounted && dismissTick >= 0 && isPromptDismissed('end', todayIso);
-  const dismiss = (kind: 'start' | 'end') => {
+  const pregnancyPromptDismissed = mounted && dismissTick >= 0 && isPromptDismissed('pregnancy', todayIso);
+  const dismiss = (kind: 'start' | 'end' | 'pregnancy') => {
     dismissPrompt(kind, todayIso);
     setDismissTick((n) => n + 1);
   };
@@ -1202,6 +1209,9 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
               </div>
             )
           )}
+          {limits.promptPregnancy && isToday && !pregnancyPromptDismissed && !loadFailed && (
+            <PregnancyPromptCard onDismiss={() => dismiss('pregnancy')} />
+          )}
           {loadFailed ? (
             <Card as="section" className="ch-error" role="alert">
               <IconCircle icon="warning" tone="danger" />
@@ -1288,7 +1298,9 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
                 ovulation={teen ? null : ovulationDate}
                 ovulationSource={card?.ovulation?.source ?? null}
                 hideWindow={card != null && card.fertile == null}
-                hideFertility={teen}
+                hideFertility={teen || limits.hideFertility}
+                withdrawalBleed={limits.withdrawalBleed}
+                note={limits.note}
                 length={cycleLengthSummary}
                 footer={syncNudge}
               />

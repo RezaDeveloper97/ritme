@@ -22,6 +22,7 @@ import { OnbFrame } from '@/features/auth';
 
 import { useBeforePeriodReminder, useFinishOnboarding, useSetBeforePeriodReminder } from '../api/onboarding';
 import { FLOW_ROUTES, isGoal, landingRoute } from '../model/flow';
+import { usesHormonalMethod } from '../model/hormonal';
 import type { OnboardingState } from '../model/state';
 import { StepScreen, type StepContext } from './StepScreen';
 
@@ -54,7 +55,7 @@ function gregYearMonth(date: Date): { year: number; month: number } {
 }
 
 /** v6: next period + fertile window exactly as the server sent them (anchors, month days, future_cycles). */
-function EngineRows() {
+function EngineRows({ hormonal }: { hormonal: boolean }) {
   const t = useTranslations('onboarding.flow.ready');
   const locale = useLocale() as Locale;
   const today = useCycleToday();
@@ -71,7 +72,7 @@ function EngineRows() {
     [...(monthNow.data?.days ?? []), ...(monthNext.data?.days ?? [])],
     [...(monthNow.data?.futureCycles ?? []), ...(view?.futureCycles ?? [])],
     toApiDate(now),
-    isFertilitySuppressed(view),
+    hormonal || isFertilitySuppressed(view),
   );
   if (!nextStart) return null;
   return (
@@ -92,20 +93,20 @@ function EngineRows() {
 }
 
 /** Next period + fertile window from the engine (cycle and TTC paths). */
-function CycleRows() {
+function CycleRows({ hormonal }: { hormonal: boolean }) {
   const t = useTranslations('onboarding.flow.ready');
   const locale = useLocale() as Locale;
   const today = useCycleToday();
   if (today.isPending) return <Skeleton width="medium" />;
   const view = today.data?.cycleView ?? null;
-  if (view && (view.todayUi != null || view.limits != null)) return <EngineRows />;
+  if (view && (view.todayUi != null || view.limits != null)) return <EngineRows hormonal={hormonal} />;
   // Laravel payload only (until T-M9-51): the legacy browser schedule.
   const schedule = today.data ? deriveCycleSchedule(view, today.data.calculation ?? null) : null;
   if (!schedule) return null;
   return (
     <>
       <Row dot="period" label={t('nextPeriod')} value={t('about', { date: formatDayMonth(schedule.nextPeriodStart, locale) })} />
-      {hasFertileWindow(schedule) ? (
+      {!hormonal && hasFertileWindow(schedule) ? (
         <Row
           dot="warm"
           label={t('fertile')}
@@ -223,7 +224,7 @@ function ReadyView({ ctx }: { ctx: StepContext }) {
       <p className="onb2-sub is-center">{t(isMale ? 'ready.subtitleMale' : 'ready.subtitle')}</p>
 
       <div className="nb-card onb2-ready-card">
-        {cycleLike ? <CycleRows /> : null}
+        {cycleLike ? <CycleRows hormonal={usesHormonalMethod(state)} /> : null}
         <Row dot="brand" label={t('ready.mode')} value={isMale ? t('ready.partnerMode') : modeLabel} />
       </div>
       {cycleLike && result.status === 'done' ? <ReminderCard /> : null}

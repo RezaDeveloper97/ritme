@@ -4,7 +4,7 @@
  * state itself, §11) and every access is guarded — private windows and blocked
  * storage simply show the prompt again.
  */
-export type PromptKind = 'start' | 'end';
+export type PromptKind = 'start' | 'end' | 'pregnancy';
 
 const key = (kind: PromptKind) => `ritme_home_prompt_${kind}`;
 

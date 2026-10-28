@@ -321,7 +321,13 @@
         "irregular_possible": "Irregular",
         "not_enough_data": "Little data"
       },
-      "disclaimer": "Predictions are not contraception"
+      "disclaimer": "Predictions are not contraception",
+      "withdrawalBleed": "Withdrawal bleed",
+      "note": {
+        "hormonal": "With hormonal birth control, this bleed comes from the hormone break, not an ovulation cycle, so fertile days aren't shown.",
+        "postpartum": "After giving birth, cycles take a while to come back. Predictions start once you've logged two periods.",
+        "age45": "From around 45, changes in cycle length are common, so treat predictions as approximate."
+      }
     },
     "insight": {
       "pmsTomorrow": "PMS likely from tomorrow",
@@ -329,6 +335,14 @@
       "pmsNow": "Likely PMS days",
       "basis": "Based on your last {n} cycles · see analysis",
       "basisBasic": "Based on your past cycles · see analysis"
+    },
+    "limits": {
+      "pregnancyPrompt": {
+        "title": "Switch to pregnancy mode",
+        "body": "You logged a positive test. If you'd like, you can switch Ritme to pregnancy mode.",
+        "cta": "Switch to pregnancy mode",
+        "dismiss": "Not now"
+      }
     }
   },
   "life": {

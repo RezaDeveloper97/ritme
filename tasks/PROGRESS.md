@@ -2371,3 +2371,11 @@ Nothing needed fixing.
 - No source change. Reviewed in the main session.
 - Bugs → T-M9-52 (stale anchor shows «پریود · روز ۲» next to the ask_last_period banner; onboarding_estimate row → unknown) and T-M9-42e (phase card header «—» when phase is null).
 - QA notes: the engine caches by `user_revisions.engine_rev` — bump it after hand-editing fixtures; `send-otp` is 5/min per IP.
+
+## T-M9-44 — Limits on Home: hidden fertility, withdrawal bleed, postpartum, 45+, pregnancy prompt
+- New `screens/home/model/limits.ts` `homeLimits(view)` → `{hideFertility, withdrawalBleed, note: hormonal|postpartum|age45|null, promptPregnancy}` from `limits.suppressionReason` + warnings. HomePage: `isTtc = ttcProfile && !hideFertility` (drops TTC chance card, tiles, LH tip, ovulation ring), fertility pill hidden, `PredictionsCard` gets `withdrawalBleed` (label «خون‌ریزی قطع مصرف») and `note` line.
+- New `PregnancyPromptCard` («رفتن به حالت بارداری» → `/profile/mode`), today only, dismissible for the day (`PromptKind 'pregnancy'`).
+- ReadyStep hides the fertile row for a hormonal pick (`onboarding-flow/model/hormonal.ts` `usesHormonalMethod`; `iud` can't be split copper/hormonal at onboarding, engine hides later). Notification settings hide the `fertile_window` switch while suppressed.
+- Copy (main session): `home.nb.predictions.withdrawalBleed`, `.note.{hormonal,postpartum,age45}`, `home.nb.limits.pregnancyPrompt.{title,body,cta,dismiss}`.
+- QA: pill + postpartum light/dark reviewed (no fertile UI for pill). Pregnancy prompt and age-45 covered by unit tests only.
+- Follow-ups: T-M9-42e (hero shows a huge «▬» when the countdown is null), T-M9-53 (postpartum shows «روز ۱۶ چرخه» 8 days after birth; server-side fertile_window push skip).

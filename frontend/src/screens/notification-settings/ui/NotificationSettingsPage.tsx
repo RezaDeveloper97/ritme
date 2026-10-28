@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useId, useState } from 'react';
 
+import { isFertilitySuppressed, useCycleToday } from '@/entities/cycle';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import {
@@ -62,6 +63,9 @@ function SettingsBody({ settings, save }: BodyProps) {
         ? tc('reminders.items.pms.sub', { day: formatNumber(pmsDay, loc) })
         : tc('reminders.items.pms.subUnknown')
       : t(`items.${code}.sub`);
+  // §2.40: while fertility is suppressed (hormonal contraception, postpartum) there is no fertile window to remind about.
+  // The server-side sender still needs to skip it too (follow-up); here the switch just isn't offered.
+  const suppressed = isFertilitySuppressed(useCycleToday().data?.cycleView ?? null);
   const editorId = useId();
   const { quietHours: quiet } = settings;
 
@@ -78,7 +82,9 @@ function SettingsBody({ settings, save }: BodyProps) {
             {t(`groups.${group.code}`)}
           </h2>
           <ListGroup className="ntf-list">
-            {group.items.map((item) => (
+            {group.items
+              .filter((item) => !(suppressed && item.code === 'fertile_window'))
+              .map((item) => (
               <ListRow
                 key={item.code}
                 id={`ntf-${item.code}`}

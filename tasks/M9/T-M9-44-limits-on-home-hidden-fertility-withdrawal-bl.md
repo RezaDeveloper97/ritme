@@ -3,10 +3,10 @@ id: T-M9-44
 title: Limits on Home: hidden fertility, withdrawal bleed, postpartum, 45+, pregnancy prompt
 milestone: M9
 type: frontend
-status: todo
+status: done
 depends_on: [T-M9-43]
 parallel_group: M9-C
-touches: [frontend/src/screens/home, frontend/src/screens/onboarding-flow/ui/ReadyStep.tsx, frontend/src/screens/notification-settings, frontend/messages/fa/home.json, frontend/messages/en/home.json, backend-go/resources/translations/fa/home.json, backend-go/resources/translations/en/home.json]
+touches: [frontend/src/screens/home, frontend/src/screens/onboarding-flow/ui/ReadyStep.tsx, frontend/src/screens/onboarding-flow/model/hormonal.ts, frontend/src/screens/onboarding-flow/model/hormonal.test.ts, frontend/src/screens/notification-settings, frontend/messages/fa/home.json, frontend/messages/en/home.json, backend-go/resources/translations/fa/home.json, backend-go/resources/translations/en/home.json]
 skills: []
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run copy:check -- home
 ---
