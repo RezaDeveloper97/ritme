@@ -3,10 +3,10 @@ id: T-M9-53b
 title: Ring: no period dots or cycle arc while postpartum before cycles return
 milestone: M9
 type: frontend
-status: todo
+status: done
 depends_on: [T-M9-53]
 parallel_group: M9-C
-touches: [frontend/src/entities/cycle/model,frontend/src/screens/home]
+touches: [docs/engine-v6/qa/T-M9-53b,frontend/src/entities/cycle/model,frontend/src/screens/home]
 skills: []
 verify: cd frontend && npm run typecheck && npm run test -- entities/cycle screens/home && npm run fsd:lint
 ---
@@ -30,3 +30,9 @@ ring still draws period dots and a cycle arc eight days after birth.
 
 ## Acceptance
 - No period dots / «روز N» on the ring in the postpartum-not-returned state; other modes unchanged; verify green.
+
+## Outcome
+Not reproducible after T-M9-53: on v6 the home ring takes its day from `cycle_view.cycle_day` (now null) and
+`schedule` is null, so the postpartum persona already shows an empty ring with «پیش‌بینی پریود / فعلاً نیست»
+(screenshots in `docs/engine-v6/qa/T-M9-53b/`). A guard in `screens/home` was tried and dropped because it could never
+fire (v6 has no schedule; Laravel payloads have no limits). Kept: a postpartum regression test in `schedule.test.ts`.

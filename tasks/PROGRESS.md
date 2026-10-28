@@ -2421,3 +2421,7 @@ Nothing needed fixing.
 - No `fertile_window` push sender exists (reminders planner has no production caller), so nothing to skip.
 - `docs/engine-v6/engine.md` invariant + E-14 row updated. Follow-up T-M9-53b (frontend ring). Open: cycle day after the first postpartum period (E-14 needs 2).
 - Verify: vet, unit, test-int cycle+notifications green; contract cycle 125/0 (12 allow-listed, unchanged); contract-v6 80/0.
+
+## T-M9-53b — Postpartum ring
+- Not reproducible after T-M9-53: the v6 ring reads `cycle_view.cycle_day` (null) and draws no dots or arc. Light/dark QA shots in `docs/engine-v6/qa/T-M9-53b/`. Only a postpartum regression test added to `entities/cycle/model/schedule.test.ts`.
+- Verify: typecheck, vitest entities/cycle + screens/home (182 tests), fsd:lint, lint:styles, lint:dark green.

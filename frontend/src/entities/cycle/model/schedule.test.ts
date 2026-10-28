@@ -251,6 +251,24 @@ describe('deriveCycleSchedule — v6 payloads', () => {
     expect(hasFertileWindow(s)).toBe(false);
   });
 
+  it('postpartum before cycles return: history anchors give no ovulation and no fertile window', () => {
+    const s = deriveCycleSchedule(
+      makeView({
+        cycleDay: null,
+        limits: {
+          fertilitySuppressed: true,
+          suppressionReason: 'postpartum_not_returned',
+          engineSuspended: false,
+          promptPregnancyMode: false,
+        },
+      }),
+      null,
+    )!;
+
+    expect(s.hasOvulation).toBe(false);
+    expect(hasFertileWindow(s)).toBe(false);
+  });
+
   it('a suppressed view paints no fertile/ovulation marker on the calendar', () => {
     const s = deriveCycleSchedule(
       makeView({ warnings: ['hormonal_contraception_active'] }),
