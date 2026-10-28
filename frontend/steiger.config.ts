@@ -23,6 +23,7 @@ export default defineConfig([
       './src/widgets/cycle-calendar/**', // B-N1-07: consumed by screens/calendar
       './src/widgets/pregnancy-week-carousel/**',
       './src/widgets/pregnancy-care-checklist/**',
+      './src/features/skip-period/**', // T-M9-47: consumed by screens/home
     ],
     rules: { 'fsd/insignificant-slice': 'off' },
   },

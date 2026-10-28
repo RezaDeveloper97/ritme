@@ -349,6 +349,30 @@
       }
     }
   },
+  "skip": {
+    "action": "No period this time",
+    "undo": "Undo",
+    "sheet": {
+      "title": "Period didn't come?",
+      "body": "If your period did not arrive on time, you can log this cycle as having no period. Predictions will count one cycle further from now on, and nothing is removed from your history. You can undo it whenever you like.",
+      "confirm": "Yes, no period",
+      "cancel": "Not now"
+    },
+    "toast": {
+      "text": "Saved. Predictions moved one cycle ahead."
+    },
+    "note": {
+      "text": "You logged this cycle as no period."
+    },
+    "errors": {
+      "notExpectedYet": "It is too early. This option opens on the day your period is predicted.",
+      "periodStarted": "A period is already logged for this cycle, so you do not need this.",
+      "predictionMismatch": "Your prediction changed. We refreshed it, so take another look.",
+      "network": "Could not connect. Please try again.",
+      "generic": "That did not work. Please try again in a moment.",
+      "undo": "Could not undo. Please try again."
+    }
+  },
   "life": {
     "menopause": {
       "overline": "Menopause",

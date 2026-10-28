@@ -49,6 +49,7 @@ import {
 } from '@/entities/user';
 import { QuickEditSheet } from '@/features/edit-profile';
 import { PeriodDateEditor, useEndPeriod, useStartPeriod } from '@/features/log-period';
+import { canOfferSkip, SkipPeriodSheet, SkipUndo } from '@/features/skip-period';
 import { getApiErrorCode } from '@/shared/api';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import {
@@ -941,6 +942,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   });
   const startPeriod = useStartPeriod();
   const endPeriod = useEndPeriod();
+  const [skipOpen, setSkipOpen] = useState(false);
   const daysLate = infoView?.daysLate ?? 0;
   const lateTier = hero.tier;
 
@@ -950,6 +952,15 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   const daysToOvulation = infoView?.daysToOvulation ?? null;
   const ttcRing =
     isTtc && !noPeriodData && !loadingInfo && !inPeriod && daysToOvulation != null && daysToOvulation >= 0;
+  const skipExpected = infoView?.anchors?.predictedNextPeriodStart ?? null;
+  const skipOffered = canOfferSkip({
+    isToday,
+    todayUi: infoView?.todayUi ?? null,
+    predictedNext: skipExpected,
+    todayIso,
+    inPeriod,
+    ttcRing,
+  });
   // No countdown at all (postpartum before periods return, a pill user, an unknown day):
   // a calm label instead of a huge dash, and never «پریود بعدی» without a prediction.
   const noCountdown =
@@ -1170,6 +1181,11 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
                   <button type="button" className="home-ring-later" onClick={() => dismiss('start')}>
                     {t('nb.hero.notYet')}
                   </button>
+                  {skipOffered && (
+                    <button type="button" className="home-ring-later" data-action="skip_period" onClick={() => setSkipOpen(true)}>
+                      {t('skip.action')}
+                    </button>
+                  )}
                 </>
               ) : hero.endPrompt ? (
                 // «پریودم تموم شد / هنوز ادامه دارد» (nbl_Cycle_Home_During): closes the open period today.
@@ -1212,6 +1228,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
                 setDateEditorOpen(true);
               }}
               onLogPregnancyTest={() => openSheet('log', `${toApiDate(base)}:pregnancy_test`)}
+              onSkip={skipOffered ? () => setSkipOpen(true) : undefined}
             />
           ) : (
             hero.endMissing && (
@@ -1224,6 +1241,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
               </div>
             )
           )}
+          {isToday && <SkipUndo />}
           {limits.promptPregnancy && isToday && !pregnancyPromptDismissed && !loadFailed && (
             <PregnancyPromptCard onDismiss={() => dismiss('pregnancy')} />
           )}
@@ -1366,6 +1384,8 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
           setDateEditorIntent(undefined);
         }}
       />
+
+      {skipExpected && <SkipPeriodSheet open={skipOpen} onClose={() => setSkipOpen(false)} expectedStart={skipExpected} />}
 
       {/* B-N2-08: trial-offer banner + sheet — never for teen (QUESTIONS #70/#72). */}
       {!teen && <PlusTrialOffer />}

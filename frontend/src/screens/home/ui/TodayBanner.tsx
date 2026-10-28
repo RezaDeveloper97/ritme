@@ -19,6 +19,8 @@ export interface TodayBannerProps {
   onAskLastPeriod: () => void;
   /** `overdue` → the log sheet for today. */
   onLogPregnancyTest: () => void;
+  /** «پریود نداشتم» on the overdue banner; omitted when the skip is not offered. */
+  onSkip?: () => void;
 }
 
 /** The single Today banner (§2.43): one of end missing, overdue (text by tier) or ask for the last period. */
@@ -30,8 +32,10 @@ export function TodayBanner({
   onEditEnd,
   onAskLastPeriod,
   onLogPregnancyTest,
+  onSkip,
 }: TodayBannerProps) {
   const t = useTranslations('home.nb');
+  const tSkip = useTranslations('home.skip');
   const loc = useLocale() as Locale;
 
   const handlers: Record<BannerAction, { label: string; onClick: () => void }> = {
@@ -74,6 +78,11 @@ export function TodayBanner({
             {handlers[a].label}
           </button>
         ))}
+        {banner === 'overdue' && onSkip && (
+          <button type="button" className="ch-link" data-action="skip_period" onClick={onSkip}>
+            {tSkip('action')}
+          </button>
+        )}
       </span>
     </div>
   );

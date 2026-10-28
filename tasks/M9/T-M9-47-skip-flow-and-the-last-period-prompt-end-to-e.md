@@ -3,10 +3,10 @@ id: T-M9-47
 title: «پریود نداشتم» skip flow and the last-period prompt end to end
 milestone: M9
 type: frontend
-status: todo
+status: done
 depends_on: [T-M9-29, T-M9-44]
 parallel_group: M9-C
-touches: [frontend/src/features/skip-period, frontend/src/screens/home, frontend/src/entities/cycle/api, frontend/messages/fa/home.json, frontend/messages/en/home.json, backend-go/resources/translations/fa/home.json, backend-go/resources/translations/en/home.json]
+touches: [frontend/src/features/skip-period, frontend/src/screens/home, frontend/src/entities/cycle/api, frontend/messages/fa/home.json, frontend/messages/en/home.json, backend-go/resources/translations/fa/home.json, backend-go/resources/translations/en/home.json, frontend/steiger.config.ts]
 skills: [new-fsd-slice]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run copy:check -- home
 ---

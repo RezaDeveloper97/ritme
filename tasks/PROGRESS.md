@@ -2392,3 +2392,12 @@ Nothing needed fixing.
 - Stale anchor `unknown` + cycle_day already never shows «پریود · روز n» (`phaseFromMainPhase` → null); confirmed on screenshots.
 - QA light/dark (pill, postpartum, stale anchor) reviewed in the main session. Laravel path unchanged.
 - Open: postpartum ring still paints projected period dots and «روز ۵۰ چرخه» (T-M9-53); engine daily-card copy «به سلامت خود توجه کنید» uses the formal register (message content, not this task).
+
+## T-M9-47 — «پریود نداشتم» skip flow and the last-period prompt end to end
+- New slice `features/skip-period`: `useSkipPeriod` / `useUndoSkip` (refetch via `invalidateCycleDependents`; 422 `code` → calm messages for not_expected_yet / period_started / prediction_mismatch, plus network/generic; undo 404 = already undone), `canOfferSkip` (v6, today, not in period, not TTC ring, today ≥ predicted_next, overdue banner or ring `start`; hidden under ask_last_period), zustand store keeping the undo date for the day, `SkipPeriodSheet` (confirm) and `SkipUndo` (8 s inverse toast above the nav + a quiet note until midnight).
+- Entry points: overdue banner link (`TodayBanner onSkip`) and a third button next to «هنوز نه» in the ring start prompt.
+- `frontend/steiger.config.ts`: `features/skip-period` added to the "consumed by screens" block (main session; added to touches).
+- Copy `home.skip.*` reviewed; main session simplified three strings (no nested «», en "Period didn't come?").
+- Checked end to end on local Go v6 (persona 1010, 10 days late): skip from banner and ring → banner gone, predictions +1 cycle, toast + note; undo → banner back. API: 201 skip, 204 undo, 422 prediction_mismatch. Light/dark shots reviewed.
+- Not covered end to end: ask_last_period → PeriodDateEditor → banner gone (existing wiring).
+- Incident: the run filled the disk (ENOSPC) and Docker hung; `ritme_dev` may still exist in the test-stack MariaDB until Docker is restarted and it is dropped.
