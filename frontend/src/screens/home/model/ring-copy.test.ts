@@ -7,8 +7,8 @@ import fa from '../../../../messages/fa/home.json';
 const LIMITS = { label: 14, unit: 10, subtitle: 18 } as const;
 
 const KEYS: Record<keyof typeof LIMITS, string[]> = {
-  label: ['ring.nextPeriod', 'ring.period', 'ring.noData', 'nb.hero.late', 'nb.hero.periodIn'],
-  unit: ['ring.daysLeft', 'nb.hero.lateUnit'],
+  label: ['ring.nextPeriod', 'ring.period', 'ring.noData', 'ring.noPrediction', 'nb.hero.late', 'nb.hero.periodIn'],
+  unit: ['ring.daysLeft', 'ring.noPredictionValue', 'nb.hero.lateUnit'],
   subtitle: ['ring.usually', 'ring.cycleDay'],
 };
 

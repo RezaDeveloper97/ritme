@@ -221,7 +221,9 @@
     "cycleDay": "روز {n, number} چرخه",
     "editPeriod": "ویرایش پریود",
     "noData": "پریود ثبت نشده",
-    "logPeriod": "ثبت پریود"
+    "logPeriod": "ثبت پریود",
+    "noPrediction": "پیش‌بینی پریود",
+    "noPredictionValue": "فعلاً نیست"
   },
   "phaseCard": {
     "title": {
@@ -229,7 +231,9 @@
       "follicular": "فاز فولیکولار",
       "fertile": "پنجرهٔ باروری",
       "ovulation": "تخمک‌گذاری",
-      "luteal": "فاز لوتئال"
+      "luteal": "فاز لوتئال",
+      "neutral": "امروز",
+      "neutralDay": "این روز"
     },
     "nearPeriod": "نزدیک پریود",
     "more": "بیشتر دربارهٔ این فاز",

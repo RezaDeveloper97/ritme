@@ -950,8 +950,14 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   const daysToOvulation = infoView?.daysToOvulation ?? null;
   const ttcRing =
     isTtc && !noPeriodData && !loadingInfo && !inPeriod && daysToOvulation != null && daysToOvulation >= 0;
+  // No countdown at all (postpartum before periods return, a pill user, an unknown day):
+  // a calm label instead of a huge dash, and never «پریود بعدی» without a prediction.
+  const noCountdown =
+    !loadingInfo && !noPeriodData && !ttcRing && !inPeriod && hero.variant !== 'late' && daysLeft == null;
   const ringOverline = noPeriodData
     ? t('ring.noData')
+    : noCountdown
+      ? t('ring.noPrediction')
     : ttcRing
       ? tf('home.ovulationIn')
       : inPeriod && !loadingInfo
@@ -961,7 +967,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
           : hero.variant === 'near' && daysLeft !== 0
             ? t('nb.hero.periodIn')
             : t('ring.nextPeriod');
-  const ringNumber = loadingInfo
+  const ringNumber = loadingInfo || noCountdown
     ? dash
     : ttcRing
       ? daysToOvulation === 0
@@ -1004,9 +1010,14 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
 
   // ── The phase card ──
   const nearPeriod = hero.variant === 'near' || hero.variant === 'late';
-  const phaseTitle = loadingInfo || !infoPhase
+  // A null v6 phase (combined pill, unknown day, stale anchor) gets a neutral header that implies no natural phase.
+  const phaseTitle = loadingInfo
     ? dash
-    : nearPeriod
+    : !infoPhase
+      ? infoCycleDay != null
+        ? t('ring.cycleDay', { n: infoCycleDay })
+        : t(isToday ? 'phaseCard.title.neutral' : 'phaseCard.title.neutralDay')
+      : nearPeriod
       ? t('phaseCard.nearPeriod')
       : t(`phaseCard.title.${infoPhase}`, { n: infoCycleDay ?? infoPred?.cycleDay ?? 1 });
   const phaseDot: CyclePhase | null = loadingInfo || !infoPhase ? null : nearPeriod ? 'period' : infoPhase;
@@ -1125,12 +1136,16 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
             <CycleRing days={ringDays} nowIndex={ringNowIndex} label={ringLabel}>
               {/* `--period` red means menstruation (§10.2); "nothing logged yet"
                   is not a period, so the empty state takes the neutral caption. */}
-              <span className={noPeriodData ? 'home-ring-sub' : clsx('home-ring-over', ttcRing && 'is-ttc')}>
+              <span className={noPeriodData || noCountdown ? 'home-ring-sub' : clsx('home-ring-over', ttcRing && 'is-ttc')}>
                 {ringOverline}
               </span>
               {!noPeriodData && (
                 <div className="home-ring-big">
-                  <span className="home-ring-num">{ringNumber}</span>
+                  {noCountdown ? (
+                    <span className="home-ring-unit">{t('ring.noPredictionValue')}</span>
+                  ) : (
+                    <span className="home-ring-num">{ringNumber}</span>
+                  )}
                   {ringUnit && <span className="home-ring-unit">{ringUnit}</span>}
                 </div>
               )}

@@ -2385,3 +2385,10 @@ Nothing needed fixing.
 - Tests: `TestStaleAnchor_NoPeriodDayUnderAskLastPeriod` (days 43–200), int check in `TestLoad_OnboardingOnlyUserIsDeclaredThenStale`; engine persona golden `onboarding_stale.golden.jsonl` (4 lines). No contract golden had a stale anchor. Contract v1 cycle 125/0, v6 cycle 80/0.
 - Case 2 (persona 1003, onboarding-only resolves `unknown`): caused by fixtures in the pre-I-01 shape (estimate row, NULL column). The agent's engine fallback was reverted on the user's decision (keep I-01) → T-M9-52b fixes the fixtures.
 - Frontend follow-up folded into T-M9-42e: ring must show the neutral state for `unknown` with a cycle_day.
+
+## T-M9-42e — Home: neutral states instead of dashes (phase header, null countdown, unknown day)
+- Phase card header with a null v6 phase: «روز n چرخه» (existing `ring.cycleDay`) when a cycle_day exists, else «امروز» / «این روز» (`home.phaseCard.title.neutral`, `.neutralDay`); no phase dot.
+- Hero ring with a null countdown (`noCountdown`: not loading, not in period, not late, not TTC ring, `daysLeft == null`): grey overline «پیش‌بینی پریود» / "Forecast" + «فعلاً نیست» / "Not yet" (`home.ring.noPrediction`, `.noPredictionValue`) instead of «پریود بعدی» + a huge «▬».
+- Stale anchor `unknown` + cycle_day already never shows «پریود · روز n» (`phaseFromMainPhase` → null); confirmed on screenshots.
+- QA light/dark (pill, postpartum, stale anchor) reviewed in the main session. Laravel path unchanged.
+- Open: postpartum ring still paints projected period dots and «روز ۵۰ چرخه» (T-M9-53); engine daily-card copy «به سلامت خود توجه کنید» uses the formal register (message content, not this task).

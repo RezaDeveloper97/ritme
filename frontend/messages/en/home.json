@@ -221,7 +221,9 @@
     "cycleDay": "Cycle day {n, number}",
     "editPeriod": "Edit period",
     "noData": "No period yet",
-    "logPeriod": "Log period"
+    "logPeriod": "Log period",
+    "noPrediction": "Forecast",
+    "noPredictionValue": "Not yet"
   },
   "phaseCard": {
     "title": {
@@ -229,7 +231,9 @@
       "follicular": "Follicular phase",
       "fertile": "Fertile window",
       "ovulation": "Ovulation",
-      "luteal": "Luteal phase"
+      "luteal": "Luteal phase",
+      "neutral": "Today",
+      "neutralDay": "This day"
     },
     "nearPeriod": "Period is near",
     "more": "More about this phase",
