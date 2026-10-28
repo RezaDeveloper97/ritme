@@ -216,7 +216,39 @@ func TestLimits_Postpartum(t *testing.T) {
 		assert.False(t, st.DaysLate.OK())
 		assert.Equal(t, ConfidenceUnknown, st.Confidence, "periods before the delivery do not count")
 		assert.False(t, st.RequiresUserInput)
+		assert.False(t, st.CycleDay.OK(), "T-M9-53: no cycle day counted from a pre-delivery start")
 		assertSuppressedFertility(t, st, "old history")
+	})
+
+	// T-M9-53 QA persona: birth 2026-10-20, breastfeeding, the last period before the pregnancy on record. Eight days
+	// after the birth there is no cycle to count: no cycle day, nothing predicted, no future cycles, no today ring
+	// prompt; the period logged before the pregnancy still resolves menstrual (history, with its own day).
+	t.Run("QA persona: eight days after birth → no cycle day", func(t *testing.T) {
+		in := none()
+		in.Mode, in.Breastfeeding, in.DeliveryDate = ModePostpartum, true, Some(day("2026-10-20"))
+		in.Periods = periodsEnding(day("2026-01-13"), 5, 28, 28)
+		s := prep(in)
+		today := day("2026-10-28")
+		st, ui := s.Today(today)
+		assert.Equal(t, SuppressionPostpartumNotReturned, st.Limits.SuppressionReason)
+		assert.True(t, st.Warnings.Has(WarnPostpartumCyclesNotReturned))
+		assert.Equal(t, MainPhaseUnknown, st.MainPhase)
+		assert.False(t, st.CycleDay.OK())
+		assert.False(t, st.DaysToPeriod.OK())
+		assert.False(t, st.DaysLate.OK())
+		assert.False(t, st.DaysToOvulation.OK())
+		assert.Equal(t, NoDay, st.Anchors.PredictedNextPeriodStart)
+		assert.Empty(t, st.FutureCycles)
+		assert.Equal(t, RingEdit, ui.RingAction)
+		assert.False(t, ui.PredictionCard.OK())
+		for d := day("2026-10-20"); d <= today+60; d++ {
+			got := s.Resolve(d, today)
+			assert.False(t, got.CycleDay.OK(), "%s: no cycle day", d)
+			assert.NotEqual(t, MainPhaseMenstrual, got.MainPhase, "%s: no predicted period", d)
+		}
+		old := s.Resolve(day("2026-01-15"), today)
+		assert.Equal(t, MainPhaseMenstrual, old.MainPhase)
+		assert.Equal(t, Some(3), old.CycleDay)
 	})
 
 	t.Run("one period → that period menstrual, other days unknown, confidence low", func(t *testing.T) {
@@ -233,7 +265,8 @@ func TestLimits_Postpartum(t *testing.T) {
 		st = s.Resolve(today, today)
 		assert.Equal(t, MainPhaseUnknown, st.MainPhase)
 		assert.Equal(t, ConfidenceLow, st.Confidence)
-		assert.Equal(t, Some(16), st.CycleDay)
+		assert.False(t, st.CycleDay.OK(), "T-M9-53: cycles have not returned yet")
+		assert.Equal(t, Some(3), s.Resolve(day("2026-10-12"), today).CycleDay, "logged bleeding keeps its day")
 		assert.Equal(t, NoDay, st.Anchors.PredictedNextPeriodStart)
 		assert.False(t, st.DaysToPeriod.OK())
 		assert.True(t, st.Warnings.Has(WarnPostpartumCyclesNotReturned))

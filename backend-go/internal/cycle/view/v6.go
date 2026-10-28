@@ -188,7 +188,7 @@ type CardV6Input struct {
 }
 
 // DailyCardV6 is the daily card of a v6 status, with the v1.1 copy (DailyCardBuilder) chosen from v6 facts; nil when
-// the day has no cycle day or an unknown phase without lateness.
+// the day has no cycle day or an unknown phase without lateness (postpartum before cycles return included, E-14).
 //
 //   - a day of a logged period: closed → «روز N پریود» (actual); open → the open-period card, with the end prompt
 //     (log end / still bleeding) when today_ui.ring_action is `end` (§2.43);
@@ -203,8 +203,10 @@ func DailyCardV6(in CardV6Input) *DailyCard {
 	st := in.Status
 	cd, ok := st.CycleDay.Get()
 	lateUnknown := st.MainPhase == engine.MainPhaseUnknown && st.DaysLate.Or(0) > 0
-	// E-13: under hormonal contraception every non-bleeding day is unknown but still a predicted cycle day.
-	suppressedDay := st.MainPhase == engine.MainPhaseUnknown && st.Limits.FertilitySuppressed && !st.Limits.EngineSuspended
+	// E-13: under hormonal contraception every non-bleeding day is unknown but still a predicted cycle day. Postpartum
+	// before cycles return (E-14) is not: no cycle runs, so no «روز N چرخه» / «یک روز معمول چرخه» card (T-M9-53).
+	suppressedDay := st.MainPhase == engine.MainPhaseUnknown &&
+		st.Limits.SuppressionReason == engine.SuppressionHormonalContraception
 	if !ok || (st.MainPhase == engine.MainPhaseUnknown && !lateUnknown && !suppressedDay) {
 		return nil
 	}

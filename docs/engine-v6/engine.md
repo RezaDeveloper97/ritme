@@ -91,7 +91,7 @@ At resolve time:
 | E-11 | > max_late days late: unknown phase, still `prediction`, poor and low | `resolve.go` `resolveCycle` |
 | E-12, E-21 | Cap warnings are cumulative; an open period past a cap stays poor/low with requires_user_input | `resolve.go` `menstrual` |
 | E-13 | Hormonal contraception: logged bleeding is menstrual, period-expected tiers stay, every other day is unknown, no fertile window or ovulation | `resolve.go`, `limits.go`, `future.go` |
-| E-14 | Postpartum / breastfeeding: nothing is predicted until 2 real periods after delivery; confidence unknown, then low | `limits.go` `postpartumPeriods`, `quality.go` `limitGrade` |
+| E-14 | Postpartum / breastfeeding: nothing is predicted until 2 real periods after delivery; confidence unknown, then low; `cycle_day` only on logged bleeding (T-M9-53) | `limits.go` `postpartumPeriods`, `quality.go` `limitGrade` |
 | E-15 | A skip equal to the predicted start becomes a no-period anchor; other skips are ignored (Diagnostics) | `anchors.go` `prepareSkipAnchors`, `skipAnchorIn` |
 | E-16 | BBT strict 3-over-6; LH = first positive + 1; BBT > LH; conflict when the gap is > 2 days | `bbt/bbt.go`, `ovulation.go` |
 | E-17 | today_ui ring / banner / test button / prediction card | `todayui.go` |
@@ -134,8 +134,8 @@ Hardening fixes (T-M9-22). FuzzPrepare found these; each is a named case in `Tes
 
 The invariants:
 
-- `cycle_day ≥ 1` and equals `date − start + 1` whenever a start exists. Only pregnancy hides it, outside logged
-  bleeding.
+- `cycle_day ≥ 1` and equals `date − start + 1` whenever a start exists. Pregnancy and postpartum before cycles
+  return (E-14) hide it outside logged bleeding.
 - `main_phase` is the main phase of the subphase.
 - Every start and end has a source. `is_confirmed` holds exactly when the end source is `user_logged`. An ovulation
   date has a source, and it comes before the predicted next start.

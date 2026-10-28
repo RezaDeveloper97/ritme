@@ -303,8 +303,10 @@ func (s *State) resolveCycle(target Day, c *cycle, ok, quiet bool, m *layoutMemo
 	}
 	if sup != SuppressionNone { // §2.26 / §2.34: suppressed fertility is unknown and has no countdown
 		st.FertilityLevel = FertilityUnknown
-		if sup == SuppressionPregnancy && st.MainPhase != MainPhaseMenstrual {
-			st.CycleDay = None[int]() // E-25: no cycle runs during a pregnancy; logged history keeps its day
+		// E-25 / E-14: no cycle runs during a pregnancy or before cycles return after a delivery, so only logged
+		// bleeding keeps its day (T-M9-53: no «روز N چرخه» counted from a pre-delivery start).
+		if noPrediction && st.MainPhase != MainPhaseMenstrual {
+			st.CycleDay = None[int]()
 		}
 		return st, f
 	}

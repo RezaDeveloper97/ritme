@@ -36,6 +36,11 @@ func loggedBleeding(s *State, d Day) bool {
 	return d == p.Start || (!p.Open() && d <= p.End)
 }
 
+// noCycleSuppression is a suppression under which no cycle runs (E-25 pregnancy, E-14 postpartum not returned).
+func noCycleSuppression(sup SuppressionReason) bool {
+	return sup == SuppressionPregnancy || sup == SuppressionPostpartumNotReturned
+}
+
 // violations lists every broken invariant of one status resolved with today.
 func violations(s *State, st *Status, today Day) []string {
 	var v []string
@@ -49,9 +54,12 @@ func violations(s *State, st *Status, today Day) []string {
 		bad("main_phase %s is not the main phase of subphase %s", st.MainPhase, st.Subphase)
 	}
 
-	// cycle_day ≥ 1 whenever a start exists (1-based, §2.5); only a pregnancy hides it outside logged bleeding (E-25).
+	// cycle_day ≥ 1 whenever a start exists (1-based, §2.5); only a pregnancy (E-25) or postpartum before cycles
+	// return (E-14, T-M9-53) hides it outside logged bleeding.
 	if cd, ok := st.CycleDay.Get(); ok {
 		switch {
+		case noCycleSuppression(sup) && st.MainPhase != MainPhaseMenstrual:
+			bad("cycle_day %d outside logged bleeding under %s", cd, sup)
 		case cd < 1:
 			bad("cycle_day %d < 1", cd)
 		case !a.CurrentPeriodStart.IsSet():
@@ -59,7 +67,7 @@ func violations(s *State, st *Status, today Day) []string {
 		case cd != int(st.Date-a.CurrentPeriodStart)+1:
 			bad("cycle_day %d ≠ date − start + 1 (start %s)", cd, a.CurrentPeriodStart)
 		}
-	} else if a.CurrentPeriodStart.IsSet() && (sup != SuppressionPregnancy || st.MainPhase == MainPhaseMenstrual) {
+	} else if a.CurrentPeriodStart.IsSet() && (!noCycleSuppression(sup) || st.MainPhase == MainPhaseMenstrual) {
 		bad("current_period_start %s without cycle_day", a.CurrentPeriodStart)
 	}
 

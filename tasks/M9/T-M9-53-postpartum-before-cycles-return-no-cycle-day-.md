@@ -3,10 +3,10 @@ id: T-M9-53
 title: Postpartum before cycles return: no cycle day/period ring; skip fertile-window pushes while suppressed
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-44]
 parallel_group: M9-C
-touches: [backend-go/internal/cycle/engine,backend-go/internal/cycle/view,backend-go/internal/notifications,backend-go/contract/golden-v6]
+touches: [docs/engine-v6/engine.md,backend-go/internal/cycle/engine,backend-go/internal/cycle/view,backend-go/internal/notifications,backend-go/contract/golden-v6]
 skills: []
 verify: cd backend-go && go vet ./... && go test ./internal/cycle/... ./internal/notifications/... && make test-int PKG="./internal/cycle/... ./internal/notifications/..." && make contract ROUTES=cycle
 ---
@@ -30,3 +30,11 @@ but a server-side sender may still push `fertile_window` (`internal/notification
 
 ## Acceptance
 - Tests for the postpartum state and (if a sender exists) the push skip; v1 contract unchanged; verify green.
+
+## Outcome
+- Engine: `cycle_day` only on logged bleeding under postpartum-not-returned (same rule as E-25 pregnancy); the v6
+  daily card no longer treats postpartum unknown days as predicted cycle days (that stays hormonal-only, E-13).
+- No scheduled `fertile_window` sender exists: `reminders.Plan` has no production caller, no periodic job sends cycle
+  reminders, and `CycleFrom` reads empty `FutureCycles` under postpartum suppression. Push-skip half closed, no code.
+- Follow-up: T-M9-53b (frontend ring still draws period dots from the history anchors).
+- Open product question: after the first postpartum period (E-14 needs two), non-bleeding days also have no cycle day.

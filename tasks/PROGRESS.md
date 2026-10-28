@@ -2414,3 +2414,10 @@ Nothing needed fixing.
 - v6 goldens (cycle, cycle-month, home, fertility) regenerated: `onboarding_declared` now gets a declared anchor instead of `insufficient_anchor_data`. Analysis goldens unchanged (no confirmed cycles).
 - `periods/testdata/sequence/laravel.jsonl` re-captured (step 13 inserts); `docs/go-migration/contract.md` persona table updated.
 - Verify: contract cycle 125/0, contract-v6 80/0, test-int cycle/fertility/home green.
+
+## T-M9-53 — Postpartum before cycles return: no cycle day
+- `engine/resolve.go`: under `postpartum_not_returned` (E-14), like pregnancy (E-25), `cycle_day` is set only on logged bleeding days. `view/v6.go`: the "predicted cycle day" daily card is hormonal-contraception only (E-13), so postpartum shows no «روز N چرخه» / «یک روز معمول چرخه».
+- Tests: invariant `noCycleSuppression`, postpartum QA persona (birth 2026-10-20) in engine and view (fa/en); persona golden `postpartum_breastfeeding` regenerated (only `cycle_day` changed).
+- No `fertile_window` push sender exists (reminders planner has no production caller), so nothing to skip.
+- `docs/engine-v6/engine.md` invariant + E-14 row updated. Follow-up T-M9-53b (frontend ring). Open: cycle day after the first postpartum period (E-14 needs 2).
+- Verify: vet, unit, test-int cycle+notifications green; contract cycle 125/0 (12 allow-listed, unchanged); contract-v6 80/0.

@@ -129,6 +129,34 @@ func TestDailyCardV6_Cases(t *testing.T) {
 		require.NotNil(t, l.Predictions)
 		assert.True(t, l.Predictions.FertileWindowStart.IsZero(), "no fertile window under suppression")
 	})
+	// T-M9-53 QA persona: birth 2026-10-20, breastfeeding, eight days later. No cycle runs before cycles return
+	// (E-14): no cycle day, no «یک روز معمول چرخه» card, no predictions; a pre-pregnancy logged day keeps its card.
+	t.Run("postpartum before cycles return: no cycle-day card", func(t *testing.T) {
+		in := regular(t)
+		in.Mode, in.Breastfeeding, in.DeliveryDate = engine.ModePostpartum, true, engine.Some(day(t, "2026-10-20"))
+		for _, loc := range []string{"en", "fa"} {
+			st := engine.Prepare(in, engine.DefaultParams())
+			today := day(t, "2026-10-28")
+			s, ui := st.Today(today)
+			l := LegacyFromV6(V6Input{State: st, Status: &s, UI: &ui, Today: today, Locale: loc})
+			require.Equal(t, engine.SuppressionPostpartumNotReturned, s.Limits.SuppressionReason)
+			assert.False(t, s.CycleDay.OK())
+			assert.Empty(t, s.FutureCycles)
+			assert.Nil(t, l.DailyCard, loc)
+			assert.Nil(t, l.DataStatus, loc)
+			assert.Nil(t, l.Phase, loc)
+			assert.Nil(t, l.Predictions, loc)
+			// Every day from the birth on: no card (no cycle day, no usual-day copy).
+			for d := day(t, "2026-10-20"); d <= today+40; d++ {
+				ds := st.Resolve(d, today)
+				dui := st.TodayUI(ds)
+				assert.Nil(t, DailyCardV6(CardV6Input{Status: &ds, UI: &dui, Today: today, Locale: loc}), "%s %s", loc, d)
+			}
+		}
+		l, _ := legacyOn(t, in, "2026-07-03", "2026-10-28")
+		require.NotNil(t, l.DailyCard, "logged history keeps its card")
+		assert.Equal(t, "Day 3 of your period", l.DailyCard.Title)
+	})
 	t.Run("teen keeps the numbers but drops the fertility copy", func(t *testing.T) {
 		in := regular(t)
 		in.Mode = engine.ModeTeen
