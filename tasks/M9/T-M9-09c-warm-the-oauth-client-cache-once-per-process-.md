@@ -3,7 +3,7 @@ id: T-M9-09c
 title: Warm the OAuth client cache once per process (shared verifier per app)
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-09b]
 parallel_group: M9-B
 touches: [backend-go/internal/auth/guard.go,backend-go/internal/auth/guard_test.go,backend-go/internal/auth/passport]

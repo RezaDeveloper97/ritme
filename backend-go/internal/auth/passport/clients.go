@@ -75,6 +75,15 @@ func (c *clientCache) lookup(ctx context.Context, id string) (store.ListClientsR
 	return row, ok, nil
 }
 
+// WarmClients loads the client cache now (T-M9-09c), so the first authed request does not pay for it. It is a no-op
+// when a snapshot is already loaded. The snapshot then ages under the usual ClientCacheTTL — warming changes when
+// the first load happens, not how long a client revocation takes to reach the guard (≤ ClientCacheTTL, D-140).
+// On error the cache stays empty and the first request loads it, exactly as without warming.
+func (v *Verifier) WarmClients(ctx context.Context) error {
+	_, err := v.clients.loadIfOlder(ctx, nil)
+	return err
+}
+
 // loadIfOlder loads a fresh snapshot unless the current one is already newer than seen (nil = load unless any).
 func (c *clientCache) loadIfOlder(ctx context.Context, seen *clientSnapshot) (*clientSnapshot, error) {
 	c.loadMu.Lock()

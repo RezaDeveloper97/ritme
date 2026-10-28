@@ -2401,3 +2401,9 @@ Nothing needed fixing.
 - Checked end to end on local Go v6 (persona 1010, 10 days late): skip from banner and ring → banner gone, predictions +1 cycle, toast + note; undo → banner back. API: 201 skip, 204 undo, 422 prediction_mismatch. Light/dark shots reviewed.
 - Not covered end to end: ask_last_period → PeriodDateEditor → banner gone (existing wiring).
 - Incident: the run filled the disk (ENOSPC) and Docker hung; `ritme_dev` may still exist in the test-stack MariaDB until Docker is restarted and it is dropped.
+
+## T-M9-09c — Warm the OAuth client cache once per process
+- `passport.(*Verifier).WarmClients(ctx)` runs one `ListClients` and fills the cache under the usual TTL.
+- `auth/guard.go` keeps one shared `*passport.Verifier` per `*fiber.App` (in `app.State()`, same pattern as `auth.Jobs`), warmed once with a 5 s timeout; on failure it logs and falls back to lazy load; skipped when `db == nil`.
+- No snapshot wrapper; the client revocation bound stays ≤ 5 min (D-140). Security review: no critical/high/medium findings. One low, pre-existing item (a stale client snapshot can outlive the 5-min bound) → T-M9-09d (needs user OK).
+- Verify: `go vet` + `go test ./internal/auth/...` green (`-race` needs CGO, which the macOS SDK linker bug blocks); `make contract ROUTES=auth` 45/45.

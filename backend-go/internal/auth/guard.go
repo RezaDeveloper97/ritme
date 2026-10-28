@@ -7,6 +7,7 @@ import (
 	"errors"
 	"log/slog"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -87,13 +88,69 @@ func NewGuardWith(pub *rsa.PublicKey, st passport.VerifierStore, clk clock.Clock
 // MustGuard is NewGuard for a routes_<domain>.go registrar: when the keys are missing or
 // unreadable the server refuses to start (see FailStartup) and the returned guard answers
 // every request with a 500.
+//
+// On the *fiber.App with a DB, every guard of the app shares one verifier (T-M9-09c): the keys are loaded once and
+// the OAuth client cache is warmed once per process instead of once per guard. Sharing changes no rule — the token
+// row is still read on every request, and a client revocation still reaches the guard within ClientCacheTTL (D-140).
 func MustGuard(r fiber.Router, cfg *config.Config, db *sql.DB, logger *slog.Logger) *Guard {
-	g, err := NewGuard(cfg, db, logger)
+	return mustGuard(r, db != nil, logger, func() (*passport.Verifier, error) {
+		keys, err := passport.LoadKeys(cfg.StoragePath)
+		if err != nil {
+			return nil, err
+		}
+		return passport.NewVerifier(keys.Public, store.New(db), clock.Real{}), nil
+	})
+}
+
+// mustGuard is MustGuard with the verifier builder injected (tests). share=false keeps one verifier per guard.
+func mustGuard(r fiber.Router, share bool, logger *slog.Logger, build func() (*passport.Verifier, error)) *Guard {
+	if logger == nil {
+		logger = slog.Default()
+	}
+	var v *passport.Verifier
+	var err error
+	if app, ok := r.(*fiber.App); ok && share {
+		v, err = sharedVerifier(app, logger, build)
+	} else {
+		v, err = build()
+	}
 	if err != nil {
 		FailStartup(r, logger, err)
 		return &Guard{initErr: err, logger: logger}
 	}
-	return g
+	return &Guard{verifier: v, logger: logger}
+}
+
+// verifierStateKey holds the app's shared verifier in its State (same pattern as Jobs).
+const verifierStateKey = "ritme.auth.verifier"
+
+// clientWarmTimeout bounds the start-up client cache warm-up.
+const clientWarmTimeout = 5 * time.Second
+
+var verifierMu sync.Mutex
+
+// sharedVerifier returns the app's verifier, building it and warming its client cache on first use. A build error
+// (missing keys) is not stored, so every registrar still refuses to start; a warm-up error is only logged and the
+// first request loads the clients as before.
+func sharedVerifier(app *fiber.App, logger *slog.Logger, build func() (*passport.Verifier, error)) (*passport.Verifier, error) {
+	verifierMu.Lock()
+	defer verifierMu.Unlock()
+	if v, ok := app.State().Get(verifierStateKey); ok {
+		if pv, ok := v.(*passport.Verifier); ok {
+			return pv, nil
+		}
+	}
+	v, err := build()
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), clientWarmTimeout)
+	defer cancel()
+	if err := v.WarmClients(ctx); err != nil {
+		logger.Warn("auth: client cache warm-up failed, loading on first request", slog.String("error", err.Error()))
+	}
+	app.State().Set(verifierStateKey, v)
+	return v, nil
 }
 
 // RequireUser is the `auth:api` middleware: Bearer header only (no cookies, no query),
