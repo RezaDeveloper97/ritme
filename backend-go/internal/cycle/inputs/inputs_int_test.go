@@ -240,6 +240,16 @@ func TestLoad_OnboardingOnlyUserIsDeclaredThenStale(t *testing.T) {
 	stale := engine.Prepare(in, engine.DefaultParams()).Resolve(later, later)
 	assert.True(t, stale.Warnings.Has(engine.WarnStaleOnboardingAnchor), "§2.41 stale anchor after 90 days")
 	assert.Equal(t, engine.StartPredictedReference, stale.Anchors.CurrentPeriodStartSource)
+
+	// T-M9-52: on a rolled-forward "period" day (85 days after the 2026-10-10 anchor: n = 3, cycle day 2) the
+	// engine asks for the last period and paints no period day.
+	rolled := day(today.AddDays(74).String())
+	in, err = inputs.Load(context.Background(), q, uid, today.AddDays(74))
+	require.NoError(t, err)
+	st2, ui := engine.Prepare(in, engine.DefaultParams()).Today(rolled)
+	assert.Equal(t, engine.Some(2), st2.CycleDay)
+	assert.Equal(t, engine.BannerAskLastPeriod, ui.Banner)
+	assert.Equal(t, engine.MainPhaseUnknown, st2.MainPhase, "ask_last_period never sits next to a period main_phase")
 }
 
 // seedBudget is the budget user: 120 periods and 400 markers (200 days of BBT + LH).

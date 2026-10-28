@@ -165,6 +165,54 @@ func TestFuture_StaleAnchor(t *testing.T) {
 	assert.Equal(t, StartUserLogged, st.Anchors.CurrentPeriodStartSource)
 }
 
+// TestStaleAnchor_NoPeriodDayUnderAskLastPeriod is T-M9-52 (QA T-M9-42d persona 1002, anchor 57 days old): §2.41
+// asks for the last period, so the rolled-forward start never paints a period day (§2.20.1: menstrual only for a
+// real or active period) — every day of the assumed range is unknown, and ask_last_period never sits next to a
+// menstrual main_phase. The projection after today (E-03) still shows predicted period days.
+func TestStaleAnchor_NoPeriodDayUnderAskLastPeriod(t *testing.T) {
+	today := day("2026-10-28")
+	lmp := today - 57 // 2026-09-01: diff 57 > 28 + 14 → n = 2, rolled start 2026-10-27, cycle day 2
+	s := prep(declared(Declared{LastPeriodStart: Some(lmp)}))
+
+	st, ui := s.Today(today)
+	assert.Equal(t, "2026-10-27", st.Anchors.CurrentPeriodStart.String())
+	assert.Equal(t, StartPredictedReference, st.Anchors.CurrentPeriodStartSource)
+	assert.Equal(t, Some(2), st.CycleDay)
+	assert.Equal(t, MainPhaseUnknown, st.MainPhase)
+	assert.Equal(t, SubphaseUnknown, st.Subphase)
+	assert.Equal(t, FertilityUnknown, st.FertilityLevel)
+	assert.Equal(t, ResolutionDefaultBased, st.ResolutionSource, "still a prediction from the onboarding date (E-10)")
+	assert.False(t, st.Warnings.Has(WarnInsufficientAnchorData), "not insufficient: the anchor exists")
+	assert.Equal(t, ConfidenceLow, st.Confidence)
+	assert.True(t, st.RequiresUserInput)
+	assert.Equal(t, BannerAskLastPeriod, ui.Banner)
+	assert.True(t, ui.PredictionCard.OK(), "the next period is still predicted")
+
+	// Every day of every stale cycle: ask_last_period never coexists with a period main_phase.
+	for d := lmp + 43; d <= lmp+200; d++ {
+		st, ui := s.Today(d)
+		require.True(t, st.Warnings.Has(WarnStaleOnboardingAnchor), d.String())
+		require.Equal(t, BannerAskLastPeriod, ui.Banner, d.String())
+		require.NotEqual(t, MainPhaseMenstrual, st.MainPhase, d.String())
+		require.NotEqual(t, MainPhasePeriodExpected, st.MainPhase, d.String())
+	}
+
+	// After the assumed range the cycle resolves as before (cycle day 6 = early follicular).
+	st = s.Resolve(today+4, today+4)
+	assert.Equal(t, SubphaseEarlyFollicular, st.Subphase)
+
+	// Before the stale threshold the declared start is still the user's own period (menstrual, E-10).
+	st = s.Resolve(lmp+1, lmp+1)
+	assert.Equal(t, MainPhaseMenstrual, st.MainPhase)
+
+	// Today's projection keeps predicted period days (E-03).
+	fc := s.FutureCycles(today)
+	require.NotEmpty(t, fc)
+	fst := s.Resolve(fc[0].PeriodStart, today)
+	assert.Equal(t, 1, fst.FutureK)
+	assert.Equal(t, MainPhaseMenstrual, fst.MainPhase)
+}
+
 // TestFuture_Skip is E-15 / §2.39.8.
 func TestFuture_Skip(t *testing.T) {
 	cur := day("2026-07-01")

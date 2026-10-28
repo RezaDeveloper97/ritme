@@ -2379,3 +2379,9 @@ Nothing needed fixing.
 - Copy (main session): `home.nb.predictions.withdrawalBleed`, `.note.{hormonal,postpartum,age45}`, `home.nb.limits.pregnancyPrompt.{title,body,cta,dismiss}`.
 - QA: pill + postpartum light/dark reviewed (no fertile UI for pill). Pregnancy prompt and age-45 covered by unit tests only.
 - Follow-ups: T-M9-42e (hero shows a huge «▬» when the countdown is null), T-M9-53 (postpartum shows «روز ۱۶ چرخه» 8 days after birth; server-side fertile_window push skip).
+
+## T-M9-52 — Engine: stale anchor painted a period day next to ask_last_period
+- Case 1 (QA persona 1002, 57-day declared anchor): `engine/anchors.go cycleAt` rolls a > 42-day anchor forward by n·ECL (§2.41), and `resolve.go menstrual()` then painted days 1..EPL of that projected start as `menstrual`, so Today showed «پریود · روز ۲» beside the ask_last_period banner. Fix: with `stale_onboarding_anchor` and `futureK == 0`, days ≤ EPL resolve `unknown/unknown` (§2.20 priority 1 needs a real or open period; §2.43). Prediction card, ring `edit` button, later days and `future_cycles` (E-03) unchanged.
+- Tests: `TestStaleAnchor_NoPeriodDayUnderAskLastPeriod` (days 43–200), int check in `TestLoad_OnboardingOnlyUserIsDeclaredThenStale`; engine persona golden `onboarding_stale.golden.jsonl` (4 lines). No contract golden had a stale anchor. Contract v1 cycle 125/0, v6 cycle 80/0.
+- Case 2 (persona 1003, onboarding-only resolves `unknown`): caused by fixtures in the pre-I-01 shape (estimate row, NULL column). The agent's engine fallback was reverted on the user's decision (keep I-01) → T-M9-52b fixes the fixtures.
+- Frontend follow-up folded into T-M9-42e: ring must show the neutral state for `unknown` with a cycle_day.

@@ -3,7 +3,7 @@ id: T-M9-52
 title: Engine: stale anchor still paints a period day; onboarding-estimate row resolves to unknown
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-42d]
 parallel_group: M9-C
 touches: [backend-go/internal/cycle/engine,backend-go/internal/cycle/resolver,backend-go/internal/cycle/inputs,backend-go/internal/cycle/model,backend-go/contract/golden-v6]
@@ -34,3 +34,10 @@ fixtures) gives `main_phase=unknown` and no prediction card; deleting the row an
 ## Acceptance
 - Int/unit tests for both cases; ask_last_period never coexists with a period main_phase; onboarding-only user with
   the estimate row gets a prediction; v1 contract unchanged; verify green.
+
+## Resolution (main session, 2026-10-28)
+- Case 1 fixed in the engine (§2.20 priority 1, §2.21, §2.41, §2.43): on a rolled-forward start (`stale_onboarding_anchor`,
+  `futureK == 0`) days ≤ EPL resolve `unknown/unknown` instead of `menstrual`.
+- Case 2 **not** changed in the engine. The agent's fallback (read the legacy `onboarding_estimate` row when the column is
+  NULL) contradicted I-01 (D-123: the column is the only declared anchor). User chose (2026-10-28): keep I-01, fix the
+  fixtures instead → T-M9-52b. Production is unaffected (goose 00103 / Laravel promote migration moved those rows).

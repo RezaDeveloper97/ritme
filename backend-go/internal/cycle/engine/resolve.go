@@ -348,6 +348,14 @@ func (s *State) menstrual(st *Status, f *facts, c *cycle, l *layout, cycleDay in
 			return SubphaseMenstrualPossible, ResolutionUserLoggedWithAssumedEnd, true
 		}
 	case c.noPeriod: // a skip anchor (E-15): the user said no period came, so no menstrual days
+	case c.futureK == 0 && c.warns.Has(WarnStaleOnboardingAnchor):
+		// §2.41 + §2.20.1 (T-M9-52): the stale roll-forward is a reference date for counting, not a period — §2.20
+		// gives menstrual only to a real or active period, and §2.41 asks for the last period (requires_user_input,
+		// the §2.43 ask_last_period banner). Its assumed days are unknown (still a prediction, like E-13), never a
+		// period day under the banner that says the predictions are out of date.
+		if cycleDay <= soft {
+			return SubphaseUnknown, ResolutionPrediction, true
+		}
 	default: // a declared or predicted start (§2.41, E-03): menstrual over the assumed duration only, no end tiers
 		if cycleDay <= soft {
 			return SubphaseMenstrual, ResolutionPrediction, true // E-10 turns a declared one into onboarding_based

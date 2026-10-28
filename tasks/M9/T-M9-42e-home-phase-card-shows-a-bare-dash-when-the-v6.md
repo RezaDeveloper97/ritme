@@ -24,6 +24,8 @@ broken.
 - Same bug in the hero ring: when the countdown is null (postpartum, periods not back) the Lalezar numeral slot
   renders a huge «▬» under «پریود بعدی» (T-M9-44 QA, postpartum persona). Show a calm label instead of a dash and
   don't say «پریود بعدی» when there is no prediction.
+- After T-M9-52, days 1..EPL of a rolled-forward stale anchor come as `main_phase=unknown` with a `cycle_day` and a
+  `prediction_card`: the ring must show the neutral/unknown state, never «پریود · روز n».
 - Keep the Laravel path unchanged.
 
 ## Out of scope
