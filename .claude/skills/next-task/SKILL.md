@@ -91,3 +91,19 @@ After finishing, continue with the next runnable task only if the user asked for
 If you repeated a procedure ≥2 times that later tasks will need, create or extend a skill under `.claude/skills/`
 and tell the user:
 > اسکیل `X` رو ساختم/آپدیت کردم. برای لود شدنش Claude Code رو ری‌استارت کن یا `/clear` بزن.
+
+## 7. Agent-prompt gotchas (learned in M9, 2026-10)
+Put the relevant lines into every agent prompt:
+- **Go on macOS:** run every `go`/`make` command with `CGO_ENABLED=0` (SDK linker bug).
+- **Wiring outside `touches`:** a new job, hook or service usually needs one line in `internal/http/routes_<domain>.go`.
+  Agents stop and report it; the main session adds it, widens the task's `touches`, and re-runs verify plus
+  `go test ./internal/http/...` and the domain's `make contract`.
+- **Screenshots/QA:** `local-dev` skill, Go with `CYCLE_ENGINE=v6`, a **private dev DB** (`ritme_dev`, never
+  `ritme_test` — parallel agents run `make test-int` there), shift fixture dates to today, insert `terms` +
+  `health_data_processing` consents, bump `user_revisions.engine_rev` after hand edits (engine cache), `send-otp` is
+  5/min per IP. Shots go to the scratchpad or `docs/engine-v6/qa/<ID>/`; the main session must look at them.
+- **Translations:** after editing `frontend/messages/<code>/<ns>.json`, copy to
+  `backend-go/resources/translations/<code>/` (keep identical); verify with `npm run copy:check -- <ns>`.
+- **v6 goldens:** regenerate with `UPDATE_GOLDEN_V6=1 make test-int PKG=…` and explain each diff; never change
+  engine behaviour that contradicts `docs/engine-v6/DECISIONS.md` without asking the user.
+- **Contract group names:** check `ls backend-go/contract/cases` (e.g. `healthlog`, not `health-logs`).
