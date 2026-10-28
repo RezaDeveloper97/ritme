@@ -2365,3 +2365,9 @@ Nothing needed fixing.
 - Wired in `routes_healthlog.go` (v1 `/health-logs`) and, by the main session, `routes_logs.go` (v2 `PUT /logs/days/:date`). The job handler stays registered by `routes_cycle.go` on the shared queue.
 - Int test `TestBridgePredictionLog_NewStartsOnly`. Contract `healthlog` 45/0, `logs` 34/0 (task verify fixed: group is `healthlog`, not `health-logs`).
 - Open: flow written through a caller tx (fertility/conditions/healthrecord) isn't logged; moving the newest start earlier leaves the old `first` row (same as `periods` Update).
+
+## T-M9-42d — Today/calendar v6 screenshot gaps
+- 24 screenshots (light + dark, 390x844) + README table in `docs/engine-v6/qa/T-M9-42d/`: overdue 15+ (persona 1011, no zod error now), ask_last_period (1002), unknown ring (combined pill), overdue banner tap → log sheet on the pregnancy-test chip, calendars (pill, onboarding-only, overdue 15+), prediction card calendar / LH-confirmed / suppressed with regularity badge. BBT-confirmed not shot (same `ovulationSource` path as LH, label only).
+- No source change. Reviewed in the main session.
+- Bugs → T-M9-52 (stale anchor shows «پریود · روز ۲» next to the ask_last_period banner; onboarding_estimate row → unknown) and T-M9-42e (phase card header «—» when phase is null).
+- QA notes: the engine caches by `user_revisions.engine_rev` — bump it after hand-editing fixtures; `send-otp` is 5/min per IP.

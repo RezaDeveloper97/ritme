@@ -3,7 +3,7 @@ id: T-M9-42d
 title: Today/calendar v6 screenshot gaps: overdue 15+, ask_last_period, unknown ring, pill + onboarding-only calendars
 milestone: M9
 type: frontend
-status: todo
+status: done
 depends_on: [T-M9-42c,T-M9-40b]
 parallel_group: M9-C
 touches: [frontend/src/screens/home,frontend/src/screens/calendar/ui/CalendarPage.tsx,docs/engine-v6]
