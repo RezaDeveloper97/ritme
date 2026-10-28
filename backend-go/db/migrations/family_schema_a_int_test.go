@@ -247,8 +247,11 @@ func TestFamilySchemaA_SnapshotUpsertActivity(t *testing.T) {
 			var expiresAt, confirmedAt sql.NullTime
 			var urgent bool
 			var review sql.NullBool
+			var lifeMode, gender, goal sql.NullString // T-M11-05: the owner's mode inputs and sex
+			var pregnant int64
 			require.NoError(t, rows.Scan(&linkID, &ownerID, &memberID, &typ, &role, &template, &status, &expiresAt, &urgent,
-				&confirmedAt, &r.section, &level, &r.grantEpoch, &r.ownerMode, &r.ownerEpoch, &review, &r.ownerBlockedAt))
+				&confirmedAt, &r.section, &level, &r.grantEpoch, &r.ownerMode, &r.ownerEpoch, &review, &r.ownerBlockedAt,
+				&lifeMode, &gender, &pregnant, &goal))
 			assert.Equal(t, "active", status)
 			r.owner = ownerID
 			out = append(out, r)

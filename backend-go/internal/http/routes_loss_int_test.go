@@ -138,6 +138,17 @@ func TestLoss_PrivacyOfFollowupsAndNotices(t *testing.T) {
 	// She sees all three in her own list.
 	assert.Len(t, e.do(fiber.MethodGet, "/api/v1/care/appointments", sara, nil).list(), 3)
 
+	// The loss ends the pregnancy mode: every owner-data grant pauses until she reviews (T-M11-05, F-23) — the
+	// members see nothing, then she keeps their appointments access through the real API.
+	for tok, level := range map[string]string{ali: "edit", reza: "view"} {
+		link := idOfLink(t, e, tok)
+		sec := e.do(fiber.MethodGet, "/api/v1/companions/links/"+strconv.FormatUint(link, 10)+"/sections/appointments", tok, nil)
+		require.Equal(t, fiber.StatusForbidden, sec.Status, "paused after the mode change: "+sec.Raw)
+		assert.Nil(t, sec.Body["data"])
+		r := e.do(fiber.MethodPut, "/api/v1/companions/"+strconv.FormatUint(link, 10)+"/grants", sara,
+			map[string]any{"grants": map[string]any{"appointments": level}})
+		require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
+	}
 	for _, tok := range []string{ali, reza} {
 		link := idOfLink(t, e, tok)
 		sec := e.do(fiber.MethodGet, "/api/v1/companions/links/"+strconv.FormatUint(link, 10)+"/sections/appointments", tok, nil)

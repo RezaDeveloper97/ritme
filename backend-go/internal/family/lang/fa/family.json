@@ -1,0 +1,34 @@
+{
+    "messages": {
+        "not_found": "پیدا نشد.",
+        "domain_denied": "این بخش با تو به اشتراک گذاشته نشده.",
+        "level_not_allowed": "این سطح دسترسی برای این بخش مجاز نیست."
+    },
+    "notice": {
+        "neutral": "پیامی از خانواده در ریتمی",
+        "sms_urgent": "پیامی از خانواده در ریتمی — اپ را باز کن"
+    },
+    "alert": {
+        "title": {
+            "urgent": "یک موضوع فوری",
+            "follow_up": "یک موضوع برای پیگیری زودتر"
+        },
+        "call_owner": "بهش زنگ بزن",
+        "call_115": "تماس با ۱۱۵"
+    },
+    "nudge": {
+        "meds": "یادت نره داروی امروزت رو بخوری",
+        "appointment": "نوبت امروزت یادت هست؟"
+    },
+    "owner": {
+        "mode_review": "دسترسی‌های جدید رو تنظیم کن",
+        "mode_review_keep": "مثل قبل نگه دار",
+        "symptoms_ended": "اشتراک «علائم» تمام شد",
+        "proposal_new": ":name یک مورد پیشنهاد داده",
+        "carer_expired": "دسترسی :name تمام شد"
+    },
+    "member": {
+        "proposal_approved": "پیشنهادت تأیید شد",
+        "proposal_rejected": "پیشنهادت ثبت نشد"
+    }
+}

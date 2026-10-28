@@ -10,6 +10,7 @@ import (
 	"github.com/ritme/backend-go/internal/children"
 	"github.com/ritme/backend-go/internal/companion"
 	"github.com/ritme/backend-go/internal/companion/shared"
+	"github.com/ritme/backend-go/internal/family"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/clock"
@@ -48,7 +49,8 @@ func init() {
 			d.Logger.Error("COMPANION_CODE_PEPPER is not set in production: companion invites are disabled (503)")
 		}
 		h := companion.NewHandlers(d.DB, clock.Real{}, companion.HandlerOptions{
-			Service:  companion.Options{CodePepper: []byte(d.Config.Companion.CodePepper)},
+			Service: companion.Options{CodePepper: []byte(d.Config.Companion.CodePepper),
+				ReadAudit: family.NewReadAudit(d.Cache)}, // F-16, D-203: Redis read-audit coalescing
 			SMS:      sender,
 			Reader:   shared.NewReader(d.DB).WithEngine(engineStates(r, d)),
 			Children: children.NewService(d.DB, nil), // spouse shared children: owner's own children only (B-N5-02)

@@ -112,15 +112,22 @@ func (h *Handlers) StoreAppointment(c fiber.Ctx) error {
 		return fmt.Errorf("care: encode appointment meta: %w", err)
 	}
 	ts := sql.NullTime{Time: now, Valid: true}
-	id, err := h.q.InsertAppointment(c, store.InsertAppointmentParams{
-		UserID: userID, Title: in.Title, Subtitle: in.Meta.Subtitle(), Notes: nullStr(in.Notes),
-		ScheduledAt: sql.NullTime{Time: in.ScheduledAt, Valid: true}, IsActive: in.IsActive,
-		Meta: rootdb.NullRawJSON{V: meta, Valid: true}, CreatedAt: ts, UpdatedAt: ts,
-	})
-	if err != nil || id <= 0 {
-		return fmt.Errorf("care: insert appointment (id %d): %w", id, err)
+	var id int64
+	if err := h.write(c, userID, actorID, companion.SectionAppointments, func(q *store.Queries) error {
+		var err error
+		id, err = q.InsertAppointment(c, store.InsertAppointmentParams{
+			UserID: userID, Title: in.Title, Subtitle: in.Meta.Subtitle(), Notes: nullStr(in.Notes),
+			ScheduledAt: sql.NullTime{Time: in.ScheduledAt, Valid: true}, IsActive: in.IsActive,
+			Meta: rootdb.NullRawJSON{V: meta, Valid: true}, CreatedAt: ts, UpdatedAt: ts,
+		})
+		if err != nil || id <= 0 {
+			return fmt.Errorf("care: insert appointment (id %d): %w", id, err)
+		}
+		return nil
+	}); err != nil {
+		return err
 	}
-	a, err := h.loadAppointment(c, uint64(id), userID)
+	a, err := h.loadAppointment(c, uint64(id), userID) //nolint:gosec // id > 0 checked in the write
 	if err != nil {
 		return err
 	}
@@ -162,7 +169,7 @@ func (h *Handlers) UpdateAppointment(c fiber.Ctx) error {
 	if on, sent := body.Get("is_active"); sent && a.Meta.Status == StatusCancelled && phpval.Truthy(on) {
 		return fieldError(locale, "is_active", CancelledReminderMessage(locale))
 	}
-	fresh, err := h.saveAppointment(c, a.Row.ID, userID, in, now)
+	fresh, err := h.saveAppointmentAs(c, a.Row.ID, userID, actorID, in, now)
 	if err != nil {
 		return err
 	}
@@ -261,19 +268,29 @@ func inputOf(a Appointment) appointmentInput {
 	return in
 }
 
-// saveAppointment writes in over the row and reloads it.
+// saveAppointment writes in over the owner's own row and reloads it.
 func (h *Handlers) saveAppointment(c fiber.Ctx, id, userID uint64, in appointmentInput, now time.Time) (Appointment, error) {
+	return h.saveAppointmentAs(c, id, userID, userID, in, now)
+}
+
+// saveAppointmentAs is saveAppointment by actorID (a member's write runs through h.write: RecheckTx in a transaction).
+func (h *Handlers) saveAppointmentAs(c fiber.Ctx, id, userID, actorID uint64, in appointmentInput, now time.Time) (Appointment, error) {
 	meta, err := json.Marshal(in.Meta)
 	if err != nil {
 		return Appointment{}, fmt.Errorf("care: encode appointment meta: %w", err)
 	}
-	if err := h.q.UpdateAppointment(c, store.UpdateAppointmentParams{
-		Title: in.Title, Subtitle: in.Meta.Subtitle(), Notes: nullStr(in.Notes),
-		ScheduledAt: sql.NullTime{Time: in.ScheduledAt, Valid: !in.ScheduledAt.IsZero()}, IsActive: in.IsActive,
-		Meta: rootdb.NullRawJSON{V: meta, Valid: true}, UpdatedAt: sql.NullTime{Time: now, Valid: true},
-		ID: id, UserID: userID,
+	if err := h.write(c, userID, actorID, companion.SectionAppointments, func(q *store.Queries) error {
+		if err := q.UpdateAppointment(c, store.UpdateAppointmentParams{
+			Title: in.Title, Subtitle: in.Meta.Subtitle(), Notes: nullStr(in.Notes),
+			ScheduledAt: sql.NullTime{Time: in.ScheduledAt, Valid: !in.ScheduledAt.IsZero()}, IsActive: in.IsActive,
+			Meta: rootdb.NullRawJSON{V: meta, Valid: true}, UpdatedAt: sql.NullTime{Time: now, Valid: true},
+			ID: id, UserID: userID,
+		}); err != nil {
+			return fmt.Errorf("care: update appointment: %w", err)
+		}
+		return nil
 	}); err != nil {
-		return Appointment{}, fmt.Errorf("care: update appointment: %w", err)
+		return Appointment{}, err
 	}
 	return h.loadAppointment(c, id, userID)
 }

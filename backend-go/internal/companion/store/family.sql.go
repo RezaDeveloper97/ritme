@@ -9,6 +9,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/ritme/backend-go/db"
@@ -329,38 +330,283 @@ func (q *Queries) ExpirePendingFamilyShareRequestsForLink(ctx context.Context, a
 	return result.RowsAffected()
 }
 
+const familyGuardiansOfUser = `-- name: FamilyGuardiansOfUser :many
+SELECT child_id, level, sub_scopes, status FROM ` + "`" + `child_guardians` + "`" + `
+WHERE user_id = ? AND child_id IN (/*SLICE:child_ids*/?)
+ORDER BY child_id
+`
+
+type FamilyGuardiansOfUserParams struct {
+	UserID   uint64
+	ChildIds []uint64
+}
+
+type FamilyGuardiansOfUserRow struct {
+	ChildID   uint64
+	Level     string
+	SubScopes db.NullRawJSON
+	Status    string
+}
+
+// The actor's guardian rows (any status; Decide reads status) for a set of children: one statement per request.
+func (q *Queries) FamilyGuardiansOfUser(ctx context.Context, arg FamilyGuardiansOfUserParams) ([]FamilyGuardiansOfUserRow, error) {
+	query := familyGuardiansOfUser
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.UserID)
+	if len(arg.ChildIds) > 0 {
+		for _, v := range arg.ChildIds {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:child_ids*/?", strings.Repeat(",?", len(arg.ChildIds))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:child_ids*/?", "NULL", 1)
+	}
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FamilyGuardiansOfUserRow{}
+	for rows.Next() {
+		var i FamilyGuardiansOfUserRow
+		if err := rows.Scan(
+			&i.ChildID,
+			&i.Level,
+			&i.SubScopes,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const familyLockGuardiansOfUser = `-- name: FamilyLockGuardiansOfUser :many
+SELECT child_id, level, sub_scopes, status FROM ` + "`" + `child_guardians` + "`" + `
+WHERE user_id = ? AND child_id IN (/*SLICE:child_ids*/?)
+ORDER BY child_id
+LOCK IN SHARE MODE
+`
+
+type FamilyLockGuardiansOfUserParams struct {
+	UserID   uint64
+	ChildIds []uint64
+}
+
+type FamilyLockGuardiansOfUserRow struct {
+	ChildID   uint64
+	Level     string
+	SubScopes db.NullRawJSON
+	Status    string
+}
+
+// RecheckTx: the same rows with shared locks.
+func (q *Queries) FamilyLockGuardiansOfUser(ctx context.Context, arg FamilyLockGuardiansOfUserParams) ([]FamilyLockGuardiansOfUserRow, error) {
+	query := familyLockGuardiansOfUser
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.UserID)
+	if len(arg.ChildIds) > 0 {
+		for _, v := range arg.ChildIds {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:child_ids*/?", strings.Repeat(",?", len(arg.ChildIds))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:child_ids*/?", "NULL", 1)
+	}
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FamilyLockGuardiansOfUserRow{}
+	for rows.Next() {
+		var i FamilyLockGuardiansOfUserRow
+		if err := rows.Scan(
+			&i.ChildID,
+			&i.Level,
+			&i.SubScopes,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const familyLockPair = `-- name: FamilyLockPair :many
+SELECT c.id AS link_id, c.owner_id, c.companion_user_id AS member_id, c.type, c.role, c.status, c.expires_at,
+  g.section, g.level, g.mode_epoch AS grant_mode_epoch,
+  s.mode AS owner_mode, s.mode_epoch AS owner_mode_epoch,
+  u.blocked_at AS owner_blocked_at, lp.gender AS owner_gender
+FROM ` + "`" + `companions` + "`" + ` c
+JOIN ` + "`" + `users` + "`" + ` u ON u.id = c.owner_id
+LEFT JOIN ` + "`" + `companion_grants` + "`" + ` g ON g.companion_id = c.id
+LEFT JOIN ` + "`" + `family_owner_state` + "`" + ` s ON s.owner_id = c.owner_id
+LEFT JOIN ` + "`" + `user_life_profiles` + "`" + ` lp ON lp.user_id = c.owner_id
+WHERE c.owner_id = ? AND c.companion_user_id = ? AND c.status = 'active'
+ORDER BY c.id, g.section
+LOCK IN SHARE MODE
+`
+
+type FamilyLockPairParams struct {
+	OwnerID  uint64
+	MemberID sql.NullInt64
+}
+
+type FamilyLockPairRow struct {
+	LinkID         uint64
+	OwnerID        uint64
+	MemberID       sql.NullInt64
+	Type           string
+	Role           sql.NullString
+	Status         string
+	ExpiresAt      sql.NullTime
+	Section        sql.NullString
+	Level          sql.NullString
+	GrantModeEpoch sql.NullInt32
+	OwnerMode      sql.NullString
+	OwnerModeEpoch sql.NullInt32
+	OwnerBlockedAt sql.NullTime
+	OwnerGender    sql.NullString
+}
+
+// RecheckTx (CMP-L4): the pair snapshot read with shared locks inside a write transaction, so a revoke or grant
+// change committed meanwhile wins (a locking read sees the latest committed rows) and cannot commit until we do.
+func (q *Queries) FamilyLockPair(ctx context.Context, arg FamilyLockPairParams) ([]FamilyLockPairRow, error) {
+	rows, err := q.db.QueryContext(ctx, familyLockPair, arg.OwnerID, arg.MemberID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FamilyLockPairRow{}
+	for rows.Next() {
+		var i FamilyLockPairRow
+		if err := rows.Scan(
+			&i.LinkID,
+			&i.OwnerID,
+			&i.MemberID,
+			&i.Type,
+			&i.Role,
+			&i.Status,
+			&i.ExpiresAt,
+			&i.Section,
+			&i.Level,
+			&i.GrantModeEpoch,
+			&i.OwnerMode,
+			&i.OwnerModeEpoch,
+			&i.OwnerBlockedAt,
+			&i.OwnerGender,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const familyOwnerModeInputs = `-- name: FamilyOwnerModeInputs :one
+SELECT u.id, lp.life_mode, lp.gender,
+  CAST(EXISTS(SELECT 1 FROM ` + "`" + `pregnancy_profiles` + "`" + ` pp WHERE pp.user_id = u.id AND pp.pregnancy_mode = 1) AS SIGNED)
+    AS pregnancy_active,
+  up.user_goal, s.mode AS state_mode, s.mode_epoch AS state_mode_epoch,
+  s.review_pending AS state_review_pending
+FROM ` + "`" + `users` + "`" + ` u
+LEFT JOIN ` + "`" + `user_life_profiles` + "`" + ` lp ON lp.user_id = u.id
+LEFT JOIN ` + "`" + `user_profiles` + "`" + ` up ON up.user_id = u.id
+LEFT JOIN ` + "`" + `family_owner_state` + "`" + ` s ON s.owner_id = u.id
+WHERE u.id = ? LIMIT 1
+`
+
+type FamilyOwnerModeInputsRow struct {
+	ID                 uint64
+	LifeMode           sql.NullString
+	Gender             sql.NullString
+	PregnancyActive    int64
+	UserGoal           sql.NullString
+	StateMode          sql.NullString
+	StateModeEpoch     sql.NullInt32
+	StateReviewPending sql.NullBool
+}
+
+// SyncMode outside a snapshot (after a mode write): the inputs of enums.ResolveLifeMode and the stored state.
+func (q *Queries) FamilyOwnerModeInputs(ctx context.Context, ownerID uint64) (FamilyOwnerModeInputsRow, error) {
+	row := q.db.QueryRowContext(ctx, familyOwnerModeInputs, ownerID)
+	var i FamilyOwnerModeInputsRow
+	err := row.Scan(
+		&i.ID,
+		&i.LifeMode,
+		&i.Gender,
+		&i.PregnancyActive,
+		&i.UserGoal,
+		&i.StateMode,
+		&i.StateModeEpoch,
+		&i.StateReviewPending,
+	)
+	return i, err
+}
+
 const familySnapshotForMember = `-- name: FamilySnapshotForMember :many
 SELECT c.id AS link_id, c.owner_id, c.companion_user_id AS member_id, c.type, c.role, c.template, c.status,
   c.expires_at, c.urgent_sms, c.owner_confirmed_at,
   g.section, g.level, g.mode_epoch AS grant_mode_epoch,
   s.mode AS owner_mode, s.mode_epoch AS owner_mode_epoch, s.review_pending,
-  u.blocked_at AS owner_blocked_at
+  u.blocked_at AS owner_blocked_at,
+  lp.life_mode AS owner_life_mode, lp.gender AS owner_gender,
+  CAST(EXISTS(SELECT 1 FROM ` + "`" + `pregnancy_profiles` + "`" + ` pp WHERE pp.user_id = c.owner_id AND pp.pregnancy_mode = 1) AS SIGNED)
+    AS owner_pregnancy_active,
+  up.user_goal AS owner_user_goal
 FROM ` + "`" + `companions` + "`" + ` c
 JOIN ` + "`" + `users` + "`" + ` u ON u.id = c.owner_id
 LEFT JOIN ` + "`" + `companion_grants` + "`" + ` g ON g.companion_id = c.id
 LEFT JOIN ` + "`" + `family_owner_state` + "`" + ` s ON s.owner_id = c.owner_id
+LEFT JOIN ` + "`" + `user_life_profiles` + "`" + ` lp ON lp.user_id = c.owner_id
+LEFT JOIN ` + "`" + `user_profiles` + "`" + ` up ON up.user_id = c.owner_id
 WHERE c.companion_user_id = ? AND c.status = 'active'
 ORDER BY c.owner_id, c.id, g.section
 `
 
 type FamilySnapshotForMemberRow struct {
-	LinkID           uint64
-	OwnerID          uint64
-	MemberID         sql.NullInt64
-	Type             string
-	Role             sql.NullString
-	Template         sql.NullString
-	Status           string
-	ExpiresAt        sql.NullTime
-	UrgentSms        bool
-	OwnerConfirmedAt sql.NullTime
-	Section          sql.NullString
-	Level            sql.NullString
-	GrantModeEpoch   sql.NullInt32
-	OwnerMode        sql.NullString
-	OwnerModeEpoch   sql.NullInt32
-	ReviewPending    sql.NullBool
-	OwnerBlockedAt   sql.NullTime
+	LinkID               uint64
+	OwnerID              uint64
+	MemberID             sql.NullInt64
+	Type                 string
+	Role                 sql.NullString
+	Template             sql.NullString
+	Status               string
+	ExpiresAt            sql.NullTime
+	UrgentSms            bool
+	OwnerConfirmedAt     sql.NullTime
+	Section              sql.NullString
+	Level                sql.NullString
+	GrantModeEpoch       sql.NullInt32
+	OwnerMode            sql.NullString
+	OwnerModeEpoch       sql.NullInt32
+	ReviewPending        sql.NullBool
+	OwnerBlockedAt       sql.NullTime
+	OwnerLifeMode        sql.NullString
+	OwnerGender          sql.NullString
+	OwnerPregnancyActive int64
+	OwnerUserGoal        sql.NullString
 }
 
 // Every owner of one member (member home). Index companions_companion_user_id_status_owner_id_index.
@@ -391,6 +637,10 @@ func (q *Queries) FamilySnapshotForMember(ctx context.Context, memberID sql.Null
 			&i.OwnerModeEpoch,
 			&i.ReviewPending,
 			&i.OwnerBlockedAt,
+			&i.OwnerLifeMode,
+			&i.OwnerGender,
+			&i.OwnerPregnancyActive,
+			&i.OwnerUserGoal,
 		); err != nil {
 			return nil, err
 		}
@@ -411,11 +661,17 @@ SELECT c.id AS link_id, c.owner_id, c.companion_user_id AS member_id, c.type, c.
   c.expires_at, c.urgent_sms, c.owner_confirmed_at,
   g.section, g.level, g.mode_epoch AS grant_mode_epoch,
   s.mode AS owner_mode, s.mode_epoch AS owner_mode_epoch, s.review_pending,
-  u.blocked_at AS owner_blocked_at
+  u.blocked_at AS owner_blocked_at,
+  lp.life_mode AS owner_life_mode, lp.gender AS owner_gender,
+  CAST(EXISTS(SELECT 1 FROM ` + "`" + `pregnancy_profiles` + "`" + ` pp WHERE pp.user_id = c.owner_id AND pp.pregnancy_mode = 1) AS SIGNED)
+    AS owner_pregnancy_active,
+  up.user_goal AS owner_user_goal
 FROM ` + "`" + `companions` + "`" + ` c
 JOIN ` + "`" + `users` + "`" + ` u ON u.id = c.owner_id
 LEFT JOIN ` + "`" + `companion_grants` + "`" + ` g ON g.companion_id = c.id
 LEFT JOIN ` + "`" + `family_owner_state` + "`" + ` s ON s.owner_id = c.owner_id
+LEFT JOIN ` + "`" + `user_life_profiles` + "`" + ` lp ON lp.user_id = c.owner_id
+LEFT JOIN ` + "`" + `user_profiles` + "`" + ` up ON up.user_id = c.owner_id
 WHERE c.owner_id = ? AND c.companion_user_id = ? AND c.status = 'active'
 ORDER BY c.id, g.section
 `
@@ -426,27 +682,32 @@ type FamilySnapshotForPairParams struct {
 }
 
 type FamilySnapshotForPairRow struct {
-	LinkID           uint64
-	OwnerID          uint64
-	MemberID         sql.NullInt64
-	Type             string
-	Role             sql.NullString
-	Template         sql.NullString
-	Status           string
-	ExpiresAt        sql.NullTime
-	UrgentSms        bool
-	OwnerConfirmedAt sql.NullTime
-	Section          sql.NullString
-	Level            sql.NullString
-	GrantModeEpoch   sql.NullInt32
-	OwnerMode        sql.NullString
-	OwnerModeEpoch   sql.NullInt32
-	ReviewPending    sql.NullBool
-	OwnerBlockedAt   sql.NullTime
+	LinkID               uint64
+	OwnerID              uint64
+	MemberID             sql.NullInt64
+	Type                 string
+	Role                 sql.NullString
+	Template             sql.NullString
+	Status               string
+	ExpiresAt            sql.NullTime
+	UrgentSms            bool
+	OwnerConfirmedAt     sql.NullTime
+	Section              sql.NullString
+	Level                sql.NullString
+	GrantModeEpoch       sql.NullInt32
+	OwnerMode            sql.NullString
+	OwnerModeEpoch       sql.NullInt32
+	ReviewPending        sql.NullBool
+	OwnerBlockedAt       sql.NullTime
+	OwnerLifeMode        sql.NullString
+	OwnerGender          sql.NullString
+	OwnerPregnancyActive int64
+	OwnerUserGoal        sql.NullString
 }
 
-// Family v6 storage (T-M11-02, 00106; docs/engine-v6/family.md §5, §7; gap 05 §5.3). No reader or writer yet: the
-// family.Authorizer, SyncMode and the activity writer arrive with T-M11-05 and later tasks.
+// Family v6 storage (T-M11-02, 00106; docs/engine-v6/family.md §5, §7; gap 05 §5.3). Read by the family.Authorizer
+// (internal/family, T-M11-05): the snapshot statements also carry the owner's mode inputs (stored life mode, active
+// pregnancy, goal — enums.ResolveLifeMode) and sex (F-20), so check() and the lazy SyncMode need one statement.
 //
 // Snapshot = links ⋈ grants ⋈ family_owner_state ⋈ users.blocked_at (the owner's), one row per (link, grant); a link
 // without grants yields one row with NULL grant columns, an owner without a state row NULL state columns (SyncMode
@@ -479,6 +740,10 @@ func (q *Queries) FamilySnapshotForPair(ctx context.Context, arg FamilySnapshotF
 			&i.OwnerModeEpoch,
 			&i.ReviewPending,
 			&i.OwnerBlockedAt,
+			&i.OwnerLifeMode,
+			&i.OwnerGender,
+			&i.OwnerPregnancyActive,
+			&i.OwnerUserGoal,
 		); err != nil {
 			return nil, err
 		}
@@ -491,6 +756,23 @@ func (q *Queries) FamilySnapshotForPair(ctx context.Context, arg FamilySnapshotF
 		return nil, err
 	}
 	return items, nil
+}
+
+const getFamilyOwnerState = `-- name: GetFamilyOwnerState :one
+SELECT owner_id, mode, mode_epoch, review_pending, updated_at FROM ` + "`" + `family_owner_state` + "`" + ` WHERE owner_id = ? LIMIT 1
+`
+
+func (q *Queries) GetFamilyOwnerState(ctx context.Context, ownerID uint64) (FamilyOwnerState, error) {
+	row := q.db.QueryRowContext(ctx, getFamilyOwnerState, ownerID)
+	var i FamilyOwnerState
+	err := row.Scan(
+		&i.OwnerID,
+		&i.Mode,
+		&i.ModeEpoch,
+		&i.ReviewPending,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const getFamilyProposal = `-- name: GetFamilyProposal :one
@@ -1383,6 +1665,33 @@ func (q *Queries) MarkFamilyMemberNoticeSent(ctx context.Context, arg MarkFamily
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+const upsertFamilyGrant = `-- name: UpsertFamilyGrant :exec
+INSERT INTO ` + "`" + `companion_grants` + "`" + ` (companion_id, section, level, mode_epoch, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?)
+ON DUPLICATE KEY UPDATE level = VALUES(level), mode_epoch = VALUES(mode_epoch), updated_at = VALUES(updated_at)
+`
+
+type UpsertFamilyGrantParams struct {
+	CompanionID uint64
+	Section     string
+	Level       string
+	ModeEpoch   sql.NullInt32
+	Now         sql.NullTime
+}
+
+// Grants.Apply: one v6 grant stamped with the owner's current mode epoch (NULL for an epoch-free domain is fine too).
+func (q *Queries) UpsertFamilyGrant(ctx context.Context, arg UpsertFamilyGrantParams) error {
+	_, err := q.db.ExecContext(ctx, upsertFamilyGrant,
+		arg.CompanionID,
+		arg.Section,
+		arg.Level,
+		arg.ModeEpoch,
+		arg.Now,
+		arg.Now,
+	)
+	return err
 }
 
 const upsertFamilyOwnerState = `-- name: UpsertFamilyOwnerState :execrows

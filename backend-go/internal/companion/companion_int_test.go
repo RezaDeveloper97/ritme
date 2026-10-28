@@ -383,10 +383,27 @@ func TestGrantMatrix(t *testing.T) {
 	_, err = e.svc.Accept(ctx, ali, inv.Code)
 	require.NoError(t, err)
 
+	// v6 through the legacy shape (T-M11-05, D-204): the owner is in cycle mode, so pregnancy is out of scope;
+	// cycle maps to cycle_phase (max view); symptoms is never shared (F-03); meds / appointments keep view and edit
+	// (edit = write, a proposal in v6, still a direct «ثبت برای …» until T-M11-09).
+	effective := map[companion.Section]map[companion.Level]companion.Level{
+		companion.SectionCycle:        {companion.LevelView: companion.LevelView, companion.LevelEdit: companion.LevelView},
+		companion.SectionSymptoms:     {},
+		companion.SectionMeds:         {companion.LevelView: companion.LevelView, companion.LevelEdit: companion.LevelEdit},
+		companion.SectionAppointments: {companion.LevelView: companion.LevelView, companion.LevelEdit: companion.LevelEdit},
+		companion.SectionPregnancy:    {},
+	}
+	stored := map[companion.Section]map[companion.Level]companion.Level{ // what the owner reads back
+		companion.SectionCycle:        {companion.LevelView: companion.LevelView, companion.LevelEdit: companion.LevelView},
+		companion.SectionSymptoms:     {},
+		companion.SectionMeds:         {companion.LevelView: companion.LevelView, companion.LevelEdit: companion.LevelEdit},
+		companion.SectionAppointments: {companion.LevelView: companion.LevelView, companion.LevelEdit: companion.LevelEdit},
+		companion.SectionPregnancy:    {companion.LevelView: companion.LevelView, companion.LevelEdit: companion.LevelView},
+	}
 	levels := []companion.Level{companion.LevelNone, companion.LevelView, companion.LevelEdit}
 	for _, sec := range companion.Sections {
 		for _, lvl := range levels {
-			// Every other section gets a different level, so a leak across sections shows up.
+			// Every other section is none, so a leak across sections shows up.
 			g := companion.Grants{sec: lvl}
 			for _, other := range companion.Sections {
 				if other != sec {
@@ -396,14 +413,19 @@ func TestGrantMatrix(t *testing.T) {
 			link, err := e.svc.SetGrants(ctx, owner, inv.Link.ID, g)
 			require.NoError(t, err)
 			for _, s := range companion.Sections {
-				want := companion.LevelNone
-				if s == sec {
-					want = lvl
+				want, back := companion.LevelNone, companion.LevelNone
+				if s == sec && lvl != companion.LevelNone {
+					if v, ok := effective[s][lvl]; ok {
+						want = v
+					}
+					if v, ok := stored[s][lvl]; ok {
+						back = v
+					}
 				}
 				got, err := e.svc.Level(ctx, owner, ali, s)
 				require.NoError(t, err)
 				assert.Equal(t, want, got, "%s=%s → %s", sec, lvl, s)
-				assert.Equal(t, want, link.Grants.Of(s))
+				assert.Equal(t, back, link.Grants.Of(s), "%s=%s → %s (owner view)", sec, lvl, s)
 				r, err := e.svc.CanRead(ctx, owner, ali, s)
 				require.NoError(t, err)
 				w, err := e.svc.CanWrite(ctx, owner, ali, s)
@@ -413,6 +435,10 @@ func TestGrantMatrix(t *testing.T) {
 			}
 		}
 	}
+	// No symptoms row is ever stored, and every stored row carries the owner's epoch.
+	assert.Zero(t, e.count(t, "SELECT COUNT(*) FROM companion_grants WHERE section IN ('symptoms', 'cycle')"))
+	assert.Zero(t, e.count(t, "SELECT COUNT(*) FROM companion_grants WHERE mode_epoch IS NULL"))
+	assert.Positive(t, e.count(t, "SELECT COUNT(*) FROM consent_events WHERE user_id = ? AND consent = 'family_sharing' AND source = 'family'", owner))
 
 	// Only the owner sets grants; bad input is refused.
 	_, err = e.svc.SetGrants(ctx, ali, inv.Link.ID, companion.Grants{companion.SectionCycle: companion.LevelEdit})
@@ -494,15 +520,19 @@ func TestAudit_NoPayloadAndOwnerScoped(t *testing.T) {
 
 	trail, err := e.svc.AuditTrail(ctx, owner, 0)
 	require.NoError(t, err)
-	require.Len(t, trail, 4)
+	// T-M11-05: every grant change goes through family.Grants.Apply, which writes a grants_changed row (with the v6
+	// diff) — at invite and again at accept (the owner's choice takes effect, stamped with her mode epoch).
+	require.Len(t, trail, 6)
 	assert.Equal(t, companion.ActionWrite, trail[0].Action)
 	assert.Equal(t, companion.ActionRead, trail[1].Action)
 	assert.Equal(t, companion.SectionMeds, trail[1].Section)
 	assert.Equal(t, ali, trail[1].ActorID)
 	assert.Equal(t, inv.Link.ID, trail[1].CompanionID)
 	assert.Equal(t, e.clk.Now(), trail[1].At)
-	assert.Equal(t, companion.ActionAccepted, trail[2].Action)
-	assert.Equal(t, companion.ActionInvited, trail[3].Action)
+	assert.Equal(t, companion.ActionGrantsChanged, trail[2].Action)
+	assert.Equal(t, companion.ActionAccepted, trail[3].Action)
+	assert.Equal(t, companion.ActionInvited, trail[4].Action)
+	assert.Equal(t, companion.ActionGrantsChanged, trail[5].Action)
 
 	others, err := e.svc.AuditTrail(ctx, ali, 10)
 	require.NoError(t, err)
@@ -513,10 +543,37 @@ func TestAudit_NoPayloadAndOwnerScoped(t *testing.T) {
 	require.NoError(t, err)
 	trail, err = e.svc.AuditTrail(ctx, owner, 10)
 	require.NoError(t, err)
-	require.Len(t, trail, 4)
+	require.Len(t, trail, 6)
 	assert.Zero(t, trail[0].ActorID)
 	_, err = e.db.Exec("DELETE FROM users WHERE id = ?", owner)
 	require.NoError(t, err)
 	assert.Zero(t, e.count(t, "SELECT COUNT(*) FROM companion_audit_logs"))
 	assert.Zero(t, e.count(t, "SELECT COUNT(*) FROM companions"))
+}
+
+// M2: accept keeps the invite-time epoch. Grants chosen while the owner was in mode A stay paused when she has
+// switched to mode B before the member accepts — accept never re-stamps them with the accept-time epoch.
+func TestAccept_AfterModeChangeKeepsGrantsPaused(t *testing.T) {
+	ctx := context.Background()
+	e := setup(t)
+	owner := e.user(t, "09120000101")
+	ali := e.user(t, "09120000102")
+
+	inv, err := e.svc.CreateInvite(ctx, owner, companion.InviteInput{Type: companion.TypePartner,
+		Grants: companion.Grants{companion.SectionMeds: companion.LevelEdit, companion.SectionAppointments: companion.LevelView}})
+	require.NoError(t, err)
+	_, err = e.db.Exec(`INSERT INTO user_life_profiles (user_id, gender, life_mode, created_at, updated_at) VALUES (?, 'female', 'menopause', NOW(), NOW())`, owner)
+	require.NoError(t, err)
+
+	_, err = e.svc.Accept(ctx, ali, inv.Code)
+	require.NoError(t, err)
+
+	for _, sec := range []companion.Section{companion.SectionMeds, companion.SectionAppointments} {
+		ok, err := e.svc.CanRead(ctx, owner, ali, sec)
+		require.NoError(t, err)
+		assert.False(t, ok, "%s paused after the mode change (invite-time epoch kept)", sec)
+	}
+	assert.Equal(t, 2, e.count(t, `SELECT COUNT(*) FROM companion_grants g JOIN companions c ON c.id = g.companion_id
+		WHERE c.owner_id = ? AND g.mode_epoch = 1`, owner), "stored epochs untouched by accept")
+	assert.Equal(t, 2, e.count(t, `SELECT mode_epoch FROM family_owner_state WHERE owner_id = ?`, owner), "owner moved on to epoch 2")
 }

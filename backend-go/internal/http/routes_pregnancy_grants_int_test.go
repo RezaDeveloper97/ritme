@@ -49,10 +49,22 @@ func TestPregnancyRoutes_ResetPregnancyGrants(t *testing.T) {
 	r = e.do(fiber.MethodPost, "/api/v1/pregnancy/deactivate", sara, nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	assert.Zero(t, grants(), "deactivate resets the pregnancy grant")
-	assert.Equal(t, 1, e.count(`SELECT COUNT(*) FROM companion_grants WHERE companion_id = ? AND section = 'cycle'`, link))
+	// The cycle grant row stays (stored with its v6 code since T-M11-05)…
+	assert.Equal(t, 1, e.count(`SELECT COUNT(*) FROM companion_grants WHERE companion_id = ? AND section = 'cycle_phase'`, link))
 	assert.Equal(t, audit0+1, audits())
 	assert.Equal(t, 1, resets(companion.ResetPregnancyDeactivated))
 	assert.Equal(t, fiber.StatusForbidden, e.do(fiber.MethodGet, pregSection, ali, nil).Status)
+	// …but the mode change (pregnancy → cycle) paused it until she reviews (F-23): denied before, live after she
+	// re-approves through the real API.
+	cycleSection := "/api/v1/companions/links/" + strconv.FormatUint(link, 10) + "/sections/cycle"
+	r = e.do(fiber.MethodGet, cycleSection, ali, nil)
+	assert.Equal(t, fiber.StatusForbidden, r.Status, r.Raw)
+	assert.Nil(t, r.Body["data"])
+	r = e.do(fiber.MethodPut, "/api/v1/companions/"+strconv.FormatUint(link, 10)+"/grants", sara,
+		map[string]any{"grants": map[string]any{"cycle": "view"}})
+	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
+	assert.Equal(t, fiber.StatusOK, e.do(fiber.MethodGet, cycleSection, ali, nil).Status, "re-approved")
+	assert.Equal(t, audit0+1, audits(), "the re-approval writes no pregnancy-section row")
 
 	// A stale grant from before the next pregnancy (here put back by hand) is reset when she activates again.
 	e.exec(`INSERT INTO companion_grants (companion_id, section, level, created_at, updated_at) VALUES (?, 'pregnancy', 'view', '2026-09-01 09:00:00', '2026-09-01 09:00:00')`, link)

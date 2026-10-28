@@ -27,6 +27,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth/passport"
 	authstore "github.com/ritme/backend-go/internal/auth/store"
 	"github.com/ritme/backend-go/internal/companion"
+	"github.com/ritme/backend-go/internal/family"
 	apihttp "github.com/ritme/backend-go/internal/http"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
@@ -133,6 +134,10 @@ func (e *privacyEnv) link(owner, member uint64, at string, grants companion.Gran
 	for s, l := range grants {
 		e.exec(`INSERT INTO companion_grants (companion_id, section, level, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`, cid, string(s), string(l), at, at)
 	}
+	// Like family.Grants.Apply (T-M11-05): the grants are stamped with the owner's current mode epoch.
+	st, err := family.SyncMode(context.Background(), e.db, owner, time.Now())
+	require.NoError(e.t, err)
+	e.exec(`UPDATE companion_grants SET mode_epoch = ? WHERE companion_id = ?`, st.Epoch, cid)
 	return uint64(cid) //nolint:gosec // test id
 }
 
@@ -187,8 +192,8 @@ func section(link uint64, s string) string {
 	return fmt.Sprintf("/api/v1/companions/links/%d/sections/%s", link, s)
 }
 
-// TestMember_MoodNeverShared — FAM-H1: a member with the symptoms grant gets the owner's pain and never her mood, on
-// the section read and on the companion home.
+// TestMember_MoodNeverShared — FAM-H1, F-03 (T-M11-05): symptoms is never shared any more; a member whose link still
+// holds a legacy symptoms row gets neither the owner's pain nor her mood, on the section read and on the companion home.
 func TestMember_MoodNeverShared(t *testing.T) {
 	e := newPrivacyEnv(t)
 	owner, _ := e.account("09120095001", "female", "cycle")
@@ -204,11 +209,12 @@ func TestMember_MoodNeverShared(t *testing.T) {
 			VALUES (?, '2026-09-22', ?, ?, ?, ?, NULL, NULL, 'manual', '2026-09-22 09:00:00', '2026-09-22 09:00:00')`, append([]any{owner}, row...)...)
 	}
 
+	r := e.do(fiber.MethodGet, section(link, "symptoms"), tok, nil)
+	require.Equal(t, fiber.StatusForbidden, r.Status, r.Raw)
+	assert.Equal(t, "section_not_shared", r.Body["error_code"])
 	for _, path := range []string{section(link, "symptoms"), "/api/v1/companion/home"} {
 		r := e.do(fiber.MethodGet, path, tok, nil)
-		require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
-		assert.Contains(t, r.Raw, `"abdomen"`, path)
-		for _, hidden := range []string{`"mood"`, `"moods"`, "calm", "anxious"} {
+		for _, hidden := range []string{`"mood"`, `"moods"`, "calm", "anxious", "abdomen"} {
 			assert.NotContains(t, r.Raw, hidden, path)
 		}
 	}
@@ -260,13 +266,13 @@ func TestMember_PostpartumIsNotPregnancy(t *testing.T) {
 	link := e.link(owner, member, "2026-09-20 09:00:00", companion.Grants{
 		companion.SectionPregnancy: companion.LevelView, companion.SectionCycle: companion.LevelView})
 
+	// v6 (T-M11-05): neither pregnancy nor cycle_phase is in scope while the owner is postpartum — both 403, no data.
 	r := e.do(fiber.MethodGet, section(link, "pregnancy"), tok, nil)
-	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
-	assert.Equal(t, map[string]any{"is_active": false}, r.data()["data"])
+	require.Equal(t, fiber.StatusForbidden, r.Status, r.Raw)
+	assert.Nil(t, r.Body["data"])
 	r = e.do(fiber.MethodGet, section(link, "cycle"), tok, nil)
-	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
-	cyc, _ := r.data()["data"].(map[string]any)
-	assert.Equal(t, false, cyc["has_data"], "postpartum: the neutral cycle view")
+	require.Equal(t, fiber.StatusForbidden, r.Status, r.Raw)
+	assert.Nil(t, r.Body["data"])
 	r = e.do(fiber.MethodGet, "/api/v1/companion/home", tok, nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	assert.NotContains(t, r.Raw, `"phase":"pregnancy"`)

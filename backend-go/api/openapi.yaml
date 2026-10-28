@@ -18104,6 +18104,81 @@ paths:
         '422': {$ref: "#/components/responses/CompanionFailed"}
         '429': {$ref: "#/components/responses/CompanionThrottled"}
         '503': {$ref: "#/components/responses/CompanionUnavailable"}
+  /api/v1/family/me:
+    get:
+      tags: [Companion]
+      summary: My family links (v6)
+      description: "Go only (T-M11-05, D-193, D-204). `as_owner`: the caller's links as owner with role, template, status (`expired` past `expires_at`), expiry and every grant with its state — `active`, `paused` (granted in an earlier mode epoch, waiting for her review, F-23) or `inactive` (outside her current mode). `as_member`: links where the caller is the member, with the owner and the effective domains only (never a paused or inactive hint; expired links and blocked owners are left out). `Cache-Control: private, no-store`."
+      operationId: getFamilyMe
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      responses:
+        '200':
+          description: Family links
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [as_owner, as_member]
+                    properties:
+                      as_owner:
+                        type: array
+                        items:
+                          type: object
+                          required: [id, member, role, template, status, expires_at, review_pending, grants]
+                          properties:
+                            id: {type: integer}
+                            member:
+                              oneOf:
+                                - {type: 'null'}
+                                - type: object
+                                  required: [id, name]
+                                  properties:
+                                    id: {type: integer}
+                                    name: {type: [string, 'null']}
+                            role: {type: [string, 'null'], enum: [partner, other_parent, carer, friend, teen_parent, null]}
+                            template: {type: [string, 'null']}
+                            status: {type: string, enum: [invited, active, awaiting_owner, expired]}
+                            expires_at: {type: [string, 'null'], format: date-time}
+                            review_pending: {type: boolean}
+                            grants:
+                              type: array
+                              items:
+                                type: object
+                                required: [domain, level, state]
+                                properties:
+                                  domain: {type: string, enum: [cycle_phase, pregnancy, appointments, fetal_activity, vitals, meds, urgent_alert, household, ttc_fertility, teen_period_week, teen_kit, teen_notes]}
+                                  level: {type: string, enum: [view, nudge, write]}
+                                  state: {type: string, enum: [active, paused, inactive]}
+                      as_member:
+                        type: array
+                        items:
+                          type: object
+                          required: [id, owner, role, domains]
+                          properties:
+                            id: {type: integer}
+                            owner:
+                              type: object
+                              required: [id, name]
+                              properties:
+                                id: {type: integer}
+                                name: {type: [string, 'null']}
+                            role: {type: [string, 'null']}
+                            domains:
+                              type: array
+                              items:
+                                type: object
+                                required: [domain, level]
+                                properties:
+                                  domain: {type: string}
+                                  level: {type: string, enum: [view, nudge, write]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/companions/links:
     get:
       tags: [Companion]

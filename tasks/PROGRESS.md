@@ -2425,3 +2425,13 @@ Nothing needed fixing.
 ## T-M9-53b — Postpartum ring
 - Not reproducible after T-M9-53: the v6 ring reads `cycle_view.cycle_day` (null) and draws no dots or arc. Light/dark QA shots in `docs/engine-v6/qa/T-M9-53b/`. Only a postpartum regression test added to `entities/cycle/model/schedule.test.ts`.
 - Verify: typecheck, vitest entities/cycle + screens/home (182 tests), fsd:lint, lint:styles, lint:dark green.
+
+## T-M11-05 — family.Authorizer
+- New `internal/family`: domain registry (roles, caps, defaults, templates, carer expiry), pure `Decide` (10 ordered steps, deny by default; ~9 ns/op, 0 allocs; 177k-row oracle matrix), per-request `Loader` (one statement per pair), lazy `SyncMode` epoch, `RecheckTx` (`LOCK IN SHARE MODE`), `Grants.Apply` (registry caps → 422 `ErrLevelNotAllowed`, epoch stamp, activity `diff_json` + `family_sharing` consent event in the caller's tx), Redis read-audit coalescing (`family:ra:*`, 15 min, DB fallback).
+- `GET /api/v1/family/me` (private, no-store). Companion/teen/delegation/shop now decide through `family`; `/companions/*` keep their shape and `section_not_shared` (D-204). Consent catalog: `family_sharing` v1.
+- Migration `00110_family_grants_v6` (data only, no Laravel twin): legacy grants → v6 codes/levels, symptoms rows deleted, epoch 1 on owner-data grants, pregnancy grants of non-pregnant owners NULL.
+- Care member writes (meds, appointments) run in a tx with `RecheckTx` + re-decide (revoke during a request wins).
+- Security review fixed: teen beats an active pregnancy (H1); RecheckTx wired (M1); accept keeps invite-time epochs so a mode change before accept stays paused (M2); teen domains teen-only (L1); unchanged levels keep their epoch unless the owner re-approves (L2); only legacy shapes count as epoch 1 (L3); v6 domain in the Redis key (L6). M3 (mode-write hooks, A→B→A) and L5 (loss notice recipients) moved to T-M11-07.
+- Behaviour change (F-23): any owner mode change pauses owner-data grants until she re-approves (`PUT /companions/{id}/grants`); the review card comes in T-M11-07.
+- Not wired here: `children.Access` → Decide; `/family/me` contract case.
+- Verify: vet, golangci-lint, schema-diff, unit + test-int family/companion/care/http/shop green; contract companion,companion-home,reminders,shop-checklist,teen 104/0 (58 allow-listed); partners,pregnancy,loss 252/0. `-race` skipped (CGO).

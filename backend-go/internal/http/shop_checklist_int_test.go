@@ -15,7 +15,7 @@ import (
 
 func TestShopChecklist_ProductionWiring(t *testing.T) {
 	e := newCompanionEnv(t)
-	sara, ali, _ := securityPair(t, e) // Sara: cycle mode, last period 2026-09-05 / 28 days; Ali: partner without pregnancy
+	sara, ali, linkID := securityPair(t, e) // Sara: cycle mode, last period 2026-09-05 / 28 days; Ali: partner without pregnancy
 	saraID := e.ids["Sara"]
 
 	for _, p := range []string{"/api/v1/shop/checklist", "/api/v1/shop/supply-reminder"} {
@@ -45,9 +45,14 @@ func TestShopChecklist_ProductionWiring(t *testing.T) {
 	_, err := e.db.Exec(`INSERT INTO pregnancy_profiles (user_id, pregnancy_mode, age_source, lmp_date, created_at, updated_at)
 		VALUES (?, 1, 'lmp', '2026-09-05', NOW(), NOW())`, saraID)
 	require.NoError(t, err)
-	_, err = e.db.Exec(`INSERT INTO companion_grants (companion_id, section, level, created_at, updated_at)
-		SELECT id, 'pregnancy', 'view', NOW(), NOW() FROM companions WHERE owner_id = ?`, saraID)
-	require.NoError(t, err)
+	// The pregnancy is a new mode epoch (T-M11-05, F-23): Ali's old grants are paused and he has no pregnancy grant
+	// yet, so the share stays closed until Sara grants it through the real API (stamped with the new epoch).
+	r = e.do(fiber.MethodGet, path, ali, nil)
+	assert.Equal(t, fiber.StatusForbidden, r.Status, r.Raw)
+	assert.NotContains(t, r.Raw, "due_date")
+	r = e.do(fiber.MethodPut, fmt.Sprintf("/api/v1/companions/%d/grants", linkID), sara,
+		map[string]any{"grants": map[string]any{"pregnancy": "view"}})
+	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	r = e.do(fiber.MethodGet, "/api/v1/shop/checklist", sara, nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	assert.Equal(t, "2027-06-12", r.data()["due_date"])

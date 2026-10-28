@@ -125,6 +125,13 @@
                 "body": "A link you created to view your health report.",
                 "points": []
             }
+        },
+        "family_sharing": {
+            "1": {
+                "title": "Sharing with family",
+                "body": "A change you made to what a family member can see of your data.",
+                "points": []
+            }
         }
     }
 }

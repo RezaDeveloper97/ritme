@@ -80,7 +80,19 @@ func TestCompanionSecurity_TeenOwnerSuspendsPartnerLinks(t *testing.T) {
 
 	_, err = e.db.Exec(`UPDATE user_life_profiles SET life_mode = 'cycle' WHERE user_id = ?`, saraID)
 	require.NoError(t, err)
-	assert.Equal(t, fiber.StatusOK, e.do(fiber.MethodGet, sec("cycle"), ali, nil).Status, "back from teen mode")
+	// Back from teen mode the stored grants are still there, but the mode change paused them until she reviews
+	// (T-M11-05, F-23) …
+	r = e.do(fiber.MethodGet, sec("cycle"), ali, nil)
+	assert.Equal(t, fiber.StatusForbidden, r.Status, "paused until the owner reviews: "+r.Raw)
+	assert.Nil(t, r.Body["data"])
+	// … and come back the moment she keeps them through the real API.
+	r = e.do(fiber.MethodPut, fmt.Sprintf("/api/v1/companions/%d/grants", linkID), sara,
+		map[string]any{"grants": map[string]any{"cycle": "view", "meds": "edit", "appointments": "edit"}})
+	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
+	for _, s := range []string{"cycle", "meds", "appointments"} {
+		assert.Equal(t, fiber.StatusOK, e.do(fiber.MethodGet, sec(s), ali, nil).Status, "back from teen mode, re-approved: "+s)
+	}
+	assert.Equal(t, fiber.StatusForbidden, e.do(fiber.MethodGet, sec("symptoms"), ali, nil).Status, "symptoms is gone (F-03)")
 }
 
 // CMP-M2: delegated single-record reads and updates stay inside the section view; delegated GETs are throttled.
@@ -229,8 +241,10 @@ func TestCompanionSecurity_NoticeNameSanitized(t *testing.T) {
 	assert.Contains(t, title, "Your companion accepted")
 }
 
-// CMP-H1 over HTTP: a pregnant owner's partner without the pregnancy grant gets the neutral cycle view on the section
-// route and on the companion home (general tips, no phase).
+// CMP-H1 over HTTP: a pregnant owner's partner without the pregnancy grant learns nothing about her cycle. Since v6
+// (T-M11-05, D-193) cycle_phase is out of scope in the pregnancy mode: the section read is a 403 with no data (the
+// /companions compatibility layer keeps its section_not_shared code, D-204), the home has no cycle card (general tips,
+// no phase) and /family/me lists no cycle_phase domain.
 func TestCompanionSecurity_PregnantOwnerCycleNeutral(t *testing.T) {
 	e := newCompanionEnv(t)
 	_, ali, linkID := securityPair(t, e)
@@ -239,17 +253,21 @@ func TestCompanionSecurity_PregnantOwnerCycleNeutral(t *testing.T) {
 	require.NoError(t, err)
 
 	r := e.do(fiber.MethodGet, fmt.Sprintf("/api/v1/companions/links/%d/sections/cycle", linkID), ali, nil)
-	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
-	view := r.data()["data"].(map[string]any)
-	assert.Equal(t, false, view["has_data"])
-	assert.Nil(t, view["cycle_day"])
-	assert.Nil(t, view["days_late"])
-	assert.Nil(t, view["main_phase"])
+	require.Equal(t, fiber.StatusForbidden, r.Status, r.Raw)
+	assert.Equal(t, "section_not_shared", r.Body["error_code"])
+	assert.Nil(t, r.Body["data"])
+	for _, leak := range []string{"cycle_day", "main_phase", "days_to_period", "predicted_next_period_start"} {
+		assert.NotContains(t, r.Raw, leak)
+	}
 
 	h := e.home(ali)
 	require.Equal(t, fiber.StatusOK, h.Status, h.Raw)
 	card := partnersOf(h)[0].(map[string]any)
-	assert.Equal(t, false, card["cycle"].(map[string]any)["has_data"])
+	assert.Nil(t, card["cycle"])
 	assert.Nil(t, card["pregnancy"])
 	assert.Equal(t, "general", card["phase"])
+
+	me := e.do(fiber.MethodGet, "/api/v1/family/me", ali, nil)
+	require.Equal(t, fiber.StatusOK, me.Status, me.Raw)
+	assert.NotContains(t, me.Raw, "cycle_phase")
 }

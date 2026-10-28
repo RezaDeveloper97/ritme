@@ -17,6 +17,7 @@ import (
 	"github.com/ritme/backend-go/internal/cycle/state"
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/enums"
+	"github.com/ritme/backend-go/internal/family"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -41,7 +42,7 @@ func init() {
 		}
 		svc := checklist.NewService(shopstore.New(d.DB), shopDueDate{q: pregnancystore.New(d.DB)}, predict)
 		h := checklist.NewHandlers(svc, teen.NewPolicy(d.DB),
-			shopChecklistShare{d: companion.NewDelegation(d.DB, clock.Real{}, d.Logger), preg: pregnancystore.New(d.DB)}, clock.Real{})
+			shopChecklistShare{d: companion.NewDelegation(d.DB, clock.Real{}, d.Logger).WithReadAudit(family.NewReadAudit(d.Cache)), preg: pregnancystore.New(d.DB)}, clock.Real{})
 		writes := writeThrottle(d)
 
 		r.Get("/api/v1/shop/checklist", locale, guard, delegatedReadThrottle(d), h.Show)
@@ -147,7 +148,9 @@ func (p shopEnginePredictor) Revision(ctx context.Context, userID uint64) (uint6
 // shopChecklistShare is the family share: a companion with a live `pregnancy` grant (view or edit) reads the
 // owner's checklist while she is pregnant — the same pregnancy check as the companion pregnancy section (T-M9-02):
 // postpartum, after a loss or between pregnancies nothing is shared, and a grant reset by
-// companion.ResetModeScopedGrants opens nothing (so no due date or weeks left reach a member). The read is audited
+// companion.ResetModeScopedGrants opens nothing (so no due date or weeks left reach a member). Since T-M11-05 the
+// delegation decides through family.Decide (pregnancy domain: owner mode pregnancy and the grant stamped with her
+// current mode epoch, so a new pregnancy never inherits an old grant; expiry and blocked owner). The read is audited
 // by the companion delegation before any data is touched; a refused one is not.
 type shopChecklistShare struct {
 	d    *companion.Delegation

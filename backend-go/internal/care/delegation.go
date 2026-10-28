@@ -2,10 +2,13 @@ package care
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/ritme/backend-go/internal/care/store"
 	"github.com/ritme/backend-go/internal/companion"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/platform/httpx"
@@ -33,6 +36,9 @@ type Delegation interface {
 	// Authorize reports whether actorID may read (write=false) or write the section of ownerID's data and, when
 	// allowed, records the access in the audit trail first; an error means the request must not proceed.
 	Authorize(ctx context.Context, ownerID, actorID uint64, section companion.Section, write bool) (bool, error)
+	// RecheckTx re-decides a write inside tx with shared locks on the link and grant rows (CMP-L4): a revoke committed
+	// after Authorize wins. false = refuse with the same 403 as Authorize.
+	RecheckTx(ctx context.Context, tx *sql.Tx, ownerID, actorID uint64, section companion.Section) (bool, error)
 	// Notify tells the owner about a successful write (created: a new record, else an edit). Best effort, no error.
 	Notify(ctx context.Context, ownerID, actorID uint64, section companion.Section, created bool, languages []string)
 }
@@ -75,6 +81,44 @@ func (h *Handlers) subject(c fiber.Ctx, section companion.Section, write bool) (
 		return 0, 0, companionForbidden(locale)
 	}
 	return owner, actorID, nil
+}
+
+// txBeginner is the database behind Handlers when it can open a transaction (*sql.DB).
+type txBeginner interface {
+	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
+}
+
+// write runs one write of subjectID's record. Her own record: straight on the handlers' queries. Someone else's (a
+// member's «ثبت برای …»): inside a transaction that first re-decides the grant with family.RecheckTx (shared locks), so
+// a revoke or grant change committed after the pre-check (subject) rejects the write with the same 403 — and no
+// revoke can commit while the write is in flight (CMP-L4, T-M11-05). No transaction available → refused (fail closed).
+func (h *Handlers) write(c fiber.Ctx, subjectID, actorID uint64, section companion.Section, fn func(q *store.Queries) error) error {
+	if subjectID == actorID {
+		return fn(h.q)
+	}
+	locale := i18n.Locale(c)
+	if h.delegation == nil || h.txdb == nil {
+		return companionForbidden(locale)
+	}
+	tx, err := h.txdb.BeginTx(c, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
+	if err != nil {
+		return fmt.Errorf("care: begin: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+	ok, err := h.delegation.RecheckTx(c, tx, subjectID, actorID, section)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return companionForbidden(locale)
+	}
+	if err := fn(store.New(tx)); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("care: commit: %w", err)
+	}
+	return nil
 }
 
 // delegated notifies the owner of a successful write on her data (no-op for one's own data and for reads, which

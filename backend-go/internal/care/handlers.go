@@ -29,13 +29,18 @@ import (
 // RequireUser.
 type Handlers struct {
 	q          *store.Queries
+	txdb       txBeginner // member writes run in a transaction with RecheckTx (delegation.go); nil = none
 	clock      clock.Clock
 	delegation Delegation // «ثبت برای …» (B-N4-02); nil = own records only
 }
 
 // NewHandlers wires the handlers; base is the fallback clock (tests pin it per request).
 func NewHandlers(db store.DBTX, base clock.Clock) *Handlers {
-	return &Handlers{q: store.New(db), clock: base}
+	h := &Handlers{q: store.New(db), clock: base}
+	if b, ok := db.(txBeginner); ok {
+		h.txdb = b
+	}
+	return h
 }
 
 func (h *Handlers) user(c fiber.Ctx) (uint64, error) {
@@ -119,15 +124,22 @@ func (h *Handlers) StoreMedication(c fiber.Ctx) error {
 		return err
 	}
 	ts := sql.NullTime{Time: now, Valid: true}
-	id, err := h.q.InsertMedication(c, store.InsertMedicationParams{
-		UserID: userID, Title: p.Title, Subtitle: p.Subtitle, Notes: p.Notes,
-		Recurrence: p.Recurrence, RecurrenceTime: p.RecurrenceTime, StartsOn: p.StartsOn, EndsOn: p.EndsOn,
-		IsActive: p.IsActive, Meta: p.Meta, CreatedAt: ts, UpdatedAt: ts,
-	})
-	if err != nil || id <= 0 {
-		return fmt.Errorf("care: insert medication (id %d): %w", id, err)
+	var id int64
+	if err := h.write(c, userID, actorID, companion.SectionMeds, func(q *store.Queries) error {
+		var err error
+		id, err = q.InsertMedication(c, store.InsertMedicationParams{
+			UserID: userID, Title: p.Title, Subtitle: p.Subtitle, Notes: p.Notes,
+			Recurrence: p.Recurrence, RecurrenceTime: p.RecurrenceTime, StartsOn: p.StartsOn, EndsOn: p.EndsOn,
+			IsActive: p.IsActive, Meta: p.Meta, CreatedAt: ts, UpdatedAt: ts,
+		})
+		if err != nil || id <= 0 {
+			return fmt.Errorf("care: insert medication (id %d): %w", id, err)
+		}
+		return nil
+	}); err != nil {
+		return err
 	}
-	m, err := h.load(c, uint64(id), userID)
+	m, err := h.load(c, uint64(id), userID) //nolint:gosec // id > 0 checked in the write
 	if err != nil {
 		return err
 	}
@@ -155,7 +167,7 @@ func (h *Handlers) UpdateMedication(c fiber.Ctx) error {
 	locale, now := i18n.Locale(c), h.now(c)
 	body := validation.Input(c)
 	if switchesOnly(body) {
-		if err := h.updateSwitches(c, m, body, locale, now, userID != actorID); err != nil {
+		if err := h.updateSwitches(c, m, body, locale, now, actorID); err != nil {
 			return err
 		}
 		return h.delegated(c, userID, actorID, companion.SectionMeds, true, false)
@@ -169,12 +181,17 @@ func (h *Handlers) UpdateMedication(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if err := h.q.UpdateMedication(c, store.UpdateMedicationParams{
-		Title: p.Title, Subtitle: p.Subtitle, Notes: p.Notes, Recurrence: p.Recurrence,
-		RecurrenceTime: p.RecurrenceTime, StartsOn: p.StartsOn, EndsOn: p.EndsOn, IsActive: p.IsActive,
-		Meta: p.Meta, UpdatedAt: sql.NullTime{Time: now, Valid: true}, ID: m.Row.ID, UserID: userID,
+	if err := h.write(c, userID, actorID, companion.SectionMeds, func(q *store.Queries) error {
+		if err := q.UpdateMedication(c, store.UpdateMedicationParams{
+			Title: p.Title, Subtitle: p.Subtitle, Notes: p.Notes, Recurrence: p.Recurrence,
+			RecurrenceTime: p.RecurrenceTime, StartsOn: p.StartsOn, EndsOn: p.EndsOn, IsActive: p.IsActive,
+			Meta: p.Meta, UpdatedAt: sql.NullTime{Time: now, Valid: true}, ID: m.Row.ID, UserID: userID,
+		}); err != nil {
+			return fmt.Errorf("care: update medication: %w", err)
+		}
+		return nil
 	}); err != nil {
-		return fmt.Errorf("care: update medication: %w", err)
+		return err
 	}
 	fresh, err := h.load(c, m.Row.ID, userID)
 	if err != nil {
@@ -188,7 +205,8 @@ func (h *Handlers) UpdateMedication(c fiber.Ctx) error {
 
 // updateSwitches is a PUT that only flips is_active and/or notify: only those change, the
 // rest of the row (including a legacy row's missing starts_on / times) is left as stored.
-func (h *Handlers) updateSwitches(c fiber.Ctx, m Medication, body phpval.Map, locale string, now time.Time, member bool) error {
+func (h *Handlers) updateSwitches(c fiber.Ctx, m Medication, body phpval.Map, locale string, now time.Time, actorID uint64) error {
+	member := m.Row.UserID != actorID
 	v := validation.Make(lang.Default(), locale, body, switchRules(),
 		validation.Now(now), validation.Attributes(attributes(locale)...))
 	if v.Fails() {
@@ -207,10 +225,15 @@ func (h *Handlers) updateSwitches(c fiber.Ctx, m Medication, body phpval.Map, lo
 		}
 		meta = rootdb.NullRawJSON{V: raw, Valid: true}
 	}
-	if err := h.q.UpdateMedicationSwitches(c, store.UpdateMedicationSwitchesParams{
-		IsActive: active, Meta: meta, UpdatedAt: sql.NullTime{Time: now, Valid: true}, ID: m.Row.ID, UserID: m.Row.UserID,
+	if err := h.write(c, m.Row.UserID, actorID, companion.SectionMeds, func(q *store.Queries) error {
+		if err := q.UpdateMedicationSwitches(c, store.UpdateMedicationSwitchesParams{
+			IsActive: active, Meta: meta, UpdatedAt: sql.NullTime{Time: now, Valid: true}, ID: m.Row.ID, UserID: m.Row.UserID,
+		}); err != nil {
+			return fmt.Errorf("care: update medication switches: %w", err)
+		}
+		return nil
 	}); err != nil {
-		return fmt.Errorf("care: update medication switches: %w", err)
+		return err
 	}
 	fresh, err := h.load(c, m.Row.ID, m.Row.UserID)
 	if err != nil {

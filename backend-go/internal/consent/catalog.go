@@ -39,6 +39,9 @@ const (
 	AssistantProfileItems = "assistant_profile_items" // which profile items the assistant may see (scope {items})
 	TelemedShare          = "telemed_share"           // data shared with one booking's doctor (scope {booking_id, doctor_id, items})
 	ShareLink             = "share_link"              // a doctor report share link (scope {link_id, expires_at, items})
+	// FamilySharing is every family grant change (T-M11-05, family.Grants.Apply): scope {link_id, member_id, role,
+	// domains, expires_at, reason}, source family.
+	FamilySharing = "family_sharing"
 )
 
 // Definition is one consent: its code and the version of the text in force.
@@ -70,6 +73,7 @@ var evidence = []Definition{
 	{Code: AssistantProfileItems, Version: 1},
 	{Code: TelemedShare, Version: 1},
 	{Code: ShareLink, Version: 1},
+	{Code: FamilySharing, Version: 1},
 }
 
 // Mandatory returns the mandatory signup consents in display order.

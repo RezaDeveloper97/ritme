@@ -3,10 +3,10 @@ id: T-M11-05
 title: family.Authorizer: domain registry, pure Decide, batched snapshot, mode epoch, grant-change service
 milestone: M11
 type: backend
-status: todo
+status: done
 depends_on: [T-M11-04, T-M9-36, T-M9-26, T-M10-23]
 parallel_group: M11-C
-touches: [backend-go/internal/family, backend-go/internal/companion, backend-go/internal/care/delegation.go, backend-go/internal/shop/checklist/handlers.go, backend-go/internal/http/routes_companion.go, backend-go/internal/http/routes_family.go, backend-go/internal/http/routes_shop_checklist.go, backend-go/internal/consent/catalog.go, backend-go/internal/consent/lang, backend-go/db/queries/companion, backend-go/db/migrations, backend-go/api/openapi.yaml, backend-go/contract/allowlist]
+touches: [backend-go/internal/family, backend-go/internal/care, backend-go/internal/shop/checklist, backend-go/internal/http/routes_care.go, backend-go/internal/http/routes_pregnancy_grants_int_test.go, backend-go/internal/http/companion_security_int_test.go, backend-go/internal/http/routes_loss_int_test.go, backend-go/internal/http/shop_checklist_int_test.go, backend/database/migrations, backend-go/internal/companion, backend-go/internal/care/delegation.go, backend-go/internal/shop/checklist/handlers.go, backend-go/internal/http/routes_companion.go, backend-go/internal/http/routes_family.go, backend-go/internal/http/routes_shop_checklist.go, backend-go/internal/consent/catalog.go, backend-go/internal/consent/lang, backend-go/db/queries/companion, backend-go/db/migrations, backend-go/api/openapi.yaml, backend-go/contract/allowlist]
 skills: [new-endpoint]
 verify: cd backend-go && make sqlc && go vet ./... && go test -race ./internal/family/... ./internal/companion/... && make test-int PKG="./internal/family/... ./internal/companion/... ./internal/care/... ./internal/http/..." && make contract ROUTES=companion,companion-home,reminders,shop-checklist,teen && go test -run '^$' -bench BenchmarkDecide ./internal/family/...
 ---

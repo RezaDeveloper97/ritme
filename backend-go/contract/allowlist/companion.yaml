@@ -1,0 +1,43 @@
+group: companion
+entries:
+  # D-204 / D-193 (accepted 2026-10-21, T-M11-01; T-M11-05): every grant change goes through family.Grants.Apply,
+  # which writes a grants_changed activity row (with the v6 per-domain diff_json) — at invite and again at accept,
+  # when the owner's choice takes effect stamped with her mode epoch. The /companions/audit trail therefore has two
+  # more rows (owner-actor grants_changed), and every later row id shifts by two.
+  - case: invite_accept_read_record_revoke
+    step: 14
+    where: body
+    deviation: D-204
+    reason: two extra grants_changed rows (invite + accept) from family.Grants.Apply; ids shift by two
+  - case: audit_filter_cursor_and_history_404
+    step: 6
+    where: body
+    deviation: D-204
+    reason: audit row ids shift by two (grants_changed rows of invite + accept)
+  - case: audit_filter_cursor_and_history_404
+    step: 7
+    where: body
+    deviation: D-204
+    reason: audit row ids shift by two (grants_changed rows of invite + accept)
+  - case: audit_filter_cursor_and_history_404
+    step: 8
+    where: body
+    deviation: D-204
+    reason: audit row ids shift by two (grants_changed rows of invite + accept)
+  - case: audit_filter_cursor_and_history_404
+    step: 9
+    where: body
+    deviation: D-204
+    reason: the cursor page now holds the accept-time grants_changed row and the accepted row
+  # D-193 (T-M11-05): the pregnancy domain is visible only while the owner is pregnant (family.md §2, mode scope);
+  # outside it a member read is 403 section_not_shared with no data, not 200 {is_active: false}.
+  - case: spouse_renew_children_leave
+    step: 5
+    where: status
+    deviation: D-193
+    reason: pregnancy section of a non-pregnant owner is 403 (mode_inactive) instead of 200 is_active false
+  - case: spouse_renew_children_leave
+    step: 5
+    where: body
+    deviation: D-193
+    reason: the 403 section_not_shared body, no data

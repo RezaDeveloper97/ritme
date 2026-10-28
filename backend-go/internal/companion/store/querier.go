@@ -61,10 +61,20 @@ type Querier interface {
 	ExpireFamilyProposals(ctx context.Context, arg ExpireFamilyProposalsParams) (int64, error)
 	// Revoke / expiry of a link: its open requests end.
 	ExpirePendingFamilyShareRequestsForLink(ctx context.Context, arg ExpirePendingFamilyShareRequestsForLinkParams) (int64, error)
+	// The actor's guardian rows (any status; Decide reads status) for a set of children: one statement per request.
+	FamilyGuardiansOfUser(ctx context.Context, arg FamilyGuardiansOfUserParams) ([]FamilyGuardiansOfUserRow, error)
+	// RecheckTx: the same rows with shared locks.
+	FamilyLockGuardiansOfUser(ctx context.Context, arg FamilyLockGuardiansOfUserParams) ([]FamilyLockGuardiansOfUserRow, error)
+	// RecheckTx (CMP-L4): the pair snapshot read with shared locks inside a write transaction, so a revoke or grant
+	// change committed meanwhile wins (a locking read sees the latest committed rows) and cannot commit until we do.
+	FamilyLockPair(ctx context.Context, arg FamilyLockPairParams) ([]FamilyLockPairRow, error)
+	// SyncMode outside a snapshot (after a mode write): the inputs of enums.ResolveLifeMode and the stored state.
+	FamilyOwnerModeInputs(ctx context.Context, ownerID uint64) (FamilyOwnerModeInputsRow, error)
 	// Every owner of one member (member home). Index companions_companion_user_id_status_owner_id_index.
 	FamilySnapshotForMember(ctx context.Context, memberID sql.NullInt64) ([]FamilySnapshotForMemberRow, error)
-	// Family v6 storage (T-M11-02, 00106; docs/engine-v6/family.md §5, §7; gap 05 §5.3). No reader or writer yet: the
-	// family.Authorizer, SyncMode and the activity writer arrive with T-M11-05 and later tasks.
+	// Family v6 storage (T-M11-02, 00106; docs/engine-v6/family.md §5, §7; gap 05 §5.3). Read by the family.Authorizer
+	// (internal/family, T-M11-05): the snapshot statements also carry the owner's mode inputs (stored life mode, active
+	// pregnancy, goal — enums.ResolveLifeMode) and sex (F-20), so check() and the lazy SyncMode need one statement.
 	//
 	// Snapshot = links ⋈ grants ⋈ family_owner_state ⋈ users.blocked_at (the owner's), one row per (link, grant); a link
 	// without grants yields one row with NULL grant columns, an owner without a state row NULL state columns (SyncMode
@@ -76,6 +86,7 @@ type Querier interface {
 	GetAccess(ctx context.Context, arg GetAccessParams) (GetAccessRow, error)
 	GetCompanion(ctx context.Context, id uint64) (Companion, error)
 	GetFamilyByCompanion(ctx context.Context, companionID uint64) (Family, error)
+	GetFamilyOwnerState(ctx context.Context, ownerID uint64) (FamilyOwnerState, error)
 	// One proposal. expired = 1 for a pending row past expires_at (lazy expiry): the caller treats it as expired.
 	GetFamilyProposal(ctx context.Context, arg GetFamilyProposalParams) (GetFamilyProposalRow, error)
 	// One request; expired = 1 for a pending row past expires_at (lazy expiry).
@@ -183,6 +194,8 @@ type Querier interface {
 	RevokeCompanion(ctx context.Context, arg RevokeCompanionParams) (int64, error)
 	RevokeOpenInvites(ctx context.Context, arg RevokeOpenInvitesParams) error
 	SetFamilySpouse(ctx context.Context, arg SetFamilySpouseParams) error
+	// Grants.Apply: one v6 grant stamped with the owner's current mode epoch (NULL for an epoch-free domain is fine too).
+	UpsertFamilyGrant(ctx context.Context, arg UpsertFamilyGrantParams) error
 	// SyncMode: store the owner's effective mode. A new owner starts at epoch 1, nothing to review; a different mode bumps
 	// the epoch, sets review_pending (F-23: owner-data domains pause until she reviews) and stamps updated_at; the same mode
 	// changes nothing. MariaDB evaluates the assignments left to right, so `mode` is compared before it is overwritten.

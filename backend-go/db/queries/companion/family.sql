@@ -1,5 +1,6 @@
--- Family v6 storage (T-M11-02, 00106; docs/engine-v6/family.md §5, §7; gap 05 §5.3). No reader or writer yet: the
--- family.Authorizer, SyncMode and the activity writer arrive with T-M11-05 and later tasks.
+-- Family v6 storage (T-M11-02, 00106; docs/engine-v6/family.md §5, §7; gap 05 §5.3). Read by the family.Authorizer
+-- (internal/family, T-M11-05): the snapshot statements also carry the owner's mode inputs (stored life mode, active
+-- pregnancy, goal — enums.ResolveLifeMode) and sex (F-20), so check() and the lazy SyncMode need one statement.
 --
 -- Snapshot = links ⋈ grants ⋈ family_owner_state ⋈ users.blocked_at (the owner's), one row per (link, grant); a link
 -- without grants yields one row with NULL grant columns, an owner without a state row NULL state columns (SyncMode
@@ -11,11 +12,17 @@ SELECT c.id AS link_id, c.owner_id, c.companion_user_id AS member_id, c.type, c.
   c.expires_at, c.urgent_sms, c.owner_confirmed_at,
   g.section, g.level, g.mode_epoch AS grant_mode_epoch,
   s.mode AS owner_mode, s.mode_epoch AS owner_mode_epoch, s.review_pending,
-  u.blocked_at AS owner_blocked_at
+  u.blocked_at AS owner_blocked_at,
+  lp.life_mode AS owner_life_mode, lp.gender AS owner_gender,
+  CAST(EXISTS(SELECT 1 FROM `pregnancy_profiles` pp WHERE pp.user_id = c.owner_id AND pp.pregnancy_mode = 1) AS SIGNED)
+    AS owner_pregnancy_active,
+  up.user_goal AS owner_user_goal
 FROM `companions` c
 JOIN `users` u ON u.id = c.owner_id
 LEFT JOIN `companion_grants` g ON g.companion_id = c.id
 LEFT JOIN `family_owner_state` s ON s.owner_id = c.owner_id
+LEFT JOIN `user_life_profiles` lp ON lp.user_id = c.owner_id
+LEFT JOIN `user_profiles` up ON up.user_id = c.owner_id
 WHERE c.owner_id = sqlc.arg(owner_id) AND c.companion_user_id = sqlc.arg(member_id) AND c.status = 'active'
 ORDER BY c.id, g.section;
 
@@ -25,13 +32,70 @@ SELECT c.id AS link_id, c.owner_id, c.companion_user_id AS member_id, c.type, c.
   c.expires_at, c.urgent_sms, c.owner_confirmed_at,
   g.section, g.level, g.mode_epoch AS grant_mode_epoch,
   s.mode AS owner_mode, s.mode_epoch AS owner_mode_epoch, s.review_pending,
-  u.blocked_at AS owner_blocked_at
+  u.blocked_at AS owner_blocked_at,
+  lp.life_mode AS owner_life_mode, lp.gender AS owner_gender,
+  CAST(EXISTS(SELECT 1 FROM `pregnancy_profiles` pp WHERE pp.user_id = c.owner_id AND pp.pregnancy_mode = 1) AS SIGNED)
+    AS owner_pregnancy_active,
+  up.user_goal AS owner_user_goal
 FROM `companions` c
 JOIN `users` u ON u.id = c.owner_id
 LEFT JOIN `companion_grants` g ON g.companion_id = c.id
 LEFT JOIN `family_owner_state` s ON s.owner_id = c.owner_id
+LEFT JOIN `user_life_profiles` lp ON lp.user_id = c.owner_id
+LEFT JOIN `user_profiles` up ON up.user_id = c.owner_id
 WHERE c.companion_user_id = sqlc.arg(member_id) AND c.status = 'active'
 ORDER BY c.owner_id, c.id, g.section;
+
+-- name: FamilyLockPair :many
+-- RecheckTx (CMP-L4): the pair snapshot read with shared locks inside a write transaction, so a revoke or grant
+-- change committed meanwhile wins (a locking read sees the latest committed rows) and cannot commit until we do.
+SELECT c.id AS link_id, c.owner_id, c.companion_user_id AS member_id, c.type, c.role, c.status, c.expires_at,
+  g.section, g.level, g.mode_epoch AS grant_mode_epoch,
+  s.mode AS owner_mode, s.mode_epoch AS owner_mode_epoch,
+  u.blocked_at AS owner_blocked_at, lp.gender AS owner_gender
+FROM `companions` c
+JOIN `users` u ON u.id = c.owner_id
+LEFT JOIN `companion_grants` g ON g.companion_id = c.id
+LEFT JOIN `family_owner_state` s ON s.owner_id = c.owner_id
+LEFT JOIN `user_life_profiles` lp ON lp.user_id = c.owner_id
+WHERE c.owner_id = sqlc.arg(owner_id) AND c.companion_user_id = sqlc.arg(member_id) AND c.status = 'active'
+ORDER BY c.id, g.section
+LOCK IN SHARE MODE;
+
+-- name: FamilyGuardiansOfUser :many
+-- The actor's guardian rows (any status; Decide reads status) for a set of children: one statement per request.
+SELECT child_id, level, sub_scopes, status FROM `child_guardians`
+WHERE user_id = sqlc.arg(user_id) AND child_id IN (sqlc.slice(child_ids))
+ORDER BY child_id;
+
+-- name: FamilyLockGuardiansOfUser :many
+-- RecheckTx: the same rows with shared locks.
+SELECT child_id, level, sub_scopes, status FROM `child_guardians`
+WHERE user_id = sqlc.arg(user_id) AND child_id IN (sqlc.slice(child_ids))
+ORDER BY child_id
+LOCK IN SHARE MODE;
+
+-- name: FamilyOwnerModeInputs :one
+-- SyncMode outside a snapshot (after a mode write): the inputs of enums.ResolveLifeMode and the stored state.
+SELECT u.id, lp.life_mode, lp.gender,
+  CAST(EXISTS(SELECT 1 FROM `pregnancy_profiles` pp WHERE pp.user_id = u.id AND pp.pregnancy_mode = 1) AS SIGNED)
+    AS pregnancy_active,
+  up.user_goal, s.mode AS state_mode, s.mode_epoch AS state_mode_epoch,
+  s.review_pending AS state_review_pending
+FROM `users` u
+LEFT JOIN `user_life_profiles` lp ON lp.user_id = u.id
+LEFT JOIN `user_profiles` up ON up.user_id = u.id
+LEFT JOIN `family_owner_state` s ON s.owner_id = u.id
+WHERE u.id = sqlc.arg(owner_id) LIMIT 1;
+
+-- name: GetFamilyOwnerState :one
+SELECT owner_id, mode, mode_epoch, review_pending, updated_at FROM `family_owner_state` WHERE owner_id = ? LIMIT 1;
+
+-- name: UpsertFamilyGrant :exec
+-- Grants.Apply: one v6 grant stamped with the owner's current mode epoch (NULL for an epoch-free domain is fine too).
+INSERT INTO `companion_grants` (companion_id, section, level, mode_epoch, created_at, updated_at)
+VALUES (sqlc.arg(companion_id), sqlc.arg(section), sqlc.arg(level), sqlc.arg(mode_epoch), sqlc.arg(now), sqlc.arg(now))
+ON DUPLICATE KEY UPDATE level = VALUES(level), mode_epoch = VALUES(mode_epoch), updated_at = VALUES(updated_at);
 
 -- name: UpsertFamilyOwnerState :execrows
 -- SyncMode: store the owner's effective mode. A new owner starts at epoch 1, nothing to review; a different mode bumps

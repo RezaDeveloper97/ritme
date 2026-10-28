@@ -1,0 +1,34 @@
+{
+    "messages": {
+        "not_found": "Not found.",
+        "domain_denied": "This part isn't shared with you.",
+        "level_not_allowed": "This access level isn't allowed for this part."
+    },
+    "notice": {
+        "neutral": "A message from your family on Ritme",
+        "sms_urgent": "A message from your family on Ritme — open the app"
+    },
+    "alert": {
+        "title": {
+            "urgent": "Something urgent",
+            "follow_up": "Something to follow up soon"
+        },
+        "call_owner": "Call her",
+        "call_115": "Call 115"
+    },
+    "nudge": {
+        "meds": "Don't forget today's medicine",
+        "appointment": "Remember your appointment today?"
+    },
+    "owner": {
+        "mode_review": "Set the new access",
+        "mode_review_keep": "Keep as before",
+        "symptoms_ended": "Symptoms sharing has ended",
+        "proposal_new": ":name suggested something",
+        "carer_expired": ":name's access has ended"
+    },
+    "member": {
+        "proposal_approved": "Your suggestion was approved",
+        "proposal_rejected": "Your suggestion wasn't added"
+    }
+}

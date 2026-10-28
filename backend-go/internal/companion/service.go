@@ -15,6 +15,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/companion/store"
 	"github.com/ritme/backend-go/internal/enums"
+	"github.com/ritme/backend-go/internal/family"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 )
@@ -43,6 +44,8 @@ type Options struct {
 	MaxOpenCompanions int
 	// Rand is the code entropy source (crypto/rand).
 	Rand io.Reader
+	// ReadAudit coalesces member read-audit rows in Redis (F-16, D-203); nil → the DB window check.
+	ReadAudit *family.ReadAudit
 }
 
 // Conn is the database the service writes through (a *sql.DB).
@@ -60,12 +63,13 @@ type Service struct {
 	maxAttempts int
 	maxOpen     int
 	rand        io.Reader
+	readAudit   *family.ReadAudit
 }
 
 // NewService returns a Service on conn.
 func NewService(conn Conn, clk clock.Clock, opt Options) *Service {
 	s := &Service{conn: conn, clock: clk, pepper: opt.CodePepper, ttl: opt.InviteTTL, maxAttempts: opt.MaxAttempts,
-		maxOpen: opt.MaxOpenCompanions, rand: opt.Rand}
+		maxOpen: opt.MaxOpenCompanions, rand: opt.Rand, readAudit: opt.ReadAudit}
 	if len(s.pepper) == 0 {
 		s.pepper = defaultPepper
 	}
@@ -147,11 +151,16 @@ func isDuplicate(err error) bool {
 
 // inTx runs fn on one READ COMMITTED transaction.
 func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries) error) error {
+	return s.inTxTx(ctx, func(_ *sql.Tx, q *store.Queries) error { return fn(q) })
+}
+
+// inTxTx is inTx with the transaction itself (family.Grants.Apply writes through it).
+func (s *Service) inTxTx(ctx context.Context, fn func(tx *sql.Tx, q *store.Queries) error) error {
 	tx, err := s.conn.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 	if err != nil {
 		return fmt.Errorf("companion: begin: %w", err)
 	}
-	if err := fn(store.New(tx)); err != nil {
+	if err := fn(tx, store.New(tx)); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
@@ -206,7 +215,7 @@ func (s *Service) CreateInvite(ctx context.Context, ownerID uint64, in InviteInp
 	}
 	now := s.now()
 	var out CreatedInvite
-	err := s.inTx(ctx, func(q *store.Queries) error {
+	err := s.inTxTx(ctx, func(tx *sql.Tx, q *store.Queries) error {
 		if err := lockOwner(ctx, q, ownerID); err != nil {
 			return err
 		}
@@ -245,7 +254,8 @@ func (s *Service) CreateInvite(ctx context.Context, ownerID uint64, in InviteInp
 			return fmt.Errorf("companion: create: %w", err)
 		}
 		cid := uint64(id) //nolint:gosec // AUTO_INCREMENT ids are positive
-		if err := writeGrants(ctx, q, cid, in.Type, in.Grants, now); err != nil {
+		if err := applyGrants(ctx, tx, store.Companion{ID: cid, OwnerID: ownerID, Type: string(in.Type)}, ownerID,
+			toV6(in.Grants), family.ChangeInvite, now); err != nil {
 			return err
 		}
 		if in.Type == TypeSpouse {
@@ -380,7 +390,7 @@ func (s *Service) Accept(ctx context.Context, viewerID uint64, typed string) (Li
 	}
 	now := s.now()
 	var link Link
-	err = s.inTx(ctx, func(q *store.Queries) error {
+	err = s.inTxTx(ctx, func(tx *sql.Tx, q *store.Queries) error {
 		if err := lockOwner(ctx, q, inv.OwnerID); err != nil {
 			return err
 		}
@@ -445,6 +455,11 @@ func (s *Service) Accept(ctx context.Context, viewerID uint64, typed string) (Li
 			}
 		}
 		if err := audit(ctx, q, inv.OwnerID, viewerID, c.ID, "", ActionAccepted, now); err != nil {
+			return err
+		}
+		// The grants the owner chose at invite time take effect now: re-stamped with her current mode epoch.
+		c.CompanionUserID = nid(viewerID)
+		if err := restampGrants(ctx, tx, q, c, inv.OwnerID, family.ChangeAccept, now); err != nil {
 			return err
 		}
 		link, err = loadLink(ctx, q, c.ID)
@@ -515,7 +530,7 @@ func (s *Service) SetGrants(ctx context.Context, ownerID, companionID uint64, gr
 	}
 	now := s.now()
 	var link Link
-	err := s.inTx(ctx, func(q *store.Queries) error {
+	err := s.inTxTx(ctx, func(tx *sql.Tx, q *store.Queries) error {
 		if err := lockOwner(ctx, q, ownerID); err != nil {
 			return err
 		}
@@ -526,13 +541,8 @@ func (s *Service) SetGrants(ctx context.Context, ownerID, companionID uint64, gr
 		if err := grants.ValidateFor(Type(c.Type)); err != nil {
 			return err
 		}
-		if err := q.DeleteGrants(ctx, c.ID); err != nil {
-			return fmt.Errorf("companion: delete grants: %w", err)
-		}
-		if err := writeGrants(ctx, q, c.ID, Type(c.Type), grants, now); err != nil {
-			return err
-		}
-		if err := audit(ctx, q, ownerID, ownerID, c.ID, "", ActionGrantsChanged, now); err != nil {
+		// family.Grants.Apply writes the grants_changed activity row (with the v6 diff) and the consent event.
+		if err := applyGrants(ctx, tx, c, ownerID, toV6(grants), family.ChangeOwnerEdit, now); err != nil {
 			return err
 		}
 		link, err = loadLink(ctx, q, c.ID)
@@ -620,16 +630,30 @@ func (s *Service) ListForCompanion(ctx context.Context, viewerID uint64) ([]Link
 	if err != nil {
 		return nil, fmt.Errorf("companion: grants: %w", err)
 	}
+	// The member sees what Decide gives, not the stored rows: one snapshot statement for every owner (T-M11-05).
+	snaps, err := family.Request(ctx, s.conn, s.now).ForMember(ctx, viewerID)
+	if err != nil {
+		return nil, err
+	}
+	now := s.now()
 	links := make([]Link, 0, len(rows))
 	for _, c := range rows {
 		l := toLink(c, grants)
+		l.Grants = Grants{}
+		gone := true // no snapshot row (blocked owner aside, the statement sees every active link) → leave it out
+		for _, snap := range snaps {
+			if snap.LinkID == c.ID {
+				gone = snap.OwnerBlocked || (!snap.ExpiresAt.IsZero() && !now.Before(snap.ExpiresAt))
+				l.Grants = effectiveGrants(snap, l.Type, now)
+			}
+		}
+		if gone { // expired or blocked owner: like a revoked link, it is not listed (F-21)
+			continue
+		}
 		if err := loadFamily(ctx, q, &l); err != nil {
 			return nil, err
 		}
 		links = append(links, l)
-	}
-	if err := suspendForTeens(ctx, q, links); err != nil { // B-N4-08b: teen owner → partner / spouse grants none
-		return nil, err
 	}
 	return links, nil
 }
@@ -649,24 +673,17 @@ func (s *Service) access(ctx context.Context, ownerID, viewerID uint64, section 
 	if ownerID == viewerID {
 		return LevelEdit, 0, nil
 	}
-	row, err := store.New(s.conn).GetAccess(ctx, store.GetAccessParams{OwnerID: ownerID, ViewerID: nid(viewerID), Section: string(section)})
-	if errors.Is(err, sql.ErrNoRows) {
+	// family.Decide over the pair snapshot (one statement, memoised per request): role, expiry, blocked owner, male
+	// owner, mode scope and epoch, teen-mode owner (B-N4-08b) — all decided in one place (T-M11-05).
+	snap, err := family.Request(ctx, s.conn, s.now).Pair(ctx, ownerID, viewerID)
+	if err != nil {
+		return LevelNone, 0, err
+	}
+	l := effectiveLevel(snap, section, s.now())
+	if l == LevelNone {
 		return LevelNone, 0, nil
 	}
-	if err != nil {
-		return LevelNone, 0, fmt.Errorf("companion: access: %w", err)
-	}
-	l := Level(row.Level)
-	if !l.Valid() || !section.AllowedFor(Type(row.Type)) {
-		return LevelNone, 0, nil // defence in depth: a grant the link type may not hold is no grant
-	}
-	if off, err := teenSuspended(ctx, store.New(s.conn), ownerID, Type(row.Type)); err != nil || off {
-		return LevelNone, 0, err // B-N4-08b: a partner / spouse link of a teen-mode owner grants nothing
-	}
-	if !section.Permits(l) {
-		l = section.MaxLevel() // a teen section is never writable, whatever is stored
-	}
-	return l, row.CompanionID, nil
+	return l, snap.LinkID, nil
 }
 
 // CanRead reports whether viewerID may read the section of ownerID's data.
@@ -691,12 +708,31 @@ func (s *Service) Audit(ctx context.Context, ownerID, actorID, companionID uint6
 		return ErrInvalidSection
 	}
 	q, now := store.New(s.conn), s.now()
-	if action == ActionRead { // B-N4-08b: one read row per section per ReadAuditWindow (audit.go)
-		if seen, err := readAuditedRecently(ctx, q, ownerID, actorID, companionID, section, now); err != nil || seen {
-			return err
-		}
+	if action != ActionRead {
+		return audit(ctx, q, ownerID, actorID, companionID, section, action, now)
 	}
-	return audit(ctx, q, ownerID, actorID, companionID, section, action, now)
+	// One read row per (owner, member, section) per ReadAuditWindow: Redis SET NX first, the DB window on a Redis
+	// error or without Redis (F-16, D-203).
+	// A claimed window still checks the DB (cheap, indexed): reads through a path without Redis (the companion home)
+	// share the same window.
+	key := string(section)
+	if d, ok := sectionDomain(section); ok {
+		key = d.String() // v6 domain name (cycle → cycle_phase), the same key family.ReadAudit uses everywhere (L6)
+	}
+	claim := s.readAudit.Claim(ctx, ownerID, actorID, key, now)
+	if claim == family.ClaimSkip {
+		return nil
+	}
+	if seen, err := readAuditedRecently(ctx, q, ownerID, actorID, companionID, section, now); err != nil || seen {
+		return err
+	}
+	if err := audit(ctx, q, ownerID, actorID, companionID, section, action, now); err != nil {
+		if claim == family.ClaimRecord {
+			s.readAudit.Release(ctx, ownerID, actorID, key)
+		}
+		return err
+	}
+	return nil
 }
 
 // AuditTrail returns the owner's latest audit entries, newest first.
@@ -745,17 +781,37 @@ func checkTeenRule(ctx context.Context, q *store.Queries, ownerID uint64, t Type
 	return nil
 }
 
-func writeGrants(ctx context.Context, q *store.Queries, companionID uint64, t Type, grants Grants, now time.Time) error {
-	for _, sec := range SectionsFor(t) { // stable order; grants were validated for the type
-		l := grants.Of(sec)
-		if l == LevelNone {
-			continue
-		}
-		if err := q.UpsertGrant(ctx, store.UpsertGrantParams{CompanionID: companionID, Section: string(sec), Level: string(l), Now: nt(now)}); err != nil {
-			return fmt.Errorf("companion: grant: %w", err)
+// applyGrants is the only grant writer: family.Grants.Apply (registry check, epoch stamp, activity diff, consent
+// event) in the caller's transaction. ownerID is the actor (only the owner changes grants).
+func applyGrants(ctx context.Context, tx *sql.Tx, c store.Companion, ownerID uint64, set map[family.Domain]family.Level,
+	reason string, now time.Time) error {
+	_, err := family.Grants{}.Apply(ctx, tx, family.Change{
+		LinkID: c.ID, OwnerID: c.OwnerID, MemberID: uint64(max(c.CompanionUserID.Int64, 0)), ActorID: ownerID,
+		Role: family.ParseRole(c.Role.String, c.Type), Set: set, ExpiresAt: c.ExpiresAt.Time, Reason: reason, Now: now,
+	})
+	if errors.Is(err, family.ErrLevelNotAllowed) {
+		return ErrInvalidLevel
+	}
+	return err
+}
+
+// restampGrants re-applies a link's stored grants on accept (consent + activity rows). Levels do not change, so
+// Grants.Apply keeps every row's stored epoch (L2): a grant chosen in mode A and accepted after a switch to mode B
+// stays paused until the owner re-approves it — accept never re-stamps with the accept-time epoch (M2).
+func restampGrants(ctx context.Context, tx *sql.Tx, q *store.Queries, c store.Companion, ownerID uint64, reason string, now time.Time) error {
+	rows, err := q.ListGrants(ctx, c.ID)
+	if err != nil {
+		return fmt.Errorf("companion: grants: %w", err)
+	}
+	set := map[family.Domain]family.Level{}
+	for _, g := range rows {
+		if d, ok := family.ParseDomain(g.Section); ok {
+			if l, ok := family.ParseLevel(g.Level); ok && l > family.LevelOff {
+				set[d] = l
+			}
 		}
 	}
-	return nil
+	return applyGrants(ctx, tx, c, ownerID, set, reason, now)
 }
 
 func notFound(err error) error {
@@ -772,8 +828,11 @@ func toLink(c store.Companion, grants []store.CompanionGrant) Link {
 		InvitedAt: c.InvitedAt.Time, AcceptedAt: c.AcceptedAt.Time, Grants: Grants{},
 	}
 	for _, g := range grants {
-		if g.CompanionID == c.ID && Section(g.Section).AllowedFor(l.Type) && Level(g.Level).Valid() {
-			l.Grants[Section(g.Section)] = Level(g.Level)
+		if g.CompanionID != c.ID {
+			continue
+		}
+		if sec, lv, ok := legacyOf(g.Section, g.Level); ok && sec.AllowedFor(l.Type) {
+			l.Grants[sec] = lv
 		}
 	}
 	return l

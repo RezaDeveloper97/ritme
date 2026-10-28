@@ -6,6 +6,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/care"
 	"github.com/ritme/backend-go/internal/companion"
+	"github.com/ritme/backend-go/internal/family"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/clock"
@@ -19,7 +20,8 @@ func init() {
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		h := care.NewHandlers(d.DB, clock.Real{})
 		// «ثبت برای …» (B-N4-02): for_user_id on show / store / update of meds and appointments, live companion grant.
-		h.SetDelegation(companion.NewDelegation(d.DB, clock.Real{}, d.Logger))
+		// family.Decide behind every delegated access (T-M11-05); reads coalesced in Redis (F-16, D-203).
+		h.SetDelegation(companion.NewDelegation(d.DB, clock.Real{}, d.Logger).WithReadAudit(family.NewReadAudit(d.Cache)))
 		writes := writeThrottle(d) // per-user write limit (security audit M3-M7 #5)
 		// for_user_id GETs: per-companion limit (B-N4-08b CMP-M2, companion_guards.go).
 		delegatedReads := delegatedReadThrottle(d)

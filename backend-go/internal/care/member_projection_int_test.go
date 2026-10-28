@@ -152,3 +152,71 @@ func TestMember_Appointment_ForUserIsProjection(t *testing.T) {
 	assert.Equal(t, "SENTINEL_RESULT", r.data()["result_note"])
 	assert.Len(t, r.data()["prep"], 1)
 }
+
+// T-M11-05 M1 (CMP-L4): a member write re-decides the grant inside its own transaction (family.RecheckTx). A revoke
+// committed after the pre-check (Authorize) and before the write rejects the write with the pre-check's 403, and
+// nothing is written.
+func TestMember_RevokeAfterPrecheck_RejectsWrite(t *testing.T) {
+	e := setup(t)
+	owner, ownerTok := e.user(t, "09120009221")
+	_, memberTok := e.user(t, "09120009222")
+	member := uint64(0)
+	require.NoError(t, e.db.QueryRow(`SELECT id FROM users WHERE mobile = '09120009222'`).Scan(&member))
+	e.familyLink(t, owner, member)
+	med := e.create(t, ownerTok, `{"title":"Iron","dose":"400","unit":"mcg","form":"tablet","times":["08:00"]}`)
+	appt := e.createAppt(t, ownerTok, `{"kind":"in_person","topic":"lab","title":"Checkup","scheduled_at":"2026-09-30 10:30:00"}`)
+
+	link := func(status string) {
+		t.Helper()
+		_, err := e.db.Exec(`UPDATE companions SET status = ? WHERE owner_id = ? AND companion_user_id = ?`, status, owner, member)
+		require.NoError(t, err)
+	}
+	// The 403 the pre-check gives once the link is gone: the write path must answer the same.
+	link("revoked")
+	want := e.do(t, http.MethodPost, "/api/v1/care/medications", memberTok, "en",
+		fmt.Sprintf(`{"for_user_id":%d,"title":"X","dose":"1","unit":"mg","form":"tablet","times":["09:00"]}`, owner))
+	require.Equal(t, http.StatusForbidden, want.status, want.raw)
+
+	hooked := 0
+	e.deleg.afterWriteCheck = func() { hooked++; link("revoked") } // the revoke lands between the check and the write
+	t.Cleanup(func() { e.deleg.afterWriteCheck = nil })
+	count := func() int {
+		var n int
+		require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM reminders WHERE user_id = ?`, owner).Scan(&n))
+		return n
+	}
+	before := count()
+
+	cases := []struct{ name, method, path, body string }{
+		{"store medication", http.MethodPost, "/api/v1/care/medications",
+			fmt.Sprintf(`{"for_user_id":%d,"title":"Folic","dose":"5","unit":"mg","form":"tablet","times":["09:00"]}`, owner)},
+		{"update medication", http.MethodPut, medPath(med, ""), fmt.Sprintf(`{"for_user_id":%d,"title":"Iron 2"}`, owner)},
+		{"medication switches", http.MethodPut, medPath(med, ""), fmt.Sprintf(`{"for_user_id":%d,"is_active":false}`, owner)},
+		{"store appointment", http.MethodPost, "/api/v1/care/appointments",
+			fmt.Sprintf(`{"for_user_id":%d,"kind":"in_person","topic":"lab","title":"Blood test","scheduled_at":"2026-10-02 09:00:00"}`, owner)},
+		{"update appointment", http.MethodPut, apptPath(appt, ""), fmt.Sprintf(`{"for_user_id":%d,"title":"Checkup 2"}`, owner)},
+	}
+	for i, c := range cases {
+		link("active")
+		r := e.do(t, c.method, c.path, memberTok, "en", c.body)
+		assert.Equal(t, i+1, hooked, "%s: the pre-check allowed", c.name)
+		assert.Equal(t, http.StatusForbidden, r.status, "%s: %s", c.name, r.raw)
+		assert.JSONEq(t, want.raw, r.raw, "%s: same error as the pre-check", c.name)
+	}
+	assert.Equal(t, before, count(), "nothing created")
+	var title string
+	var active bool
+	require.NoError(t, e.db.QueryRow(`SELECT title, is_active FROM reminders WHERE id = ?`, med).Scan(&title, &active))
+	assert.Equal(t, "Iron", title)
+	assert.True(t, active)
+	require.NoError(t, e.db.QueryRow(`SELECT title FROM reminders WHERE id = ?`, appt).Scan(&title))
+	assert.Equal(t, "Checkup", title)
+
+	// Without a revoke the same member writes go through (the recheck itself does not deny a live grant).
+	e.deleg.afterWriteCheck = nil
+	link("active")
+	r := e.do(t, http.MethodPut, medPath(med, ""), memberTok, "en", fmt.Sprintf(`{"for_user_id":%d,"title":"Iron 3"}`, owner))
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	r = e.do(t, http.MethodPut, apptPath(appt, ""), memberTok, "en", fmt.Sprintf(`{"for_user_id":%d,"title":"Checkup 3"}`, owner))
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+}

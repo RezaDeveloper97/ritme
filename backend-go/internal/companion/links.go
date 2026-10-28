@@ -9,6 +9,7 @@ import (
 
 	rootdb "github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/companion/store"
+	"github.com/ritme/backend-go/internal/family"
 )
 
 // OwnerLink is one of ownerID's invited or active links (ErrNotFound for anyone else's, a revoked one or a bad id),
@@ -49,11 +50,17 @@ func (s *Service) CompanionLink(ctx context.Context, viewerID, companionID uint6
 	if err != nil {
 		return Link{}, err
 	}
-	links := []Link{l}
-	if err := suspendForTeens(ctx, q, links); err != nil { // B-N4-08b: the companion's effective grants
+	// The member's effective grants come from family.Decide; a blocked owner or an expired link is not found (F-21).
+	snap, err := family.Request(ctx, s.conn, s.now).Pair(ctx, l.OwnerID, viewerID)
+	if err != nil {
 		return Link{}, err
 	}
-	return links[0], nil
+	now := s.now()
+	if !snap.HasLink || snap.LinkID != l.ID || snap.OwnerBlocked || (!snap.ExpiresAt.IsZero() && !now.Before(snap.ExpiresAt)) {
+		return Link{}, ErrNotFound
+	}
+	l.Grants = effectiveGrants(snap, l.Type, now)
+	return l, nil
 }
 
 // Names returns users.name for the given account ids (missing or unnamed accounts are absent).

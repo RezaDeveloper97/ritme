@@ -50,3 +50,10 @@ DECISIONS.md F-23; D-195.
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-195.
+
+## Note from the T-M11-05 security review (2026-10-28)
+- The lazy epoch does not catch an A→B→A mode round trip with no read in between (e.g. pregnancy → end → new
+  pregnancy, cycle → ttc → cycle): the epoch never moves, so F-23 pause and `review_pending` are skipped for
+  `fetal_activity`, `vitals`, `meds`, `appointments`. The SyncMode hooks here must run on every mode write (in the
+  same transaction where possible); add `TestModeRoundTrip_StillPaused`.
+- L5: `internal/loss/service.go` notice recipients come from `ListForOwner`; filter them with `Decide(pregnancy, read)`.

@@ -47,7 +47,23 @@ type env struct {
 	db      *sql.DB
 	app     *fiber.App
 	iss     *passport.Issuer
-	queries *countingDB // SQL statements the care handlers ran
+	queries *countingDB     // SQL statements the care handlers ran
+	deleg   *hookDelegation // the companion delegation, with an optional hook after a write pre-check
+}
+
+// hookDelegation is companion.Delegation with afterWriteCheck run once a write pre-check (Authorize) has allowed —
+// the window a concurrent revoke can land in before the write's transaction (T-M11-05 M1).
+type hookDelegation struct {
+	*companion.Delegation
+	afterWriteCheck func()
+}
+
+func (d *hookDelegation) Authorize(ctx context.Context, ownerID, actorID uint64, section companion.Section, write bool) (bool, error) {
+	ok, err := d.Delegation.Authorize(ctx, ownerID, actorID, section, write)
+	if ok && err == nil && write && d.afterWriteCheck != nil {
+		d.afterWriteCheck()
+	}
+	return ok, err
 }
 
 // countingDB counts the statements a handler sends (the /care/today query budget).
@@ -84,7 +100,8 @@ func setup(t *testing.T) *env {
 	locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(db), nil, quiet))
 	counter := &countingDB{DB: db}
 	h := care.NewHandlers(counter, clock.Real{})
-	h.SetDelegation(companion.NewDelegation(db, clock.Real{}, quiet)) // «ثبت برای …» (for_user_id), as in routes_care.go
+	deleg := &hookDelegation{Delegation: companion.NewDelegation(db, clock.Real{}, quiet)}
+	h.SetDelegation(deleg) // «ثبت برای …» (for_user_id), as in routes_care.go
 	legacy := reminder.NewHandlers(db, clock.Real{})
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
@@ -107,7 +124,7 @@ func setup(t *testing.T) *env {
 	app.Patch("/api/v1/care/appointments/:id/prep/:itemId", locale, guard, h.TogglePrepItem)
 	app.Get("/api/v1/reminders", locale, guard, legacy.Index)
 	app.Put("/api/v1/reminders/:id", locale, guard, legacy.Update)
-	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), queries: counter}
+	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), queries: counter, deleg: deleg}
 }
 
 func (e *env) user(t *testing.T, mobile string) (uint64, string) {
