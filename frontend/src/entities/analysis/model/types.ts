@@ -50,15 +50,27 @@ export type TopFindingKind =
   | 'cycle_irregular'
   | 'cycle_regular'
   | 'pattern'
+  | 'correlation'
+  | 'mood_by_phase'
   | 'not_enough_data'
   | 'keep_logging'
   | 'no_data';
 
+/**
+ * «مهم‌ترین یافته» (SPEC v6 §4.1, D-175): the best finding by strength ×
+ * recency, or the «log N more days» nudge (`daysNeeded`).
+ */
 export interface TopFinding {
   /** Unknown kinds from a newer backend parse to `null`. */
   kind: TopFindingKind | null;
   parts: AnalysisPhrase[];
   text: string;
+  /** 0–1; null for a nudge. */
+  strength: number | null;
+  score: number | null;
+  evidenceDate: string | null;
+  /** The nudge's N (days); null for a finding. */
+  daysNeeded: number | null;
 }
 
 export type Regularity = 'regular' | 'irregular' | 'not_enough_data';
@@ -123,8 +135,29 @@ export interface HubSymptoms {
 
 export type CyclePhase = 'period' | 'follicular' | 'fertile' | 'luteal';
 
+/** One mood's share of a phase's mood-logged days. */
+export interface MoodShare {
+  mood: string;
+  label: string;
+  days: number;
+  pct: number;
+}
+
+/** A phase of «حال در فازها»: shares only from 10 mood-logged days (§4.1). */
+export interface PhaseMoods {
+  phase: CyclePhase;
+  ready: boolean;
+  /** null below the phase minimum. */
+  goodPct: number | null;
+  days: number;
+  moods: MoodShare[];
+}
+
 export interface MoodByPhase {
-  phases: Array<{ phase: CyclePhase; goodPct: number | null; days: number }>;
+  ready: boolean;
+  minDays: number;
+  daysNeeded: number;
+  phases: PhaseMoods[];
   finding: AnalysisPhrase | null;
 }
 
@@ -141,6 +174,10 @@ export interface Correlation {
   strength: string | null;
   n: number;
   minDays: number;
+  /** Paired days still missing for the §4.1 minimum (0 once met). */
+  daysNeeded: number;
+  /** «قوی» = at least `days` paired days and a `ratio`× difference. */
+  strongRule: { days: number; ratio: number } | null;
   groups: CorrelationGroup[];
   ratio: number | null;
   finding: AnalysisPhrase | null;
@@ -154,7 +191,12 @@ export interface WeightPoint {
 }
 
 export interface HubWeight {
+  /** §4.1: 3 weigh-ins in the last 14 days; below it the figures are null. */
   ready: boolean;
+  logsInWindow: number;
+  minLogs: number;
+  windowDays: number;
+  daysNeeded: number;
   unit: string;
   current: number | null;
   asOf: string | null;
@@ -165,9 +207,34 @@ export interface HubWeight {
   points: WeightPoint[];
 }
 
+/** Readiness of one vitals type (§4.1: 2 readings on 2 different days). */
+export interface VitalsReadiness {
+  ready: boolean;
+  readings: number;
+  days: number;
+  readingsNeeded: number;
+  /** Class → readings (the vitals classifier); null below the minimum. */
+  classes: Record<string, number> | null;
+}
+
+export interface BloodPressureStats extends VitalsReadiness {
+  systolic: number | null;
+  diastolic: number | null;
+  min: { systolic: number; diastolic: number } | null;
+  max: { systolic: number; diastolic: number } | null;
+}
+
+export interface BloodSugarStats extends VitalsReadiness {
+  avg: number | null;
+  min: number | null;
+  max: number | null;
+}
+
 export interface HubVitals {
-  bloodPressure: { systolic: number; diastolic: number; readings: number } | null;
-  bloodSugar: { avg: number; readings: number } | null;
+  minReadings: number;
+  minDays: number;
+  bloodPressure: BloodPressureStats | null;
+  bloodSugar: BloodSugarStats | null;
 }
 
 /** `GET /analysis/summary` — the hub (An_Hub). */

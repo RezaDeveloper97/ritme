@@ -39,6 +39,10 @@ export interface MonthlyMonth {
 
 export interface MonthlyReport {
   month: MonthlyMonth;
+  /** §4.1: the report needs 10 logged days; `daysNeeded` = days still missing. */
+  ready: boolean;
+  minDays: number;
+  daysNeeded: number;
   headline: AnalysisPhrase;
   summary: { parts: AnalysisPhrase[]; text: string };
   metrics: MonthlyMetric[];

@@ -77,7 +77,7 @@ function BbtCard({ section }: { section: AnalysisSection<TtcBbt> }) {
   const values = b?.points.map((p) => p.value) ?? [];
   return (
     <TtcCard title={t('bbt.title')} sub={t('bbt.sub')} href={FERTILITY}>
-      {section.ready && b ? (
+      {b && values.length > 1 ? (
         <>
           <LineChart
             label={t('bbt.chart', { n: num(values.length), min: temp(Math.min(...values)), max: temp(Math.max(...values)) })}
@@ -95,7 +95,12 @@ function BbtCard({ section }: { section: AnalysisSection<TtcBbt> }) {
               {t('bbt.waiting')}
             </StatusPill>
           )}
+          {!section.ready && b.tempsNeeded > 0 ? (
+            <Note>{t('bbt.notReadyTemps', { n: num(b.minTemps), left: num(b.tempsNeeded) })}</Note>
+          ) : null}
         </>
+      ) : b && b.tempsNeeded > 0 ? (
+        <Note>{t('bbt.notReadyTemps', { n: num(b.minTemps), left: num(b.tempsNeeded) })}</Note>
       ) : (
         <Note>{t('bbt.notReady')}</Note>
       )}

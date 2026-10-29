@@ -22,13 +22,18 @@ export {
   type HubSymptoms,
   type HubVitals,
   type HubWeight,
+  type BloodPressureStats,
+  type BloodSugarStats,
   type MoodByPhase,
+  type MoodShare,
   type PatternRelation,
+  type PhaseMoods,
   type Regularity,
   type SymptomCount,
   type SymptomHighlight,
   type TopFinding,
   type TopFindingKind,
+  type VitalsReadiness,
   type WeightPoint,
 } from './model/types';
 export { barShares, lowestIndex, shareOfMax, stripCells, type StripCell, type StripDay } from './model/layout';
@@ -85,3 +90,7 @@ export {
   type MonthlyReport,
 } from './model/monthly';
 export { fetchMonthlyReport, monthlyReportSchema, useMonthlyReport } from './api/monthly';
+
+// T-M10-26 — per-marker lab trend (An_Labs, §4.1).
+export { trendByMarker, type LabTrendDirection, type LabTrendList, type LabTrendMarker } from './model/lab-trend';
+export { fetchLabTrendList, labTrendListSchema, useLabTrendList } from './api/lab-trend';

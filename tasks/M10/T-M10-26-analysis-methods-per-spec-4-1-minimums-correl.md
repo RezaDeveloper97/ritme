@@ -3,10 +3,10 @@ id: T-M10-26
 title: Analysis methods per SPEC 4.1: minimums, correlation strength, mood by phase, top finding, lab trend
 milestone: M10
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M10-01, T-M9-35]
 parallel_group: M10-D
-touches: [backend-go/internal/analysis, backend-go/internal/http/routes_analysis.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist, backend-go/contract/golden-v6, frontend/src/screens/analysis, frontend/src/screens/analysis-correlations, frontend/src/screens/analysis-symptoms, frontend/src/screens/analysis-body, frontend/src/screens/analysis-monthly, frontend/src/screens/analysis-labs, frontend/src/screens/analysis-ttc, frontend/src/entities/analysis, frontend/messages/fa/analysis.json, frontend/messages/en/analysis.json, backend-go/resources/translations/fa/analysis.json, backend-go/resources/translations/en/analysis.json]
+touches: [backend-go/internal/analysis, backend-go/internal/i18n/testdata, backend-go/internal/http/routes_analysis.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist, backend-go/contract/golden-v6, frontend/src/screens/analysis, frontend/src/screens/analysis-correlations, frontend/src/screens/analysis-symptoms, frontend/src/screens/analysis-body, frontend/src/screens/analysis-monthly, frontend/src/screens/analysis-labs, frontend/src/screens/analysis-ttc, frontend/src/entities/analysis, frontend/messages/fa/analysis.json, frontend/messages/en/analysis.json, backend-go/resources/translations/fa/analysis.json, backend-go/resources/translations/en/analysis.json]
 skills: []
 verify: cd backend-go && go vet ./... && go test ./internal/analysis/... && make test-int PKG=./internal/analysis/... && make contract ROUTES=analysis,analysis-ttc,analysis-pregnancy && cd ../frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:dark && npm run test && npm run copy:check -- analysis
 ---

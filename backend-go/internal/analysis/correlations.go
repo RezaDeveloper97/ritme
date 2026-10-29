@@ -1,8 +1,10 @@
 package analysis
 
 import (
+	"math"
 	"slices"
 
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 )
 
@@ -50,14 +52,20 @@ type Correlation struct {
 	// denominator is 0.
 	Ratio  *float64
 	Phrase *Phrase
+	// DaysNeeded: paired days still missing for the §4.1 minimum (0 once met; tab cards only).
+	DaysNeeded int
+	// Last is the latest paired day (the evidence day of a top finding; zero when none).
+	Last civildate.Date
 }
 
 // CorrelationsReport is GET /analysis/correlations (Plus).
 type CorrelationsReport struct {
-	DaysLogged int
-	Items      []Correlation
+	DaysLogged  int
+	Items       []Correlation
+	MoodByPhase MoodByPhase
 }
 
+// enough is the menopause φ cards' minimum (Binary, CorrMinDays / CorrMinGroupDays / CorrMinOutcome).
 func enough(groups []Group) bool {
 	n, hits := 0, 0
 	for _, g := range groups {
@@ -70,6 +78,7 @@ func enough(groups []Group) bool {
 	return n >= CorrMinDays && hits >= CorrMinOutcome
 }
 
+// finish is the menopause φ card rule (Binary): Cohen strength of φ, CorrMinDays.
 func (c *Correlation) finish(value float64, groups []Group) {
 	c.Groups = groups
 	for _, g := range groups {
@@ -88,6 +97,67 @@ func (c *Correlation) finish(value float64, groups []Group) {
 	c.Strength = Strength(value)
 }
 
+// specEnough is the §4.1 minimum of a correlations-tab card (P): CorrMinPairedDays paired days, every group at
+// least CorrMinGroupDays days and the outcome at least CorrMinOutcome times.
+func specEnough(groups []Group) bool {
+	n, hits := 0, 0
+	for _, g := range groups {
+		if g.Days < P.CorrMinGroupDays {
+			return false
+		}
+		n += g.Days
+		hits += g.Hits
+	}
+	return n >= P.CorrMinPairedDays && hits >= P.CorrMinOutcome
+}
+
+// RatioStrength is the §4.1 strength of a group-rate ratio (A-02): the difference in either direction
+// (max(r, 1/r); an empty-rate group is an unbounded difference). Strong needs P.CorrStrongDays paired days and a
+// difference ≥ P.CorrStrongRatio; medium ≥ P.CorrMediumRatio; weak ≥ P.CorrWeakRatio; below that "" (no
+// association). Without strong's days a ≥ 2× difference reads medium.
+func RatioStrength(hiRate, loRate float64, days int) string {
+	if hiRate < loRate {
+		hiRate, loRate = loRate, hiRate
+	}
+	if hiRate == 0 {
+		return ""
+	}
+	diff := math.Inf(1)
+	if loRate > 0 {
+		diff = hiRate / loRate
+	}
+	switch {
+	case diff >= P.CorrStrongRatio && days >= P.CorrStrongDays:
+		return StrengthStrong
+	case diff >= P.CorrMediumRatio:
+		return StrengthMedium
+	case diff >= P.CorrWeakRatio:
+		return StrengthWeak
+	}
+	return ""
+}
+
+// finishSpec applies the §4.1 rule: readiness from specEnough, strength from the rate ratio of a and b (the
+// compared groups: exposed vs unexposed, or the highest vs the lowest phase); value keeps φ / Cramér's V.
+func (c *Correlation) finishSpec(value float64, groups []Group, a, b Group) {
+	c.Groups = groups
+	for _, g := range groups {
+		c.N += g.Days
+	}
+	c.DaysNeeded = max(0, P.CorrMinPairedDays-c.N)
+	if !specEnough(groups) {
+		c.Status = CorrNotEnoughData
+		c.DaysNeeded = max(1, c.DaysNeeded)
+		return
+	}
+	c.Value = round(value, 2)
+	c.Strength = RatioStrength(a.Rate(), b.Rate(), c.N)
+	c.Status = CorrReady
+	if c.Strength == "" {
+		c.Status = CorrNoAssociation
+	}
+}
+
 func ratio(num, den float64) *float64 {
 	if den == 0 {
 		return nil
@@ -96,9 +166,21 @@ func ratio(num, den float64) *float64 {
 	return &v
 }
 
-// binary builds a φ card from exposed / unexposed groups (groups[0] unexposed, groups[1] exposed, the
-// order the cards draw them).
+// binary builds a correlations-tab card from exposed / unexposed groups (groups[0] unexposed, groups[1] exposed, the
+// order the cards draw them): §4.1 rate-ratio strength, φ as the extra value.
 func binary(key string, unexposed, exposed Group) Correlation {
+	c := Correlation{Key: key, Statistic: StatPhi}
+	phi := Phi(exposed.Hits, exposed.Days-exposed.Hits, unexposed.Hits, unexposed.Days-unexposed.Hits)
+	c.finishSpec(phi, []Group{unexposed, exposed}, exposed, unexposed)
+	if c.Status == CorrReady {
+		c.Ratio = ratio(exposed.Rate(), unexposed.Rate())
+	}
+	return c
+}
+
+// Binary is the φ card of other domains (CB-MENO-02 menopause patterns): Cohen strengths of φ and the CorrMinDays /
+// CorrMinGroupDays / CorrMinOutcome minimum, unchanged by §4.1 (the analysis tab's binary uses P).
+func Binary(key string, unexposed, exposed Group) Correlation {
 	c := Correlation{Key: key, Statistic: StatPhi}
 	phi := Phi(exposed.Hits, exposed.Days-exposed.Hits, unexposed.Hits, unexposed.Days-unexposed.Hits)
 	c.finish(phi, []Group{unexposed, exposed})
@@ -108,18 +190,16 @@ func binary(key string, unexposed, exposed Group) Correlation {
 	return c
 }
 
-// Binary is binary for other domains (CB-MENO-02 menopause patterns): the same φ, minimum-data rules
-// (CorrMinDays, CorrMinGroupDays, CorrMinOutcome), strengths and ratio as the correlations screen.
-func Binary(key string, unexposed, exposed Group) Correlation { return binary(key, unexposed, exposed) }
-
-// byPhase builds a Cramér's V card from per-phase groups.
+// byPhase builds a Cramér's V card from per-phase groups; the strength is the ratio of the highest to the lowest
+// phase rate.
 func byPhase(key string, groups []Group) Correlation {
 	c := Correlation{Key: key, Statistic: StatCramersV}
 	hits, totals := make([]int, len(groups)), make([]int, len(groups))
 	for i, g := range groups {
 		hits[i], totals[i] = g.Hits, g.Days
 	}
-	c.finish(CramersV(hits, totals), groups)
+	hi, lo := extremes(groups)
+	c.finishSpec(CramersV(hits, totals), groups, hi, lo)
 	return c
 }
 
@@ -151,6 +231,7 @@ func BuildCorrelations(in *Input) CorrelationsReport {
 	sleepShort, sleepOK := Group{Key: "sleep_under_6"}, Group{Key: "sleep_6_plus"}
 	exercise, rest := Group{Key: "exercise"}, Group{Key: "no_exercise"}
 	energy, mood := phaseGroups(), phaseGroups()
+	var lastSleep, lastEnergy, lastExercise, lastMood civildate.Date
 	logged := 0
 	for _, d := range sortedDates(in.Days) {
 		if !in.Range.Contains(d) {
@@ -168,6 +249,7 @@ func BuildCorrelations(in *Input) CorrelationsReport {
 			if hit {
 				g.Hits++
 			}
+			lastSleep = d
 		}
 		phase, ok := phases[d]
 		if !ok {
@@ -179,12 +261,14 @@ func BuildCorrelations(in *Input) CorrelationsReport {
 			if day.HighEnergy() {
 				energy[i].Hits++
 			}
+			lastEnergy = d
 		}
 		if good, ok := day.GoodMood(); ok {
 			mood[i].Days++
 			if good {
 				mood[i].Hits++
 			}
+			lastMood = d
 		}
 		if phase == PhasePeriod {
 			g := &rest
@@ -195,10 +279,12 @@ func BuildCorrelations(in *Input) CorrelationsReport {
 			if day.SevereCramps() {
 				g.Hits++
 			}
+			lastExercise = d
 		}
 	}
 
 	sleep := binary(CorrSleepMood, sleepOK, sleepShort)
+	sleep.Last = lastSleep
 	if sleep.Status == CorrReady {
 		switch {
 		case sleep.Value < 0:
@@ -213,6 +299,7 @@ func BuildCorrelations(in *Input) CorrelationsReport {
 	}
 
 	en := byPhase(CorrPhaseEnergy, energy)
+	en.Last = lastEnergy
 	if en.Status == CorrReady {
 		hi, lo := extremes(energy)
 		en.Ratio = ratio(hi.Rate(), lo.Rate())
@@ -225,6 +312,7 @@ func BuildCorrelations(in *Input) CorrelationsReport {
 	}
 
 	ex := binary(CorrExerciseCramps, rest, exercise)
+	ex.Last = lastExercise
 	if ex.Status == CorrReady {
 		key := "correlations.exercise_cramps.more"
 		if ex.Value < 0 {
@@ -234,6 +322,7 @@ func BuildCorrelations(in *Input) CorrelationsReport {
 	}
 
 	md := byPhase(CorrPhaseMood, mood)
+	md.Last = lastMood
 	if md.Status == CorrReady {
 		hi, lo := extremes(mood)
 		md.Ratio = ratio(hi.Rate(), lo.Rate())
@@ -241,7 +330,7 @@ func BuildCorrelations(in *Input) CorrelationsReport {
 			PhaseArg("phase", hi.Key), Num("pct", int(round(hi.Rate()*100, 0)))}}
 	}
 
-	return CorrelationsReport{DaysLogged: logged, Items: []Correlation{sleep, en, ex, md}}
+	return CorrelationsReport{DaysLogged: logged, Items: []Correlation{sleep, en, ex, md}, MoodByPhase: in.moodByPhase(phases)}
 }
 
 // Item finds a card by key.
@@ -276,25 +365,16 @@ func (c Correlation) JSON(cp *Copy) *jsonx.OrderedMap {
 		"value", value,
 		"strength", strength,
 		"n", c.N,
-		"min_days", CorrMinDays,
+		"min_days", P.CorrMinPairedDays,
+		"days_needed", c.DaysNeeded,
+		"method", "rate_ratio",
+		"strong_rule", jsonx.Obj("days", P.CorrStrongDays, "ratio", P.CorrStrongRatio),
 		"groups", groups,
 		"ratio", ptrOrNil(c.Ratio),
 		"finding", phraseOrNil(c.Phrase, cp),
 		"not_causal", true,
+		"not_causal_note", NotCausalPhrase().JSON(cp),
 	)
-}
-
-// MoodByPhaseJSON is the hub's «حال در فازهای سیکل» card body (good-mood share per phase).
-func (c Correlation) MoodByPhaseJSON(cp *Copy) *jsonx.OrderedMap {
-	phases := make([]*jsonx.OrderedMap, 0, len(c.Groups))
-	for _, g := range c.Groups {
-		var pct any
-		if g.Days > 0 {
-			pct = int(round(g.Rate()*100, 0))
-		}
-		phases = append(phases, jsonx.Obj("phase", g.Key, "good_pct", pct, "days", g.Days))
-	}
-	return jsonx.Obj("phases", phases, "finding", phraseOrNil(c.Phrase, cp), "not_causal", true)
 }
 
 // JSON is the `data` body of GET /analysis/correlations for an entitled user.
@@ -303,5 +383,8 @@ func (r CorrelationsReport) JSON(cp *Copy) *jsonx.OrderedMap {
 	for _, c := range r.Items {
 		items = append(items, c.JSON(cp))
 	}
-	return jsonx.Obj("days_logged", r.DaysLogged, "items", items)
+	return jsonx.Obj("days_logged", r.DaysLogged, "items", items, "mood_by_phase", r.MoodByPhase.JSON(cp))
 }
+
+// NotCausalPhrase is the §4.1 line every correlation carries: «هم‌زمانی در داده‌های تو، نه علت».
+func NotCausalPhrase() Phrase { return Phrase{Key: "correlations.not_causal"} }

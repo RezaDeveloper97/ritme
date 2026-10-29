@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 
-import { DEFAULT_RANGE, useAnalysisSummary } from '@/entities/analysis';
+import { DEFAULT_RANGE, trendByMarker, useAnalysisSummary, useLabTrendList } from '@/entities/analysis';
 import { formatLabValue, MarkerStatePill, stateTone, trimNumber, useLabTrends } from '@/entities/lab';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatDecimal, formatNumber } from '@/shared/lib/date';
@@ -27,6 +27,9 @@ import { TrendLine } from '@/widgets/charts';
  * trend line (from 2 labs), each opening the marker detail (B-N6-07); without
  * any, the empty state leads to the lab analysis (`/labs`). The hub's `labs`
  * section (cached from the hub) says whether this is a Plus lock for the reader.
+ * For a Plus reader each row adds the §4.1 trend sentence from
+ * `GET /analysis/labs` (rising / falling / stable over confirmed reports, or
+ * how many more reports a trend needs) and the non-diagnostic note.
  */
 export function AnalysisLabsPage() {
   const t = useTranslations('analysis.reports');
@@ -38,6 +41,8 @@ export function AnalysisLabsPage() {
   const summary = useAnalysisSummary(DEFAULT_RANGE);
   const trends = useLabTrends();
   const locked = summary.data?.sections.labs.locked === true;
+  // §4.1 «روند آزمایش» (T-M10-26, Plus): each marker's trend sentence from 2 confirmed reports.
+  const trendList = useLabTrendList({ enabled: summary.data != null && !locked });
   const markers = trends.data?.markers ?? [];
   const minPoints = trends.data?.minPoints ?? 2;
 
@@ -85,6 +90,7 @@ export function AnalysisLabsPage() {
                 <ul className="alb-rows">
                   {markers.map((s) => {
                     const values = s.trend.points.map((p) => p.value);
+                    const finding = trendByMarker(trendList.data, s.key)?.finding?.text;
                     return (
                       <li key={s.key}>
                         <button
@@ -94,6 +100,7 @@ export function AnalysisLabsPage() {
                         >
                           <span className="alb-row-main">
                             <span className="alb-row-name">{s.name}</span>
+                            {finding ? <span className="alb-row-ref">{finding}</span> : null}
                             {s.referenceText ? (
                               <span className="alb-row-ref">
                                 {tLab('result.reference', { ref: formatDecimal(s.referenceText, locale) })}
@@ -150,6 +157,7 @@ export function AnalysisLabsPage() {
             </section>
           )}
           <InfoNote>{tl('note')}</InfoNote>
+          {trendList.data?.note?.text ? <InfoNote>{trendList.data.note.text}</InfoNote> : null}
         </div>
       </div>
       <BottomNav />

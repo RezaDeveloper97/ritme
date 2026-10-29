@@ -51,7 +51,7 @@ type PeriodReport struct {
 }
 
 // Ready: the per-day average is a trend over periods (≥ MinTrendPoints).
-func (r PeriodReport) Ready() bool { return r.BasedOn >= MinTrendPoints }
+func (r PeriodReport) Ready() bool { return r.BasedOn >= P.PeriodIntensityMinPeriods }
 
 // bleedDays is the period's bleed length: a closed plausible period its logged length, an open one the
 // last day with flow logged within maxOpenBleedDays (never past today).

@@ -1,0 +1,56 @@
+group: analysis
+entries:
+  # D-175 (task T-M10-26, engine v6 M10, user OK 2026-10-21; A-02, A-12): the analysis tab follows SPEC v6 §4.1 —
+  # every minimum lives in analysis.Params. These goldens were recorded from the pre-§4.1 Go server.
+
+  # Top finding = strength × recency (half-life 30 days), one finding; with no finding the nudge names days
+  # («برای دیدن الگوها N روز دیگر ثبت کن»), also for a user without any data (no more `no_data`).
+  - case: "*"
+    where: data.top_finding.**
+    deviation: D-175
+    reason: top finding scored strength × recency; days nudge with strength / score / evidence_date / days_needed
+
+  # Weight: MA7, Δ7 and Δ30 only with 3 weigh-ins in the last 14 days (the fixture persona has 1).
+  - case: "*"
+    where: data.sections.weight.data.**
+    deviation: D-175
+    reason: weight minimum 3 logs in 14 days — logs_in_window, min_logs, window_days, days_needed; no figures below it
+  - case: "body"
+    where: data.weight.**
+    deviation: D-175
+    reason: weight minimum 3 logs in 14 days — logs_in_window, min_logs, window_days, days_needed; no figures below it
+
+  # BP / glucose: mean, min–max and class distribution with 2 readings on 2 days.
+  - case: "*"
+    where: data.sections.vitals.data.**
+    deviation: D-175
+    reason: vitals minimum (2 readings on 2 days), min–max and class distribution
+
+  # Correlations: 30 paired days, strength from the group-rate ratio (strong = 30 days and ≥ 2×), φ kept as `value`,
+  # the not-causal line on every card; mood by phase = % of days per mood in each phase with ≥ 10 days.
+  - case: "correlations_trial"
+    where: data.data.**
+    deviation: D-175
+    reason: rate-ratio strength, 30 paired days, days_needed, not_causal_note, mood_by_phase shares
+  - case: "correlations_trial"
+    where: data.sections.sleep_mood.data.**
+    deviation: D-175
+    reason: rate-ratio strength, 30 paired days, days_needed, not_causal_note
+  - case: "correlations_trial"
+    where: data.sections.mood_by_phase.data.**
+    deviation: D-175
+    reason: mood by phase — per-phase readiness (≥ 10 days), mood shares, days_needed
+
+  # Monthly report: ready with 10 logged days.
+  - case: "monthly*"
+    where: data.ready
+    deviation: D-175
+    reason: monthly minimum 10 logged days
+  - case: "monthly*"
+    where: data.min_days
+    deviation: D-175
+    reason: monthly minimum 10 logged days
+  - case: "monthly*"
+    where: data.days_needed
+    deviation: D-175
+    reason: monthly minimum — days still needed

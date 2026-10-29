@@ -21,7 +21,7 @@ import {
   SkeletonGroup,
 } from '@/shared/ui';
 
-import { asksForCycles, availableCategories, groupCards, visibleCards, type HubCard, type HubCategory, type HubVariant } from '../model/hub';
+import { asksForCycles, availableCategories, groupCards, hasNoData, visibleCards, type HubCard, type HubCategory, type HubVariant } from '../model/hub';
 import {
   CycleCard,
   LabsCard,
@@ -107,7 +107,7 @@ export function AnalysisHub({ variant }: { variant: HubVariant }) {
   const categories = availableCategories(cards);
   const active = categories.includes(category) ? category : 'all';
   const groups = groupCards(cards, active);
-  const noData = summary?.topFinding.kind === 'no_data';
+  const noData = summary ? hasNoData(summary) : false;
   const updating = query.isPlaceholderData && query.isFetching;
   const corrShown =
     summary &&

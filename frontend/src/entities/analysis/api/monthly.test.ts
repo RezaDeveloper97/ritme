@@ -25,11 +25,14 @@ describe.skipIf(!existsSync(GOLDEN_DIR))('monthlyReportSchema', () => {
     });
     expect(r.topSymptoms).toHaveLength(3);
     expect(r.pdf).toEqual({ plus: true, locked: false });
+    expect(r).toMatchObject({ ready: true, minDays: 10, daysNeeded: 0 });
   });
 
   it('parses an empty, running Gregorian month (PDF locked)', () => {
     const r = monthlyReportSchema.parse(golden('empty_monthly_2026_09'));
     expect(r.month.complete).toBe(false);
+    // §4.1: a monthly report needs 10 logged days.
+    expect(r).toMatchObject({ ready: false, minDays: 10, daysNeeded: 10 });
     expect(r.metrics.find((m) => m.key === 'sleep')).toMatchObject({ value: null, delta: null });
     expect(r.topSymptoms).toEqual([]);
     expect(r.pdf.locked).toBe(true);

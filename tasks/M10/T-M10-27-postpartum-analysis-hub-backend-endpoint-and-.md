@@ -39,3 +39,6 @@ is no postpartum analysis in `internal/analysis`; `screens/analysis-postpartum` 
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-176.
+
+## Note from T-M10-26
+EPDS minimums (1 score to show, 2 for a trend) are documented in `internal/analysis/params.go` `P` but not applied; apply them here.

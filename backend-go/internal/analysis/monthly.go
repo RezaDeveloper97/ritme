@@ -21,8 +21,6 @@ const (
 	monthTopSymptoms = 3
 	// frequentSymptomDays: a symptom logged on at least this many days of the month is «پرتکرار».
 	frequentSymptomDays = 2
-	// littleDataDays: fewer logged days than this reads «داده کمی ثبت شده».
-	littleDataDays = 7
 	// calmShare: symptoms on at most this share of the logged days reads «ماه آرامی بود».
 	calmShare = 0.3
 	// sleepNightsForCorrelation: fewer logged nights than this suggests logging sleep.
@@ -142,7 +140,9 @@ func (in *Input) monthMetrics(m Month, cycles []Cycle) MonthMetrics {
 		}
 	}
 	v := in.vitals(m.From, m.To)
-	out.Systolic, out.Diastolic = v.Systolic, v.Diastolic
+	if v.BP.Ready() { // §4.1: BP figures need 2 readings on 2 days
+		out.Systolic, out.Diastolic = v.Systolic, v.Diastolic
+	}
 	return out
 }
 
@@ -193,7 +193,7 @@ func BuildMonthly(in *Input, cur, prev Month, pdfEntitled bool) MonthlyReport {
 func (r MonthlyReport) copy() (Phrase, []Phrase, Phrase) {
 	headline := Phrase{Key: "monthly.headline.busy"}
 	switch {
-	case r.This.DaysLogged < littleDataDays:
+	case r.This.DaysLogged < P.MonthlyMinDays: // §4.1: the report needs 10 logged days
 		headline = Phrase{Key: "monthly.headline.little_data"}
 	case float64(r.SymptomDays) <= calmShare*float64(r.This.DaysLogged):
 		headline = Phrase{Key: "monthly.headline.calm"}
@@ -234,6 +234,9 @@ func (r MonthlyReport) copy() (Phrase, []Phrase, Phrase) {
 	}
 	return headline, summary, suggestion
 }
+
+// Ready: §4.1 — the month has P.MonthlyMinDays logged days.
+func (r MonthlyReport) Ready() bool { return r.This.DaysLogged >= P.MonthlyMinDays }
 
 func diffInt(a, b *int) any {
 	if a == nil || b == nil {
@@ -288,6 +291,9 @@ func (r MonthlyReport) JSON(c *Copy) *jsonx.OrderedMap {
 			"key", r.Month.Key, "calendar", r.Month.Calendar, "from", r.Month.From.String(), "to", r.Month.To.String(),
 			"complete", r.Month.To == r.Month.End,
 		),
+		"ready", r.Ready(),
+		"min_days", P.MonthlyMinDays,
+		"days_needed", max(0, P.MonthlyMinDays-r.This.DaysLogged),
 		"headline", r.Headline.JSON(c),
 		"summary", jsonx.Obj("parts", summaryParts, "text", summaryText),
 		"metrics", []*jsonx.OrderedMap{

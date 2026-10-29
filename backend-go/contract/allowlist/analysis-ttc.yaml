@@ -1,0 +1,26 @@
+group: analysis-ttc
+entries:
+  # D-175 (task T-M10-26, engine v6 M10, user OK 2026-10-21): BBT needs ≥ 10 temperatures in the cycle (SPEC v6 §4.1,
+  # the engine/bbt minimum) — the card is ready from 10 and names min_temps / days_needed; the «how was it
+  # confirmed» line says 10 instead of 6 + 3.
+  - case: "*"
+    where: data.bbt.data.min_temps
+    deviation: D-175
+    reason: BBT minimum temperatures in the cycle
+  - case: "*"
+    where: data.bbt.data.days_needed
+    deviation: D-175
+    reason: BBT temperatures still needed
+  - case: "ttc_logged"
+    step: 5
+    where: data.bbt.ready
+    deviation: D-175
+    reason: 4 logged temperatures are below the 10-temperature minimum
+  - case: "*"
+    where: data.explanation.params.need
+    deviation: D-175
+    reason: BBT minimum 10 (was 6 + 3)
+  - case: "*"
+    where: data.explanation.text
+    deviation: D-175
+    reason: BBT minimum 10 (was 6 + 3)

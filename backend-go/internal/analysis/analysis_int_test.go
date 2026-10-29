@@ -78,6 +78,7 @@ func setup(t *testing.T) *env {
 	app.Get("/api/v1/analysis/symptoms", locale, guard, h.Symptoms)
 	app.Get("/api/v1/analysis/correlations", locale, guard, h.Correlations)
 	app.Get("/api/v1/analysis/body", locale, guard, h.Body)
+	app.Get("/api/v1/analysis/labs", locale, guard, h.LabTrend)
 	app.Get("/api/v1/analysis/monthly/:ym", locale, guard, h.Monthly)
 	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365)}
 }
@@ -204,7 +205,10 @@ func TestAnalysis_OwnDataOnlyAndPlusLocks(t *testing.T) {
 	// B sees only B's own weight and symptom.
 	bb := e.get(t, "/api/v1/analysis/body?range=1m", tokB, "")
 	require.Equal(t, 200, bb.status, bb.raw)
-	assert.InDelta(t, 80, path(bb.data(), "weight", "current"), 0.001)
+	// one weigh-in: below the §4.1 minimum (3 in 14 days) — the point is drawn, no average / delta yet
+	assert.Equal(t, false, path(bb.data(), "weight", "ready"))
+	assert.Nil(t, path(bb.data(), "weight", "current"))
+	assert.Contains(t, bb.raw, `"value":80`)
 	bs := e.get(t, "/api/v1/analysis/symptoms?range=1m", tokB, "")
 	require.Equal(t, 200, bs.status)
 	top, _ := bs.data()["top"].([]any)
@@ -268,12 +272,23 @@ func TestAnalysis_ValidationAndAuth(t *testing.T) {
 		r := e.get(t, url, tok, "")
 		assert.Equal(t, 422, r.status, url+" "+r.raw)
 	}
-	r := e.get(t, "/api/v1/analysis/summary", "", "")
+	r := e.get(t, "/api/v1/analysis/labs?marker="+strings.Repeat("x", 192), tok, "")
+	assert.Equal(t, 422, r.status, r.raw)
+	// T-M10-26: the lab trend is Plus — a free user gets locked, no data
+	r = e.get(t, "/api/v1/analysis/labs?marker=ferritin", tok, "")
+	require.Equal(t, 200, r.status, r.raw)
+	assert.Equal(t, true, r.data()["locked"])
+	assert.Nil(t, r.data()["data"])
+	r = e.get(t, "/api/v1/analysis/labs", "", "")
+	assert.Equal(t, 401, r.status)
+
+	r = e.get(t, "/api/v1/analysis/summary", "", "")
 	assert.Equal(t, 401, r.status)
 	assert.Equal(t, "unauthenticated", r.body["error_code"])
 
-	// A brand-new user: no history, no logs → 200 with the no-data finding.
+	// A brand-new user: no history, no logs → 200 with the «N more days» nudge (§4.1).
 	r = e.get(t, "/api/v1/analysis/summary", tok, "")
 	require.Equal(t, 200, r.status, r.raw)
-	assert.Equal(t, "no_data", path(r.data(), "top_finding", "kind"))
+	assert.Equal(t, "not_enough_data", path(r.data(), "top_finding", "kind"))
+	assert.NotNil(t, path(r.data(), "top_finding", "days_needed"))
 }

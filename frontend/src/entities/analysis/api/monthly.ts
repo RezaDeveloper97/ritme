@@ -47,9 +47,16 @@ export const monthlyReportSchema: Parser<MonthlyReport> = z
     top_symptoms: z.array(z.object({ key: z.string(), label: z.string(), days: z.number(), cycles: z.number() })),
     suggestion: phraseSchema,
     pdf: z.object({ plus: z.boolean(), locked: z.boolean() }),
+    // §4.1 (D-175): an older backend sends none — treat the report as ready.
+    ready: z.boolean().catch(true),
+    min_days: z.number().catch(10),
+    days_needed: z.number().catch(0),
   })
   .transform((r) => ({
     month: r.month,
+    ready: r.ready,
+    minDays: r.min_days,
+    daysNeeded: r.days_needed,
     headline: r.headline,
     summary: r.summary,
     metrics: r.metrics,

@@ -7,6 +7,10 @@
   },
   "weight": {
     "ready": true,
+    "logs_in_window": 14,
+    "min_logs": 3,
+    "window_days": 14,
+    "days_needed": 0,
     "unit": "kg",
     "current": 57.8,
     "as_of": "2026-09-23",

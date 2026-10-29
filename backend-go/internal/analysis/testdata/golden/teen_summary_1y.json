@@ -9,14 +9,18 @@
     "kind": "not_enough_data",
     "parts": [
       {
-        "key": "findings.not_enough_data",
+        "key": "findings.not_enough_days",
         "params": {
-          "needed": 1
+          "days": 22
         },
-        "text": "برای دیدن الگوها، ۱ چرخهٔ دیگر ثبت کن."
+        "text": "برای دیدن الگوها ۲۲ روز دیگر ثبت کن."
       }
     ],
-    "text": "برای دیدن الگوها، ۱ چرخهٔ دیگر ثبت کن."
+    "text": "برای دیدن الگوها ۲۲ روز دیگر ثبت کن.",
+    "strength": null,
+    "score": null,
+    "evidence_date": null,
+    "days_needed": 22
   },
   "sections": {
     "cycle": {
@@ -111,6 +115,10 @@
       "ready": false,
       "data": {
         "ready": false,
+        "logs_in_window": 0,
+        "min_logs": 3,
+        "window_days": 14,
+        "days_needed": 3,
         "unit": "kg",
         "current": null,
         "as_of": null,
@@ -127,6 +135,8 @@
       "locked": false,
       "ready": false,
       "data": {
+        "min_readings": 2,
+        "min_days": 2,
         "blood_pressure": null,
         "blood_sugar": null
       }

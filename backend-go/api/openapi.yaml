@@ -106,11 +106,16 @@ paths:
       tags: [Analysis]
       summary: Analysis hub — top finding and one card per category (Plus cards locked for free users)
       description: |
-        Go only (B-N3-07, An_Hub). `range` (default 6m) selects the window ending today. `top_finding` is up to two
-        localized sentences (`parts[].key` under the `analysis` translation namespace + `params` with codes and plain
-        numbers, `text` rendered in the request language): the cycle verdict (FIGO frequency 24–38 d, period ≤ 8 d,
-        variation ≤ 7–9 d by age; only for ages 18–45) and the strongest symptom pattern (≥ 3 cycles), or a nudge
-        (`not_enough_data`, `no_data`). Every section is `{plus, locked, ready, data}`: a Plus section
+        Go only (B-N3-07, An_Hub). `range` (default 6m) selects the window ending today. `top_finding` (SPEC v6 §4.1,
+        D-175) is the single best-scoring finding — score = strength × 0.5^(days since its latest evidence ÷ 30), the
+        strength table in internal/analysis/finding.go (cycle frequent/infrequent 1.0, prolonged period 0.9,
+        irregular 0.8, correlation strong/medium/weak 0.7/0.5/0.3 (Plus), symptom pattern 0.6 × share of cycles, mood
+        by phase 0.4 (Plus), regular 0.3) — as localized `parts` (`key` under the `analysis` namespace + `params`,
+        `text` rendered; a correlation adds the «co-occurrence, not cause» line), with `strength`, `score` and
+        `evidence_date`. Without a finding: `not_enough_data` «log N more days» (`days_needed` = the nearest unmet
+        minimum; a cycle minimum × the effective cycle length) or `keep_logging`. Minimums: analysis.Params (§4.1) —
+        weight 3 logs in 14 days, BP / sugar 2 readings on 2 days (mean, min–max, class distribution), mood by phase
+        ≥ 10 days per phase (% of days per mood). Every section is `{plus, locked, ready, data}`: a Plus section
         (`mood_by_phase`, `sleep_mood`, `labs` — entitlement `plus.deep_analysis`) is `locked: true, data: null` for a
         free user and nothing is computed for it. `labs` stays empty until lab results exist (B-N6-06). Descriptive
         only, never diagnostic; correlations carry `not_causal: true`.
@@ -139,9 +144,13 @@ paths:
                         type: object
                         required: [kind, parts, text]
                         properties:
-                          kind: {type: string, enum: [cycle_frequent, cycle_infrequent, period_prolonged, cycle_irregular, cycle_regular, pattern, not_enough_data, no_data]}
+                          kind: {type: string, enum: [cycle_frequent, cycle_infrequent, period_prolonged, cycle_irregular, cycle_regular, pattern, correlation, mood_by_phase, not_enough_data, keep_logging, no_data]}
                           parts: {type: array, items: {$ref: "#/components/schemas/AnalysisPhrase"}}
                           text: {type: string}
+                          strength: {type: [number, "null"], description: "0–1 (null for a nudge)"}
+                          score: {type: [number, "null"], description: "strength × recency, 3 decimals"}
+                          evidence_date: {anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+                          days_needed: {type: [integer, "null"], description: "the nudge's N"}
                       sections:
                         type: object
                         required: [cycle, recent_cycles, symptoms, mood_by_phase, sleep_mood, weight, vitals, labs]
@@ -423,11 +432,13 @@ paths:
         Go only (B-N3-07, An_Correlations), entitlement `plus.deep_analysis`. A free user gets 200 with
         `locked: true, ready: false, data: null` (nothing is computed). Cards: `sleep_mood` (nights under 6 h ×
         «کلافه»/«زودرنج» logged that day, φ), `phase_energy` (high energy × phase, Cramér's V), `exercise_cramps`
-        (activity × severe cramps on period days, φ), `phase_mood` (good mood × phase, Cramér's V). Strength by |r|
-        (Cohen): ≥ 0.5 strong, ≥ 0.3 medium, ≥ 0.1 weak, else `no_association`. Minimum data: ≥ 20 paired days, every
-        group ≥ 5 days, the outcome ≥ 3 times, else `not_enough_data` (value and strength null). `ratio` = exposed ÷
-        unexposed rate (or highest ÷ lowest phase), null when the denominator is 0. Every card and the response carry
-        `not_causal: true`.
+        (activity × severe cramps on period days, φ), `phase_mood` (good mood × phase, Cramér's V). SPEC v6 §4.1 (A-02,
+        D-175): `strength` comes from the group-rate ratio (the difference in either direction): strong = ≥ 30 paired
+        days and ≥ 2×, medium ≥ 1.5×, weak ≥ 1.2×, else `no_association`; φ / Cramér's V stay as `value`. Minimum
+        data: ≥ 30 paired days, every group ≥ 5 days, the outcome ≥ 3 times, else `not_enough_data` (value and strength
+        null, `days_needed` > 0). `ratio` = exposed ÷ unexposed rate (or highest ÷ lowest phase), null when the
+        denominator is 0. Every card carries `not_causal: true` and `not_causal_note` («هم‌زمانی در داده‌های تو، نه
+        علت»). `mood_by_phase`: % of days with each mood in each phase, only for phases with ≥ 10 mood-logged days.
       operationId: getAnalysisCorrelations
       security:
         - {bearerAuth: []}
@@ -461,6 +472,7 @@ paths:
                             properties:
                               days_logged: {type: integer}
                               items: {type: array, items: {$ref: "#/components/schemas/AnalysisCorrelation"}}
+                              mood_by_phase: {$ref: "#/components/schemas/AnalysisMoodByPhase"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/ValidationFailed"}
   /api/v1/analysis/body:
@@ -472,8 +484,9 @@ paths:
         (`avg7` = the mean of the weights logged on d−6…d; days without a log are skipped, not zero); `current` = the
         latest avg7, `delta_7d` / `delta_30d` = against the avg7 7 / 30 days earlier, `bmi` = current / height². Sleep
         hours are the duration-bucket midpoints (0_3 → 1.5, 3_6 → 4.5, 6_9 → 7.5, 9_plus → 10); `by_weekday` starts on
-        Saturday. Activity buckets are 7 days from the window start (`all`: from the first logged day). Trends need ≥ 2
-        points.
+        Saturday. Activity buckets are 7 days from the window start (`all`: from the first logged day). §4.1 (D-175):
+        the weight figures (`current`, deltas, `bmi`) need 3 weigh-ins in the last 14 days (`logs_in_window`,
+        `days_needed`); below that they are null and only the points are drawn. Sleep needs ≥ 2 nights.
       operationId: getAnalysisBody
       security:
         - {bearerAuth: []}
@@ -520,6 +533,89 @@ paths:
                                 start: {$ref: "#/components/schemas/Date"}
                                 days: {type: integer}
                                 active_days: {type: integer}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/analysis/labs:
+    get:
+      tags: [Analysis]
+      summary: Lab trend (Plus) — one marker across consecutive confirmed lab reports
+      description: |
+        Go only (T-M10-26, SPEC v6 §4.1 «روند آزمایش», D-175), entitlement `plus.deep_analysis`. A free user gets 200
+        with `locked: true, ready: false, data: null` (nothing is read). The series are the user's verified labs,
+        confirmed values only (a value read below lab.ocr min_confidence and not confirmed yet is left out, T-M10-20),
+        one unit per line. Without `marker`: every marker with its report count (`ready` when any marker has ≥ 2
+        reports). With `marker` (a catalog code, else `name:<printed name>`): that marker's points, `direction`
+        (rising | falling | stable over the last values, null below 2 reports), a localized `finding` and the
+        non-diagnostic `note`; an unknown marker answers an empty, not-ready body.
+      operationId: getAnalysisLabTrend
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: marker, in: query, required: false, schema: {type: string, maxLength: 191}}
+      responses:
+        '200':
+          description: The lab trend (or the lock)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [plus, locked, ready, data]
+                    properties:
+                      plus: {type: boolean, const: true}
+                      locked: {type: boolean}
+                      ready: {type: boolean}
+                      data:
+                        oneOf:
+                          - {type: "null"}
+                          - type: object
+                            description: The markers list (no `marker`)
+                            required: [min_reports, markers, note]
+                            properties:
+                              min_reports: {type: integer}
+                              note: {$ref: "#/components/schemas/AnalysisPhrase"}
+                              markers:
+                                type: array
+                                items:
+                                  type: object
+                                  required: [marker, name, unit, reports, ready, reports_needed, direction, finding]
+                                  properties:
+                                    marker: {type: string}
+                                    name: {type: string}
+                                    unit: {type: [string, "null"]}
+                                    reports: {type: integer}
+                                    ready: {type: boolean}
+                                    reports_needed: {type: integer}
+                                    direction: {type: [string, "null"], enum: [rising, falling, stable, null]}
+                                    finding: {$ref: "#/components/schemas/AnalysisPhrase"}
+                          - type: object
+                            description: One marker (`marker` given)
+                            required: [marker, name, unit, ready, reports, min_reports, reports_needed, direction, points, finding, note]
+                            properties:
+                              marker: {type: string}
+                              name: {type: string}
+                              unit: {type: [string, "null"]}
+                              ready: {type: boolean}
+                              reports: {type: integer}
+                              min_reports: {type: integer}
+                              reports_needed: {type: integer}
+                              direction: {type: [string, "null"], enum: [rising, falling, stable, null]}
+                              points:
+                                type: array
+                                items:
+                                  type: object
+                                  required: [date, value, state]
+                                  properties:
+                                    date: {$ref: "#/components/schemas/Date"}
+                                    value: {type: number}
+                                    state: {type: string}
+                              finding: {$ref: "#/components/schemas/AnalysisPhrase"}
+                              note: {$ref: "#/components/schemas/AnalysisPhrase"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/ValidationFailed"}
   /api/v1/analysis/ttc:
@@ -774,7 +870,8 @@ paths:
         Go only (B-N3-07, An_Monthly). `ym` = YYYY-MM in `calendar` (gregorian default, or jalali: 1405-07 = Mehr);
         the running month is clipped to today (`complete: false`), a future month is 422. Metrics: the last completed
         cycle ending in the month (delta vs the cycle before), days logged, mean sleep hours, the month-end 7-day
-        weight average, mean blood pressure, good-mood share (delta vs the previous month). `headline`, `summary`
+        weight average, mean blood pressure (2 readings on 2 days, §4.1), good-mood share (delta vs the previous
+        month). `ready` / `days_needed`: the §4.1 minimum of 10 logged days (D-175). `headline`, `summary`
         and `suggestion` are localized phrases (`analysis` namespace). `pdf` marks the doctor PDF (B-N6-04) as Plus
         (`plus.pdf_share`).
       operationId: getAnalysisMonthly
@@ -798,6 +895,9 @@ paths:
                     type: object
                     required: [month, headline, summary, metrics, top_symptoms, suggestion, pdf]
                     properties:
+                      ready: {type: boolean}
+                      min_days: {type: integer}
+                      days_needed: {type: integer}
                       month:
                         type: object
                         required: [key, calendar, from, to, complete]
@@ -29658,6 +29758,10 @@ components:
         delta_30d: {type: [number, "null"]}
         delta_range: {type: [number, "null"]}
         bmi: {type: [number, "null"]}
+        logs_in_window: {type: integer, description: "weigh-ins in the last 14 days (§4.1: ready with 3, D-175)"}
+        min_logs: {type: integer}
+        window_days: {type: integer}
+        days_needed: {type: integer, description: weigh-ins still missing}
         moving_average_days: {type: integer, const: 7}
         points:
           type: array
@@ -29677,8 +29781,14 @@ components:
         statistic: {type: string, enum: [phi, cramers_v]}
         value: {type: [number, "null"], description: "φ (signed, −1…1) or Cramér's V (0…1), 2 decimals"}
         strength: {type: [string, "null"], enum: [strong, medium, weak, null]}
-        n: {type: integer}
-        min_days: {type: integer}
+        n: {type: integer, description: paired days}
+        min_days: {type: integer, description: "§4.1 minimum paired days (30)"}
+        days_needed: {type: integer, description: paired days still missing (0 once met)}
+        method: {type: string, const: rate_ratio}
+        strong_rule:
+          type: object
+          required: [days, ratio]
+          properties: {days: {type: integer}, ratio: {type: number}}
         groups:
           type: array
           items:
@@ -29686,6 +29796,33 @@ components:
             required: [key, days, hits, pct]
             properties: {key: {type: string}, days: {type: integer}, hits: {type: integer}, pct: {type: integer}}
         ratio: {type: [number, "null"]}
+        finding: {anyOf: [{$ref: "#/components/schemas/AnalysisPhrase"}, {type: "null"}]}
+        not_causal: {type: boolean, const: true}
+        not_causal_note: {$ref: "#/components/schemas/AnalysisPhrase"}
+    AnalysisMoodByPhase:
+      type: object
+      description: "§4.1 mood by phase (D-175): % of days with each mood per phase, phases with ≥ 10 mood-logged days; ready with 2 such phases"
+      required: [ready, min_days, days_needed, phases, finding, not_causal]
+      properties:
+        ready: {type: boolean}
+        min_days: {type: integer}
+        days_needed: {type: integer}
+        phases:
+          type: array
+          items:
+            type: object
+            required: [phase, ready, good_pct, days, moods]
+            properties:
+              phase: {type: string, enum: [period, follicular, fertile, luteal]}
+              ready: {type: boolean}
+              good_pct: {type: [integer, "null"]}
+              days: {type: integer}
+              moods:
+                type: array
+                items:
+                  type: object
+                  required: [mood, label, days, pct]
+                  properties: {mood: {type: string}, label: {type: string}, days: {type: integer}, pct: {type: integer}}
         finding: {anyOf: [{$ref: "#/components/schemas/AnalysisPhrase"}, {type: "null"}]}
         not_causal: {type: boolean, const: true}
     PlusPlan:

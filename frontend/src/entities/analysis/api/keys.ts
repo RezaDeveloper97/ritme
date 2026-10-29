@@ -12,4 +12,6 @@ export const analysisKeys = {
   /** Detail reports (`cycle`, `period`, `symptoms`, `correlations`, `body`, …). */
   report: (name: string, range: AnalysisRangeKey) => [...analysisKeys.all, name, range] as const,
   monthly: (ym: string, calendar: string) => [...analysisKeys.all, 'monthly', calendar, ym] as const,
+  /** `GET /analysis/labs[?marker=]` — the per-marker lab trend (T-M10-26). */
+  labTrend: (marker: string | null) => [...analysisKeys.all, 'labs', marker ?? ''] as const,
 };

@@ -70,8 +70,8 @@
     "cycle": {
      "regular": "Your cycles are regular (variation {days} days).",
      "irregular": "Your cycle length varied by {days} days, more than the regular range (≤{limit} days).",
-     "frequent": "Your median cycle is {days} days, shorter than the normal range ({min}–{max}).",
-     "infrequent": "Your median cycle is {days} days, longer than the normal range ({min}–{max})."
+     "frequent": "Your median cycle is {days} days, shorter than the usual range ({min}–{max}).",
+     "infrequent": "Your median cycle is {days} days, longer than the usual range ({min}–{max})."
     },
     "period": {
      "prolonged": "Your median period is {days} days; talk to a doctor about periods longer than {max} days."
@@ -84,7 +84,8 @@
     },
     "not_enough_data": "Log {needed} more cycles to see your patterns.",
     "no_data": "Nothing to analyse yet. Start with a daily log.",
-    "keep_logging": "Keep logging daily; after a few weeks of data your symptom patterns will show here."
+    "keep_logging": "Keep logging daily; after a few weeks of data your symptom patterns will show here.",
+    "not_enough_days": "Log {days} more days to see your patterns."
    },
    "correlations": {
     "sleep_mood": {
@@ -103,7 +104,7 @@
     "phase_mood": {
      "best": "Good moods were logged most in the {phase} phase ({pct}% of days)."
     },
-    "not_causal": "These are things that happen together in your own data, not cause and effect."
+    "not_causal": "Co-occurrence in your data, not a cause"
    },
    "monthly": {
     "headline": {
@@ -210,7 +211,9 @@
      },
      "pct": "{n}%",
      "chart": "Share of good-mood days per phase: {list}",
-     "notReady": "Log your mood for a few weeks to fill this chart."
+     "notReady": "Log your mood for a few weeks to fill this chart.",
+     "notReadyDays": "Log your mood {n} more days to see this chart.",
+     "topMood": "{phase}: mostly “{mood}” ({pct}% of days)"
     },
     "sleep": {
      "title": "Sleep & mood",
@@ -225,14 +228,17 @@
      "title": "Weight",
      "delta": "<n>{delta}</n> in 30 days",
      "chart": "Weight over the last 30 days, 7-day average",
-     "notReady": "Log your weight for a few days to see its trend here."
+     "notReady": "Log your weight for a few days to see its trend here.",
+     "notReadyLogs": "Log your weight {n} more times in these two weeks to see the trend."
     },
     "vitals": {
      "title": "Blood pressure & sugar",
      "bp": "Pressure (average)",
      "sugar": "Fasting sugar",
      "none": "—",
-     "notReady": "Log your blood pressure or sugar to see the average here."
+     "notReady": "Log your blood pressure or sugar to see the average here.",
+     "notReadyMin": "Log your blood pressure or sugar at least {readings} times on {days} different days to see a summary.",
+     "range": "{min} to {max}"
     },
     "labs": {
      "title": "Lab trends",
@@ -286,6 +292,13 @@
     "days": "{n} days",
     "none": "—",
     "cycle": {
+     "flagHint": {
+      "title": "Worth mentioning to your doctor",
+      "frequent": "Your recent cycles have been shorter than the usual range. If you have questions, ask your doctor or midwife at your next visit.",
+      "infrequent": "Your recent cycles have been longer than the usual range. If you have questions, ask your doctor or midwife at your next visit.",
+      "prolonged": "Your recent periods have lasted longer than usual. If you have questions, ask your doctor or midwife at your next visit.",
+      "absent": "No period has been logged for a while. If you have questions, ask your doctor or midwife at your next visit."
+     },
      "title": "Cycle analysis",
      "sub": "Last {n} cycles",
      "tilesLabel": "Cycle summary",
@@ -295,10 +308,10 @@
       "variation": "Variation"
      },
      "verdict": {
-      "normal": "Normal ({min}–{max})",
+      "normal": "In the usual range ({min}–{max})",
       "frequent": "Shorter than range ({min}–{max})",
       "infrequent": "Longer than range ({min}–{max})",
-      "periodNormal": "Normal (≤{max})",
+      "periodNormal": "In the usual range (≤{max})",
       "prolonged": "Over {max} days",
       "regular": "Regular (≤{max})",
       "irregular": "Irregular (over {max})",
@@ -341,7 +354,7 @@
       "spotting": "Spotting"
      },
      "verdict": {
-      "normal": "Normal (≤{max})",
+      "normal": "In the usual range (≤{max})",
       "prolonged": "Over {max} days"
      },
      "peakSub": "Heaviest",
@@ -418,7 +431,9 @@
      "locked": {
       "title": "Connections with Ritme Plus",
       "body": "See how sleep, exercise and your cycle phase line up with your mood and symptoms."
-     }
+     },
+     "notEnoughDays": "This needs at least {n} days with both logged; log {left} more days.",
+     "strongRule": "“Strong” means at least {days} days of data and at least a {ratio}× difference between the two groups of days."
     },
     "body": {
      "title": "Body and lifestyle",
@@ -438,7 +453,8 @@
       "chart": "Weight trend as a {n}-day moving average, from {from} to {to} kg",
       "colDate": "Date",
       "colAvg": "Average (kg)",
-      "notReady": "Log your weight at least twice to see a trend."
+      "notReady": "Log your weight at least twice to see a trend.",
+      "notReadyLogs": "To see your weight trend, log your weight at least {n} times in the last {days} days."
      },
      "sleep": {
       "title": "Sleep",
@@ -511,7 +527,8 @@
       "title": "This month's report isn't available",
       "body": "Monthly reports aren't made for future months or for months more than 2 years back.",
       "cta": "This month's report"
-     }
+     },
+     "notReady": "Log {n} more days for a full report of this month."
     },
     "labs": {
      "title": "Lab trends",
@@ -577,7 +594,8 @@
       "confirmed": "Confirmed by “three over six”: day {day}",
       "waiting": "Not confirmed yet",
       "notReady": "At least 2 basal temperatures this cycle are needed to draw the chart.",
-      "chart": "Basal temperature this cycle, {n} days logged, from {min} to {max} degrees"
+      "chart": "Basal temperature this cycle, {n} days logged, from {min} to {max} degrees",
+      "notReadyTemps": "Analysing basal temperature needs at least {n} readings this cycle; log {left} more."
      },
      "lh": {
       "title": "LH test",
@@ -670,6 +688,15 @@
        "body": "Log your first period to build the basal temperature chart."
       }
      }
+    }
+   },
+   "labs": {
+    "trend": {
+     "rising": "This marker went up across your last {count} labs.",
+     "falling": "This marker went down across your last {count} labs.",
+     "stable": "This marker stayed about the same across your last {count} labs.",
+     "not_enough": "To see a trend, add {needed} more lab result with this marker.",
+     "note": "This only shows how the numbers moved, not a diagnosis. Go over what they mean with your doctor."
     }
    }
   },
@@ -3654,6 +3681,13 @@
     "title": "Body mass index (BMI)"
    },
    "back": "Back",
+   "flagHint": {
+    "title": "Worth mentioning to your doctor",
+    "frequent": "Your recent cycles have been shorter than the usual range. If you have questions, ask your doctor or midwife at your next visit.",
+    "infrequent": "Your recent cycles have been longer than the usual range. If you have questions, ask your doctor or midwife at your next visit.",
+    "prolonged": "Your recent periods have lasted longer than usual. If you have questions, ask your doctor or midwife at your next visit.",
+    "absent": "No period has been logged for a while. If you have questions, ask your doctor or midwife at your next visit."
+   },
    "loading": "Loading",
    "retry": "Try again",
    "history": {
@@ -4590,7 +4624,9 @@
     "cycleDay": "Cycle day {n, number}",
     "editPeriod": "Edit period",
     "noData": "No period yet",
-    "logPeriod": "Log period"
+    "logPeriod": "Log period",
+    "noPrediction": "Forecast",
+    "noPredictionValue": "Not yet"
    },
    "phaseCard": {
     "title": {
@@ -4598,7 +4634,9 @@
      "follicular": "Follicular phase",
      "fertile": "Fertile window",
      "ovulation": "Ovulation",
-     "luteal": "Luteal phase"
+     "luteal": "Luteal phase",
+     "neutral": "Today",
+     "neutralDay": "This day"
     },
     "nearPeriod": "Period is near",
     "more": "More about this phase",
@@ -4671,6 +4709,8 @@
      "ovulation": "Ovulation",
      "about": "Around {date}",
      "estimated": "Estimated",
+     "sourceBbt": "Confirmed by basal temperature",
+     "sourceLh": "Based on LH test",
      "inDays": "In {n} days",
      "tomorrow": "Tomorrow",
      "fromTomorrow": "From tomorrow",
@@ -4681,11 +4721,20 @@
      "lengthUnit": "days",
      "lengthSpread": "days · ±{n} variation",
      "regularity": {
+      "regular": "Regular",
+      "irregular": "Varies",
+      "insufficient_data": "Not enough data",
       "relatively_regular": "Regular",
       "irregular_possible": "Irregular",
       "not_enough_data": "Little data"
      },
-     "disclaimer": "Predictions are not contraception"
+     "disclaimer": "Predictions are not contraception",
+     "withdrawalBleed": "Withdrawal bleed",
+     "note": {
+      "hormonal": "With hormonal birth control, this bleed comes from the hormone break, not an ovulation cycle, so fertile days aren't shown.",
+      "postpartum": "After giving birth, cycles take a while to come back. Predictions start once you've logged two periods.",
+      "age45": "From around 45, changes in cycle length are common, so treat predictions as approximate."
+     }
     },
     "insight": {
      "pmsTomorrow": "PMS likely from tomorrow",
@@ -4693,6 +4742,38 @@
      "pmsNow": "Likely PMS days",
      "basis": "Based on your last {n} cycles · see analysis",
      "basisBasic": "Based on your past cycles · see analysis"
+    },
+    "limits": {
+     "pregnancyPrompt": {
+      "title": "Switch to pregnancy mode",
+      "body": "You logged a positive test. If you'd like, you can switch Ritme to pregnancy mode.",
+      "cta": "Switch to pregnancy mode",
+      "dismiss": "Not now"
+     }
+    }
+   },
+   "skip": {
+    "action": "No period this time",
+    "undo": "Undo",
+    "sheet": {
+     "title": "Period didn't come?",
+     "body": "If your period did not arrive on time, you can log this cycle as having no period. Predictions will count one cycle further from now on, and nothing is removed from your history. You can undo it whenever you like.",
+     "confirm": "Yes, no period",
+     "cancel": "Not now"
+    },
+    "toast": {
+     "text": "Saved. Predictions moved one cycle ahead."
+    },
+    "note": {
+     "text": "You logged this cycle as no period."
+    },
+    "errors": {
+     "notExpectedYet": "It is too early. This option opens on the day your period is predicted.",
+     "periodStarted": "A period is already logged for this cycle, so you do not need this.",
+     "predictionMismatch": "Your prediction changed. We refreshed it, so take another look.",
+     "network": "Could not connect. Please try again.",
+     "generic": "That did not work. Please try again in a moment.",
+     "undo": "Could not undo. Please try again."
     }
    },
    "life": {

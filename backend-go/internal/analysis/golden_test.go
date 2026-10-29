@@ -108,15 +108,22 @@ func TestGolden_RegularHeadlines(t *testing.T) {
 	in := ranged(regularFixture(), Range6M)
 	in.Copy = copyFor(t, "fa")
 	s := BuildSummary(in)
-	assert.Equal(t, FindingCycleRegular, s.Finding.Kind)
+	// §4.1: one finding, strength × recency — Plus: the strong, recent sleep–mood correlation (0.7) with the
+	// not-causal line; free: the headache pattern (0.6 × 4/6) outscores a regular cycle (0.3).
+	assert.Equal(t, FindingCorrelation, s.Finding.Kind)
 	f := s.Finding.JSON(in.Copy)
 	text, _ := f.Get("text")
-	assert.Contains(t, text, "منظم")
+	assert.Contains(t, text, "\u0647\u0645\u200c\u0632\u0645\u0627\u0646\u06cc") // «هم‌زمانی»
+	free := *in
+	free.DeepAnalysis = false
+	s = BuildSummary(&free)
+	assert.Equal(t, FindingPattern, s.Finding.Kind)
+	text, _ = s.Finding.JSON(in.Copy).Get("text")
 	assert.Contains(t, text, "سردرد")
 	assert.Contains(t, text, "قبل از پریود")
 
 	ir := ranged(irregularFixture(), Range1Y)
 	assert.Equal(t, FindingCycleIrregular, BuildSummary(ir).Finding.Kind)
-	assert.Equal(t, FindingNoData, BuildSummary(ranged(emptyFixture(), Range6M)).Finding.Kind)
+	assert.Equal(t, FindingNotEnoughData, BuildSummary(ranged(emptyFixture(), Range6M)).Finding.Kind, "no data: the days nudge")
 	assert.Equal(t, FindingNotEnoughData, BuildSummary(ranged(teenFixture(), Range6M)).Finding.Kind)
 }

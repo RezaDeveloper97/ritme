@@ -218,6 +218,7 @@ function MonthlyBody({ report: r, monthLabel }: { report: MonthlyReport; monthLa
           {r.headline.text}
         </h2>
         {r.summary.text ? <p className="amr-summary">{r.summary.text}</p> : null}
+        {!r.ready && r.daysNeeded > 0 ? <p className="amr-summary">{tm('notReady', { n: num(r.daysNeeded) })}</p> : null}
       </section>
 
       {daysLogged === 0 ? (

@@ -91,7 +91,7 @@ type CycleReport struct {
 }
 
 // Ready: the per-cycle bars are a trend (≥ MinTrendPoints cycles).
-func (r CycleReport) Ready() bool { return r.BasedOn >= MinTrendPoints }
+func (r CycleReport) Ready() bool { return r.BasedOn >= P.CycleLengthMinCycles }
 
 // BuildCycle computes the cycle report of the range.
 func BuildCycle(in *Input) CycleReport {
@@ -160,9 +160,9 @@ func BuildCycle(in *Input) CycleReport {
 			ref = in.Range.To
 		}
 		out.Regularity, out.Variation, out.VariationLimit = in.engineRegularity(ref)
-	} else if len(lens) >= MinPatternCycles {
-		lo, hi := lens[0], lens[0]
-		for _, n := range lens {
+	} else if reg := in.regularityLengths(out.Cycles); len(reg) >= P.RegularityMinCycles {
+		lo, hi := reg[0], reg[0]
+		for _, n := range reg {
 			lo, hi = min(lo, n), max(hi, n)
 		}
 		out.Variation = intPtr(hi - lo)
@@ -173,6 +173,23 @@ func BuildCycle(in *Input) CycleReport {
 	}
 	typCycle, typPeriod := in.typical()
 	out.Typical = NewLayout(typCycle, typPeriod)
+	return out
+}
+
+// regularityLengths are the counted cycle lengths the v1 regularity verdict reads (§4.1, D-175): cycles that started
+// within P.RegularityMonths months before the report day (the v6 engine applies its own window).
+func (in *Input) regularityLengths(rows []CycleRow) []int {
+	ref := in.Today
+	if !in.Range.To.IsZero() && in.Range.To.Before(ref) {
+		ref = in.Range.To
+	}
+	from := monthsBack(ref, P.RegularityMonths)
+	var out []int
+	for _, r := range rows {
+		if r.Counted && !r.Start.Before(from) {
+			out = append(out, r.Length)
+		}
+	}
 	return out
 }
 

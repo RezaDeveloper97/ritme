@@ -6,15 +6,21 @@
     "days": 365
   },
   "top_finding": {
-    "kind": "no_data",
+    "kind": "not_enough_data",
     "parts": [
       {
-        "key": "findings.no_data",
-        "params": {},
-        "text": "هنوز داده‌ای برای تحلیل نیست؛ با ثبت روزانه شروع کن."
+        "key": "findings.not_enough_days",
+        "params": {
+          "days": 56
+        },
+        "text": "برای دیدن الگوها ۵۶ روز دیگر ثبت کن."
       }
     ],
-    "text": "هنوز داده‌ای برای تحلیل نیست؛ با ثبت روزانه شروع کن."
+    "text": "برای دیدن الگوها ۵۶ روز دیگر ثبت کن.",
+    "strength": null,
+    "score": null,
+    "evidence_date": null,
+    "days_needed": 56
   },
   "sections": {
     "cycle": {
@@ -67,6 +73,10 @@
       "ready": false,
       "data": {
         "ready": false,
+        "logs_in_window": 0,
+        "min_logs": 3,
+        "window_days": 14,
+        "days_needed": 3,
         "unit": "kg",
         "current": null,
         "as_of": null,
@@ -83,6 +93,8 @@
       "locked": false,
       "ready": false,
       "data": {
+        "min_readings": 2,
+        "min_days": 2,
         "blood_pressure": null,
         "blood_sugar": null
       }

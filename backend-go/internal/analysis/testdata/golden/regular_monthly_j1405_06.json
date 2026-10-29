@@ -6,6 +6,9 @@
     "to": "2026-09-22",
     "complete": true
   },
+  "ready": true,
+  "min_days": 10,
+  "days_needed": 0,
   "headline": {
     "key": "monthly.headline.busy",
     "params": {},

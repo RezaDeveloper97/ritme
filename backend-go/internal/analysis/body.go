@@ -26,15 +26,20 @@ type BodyReport struct {
 	AsOf                      civildate.Date
 	Delta7, Delta30, DeltaAll *float64
 	BMI                       *float64
-	SleepNights               int
-	SleepAvg, SleepLuteal     *float64
-	SleepByWeekday            [7]*float64 // Saturday first
-	ActiveDays, RangeDays     int
-	Weeks                     []WeekBucket
+	// WeightLogs: weight logs in the last P.WeightWindowDays days of the range (§4.1: ready with P.WeightMinLogs).
+	WeightLogs            int
+	SleepNights           int
+	SleepAvg, SleepLuteal *float64
+	SleepByWeekday        [7]*float64 // Saturday first
+	ActiveDays, RangeDays int
+	Weeks                 []WeekBucket
 }
 
-// WeightReady / SleepReady: trends need ≥ MinTrendPoints points.
-func (r BodyReport) WeightReady() bool { return len(r.Weight) >= MinTrendPoints }
+// WeightReady: §4.1 — P.WeightMinLogs weight logs within the last P.WeightWindowDays days.
+func (r BodyReport) WeightReady() bool { return r.WeightLogs >= P.WeightMinLogs }
+
+// WeightDaysNeeded: weigh-ins (one a day) still missing for the minimum.
+func (r BodyReport) WeightDaysNeeded() int { return max(0, P.WeightMinLogs-r.WeightLogs) }
 
 // SleepReady reports whether at least two nights were logged.
 func (r BodyReport) SleepReady() bool { return r.SleepNights >= MinTrendPoints }
@@ -74,7 +79,16 @@ func BuildBody(in *Input) BodyReport {
 		}
 		out.Weight = append(out.Weight, p)
 	}
-	if n := len(out.Weight); n > 0 {
+	ref := in.Today
+	if in.Range.To.Before(ref) {
+		ref = in.Range.To
+	}
+	for d := ref.AddDays(-(P.WeightWindowDays - 1)); !d.After(ref); d = d.AddDays(1) {
+		if _, ok := values[d]; ok {
+			out.WeightLogs++
+		}
+	}
+	if n := len(out.Weight); n > 0 && out.WeightReady() {
 		last := out.Weight[n-1]
 		raw, _ := MovingAverage7(values, last.Date)
 		out.Current, out.AsOf = &last.Avg7, last.Date
@@ -155,6 +169,10 @@ func (r BodyReport) WeightJSON(lastDays int) *jsonx.OrderedMap {
 	}
 	return jsonx.Obj(
 		"ready", r.WeightReady(),
+		"logs_in_window", r.WeightLogs,
+		"min_logs", P.WeightMinLogs,
+		"window_days", P.WeightWindowDays,
+		"days_needed", r.WeightDaysNeeded(),
 		"unit", "kg",
 		"current", ptrOrNil(r.Current),
 		"as_of", dateOrNil(r.AsOf),

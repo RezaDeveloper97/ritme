@@ -84,6 +84,8 @@ const bbtSchema: Parser<TtcBbt> = z
     shift_day: nullableNum,
     ovulation_day: nullableNum,
     confirmed: z.boolean(),
+    min_temps: z.number().catch(10),
+    days_needed: z.number().catch(0),
   })
   .transform((b) => ({
     cycleStart: b.cycle_start,
@@ -92,6 +94,8 @@ const bbtSchema: Parser<TtcBbt> = z
     shiftDay: b.shift_day,
     ovulationDay: b.ovulation_day,
     confirmed: b.confirmed,
+    minTemps: b.min_temps,
+    tempsNeeded: b.days_needed,
   }));
 
 const lhSchema: Parser<TtcLh> = z

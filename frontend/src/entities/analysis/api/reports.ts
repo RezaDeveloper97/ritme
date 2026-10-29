@@ -11,7 +11,7 @@ import {
   type SymptomsReport,
 } from '../model/reports';
 import type { Correlation } from '../model/types';
-import { analysisRangeSchema, correlationSchema } from './schema';
+import { analysisRangeSchema, correlationSchema, moodByPhaseSchema, toWeight, weightSchema } from './schema';
 
 /**
  * Boundary parsers of the detail reports (B-N3-09). Shapes:
@@ -234,7 +234,11 @@ export const correlationsReportSchema: Parser<CorrelationsReport> = z
     locked: z.boolean(),
     ready: z.boolean(),
     data: z
-      .object({ days_logged: num, items: z.array(correlationSchema.nullable().catch(null)) })
+      .object({
+        days_logged: num,
+        items: z.array(correlationSchema.nullable().catch(null)),
+        mood_by_phase: moodByPhaseSchema.nullable().catch(null),
+      })
       .nullable()
       .catch(null),
   })
@@ -247,25 +251,18 @@ export const correlationsReportSchema: Parser<CorrelationsReport> = z
     data:
       r.locked || !r.data
         ? null
-        : { daysLogged: r.data.days_logged, items: r.data.items.filter((c): c is Correlation => c != null).filter(isKnownPair) },
+        : {
+            daysLogged: r.data.days_logged,
+            items: r.data.items.filter((c): c is Correlation => c != null).filter(isKnownPair),
+            moodByPhase: r.data.mood_by_phase,
+          },
   }));
 
 /** `data` of `GET /analysis/body`. */
 export const bodyReportSchema: Parser<BodyReport> = z
   .object({
     range: analysisRangeSchema,
-    weight: z.object({
-      ready: z.boolean(),
-      unit: z.string(),
-      current: nullableNum,
-      as_of: z.string().nullable(),
-      delta_7d: nullableNum,
-      delta_30d: nullableNum,
-      delta_range: nullableNum,
-      bmi: nullableNum,
-      moving_average_days: num.catch(7),
-      points: z.array(z.object({ date: z.string(), value: nullableNum, avg7: nullableNum })).catch([]),
-    }),
+    weight: weightSchema.extend({ moving_average_days: num.catch(7) }),
     sleep: z.object({
       ready: z.boolean(),
       nights: num,
@@ -281,18 +278,7 @@ export const bodyReportSchema: Parser<BodyReport> = z
   })
   .transform((r) => ({
     range: r.range,
-    weight: {
-      ready: r.weight.ready,
-      unit: r.weight.unit,
-      current: r.weight.current,
-      asOf: r.weight.as_of,
-      delta7d: r.weight.delta_7d,
-      delta30d: r.weight.delta_30d,
-      deltaRange: r.weight.delta_range,
-      bmi: r.weight.bmi,
-      movingAverageDays: r.weight.moving_average_days,
-      points: r.weight.points,
-    },
+    weight: { ...toWeight(r.weight), movingAverageDays: r.weight.moving_average_days },
     sleep: {
       ready: r.sleep.ready,
       nights: r.sleep.nights,

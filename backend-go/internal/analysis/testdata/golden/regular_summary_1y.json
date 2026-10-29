@@ -6,27 +6,28 @@
     "days": 365
   },
   "top_finding": {
-    "kind": "cycle_regular",
+    "kind": "correlation",
     "parts": [
       {
-        "key": "findings.cycle.regular",
+        "key": "correlations.sleep_mood.more",
         "params": {
-          "days": 2
+          "ratio": 4.9,
+          "hits": 30,
+          "days": 44
         },
-        "text": "چرخه‌هایت منظم‌اند (نوسان ۲ روز)."
+        "text": "در شب‌های زیر ۶ ساعت خواب، فردایش «کلافه» یا «زودرنج» ۴٫۹ برابر بیشتر ثبت شده (۳۰ از ۴۴ روز)."
       },
       {
-        "key": "findings.pattern.before_period",
-        "params": {
-          "symptom": "pain.location.head",
-          "cycles": 5,
-          "total": 7,
-          "days": 3
-        },
-        "text": "سردرد در ۵ از ۷ چرخه در ۳ روز قبل از پریود تکرار شده است."
+        "key": "correlations.not_causal",
+        "params": {},
+        "text": "هم‌زمانی در داده‌های تو، نه علت"
       }
     ],
-    "text": "چرخه‌هایت منظم‌اند (نوسان ۲ روز). سردرد در ۵ از ۷ چرخه در ۳ روز قبل از پریود تکرار شده است."
+    "text": "در شب‌های زیر ۶ ساعت خواب، فردایش «کلافه» یا «زودرنج» ۴٫۹ برابر بیشتر ثبت شده (۳۰ از ۴۴ روز). هم‌زمانی در داده‌های تو، نه علت",
+    "strength": 0.7,
+    "score": 0.7,
+    "evidence_date": "2026-09-23",
+    "days_needed": null
   },
   "sections": {
     "cycle": {
@@ -156,26 +157,101 @@
       "locked": false,
       "ready": true,
       "data": {
+        "ready": true,
+        "min_days": 10,
+        "days_needed": 0,
         "phases": [
           {
             "phase": "period",
+            "ready": true,
             "good_pct": 50,
-            "days": 16
+            "days": 16,
+            "moods": [
+              {
+                "mood": "calm",
+                "label": "آرام",
+                "days": 8,
+                "pct": 50
+              },
+              {
+                "mood": "irritable",
+                "label": "زودرنج",
+                "days": 8,
+                "pct": 50
+              }
+            ]
           },
           {
             "phase": "follicular",
+            "ready": true,
             "good_pct": 82,
-            "days": 45
+            "days": 45,
+            "moods": [
+              {
+                "mood": "happy",
+                "label": "شاد",
+                "days": 36,
+                "pct": 80
+              },
+              {
+                "mood": "irritable",
+                "label": "زودرنج",
+                "days": 8,
+                "pct": 18
+              },
+              {
+                "mood": "calm",
+                "label": "آرام",
+                "days": 1,
+                "pct": 2
+              }
+            ]
           },
           {
             "phase": "fertile",
+            "ready": true,
             "good_pct": 74,
-            "days": 35
+            "days": 35,
+            "moods": [
+              {
+                "mood": "happy",
+                "label": "شاد",
+                "days": 19,
+                "pct": 54
+              },
+              {
+                "mood": "irritable",
+                "label": "زودرنج",
+                "days": 9,
+                "pct": 26
+              },
+              {
+                "mood": "calm",
+                "label": "آرام",
+                "days": 7,
+                "pct": 20
+              }
+            ]
           },
           {
             "phase": "luteal",
+            "ready": true,
             "good_pct": 57,
-            "days": 42
+            "days": 42,
+            "moods": [
+              {
+                "mood": "calm",
+                "label": "آرام",
+                "days": 24,
+                "pct": 57
+              },
+              {
+                "mood": "irritable",
+                "label": "زودرنج",
+                "days": 18,
+                "pct": 43
+              }
+            ]
           }
         ],
         "finding": {
@@ -200,7 +276,13 @@
         "value": 0.55,
         "strength": "strong",
         "n": 138,
-        "min_days": 20,
+        "min_days": 30,
+        "days_needed": 0,
+        "method": "rate_ratio",
+        "strong_rule": {
+          "days": 30,
+          "ratio": 2
+        },
         "groups": [
           {
             "key": "sleep_6_plus",
@@ -225,7 +307,12 @@
           },
           "text": "در شب‌های زیر ۶ ساعت خواب، فردایش «کلافه» یا «زودرنج» ۴٫۹ برابر بیشتر ثبت شده (۳۰ از ۴۴ روز)."
         },
-        "not_causal": true
+        "not_causal": true,
+        "not_causal_note": {
+          "key": "correlations.not_causal",
+          "params": {},
+          "text": "هم‌زمانی در داده‌های تو، نه علت"
+        }
       }
     },
     "weight": {
@@ -234,6 +321,10 @@
       "ready": true,
       "data": {
         "ready": true,
+        "logs_in_window": 14,
+        "min_logs": 3,
+        "window_days": 14,
+        "days_needed": 0,
         "unit": "kg",
         "current": 57.8,
         "as_of": "2026-09-23",
@@ -401,15 +492,40 @@
       "locked": false,
       "ready": true,
       "data": {
+        "min_readings": 2,
+        "min_days": 2,
         "blood_pressure": {
+          "ready": true,
+          "readings": 32,
+          "days": 32,
+          "readings_needed": 0,
           "systolic": 120,
           "diastolic": 77,
-          "readings": 32,
+          "min": {
+            "systolic": 118,
+            "diastolic": 76
+          },
+          "max": {
+            "systolic": 122,
+            "diastolic": 78
+          },
+          "classes": {
+            "elevated": 19,
+            "normal": 13
+          },
           "unit": "mmhg"
         },
         "blood_sugar": {
-          "avg": 92,
+          "ready": true,
           "readings": 23,
+          "days": 23,
+          "readings_needed": 0,
+          "avg": 92,
+          "min": 92,
+          "max": 92,
+          "classes": {
+            "in_range": 23
+          },
           "unit": "mg_dl"
         }
       }

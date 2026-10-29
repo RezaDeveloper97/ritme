@@ -20,25 +20,44 @@ describe.skipIf(!existsSync(GOLDEN_DIR))('analysisSummarySchema', () => {
   it('parses a full entitled hub', () => {
     const s = analysisSummarySchema.parse(golden('regular_summary_6m'));
     expect(s.range.key).toBe('6m');
-    expect(s.topFinding.kind).toBe('cycle_regular');
-    expect(s.topFinding.parts).toHaveLength(2);
+    // §4.1 top finding: one scored finding (strength × recency); a correlation carries its not-causal line.
+    expect(s.topFinding).toMatchObject({ kind: 'correlation', strength: 0.7, score: 0.7, evidenceDate: '2026-09-23', daysNeeded: null });
+    expect(s.topFinding.parts.map((p) => p.key)).toEqual(['correlations.sleep_mood.more', 'correlations.not_causal']);
     expect(s.sections.cycle.data?.medianCycle).toBe(29);
     expect(s.sections.cycle.data?.bars[0]).toEqual({ start: '2026-04-13', length: 38, inFigoRange: true });
     expect(s.sections.recentCycles.data?.[0].isCurrent).toBe(true);
     expect(s.sections.symptoms.data?.highlight?.relation).toBe('before_period');
     expect(s.sections.moodByPhase.data?.phases.map((p) => p.phase)).toEqual(['period', 'follicular', 'fertile', 'luteal']);
+    expect(s.sections.moodByPhase.data).toMatchObject({ ready: true, minDays: 10, daysNeeded: 0 });
+    expect(s.sections.moodByPhase.data?.phases[0]).toMatchObject({ ready: true, goodPct: 50, days: 12 });
+    expect(s.sections.moodByPhase.data?.phases[0].moods[0]).toEqual({ mood: 'calm', label: 'آرام', days: 6, pct: 50 });
     expect(s.sections.sleepMood.data?.groups[1]).toMatchObject({ key: 'sleep_under_6', pct: 69 });
     expect(s.sections.weight.data?.delta30d).toBe(-0.3);
-    expect(s.sections.vitals.data?.bloodPressure).toEqual({ systolic: 120, diastolic: 77, readings: 26 });
+    expect(s.sections.weight.data).toMatchObject({ ready: true, logsInWindow: 14, minLogs: 3, windowDays: 14, daysNeeded: 0 });
+    expect(s.sections.vitals.data).toMatchObject({ minReadings: 2, minDays: 2 });
+    expect(s.sections.vitals.data?.bloodPressure).toEqual({
+      ready: true,
+      readings: 26,
+      days: 26,
+      readingsNeeded: 0,
+      classes: { elevated: 16, normal: 10 },
+      systolic: 120,
+      diastolic: 77,
+      min: { systolic: 118, diastolic: 76 },
+      max: { systolic: 122, diastolic: 78 },
+    });
+    expect(s.sections.vitals.data?.bloodSugar).toMatchObject({ ready: true, avg: 92, min: 92, max: 92, readings: 19 });
     expect(s.sections.labs).toEqual({ plus: true, locked: false, ready: false, data: null });
   });
 
   it('parses an empty, free hub (Plus sections locked, no data)', () => {
     const s = analysisSummarySchema.parse(golden('empty_summary_6m'));
-    expect(s.topFinding.kind).toBe('no_data');
+    // Below every minimum: "not enough data" with the days still to log, never a weak finding.
+    expect(s.topFinding).toMatchObject({ kind: 'not_enough_data', daysNeeded: 56, strength: null, score: null });
+    expect(s.topFinding.parts[0].key).toBe('findings.not_enough_days');
     expect(s.sections.moodByPhase).toEqual({ plus: true, locked: true, ready: false, data: null });
-    expect(s.sections.weight.data?.current).toBeNull();
-    expect(s.sections.vitals.data).toEqual({ bloodPressure: null, bloodSugar: null });
+    expect(s.sections.weight.data).toMatchObject({ ready: false, current: null, logsInWindow: 0, daysNeeded: 3 });
+    expect(s.sections.vitals.data).toEqual({ minReadings: 2, minDays: 2, bloodPressure: null, bloodSugar: null });
   });
 
   it('parses the teen and irregular fixtures', () => {

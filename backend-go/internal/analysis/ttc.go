@@ -456,8 +456,11 @@ func (r TTCReport) bbtCard() Section {
 	if c == nil {
 		return freeSection(false, nil)
 	}
-	return freeSection(len(c.BBT.Points) >= MinTrendPoints, jsonx.Obj(
+	// §4.1: the BBT analysis needs P.BBTMinTemps temperatures in the cycle (the engine/bbt minimum under v6).
+	return freeSection(len(c.BBT.Points) >= P.BBTMinTemps, jsonx.Obj(
 		"cycle_start", c.Start.String(),
+		"min_temps", P.BBTMinTemps,
+		"days_needed", max(0, P.BBTMinTemps-len(c.BBT.Points)),
 		"points", pointsJSON(c.BBT.Points, false),
 		"coverline", tempOrNil(c.BBT.Coverline),
 		"shift_day", ptrOrNil(c.BBT.ShiftDay),
@@ -736,9 +739,9 @@ func explanation(c *TTCCycle) Phrase {
 			Num("from", c.HighDays[0]), Num("to", c.HighDays[len(c.HighDays)-1]),
 			Num("baseline", bbt.BaselineReadings), Num("day", c.OvulationDay),
 		}}
-	case len(c.BBT.Points) < bbt.BaselineReadings+bbt.HighReadings:
+	case len(c.BBT.Points) < P.BBTMinTemps:
 		return Phrase{Key: "ttc.fertility.how.few", Args: []Arg{
-			Num("need", bbt.BaselineReadings+bbt.HighReadings), Num("count", len(c.BBT.Points)),
+			Num("need", P.BBTMinTemps), Num("count", len(c.BBT.Points)),
 		}}
 	case c.OvulationSource == OvulationLH:
 		return Phrase{Key: "ttc.fertility.how.lh", Args: []Arg{Num("day", c.OvulationDay), Num("lh", c.LHDay)}}

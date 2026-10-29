@@ -41,6 +41,9 @@ export interface TtcBbt {
   shiftDay: number | null;
   ovulationDay: number | null;
   confirmed: boolean;
+  /** §4.1: the BBT analysis needs `minTemps` (10) temperatures in the cycle; `tempsNeeded` still missing. */
+  minTemps: number;
+  tempsNeeded: number;
 }
 
 export interface TtcLh {

@@ -213,11 +213,16 @@ function TeaserLine({ tone }: { tone: Tone }) {
   return <LineChart label="" height={100} series={[{ values: [62, 70, 55, 44, 74, 66, 58], tone }]} highlightIndex={6} />;
 }
 
-/** «حال در فازهای سیکل» (Plus): share of good-mood days per phase; the lowest phase is marked. */
+/**
+ * «حال در فازهای سیکل» (Plus, §4.1): share of good-mood days per phase — only
+ * phases with 10 mood-logged days carry a value (the rest read «—»); the
+ * lowest phase is marked and the most frequent mood of each is listed.
+ */
 export function MoodPhaseCard({ section }: { section: AnalysisSection<MoodByPhase> }) {
   const { t, num } = useHub();
   const m = section.data;
   const phases = m?.phases ?? [];
+  const tops = phases.filter((p) => p.ready && p.moods.length > 0);
   const low = lowestIndex(phases.map((p) => p.goodPct));
   const label = (p: (typeof phases)[number]) => t(`mood.phases.${p.phase}`);
   return (
@@ -241,10 +246,17 @@ export function MoodPhaseCard({ section }: { section: AnalysisSection<MoodByPhas
             }))}
           />
           <span className="an-caption">{t('mood.caption')}</span>
+          {tops.length ? (
+            tops.map((p) => (
+              <p key={p.phase} className="an-card-note">
+                {t('mood.topMood', { phase: label(p), mood: p.moods[0].label, pct: num(p.moods[0].pct) })}
+              </p>
+            ))
+          ) : null}
           {m?.finding ? <p className="an-finding">{m.finding.text}</p> : null}
         </>
       ) : (
-        <NotReady>{t('mood.notReady')}</NotReady>
+        <NotReady>{m && m.daysNeeded > 0 ? t('mood.notReadyDays', { n: num(m.daysNeeded) }) : t('mood.notReady')}</NotReady>
       )}
     </HubCard>
   );
@@ -280,9 +292,13 @@ export function SleepMoodCard({ section }: { section: AnalysisSection<Correlatio
   );
 }
 
-/** «وزن»: current weight (Lalezar), 30-day change and the 7-day moving average line. */
+/**
+ * «وزن»: current weight (Lalezar), 30-day change and the 7-day moving average
+ * line — from 3 weigh-ins in the last 14 days (§4.1); below that the card
+ * says how many more.
+ */
 export function WeightCard({ section }: { section: AnalysisSection<HubWeight> }) {
-  const { t, loc, dec } = useHub();
+  const { t, loc, dec, num } = useHub();
   const w = section.data;
   const points = w?.points ?? [];
   const delta = w?.delta30d != null ? signedDecimal(w.delta30d) : null;
@@ -311,16 +327,25 @@ export function WeightCard({ section }: { section: AnalysisSection<HubWeight> })
           ) : null}
         </>
       ) : (
-        <NotReady>{t('weight.notReady')}</NotReady>
+        <NotReady>
+          {w && w.daysNeeded > 0 ? t('weight.notReadyLogs', { n: num(w.daysNeeded) }) : t('weight.notReady')}
+        </NotReady>
       )}
     </HubCard>
   );
 }
 
-/** «فشار خون و قند»: range averages; opens the vitals hub (B-N6-02). */
+/**
+ * «فشار خون و قند» (§4.1): mean and min–max per type once it has 2 readings on
+ * 2 different days; a type below that reads «—». Opens the vitals hub (B-N6-02).
+ */
 export function VitalsCard({ section }: { section: AnalysisSection<HubVitals> }) {
   const { t, num } = useHub();
   const v = section.data;
+  const bp = v?.bloodPressure?.ready ? v.bloodPressure : null;
+  const sugar = v?.bloodSugar?.ready ? v.bloodSugar : null;
+  // LTR-isolated «۱۲۰/۸۰» inside the RTL sentence (U+2066 … U+2069).
+  const pair = (p: { systolic: number; diastolic: number }) => `\u2066${num(p.systolic)}/${num(p.diastolic)}\u2069`;
   return (
     <HubCard title={t('vitals.title')} href="/vitals">
       {section.ready && v ? (
@@ -328,20 +353,28 @@ export function VitalsCard({ section }: { section: AnalysisSection<HubVitals> })
           <div>
             <dt>{t('vitals.bp')}</dt>
             <dd className="an-num is-md">
-              {v.bloodPressure ? (
-                <bdi dir="ltr">{`${num(v.bloodPressure.systolic)}/${num(v.bloodPressure.diastolic)}`}</bdi>
+              {bp && bp.systolic != null && bp.diastolic != null ? (
+                <bdi dir="ltr">{`${num(bp.systolic)}/${num(bp.diastolic)}`}</bdi>
               ) : (
                 t('vitals.none')
               )}
             </dd>
+            {bp?.min && bp.max ? (
+              <dd className="an-caption">{t('vitals.range', { min: pair(bp.min), max: pair(bp.max) })}</dd>
+            ) : null}
           </div>
           <div>
             <dt>{t('vitals.sugar')}</dt>
-            <dd className="an-num is-md">{v.bloodSugar ? num(v.bloodSugar.avg) : t('vitals.none')}</dd>
+            <dd className="an-num is-md">{sugar?.avg != null ? num(sugar.avg) : t('vitals.none')}</dd>
+            {sugar?.min != null && sugar.max != null ? (
+              <dd className="an-caption">{t('vitals.range', { min: num(sugar.min), max: num(sugar.max) })}</dd>
+            ) : null}
           </div>
         </dl>
       ) : (
-        <NotReady>{t('vitals.notReady')}</NotReady>
+        <NotReady>
+          {v ? t('vitals.notReadyMin', { readings: num(v.minReadings), days: num(v.minDays) }) : t('vitals.notReady')}
+        </NotReady>
       )}
     </HubCard>
   );

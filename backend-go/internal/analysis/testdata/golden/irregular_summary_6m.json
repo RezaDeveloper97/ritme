@@ -15,19 +15,13 @@
           "limit": 7
         },
         "text": "طول چرخه‌هایت ۱۷ روز نوسان داشته که از بازهٔ منظم (≤۷ روز) بیشتر است."
-      },
-      {
-        "key": "findings.pattern.early",
-        "params": {
-          "symptom": "pain.location.back",
-          "cycles": 5,
-          "total": 5,
-          "days": 1
-        },
-        "text": "کمردرد در ۵ از ۵ چرخه در ۱ روز اول چرخه تکرار شده است."
       }
     ],
-    "text": "طول چرخه‌هایت ۱۷ روز نوسان داشته که از بازهٔ منظم (≤۷ روز) بیشتر است. کمردرد در ۵ از ۵ چرخه در ۱ روز اول چرخه تکرار شده است."
+    "text": "طول چرخه‌هایت ۱۷ روز نوسان داشته که از بازهٔ منظم (≤۷ روز) بیشتر است.",
+    "strength": 0.8,
+    "score": 0.566,
+    "evidence_date": "2026-09-08",
+    "days_needed": null
   },
   "sections": {
     "cycle": {
@@ -153,6 +147,10 @@
       "ready": false,
       "data": {
         "ready": false,
+        "logs_in_window": 0,
+        "min_logs": 3,
+        "window_days": 14,
+        "days_needed": 3,
         "unit": "kg",
         "current": null,
         "as_of": null,
@@ -169,6 +167,8 @@
       "locked": false,
       "ready": false,
       "data": {
+        "min_readings": 2,
+        "min_days": 2,
         "blood_pressure": null,
         "blood_sugar": null
       }

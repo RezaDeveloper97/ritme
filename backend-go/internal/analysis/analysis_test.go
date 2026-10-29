@@ -138,7 +138,7 @@ func TestCorrelation_MinData(t *testing.T) {
 	c := binary(CorrSleepMood, Group{Key: "ok", Days: 30, Hits: 2}, Group{Key: "short", Days: 4, Hits: 4})
 	assert.Equal(t, CorrNotEnoughData, c.Status, "a group under 5 days")
 	c = binary(CorrSleepMood, Group{Key: "ok", Days: 10, Hits: 1}, Group{Key: "short", Days: 9, Hits: 1})
-	assert.Equal(t, CorrNotEnoughData, c.Status, "under 20 paired days")
+	assert.Equal(t, CorrNotEnoughData, c.Status, "under 30 paired days")
 	c = binary(CorrSleepMood, Group{Key: "ok", Days: 20, Hits: 4}, Group{Key: "short", Days: 20, Hits: 4})
 	assert.Equal(t, CorrNoAssociation, c.Status)
 	assert.Empty(t, c.Strength)

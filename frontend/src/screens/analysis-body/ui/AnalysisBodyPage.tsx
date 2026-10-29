@@ -49,7 +49,7 @@ export function AnalysisBodyPage() {
   let content = null;
   if (r) {
     const w = r.weight;
-    const head = headlineWeight(w.points, w.current);
+    const head = w.ready ? headlineWeight(w.points, w.current) : null; // §4.1: the 7-day average from 3 weigh-ins in 14 days
     const line = w.points.map((p) => p.avg7 ?? p.value);
     const firstLine = line.find((v) => v !== null) ?? null;
     const lastLine = [...line].reverse().find((v) => v !== null) ?? null;
@@ -97,7 +97,9 @@ export function AnalysisBodyPage() {
               tone="data"
             />
           ) : (
-            <p className="anr-note">{t('body.weight.notReady')}</p>
+            <p className="anr-note">
+              {w.ready ? t('body.weight.notReady') : t('body.weight.notReadyLogs', { n: num(w.minLogs), days: num(w.windowDays) })}
+            </p>
           )}
           <dl className="anr-minis" aria-label={t('body.weight.statsLabel')}>
             <div className="anr-mini">

@@ -2441,3 +2441,12 @@ Nothing needed fixing.
 - Daily message: postpartum red flags use the threshold version in force on the log date (`Recovery.AlertsOn(date)`).
 - Tests: `TestPostpartumExport_OwnerRowsOnlyNoEPDS` (other user's rows never appear, no EPDS keys), `postpartum_source_test.go` (fever threshold by date).
 - Verify: accountexport, messages, postpartum, http export, migrations (Postpartum) green; contract profile,postpartum 136/0 (107 allow-listed). The full `go test ./...` was red only on T-M10-26 in-flight analysis code at the time.
+
+## T-M10-26 — Analysis methods per SPEC §4.1 (D-175)
+- `internal/analysis/params.go`: one documented `P` table of every §4.1 minimum/method; boundary tests per minimum. Below a minimum: `ready:false` + `days_needed`/`readings_needed`/`reports_needed`, and a "not enough data" line in the UI.
+- Correlations: rate ratio, ≥30 paired days; strong = 30 days and ≥2×, medium 1.5×, weak 1.2×; not-causal note on every correlation and the top finding. Mood by phase (≥10 mood days per phase, ≥2 phases). Top finding = strength × recency (half-life 30 days). Weight ready with 3 logs in 14 days; vitals with 2 readings on 2 days; monthly with 10 logged days; BBT with 10 temperatures; regularity on 3 cycles within 12 months.
+- New `GET /api/v1/analysis/labs?marker=` (Plus): direction-only lab trend with a non-diagnostic note, needs 2 confirmed reports.
+- Contract: new allowlists `analysis.yaml`, `analysis-ttc.yaml` (D-175). Goldens re-recorded (analysis v1 + v6 ttc). `internal/i18n/testdata` bundle goldens re-recorded after the analysis copy change; `make contract ROUTES=public` 26/0.
+- Frontend: entities/analysis (lab trend API/model), hub/correlations/body/monthly/labs/ttc screens; copy fa+en synced.
+- Follow-ups: T-M10-26b (pregnancy weight minimum, menopause rate ratio, top finding on TTC/pregnancy hubs); EPDS minimums noted on T-M10-27.
+- Verify: go vet, analysis unit + test-int, contract analysis* 48/0 (155 allow-listed), frontend typecheck/lint/fsd/dark/test (2082)/copy:check green; full `go test ./...` green.

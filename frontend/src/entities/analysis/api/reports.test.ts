@@ -51,17 +51,26 @@ describe.skipIf(!existsSync(GOLDEN_DIR))('detail report parsers', () => {
   });
 
   it('parses the correlations envelope, locked and open', () => {
-    const items = (golden('regular_correlations_6m') as { items: unknown[] }).items;
+    const raw = golden('regular_correlations_6m') as { items: unknown[]; mood_by_phase: unknown };
+    const items = raw.items;
     const open = correlationsReportSchema.parse({
       range,
       not_causal: true,
       plus: true,
       locked: false,
       ready: true,
-      data: { days_logged: 182, items: [...items, { key: 'something_new', status: 'ready' }] },
+      data: { days_logged: 182, items: [...items, { key: 'something_new', status: 'ready' }], mood_by_phase: raw.mood_by_phase },
     });
     expect(open.data?.items.map((i) => i.key)).toEqual(['sleep_mood', 'phase_energy', 'exercise_cramps', 'phase_mood']);
-    expect(open.data?.items[0]).toMatchObject({ strength: 'strong', ratio: 5.3 });
+    // §4.1: 30 paired days minimum; strong = 30 days and a 2× difference.
+    expect(open.data?.items[0]).toMatchObject({
+      strength: 'strong',
+      ratio: 5.3,
+      minDays: 30,
+      daysNeeded: 0,
+      strongRule: { days: 30, ratio: 2 },
+    });
+    expect(open.data?.moodByPhase).toMatchObject({ ready: true, minDays: 10, daysNeeded: 0 });
     const locked = correlationsReportSchema.parse({ range, not_causal: true, plus: true, locked: true, ready: false, data: null });
     expect(locked).toMatchObject({ locked: true, ready: false, data: null });
   });
@@ -69,11 +78,12 @@ describe.skipIf(!existsSync(GOLDEN_DIR))('detail report parsers', () => {
   it('parses the body report', () => {
     const r = bodyReportSchema.parse(golden('regular_body_1m'));
     expect(r.weight.current).toBe(57.8);
+    expect(r.weight).toMatchObject({ ready: true, logsInWindow: 14, minLogs: 3, windowDays: 14, daysNeeded: 0 });
     expect(r.weight.movingAverageDays).toBe(7);
     expect(r.sleep.byWeekday).toHaveLength(7);
     expect(r.activity.weeks[0]).toEqual({ start: '2026-08-25', days: 7, activeDays: 3 });
     const empty = bodyReportSchema.parse(golden('empty_body_1m'));
-    expect(empty.weight.ready).toBe(false);
+    expect(empty.weight).toMatchObject({ ready: false, current: null, logsInWindow: 0, daysNeeded: 3 });
     expect(empty.sleep.avgHours).toBeNull();
   });
 

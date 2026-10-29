@@ -31,6 +31,8 @@
     "ready": false,
     "data": {
       "cycle_start": "2026-09-09",
+      "min_temps": 10,
+      "days_needed": 10,
       "points": [],
       "coverline": null,
       "shift_day": null,

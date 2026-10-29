@@ -9,6 +9,7 @@ import type {
   Correlation,
   CycleStatus,
   HubWeight,
+  MoodByPhase,
   PatternRelation,
   Regularity,
   SymptomCount,
@@ -120,7 +121,12 @@ export interface CorrelationsReport {
   plus: boolean;
   locked: boolean;
   ready: boolean;
-  data: { daysLogged: number; items: Array<Correlation & { key: CorrelationKey }> } | null;
+  data: {
+    daysLogged: number;
+    items: Array<Correlation & { key: CorrelationKey }>;
+    /** §4.1 mood by phase (null from an older backend). */
+    moodByPhase: MoodByPhase | null;
+  } | null;
 }
 
 /** `GET /analysis/body` (An_Body). */

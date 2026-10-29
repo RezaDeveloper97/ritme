@@ -36,6 +36,7 @@ type Handlers struct {
 	languages *i18n.Registry
 	clock     clock.Clock
 	labs      LabsHub
+	labTrends LabTrends
 	vitals    VitalsSource
 	states    state.UserStates // v6 engine (nil = CYCLE_ENGINE v1, engine.go)
 }

@@ -22,6 +22,7 @@ type VitalReading struct {
 	Glucose             float64 // mg/dL (0 = not a glucose reading)
 	Context             string  // glucose context (vitals.Context*)
 	Timed               bool    // a vital_readings row (false = a log-sheet day value)
+	Class               string  // the vitals classifier's class ("" = unclassified)
 }
 
 // SummaryGlucose reports whether the reading counts in the hub's blood-sugar average: a fasting reading, or a log-sheet
@@ -35,7 +36,7 @@ func (r VitalReading) SummaryGlucose() bool {
 func VitalReadingsOf(rs []vitals.Reading) []VitalReading {
 	out := make([]VitalReading, 0, len(rs))
 	for _, r := range rs {
-		v := VitalReading{Date: r.Date, Context: r.Context, Timed: r.Timed()}
+		v := VitalReading{Date: r.Date, Context: r.Context, Timed: r.Timed(), Class: r.Class()}
 		switch r.Type {
 		case vitals.TypeBP:
 			v.Systolic, v.Diastolic = r.Systolic, r.Diastolic

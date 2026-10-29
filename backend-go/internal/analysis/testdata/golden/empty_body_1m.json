@@ -7,6 +7,10 @@
   },
   "weight": {
     "ready": false,
+    "logs_in_window": 0,
+    "min_logs": 3,
+    "window_days": 14,
+    "days_needed": 3,
     "unit": "kg",
     "current": null,
     "as_of": null,

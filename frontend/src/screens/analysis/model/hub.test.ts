@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import type { AnalysisSection, AnalysisSummary } from '@/entities/analysis';
 
-import { asksForCycles, availableCategories, groupCards, hubVariant, signedDecimal, visibleCards } from './hub';
+import { asksForCycles, availableCategories, groupCards, hasNoData, hubVariant, signedDecimal, visibleCards } from './hub';
 
 const open = <T,>(data: T, ready = true): AnalysisSection<T> => ({ plus: false, locked: false, ready, data });
 const locked: AnalysisSection<never> = { plus: true, locked: true, ready: false, data: null };
 
 const summary = (overrides: Partial<AnalysisSummary['sections']> = {}): AnalysisSummary => ({
   range: { key: '6m', from: '2026-04-01', to: '2026-09-30', days: 182 },
-  topFinding: { kind: 'not_enough_data', parts: [], text: '' },
+  topFinding: { kind: 'not_enough_data', parts: [], text: '', strength: null, score: null, evidenceDate: null, daysNeeded: 56 },
   sections: {
     cycle: open(null as never, false),
     recentCycles: open([], false),
@@ -53,6 +53,14 @@ describe('analysis hub model', () => {
     expect(groupCards(cards, 'all').map((g) => g.group)).toEqual(['cycle', 'symptomsMood', 'bodyLabs']);
     expect(groupCards(cards, 'moodSleep')).toEqual([{ group: 'symptomsMood', cards: ['moodByPhase', 'sleepMood'] }]);
     expect(groupCards(cards, 'labs')).toEqual([{ group: 'bodyLabs', cards: ['labs'] }]);
+  });
+
+  it('shows the empty hub only when the days nudge has nothing behind it (§4.1)', () => {
+    expect(hasNoData(summary())).toBe(true);
+    const finding = summary();
+    finding.topFinding = { ...finding.topFinding, kind: 'correlation', daysNeeded: null, strength: 0.7, score: 0.7 };
+    expect(hasNoData(finding)).toBe(false);
+    expect(hasNoData(summary({ recentCycles: open([{ start: '2026-09-01' } as never], false) }))).toBe(false);
   });
 
   it('formats signed deltas', () => {

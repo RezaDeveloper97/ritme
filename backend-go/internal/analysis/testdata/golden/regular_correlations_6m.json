@@ -8,7 +8,13 @@
       "value": 0.57,
       "strength": "strong",
       "n": 112,
-      "min_days": 20,
+      "min_days": 30,
+      "days_needed": 0,
+      "method": "rate_ratio",
+      "strong_rule": {
+        "days": 30,
+        "ratio": 2
+      },
       "groups": [
         {
           "key": "sleep_6_plus",
@@ -33,7 +39,12 @@
         },
         "text": "در شب‌های زیر ۶ ساعت خواب، فردایش «کلافه» یا «زودرنج» ۵٫۳ برابر بیشتر ثبت شده (۲۵ از ۳۶ روز)."
       },
-      "not_causal": true
+      "not_causal": true,
+      "not_causal_note": {
+        "key": "correlations.not_causal",
+        "params": {},
+        "text": "هم‌زمانی در داده‌های تو، نه علت"
+      }
     },
     {
       "key": "phase_energy",
@@ -42,7 +53,13 @@
       "value": 0.77,
       "strength": "strong",
       "n": 182,
-      "min_days": 20,
+      "min_days": 30,
+      "days_needed": 0,
+      "method": "rate_ratio",
+      "strong_rule": {
+        "days": 30,
+        "ratio": 2
+      },
       "groups": [
         {
           "key": "period",
@@ -77,7 +94,12 @@
         },
         "text": "انرژی «زیاد» بیشتر در فاز فولیکولار ثبت شده."
       },
-      "not_causal": true
+      "not_causal": true,
+      "not_causal_note": {
+        "key": "correlations.not_causal",
+        "params": {},
+        "text": "هم‌زمانی در داده‌های تو، نه علت"
+      }
     },
     {
       "key": "exercise_cramps",
@@ -86,7 +108,13 @@
       "value": -0.72,
       "strength": "strong",
       "n": 31,
-      "min_days": 20,
+      "min_days": 30,
+      "days_needed": 0,
+      "method": "rate_ratio",
+      "strong_rule": {
+        "days": 30,
+        "ratio": 2
+      },
       "groups": [
         {
           "key": "no_exercise",
@@ -107,16 +135,27 @@
         "params": {},
         "text": "در روزهای پریود با ورزش، گرفتگی شدید کمتر ثبت شده."
       },
-      "not_causal": true
+      "not_causal": true,
+      "not_causal_note": {
+        "key": "correlations.not_causal",
+        "params": {},
+        "text": "هم‌زمانی در داده‌های تو، نه علت"
+      }
     },
     {
       "key": "phase_mood",
       "status": "ready",
       "statistic": "cramers_v",
       "value": 0.24,
-      "strength": "weak",
+      "strength": "medium",
       "n": 112,
-      "min_days": 20,
+      "min_days": 30,
+      "days_needed": 0,
+      "method": "rate_ratio",
+      "strong_rule": {
+        "days": 30,
+        "ratio": 2
+      },
       "groups": [
         {
           "key": "period",
@@ -152,7 +191,120 @@
         },
         "text": "حال خوب بیشتر در فاز فولیکولار ثبت شده (۸۰٪ روزها)."
       },
-      "not_causal": true
+      "not_causal": true,
+      "not_causal_note": {
+        "key": "correlations.not_causal",
+        "params": {},
+        "text": "هم‌زمانی در داده‌های تو، نه علت"
+      }
     }
-  ]
+  ],
+  "mood_by_phase": {
+    "ready": true,
+    "min_days": 10,
+    "days_needed": 0,
+    "phases": [
+      {
+        "phase": "period",
+        "ready": true,
+        "good_pct": 50,
+        "days": 12,
+        "moods": [
+          {
+            "mood": "calm",
+            "label": "آرام",
+            "days": 6,
+            "pct": 50
+          },
+          {
+            "mood": "irritable",
+            "label": "زودرنج",
+            "days": 6,
+            "pct": 50
+          }
+        ]
+      },
+      {
+        "phase": "follicular",
+        "ready": true,
+        "good_pct": 80,
+        "days": 35,
+        "moods": [
+          {
+            "mood": "happy",
+            "label": "شاد",
+            "days": 27,
+            "pct": 77
+          },
+          {
+            "mood": "irritable",
+            "label": "زودرنج",
+            "days": 7,
+            "pct": 20
+          },
+          {
+            "mood": "calm",
+            "label": "آرام",
+            "days": 1,
+            "pct": 3
+          }
+        ]
+      },
+      {
+        "phase": "fertile",
+        "ready": true,
+        "good_pct": 76,
+        "days": 29,
+        "moods": [
+          {
+            "mood": "happy",
+            "label": "شاد",
+            "days": 16,
+            "pct": 55
+          },
+          {
+            "mood": "irritable",
+            "label": "زودرنج",
+            "days": 7,
+            "pct": 24
+          },
+          {
+            "mood": "calm",
+            "label": "آرام",
+            "days": 6,
+            "pct": 21
+          }
+        ]
+      },
+      {
+        "phase": "luteal",
+        "ready": true,
+        "good_pct": 58,
+        "days": 36,
+        "moods": [
+          {
+            "mood": "calm",
+            "label": "آرام",
+            "days": 21,
+            "pct": 58
+          },
+          {
+            "mood": "irritable",
+            "label": "زودرنج",
+            "days": 15,
+            "pct": 42
+          }
+        ]
+      }
+    ],
+    "finding": {
+      "key": "correlations.phase_mood.best",
+      "params": {
+        "phase": "follicular",
+        "pct": 80
+      },
+      "text": "حال خوب بیشتر در فاز فولیکولار ثبت شده (۸۰٪ روزها)."
+    },
+    "not_causal": true
+  }
 }

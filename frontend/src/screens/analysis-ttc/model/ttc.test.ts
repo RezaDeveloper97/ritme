@@ -15,6 +15,7 @@ describe('TTC schemas against the Go engine goldens', () => {
     expect(hub.trying.cycles).toBe(4);
     expect(hub.trying.referral).toEqual({ ageBand: 'under_35', thresholdMonths: 12, due: false });
     expect(hub.bbt.data?.points[0]).toEqual({ day: 1, value: 36.35 });
+    expect(hub.bbt.data).toMatchObject({ minTemps: 10, tempsNeeded: 0 });
     expect(hub.lh.data?.positiveDay).toBe(13);
     expect(hub.timing.data?.inWindow).toBe(2);
     expect(hub.luteal.data).toEqual({ days: 14, status: 'normal', cycles: 2 });
@@ -33,6 +34,9 @@ describe('TTC schemas against the Go engine goldens', () => {
     const nologs = ttcHubSchema.parse(golden('ttc_nologs_hub'));
     expect(nologs.trying.since).toBeNull();
     expect(nologs.trying.referral.ageBand).toBe('unknown');
+    // §4.1: a BBT analysis needs 10 temperatures in the cycle.
+    expect(nologs.bbt.ready).toBe(false);
+    expect(nologs.bbt.data).toMatchObject({ minTemps: 10, tempsNeeded: 10 });
   });
 
   it('parses the fertility detail', () => {

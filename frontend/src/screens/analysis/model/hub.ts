@@ -91,3 +91,24 @@ export function signedDecimal(value: number): { sign: '−' | '+' | ''; abs: str
   if (rounded === 0) return { sign: '', abs: '0' };
   return { sign: rounded < 0 ? '−' : '+', abs };
 }
+
+/**
+ * A brand-new user's hub (the empty state): the top finding is a nudge and no
+ * card has anything to show yet. §4.1 retired the `no_data` kind (no data is
+ * the «N more days» nudge), so this reads the cards too.
+ */
+export function hasNoData(summary: AnalysisSummary): boolean {
+  const { kind } = summary.topFinding;
+  if (kind === 'no_data') return true;
+  if (kind !== 'not_enough_data' && kind !== 'keep_logging') return false;
+  const s = summary.sections;
+  return (
+    !Object.values(s).some((sec) => sec.ready) &&
+    (s.cycle.data?.basedOnCycles ?? 0) === 0 &&
+    (s.recentCycles.data?.length ?? 0) === 0 &&
+    (s.symptoms.data?.top.length ?? 0) === 0 &&
+    (s.weight.data?.points.length ?? 0) === 0 &&
+    !s.vitals.data?.bloodPressure &&
+    !s.vitals.data?.bloodSugar
+  );
+}

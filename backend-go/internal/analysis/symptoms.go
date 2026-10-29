@@ -67,7 +67,7 @@ func (r SymptomsReport) TrendReady() bool {
 }
 
 // PatternReady: at least MinPatternCycles completed cycles.
-func (r SymptomsReport) PatternReady() bool { return r.PatternCycles >= MinPatternCycles }
+func (r SymptomsReport) PatternReady() bool { return r.PatternCycles >= P.SymptomPatternMinCycles }
 
 // cycleOf is the start of the cycle containing d (zero when before the first start).
 func cycleOf(cycles []Cycle, d civildate.Date) civildate.Date {

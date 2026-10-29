@@ -21,8 +21,10 @@ type Item = NonNullable<CorrelationsReport['data']>['items'][number];
  * `/analysis/correlations` (An_Correlations, B-N3-09) — Plus
  * (`plus.deep_analysis`). A free user gets `locked: true` and no data from the
  * API, so the screen shows a blurred teaser behind the paywall button. Every
- * card states the co-occurrence in the user's own data and the page closes
- * with the «not causal» note.
+ * card states the co-occurrence in the user's own data with the §4.1 line
+ * «هم‌زمانی در داده‌های تو، نه علت»; `strength` is the group-rate ratio rule
+ * (strong = 30 days and 2×, explained under the cards) and a card short of
+ * 30 paired days says how many are left (`daysNeeded`).
  */
 export function AnalysisCorrelationsPage() {
   const t = useTranslations('analysis.reports');
@@ -61,9 +63,14 @@ export function AnalysisCorrelationsPage() {
         }
       >
         {c.status === 'ready' && c.finding ? <p className="anr-finding">{c.finding.text}</p> : null}
+        {c.status === 'ready' ? <p className="anr-note">{tA('correlations.not_causal')}</p> : null}
         {c.status === 'no_association' ? <p className="anr-note">{t('correlations.noAssociation')}</p> : null}
         {c.status === 'not_enough_data' ? (
-          <p className="anr-note">{t('correlations.notEnough', { n: num(c.minDays), have: num(c.n) })}</p>
+          <p className="anr-note">
+            {c.daysNeeded > 0
+              ? t('correlations.notEnoughDays', { n: num(c.minDays), left: num(c.daysNeeded) })
+              : t('correlations.notEnough', { n: num(c.minDays), have: num(c.n) })}
+          </p>
         ) : null}
         {showBars ? (
           <ColumnChart
@@ -128,6 +135,7 @@ export function AnalysisCorrelationsPage() {
   }
 
   const days = r?.data?.daysLogged;
+  const rule = r?.data?.items.find((c) => c.strongRule)?.strongRule ?? null;
   return (
     <ReportFrame
       title={t('correlations.title')}
@@ -153,6 +161,9 @@ export function AnalysisCorrelationsPage() {
       after={<BottomNav />}
     >
       {content}
+      {rule ? (
+        <p className="anr-note">{t('correlations.strongRule', { days: num(rule.days), ratio: num(rule.ratio) })}</p>
+      ) : null}
       {r && (r.notCausal || r.locked) ? <InfoNote>{tA('correlations.not_causal')}</InfoNote> : null}
     </ReportFrame>
   );

@@ -1,8 +1,12 @@
 package analysis
 
 import (
+	"slices"
+	"sort"
+
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
+	"github.com/ritme/backend-go/internal/vitals"
 )
 
 const (
@@ -16,60 +20,149 @@ const (
 	hubWeightDays = 30
 )
 
-// Vitals are the range's blood-pressure and fasting-sugar averages.
+// VitalStats is one vitals type of the hub card (§4.1 «فشار و قند», D-175): mean, min–max and the class distribution
+// (the vitals classifier, pregnancy- and diabetes-aware through the merged readings), ready with P.VitalsMinLogs
+// readings on P.VitalsMinDays different days.
+type VitalStats struct {
+	Readings, Days int
+	Mean, Min, Max []float64 // one value per component (BP: systolic, diastolic; glucose: mg/dL)
+	Classes        map[string]int
+	values         [][]float64
+	days           map[civildate.Date]bool
+}
+
+func (v *VitalStats) add(d civildate.Date, class string, values ...float64) {
+	if v.days == nil {
+		v.days, v.Classes = map[civildate.Date]bool{}, map[string]int{}
+	}
+	v.Readings++
+	v.days[d] = true
+	v.Days = len(v.days)
+	if class == "" {
+		class = "unclassified"
+	}
+	v.Classes[class]++
+	v.values = append(v.values, values)
+}
+
+// Ready: the §4.1 minimum.
+func (v VitalStats) Ready() bool { return v.Readings >= P.VitalsMinLogs && v.Days >= P.VitalsMinDays }
+
+// ReadingsNeeded: readings (on new days) still missing.
+func (v VitalStats) ReadingsNeeded() int {
+	return max(0, P.VitalsMinLogs-v.Readings, P.VitalsMinDays-v.Days)
+}
+
+func (v *VitalStats) finish() {
+	if len(v.values) == 0 {
+		return
+	}
+	k := len(v.values[0])
+	v.Mean, v.Min, v.Max = make([]float64, k), make([]float64, k), make([]float64, k)
+	for c := range k {
+		col := make([]float64, len(v.values))
+		for i, r := range v.values {
+			col[i] = r[c]
+		}
+		m, _ := mean(col)
+		v.Mean[c], v.Min[c], v.Max[c] = round(m, 0), slices.Min(col), slices.Max(col)
+	}
+}
+
+// Vitals are the range's blood-pressure and fasting-sugar figures.
 type Vitals struct {
 	Systolic, Diastolic, Glucose *float64
 	BPReadings, GlucoseReadings  int
+	BP, Sugar                    VitalStats
 }
 
-// vitals averages the readings of [from, to]: the merged vitals readings when the handler loaded them (bloom B-N6-03 —
-// vital_readings + the log sheet, internal/vitals merge rule D-63), else the log sheet's day values.
+// vitals summarises the readings of [from, to]: the merged vitals readings when the handler loaded them (bloom
+// B-N6-03 — vital_readings + the log sheet, internal/vitals merge rule D-63), else the log sheet's day values.
 func (in *Input) vitals(from, to civildate.Date) Vitals {
-	var sys, dia, glu []float64
+	var out Vitals
 	if in.VitalsLoaded {
 		for _, r := range in.VitalReadings {
 			if r.Date.Before(from) || r.Date.After(to) {
 				continue
 			}
 			if r.Systolic > 0 && r.Diastolic > 0 {
-				sys, dia = append(sys, r.Systolic), append(dia, r.Diastolic)
+				out.BP.add(r.Date, r.Class, r.Systolic, r.Diastolic)
 			}
 			if r.Glucose > 0 && r.SummaryGlucose() {
-				glu = append(glu, r.Glucose)
+				out.Sugar.add(r.Date, r.Class, r.Glucose)
 			}
 		}
-		return Vitals{
-			Systolic: roundPtr(meanPtr(sys), 0), Diastolic: roundPtr(meanPtr(dia), 0), Glucose: roundPtr(meanPtr(glu), 0),
-			BPReadings: len(sys), GlucoseReadings: len(glu),
+	} else {
+		for _, d := range sortedDates(in.Days) {
+			day := in.Days[d]
+			if d.Before(from) || d.After(to) {
+				continue
+			}
+			if day.Systolic != nil && day.Diastolic != nil {
+				r := vitals.Reading{Type: vitals.TypeBP, Date: d, Systolic: *day.Systolic, Diastolic: *day.Diastolic}
+				out.BP.add(d, r.Class(), *day.Systolic, *day.Diastolic)
+			}
+			if day.Glucose != nil {
+				r := vitals.Reading{Type: vitals.TypeGlucose, Date: d, MgDl: *day.Glucose}
+				out.Sugar.add(d, r.Class(), *day.Glucose)
+			}
 		}
 	}
-	for d, day := range in.Days {
-		if d.Before(from) || d.After(to) {
-			continue
-		}
-		if day.Systolic != nil && day.Diastolic != nil {
-			sys, dia = append(sys, *day.Systolic), append(dia, *day.Diastolic)
-		}
-		if day.Glucose != nil {
-			glu = append(glu, *day.Glucose)
-		}
+	out.BP.finish()
+	out.Sugar.finish()
+	out.BPReadings, out.GlucoseReadings = out.BP.Readings, out.Sugar.Readings
+	if out.BP.Readings > 0 {
+		out.Systolic, out.Diastolic = &out.BP.Mean[0], &out.BP.Mean[1]
 	}
-	return Vitals{
-		Systolic: roundPtr(meanPtr(sys), 0), Diastolic: roundPtr(meanPtr(dia), 0), Glucose: roundPtr(meanPtr(glu), 0),
-		BPReadings: len(sys), GlucoseReadings: len(glu),
+	if out.Sugar.Readings > 0 {
+		out.Glucose = &out.Sugar.Mean[0]
 	}
+	return out
 }
 
-// JSON is the vitals card body.
+// Ready: either type meets the §4.1 minimum.
+func (v Vitals) Ready() bool { return v.BP.Ready() || v.Sugar.Ready() }
+
+func classesJSON(m map[string]int) *jsonx.OrderedMap {
+	out := jsonx.NewObject()
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		out.Set(k, m[k])
+	}
+	return out
+}
+
+// JSON is the vitals card body: below the minimum a type keeps its counts and readings_needed, without figures.
 func (v Vitals) JSON() *jsonx.OrderedMap {
 	var bp, glucose any
-	if v.BPReadings > 0 {
-		bp = jsonx.Obj("systolic", int(*v.Systolic), "diastolic", int(*v.Diastolic), "readings", v.BPReadings, "unit", "mmhg")
+	if s := v.BP; s.Readings > 0 {
+		o := jsonx.Obj("ready", s.Ready(), "readings", s.Readings, "days", s.Days, "readings_needed", s.ReadingsNeeded(),
+			"systolic", nil, "diastolic", nil, "min", nil, "max", nil, "classes", nil, "unit", "mmhg")
+		if s.Ready() {
+			o.Set("systolic", int(s.Mean[0]))
+			o.Set("diastolic", int(s.Mean[1]))
+			o.Set("min", jsonx.Obj("systolic", int(s.Min[0]), "diastolic", int(s.Min[1])))
+			o.Set("max", jsonx.Obj("systolic", int(s.Max[0]), "diastolic", int(s.Max[1])))
+			o.Set("classes", classesJSON(s.Classes))
+		}
+		bp = o
 	}
-	if v.GlucoseReadings > 0 {
-		glucose = jsonx.Obj("avg", int(*v.Glucose), "readings", v.GlucoseReadings, "unit", "mg_dl")
+	if s := v.Sugar; s.Readings > 0 {
+		o := jsonx.Obj("ready", s.Ready(), "readings", s.Readings, "days", s.Days, "readings_needed", s.ReadingsNeeded(),
+			"avg", nil, "min", nil, "max", nil, "classes", nil, "unit", "mg_dl")
+		if s.Ready() {
+			o.Set("avg", int(s.Mean[0]))
+			o.Set("min", int(s.Min[0]))
+			o.Set("max", int(s.Max[0]))
+			o.Set("classes", classesJSON(s.Classes))
+		}
+		glucose = o
 	}
-	return jsonx.Obj("blood_pressure", bp, "blood_sugar", glucose)
+	return jsonx.Obj("min_readings", P.VitalsMinLogs, "min_days", P.VitalsMinDays, "blood_pressure", bp, "blood_sugar", glucose)
 }
 
 // Summary is GET /analysis/summary: the hub.
@@ -123,10 +216,7 @@ func BuildSummary(in *Input) Summary {
 		r := BuildCorrelations(in)
 		s.Correlations = &r
 	}
-	s.Finding = BuildTopFinding(s.Cycle, s.Symptoms)
-	if in.NoCycleNudge {
-		s.Finding = s.Finding.withoutCycleNudge()
-	}
+	s.Finding = BuildTopFinding(in, s.Cycle, s.Symptoms, s.Correlations)
 	return s
 }
 
@@ -180,10 +270,12 @@ func (s Summary) JSON(c *Copy) *jsonx.OrderedMap {
 			"cycle", s.cycleCard().JSON(),
 			"recent_cycles", freeSection(len(s.recent) > 0, s.recent).JSON(),
 			"symptoms", s.symptomsCard(c).JSON(),
-			"mood_by_phase", s.corrCard(CorrPhaseMood, func(it Correlation) any { return it.MoodByPhaseJSON(c) }).JSON(),
+			"mood_by_phase", plusSection(s.entitled, func() (bool, any) {
+				return s.Correlations.MoodByPhase.Ready(), s.Correlations.MoodByPhase.JSON(c)
+			}).JSON(),
 			"sleep_mood", s.corrCard(CorrSleepMood, func(it Correlation) any { return it.JSON(c) }).JSON(),
 			"weight", freeSection(weight.WeightReady(), weight.WeightJSON(hubWeightDays)).JSON(),
-			"vitals", freeSection(s.Vitals.BPReadings+s.Vitals.GlucoseReadings > 0, s.Vitals.JSON()).JSON(),
+			"vitals", freeSection(s.Vitals.Ready(), s.Vitals.JSON()).JSON(),
 			// Lab trends (B-N6-06): filled by Handlers.Summary through LabsHub; without it an empty, not-ready section.
 			"labs", plusSection(s.entitled, func() (bool, any) { return false, nil }).JSON(),
 		),

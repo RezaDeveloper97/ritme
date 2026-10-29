@@ -6,27 +6,28 @@
     "days": 182
   },
   "top_finding": {
-    "kind": "cycle_regular",
+    "kind": "correlation",
     "parts": [
       {
-        "key": "findings.cycle.regular",
+        "key": "correlations.sleep_mood.more",
         "params": {
-          "days": 2
+          "ratio": 5.3,
+          "hits": 25,
+          "days": 36
         },
-        "text": "Your cycles are regular (variation 2 days)."
+        "text": "After nights under 6 hours of sleep, “frustrated” or “irritable” was logged 5.3× as often (25 of 36 days)."
       },
       {
-        "key": "findings.pattern.before_period",
-        "params": {
-          "symptom": "pain.location.head",
-          "cycles": 4,
-          "total": 5,
-          "days": 3
-        },
-        "text": "Headache came back in 4 of 5 cycles, 3 days before your period."
+        "key": "correlations.not_causal",
+        "params": {},
+        "text": "Co-occurrence in your data, not a cause"
       }
     ],
-    "text": "Your cycles are regular (variation 2 days). Headache came back in 4 of 5 cycles, 3 days before your period."
+    "text": "After nights under 6 hours of sleep, “frustrated” or “irritable” was logged 5.3× as often (25 of 36 days). Co-occurrence in your data, not a cause",
+    "strength": 0.7,
+    "score": 0.7,
+    "evidence_date": "2026-09-23",
+    "days_needed": null
   },
   "sections": {
     "cycle": {
@@ -151,26 +152,101 @@
       "locked": false,
       "ready": true,
       "data": {
+        "ready": true,
+        "min_days": 10,
+        "days_needed": 0,
         "phases": [
           {
             "phase": "period",
+            "ready": true,
             "good_pct": 50,
-            "days": 12
+            "days": 12,
+            "moods": [
+              {
+                "mood": "calm",
+                "label": "Calm",
+                "days": 6,
+                "pct": 50
+              },
+              {
+                "mood": "irritable",
+                "label": "Irritable",
+                "days": 6,
+                "pct": 50
+              }
+            ]
           },
           {
             "phase": "follicular",
+            "ready": true,
             "good_pct": 80,
-            "days": 35
+            "days": 35,
+            "moods": [
+              {
+                "mood": "happy",
+                "label": "Happy",
+                "days": 27,
+                "pct": 77
+              },
+              {
+                "mood": "irritable",
+                "label": "Irritable",
+                "days": 7,
+                "pct": 20
+              },
+              {
+                "mood": "calm",
+                "label": "Calm",
+                "days": 1,
+                "pct": 3
+              }
+            ]
           },
           {
             "phase": "fertile",
+            "ready": true,
             "good_pct": 76,
-            "days": 29
+            "days": 29,
+            "moods": [
+              {
+                "mood": "happy",
+                "label": "Happy",
+                "days": 16,
+                "pct": 55
+              },
+              {
+                "mood": "irritable",
+                "label": "Irritable",
+                "days": 7,
+                "pct": 24
+              },
+              {
+                "mood": "calm",
+                "label": "Calm",
+                "days": 6,
+                "pct": 21
+              }
+            ]
           },
           {
             "phase": "luteal",
+            "ready": true,
             "good_pct": 58,
-            "days": 36
+            "days": 36,
+            "moods": [
+              {
+                "mood": "calm",
+                "label": "Calm",
+                "days": 21,
+                "pct": 58
+              },
+              {
+                "mood": "irritable",
+                "label": "Irritable",
+                "days": 15,
+                "pct": 42
+              }
+            ]
           }
         ],
         "finding": {
@@ -195,7 +271,13 @@
         "value": 0.57,
         "strength": "strong",
         "n": 112,
-        "min_days": 20,
+        "min_days": 30,
+        "days_needed": 0,
+        "method": "rate_ratio",
+        "strong_rule": {
+          "days": 30,
+          "ratio": 2
+        },
         "groups": [
           {
             "key": "sleep_6_plus",
@@ -220,7 +302,12 @@
           },
           "text": "After nights under 6 hours of sleep, “frustrated” or “irritable” was logged 5.3× as often (25 of 36 days)."
         },
-        "not_causal": true
+        "not_causal": true,
+        "not_causal_note": {
+          "key": "correlations.not_causal",
+          "params": {},
+          "text": "Co-occurrence in your data, not a cause"
+        }
       }
     },
     "weight": {
@@ -229,6 +316,10 @@
       "ready": true,
       "data": {
         "ready": true,
+        "logs_in_window": 14,
+        "min_logs": 3,
+        "window_days": 14,
+        "days_needed": 0,
         "unit": "kg",
         "current": 57.8,
         "as_of": "2026-09-23",
@@ -396,15 +487,40 @@
       "locked": false,
       "ready": true,
       "data": {
+        "min_readings": 2,
+        "min_days": 2,
         "blood_pressure": {
+          "ready": true,
+          "readings": 26,
+          "days": 26,
+          "readings_needed": 0,
           "systolic": 120,
           "diastolic": 77,
-          "readings": 26,
+          "min": {
+            "systolic": 118,
+            "diastolic": 76
+          },
+          "max": {
+            "systolic": 122,
+            "diastolic": 78
+          },
+          "classes": {
+            "elevated": 16,
+            "normal": 10
+          },
           "unit": "mmhg"
         },
         "blood_sugar": {
-          "avg": 92,
+          "ready": true,
           "readings": 19,
+          "days": 19,
+          "readings_needed": 0,
+          "avg": 92,
+          "min": 92,
+          "max": 92,
+          "classes": {
+            "in_range": 19
+          },
           "unit": "mg_dl"
         }
       }
