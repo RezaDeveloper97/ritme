@@ -3,29 +3,24 @@
 import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { useChild, useChildren, type ChildHome } from '@/entities/child';
-import { useLogDays, type LogDay } from '@/entities/health-log';
-import { usePlusLocked } from '@/entities/plus';
-import { usePostpartum } from '@/entities/postpartum';
-import { feedingHref, hoursText, useBabyLogSummary, type BabyLogSummary } from '@/features/baby-log';
+import { feedingHref, hoursText } from '@/features/baby-log';
 import { useRouter, type Locale } from '@/shared/i18n';
-import {
-  formatDayMonth,
-  formatDecimal,
-  formatNumber,
-  fromApiDate,
-  toApiDate,
-  today as todayDate,
-  weekdayKeys,
-  weekdayLabels,
-  WEEKDAY_KEYS,
-} from '@/shared/lib/date';
+import { formatDayMonth, formatDecimal, formatNumber, fromApiDate, weekdayKeys, weekdayLabels, WEEKDAY_KEYS } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { EmptyState, InfoNote, PrimaryButton, SecondaryButton, Skeleton, SkeletonGroup } from '@/shared/ui';
 import { ChartFigure, ColumnChart, TrendLine } from '@/widgets/charts';
 
-import { useEpdsHistory, type EpdsHistory } from '../api/epds';
-import { bleedingTrend, epdsTrend, hubChildId, hubRange, motherSleepAverage, weekAfterBirth, weightTrend } from '../model/hub';
+import {
+  useHubReport,
+  type BleedingCardData,
+  type EpdsCardData,
+  type FeedsCardData,
+  type GrowthCardData,
+  type HubCard,
+  type SleepCardData,
+  type WeightCardData,
+} from '../api/report';
+import { epdsTrend } from '../model/hub';
 import { EpdsChart } from './EpdsChart';
 import { PostCard } from './PostCard';
 
@@ -53,36 +48,37 @@ function useWeekday() {
   };
 }
 
-function CardSkeleton() {
-  return <Skeleton shape="block" />;
+/** «Log N more days» under a card that is not ready yet. */
+function NeedMore({ n, t }: { n: number | null; t: T }) {
+  const { num } = useFmt();
+  if (!n) return null;
+  return <p className="an-card-note">{t('daysNeeded', { count: n, n: num(n) })}</p>;
 }
 
-// ── EPDS ───────────────────────────────────────────────────────
-function EpdsCard({ history, pending, error, t }: { history: EpdsHistory | undefined; pending: boolean; error: boolean; t: T }) {
+// ── EPDS (never Plus) ──────────────────────────────────────────
+function EpdsCard({ data, t }: { data: EpdsCardData | null; t: T }) {
   const { loc, num } = useFmt();
-  const trend = history ? epdsTrend(history) : null;
-  const rule = t('epds.rule', { likely: num(history?.thresholds.fullLikely ?? 13) });
+  const trend = data ? epdsTrend(data.history) : null;
+  const rule = t('epds.rule', { likely: num(data?.history.thresholds.fullLikely ?? 13) });
   let body;
-  if (pending) body = <CardSkeleton />;
-  else if (error) body = <p className="an-card-note">{t('cardError')}</p>;
-  else if (!trend) body = <p className="an-card-note">{t('epds.empty')}</p>;
+  if (!data || !trend) body = <p className="an-card-note">{t('epds.empty')}</p>;
   else {
     const n = trend.points.length;
     const step = Math.max(1, Math.ceil(n / 5));
     const weekText = (w: number | null, date: string) => (w ? t('epds.week', { n: num(w) }) : formatDayMonth(fromApiDate(date), loc));
     const axis = trend.points.map((p, i) => (i % step === 0 || i === n - 1 ? weekText(p.week, p.takenOn) : ''));
     const latest = trend.latest;
-    const lines: string[] = [];
+    let line: string;
     if (trend.status === 'down' && trend.peak) {
-      lines.push(t('epds.down', { week: weekText(trend.peak.week, trend.peak.takenOn), score: num(trend.peak.total), th: num(trend.lower) }));
+      line = t('epds.down', { week: weekText(trend.peak.week, trend.peak.takenOn), score: num(trend.peak.total), th: num(trend.lower) });
     } else if (trend.status === 'urgent' || trend.status === 'high') {
-      lines.push(t('epds.high', { score: num(latest.total), th: num(trend.lower) }));
+      line = t('epds.high', { score: num(latest.total), th: num(trend.lower) });
     } else {
-      lines.push(t('epds.low', { score: num(latest.total), max: num(latest.max) }));
+      line = t('epds.low', { score: num(latest.total), max: num(latest.max) });
     }
     body = (
       <>
-        {n > 1 ? (
+        {data.trendReady ? (
           <EpdsChart
             trend={trend}
             label={t('epds.chart', {
@@ -98,7 +94,7 @@ function EpdsCard({ history, pending, error, t }: { history: EpdsHistory | undef
           />
         ) : null}
         <p className={clsx('apg-line', trend.status === 'urgent' && 'is-alert')} role={trend.status === 'urgent' ? 'alert' : undefined}>
-          {lines.join(' ')} {rule}
+          {line} {rule}
         </p>
       </>
     );
@@ -111,52 +107,56 @@ function EpdsCard({ history, pending, error, t }: { history: EpdsHistory | undef
 }
 
 // ── Bleeding ───────────────────────────────────────────────────
-function BleedingCard({ days, today, birth, pending, error, t }: { days: readonly LogDay[]; today: string; birth: string | null; pending: boolean; error: boolean; t: T }) {
+function BleedingCard({ card, t }: { card: HubCard<BleedingCardData>; t: T }) {
   const { loc, num } = useFmt();
+  const b = card.data;
   let body;
-  if (pending) body = <CardSkeleton />;
-  else if (error) body = <p className="an-card-note">{t('cardError')}</p>;
+  if (!b || !b.logged) body = <p className="an-card-note">{t('bleeding.empty')}</p>;
   else {
-    const b = bleedingTrend(days, today, birth);
-    if (!b.logged) body = <p className="an-card-note">{t('bleeding.empty')}</p>;
-    else {
-      const amount = (code: string | null) => t(`bleeding.amounts.${(code ?? 'unlogged') as 'none'}`);
-      const parts = [
-        b.trend ? t(`bleeding.trend.${b.trend}`, { n: num(b.weeks) }) : t('bleeding.few'),
-        b.largeClots ? t('bleeding.clots') : t('bleeding.noClots'),
-      ];
-      body = (
-        <>
-          <ChartFigure
-            label={t('bleeding.chart', {
-              n: num(b.cells.length),
-              list: b.cells.map((c) => `${formatDayMonth(fromApiDate(c.date), loc)} ${amount(c.code)}`).join(t('listSeparator')),
-            })}
-          >
-            <div className="anp-strip" aria-hidden>
-              {b.cells.map((c) => (
-                <span key={c.date} className={clsx('anp-strip-cell', c.level === null ? 'is-empty' : `is-l${c.level}`)} />
-              ))}
-            </div>
-          </ChartFigure>
-          <p className={clsx('apg-line', (b.largeClots || b.trend === 'increasing') && 'is-alert')}>{parts.join(t('dot'))}</p>
-        </>
-      );
-    }
+    const amount = (code: string | null) => t(`bleeding.amounts.${(code ?? 'unlogged') as 'none'}`);
+    const parts = [
+      b.trend ? t(`bleeding.trend.${b.trend}`, { n: num(b.weeks) }) : t('bleeding.few'),
+      b.largeClots ? t('bleeding.clots') : t('bleeding.noClots'),
+    ];
+    body = (
+      <>
+        <ChartFigure
+          label={t('bleeding.chart', {
+            n: num(b.cells.length),
+            list: b.cells.map((c) => `${formatDayMonth(fromApiDate(c.date), loc)} ${amount(c.code)}`).join(t('listSeparator')),
+          })}
+        >
+          <div className="anp-strip" aria-hidden>
+            {b.cells.map((c) => (
+              <span key={c.date} className={clsx('anp-strip-cell', c.level === null ? 'is-empty' : `is-l${c.level}`)} />
+            ))}
+          </div>
+        </ChartFigure>
+        <p className={clsx('apg-line', (b.largeClots || b.trend === 'increasing') && 'is-alert')}>{parts.join(t('dot'))}</p>
+        {!card.ready ? <NeedMore n={card.daysNeeded} t={t} /> : null}
+      </>
+    );
   }
   return (
-    <PostCard title={t('bleeding.title')} href="/postpartum/recovery">
+    // A red flag today goes to the postpartum home, where the urgent alerts and their call buttons live.
+    <PostCard title={t('bleeding.title')} href={b?.alertToday ? '/postpartum' : '/postpartum/recovery'}>
+      {b?.alertToday ? (
+        <p className="apg-line is-alert" role="alert">
+          {t('bleeding.alertToday')}
+        </p>
+      ) : null}
       {body}
     </PostCard>
   );
 }
 
 // ── Feeds ──────────────────────────────────────────────────────
-function FeedsCard({ childId, summary, pending, error, t }: { childId: number | null; summary: BabyLogSummary | undefined; pending: boolean; error: boolean; t: T }) {
+function FeedsCard({ card, childrenAvailable, t }: { card: HubCard<FeedsCardData>; childrenAvailable: boolean; t: T }) {
   const { loc, num, dec } = useFmt();
   const router = useRouter();
   const weekday = useWeekday();
-  if (!childId && !pending) {
+  const f = card.data;
+  if (f && f.childId === null && f.logged === 0 && childrenAvailable) {
     return (
       <PostCard title={t('feeds.title')}>
         <p className="an-card-note">{t('feeds.noChild')}</p>
@@ -167,89 +167,73 @@ function FeedsCard({ childId, summary, pending, error, t }: { childId: number | 
     );
   }
   let body;
-  if (pending) body = <CardSkeleton />;
-  else if (error || !summary) body = <p className="an-card-note">{t('cardError')}</p>;
-  else if (!summary.days.some((d) => d.feeds.count > 0)) body = <p className="an-card-note">{t('feeds.empty')}</p>;
+  if (!f || !f.logged) body = <p className="an-card-note">{t('feeds.empty')}</p>;
   else {
-    const a = summary.averages;
-    const line = [t('feeds.avg', { n: dec(a.feedsPerDay) })];
-    if (a.leftPercent !== null && a.rightPercent !== null) {
-      line.push(t('feeds.split', { l: num(Math.round(a.leftPercent)), r: num(Math.round(a.rightPercent)) }));
+    const line = f.feedsPerDay !== null ? [t('feeds.avg', { n: dec(f.feedsPerDay) })] : [];
+    if (f.leftPercent !== null && f.rightPercent !== null) {
+      line.push(t('feeds.split', { l: num(Math.round(f.leftPercent)), r: num(Math.round(f.rightPercent)) }));
     }
     body = (
       <>
         <ColumnChart
-          label={t('feeds.chart', { list: summary.days.map((d) => `${weekday(d.date)} ${num(d.feeds.count)}`).join(t('listSeparator')) })}
+          label={t('feeds.chart', { list: f.days.map((d) => `${weekday(d.date)} ${num(d.count ?? 0)}`).join(t('listSeparator')) })}
           table={{
             caption: t('feeds.title'),
             columns: [t('feeds.colDay'), t('feeds.colCount')],
-            rows: summary.days.map((d) => [formatDayMonth(fromApiDate(d.date), loc), num(d.feeds.count)]),
+            rows: f.days.map((d) => [formatDayMonth(fromApiDate(d.date), loc), num(d.count ?? 0)]),
           }}
-          columns={summary.days.map((d, i) => ({
+          columns={f.days.map((d, i) => ({
             key: d.date,
             label: weekday(d.date),
-            value: d.feeds.count,
+            value: d.count ?? 0,
             tone: 'data',
-            solid: i === summary.days.length - 1,
+            solid: i === f.days.length - 1,
           }))}
           floor={0.12}
           height={84}
         />
         <p className="apg-line">{line.join(t('dot'))}</p>
+        {!card.ready ? <NeedMore n={card.daysNeeded} t={t} /> : null}
       </>
     );
   }
   return (
-    <PostCard title={t('feeds.title')} href={childId ? feedingHref(childId) : undefined}>
+    <PostCard title={t('feeds.title')} href={f?.childId ? feedingHref(f.childId) : undefined}>
       {body}
     </PostCard>
   );
 }
 
 // ── Sleep (Plus) ───────────────────────────────────────────────
-function SleepCard({
-  mother,
-  babySeconds,
-  babyName,
-  locked,
-  pending,
-  t,
-}: {
-  mother: number | null;
-  babySeconds: number | null;
-  babyName: string | null;
-  locked: boolean;
-  pending: boolean;
-  t: T;
-}) {
+function SleepCard({ card, t }: { card: HubCard<SleepCardData>; t: T }) {
   const { loc, dec } = useFmt();
-  const tiles = (
-    <dl className="anp-sleep">
-      <div className="anp-sleep-tile is-mother">
-        <dt>{t('sleep.you')}</dt>
-        <dd className="anp-sleep-value">{locked ? ' ' : mother !== null ? dec(mother) : t('none')}</dd>
-        <dd className="anp-sleep-unit">{t('sleep.hours')}</dd>
-      </div>
-      <div className="anp-sleep-tile is-baby">
-        <dt>{babyName ?? t('sleep.baby')}</dt>
-        <dd className="anp-sleep-value">{locked ? ' ' : babySeconds !== null ? hoursText(babySeconds, loc) : t('none')}</dd>
-        <dd className="anp-sleep-unit">{t('sleep.hours')}</dd>
-      </div>
-    </dl>
-  );
+  const s = card.data;
   return (
-    <PostCard title={t('sleep.title')} plus locked={locked}>
-      {pending && !locked ? <CardSkeleton /> : tiles}
-      {!locked && !pending ? <p className="apg-line">{t('sleep.note')}</p> : null}
+    <PostCard title={t('sleep.title')} plus locked={card.locked}>
+      <dl className="anp-sleep">
+        <div className="anp-sleep-tile is-mother">
+          <dt>{t('sleep.you')}</dt>
+          <dd className="anp-sleep-value">{card.locked ? ' ' : s?.motherHours != null ? dec(s.motherHours) : t('none')}</dd>
+          <dd className="anp-sleep-unit">{t('sleep.hours')}</dd>
+        </div>
+        <div className="anp-sleep-tile is-baby">
+          <dt>{s?.babyName ?? t('sleep.baby')}</dt>
+          <dd className="anp-sleep-value">{card.locked ? ' ' : s?.babySeconds != null ? hoursText(s.babySeconds, loc) : t('none')}</dd>
+          <dd className="anp-sleep-unit">{t('sleep.hours')}</dd>
+        </div>
+      </dl>
+      {!card.locked ? <p className="apg-line">{t('sleep.note')}</p> : null}
+      {!card.locked && !card.ready ? <NeedMore n={card.daysNeeded} t={t} /> : null}
     </PostCard>
   );
 }
 
 // ── Growth ─────────────────────────────────────────────────────
-function GrowthCard({ child, pending, t }: { child: ChildHome | undefined; pending: boolean; t: T }) {
+function GrowthCard({ card, t }: { card: HubCard<GrowthCardData>; t: T }) {
   const { num } = useFmt();
-  if (!child && !pending) return null;
-  const latest = child?.latest;
+  const g = card.data;
+  if (!g || !g.available || !g.child) return null;
+  const latest = g.latest;
   const chips = latest
     ? (
         [
@@ -260,10 +244,8 @@ function GrowthCard({ child, pending, t }: { child: ChildHome | undefined; pendi
       ).flatMap(([key, v]) => (v?.percentile != null ? [{ key, text: t(`growth.${key}`, { n: num(Math.round(v.percentile)) }), inBand: v.inBand }] : []))
     : [];
   return (
-    <PostCard title={child ? t('growth.title', { name: child.name }) : t('growth.titleNoName')} href={child ? `/children/${child.id}/growth` : undefined}>
-      {pending ? (
-        <CardSkeleton />
-      ) : chips.length ? (
+    <PostCard title={t('growth.title', { name: g.child.name })} href={`/children/${g.child.id}/growth`}>
+      {chips.length ? (
         <>
           <ul className="anp-chips">
             {chips.map((c) => (
@@ -272,6 +254,11 @@ function GrowthCard({ child, pending, t }: { child: ChildHome | undefined; pendi
               </li>
             ))}
           </ul>
+          {g.crossings.map((label) => (
+            <p key={label} className="apg-line is-alert">
+              {label}
+            </p>
+          ))}
           <p className="apg-line">{t('growth.who')}</p>
         </>
       ) : (
@@ -281,70 +268,67 @@ function GrowthCard({ child, pending, t }: { child: ChildHome | undefined; pendi
   );
 }
 
-// ── Recovery weight ────────────────────────────────────────────
-function WeightCard({ days, birth, pending, error, t }: { days: readonly LogDay[]; birth: string | null; pending: boolean; error: boolean; t: T }) {
+// ── Recovery weight (Plus) ─────────────────────────────────────
+function WeightCard({ card, t }: { card: HubCard<WeightCardData>; t: T }) {
   const { loc, num, dec, signed } = useFmt();
+  const w = card.data;
   let body;
-  if (pending) body = <CardSkeleton />;
-  else if (error) body = <p className="an-card-note">{t('cardError')}</p>;
-  else {
-    const w = weightTrend(days, birth);
-    if (!w) body = <p className="an-card-note">{t('weight.empty')}</p>;
-    else if (w.points.length < 2) body = <p className="an-card-note">{t('weight.one', { kg: dec(w.first.kg) })}</p>;
-    else
-      body = (
-        <>
-          <TrendLine
-            label={t('weight.chart', { list: w.points.map((p) => `${formatDayMonth(fromApiDate(p.date), loc)} ${dec(p.kg)}`).join(t('listSeparator')) })}
-            table={{
-              caption: t('weight.title'),
-              columns: [t('weight.colDate'), t('weight.colKg')],
-              rows: w.points.map((p) => [formatDayMonth(fromApiDate(p.date), loc), dec(p.kg)]),
-            }}
-            values={w.points.map((p) => p.kg)}
-            height={80}
-          />
+  // A locked card computes nothing: a neutral block sits behind the Plus gate.
+  if (card.locked) body = <Skeleton shape="block" />;
+  else if (!w || !w.points.length) body = <p className="an-card-note">{t('weight.empty')}</p>;
+  else if (w.points.length < 2) body = <p className="an-card-note">{t('weight.one', { kg: dec(w.points[0].kg) })}</p>;
+  else
+    body = (
+      <>
+        <TrendLine
+          label={t('weight.chart', { list: w.points.map((p) => `${formatDayMonth(fromApiDate(p.date), loc)} ${dec(p.kg)}`).join(t('listSeparator')) })}
+          table={{
+            caption: t('weight.title'),
+            columns: [t('weight.colDate'), t('weight.colKg')],
+            rows: w.points.map((p) => [formatDayMonth(fromApiDate(p.date), loc), dec(p.kg)]),
+          }}
+          values={w.points.map((p) => p.kg)}
+          height={80}
+        />
+        {w.deltaSinceFirst !== null ? (
           <p className="apg-line">
-            <bdi dir="ltr">{signed(w.delta)}</bdi> {t('weight.change', { n: num(w.fromWeek) })}
+            <bdi dir="ltr">{signed(w.deltaSinceFirst)}</bdi> {t('weight.change', { n: num(w.fromWeek ?? 1) })}
           </p>
-        </>
-      );
-  }
-  return <PostCard title={t('weight.title')}>{body}</PostCard>;
+        ) : null}
+        {w.deltaVsPre !== null ? (
+          <p className="apg-line">
+            <bdi dir="ltr">{signed(w.deltaVsPre)}</bdi> {t('weight.vsPre')}
+          </p>
+        ) : null}
+      </>
+    );
+  return (
+    <PostCard title={t('weight.title')} plus locked={card.locked}>
+      {body}
+    </PostCard>
+  );
 }
 
 /**
- * The postpartum analysis hub (An_Hub_Post, B-N5-07) rendered by `/analysis`
- * in postpartum mode: EPDS trend, lochia over three weeks, feeds with the L/R
- * split, mother's and baby's sleep (Plus), the baby's WHO percentiles and the
- * mother's weight since the birth. Computed client-side from existing reads;
- * descriptive only — every alert line points to the doctor.
+ * The postpartum analysis hub (An_Hub_Post) rendered by `/analysis` in
+ * postpartum mode. Every card comes from GET /analysis/postpartum (T-M10-27):
+ * EPDS trend (never Plus), lochia over three weeks, feeds, mother's and baby's
+ * sleep (Plus), the baby's WHO percentiles with the crossing hint, and the
+ * mother's weight (Plus). On Laravel (404) only the EPDS card shows, from
+ * GET /postpartum/epds. Descriptive only — every alert line points to the
+ * doctor or to the existing urgent path.
  */
 export function AnalysisPostpartumHub() {
   const t = useTranslations('analysisPostpartum.hub');
   const router = useRouter();
   const mounted = useMounted();
   const { num } = useFmt();
-  const overview = usePostpartum();
-  const today = toApiDate(todayDate());
-  const birth = overview.data?.profile?.birthDate ?? null;
-  const active = overview.data?.active ?? false;
-  const range = hubRange(today, birth);
-  const logDays = useLogDays(range.from, range.to, active);
-  const epds = useEpdsHistory();
-  const list = useChildren({ enabled: active });
-  const childId = list.data ? hubChildId(list.data.children, birth) : null;
-  const child = useChild(childId);
-  const summary = useBabyLogSummary(childId, 7);
-  const sleepLocked = usePlusLocked('plus.deep_analysis');
-
-  const week = overview.data?.status?.week ?? (birth ? weekAfterBirth(today, birth) : null);
-  const days = logDays.data?.days ?? [];
-  const logsPending = logDays.isPending && logDays.fetchStatus !== 'idle';
-  const childPending = list.isPending || (childId !== null && child.isPending);
+  const report = useHubReport();
+  const r = report.data;
 
   let body;
-  if (!mounted || overview.isPending) {
+  let week: number | null = null;
+  if (!mounted || report.isPending) {
     body = (
       <SkeletonGroup label={t('loading')} className="an-skel">
         <Skeleton shape="card" />
@@ -352,20 +336,20 @@ export function AnalysisPostpartumHub() {
         <Skeleton shape="card" />
       </SkeletonGroup>
     );
-  } else if (overview.isError) {
+  } else if (report.isError || !r) {
     body = (
       <EmptyState
         icon="warning"
         title={t('error.title')}
         body={t('error.body')}
         action={
-          <SecondaryButton icon="refresh" onClick={() => void overview.refetch()} loading={overview.isFetching}>
+          <SecondaryButton icon="refresh" onClick={() => void report.refetch()} loading={report.isFetching}>
             {t('error.retry')}
           </SecondaryButton>
         }
       />
     );
-  } else if (!active) {
+  } else if (r.kind === 'inactive') {
     body = (
       <EmptyState
         icon="heart"
@@ -378,28 +362,24 @@ export function AnalysisPostpartumHub() {
         }
       />
     );
-  } else {
+  } else if (r.kind === 'legacy') {
     body = (
       <div className="an-content">
-        <EpdsCard history={epds.data} pending={epds.isPending} error={epds.isError} t={t} />
-        <BleedingCard days={days} today={today} birth={birth} pending={logsPending} error={logDays.isError} t={t} />
-        <FeedsCard
-          childId={childId}
-          summary={summary.data}
-          pending={list.isPending || (childId !== null && summary.isPending)}
-          error={summary.isError}
-          t={t}
-        />
-        <SleepCard
-          mother={motherSleepAverage(days, today)}
-          babySeconds={summary.data && summary.data.days.some((d) => d.sleep.count > 0) ? summary.data.averages.sleepSecondsPerDay : null}
-          babyName={child.data?.name ?? null}
-          locked={sleepLocked}
-          pending={logsPending}
-          t={t}
-        />
-        <GrowthCard child={child.data} pending={childPending} t={t} />
-        <WeightCard days={days} birth={birth} pending={logsPending} error={logDays.isError} t={t} />
+        <EpdsCard data={{ history: r.epds, trendReady: r.epds.checks.length > 1 }} t={t} />
+        <InfoNote>{t('footnote')}</InfoNote>
+      </div>
+    );
+  } else {
+    week = r.week;
+    const c = r.cards;
+    body = (
+      <div className="an-content">
+        <EpdsCard data={c.epds.data} t={t} />
+        <BleedingCard card={c.bleeding} t={t} />
+        <FeedsCard card={c.breastfeeding} childrenAvailable={c.growth.data?.available ?? false} t={t} />
+        <SleepCard card={c.sleep} t={t} />
+        <GrowthCard card={c.growth} t={t} />
+        <WeightCard card={c.weight} t={t} />
         <InfoNote>{t('footnote')}</InfoNote>
       </div>
     );
@@ -409,7 +389,7 @@ export function AnalysisPostpartumHub() {
     <div className="an-hub">
       <header className="apg-head">
         <h1 className="an-title">{t('title')}</h1>
-        {active && week ? <span className="apg-week anp-week">{t('week', { n: num(week) })}</span> : null}
+        {week ? <span className="apg-week anp-week">{t('week', { n: num(week) })}</span> : null}
       </header>
       {body}
     </div>

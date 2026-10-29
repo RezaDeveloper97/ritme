@@ -862,6 +862,90 @@ paths:
                           visits: {$ref: "#/components/schemas/AnalysisSection"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '409': {$ref: "#/components/responses/PregnancyNotActive"}
+  /api/v1/analysis/postpartum:
+    get:
+      tags: [Analysis]
+      summary: Postpartum analysis hub — EPDS trend, bleeding decline, breastfeeding, mother and baby sleep (Plus), child growth, weight (Plus)
+      description: |
+        Go only (T-M10-27, D-176, SPEC v6 §4.1 An_Hub_Post). Descriptive, never diagnostic; an urgent signal is never a
+        finding here. Every card is `{plus, locked, ready, data, days_needed}`; a locked card is `locked: true,
+        data: null, days_needed: null` (nothing computed). `days_needed` = how many more logged days (or scores) the
+        card needs for `ready` (0 when ready).
+        `epds` (never Plus, §4.3): the checks since the birth — totals and bands only, never the answers or item 10
+        (D-54). Ready with 1 score; `trend.ready` with 2 of the plotted questionnaire (`kind`: the full EPDS when there
+        is one, else the weekly EPDS-3); `direction` compares the last two. Bands use the cut-offs valid on the day each
+        check was taken (`thresholds` = today's).
+        `bleeding`: `bleeding.lochia_amount` (none 0 … heavy 4) over the last 21 days since the birth; `trend` from the
+        first third to the last third of the logged days (≥ 4); `large_clots` in the window; `alert_today` = today
+        raised a bleeding red flag (pad soaked within an hour, heavy bleeding, large clots) — the client points to the
+        urgent path of GET /postpartum.
+        `breastfeeding`: feeds per logged day of the last 7 days — the hub baby's baby log (`source: baby_log`, with
+        the breast side split), else the mother's `baby.feeds_count` (`source: recovery`); ready with 3 days;
+        `breastfeeding` = the postpartum profile flag (null = not answered).
+        `sleep` (Plus): the mother's mean `sleep.hours` and the baby's mean seconds asleep over the logged days of the
+        last 7; ready when either side has 3.
+        `growth`: the hub baby (the own child born closest to the birth; never a shared child) — latest WHO point,
+        verdict and the percentile-line crossing hints (T-M10-22); `available: false` when the children module is off.
+        `weight` (Plus): weights since the birth, the change since the first, and the latest against the pre-pregnancy
+        weight (the pregnancy hub's baseline rule on the pregnancy that ended in the birth, else birth − 280 days);
+        ready with 2 weights.
+        403 `module_disabled` when the postpartum module is off; 409 `not_postpartum` outside postpartum mode.
+      operationId: getAnalysisPostpartum
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The postpartum analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [birth_date, days_since_birth, week, cards]
+                    properties:
+                      birth_date: {$ref: "#/components/schemas/Date"}
+                      days_since_birth: {type: integer, minimum: 0}
+                      week: {type: integer, minimum: 1}
+                      cards:
+                        type: object
+                        required: [epds, bleeding, breastfeeding, sleep, growth, weight]
+                        properties:
+                          epds: {$ref: "#/components/schemas/AnalysisPostpartumCard"}
+                          bleeding: {$ref: "#/components/schemas/AnalysisPostpartumCard"}
+                          breastfeeding: {$ref: "#/components/schemas/AnalysisPostpartumCard"}
+                          sleep: {$ref: "#/components/schemas/AnalysisPostpartumCard"}
+                          growth: {$ref: "#/components/schemas/AnalysisPostpartumCard"}
+                          weight: {$ref: "#/components/schemas/AnalysisPostpartumCard"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403':
+          description: "The postpartum module is switched off (`error_code: module_disabled`)"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code, module]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, const: module_disabled}
+                  module: {type: string, const: postpartum}
+        '409':
+          description: "Not in postpartum mode, or no birth date (`error_code: not_postpartum`)"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, const: not_postpartum}
   /api/v1/analysis/monthly/{ym}:
     get:
       tags: [Analysis]
@@ -29717,6 +29801,16 @@ components:
         locked: {type: boolean}
         ready: {type: boolean}
         data: {type: [object, array, "null"]}
+    AnalysisPostpartumCard:
+      type: object
+      description: "A postpartum hub card: AnalysisSection plus days_needed (null when locked)"
+      required: [plus, locked, ready, data, days_needed]
+      properties:
+        plus: {type: boolean}
+        locked: {type: boolean}
+        ready: {type: boolean}
+        data: {type: [object, "null"]}
+        days_needed: {type: [integer, "null"], minimum: 0}
     AnalysisFIGO:
       type: object
       required: [applies, cycle, period, variation]

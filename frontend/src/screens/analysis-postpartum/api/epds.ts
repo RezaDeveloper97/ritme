@@ -1,11 +1,6 @@
-'use client';
-
-import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 
-import { postpartumKeys } from '@/entities/postpartum';
 import { type ApiEnvelope, apiClient } from '@/shared/api';
-import { isAuthenticated } from '@/shared/session';
 
 /** One EPDS check of the history — never the answers (B-N5-01). */
 export interface EpdsPoint {
@@ -62,22 +57,8 @@ export const epdsHistorySchema = z
     }),
   );
 
+/** GET /postpartum/epds — the Laravel-era fallback of the hub's EPDS card (totals and bands only). */
 export async function fetchEpdsHistory(): Promise<EpdsHistory> {
   const { data } = await apiClient.get<ApiEnvelope<unknown>>('/postpartum/epds', { params: { limit: 26 } });
   return epdsHistorySchema.parse(data.data);
-}
-
-/**
- * GET /postpartum/epds — the scored checks for the hub's trend. Keyed on
- * `postpartumKeys.history()`, which the EPDS submit already invalidates.
- * Never log it (CLAUDE.md §11).
- */
-export function useEpdsHistory() {
-  return useQuery({
-    queryKey: postpartumKeys.history(),
-    queryFn: fetchEpdsHistory,
-    enabled: isAuthenticated(),
-    staleTime: 60_000,
-    retry: 1,
-  });
 }

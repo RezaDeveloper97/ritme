@@ -2457,3 +2457,12 @@ Nothing needed fixing.
 - `internal/messages/rules/v6.go`: level×kind and slot×kind matrices, goal events, topics, schedule parsing; validator covers the v6 fields.
 - Open: rules converted to content need medical approval before they serve (priority 1–99 is outside the 100–799 content band). No client calls `/messages/selected` yet, so nothing user-visible changes; review the list on stage/prod when T-M10-04 lands. Slot/kind mismatches M-18 does not convert are rejected at selection (`kind_not_allowed`, T-M10-04). `/messages/events` version/slot writes → T-M10-06. Admin notes added to T-M10-12.
 - Verify: sqlc, schema-diff OK (239 tables), vet, unit + test-int messages/admin/migrations green; contract messages 117/0 (312 allow-listed, unchanged); full `go test ./...` green.
+
+## T-M10-27 — Postpartum analysis hub (D-176)
+- Go-only `GET /api/v1/analysis/postpartum` (`internal/analysis/postpartum.go`, pure `BuildPostpartum`): six cards (epds, bleeding, breastfeeding, sleep, growth, weight), each `plus/locked/ready/data/days_needed`. 409 `not_postpartum` outside postpartum mode; 403 `module_disabled` when the postpartum module is off (checked in the handler); child cards hidden when the children module is off; only the user's own child (birth closest to the delivery), never a shared one.
+- EPDS: minimums from `P` (1 score to show, 2 for a trend); only totals/bands/`urgent` leave the server, never item answers or `self_harm` (D-54, int-tested). EPDS card is never Plus.
+- Bleeding: no urgent "finding"; a red flag logged today (`Recovery.AlertsOn`) only sets `alert_today` and links to `/postpartum` (UrgentCard).
+- Paywall change: weight trend is now Plus (SPEC §4.3); sleep stays Plus; EPDS, bleeding, breastfeeding, growth free. Hub minimums (not in §4.1) as constants: bleeding 4 days in 21, breastfeeding/sleep 3 of 7, weight 2 logs since birth.
+- Frontend `screens/analysis-postpartum`: all cards from the endpoint; on 404 (Laravel) only the EPDS card from `/postpartum/epds`. New copy: `hub.daysNeeded`, `hub.bleeding.alertToday`, `hub.weight.vsPre`. Bundle goldens re-recorded.
+- Open: no contract case for the endpoint (Go-only; int tests + OpenAPI cover it).
+- Verify: analysis test-int, typecheck, lint, fsd, dark, vitest (2079), copy:check green; contract public 26/0.

@@ -3,10 +3,10 @@ id: T-M10-27
 title: Postpartum analysis hub (backend endpoint and the existing screen)
 milestone: M10
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M10-26, T-M10-22, T-M9-28, T-M9-06]
 parallel_group: M10-D
-touches: [backend-go/internal/analysis/postpartum.go, backend-go/internal/analysis/postpartum_handlers.go, backend-go/internal/http/routes_analysis_postpartum.go, backend-go/api/openapi.yaml, frontend/src/screens/analysis-postpartum, frontend/messages/fa/analysis-postpartum.json, frontend/messages/en/analysis-postpartum.json, backend-go/resources/translations/fa/analysis-postpartum.json, backend-go/resources/translations/en/analysis-postpartum.json]
+touches: [backend-go/internal/i18n/testdata,backend-go/internal/analysis/postpartum_test.go,backend-go/internal/analysis/postpartum_int_test.go,backend-go/internal/analysis/postpartum.go, backend-go/internal/analysis/postpartum_handlers.go, backend-go/internal/http/routes_analysis_postpartum.go, backend-go/api/openapi.yaml, frontend/src/screens/analysis-postpartum, frontend/messages/fa/analysis-postpartum.json, frontend/messages/en/analysis-postpartum.json, backend-go/resources/translations/fa/analysis-postpartum.json, backend-go/resources/translations/en/analysis-postpartum.json]
 skills: [new-endpoint]
 verify: cd backend-go && go vet ./... && go test ./internal/analysis/... && make test-int PKG=./internal/analysis/... && cd ../frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:dark && npm run test && npm run copy:check -- analysis-postpartum
 ---

@@ -709,6 +709,7 @@
     "none": "—",
     "dot": " · ",
     "listSeparator": ", ",
+    "daysNeeded": "{count, plural, one {Log one more day to see this.} other {Log {n} more days to see this.}}",
     "footnote": "These summaries are descriptive and don't replace a check-up with your doctor or midwife.",
     "error": {
      "title": "Couldn't load the analysis",
@@ -752,7 +753,8 @@
       "medium": "medium",
       "heavy": "heavy",
       "unlogged": "not logged"
-     }
+     },
+     "alertToday": "You logged a sign of heavy bleeding today. See “When to call right away” on your postpartum page."
     },
     "feeds": {
      "title": "Feeding",
@@ -788,7 +790,8 @@
      "empty": "Log your weight in the daily log to see your recovery trend.",
      "chart": "Weight after birth: {list}",
      "colDate": "Date",
-     "colKg": "kg"
+     "colKg": "kg",
+     "vsPre": "kg compared with before pregnancy"
     }
    }
   },
