@@ -46,7 +46,8 @@ const statsWindow = 7 * 24 * time.Hour
 
 // rulesRoutes registers the v2 routes; call before the /messages/:id ones (static segment first).
 func (h *Handlers) rulesRoutes(route func(method, path string, chain httpadmin.Chain), kit *httpadmin.Kit) {
-	h.engineRoutes(route, kit) // B-N9-06: static /messages/rules/engine|simulate
+	h.engineRoutes(route, kit)                                       // B-N9-06: static /messages/rules/engine|simulate
+	route(fiber.MethodGet, "/messages/facts", kit.Admin(h.FactList)) // T-M10-03: the fact registry for the editor
 	route(fiber.MethodGet, "/messages/rules", kit.Admin(h.RuleList))
 	route(fiber.MethodPost, "/messages/rules", kit.Admin(httpadmin.Publishes(h.RuleStore, "message_rules")))
 	route(fiber.MethodPost, "/messages/rules/conflicts", kit.Admin(h.RuleConflicts))
@@ -191,14 +192,18 @@ func parseInput(c fiber.Ctx) (*rules.Input, error) {
 		return nil, httpadmin.FieldError("title", "The request body is not valid JSON.")
 	}
 	in.Normalize()
-	if errs := in.Validate(); len(errs) > 0 {
+	if errs, code := in.Check(); len(errs) > 0 {
 		ve := httpx.NewValidationError()
 		for _, f := range rules.Fields {
 			if m, ok := errs[f]; ok {
 				ve.Add(f, m)
 			}
 		}
-		return nil, httpadmin.Invalid(ve)
+		if code == "" { // D-161: unknown_fact / bad_value name a fact-registry failure
+			return nil, httpadmin.Invalid(ve)
+		}
+		errs, _ := ve.Body().Get("errors")
+		return nil, httpadmin.Fail(fiber.StatusUnprocessableEntity, code, ve.Summary(), "errors", errs)
 	}
 	return &in, nil
 }

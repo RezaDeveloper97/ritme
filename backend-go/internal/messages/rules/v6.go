@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ritme/backend-go/internal/messages/facts"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
@@ -74,10 +75,9 @@ const TopicFertileWindow = "fertile_window"
 // Topics is the topic catalogue.
 var Topics = []string{TopicFertileWindow}
 
-// FertilityFacts are the facts (and text variables) that make a message a fertile-window message (M-06). T-M10-03
-// moves this list into the fact registry.
-var FertilityFacts = []string{"is_fertile_window", "fertile_window", "is_ovulation_day", "ovulation_day",
-	"days_to_ovulation", "fertility_level", "fertile_window_start", "fertile_window_end"}
+// FertilityFacts are the facts (and text variables) that make a message a fertile-window message (M-06); the list
+// lives in the fact registry (T-M10-03).
+var FertilityFacts = facts.FertilityFacts
 
 // fertilityWords mark a phase value about ovulation / the fertile window (phase = ovulation, subphase = fertile_peak…).
 var fertilityWords = []string{"ovulat", "fertil"}

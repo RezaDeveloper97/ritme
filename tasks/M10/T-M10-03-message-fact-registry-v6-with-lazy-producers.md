@@ -3,10 +3,10 @@ id: T-M10-03
 title: Message fact registry v6 with lazy producers
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-02]
 parallel_group: M10-B
-touches: [backend-go/internal/messages/facts, backend-go/internal/messages/v2.go, backend-go/internal/messages/source.go, backend-go/internal/messages/rules/validate.go, backend-go/internal/admin/messages, backend-go/internal/http/routes_messages.go, backend-go/db/queries/messages, backend-go/api/openapi.yaml]
+touches: [backend-go/internal/messages/rules/v6.go,backend-go/internal/messages/rules/v6_test.go,backend-go/internal/messages/store,backend-go/internal/messages/facts_int_test.go,backend-go/internal/messages/facts, backend-go/internal/messages/v2.go, backend-go/internal/messages/source.go, backend-go/internal/messages/rules/validate.go, backend-go/internal/admin/messages, backend-go/internal/http/routes_messages.go, backend-go/db/queries/messages, backend-go/api/openapi.yaml]
 skills: []
 verify: cd backend-go && make sqlc && go vet ./... && go test ./internal/messages/... ./internal/admin/messages/... && make test-int PKG="./internal/messages/... ./internal/admin/messages/..." && make contract ROUTES=messages
 ---

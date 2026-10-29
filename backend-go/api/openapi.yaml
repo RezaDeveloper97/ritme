@@ -10675,6 +10675,15 @@ paths:
         ovulation phase, fertility-worded subphases, the fertile main phase) are stripped and `user_goal` reads
         non_ttc when fertility is suppressed or in teen / menopause modes. Text variables: name, days_to_period,
         days_late, cycle_day, pregnancy_week, phase, subphase. The admin rule preview reads the same facts.
+        Fact registry (T-M10-03, D-161): under `CYCLE_ENGINE=shadow|v6` every fact comes from one typed registry
+        (`internal/messages/facts`; the editor reads it from the admin `GET /messages/facts`) with lazy producer
+        groups, computing only the facts the placement's rules read: one engine state load for all engine facts
+        (`mode` = the engine mode, `warnings`, `requires_user_input`, `cycle_regularity`, `today_ui.banner`,
+        `current_period_start`, …) plus a few small queries for `hormonal_contraception` (I-03), `pregnancy_week` /
+        `pregnancy_trimester`, `postpartum_week`, `bp_last_category` / `glucose_last_category` (last reading in 30
+        days), `symptom_history.<code>`, `days_since_last_log`, `logs_30d`, `plan`, `days_since_signup`, `age`,
+        `locale`, `life_mode`, `segment` (empty until T-M10-32) and `push_opt_in` (false, M-09). A fact whose input is
+        missing is absent. `CYCLE_ENGINE=v1` keeps the legacy facts.
       operationId: getMessagesSelected
       security:
         - {bearerAuth: []}

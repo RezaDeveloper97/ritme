@@ -14,6 +14,7 @@ import (
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/messages/content"
+	"github.com/ritme/backend-go/internal/messages/facts"
 	"github.com/ritme/backend-go/internal/messages/manager"
 	"github.com/ritme/backend-go/internal/messages/rules"
 	"github.com/ritme/backend-go/internal/messages/store"
@@ -32,14 +33,32 @@ import (
 // EventKinds are the accepted event names.
 var EventKinds = []string{"impression", "click", "dismiss", "goal"}
 
-// BuildFacts computes the facts of one user (mode via the message manager; cycle numbers via the v6 engine under
-// CYCLE_ENGINE=shadow|v6 — T-M9-38, D-130 — else the legacy engine).
+// BuildFacts computes every fact of one user (the admin rule preview). Under CYCLE_ENGINE=shadow|v6 the facts come
+// from the fact registry (T-M10-03, D-161: the v6 engine and the modules, lazy producers); CYCLE_ENGINE=v1 keeps the
+// legacy builder (mode via the message manager, the legacy cycle engine).
 func BuildFacts(ctx context.Context, h *Handlers, userID uint64, today civildate.Date) (rules.Facts, error) {
-	src := NewStoreSource(h.q, h.pq, userID, today).WithEngine(h.states)
-	return buildFacts(ctx, h, src, userID, today)
+	src := NewStoreSource(h.q, h.pq, userID, today).WithEngine(h.states).WithNow(h.clock.Now())
+	return buildFacts(ctx, h, src, userID, today, "", nil)
 }
 
-func buildFacts(ctx context.Context, h *Handlers, src *StoreSource, userID uint64, today civildate.Date) (rules.Facts, error) {
+// buildFacts builds the facts of src's user: under v6 the registry facts of needed (nil = all) for a request in locale
+// ("" = unknown); under v1 the legacy facts (needed and locale unused).
+func buildFacts(ctx context.Context, h *Handlers, src *StoreSource, userID uint64, today civildate.Date, locale string,
+	needed []string,
+) (rules.Facts, error) {
+	if h.states != nil {
+		fs := facts.New(src.FactSources(), today, locale)
+		var err error
+		if needed == nil {
+			err = fs.All(ctx)
+		} else {
+			err = fs.Need(ctx, needed...)
+		}
+		if err != nil {
+			return nil, err
+		}
+		return rules.Facts(fs.Values()), nil
+	}
 	f := rules.Facts{"is_premium": false}
 	mgr := manager.New(WithPostpartum(src, h.pp), content.NewRepository(h.q), "fa", today)
 	mode, err := mgr.DetectMode(ctx)
@@ -53,28 +72,15 @@ func buildFacts(ctx context.Context, h *Handlers, src *StoreSource, userID uint6
 		f["user_goal"] = p.UserGoal
 		f["is_premium"] = p.SubscriptionType == "premium"
 	}
-	lm, err := src.LifeMode(ctx)
-	if err == nil && lm != "" {
+	if lm, err := src.LifeMode(ctx); err == nil && lm != "" {
 		f["life_mode"] = lm
 	}
-	noFertilityMode := lm != "" && !enums.LifeMode(lm).AllowsFertilityContent()
 	if name, err := h.q.GetMessageUserName(ctx, userID); err == nil {
 		if first, _, _ := strings.Cut(strings.TrimSpace(name.String), " "); first != "" {
 			f["name"] = first
 		}
 	}
 	if string(mode) == "cycle" {
-		if d, ok, err := src.EngineDay(ctx, today); err != nil {
-			return nil, err
-		} else if ok { // T-M9-38 (D-130): the v6 engine's facts
-			for k, v := range manager.EngineFacts(&d, noFertilityMode) {
-				f[k] = v
-			}
-			if f["fertility_suppressed"] == true { // teen, menopause, suppression: never TTC targeting (as the daily)
-				f["user_goal"] = string(enums.UserGoalNonTtc)
-			}
-			return withPregnancy(ctx, f, mode, src, today), nil
-		}
 		if c, err := src.Cycle(ctx, today); err == nil && c.Complete {
 			f["cycle_day"] = float64(c.Day)
 			f["cycle_length"] = float64(c.CycleLength)
@@ -86,6 +92,32 @@ func buildFacts(ctx context.Context, h *Handlers, src *StoreSource, userID uint6
 		}
 	}
 	return withPregnancy(ctx, f, mode, src, today), nil
+}
+
+// neededFacts are the fact names the rules read: condition and exception facts and the {variables} of every text.
+func neededFacts(rs []rules.Rule) []string {
+	seen := map[string]bool{}
+	out := []string{}
+	add := func(n string) {
+		if !seen[n] {
+			seen[n] = true
+			out = append(out, n)
+		}
+	}
+	for i := range rs {
+		for _, g := range rs[i].Groups {
+			for _, c := range g.Items {
+				add(c.Fact)
+			}
+		}
+		for _, c := range rs[i].Exceptions {
+			add(c.Fact)
+		}
+		for _, p := range rules.Placeholders(rs[i].Content.Texts()...) {
+			add(p)
+		}
+	}
+	return out
 }
 
 // withPregnancy adds the gestational week in pregnancy mode.
@@ -135,7 +167,8 @@ func (h *Handlers) Selected(c fiber.Ctx) error {
 	for i := range rows {
 		all = append(all, rules.FromRow(&rows[i]))
 	}
-	facts, err := buildFacts(ctx, h, src, uid, today)
+	src.WithNow(now)
+	facts, err := buildFacts(ctx, h, src, uid, today, locale, neededFacts(all))
 	if err != nil {
 		return err
 	}

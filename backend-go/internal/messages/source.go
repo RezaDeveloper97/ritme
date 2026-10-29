@@ -3,22 +3,30 @@ package messages
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
 
+	"github.com/ritme/backend-go/internal/contraception"
 	"github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/cycle/legacy"
 	"github.com/ritme/backend-go/internal/cycle/model"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
 	"github.com/ritme/backend-go/internal/cycle/state"
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
+	"github.com/ritme/backend-go/internal/enums"
+	"github.com/ritme/backend-go/internal/messages/facts"
 	"github.com/ritme/backend-go/internal/messages/manager"
 	"github.com/ritme/backend-go/internal/messages/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/pregnancy"
 	pstore "github.com/ritme/backend-go/internal/pregnancy/store"
+	pregv2 "github.com/ritme/backend-go/internal/pregnancy/v2"
+	"github.com/ritme/backend-go/internal/vitals"
+	vstore "github.com/ritme/backend-go/internal/vitals/store"
 )
 
 // StoreSource is the sqlc-backed manager.Source for one user and request. It memoises every
@@ -40,6 +48,9 @@ type StoreSource struct {
 	engine        *legacy.Engine
 	states        state.UserStates // nil = CYCLE_ENGINE=v1
 	state         *engine.State
+	now           time.Time // the Plus tier's moment (fact registry)
+	factRow       *store.GetMessageFactProfileRow
+	factLoaded    bool
 }
 
 // NewStoreSource returns the source for userID; today is the request's Tehran day.
@@ -182,12 +193,8 @@ func (s *StoreSource) EngineDay(ctx context.Context, date civildate.Date) (manag
 	if s.states == nil {
 		return manager.EngineDay{}, false, nil
 	}
-	if s.state == nil {
-		st, err := s.states.ForUser(ctx, s.userID, s.today)
-		if err != nil {
-			return manager.EngineDay{}, false, fmt.Errorf("messages: engine state: %w", err)
-		}
-		s.state = st
+	if _, err := s.EngineState(ctx); err != nil {
+		return manager.EngineDay{}, false, err
 	}
 	return manager.EngineDay{
 		Status:    s.state.Resolve(engine.DayOf(date), engine.DayOf(s.today)),
@@ -232,4 +239,267 @@ func (s *StoreSource) PregnancySymptoms(ctx context.Context, date civildate.Date
 		add(ex.Mood.Valid && ex.Mood.Int16 <= 2, "mood_sad")
 	}
 	return out, nil
+}
+
+// ---- Message fact registry v6 sources (T-M10-03, D-161) ----
+//
+// StoreSource implements every facts.Sources interface for its user and today. The account, contraception and
+// postpartum facts and the vitals diabetic flag share one memoised profile row (GetMessageFactProfile); the logs,
+// symptom history and vitals read one small query each, and only when a rule needs their facts.
+
+// FactSources are the registry sources of this user and request.
+func (s *StoreSource) FactSources() facts.Sources {
+	src := facts.Sources{Account: s, Logs: s, Vitals: s, Pregnancy: s, Postpartum: s, Contraception: s}
+	if s.states != nil {
+		src.Engine = s
+	}
+	return src
+}
+
+// WithNow sets the request time the Plus tier is read at (zero = the start of today in Tehran).
+func (s *StoreSource) WithNow(now time.Time) *StoreSource {
+	s.now = now
+	return s
+}
+
+// EngineState implements facts.EngineSource: the shared v6 state for the source's today (memoised with EngineDay).
+func (s *StoreSource) EngineState(ctx context.Context) (*engine.State, error) {
+	if s.states == nil {
+		return nil, nil
+	}
+	if s.state == nil {
+		st, err := s.states.ForUser(ctx, s.userID, s.today)
+		if err != nil {
+			return nil, fmt.Errorf("messages: engine state: %w", err)
+		}
+		s.state = st
+	}
+	return s.state, nil
+}
+
+func (s *StoreSource) factProfile(ctx context.Context) (*store.GetMessageFactProfileRow, error) {
+	if s.factLoaded {
+		return s.factRow, nil
+	}
+	now := s.now
+	if now.IsZero() {
+		now = s.today.TehranMidnight()
+	}
+	row, err := s.q.GetMessageFactProfile(ctx, store.GetMessageFactProfileParams{
+		UserID: s.userID, Now: now, Today: s.today, Since: s.logsSince(),
+	})
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+	case err != nil:
+		return nil, fmt.Errorf("messages: fact profile: %w", err)
+	default:
+		s.factRow = &row
+	}
+	s.factLoaded = true
+	return s.factRow, nil
+}
+
+// Account implements facts.AccountSource.
+func (s *StoreSource) Account(ctx context.Context) (*facts.Account, error) {
+	row, err := s.factProfile(ctx)
+	if err != nil || row == nil {
+		return nil, err
+	}
+	a := &facts.Account{Name: row.Name.String, UserGoal: row.UserGoal.String, SubscriptionType: row.SubscriptionType.String,
+		LifeMode: row.LifeMode.String, Plan: "free"}
+	if row.CreatedAt.Valid {
+		a.SignupDay = civildate.InTehran(row.CreatedAt.Time)
+	}
+	if row.Birthday.Valid {
+		a.Birthday = row.Birthday.Date
+	}
+	switch {
+	case row.PlusActive != 0:
+		a.Plan = "plus"
+	case row.TrialRunning != 0:
+		a.Plan = "trial"
+	}
+	return a, nil
+}
+
+// HormonalContraception implements facts.ContraceptionSource (I-03, contraception.HormonalActive).
+func (s *StoreSource) HormonalContraception(ctx context.Context) (bool, error) {
+	row, err := s.factProfile(ctx)
+	if err != nil || row == nil {
+		return false, err
+	}
+	var meds []string
+	if row.Medications.Valid && len(row.Medications.V) > 0 {
+		_ = json.Unmarshal(row.Medications.V, &meds) // not a list = no onboarding answer
+	}
+	return contraception.HormonalActive(row.ContraceptionMethod.String, row.ContraceptionMethod.Valid, meds), nil
+}
+
+// PostpartumBirth implements facts.PostpartumSource: the birth date while the stored life mode is postpartum.
+func (s *StoreSource) PostpartumBirth(ctx context.Context) (civildate.Date, bool, error) {
+	row, err := s.factProfile(ctx)
+	if err != nil || row == nil || !row.PostpartumBirthDate.Valid || row.LifeMode.String != string(enums.LifeModePostpartum) {
+		return civildate.Date{}, false, err
+	}
+	return row.PostpartumBirthDate.Date, true, nil
+}
+
+// PregnancyDating implements facts.PregnancySource: the active pregnancy's week and trimester on day (pregnancy v2
+// Resolve — the dating the pregnancy screens use).
+func (s *StoreSource) PregnancyDating(ctx context.Context, day civildate.Date) (*facts.PregnancyDating, error) {
+	p, err := s.activePregnancy(ctx)
+	if err != nil || p == nil {
+		return nil, err
+	}
+	d, ok := pregv2.Resolve(p, day)
+	if !ok {
+		return nil, nil
+	}
+	return &facts.PregnancyDating{Week: d.CurrentWeek(), Trimester: d.Trimester()}, nil
+}
+
+// logsSince is the first day of the logs_30d window of the source's today.
+func (s *StoreSource) logsSince() civildate.Date { return s.today.AddDays(-29) }
+
+// scanDay reads a MAX(date) column (nil = no row).
+func scanDay(v any) (civildate.Date, error) {
+	var d civildate.Date
+	if v == nil {
+		return d, nil
+	}
+	if err := d.Scan(v); err != nil {
+		return d, fmt.Errorf("messages: last log date: %w", err)
+	}
+	return d, nil
+}
+
+// LogStats implements facts.LogSource: the profile row's numbers for the source's own window, else one query.
+func (s *StoreSource) LogStats(ctx context.Context, since, today civildate.Date) (facts.LogStats, error) {
+	if since == s.logsSince() && today == s.today {
+		row, err := s.factProfile(ctx)
+		if err != nil || row == nil {
+			return facts.LogStats{}, err
+		}
+		last, err := scanDay(row.LastLogDate)
+		return facts.LogStats{Last: last, Days30d: int(row.LogDaysSince)}, err
+	}
+	row, err := s.q.GetMessageFactLogStats(ctx, store.GetMessageFactLogStatsParams{UserID: s.userID, Since: since, Today: today})
+	if err != nil {
+		return facts.LogStats{}, fmt.Errorf("messages: log stats: %w", err)
+	}
+	last, err := scanDay(row.LastLogDate)
+	return facts.LogStats{Last: last, Days30d: int(row.DaysSince)}, err
+}
+
+// activePregnancy is the pregnancy profile when a pregnancy is active (read only then; nil otherwise).
+func (s *StoreSource) activePregnancy(ctx context.Context) (*pstore.PregnancyProfile, error) {
+	row, err := s.factProfile(ctx)
+	if err != nil || row == nil || row.PregnancyActive == 0 {
+		return nil, err
+	}
+	p, err := s.PregnancyProfile(ctx)
+	if err != nil || p == nil || !p.PregnancyMode {
+		return nil, err
+	}
+	return p, nil
+}
+
+// SymptomEntries implements facts.LogSource.
+func (s *StoreSource) SymptomEntries(ctx context.Context, from, to civildate.Date) ([]facts.SymptomEntry, error) {
+	rows, err := s.q.ListMessageFactSymptomEntries(ctx, store.ListMessageFactSymptomEntriesParams{
+		UserID: s.userID, DateFrom: from, DateTo: to,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("messages: symptom entries: %w", err)
+	}
+	out := make([]facts.SymptomEntry, len(rows))
+	for i, r := range rows {
+		out[i] = facts.SymptomEntry{Date: r.LogDate, Category: r.Category, Param: r.Param, Item: r.Item,
+			Level: r.ValueCode.String, Score: r.ValueNum.String}
+	}
+	return out, nil
+}
+
+// LastVitals implements facts.VitalsSource: the newest blood pressure and glucose reading of [from, to] (timed and
+// log-sheet values merged by vitals.Merge), classified by vitals.Reading.Class with the user's context — the pregnancy
+// table for a reading inside the active pregnancy, the diabetic targets for a diabetic user — as the vitals screens.
+func (s *StoreSource) LastVitals(ctx context.Context, from, to civildate.Date) (facts.LastVitals, error) {
+	rows, err := s.q.ListMessageFactVitalReadings(ctx, store.ListMessageFactVitalReadingsParams{
+		UserID: s.userID, DateFrom: from.TehranMidnight(), DateTo: to.AddDays(1).TehranMidnight(),
+	})
+	if err != nil {
+		return facts.LastVitals{}, fmt.Errorf("messages: vitals: %w", err)
+	}
+	logRows, err := s.q.ListMessageFactLogMeasurements(ctx, store.ListMessageFactLogMeasurementsParams{
+		UserID: s.userID, DateFrom: from, DateTo: to,
+	})
+	if err != nil {
+		return facts.LastVitals{}, fmt.Errorf("messages: vitals log values: %w", err)
+	}
+	timed := make([]vitals.Reading, len(rows))
+	for i, r := range rows {
+		timed[i] = vitals.FromRow(vstore.VitalReading(r))
+	}
+	logs := make([]vstore.ListLogMeasurementsRow, len(logRows))
+	for i, r := range logRows {
+		logs[i] = vstore.ListLogMeasurementsRow(r)
+	}
+	var bp, glucose *vitals.Reading
+	merged := vitals.Merge(timed, logs)
+	for i := range merged {
+		switch r := &merged[i]; {
+		case r.Type == vitals.TypeBP && bp == nil:
+			bp = r
+		case r.Type == vitals.TypeGlucose && glucose == nil:
+			glucose = r
+		}
+	}
+	if bp == nil && glucose == nil {
+		return facts.LastVitals{}, nil
+	}
+	if err := s.markVitals(ctx, bp, glucose); err != nil {
+		return facts.LastVitals{}, err
+	}
+	var out facts.LastVitals
+	if bp != nil {
+		out.BP = bp.Class()
+	}
+	if glucose != nil {
+		out.Glucose = glucose.Class()
+	}
+	return out, nil
+}
+
+// markVitals sets the user's context on the readings (vitals.Service.mark): Pregnant for a day inside the active
+// pregnancy (dated start .. today), Diabetic + Targets on glucose for a diabetic user.
+func (s *StoreSource) markVitals(ctx context.Context, bp, glucose *vitals.Reading) error {
+	p, err := s.activePregnancy(ctx)
+	if err != nil {
+		return err
+	}
+	if p != nil {
+		if d, ok := pregv2.Resolve(p, s.today); ok {
+			for _, r := range []*vitals.Reading{bp, glucose} {
+				if r != nil {
+					r.Pregnant = !r.Date.Before(d.Start()) && !r.Date.After(s.today)
+				}
+			}
+		}
+	}
+	if glucose == nil {
+		return nil
+	}
+	row, err := s.factProfile(ctx)
+	if err != nil || row == nil || !row.ChronicIllnesses.Valid || !vitals.HasDiabetes(row.ChronicIllnesses.V) {
+		return err
+	}
+	targets, err := s.q.ListMessageFactVitalTargets(ctx, s.userID)
+	if err != nil {
+		return fmt.Errorf("messages: vital targets: %w", err)
+	}
+	glucose.Diabetic, glucose.Targets = true, vitals.Targets{}
+	for _, t := range targets {
+		glucose.Targets[t.Context] = vitals.TargetFromRow(vstore.VitalTarget(t))
+	}
+	return nil
 }

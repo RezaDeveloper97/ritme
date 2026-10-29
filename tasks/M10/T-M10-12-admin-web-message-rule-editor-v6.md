@@ -55,3 +55,4 @@ draft version, and the rule that only the clinical capability authors safety/cli
   `level_kinds`, `slot_kinds`, `approval_kinds`, `max_variants`. Stored levels stay `worth_followup`/`follow_soon`
   (spec names `follow_up`/`urgent` accepted as aliases, `rules.SpecLevel`).
 - Document all of this in `docs/go-migration/admin-api.md`.
+- Document `GET /api/admin/v1/messages/facts` (T-M10-03) and the 422 codes `unknown_fact` / `bad_value`.

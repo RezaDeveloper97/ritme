@@ -149,7 +149,7 @@ func TestValidate_CapsVariantsTopicsGoal(t *testing.T) {
 	for _, c := range []rules.Condition{
 		{Fact: "is_fertile_window", Op: "eq", Value: true},
 		{Fact: "phase", Op: "eq", Value: "ovulation"},
-		{Fact: "subphase", Op: "in", Value: []any{"follicular", "fertile_peak"}},
+		{Fact: "subphase", Op: "in", Value: []any{"early_follicular", "fertile_rising"}},
 	} {
 		in = clin
 		in.Conditions = []rules.Group{{Op: "and", Items: []rules.Condition{c}}}

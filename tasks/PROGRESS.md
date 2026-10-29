@@ -2466,3 +2466,11 @@ Nothing needed fixing.
 - Frontend `screens/analysis-postpartum`: all cards from the endpoint; on 404 (Laravel) only the EPDS card from `/postpartum/epds`. New copy: `hub.daysNeeded`, `hub.bleeding.alertToday`, `hub.weight.vsPre`. Bundle goldens re-recorded.
 - Open: no contract case for the endpoint (Go-only; int tests + OpenAPI cover it).
 - Verify: analysis test-int, typecheck, lint, fsd, dark, vitest (2079), copy:check green; contract public 26/0.
+
+## T-M10-03 — Message fact registry v6 with lazy producers (D-161)
+- `internal/messages/facts`: typed registry (`Def{Name, Type, Enum, Unit, Group, Description{fa,en}, MemberSafe, Pending, Variable}`), each group registers itself in `init()`; producer groups (engine, account, logs, vitals, pregnancy, postpartum, contraception) run at most once per request and only when a rule needs them. Warm engine facts ≈2.7 µs; a cold build for a non-pregnant, non-diabetic user is ≤ 4 queries outside the engine state.
+- Under `CYCLE_ENGINE=shadow|v6`, `/messages/selected` reads facts from the registry; v1 keeps the legacy facts. Fertility suppression strips `is_fertile_window`, maps the fertile phase to follicular and `user_goal=ttc` to non_ttc (reuses `manager.EngineFacts`). Missing input → absent.
+- Admin: `GET /api/admin/v1/messages/facts` (sorted, golden); rule validation 422 `unknown_fact` / `bad_value`.
+- Behaviour change: the `mode` fact is now the engine mode (`cycle|ttc|pregnancy|postpartum|menopause|teen`); `life_mode` is the stored life mode. A rule with `mode in [cycle]` no longer matches ttc/teen users. Date facts accept only `eq`/`ne` until selection compares dates (T-M10-04).
+- Open: `admin-api.md` entry for `/messages/facts` (noted on T-M10-12); vitals queries duplicated from `internal/vitals` (its handlers have no `*sql.DB`); Plus tier SQL duplicates `plus.tierOf`.
+- Verify: sqlc, vet, unit + test-int messages/admin, contract messages 117/0 (312 allow-listed) green.

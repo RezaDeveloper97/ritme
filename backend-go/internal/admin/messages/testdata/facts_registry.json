@@ -1,0 +1,807 @@
+{
+  "facts": [
+    {
+      "description": {
+        "en": "Age in years (absent without a birthday).",
+        "fa": "سن (بدون تاریخ تولد وجود ندارد)"
+      },
+      "enum": null,
+      "group": "account",
+      "member_safe": false,
+      "name": "age",
+      "pending": null,
+      "type": "int",
+      "unit": "year"
+    },
+    {
+      "description": {
+        "en": "The class of the last blood pressure reading in 30 days.",
+        "fa": "رده آخرین فشار خون در ۳۰ روز"
+      },
+      "enum": [
+        "normal",
+        "elevated",
+        "stage1",
+        "stage2",
+        "crisis"
+      ],
+      "group": "vitals",
+      "member_safe": false,
+      "name": "bp_last_category",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The engine's confidence.",
+        "fa": "اطمینان موتور"
+      },
+      "enum": [
+        "unknown",
+        "low",
+        "medium",
+        "high"
+      ],
+      "group": "engine",
+      "member_safe": false,
+      "name": "confidence",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The current cycle's start (for per-cycle caps).",
+        "fa": "شروع چرخه جاری (برای سقف هر سیکل)"
+      },
+      "enum": null,
+      "group": "engine",
+      "member_safe": false,
+      "name": "current_period_start",
+      "pending": null,
+      "type": "date",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The cycle day; it keeps counting while late.",
+        "fa": "روز چرخه؛ در تأخیر ادامه می‌یابد"
+      },
+      "enum": null,
+      "group": "engine",
+      "member_safe": false,
+      "name": "cycle_day",
+      "pending": null,
+      "type": "int",
+      "unit": "day"
+    },
+    {
+      "description": {
+        "en": "The effective cycle length.",
+        "fa": "طول مؤثر چرخه"
+      },
+      "enum": null,
+      "group": "engine",
+      "member_safe": false,
+      "name": "cycle_length",
+      "pending": null,
+      "type": "int",
+      "unit": "day"
+    },
+    {
+      "description": {
+        "en": "The cycle regularity.",
+        "fa": "نظم چرخه"
+      },
+      "enum": [
+        "insufficient_data",
+        "regular",
+        "irregular"
+      ],
+      "group": "engine",
+      "member_safe": false,
+      "name": "cycle_regularity",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The data quality.",
+        "fa": "کیفیت داده"
+      },
+      "enum": [
+        "insufficient",
+        "good",
+        "partial",
+        "poor"
+      ],
+      "group": "engine",
+      "member_safe": false,
+      "name": "data_quality",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Days the period is late.",
+        "fa": "روزهای تأخیر پریود"
+      },
+      "enum": null,
+      "group": "engine",
+      "member_safe": false,
+      "name": "days_late",
+      "pending": null,
+      "type": "int",
+      "unit": "day"
+    },
+    {
+      "description": {
+        "en": "Days since the last log (absent when never logged).",
+        "fa": "روز از آخرین ثبت (بدون ثبت وجود ندارد)"
+      },
+      "enum": null,
+      "group": "logs",
+      "member_safe": false,
+      "name": "days_since_last_log",
+      "pending": null,
+      "type": "int",
+      "unit": "day"
+    },
+    {
+      "description": {
+        "en": "Days since signup.",
+        "fa": "روز از ثبت‌نام"
+      },
+      "enum": null,
+      "group": "account",
+      "member_safe": false,
+      "name": "days_since_signup",
+      "pending": null,
+      "type": "int",
+      "unit": "day"
+    },
+    {
+      "description": {
+        "en": "Days to the next period (0 while late).",
+        "fa": "روز تا پریود بعدی (۰ در تأخیر)"
+      },
+      "enum": null,
+      "group": "engine",
+      "member_safe": false,
+      "name": "days_to_period",
+      "pending": null,
+      "type": "int",
+      "unit": "day"
+    },
+    {
+      "description": {
+        "en": "Fertility is suppressed or hidden (hormonal contraception, pregnancy, teen, menopause…).",
+        "fa": "باروری سرکوب یا پنهان است (پیشگیری هورمونی، بارداری، نوجوان، یائسگی…)"
+      },
+      "enum": null,
+      "group": "engine",
+      "member_safe": false,
+      "name": "fertility_suppressed",
+      "pending": null,
+      "type": "bool",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The class of the last glucose reading in 30 days.",
+        "fa": "رده آخرین قند خون در ۳۰ روز"
+      },
+      "enum": [
+        "urgent_low",
+        "low",
+        "in_range",
+        "high",
+        "very_high",
+        "discuss",
+        "below_target",
+        "in_target",
+        "above_target"
+      ],
+      "group": "vitals",
+      "member_safe": false,
+      "name": "glucose_last_category",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Active hormonal contraception (I-03).",
+        "fa": "پیشگیری هورمونی فعال (I-03)"
+      },
+      "enum": null,
+      "group": "contraception",
+      "member_safe": false,
+      "name": "hormonal_contraception",
+      "pending": null,
+      "type": "bool",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The display fertile window; absent under suppression.",
+        "fa": "پنجره باروری نمایشی؛ زیر سرکوب وجود ندارد"
+      },
+      "enum": null,
+      "group": "engine",
+      "member_safe": false,
+      "name": "is_fertile_window",
+      "pending": null,
+      "type": "bool",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The PMS-possible days.",
+        "fa": "روزهای احتمال PMS"
+      },
+      "enum": null,
+      "group": "engine",
+      "member_safe": false,
+      "name": "is_pms_window",
+      "pending": null,
+      "type": "bool",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Legacy: subscription_type = premium; use plan.",
+        "fa": "قدیمی: subscription_type = premium؛ به‌جایش plan"
+      },
+      "enum": null,
+      "group": "account",
+      "member_safe": false,
+      "name": "is_premium",
+      "pending": null,
+      "type": "bool",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The stored life-stage mode (absent without one).",
+        "fa": "حالت زندگی ذخیره‌شده (بدون ردیف وجود ندارد)"
+      },
+      "enum": [
+        "cycle",
+        "ttc",
+        "pregnancy",
+        "postpartum",
+        "menopause",
+        "teen"
+      ],
+      "group": "account",
+      "member_safe": true,
+      "name": "life_mode",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The request language (from the languages table).",
+        "fa": "زبان درخواست (از جدول زبان‌ها)"
+      },
+      "enum": null,
+      "group": "account",
+      "member_safe": false,
+      "name": "locale",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Days with a log in the last 30 days.",
+        "fa": "روزهای ثبت در ۳۰ روز اخیر"
+      },
+      "enum": null,
+      "group": "logs",
+      "member_safe": false,
+      "name": "logs_30d",
+      "pending": null,
+      "type": "int",
+      "unit": "day"
+    },
+    {
+      "description": {
+        "en": "Today's main phase; under fertility suppression fertile reads as follicular.",
+        "fa": "فاز اصلی امروز؛ زیر سرکوب باروری fertile به‌صورت follicular خوانده می‌شود"
+      },
+      "enum": [
+        "unknown",
+        "menstrual",
+        "follicular",
+        "fertile",
+        "luteal",
+        "period_expected"
+      ],
+      "group": "engine",
+      "member_safe": false,
+      "name": "main_phase",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The engine mode (cycle, ttc, pregnancy, postpartum, menopause, teen).",
+        "fa": "حالت موتور (چرخه، اقدام به بارداری، بارداری، بعد از زایمان، یائسگی، نوجوان)"
+      },
+      "enum": [
+        "cycle",
+        "ttc",
+        "pregnancy",
+        "postpartum",
+        "menopause",
+        "teen"
+      ],
+      "group": "engine",
+      "member_safe": true,
+      "name": "mode",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The content phase (I-11).",
+        "fa": "فاز محتوایی (I-11)"
+      },
+      "enum": [
+        "menstruation",
+        "follicular",
+        "ovulation",
+        "luteal"
+      ],
+      "group": "engine",
+      "member_safe": false,
+      "name": "phase",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The user's plan now.",
+        "fa": "پلن کاربر در این لحظه"
+      },
+      "enum": [
+        "free",
+        "trial",
+        "plus"
+      ],
+      "group": "account",
+      "member_safe": false,
+      "name": "plan",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The week after birth (from 1).",
+        "fa": "هفته بعد از زایمان (از ۱)"
+      },
+      "enum": null,
+      "group": "postpartum",
+      "member_safe": true,
+      "name": "postpartum_week",
+      "pending": null,
+      "type": "int",
+      "unit": "week"
+    },
+    {
+      "description": {
+        "en": "The pregnancy trimester (1–3).",
+        "fa": "سه‌ماهه بارداری (۱ تا ۳)"
+      },
+      "enum": null,
+      "group": "pregnancy",
+      "member_safe": true,
+      "name": "pregnancy_trimester",
+      "pending": null,
+      "type": "int",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The gestational week.",
+        "fa": "هفته بارداری"
+      },
+      "enum": null,
+      "group": "pregnancy",
+      "member_safe": true,
+      "name": "pregnancy_week",
+      "pending": null,
+      "type": "int",
+      "unit": "week"
+    },
+    {
+      "description": {
+        "en": "Push opt-in; false until real web push (M-09).",
+        "fa": "اجازه پوش؛ تا پوش وب واقعی false (M-09)"
+      },
+      "enum": null,
+      "group": "account",
+      "member_safe": false,
+      "name": "push_opt_in",
+      "pending": "M-09",
+      "type": "bool",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The engine needs the user's input (§2.33).",
+        "fa": "موتور به ورودی کاربر نیاز دارد (§۲.۳۳)"
+      },
+      "enum": null,
+      "group": "engine",
+      "member_safe": false,
+      "name": "requires_user_input",
+      "pending": null,
+      "type": "bool",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Saved segment ids; empty until T-M10-32.",
+        "fa": "سگمنت‌های ذخیره‌شده؛ تا T-M10-32 خالی"
+      },
+      "enum": null,
+      "group": "account",
+      "member_safe": false,
+      "name": "segment",
+      "pending": "T-M10-32",
+      "type": "set",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Today's subphase (fertility subphases are dropped under suppression).",
+        "fa": "زیرفاز امروز (زیرفازهای باروری زیر سرکوب حذف می‌شوند)"
+      },
+      "enum": [
+        "menstrual",
+        "menstrual_possible",
+        "early_follicular",
+        "mid_follicular",
+        "late_follicular_transition",
+        "fertile_rising",
+        "high_fertility",
+        "ovulation_likely",
+        "post_ovulation",
+        "early_luteal",
+        "mid_luteal",
+        "late_luteal",
+        "pms_possible",
+        "period_expected",
+        "menstruation"
+      ],
+      "group": "engine",
+      "member_safe": false,
+      "name": "subphase",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Suggest a pregnancy test.",
+        "fa": "پیشنهاد تست بارداری"
+      },
+      "enum": null,
+      "group": "engine",
+      "member_safe": false,
+      "name": "suggest_pregnancy_test",
+      "pending": null,
+      "type": "bool",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Cycles in which «backache» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «backache» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.backache",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "Cycles in which «bloating» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «bloating» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.bloating",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "Cycles in which «breast_pain» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «breast_pain» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.breast_pain",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "Cycles in which «breast_tenderness» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «breast_tenderness» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.breast_tenderness",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "Cycles in which «chills» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «chills» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.chills",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "Cycles in which «constipation» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «constipation» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.constipation",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "Cycles in which «cramps» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «cramps» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.cramps",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "Cycles in which «diarrhea» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «diarrhea» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.diarrhea",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "Cycles in which «dizziness» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «dizziness» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.dizziness",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "Cycles in which «fatigue» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «fatigue» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.fatigue",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "Cycles in which «headache» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «headache» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.headache",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "Cycles in which «heartburn» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «heartburn» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.heartburn",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "Cycles in which «hot_flashes» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «hot_flashes» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.hot_flashes",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "Cycles in which «insomnia» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «insomnia» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.insomnia",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "Cycles in which «nausea» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «nausea» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.nausea",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "Cycles in which «swelling» was logged in today's phase.",
+        "fa": "تعداد سیکل‌هایی که «swelling» در همان فاز امروز ثبت شده"
+      },
+      "enum": null,
+      "group": "symptoms",
+      "member_safe": false,
+      "name": "symptom_history.swelling",
+      "pending": null,
+      "type": "int",
+      "unit": "cycle"
+    },
+    {
+      "description": {
+        "en": "The Today status banner the engine chose (M-14).",
+        "fa": "بنر وضعیت امروز که موتور انتخاب کرده (M-14)"
+      },
+      "enum": [
+        "none",
+        "end_missing",
+        "overdue",
+        "ask_last_period"
+      ],
+      "group": "engine",
+      "member_safe": false,
+      "name": "today_ui.banner",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The user's goal; non_ttc under fertility suppression.",
+        "fa": "هدف کاربر؛ زیر سرکوب باروری non_ttc"
+      },
+      "enum": [
+        "ttc",
+        "non_ttc"
+      ],
+      "group": "goal",
+      "member_safe": false,
+      "name": "user_goal",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The engine warnings (§2.32).",
+        "fa": "هشدارهای موتور (§۲.۳۲)"
+      },
+      "enum": [
+        "period_end_missing",
+        "period_end_missing_warning_cap_exceeded",
+        "period_end_missing_hard_cap_exceeded",
+        "low_history",
+        "high_cycle_variability",
+        "short_cycle_outlier_detected",
+        "long_cycle_outlier_detected",
+        "onboarding_data_used",
+        "default_values_used",
+        "prediction_based_output",
+        "predicted_period_overdue",
+        "cycle_unresolved_after_expected_period",
+        "insufficient_anchor_data",
+        "stale_onboarding_anchor",
+        "hormonal_contraception_active",
+        "postpartum_cycles_not_returned",
+        "perimenopause_age_range",
+        "long_absence_no_period",
+        "skipped_cycle_recorded",
+        "lh_bbt_conflict",
+        "contradictory_anchor_data"
+      ],
+      "group": "engine",
+      "member_safe": false,
+      "name": "warnings",
+      "pending": null,
+      "type": "set",
+      "unit": null
+    }
+  ],
+  "fertility_facts": [
+    "is_fertile_window",
+    "fertile_window",
+    "is_ovulation_day",
+    "ovulation_day",
+    "days_to_ovulation",
+    "fertility_level",
+    "fertile_window_start",
+    "fertile_window_end"
+  ],
+  "groups": [
+    "account",
+    "contraception",
+    "engine",
+    "goal",
+    "logs",
+    "postpartum",
+    "pregnancy",
+    "symptoms",
+    "vitals"
+  ]
+}

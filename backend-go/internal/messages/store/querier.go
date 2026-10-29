@@ -17,6 +17,19 @@ type Querier interface {
 	// HealthDataEngine::dailyLogFor(): $user->dailyHealthLogs()->whereDate('log_date', $date)->first().
 	// Only the columns MessageManager::extractSymptoms can read exist here (see messages/manager).
 	GetMessageDailyLog(ctx context.Context, arg GetMessageDailyLogParams) (GetMessageDailyLogRow, error)
+	// logs: the newest log day up to today and the number of distinct log days in [since, today] (logs_30d) — the
+	// profile row carries the same numbers for the request's own today; this is the fallback for another window.
+	GetMessageFactLogStats(ctx context.Context, arg GetMessageFactLogStatsParams) (GetMessageFactLogStatsRow, error)
+	// Message fact registry v6 (T-M10-03, D-161): the small read-only queries behind the lazy fact producers
+	// (internal/messages/facts). Every query is scoped by user_id (IDOR) and runs at most once per request.
+	// account, contraception, postpartum, logs and the vitals context in one row: the user (name, signup), her first
+	// user_profiles row (hasOne, the same row GetMessageProfile reads), the life profile (stored life mode, onboarding
+	// medications, chronic illnesses), the active contraception method (a row exists only while tracking, I-03), the
+	// postpartum birth date, whether a pregnancy is active (pregnancy_mode = 1: the pregnancy profile is read only then),
+	// the log activity (newest log day up to today, distinct log days in [since, today]) and the Plus tier at now (a
+	// covering active / canceled subscription → plus; else a running trial → trial; else free — plus.tierOf). The joined
+	// tables hold at most one row per user, so nothing fans out.
+	GetMessageFactProfile(ctx context.Context, arg GetMessageFactProfileParams) (GetMessageFactProfileRow, error)
 	// B-N2-01: the stored life-stage mode (user_life_profiles.life_mode; no row / NULL = legacy detection).
 	GetMessageLifeMode(ctx context.Context, userID uint64) (sql.NullString, error)
 	// $user->profile (hasOne: the first row in index order) — the columns the message system and
@@ -37,6 +50,15 @@ type Querier interface {
 	ListLiveMessageContents(ctx context.Context, locale string) ([]ListLiveMessageContentsRow, error)
 	// HealthDataEngine::getCycleHistories() (the engine sorts itself).
 	ListMessageCycleHistories(ctx context.Context, userID uint64) ([]ListMessageCycleHistoriesRow, error)
+	// vitals: the log-sheet day values of [date_from, date_to], merged into the timed readings exactly as the vitals
+	// views merge them (vitals ListLogMeasurements, internal/vitals/merge.go).
+	ListMessageFactLogMeasurements(ctx context.Context, arg ListMessageFactLogMeasurementsParams) ([]ListMessageFactLogMeasurementsRow, error)
+	// symptom_history: the symptom items (pain locations, digestive and general symptoms) logged in [date_from, date_to].
+	ListMessageFactSymptomEntries(ctx context.Context, arg ListMessageFactSymptomEntriesParams) ([]ListMessageFactSymptomEntriesRow, error)
+	// vitals: the timed blood pressure and glucose readings of [date_from, date_to), newest first (vitals ListReadings).
+	ListMessageFactVitalReadings(ctx context.Context, arg ListMessageFactVitalReadingsParams) ([]VitalReading, error)
+	// vitals: a diabetic user's glucose targets by context (vitals ListVitalTargets).
+	ListMessageFactVitalTargets(ctx context.Context, userID uint64) ([]VitalTarget, error)
 	// MessageManager::buildContext(): the last 90 days of logs, newest first (PatternLayer input).
 	ListMessageRecentLogs(ctx context.Context, arg ListMessageRecentLogsParams) ([]ListMessageRecentLogsRow, error)
 	ListMessageRuleVersions(ctx context.Context, ruleID uint64) ([]MessageRuleVersion, error)

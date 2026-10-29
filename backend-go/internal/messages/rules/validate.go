@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ritme/backend-go/internal/messages/facts"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
@@ -142,10 +143,25 @@ func targetsPlus(target string) bool {
 		strings.HasSuffix(t, "/plus")
 }
 
+// Validation error codes of the fact registry (D-161): the 422 error_code when a condition names an unknown fact or a
+// value / operator that does not fit the fact's type.
+const (
+	CodeUnknownFact = "unknown_fact"
+	CodeBadValue    = "bad_value"
+)
+
 // Validate returns field → message (English; admin-web translates by field) for everything the editor must satisfy.
 // Call Normalize first.
 func (in *Input) Validate() map[string]string {
+	errs, _ := in.Check()
+	return errs
+}
+
+// Check is Validate plus the error code of the fact checks: CodeUnknownFact when a condition or exception names a fact
+// the registry does not have (it wins), else CodeBadValue for an operator / value that does not fit the fact, else "".
+func (in *Input) Check() (map[string]string, string) {
 	errs := map[string]string{}
+	code := ""
 	add := func(f, m string) {
 		if _, ok := errs[f]; !ok {
 			errs[f] = m
@@ -204,6 +220,13 @@ func (in *Input) Validate() map[string]string {
 	checkCond := func(f string, c Condition) {
 		if c.Fact == "" || !slices.Contains(Ops, c.Op) {
 			add(f, "A condition needs a fact and a valid operator.")
+			return
+		}
+		if msg, c := CheckFact(c); c != "" {
+			add(f, msg)
+			if code != CodeUnknownFact {
+				code = c
+			}
 		}
 	}
 	for _, g := range in.Conditions {
@@ -226,7 +249,94 @@ func (in *Input) Validate() map[string]string {
 	if r.UsesFertility() && !slices.Contains(in.Topics, TopicFertileWindow) {
 		add("topics", "A message that reads fertile-window facts needs the «fertile_window» topic.")
 	}
-	return errs
+	return errs, code
+}
+
+// CheckFact checks one condition against the fact registry (D-161): the fact exists (a text variable such as name is
+// not a condition fact), the operator fits its type (between and gt / gte / lt / lte on numbers, in / nin on enums and
+// sets, contains on sets, eq / ne on single values) and the value has the fact's type, enum values included. It
+// returns the message and CodeUnknownFact / CodeBadValue, or "" and "" when the condition is valid.
+//
+// Date facts (current_period_start) accept eq / ne only: Match compares numbers, so a date range would never match.
+func CheckFact(c Condition) (string, string) {
+	def, ok := facts.Lookup(c.Fact)
+	if !ok || def.Variable {
+		return "Unknown fact «" + c.Fact + "».", CodeUnknownFact
+	}
+	bad := func(m string) (string, string) { return "«" + c.Fact + "»: " + m, CodeBadValue }
+	inEnum := func(v any) bool {
+		s, isStr := v.(string)
+		return isStr && (def.Enum == nil || slices.Contains(def.Enum, s))
+	}
+	switch c.Op {
+	case "between", "gt", "gte", "lt", "lte":
+		if !def.Type.Numeric() {
+			return bad("«" + c.Op + "» compares numbers only.")
+		}
+		if c.Op != "between" {
+			if _, isNum := toFloat(c.Value); !isNum {
+				return bad("the value must be a number.")
+			}
+			return "", ""
+		}
+		l, isList := c.Value.([]any)
+		if !isList || len(l) != 2 {
+			return bad("«between» needs [low, high].")
+		}
+		lo, ok1 := toFloat(l[0])
+		hi, ok2 := toFloat(l[1])
+		if !ok1 || !ok2 || lo > hi {
+			return bad("«between» needs two numbers, low ≤ high.")
+		}
+	case "in", "nin":
+		if def.Type != facts.TypeEnum && def.Type != facts.TypeSet {
+			return bad("«" + c.Op + "» works on enum and set facts only.")
+		}
+		vals := asList(c.Value)
+		if len(vals) == 0 {
+			return bad("the list of values is empty.")
+		}
+		for _, v := range vals {
+			if !inEnum(v) {
+				return bad(fmt.Sprintf("unknown value «%v».", v))
+			}
+		}
+	case "contains":
+		if def.Type != facts.TypeSet {
+			return bad("«contains» works on set facts only.")
+		}
+		if !inEnum(c.Value) {
+			return bad(fmt.Sprintf("unknown value «%v».", c.Value))
+		}
+	case "eq", "ne":
+		switch def.Type {
+		case facts.TypeSet:
+			return bad("a set fact is tested with «contains», «in» or «not_in».")
+		case facts.TypeBool:
+			switch v := c.Value.(type) {
+			case bool:
+			case string:
+				if v != "true" && v != "false" {
+					return bad("the value must be true or false.")
+				}
+			default:
+				return bad("the value must be true or false.")
+			}
+		case facts.TypeInt, facts.TypeFloat:
+			if _, isNum := toFloat(c.Value); !isNum {
+				return bad("the value must be a number.")
+			}
+		case facts.TypeDate:
+			if s, isStr := c.Value.(string); !isStr || !facts.IsDate(s) {
+				return bad("the value must be a date (Y-m-d).")
+			}
+		case facts.TypeEnum:
+			if !inEnum(c.Value) {
+				return bad(fmt.Sprintf("unknown value «%v».", c.Value))
+			}
+		}
+	}
+	return "", ""
 }
 
 // validateContent checks the texts and the level rules (SPEC §5.3 level table).
