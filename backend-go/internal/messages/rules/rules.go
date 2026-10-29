@@ -23,12 +23,14 @@ const (
 	LevelFollowSoon    = "follow_soon"
 )
 
-// Kinds and their priority bands.
+// Kinds and their priority bands (SPEC §5.3; content and marketing since T-M10-02).
 const (
-	KindSafety   = "safety"   // 1000
-	KindEngine   = "engine"   // 800–999
-	KindClinical = "clinical" // 100–799
-	KindProduct  = "product"  // 1–99
+	KindSafety    = "safety"    // 1000
+	KindEngine    = "engine"    // 800–999
+	KindClinical  = "clinical"  // 100–799, approval required
+	KindContent   = "content"   // 100–799, approval required
+	KindProduct   = "product"   // 1–99
+	KindMarketing = "marketing" // 1–99
 )
 
 // Statuses.
@@ -39,15 +41,15 @@ const (
 )
 
 // Placements. UrgentPlacements never carry product messages.
-var Placements = []string{"status_banner", "smart_tip", "daily_advice", "daily_challenge", "push", "modal", "sms", "alerts", "urgent_modal"}
+var Placements = []string{"status_banner", "smart_tip", "daily_advice", "daily_challenge", "push", "modal", "sms", "alerts", "urgent_modal", SlotAlertsInbox}
 
 // UrgentPlacements are the urgent paths: product / marketing messages never run there.
-var UrgentPlacements = []string{"urgent_modal", "alerts"}
+var UrgentPlacements = []string{"urgent_modal", "alerts", SlotAlertsInbox}
 
 // Levels and Kinds list the valid values.
 var (
 	Levels = []string{LevelInfo, LevelSuggestion, LevelWorthFollowUp, LevelFollowSoon}
-	Kinds  = []string{KindSafety, KindEngine, KindClinical, KindProduct}
+	Kinds  = []string{KindSafety, KindEngine, KindClinical, KindContent, KindProduct, KindMarketing}
 )
 
 // Band is the inclusive priority range of a kind.
@@ -57,7 +59,7 @@ func Band(kind string) (lo, hi int) {
 		return 1000, 1000
 	case KindEngine:
 		return 800, 999
-	case KindClinical:
+	case KindClinical, KindContent:
 		return 100, 799
 	}
 	return 1, 99
@@ -75,7 +77,7 @@ func KindOfPriority(p int) string {
 
 // NeedsMedicalApproval reports whether a rule must be approved by the medical advisor before it is served.
 func NeedsMedicalApproval(level, kind string) bool {
-	return level == LevelWorthFollowUp || level == LevelFollowSoon || kind == KindSafety || kind == KindClinical
+	return level == LevelWorthFollowUp || level == LevelFollowSoon || slices.Contains(ApprovalKinds, kind)
 }
 
 // Facts are the values conditions read: numbers (float64), strings, bools and []string.
@@ -106,13 +108,15 @@ type Variant struct {
 }
 
 // Content is a rule's message content. Seen and Confidence are the «what we saw» / «how sure we are» fields of the
-// worth-follow-up and follow-soon levels; Contact is the call button of follow-soon.
+// worth-follow-up and follow-soon levels; Contact is the call button of follow-soon. Variants holds the texts of the
+// variant keys beyond a and b (N weighted variants, T-M10-02).
 type Content struct {
-	A          Variant  `json:"a"`
-	B          *Variant `json:"b,omitempty"`
-	Seen       string   `json:"seen,omitempty"`
-	Confidence string   `json:"confidence,omitempty"`
-	Contact    string   `json:"contact,omitempty"`
+	A          Variant            `json:"a"`
+	B          *Variant           `json:"b,omitempty"`
+	Variants   map[string]Variant `json:"variants,omitempty"`
+	Seen       string             `json:"seen,omitempty"`
+	Confidence string             `json:"confidence,omitempty"`
+	Contact    string             `json:"contact,omitempty"`
 }
 
 // Rule is the engine's view of a message_rules row.
@@ -135,6 +139,19 @@ type Rule struct {
 	AudiencePercent  int
 	Status           string
 	IsActive         bool
+
+	// Message model v6 (T-M10-02). A nil / zero value falls back to the legacy field above (see the Effective*
+	// methods in v6.go).
+	RuleKey          string
+	Version          int
+	ApprovedVersion  int // 0 = never approved; while > 0 the approved snapshot is served (M-03)
+	Topics           []string
+	Caps             []Cap
+	Variants         []VariantWeight
+	StartsAt, EndsAt time.Time // Tehran wall clock; EndsAt is exclusive
+	HourWindows      []HourWindow
+	GoalEvent        string
+	Locked           bool
 }
 
 // ParseGroups decodes a stored conditions column.
@@ -162,13 +179,15 @@ func ParseContent(raw string) Content {
 	return c
 }
 
-// Served reports whether the rule may be shown at all: active, and a medical rule only while approved.
+// Served reports whether the rule may be shown at all: active, and a medical rule only while approved or while it has
+// an approved version (M-03: the approved snapshot stays live while the head waits for re-approval; ActiveRows serves
+// that snapshot).
 func (r *Rule) Served() bool {
 	if !r.IsActive {
 		return false
 	}
 	if NeedsMedicalApproval(r.Level, r.Kind) {
-		return r.Status == StatusApproved
+		return r.Status == StatusApproved || r.ApprovedVersion > 0
 	}
 	return true
 }
@@ -183,8 +202,28 @@ func bucket(userID, ruleID uint64, salt string) int {
 	return int(h.Sum32() % 100)
 }
 
-// Assign is the stable A/B assignment of a user: the same (user, rule) always gets the same variant.
+// Assign is the stable A/B assignment of a user: the same (user, rule) always gets the same variant. A rule with the
+// v6 variants column walks the weights (for a legacy a/b rule the result equals the a/b split).
 func (r *Rule) Assign(userID uint64) string {
+	if len(r.Variants) > 0 {
+		sum := 0
+		for _, v := range r.Variants {
+			sum += max(v.Weight, 0)
+		}
+		if sum <= 0 || len(r.Variants) == 1 {
+			return r.Variants[0].Key
+		}
+		h := fnv.New32a()
+		_, _ = h.Write([]byte(strconv.FormatUint(userID, 10) + ":" + strconv.FormatUint(r.ID, 10) + ":ab"))
+		x := int(h.Sum32() % uint32(sum)) //nolint:gosec // sum > 0 and small
+		for _, v := range r.Variants {
+			if x < max(v.Weight, 0) {
+				return v.Key
+			}
+			x -= max(v.Weight, 0)
+		}
+		return r.Variants[0].Key
+	}
 	if !r.VariantsEnabled || r.Content.B == nil {
 		return "a"
 	}
@@ -203,6 +242,9 @@ func (r *Rule) InAudience(userID uint64) bool {
 func (r *Rule) VariantContent(v string) Variant {
 	if v == "b" && r.Content.B != nil {
 		return *r.Content.B
+	}
+	if x, ok := r.Content.Variants[v]; ok && v != "a" {
+		return x
 	}
 	return r.Content.A
 }
@@ -224,9 +266,7 @@ type Prefetcher interface {
 
 // Windows are the cap-window starts Eligible asks Count about: now − 1 day, − 7 days, − the cycle length.
 func Windows(now time.Time, facts Facts) [3]time.Time {
-	week := Rule{CapPeriod: "week"}
-	cycle := Rule{CapPeriod: "cycle"}
-	return [3]time.Time{now.Add(-capWindow(&Rule{}, facts)), now.Add(-capWindow(&week, facts)), now.Add(-capWindow(&cycle, facts))}
+	return [3]time.Time{now.Add(-capWindow("day", facts)), now.Add(-capWindow("week", facts)), now.Add(-capWindow("cycle", facts))}
 }
 
 // Choice is the engine's answer.
@@ -248,7 +288,7 @@ func Select(all []Rule, facts Facts, userID uint64, now time.Time, h History) (*
 	if p, ok := h.(Prefetcher); ok {
 		var ids []uint64
 		for i := range cands {
-			if r := &cands[i]; r.Served() && !r.Unlimited() && (r.CooldownDays > 0 || r.CapCount > 0) {
+			if r := &cands[i]; r.Served() && !r.Unlimited() && (r.CooldownDays > 0 || len(r.EffectiveCaps()) > 0) {
 				ids = append(ids, r.ID)
 			}
 		}
@@ -296,21 +336,21 @@ func Eligible(r *Rule, facts Facts, userID uint64, now time.Time, h History) (bo
 			return false, nil
 		}
 	}
-	if r.CapCount > 0 {
-		n, err := h.Count(r.ID, "impression", now.Add(-capWindow(r, facts)))
+	for _, cp := range r.EffectiveCaps() {
+		n, err := h.Count(r.ID, "impression", now.Add(-capWindow(cp.Period, facts)))
 		if err != nil {
 			return false, err
 		}
-		if n >= r.CapCount {
+		if n >= cp.Count {
 			return false, nil
 		}
 	}
 	return true, nil
 }
 
-func capWindow(r *Rule, facts Facts) time.Duration {
+func capWindow(period string, facts Facts) time.Duration {
 	days := 1
-	switch r.CapPeriod {
+	switch period {
 	case "week":
 		days = 7
 	case "cycle":
@@ -322,23 +362,24 @@ func capWindow(r *Rule, facts Facts) time.Duration {
 	return time.Duration(days) * 24 * time.Hour
 }
 
-// InWindow checks the start/end dates and the hour window (Tehran time; an overnight window wraps midnight).
+// InWindow checks the schedule and the hour windows (Tehran time; an overnight window wraps midnight). The v6
+// datetime / multi-window columns win over the legacy dates and single window (T-M10-02); the user-local clock is
+// T-M10-04 (M-08).
 func InWindow(r *Rule, now time.Time) bool {
-	today := civildate.InTehran(now)
-	if !r.StartsOn.IsZero() && today.Before(r.StartsOn) {
+	local := now.In(civildate.Tehran)
+	start, end := r.EffectiveSchedule()
+	if !start.IsZero() && local.Before(start) {
 		return false
 	}
-	if !r.EndsOn.IsZero() && today.After(r.EndsOn) {
+	if !end.IsZero() && !local.Before(end) {
 		return false
 	}
-	if r.HoursFrom >= 0 && r.HoursTo >= 0 {
-		hr := now.In(civildate.Tehran).Hour()
-		if r.HoursFrom <= r.HoursTo {
-			return hr >= r.HoursFrom && hr < r.HoursTo
-		}
-		return hr >= r.HoursFrom || hr < r.HoursTo
+	ws := r.EffectiveHourWindows()
+	if len(ws) == 0 {
+		return true
 	}
-	return true
+	hr := local.Hour()
+	return slices.ContainsFunc(ws, func(w HourWindow) bool { return w.inHours(hr) })
 }
 
 // MatchRule evaluates the groups (AND across groups, each group by its own op) and then the exceptions: any exception

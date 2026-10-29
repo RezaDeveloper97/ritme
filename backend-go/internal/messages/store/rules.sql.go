@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
@@ -77,7 +78,7 @@ func (q *Queries) DeleteMessageRule(ctx context.Context, id uint64) error {
 }
 
 const getMessageRule = `-- name: GetMessageRule :one
-SELECT id, title, level, kind, priority, placement, content, variants_enabled, ab_split, conditions, exceptions, cap_count, cap_period, cooldown_days, hours_from, hours_to, starts_on, ends_on, audience_percent, goal, status, is_active, version, approved_by, approved_at, created_by, created_at, updated_at FROM ` + "`" + `message_rules` + "`" + ` WHERE id = ? LIMIT 1
+SELECT id, title, level, kind, priority, placement, content, variants_enabled, ab_split, conditions, exceptions, cap_count, cap_period, cooldown_days, hours_from, hours_to, starts_on, ends_on, audience_percent, goal, status, is_active, version, approved_by, approved_at, created_by, created_at, updated_at, rule_key, approved_version, topics, caps, variants, starts_at, ends_at, hour_windows, goal_event, locked FROM ` + "`" + `message_rules` + "`" + ` WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) GetMessageRule(ctx context.Context, id uint64) (MessageRule, error) {
@@ -112,6 +113,50 @@ func (q *Queries) GetMessageRule(ctx context.Context, id uint64) (MessageRule, e
 		&i.CreatedBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.RuleKey,
+		&i.ApprovedVersion,
+		&i.Topics,
+		&i.Caps,
+		&i.Variants,
+		&i.StartsAt,
+		&i.EndsAt,
+		&i.HourWindows,
+		&i.GoalEvent,
+		&i.Locked,
+	)
+	return i, err
+}
+
+const getMessageRuleIDByKey = `-- name: GetMessageRuleIDByKey :one
+SELECT id FROM ` + "`" + `message_rules` + "`" + ` WHERE rule_key = ? LIMIT 1
+`
+
+func (q *Queries) GetMessageRuleIDByKey(ctx context.Context, ruleKey sql.NullString) (uint64, error) {
+	row := q.db.QueryRowContext(ctx, getMessageRuleIDByKey, ruleKey)
+	var id uint64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const getMessageRuleVersion = `-- name: GetMessageRuleVersion :one
+SELECT id, rule_id, version, snapshot, changed_by, created_at FROM ` + "`" + `message_rule_versions` + "`" + ` WHERE rule_id = ? AND version = ? LIMIT 1
+`
+
+type GetMessageRuleVersionParams struct {
+	RuleID  uint64
+	Version uint32
+}
+
+func (q *Queries) GetMessageRuleVersion(ctx context.Context, arg GetMessageRuleVersionParams) (MessageRuleVersion, error) {
+	row := q.db.QueryRowContext(ctx, getMessageRuleVersion, arg.RuleID, arg.Version)
+	var i MessageRuleVersion
+	err := row.Scan(
+		&i.ID,
+		&i.RuleID,
+		&i.Version,
+		&i.Snapshot,
+		&i.ChangedBy,
+		&i.CreatedAt,
 	)
 	return i, err
 }
@@ -154,12 +199,15 @@ func (q *Queries) InsertMessageEvent(ctx context.Context, arg InsertMessageEvent
 const insertMessageRule = `-- name: InsertMessageRule :execresult
 INSERT INTO ` + "`" + `message_rules` + "`" + ` (title, level, kind, priority, placement, content, variants_enabled, ab_split, conditions,
   exceptions, cap_count, cap_period, cooldown_days, hours_from, hours_to, starts_on, ends_on, audience_percent, goal,
+  rule_key, topics, caps, variants, starts_at, ends_at, hour_windows, goal_event,
   status, is_active, version, created_by, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?, ?,
   ?, ?, ?, ?, ?,
   ?, ?, ?, ?, ?,
-  ?, ?, ?, 'draft', 0, 1, ?,
-  ?, ?)
+  ?, ?, ?,
+  ?, ?, ?, ?, ?, ?,
+  ?, ?,
+  'draft', 0, 1, ?, ?, ?)
 `
 
 type InsertMessageRuleParams struct {
@@ -182,6 +230,14 @@ type InsertMessageRuleParams struct {
 	EndsOn          civildate.NullDate
 	AudiencePercent uint8
 	Goal            sql.NullString
+	RuleKey         sql.NullString
+	Topics          db.NullRawJSON
+	Caps            db.NullRawJSON
+	Variants        db.NullRawJSON
+	StartsAt        sql.NullTime
+	EndsAt          sql.NullTime
+	HourWindows     db.NullRawJSON
+	GoalEvent       sql.NullString
 	CreatedBy       sql.NullInt64
 	Now             sql.NullTime
 }
@@ -207,6 +263,14 @@ func (q *Queries) InsertMessageRule(ctx context.Context, arg InsertMessageRulePa
 		arg.EndsOn,
 		arg.AudiencePercent,
 		arg.Goal,
+		arg.RuleKey,
+		arg.Topics,
+		arg.Caps,
+		arg.Variants,
+		arg.StartsAt,
+		arg.EndsAt,
+		arg.HourWindows,
+		arg.GoalEvent,
 		arg.CreatedBy,
 		arg.Now,
 		arg.Now,
@@ -256,7 +320,7 @@ func (q *Queries) LastUserMessageEvent(ctx context.Context, arg LastUserMessageE
 }
 
 const listActiveMessageRules = `-- name: ListActiveMessageRules :many
-SELECT id, title, level, kind, priority, placement, content, variants_enabled, ab_split, conditions, exceptions, cap_count, cap_period, cooldown_days, hours_from, hours_to, starts_on, ends_on, audience_percent, goal, status, is_active, version, approved_by, approved_at, created_by, created_at, updated_at FROM ` + "`" + `message_rules` + "`" + `
+SELECT id, title, level, kind, priority, placement, content, variants_enabled, ab_split, conditions, exceptions, cap_count, cap_period, cooldown_days, hours_from, hours_to, starts_on, ends_on, audience_percent, goal, status, is_active, version, approved_by, approved_at, created_by, created_at, updated_at, rule_key, approved_version, topics, caps, variants, starts_at, ends_at, hour_windows, goal_event, locked FROM ` + "`" + `message_rules` + "`" + `
 WHERE is_active = 1 AND (? = '' OR placement = ?)
 ORDER BY priority DESC, id ASC
 `
@@ -304,6 +368,16 @@ func (q *Queries) ListActiveMessageRules(ctx context.Context, arg ListActiveMess
 			&i.CreatedBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.RuleKey,
+			&i.ApprovedVersion,
+			&i.Topics,
+			&i.Caps,
+			&i.Variants,
+			&i.StartsAt,
+			&i.EndsAt,
+			&i.HourWindows,
+			&i.GoalEvent,
+			&i.Locked,
 		); err != nil {
 			return nil, err
 		}
@@ -353,7 +427,7 @@ func (q *Queries) ListMessageRuleVersions(ctx context.Context, ruleID uint64) ([
 }
 
 const listMessageRules = `-- name: ListMessageRules :many
-SELECT id, title, level, kind, priority, placement, content, variants_enabled, ab_split, conditions, exceptions, cap_count, cap_period, cooldown_days, hours_from, hours_to, starts_on, ends_on, audience_percent, goal, status, is_active, version, approved_by, approved_at, created_by, created_at, updated_at FROM ` + "`" + `message_rules` + "`" + `
+SELECT id, title, level, kind, priority, placement, content, variants_enabled, ab_split, conditions, exceptions, cap_count, cap_period, cooldown_days, hours_from, hours_to, starts_on, ends_on, audience_percent, goal, status, is_active, version, approved_by, approved_at, created_by, created_at, updated_at, rule_key, approved_version, topics, caps, variants, starts_at, ends_at, hour_windows, goal_event, locked FROM ` + "`" + `message_rules` + "`" + `
 WHERE (? = '' OR placement = ?)
   AND (? = '' OR kind = ?)
   AND (? = '' OR status = ?)
@@ -416,7 +490,54 @@ func (q *Queries) ListMessageRules(ctx context.Context, arg ListMessageRulesPara
 			&i.CreatedBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.RuleKey,
+			&i.ApprovedVersion,
+			&i.Topics,
+			&i.Caps,
+			&i.Variants,
+			&i.StartsAt,
+			&i.EndsAt,
+			&i.HourWindows,
+			&i.GoalEvent,
+			&i.Locked,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listServedMessageRuleSnapshots = `-- name: ListServedMessageRuleSnapshots :many
+SELECT v.rule_id, v.version, v.snapshot FROM ` + "`" + `message_rule_versions` + "`" + ` v
+JOIN ` + "`" + `message_rules` + "`" + ` r ON r.id = v.rule_id AND v.version = r.approved_version
+WHERE r.is_active = 1 AND r.approved_version IS NOT NULL AND r.approved_version <> r.version
+`
+
+type ListServedMessageRuleSnapshotsRow struct {
+	RuleID   uint64
+	Version  uint32
+	Snapshot string
+}
+
+// T-M10-02 (M-03): the approved snapshots of the active rules whose head waits for re-approval (approved_version is
+// set and is not the head version); rules.ActiveRows serves them instead of the head.
+func (q *Queries) ListServedMessageRuleSnapshots(ctx context.Context) ([]ListServedMessageRuleSnapshotsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listServedMessageRuleSnapshots)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListServedMessageRuleSnapshotsRow{}
+	for rows.Next() {
+		var i ListServedMessageRuleSnapshotsRow
+		if err := rows.Scan(&i.RuleID, &i.Version, &i.Snapshot); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -595,23 +716,27 @@ func (q *Queries) SetMessageRuleActive(ctx context.Context, arg SetMessageRuleAc
 
 const setMessageRuleStatus = `-- name: SetMessageRuleStatus :exec
 UPDATE ` + "`" + `message_rules` + "`" + ` SET status = ?, approved_by = ?,
-  approved_at = ?, updated_at = ?
+  approved_at = ?, approved_version = COALESCE(?, approved_version),
+  updated_at = ?
 WHERE id = ?
 `
 
 type SetMessageRuleStatusParams struct {
-	Status     string
-	ApprovedBy sql.NullInt64
-	ApprovedAt sql.NullTime
-	Now        sql.NullTime
-	ID         uint64
+	Status          string
+	ApprovedBy      sql.NullInt64
+	ApprovedAt      sql.NullTime
+	ApprovedVersion sql.NullInt32
+	Now             sql.NullTime
+	ID              uint64
 }
 
+// approved_version NULL keeps the current one (submit, reject: the last approved version stays live, M-03).
 func (q *Queries) SetMessageRuleStatus(ctx context.Context, arg SetMessageRuleStatusParams) error {
 	_, err := q.db.ExecContext(ctx, setMessageRuleStatus,
 		arg.Status,
 		arg.ApprovedBy,
 		arg.ApprovedAt,
+		arg.ApprovedVersion,
 		arg.Now,
 		arg.ID,
 	)
@@ -625,8 +750,11 @@ UPDATE ` + "`" + `message_rules` + "`" + ` SET title = ?, level = ?, kind = ?,
   exceptions = ?, cap_count = ?, cap_period = ?,
   cooldown_days = ?, hours_from = ?, hours_to = ?,
   starts_on = ?, ends_on = ?, audience_percent = ?,
-  goal = ?, status = 'draft', approved_by = NULL, approved_at = NULL, version = version + 1,
-  updated_at = ?
+  goal = ?, rule_key = ?, topics = ?, caps = ?,
+  variants = ?, starts_at = ?, ends_at = ?,
+  hour_windows = ?, goal_event = ?,
+  status = ?, approved_by = ?, approved_at = ?,
+  approved_version = ?, version = version + 1, updated_at = ?
 WHERE id = ?
 `
 
@@ -650,10 +778,25 @@ type UpdateMessageRuleParams struct {
 	EndsOn          civildate.NullDate
 	AudiencePercent uint8
 	Goal            sql.NullString
+	RuleKey         sql.NullString
+	Topics          db.NullRawJSON
+	Caps            db.NullRawJSON
+	Variants        db.NullRawJSON
+	StartsAt        sql.NullTime
+	EndsAt          sql.NullTime
+	HourWindows     db.NullRawJSON
+	GoalEvent       sql.NullString
+	Status          string
+	ApprovedBy      sql.NullInt64
+	ApprovedAt      sql.NullTime
+	ApprovedVersion sql.NullInt32
 	Now             sql.NullTime
 	ID              uint64
 }
 
+// T-M10-02 (M-02, M-03): the version always grows; the caller decides the approval state — a text / condition /
+// level / kind / topic / variant-content edit of a medical rule leaves it pending while approved_version keeps
+// serving, an ops-only edit (priority, audience, schedule, hours, caps) keeps the approval.
 func (q *Queries) UpdateMessageRule(ctx context.Context, arg UpdateMessageRuleParams) error {
 	_, err := q.db.ExecContext(ctx, updateMessageRule,
 		arg.Title,
@@ -675,6 +818,18 @@ func (q *Queries) UpdateMessageRule(ctx context.Context, arg UpdateMessageRulePa
 		arg.EndsOn,
 		arg.AudiencePercent,
 		arg.Goal,
+		arg.RuleKey,
+		arg.Topics,
+		arg.Caps,
+		arg.Variants,
+		arg.StartsAt,
+		arg.EndsAt,
+		arg.HourWindows,
+		arg.GoalEvent,
+		arg.Status,
+		arg.ApprovedBy,
+		arg.ApprovedAt,
+		arg.ApprovedVersion,
 		arg.Now,
 		arg.ID,
 	)

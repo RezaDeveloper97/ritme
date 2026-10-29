@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"log/slog"
+	"slices"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
 	"github.com/ritme/backend-go/internal/cycle/state"
 	"github.com/ritme/backend-go/internal/messages"
@@ -23,13 +25,21 @@ import (
 // Smart messages v2 editor (bloom B-N9-05, D-86): /messages/rules*. A rule has a user level, a priority band, A/B
 // variants, AND/OR condition groups + exceptions, placement, caps, cooldown, hours, window, audience share and a
 // goal. Messages of the clinical kinds or the «worth follow-up» / «follow up soon» levels need the medical advisor's
-// approval (the clinical capability, manage) and ANY edit withdraws it. Preview and conflict check are read-only.
+// approval (the clinical capability, manage). Preview and conflict check are read-only.
+//
+// Message model v6 (T-M10-02, D-160): N caps, N weighted variants, datetime schedule with several hour windows,
+// topics, goal events, rule keys and locked rules; spec-name aliases on input (type, slot, name; follow_up, urgent).
+// Versioned approval (M-02, M-03): a content / condition / level / kind / slot / topic / variant-key edit of a medical
+// rule bumps the version and leaves it pending while approved_version keeps serving; an ops edit (priority, audience,
+// schedule, hours, caps, cooldown) bumps it and keeps the approval. Authority (SPEC §5.8): creating, editing or
+// setting a safety / clinical / content rule, and toggling or deleting a safety rule, need the clinical capability.
 
 // Error codes (the admin-web translates them).
 const (
 	CodeApprovalRequired  = "approval_required"   // 409: activating an unapproved medical message
 	CodeNotPending        = "not_pending"         // 409: approve / reject only while pending_approval
 	CodeApprovalNotNeeded = "approval_not_needed" // 422: this message is not a medical one
+	CodeLocked            = "locked"              // 409: a locked rule cannot be switched off or deleted
 )
 
 const statsWindow = 7 * 24 * time.Hour
@@ -99,17 +109,57 @@ func (h *Handlers) rawJSON(s string) any {
 
 func (h *Handlers) ruleJSON(m *mstore.MessageRule) *jsonx.OrderedMap {
 	return jsonx.Obj(
-		"id", m.ID, "title", m.Title, "level", m.Level, "kind", m.Kind, "priority", m.Priority,
-		"placement", m.Placement, "content", h.rawJSON(m.Content), "variants_enabled", m.VariantsEnabled,
-		"ab_split", m.AbSplit, "conditions", h.rawJSON(m.Conditions), "exceptions", h.rawJSON(m.Exceptions),
-		"cap_count", nullInt16Out(m.CapCount), "cap_period", httpadmin.NullString(m.CapPeriod),
+		"id", m.ID, "rule_key", httpadmin.NullString(m.RuleKey), "title", m.Title, "level", m.Level, "kind", m.Kind,
+		"priority", m.Priority, "placement", m.Placement, "content", h.rawJSON(m.Content),
+		"variants_enabled", m.VariantsEnabled, "ab_split", m.AbSplit, "variants", jsonOut(m.Variants),
+		"conditions", h.rawJSON(m.Conditions), "exceptions", h.rawJSON(m.Exceptions), "topics", jsonOut(m.Topics),
+		"cap_count", nullInt16Out(m.CapCount), "cap_period", httpadmin.NullString(m.CapPeriod), "caps", jsonOut(m.Caps),
 		"cooldown_days", m.CooldownDays, "hours_from", nullInt16Out(m.HoursFrom), "hours_to", nullInt16Out(m.HoursTo),
-		"starts_on", dateOut(m.StartsOn), "ends_on", dateOut(m.EndsOn), "audience_percent", m.AudiencePercent,
-		"goal", httpadmin.NullString(m.Goal), "status", m.Status, "is_active", m.IsActive, "version", m.Version,
+		"hour_windows", jsonOut(m.HourWindows), "starts_on", dateOut(m.StartsOn), "ends_on", dateOut(m.EndsOn),
+		"starts_at", scheduleOut(m.StartsAt), "ends_at", scheduleOut(m.EndsAt), "audience_percent", m.AudiencePercent,
+		"goal", httpadmin.NullString(m.Goal), "goal_event", httpadmin.NullString(m.GoalEvent), "locked", m.Locked,
+		"status", m.Status, "is_active", m.IsActive, "version", m.Version,
+		"approved_version", nullInt32Out(m.ApprovedVersion), "served_version", servedVersion(m),
 		"needs_medical_approval", rules.NeedsMedicalApproval(m.Level, m.Kind),
 		"approved_by", nullInt64Out(m.ApprovedBy), "approved_at", httpadmin.Time(m.ApprovedAt),
 		"created_at", httpadmin.Time(m.CreatedAt), "updated_at", httpadmin.Time(m.UpdatedAt),
+		// Spec names (M-01), next to the canonical keys.
+		"type", m.Kind, "slot", m.Placement, "name", m.Title, "level_name", rules.SpecLevel(m.Level),
 	)
+}
+
+func jsonOut(j db.NullRawJSON) any {
+	if !j.Valid {
+		return nil
+	}
+	var v any
+	if json.Unmarshal(j.V, &v) != nil {
+		return nil
+	}
+	return v
+}
+
+func scheduleOut(t sql.NullTime) any {
+	if !t.Valid {
+		return nil
+	}
+	return t.Time.Format(rules.ScheduleLayout)
+}
+
+func nullInt32Out(n sql.NullInt32) any {
+	if !n.Valid {
+		return nil
+	}
+	return n.Int32
+}
+
+// servedVersion is the version users get: the head when it needs no approval or is approved, else the approved
+// version (M-03), else none (null).
+func servedVersion(m *mstore.MessageRule) any {
+	if !rules.NeedsMedicalApproval(m.Level, m.Kind) || m.Status == rules.StatusApproved {
+		return m.Version
+	}
+	return nullInt32Out(m.ApprovedVersion)
 }
 
 func nullInt16Out(n sql.NullInt16) any {
@@ -140,11 +190,10 @@ func parseInput(c fiber.Ctx) (*rules.Input, error) {
 	if err := json.Unmarshal(c.Body(), &in); err != nil {
 		return nil, httpadmin.FieldError("title", "The request body is not valid JSON.")
 	}
+	in.Normalize()
 	if errs := in.Validate(); len(errs) > 0 {
 		ve := httpx.NewValidationError()
-		for _, f := range []string{"title", "level", "kind", "priority", "placement", "content.a", "content.b", "content.seen",
-			"content.confidence", "content.contact", "ab_split", "cap_count", "cap_period", "cooldown_days", "hours_from",
-			"hours_to", "starts_on", "ends_on", "audience_percent", "goal", "conditions", "exceptions"} {
+		for _, f := range rules.Fields {
 			if m, ok := errs[f]; ok {
 				ve.Add(f, m)
 			}
@@ -152,6 +201,57 @@ func parseInput(c fiber.Ctx) (*rules.Input, error) {
 		return nil, httpadmin.Invalid(ve)
 	}
 	return &in, nil
+}
+
+// needsClinical reports whether authoring a rule of this kind needs the clinical capability (SPEC §5.3/§5.8).
+func needsClinical(kind string) bool { return slices.Contains(rules.ApprovalKinds, kind) }
+
+// checkRuleKey is the 422 of a rule key another rule already holds.
+func (h *Handlers) checkRuleKey(ctx context.Context, key string, self uint64) error {
+	if key == "" {
+		return nil
+	}
+	id, err := h.mq.GetMessageRuleIDByKey(ctx, nullStr(key))
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if id != self {
+		return httpadmin.FieldError("rule_key", "The key is already taken.")
+	}
+	return nil
+}
+
+func jsonCol[T any](v []T) db.NullRawJSON {
+	if v == nil {
+		return db.NullRawJSON{}
+	}
+	return db.NullRawJSON{V: json.RawMessage(mustJSON(v)), Valid: true}
+}
+
+func scheduleCol(s string) sql.NullTime {
+	t, ok := rules.ParseSchedule(s)
+	if s == "" || !ok {
+		return sql.NullTime{}
+	}
+	return sql.NullTime{Time: t, Valid: true}
+}
+
+// v6Cols are the message model v6 columns of a payload.
+type v6Cols struct {
+	ruleKey, goalEvent                  sql.NullString
+	topics, caps, variants, hourWindows db.NullRawJSON
+	startsAt, endsAt                    sql.NullTime
+}
+
+func colsOf(in *rules.Input) v6Cols {
+	return v6Cols{
+		ruleKey: nullStr(in.RuleKey), goalEvent: nullStr(in.GoalEvent), topics: jsonCol(in.Topics), caps: jsonCol(in.Caps),
+		variants: jsonCol(in.Variants), hourWindows: jsonCol(in.HourWindows),
+		startsAt: scheduleCol(in.StartsAt), endsAt: scheduleCol(in.EndsAt),
+	}
 }
 
 func (h *Handlers) snapshot(ctx context.Context, m *mstore.MessageRule, adminID uint64, now time.Time) error {
@@ -201,6 +301,15 @@ func (h *Handlers) RuleStore(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if needsClinical(in.Kind) {
+		if err := h.requireMedical(c); err != nil {
+			return err
+		}
+	}
+	if err := h.checkRuleKey(c.Context(), in.RuleKey, 0); err != nil {
+		return err
+	}
+	v6 := colsOf(in)
 	now := httpadmin.Now(c)
 	res, err := h.mq.InsertMessageRule(c.Context(), mstore.InsertMessageRuleParams{
 		Title: in.Title, Level: in.Level, Kind: in.Kind, Priority: uint16(in.Priority), //nolint:gosec // validated band
@@ -209,6 +318,8 @@ func (h *Handlers) RuleStore(c fiber.Ctx) error {
 		CapCount: nullInt16(in.CapCount), CapPeriod: capPeriod(in), CooldownDays: uint16(in.CooldownDays), //nolint:gosec // validated
 		HoursFrom: nullInt16(in.HoursFrom), HoursTo: nullInt16(in.HoursTo),
 		StartsOn: nullDate(in.StartsOn), EndsOn: nullDate(in.EndsOn), AudiencePercent: aud(in), Goal: nullStr(in.Goal),
+		RuleKey: v6.ruleKey, Topics: v6.topics, Caps: v6.caps, Variants: v6.variants, StartsAt: v6.startsAt,
+		EndsAt: v6.endsAt, HourWindows: v6.hourWindows, GoalEvent: v6.goalEvent,
 		CreatedBy: sql.NullInt64{Int64: int64(adminID(c)), Valid: adminID(c) > 0}, //nolint:gosec // small
 		Now:       httpadmin.DBTime(now),
 	})
@@ -241,8 +352,52 @@ func orEmptyC(c []rules.Condition) []rules.Condition {
 	return c
 }
 
-// RuleUpdate is PUT /messages/rules/:id. The whole definition is replaced; the version grows, a snapshot is stored
-// and the medical approval is withdrawn (status back to draft) whatever was edited.
+// approvalAfter is the approval state of a rule after an edit (M-02, M-03): a non-medical rule goes back to draft as
+// before; a medical one whose served fields changed waits for approval (pending) with the last approved version still
+// serving; an ops-only edit keeps the state, and an approved head stays approved at the new version.
+type approvalAfter struct {
+	status          string
+	approvedBy      sql.NullInt64
+	approvedAt      sql.NullTime
+	approvedVersion sql.NullInt32
+	withdrawn       bool
+}
+
+func nextApproval(cur *mstore.MessageRule, in *rules.Input) approvalAfter {
+	old, updated := rules.FromRow(cur), in.Rule(cur.ID)
+	// A head approved before T-M10-02 has no approved_version: its own version is the approved one.
+	approved := cur.ApprovedVersion
+	if cur.Status == rules.StatusApproved {
+		approved = sql.NullInt32{Int32: int32(cur.Version), Valid: true} //nolint:gosec // versions are small
+	}
+	if !rules.NeedsMedicalApproval(in.Level, in.Kind) {
+		return approvalAfter{status: rules.StatusDraft, approvedVersion: approved}
+	}
+	if !rules.NeedsMedicalApproval(cur.Level, cur.Kind) || rules.VoidsApproval(&old, &updated) {
+		return approvalAfter{status: rules.StatusPending, approvedVersion: approved, withdrawn: cur.Status == rules.StatusApproved}
+	}
+	if cur.Status == rules.StatusApproved {
+		return approvalAfter{status: rules.StatusApproved, approvedBy: cur.ApprovedBy, approvedAt: cur.ApprovedAt,
+			approvedVersion: sql.NullInt32{Int32: int32(cur.Version) + 1, Valid: true}} //nolint:gosec // versions are small
+	}
+	return approvalAfter{status: cur.Status, approvedVersion: cur.ApprovedVersion}
+}
+
+// ensureSnapshot stores the snapshot of an approved head that has none (a seeded or pre-v6 row), so its approved
+// version can keep serving while the next version waits for approval.
+func (h *Handlers) ensureSnapshot(ctx context.Context, m *mstore.MessageRule, now time.Time) error {
+	if m.Status != rules.StatusApproved {
+		return nil
+	}
+	_, err := h.mq.GetMessageRuleVersion(ctx, mstore.GetMessageRuleVersionParams{RuleID: m.ID, Version: m.Version})
+	if errors.Is(err, sql.ErrNoRows) {
+		return h.snapshot(ctx, m, 0, now)
+	}
+	return err
+}
+
+// RuleUpdate is PUT /messages/rules/:id. The whole definition is replaced; the version grows and a snapshot is
+// stored; the approval follows nextApproval (M-02, M-03).
 func (h *Handlers) RuleUpdate(c fiber.Ctx) error {
 	cur, err := h.findRule(c)
 	if err != nil {
@@ -252,7 +407,20 @@ func (h *Handlers) RuleUpdate(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if needsClinical(cur.Kind) || needsClinical(in.Kind) {
+		if err := h.requireMedical(c); err != nil {
+			return err
+		}
+	}
+	if err := h.checkRuleKey(c.Context(), in.RuleKey, cur.ID); err != nil {
+		return err
+	}
 	now := httpadmin.Now(c)
+	if err := h.ensureSnapshot(c.Context(), cur, now); err != nil {
+		return err
+	}
+	ap := nextApproval(cur, in)
+	v6 := colsOf(in)
 	if err := h.mq.UpdateMessageRule(c.Context(), mstore.UpdateMessageRuleParams{
 		Title: in.Title, Level: in.Level, Kind: in.Kind, Priority: uint16(in.Priority), //nolint:gosec // validated band
 		Placement: in.Placement, Content: mustJSON(in.Content), VariantsEnabled: in.VariantsEnabled, AbSplit: ab(in),
@@ -260,6 +428,9 @@ func (h *Handlers) RuleUpdate(c fiber.Ctx) error {
 		CapCount: nullInt16(in.CapCount), CapPeriod: capPeriod(in), CooldownDays: uint16(in.CooldownDays), //nolint:gosec // validated
 		HoursFrom: nullInt16(in.HoursFrom), HoursTo: nullInt16(in.HoursTo),
 		StartsOn: nullDate(in.StartsOn), EndsOn: nullDate(in.EndsOn), AudiencePercent: aud(in), Goal: nullStr(in.Goal),
+		RuleKey: v6.ruleKey, Topics: v6.topics, Caps: v6.caps, Variants: v6.variants, StartsAt: v6.startsAt,
+		EndsAt: v6.endsAt, HourWindows: v6.hourWindows, GoalEvent: v6.goalEvent,
+		Status: ap.status, ApprovedBy: ap.approvedBy, ApprovedAt: ap.approvedAt, ApprovedVersion: ap.approvedVersion,
 		Now: httpadmin.DBTime(now), ID: cur.ID,
 	}); err != nil {
 		return err
@@ -272,15 +443,23 @@ func (h *Handlers) RuleUpdate(c fiber.Ctx) error {
 		return err
 	}
 	httpadmin.Audit(c, h.logger, "message_rule.update", "message_rule", m.ID,
-		slog.Int("version", int(m.Version)), slog.Bool("approval_withdrawn", cur.Status == rules.StatusApproved))
+		slog.Int("version", int(m.Version)), slog.Bool("approval_withdrawn", ap.withdrawn), slog.String("status", m.Status))
 	return httpadmin.OK(c, jsonx.Obj("rule", h.ruleJSON(&m)), "Message rule updated.")
 }
 
-// RuleDestroy is DELETE /messages/rules/:id.
+// RuleDestroy is DELETE /messages/rules/:id. A safety rule needs the clinical capability; a locked rule is 409.
 func (h *Handlers) RuleDestroy(c fiber.Ctx) error {
 	m, err := h.findRule(c)
 	if err != nil {
 		return err
+	}
+	if m.Kind == rules.KindSafety {
+		if err := h.requireMedical(c); err != nil {
+			return err
+		}
+	}
+	if m.Locked {
+		return httpadmin.Fail(fiber.StatusConflict, CodeLocked, "A locked message cannot be deleted.")
 	}
 	if err := h.mq.DeleteMessageRule(c.Context(), m.ID); err != nil {
 		return err
@@ -347,6 +526,7 @@ func (h *Handlers) setStatus(c fiber.Ctx, m *mstore.MessageRule, status string, 
 	if status == rules.StatusApproved {
 		p.ApprovedBy = sql.NullInt64{Int64: int64(approver), Valid: true} //nolint:gosec // small
 		p.ApprovedAt = now
+		p.ApprovedVersion = sql.NullInt32{Int32: int32(m.Version), Valid: true} //nolint:gosec // versions are small
 	}
 	if err := h.mq.SetMessageRuleStatus(c.Context(), p); err != nil {
 		return err
@@ -355,13 +535,24 @@ func (h *Handlers) setStatus(c fiber.Ctx, m *mstore.MessageRule, status string, 
 	return h.respondRule(c, m.ID, msg)
 }
 
-// RuleToggle is POST /messages/rules/:id/toggle: publish / unpublish. A medical message must be approved first.
+// RuleToggle is POST /messages/rules/:id/toggle: publish / unpublish. A medical message must be approved first (or
+// have an approved version that keeps serving); a safety rule needs the clinical capability; a locked rule cannot be
+// switched off (409).
 func (h *Handlers) RuleToggle(c fiber.Ctx) error {
 	m, err := h.findRule(c)
 	if err != nil {
 		return err
 	}
-	if !m.IsActive && rules.NeedsMedicalApproval(m.Level, m.Kind) && m.Status != rules.StatusApproved {
+	if m.Kind == rules.KindSafety {
+		if err := h.requireMedical(c); err != nil {
+			return err
+		}
+	}
+	if m.IsActive && m.Locked {
+		return httpadmin.Fail(fiber.StatusConflict, CodeLocked, "A locked message cannot be switched off.")
+	}
+	if !m.IsActive && rules.NeedsMedicalApproval(m.Level, m.Kind) && m.Status != rules.StatusApproved &&
+		(!m.ApprovedVersion.Valid || m.ApprovedVersion.Int32 <= 0) {
 		return httpadmin.Fail(fiber.StatusConflict, CodeApprovalRequired, "A medical message must be approved before it is published.")
 	}
 	if err := h.mq.SetMessageRuleActive(c.Context(), mstore.SetMessageRuleActiveParams{
@@ -447,9 +638,19 @@ func (h *Handlers) RuleList(c fiber.Ctx) error {
 		"placements", jsonx.List(rules.Placements), "levels", jsonx.List(rules.Levels), "kinds", jsonx.List(rules.Kinds),
 		"statuses", jsonx.List([]string{rules.StatusDraft, rules.StatusPending, rules.StatusApproved}),
 		"variables", jsonx.List(rules.Variables), "ops", jsonx.List(rules.Ops), "cap_periods", jsonx.List(rules.CapPeriods),
-		"bands", bands(),
+		"bands", bands(), "goal_events", jsonx.List(rules.GoalEvents), "topics", jsonx.List(rules.Topics),
+		"level_kinds", matrix(rules.Levels, rules.LevelKinds), "slot_kinds", matrix(rules.Placements, rules.SlotKinds),
+		"approval_kinds", jsonx.List(rules.ApprovalKinds), "max_variants", rules.MaxVariants,
 	))
 	return httpadmin.OK(c, page)
+}
+
+func matrix(keys []string, m map[string][]string) *jsonx.OrderedMap {
+	out := jsonx.Obj()
+	for _, k := range keys {
+		out.Set(k, jsonx.List(m[k]))
+	}
+	return out
 }
 
 func bands() *jsonx.OrderedMap {
@@ -554,32 +755,10 @@ func (h *Handlers) draftRule(c fiber.Ctx) (*rules.Rule, *previewBody, error) {
 	if b.Rule == nil {
 		return nil, nil, httpadmin.FieldError("rule", "A rule or a rule_id is required.")
 	}
-	in := b.Rule
-	r := &rules.Rule{
-		ID: b.RuleID, Level: in.Level, Kind: in.Kind, Priority: in.Priority, Placement: in.Placement, Content: in.Content,
-		VariantsEnabled: in.VariantsEnabled, ABSplit: 50, Groups: in.Conditions, Exceptions: in.Exceptions,
-		CooldownDays: in.CooldownDays, HoursFrom: -1, HoursTo: -1, AudiencePercent: 100, IsActive: true,
-		Status: rules.StatusApproved, // a preview shows what the message would do once published
-	}
-	if in.ABSplit != nil {
-		r.ABSplit = *in.ABSplit
-	}
-	if in.AudiencePercent != nil {
-		r.AudiencePercent = *in.AudiencePercent
-	}
-	if in.CapCount != nil {
-		r.CapCount, r.CapPeriod = *in.CapCount, in.CapPeriod
-	}
-	if in.HoursFrom != nil && in.HoursTo != nil {
-		r.HoursFrom, r.HoursTo = *in.HoursFrom, *in.HoursTo
-	}
-	if d, err := civildate.Parse(in.StartsOn); err == nil {
-		r.StartsOn = d
-	}
-	if d, err := civildate.Parse(in.EndsOn); err == nil {
-		r.EndsOn = d
-	}
-	return r, &b, nil
+	b.Rule.Normalize()
+	r := b.Rule.Rule(b.RuleID)
+	r.IsActive, r.Status = true, rules.StatusApproved // a preview shows what the message would do once published
+	return &r, &b, nil
 }
 
 type previewBody struct {

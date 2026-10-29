@@ -181,7 +181,7 @@ func TestWindowAndHours(t *testing.T) {
 
 func TestValidate(t *testing.T) {
 	cap := 1
-	ok := rules.Input{Title: "x", Level: rules.LevelSuggestion, Kind: rules.KindProduct, Priority: 30, Placement: "smart_tip",
+	ok := rules.Input{Title: "x", Level: rules.LevelInfo, Kind: rules.KindProduct, Priority: 30, Placement: "daily_challenge",
 		Content: rules.Content{A: rules.Variant{Title: "{name} hi", Body: "b"}}, CapCount: &cap, CapPeriod: "day"}
 	assert.Empty(t, ok.Validate())
 
@@ -204,7 +204,7 @@ func TestValidate(t *testing.T) {
 	assert.Contains(t, bad.Validate(), "content.a")
 	bad = ok
 	bad.CapCount = nil
-	assert.Contains(t, bad.Validate(), "cap_count", "product needs a cap")
+	assert.Contains(t, bad.Validate(), "caps", "product needs a daily or weekly cap")
 	bad = ok
 	bad.VariantsEnabled = true
 	assert.Contains(t, bad.Validate(), "content.b")
@@ -291,7 +291,7 @@ func TestSimulate_MatchesSelectAndExplains(t *testing.T) {
 // rejected by the editor, and a text using one never renders.
 func TestValidate_VariablesAreSuppliedFacts(t *testing.T) {
 	cap := 1
-	in := rules.Input{Title: "x", Level: rules.LevelSuggestion, Kind: rules.KindProduct, Priority: 30, Placement: "smart_tip",
+	in := rules.Input{Title: "x", Level: rules.LevelInfo, Kind: rules.KindProduct, Priority: 30, Placement: "daily_challenge",
 		CapCount: &cap, CapPeriod: "day"}
 	for _, v := range []string{"pms_start_day", "top_symptoms"} {
 		assert.NotContains(t, rules.Variables, v)

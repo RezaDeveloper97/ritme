@@ -2450,3 +2450,10 @@ Nothing needed fixing.
 - Frontend: entities/analysis (lab trend API/model), hub/correlations/body/monthly/labs/ttc screens; copy fa+en synced.
 - Follow-ups: T-M10-26b (pregnancy weight minimum, menopause rate ratio, top finding on TTC/pregnancy hubs); EPDS minimums noted on T-M10-27.
 - Verify: go vet, analysis unit + test-int, contract analysis* 48/0 (155 allow-listed), frontend typecheck/lint/fsd/dark/test (2082)/copy:check green; full `go test ./...` green.
+
+## T-M10-02 — Message engine schema v6, versioned approval and message authority (D-160)
+- Migration goose `00111_message_engine_v6` + Laravel twin `2026_10_29_000111_add_message_engine_v6_schema`: `message_rules` v6 columns (`rule_key` UNIQUE, `approved_version`, `topics`, `caps`, `variants`, `starts_at`/`ends_at`, `hour_windows`, `goal_event`, `locked`); `message_events.version/slot`, variant varchar(16); new `message_event_daily`, `message_inbox` (generated `open_flag`, one open item per rule); `challenge_programs.contraindications/start_phase`. Goose-only data step (M-18): `daily_advice`+product → content, `modal`+product → marketing.
+- Versioned approval (M-02/M-03): the served version is the approved snapshot; an edit to a medical rule goes to `pending_approval` while the old approved version keeps serving. Authority: `CapClinical` for safety/clinical/content.
+- `internal/messages/rules/v6.go`: level×kind and slot×kind matrices, goal events, topics, schedule parsing; validator covers the v6 fields.
+- Open: rules converted to content need medical approval before they serve (priority 1–99 is outside the 100–799 content band). No client calls `/messages/selected` yet, so nothing user-visible changes; review the list on stage/prod when T-M10-04 lands. Slot/kind mismatches M-18 does not convert are rejected at selection (`kind_not_allowed`, T-M10-04). `/messages/events` version/slot writes → T-M10-06. Admin notes added to T-M10-12.
+- Verify: sqlc, schema-diff OK (239 tables), vet, unit + test-int messages/admin/migrations green; contract messages 117/0 (312 allow-listed, unchanged); full `go test ./...` green.

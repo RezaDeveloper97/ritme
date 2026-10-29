@@ -67,12 +67,12 @@ func Why(r *Rule, facts Facts, userID uint64, now time.Time, h History) (string,
 			return ReasonCooldown, nil
 		}
 	}
-	if r.CapCount > 0 {
-		n, err := h.Count(r.ID, "impression", now.Add(-capWindow(r, facts)))
+	for _, cp := range r.EffectiveCaps() {
+		n, err := h.Count(r.ID, "impression", now.Add(-capWindow(cp.Period, facts)))
 		if err != nil {
 			return "", err
 		}
-		if n >= r.CapCount {
+		if n >= cp.Count {
 			return ReasonCap, nil
 		}
 	}

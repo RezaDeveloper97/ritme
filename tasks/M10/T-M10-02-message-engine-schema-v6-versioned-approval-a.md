@@ -3,7 +3,7 @@ id: T-M10-02
 title: Message engine schema v6, versioned approval and message authority
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-01, T-M9-13, T-M9-38]
 parallel_group: M10-B
 touches: [backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/messages, backend-go/db/queries/challenges, backend-go/internal/messages/rules, backend-go/internal/admin/messages, backend-go/contract/fixtures, backend-go/api/openapi.yaml]

@@ -23,6 +23,8 @@ type Querier interface {
 	// the legacy HealthDataEngine read.
 	GetMessageProfile(ctx context.Context, userID uint64) (GetMessageProfileRow, error)
 	GetMessageRule(ctx context.Context, id uint64) (MessageRule, error)
+	GetMessageRuleIDByKey(ctx context.Context, ruleKey sql.NullString) (uint64, error)
+	GetMessageRuleVersion(ctx context.Context, arg GetMessageRuleVersionParams) (MessageRuleVersion, error)
 	GetMessageUserName(ctx context.Context, id uint64) (sql.NullString, error)
 	InsertMessageEvent(ctx context.Context, arg InsertMessageEventParams) error
 	InsertMessageRule(ctx context.Context, arg InsertMessageRuleParams) (sql.Result, error)
@@ -39,6 +41,9 @@ type Querier interface {
 	ListMessageRecentLogs(ctx context.Context, arg ListMessageRecentLogsParams) ([]ListMessageRecentLogsRow, error)
 	ListMessageRuleVersions(ctx context.Context, ruleID uint64) ([]MessageRuleVersion, error)
 	ListMessageRules(ctx context.Context, arg ListMessageRulesParams) ([]MessageRule, error)
+	// T-M10-02 (M-03): the approved snapshots of the active rules whose head waits for re-approval (approved_version is
+	// set and is not the head version); rules.ActiveRows serves them instead of the head.
+	ListServedMessageRuleSnapshots(ctx context.Context) ([]ListServedMessageRuleSnapshotsRow, error)
 	// One grouped read of a user's history on the candidate rules of rules.Select (T-M9-13, replaces the per-rule
 	// LastUserMessageEvent + CountUserMessageEvents probes): the latest event and the counts in the three cap windows
 	// (day, week, cycle) per rule and event.
@@ -46,7 +51,11 @@ type Querier interface {
 	MessageRuleEventStats(ctx context.Context, createdAt sql.NullTime) ([]MessageRuleEventStatsRow, error)
 	MessageRuleVariantStats(ctx context.Context, arg MessageRuleVariantStatsParams) ([]MessageRuleVariantStatsRow, error)
 	SetMessageRuleActive(ctx context.Context, arg SetMessageRuleActiveParams) error
+	// approved_version NULL keeps the current one (submit, reject: the last approved version stays live, M-03).
 	SetMessageRuleStatus(ctx context.Context, arg SetMessageRuleStatusParams) error
+	// T-M10-02 (M-02, M-03): the version always grows; the caller decides the approval state — a text / condition /
+	// level / kind / topic / variant-content edit of a medical rule leaves it pending while approved_version keeps
+	// serving, an ops-only edit (priority, audience, schedule, hours, caps) keeps the approval.
 	UpdateMessageRule(ctx context.Context, arg UpdateMessageRuleParams) error
 }
 

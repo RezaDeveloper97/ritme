@@ -43,7 +43,7 @@ func clinicalRule() map[string]any {
 func productRule() map[string]any {
 	return map[string]any{
 		"title": "Log reminder", "level": "suggestion", "kind": "product", "priority": 30, "placement": "push",
-		"content":    map[string]any{"a": map[string]any{"title": "t", "body": "b"}},
+		"content":    map[string]any{"a": map[string]any{"title": "t", "body": "b", "cta_label": "Log", "cta_target": "ritme://log"}},
 		"conditions": []any{}, "exceptions": []any{}, "cap_count": 1, "cap_period": "day",
 	}
 }
@@ -78,7 +78,7 @@ func TestRules_MedicalApprovalWorkflowAndInvalidation(t *testing.T) {
 	e := rulesEnv(t)
 	mk, med := e.As(marketingID), e.As(medicalID)
 
-	r := mk.JSON(fiber.MethodPost, "/messages/rules", clinicalRule())
+	r := med.JSON(fiber.MethodPost, "/messages/rules", clinicalRule()) // T-M10-02: clinical authoring needs the clinical capability
 	require.Equal(t, 201, r.Status, r.Body)
 	id := int(r.Obj("rule")["id"].(float64))
 	path := "/messages/rules/" + itoa(id)
@@ -98,21 +98,23 @@ func TestRules_MedicalApprovalWorkflowAndInvalidation(t *testing.T) {
 	require.Equal(t, 200, pub.Status)
 	assert.Equal(t, true, pub.Obj("rule")["is_active"])
 
-	// Any edit withdraws the approval, bumps the version and snapshots it.
+	// A text edit withdraws the approval of the head (pending again), bumps the version and snapshots it; the approved
+	// version keeps serving (T-M10-02, M-02/M-03).
 	edit := clinicalRule()
 	edit["content"].(map[string]any)["a"].(map[string]any)["body"] = "changed"
-	up := mk.JSON(fiber.MethodPut, path, edit)
+	up := med.JSON(fiber.MethodPut, path, edit)
 	require.Equal(t, 200, up.Status, up.Body)
-	assert.Equal(t, "draft", up.Obj("rule")["status"])
+	assert.Equal(t, "pending_approval", up.Obj("rule")["status"])
 	assert.Nil(t, up.Obj("rule")["approved_by"])
 	assert.EqualValues(t, 2, up.Obj("rule")["version"])
+	assert.EqualValues(t, 1, up.Obj("rule")["approved_version"])
+	assert.EqualValues(t, 1, up.Obj("rule")["served_version"])
 	assert.Equal(t, 2, e.Int("SELECT COUNT(*) FROM message_rule_versions WHERE rule_id = ?", id))
-	assert.Equal(t, "not_pending", med.JSON(fiber.MethodPost, path+"/approve", nil).Code(), "must be re-submitted")
 
-	// Reject returns a pending message to draft.
-	mk.JSON(fiber.MethodPost, path+"/submit", nil)
+	// Reject returns a pending message to draft; the approved version stays.
 	rej := med.JSON(fiber.MethodPost, path+"/reject", nil)
 	assert.Equal(t, "draft", rej.Obj("rule")["status"])
+	assert.EqualValues(t, 1, rej.Obj("rule")["approved_version"])
 
 	// A non-medical message is not submitted at all.
 	pr := mk.JSON(fiber.MethodPost, "/messages/rules", productRule())
@@ -127,7 +129,7 @@ func TestRules_ConflictCheckAndPreview(t *testing.T) {
 	other := clinicalRule()
 	other["title"] = "headache"
 	other["priority"] = 155
-	r := mk.JSON(fiber.MethodPost, "/messages/rules", other)
+	r := e.As(medicalID).JSON(fiber.MethodPost, "/messages/rules", other)
 	oid := itoa(int(r.Obj("rule")["id"].(float64)))
 	e.Exec("UPDATE message_rules SET is_active = 1, status = 'approved'")
 
@@ -172,7 +174,7 @@ func TestRules_EngineViewAndSimulate(t *testing.T) {
 	lo["title"] = "lo"
 	lo["priority"] = 120
 	for _, b := range []map[string]any{hi, lo} {
-		require.Equal(t, 201, mk.JSON(fiber.MethodPost, "/messages/rules", b).Status)
+		require.Equal(t, 201, e.As(medicalID).JSON(fiber.MethodPost, "/messages/rules", b).Status)
 	}
 	e.Exec("UPDATE message_rules SET is_active = 1, status = 'approved'")
 

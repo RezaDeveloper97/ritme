@@ -428,6 +428,8 @@ type ChallengeProgram struct {
 	CompletionMinDays sql.NullInt16
 	CreatedAt         sql.NullTime
 	UpdatedAt         sql.NullTime
+	Contraindications db.NullRawJSON
+	StartPhase        sql.NullString
 }
 
 type ChallengeRewardGrant struct {
@@ -1829,9 +1831,46 @@ type MessageEvent struct {
 	ID        uint64
 	RuleID    uint64
 	UserID    uint64
-	Variant   string
 	Event     string
 	CreatedAt sql.NullTime
+	Variant   string
+	Version   sql.NullInt32
+	Slot      sql.NullString
+}
+
+type MessageEventDaily struct {
+	Day     civildate.Date
+	RuleID  uint64
+	Version uint32
+	Variant string
+	Slot    string
+	Event   string
+	Count   uint32
+}
+
+type MessageInbox struct {
+	ID            uint64
+	UserID        uint64
+	RuleID        uint64
+	Version       uint32
+	RuleKey       sql.NullString
+	Slot          string
+	Kind          string
+	Level         string
+	State         string
+	OpenFlag      sql.NullBool
+	EvidenceKey   sql.NullString
+	HitCount      uint32
+	Evidence      db.NullRawJSON
+	FirstAt       sql.NullTime
+	LastAt        sql.NullTime
+	AckedAt       sql.NullTime
+	NotedAt       sql.NullTime
+	ResolvedAt    sql.NullTime
+	ArchivedAt    sql.NullTime
+	LegacyAlertID sql.NullInt64
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
 }
 
 type MessageRule struct {
@@ -1863,6 +1902,16 @@ type MessageRule struct {
 	CreatedBy       sql.NullInt64
 	CreatedAt       sql.NullTime
 	UpdatedAt       sql.NullTime
+	RuleKey         sql.NullString
+	ApprovedVersion sql.NullInt32
+	Topics          db.NullRawJSON
+	Caps            db.NullRawJSON
+	Variants        db.NullRawJSON
+	StartsAt        sql.NullTime
+	EndsAt          sql.NullTime
+	HourWindows     db.NullRawJSON
+	GoalEvent       sql.NullString
+	Locked          bool
 }
 
 type MessageRuleVersion struct {

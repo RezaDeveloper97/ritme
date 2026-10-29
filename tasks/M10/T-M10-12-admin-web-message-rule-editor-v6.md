@@ -44,3 +44,14 @@ draft version, and the rule that only the clinical capability authors safety/cli
 
 ## Acceptance
 - Verify passes; screenshots saved under `docs/engine-v6/qa/admin/`.
+
+## Notes from T-M10-02 (2026-10-29)
+- Admin API changes the screens must handle: a messages-only admin gets 403 creating/editing clinical/content and
+  toggling/deleting safety (`CapClinical`); editing the text of a medical rule goes straight to `pending_approval`;
+  409 `locked` on seeded rules (`locked` is read-only); 422 on duplicate `rule_key`; the validator rejects
+  slot×kind and level×kind mismatches; a suggestion needs exactly one CTA.
+- New rule fields: `rule_key`, `approved_version`/`served_version`, `topics`, `caps`, `variants`, `starts_at`/`ends_at`,
+  `hour_windows`, `goal_event`, `locked`, plus `type`/`slot`/`name`/`level_name`; new enums `goal_events`, `topics`,
+  `level_kinds`, `slot_kinds`, `approval_kinds`, `max_variants`. Stored levels stay `worth_followup`/`follow_soon`
+  (spec names `follow_up`/`urgent` accepted as aliases, `rules.SpecLevel`).
+- Document all of this in `docs/go-migration/admin-api.md`.

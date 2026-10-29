@@ -1137,6 +1137,8 @@ CREATE TABLE `challenge_programs` (
   `completion_min_days` smallint(5) unsigned DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `contraindications` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`contraindications`)),
+  `start_phase` varchar(24) DEFAULT NULL,
   PRIMARY KEY (`challenge_id`),
   CONSTRAINT `challenge_programs_challenge_id_foreign` FOREIGN KEY (`challenge_id`) REFERENCES `challenges` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -4201,6 +4203,26 @@ INSERT INTO `message_contents` VALUES
 (176,'bmi_message','obese','en','bmi_message / obese','{\"message\":\"Based on the height and weight you entered, you fall in the obesity range. Over the long term this can affect heart health, blood pressure, blood sugar, and the menstrual cycle. If possible, talking to a doctor or a nutrition specialist can be very helpful. At Ritme we try to support your health journey with small, doable recommendations.\"}',1,1,0,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `message_contents` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `message_event_daily`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `message_event_daily` (
+  `day` date NOT NULL,
+  `rule_id` bigint(20) unsigned NOT NULL,
+  `version` int(10) unsigned NOT NULL,
+  `variant` varchar(16) NOT NULL,
+  `slot` varchar(32) NOT NULL,
+  `event` varchar(12) NOT NULL,
+  `count` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`day`,`rule_id`,`version`,`variant`,`slot`,`event`),
+  KEY `message_event_daily_rule_id_day_index` (`rule_id`,`day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `message_event_daily` WRITE;
+/*!40000 ALTER TABLE `message_event_daily` DISABLE KEYS */;
+/*!40000 ALTER TABLE `message_event_daily` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `message_events`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -4208,18 +4230,60 @@ CREATE TABLE `message_events` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `rule_id` bigint(20) unsigned NOT NULL,
   `user_id` bigint(20) unsigned NOT NULL,
-  `variant` varchar(1) NOT NULL DEFAULT 'a',
+  `variant` varchar(16) NOT NULL DEFAULT 'a',
   `event` varchar(12) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
+  `version` int(10) unsigned DEFAULT NULL,
+  `slot` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `message_events_rule_id_event_created_at_index` (`rule_id`,`event`,`created_at`),
-  KEY `message_events_user_id_rule_id_created_at_index` (`user_id`,`rule_id`,`created_at`)
+  KEY `message_events_user_id_rule_id_created_at_index` (`user_id`,`rule_id`,`created_at`),
+  KEY `message_events_user_id_created_at_index` (`user_id`,`created_at`),
+  KEY `message_events_created_at_rule_id_index` (`created_at`,`rule_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `message_events` WRITE;
 /*!40000 ALTER TABLE `message_events` DISABLE KEYS */;
 /*!40000 ALTER TABLE `message_events` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `message_inbox`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `message_inbox` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `rule_id` bigint(20) unsigned NOT NULL,
+  `version` int(10) unsigned NOT NULL,
+  `rule_key` varchar(64) DEFAULT NULL,
+  `slot` varchar(32) NOT NULL DEFAULT 'alerts_inbox',
+  `kind` varchar(16) NOT NULL,
+  `level` varchar(16) NOT NULL,
+  `state` varchar(24) NOT NULL,
+  `open_flag` tinyint(1) GENERATED ALWAYS AS (if(`state` in ('active','acknowledged','added_to_visit_note'),1,NULL)) STORED,
+  `evidence_key` varchar(96) DEFAULT NULL,
+  `hit_count` int(10) unsigned NOT NULL DEFAULT 1,
+  `evidence` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`evidence`)),
+  `first_at` timestamp NULL DEFAULT NULL,
+  `last_at` timestamp NULL DEFAULT NULL,
+  `acked_at` timestamp NULL DEFAULT NULL,
+  `noted_at` timestamp NULL DEFAULT NULL,
+  `resolved_at` timestamp NULL DEFAULT NULL,
+  `archived_at` timestamp NULL DEFAULT NULL,
+  `legacy_alert_id` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `message_inbox_user_id_rule_id_open_flag_unique` (`user_id`,`rule_id`,`open_flag`),
+  KEY `message_inbox_user_id_state_level_last_at_index` (`user_id`,`state`,`level`,`last_at`),
+  KEY `message_inbox_state_last_at_index` (`state`,`last_at`),
+  CONSTRAINT `message_inbox_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `message_inbox` WRITE;
+/*!40000 ALTER TABLE `message_inbox` DISABLE KEYS */;
+/*!40000 ALTER TABLE `message_inbox` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `message_rule_versions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4272,7 +4336,18 @@ CREATE TABLE `message_rules` (
   `created_by` bigint(20) unsigned DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `rule_key` varchar(64) DEFAULT NULL,
+  `approved_version` int(10) unsigned DEFAULT NULL,
+  `topics` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`topics`)),
+  `caps` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`caps`)),
+  `variants` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`variants`)),
+  `starts_at` datetime DEFAULT NULL,
+  `ends_at` datetime DEFAULT NULL,
+  `hour_windows` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`hour_windows`)),
+  `goal_event` varchar(48) DEFAULT NULL,
+  `locked` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `message_rules_rule_key_unique` (`rule_key`),
   KEY `message_rules_placement_is_active_priority_index` (`placement`,`is_active`,`priority`),
   KEY `message_rules_status_index` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

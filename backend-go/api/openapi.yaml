@@ -10573,11 +10573,14 @@ paths:
       description: >-
         Go-only (D-86, B-N9-05). Picks at most one admin-defined message rule for the placement: the highest priority
         among the rules that are active (medical ones — levels «worth follow-up» / «follow up soon», safety and
-        clinical kinds — only while approved by the medical advisor), whose condition groups (AND across groups, each
+        clinical / content kinds — only while approved by the medical advisor; while an edited version waits for
+        re-approval the last approved version is served, T-M10-02 / D-160), whose condition groups (AND across groups, each
         AND/OR) hold for the user and none of whose exceptions hold, inside the start/end dates and the hours window
         (Tehran), inside the audience share, past the cooldown and under the frequency cap (safety messages have
-        neither). Priority bands: safety 1000, engine 800–999, clinical 100–799, product 1–99. The A/B variant is a
-        stable hash of user and rule. A rule whose text needs a variable the user has no value for is skipped. Nothing
+        neither). Priority bands: safety 1000, engine 800–999, clinical and content 100–799, product and marketing
+        1–99. Caps, variants, the schedule and the hour windows read the v6 columns (several caps, N weighted variants,
+        datetime start/end, several hour windows) and fall back to the legacy single cap / a-b split / dates / window.
+        The A/B variant is a stable hash of user and rule. A rule whose text needs a variable the user has no value for is skipped. Nothing
         is recorded here; the client reports `impression` / `click` / `dismiss` / `goal` to `POST /messages/events`.
         `seen`, `confidence` (levels worth_followup, follow_soon) and `contact` (follow_soon) are present only for
         those levels. Companion accounts get 409.
@@ -10596,7 +10599,7 @@ paths:
         - name: placement
           in: query
           required: true
-          schema: {type: string, enum: [status_banner, smart_tip, daily_advice, daily_challenge, push, modal, sms, alerts, urgent_modal]}
+          schema: {type: string, enum: [status_banner, smart_tip, daily_advice, daily_challenge, push, modal, sms, alerts, urgent_modal, alerts_inbox]}
       responses:
         '200':
           description: The selected message or null
@@ -10621,7 +10624,7 @@ paths:
                               rule_id: {type: integer}
                               variant: {type: string, enum: [a, b]}
                               level: {type: string, enum: [info, suggestion, worth_followup, follow_soon]}
-                              kind: {type: string, enum: [safety, engine, clinical, product]}
+                              kind: {type: string, enum: [safety, engine, clinical, content, product, marketing]}
                               placement: {type: string}
                               title: {type: string}
                               body: {type: string}

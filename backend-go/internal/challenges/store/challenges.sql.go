@@ -126,7 +126,7 @@ func (q *Queries) GetActiveProgram(ctx context.Context, id uint64) (GetActivePro
 const getProgram = `-- name: GetProgram :one
 
 
-SELECT challenge_id, duration_days, start_rule, starts_on, reminder_time, eligibility, reward_badge_code, reward_badge_title, reward_plus_days, completion_min_days, created_at, updated_at FROM ` + "`" + `challenge_programs` + "`" + ` WHERE challenge_id = ? LIMIT 1
+SELECT challenge_id, duration_days, start_rule, starts_on, reminder_time, eligibility, reward_badge_code, reward_badge_title, reward_plus_days, completion_min_days, created_at, updated_at, contraindications, start_phase FROM ` + "`" + `challenge_programs` + "`" + ` WHERE challenge_id = ? LIMIT 1
 `
 
 // Challenges v2 (bloom B-N9-07, D-87): program settings, per-day tasks, enrollments, completions, reward grants.
@@ -149,6 +149,8 @@ func (q *Queries) GetProgram(ctx context.Context, challengeID uint64) (Challenge
 		&i.CompletionMinDays,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Contraindications,
+		&i.StartPhase,
 	)
 	return i, err
 }
@@ -419,7 +421,7 @@ func (q *Queries) ListEnrollmentCompletions(ctx context.Context, enrollmentID ui
 }
 
 const listPrograms = `-- name: ListPrograms :many
-SELECT challenge_id, duration_days, start_rule, starts_on, reminder_time, eligibility, reward_badge_code, reward_badge_title, reward_plus_days, completion_min_days, created_at, updated_at FROM ` + "`" + `challenge_programs` + "`" + ` WHERE challenge_id IN (/*SLICE:ids*/?)
+SELECT challenge_id, duration_days, start_rule, starts_on, reminder_time, eligibility, reward_badge_code, reward_badge_title, reward_plus_days, completion_min_days, created_at, updated_at, contraindications, start_phase FROM ` + "`" + `challenge_programs` + "`" + ` WHERE challenge_id IN (/*SLICE:ids*/?)
 `
 
 func (q *Queries) ListPrograms(ctx context.Context, ids []uint64) ([]ChallengeProgram, error) {
@@ -454,6 +456,8 @@ func (q *Queries) ListPrograms(ctx context.Context, ids []uint64) ([]ChallengePr
 			&i.CompletionMinDays,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Contraindications,
+			&i.StartPhase,
 		); err != nil {
 			return nil, err
 		}
