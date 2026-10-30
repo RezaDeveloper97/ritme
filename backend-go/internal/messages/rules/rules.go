@@ -6,7 +6,6 @@ package rules
 
 import (
 	"encoding/json"
-	"hash/fnv"
 	"slices"
 	"strconv"
 	"strings"
@@ -197,40 +196,13 @@ func (r *Rule) Unlimited() bool { return r.Kind == KindSafety }
 
 // bucket is a stable 0–99 bucket of (userID, ruleID, salt).
 func bucket(userID, ruleID uint64, salt string) int {
-	h := fnv.New32a()
-	_, _ = h.Write([]byte(strconv.FormatUint(userID, 10) + ":" + strconv.FormatUint(ruleID, 10) + ":" + salt))
-	return int(h.Sum32() % 100)
+	return int(StableHash(userID, ruleID, salt) % 100)
 }
 
-// Assign is the stable A/B assignment of a user: the same (user, rule) always gets the same variant. A rule with the
-// v6 variants column walks the weights (for a legacy a/b rule the result equals the a/b split).
+// Assign is the stable variant of a user: the same (user, rule) always gets the same variant. It walks the effective
+// weights (WeightedVariant); for a legacy a/b rule the result equals the pre-v6 a/b split for every user.
 func (r *Rule) Assign(userID uint64) string {
-	if len(r.Variants) > 0 {
-		sum := 0
-		for _, v := range r.Variants {
-			sum += max(v.Weight, 0)
-		}
-		if sum <= 0 || len(r.Variants) == 1 {
-			return r.Variants[0].Key
-		}
-		h := fnv.New32a()
-		_, _ = h.Write([]byte(strconv.FormatUint(userID, 10) + ":" + strconv.FormatUint(r.ID, 10) + ":ab"))
-		x := int(h.Sum32() % uint32(sum)) //nolint:gosec // sum > 0 and small
-		for _, v := range r.Variants {
-			if x < max(v.Weight, 0) {
-				return v.Key
-			}
-			x -= max(v.Weight, 0)
-		}
-		return r.Variants[0].Key
-	}
-	if !r.VariantsEnabled || r.Content.B == nil {
-		return "a"
-	}
-	if bucket(userID, r.ID, "ab") < r.ABSplit {
-		return "a"
-	}
-	return "b"
+	return WeightedVariant(userID, r.ID, r.EffectiveVariants())
 }
 
 // InAudience is the stable audience-share check (the share grows monotonically: a user inside 10% stays in at 50%).

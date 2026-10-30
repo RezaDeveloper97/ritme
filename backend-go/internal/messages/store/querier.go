@@ -66,9 +66,11 @@ type Querier interface {
 	// T-M10-02 (M-03): the approved snapshots of the active rules whose head waits for re-approval (approved_version is
 	// set and is not the head version); rules.ActiveRows serves them instead of the head.
 	ListServedMessageRuleSnapshots(ctx context.Context) ([]ListServedMessageRuleSnapshotsRow, error)
-	// One grouped read of a user's history on the candidate rules of rules.Select (T-M9-13, replaces the per-rule
-	// LastUserMessageEvent + CountUserMessageEvents probes): the latest event and the counts in the three cap windows
-	// (day, week, cycle) per rule and event.
+	// One grouped read of a user's history (T-M9-13, replaces the per-rule LastUserMessageEvent + CountUserMessageEvents
+	// probes; extended in T-M10-04): the latest event and the counts in the three cap windows (day, week, cycle) per rule,
+	// event and slot, with the rule's kind. rules.Select (legacy) reads its candidate rules (`all_rules` = 0); selection v6
+	// reads every rule of the user (`all_rules` = 1) for the per-slot counts and the last safety message shown. A legacy
+	// event without a slot counts for the rule's placement; a deleted rule has kind ''.
 	ListUserMessageEventStats(ctx context.Context, arg ListUserMessageEventStatsParams) ([]ListUserMessageEventStatsRow, error)
 	MessageRuleEventStats(ctx context.Context, createdAt sql.NullTime) ([]MessageRuleEventStatsRow, error)
 	MessageRuleVariantStats(ctx context.Context, arg MessageRuleVariantStatsParams) ([]MessageRuleVariantStatsRow, error)

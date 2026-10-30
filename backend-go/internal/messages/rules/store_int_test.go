@@ -145,3 +145,63 @@ func TestActiveRows_SnapshotAndLocalInvalidation(t *testing.T) {
 	require.Len(t, got, 2)
 	assert.Equal(t, int16(60), int16(got[0].Priority), "priority DESC kept") //nolint:gosec // small
 }
+
+// Selection v6 reads the whole history in one grouped query (T-M10-04): per rule shown / dismissed, per slot (a legacy
+// event without a slot counts for its rule's placement), the last safety shown; the windows are user-local.
+func TestLoadHistory_OneQuery(t *testing.T) {
+	db := testdb.New(t)
+	ctx := context.Background()
+	const uid = 43
+	berlinNow := time.Date(2026, 10, 21, 9, 0, 0, 0, berlin) // 11:30 Tehran
+	tip := insertRule(t, db, 300, 0, "", 0)                  // smart_tip, product kind
+	res, err := db.Exec(`INSERT INTO message_rules (title, level, kind, priority, placement, content, conditions, exceptions,
+		cooldown_days, audience_percent, status, is_active, created_at, updated_at)
+		VALUES ('s', 'follow_soon', 'safety', 1000, 'urgent_modal', '{"a":{"title":"t","body":"b"}}', '[]', '[]', 0, 100,
+		'approved', 1, '2026-10-01 09:00:00', '2026-10-01 09:00:00')`)
+	require.NoError(t, err)
+	safety, _ := res.LastInsertId()
+	ev := func(rule uint64, event, slot string, at time.Time) {
+		var s any
+		if slot != "" {
+			s = slot
+		}
+		_, err := db.Exec(`INSERT INTO message_events (rule_id, user_id, variant, event, slot, created_at) VALUES (?, ?, 'a', ?, ?, ?)`,
+			rule, uid, event, s, at)
+		require.NoError(t, err)
+	}
+	ev(tip, "impression", "", berlinNow.Add(-time.Hour))                          // legacy: no slot → smart_tip; today
+	ev(tip, "impression", "push", berlinNow.Add(-8*time.Hour))                    // 01:00 Berlin today, but yesterday in Tehran
+	ev(tip, "dismiss", "push", berlinNow.Add(-30*time.Minute))                    //
+	ev(tip, "impression", "smart_tip", berlinNow.Add(-10*24*time.Hour))           // outside the week
+	ev(uint64(safety), "impression", "urgent_modal", berlinNow.Add(-3*time.Hour)) //nolint:gosec // test id
+	ev(tip, "impression", "push", berlinNow.Add(-time.Minute))                    // another user's event must not count
+	_, err = db.Exec(`UPDATE message_events SET user_id = 999 ORDER BY id DESC LIMIT 1`)
+	require.NoError(t, err)
+
+	counter := &countingDB{DB: db}
+	w := rules.CapWindows(berlinNow, rules.Facts{"current_period_start": "2026-10-15"})
+	h, err := rules.LoadHistory(ctx, store.New(counter), uid, w)
+	require.NoError(t, err)
+	assert.Equal(t, int64(1), counter.n.Load(), "one history query per request")
+
+	r := h.Rules[tip]
+	assert.Equal(t, rules.WindowCounts{Day: 2, Week: 2, Cycle: 2}, r.Shown)
+	assert.Equal(t, rules.WindowCounts{Day: 1, Week: 1, Cycle: 1}, r.Dismissed)
+	assert.True(t, r.LastShown.Equal(berlinNow.Add(-time.Hour)), r.LastShown.String())
+	assert.True(t, r.LastDismissed.Equal(berlinNow.Add(-30*time.Minute)), r.LastDismissed.String())
+	assert.Equal(t, rules.WindowCounts{Day: 1, Week: 1}, h.Slots["push"])
+	assert.Equal(t, rules.WindowCounts{Day: 1, Week: 1}, h.Slots["smart_tip"])
+	assert.Equal(t, rules.WindowCounts{Day: 1, Week: 1}, h.Slots["urgent_modal"])
+	assert.True(t, h.LastSafetyShown.Equal(berlinNow.Add(-3*time.Hour)), h.LastSafetyShown.String())
+
+	// The legacy prefetch still filters on its candidate ids and folds the slots of a rule together.
+	st, err := rules.DBHistory{Ctx: ctx, Q: store.New(db), UserID: uid}.Prefetch([]uint64{tip}, rules.Windows(berlinNow, nil))
+	require.NoError(t, err)
+	last, ok, err := st.Last(tip, "impression")
+	require.NoError(t, err)
+	assert.True(t, ok)
+	assert.True(t, last.Equal(berlinNow.Add(-time.Hour)))
+	n, err := st.Count(tip, "impression", rules.Windows(berlinNow, nil)[1])
+	require.NoError(t, err)
+	assert.Equal(t, 2, n, "the week count adds the rule's smart_tip and push rows")
+}

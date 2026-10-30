@@ -552,14 +552,17 @@ func (q *Queries) ListServedMessageRuleSnapshots(ctx context.Context) ([]ListSer
 }
 
 const listUserMessageEventStats = `-- name: ListUserMessageEventStats :many
-SELECT rule_id, event,
-  CAST(MAX(created_at) AS DATETIME) AS last_at,
-  CAST(SUM(created_at >= ?) AS SIGNED) AS day_count,
-  CAST(SUM(created_at >= ?) AS SIGNED) AS week_count,
-  CAST(SUM(created_at >= ?) AS SIGNED) AS cycle_count
-FROM ` + "`" + `message_events` + "`" + `
-WHERE user_id = ? AND rule_id IN (/*SLICE:rule_ids*/?)
-GROUP BY rule_id, event
+SELECT e.rule_id, e.event,
+  COALESCE(e.slot, r.placement, '') AS slot,
+  COALESCE(r.kind, '') AS kind,
+  CAST(MAX(e.created_at) AS DATETIME) AS last_at,
+  CAST(SUM(e.created_at >= ?) AS SIGNED) AS day_count,
+  CAST(SUM(e.created_at >= ?) AS SIGNED) AS week_count,
+  CAST(SUM(e.created_at >= ?) AS SIGNED) AS cycle_count
+FROM ` + "`" + `message_events` + "`" + ` e
+LEFT JOIN ` + "`" + `message_rules` + "`" + ` r ON r.id = e.rule_id
+WHERE e.user_id = ? AND (? = 1 OR e.rule_id IN (/*SLICE:rule_ids*/?))
+GROUP BY e.rule_id, e.event, COALESCE(e.slot, r.placement, ''), COALESCE(r.kind, '')
 `
 
 type ListUserMessageEventStatsParams struct {
@@ -567,21 +570,26 @@ type ListUserMessageEventStatsParams struct {
 	WeekSince  sql.NullTime
 	CycleSince sql.NullTime
 	UserID     uint64
+	AllRules   interface{}
 	RuleIds    []uint64
 }
 
 type ListUserMessageEventStatsRow struct {
 	RuleID     uint64
 	Event      string
+	Slot       string
+	Kind       string
 	LastAt     time.Time
 	DayCount   int64
 	WeekCount  int64
 	CycleCount int64
 }
 
-// One grouped read of a user's history on the candidate rules of rules.Select (T-M9-13, replaces the per-rule
-// LastUserMessageEvent + CountUserMessageEvents probes): the latest event and the counts in the three cap windows
-// (day, week, cycle) per rule and event.
+// One grouped read of a user's history (T-M9-13, replaces the per-rule LastUserMessageEvent + CountUserMessageEvents
+// probes; extended in T-M10-04): the latest event and the counts in the three cap windows (day, week, cycle) per rule,
+// event and slot, with the rule's kind. rules.Select (legacy) reads its candidate rules (`all_rules` = 0); selection v6
+// reads every rule of the user (`all_rules` = 1) for the per-slot counts and the last safety message shown. A legacy
+// event without a slot counts for the rule's placement; a deleted rule has kind ”.
 func (q *Queries) ListUserMessageEventStats(ctx context.Context, arg ListUserMessageEventStatsParams) ([]ListUserMessageEventStatsRow, error) {
 	query := listUserMessageEventStats
 	var queryParams []interface{}
@@ -589,6 +597,7 @@ func (q *Queries) ListUserMessageEventStats(ctx context.Context, arg ListUserMes
 	queryParams = append(queryParams, arg.WeekSince)
 	queryParams = append(queryParams, arg.CycleSince)
 	queryParams = append(queryParams, arg.UserID)
+	queryParams = append(queryParams, arg.AllRules)
 	if len(arg.RuleIds) > 0 {
 		for _, v := range arg.RuleIds {
 			queryParams = append(queryParams, v)
@@ -608,6 +617,8 @@ func (q *Queries) ListUserMessageEventStats(ctx context.Context, arg ListUserMes
 		if err := rows.Scan(
 			&i.RuleID,
 			&i.Event,
+			&i.Slot,
+			&i.Kind,
 			&i.LastAt,
 			&i.DayCount,
 			&i.WeekCount,

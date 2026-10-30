@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/ritme/backend-go/db"
@@ -217,12 +218,27 @@ func (h DBHistory) Prefetch(rules []uint64, windows [3]time.Time) (History, erro
 		DaySince:   sql.NullTime{Time: windows[0], Valid: true},
 		WeekSince:  sql.NullTime{Time: windows[1], Valid: true},
 		CycleSince: sql.NullTime{Time: windows[2], Valid: true},
-		UserID:     h.UserID, RuleIds: rules,
+		UserID:     h.UserID, AllRules: false, RuleIds: rules,
 	})
 	if err != nil {
 		return nil, err
 	}
 	return NewStats(h, rules, windows, rows), nil
+}
+
+// LoadHistory reads a user's whole message history for selection v6 in one grouped query (T-M10-04): every rule's
+// last shown / dismissed and counts in the windows, the shows per slot and the last safety message shown.
+func LoadHistory(ctx context.Context, q store.Querier, userID uint64, w HistoryWindows) (*UserHistory, error) {
+	rows, err := q.ListUserMessageEventStats(ctx, store.ListUserMessageEventStatsParams{
+		DaySince:   sql.NullTime{Time: w.Day, Valid: true},
+		WeekSince:  sql.NullTime{Time: w.Week, Valid: true},
+		CycleSince: sql.NullTime{Time: w.Cycle, Valid: true},
+		UserID:     userID, AllRules: true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("message history: %w", err)
+	}
+	return BuildHistory(w, rows), nil
 }
 
 // EventStat is one rule's history of one event kind.
@@ -253,7 +269,15 @@ func NewStats(fallback History, rules []uint64, windows [3]time.Time, rows []sto
 			m = map[string]EventStat{}
 			s.byRule[r.RuleID] = m
 		}
-		m[r.Event] = EventStat{Last: r.LastAt, Counts: [3]int{int(r.DayCount), int(r.WeekCount), int(r.CycleCount)}}
+		// The rows are per slot too (T-M10-04): one rule's slots add up.
+		st := m[r.Event]
+		if r.LastAt.After(st.Last) {
+			st.Last = r.LastAt
+		}
+		st.Counts[0] += int(r.DayCount)
+		st.Counts[1] += int(r.WeekCount)
+		st.Counts[2] += int(r.CycleCount)
+		m[r.Event] = st
 	}
 	return s
 }

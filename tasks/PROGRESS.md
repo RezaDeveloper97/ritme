@@ -2474,3 +2474,10 @@ Nothing needed fixing.
 - Behaviour change: the `mode` fact is now the engine mode (`cycle|ttc|pregnancy|postpartum|menopause|teen`); `life_mode` is the stored life mode. A rule with `mode in [cycle]` no longer matches ttc/teen users. Date facts accept only `eq`/`ne` until selection compares dates (T-M10-04).
 - Open: `admin-api.md` entry for `/messages/facts` (noted on T-M10-12); vitals queries duplicated from `internal/vitals` (its handlers have no `*sql.DB`); Plus tier SQL duplicates `plus.tierOf`.
 - Verify: sqlc, vet, unit + test-int messages/admin, contract messages 117/0 (312 allow-listed) green.
+
+## T-M10-04 — Message selection v6: slots, invariants, caps, tie-break, weighted variants
+- Shipped (D-162): `rules.SelectSlot(slot, rules, facts, *UserHistory, userID, now)` in `internal/messages/rules/select_v6.go` — slot table (capacities, allowed kinds), per-message caps (smart_tip 1/cycle, daily_advice no repeat in 7 d), slot caps (push 1/day + 3/7 d, modal 1/7 d), push quiet hours 23–08 local, invariants (requires_user_input, low confidence M-05, hormonal contraception + `fertile_window` topic M-06, 24 h after safety), tie-break safety → priority → least recently shown → lower id, safety exempt from audience/A-B (M-07), 17 `SelectionReasons`.
+- `LoadHistory` reads the whole history in one query (`ListUserMessageEventStats` now returns slot + kind, `all_rules` flag); `CapWindows` uses user-local day/week and the cycle anchor `current_period_start` (rolling `cycle_length` fallback, M-04).
+- `Assign`/`bucket` now go through `WeightedVariant`/`StableHash`; hash input stays `"user:rule:salt"` so no existing user changes variant (golden vectors + 10k-user test).
+- Bench: `BenchmarkSelectSlot_200Rules` ≈ 31 µs/op (budget 200 µs).
+- Open: not wired to any handler yet — the feed endpoint (T-M10-06) calls `LoadHistory` + `SelectSlot`; the legacy `Select`/`Eligible` stay for v2 and admin until then. Date comparisons on `current_period_start` not added (out of scope).

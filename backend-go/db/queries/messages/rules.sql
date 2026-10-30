@@ -110,14 +110,19 @@ WHERE rule_id = ? AND created_at >= ? GROUP BY variant, event;
 SELECT name FROM `users` WHERE id = ? LIMIT 1;
 
 -- name: ListUserMessageEventStats :many
--- One grouped read of a user's history on the candidate rules of rules.Select (T-M9-13, replaces the per-rule
--- LastUserMessageEvent + CountUserMessageEvents probes): the latest event and the counts in the three cap windows
--- (day, week, cycle) per rule and event.
-SELECT rule_id, event,
-  CAST(MAX(created_at) AS DATETIME) AS last_at,
-  CAST(SUM(created_at >= sqlc.arg(day_since)) AS SIGNED) AS day_count,
-  CAST(SUM(created_at >= sqlc.arg(week_since)) AS SIGNED) AS week_count,
-  CAST(SUM(created_at >= sqlc.arg(cycle_since)) AS SIGNED) AS cycle_count
-FROM `message_events`
-WHERE user_id = sqlc.arg(user_id) AND rule_id IN (sqlc.slice(rule_ids))
-GROUP BY rule_id, event;
+-- One grouped read of a user's history (T-M9-13, replaces the per-rule LastUserMessageEvent + CountUserMessageEvents
+-- probes; extended in T-M10-04): the latest event and the counts in the three cap windows (day, week, cycle) per rule,
+-- event and slot, with the rule's kind. rules.Select (legacy) reads its candidate rules (`all_rules` = 0); selection v6
+-- reads every rule of the user (`all_rules` = 1) for the per-slot counts and the last safety message shown. A legacy
+-- event without a slot counts for the rule's placement; a deleted rule has kind ''.
+SELECT e.rule_id, e.event,
+  COALESCE(e.slot, r.placement, '') AS slot,
+  COALESCE(r.kind, '') AS kind,
+  CAST(MAX(e.created_at) AS DATETIME) AS last_at,
+  CAST(SUM(e.created_at >= sqlc.arg(day_since)) AS SIGNED) AS day_count,
+  CAST(SUM(e.created_at >= sqlc.arg(week_since)) AS SIGNED) AS week_count,
+  CAST(SUM(e.created_at >= sqlc.arg(cycle_since)) AS SIGNED) AS cycle_count
+FROM `message_events` e
+LEFT JOIN `message_rules` r ON r.id = e.rule_id
+WHERE e.user_id = sqlc.arg(user_id) AND (sqlc.arg(all_rules) = 1 OR e.rule_id IN (sqlc.slice(rule_ids)))
+GROUP BY e.rule_id, e.event, COALESCE(e.slot, r.placement, ''), COALESCE(r.kind, '');

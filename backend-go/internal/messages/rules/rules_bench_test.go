@@ -45,3 +45,36 @@ func BenchmarkSelect_200Rules(b *testing.B) {
 		}
 	}
 }
+
+// T-M10-04 budget: SelectSlot for one slot over 200 parsed rules with prefetched facts and history ≤ 200 µs.
+func BenchmarkSelectSlot_200Rules(b *testing.B) {
+	const n = 200
+	all := make([]rules.Rule, 0, n)
+	h := &hist{}
+	for i := range n {
+		id := uint64(i + 1) //nolint:gosec // small
+		r := slotRule(id, "daily_advice", rules.KindContent, 100+i%500)
+		r.Caps = []rules.Cap{{Count: 1 + i%3, Period: []string{"day", "week", "cycle"}[i%3]}}
+		r.CooldownDays = i % 5
+		mode := "cycle"
+		if i%3 == 0 {
+			mode = "pregnancy"
+		}
+		r.Groups = []rules.Group{{Op: "and", Items: []rules.Condition{
+			{Fact: "mode", Op: "eq", Value: mode},
+			{Fact: "cycle_day", Op: "between", Value: []any{float64(1 + i%10), float64(20 + i%20)}},
+			{Fact: "symptoms", Op: "nin", Value: fmt.Sprintf("s%d", i%17)},
+		}}}
+		if i%4 == 0 {
+			h.shown(r, tNow.Add(-time.Duration(i+1)*time.Hour))
+		}
+		all = append(all, r)
+	}
+	facts := rules.Facts{"mode": "cycle", "cycle_day": 12.0, "cycle_length": 29.0, "symptoms": []string{"s1"},
+		"current_period_start": "2026-10-10", "confidence": "high"}
+	uh := h.build(tNow, facts)
+	b.ReportAllocs()
+	for b.Loop() {
+		_, _ = rules.SelectSlot("daily_advice", all, facts, uh, 7, tNow)
+	}
+}

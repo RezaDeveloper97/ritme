@@ -3,10 +3,10 @@ id: T-M10-04
 title: Message selection v6: slots, invariants, caps, tie-break and weighted variants
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-03, T-M9-26]
 parallel_group: M10-B
-touches: [backend-go/internal/messages/rules, backend-go/db/queries/messages]
+touches: [backend-go/internal/messages/rules, backend-go/db/queries/messages, backend-go/internal/messages/store]
 skills: []
 verify: cd backend-go && make sqlc && go vet ./... && go test -race ./internal/messages/... && make test-int PKG=./internal/messages/...
 ---
