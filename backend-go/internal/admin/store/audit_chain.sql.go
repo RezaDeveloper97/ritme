@@ -10,6 +10,24 @@ import (
 	"database/sql"
 )
 
+const getAdminAuditChainHead = `-- name: GetAdminAuditChainHead :one
+SELECT id, last_id, last_hash, genesis_last_id, genesis_hash FROM ` + "`" + `admin_audit_chain_head` + "`" + ` WHERE ` + "`" + `id` + "`" + ` = 1
+`
+
+// Verification reads the head without locking it (inside a read-only REPEATABLE READ snapshot).
+func (q *Queries) GetAdminAuditChainHead(ctx context.Context) (AdminAuditChainHead, error) {
+	row := q.db.QueryRowContext(ctx, getAdminAuditChainHead)
+	var i AdminAuditChainHead
+	err := row.Scan(
+		&i.ID,
+		&i.LastID,
+		&i.LastHash,
+		&i.GenesisLastID,
+		&i.GenesisHash,
+	)
+	return i, err
+}
+
 const insertChainedAdminAuditLog = `-- name: InsertChainedAdminAuditLog :execlastid
 INSERT INTO ` + "`" + `admin_audit_logs` + "`" + ` (admin_id, action, target_type, target_id, ip, detail, created_at, prev_hash, row_hash)
 VALUES (?, ?, ?, ?, ?,
@@ -44,6 +62,23 @@ func (q *Queries) InsertChainedAdminAuditLog(ctx context.Context, arg InsertChai
 		return 0, err
 	}
 	return result.LastInsertId()
+}
+
+const lastAdminAuditLogBefore = `-- name: LastAdminAuditLogBefore :one
+SELECT id, row_hash FROM ` + "`" + `admin_audit_logs` + "`" + ` WHERE id < ? ORDER BY id DESC LIMIT 1
+`
+
+type LastAdminAuditLogBeforeRow struct {
+	ID      uint64
+	RowHash sql.NullString
+}
+
+// The anchor of a partial verification (?from=): the newest row before from.
+func (q *Queries) LastAdminAuditLogBefore(ctx context.Context, beforeID uint64) (LastAdminAuditLogBeforeRow, error) {
+	row := q.db.QueryRowContext(ctx, lastAdminAuditLogBefore, beforeID)
+	var i LastAdminAuditLogBeforeRow
+	err := row.Scan(&i.ID, &i.RowHash)
+	return i, err
 }
 
 const listAdminAuditLogsForChain = `-- name: ListAdminAuditLogsForChain :many

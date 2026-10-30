@@ -89,18 +89,20 @@ func TestTwoDistinctAdvisorApprovals(t *testing.T) {
 	missing := map[string]any{"value": map[string]any{"systolic": 170}, "effective_from": day.String()}
 	assert.Equal(t, 422, e.As(advisor1).JSON(fiber.MethodPost, "/clinical-config/bp.crisis/proposals", missing).Status)
 
-	// Engineering proposes (config: manage) …
-	p := e.As(engineering).JSON(fiber.MethodPost, "/clinical-config/bp.crisis/proposals", body)
+	// Engineering only views thresholds (SPEC §5.8, T-M10-33): it cannot propose. A super admin proposes …
+	assert.Equal(t, 403, e.As(engineering).JSON(fiber.MethodPost, "/clinical-config/bp.crisis/proposals", body).Status)
+	p := e.As(admintest.SuperID).JSON(fiber.MethodPost, "/clinical-config/bp.crisis/proposals", body)
 	require.Equal(t, 201, p.Status, p.Body)
 	assert.EqualValues(t, 2, p.Obj("proposal")["version"])
 	id := proposalID(t, p)
 	assert.Equal(t, clinicalcfg.CodePendingExists,
 		e.As(advisor1).JSON(fiber.MethodPost, "/clinical-config/bp.crisis/proposals", body).Code())
 
-	// … but cannot approve; neither can the proposer.
-	r := e.As(engineering).JSON(fiber.MethodPost, path(id, "approve"), nil)
+	// … but cannot approve (not an advisor); engineering cannot either (thresholds: view).
+	r := e.As(admintest.SuperID).JSON(fiber.MethodPost, path(id, "approve"), nil)
 	assert.Equal(t, 403, r.Status)
 	assert.Equal(t, clinicalcfg.CodeAdvisorRequired, r.Code())
+	assert.Equal(t, 403, e.As(engineering).JSON(fiber.MethodPost, path(id, "approve"), nil).Status)
 
 	r = e.As(advisor1).JSON(fiber.MethodPost, path(id, "approve"), nil)
 	require.Equal(t, 200, r.Status, r.Body)
@@ -133,10 +135,11 @@ func TestTwoDistinctAdvisorApprovals(t *testing.T) {
 	assert.Equal(t, 403, r.Status)
 	assert.Equal(t, clinicalcfg.CodeSelfApproval, r.Code())
 
-	// Reject: marketing cannot (no capability), engineering (not proposer, not advisor) cannot, the proposer withdraws.
+	// Reject: marketing cannot (no capability), the editor (thresholds manage, not proposer, not advisor) cannot, the
+	// proposer withdraws.
 	assert.Equal(t, 403, e.As(marketing).JSON(fiber.MethodPost, path(proposalID(t, p2), "reject"), nil).Status)
 	assert.Equal(t, clinicalcfg.CodeAdvisorRequired,
-		e.As(engineering).JSON(fiber.MethodPost, path(proposalID(t, p2), "reject"), nil).Code())
+		e.As(admintest.EditorID).JSON(fiber.MethodPost, path(proposalID(t, p2), "reject"), nil).Code())
 	r = e.As(advisor3).JSON(fiber.MethodPost, path(proposalID(t, p2), "reject"), nil)
 	require.Equal(t, 200, r.Status, r.Body)
 	assert.Equal(t, clinicalcfg.StatusRejected, r.Obj("proposal")["status"])
@@ -259,7 +262,7 @@ func TestRowsKeys_ProposeApproveResolve(t *testing.T) {
 	eff := day.AddDays(1)
 	value := redatingRows(62, 6)
 	value["rows"].([]any)[2] = map[string]any{"max_diff_days": 21}
-	p := e.As(engineering).JSON(fiber.MethodPost, url, map[string]any{"value": value, "effective_from": eff.String(),
+	p := e.As(admintest.SuperID).JSON(fiber.MethodPost, url, map[string]any{"value": value, "effective_from": eff.String(),
 		"source": "ACOG CO 700 (advisor review)"})
 	require.Equal(t, 201, p.Status, p.Body)
 	assert.Equal(t, `{"rows":[{"ga_until_days":62,"max_diff_days":6},{"ga_until_days":97,"max_diff_days":7},{"ga_until_days":null,"max_diff_days":21}]}`,
@@ -268,7 +271,7 @@ func TestRowsKeys_ProposeApproveResolve(t *testing.T) {
 	pend := keyOf(t, e.As(advisor1).Get("/clinical-config"), clinicalconfig.KeyPregnancyRedating)["pending"].(map[string]any)
 	assert.Equal(t, "ACOG CO 700 (advisor review)", pend["source"])
 	assert.Len(t, pend["value"].(map[string]any)["rows"], 3)
-	assert.Equal(t, clinicalcfg.CodeAdvisorRequired, e.As(engineering).JSON(fiber.MethodPost, path(id, "approve"), nil).Code(),
+	assert.Equal(t, clinicalcfg.CodeAdvisorRequired, e.As(admintest.EditorID).JSON(fiber.MethodPost, path(id, "approve"), nil).Code(),
 		"the two-advisor flow is unchanged")
 	require.Equal(t, 200, e.As(advisor1).JSON(fiber.MethodPost, path(id, "approve"), nil).Status)
 	r = e.As(advisor2).JSON(fiber.MethodPost, path(id, "approve"), nil)

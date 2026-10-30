@@ -40,13 +40,17 @@ const (
 // Capabilities (rows of the matrix, in display order).
 const (
 	CapDashboard     = "dashboard"
+	CapKPI           = "kpi" // KPI screen (T-M10-33: split from dashboard; SPEC §5.8 gives the analyst KPI only)
+	CapOKR           = "okr" // OKR (T-M10-33: split from dashboard; product manager only)
 	CapUsers         = "users"
-	CapHealth        = "health" // temporary access to one user's health data (manage only)
+	CapSegments      = "segments" // saved user-list filters (§5.2; marketing per §5.8)
+	CapHealth        = "health"   // temporary access to one user's health data (manage only)
 	CapMessages      = "messages"
-	CapClinical      = "clinical" // clinical content: pregnancy, checkups, catalog, children, assistant
+	CapClinical      = "clinical"   // clinical content and approvals: pregnancy, checkups, catalog, children, assistant, safety, clinical message kinds
+	CapThresholds    = "thresholds" // clinical thresholds (/clinical-config, T-M10-33: split from config)
 	CapChallenges    = "challenges"
-	CapConfig        = "config"
-	CapExport        = "export"
+	CapConfig        = "config" // technical config: AI, modules
+	CapExport        = "export" // anonymised exports (users directory, audit log CSV)
 	CapContent       = "content"
 	CapBilling       = "billing"
 	CapSupport       = "support"
@@ -66,8 +70,9 @@ var both = []string{LevelView, LevelManage}
 
 // Capabilities lists the matrix rows.
 var Capabilities = []Capability{
-	{CapDashboard, both}, {CapUsers, both}, {CapHealth, []string{LevelManage}}, {CapMessages, both},
-	{CapClinical, both}, {CapChallenges, both}, {CapConfig, both}, {CapExport, []string{LevelView}},
+	{CapDashboard, both}, {CapKPI, both}, {CapOKR, both}, {CapUsers, both}, {CapSegments, both},
+	{CapHealth, []string{LevelManage}}, {CapMessages, both}, {CapClinical, both}, {CapThresholds, both},
+	{CapChallenges, both}, {CapConfig, both}, {CapExport, []string{LevelView}},
 	{CapContent, both}, {CapBilling, both}, {CapSupport, both}, {CapLearning, both}, {CapTelemed, both},
 	{CapTelemedDoctor, []string{LevelManage}}, {CapAudit, []string{LevelView}},
 }
@@ -103,7 +108,30 @@ func allPermissions(except ...string) Permissions {
 	return p
 }
 
-// DefaultPermissions is each editable role's matrix until a super admin edits it.
+// DefaultPermissions is each editable role's matrix until a super admin edits it. Deny by default: a capability a
+// role does not list is not granted, and an unknown role gets nothing.
+//
+// SPEC v6 §5.8 role table → capabilities (T-M10-33, D-182). A row of the spec that this matrix leaves out is not
+// granted; "masked users" is users at view (the list and detail carry a masked mobile and no health value).
+//
+//	role (§5.8)       spec access                                    capabilities (m = manage, v = view)
+//	----------------  ---------------------------------------------  --------------------------------------------------
+//	product_manager   dashboard, KPI, OKR, masked users,             dashboard m, kpi m, okr m, users v, messages m,
+//	                  non-clinical messages, challenges              challenges m (no clinical → clinical kinds are 403)
+//	medical_advisor   clinical approval of messages and thresholds,  messages m + clinical m (approve / publish clinical
+//	                  safety publishing, dashboard view              and safety rules), thresholds m, dashboard v
+//	support           masked users, subscriptions, tickets           users v, billing v, support m
+//	clinical_support  support + 30-minute health access (reason,     support's set + health m (per approved request,
+//	                  ticket)                                        httpadmin.HealthGrant)
+//	analyst           KPI, anonymous export                          kpi v, export v (no users: the anonymised export
+//	                                                                 route maps to export)
+//	marketing         product/marketing messages, challenges,        messages m (clinical kinds need clinical → 403),
+//	                  segments                                       challenges m, segments m
+//	engineering       technical config, view thresholds              config m (ai, modules), thresholds v (cannot
+//	                                                                 propose or approve)
+//
+// Not in §5.8 (kept from B-N9-02): editor (everything but health, audit, export and the doctor inbox), doctor and
+// instructor_moderator. A matrix a super admin saved in admin_roles wins over these defaults and is never rewritten.
 func DefaultPermissions(role string) Permissions {
 	m, v := LevelManage, LevelView
 	switch role {
@@ -115,21 +143,19 @@ func DefaultPermissions(role string) Permissions {
 		// the Roles screen (PUT /roles/editor), or moves the account to a narrower role.
 		return allPermissions(CapHealth, CapAudit, CapExport, CapTelemedDoctor)
 	case RoleProductManager:
-		return Permissions{CapDashboard: m, CapUsers: m, CapMessages: m, CapChallenges: m, CapConfig: v, CapExport: v,
-			CapContent: m, CapBilling: v, CapSupport: v, CapLearning: v, CapTelemed: v}
+		return Permissions{CapDashboard: m, CapKPI: m, CapOKR: m, CapUsers: v, CapMessages: m, CapChallenges: m}
 	case RoleMedicalAdvisor:
-		return Permissions{CapDashboard: m, CapUsers: v, CapMessages: m, CapClinical: m, CapChallenges: v, CapConfig: m,
-			CapContent: v, CapLearning: v, CapTelemed: v}
+		return Permissions{CapDashboard: v, CapMessages: m, CapClinical: m, CapThresholds: m}
 	case RoleSupport:
-		return Permissions{CapDashboard: v, CapUsers: m, CapSupport: m, CapBilling: v, CapTelemed: v}
+		return Permissions{CapUsers: v, CapBilling: v, CapSupport: m}
 	case RoleClinicalSupport:
-		return Permissions{CapDashboard: v, CapUsers: m, CapHealth: m, CapSupport: m, CapTelemed: v}
+		return Permissions{CapUsers: v, CapBilling: v, CapSupport: m, CapHealth: m}
 	case RoleAnalyst:
-		return Permissions{CapDashboard: m, CapUsers: v, CapExport: v, CapBilling: v}
+		return Permissions{CapKPI: v, CapExport: v}
 	case RoleMarketing:
-		return Permissions{CapDashboard: m, CapUsers: v, CapMessages: m, CapChallenges: m, CapContent: m, CapBilling: v}
+		return Permissions{CapMessages: m, CapChallenges: m, CapSegments: m}
 	case RoleEngineering:
-		return Permissions{CapDashboard: m, CapUsers: v, CapConfig: m, CapSupport: v}
+		return Permissions{CapConfig: m, CapThresholds: v}
 	case RoleDoctor:
 		return Permissions{CapDashboard: v, CapTelemedDoctor: m}
 	case RoleInstructorModerator:
@@ -165,10 +191,19 @@ func capabilityOf(path string) string {
 	switch seg {
 	case "auth":
 		return ""
-	case "dashboard", "overview", "kpi", "okr":
+	case "dashboard", "overview":
 		return CapDashboard
+	case "kpi":
+		return CapKPI
+	case "okr":
+		return CapOKR
 	case "users":
+		if tail == "directory/export" { // the anonymised CSV (no name, mobile or health value): export, not users
+			return CapExport
+		}
 		return CapUsers
+	case "segments":
+		return CapSegments
 	case "health-access":
 		return CapHealth
 	case "messages":
@@ -178,7 +213,9 @@ func capabilityOf(path string) string {
 	case "pregnancy-weeks", "pregnancy-week-details", "pregnancy-care-items", "pregnancy-alert-rules",
 		"checkup-types", "catalog", "children", "assistant", "safety":
 		return CapClinical
-	case "ai", "clinical-config", "modules":
+	case "clinical-config":
+		return CapThresholds
+	case "ai", "modules":
 		return CapConfig
 	case "articles", "affirmations", "banners", "info-sections", "phase-contents", "recommendations",
 		"task-templates", "companions", "uploads", "media", "city-services":
@@ -205,7 +242,7 @@ func capabilityOf(path string) string {
 			return CapTelemedDoctor
 		}
 		return CapTelemed
-	case "audit-logs":
+	case "audit-logs", "audit": // audit/verify is super-only on top (kit.Super)
 		return CapAudit
 	}
 	return "?"

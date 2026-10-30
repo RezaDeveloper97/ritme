@@ -173,6 +173,12 @@ func (h *Handlers) detail(c fiber.Ctx, id uint64) (*jsonx.OrderedMap, error) {
 	if err != nil {
 		return nil, err
 	}
+	if grant != nil {
+		// T-M10-33: audited before any health field is built; no row, no data (503).
+		if err := httpadmin.AuditHealthRead(c, h.logger, id, grant.ID); err != nil {
+			return nil, err
+		}
+	}
 	var profile any
 	if u.ProfileID.Valid {
 		hidden := grant == nil
@@ -195,7 +201,6 @@ func (h *Handlers) detail(c fiber.Ctx, id uint64) (*jsonx.OrderedMap, error) {
 	access := jsonx.Obj("granted", grant != nil, "expires_at", nil)
 	if grant != nil {
 		access.Set("expires_at", httpadmin.Time(grant.ExpiresAt))
-		httpadmin.Audit(c, h.logger, "health_access.read", "user", id, slog.Uint64("request_id", grant.ID))
 	}
 	var userGoal any
 	if grant != nil {

@@ -95,7 +95,9 @@ func TestUsers_UserGoalIsHealthData(t *testing.T) {
 	assert.Nil(t, u.Obj("profile")["user_goal"])
 
 	// Update without user_goal keeps the stored goal; the audit row never carries it.
-	upd := clin.JSON(fiber.MethodPut, "/users/10", map[string]any{"subscription_type": "free"})
+	// T-M10-33: clinical support views users only (§5.8 "masked users"); the update is a super admin's.
+	assert.Equal(t, 403, clin.JSON(fiber.MethodPut, "/users/10", map[string]any{"subscription_type": "free"}).Status)
+	upd := e.As(admintest.SuperID).JSON(fiber.MethodPut, "/users/10", map[string]any{"subscription_type": "free"})
 	require.Equal(t, 200, upd.Status, string(upd.Raw))
 	assert.Equal(t, "ttc", e.String(`SELECT user_goal FROM user_profiles WHERE user_id = 10`))
 	assert.Equal(t, 0, e.Int(`SELECT COUNT(*) FROM admin_audit_logs WHERE action = 'user.update' AND detail LIKE '%ttc%'`))

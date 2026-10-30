@@ -826,7 +826,8 @@ approved by another super admin, valid **30 minutes**. Super admins need one too
 | POST | `/health-access/:id/approve` | S | — | `{request}` approved for 30 min; 422 `self_approval`, 409 `not_pending`; audit `health_access.approve` |
 | POST | `/health-access/:id/reject` | S | — | `{request}`; 409 `not_pending`; audit `health_access.reject` |
 | POST | `/health-access/:id/revoke` | health | — | requester or super (else 404); 409 `not_active`; audit `health_access.revoke` |
-| GET | `/health-access/users/:id` | health + grant | — | `{user_id, expires_at, profile, stats}`; 403 `health_access_required`; audit `health_access.read` |
+| GET | `/health-access/users/:id` | health + grant | — | `{user_id, expires_at, profile, stats}`; 403 `health_access_required`; audit `health_access.read` (written first; 503 `audit_unavailable` and no data when it fails, T-M10-33) |
+| GET | `/audit/verify` | S | `from?` (audit row id; default 0 = the whole log, genesis included) | `{ok, started, from, checked, genesis_last_id, head:{id, hash}, break:{id, reason}\|null}`; 422 on a non-numeric `from`; read-only (T-M10-33) |
 
 **Security follow-up (B-N9-02b).**
 - *Approver independence:* approve also answers 422 `approver_not_independent` when the approving super admin's account
@@ -846,6 +847,28 @@ approved by another super admin, valid **30 minutes**. Super admins need one too
 - *Audit log:* the `ip` is null (CSV: empty) for non-super viewers; every CSV string cell goes through the formula
   guard after leading whitespace; failed logins write `auth.login_failed` (target = the account id when known, never
   the email). All `/api/admin/v1` answers carry `Cache-Control: no-store`.
+
+**SPEC v6 §5.8 role matrix and hash-chained audit log (T-M10-33, D-182).**
+- *Capabilities:* new rows `kpi`, `okr` (split from `dashboard`), `thresholds` (`/clinical-config`, split from
+  `config`) and `segments` (`/segments`); `/users/directory/export` maps to `export` (not `users`) and `/audit/*` to
+  `audit`. Defaults (deny by default; the spec→capability table is in `httpadmin.DefaultPermissions`):
+  product_manager `dashboard m, kpi m, okr m, users v, messages m, challenges m`; medical_advisor `dashboard v,
+  messages m, clinical m, thresholds m`; support `users v, billing v, support m`; clinical_support = support + `health
+  m`; analyst `kpi v, export v`; marketing `messages m, challenges m, segments m`; engineering `config m, thresholds
+  v`. Matrices already saved in `admin_roles` are not rewritten (they hold none of the new capabilities, so a saved
+  role loses `/kpi`, `/okr`, `/clinical-config` until a super admin grants them).
+- *Hash chain* (`internal/admin/auditchain`, goose 00105 columns): every `httpadmin.Audit` row is appended in one short
+  transaction that locks `admin_audit_chain_head` (`FOR UPDATE`), sets `prev_hash` = the head's hash and
+  `row_hash = sha256(prev_hash ‖ canonical JSON {admin_id, action, target_type, target_id, ip, detail, created_at})`,
+  then moves the head. Rows written before the chain started keep NULL hashes; the first append (or the job) folds
+  them oldest first into `genesis_hash` / `genesis_last_id`. `GET /audit/verify` reports the first break:
+  `genesis_mismatch` (a pre-chain row edited or deleted), `unchained` (a row without hashes after genesis),
+  `prev_mismatch` (a row deleted or reordered), `hash_mismatch` (a row edited), `head_mismatch` (the tail deleted).
+  The nightly `admin.audit_verify` job (docs/engine-v6/jobs.md) sets the `admin_audit_chain_broken` gauge and logs the
+  head hash as the off-database anchor.
+- *Fail closed:* every health-data read (`/health-access/users/:id`, `/users/:id`, `/users/:id/overview`) writes its
+  `health_access.read` row through `httpadmin.AuditHealthRead` before any health field is built; when the row is not
+  written the answer is **503** `audit_unavailable` with no data.
 
 ## 22. Smart messages v2 — rules (B-N9-05, D-86)
 

@@ -207,6 +207,8 @@ type Querier interface {
 	DeleteUser(ctx context.Context, id uint64) (sql.Result, error)
 	FirstActiveLanguageID(ctx context.Context) (uint64, error)
 	FirstProfileID(ctx context.Context, userID uint64) (uint64, error)
+	// Verification reads the head without locking it (inside a read-only REPEATABLE READ snapshot).
+	GetAdminAuditChainHead(ctx context.Context) (AdminAuditChainHead, error)
 	// EloquentUserProvider::retrieveByCredentials (email only; is_active is checked in Go).
 	GetAdminByEmail(ctx context.Context, email string) (Admin, error)
 	// Admin API core (T-M2-20): admin accounts, dashboard, user management.
@@ -253,6 +255,8 @@ type Querier interface {
 	// Ledger
 	InsertPlusAdminAction(ctx context.Context, arg InsertPlusAdminActionParams) error
 	LanguageCodeTaken(ctx context.Context, arg LanguageCodeTakenParams) (bool, error)
+	// The anchor of a partial verification (?from=): the newest row before from.
+	LastAdminAuditLogBefore(ctx context.Context, beforeID uint64) (LastAdminAuditLogBeforeRow, error)
 	ListAdminAffirmations(ctx context.Context, arg ListAdminAffirmationsParams) ([]Affirmation, error)
 	// Article::orderBy('sort_order')->orderByDesc('id')->paginate(20).
 	ListAdminArticles(ctx context.Context, arg ListAdminArticlesParams) ([]Article, error)

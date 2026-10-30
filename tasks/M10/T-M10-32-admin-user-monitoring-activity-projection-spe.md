@@ -50,3 +50,6 @@ users (`v2.go:75-86`); raw SQL breaks the sqlc rule (`v2.go:276-282`). DECISIONS
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-181.
+
+## Note from T-M10-33 (2026-10-30)
+- SPEC §5.8 says support/analyst see "masked users", but the legacy admin `/users` list and detail (`backend-go/internal/admin/users/users.go` ~L114, L209) still return the full `mobile` to anyone with `users:view`. Mask it here (or add a `users:unmask` capability) and update the admin-web users screens.

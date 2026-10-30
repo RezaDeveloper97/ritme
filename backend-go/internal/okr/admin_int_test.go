@@ -83,15 +83,17 @@ func TestOKR_Permissions(t *testing.T) {
 	pw := "$2y$12$lo8Z3h/WEQp7b8AwCvwiTObVkv7/Xa68c/VnNTSszAOrR4kLj1HBi"
 	e.Exec(`INSERT INTO admins (id, name, email, password, role, is_active, created_at, updated_at) VALUES
 		(3, 'Support', 'support@ritme.test', ?, 'support', 1, NOW(), NOW())`, pw)
+	// T-M10-33: OKR is its own capability and support has none by default (SPEC §5.8); grant it read-only here.
+	e.Exec(`INSERT INTO admin_roles (role, permissions, created_at, updated_at) VALUES ('support', '{"okr":"view"}', NOW(), NOW())`)
 	body := map[string]any{"title": "O", "period": "p", "starts_on": "2026-01-01", "ends_on": "2026-03-31"}
 
 	assert.Equal(t, 401, e.Anonymous().Get("/okr").Status)
-	// «support» has dashboard=view: reads, cannot write.
+	// «support» has okr=view: reads, cannot write.
 	assert.Equal(t, 200, e.As(3).Get("/okr").Status)
 	assert.Equal(t, 403, e.As(3).JSON(fiber.MethodPost, "/okr/objectives", body).Status)
 
 	// Without the capability at all: 403 on read as well.
-	e.Exec(`INSERT INTO admin_roles (role, permissions, created_at, updated_at) VALUES ('support', '{"support":"manage"}', NOW(), NOW())`)
+	e.Exec(`UPDATE admin_roles SET permissions = '{"support":"manage"}' WHERE role = 'support'`)
 	assert.Equal(t, 403, e.As(3).Get("/okr").Status)
 	assert.Equal(t, 403, e.As(3).JSON(fiber.MethodPost, "/okr/objectives", body).Status)
 	assert.Equal(t, 201, e.As(admintest.EditorID).JSON(fiber.MethodPost, "/okr/objectives", body).Status)

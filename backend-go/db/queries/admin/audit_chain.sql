@@ -27,3 +27,11 @@ FROM `admin_audit_logs`
 WHERE id > sqlc.arg(after_id)
 ORDER BY id
 LIMIT ?;
+
+-- name: GetAdminAuditChainHead :one
+-- Verification reads the head without locking it (inside a read-only REPEATABLE READ snapshot).
+SELECT * FROM `admin_audit_chain_head` WHERE `id` = 1;
+
+-- name: LastAdminAuditLogBefore :one
+-- The anchor of a partial verification (?from=): the newest row before from.
+SELECT id, row_hash FROM `admin_audit_logs` WHERE id < sqlc.arg(before_id) ORDER BY id DESC LIMIT 1;

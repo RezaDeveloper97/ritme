@@ -84,6 +84,7 @@ q.RegisterPeriodic(job, handler, "*/10 * * * *", opts...)        // Register + S
 | `engine:snapshot_nightly` | low | `30 3 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 30 m | (user, user-local day): `engine_daily_snapshots` PK, upsert | `internal/cycle/snapshots` |
 | `engine:snapshot_purge` | low | `50 3 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 10 m | Tehran day − 400; deletes only older rows, in chunks of 5 000 | `internal/cycle/snapshots` |
 | `engine:prediction_log` | low | on demand (a committed real period start, `periods.StartHook`) | `TaskID(engine:prediction_log:<uid>:<rev_after>)` | 3 / 1 m, 5 m / 60 s | (user, cycle_start, kind): `first` insert-once, `last` upsert, actual/error recomputed | `internal/cycle/snapshots` |
+| `admin.audit_verify` | low | `40 3 * * *` | `Unique(23h)` | 1 / — / 10 m | read-only walk of `admin_audit_logs` by id (plus the one-off genesis, a no-op once `genesis_last_id` is set) | `internal/admin/auditchain` |
 
 Notes:
 
@@ -104,5 +105,11 @@ Notes:
 - Not migrated, on purpose (replica-safe pollers with `SKIP LOCKED` / leases): the labs runner and its job sweep
   (`internal/labs/worker.go`), the health-record extract runner (`internal/healthrecord/extract/runner.go`) and the
   learning dispatch poller (`internal/learning/dispatch.go`).
+- `admin.audit_verify` (T-M10-33, D-182; SPEC §5.8): runs genesis if it has not run (hashes the pre-chain rows oldest
+  first into `admin_audit_chain_head.genesis_hash` / `genesis_last_id`; the first chained `httpadmin.Audit` write does
+  the same), then verifies the whole hash chain. A break sets the gauge `admin_audit_chain_broken` to 1, counts
+  `admin_audit_chain_verify_total{result="broken"}` and logs `alert=admin_audit_chain_broken` with the row id and
+  reason; every run logs `admin audit chain anchor {head_id, head_hash, checked}` as the off-database anchor (compare
+  it with yesterday's to catch a rewrite of the whole tail). No row content reaches the log.
 
 New jobs add a row here in the same change.

@@ -269,6 +269,12 @@ func (h *Handlers) Overview(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if grant != nil {
+		// T-M10-33: audited before any health field is built; no row, no data (503).
+		if err := httpadmin.AuditHealthRead(c, h.logger, id, grant.ID); err != nil {
+			return err
+		}
+	}
 	now := httpadmin.Now(c)
 	day30 := now.AddDate(0, 0, -30).Format("2006-01-02")
 	var d30 int64
@@ -378,7 +384,6 @@ func (h *Handlers) Overview(c fiber.Ctx) error {
 	var health any
 	if grant != nil {
 		access.Set("expires_at", httpadmin.Time(grant.ExpiresAt))
-		httpadmin.Audit(c, h.logger, "health_access.read", "user", id, slog.Uint64("request_id", grant.ID))
 		health = jsonx.Obj("user_goal", httpadmin.NullString(goal))
 	}
 	return httpadmin.OK(c, jsonx.Obj(

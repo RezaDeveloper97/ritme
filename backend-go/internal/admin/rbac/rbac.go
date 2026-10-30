@@ -7,7 +7,10 @@
 //     package lists, filters and exports them (CSV).
 //   - Health access: an admin whose role holds the health capability (clinical support) asks for ONE user's health
 //     data with a reason and a ticket; ANOTHER super admin approves; the grant expires after 30 minutes. Reads go
-//     through httpadmin.HealthGrant and are audited (health_access.read).
+//     through httpadmin.HealthGrant and are audited (health_access.read) before any data leaves: no row, 503
+//     (T-M10-33).
+//   - Audit chain: GET /audit/verify?from= (super) walks the hash chain of admin_audit_logs (internal/admin/auditchain,
+//     SPEC v6 §5.8, D-182) and reports the first break.
 package rbac
 
 import (
@@ -22,6 +25,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/ritme/backend-go/internal/admin/auditchain"
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
 	"github.com/ritme/backend-go/internal/admin/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -63,13 +67,14 @@ const exportMaxRows = 10000
 // Handlers serves the endpoints.
 type Handlers struct {
 	q      *store.Queries
+	chain  *auditchain.Chain
 	kit    *httpadmin.Kit
 	logger *slog.Logger
 }
 
 // NewHandlers wires the handlers.
 func NewHandlers(db *sql.DB, kit *httpadmin.Kit, logger *slog.Logger) *Handlers {
-	return &Handlers{q: store.New(db), kit: kit, logger: logger}
+	return &Handlers{q: store.New(db), chain: auditchain.New(db), kit: kit, logger: logger}
 }
 
 // Routes registers the endpoints (paths under httpadmin.Prefix).
@@ -81,6 +86,7 @@ func (h *Handlers) Routes(add func(method, path string, chain httpadmin.Chain), 
 
 	add(get, "/audit-logs", kit.Admin(h.ListAudit))
 	add(get, "/audit-logs/export", kit.Admin(h.ExportAudit))
+	add(get, "/audit/verify", kit.Super(h.VerifyAudit))
 
 	add(get, "/health-access", kit.Admin(h.ListAccess))
 	add(post, "/health-access", kit.Admin(h.RequestAccess))
@@ -369,6 +375,37 @@ func (h *Handlers) ExportAudit(c fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, "text/csv; charset=utf-8")
 	c.Set(fiber.HeaderContentDisposition, `attachment; filename="audit-log.csv"`)
 	return c.SendString(b.String())
+}
+
+// VerifyAudit is GET /audit/verify?from=<row id> (super): walks the audit hash chain from that row (default: the
+// whole log, genesis included) and answers {ok, started, from, checked, genesis_last_id, head:{id, hash},
+// break:{id, reason}|null}. Read-only; it never repairs anything.
+func (h *Handlers) VerifyAudit(c fiber.Ctx) error {
+	var from uint64
+	if s := strings.TrimSpace(c.Query("from")); s != "" {
+		n, err := strconv.ParseUint(s, 10, 64)
+		if err != nil {
+			return httpadmin.FieldError("from", "The from field must be an audit row id.")
+		}
+		from = n
+	}
+	rep, err := h.chain.Verify(c.Context(), from)
+	if err != nil {
+		return err
+	}
+	var brk any
+	if rep.Break != nil {
+		brk = jsonx.Obj("id", rep.Break.ID, "reason", rep.Break.Reason)
+	}
+	return httpadmin.OK(c, jsonx.Obj(
+		"ok", rep.Break == nil,
+		"started", rep.Started,
+		"from", rep.From,
+		"checked", rep.Checked,
+		"genesis_last_id", rep.GenesisLastID,
+		"head", jsonx.Obj("id", rep.HeadID, "hash", rep.HeadHash),
+		"break", brk,
+	))
 }
 
 // csvSafe defuses spreadsheet formulas: a cell starting with a tab / CR, or with =, +, -, @ after leading
@@ -662,7 +699,10 @@ func (h *Handlers) ReadHealth(c fiber.Ctx) error {
 			"user_goal", httpadmin.NullString(u.UserGoal),
 		)
 	}
-	httpadmin.Audit(c, h.logger, "health_access.read", "user", userID, slog.Uint64("request_id", grant.ID))
+	// Fail closed (T-M10-33): no audit row, no health data.
+	if err := httpadmin.AuditHealthRead(c, h.logger, userID, grant.ID); err != nil {
+		return err
+	}
 	return httpadmin.OK(c, jsonx.Obj(
 		"user_id", userID,
 		"expires_at", httpadmin.Time(grant.ExpiresAt),

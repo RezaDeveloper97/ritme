@@ -65,7 +65,7 @@ func New(t *testing.T) *Env {
 	c := cache.NewFromClient(rdb, "ritme-go:")
 	reg := i18n.NewRegistry(i18nstore.New(db), c, Quiet)
 	kit := httpadmin.NewKit(httpadmin.Options{Hosts: []string{Host}, CookieSecure: true},
-		httpadmin.NewSessions(c), store.New(db), i18n.DefaultMiddleware(reg), Quiet)
+		httpadmin.NewSessions(c), store.New(db), i18n.DefaultMiddleware(reg), Quiet).UseAuditChain(db) // T-M10-33
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(Quiet), BodyLimit: 25 << 20})
 	e := &Env{T: t, DB: db, App: app, Cache: c, Redis: mr, Kit: kit, Registry: reg, Storage: t.TempDir()}
 	const pw = "$2y$12$lo8Z3h/WEQp7b8AwCvwiTObVkv7/Xa68c/VnNTSszAOrR4kLj1HBi" //nolint:gosec // G101: test fixture hash

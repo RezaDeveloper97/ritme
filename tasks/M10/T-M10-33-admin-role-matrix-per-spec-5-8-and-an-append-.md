@@ -3,10 +3,10 @@ id: T-M10-33
 title: Admin role matrix per SPEC 5.8 and an append-only, hash-chained audit log
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-25, T-M10-02]
 parallel_group: M10-D
-touches: [backend-go/internal/admin/httpadmin/permissions.go, backend-go/internal/admin/httpadmin/audit.go, backend-go/internal/admin/httpadmin/health.go, backend-go/internal/admin/rbac, backend-go/internal/admin/auditchain, backend-go/db/queries/admin, docs/engine-v6/jobs.md]
+touches: [backend-go/internal/admin/httpadmin/permissions.go, backend-go/internal/admin/httpadmin/audit.go, backend-go/internal/admin/httpadmin/health.go, backend-go/internal/admin/rbac, backend-go/internal/admin/auditchain, backend-go/db/queries/admin, docs/engine-v6/jobs.md, backend-go/internal/admin/store, backend-go/internal/admin/httpadmin/kit.go, backend-go/internal/admin/httpadmin/audit_test.go, backend-go/internal/http/routes_admin_rbac.go, backend-go/internal/admin/content/admintest, backend-go/internal/admin/users/users.go, backend-go/internal/admin/users/v2.go, backend-go/internal/admin/clinicalcfg/api_int_test.go, backend-go/internal/okr/admin_int_test.go, backend-go/internal/cityservices/admin_dir_int_test.go, backend-go/internal/shop/admin/admin_int_test.go, docs/go-migration/admin-api.md]
 skills: []
 verify: cd backend-go && make sqlc && go vet ./... && go test ./internal/admin/... && make test-int PKG="./internal/admin/httpadmin/... ./internal/admin/rbac/..."
 ---

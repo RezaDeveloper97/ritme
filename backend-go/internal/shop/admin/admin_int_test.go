@@ -31,6 +31,8 @@ func newEnv(t *testing.T) *admintest.Env {
 	e.Exec(`INSERT INTO admins (id, name, email, password, role, is_active, created_at, updated_at) VALUES
 		(3, 'Mkt', 'mkt@ritme.test', 'x', 'marketing', 1, NOW(), NOW()),
 		(4, 'Sup', 'sup@ritme.test', 'x', 'support', 1, NOW(), NOW())`)
+	// T-M10-33: marketing has no content by default (SPEC §5.8); these tests need a content-only role.
+	e.Exec(`INSERT INTO admin_roles (role, permissions, created_at, updated_at) VALUES ('marketing', '{"content":"manage"}', NOW(), NOW())`)
 	return e
 }
 

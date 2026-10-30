@@ -41,6 +41,7 @@ const (
 func newEnv(t *testing.T) *admintest.Env {
 	t.Helper()
 	e := admintest.New(t)
+	e.Kit.UseAuditChain(e.DB) // T-M10-33: every audit row of these tests is a chained append
 	r := e.Route()
 	rbac.NewHandlers(e.DB, e.Kit, admintest.Quiet).Routes(r, e.Kit)
 	content.New(content.Deps{DB: e.DB, Disk: media.NewDisk(e.Storage), Logger: admintest.Quiet}).Routes(r, e.Kit)
@@ -51,6 +52,7 @@ func newEnv(t *testing.T) *admintest.Env {
 	get, post := fiber.MethodGet, fiber.MethodPost
 	r(get, "/auth/me", e.Kit.Admin(authH.Me))
 	r(get, "/users", e.Kit.Admin(usersH.List))
+	r(get, "/users/directory/export", e.Kit.Admin(usersH.ExportDirectory))
 	r(get, "/users/:id", e.Kit.Admin(usersH.Show))
 	r(post, "/users/:id/block", e.Kit.Admin(usersH.Block))
 	r(fiber.MethodPut, "/users/:id", e.Kit.Admin(usersH.Update))
@@ -84,20 +86,24 @@ func TestPermissions_PerRole(t *testing.T) {
 		path   string
 		want   int
 	}{
-		// marketing: content manage, no support / audit / roles / health.
-		{marketingID, fiber.MethodGet, "/articles", 200},
+		// marketing (§5.8: product/marketing messages, challenges, segments): no content, users, support, audit,
+		// roles or health.
+		{marketingID, fiber.MethodGet, "/articles", 403},
 		{marketingID, fiber.MethodGet, "/support-reports", 403},
 		{marketingID, fiber.MethodGet, "/audit-logs", 403},
 		{marketingID, fiber.MethodGet, "/roles", 403},
 		{marketingID, fiber.MethodPost, "/health-access", 403},
-		{marketingID, fiber.MethodPost, "/users/10/block", 403}, // users: view only
-		{marketingID, fiber.MethodGet, "/users", 200},
+		{marketingID, fiber.MethodPost, "/users/10/block", 403},
+		{marketingID, fiber.MethodGet, "/users", 403},
 		// doctor: only the doctor inbox (+ dashboard).
 		{doctorID, fiber.MethodGet, "/articles", 403},
 		{doctorID, fiber.MethodGet, "/users", 403},
-		// support: users + support inbox, not content.
+		// support (§5.8: masked users, subscriptions, tickets): users view, support inbox; not content, no block.
 		{supportID, fiber.MethodGet, "/support-reports", 200},
+		{supportID, fiber.MethodGet, "/users", 200},
+		{supportID, fiber.MethodPost, "/users/10/block", 403},
 		{supportID, fiber.MethodGet, "/articles", 403},
+		{supportID, fiber.MethodGet, "/users/directory/export", 403},
 		// clinical support: health requests, support, users; not content.
 		{clinicalID, fiber.MethodGet, "/health-access", 200},
 		{clinicalID, fiber.MethodGet, "/articles", 403},
@@ -106,12 +112,19 @@ func TestPermissions_PerRole(t *testing.T) {
 		{admintest.EditorID, fiber.MethodGet, "/audit-logs", 403},
 		{admintest.EditorID, fiber.MethodGet, "/something-new", 403},
 		{admintest.SuperID, fiber.MethodGet, "/something-new", 200},
-		// analyst: users view only — cannot block or delete (B-N9-02b).
-		{analystID, fiber.MethodGet, "/users", 200},
+		// analyst (§5.8: KPI and anonymous export only): 403 on the user list, the anonymised export works.
+		{analystID, fiber.MethodGet, "/users", 403},
+		{analystID, fiber.MethodGet, "/users/10", 403},
 		{analystID, fiber.MethodDelete, "/users/11", 403},
 		{analystID, fiber.MethodPost, "/users/11/block", 403},
+		{analystID, fiber.MethodGet, "/users/directory/export", 200},
+		{analystID, fiber.MethodGet, "/audit-logs/export", 403},
 		{admintest.EditorID, fiber.MethodPost, "/health-access", 403},
 		{admintest.EditorID, fiber.MethodGet, "/roles", 403},
+		// audit chain verification: super only.
+		{admintest.EditorID, fiber.MethodGet, "/audit/verify", 403},
+		{analystID, fiber.MethodGet, "/audit/verify", 403},
+		{admintest.SuperID, fiber.MethodGet, "/audit/verify", 200},
 		// super: everything.
 		{admintest.SuperID, fiber.MethodGet, "/roles", 200},
 		{admintest.SuperID, fiber.MethodGet, "/audit-logs", 200},
@@ -134,7 +147,9 @@ func TestPermissions_PerRole(t *testing.T) {
 	// /auth/me carries the matrix.
 	me := e.As(marketingID).Get("/auth/me")
 	require.Equal(t, 200, me.Status)
-	assert.Equal(t, "manage", me.Obj("permissions")["content"])
+	assert.Equal(t, "manage", me.Obj("permissions")["messages"])
+	assert.Equal(t, "manage", me.Obj("permissions")["segments"])
+	assert.NotContains(t, me.Obj("permissions"), "content")
 	assert.NotContains(t, me.Obj("permissions"), "health")
 }
 
@@ -153,16 +168,18 @@ func TestRoles_EditAndReset(t *testing.T) {
 	// An editor cannot edit roles.
 	assert.Equal(t, 403, e.As(admintest.EditorID).JSON(fiber.MethodPut, "/roles/marketing", map[string]any{"permissions": map[string]any{}}).Status)
 
-	// Give marketing the support inbox (view), take content away.
+	// Give marketing the support inbox (view) and content.
 	r := super.JSON(fiber.MethodPut, "/roles/marketing", map[string]any{"permissions": map[string]any{
-		"dashboard": "view", "support": "view", "content": "none"}})
+		"dashboard": "view", "support": "view", "content": "manage"}})
 	require.Equal(t, 200, r.Status, string(r.Raw))
 	mkt := e.As(marketingID)
 	assert.Equal(t, 200, mkt.Get("/support-reports").Status)
-	assert.Equal(t, 403, mkt.Get("/articles").Status)
-
-	require.Equal(t, 200, super.JSON(fiber.MethodPost, "/roles/marketing/reset", nil).Status)
 	assert.Equal(t, 200, mkt.Get("/articles").Status)
+
+	// Reset: back to the §5.8 defaults (no content, no support inbox).
+	require.Equal(t, 200, super.JSON(fiber.MethodPost, "/roles/marketing/reset", nil).Status)
+	assert.Equal(t, 403, mkt.Get("/articles").Status)
+	assert.Equal(t, 403, mkt.Get("/support-reports").Status)
 	assert.Equal(t, 2, e.Int(`SELECT COUNT(*) FROM admin_audit_logs WHERE action IN ('role.update','role.reset') AND admin_id = 1`))
 }
 

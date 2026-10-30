@@ -2487,3 +2487,11 @@ Nothing needed fixing.
 - `companion/shared` is now a compat mapper onto the projections (old `mode.go` removed); companion home uses it. Symptoms section removed (F-03): 404, gone from home and grants. Link views list effective grants only (no `none`, paused or out-of-mode rows).
 - OpenAPI + contract allowlists updated (new `babylog.yaml`, `teen.yaml`); contract companion/companion-home/shop-checklist 35/0.
 - Open: frontend `entities/companion/api/companion-side.ts` still parses the old section shapes (noted in T-M11-20); weight `category` always null; under CYCLE_ENGINE=v1 the TTC window is empty.
+
+## T-M10-33 — Admin role matrix per §5.8 and hash-chained audit log (D-182)
+- §5.8 default matrices (spec→capability table in `httpadmin/permissions.go`); new caps `kpi`, `okr`, `thresholds` (`/clinical-config`), `segments`; `/users/directory/export` → `export`, `/audit*` → `audit`. Deny by default; matrices already saved in `admin_roles` are never rewritten (user OK 2026-10-30: follow the spec — marketing/PM lose content, PM loses users-manage/export, support loses dashboard; customised roles need a super admin to grant the new caps).
+- `internal/admin/auditchain`: sha256(prev ‖ canonical JSON) chained append under a `FOR UPDATE` head lock, idempotent genesis over pre-chain rows, `Verify(from)` in a REPEATABLE READ snapshot (break reasons genesis_mismatch / unchained / prev_mismatch / hash_mismatch / head_mismatch). Wired in `httpadmin.Wire` (`UseAuditChain`) and admintest.
+- `GET /api/admin/v1/audit/verify?from=` (super); nightly job `admin.audit_verify` 03:40 Tehran (gauge `admin_audit_chain_broken`, counter `admin_audit_chain_verify_total`, head-hash anchor in the log).
+- Health reads fail closed (503 `audit_unavailable`): `/health-access/users/:id`, `/users/:id`, `/users/:id/overview`.
+- Test fixtures updated for the new defaults: clinicalcfg, okr, cityservices admin_dir, shop/admin. Docs: `docs/go-migration/admin-api.md` §21, `docs/engine-v6/jobs.md`. No migration (00105 already had the columns).
+- Open: legacy `/users` still shows the full mobile (noted in T-M10-32). Rollout: an older binary writing unchained rows after genesis shows up as an `unchained` break — deploy all stacks together.

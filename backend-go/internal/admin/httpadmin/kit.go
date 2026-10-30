@@ -283,5 +283,6 @@ func RequireSuper(c fiber.Ctx) error {
 // and the default-language locale middleware (`setlocale:default`).
 func Wire(appEnv string, db *sql.DB, c *cache.Client, logger *slog.Logger) *Kit {
 	locale := i18n.DefaultMiddleware(i18n.NewRegistry(i18nstore.New(db), c, logger))
-	return NewKit(OptionsFromEnv(appEnv), NewSessions(c), store.New(db), locale, logger)
+	// T-M10-33 (D-182): every audit row of the API is a hash-chained append.
+	return NewKit(OptionsFromEnv(appEnv), NewSessions(c), store.New(db), locale, logger).UseAuditChain(db)
 }
