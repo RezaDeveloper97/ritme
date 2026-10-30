@@ -7,3 +7,22 @@ entries:
     where: body
     deviation: D-204
     reason: two extra grants_changed rows (invite + accept) from family.Grants.Apply; ids shift by two
+  # D-194 (T-M11-06; F-01, F-03): member projections v6 on the companion home — the link view lists effective
+  # sections only, the cycle card is the cycle_phase DTO (main_phase, period_soon for a partner; no dates or numbers),
+  # and the symptoms card is gone.
+  - case: "*"
+    where: data.grants.*
+    deviation: D-194
+    reason: accept lists effective sections only (no none rows, no symptoms)
+  - case: "*"
+    where: data.partners[*].link.grants.*
+    deviation: D-194
+    reason: the home link view lists effective sections only
+  - case: "*"
+    where: data.partners[*].cycle.*
+    deviation: D-194
+    reason: the cycle card is the cycle_phase DTO — no dates or numbers
+  - case: "*"
+    where: data.partners[*].symptoms
+    deviation: D-194
+    reason: the symptoms card is removed (F-03)

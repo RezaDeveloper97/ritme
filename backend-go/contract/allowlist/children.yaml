@@ -58,3 +58,17 @@ entries:
     where: data.schedule
     deviation: D-173
     reason: registry schedule version and source of the due ages
+  # D-194 (T-M11-06): the member's link view lists only the sections it effectively holds (no `none` rows, never
+  # symptoms, F-03).
+  - case: "*"
+    where: data.grants.*
+    deviation: D-194
+    reason: accept lists effective sections only (no none rows, no symptoms)
+  - case: "*"
+    where: data.partners[*].link.grants.*
+    deviation: D-194
+    reason: the companion home link view lists effective sections only
+  - case: "*"
+    where: data.partners[*].symptoms
+    deviation: D-194
+    reason: the symptoms card is removed (F-03)

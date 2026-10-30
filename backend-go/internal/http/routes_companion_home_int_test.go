@@ -105,8 +105,11 @@ func TestCompanionHome_AccessCombinations(t *testing.T) {
 	assert.Equal(t, float64(saraID), p["link"].(map[string]any)["owner"].(map[string]any)["id"])
 	cyc, _ := p["cycle"].(map[string]any)
 	require.NotNil(t, cyc, r.Raw)
-	assert.Equal(t, true, cyc["has_data"])
-	assert.NotNil(t, cyc["predicted_next_period_start"])
+	assert.Contains(t, []any{"menstrual", "follicular", "fertile", "luteal", "period_expected"}, cyc["main_phase"], r.Raw)
+	assert.Contains(t, cyc, "period_soon", "the partner role gets period_soon (F-01)")
+	for _, k := range []string{"has_data", "days_to_period", "cycle_length", "predicted_next_period_start"} {
+		assert.NotContains(t, cyc, k, "cycle_phase DTO (T-M11-06)")
+	}
 	assert.NotNil(t, p["meds"], "granted meds is a list")
 	assert.Nil(t, p["appointments"])
 	assert.Nil(t, p["symptoms"])

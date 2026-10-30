@@ -266,8 +266,8 @@ func TestCompanionRoutes_LifecycleAndIDOR(t *testing.T) {
 	assert.Equal(t, fiber.StatusOK, e.do(fiber.MethodGet, sec(linkA, "cycle"), ali, nil).Status)
 	assert.Equal(t, fiber.StatusOK, e.do(fiber.MethodGet, sec(linkA, "appointments"), ali, nil).Status)
 	r = e.do(fiber.MethodGet, sec(linkA, "symptoms"), ali, nil)
-	assert.Equal(t, fiber.StatusForbidden, r.Status)
-	assert.Equal(t, companion.ErrorCodeSectionNotShared, r.Body["error_code"])
+	assert.Equal(t, fiber.StatusNotFound, r.Status, "symptoms is gone (F-03, T-M11-06)")
+	assert.Nil(t, r.Body["data"])
 	assert.Equal(t, fiber.StatusForbidden, e.do(fiber.MethodGet, sec(linkA, "pregnancy"), ali, nil).Status)
 	assert.Equal(t, fiber.StatusNotFound, e.do(fiber.MethodGet, sec(linkB, "cycle"), ali, nil).Status, "companion of A on B's link")
 	assert.Equal(t, fiber.StatusNotFound, e.do(fiber.MethodGet, sec(linkA, "cycle"), reza, nil).Status, "companion of B on A's link")
@@ -286,7 +286,7 @@ func TestCompanionRoutes_LifecycleAndIDOR(t *testing.T) {
 		assert.Equal(t, fiber.StatusNotFound, e.do(fiber.MethodPost, fmt.Sprintf("/api/v1/companions/%d/renew", linkA), tok, map[string]any{}).Status)
 		assert.Equal(t, fiber.StatusNotFound, e.do(fiber.MethodDelete, fmt.Sprintf("/api/v1/companions/%d", linkA), tok, nil).Status)
 	}
-	assert.Equal(t, fiber.StatusForbidden, e.do(fiber.MethodGet, sec(linkA, "symptoms"), ali, nil).Status, "companion cannot grant itself")
+	assert.Equal(t, fiber.StatusNotFound, e.do(fiber.MethodGet, sec(linkA, "symptoms"), ali, nil).Status, "companion cannot grant itself (and symptoms is gone)")
 	// The companion-side leave route is companion-only.
 	assert.Equal(t, fiber.StatusNotFound, e.do(fiber.MethodDelete, fmt.Sprintf("/api/v1/companions/links/%d", linkA), sara, nil).Status)
 	assert.Equal(t, fiber.StatusNotFound, e.do(fiber.MethodDelete, fmt.Sprintf("/api/v1/companions/links/%d", linkA), reza, nil).Status)

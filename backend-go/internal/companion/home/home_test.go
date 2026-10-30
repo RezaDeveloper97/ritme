@@ -9,7 +9,7 @@ import (
 	"github.com/ritme/backend-go/internal/admin/messages/registry"
 	"github.com/ritme/backend-go/internal/companion"
 	"github.com/ritme/backend-go/internal/enums"
-	"github.com/ritme/backend-go/internal/platform/jsonx"
+	"github.com/ritme/backend-go/internal/family/projections"
 )
 
 // The admin registry group and this package agree on the group, the phases and the item keys.
@@ -73,17 +73,16 @@ func TestPhases(t *testing.T) {
 	assert.Equal(t, PhaseLuteal, PhaseOf(enums.MainPhasePeriodExpected))
 	assert.Equal(t, PhaseGeneral, PhaseOf(enums.MainPhaseUnknown))
 
-	cycle := jsonx.Obj("has_data", true, "main_phase", enums.MainPhaseFertile)
+	fertile, week := "fertile", 20
+	cycle := projections.CyclePhase{MainPhase: &fertile}
 	assert.Equal(t, PhaseGeneral, tipPhase(map[companion.Section]any{}))
 	assert.Equal(t, PhaseFertile, tipPhase(map[companion.Section]any{companion.SectionCycle: cycle}))
-	assert.Equal(t, PhaseGeneral, tipPhase(map[companion.Section]any{
-		companion.SectionCycle: jsonx.Obj("has_data", false, "main_phase", enums.MainPhaseUnknown),
-	}))
+	assert.Equal(t, PhaseGeneral, tipPhase(map[companion.Section]any{companion.SectionCycle: projections.CyclePhase{}}))
 	assert.Equal(t, PhaseFertile, tipPhase(map[companion.Section]any{
-		companion.SectionCycle: cycle, companion.SectionPregnancy: jsonx.Obj("is_active", false),
+		companion.SectionCycle: cycle, companion.SectionPregnancy: projections.Pregnancy{},
 	}))
 	assert.Equal(t, PhasePregnancy, tipPhase(map[companion.Section]any{
-		companion.SectionCycle: cycle, companion.SectionPregnancy: jsonx.Obj("is_active", true),
+		companion.SectionCycle: cycle, companion.SectionPregnancy: projections.Pregnancy{CurrentWeek: &week},
 	}))
 
 	for phase, tag := range map[string]string{PhaseMenstrual: "menstruation", PhaseFollicular: "follicular", PhaseFertile: "ovulation", PhaseLuteal: "luteal"} {

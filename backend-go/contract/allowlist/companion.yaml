@@ -41,3 +41,34 @@ entries:
     where: body
     deviation: D-193
     reason: the 403 section_not_shared body, no data
+  # D-194 (T-M11-06; F-01, F-02, F-03, DECISIONS.md, user OK 2026-10-21): member projections v6. The member's link view
+  # lists only the sections it effectively holds (no `none` rows, nothing paused or out of mode, never symptoms); each
+  # legacy section maps onto the allow-list DTO of its v6 domain (cycle → cycle_phase: main_phase + partner
+  # period_soon, no date / day / length / days-to-period / prediction / confidence; meds: title, form, dose, unit,
+  # times, today's dose status at nudge or above); symptoms is removed (404).
+  - case: "*"
+    where: data.grants.*
+    deviation: D-194
+    reason: accept / link view lists effective sections only (no none rows, no symptoms)
+  - case: "*"
+    where: data[*].grants.*
+    deviation: D-194
+    reason: GET /companions/links lists effective sections only (no none rows, no symptoms)
+  - case: "*"
+    where: data.data.*
+    deviation: D-194
+    reason: the cycle section is the cycle_phase DTO (main_phase, period_soon for a partner) — no dates or numbers
+  - case: "*"
+    where: data.data[*].*
+    deviation: D-194
+    reason: the meds section is the v6 meds DTO (no type, weekdays, starts_on, ends_on, is_active; today at nudge+)
+  - case: invite_accept_read_record_revoke
+    step: 5
+    where: status
+    deviation: D-194
+    reason: symptoms section removed (F-03) — 404 instead of 403
+  - case: invite_accept_read_record_revoke
+    step: 5
+    where: body
+    deviation: D-194
+    reason: symptoms section removed (F-03) — the 404 companion-not-found body

@@ -210,8 +210,9 @@ func TestMember_MoodNeverShared(t *testing.T) {
 	}
 
 	r := e.do(fiber.MethodGet, section(link, "symptoms"), tok, nil)
-	require.Equal(t, fiber.StatusForbidden, r.Status, r.Raw)
-	assert.Equal(t, "section_not_shared", r.Body["error_code"])
+	require.Equal(t, fiber.StatusNotFound, r.Status, "F-03 (T-M11-06): the symptoms section no longer exists: "+r.Raw)
+	assert.Nil(t, r.Body["data"])
+	assert.Nil(t, r.Body["error_code"], "no section_not_shared hint: the section is gone, not withheld")
 	for _, path := range []string{section(link, "symptoms"), "/api/v1/companion/home"} {
 		r := e.do(fiber.MethodGet, path, tok, nil)
 		for _, hidden := range []string{`"mood"`, `"moods"`, "calm", "anxious", "abdomen"} {
@@ -290,12 +291,12 @@ func TestMember_CycleView_NoLateness(t *testing.T) {
 	r := e.do(fiber.MethodGet, section(link, "cycle"), tok, nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	cyc, _ := r.data()["data"].(map[string]any)
-	assert.Equal(t, true, cyc["has_data"])
-	_, hasLate := cyc["days_late"]
-	assert.False(t, hasLate, "no days_late key")
-	assert.Nil(t, cyc["cycle_day"], "a cycle day past the length counts the lateness")
-	assert.Nil(t, cyc["days_to_period"])
-	assert.Nil(t, cyc["predicted_next_period_start"], "a past prediction counts the lateness")
+	assert.NotNil(t, cyc["main_phase"], "the phase is the one allowed cycle field")
+	assert.Equal(t, false, cyc["period_soon"], "a late owner is never «period soon» (F-01): no lateness hint either way")
+	for _, k := range []string{"days_late", "has_data", "cycle_day", "cycle_length", "days_to_period", "predicted_next_period_start", "confidence"} {
+		_, present := cyc[k]
+		assert.False(t, present, "no %s key (T-M11-06 cycle_phase DTO)", k)
+	}
 	r = e.do(fiber.MethodGet, "/api/v1/companion/home", tok, nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	assert.NotContains(t, r.Raw, "days_late")

@@ -18061,24 +18061,24 @@ paths:
                         type: array
                         items:
                           type: object
-                          required: [link, partner_name, cycle, pregnancy, symptoms, meds, appointments, phase, note, tips, child]
+                          required: [link, partner_name, cycle, pregnancy, meds, appointments, phase, note, tips, child]
                           properties:
                             link: {$ref: "#/components/schemas/CompanionLink"}
                             partner_name: {type: [string, "null"]}
                             cycle:
-                              description: "Shared cycle view (null without grant)"
+                              description: "FamilyCyclePhase (null without an effective grant, T-M11-06)"
                               type: [object, "null"]
                             pregnancy:
-                              description: "Shared pregnancy view (null without grant)"
+                              description: "FamilyPregnancy (null without an effective grant)"
                               type: [object, "null"]
                             symptoms:
-                              description: "Shared last-7-days symptoms view (null without grant)"
+                              description: "Removed (F-03, T-M11-06): only in pre-v6 recorded goldens"
                               type: [object, "null"]
                             meds:
-                              description: "Shared active medications (null without grant)"
+                              description: "FamilyMed[] (null without an effective grant)"
                               type: [array, "null"]
                             appointments:
-                              description: "Shared upcoming appointments (null without grant)"
+                              description: "FamilyAppointment[] (null without an effective grant)"
                               type: [array, "null"]
                             phase: {type: string, enum: [menstrual, follicular, fertile, luteal, pregnancy, general]}
                             note: {type: [string, "null"]}
@@ -18375,6 +18375,83 @@ paths:
                                   domain: {type: string}
                                   level: {type: string, enum: [view, nudge, write]}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/family/owners/{ownerId}/domains/{domain}:
+    get:
+      tags: [Companion]
+      summary: Member projection of one family domain (v6)
+      description: |
+        Go only (T-M11-06, D-194, D-204). What the caller (a family member) may read of one domain of the owner's
+        data, as an explicit allow-list DTO (docs/engine-v6/family.md §4) — only the fields below ever leave the
+        server; never notes, mood or EPDS, sex, labs, chats, cycle numbers or history, or raw fertility data (SPEC §1.7).
+        Decided by `check()` (family.Decide) before anything is loaded: **404** for an unknown owner, link or domain,
+        an expired link or a blocked owner (F-21); **403** `family_domain_denied` on an active link whose grant is off,
+        paused by a mode change (stale mode epoch, F-23) or outside the owner's mode — both with no data. An allowed
+        read is audited (coalesced per 15 minutes, D-203). Throttled 300/hour per account. `Cache-Control: private, no-store`.
+
+        - `cycle_phase` (owner in cycle or TTC mode): `main_phase` only; `fertile` reads `follicular` under fertility
+          suppression (hormonal contraception) and, in TTC mode, without the `ttc_fertility` switch; `period_soon`
+          (next period within 3 days, never while late) for the partner role only (F-01, F-02).
+        - `ttc_fertility` (partner-only switch, TTC mode): fertile window, estimated ovulation, best days (null under suppression).
+        - `pregnancy` (pregnancy mode, current epoch): `current_week`, `trimester`, `edd` (date only).
+        - `fetal_activity` (pregnancy): today's kick sessions with `completed` / `short`, and the last contraction
+          session's count, last contraction time and 5-1-1 status.
+        - `appointments`: upcoming, non-private: `title`, `scheduled_at`, `location`, `with`, `status`.
+        - `meds`: `title`, `form`, `dose`, `unit`, `unit_label`, `times`; `today` (dose status taken / missed / pending)
+          only at level `nudge` or above.
+        - `vitals`: latest `weight`, `bp`, `glucose`, each value + category + date (no history; weight has no category).
+      operationId: getFamilyOwnerDomain
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: ownerId, in: path, required: true, schema: {type: integer}}
+        - {name: domain, in: path, required: true, schema: {type: string, enum: [cycle_phase, ttc_fertility, pregnancy, fetal_activity, appointments, meds, vitals]}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The domain's member projection
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [owner_id, domain, data]
+                    properties:
+                      owner_id: {type: integer}
+                      domain: {type: string}
+                      data:
+                        oneOf:
+                          - {$ref: "#/components/schemas/FamilyCyclePhase"}
+                          - {$ref: "#/components/schemas/FamilyTTCFertility"}
+                          - {$ref: "#/components/schemas/FamilyPregnancy"}
+                          - {$ref: "#/components/schemas/FamilyFetalActivity"}
+                          - {$ref: "#/components/schemas/FamilyVitals"}
+                          - {type: array, items: {$ref: "#/components/schemas/FamilyAppointment"}}
+                          - {type: array, items: {$ref: "#/components/schemas/FamilyMed"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403':
+          description: Active link without this domain (off, paused or out of mode) — no data
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, const: family_domain_denied}
+        '404':
+          description: Unknown owner, link or domain, expired link or blocked owner — no data
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties: {success: {type: boolean, const: false}, message: {type: string}}
+        '429': {$ref: "#/components/responses/CompanionThrottled"}
   /api/v1/companions/links:
     get:
       tags: [Companion]
@@ -18417,33 +18494,21 @@ paths:
       tags: [Companion]
       summary: Read a shared section of the owner's data (companion)
       description: |
-        The access-filtered view of one section, built by the owning domain and audited (read) before it is returned:
-        `cycle` — today's cycle day, phase and next-period prediction; `symptoms` — the last 7 days of the day log
-        limited to pain, symptoms, sleep, energy/appetite and skin & hair (never mood or anything EPDS-derived, sex,
-        discharge, urogenital, measurements or notes — T-M9-02, D-133); `meds` — active medication reminders as
-        `MemberMedication`; `appointments` — upcoming appointments as `MemberAppointment` (explicit allow-lists: never
-        the owner's notes, topic, result note, prep, specialty, visit stage or other free text); `pregnancy` — week,
-        trimester, due date, only while the owner's effective mode is pregnancy (`is_active: false` otherwise,
-        postpartum included). Every pregnancy grant is reset to none when she activates or ends a pregnancy, records a
-        loss or starts postpartum, so after that the section is **403** `section_not_shared` until she shares again.
-        Member responses carry `Cache-Control: private, no-store`.
-        **404** when the caller is not the active companion of the link (another owner's link, a revoked or pending
-        one) or the section is unknown; **403** `section_not_shared` when the section is not granted (view or edit).
-        A parent link (CB-TEEN-01) has no section reads at all (404 for every section): its card is `GET /teen/linked`.
-        Mode-aware (B-N4-08b, CMP-H1 / CMP-M1): an owner in pregnancy or postpartum whose link has no `pregnancy` grant,
-        and every owner in menopause, gets the neutral `cycle` view (`has_data: false`, every number and `main_phase`
-        null); the member cycle view never carries `days_late` or any lateness-derived value (a `cycle_day` past the
-        cycle length, a past prediction and `days_to_period` are null when she is late — T-M9-02); `fertile` is shown as
-        `follicular` for an owner whose mode gets no fertility copy (teen); `symptoms` keeps only options of the cycle
-        mode (plus the owner's pregnancy / postpartum options with the `pregnancy` grant). A partner / spouse link of
-        an owner in teen mode grants nothing (**403** `section_not_shared` for every section; not revoked). Reads are
-        audited once per section per 15 minutes; throttled 300/hour per account (**429**).
+        Compatibility layer (T-M11-06, D-194, D-204): each legacy section maps onto the v6 member projection of its
+        domain — the same allow-list DTO as `GET /family/owners/{ownerId}/domains/{domain}` (`cycle` → `cycle_phase`,
+        `pregnancy`, `meds`, `appointments`), audited (read) before it is returned. `symptoms` is removed (F-03): **404**.
+        Decided by family.Decide: a grant that is off, paused by a mode change (F-23) or outside the owner's mode
+        (pregnancy only while pregnant, cycle only in cycle / TTC mode; a teen-mode owner grants nothing) is **403**
+        `section_not_shared` with no data. **404** when the caller is not the active companion of the link (another
+        owner's link, a revoked, expired or pending one) or the section is unknown. A parent link (CB-TEEN-01) has no
+        section reads at all: its card is `GET /teen/linked`. Reads are audited once per section per 15 minutes;
+        throttled 300/hour per account (**429**). Member responses carry `Cache-Control: private, no-store`.
       operationId: getCompanionsLinksSection
       security:
         - {bearerAuth: []}
       parameters:
         - {name: id, in: path, required: true, schema: {type: integer}}
-        - {name: section, in: path, required: true, schema: {type: string, enum: [cycle, symptoms, meds, appointments, pregnancy]}}
+        - {name: section, in: path, required: true, schema: {type: string, enum: [cycle, meds, appointments, pregnancy]}}
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
         '200':
@@ -18461,11 +18526,15 @@ paths:
                     properties:
                       companion_id: {type: integer}
                       owner_id: {type: integer}
-                      section: {type: string, enum: [cycle, symptoms, meds, appointments, pregnancy]}
+                      section: {type: string, enum: [cycle, meds, appointments, pregnancy]}
                       level: {type: string, enum: [view, edit]}
                       data:
-                        description: "cycle/symptoms/pregnancy: an object; meds: MemberMedication[]; appointments: MemberAppointment[]"
-                        oneOf:
+                        description: "The v6 DTO of the section's domain. The plain object / array alternatives are the pre-v6 shapes kept in the recorded contract goldens (allow-listed, D-194); the server no longer sends them."
+                        anyOf:
+                          - {$ref: "#/components/schemas/FamilyCyclePhase"}
+                          - {$ref: "#/components/schemas/FamilyPregnancy"}
+                          - {type: array, items: {$ref: "#/components/schemas/FamilyMed"}}
+                          - {type: array, items: {$ref: "#/components/schemas/FamilyAppointment"}}
                           - {type: object}
                           - {type: array, items: {type: object}}
         '401': {$ref: "#/components/responses/Unauthenticated"}
@@ -29758,9 +29827,121 @@ components:
             id: {type: integer, description: "Pass as `for_user_id` on the care routes"}
             name: {type: [string, "null"]}
         accepted_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
-        grants: {oneOf: [{$ref: "#/components/schemas/CompanionGrants"}, {$ref: "#/components/schemas/CompanionTeenGrants"}]}
+        grants:
+          description: "The sections the member effectively holds right now (T-M11-06): no `none` rows, nothing paused or out of the owner's mode, never `symptoms` (F-03)"
+          type: object
+          propertyNames: {enum: [cycle, meds, appointments, pregnancy, teen_period_week, teen_kit, teen_notes, symptoms], description: "`symptoms` only in pre-v6 recorded goldens (D-194)"}
+          additionalProperties: {type: string, enum: [view, edit, none], description: "view | edit (`none` only in pre-v6 recorded goldens, D-194)"}
         can_record_for: {type: array, items: {type: string, enum: [meds, appointments]}}
         family: {$ref: "#/components/schemas/CompanionFamily"}
+    FamilyCyclePhase:
+      type: object
+      additionalProperties: false
+      required: [main_phase]
+      properties:
+        main_phase: {type: [string, "null"], enum: [menstrual, follicular, fertile, luteal, period_expected, unknown, null]}
+        period_soon: {type: boolean, description: "Partner role only (F-01)"}
+    FamilyTTCFertility:
+      type: object
+      additionalProperties: false
+      required: [fertile_start, fertile_end, ovulation_date, best_days]
+      properties:
+        fertile_start: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        fertile_end: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        ovulation_date: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        best_days: {type: array, items: {$ref: "#/components/schemas/Date"}}
+    FamilyPregnancy:
+      type: object
+      additionalProperties: false
+      required: [current_week, trimester, edd]
+      properties:
+        current_week: {type: [integer, "null"]}
+        trimester: {type: [integer, "null"]}
+        edd: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+    FamilyFetalActivity:
+      type: object
+      additionalProperties: false
+      required: [kicks_today, last_contraction_session]
+      properties:
+        kicks_today:
+          type: object
+          additionalProperties: false
+          required: [date, sessions, status]
+          properties:
+            date: {$ref: "#/components/schemas/Date"}
+            sessions: {type: integer}
+            status: {type: [string, "null"], enum: [completed, short, null]}
+        last_contraction_session:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              additionalProperties: false
+              required: [count, last_at, in_progress, five_one_one_met]
+              properties:
+                count: {type: integer}
+                last_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+                in_progress: {type: boolean}
+                five_one_one_met: {type: boolean}
+    FamilyAppointment:
+      type: object
+      additionalProperties: false
+      required: [id, title, scheduled_at, location, with, status]
+      properties:
+        id: {type: integer}
+        title: {type: string}
+        scheduled_at: {type: [string, "null"], description: "Tehran wall clock Y-m-d H:i:s"}
+        location: {type: [string, "null"]}
+        with: {type: [string, "null"]}
+        status: {type: string, enum: [scheduled, cancelled]}
+    FamilyMed:
+      type: object
+      additionalProperties: false
+      required: [id, title, form, dose, unit, unit_label, times]
+      properties:
+        id: {type: integer}
+        title: {type: string}
+        form: {type: [string, "null"]}
+        dose: {type: [string, "null"], description: "A plain number only"}
+        unit: {type: [string, "null"]}
+        unit_label: {type: [string, "null"]}
+        times: {type: array, items: {type: string}}
+        today:
+          description: "Level nudge or above only"
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [time, status]
+            properties:
+              time: {type: string}
+              status: {type: string, enum: [taken, missed, pending]}
+    FamilyVitals:
+      type: object
+      additionalProperties: false
+      required: [weight, bp, glucose]
+      properties:
+        weight: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/FamilyVitalReading"}]}
+        glucose: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/FamilyVitalReading"}]}
+        bp:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              additionalProperties: false
+              required: [systolic, diastolic, category, date]
+              properties:
+                systolic: {type: integer}
+                diastolic: {type: integer}
+                category: {type: [string, "null"]}
+                date: {$ref: "#/components/schemas/Date"}
+    FamilyVitalReading:
+      type: object
+      additionalProperties: false
+      required: [value, unit, category, date]
+      properties:
+        value: {type: number}
+        unit: {type: string}
+        category: {type: [string, "null"]}
+        date: {$ref: "#/components/schemas/Date"}
     CompanionInvite:
       type: object
       required: [code, expires_at, phone, sms_sent]
@@ -29775,7 +29956,7 @@ components:
       properties:
         id: {type: integer}
         action: {type: string, enum: [read, write, invited, accepted, revoked, grants_changed]}
-        section: {type: [string, "null"], enum: [cycle, symptoms, meds, appointments, pregnancy, teen_period_week, teen_kit, teen_notes, null]}
+        section: {type: [string, "null"], enum: [cycle, symptoms, meds, appointments, pregnancy, teen_period_week, teen_kit, teen_notes, ttc_fertility, fetal_activity, vitals, null]}
         companion_id: {type: [integer, "null"]}
         actor:
           type: [object, "null"]

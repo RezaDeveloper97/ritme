@@ -51,11 +51,13 @@ func TestCompanionSecurity_TeenOwnerSuspendsPartnerLinks(t *testing.T) {
 	_, err := e.db.Exec(`UPDATE user_life_profiles SET life_mode = 'teen' WHERE user_id = ?`, saraID)
 	require.NoError(t, err)
 
-	for _, s := range []string{"cycle", "symptoms", "meds", "appointments"} {
+	for _, s := range []string{"cycle", "meds", "appointments"} {
 		r := e.do(fiber.MethodGet, sec(s), ali, nil)
 		assert.Equal(t, fiber.StatusForbidden, r.Status, s)
 		assert.Equal(t, "section_not_shared", r.Body["error_code"], s)
+		assert.Nil(t, r.Body["data"], s)
 	}
+	assert.Equal(t, fiber.StatusNotFound, e.do(fiber.MethodGet, sec("symptoms"), ali, nil).Status, "symptoms is gone (F-03)")
 	h := e.home(ali)
 	require.Equal(t, fiber.StatusOK, h.Status, h.Raw)
 	p := partnersOf(h)
@@ -69,8 +71,8 @@ func TestCompanionSecurity_TeenOwnerSuspendsPartnerLinks(t *testing.T) {
 	assert.Equal(t, "companion_forbidden", r.Body["error_code"])
 	links := e.do(fiber.MethodGet, "/api/v1/companions/links", ali, nil).list()
 	require.Len(t, links, 1)
-	assert.Equal(t, map[string]any{"cycle": "none", "symptoms": "none", "meds": "none", "appointments": "none", "pregnancy": "none"},
-		links[0].(map[string]any)["grants"])
+	assert.Equal(t, map[string]any{}, links[0].(map[string]any)["grants"],
+		"a teen-mode owner grants nothing: the member link view lists effective sections only (T-M11-06)")
 
 	// The owner still sees the link with what she chose.
 	own := e.do(fiber.MethodGet, "/api/v1/companions", sara, nil).list()
@@ -92,7 +94,7 @@ func TestCompanionSecurity_TeenOwnerSuspendsPartnerLinks(t *testing.T) {
 	for _, s := range []string{"cycle", "meds", "appointments"} {
 		assert.Equal(t, fiber.StatusOK, e.do(fiber.MethodGet, sec(s), ali, nil).Status, "back from teen mode, re-approved: "+s)
 	}
-	assert.Equal(t, fiber.StatusForbidden, e.do(fiber.MethodGet, sec("symptoms"), ali, nil).Status, "symptoms is gone (F-03)")
+	assert.Equal(t, fiber.StatusNotFound, e.do(fiber.MethodGet, sec("symptoms"), ali, nil).Status, "symptoms is gone (F-03)")
 }
 
 // CMP-M2: delegated single-record reads and updates stay inside the section view; delegated GETs are throttled.

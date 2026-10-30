@@ -39,6 +39,10 @@ const (
 	ErrorCodeInviteNotAllowed = "invite_not_allowed"
 )
 
+// ErrProjectionDenied: the section reader re-decided (family.Decide) and refused — answered 403 section_not_shared
+// with no data (internal/companion/shared maps the projections' denial onto it).
+var ErrProjectionDenied = errors.New("companion: section read denied")
+
 // MaxAuditEntries caps GET /companions/audit.
 const MaxAuditEntries = 200
 
@@ -505,9 +509,10 @@ func (h *Handlers) Leave(c fiber.Ctx) error {
 	return httpx.OK(c, nil, T("messages.left", locale))
 }
 
-// Section is GET /companions/links/{id}/sections/{section}: the access-filtered view of one section of the owner's
-// data. 404 when the caller is not the active companion of that link (or the section is unknown, or not one the link
-// type may hold), 403 section_not_shared without a view/edit grant. A parent link (CB-TEEN-01) has no section reads
+// Section is GET /companions/links/{id}/sections/{section}: one section of the owner's data as the v6 member
+// projection of its domain (internal/companion/shared → internal/family/projections, T-M11-06, D-194). 404 when the
+// caller is not the active companion of that link (or the section is unknown or symptoms, removed by F-03, or not one
+// the link type may hold), 403 section_not_shared without an effective grant. A parent link (CB-TEEN-01) has no section reads
 // at all: its only view is the teen card (GET /teen/linked). Every successful read is audited before the data is
 // built.
 func (h *Handlers) Section(c fiber.Ctx) error {
@@ -519,7 +524,7 @@ func (h *Handlers) Section(c fiber.Ctx) error {
 	locale := i18n.Locale(c)
 	id, ok := linkID(c)
 	section := Section(c.Params("section"))
-	if !ok || !section.Valid() {
+	if !ok || !section.Valid() || section == SectionSymptoms {
 		return notFoundErr(locale)
 	}
 	svc := h.svc(c)
@@ -541,6 +546,9 @@ func (h *Handlers) Section(c fiber.Ctx) error {
 		return err
 	}
 	data, err := h.opt.Reader.ReadFor(c.Context(), link, section, locale, h.now(c))
+	if errors.Is(err, ErrProjectionDenied) {
+		return httpx.Fail(fiber.StatusForbidden, T("messages.section_not_shared", locale), "error_code", ErrorCodeSectionNotShared)
+	}
 	if err != nil {
 		return err
 	}
@@ -808,6 +816,18 @@ func ownerLinkJSON(l Link, names map[uint64]string) *jsonx.OrderedMap {
 	)
 }
 
+// effectiveGrantsJSON lists only the sections the member effectively holds (T-M11-06 Scope 5): no `none` rows, no
+// paused or out-of-mode section, never symptoms (F-03). l.Grants is already Decide's answer (ListForCompanion).
+func effectiveGrantsJSON(g Grants, t Type) *jsonx.OrderedMap {
+	out := jsonx.NewObject()
+	for _, s := range SectionsFor(t) {
+		if l := g.Of(s); s != SectionSymptoms && l != LevelNone {
+			out.Set(string(s), string(l))
+		}
+	}
+	return out
+}
+
 // companionLinkJSON is a link as the companion sees it: whose data, which sections, where «ثبت برای …» applies.
 func companionLinkJSON(l Link, names map[uint64]string) *jsonx.OrderedMap {
 	recordFor := []string{}
@@ -829,7 +849,7 @@ func companionLinkJSON(l Link, names map[uint64]string) *jsonx.OrderedMap {
 		"type", string(l.Type),
 		"owner", jsonx.Obj("id", l.OwnerID, "name", nullable(names[l.OwnerID])),
 		"accepted_at", isoTime(l.AcceptedAt),
-		"grants", grantsJSON(l.Grants, l.Type),
+		"grants", effectiveGrantsJSON(l.Grants, l.Type),
 		"can_record_for", recordFor,
 		"family", family,
 	)

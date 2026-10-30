@@ -1,8 +1,8 @@
 // Package companionhome is the companion panel home (bloom B-N4-03, canvas nbl_Hamdam_Home): GET /api/v1/companion/home
-// for a male (companion) account. Per active link it shows what the owner shared — her cycle day / phase / next
-// period, pregnancy, symptoms, medications and appointments, each only with a view or edit grant and each read
-// audited (companion.Service.Audit) before it is built through the access-filtered section views of
-// internal/companion/shared — plus «امروز چه کار کنی؟» tips for her phase (admin content, tips.go), reading
+// for a male (companion) account. Per active link it shows what the owner shared — her cycle phase, pregnancy,
+// medications and appointments as the v6 member projections (internal/family/projections through the
+// internal/companion/shared mapping, T-M11-06; no symptoms card, F-03), each only with an effective grant and each read
+// audited (companion.Service.Audit) before it is built — plus «امروز چه کار کنی؟» tips for her phase (admin content, tips.go), reading
 // suggestions and the shared children card (spouse links, bloom B-N5-02). A companion without links gets an empty state that
 // points to «کد همدم را وارد کن»; a woman's account gets 403 not_companion_account.
 package companionhome
@@ -10,6 +10,7 @@ package companionhome
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -23,6 +24,7 @@ import (
 	"github.com/ritme/backend-go/internal/content"
 	"github.com/ritme/backend-go/internal/content/sanitizer"
 	"github.com/ritme/backend-go/internal/enums"
+	"github.com/ritme/backend-go/internal/family/projections"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/httpx"
@@ -33,9 +35,9 @@ import (
 const ActionEnterCode = "enter_code"
 
 // homeSections are the sections the home reads, in card order (the artboard's shared block).
+// The symptoms card is gone with its section (F-03, T-M11-06).
 var homeSections = []companion.Section{
-	companion.SectionCycle, companion.SectionPregnancy, companion.SectionSymptoms,
-	companion.SectionMeds, companion.SectionAppointments,
+	companion.SectionCycle, companion.SectionPregnancy, companion.SectionMeds, companion.SectionAppointments,
 }
 
 // Options wires the handlers.
@@ -179,6 +181,9 @@ func (h *Handlers) partner(ctx context.Context, svc *companion.Service, tc *tipC
 			return nil, "", err
 		}
 		v, err := h.reader.ReadFor(ctx, l, s, locale, now)
+		if errors.Is(err, companion.ErrProjectionDenied) {
+			continue // decided away since the grants were loaded: no card, no data
+		}
 		if err != nil {
 			return nil, "", err
 		}
@@ -206,7 +211,6 @@ func (h *Handlers) partner(ctx context.Context, svc *companion.Service, tc *tipC
 		"partner_name", nullable(name),
 		"cycle", views[companion.SectionCycle],
 		"pregnancy", views[companion.SectionPregnancy],
-		"symptoms", views[companion.SectionSymptoms],
 		"meds", views[companion.SectionMeds],
 		"appointments", views[companion.SectionAppointments],
 		"phase", phase,
@@ -218,18 +222,11 @@ func (h *Handlers) partner(ctx context.Context, svc *companion.Service, tc *tipC
 
 // tipPhase is pregnancy when a shared pregnancy is active, else the shared cycle's phase, else general.
 func tipPhase(views map[companion.Section]any) string {
-	if m, ok := views[companion.SectionPregnancy].(*jsonx.OrderedMap); ok {
-		if active, _ := m.Get("is_active"); active == true {
-			return PhasePregnancy
-		}
+	if p, ok := views[companion.SectionPregnancy].(projections.Pregnancy); ok && p.CurrentWeek != nil {
+		return PhasePregnancy
 	}
-	if m, ok := views[companion.SectionCycle].(*jsonx.OrderedMap); ok {
-		if hasData, _ := m.Get("has_data"); hasData != true {
-			return PhaseGeneral
-		}
-		if v, _ := m.Get("main_phase"); v != nil {
-			return PhaseOf(enums.MainPhase(fmt.Sprint(v)))
-		}
+	if c, ok := views[companion.SectionCycle].(projections.CyclePhase); ok && c.MainPhase != nil {
+		return PhaseOf(enums.MainPhase(*c.MainPhase))
 	}
 	return PhaseGeneral
 }

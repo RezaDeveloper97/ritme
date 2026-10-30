@@ -2481,3 +2481,9 @@ Nothing needed fixing.
 - `Assign`/`bucket` now go through `WeightedVariant`/`StableHash`; hash input stays `"user:rule:salt"` so no existing user changes variant (golden vectors + 10k-user test).
 - Bench: `BenchmarkSelectSlot_200Rules` ≈ 31 µs/op (budget 200 µs).
 - Open: not wired to any handler yet — the feed endpoint (T-M10-06) calls `LoadHistory` + `SelectSlot`; the legacy `Select`/`Eligible` stay for v2 and admin until then. Date comparisons on `current_period_start` not added (out of scope).
+
+## T-M11-06 — Member projections v6: allow-list DTOs per domain, symptoms removed, effective grants only
+- Shipped (D-194, D-204): `internal/family/projections` — one allow-listed DTO per domain (cycle_phase, ttc_fertility, pregnancy, fetal_activity, appointments, meds, vitals), each field set pinned by a reflection test; sentinel int test proves never-shared data is unreachable. Cycle phase carries no numbers; `period_soon` and the TTC switch are partner-only; fertile label hidden under hormonal contraception; med dose status only with nudge; vitals latest reading only; fetal activity pregnancy-only; pregnancy gated by mode + epoch. Reads audited, `Cache-Control: no-store`.
+- `companion/shared` is now a compat mapper onto the projections (old `mode.go` removed); companion home uses it. Symptoms section removed (F-03): 404, gone from home and grants. Link views list effective grants only (no `none`, paused or out-of-mode rows).
+- OpenAPI + contract allowlists updated (new `babylog.yaml`, `teen.yaml`); contract companion/companion-home/shop-checklist 35/0.
+- Open: frontend `entities/companion/api/companion-side.ts` still parses the old section shapes (noted in T-M11-20); weight `category` always null; under CYCLE_ENGINE=v1 the TTC window is empty.

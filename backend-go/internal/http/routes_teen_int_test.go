@@ -112,7 +112,7 @@ func TestTeenRoutes_ParentLinkRules(t *testing.T) {
 	id, code := e.invite(nila, map[string]any{"type": "parent", "display_name": "Mom", "phone": "09120003103", "grants": map[string]any{"teen_period_week": "view"}})
 	r = e.do(fiber.MethodPost, "/api/v1/companions/accept", mom, map[string]any{"code": code})
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
-	assert.Equal(t, map[string]any{"teen_period_week": "view", "teen_kit": "none", "teen_notes": "none"}, r.data()["grants"])
+	assert.Equal(t, map[string]any{"teen_period_week": "view"}, r.data()["grants"], "effective sections only (T-M11-06)")
 	assert.Equal(t, []any{}, r.data()["can_record_for"])
 
 	// The parent's only read is the card; no section reads, no care writes for Nila.

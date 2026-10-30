@@ -43,7 +43,10 @@ func TestLoss_StopsPregnancyEverywhere(t *testing.T) {
 	assert.Equal(t, "pregnancy", e.do(fiber.MethodGet, "/api/v1/home", sara, nil).data()["mode"])
 	sec := e.do(fiber.MethodGet, "/api/v1/companions/links/"+strconv.FormatUint(aliLink, 10)+"/sections/pregnancy", ali, nil)
 	require.Equal(t, fiber.StatusOK, sec.Status, sec.Raw)
-	assert.Equal(t, map[string]any{"is_active": true}, pick(sec.data()["data"], "is_active"))
+	preg, _ := sec.data()["data"].(map[string]any)
+	assert.NotNil(t, preg["current_week"], "the pregnancy DTO while she is pregnant (T-M11-06)")
+	assert.NotContains(t, preg, "gestational_age", "no dating detail")
+	assert.NotContains(t, preg, "is_active")
 
 	r = e.do(fiber.MethodPost, "/api/v1/loss", sara, map[string]any{"type": "early_miscarriage", "notify_companion": true})
 	require.Equal(t, fiber.StatusCreated, r.Status, r.Raw)

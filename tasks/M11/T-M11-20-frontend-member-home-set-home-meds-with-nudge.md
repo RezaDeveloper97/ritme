@@ -40,3 +40,9 @@ F-24.
 
 ## Acceptance
 - Verify passes; screenshots reviewed by the main session.
+
+## Note from T-M11-06 (2026-10-29)
+`frontend/src/entities/companion/api/companion-side.ts` still parses the pre-v6 section shapes (`has_data`,
+`days_to_period`, symptoms). Since T-M11-06 the server sends the v6 member DTOs (`cycle_phase`: `main_phase`,
+`period_soon` partner-only, no numbers; symptoms gone → 404); the `.catch` hides it but the cycle card stays empty.
+Move the parser to the v6 DTOs (OpenAPI `Family*` schemas) here.

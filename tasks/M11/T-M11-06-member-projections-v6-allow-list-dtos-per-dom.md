@@ -3,10 +3,10 @@ id: T-M11-06
 title: Member projections v6: allow-list DTOs per domain, symptoms section removed, effective grants only
 milestone: M11
 type: backend
-status: todo
+status: done
 depends_on: [T-M11-05]
 parallel_group: M11-C
-touches: [backend-go/internal/family/projections, backend-go/internal/companion/shared, backend-go/internal/companion/home, backend-go/internal/companion/handlers.go, backend-go/internal/shop/checklist/handlers.go, backend-go/internal/http/routes_family.go, backend-go/internal/http/routes_shop_checklist.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist]
+touches: [backend-go/internal/companion/member_privacy_int_test.go,backend-go/internal/http/companion_security_int_test.go,backend-go/internal/http/routes_companion_home_int_test.go,backend-go/internal/http/routes_companion_int_test.go,backend-go/internal/http/routes_loss_int_test.go,backend-go/internal/http/routes_teen_int_test.go,backend-go/internal/family/projections, backend-go/internal/companion/shared, backend-go/internal/companion/home, backend-go/internal/companion/handlers.go, backend-go/internal/shop/checklist/handlers.go, backend-go/internal/http/routes_family.go, backend-go/internal/http/routes_shop_checklist.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist]
 skills: [new-endpoint]
 verify: cd backend-go && go vet ./... && go test ./internal/family/... ./internal/companion/... && make test-int PKG="./internal/family/... ./internal/companion/... ./internal/http/..." && make contract ROUTES=companion,companion-home,shop-checklist
 ---
