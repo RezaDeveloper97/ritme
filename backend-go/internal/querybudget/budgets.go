@@ -65,7 +65,7 @@ var Budgets = []Budget{
 	// T-M10-06 (D-163): every home slot in one call. v6 warm = auth + the fact profile (account facts, companion check
 	// and the inbox counts in one row) + the engine-state revisions + the event history (SPEC: ≤ 3 + auth).
 	{"messages feed", "/api/v1/messages/feed", "/api/v1/messages/feed", enums.LifeModeCycle, 12, 9, ""},
-	{"messages feed v6", "/api/v1/messages/feed", "/api/v1/messages/feed", enums.LifeModeCycle, 11, 4, config.CycleEngineV6},
+	{"messages feed v6", "/api/v1/messages/feed", "/api/v1/messages/feed", enums.LifeModeCycle, 13, 4, config.CycleEngineV6}, // T-M10-10: +2 cold = challenge catalog snapshot load; warm unchanged
 	{"fertility insights", "/api/v1/fertility/insights", "/api/v1/fertility/insights", enums.LifeModeTTC, 8, 5, ""},
 	{"fertility bbt", "/api/v1/fertility/bbt", "/api/v1/fertility/bbt", enums.LifeModeTTC, 7, 4, ""},
 	{"analysis summary", "/api/v1/analysis/summary", "/api/v1/analysis/summary?range=3m", enums.LifeModeCycle, 14, 11, ""},

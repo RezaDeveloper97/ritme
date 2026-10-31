@@ -3,7 +3,6 @@ package content
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -13,9 +12,11 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/db"
+	adminch "github.com/ritme/backend-go/internal/admin/challenges"
 	"github.com/ritme/backend-go/internal/admin/content/form"
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
 	"github.com/ritme/backend-go/internal/admin/store"
+	"github.com/ritme/backend-go/internal/challenges"
 	chstore "github.com/ritme/backend-go/internal/challenges/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -37,7 +38,6 @@ const (
 func challengeV2Rules(c fiber.Ctx) validation.Rules {
 	rules := validation.Rules{
 		validation.F("duration_days", "nullable|integer|min:1|max:"+strconv.Itoa(maxChallengeDays)),
-		validation.F("start_rule", "nullable", validation.In("anytime", "menstrual", "fixed_date")),
 		validation.F("starts_on", "nullable|date_format:Y-m-d"),
 		validation.F("reminder_time", "nullable|date_format:H:i"),
 		validation.F("reward_badge_code", "nullable|string|max:64"),
@@ -59,12 +59,17 @@ func challengeV2Rules(c fiber.Ctx) validation.Rules {
 	} {
 		rules = append(rules, validation.F(f.name, "nullable|array"), validation.F(f.name+".*", validation.In(f.values...)))
 	}
+	rules = append(rules, adminch.Rules()...) // T-M10-10: start_rule / start_phase / eligibility / contraindications
 	return append(rules, form.Translatable(c, "reward_badge_title", false)...)
 }
 
 // checkChallengeV2 are the cross-field rules: tasks fit the duration, a program needs tasks, the minimum fits too.
 func checkChallengeV2(c fiber.Ctx) form.Check {
+	v6 := adminch.Check(c) // T-M10-10: the rule objects and start_phase
 	return func(in phpval.Map, add form.Add) error {
+		if err := v6(in, add); err != nil {
+			return err
+		}
 		dv, _ := in.Get("duration_days")
 		if dv == nil || !phpval.IsNumeric(dv) {
 			return nil
@@ -165,6 +170,11 @@ func (h *Handlers) saveChallengeProgram(ctx context.Context, id uint64, data php
 	}); err != nil {
 		return err
 	}
+	// T-M10-10 (D-167): the v6 rule columns — eligibility in the {all_of, any_of, exclude} shape (the legacy lists
+	// converted), contraindications (kept when the request has none), start rule + phase.
+	if err := adminch.Save(ctx, q, id, data, now); err != nil {
+		return err
+	}
 	if _, has := data.Get("tasks"); has {
 		_, tasks := phpval.Entries(mustGet(data, "tasks"))
 		existing, err := q.ListTasks(ctx, id)
@@ -245,19 +255,12 @@ func (h *Handlers) challengeV2JSON(ctx context.Context, id uint64) (program, tas
 }
 
 func programJSON(p chstore.ChallengeProgram) *jsonx.OrderedMap {
+	// The legacy lists the current editor reads, from either stored shape (empty when the rule needs the v6 shape:
+	// the editor then reads `eligibility`, T-M10-10).
 	var e struct {
 		ModesInclude, ModesExclude, PhasesInclude, PhasesExclude []string
 	}
-	if p.Eligibility.Valid {
-		var raw struct {
-			A []string `json:"modes_include"`
-			B []string `json:"modes_exclude"`
-			C []string `json:"phases_include"`
-			D []string `json:"phases_exclude"`
-		}
-		_ = json.Unmarshal(p.Eligibility.V, &raw)
-		e.ModesInclude, e.ModesExclude, e.PhasesInclude, e.PhasesExclude = raw.A, raw.B, raw.C, raw.D
-	}
+	e.ModesInclude, e.ModesExclude, e.PhasesInclude, e.PhasesExclude, _ = challenges.ToLegacy(challenges.ParseRule(p.Eligibility))
 	nz := func(s []string) []string {
 		if s == nil {
 			return []string{}
@@ -272,7 +275,7 @@ func programJSON(p chstore.ChallengeProgram) *jsonx.OrderedMap {
 	if p.CompletionMinDays.Valid {
 		minDays = p.CompletionMinDays.Int16
 	}
-	return jsonx.Obj(
+	m := jsonx.Obj(
 		"duration_days", p.DurationDays, "start_rule", p.StartRule, "starts_on", startsOn,
 		"reminder_time", httpadmin.NullString(p.ReminderTime),
 		"modes_include", nz(e.ModesInclude), "modes_exclude", nz(e.ModesExclude),
@@ -280,6 +283,8 @@ func programJSON(p chstore.ChallengeProgram) *jsonx.OrderedMap {
 		"reward_badge_code", httpadmin.NullString(p.RewardBadgeCode), "reward_badge_title", rawOrNil(p.RewardBadgeTitle),
 		"reward_plus_days", p.RewardPlusDays, "completion_min_days", minDays,
 	)
+	adminch.SetProgramJSON(m, p)
+	return m
 }
 
 func statsJSON(participants, completed int64) *jsonx.OrderedMap {
@@ -347,11 +352,24 @@ func (h *Handlers) ChallengeStats(c fiber.Ctx) error {
 	for _, d := range days {
 		perDay = append(perDay, jsonx.Obj("day", d.DayNumber, "users", d.Users))
 	}
+	prog, err := h.cq.GetProgram(ctx, ch.ID)
+	duration := 0
+	switch {
+	case err == nil:
+		duration = int(prog.DurationDays)
+	case !errors.Is(err, sql.ErrNoRows):
+		return err
+	}
+	dropOff, err := adminch.DropOff(ctx, h.cq, ch.ID, duration, civildate.InTehran(httpadmin.Now(c)))
+	if err != nil {
+		return err
+	}
 	s := statsJSON(participants, completed)
 	s.Set("active", participants-completed)
 	s.Set("rewards_granted", rew.Rewards)
 	s.Set("plus_days_granted", rew.PlusDays)
 	s.Set("per_day", jsonx.List(perDay))
+	s.Set("drop_off", jsonx.List(dropOff)) // T-M10-10: share of the runs that reached day n still going / dropped on it
 	return httpadmin.OK(c, jsonx.Obj("challenge_id", ch.ID, "stats", s))
 }
 

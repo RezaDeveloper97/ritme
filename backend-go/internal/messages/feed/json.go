@@ -1,6 +1,9 @@
 package feed
 
 import (
+	"encoding/json"
+
+	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/messages/rules"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 )
@@ -16,8 +19,38 @@ func (r *Result) JSON(locale string) *jsonx.OrderedMap {
 		}
 		slots.Set(s.Name, items)
 	}
-	return jsonx.Obj("slots", slots, "alerts", jsonx.Obj("open", r.Alerts.Open, "urgent", r.Alerts.Urgent),
+	out := jsonx.Obj("slots", slots, "alerts", jsonx.Obj("open", r.Alerts.Open, "urgent", r.Alerts.Urgent),
 		"rules_rev", r.Rev)
+	if r.Challenge != nil { // T-M10-10: only when the request computed the pick
+		out.Set("daily_challenge", challengeJSON(r.Challenge, locale))
+	}
+	return out
+}
+
+// challengeJSON is the daily_challenge pick: null, or {id, title, description, category, duration_days, day, reason}.
+func challengeJSON(c *ChallengeResult, locale string) any {
+	if c.Card == nil {
+		return nil
+	}
+	pick := func(raw json.RawMessage) any {
+		if len(raw) == 0 {
+			return nil
+		}
+		var v any
+		if json.Unmarshal(i18n.Pick(raw, locale, ""), &v) != nil {
+			return nil
+		}
+		return v
+	}
+	var category, day any
+	if c.Card.Category != "" {
+		category = c.Card.Category
+	}
+	if c.Card.Day > 0 {
+		day = c.Card.Day
+	}
+	return jsonx.Obj("id", c.Card.ID, "title", pick(c.Card.Title), "description", pick(c.Card.Description),
+		"category", category, "duration_days", c.Card.DurationDays, "day", day, "reason", c.Reason)
 }
 
 // itemJSON is one feed item. evidence («what we saw», «how sure we are», the contact of an urgent message) is present

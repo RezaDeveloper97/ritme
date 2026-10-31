@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/challenges"
 	"github.com/ritme/backend-go/internal/companion"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
@@ -24,13 +25,14 @@ func init() {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		h := home.NewHandlers(home.Deps{
-			Queries:   homestore.New(d.DB),
-			Messages:  msgstore.New(d.DB),
-			Pregnancy: pstore.New(d.DB),
-			AppURL:    d.Config.App.URL,
-			Logger:    d.Logger,
-			Plus:      plus.NewService(d.DB, d.Config.Plus, nil, d.Logger), // trial banner only: no gateway needed
-			Accounts:  companion.NewAccounts(d.DB),                         // B-N4-03: 409 companion_account for a male account
+			Queries:    homestore.New(d.DB),
+			Messages:   msgstore.New(d.DB),
+			Pregnancy:  pstore.New(d.DB),
+			AppURL:     d.Config.App.URL,
+			Logger:     d.Logger,
+			Plus:       plus.NewService(d.DB, d.Config.Plus, nil, d.Logger),        // trial banner only: no gateway needed
+			Accounts:   companion.NewAccounts(d.DB),                                // B-N4-03: 409 companion_account for a male account
+			Challenges: challenges.NewService(d.DB).WithEngine(engineStates(r, d)), // T-M10-10: v2 pick (never contraindicated)
 		}, cycleservice.New(d.DB, nil), clock.Real{}).WithEngine(engineStates(r, d), cyclestore.New(d.DB)) // T-M9-34: v6 under shadow|v6
 
 		g := r.Group("/api/v1/home")

@@ -43,7 +43,11 @@ SELECT
   (SELECT CAST(COUNT(*) AS SIGNED) FROM `message_inbox` i
     WHERE i.user_id = u.id AND i.open_flag = 1) AS inbox_open,
   (SELECT CAST(COUNT(*) AS SIGNED) FROM `message_inbox` i
-    WHERE i.user_id = u.id AND i.open_flag = 1 AND i.level IN ('follow_soon', 'urgent')) AS inbox_urgent
+    WHERE i.user_id = u.id AND i.open_flag = 1 AND i.level IN ('follow_soon', 'urgent')) AS inbox_urgent,
+  -- T-M10-10: the user's challenge runs (every status: a joined challenge is never a product candidate again) as a
+  -- JSON list [{"id", "started_on", "status"}] for the feed's daily_challenge slot — no extra query (NULL = none).
+  (SELECT CAST(JSON_ARRAYAGG(JSON_OBJECT('id', ce.challenge_id, 'started_on', ce.started_on, 'status', ce.status)) AS CHAR)
+    FROM `challenge_enrollments` ce WHERE ce.user_id = u.id) AS challenge_runs
 FROM `users` u
 LEFT JOIN `user_profiles` p ON p.id = (SELECT MIN(p2.id) FROM `user_profiles` p2 WHERE p2.user_id = u.id)
 LEFT JOIN `user_life_profiles` lp ON lp.user_id = u.id

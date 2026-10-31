@@ -24,6 +24,14 @@ ON DUPLICATE KEY UPDATE duration_days = VALUES(duration_days), start_rule = VALU
   reward_plus_days = VALUES(reward_plus_days), completion_min_days = VALUES(completion_min_days),
   updated_at = VALUES(updated_at);
 
+-- name: SetProgramRules :exec
+-- The v6 rule columns (T-M10-10, D-167): eligibility and contraindications in the {all_of, any_of, exclude} shape,
+-- the start rule and its phase.
+UPDATE `challenge_programs`
+SET eligibility = sqlc.narg(eligibility), contraindications = sqlc.narg(contraindications),
+    start_rule = sqlc.arg(start_rule), start_phase = sqlc.narg(start_phase), updated_at = sqlc.arg(now)
+WHERE challenge_id = sqlc.arg(challenge_id);
+
 -- name: DeleteProgram :exec
 DELETE FROM `challenge_programs` WHERE challenge_id = ?;
 
@@ -57,7 +65,7 @@ DELETE FROM `challenge_tasks` WHERE challenge_id = ?;
 -- Active v2 challenges with their program settings, for the user list.
 SELECT c.id, c.title, c.description, c.category, c.sort_order,
        p.duration_days, p.start_rule, p.starts_on, p.reminder_time, p.eligibility, p.reward_badge_code,
-       p.reward_badge_title, p.reward_plus_days, p.completion_min_days
+       p.reward_badge_title, p.reward_plus_days, p.completion_min_days, p.contraindications, p.start_phase
 FROM `challenges` c
 JOIN `challenge_programs` p ON p.challenge_id = c.id
 WHERE c.is_active = 1
@@ -66,7 +74,7 @@ ORDER BY c.sort_order, c.id;
 -- name: GetActiveProgram :one
 SELECT c.id, c.title, c.description, c.category, c.sort_order,
        p.duration_days, p.start_rule, p.starts_on, p.reminder_time, p.eligibility, p.reward_badge_code,
-       p.reward_badge_title, p.reward_plus_days, p.completion_min_days
+       p.reward_badge_title, p.reward_plus_days, p.completion_min_days, p.contraindications, p.start_phase
 FROM `challenges` c
 JOIN `challenge_programs` p ON p.challenge_id = c.id
 WHERE c.id = ? AND c.is_active = 1
@@ -135,3 +143,14 @@ JOIN `challenge_enrollments` e ON e.id = tc.enrollment_id
 WHERE e.challenge_id = ?
 GROUP BY tc.day_number
 ORDER BY tc.day_number;
+
+-- name: ProgramRuns :many
+-- Every run of a challenge with the last day the user completed anything on (0 = nothing yet), for the day-by-day
+-- drop-off (T-M10-10).
+SELECT e.id, e.started_on, e.status,
+       CAST(COALESCE(MAX(tc.day_number), 0) AS SIGNED) AS last_day
+FROM `challenge_enrollments` e
+LEFT JOIN `challenge_task_completions` tc ON tc.enrollment_id = e.id
+WHERE e.challenge_id = ?
+GROUP BY e.id, e.started_on, e.status
+ORDER BY e.id;

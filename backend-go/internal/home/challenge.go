@@ -3,6 +3,7 @@ package home
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"hash/crc32"
@@ -10,8 +11,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ritme/backend-go/db"
+	"github.com/ritme/backend-go/internal/challenges"
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/home/store"
+	"github.com/ritme/backend-go/internal/messages/feed"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 )
@@ -88,6 +92,81 @@ func ChallengePayload(ctx context.Context, q store.Querier, userID uint64, date 
 		"cycle_day_from", nullInt16(c.CycleDayFrom),
 		"cycle_day_to", nullInt16(c.CycleDayTo),
 		"is_completed", done,
+	), nil
+}
+
+// FeedChallenge is the daily_challenge slot's v2 pick (T-M10-10, D-167: messages/feed.PickChallenge over the
+// challenges catalogue), rendered by the caller from the challenge and the user's run.
+type FeedChallenge struct {
+	ID          uint64
+	Title       json.RawMessage
+	Description db.NullRawJSON
+	Category    sql.NullString
+	// Reason is the pick reason (ongoing | promoted | product).
+	Reason string
+	// DoneToday: every task of today's day of the run is done (false before joining).
+	DoneToday bool
+	// Run is the v2 challenge object (GET /challenges item) the card links to.
+	Run *jsonx.OrderedMap
+}
+
+// ChallengeCards is the challenges v2 port of the home (challenges.Service).
+type ChallengeCards interface {
+	HomeCandidates(ctx context.Context, userID uint64, today civildate.Date) ([]feed.ChallengeCandidate, map[uint64]challenges.Item, error)
+}
+
+// DailyChallengePick is the daily_challenge pick of the home until it reads the feed (T-M10-10): feed.PickChallenge
+// over the user's challenge list (an ongoing run first, else the first joinable challenge in admin sort order; never
+// a contraindicated one). nil = no v2 candidate (the legacy pick fills the card) or no port. The post-safety block
+// and the challenge_id promotions need the message history and rules, which only the feed has.
+func DailyChallengePick(ctx context.Context, svc ChallengeCards, userID uint64, today civildate.Date, locale, defLocale string,
+) (*FeedChallenge, error) {
+	if svc == nil {
+		return nil, nil
+	}
+	cands, items, err := svc.HomeCandidates(ctx, userID, today)
+	if err != nil || len(cands) == 0 {
+		return nil, err
+	}
+	pick, ok := feed.PickChallenge(feed.ChallengeInput{Candidates: cands})
+	if !ok {
+		return nil, nil
+	}
+	it := items[pick.ID]
+	done := false
+	if e := it.Enrollment; e != nil && e.Status == challenges.StatusActive && len(e.DoneToday) > 0 {
+		done = true
+		for _, d := range e.DoneToday {
+			done = done && d
+		}
+	}
+	cat := sql.NullString{String: it.Program.Category, Valid: it.Program.Category != ""}
+	return &FeedChallenge{ID: pick.ID, Title: it.Program.Title, Description: it.Program.Description, Category: cat,
+		Reason: pick.Reason, DoneToday: done, Run: challenges.ItemJSON(it, locale, defLocale)}, nil
+}
+
+// DailyChallengeCard is the home challenge card (T-M10-10): the feed's daily_challenge pick wins; the legacy
+// DailyChallengeService pick (ChallengePayload) is read only when the feed has no candidate (pick = nil). A v2 card
+// keeps the legacy keys (cycle_day_from / _to null: a v2 challenge is not day-targeted) and adds source, reason and
+// challenge.
+func DailyChallengeCard(ctx context.Context, q store.Querier, pick *FeedChallenge, userID uint64, date civildate.Date,
+	locale, defLocale string, cycleDay *int, recentLogs []cyclestore.DailyHealthLog, strictDay bool,
+) (*jsonx.OrderedMap, error) {
+	if pick == nil {
+		return ChallengePayload(ctx, q, userID, date, locale, defLocale, cycleDay, recentLogs, strictDay)
+	}
+	return jsonx.Obj(
+		"id", pick.ID,
+		"title", localized(pick.Title, locale, defLocale),
+		"description", localizedNull(pick.Description, locale, defLocale),
+		"category", nullString(pick.Category),
+		"cycle_day", intOrNil(cycleDay),
+		"cycle_day_from", nil,
+		"cycle_day_to", nil,
+		"is_completed", pick.DoneToday,
+		"source", "feed",
+		"reason", pick.Reason,
+		"challenge", pick.Run,
 	), nil
 }
 

@@ -77,7 +77,7 @@ func (q *Queries) DeleteTasksExcept(ctx context.Context, arg DeleteTasksExceptPa
 const getActiveProgram = `-- name: GetActiveProgram :one
 SELECT c.id, c.title, c.description, c.category, c.sort_order,
        p.duration_days, p.start_rule, p.starts_on, p.reminder_time, p.eligibility, p.reward_badge_code,
-       p.reward_badge_title, p.reward_plus_days, p.completion_min_days
+       p.reward_badge_title, p.reward_plus_days, p.completion_min_days, p.contraindications, p.start_phase
 FROM ` + "`" + `challenges` + "`" + ` c
 JOIN ` + "`" + `challenge_programs` + "`" + ` p ON p.challenge_id = c.id
 WHERE c.id = ? AND c.is_active = 1
@@ -99,6 +99,8 @@ type GetActiveProgramRow struct {
 	RewardBadgeTitle  db.NullRawJSON
 	RewardPlusDays    uint16
 	CompletionMinDays sql.NullInt16
+	Contraindications db.NullRawJSON
+	StartPhase        sql.NullString
 }
 
 func (q *Queries) GetActiveProgram(ctx context.Context, id uint64) (GetActiveProgramRow, error) {
@@ -119,6 +121,8 @@ func (q *Queries) GetActiveProgram(ctx context.Context, id uint64) (GetActivePro
 		&i.RewardBadgeTitle,
 		&i.RewardPlusDays,
 		&i.CompletionMinDays,
+		&i.Contraindications,
+		&i.StartPhase,
 	)
 	return i, err
 }
@@ -323,7 +327,7 @@ const listActivePrograms = `-- name: ListActivePrograms :many
 
 SELECT c.id, c.title, c.description, c.category, c.sort_order,
        p.duration_days, p.start_rule, p.starts_on, p.reminder_time, p.eligibility, p.reward_badge_code,
-       p.reward_badge_title, p.reward_plus_days, p.completion_min_days
+       p.reward_badge_title, p.reward_plus_days, p.completion_min_days, p.contraindications, p.start_phase
 FROM ` + "`" + `challenges` + "`" + ` c
 JOIN ` + "`" + `challenge_programs` + "`" + ` p ON p.challenge_id = c.id
 WHERE c.is_active = 1
@@ -345,6 +349,8 @@ type ListActiveProgramsRow struct {
 	RewardBadgeTitle  db.NullRawJSON
 	RewardPlusDays    uint16
 	CompletionMinDays sql.NullInt16
+	Contraindications db.NullRawJSON
+	StartPhase        sql.NullString
 }
 
 // ---------------------------------------------------------------------------
@@ -374,6 +380,8 @@ func (q *Queries) ListActivePrograms(ctx context.Context) ([]ListActiveProgramsR
 			&i.RewardBadgeTitle,
 			&i.RewardPlusDays,
 			&i.CompletionMinDays,
+			&i.Contraindications,
+			&i.StartPhase,
 		); err != nil {
 			return nil, err
 		}
@@ -675,6 +683,53 @@ func (q *Queries) ProgramRewardStats(ctx context.Context, challengeID uint64) (P
 	return i, err
 }
 
+const programRuns = `-- name: ProgramRuns :many
+SELECT e.id, e.started_on, e.status,
+       CAST(COALESCE(MAX(tc.day_number), 0) AS SIGNED) AS last_day
+FROM ` + "`" + `challenge_enrollments` + "`" + ` e
+LEFT JOIN ` + "`" + `challenge_task_completions` + "`" + ` tc ON tc.enrollment_id = e.id
+WHERE e.challenge_id = ?
+GROUP BY e.id, e.started_on, e.status
+ORDER BY e.id
+`
+
+type ProgramRunsRow struct {
+	ID        uint64
+	StartedOn civildate.Date
+	Status    string
+	LastDay   int64
+}
+
+// Every run of a challenge with the last day the user completed anything on (0 = nothing yet), for the day-by-day
+// drop-off (T-M10-10).
+func (q *Queries) ProgramRuns(ctx context.Context, challengeID uint64) ([]ProgramRunsRow, error) {
+	rows, err := q.db.QueryContext(ctx, programRuns, challengeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ProgramRunsRow{}
+	for rows.Next() {
+		var i ProgramRunsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.StartedOn,
+			&i.Status,
+			&i.LastDay,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const programStats = `-- name: ProgramStats :many
 
 SELECT e.challenge_id, COUNT(*) AS participants,
@@ -737,6 +792,36 @@ type SetGrantSubscriptionParams struct {
 
 func (q *Queries) SetGrantSubscription(ctx context.Context, arg SetGrantSubscriptionParams) error {
 	_, err := q.db.ExecContext(ctx, setGrantSubscription, arg.SubscriptionID, arg.ID)
+	return err
+}
+
+const setProgramRules = `-- name: SetProgramRules :exec
+UPDATE ` + "`" + `challenge_programs` + "`" + `
+SET eligibility = ?, contraindications = ?,
+    start_rule = ?, start_phase = ?, updated_at = ?
+WHERE challenge_id = ?
+`
+
+type SetProgramRulesParams struct {
+	Eligibility       db.NullRawJSON
+	Contraindications db.NullRawJSON
+	StartRule         string
+	StartPhase        sql.NullString
+	Now               sql.NullTime
+	ChallengeID       uint64
+}
+
+// The v6 rule columns (T-M10-10, D-167): eligibility and contraindications in the {all_of, any_of, exclude} shape,
+// the start rule and its phase.
+func (q *Queries) SetProgramRules(ctx context.Context, arg SetProgramRulesParams) error {
+	_, err := q.db.ExecContext(ctx, setProgramRules,
+		arg.Eligibility,
+		arg.Contraindications,
+		arg.StartRule,
+		arg.StartPhase,
+		arg.Now,
+		arg.ChallengeID,
+	)
 	return err
 }
 

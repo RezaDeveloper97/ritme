@@ -41,11 +41,17 @@ type Querier interface {
 	// Distinct users who completed anything on each day of the run.
 	ProgramDayStats(ctx context.Context, challengeID uint64) ([]ProgramDayStatsRow, error)
 	ProgramRewardStats(ctx context.Context, challengeID uint64) (ProgramRewardStatsRow, error)
+	// Every run of a challenge with the last day the user completed anything on (0 = nothing yet), for the day-by-day
+	// drop-off (T-M10-10).
+	ProgramRuns(ctx context.Context, challengeID uint64) ([]ProgramRunsRow, error)
 	// ---------------------------------------------------------------------------
 	// Admin stats
 	// Participants / completions per v2 challenge (the list columns).
 	ProgramStats(ctx context.Context, ids []uint64) ([]ProgramStatsRow, error)
 	SetGrantSubscription(ctx context.Context, arg SetGrantSubscriptionParams) error
+	// The v6 rule columns (T-M10-10, D-167): eligibility and contraindications in the {all_of, any_of, exclude} shape,
+	// the start rule and its phase.
+	SetProgramRules(ctx context.Context, arg SetProgramRulesParams) error
 	UpdateTask(ctx context.Context, arg UpdateTaskParams) error
 	UpsertProgram(ctx context.Context, arg UpsertProgramParams) error
 }

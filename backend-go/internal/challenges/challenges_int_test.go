@@ -25,6 +25,7 @@ import (
 	"github.com/ritme/backend-go/internal/challenges"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/messages/feed"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
@@ -338,4 +339,144 @@ func TestChallenges_RunEnded(t *testing.T) {
 	assert.Equal(t, "challenge_run_ended", r.body["error_code"])
 	r = e.do(t, http.MethodGet, "/api/v1/challenges", tokA, nil)
 	assert.Equal(t, "expired", r.data()["challenges"].([]any)[0].(map[string]any)["enrollment"].(map[string]any)["status"])
+}
+
+// T-M10-10 (D-167): contraindications are checked first and always win over the eligibility.
+func TestChallenges_Contraindications(t *testing.T) {
+	e := setup(t)
+	mode := func(userID uint64, m string) {
+		_, err := e.db.Exec(`INSERT INTO user_life_profiles (user_id, life_mode, created_at, updated_at) VALUES (?, ?, NOW(), NOW())`, userID, m)
+		require.NoError(t, err)
+	}
+	birth := func(userID uint64, d string) {
+		_, err := e.db.Exec(`INSERT INTO postpartum_profiles (user_id, birth_date, created_at, updated_at) VALUES (?, ?, NOW(), NOW())`, userID, d)
+		require.NoError(t, err)
+	}
+	preg, tokP := e.user(t, "09120000001") // an active pregnancy profile makes the life mode pregnancy
+	_, err := e.db.Exec(`INSERT INTO pregnancy_profiles (user_id, pregnancy_mode, age_source, lmp_date, created_at, updated_at)
+		VALUES (?, 1, 'lmp', '2026-06-01', NOW(), NOW())`, preg)
+	require.NoError(t, err)
+	pp5, tokPP5 := e.user(t, "09120000002") // today 2026-10-06: born 2026-08-26 = day 41 (5 weeks 6 days)
+	mode(pp5, "postpartum")
+	birth(pp5, "2026-08-26")
+	pp6, tokPP6 := e.user(t, "09120000003") // born 2026-08-25 = day 42 (6 weeks)
+	mode(pp6, "postpartum")
+	birth(pp6, "2026-08-25")
+	ppx, tokPPX := e.user(t, "09120000004") // postpartum without a birth date: week unknown → fail closed
+	mode(ppx, "postpartum")
+	_, tokC := e.user(t, "09120000005") // cycle
+
+	hard, _ := e.challenge(t, "hiit", `{"all_of":[{"fact":"life_mode","op":"in","value":["cycle","pregnancy","postpartum"]}],"any_of":[],"exclude":[]}`, "on_join", 0, 0)
+	_, err = e.db.Exec(`UPDATE challenge_programs SET contraindications = ? WHERE challenge_id = ?`,
+		`{"all_of":[],"any_of":[[{"fact":"mode","op":"eq","value":"pregnancy"},{"fact":"life_mode","op":"eq","value":"pregnancy"},{"fact":"postpartum_week","op":"lte","value":6}]],"exclude":[]}`, hard)
+	require.NoError(t, err)
+
+	join := func(tok string) response {
+		return e.do(t, http.MethodPost, "/api/v1/challenges/"+itoa(hard)+"/join", tok, nil)
+	}
+	for name, tok := range map[string]string{"pregnant": tokP, "5 weeks postpartum": tokPP5, "postpartum, unknown week": tokPPX} {
+		assert.Empty(t, ids(e.do(t, http.MethodGet, "/api/v1/challenges", tok, nil)), name+": not listed")
+		r := join(tok)
+		assert.Equal(t, http.StatusForbidden, r.status, name)
+		assert.Equal(t, "challenge_not_eligible", r.body["error_code"], name)
+		assert.Equal(t, "contraindicated", r.body["reason"], name)
+		assert.Equal(t, "This challenge isn't recommended for you right now, for your health", r.body["message"], name)
+	}
+	assert.Equal(t, []float64{float64(hard)}, ids(e.do(t, http.MethodGet, "/api/v1/challenges", tokPP6, nil)), "6 weeks postpartum: listed")
+	assert.Equal(t, http.StatusCreated, join(tokPP6).status, "6 weeks postpartum: allowed")
+	assert.Equal(t, http.StatusCreated, join(tokC).status, "cycle: allowed")
+	assert.Equal(t, 0, e.count(t, `SELECT COUNT(*) FROM challenge_enrollments WHERE user_id IN (?, ?, ?)`, preg, pp5, ppx))
+
+	// a run joined before the user became pregnant is still listed (flagged), never joinable again
+	e.enroll(t, preg, hard, "2026-10-05")
+	r := e.do(t, http.MethodGet, "/api/v1/challenges", tokP, nil)
+	require.Len(t, r.data()["challenges"], 1)
+	item := r.data()["challenges"].([]any)[0].(map[string]any)
+	assert.Equal(t, true, item["contraindicated"])
+	assert.Equal(t, false, item["can_join"])
+
+	// not eligible (menopause is outside the include list) keeps its own reason
+	meno, tokM := e.user(t, "09120000006")
+	mode(meno, "menopause")
+	r = join(tokM)
+	assert.Equal(t, http.StatusForbidden, r.status)
+	assert.Equal(t, "not_eligible", r.body["reason"])
+}
+
+// T-M10-10: on_phase_start joins only on the first day of the phase (v1 resolver here; the engine fixture is in
+// engine_test.go).
+func TestChallenges_OnPhaseStart(t *testing.T) {
+	e := setup(t)
+	second, tokSecond := e.user(t, "09120000001") // period from 2026-10-05: today is the 2nd menstrual day
+	e.period(t, second, "2026-10-05")
+	first, tokFirst := e.user(t, "09120000002") // period from today
+	e.period(t, first, "2026-10-06")
+
+	cid, _ := e.challenge(t, "phase", `null`, "on_phase_start", 0, 0)
+	_, err := e.db.Exec(`UPDATE challenge_programs SET start_phase = 'menstrual' WHERE challenge_id = ?`, cid)
+	require.NoError(t, err)
+
+	r := e.do(t, http.MethodGet, "/api/v1/challenges", tokSecond, nil)
+	require.Equal(t, http.StatusOK, r.status, r.body)
+	item := r.data()["challenges"].([]any)[0].(map[string]any)
+	assert.Equal(t, false, item["can_join"])
+	assert.Equal(t, "menstrual", item["start_phase"])
+	r = e.do(t, http.MethodPost, "/api/v1/challenges/"+itoa(cid)+"/join", tokSecond, nil)
+	assert.Equal(t, http.StatusConflict, r.status, "second day of the phase")
+	assert.Equal(t, "challenge_not_startable", r.body["error_code"])
+
+	r = e.do(t, http.MethodGet, "/api/v1/challenges", tokFirst, nil)
+	assert.Equal(t, true, r.data()["challenges"].([]any)[0].(map[string]any)["can_join"])
+	assert.Equal(t, http.StatusCreated, e.do(t, http.MethodPost, "/api/v1/challenges/"+itoa(cid)+"/join", tokFirst, nil).status, "first day of the phase")
+}
+
+// T-M10-10: the feed's daily_challenge candidates keep a joined run until it is completed or its run ended.
+func TestChallenges_FeedCandidates(t *testing.T) {
+	e := setup(t)
+	a, _ := e.user(t, "09120000001")
+	c1, _ := e.challenge(t, "one", `null`, "on_join", 0, 0)
+	c2, tasks2 := e.challenge(t, "two", `null`, "on_join", 1, 0)
+	ctx := context.Background()
+	today := civildate.InTehran(fixed)
+	facts := map[string]any{"life_mode": "cycle"}
+
+	runs := func() []feed.ChallengeRun { // what GetMessageFactProfile's challenge_runs carries
+		var raw sql.NullString
+		require.NoError(t, e.db.QueryRow(`SELECT CAST(JSON_ARRAYAGG(JSON_OBJECT('id', challenge_id, 'started_on', started_on, 'status', status)) AS CHAR)
+			FROM challenge_enrollments WHERE user_id = ?`, a).Scan(&raw))
+		return feed.ParseChallengeRuns(raw)
+	}
+	pick := func() (uint64, string) {
+		cands, err := e.svc.FeedCandidates(ctx, today, facts, runs())
+		require.NoError(t, err)
+		p, ok := feed.PickChallenge(feed.ChallengeInput{Candidates: cands, Facts: facts})
+		if !ok {
+			return 0, ""
+		}
+		return p.ID, p.Reason
+	}
+	id, reason := pick()
+	assert.Equal(t, c1, id, "first in sort order (both sort 1: lower id)")
+	assert.Equal(t, feed.ChallengeProduct, reason)
+
+	e.enroll(t, a, c2, "2026-10-06")
+	id, reason = pick()
+	assert.Equal(t, c2, id, "the joined run wins")
+	assert.Equal(t, feed.ChallengeOngoing, reason)
+
+	_, err := e.svc.CompleteTask(ctx, a, c2, tasks2[0], nil, today, fixed) // min 1 day: completes the run
+	require.NoError(t, err)
+	id, reason = pick()
+	assert.Equal(t, c1, id, "completed: back to the product candidates (a joined challenge is not suggested again)")
+	assert.Equal(t, feed.ChallengeProduct, reason)
+
+	need, err := e.svc.NeedFacts(ctx)
+	require.NoError(t, err)
+	assert.Empty(t, need)
+
+	card, ok, err := e.svc.FeedCard(ctx, c2, today, runs())
+	require.NoError(t, err)
+	require.True(t, ok)
+	assert.Equal(t, 0, card.Day, "a completed run has no day")
+	assert.Equal(t, 3, card.DurationDays)
 }

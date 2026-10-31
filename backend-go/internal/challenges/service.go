@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -16,21 +18,29 @@ import (
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
 	"github.com/ritme/backend-go/internal/cycle/state"
 	"github.com/ritme/backend-go/internal/healthlog"
+	"github.com/ritme/backend-go/internal/messages"
 	"github.com/ritme/backend-go/internal/messages/events"
+	"github.com/ritme/backend-go/internal/messages/facts"
+	"github.com/ritme/backend-go/internal/messages/feed"
+	"github.com/ritme/backend-go/internal/messages/rules"
+	msgstore "github.com/ritme/backend-go/internal/messages/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/configcache"
 	"github.com/ritme/backend-go/internal/plus"
 	plusstore "github.com/ritme/backend-go/internal/plus/store"
+	pstore "github.com/ritme/backend-go/internal/pregnancy/store"
 )
 
 // Errors mapped to 404 / 409 / 422 by the handlers. A challenge the user cannot see is the same 404 as a missing one.
 var (
-	ErrNotFound     = errors.New("challenges: not found")
-	ErrNotEligible  = errors.New("challenges: not eligible")
-	ErrNotStartable = errors.New("challenges: cannot start now")
-	ErrNotJoined    = errors.New("challenges: not joined")
-	ErrBadDay       = errors.New("challenges: day out of range")
-	ErrRunEnded     = errors.New("challenges: run ended")
+	ErrNotFound    = errors.New("challenges: not found")
+	ErrNotEligible = errors.New("challenges: not eligible")
+	// ErrContraindicated is a refusal by the contraindications (always before the eligibility, SPEC §5.5).
+	ErrContraindicated = errors.New("challenges: contraindicated")
+	ErrNotStartable    = errors.New("challenges: cannot start now")
+	ErrNotJoined       = errors.New("challenges: not joined")
+	ErrBadDay          = errors.New("challenges: day out of range")
+	ErrRunEnded        = errors.New("challenges: run ended")
 )
 
 // DB is the handle the service reads through and opens transactions on (*sql.DB).
@@ -84,46 +94,116 @@ func (s *Service) loadCatalog(ctx context.Context) (catalog, error) {
 	return c, nil
 }
 
-// UserContext is what eligibility looks at: the life mode and (lazily) the cycle main phase.
+// UserContext is what the rules look at: the facts (life_mode always; main_phase and the registry facts when a rule
+// reads them) and the main phase of today and yesterday (the start rules).
 type UserContext struct {
-	Mode  string
-	Phase string // "" = not loaded or unavailable
+	Mode      string      // life mode
+	Phase     string      // today's main phase; "" = not loaded or unavailable
+	PrevPhase string      // yesterday's main phase (on_phase_start only); "" = not loaded
+	Facts     rules.Facts // what eligibility and contraindications read
 }
 
-// Context reads the user's life mode; withPhase also runs the cycle engine for the main phase.
-func (s *Service) Context(ctx context.Context, userID uint64, today civildate.Date, withPhase bool) (UserContext, error) {
+// Need is what Context computes.
+type Need struct {
+	Facts     []string // fact names the rules read
+	Phase     bool     // today's main phase (a rule or the start rule reads it)
+	PrevPhase bool     // yesterday's main phase too (on_phase_start)
+}
+
+// needOf is what the programs need.
+func needOf(ps ...Program) Need {
+	var n Need
+	for _, p := range ps {
+		n.Facts = append(n.Facts, p.Facts()...)
+		n.Phase = n.Phase || p.NeedsPhase()
+		n.PrevPhase = n.PrevPhase || p.StartRule == StartOnPhaseStart
+	}
+	if slices.Contains(n.Facts, FactMainPhase) {
+		n.Phase = true
+	}
+	slices.Sort(n.Facts)
+	n.Facts = slices.Compact(n.Facts)
+	return n
+}
+
+// Context computes the user's rule facts and phases. life_mode is the healthlog life mode and main_phase the challenge
+// phase below (both exactly as before T-M10-10, so legacy rules behave the same); every other fact comes from the
+// message fact registry (T-M10-03). mode falls back to the life mode when the registry has no engine mode
+// (CYCLE_ENGINE=v1 or no engine state): the six engine modes are the six life modes, and an absent mode would let a
+// mode contraindication through.
+func (s *Service) Context(ctx context.Context, userID uint64, today civildate.Date, need Need) (UserContext, error) {
 	mode, err := healthlog.NewService(s.db).LifeMode(ctx, userID)
 	if err != nil {
 		return UserContext{}, err
 	}
-	uc := UserContext{Mode: mode}
-	if withPhase {
-		if uc.Phase, err = s.phase(ctx, userID, today); err != nil {
+	uc := UserContext{Mode: mode, Facts: rules.Facts{}}
+	var registry []string
+	for _, n := range need.Facts {
+		if n != FactLifeMode && n != FactMainPhase && facts.GroupOf(n) != "" {
+			registry = append(registry, n)
+		}
+	}
+	if len(registry) > 0 {
+		src := messages.NewStoreSource(msgstore.New(s.db), pstore.New(s.db), userID, today).WithEngine(s.states)
+		fs := facts.New(src.FactSources(), today, "")
+		if err := fs.Need(ctx, registry...); err != nil {
+			return UserContext{}, fmt.Errorf("challenges: facts: %w", err)
+		}
+		maps.Copy(uc.Facts, fs.Values())
+	}
+	uc.Facts[FactLifeMode] = mode
+	if _, ok := uc.Facts[FactMode]; !ok && mode != "" {
+		uc.Facts[FactMode] = mode
+	}
+	if need.Phase || need.PrevPhase {
+		if uc.Phase, uc.PrevPhase, err = s.phases(ctx, userID, today, need.PrevPhase); err != nil {
 			return UserContext{}, err
+		}
+		if uc.Phase != "" {
+			uc.Facts[FactMainPhase] = uc.Phase
 		}
 	}
 	return uc, nil
 }
 
-// phase is the cycle engine's main phase of today ("unknown" when the user has no usable cycle). With the v6 state
-// provider (CYCLE_ENGINE ≠ v1, T-M9-36, D-136) the phase is the engine's, so a challenge gate and the home card
-// agree; v1 keeps the legacy resolver.
+// phase is the cycle engine's main phase of today ("unknown" when the user has no usable cycle).
 func (s *Service) phase(ctx context.Context, userID uint64, today civildate.Date) (string, error) {
+	p, _, err := s.phases(ctx, userID, today, false)
+	return p, err
+}
+
+// phases are the main phases of today and (withPrev) yesterday, both as seen today. With the v6 state provider
+// (CYCLE_ENGINE ≠ v1, T-M9-36, D-136) they are the engine's, so a challenge gate and the home card agree; v1 keeps the
+// legacy resolver.
+func (s *Service) phases(ctx context.Context, userID uint64, today civildate.Date, withPrev bool) (cur, prev string, err error) {
+	yesterday := today.AddDays(-1)
 	if s.states != nil {
 		es, err := s.states.ForUser(ctx, userID, today)
 		if err != nil {
-			return "", fmt.Errorf("challenges: engine state: %w", err)
+			return "", "", fmt.Errorf("challenges: engine state: %w", err)
 		}
 		d := engine.DayOf(today)
-		return es.Resolve(d, d).MainPhase.String(), nil
+		cur = es.Resolve(d, d).MainPhase.String()
+		if withPrev {
+			prev = es.Resolve(engine.DayOf(yesterday), d).MainPhase.String()
+		}
+		return cur, prev, nil
 	}
-	sn, err := cycleservice.New(s.db, nil).Load(ctx, userID, today, today, today) // the one shared v1 loader
+	from := today
+	if withPrev {
+		from = yesterday
+	}
+	sn, err := cycleservice.New(s.db, nil).Load(ctx, userID, from, today, today) // the one shared v1 loader
 	if err != nil {
-		return "", fmt.Errorf("challenges: cycle: %w", err)
+		return "", "", fmt.Errorf("challenges: cycle: %w", err)
 	}
 	profile := sn.EngineProfile()
-	st := resolver.Resolve(sn.Histories, profile, today, today, metrics.Calculate(sn.Histories, profile))
-	return string(st.MainPhase), nil
+	m := metrics.Calculate(sn.Histories, profile)
+	cur = string(resolver.Resolve(sn.Histories, profile, today, today, m).MainPhase)
+	if withPrev {
+		prev = string(resolver.Resolve(sn.Histories, profile, yesterday, today, m).MainPhase)
+	}
+	return cur, prev, nil
 }
 
 // Item is one challenge of the user's list.
@@ -132,6 +212,8 @@ type Item struct {
 	Tasks      []store.ChallengeTask
 	CanJoin    bool
 	Enrollment *EnrollmentView
+	// Contraindicated: the contraindications hold for the user today (a joined run is still listed, never pushed).
+	Contraindicated bool
 }
 
 // EnrollmentView is the user's run of a challenge.
@@ -170,13 +252,16 @@ func (s *Service) enrollmentView(ctx context.Context, e store.ChallengeEnrollmen
 	return v, nil
 }
 
-// List is the user's challenge list: every active v2 challenge the user is enrolled in or may join.
+// List is the user's challenge list: every active v2 challenge the user is enrolled in or may join. A refused
+// challenge (contraindicated or not eligible) is listed only when the user already joined it, and never joinable.
 func (s *Service) List(ctx context.Context, userID uint64, today civildate.Date) ([]Item, error) {
 	cat, err := s.catalog.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("challenges: list: %w", err)
 	}
-	rows := cat.Programs
+	if len(cat.Programs) == 0 { // nothing to list: no user read (the home card asks on every render)
+		return nil, nil
+	}
 	enrolls, err := s.q.ListUserEnrollments(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("challenges: enrollments: %w", err)
@@ -185,27 +270,24 @@ func (s *Service) List(ctx context.Context, userID uint64, today civildate.Date)
 	for _, e := range enrolls {
 		byChallenge[e.ChallengeID] = e
 	}
-	needPhase := false
-	for _, r := range rows {
-		p := programOf(r)
-		if p.Eligibility.NeedsPhase() || p.StartRule == StartMenstrual {
-			needPhase = true
-		}
+	ps := make([]Program, len(cat.Programs))
+	for i, r := range cat.Programs {
+		ps[i] = programOf(r)
 	}
-	uc, err := s.Context(ctx, userID, today, needPhase)
+	uc, err := s.Context(ctx, userID, today, needOf(ps...))
 	if err != nil {
 		return nil, err
 	}
 	var out []Item
-	for _, r := range rows {
-		p := programOf(r)
+	for _, p := range ps {
 		e, joined := byChallenge[p.ID]
-		eligible := p.Eligibility.Allows(uc.Mode, uc.Phase)
-		if !joined && !eligible {
+		reason := Decide(p.Eligibility, p.Contraindications, uc.Facts)
+		if !joined && reason != "" {
 			continue
 		}
 		tasks := cat.Tasks[p.ID]
-		it := Item{Program: p, Tasks: tasks, CanJoin: !joined && startable(p, uc, today)}
+		it := Item{Program: p, Tasks: tasks, CanJoin: !joined && startable(p, uc, today),
+			Contraindicated: reason == ReasonContraindicated}
 		if joined {
 			if it.Enrollment, err = s.enrollmentView(ctx, e, p, tasks, today); err != nil {
 				return nil, err
@@ -216,18 +298,22 @@ func (s *Service) List(ctx context.Context, userID uint64, today civildate.Date)
 	return out, nil
 }
 
-// startable applies the start rule.
+// startable applies the start rule. on_phase_start needs a start phase and today to be its first day: today's main
+// phase is start_phase and yesterday's (as the engine sees it today) was not. An unknown rule is on_join, as before.
 func startable(p Program, uc UserContext, today civildate.Date) bool {
 	switch p.StartRule {
 	case StartMenstrual:
 		return uc.Phase == "menstrual"
+	case StartOnPhaseStart:
+		return p.StartPhase != "" && uc.Phase == p.StartPhase && uc.PrevPhase != "" && uc.PrevPhase != p.StartPhase
 	case StartFixedDate:
 		return !p.StartsOn.Valid || !today.Before(p.StartsOn.Date)
 	}
 	return true
 }
 
-// Join enrolls the user (idempotent: a second join returns the existing run, created = false).
+// Join enrolls the user (idempotent: a second join returns the existing run, created = false). The contraindications
+// are checked first (ErrContraindicated), then the eligibility (ErrNotEligible), then the start rule.
 func (s *Service) Join(ctx context.Context, userID, challengeID uint64, today civildate.Date, now time.Time) (Item, bool, error) {
 	row, err := s.q.GetActiveProgram(ctx, challengeID)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -246,11 +332,14 @@ func (s *Service) Join(ctx context.Context, userID, challengeID uint64, today ci
 	} else if !errors.Is(err, sql.ErrNoRows) {
 		return Item{}, false, fmt.Errorf("challenges: enrollment: %w", err)
 	}
-	uc, err := s.Context(ctx, userID, today, p.Eligibility.NeedsPhase() || p.StartRule == StartMenstrual)
+	uc, err := s.Context(ctx, userID, today, needOf(p))
 	if err != nil {
 		return Item{}, false, err
 	}
-	if !p.Eligibility.Allows(uc.Mode, uc.Phase) {
+	switch Decide(p.Eligibility, p.Contraindications, uc.Facts) {
+	case ReasonContraindicated:
+		return Item{}, false, ErrContraindicated
+	case ReasonNotEligible:
 		return Item{}, false, ErrNotEligible
 	}
 	if !startable(p, uc, today) {
@@ -269,6 +358,129 @@ func (s *Service) Join(ctx context.Context, userID, challengeID uint64, today ci
 	events.Goal(ctx, userID, "challenge_joined") // T-M10-06, M-17: server-matched message goal
 	v, err := s.enrollmentView(ctx, e, p, tasks, today)
 	return Item{Program: p, Tasks: tasks, Enrollment: v}, true, err
+}
+
+// HomeCandidates are the daily_challenge candidates from the user's list (List: the legacy-exact context, the run
+// views), in admin sort order, with the items by id. The home card uses them until it reads the feed.
+func (s *Service) HomeCandidates(ctx context.Context, userID uint64, today civildate.Date) ([]feed.ChallengeCandidate, map[uint64]Item, error) {
+	items, err := s.List(ctx, userID, today)
+	if err != nil {
+		return nil, nil, err
+	}
+	cands := make([]feed.ChallengeCandidate, 0, len(items))
+	byID := make(map[uint64]Item, len(items))
+	for _, it := range items {
+		byID[it.Program.ID] = it
+		c := feed.ChallengeCandidate{ID: it.Program.ID, Contraindicated: it.Contraindicated}
+		if it.Enrollment != nil {
+			c.Ongoing = it.Enrollment.Status == StatusActive // "expired" = the run ended without completion
+		} else {
+			c.Eligible = it.CanJoin
+		}
+		cands = append(cands, c)
+	}
+	return cands, byID, nil
+}
+
+// NeedFacts are the fact names the active programs' rules read (the feed adds them to its prefetch).
+func (s *Service) NeedFacts(ctx context.Context) ([]string, error) {
+	cat, err := s.catalog.Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("challenges: catalog: %w", err)
+	}
+	ps := make([]Program, len(cat.Programs))
+	for i, r := range cat.Programs {
+		ps[i] = programOf(r)
+	}
+	return needOf(ps...).Facts, nil
+}
+
+// FeedCandidates are the daily_challenge candidates (T-M10-10), in admin sort order, decided on the facts the feed
+// already built (f: the registry facts, which include NeedFacts) and the user's runs off the fact profile row: no
+// query (the catalogue is the process snapshot). A start rule that reads the phase is judged on f's main_phase;
+// on_phase_start also needs yesterday's phase, which f does not carry, so such a challenge is suggested only while
+// the user is in its run already (never as a product candidate the join would refuse).
+func (s *Service) FeedCandidates(ctx context.Context, today civildate.Date, f rules.Facts, runs []feed.ChallengeRun) ([]feed.ChallengeCandidate, error) {
+	cat, err := s.catalog.Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("challenges: catalog: %w", err)
+	}
+	if len(cat.Programs) == 0 {
+		return nil, nil
+	}
+	byChallenge := runsByChallenge(runs)
+	f = maps.Clone(f)
+	if f == nil {
+		f = rules.Facts{}
+	}
+	uc := UserContext{Facts: f}
+	if m, ok := f[FactLifeMode].(string); ok {
+		uc.Mode = m
+		if _, has := f[FactMode]; !has && m != "" {
+			f[FactMode] = m // as Context: an absent mode must not let a mode contraindication through
+		}
+	}
+	if ph, ok := f[FactMainPhase].(string); ok {
+		uc.Phase = ph
+	}
+	out := make([]feed.ChallengeCandidate, 0, len(cat.Programs))
+	for _, r := range cat.Programs {
+		p := programOf(r)
+		reason := Decide(p.Eligibility, p.Contraindications, f)
+		c := feed.ChallengeCandidate{ID: p.ID, Contraindicated: reason == ReasonContraindicated}
+		if e, joined := byChallenge[p.ID]; joined {
+			c.Ongoing = Ongoing(e, p, today)
+		} else {
+			c.Eligible = reason == "" && p.StartRule != StartOnPhaseStart && startable(p, uc, today)
+		}
+		out = append(out, c)
+	}
+	return out, nil
+}
+
+var _ feed.ChallengeSource = (*Service)(nil)
+
+// FeedCard is the feed card of an active challenge (catalogue snapshot; the run's day from runs).
+func (s *Service) FeedCard(ctx context.Context, id uint64, today civildate.Date, runs []feed.ChallengeRun) (feed.ChallengeCard, bool, error) {
+	cat, err := s.catalog.Get(ctx)
+	if err != nil {
+		return feed.ChallengeCard{}, false, fmt.Errorf("challenges: catalog: %w", err)
+	}
+	for _, r := range cat.Programs {
+		if r.ID != id {
+			continue
+		}
+		p := programOf(r)
+		card := feed.ChallengeCard{ID: p.ID, Title: p.Title, Category: p.Category, DurationDays: p.DurationDays}
+		if p.Description.Valid {
+			card.Description = p.Description.V
+		}
+		if e, ok := runsByChallenge(runs)[id]; ok && Ongoing(e, p, today) {
+			card.Day = e.StartedOn.DiffDays(today) + 1
+		}
+		return card, true, nil
+	}
+	return feed.ChallengeCard{}, false, nil
+}
+
+// runsByChallenge indexes the runs as enrollment rows (a run with an unreadable start date is skipped).
+func runsByChallenge(runs []feed.ChallengeRun) map[uint64]store.ChallengeEnrollment {
+	out := make(map[uint64]store.ChallengeEnrollment, len(runs))
+	for _, r := range runs {
+		d, err := civildate.Parse(r.StartedOn)
+		if err != nil {
+			continue
+		}
+		out[r.ChallengeID] = store.ChallengeEnrollment{ChallengeID: r.ChallengeID, StartedOn: d, Status: r.Status}
+	}
+	return out
+}
+
+// Ongoing reports whether a run is in progress today: active (not completed) and inside its duration (a run past
+// its last day is abandoned).
+func Ongoing(e store.ChallengeEnrollment, p Program, today civildate.Date) bool {
+	day := e.StartedOn.DiffDays(today) + 1
+	return e.Status == StatusActive && day >= 1 && day <= p.DurationDays
 }
 
 // Result is the outcome of completing a task.

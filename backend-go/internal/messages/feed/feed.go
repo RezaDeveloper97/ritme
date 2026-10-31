@@ -76,6 +76,9 @@ type Request struct {
 	// Inbox, when set, answers the counts from a row the request already read (the fact profile); ok = false falls
 	// back to CountUserOpenInbox.
 	Inbox func(ctx context.Context) (a Alerts, ok bool, err error)
+	// ChallengeRuns answers the user's challenge runs off the fact profile row (T-M10-10); nil = no challenge pick
+	// for this request (the daily_challenge slot then holds the rule winners only).
+	ChallengeRuns func(ctx context.Context) (runs []ChallengeRun, ok bool, err error)
 }
 
 // Slot is one slot's answer.
@@ -94,6 +97,8 @@ type Result struct {
 	Facts  rules.Facts
 	Alerts Alerts
 	Rev    uint64
+	// Challenge is the daily_challenge pick (T-M10-10); nil = not computed for this request (no key in the JSON).
+	Challenge *ChallengeResult
 
 	x *extras
 }
@@ -114,7 +119,8 @@ func (s *Service) Build(ctx context.Context, req Request) (*Result, error) {
 	if evaluate {
 		inboxNeed = in.Need(comp)
 	}
-	need := slices.Concat(comp.Need(req.Slots...), compiled.SelectionFacts, x.placeholders(req.Slots), inboxNeed)
+	need := slices.Concat(comp.Need(req.Slots...), compiled.SelectionFacts, x.placeholders(req.Slots), inboxNeed,
+		challengeNeed(ctx, req))
 	f, err := req.Facts(ctx, need)
 	if err != nil {
 		return nil, err
@@ -146,6 +152,12 @@ func (s *Service) Build(ctx context.Context, req Request) (*Result, error) {
 			}
 		}
 	}
+	// T-M10-10 (D-167): today's challenge through the slot — off the catalogue snapshot and the profile row's runs.
+	challenge, promoted, err := s.pickChallenge(ctx, req, comp, f, h)
+	if err != nil {
+		return nil, err
+	}
+	res.Challenge = challenge
 	var log []candidate
 	sampled := Sampled(req.UserID)
 	for _, name := range req.Slots {
@@ -155,6 +167,9 @@ func (s *Service) Build(ctx context.Context, req Request) (*Result, error) {
 			continue
 		}
 		winners := comp.Select(name, f, h, req.UserID, req.Now)
+		if name == SlotDailyChallenge && promoted != nil {
+			winners = []rules.Choice{*promoted} // the rule that promoted the picked challenge
+		}
 		texts, ok := x.render(winners, f, req.Locale)
 		var parsedOut []rules.Choice
 		if !ok || (ValidSlot(name) && len(x.parsed[name]) > len(winners)) {

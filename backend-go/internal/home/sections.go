@@ -408,7 +408,11 @@ func (s challengeSection) Build(hc *Context) (*Rendered, error) {
 	if err != nil {
 		return nil, err
 	}
-	payload, err := ChallengePayload(hc.Ctx, hc.q(), hc.UserID, hc.Date, hc.Locale, hc.DefaultLocale, day, hc.RecentLogs(3), hc.v6 != nil)
+	pick, err := DailyChallengePick(hc.Ctx, hc.deps.Challenges, hc.UserID, hc.Date, hc.Locale, hc.DefaultLocale)
+	if err != nil {
+		return nil, err
+	}
+	payload, err := DailyChallengeCard(hc.Ctx, hc.q(), pick, hc.UserID, hc.Date, hc.Locale, hc.DefaultLocale, day, hc.RecentLogs(3), hc.v6 != nil)
 	if err != nil || payload == nil {
 		return nil, err
 	}

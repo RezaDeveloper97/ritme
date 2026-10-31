@@ -44,3 +44,30 @@ func TestPhaseV6(t *testing.T) {
 	in.Declared = engine.Declared{}
 	assert.Equal(t, "unknown", phaseOn(t, in, "2026-10-10"))
 }
+
+// on_phase_start(luteal) on the engine fixture: joinable on the first luteal day only.
+func TestOnPhaseStart_EngineFixture(t *testing.T) {
+	in := engine.Input{Periods: []engine.Period{period("2026-06-01"), period("2026-06-30"), period("2026-07-29"), period("2026-08-27")}}
+	s := (&Service{}).WithEngine(fakeStates{st: engine.Prepare(in, engine.DefaultParams())})
+	p := Program{StartRule: StartOnPhaseStart, StartPhase: "luteal"}
+	var joinable []string
+	first := ""
+	for d := civildate.MustParse("2026-08-27"); d.Before(civildate.MustParse("2026-09-25")); d = d.AddDays(1) {
+		cur, prev, err := s.phases(context.Background(), 1, d, true)
+		require.NoError(t, err)
+		if cur == "luteal" && first == "" {
+			first = d.String()
+			require.NotEqual(t, "luteal", prev)
+		}
+		if startable(p, UserContext{Phase: cur, PrevPhase: prev}, d) {
+			joinable = append(joinable, d.String())
+		}
+	}
+	require.NotEmpty(t, first, "the fixture has a luteal phase")
+	assert.Equal(t, []string{first}, joinable, "only the first luteal day")
+	second := civildate.MustParse(first).AddDays(1)
+	cur, prev, err := s.phases(context.Background(), 1, second, true)
+	require.NoError(t, err)
+	assert.Equal(t, "luteal", cur)
+	assert.False(t, startable(p, UserContext{Phase: cur, PrevPhase: prev}, second), "refused on the second luteal day")
+}

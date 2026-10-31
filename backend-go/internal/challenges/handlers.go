@@ -61,8 +61,12 @@ func fail(err error, locale string) error {
 	switch {
 	case errors.Is(err, ErrNotFound):
 		status, key, code = fiber.StatusNotFound, "not_found", ErrorCodeNotFound
+	case errors.Is(err, ErrContraindicated): // same 403 and code as not eligible; reason tells them apart (D-167)
+		return httpx.Fail(fiber.StatusForbidden, T("messages.contraindicated", locale), "error_code", ErrorCodeNotEligible,
+			"reason", ReasonContraindicated)
 	case errors.Is(err, ErrNotEligible):
-		status, key, code = fiber.StatusForbidden, "not_eligible", ErrorCodeNotEligible
+		return httpx.Fail(fiber.StatusForbidden, T("messages.not_eligible", locale), "error_code", ErrorCodeNotEligible,
+			"reason", ReasonNotEligible)
 	case errors.Is(err, ErrNotStartable):
 		status, key, code = fiber.StatusConflict, "not_startable", ErrorCodeNotStartable
 	case errors.Is(err, ErrNotJoined):
@@ -105,6 +109,11 @@ func nullStr(s string) any {
 }
 
 func (h *Handlers) itemJSON(it Item, locale, def string) *jsonx.OrderedMap {
+	return ItemJSON(it, locale, def)
+}
+
+// ItemJSON is one challenge of GET /challenges in locale (def = the default language), also the home card's run.
+func ItemJSON(it Item, locale, def string) *jsonx.OrderedMap {
 	p := it.Program
 	tasks := make([]*jsonx.OrderedMap, 0, len(it.Tasks))
 	for _, t := range it.Tasks {
@@ -141,6 +150,7 @@ func (h *Handlers) itemJSON(it Item, locale, def string) *jsonx.OrderedMap {
 		"category", nullStr(p.Category),
 		"duration_days", p.DurationDays,
 		"start_rule", p.StartRule,
+		"start_phase", nullStr(p.StartPhase),
 		"starts_on", startsOn,
 		"reminder_time", nullStr(p.ReminderTime),
 		"completion_min_days", minDays,
@@ -148,6 +158,7 @@ func (h *Handlers) itemJSON(it Item, locale, def string) *jsonx.OrderedMap {
 			"plus_days", p.RewardPlusDays),
 		"tasks", tasks,
 		"can_join", it.CanJoin,
+		"contraindicated", it.Contraindicated,
 		"enrollment", enr,
 	)
 }

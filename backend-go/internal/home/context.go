@@ -51,6 +51,8 @@ type Deps struct {
 	// Accounts tells a companion (male) account apart (bloom B-N4-03): /home, /home/sections/{section} and
 	// /home/cycle-overview answer him 409 companion_account instead of a cycle built from defaults (nil = no check).
 	Accounts AccountKind
+	// Challenges is the v2 challenges port (T-M10-10); nil = the legacy daily pick only.
+	Challenges ChallengeCards
 }
 
 // AccountKind is the companion-account port of the home (internal/companion.Accounts).

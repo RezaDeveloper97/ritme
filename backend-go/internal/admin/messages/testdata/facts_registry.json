@@ -34,6 +34,19 @@
     },
     {
       "description": {
+        "en": "The candidate challenge's id in the «today's challenge» slot (only to promote a challenge).",
+        "fa": "شناسه چالش نامزد در اسلات «چالش امروز» (فقط برای جلو انداختن یک چالش)"
+      },
+      "enum": null,
+      "group": "challenge",
+      "member_safe": false,
+      "name": "challenge_id",
+      "pending": null,
+      "type": "int",
+      "unit": null
+    },
+    {
+      "description": {
         "en": "The engine's confidence.",
         "fa": "اطمینان موتور"
       },
@@ -795,6 +808,7 @@
   ],
   "groups": [
     "account",
+    "challenge",
     "contraception",
     "engine",
     "goal",

@@ -11,6 +11,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/catalog"
 	catalogstore "github.com/ritme/backend-go/internal/catalog/store"
+	"github.com/ritme/backend-go/internal/challenges"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/menopause"
@@ -72,6 +73,9 @@ func init() {
 				return f, local, err
 			})
 		feed.InstallInbox(box)
+		// T-M10-10 (D-167): today's challenge through the daily_challenge slot (catalogue snapshot, runs off the fact
+		// profile row: no query on a warm feed).
+		feed.InstallChallenges(challenges.NewService(d.DB).WithEngine(engineStates(r, d)))
 		inbox.Install(box)
 		mustJobs(box.RegisterJobs(auth.Jobs(r, d.Cache, d.Logger), tehranNow))
 		alerts := inbox.NewHandlers(box, clock.Real{})

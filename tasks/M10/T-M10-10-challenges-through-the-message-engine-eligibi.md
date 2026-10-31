@@ -3,10 +3,10 @@ id: T-M10-10
 title: Challenges through the message engine: eligibility, contraindications, phase start
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-06]
 parallel_group: M10-B
-touches: [backend-go/internal/challenges/program.go, backend-go/internal/challenges/service.go, backend-go/internal/challenges/handlers.go, backend-go/internal/challenges/eligibility.go, backend-go/internal/home/challenge.go, backend-go/internal/messages/feed/challenge.go, backend-go/internal/admin/challenges, backend-go/db/queries/challenges, backend-go/api/openapi.yaml]
+touches: [backend-go/internal/challenges/program.go, backend-go/internal/challenges/service.go, backend-go/internal/challenges/handlers.go, backend-go/internal/challenges/eligibility.go, backend-go/internal/home/challenge.go, backend-go/internal/messages/feed/challenge.go, backend-go/internal/admin/challenges, backend-go/db/queries/challenges, backend-go/internal/challenges/store, backend-go/internal/admin/content/challenges_v2.go, backend-go/internal/home/sections.go, backend-go/internal/messages/facts, backend-go/internal/challenges/lang, backend-go/internal/messages/feed/feed.go, backend-go/internal/messages/feed/json.go, backend-go/internal/http/routes_messages.go, backend-go/db/queries/messages/facts.sql, backend-go/internal/messages/store, backend-go/internal/querybudget, backend-go/internal/messages/v2.go, backend-go/internal/home/context.go, backend-go/internal/http/routes_home.go, backend-go/internal/admin/messages/testdata, backend-go/api/openapi.yaml]
 skills: []
 verify: cd backend-go && make sqlc && go vet ./... && go test ./internal/challenges/... ./internal/messages/... ./internal/home/... && make test-int PKG="./internal/challenges/... ./internal/home/..." && make contract ROUTES=home
 ---

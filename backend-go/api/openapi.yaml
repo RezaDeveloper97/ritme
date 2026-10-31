@@ -10843,6 +10843,20 @@ paths:
                           open: {type: integer, minimum: 0}
                           urgent: {type: integer, minimum: 0}
                       rules_rev: {type: integer, minimum: 0}
+                      daily_challenge:
+                        description: "T-M10-10 (D-167): today's challenge, present only when `daily_challenge` is requested and the pick ran (v6). An ongoing joined run wins until completed or ended; else the first eligible, not-joined, active challenge in admin sort order, unless a daily_challenge rule testing `challenge_id` promotes one (that rule is then the slot's item). Never a contraindicated challenge; null after a safety message (24 h) or while the engine needs input."
+                        anyOf:
+                          - type: object
+                            required: [id, title, description, category, duration_days, day, reason]
+                            properties:
+                              id: {type: integer}
+                              title: {description: "Localized string"}
+                              description: {description: "Localized string or null"}
+                              category: {type: [string, "null"]}
+                              duration_days: {type: integer}
+                              day: {type: [integer, "null"], description: "1-based day of an ongoing run"}
+                              reason: {type: string, enum: [ongoing, promoted, product]}
+                          - {type: "null"}
               example:
                 success: true
                 data:

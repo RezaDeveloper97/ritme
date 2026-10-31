@@ -146,6 +146,7 @@ func (h *Handlers) feedOf(c fiber.Ctx, slots []string, alerts bool) (*feed.Resul
 			return nil, "", err
 		}
 		req.Inbox = src.inbox
+		req.ChallengeRuns = src.challengeRuns // T-M10-10: runs off the same profile row (no extra query)
 	}
 	res, err := h.feed.Build(c.Context(), req)
 	return res, locale, err
@@ -171,6 +172,15 @@ func (s *StoreSource) inbox(ctx context.Context) (feed.Alerts, bool, error) {
 		return feed.Alerts{}, false, err
 	}
 	return feed.Alerts{Open: row.InboxOpen, Urgent: row.InboxUrgent}, true, nil
+}
+
+// challengeRuns is the user's challenge runs off the fact profile row (feed.Request.ChallengeRuns, T-M10-10).
+func (s *StoreSource) challengeRuns(ctx context.Context) ([]feed.ChallengeRun, bool, error) {
+	row, err := s.factProfile(ctx)
+	if err != nil || row == nil {
+		return nil, false, err
+	}
+	return feed.ParseChallengeRuns(row.ChallengeRuns), true, nil
 }
 
 // Feed is GET /messages/feed?slots=a,b → data {slots: {<slot>: [item…]}, alerts: {open, urgent}, rules_rev}
