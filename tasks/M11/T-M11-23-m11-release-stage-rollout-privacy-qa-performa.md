@@ -3,7 +3,7 @@ id: T-M11-23
 title: M11 release: stage rollout, privacy QA, performance check and deviation reconciliation
 milestone: M11
 type: release
-status: todo
+status: blocked
 depends_on: [T-M11-02, T-M11-03, T-M11-04, T-M11-05, T-M11-06, T-M11-07, T-M11-08, T-M11-09, T-M11-10, T-M11-11, T-M11-12, T-M11-13, T-M11-14, T-M11-15, T-M11-16, T-M11-17, T-M11-18, T-M11-19, T-M11-20, T-M11-21, T-M11-22, T-M10-36]
 parallel_group: M11-R
 touches: [docs/engine-v6/rollout.md, docs/engine-v6/perf-baseline.md, docs/go-migration/deviations.md, docs/engine-v6/qa]
@@ -38,3 +38,6 @@ security audit, and to beta only with the user's OK (beta has real users and rea
 
 ## Acceptance
 - Stage runs M11; security review, QA and performance recorded; deviations reconciled; beta only after the user's OK.
+
+## Blocked
+Suspended by the user on 2026-10-31: all family (M11) work is on hold. Do not pick, plan or run this task until the user lifts the suspension explicitly.

@@ -3,7 +3,7 @@ id: T-M11-19
 title: Frontend family activity and approvals: log, 24-hour undo, proposals and share requests
 milestone: M11
 type: frontend
-status: todo
+status: blocked
 depends_on: [T-M11-09, T-M11-11, T-M11-14]
 parallel_group: M11-W
 touches: [frontend/src/screens/family-activity, frontend/src/features/family-approvals, frontend/src/entities/family, frontend/src/app/[locale]/family/activity, frontend/src/app/message-scopes.ts, frontend/messages/fa/family.json, frontend/messages/en/family.json, backend-go/resources/translations/fa/family.json, backend-go/resources/translations/en/family.json]
@@ -34,3 +34,6 @@ approves or rejects proposals; the member sees what she proposed. No screen exis
 
 ## Acceptance
 - Verify passes; screenshots reviewed by the main session.
+
+## Blocked
+Suspended by the user on 2026-10-31: all family (M11) work is on hold. Do not pick, plan or run this task until the user lifts the suspension explicitly.

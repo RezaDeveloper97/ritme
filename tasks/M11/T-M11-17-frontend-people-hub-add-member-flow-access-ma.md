@@ -3,7 +3,7 @@ id: T-M11-17
 title: Frontend people hub, add-member flow, access matrix and review card (owner side)
 milestone: M11
 type: frontend
-status: todo
+status: blocked
 depends_on: [T-M11-07, T-M11-08]
 parallel_group: M11-W
 touches: [frontend/src/screens/companion-list, frontend/src/screens/companion-invite, frontend/src/screens/companion-detail, frontend/src/features/invite-companion, frontend/src/entities/companion, frontend/src/entities/family, frontend/src/app/[locale]/companions, frontend/src/app/message-scopes.ts, frontend/messages/fa/companions.json, frontend/messages/en/companions.json, backend-go/resources/translations/fa/companions.json, backend-go/resources/translations/en/companions.json]
@@ -42,3 +42,6 @@ The current screens follow the Hamdam artboards for the legacy five sections. DE
 
 ## Acceptance
 - Verify passes; screenshots reviewed by the main session.
+
+## Blocked
+Suspended by the user on 2026-10-31: all family (M11) work is on hold. Do not pick, plan or run this task until the user lifts the suspension explicitly.

@@ -3,7 +3,7 @@ id: T-M11-07
 title: Owner mode change: pause by epoch, review card, re-approve, child profile suggestion at delivery
 milestone: M11
 type: backend
-status: todo
+status: blocked
 depends_on: [T-M11-06, T-M11-11]
 parallel_group: M11-C
 touches: [backend-go/internal/family/review, backend-go/internal/family/sync.go, backend-go/internal/companion, backend-go/internal/profile, backend-go/internal/postpartum/service.go, backend-go/internal/pregnancy, backend-go/internal/loss/service.go, backend-go/internal/teen, backend-go/internal/menopause, backend-go/internal/http/routes_family.go, backend-go/api/openapi.yaml]
@@ -57,3 +57,6 @@ DECISIONS.md F-23; D-195.
   `fetal_activity`, `vitals`, `meds`, `appointments`. The SyncMode hooks here must run on every mode write (in the
   same transaction where possible); add `TestModeRoundTrip_StillPaused`.
 - L5: `internal/loss/service.go` notice recipients come from `ListForOwner`; filter them with `Decide(pregnancy, read)`.
+
+## Blocked
+Suspended by the user on 2026-10-31: all family (M11) work is on hold. Do not pick, plan or run this task until the user lifts the suspension explicitly.

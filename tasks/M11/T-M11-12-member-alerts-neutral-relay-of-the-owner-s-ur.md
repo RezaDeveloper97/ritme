@@ -3,7 +3,7 @@ id: T-M11-12
 title: Member alerts: neutral relay of the owner's urgent alerts to members with the switch
 milestone: M11
 type: backend
-status: todo
+status: blocked
 depends_on: [T-M11-05, T-M10-08, T-M9-12]
 parallel_group: M11-C
 touches: [backend-go/internal/family/alerts, backend-go/internal/messages/inbox, backend-go/internal/messages/rules/rules.go, backend-go/internal/http/routes_family.go, backend-go/db/queries/companion, backend-go/api/openapi.yaml, docs/engine-v6/jobs.md]
@@ -49,3 +49,6 @@ M-16; D-200.
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-200.
+
+## Blocked
+Suspended by the user on 2026-10-31: all family (M11) work is on hold. Do not pick, plan or run this task until the user lifts the suspension explicitly.

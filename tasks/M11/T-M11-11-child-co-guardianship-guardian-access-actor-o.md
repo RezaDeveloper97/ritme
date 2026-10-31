@@ -3,7 +3,7 @@ id: T-M11-11
 title: Child co-guardianship: guardian access, actor on every write, 24-hour undo, two-guardian approvals, deletion transfer
 milestone: M11
 type: backend
-status: todo
+status: blocked
 depends_on: [T-M11-05, T-M11-09]
 parallel_group: M11-C
 touches: [backend-go/internal/children, backend-go/internal/babylog, backend-go/internal/family/guardians, backend-go/internal/family/activity, backend-go/internal/profile/service.go, backend-go/internal/admin/users/users.go, backend-go/db/queries/children, backend-go/db/queries/babylog, backend-go/internal/http/routes_family.go, backend-go/internal/http/routes_children.go, backend-go/internal/http/routes_babylog.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist, docs/engine-v6/jobs.md]
@@ -54,3 +54,6 @@ F-19; D-192, D-199.
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-192, D-199.
+
+## Blocked
+Suspended by the user on 2026-10-31: all family (M11) work is on hold. Do not pick, plan or run this task until the user lifts the suspension explicitly.

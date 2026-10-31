@@ -3,7 +3,7 @@ id: T-M11-21
 title: Frontend child co-guardian UI: actor names, two-guardian approvals, carer logging, medication log
 milestone: M11
 type: frontend
-status: todo
+status: blocked
 depends_on: [T-M11-11, T-M11-14]
 parallel_group: M11-W
 touches: [frontend/src/screens/children, frontend/src/screens/child-home, frontend/src/screens/child-add, frontend/src/screens/child-meds, frontend/src/entities/child, frontend/src/app/[locale]/children, frontend/src/app/message-scopes.ts, frontend/messages/fa/children.json, frontend/messages/en/children.json, backend-go/resources/translations/fa/children.json, backend-go/resources/translations/en/children.json]
@@ -36,3 +36,6 @@ owner-only today. DECISIONS.md F-15, F-26.
 
 ## Acceptance
 - Verify passes; screenshots reviewed by the main session.
+
+## Blocked
+Suspended by the user on 2026-10-31: all family (M11) work is on hold. Do not pick, plan or run this task until the user lifts the suspension explicitly.

@@ -3,7 +3,7 @@ id: T-M11-10
 title: Nudges: gentle reminders to the owner with per-dose, daily and quiet-hour limits
 milestone: M11
 type: backend
-status: todo
+status: blocked
 depends_on: [T-M11-06]
 parallel_group: M11-C
 touches: [backend-go/internal/family/nudges, backend-go/internal/care/today.go, backend-go/internal/http/routes_family.go, backend-go/db/queries/companion, backend-go/api/openapi.yaml]
@@ -43,3 +43,6 @@ F-07, F-08; D-198.
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-198.
+
+## Blocked
+Suspended by the user on 2026-10-31: all family (M11) work is on hold. Do not pick, plan or run this task until the user lifts the suspension explicitly.

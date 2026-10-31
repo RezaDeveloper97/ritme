@@ -3,7 +3,7 @@ id: T-M11-15
 title: Admin family tab and family KPIs
 milestone: M11
 type: backend
-status: todo
+status: blocked
 depends_on: [T-M11-08, T-M11-09, T-M11-10, T-M10-30, T-M10-33]
 parallel_group: M11-C
 touches: [backend-go/internal/admin/users, backend-go/internal/admin/companions, backend-go/internal/metrics, backend-go/internal/okr, backend-go/db/queries/admin, backend-go/api/openapi.yaml]
@@ -38,3 +38,6 @@ DECISIONS.md D-205.
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-205.
+
+## Blocked
+Suspended by the user on 2026-10-31: all family (M11) work is on hold. Do not pick, plan or run this task until the user lifts the suspension explicitly.
