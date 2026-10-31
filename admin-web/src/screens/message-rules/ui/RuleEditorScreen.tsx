@@ -6,6 +6,7 @@ import { useState, type ReactNode } from 'react';
 
 import { useCan } from '@/features/auth';
 import { ConditionBuilder, useFacts, usesFertilityFact, type FactRegistry } from '@/features/rule-conditions';
+import { useContentLanguages } from '@/shared/i18n';
 import { formatDate } from '@/shared/lib';
 import { Badge, Button, LoadGate, PageHeader, Panel, Select, TextArea, TextInput, confirm, toast, useNotifyError } from '@/shared/ui';
 
@@ -20,8 +21,11 @@ import {
   emptyRow,
   fromRule,
   needsApproval,
+  overlayText,
+  setOverlayField,
   toPayload,
   weightSum,
+  type OverlayField,
   type RuleForm,
   type VariantRow,
 } from '../lib/rule-form';
@@ -69,6 +73,14 @@ function Editor({
   const notifyError = useNotifyError();
   const canClinical = useCan('clinical', 'manage');
   const [form, setForm] = useState<RuleForm>(() => (detail ? fromRule(detail.rule) : emptyForm()));
+  const contentLangs = useContentLanguages().data;
+  // The language list is data: every non-default content language plus any language already in the stored overlay.
+  const overlayLangs = [
+    ...(contentLangs?.languages.filter((l) => !l.is_default) ?? []).map((l) => ({ code: l.code, name: l.name, direction: l.direction })),
+    ...Object.keys(form.translations ?? {})
+      .filter((c) => c !== contentLangs?.default && !contentLangs?.languages.some((l) => l.code === c))
+      .map((c) => ({ code: c, name: c, direction: 'ltr' as const })),
+  ];
   const create = useCreateRule();
   const update = useUpdateRule();
   const remove = useDeleteRule();
@@ -248,6 +260,27 @@ function Editor({
                       <TextInput label={t('cta')} value={v.cta_label} onChange={(e) => setRow(i, { cta_label: e.target.value })} />
                       <TextInput label={t('ctaTarget')} dir="ltr" value={v.cta_target} onChange={(e) => setRow(i, { cta_target: e.target.value })} placeholder="ritme://analysis/symptoms" />
                     </div>
+                    {overlayLangs.length > 0 ? (
+                      <div className="flex flex-col gap-3 rounded-lg bg-surface-2 p-3">
+                        <p className="m-0 text-[12px] text-ink-3">{t('overlayHint')}</p>
+                        {overlayLangs.map((lang) => {
+                          const o = overlayText(form.translations, lang.code, v.key);
+                          const setO = (field: OverlayField, value: string) => set('translations', setOverlayField(form.translations, lang.code, v.key, field, value));
+                          const dir = lang.direction;
+                          return (
+                            <div key={lang.code} className="flex flex-col gap-3">
+                              <h4 className="m-0 text-[13px] font-semibold">{t('overlayTitle', { lang: lang.name })}</h4>
+                              <TextInput label={t('titleOf', { key: v.key })} dir={dir} value={o.title} onChange={(e) => setO('title', e.target.value)} placeholder={v.title} />
+                              <TextArea label={t('body')} dir={dir} rows={3} value={o.body} onChange={(e) => setO('body', e.target.value)} placeholder={v.body} />
+                              <div className="grid gap-3 sm:grid-cols-2">
+                                <TextInput label={t('cta')} dir={dir} value={o.cta_label} onChange={(e) => setO('cta_label', e.target.value)} placeholder={v.cta_label} />
+                                <TextInput label={t('ctaTarget')} dir="ltr" value={o.cta_target} onChange={(e) => setO('cta_target', e.target.value)} placeholder={v.cta_target} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : null}
                     {form.level === 'suggestion' ? <p className="m-0 text-[12px] text-ink-3">{t('suggestionCta')}</p> : null}
                   </div>
                 ))}

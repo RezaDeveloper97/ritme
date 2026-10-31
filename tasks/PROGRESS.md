@@ -2556,3 +2556,9 @@ Nothing needed fixing.
 - Admin: `internal/admin/challenges` (rules, `Check`, `Save` in the program tx, `SetProgramJSON`, `drop_off` per day in `/challenges/:id/stats`); `start_rule` now echoes `on_join` instead of `anytime` (admin-web select → T-M10-13).
 - Verify: sqlc clean; vet clean; unit challenges/messages/home/http/admin ok; test-int challenges, home, admin/content, querybudget, messages ok; contract home 76/0, messages 125/0. Golden `admin/messages/testdata/facts_registry.json` re-recorded (adds `challenge_id`).
 - Open (clinical): `postpartum_week` is 1-based, so "under 6 weeks" must be written `lte 6` (a `postpartum_days` fact or editor hint suggested) — needs the user's/advisor's OK; no seeded contraindications for exercise challenges (admin must set them). Home card has no post-safety block / promotion (feed only) — home should read the feed pick in T-M10-14.
+
+## T-M10-12b — Admin-web rule editor keeps content.translations on save
+- Shipped: `content.translations` (language → variant key → title/body/cta_label/cta_target) is round-tripped verbatim by `lib/rule-form.ts` (`RuleForm.translations`; the rule schema now accepts it) and edited per variant in an optional "{language} copy" block in `RuleEditorScreen`. The language list is data (non-default `useContentLanguages()` rows plus any language already in the overlay); empty fields are removed so the feed falls back to the base copy. Helpers `overlayText` / `setOverlayField`. fa/en strings `overlayTitle`, `overlayHint`.
+- Tests: an untouched save keeps `translations` byte-identical; editing en changes only that variant's entry; clearing fields removes the entry; a rule without an overlay sends none.
+- Verify: typecheck, lint, fsd:lint clean; vitest 48 files / 189 tests passed; build ok.
+- Open: overlay entries for removed variant keys are kept, not pruned; no browser/QA screenshot yet (T-M10-36).

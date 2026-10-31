@@ -53,6 +53,8 @@ export const ruleSchema = z.object({
     seen: z.string().optional().default(''),
     confidence: z.string().optional().default(''),
     contact: z.string().optional().default(''),
+    /** Per-language overlay `{en: {a: {title, body, cta_label, cta_target}}}`, read by the feed (goose 00112). Kept verbatim. */
+    translations: z.record(z.string(), z.record(z.string(), z.record(z.string(), z.unknown()))).nullish(),
   }),
   variants_enabled: z.boolean(),
   ab_split: z.number(),

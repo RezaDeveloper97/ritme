@@ -18,6 +18,11 @@ export interface VariantRow {
   cta_label: string;
   cta_target: string;
 }
+/** `content.translations`: language -> variant key -> fields. Entries are kept as stored, unknown keys included. */
+export type Overlay = Record<string, Record<string, Record<string, unknown>>>;
+export const OVERLAY_FIELDS = ['title', 'body', 'cta_label', 'cta_target'] as const;
+export type OverlayField = (typeof OVERLAY_FIELDS)[number];
+
 export interface CapRow {
   count: string;
   period: string;
@@ -55,6 +60,29 @@ export interface RuleForm {
   goal: string;
   goal_event: string;
   topics: string[];
+  /** Stored `content.translations`, sent back as is unless an overlay field is edited. */
+  translations: Overlay | null;
+}
+
+/** The text of one overlay entry (empty string = falls back to the base copy). */
+export function overlayText(t: Overlay | null, lang: string, key: string): Record<OverlayField, string> {
+  const e = t?.[lang]?.[key] ?? {};
+  const get = (k: OverlayField) => (typeof e[k] === 'string' ? (e[k] as string) : '');
+  return { title: get('title'), body: get('body'), cta_label: get('cta_label'), cta_target: get('cta_target') };
+}
+
+/** Pure edit of one overlay field; touches only that variant's entry. Emptied fields and entries are removed. */
+export function setOverlayField(t: Overlay | null, lang: string, key: string, field: OverlayField, value: string): Overlay | null {
+  const next: Overlay = { ...(t ?? {}) };
+  const entry: Record<string, unknown> = { ...(next[lang]?.[key] ?? {}) };
+  if (value === '') delete entry[field];
+  else entry[field] = value;
+  const langMap = { ...(next[lang] ?? {}) };
+  if (Object.keys(entry).length === 0) delete langMap[key];
+  else langMap[key] = entry;
+  if (Object.keys(langMap).length === 0) delete next[lang];
+  else next[lang] = langMap;
+  return Object.keys(next).length === 0 ? null : next;
 }
 
 /** Priority bands (backend rules.Band) — used for the default and the hint. */
@@ -108,6 +136,7 @@ export function emptyForm(): RuleForm {
     goal: '',
     goal_event: '',
     topics: [],
+    translations: null,
   };
 }
 
@@ -167,6 +196,7 @@ export function fromRule(r: Rule): RuleForm {
     goal: r.goal ?? '',
     goal_event: r.goal_event ?? '',
     topics: r.topics ?? [],
+    translations: r.content.translations ?? null,
   };
 }
 
@@ -211,6 +241,7 @@ export function toPayload(f: RuleForm, facts: readonly FactDef[], fertilityFacts
     out.variants_enabled = f.variants.length > 1;
     out.ab_split = null;
   }
+  if (f.translations) content.translations = f.translations;
   if (isMedicalLevel(f.level)) {
     content.seen = f.seen;
     content.confidence = f.confidence;

@@ -7,7 +7,7 @@ import { ruleSchema } from '../api/rules';
 import { authorityFor } from './authority';
 import { contentDiff, diffWords } from './diff';
 import { bannerKey, fieldError } from './errors';
-import { FERTILE_TOPIC, emptyForm, emptyRow, fromRule, kindOfPriority, needsApproval, scheduleIn, scheduleOut, summarize, toPayload, weightSum } from './rule-form';
+import { setOverlayField, FERTILE_TOPIC, emptyForm, emptyRow, fromRule, kindOfPriority, needsApproval, scheduleIn, scheduleOut, summarize, toPayload, weightSum } from './rule-form';
 
 const FACTS: FactDef[] = [
   { name: 'mode', type: 'enum', enum: ['cycle', 'ttc'], unit: null, group: 'account', description: {}, member_safe: false, pending: null },
@@ -168,5 +168,37 @@ describe('approval diff', () => {
   it('lists only the fields that changed', () => {
     const out = contentDiff({ a: { title: 'T', body: 'old' } }, { a: { title: 'T', body: 'new' } });
     expect(out.map((o) => o.label)).toEqual(['a.body']);
+  });
+});
+
+describe('content.translations overlay', () => {
+  const seeded = {
+    ...base,
+    variants_enabled: false,
+    content: {
+      a: { title: 'ب', body: 'ج', cta_label: 'د', cta_target: 'ritme://period/end' },
+      translations: { en: { a: { title: 'Period end', body: 'Log it', cta_label: 'Log', cta_target: 'ritme://period/end' } } },
+    },
+  };
+
+  it('keeps the stored overlay byte-identical on an untouched save', () => {
+    const rule = ruleSchema.parse(seeded);
+    const content = toPayload(fromRule(rule), FACTS).content as Record<string, unknown>;
+    expect(JSON.stringify(content.translations)).toBe(JSON.stringify(seeded.content.translations));
+  });
+
+  it('editing en changes only that variant overlay', () => {
+    const rule = ruleSchema.parse(seeded);
+    const f = fromRule(rule);
+    f.translations = setOverlayField(f.translations, 'en', 'a', 'title', 'New');
+    const content = toPayload(f, FACTS).content as { a: unknown; translations: Record<string, Record<string, unknown>> };
+    expect(content.translations.en?.a).toEqual({ ...seeded.content.translations.en.a, title: 'New' });
+    expect(content.a).toEqual(seeded.content.a);
+  });
+
+  it('clearing every field removes the entry, and a rule without overlay sends none', () => {
+    expect(setOverlayField({ en: { a: { title: 'x' } } }, 'en', 'a', 'title', '')).toBeNull();
+    const plain = toPayload(fromRule(ruleSchema.parse(base)), FACTS).content as Record<string, unknown>;
+    expect('translations' in plain).toBe(false);
   });
 });

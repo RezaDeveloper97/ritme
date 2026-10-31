@@ -2910,6 +2910,8 @@
     "topicsHint": "Topics let the engine avoid repeating a theme.",
     "userLocalNote": "Dates and hours follow the user's local time.",
     "variantsCount": "{n} of {max} variants",
+    "overlayTitle": "{lang} copy (optional)",
+    "overlayHint": "Any field left empty falls back to the base copy.",
     "variantsTitle": "Variants",
     "weight": "Weight",
     "weightShare": "{p}% of views",

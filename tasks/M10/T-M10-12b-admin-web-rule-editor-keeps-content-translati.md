@@ -3,7 +3,7 @@ id: T-M10-12b
 title: Admin-web rule editor keeps content.translations (en overlay) on save
 milestone: M10
 type: frontend
-status: todo
+status: done
 depends_on: [T-M10-12,T-M10-06]
 parallel_group: M10-W
 touches: [admin-web/src/screens/message-rules,admin-web/messages/fa.json,admin-web/messages/en.json]
