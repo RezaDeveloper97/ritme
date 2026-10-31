@@ -2510,3 +2510,9 @@ Nothing needed fixing.
 - Verify: `go vet ./...` clean; tests green without `-race` (CGO linker bug on macOS — the 50-goroutine swap test must run under `-race` in CI/Linux); golangci-lint 0 issues. Equivalence with the parsed path over 1 000 random rule sets.
 - Deviations: `compiled.FactSet` (sorted `[]string`) instead of `facts.Set` (does not exist); slots keyed by name; dates kept as Y-m-d strings (parsed path only has eq/ne); placeholders not in NeedFacts (T-M10-06 uses `rules.Placeholders`).
 - Open: no wiring needed — T-M10-06 calls `compiled.Load` → `Prefetch` → `Select` and returns `comp.Rev`; the compile-error counter adds 1 per reload per broken rule.
+
+## T-M9-09d — Hard ≤5 min OAuth client revocation
+- Shipped: `passport/clients.go` `lookup` never serves a client snapshot at or past `ClientCacheTTL` (5 min): it reloads synchronously first (`loadIfOlder`, shared by concurrent requests) and fails closed with a plain error → 500, never 401, when the reload fails. Background refresh now starts 30 s before the TTL (`clientRefreshAhead`), so steady traffic stays one query; `refreshAsync` skips when another reload already replaced the snapshot it saw. D-140 bound is now hard (also after long idle or repeated `ListClients` failures).
+- Tests: within TTL no extra query; refresh ahead of TTL; stale snapshot + revoked client rejected on the first request; reload error past TTL is not an `AuthError` (→ 500); concurrent stale requests share one reload. Old `ClientCacheRefreshesAfterTTL` test (asserted the old lenient behaviour) removed.
+- Verify: vet clean; `go test ./internal/auth/...` green (passport also green under `-race`); contract auth 45/45.
+- Open: the optional `MustGuard` doc note was not added (`internal/auth/guard.go` is outside touches); no backoff while the DB is down past the TTL (each authed request tries one `ListClients` behind the mutex, then 500).

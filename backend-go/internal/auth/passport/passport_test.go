@@ -39,6 +39,7 @@ type fakeStore struct {
 	users   map[uint64]store.User
 	cands   []store.ListPersonalAccessClientCandidatesRow
 	calls   map[string]int
+	listErr error // when set, ListClients fails (counted all the same)
 }
 
 func newStore() *fakeStore {
@@ -61,6 +62,12 @@ func (s *fakeStore) resetCalls() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.calls = map[string]int{}
+}
+
+func (s *fakeStore) setListErr(err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.listErr = err
 }
 
 func (s *fakeStore) setClient(c store.ListClientsRow) {
@@ -99,6 +106,9 @@ func (s *fakeStore) ListClients(context.Context) ([]store.ListClientsRow, error)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.calls["ListClients"]++
+	if s.listErr != nil {
+		return nil, s.listErr
+	}
 	out := make([]store.ListClientsRow, 0, len(s.clients))
 	for _, c := range s.clients {
 		out = append(out, c)

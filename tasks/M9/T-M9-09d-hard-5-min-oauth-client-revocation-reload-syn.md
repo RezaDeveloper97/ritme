@@ -3,7 +3,7 @@ id: T-M9-09d
 title: Hard ≤5 min OAuth client revocation: reload synchronously once the client snapshot is past its TTL
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-09c]
 parallel_group: M9-B
 touches: [backend-go/internal/auth/passport]

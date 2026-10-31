@@ -14,17 +14,24 @@ import (
 // a client, so the verifier keeps them in memory instead of reading one per request:
 //
 //   - loaded on first use (a load failure is a 500, exactly as a failed GetClient was);
-//   - refreshed in the background once the snapshot is older than ClientCacheTTL — the request that notices serves
-//     the current snapshot, so the auth step stays one query;
+//   - refreshed in the background once the snapshot is older than ClientCacheTTL-clientRefreshAhead — the request
+//     that notices serves the current snapshot, so on a busy process the auth step stays one query;
+//   - never served once it is ClientCacheTTL old (T-M9-09d): the request reloads synchronously first, and if that
+//     reload fails the request fails closed with a 500 (an infrastructure error, never a 401 — session rules);
 //   - reloaded synchronously once when a token names an id the snapshot does not know (a client created since the
 //     last load), before the token is rejected.
 //
 // The aud is read only after the RS256 signature checked out, so an unknown id cannot be chosen by an attacker.
-// Consequence: revoking a client (not a token) takes up to ClientCacheTTL to reach the guard. Token revocation is
-// unaffected — the token row is read fresh on every request (DECISIONS.md X-02).
+// Consequence: revoking a client (not a token) takes at most ClientCacheTTL to reach the guard — a hard bound even
+// when ListClients keeps failing or after a long idle (D-140). Token revocation is unaffected — the token row is
+// read fresh on every request (DECISIONS.md X-02).
 
-// ClientCacheTTL is how long a client snapshot is served before a background refresh.
+// ClientCacheTTL is the hard maximum age of a served client snapshot.
 const ClientCacheTTL = 5 * time.Minute
+
+// clientRefreshAhead is how long before ClientCacheTTL the background refresh starts, so steady traffic renews the
+// snapshot before any request has to wait for a synchronous reload.
+const clientRefreshAhead = 30 * time.Second
 
 // clientRefreshTimeout bounds a background refresh (it runs detached from the request that started it).
 const clientRefreshTimeout = 5 * time.Second
@@ -55,13 +62,22 @@ func newClientCache(src ClientLister) *clientCache {
 // lookup returns the client with id; ok=false when it does not exist even after a reload.
 func (c *clientCache) lookup(ctx context.Context, id string) (store.ListClientsRow, bool, error) {
 	s := c.snap.Load()
-	if s == nil {
-		var err error
-		if s, err = c.loadIfOlder(ctx, nil); err != nil {
+	switch {
+	case s == nil || c.now().Sub(s.loadedAt) >= c.ttl:
+		// No snapshot, or one past the hard TTL: reload before answering (fail closed on error). loadIfOlder lets
+		// concurrent requests share one reload — and the age check below covers a stale snapshot published by a
+		// background refresh that raced us.
+		fresh, err := c.loadIfOlder(ctx, s)
+		if err == nil && c.now().Sub(fresh.loadedAt) >= c.ttl {
+			fresh, err = c.loadIfOlder(ctx, fresh)
+		}
+		if err != nil {
 			return store.ListClientsRow{}, false, err
 		}
-	} else if c.now().Sub(s.loadedAt) >= c.ttl {
-		c.refreshAsync(ctx)
+		row, ok := fresh.byID[id]
+		return row, ok, nil // just loaded: an unknown id is not reloaded again
+	case c.now().Sub(s.loadedAt) >= c.ttl-clientRefreshAhead:
+		c.refreshAsync(ctx, s)
 	}
 	if row, ok := s.byID[id]; ok {
 		return row, true, nil
@@ -108,8 +124,9 @@ func (c *clientCache) load(ctx context.Context) (*clientSnapshot, error) {
 	return s, nil
 }
 
-// refreshAsync starts one background refresh; on failure the old snapshot stays and the next request retries.
-func (c *clientCache) refreshAsync(ctx context.Context) {
+// refreshAsync starts one background refresh of seen; on failure the old snapshot stays and the next request
+// retries (synchronously once it reaches ClientCacheTTL).
+func (c *clientCache) refreshAsync(ctx context.Context, seen *clientSnapshot) {
 	if !c.refreshing.CompareAndSwap(false, true) {
 		return
 	}
@@ -120,8 +137,8 @@ func (c *clientCache) refreshAsync(ctx context.Context) {
 		defer cancel()
 		c.loadMu.Lock()
 		defer c.loadMu.Unlock()
-		if cur := c.snap.Load(); cur != nil && c.now().Sub(cur.loadedAt) < c.ttl {
-			return // a miss-reload got there first
+		if c.snap.Load() != seen {
+			return // a miss-reload or a synchronous reload got there first
 		}
 		_, _ = c.load(ctx)
 	}()
