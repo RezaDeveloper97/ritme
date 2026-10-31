@@ -2,6 +2,8 @@ package http
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -15,11 +17,17 @@ import (
 	"github.com/ritme/backend-go/internal/messages"
 	"github.com/ritme/backend-go/internal/messages/conditionnudges"
 	"github.com/ritme/backend-go/internal/messages/events"
+	"github.com/ritme/backend-go/internal/messages/feed"
+	"github.com/ritme/backend-go/internal/messages/inbox"
 	"github.com/ritme/backend-go/internal/messages/menomessages"
+	"github.com/ritme/backend-go/internal/messages/rules"
 	mstore "github.com/ritme/backend-go/internal/messages/store"
 	"github.com/ritme/backend-go/internal/modules"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
+	"github.com/ritme/backend-go/internal/platform/usertz"
+	profilestore "github.com/ritme/backend-go/internal/profile/store"
 )
 
 // Smart messages (backend/routes/api.php, prefix messages, auth:api).
@@ -46,6 +54,32 @@ func init() {
 		h.WithFeed(writer, marks, modules.NewService(d.DB, d.Cache, d.Logger))
 		events.Install(events.NewGoals(mq, writer, marks, d.Logger))
 		mustJobs(events.NewJobs(mq).RegisterJobs(auth.Jobs(r, d.Cache, d.Logger), tehranNow))
+
+		// T-M10-07 (D-164): the alerts inbox — evaluated inside the feed (feed.InstallInbox) and by inbox.EvaluateNow
+		// for write paths, its lifecycle API under /api/v1/alerts, the daily sweep and the hourly push slot (M-09:
+		// delivered to the in-app notifications inbox with the neutral text).
+		langs := i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger)
+		zones := profilestore.New(d.DB)
+		box := inbox.New(mq, d.DB, d.Logger).WithPreferences(zones).
+			WithLanguages(func(ctx context.Context) []string { return langs.All(ctx).Codes() }).
+			WithFacts(func(ctx context.Context, userID uint64, at time.Time) (rules.Facts, time.Time, error) {
+				tz, err := zones.GetUserTimezone(ctx, userID)
+				if err != nil && !errors.Is(err, sql.ErrNoRows) {
+					return nil, time.Time{}, err
+				}
+				local := at.In(usertz.ZoneOf(tz))
+				f, err := messages.BuildFacts(ctx, h, userID, civildate.FromTime(local))
+				return f, local, err
+			})
+		feed.InstallInbox(box)
+		inbox.Install(box)
+		mustJobs(box.RegisterJobs(auth.Jobs(r, d.Cache, d.Logger), tehranNow))
+		alerts := inbox.NewHandlers(box, clock.Real{})
+		const ap = "/api/v1/alerts"
+		r.Get(ap, locale, guard, alerts.Index)
+		r.Post(ap+"/:id/ack", locale, guard, alerts.Ack)
+		r.Post(ap+"/:id/visit-note", locale, guard, alerts.VisitNote)
+		r.Post(ap+"/:id/dismiss", locale, guard, alerts.Dismiss)
 
 		r.Get(p+"/daily", locale, guard, h.Daily)
 		r.Get(p+"/mode", locale, guard, h.Mode)

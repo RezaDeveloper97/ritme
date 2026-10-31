@@ -3,7 +3,7 @@ id: T-M10-07
 title: Alerts inbox: lifecycle, triggers and the push slot
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-06]
 parallel_group: M10-B
 touches: [backend-go/internal/messages/inbox, backend-go/internal/messages/feed, backend-go/internal/http/routes_messages.go, backend-go/db/queries/messages, backend-go/api/openapi.yaml, docs/engine-v6/jobs.md]

@@ -87,6 +87,8 @@ q.RegisterPeriodic(job, handler, "*/10 * * * *", opts...)        // Register + S
 | `admin.audit_verify` | low | `40 3 * * *` | `Unique(23h)` | 1 / — / 10 m | read-only walk of `admin_audit_logs` by id (plus the one-off genesis, a no-op once `genesis_last_id` is set) | `internal/admin/auditchain` |
 | `messages.rollup` | low | `20 0 * * *` | `Unique(23h)` | 3 / 5 m, 30 m / 10 m | (Tehran day, rule, version, variant, slot, event): `message_event_daily` PK, upsert overwrites the count | `internal/messages/events` |
 | `messages.prune` | low | `45 3 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 30 m | Tehran day − 180; backfills missing rollup keys of the doomed rows (existing counts kept), then deletes older raw rows in batches of 5 000 | `internal/messages/events` |
+| `messages.inbox_sweep` | low | `10 4 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 30 m | (user, rule) open row: re-evaluation writes only what changed; archive matches only resolved / acknowledged / noted rows with `last_at` before Tehran midnight of today − 29, in chunks of 5 000 | `internal/messages/inbox` |
+| `messages.push_slot` | low | `0 * * * *` | `Unique(55m)` | 2 / 5 m / 20 m | (user, user-local day): the push slot's `shown` row (slot cap 1 a day, 3 in 7 days) is written in the same transaction as the notification | `internal/messages/inbox` |
 
 Notes:
 
@@ -124,5 +126,17 @@ Notes:
   rows as multi-row INSERTs of ≤ 100 rows, drained before shutdown (`OnPreShutdown`, it runs whatever
   `API_RUN_WORKERS` says); a full buffer inserts synchronously. Metrics: `messages_events_queue_depth`,
   `messages_events_flush_seconds`, `messages_events_sync_fallback_total`, `messages_events_write_errors_total`.
+
+- `messages.inbox_sweep` / `messages.push_slot` (T-M10-07, D-164; SPEC §5.4.1, M-09, M-16): the sweep pages the
+  users with an open `message_inbox` row (500 per page), re-evaluates each one's `alerts_inbox` slot on her own local
+  day (a row whose condition no longer holds over known facts is resolved; a failing user is skipped and counted in
+  `messages_inbox_job_user_errors_total{job}`), then archives resolved, acknowledged and added-to-visit-note rows whose
+  last hit is 30 or more Tehran days old. The push slot runs hourly and picks the users active in the last 30 days
+  (A-06, the same definition as `engine:snapshot_nightly`) whose stored zone puts them in 09:00–09:59 local; it
+  selects the `push` slot once with its caps (1 a local day, 3 in 7 local days) and quiet hours (23–08), gates the
+  winner through the user's notification preferences (tips → `articles`, health kinds → `daily_log`, her quiet
+  hours) and writes one `user_notifications` row (`type = message_push`) whose title and body are the neutral
+  «یادآور ریتمی» line in every active language — never the message text — with the CTA path as `action_url` and only
+  ids in `data`. No real web push yet (M-09). Metrics: `messages_push_slot_sent_total`, `inbox_missing_evidence_total`.
 
 New jobs add a row here in the same change.

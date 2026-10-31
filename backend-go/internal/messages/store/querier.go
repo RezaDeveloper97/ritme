@@ -10,6 +10,10 @@ import (
 )
 
 type Querier interface {
+	// «دیدم، ممنون»: an open row becomes acknowledged.
+	AckInboxItem(ctx context.Context, arg AckInboxItemParams) (int64, error)
+	// messages.inbox_sweep: resolved, acknowledged and noted rows whose last hit is before the cutoff → archived, in chunks.
+	ArchiveStaleInbox(ctx context.Context, arg ArchiveStaleInboxParams) (int64, error)
 	// messages.prune: before raw rows older than the cutoff go, every (day, …) key they make that the rollup does not
 	// hold yet is added; existing rollup rows are kept as they are (a day already pruned in part must not shrink).
 	BackfillMessageEventDaily(ctx context.Context, beforeAt sql.NullTime) error
@@ -21,6 +25,10 @@ type Querier interface {
 	// messages.prune (M-13): one batch of raw rows older than the cutoff, oldest first.
 	DeleteMessageEventsBefore(ctx context.Context, arg DeleteMessageEventsBeforeParams) (int64, error)
 	DeleteMessageRule(ctx context.Context, id uint64) error
+	// Close a row now (open or resolved) → archived. The urgent ack rule is checked by the caller.
+	DismissInboxItem(ctx context.Context, arg DismissInboxItemParams) (int64, error)
+	// The day's visit note the «add to visit note» action appends to (pregnancy_daily_extras, as the pregnancy alerts did).
+	GetInboxVisitNote(ctx context.Context, arg GetInboxVisitNoteParams) (sql.NullString, error)
 	// HealthDataEngine::dailyLogFor(): $user->dailyHealthLogs()->whereDate('log_date', $date)->first().
 	// Only the columns MessageManager::extractSymptoms can read exist here (see messages/manager).
 	GetMessageDailyLog(ctx context.Context, arg GetMessageDailyLogParams) (GetMessageDailyLogRow, error)
@@ -48,6 +56,10 @@ type Querier interface {
 	GetMessageRuleIDByKey(ctx context.Context, ruleKey sql.NullString) (uint64, error)
 	GetMessageRuleVersion(ctx context.Context, arg GetMessageRuleVersionParams) (MessageRuleVersion, error)
 	GetMessageUserName(ctx context.Context, id uint64) (sql.NullString, error)
+	GetUserInboxItem(ctx context.Context, arg GetUserInboxItemParams) (GetUserInboxItemRow, error)
+	// A new match: an active row. INSERT IGNORE: a concurrent request that already opened the row for the same rule wins
+	// (the unique open key), and this one changes nothing.
+	InsertInboxItem(ctx context.Context, arg InsertInboxItemParams) (sql.Result, error)
 	InsertMessageEvent(ctx context.Context, arg InsertMessageEventParams) error
 	// Message events v6 (T-M10-06, D-163): the buffered writer's multi-row insert, the server-matched goals, the
 	// inbox counts of the feed, the daily rollup (M-13), the retention sweep and the admin CTR reads.
@@ -57,9 +69,17 @@ type Querier interface {
 	InsertMessageEventsBatch(ctx context.Context, arg InsertMessageEventsBatchParams) error
 	InsertMessageRule(ctx context.Context, arg InsertMessageRuleParams) (sql.Result, error)
 	InsertMessageRuleVersion(ctx context.Context, arg InsertMessageRuleVersionParams) error
+	// The push slot's in-app notification (M-09): neutral title/body {lang: text}, never a health detail.
+	InsertPushNotification(ctx context.Context, arg InsertPushNotificationParams) error
+	// The push slot's shown row, written synchronously so the slot caps (1 a day, 3 a week) see it at once.
+	InsertPushSlotEvent(ctx context.Context, arg InsertPushSlotEventParams) error
 	LastUserMessageEvent(ctx context.Context, arg LastUserMessageEventParams) (sql.NullTime, error)
 	// Active rules a user may be served: medical rules only when approved. Placement '' = every placement.
 	ListActiveMessageRules(ctx context.Context, arg ListActiveMessageRulesParams) ([]MessageRule, error)
+	// messages.push_slot: one page (keyset on users.id) of the users active in the last 30 days (A-06: a token issued or
+	// refreshed, a session day, a daily log, a v2 log entry, a period row or an analytics event) with their stored zone.
+	// Same definition as ListActiveSnapshotUsers (engine snapshots).
+	ListActivePushUsers(ctx context.Context, arg ListActivePushUsersParams) ([]ListActivePushUsersRow, error)
 	// Queries of the smart-message system (backend/app/Services/MessageSystem, MessageController).
 	// MessageContentRepository::rows(): every live (active + approved) row of one locale.
 	ListLiveMessageContents(ctx context.Context, locale string) ([]ListLiveMessageContentsRow, error)
@@ -78,6 +98,8 @@ type Querier interface {
 	ListMessageRecentLogs(ctx context.Context, arg ListMessageRecentLogsParams) ([]ListMessageRecentLogsRow, error)
 	ListMessageRuleVersions(ctx context.Context, ruleID uint64) ([]MessageRuleVersion, error)
 	ListMessageRules(ctx context.Context, arg ListMessageRulesParams) ([]MessageRule, error)
+	// messages.inbox_sweep: one keyset page of the users with an open row.
+	ListOpenInboxUsers(ctx context.Context, arg ListOpenInboxUsersParams) ([]uint64, error)
 	// T-M10-02 (M-03): the approved snapshots of the active rules whose head waits for re-approval (approved_version is
 	// set and is not the head version); rules.ActiveRows serves them instead of the head.
 	ListServedMessageRuleSnapshots(ctx context.Context) ([]ListServedMessageRuleSnapshotsRow, error)
@@ -85,22 +107,41 @@ type Querier interface {
 	// goal_event is the domain event, newest first. The caller keeps, per rule, the latest shown row and counts a goal
 	// when no goal row followed it.
 	ListUserGoalCandidates(ctx context.Context, arg ListUserGoalCandidatesParams) ([]ListUserGoalCandidatesRow, error)
+	// GET /alerts?state=history: resolved and archived rows, same order and keyset as the open page.
+	ListUserInboxHistoryPage(ctx context.Context, arg ListUserInboxHistoryPageParams) ([]ListUserInboxHistoryPageRow, error)
+	// GET /alerts?state=open: urgent → follow_up → suggestion → info, then last_at DESC, id DESC; keyset after
+	// (after_rank, after_at, after_id) when has_cursor = 1.
+	ListUserInboxOpenPage(ctx context.Context, arg ListUserInboxOpenPageParams) ([]ListUserInboxOpenPageRow, error)
 	// One grouped read of a user's history (T-M9-13, replaces the per-rule LastUserMessageEvent + CountUserMessageEvents
 	// probes; extended in T-M10-04): the latest event and the counts in the three cap windows (day, week, cycle) per rule,
 	// event and slot, with the rule's kind. rules.Select (legacy) reads its candidate rules (`all_rules` = 0); selection v6
 	// reads every rule of the user (`all_rules` = 1) for the per-slot counts and the last safety message shown. A legacy
 	// event without a slot counts for the rule's placement; a deleted rule has kind ''.
 	ListUserMessageEventStats(ctx context.Context, arg ListUserMessageEventStatsParams) ([]ListUserMessageEventStatsRow, error)
+	// Alerts inbox (T-M10-07, D-164; SPEC §5.4.1, DECISIONS.md M-09, M-16): the open rows the evaluation diffs with, the
+	// lifecycle writes (merge, resolve, ack, visit note, dismiss), the list pages, the daily sweep and the push slot.
+	// Every user read and write is scoped by user_id in the query itself.
+	// The user's open rows (active, acknowledged, added_to_visit_note): at most one per rule (UNIQUE user, rule, open_flag).
+	ListUserOpenInbox(ctx context.Context, userID uint64) ([]ListUserOpenInboxRow, error)
+	// The same message fired again with new evidence (M-16): count + 1, last_at, the evidence and the served version
+	// move; the state comes from the caller (an acknowledged urgent row returns to active and loses its ack).
+	MergeInboxItem(ctx context.Context, arg MergeInboxItemParams) (int64, error)
 	// Admin rules list: rollup counts per rule, version, variant and event of the Tehran days [since_day, until_day).
 	MessageRuleDailyStats(ctx context.Context, arg MessageRuleDailyStatsParams) ([]MessageRuleDailyStatsRow, error)
 	MessageRuleEventStats(ctx context.Context, createdAt sql.NullTime) ([]MessageRuleEventStatsRow, error)
 	// Admin rules list: today's raw rows (not rolled up yet) per rule, version, variant and event.
 	MessageRuleRawStats(ctx context.Context, sinceAt sql.NullTime) ([]MessageRuleRawStatsRow, error)
 	MessageRuleVariantStats(ctx context.Context, arg MessageRuleVariantStatsParams) ([]MessageRuleVariantStatsRow, error)
+	// «افزودن به یادداشت ویزیت»: an open row becomes added_to_visit_note (its ack, if any, is kept).
+	NoteInboxItem(ctx context.Context, arg NoteInboxItemParams) (int64, error)
+	// The condition no longer holds (all its facts were known): the row becomes history.
+	ResolveInboxItem(ctx context.Context, arg ResolveInboxItemParams) (int64, error)
 	// messages.rollup (M-13): the raw rows of [from, to) counted per (Tehran day, rule, version, variant, slot, event)
 	// into message_event_daily. The upsert overwrites, so a re-run gives the same counts. A legacy row without a version
 	// counts as version 0; without a slot, under the rule's placement.
 	RollupMessageEvents(ctx context.Context, arg RollupMessageEventsParams) error
+	// Creates the day's row when missing and keeps its other fields.
+	SetInboxVisitNote(ctx context.Context, arg SetInboxVisitNoteParams) error
 	SetMessageRuleActive(ctx context.Context, arg SetMessageRuleActiveParams) error
 	// approved_version NULL keeps the current one (submit, reject: the last approved version stays live, M-03).
 	SetMessageRuleStatus(ctx context.Context, arg SetMessageRuleStatusParams) error

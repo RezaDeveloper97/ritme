@@ -47,6 +47,7 @@ type Service struct {
 	w       *events.Writer
 	marks   *events.Marks
 	modules Modules
+	inbox   Inbox // T-M10-07: the alerts inbox evaluation (nil = counts only)
 	load    func(ctx context.Context) (*compiled.Compiled, error)
 }
 
@@ -107,7 +108,13 @@ func (s *Service) Build(ctx context.Context, req Request) (*Result, error) {
 		return nil, err
 	}
 	x := extrasOf(ctx, s.q, comp)
-	need := slices.Concat(comp.Need(req.Slots...), compiled.SelectionFacts, x.placeholders(req.Slots))
+	in := s.inboxOf()
+	evaluate := req.Alerts && in != nil
+	var inboxNeed []string
+	if evaluate {
+		inboxNeed = in.Need(comp)
+	}
+	need := slices.Concat(comp.Need(req.Slots...), compiled.SelectionFacts, x.placeholders(req.Slots), inboxNeed)
 	f, err := req.Facts(ctx, need)
 	if err != nil {
 		return nil, err
@@ -124,6 +131,21 @@ func (s *Service) Build(ctx context.Context, req Request) (*Result, error) {
 	}
 	h := rules.BuildHistory(w, rows)
 	res := &Result{Facts: f, Rev: comp.Rev, x: x, Slots: make([]Slot, 0, len(req.Slots))}
+	// T-M10-07: the inbox badge, then the inbox evaluation on these facts (it writes only what changed; with no open
+	// row and no match it reads and writes nothing), whose open rows replace the counts and are fanned out below.
+	var open []OpenAlert
+	if req.Alerts {
+		if res.Alerts, err = s.alerts(ctx, req); err != nil {
+			return nil, err
+		}
+		if evaluate {
+			if o, err := in.Sync(ctx, comp, req.UserID, f, req.Now, res.Alerts.Open); err != nil {
+				inboxErrors.Inc()
+			} else {
+				open, res.Alerts = o, countOpen(o)
+			}
+		}
+	}
 	var log []candidate
 	sampled := Sampled(req.UserID)
 	for _, name := range req.Slots {
@@ -154,6 +176,9 @@ func (s *Service) Build(ctx context.Context, req Request) (*Result, error) {
 				texts, _ = x.render(winners, f, req.Locale)
 			}
 		}
+		if len(open) > 0 {
+			winners, texts = fanOut(name, winners, texts, open, x, f, req.Locale, req.UserID)
+		}
 		if winners == nil {
 			winners = []rules.Choice{}
 		}
@@ -161,11 +186,6 @@ func (s *Service) Build(ctx context.Context, req Request) (*Result, error) {
 		res.Slots = append(res.Slots, sl)
 		if ValidSlot(name) {
 			log = appendLog(log, name, winners, parsedOut, sampled)
-		}
-	}
-	if req.Alerts {
-		if res.Alerts, err = s.alerts(ctx, req); err != nil {
-			return nil, err
 		}
 	}
 	s.logEvents(ctx, req, rows, log)

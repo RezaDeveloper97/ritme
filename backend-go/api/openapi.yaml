@@ -64,6 +64,7 @@ tags:
     description: "Pregnancy mode: profile, status, symptoms, weekly logs, fetal movement, content, alerts"
   - {name: PregnancyV2, description: "Pregnancy v2 (Go only): dating preview, Today, week page, week state"}
   - {name: Messages, description: Personalised daily messages}
+  - {name: Alerts, description: "Alerts inbox (Go only, D-164): the message engine's alerts_inbox slot with its lifecycle"}
   - {name: Home, description: "Home page sections, task and challenge toggles"}
   - {name: Notifications, description: In-app notifications}
   - {name: System, description: Liveness and the public upload disk}
@@ -101,6 +102,141 @@ paths:
                 properties: {success: {type: boolean}, message: {type: string}}
               example: {success: true, message: Your account and all associated data have been deleted}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/alerts:
+    get:
+      tags: [Alerts]
+      summary: The alerts inbox (open or history)
+      description: >-
+        Go-only (D-164, T-M10-07; SPEC §5.4.1). Every mode's alerts are messages of slot `alerts_inbox`, evaluated by the
+        message engine inside `GET /messages/feed` (and by write paths that need the alert at once). Lifecycle: active →
+        acknowledged / added_to_visit_note / resolved (the condition no longer holds) → archived 30 days after the last
+        hit (daily `messages.inbox_sweep`). One open row per message: a repeat with new evidence adds 1 to `hit_count`
+        and moves `last_at`; an acknowledged urgent item becomes active again (M-16). `state=open` lists active,
+        acknowledged and added_to_visit_note rows; `state=history` resolved and archived ones. Order: urgent →
+        follow_up → suggestion → info, then `last_at` newest first; 20 per page, `next_cursor` (opaque) for the next.
+        `evidence` only on follow_up and urgent (`contact` only on urgent); texts in the request language when the
+        rule has a translation, rendered with the values stored at the last hit. `dismissible` is false for an urgent
+        item until acknowledged. `Cache-Control: private, no-store`.
+      operationId: listAlerts
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: state
+          in: query
+          required: false
+          schema: {type: string, enum: [open, history], default: open}
+        - name: cursor
+          in: query
+          required: false
+          description: The `next_cursor` of the previous page.
+          schema: {type: string}
+      responses:
+        '200':
+          description: One page of inbox items
+          headers:
+            Cache-Control: {schema: {type: string, const: 'private, no-store'}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [items, next_cursor]
+                    properties:
+                      items:
+                        type: array
+                        items: {$ref: "#/components/schemas/AlertsInboxItem"}
+                      next_cursor: {type: [string, 'null']}
+              example:
+                success: true
+                data:
+                  items:
+                    - {id: 12, rule_id: 40, rule_key: preg.bp_high, version: 1, kind: clinical, level: follow_up,
+                       state: active, title: Your blood pressure was high, body: Recheck it today after resting.,
+                       cta_text: null, cta_deeplink: null,
+                       evidence: {seen: '2 readings of 142/92 or higher', confidence: 'From your own readings, not a diagnosis'},
+                       hit_count: 2, dismissible: true, first_at: '2026-10-30T09:12:00+03:30',
+                       last_at: '2026-10-31T08:40:00+03:30', acked_at: null, noted_at: null, resolved_at: null,
+                       archived_at: null}
+                  next_cursor: null
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/alerts/{id}/ack:
+    post:
+      tags: [Alerts]
+      summary: Acknowledge an inbox item («دیدم، ممنون»)
+      description: >-
+        Go-only (D-164). An open item becomes `acknowledged`. Another user's or a missing id → 404; a history item
+        (resolved / archived) → 409 `alert_closed`. `Cache-Control: private, no-store`.
+      operationId: ackAlert
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+      responses:
+        '200': {$ref: "#/components/responses/AlertAction"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ModelNotFound"}
+        '409': {$ref: "#/components/responses/AlertConflict"}
+  /api/v1/alerts/{id}/visit-note:
+    post:
+      tags: [Alerts]
+      summary: Add an inbox item to today's visit note
+      description: >-
+        Go-only (D-164; generalises the pregnancy alerts' add_to_visit_note). The item's «what we saw» line in the
+        request language (its title when it has none) is appended once to the visit note of the user-local day (at
+        most 2 000 characters), and the item becomes `added_to_visit_note`. 404 for another user's id; 409
+        `alert_closed` for a history item. `Cache-Control: private, no-store`.
+      operationId: addAlertToVisitNote
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+      responses:
+        '200':
+          description: The item and the day's visit note
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [alert, visit_note]
+                    properties:
+                      alert: {$ref: "#/components/schemas/AlertsInboxItem"}
+                      visit_note: {type: string}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ModelNotFound"}
+        '409': {$ref: "#/components/responses/AlertConflict"}
+  /api/v1/alerts/{id}/dismiss:
+    post:
+      tags: [Alerts]
+      summary: Close an inbox item
+      description: >-
+        Go-only (D-164). The item is archived now. An urgent item that is not acknowledged → 409 `ack_required`
+        (SPEC §5.4.1: urgent is not closable until acknowledged); an archived item is answered as it is. 404 for
+        another user's id. `Cache-Control: private, no-store`.
+      operationId: dismissAlert
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+      responses:
+        '200': {$ref: "#/components/responses/AlertAction"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ModelNotFound"}
+        '409': {$ref: "#/components/responses/AlertConflict"}
   /api/v1/analysis/summary:
     get:
       tags: [Analysis]
@@ -23564,7 +23700,7 @@ paths:
     get:
       tags: [Challenges]
       summary: Multi-day challenges the user may join or has joined
-      description: "Challenges v2 (B-N9-07, D-87): active challenges with a program (duration, start rule, per-day tasks, reward). A challenge the user is not eligible for (life mode / cycle phase include-exclude rules) and has not joined is left out. `enrollment` is the user's own run (null until joined)."
+      description: "Challenges v2 (B-N9-07, D-87): active challenges with a program (duration, start rule, per-day tasks, reward). A challenge the user is refused (contraindications first, then eligibility: rules over the message facts, T-M10-10 / D-167) and has not joined is left out. `enrollment` is the user's own run (null until joined)."
       operationId: listChallenges
       security:
         - {bearerAuth: []}
@@ -23607,7 +23743,7 @@ paths:
     post:
       tags: [Challenges]
       summary: Join a challenge (idempotent)
-      description: "201 on the first join, 200 when already joined. 404 for a missing, inactive or legacy challenge; 403 `challenge_not_eligible` when the eligibility rules refuse the user; 409 `challenge_not_startable` when the start rule is not met yet."
+      description: "201 on the first join, 200 when already joined. 404 for a missing, inactive or legacy challenge; 403 `challenge_not_eligible` with `reason` `contraindicated` (the contraindications hold — checked first, they always win, SPEC §5.5) or `not_eligible` (the eligibility rule refuses); 409 `challenge_not_startable` when the start rule is not met yet (on_phase_start: not the first day of the phase)."
       operationId: joinChallenge
       security:
         - {bearerAuth: []}
@@ -23637,7 +23773,18 @@ paths:
                   message: {type: string}
                   data: {type: object, required: [challenge], properties: {challenge: {$ref: "#/components/schemas/ChallengeRun"}}}
         '401': {$ref: "#/components/responses/Unauthenticated"}
-        '403': {description: "challenge_not_eligible"}
+        '403':
+          description: "challenge_not_eligible"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code, reason]
+                properties:
+                  success: {type: boolean, enum: [false]}
+                  message: {type: string}
+                  error_code: {type: string, enum: [challenge_not_eligible]}
+                  reason: {type: string, enum: [contraindicated, not_eligible]}
         '404': {description: "challenge_not_found"}
         '409': {description: "challenge_not_startable"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
@@ -24760,6 +24907,32 @@ components:
       description: "Overrides `Accept-Language`. Some endpoints clamp to the languages they have content for."
       schema: {type: string}
   responses:
+    AlertAction:
+      description: The inbox item after the action (T-M10-07, D-164)
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, data]
+            properties:
+              success: {type: boolean}
+              message: {type: string}
+              data:
+                type: object
+                required: [alert]
+                properties:
+                  alert: {$ref: "#/components/schemas/AlertsInboxItem"}
+    AlertConflict:
+      description: "`ack_required`: an urgent item must be acknowledged before it is closed; `alert_closed`: the item is history"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [ack_required, alert_closed]}
     AssistantError:
       description: "Bloom B-N7-06 assistant errors: 404 assistant_department_not_found / assistant_conversation_not_found / booking_not_found, 403 share_consent_required, 409 summary_required / booking_closed, 422 summary_empty, 503 summary_failed / storage_unavailable."
       content:
@@ -26284,6 +26457,38 @@ components:
             seen: {type: string}
             confidence: {type: string}
             contact: {type: string}
+    AlertsInboxItem:
+      type: object
+      description: One alerts inbox item (T-M10-07, D-164; SPEC §5.4.1).
+      required: [id, rule_id, rule_key, version, kind, level, state, title, body, cta_text, cta_deeplink, evidence,
+        hit_count, dismissible, first_at, last_at, acked_at, noted_at, resolved_at, archived_at]
+      properties:
+        id: {type: integer}
+        rule_id: {type: integer}
+        rule_key: {type: [string, 'null']}
+        version: {type: integer}
+        kind: {type: string, enum: [safety, engine, clinical, content, product]}
+        level: {type: string, enum: [info, suggestion, follow_up, urgent]}
+        state: {type: string, enum: [active, acknowledged, added_to_visit_note, resolved, archived]}
+        title: {type: string}
+        body: {type: string}
+        cta_text: {type: [string, 'null']}
+        cta_deeplink: {type: [string, 'null']}
+        evidence:
+          type: [object, 'null']
+          required: [seen, confidence]
+          properties:
+            seen: {type: string}
+            confidence: {type: string}
+            contact: {type: string}
+        hit_count: {type: integer, minimum: 1}
+        dismissible: {type: boolean}
+        first_at: {type: [string, 'null'], format: date-time}
+        last_at: {type: [string, 'null'], format: date-time}
+        acked_at: {type: [string, 'null'], format: date-time}
+        noted_at: {type: [string, 'null'], format: date-time}
+        resolved_at: {type: [string, 'null'], format: date-time}
+        archived_at: {type: [string, 'null'], format: date-time}
     BannerAdList:
       type: array
       items:
@@ -32914,7 +33119,8 @@ components:
         description: {description: "Localized text or null"}
         category: {type: [string, "null"]}
         duration_days: {type: integer}
-        start_rule: {type: string, enum: [anytime, menstrual, fixed_date]}
+        start_rule: {type: string, enum: [on_join, on_phase_start, fixed_date, anytime, menstrual], description: "on_join: any day (legacy rows: anytime); on_phase_start: only on the first day of start_phase per the engine; fixed_date: from starts_on; legacy menstrual: any day of the menstrual phase (T-M10-10, D-167)"}
+        start_phase: {type: [string, "null"], enum: [menstrual, follicular, fertile, luteal, period_expected, null], description: "The main phase an on_phase_start challenge starts on (null otherwise)"}
         starts_on: {anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
         reminder_time: {type: [string, "null"], description: "HH:MM local reminder time"}
         completion_min_days: {type: [integer, "null"], description: "null = every day"}
@@ -32931,6 +33137,7 @@ components:
             required: [id, day_from, day_to, title]
             properties: {id: {type: integer}, day_from: {type: integer}, day_to: {type: integer}, title: {description: "Localized string"}}
         can_join: {type: boolean}
+        contraindicated: {type: boolean, description: "The challenge's contraindications hold for the user today (only a joined challenge is listed then; it is never suggested by the feed)"}
         enrollment:
           anyOf:
             - type: object
