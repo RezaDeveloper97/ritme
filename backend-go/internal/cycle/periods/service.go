@@ -25,6 +25,7 @@ import (
 	"github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/enums"
 	filestore "github.com/ritme/backend-go/internal/files/store"
+	"github.com/ritme/backend-go/internal/messages/events"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/profile"
 	profilestore "github.com/ritme/backend-go/internal/profile/store"
@@ -75,6 +76,9 @@ func isReal(r store.CycleHistory) bool {
 
 // fire calls the hook for a committed start.
 func (s *Service) fire(ctx context.Context, userID uint64, st *started) {
+	if st.ok {
+		events.Goal(ctx, userID, "period_logged") // T-M10-06, M-17: server-matched message goal
+	}
 	if s.hook == nil || !st.ok {
 		return
 	}

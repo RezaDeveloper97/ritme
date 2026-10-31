@@ -13,6 +13,7 @@ import (
 	"github.com/ritme/backend-go/internal/healthlog/model"
 	"github.com/ritme/backend-go/internal/healthlog/store"
 	"github.com/ritme/backend-go/internal/healthlog/taxonomy"
+	"github.com/ritme/backend-go/internal/messages/events"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 )
@@ -214,6 +215,7 @@ func (s *Service) SaveDay(ctx context.Context, userID uint64, date civildate.Dat
 	if err != nil {
 		return nil, err
 	}
+	events.Goal(ctx, userID, "log_saved") // T-M10-06, M-17: server-matched message goal (after commit)
 	return day, nil
 }
 

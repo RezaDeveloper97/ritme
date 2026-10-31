@@ -54,12 +54,18 @@ var Budgets = []Budget{
 	{"home v6", "/api/v1/home", "/api/v1/home", enums.LifeModeCycle, 21, 8, config.CycleEngineV6},
 	{"home cycle-overview v6", "/api/v1/home/cycle-overview", "/api/v1/home/cycle-overview", enums.LifeModeCycle, 11, 5, config.CycleEngineV6},
 	{"messages daily", "/api/v1/messages/daily", "/api/v1/messages/daily", enums.LifeModeCycle, 11, 8, ""},
-	{"messages selected", "/api/v1/messages/selected", "/api/v1/messages/selected?placement=smart_tip", enums.LifeModeCycle, 10, 7, ""},
+	// T-M10-06: selected is the feed of one slot; it always reads the event history (one grouped query), +1 on v1.
+	{"messages selected", "/api/v1/messages/selected", "/api/v1/messages/selected?placement=smart_tip", enums.LifeModeCycle, 11, 8, ""},
 	// T-M9-38b: daily and selected on the shared engine state (T-M9-38, D-130). Warm = v1's (the state comes from the
 	// cache: no profile/history read for the cycle); cold adds the 4 engine input queries. The daily's "has cycle data"
 	// gate reads the same engine state (its anchor), so it costs no query of its own.
 	{"messages daily v6", "/api/v1/messages/daily", "/api/v1/messages/daily", enums.LifeModeCycle, 15, 8, config.CycleEngineV6},
-	{"messages selected v6", "/api/v1/messages/selected", "/api/v1/messages/selected?placement=smart_tip", enums.LifeModeCycle, 14, 7, config.CycleEngineV6},
+	// T-M10-06: the feed path folds the companion check into the fact profile row (warm 7 → 4).
+	{"messages selected v6", "/api/v1/messages/selected", "/api/v1/messages/selected?placement=smart_tip", enums.LifeModeCycle, 11, 4, config.CycleEngineV6},
+	// T-M10-06 (D-163): every home slot in one call. v6 warm = auth + the fact profile (account facts, companion check
+	// and the inbox counts in one row) + the engine-state revisions + the event history (SPEC: ≤ 3 + auth).
+	{"messages feed", "/api/v1/messages/feed", "/api/v1/messages/feed", enums.LifeModeCycle, 12, 9, ""},
+	{"messages feed v6", "/api/v1/messages/feed", "/api/v1/messages/feed", enums.LifeModeCycle, 11, 4, config.CycleEngineV6},
 	{"fertility insights", "/api/v1/fertility/insights", "/api/v1/fertility/insights", enums.LifeModeTTC, 8, 5, ""},
 	{"fertility bbt", "/api/v1/fertility/bbt", "/api/v1/fertility/bbt", enums.LifeModeTTC, 7, 4, ""},
 	{"analysis summary", "/api/v1/analysis/summary", "/api/v1/analysis/summary?range=3m", enums.LifeModeCycle, 14, 11, ""},

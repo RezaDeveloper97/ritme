@@ -208,3 +208,25 @@ cases:
     path: /api/v1/messages/events
     body: {rule_id: 1, event: click}
     status: 401
+  - name: feed
+    doc: >-
+      Go-only (D-163), golden recorded from Go and reviewed by hand. Default slots, every one empty: the fixture dump
+      has no message_rules rows (the 00112 status banner seed is a goose step, covered by TestFeedInt_BannerSeed) and
+      the harness runs CYCLE_ENGINE=v1. Pins the response shape (slots in order, alerts, rules_rev)
+    persona: [regular, overdue_10, no_profile]
+    method: GET
+    path: /api/v1/messages/feed
+    status: 200
+  - name: feed_invalid
+    persona: regular
+    locales: en
+    method: GET
+    path: /api/v1/messages/feed
+    query: {slots: push}
+    status: 422
+  - name: feed_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/messages/feed
+    status: 401

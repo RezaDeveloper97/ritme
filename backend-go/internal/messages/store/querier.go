@@ -10,9 +10,16 @@ import (
 )
 
 type Querier interface {
+	// messages.prune: before raw rows older than the cutoff go, every (day, …) key they make that the rollup does not
+	// hold yet is added; existing rollup rows are kept as they are (a day already pruned in part must not shrink).
+	BackfillMessageEventDaily(ctx context.Context, beforeAt sql.NullTime) error
 	// Smart messages v2 (bloom B-N9-05, migration 00061): rule-based messages, versions, events.
 	CountMessageRules(ctx context.Context, arg CountMessageRulesParams) (int64, error)
 	CountUserMessageEvents(ctx context.Context, arg CountUserMessageEventsParams) (int64, error)
+	// The feed's alerts badge: the user's open inbox rows and the urgent ones among them (SPEC §5.4.1).
+	CountUserOpenInbox(ctx context.Context, userID uint64) (CountUserOpenInboxRow, error)
+	// messages.prune (M-13): one batch of raw rows older than the cutoff, oldest first.
+	DeleteMessageEventsBefore(ctx context.Context, arg DeleteMessageEventsBeforeParams) (int64, error)
 	DeleteMessageRule(ctx context.Context, id uint64) error
 	// HealthDataEngine::dailyLogFor(): $user->dailyHealthLogs()->whereDate('log_date', $date)->first().
 	// Only the columns MessageManager::extractSymptoms can read exist here (see messages/manager).
@@ -28,7 +35,9 @@ type Querier interface {
 	// postpartum birth date, whether a pregnancy is active (pregnancy_mode = 1: the pregnancy profile is read only then),
 	// the log activity (newest log day up to today, distinct log days in [since, today]) and the Plus tier at now (a
 	// covering active / canceled subscription → plus; else a running trial → trial; else free — plus.tierOf). The joined
-	// tables hold at most one row per user, so nothing fans out.
+	// tables hold at most one row per user, so nothing fans out. The feed (T-M10-06) also reads the account kind (gender,
+	// the companion check of companion.Accounts) and the open inbox counts (CountUserOpenInbox) off this row, so a warm
+	// feed stays at three queries plus auth.
 	GetMessageFactProfile(ctx context.Context, arg GetMessageFactProfileParams) (GetMessageFactProfileRow, error)
 	// B-N2-01: the stored life-stage mode (user_life_profiles.life_mode; no row / NULL = legacy detection).
 	GetMessageLifeMode(ctx context.Context, userID uint64) (sql.NullString, error)
@@ -40,6 +49,12 @@ type Querier interface {
 	GetMessageRuleVersion(ctx context.Context, arg GetMessageRuleVersionParams) (MessageRuleVersion, error)
 	GetMessageUserName(ctx context.Context, id uint64) (sql.NullString, error)
 	InsertMessageEvent(ctx context.Context, arg InsertMessageEventParams) error
+	// Message events v6 (T-M10-06, D-163): the buffered writer's multi-row insert, the server-matched goals, the
+	// inbox counts of the feed, the daily rollup (M-13), the retention sweep and the admin CTR reads.
+	// One multi-row INSERT of a JSON array of rows [rule_id, user_id, version, variant, slot, event, created_at] (the
+	// events writer flushes in chunks of at most 100 rows; the index below reaches 999). sqlc's parser has neither
+	// JSON_TABLE nor recursive CTEs, so the array is walked by an index 0…999 built from three digit tables.
+	InsertMessageEventsBatch(ctx context.Context, arg InsertMessageEventsBatchParams) error
 	InsertMessageRule(ctx context.Context, arg InsertMessageRuleParams) (sql.Result, error)
 	InsertMessageRuleVersion(ctx context.Context, arg InsertMessageRuleVersionParams) error
 	LastUserMessageEvent(ctx context.Context, arg LastUserMessageEventParams) (sql.NullTime, error)
@@ -66,14 +81,26 @@ type Querier interface {
 	// T-M10-02 (M-03): the approved snapshots of the active rules whose head waits for re-approval (approved_version is
 	// set and is not the head version); rules.ActiveRows serves them instead of the head.
 	ListServedMessageRuleSnapshots(ctx context.Context) ([]ListServedMessageRuleSnapshotsRow, error)
+	// The goal match of M-17: the user's shown (impression) and goal rows since the 7-day window on the rules whose
+	// goal_event is the domain event, newest first. The caller keeps, per rule, the latest shown row and counts a goal
+	// when no goal row followed it.
+	ListUserGoalCandidates(ctx context.Context, arg ListUserGoalCandidatesParams) ([]ListUserGoalCandidatesRow, error)
 	// One grouped read of a user's history (T-M9-13, replaces the per-rule LastUserMessageEvent + CountUserMessageEvents
 	// probes; extended in T-M10-04): the latest event and the counts in the three cap windows (day, week, cycle) per rule,
 	// event and slot, with the rule's kind. rules.Select (legacy) reads its candidate rules (`all_rules` = 0); selection v6
 	// reads every rule of the user (`all_rules` = 1) for the per-slot counts and the last safety message shown. A legacy
 	// event without a slot counts for the rule's placement; a deleted rule has kind ''.
 	ListUserMessageEventStats(ctx context.Context, arg ListUserMessageEventStatsParams) ([]ListUserMessageEventStatsRow, error)
+	// Admin rules list: rollup counts per rule, version, variant and event of the Tehran days [since_day, until_day).
+	MessageRuleDailyStats(ctx context.Context, arg MessageRuleDailyStatsParams) ([]MessageRuleDailyStatsRow, error)
 	MessageRuleEventStats(ctx context.Context, createdAt sql.NullTime) ([]MessageRuleEventStatsRow, error)
+	// Admin rules list: today's raw rows (not rolled up yet) per rule, version, variant and event.
+	MessageRuleRawStats(ctx context.Context, sinceAt sql.NullTime) ([]MessageRuleRawStatsRow, error)
 	MessageRuleVariantStats(ctx context.Context, arg MessageRuleVariantStatsParams) ([]MessageRuleVariantStatsRow, error)
+	// messages.rollup (M-13): the raw rows of [from, to) counted per (Tehran day, rule, version, variant, slot, event)
+	// into message_event_daily. The upsert overwrites, so a re-run gives the same counts. A legacy row without a version
+	// counts as version 0; without a slot, under the rule's placement.
+	RollupMessageEvents(ctx context.Context, arg RollupMessageEventsParams) error
 	SetMessageRuleActive(ctx context.Context, arg SetMessageRuleActiveParams) error
 	// approved_version NULL keeps the current one (submit, reject: the last approved version stays live, M-03).
 	SetMessageRuleStatus(ctx context.Context, arg SetMessageRuleStatusParams) error

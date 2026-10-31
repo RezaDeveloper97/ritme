@@ -85,6 +85,8 @@ q.RegisterPeriodic(job, handler, "*/10 * * * *", opts...)        // Register + S
 | `engine:snapshot_purge` | low | `50 3 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 10 m | Tehran day − 400; deletes only older rows, in chunks of 5 000 | `internal/cycle/snapshots` |
 | `engine:prediction_log` | low | on demand (a committed real period start, `periods.StartHook`) | `TaskID(engine:prediction_log:<uid>:<rev_after>)` | 3 / 1 m, 5 m / 60 s | (user, cycle_start, kind): `first` insert-once, `last` upsert, actual/error recomputed | `internal/cycle/snapshots` |
 | `admin.audit_verify` | low | `40 3 * * *` | `Unique(23h)` | 1 / — / 10 m | read-only walk of `admin_audit_logs` by id (plus the one-off genesis, a no-op once `genesis_last_id` is set) | `internal/admin/auditchain` |
+| `messages.rollup` | low | `20 0 * * *` | `Unique(23h)` | 3 / 5 m, 30 m / 10 m | (Tehran day, rule, version, variant, slot, event): `message_event_daily` PK, upsert overwrites the count | `internal/messages/events` |
+| `messages.prune` | low | `45 3 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 30 m | Tehran day − 180; backfills missing rollup keys of the doomed rows (existing counts kept), then deletes older raw rows in batches of 5 000 | `internal/messages/events` |
 
 Notes:
 
@@ -111,5 +113,16 @@ Notes:
   `admin_audit_chain_verify_total{result="broken"}` and logs `alert=admin_audit_chain_broken` with the row id and
   reason; every run logs `admin audit chain anchor {head_id, head_hash, checked}` as the off-database anchor (compare
   it with yesterday's to catch a rewrite of the whole tail). No row content reaches the log.
+
+- `messages.rollup` / `messages.prune` (T-M10-06, D-163; M-13): raw `message_events` rows are kept 180 days, the daily
+  rollup `(day, rule, version, variant, slot, event) → count` forever. The rollup counts yesterday (Tehran) and can be
+  re-run at will; a legacy row without a version counts as version 0, without a slot under the rule's placement. Prune
+  first adds to the rollup every key its rows make that the rollup lacks (`ON DUPLICATE KEY UPDATE count = count`, so a
+  day already pruned in part never shrinks), then deletes oldest first, 5 000 per statement, at most 2 000 statements
+  per run. The admin rules list reads the rollup for the 6 days before today plus today's raw rows. Not a job: the
+  message events writer (`events.Writer`) is a buffered channel (10 000) in each API process, flushed every 1 s or 500
+  rows as multi-row INSERTs of ≤ 100 rows, drained before shutdown (`OnPreShutdown`, it runs whatever
+  `API_RUN_WORKERS` says); a full buffer inserts synchronously. Metrics: `messages_events_queue_depth`,
+  `messages_events_flush_seconds`, `messages_events_sync_fallback_total`, `messages_events_write_errors_total`.
 
 New jobs add a row here in the same change.

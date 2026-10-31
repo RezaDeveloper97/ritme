@@ -54,6 +54,7 @@ SELECT
   lp.life_mode,
   lp.medications,
   lp.chronic_illnesses,
+  lp.gender,
   cm.method AS contraception_method,
   pp.birth_date AS postpartum_birth_date,
   CAST(EXISTS (
@@ -71,7 +72,11 @@ SELECT
   CAST(EXISTS (
     SELECT 1 FROM ` + "`" + `plus_trials` + "`" + ` t
     WHERE t.user_id = u.id AND t.started_at <= ? AND t.ends_at > ?
-  ) AS UNSIGNED) AS trial_running
+  ) AS UNSIGNED) AS trial_running,
+  (SELECT CAST(COUNT(*) AS SIGNED) FROM ` + "`" + `message_inbox` + "`" + ` i
+    WHERE i.user_id = u.id AND i.open_flag = 1) AS inbox_open,
+  (SELECT CAST(COUNT(*) AS SIGNED) FROM ` + "`" + `message_inbox` + "`" + ` i
+    WHERE i.user_id = u.id AND i.open_flag = 1 AND i.level IN ('follow_soon', 'urgent')) AS inbox_urgent
 FROM ` + "`" + `users` + "`" + ` u
 LEFT JOIN ` + "`" + `user_profiles` + "`" + ` p ON p.id = (SELECT MIN(p2.id) FROM ` + "`" + `user_profiles` + "`" + ` p2 WHERE p2.user_id = u.id)
 LEFT JOIN ` + "`" + `user_life_profiles` + "`" + ` lp ON lp.user_id = u.id
@@ -97,6 +102,7 @@ type GetMessageFactProfileRow struct {
 	LifeMode            sql.NullString
 	Medications         db.NullRawJSON
 	ChronicIllnesses    db.NullRawJSON
+	Gender              sql.NullString
 	ContraceptionMethod sql.NullString
 	PostpartumBirthDate civildate.NullDate
 	PregnancyActive     int64
@@ -104,6 +110,8 @@ type GetMessageFactProfileRow struct {
 	LogDaysSince        int64
 	PlusActive          int64
 	TrialRunning        int64
+	InboxOpen           int64
+	InboxUrgent         int64
 }
 
 // Message fact registry v6 (T-M10-03, D-161): the small read-only queries behind the lazy fact producers
@@ -114,7 +122,9 @@ type GetMessageFactProfileRow struct {
 // postpartum birth date, whether a pregnancy is active (pregnancy_mode = 1: the pregnancy profile is read only then),
 // the log activity (newest log day up to today, distinct log days in [since, today]) and the Plus tier at now (a
 // covering active / canceled subscription → plus; else a running trial → trial; else free — plus.tierOf). The joined
-// tables hold at most one row per user, so nothing fans out.
+// tables hold at most one row per user, so nothing fans out. The feed (T-M10-06) also reads the account kind (gender,
+// the companion check of companion.Accounts) and the open inbox counts (CountUserOpenInbox) off this row, so a warm
+// feed stays at three queries plus auth.
 func (q *Queries) GetMessageFactProfile(ctx context.Context, arg GetMessageFactProfileParams) (GetMessageFactProfileRow, error) {
 	row := q.db.QueryRowContext(ctx, getMessageFactProfile,
 		arg.Today,
@@ -137,6 +147,7 @@ func (q *Queries) GetMessageFactProfile(ctx context.Context, arg GetMessageFactP
 		&i.LifeMode,
 		&i.Medications,
 		&i.ChronicIllnesses,
+		&i.Gender,
 		&i.ContraceptionMethod,
 		&i.PostpartumBirthDate,
 		&i.PregnancyActive,
@@ -144,6 +155,8 @@ func (q *Queries) GetMessageFactProfile(ctx context.Context, arg GetMessageFactP
 		&i.LogDaysSince,
 		&i.PlusActive,
 		&i.TrialRunning,
+		&i.InboxOpen,
+		&i.InboxUrgent,
 	)
 	return i, err
 }

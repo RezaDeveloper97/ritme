@@ -3,10 +3,10 @@ id: T-M10-06
 title: Message feed endpoint, server-side events, goals, rollup and retention
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-05, T-M9-11, T-M9-42]
 parallel_group: M10-B
-touches: [backend-go/internal/messages/feed, backend-go/internal/messages/events, backend-go/internal/messages/v2.go, backend-go/internal/messages/handlers.go, backend-go/internal/http/routes_messages.go, backend-go/db/queries/messages, backend-go/db/migrations, backend-go/internal/admin/messages/rules.go, backend-go/internal/cycle/periods, backend-go/internal/healthlog, backend-go/internal/checkups/service.go, backend-go/internal/plus/service.go, backend-go/internal/challenges/service.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist/messages.yaml, docs/engine-v6/jobs.md]
+touches: [backend-go/internal/messages/feed, backend-go/internal/messages/events, backend-go/internal/messages/v2.go, backend-go/internal/messages/handlers.go, backend-go/internal/http/routes_messages.go, backend-go/db/queries/messages, backend-go/internal/messages/store, backend-go/db/migrations, backend-go/internal/admin/messages/rules.go, backend-go/internal/cycle/periods, backend-go/internal/healthlog, backend-go/internal/checkups/service.go, backend-go/internal/plus/service.go, backend-go/internal/challenges/service.go, backend-go/internal/checkups/handlers.go, backend-go/internal/messages/feed_int_test.go, backend-go/internal/messages/rules, backend-go/internal/http/routes_messages_v2_int_test.go, backend-go/internal/querybudget, backend-go/contract/cases/messages.yaml, backend-go/contract/golden/messages, backend-go/api/openapi.yaml, backend-go/contract/allowlist/messages.yaml, docs/engine-v6/jobs.md, docs/engine-v6/perf-baseline.md]
 skills: [new-endpoint]
 verify: cd backend-go && make sqlc && go vet ./... && go test -race ./internal/messages/... ./internal/admin/messages/... && make test-int PKG="./internal/messages/... ./internal/admin/messages/..." && make contract ROUTES=messages
 ---

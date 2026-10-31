@@ -19,6 +19,7 @@ import (
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/healthlog/model"
 	"github.com/ritme/backend-go/internal/healthlog/store"
+	"github.com/ritme/backend-go/internal/messages/events"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
@@ -176,6 +177,9 @@ func (s *Service) Store(ctx context.Context, userID uint64, attrs phpval.Map, lo
 		res = r
 		return nil
 	})
+	if err == nil {
+		events.Goal(ctx, userID, "log_saved") // T-M10-06, M-17: server-matched message goal (after commit)
+	}
 	return res, err
 }
 

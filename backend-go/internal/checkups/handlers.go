@@ -18,6 +18,7 @@ import (
 	"github.com/ritme/backend-go/internal/checkups/store"
 	"github.com/ritme/backend-go/internal/cycle/state"
 	"github.com/ritme/backend-go/internal/i18n"
+	"github.com/ritme/backend-go/internal/messages/events"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/httpx"
@@ -319,6 +320,7 @@ func (h *Handlers) StoreRecord(c fiber.Ctx) error {
 	if err != nil || newID <= 0 {
 		return fmt.Errorf("checkups: insert record (id %d): %w", newID, err)
 	}
+	events.Goal(c.Context(), userID, "checkup_done") // T-M10-06, M-17: server-matched message goal (after the insert)
 	body, err := h.recordResult(c, userID, uint64(newID), l)
 	if err != nil {
 		return err

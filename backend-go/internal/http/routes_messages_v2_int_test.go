@@ -27,9 +27,10 @@ import (
 	"github.com/ritme/backend-go/internal/platform/httpx"
 )
 
-// TestMessagesV2Routes covers GET /messages/selected and POST /messages/events (B-N9-05, D-86): 401, validation,
-// safety-first selection, an unapproved medical message that is never served, the cooldown after an impression, the
-// A/B variant staying the same for a user, and the event endpoint's rate limit.
+// TestMessagesV2Routes covers GET /messages/selected and POST /messages/events (B-N9-05, D-86; since T-M10-06
+// /selected is the feed of one slot under the SPEC §5.4 slot × kind table): 401, validation, the A/B variant staying
+// the same for a user, the server-side shown (once per message, slot and day), the cooldown it starts, an unapproved
+// medical message that is never served, the safety slot, and the event endpoint's aliases and rate limit.
 func TestMessagesV2Routes(t *testing.T) {
 	db := testdb.New(t)
 	keysPath, err := filepath.Abs(keysDir)
@@ -104,47 +105,99 @@ func TestMessagesV2Routes(t *testing.T) {
 	assert.Nil(t, body["data"].(map[string]any)["message"], "no rules yet")
 
 	content := `{"a":{"title":"Hi {name}","body":"body","cta_label":"Go","cta_target":"ritme://x"},"b":{"title":"Yo {name}","body":"body","cta_label":"Go","cta_target":"ritme://x"}}`
-	ins := func(title, level, kind string, prio int, status string, active int, extra string) uint64 {
+	ins := func(title, level, kind, placement string, prio int, status string, cooldown int) uint64 {
+		t.Helper()
+		approved := "NULL"
+		if status == "approved" {
+			approved = "1"
+		}
 		r, err := db.Exec(`INSERT INTO message_rules (title, level, kind, priority, placement, content, variants_enabled, ab_split,
-			conditions, exceptions, cap_count, cap_period, cooldown_days, audience_percent, status, is_active, version, created_at, updated_at)
-			VALUES (?, ?, ?, ?, 'smart_tip', ?, 1, 50, '[]', '[]', NULL, NULL, `+extra+`, 100, ?, ?, 1, NOW(), NOW())`,
-			title, level, kind, prio, content, status, active)
+			conditions, exceptions, cap_count, cap_period, cooldown_days, audience_percent, status, is_active, version,
+			approved_version, created_at, updated_at)
+			VALUES (?, ?, ?, ?, ?, ?, 1, 50, '[]', '[]', NULL, NULL, ?, 100, ?, 1, 1, `+approved+`, NOW(), NOW())`,
+			title, level, kind, prio, placement, content, cooldown, status)
 		require.NoError(t, err)
 		id, _ := r.LastInsertId()
 		return uint64(id) //nolint:gosec // test ids
 	}
-	product := ins("product", "suggestion", "product", 50, "draft", 1, "1")
-	unapproved := ins("clinical pending", "worth_followup", "clinical", 700, "pending_approval", 1, "0")
+	count := func(q string, args ...any) int {
+		t.Helper()
+		var n int
+		require.NoError(t, db.QueryRow(q, args...).Scan(&n))
+		return n
+	}
+	// Event rows go through the buffered writer (≤ 1 s, T-M10-06): poll.
+	eventually := func(want int, q string, args ...any) {
+		t.Helper()
+		require.Eventually(t, func() bool { return count(q, args...) == want }, 5*time.Second, 50*time.Millisecond,
+			"%s: want %d, have %d", q, want, count(q, args...))
+	}
+	msgOf := func(body map[string]any) map[string]any {
+		t.Helper()
+		m, _ := body["data"].(map[string]any)["message"].(map[string]any)
+		return m
+	}
+	const challenge = "/api/v1/messages/selected?placement=daily_challenge"
+	const shownOf = "SELECT COUNT(*) FROM message_events WHERE user_id = ? AND rule_id = ? AND event = 'impression'"
 
-	st, body = call(fiber.MethodGet, sel, at, nil)
+	// A product message in its slot: {name} filled, no medical fields, a stable A/B variant, one server-side shown.
+	product := ins("product", "suggestion", "product", "daily_challenge", 50, "draft", 0)
+	st, body = call(fiber.MethodGet, challenge, at, nil)
 	require.Equal(t, 200, st, body)
-	msg := body["data"].(map[string]any)["message"].(map[string]any)
-	assert.EqualValues(t, product, msg["rule_id"], "an unapproved medical message is never served")
+	msg := msgOf(body)
+	require.NotNil(t, msg, body)
+	assert.EqualValues(t, product, msg["rule_id"])
+	assert.Equal(t, "daily_challenge", msg["placement"])
 	assert.Equal(t, "Go", msg["cta"].(map[string]any)["label"])
 	assert.Contains(t, msg["title"], "Sara", "{name} is filled")
-	variant := msg["variant"]
 	assert.NotContains(t, msg, "seen", "an info/suggestion message carries no medical fields")
+	variant := msg["variant"]
+	for range 3 {
+		_, body = call(fiber.MethodGet, challenge, at, nil)
+		require.NotNil(t, msgOf(body))
+		assert.Equal(t, variant, msgOf(body)["variant"], "the same user keeps the variant")
+	}
+	eventually(1, shownOf, uid, product)
+	time.Sleep(1500 * time.Millisecond) // past one flush: the refetches logged nothing more
+	assert.Equal(t, 1, count(shownOf, uid, product), "shown once per message, slot and day")
 
-	exec("UPDATE message_rules SET status = 'approved' WHERE id = ?", unapproved)
-	safety := ins("safety", "follow_soon", "safety", 1000, "approved", 1, "0")
-	exec(`UPDATE message_rules SET content = '{"a":{"title":"Call","body":"b"},"seen":"s","confidence":"c","contact":"tel:115"}', variants_enabled = 0 WHERE id = ?`, safety)
+	// The kind table: a product message is not a smart_tip (kind_not_allowed).
+	misplaced := ins("misplaced", "suggestion", "product", "smart_tip", 900, "approved", 0)
 	_, body = call(fiber.MethodGet, sel, at, nil)
-	msg = body["data"].(map[string]any)["message"].(map[string]any)
-	assert.EqualValues(t, safety, msg["rule_id"], "safety first")
+	assert.Nil(t, msgOf(body), "a product rule in smart_tip is never served")
+	exec("UPDATE message_rules SET is_active = 0 WHERE id = ?", misplaced)
+
+	// The server-side shown starts the cooldown.
+	exec("UPDATE message_rules SET is_active = 0 WHERE id = ?", product)
+	cool := ins("cooldown", "suggestion", "product", "daily_challenge", 60, "draft", 1)
+	_, body = call(fiber.MethodGet, challenge, at, nil)
+	require.NotNil(t, msgOf(body))
+	assert.EqualValues(t, cool, msgOf(body)["rule_id"])
+	eventually(1, shownOf, uid, cool)
+	_, body = call(fiber.MethodGet, challenge, at, nil)
+	assert.Nil(t, msgOf(body), "inside the 1-day cooldown")
+	_, body = call(fiber.MethodGet, challenge, "2026-10-13T12:00:00+03:30", nil)
+	assert.NotNil(t, msgOf(body), "cooldown elapsed")
+
+	// Medical approval: a pending clinical message is never served; an approved one is.
+	unapproved := ins("clinical pending", "worth_followup", "clinical", "smart_tip", 700, "pending_approval", 0)
+	approved := ins("clinical", "info", "clinical", "smart_tip", 500, "approved", 0)
+	_, body = call(fiber.MethodGet, sel, at, nil)
+	require.NotNil(t, msgOf(body), body)
+	assert.EqualValues(t, approved, msgOf(body)["rule_id"], "an unapproved medical message is never served")
+	assert.NotEqual(t, unapproved, msgOf(body)["rule_id"])
+
+	// The safety slot: never dismissible, with its contact.
+	safety := ins("safety", "follow_soon", "safety", "urgent_modal", 1000, "approved", 0)
+	exec(`UPDATE message_rules SET content = '{"a":{"title":"Call","body":"b"},"seen":"s","confidence":"c","contact":"tel:115"}', variants_enabled = 0 WHERE id = ?`, safety)
+	_, body = call(fiber.MethodGet, "/api/v1/messages/selected?placement=urgent_modal", at, nil)
+	msg = msgOf(body)
+	require.NotNil(t, msg, body)
+	assert.EqualValues(t, safety, msg["rule_id"])
 	assert.Equal(t, "tel:115", msg["contact"])
 	assert.Equal(t, false, msg["dismissible"])
-	exec("DELETE FROM message_rules WHERE id = ?", safety)
-	_, body = call(fiber.MethodGet, sel, at, nil)
-	assert.EqualValues(t, unapproved, body["data"].(map[string]any)["message"].(map[string]any)["rule_id"], "approved clinical beats product")
-	exec("UPDATE message_rules SET is_active = 0 WHERE id = ?", unapproved)
 
-	// Stable A/B: the same user keeps the variant.
-	for range 3 {
-		_, body = call(fiber.MethodGet, sel, at, nil)
-		assert.Equal(t, variant, body["data"].(map[string]any)["message"].(map[string]any)["variant"])
-	}
-
-	// Events: validation, unknown rule, then an impression starts the 1-day cooldown.
+	// Events: validation, unknown rule, a client impression the server already logged, a click.
 	const ev = "/api/v1/messages/events"
 	st, _ = call(fiber.MethodPost, ev, "anon", map[string]any{"rule_id": product, "event": "impression"})
 	assert.Equal(t, 401, st)
@@ -152,20 +205,17 @@ func TestMessagesV2Routes(t *testing.T) {
 	assert.Equal(t, 422, st)
 	st, _ = call(fiber.MethodPost, ev, at, map[string]any{"rule_id": 99999, "event": "click"})
 	assert.Equal(t, 404, st)
-	st, body = call(fiber.MethodPost, ev, at, map[string]any{"rule_id": product, "variant": variant, "event": "impression"})
+	st, body = call(fiber.MethodPost, ev, at, map[string]any{"rule_id": approved, "variant": "a", "event": "impression"})
 	require.Equal(t, 201, st, body)
-	var n int
-	require.NoError(t, db.QueryRow("SELECT COUNT(*) FROM message_events WHERE user_id = ? AND rule_id = ? AND event = 'impression'", uid, product).Scan(&n))
-	assert.Equal(t, 1, n)
-	_, body = call(fiber.MethodGet, sel, at, nil)
-	assert.Nil(t, body["data"].(map[string]any)["message"], "inside the 1-day cooldown")
-	_, body = call(fiber.MethodGet, sel, "2026-10-13T12:00:00+03:30", nil)
-	assert.NotNil(t, body["data"].(map[string]any)["message"], "cooldown elapsed")
+	assert.Equal(t, false, body["data"].(map[string]any)["recorded"], "the server logged today's shown already")
+	st, body = call(fiber.MethodPost, ev, at, map[string]any{"rule_id": approved, "variant": "a", "event": "clicked"})
+	require.Equal(t, 201, st, body)
+	eventually(1, "SELECT COUNT(*) FROM message_events WHERE user_id = ? AND rule_id = ? AND event = 'click' AND slot = 'smart_tip'", uid, approved)
 
 	// Rate limit: 120 / minute / user.
 	limited := false
 	for range 125 {
-		if st, _ = call(fiber.MethodPost, ev, at, map[string]any{"rule_id": product, "event": "click"}); st == 429 {
+		if st, _ = call(fiber.MethodPost, ev, at, map[string]any{"rule_id": approved, "event": "click"}); st == 429 {
 			limited = true
 			break
 		}

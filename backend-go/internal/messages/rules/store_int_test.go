@@ -3,6 +3,7 @@ package rules_test
 import (
 	"context"
 	"database/sql"
+	"slices"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -68,19 +69,27 @@ func TestSelect_FiftyRulesOneHistoryQuery(t *testing.T) {
 	now := time.Date(2026, 10, 21, 12, 0, 0, 0, noon.Location())
 	const uid = 42
 	periods := []string{"day", "week", "cycle"}
+	mine := map[uint64]bool{}
+	var first uint64
 	for i := range 50 {
 		id := insertRule(t, db, 90-i, 1, periods[i%3], i%3)
+		mine[id] = true
+		if i == 0 {
+			first = id
+		}
 		if i < 49 { // the last rule has no history → it is the pick
 			_, err := db.Exec(`INSERT INTO message_events (rule_id, user_id, variant, event, created_at) VALUES (?, ?, 'a', 'impression', ?)`,
 				id, uid, now.Add(-time.Duration(i%5+1)*time.Hour))
 			require.NoError(t, err)
 		}
 	}
-	_, err := db.Exec(`INSERT INTO message_events (rule_id, user_id, variant, event, created_at) VALUES (1, ?, 'a', 'dismiss', ?)`, uid, now.Add(-time.Hour))
+	_, err := db.Exec(`INSERT INTO message_events (rule_id, user_id, variant, event, created_at) VALUES (?, ?, 'a', 'dismiss', ?)`, first, uid, now.Add(-time.Hour))
 	require.NoError(t, err)
 
 	rows, err := store.New(db).ListActiveMessageRules(ctx, store.ListActiveMessageRulesParams{})
 	require.NoError(t, err)
+	// only this test's rules: the migrations seed the status banner rules (00112, T-M10-06)
+	rows = slices.DeleteFunc(rows, func(r store.MessageRule) bool { return !mine[r.ID] })
 	require.Len(t, rows, 50)
 	all := make([]rules.Rule, 0, len(rows))
 	for i := range rows {
@@ -104,12 +113,12 @@ func TestSelect_FiftyRulesOneHistoryQuery(t *testing.T) {
 	// The grouped row also carries the last dismissal.
 	st, err := store.New(db).ListUserMessageEventStats(ctx, store.ListUserMessageEventStatsParams{
 		DaySince: sql.NullTime{Time: now.Add(-24 * time.Hour), Valid: true}, WeekSince: sql.NullTime{Time: now, Valid: true},
-		CycleSince: sql.NullTime{Time: now, Valid: true}, UserID: uid, RuleIds: []uint64{rows[len(rows)-1].ID, 1},
+		CycleSince: sql.NullTime{Time: now, Valid: true}, UserID: uid, RuleIds: []uint64{rows[len(rows)-1].ID, first},
 	})
 	require.NoError(t, err)
 	byEvent := map[string]store.ListUserMessageEventStatsRow{}
 	for _, r := range st {
-		if r.RuleID == 1 {
+		if r.RuleID == first {
 			byEvent[r.Event] = r
 		}
 	}

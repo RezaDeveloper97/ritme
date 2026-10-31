@@ -18,6 +18,8 @@ import (
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/messages/content"
+	"github.com/ritme/backend-go/internal/messages/events"
+	"github.com/ritme/backend-go/internal/messages/feed"
 	"github.com/ritme/backend-go/internal/messages/manager"
 	"github.com/ritme/backend-go/internal/messages/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -42,6 +44,17 @@ type Handlers struct {
 	pp       PostpartumSignals   // B-N5-01: the postpartum engine's facts
 	states   state.UserStates    // T-M9-38: the v6 engine state source (nil = CYCLE_ENGINE=v1)
 	zones    zoneStore           // T-M9-38b: a user's stored zone (admin preview of another user's day)
+	feed     *feed.Service       // T-M10-06: the message feed (GET /messages/feed, /messages/selected)
+	writer   *events.Writer      // T-M10-06: the buffered event log (nil = synchronous inserts)
+	marks    *events.Marks       // T-M10-06: once-a-day marks of server-logged events (nil = DB check)
+}
+
+// WithFeed wires the feed's event log: the buffered writer, the Redis marks and the app module switches (T-M10-06).
+// Without it the feed still answers but logs nothing and client events are inserted synchronously.
+func (h *Handlers) WithFeed(w *events.Writer, marks *events.Marks, mods feed.Modules) *Handlers {
+	h.writer, h.marks = w, marks
+	h.feed = feed.New(h.q, w, marks, mods)
+	return h
 }
 
 // zoneStore reads user_profiles.timezone (*profilestore.Queries).
@@ -57,9 +70,10 @@ func (h *Handlers) WithEngine(states state.UserStates) *Handlers {
 
 // NewHandlers wires the handlers; base is the fallback clock.
 func NewHandlers(db store.DBTX, base clock.Clock) *Handlers {
+	q := store.New(db)
 	return &Handlers{
-		q: store.New(db), pq: pstore.New(db), clock: base, accounts: companion.NewAccounts(db), pp: postpartum.NewService(db),
-		zones: profilestore.New(db),
+		q: q, pq: pstore.New(db), clock: base, accounts: companion.NewAccounts(db), pp: postpartum.NewService(db),
+		zones: profilestore.New(db), feed: feed.New(q, nil, nil, nil),
 	}
 }
 
@@ -79,16 +93,24 @@ func (h *Handlers) UserToday(ctx context.Context, userID uint64, now time.Time) 
 
 // request is one request's manager and its source.
 func (h *Handlers) request(c fiber.Ctx) (*manager.Manager, *StoreSource, string, civildate.Date, error) {
+	return h.requestOf(c, false)
+}
+
+// requestOf is request; deferCompanion leaves the companion check to the caller (the v6 feed reads the account kind
+// off the fact profile row it reads anyway, T-M10-06).
+func (h *Handlers) requestOf(c fiber.Ctx, deferCompanion bool) (*manager.Manager, *StoreSource, string, civildate.Date, error) {
 	uid, ok := auth.CurrentUserID(c)
 	if !ok {
 		return nil, nil, "", civildate.Date{}, &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
 	}
-	is, err := h.accounts.IsCompanion(c.Context(), uid)
-	if err != nil {
-		return nil, nil, "", civildate.Date{}, err
-	}
-	if is { // bloom B-N4-03: no cycle engine for a companion account
-		return nil, nil, "", civildate.Date{}, companion.AccountConflict(i18n.Locale(c))
+	if !deferCompanion {
+		is, err := h.accounts.IsCompanion(c.Context(), uid)
+		if err != nil {
+			return nil, nil, "", civildate.Date{}, err
+		}
+		if is { // bloom B-N4-03: no cycle engine for a companion account
+			return nil, nil, "", civildate.Date{}, companion.AccountConflict(i18n.Locale(c))
+		}
 	}
 	locale := i18n.ResolveLocale(c, "")
 	today := civildate.Today(clock.FromContext(c, h.clock))

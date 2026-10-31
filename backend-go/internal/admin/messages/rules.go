@@ -1,6 +1,7 @@
 package messages
 
 import (
+	"cmp"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -600,7 +601,88 @@ func (s *stat) add(event string, n int64) {
 	}
 }
 
-// RuleList is GET /messages/rules?placement=&kind=&status=&page= with 7-day impressions and CTR per rule.
+// versionKey is one (version, variant) of a rule.
+type versionKey struct {
+	version uint64
+	variant string
+}
+
+// versionStats are the 7-day counts per rule, version and variant.
+type versionStats map[uint64]map[versionKey]*stat
+
+func (v versionStats) add(rule, version uint64, variant, event string, n int64) {
+	m := v[rule]
+	if m == nil {
+		m = map[versionKey]*stat{}
+		v[rule] = m
+	}
+	k := versionKey{version, variant}
+	if m[k] == nil {
+		m[k] = &stat{}
+	}
+	m[k].add(event, n)
+}
+
+// json is [{version, variant, impressions, clicks, dismissals, goals, ctr}] newest version first (version 0 = events
+// logged before T-M10-06 recorded versions).
+func (v versionStats) json(rule uint64) []*jsonx.OrderedMap {
+	keys := make([]versionKey, 0, len(v[rule]))
+	for k := range v[rule] {
+		keys = append(keys, k)
+	}
+	slices.SortFunc(keys, func(a, b versionKey) int {
+		if a.version != b.version {
+			return cmp.Compare(b.version, a.version)
+		}
+		return cmp.Compare(a.variant, b.variant)
+	})
+	out := make([]*jsonx.OrderedMap, 0, len(keys))
+	for _, k := range keys {
+		st := v[rule][k].json()
+		o := jsonx.Obj("version", k.version, "variant", k.variant)
+		for _, key := range st.Keys() {
+			val, _ := st.Get(key)
+			o.Set(key, val)
+		}
+		out = append(out, o)
+	}
+	return out
+}
+
+// ruleStats are the last 7 Tehran days of events per rule (and per version and variant): the daily rollup for the 6
+// days before today (messages.rollup, M-13) plus today's raw rows, instead of a 7-day scan of message_events
+// (T-M10-06).
+func (h *Handlers) ruleStats(c fiber.Ctx) (map[uint64]*stat, versionStats, error) {
+	today := civildate.InTehran(httpadmin.Now(c))
+	daily, err := h.mq.MessageRuleDailyStats(c.Context(), mstore.MessageRuleDailyStatsParams{SinceDay: today.AddDays(-6), UntilDay: today})
+	if err != nil {
+		return nil, nil, err
+	}
+	raw, err := h.mq.MessageRuleRawStats(c.Context(), sql.NullTime{Time: today.TehranMidnight(), Valid: true})
+	if err != nil {
+		return nil, nil, err
+	}
+	stats, byVersion := map[uint64]*stat{}, versionStats{}
+	add := func(rule, version uint64, variant, event string, n int64) {
+		s := stats[rule]
+		if s == nil {
+			s = &stat{}
+			stats[rule] = s
+		}
+		s.add(event, n)
+		byVersion.add(rule, version, variant, event, n)
+	}
+	for _, r := range daily {
+		add(r.RuleID, uint64(r.Version), r.Variant, r.Event, r.Total)
+	}
+	for _, r := range raw {
+		add(r.RuleID, uint64(max(r.Version, 0)), r.Variant, r.Event, r.Total) //nolint:gosec // non-negative
+	}
+	return stats, byVersion, nil
+}
+
+// RuleList is GET /messages/rules?placement=&kind=&status=&page= with 7-day impressions and CTR per rule and per
+// version and variant (stats_by_version).
 func (h *Handlers) RuleList(c fiber.Ctx) error {
 	placement, kind, status := c.Query("placement"), c.Query("kind"), c.Query("status")
 	total, err := h.mq.CountMessageRules(c.Context(), mstore.CountMessageRulesParams{Placement: placement, Kind: kind, Status: status})
@@ -614,19 +696,9 @@ func (h *Handlers) RuleList(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	since := httpadmin.DBTime(httpadmin.Now(c).Add(-statsWindow))
-	srows, err := h.mq.MessageRuleEventStats(c.Context(), since)
+	stats, byVersion, err := h.ruleStats(c)
 	if err != nil {
 		return err
-	}
-	stats := map[uint64]*stat{}
-	for _, r := range srows {
-		s := stats[r.RuleID]
-		if s == nil {
-			s = &stat{}
-			stats[r.RuleID] = s
-		}
-		s.add(r.Event, r.Total)
 	}
 	items := make([]*jsonx.OrderedMap, 0, len(rows))
 	for i := range rows {
@@ -636,6 +708,7 @@ func (h *Handlers) RuleList(c fiber.Ctx) error {
 			s = *st
 		}
 		o.Set("stats_7d", s.json())
+		o.Set("stats_by_version", byVersion.json(rows[i].ID))
 		items = append(items, o)
 	}
 	page := httpadmin.Page(items, p, int(total))

@@ -18,6 +18,11 @@ verify: cd backend-go && go vet ./... && go test ./... && make test-int PKG=./in
 Three engines and two caches must not live on. Once beta has run v6 without incident, v1.1 code, its PHP-generated
 enum coupling, the content-hash cache and the legacy payload keys go (X-01, X-04, X-05, D-139).
 
+## Go only (user decision, 2026-10-31)
+Remove the v1.1 engine from **backend-go only**. Do not touch the Laravel `backend/` (its v1.1 engine stays — production
+still runs Laravel), `frontend/` or `admin-web/`. The frontend is only grepped (Scope 4), never edited; if a legacy key
+is still read by the frontend, keep it in the Go output and record why.
+
 ## Scope
 1. Delete `internal/cycle/resolver`, the legacy-key builders in `internal/cycle/view`, the legacy engine paths in
    `internal/cycle/legacy` that only served v1, `internal/cycle/cache` (v1 cache), `cycle/model` adapters no longer

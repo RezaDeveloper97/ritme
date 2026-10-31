@@ -16,6 +16,7 @@ import (
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
 	"github.com/ritme/backend-go/internal/cycle/state"
 	"github.com/ritme/backend-go/internal/healthlog"
+	"github.com/ritme/backend-go/internal/messages/events"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/configcache"
 	"github.com/ritme/backend-go/internal/plus"
@@ -265,6 +266,7 @@ func (s *Service) Join(ctx context.Context, userID, challengeID uint64, today ci
 	if err != nil {
 		return Item{}, false, fmt.Errorf("challenges: enrollment: %w", err)
 	}
+	events.Goal(ctx, userID, "challenge_joined") // T-M10-06, M-17: server-matched message goal
 	v, err := s.enrollmentView(ctx, e, p, tasks, today)
 	return Item{Program: p, Tasks: tasks, Enrollment: v}, true, err
 }

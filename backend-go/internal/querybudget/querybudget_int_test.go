@@ -295,10 +295,12 @@ func TestMessagesSelectedConstantInRules(t *testing.T) {
 	const content = `{"a":{"title":"Hi","body":"body","cta_label":"Go","cta_target":"ritme://x"}}`
 	addRules := func(n int) {
 		for i := range n {
-			// capped and cooled-down rules: each one needs its own history (the probes T-M9-13 folded into one query)
+			// capped and cooled-down rules: each one needs its own history (the probes T-M9-13 folded into one query);
+			// approved clinical, the one kind smart_tip serves (SPEC §5.4, T-M10-04)
 			exec(t, db, `INSERT INTO message_rules (title, level, kind, priority, placement, content, variants_enabled, ab_split,
-				conditions, exceptions, cap_count, cap_period, cooldown_days, audience_percent, status, is_active, version, created_at, updated_at)
-				VALUES (?, 'suggestion', 'product', ?, 'smart_tip', ?, 0, 50, '[]', '[]', 3, 'week', 1, 100, 'draft', 1, 1, NOW(), NOW())`,
+				conditions, exceptions, cap_count, cap_period, cooldown_days, audience_percent, status, is_active, version,
+				approved_version, created_at, updated_at)
+				VALUES (?, 'info', 'clinical', ?, 'smart_tip', ?, 0, 50, '[]', '[]', 3, 'week', 1, 100, 'approved', 1, 1, 1, NOW(), NOW())`,
 				fmt.Sprintf("rule %d", i), 1+i%50, content)
 		}
 		configcache.Changed(context.Background(), "message_rules")
@@ -319,7 +321,7 @@ func TestMessagesSelectedConstantInRules(t *testing.T) {
 	fifty := warm()
 	t.Logf("messages selected warm: 1 rule %d queries, 50 rules %d queries", one, fifty)
 	assert.Equal(t, one, fifty, "query count constant in the number of rules")
-	// The seeded rules are capped/cooled-down, so Select runs its one ListUserMessageEventStats prefetch
-	// (rules.Select): +1 over the table row, whose user has no such candidate.
-	assert.LessOrEqual(t, fifty, path.Warm+1)
+	// The feed (T-M10-06) reads the history in one ListUserMessageEventStats whatever the rules, so the table row
+	// holds: no +1 for capped candidates.
+	assert.LessOrEqual(t, fifty, path.Warm)
 }

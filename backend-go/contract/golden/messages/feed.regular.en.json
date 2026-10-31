@@ -1,0 +1,36 @@
+{
+  "case": "messages/feed.regular.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/feed",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "slots": {
+            "urgent_modal": [],
+            "status_banner": [],
+            "smart_tip": [],
+            "daily_advice": [],
+            "daily_challenge": [],
+            "modal": []
+          },
+          "alerts": {
+            "open": 0,
+            "urgent": 0
+          },
+          "rules_rev": 1
+        }
+      }
+    }
+  ]
+}

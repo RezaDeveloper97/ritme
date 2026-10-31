@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 
+	"github.com/ritme/backend-go/internal/messages/events"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/configcache"
@@ -601,6 +602,9 @@ func (s *Service) settle(ctx context.Context, userID uint64, reference, authorit
 	})
 	if err != nil {
 		return Settled{}, err
+	}
+	if outcome == nil && !out.AlreadyPaid {
+		events.Goal(ctx, userID, "plus_purchased") // T-M10-06, M-17: server-matched message goal (after commit)
 	}
 	if out.Invoice, err = s.q.GetUserInvoiceByReference(ctx, store.GetUserInvoiceByReferenceParams{Reference: reference, UserID: userID}); err != nil {
 		return Settled{}, fmt.Errorf("plus: invoice: %w", err)

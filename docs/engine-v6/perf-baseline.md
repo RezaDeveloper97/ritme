@@ -160,9 +160,11 @@ config caches off); *warm* = the same request again with every cache filled. The
 | `GET /home` | cycle | 20 | 15 | ≤ 8 |
 | `GET /home/cycle-overview` | cycle | 9 | 7 | — |
 | `GET /messages/daily` | cycle | 11 | 8 | ≤ 4 |
-| `GET /messages/selected?placement=smart_tip` | cycle | 10 | 7 | ≤ 4 |
+| `GET /messages/selected?placement=smart_tip` (T-M10-06: always one history read) | cycle | 11 | 8 | ≤ 4 |
 | `GET /messages/daily` (v6, T-M9-38b) | cycle | 15 | 8 | ≤ 4 |
-| `GET /messages/selected?placement=smart_tip` (v6, T-M9-38b) | cycle | 14 | 7 | ≤ 4 |
+| `GET /messages/selected?placement=smart_tip` (v6, T-M10-06) | cycle | 11 | 4 | ≤ 4 |
+| `GET /messages/feed` (T-M10-06) | cycle | 12 | 9 | — |
+| `GET /messages/feed` (v6, T-M10-06) | cycle | 11 | 4 | ≤ 3 + auth |
 | `GET /fertility/insights` | ttc | 8 | 5 | ≤ 4 |
 | `GET /fertility/bbt` | ttc | 7 | 4 | — |
 | `GET /analysis/summary?range=3m` | cycle | 13 | 11 | ≤ 6 |
@@ -219,7 +221,7 @@ Measured with `make test-int PKG="-v ./internal/querybudget/..."` (cold = config
 
 - Home warm drops by 4: task templates, affirmations, articles and challenges come from configcache snapshots.
 - The language list is a configcache snapshot, so there is no Redis read per request. The analysis cold rows gain one query because with configcache off the snapshot reloads on each call; warm is unchanged, and in production the snapshot loads once per process.
-- `messages selected` stays constant in the number of rules (1 rule and 50 rules: 8 warm queries). With capped or cooled-down candidate rules, the single `ListUserMessageEventStats` prefetch adds 1 over the table row.
+- `messages selected` stays constant in the number of rules (1 rule and 50 rules: 8 warm queries). Since T-M10-06 the single `ListUserMessageEventStats` read runs on every request (the feed), so it is in the table row.
 
 ## Load-test baseline (before) (T-M9-14b)
 
@@ -303,3 +305,37 @@ average 8.1 / 5.6 / 5.0 (other agents working). `go test -run '^$' -bench 'Bench
 The compiled path pre-sorts each slot by (safety, priority, id), so it stops as soon as the capacity is full and no
 later group can win; the one allocation is the winners slice. The worst case (one shared priority) still evaluates
 every rule in ≈ 6 µs.
+
+## messages — feed (T-M10-06)
+
+Budget: `GET /messages/feed` with a warm engine state and 200 active rules ≤ 20 ms p95 and ≤ 3 queries plus auth.
+
+In-process part, recorded 2026-10-31 10:12 (Asia/Tehran) on Apple M4 (10 cores), go1.27.1, `27becf5c` + the T-M10-06
+working tree, load average 11.1 / 7.7 / 7.4 (other agents working).
+`go test -run '^$' -bench BenchmarkFeedBuild -benchtime 2000x ./internal/messages/feed/`.
+
+| Package | Benchmark | µs/op | B/op | allocs/op |
+|---|---|---:|---:|---:|
+| messages/feed | `FeedBuild_200Rules` (6 slots: compiled select, parsed top-5 eligible pass, render, marks, writer) | 43.1 | 52 574 | 794 |
+
+The DB reads (history, inbox) are in-memory fakes there; the whole request (auth, facts, MariaDB) is
+`TestFeedInt_Budget` in `internal/messages/feed_int_test.go` (`make test-int PKG=./internal/messages/...`, `-v` prints
+p50 / p95 / queries).
+
+Whole request, recorded 2026-10-31 10:52 (Asia/Tehran), same machine, the docker MariaDB test stack + miniredis,
+`CYCLE_ENGINE=v6`, 200 active rules (197 + the 3 seeded status banners), warm (rules compiled, engine state cached,
+marks set), 200 sequential requests through the full router; load average 13 / 17 / 13. Three runs
+(`go test -count=3 -run TestFeedInt_Budget -v ./internal/messages/`):
+
+| Run | p50 | p95 | Queries (auth included) | Budget |
+|---|---:|---:|---:|---|
+| 1 | 2.23 ms | 3.79 ms | 4 | ≤ 20 ms, ≤ 3 + auth ✔ |
+| 2 | 1.73 ms | 2.68 ms | 4 | ✔ |
+| 3 | 1.54 ms | 2.23 ms | 4 | ✔ |
+
+The four warm queries: `GetAccessTokenWithUser` (auth), `GetMessageFactProfile` (account facts; since T-M10-06 it
+also carries `user_life_profiles.gender` for the companion check and the open / urgent `message_inbox` counts for
+`alerts`, so `GetUserGender` and `CountUserOpenInbox` are gone), `GetUserRevisions` (the engine-state cache check) and
+`ListUserMessageEventStats` (caps, cooldowns and today's shown, all rules). Under load from other agents one run measured
+p95 18.2 ms; still within budget.
+

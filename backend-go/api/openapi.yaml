@@ -10650,6 +10650,82 @@ paths:
                       dates: ['2026-09-09', '2026-09-11']
                       needs_review: true
         '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/messages/feed:
+    get:
+      tags: [Messages]
+      summary: Every home message slot in one call
+      description: >-
+        Go-only (D-163, T-M10-06; SPEC §5.4). Selects every requested slot from the compiled rule snapshot (T-M10-05)
+        with one fact prefetch over the union of the slots and one history read, in the user-local clock. Without
+        `slots` the six screen slots are answered, in this order: urgent_modal, status_banner, smart_tip, daily_advice,
+        daily_challenge, modal (`slots` accepts only these; any other value is 422). Capacities: daily_advice 3, every
+        other slot 1. A slot whose app module is switched off is `[]`. The server logs `shown` once per (user,
+        message, slot, user-local day) (M-19) and `eligible` for the evaluated top 5 of each slot (product / marketing
+        for a stable 10 % of users, M-12); clients never post `shown`. Items: `level` is the spec name (info,
+        suggestion, follow_up, urgent), `version` the served (approved) version, `evidence` only on follow_up and
+        urgent (`contact` only on urgent), `dismissible` false on urgent; text is in the request language when the rule
+        has a translation, else the default language. The status banner's copy and CTA come from the seeded `engine`
+        rules `banner.<today_ui.banner>` (M-14); an empty slot means the client keeps its built-in copy. `alerts` counts
+        the open alerts inbox rows and the urgent ones. `rules_rev` is the compiled snapshot revision (debugging).
+        `Cache-Control: private, no-store`. Companion accounts get 409.
+      operationId: getMessagesFeed
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: slots
+          in: query
+          required: false
+          description: Comma-separated slots (default every screen slot).
+          schema: {type: string, example: 'status_banner,smart_tip,daily_advice'}
+      responses:
+        '200':
+          description: The winners of every requested slot
+          headers:
+            Cache-Control: {schema: {type: string, const: 'private, no-store'}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [slots, alerts, rules_rev]
+                    properties:
+                      slots:
+                        type: object
+                        description: One key per requested slot, in request order.
+                        additionalProperties:
+                          type: array
+                          items: {$ref: "#/components/schemas/MessageFeedItem"}
+                      alerts:
+                        type: object
+                        required: [open, urgent]
+                        properties:
+                          open: {type: integer, minimum: 0}
+                          urgent: {type: integer, minimum: 0}
+                      rules_rev: {type: integer, minimum: 0}
+              example:
+                success: true
+                data:
+                  slots:
+                    urgent_modal: []
+                    status_banner:
+                      - {id: 3, rule_key: banner.ask_last_period, version: 1, variant: a, kind: engine, level: info,
+                         title: Tell us your last period date,
+                         body: 'Predictions are counted from your last period date, and right now they are out of date.',
+                         cta_text: Log last period date, cta_deeplink: 'ritme://period/last', dismissible: true}
+                    smart_tip: []
+                    daily_advice: []
+                    daily_challenge: []
+                    modal: []
+                  alerts: {open: 0, urgent: 0}
+                  rules_rev: 4
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/CompanionAccount"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
   /api/v1/messages/selected:
     get:
       tags: [Messages]
@@ -10664,8 +10740,10 @@ paths:
         neither). Priority bands: safety 1000, engine 800–999, clinical and content 100–799, product and marketing
         1–99. Caps, variants, the schedule and the hour windows read the v6 columns (several caps, N weighted variants,
         datetime start/end, several hour windows) and fall back to the legacy single cap / a-b split / dates / window.
-        The A/B variant is a stable hash of user and rule. A rule whose text needs a variable the user has no value for is skipped. Nothing
-        is recorded here; the client reports `impression` / `click` / `dismiss` / `goal` to `POST /messages/events`.
+        The A/B variant is a stable hash of user and rule. A rule whose text needs a variable the user has no value for is skipped.
+        Since T-M10-06 (D-163) this is `GET /messages/feed` for the one slot (v6 selection: slot × kind table, caps
+        counted in user-local days, the user-local clock), in this pre-feed shape; for a screen slot the server logs
+        `shown` (once per user-local day) and the sampled `eligible`, as the feed does.
         `seen`, `confidence` (levels worth_followup, follow_soon) and `contact` (follow_soon) are present only for
         those levels. Companion accounts get 409.
         Facts (T-M9-38, D-130): under `CYCLE_ENGINE=shadow|v6` the cycle facts come from the v6 engine — `main_phase`,
@@ -10715,7 +10793,7 @@ paths:
                             required: [rule_id, variant, level, kind, placement, title, body, dismissible, cta]
                             properties:
                               rule_id: {type: integer}
-                              variant: {type: string, enum: [a, b]}
+                              variant: {type: string, maxLength: 16}
                               level: {type: string, enum: [info, suggestion, worth_followup, follow_soon]}
                               kind: {type: string, enum: [safety, engine, clinical, content, product, marketing]}
                               placement: {type: string}
@@ -10755,10 +10833,14 @@ paths:
       tags: [Messages]
       summary: Report a smart message event
       description: >-
-        Go-only (D-86, B-N9-05). Records `impression`, `click`, `dismiss` or `goal` for a served message rule (404 for
-        a rule that does not exist or is not served). The row holds the user id, rule id, variant and event name only —
-        no health payload. Impressions feed the cooldown and the frequency caps of `GET /messages/selected`. Rate
-        limited to 120 per minute per user (429).
+        Go-only (D-86, B-N9-05; v6 D-163). Records a client event for a served message rule (404 for a rule that does
+        not exist or is not served): the spec names `clicked`, `dismissed`, `goal` (client-only goals; domain goals are
+        matched by the server, M-17) and `shown`, and the pre-v6 names `click`, `dismiss`, `impression`. `shown` /
+        `impression` is ignored (`recorded: false`) when the server already logged that message's shown in the slot
+        today (M-19). `variant` must be one of the rule's variants, `version` (default: the served version) at most the
+        rule's version, `slot` (default: the rule's slot) a slot the rule runs in — otherwise 422. The row holds the
+        user id, rule id, version, variant, slot and event name only — no health payload — and is written through the
+        buffered writer (visible within about a second). Rate limited to 120 per minute per user (429).
       operationId: postMessagesEvents
       security:
         - {bearerAuth: []}
@@ -10772,8 +10854,10 @@ paths:
               required: [rule_id, event]
               properties:
                 rule_id: {type: integer, minimum: 1}
-                variant: {type: string, enum: [a, b], default: a}
-                event: {type: string, enum: [impression, click, dismiss, goal]}
+                variant: {type: string, maxLength: 16, default: a}
+                event: {type: string, enum: [shown, clicked, dismissed, goal, impression, click, dismiss]}
+                version: {type: integer, minimum: 1}
+                slot: {type: string, enum: [urgent_modal, status_banner, smart_tip, daily_advice, daily_challenge, push, modal, alerts_inbox, alerts, sms]}
       responses:
         '201':
           description: Recorded
@@ -26177,6 +26261,29 @@ components:
               message: {type: string}
               data: {$ref: "#/components/schemas/InsurancePolicyEnvelope"}
   schemas:
+    MessageFeedItem:
+      type: object
+      description: One message of a feed slot (T-M10-06, D-163).
+      required: [id, rule_key, version, variant, kind, level, title, body, cta_text, cta_deeplink, dismissible]
+      properties:
+        id: {type: integer}
+        rule_key: {type: [string, 'null']}
+        version: {type: integer}
+        variant: {type: string}
+        kind: {type: string, enum: [safety, engine, clinical, content, product, marketing]}
+        level: {type: string, enum: [info, suggestion, follow_up, urgent]}
+        title: {type: string}
+        body: {type: string}
+        cta_text: {type: [string, 'null']}
+        cta_deeplink: {type: [string, 'null']}
+        dismissible: {type: boolean}
+        evidence:
+          type: object
+          required: [seen, confidence]
+          properties:
+            seen: {type: string}
+            confidence: {type: string}
+            contact: {type: string}
     BannerAdList:
       type: array
       items:
