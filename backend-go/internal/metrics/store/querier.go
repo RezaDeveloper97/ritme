@@ -6,6 +6,9 @@ package store
 
 import (
 	"context"
+	"database/sql"
+
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
 type Querier interface {
@@ -15,8 +18,28 @@ type Querier interface {
 	CountDistinctActiveUsers(ctx context.Context, arg CountDistinctActiveUsersParams) (int64, error)
 	// MAU: distinct users with at least one session in [from_day, to_day].
 	CountDistinctSessionUsers(ctx context.Context, arg CountDistinctSessionUsersParams) (int64, error)
+	// Confidence × data_quality of the active users snapshotted on one day (A-06).
+	CountEngineSnapshotClasses(ctx context.Context, day civildate.Date) ([]CountEngineSnapshotClassesRow, error)
+	// SPEC v6 §5.6 KPIs computed by the `admin_metrics:snapshot` job (T-M10-30, D-179; docs/engine-v6/kpi.md). Every
+	// query is an aggregate or a per-user fact list the job folds into counts; nothing here leaves internal/metrics
+	// with a user id. The KPI endpoint never runs these: it reads the stored snapshot.
+	// Users with a data log on at least min_days days of [from_day, to_day] (loggers ≥ 15 days in the month).
+	CountLoggersAtLeast(ctx context.Context, arg CountLoggersAtLeastParams) (int64, error)
+	// The stored zone of a user, read by the activity writer (internal/auth/activity) off the request path.
+	GetActivityUserTimezone(ctx context.Context, userID uint64) (sql.NullString, error)
+	// An admin-set KPI setting (plus_settings row; e.g. the USD → IRR rate of the AI cost share).
+	GetKPISetting(ctx context.Context, settingKey string) (string, error)
+	GetLatestMetricSnapshot(ctx context.Context) (GetLatestMetricSnapshotRow, error)
 	GetMetricAlertRuleByKey(ctx context.Context, metricKey string) (MetricAlertRule, error)
+	// The newest metrics snapshot on or before day (the previous period of the KPI endpoint).
+	GetMetricSnapshotOnOrBefore(ctx context.Context, day civildate.Date) (GetMetricSnapshotOnOrBeforeRow, error)
+	// The newest engine snapshot day on or before to_day (no row when none).
+	LatestEngineSnapshotDay(ctx context.Context, toDay civildate.Date) (civildate.Date, error)
+	// Retention cohorts: the activity days of the users who signed up since from_at, up to 62 days after the signup day.
+	ListCohortActivityDays(ctx context.Context, fromAt sql.NullTime) ([]ListCohortActivityDaysRow, error)
 	ListEnabledMetricAlertRules(ctx context.Context) ([]MetricAlertRule, error)
+	// Message CTR per rule version from the daily rollup (T-M10-06) in [since_day, until_day].
+	ListMessageVersionCTR(ctx context.Context, arg ListMessageVersionCTRParams) ([]ListMessageVersionCTRRow, error)
 	// Automatic dashboard alerts (migration 00105, T-M10-25; SPEC v6 §5.1). Rules are keyed by metric_key; at most one
 	// open alert per (rule, subject) — the UNIQUE (rule_id, subject, open_flag) key, open_flag = 1 only while open.
 	ListMetricAlertRules(ctx context.Context) ([]MetricAlertRule, error)
@@ -24,9 +47,21 @@ type Querier interface {
 	ListOpenMetricAlertSubjects(ctx context.Context, ruleID uint64) ([]string, error)
 	// Newest first, with the rule's key and comparator.
 	ListOpenMetricAlerts(ctx context.Context) ([]ListOpenMetricAlertsRow, error)
+	// Engine MAE / ±2-day accuracy (A-05): the `first` prediction of each cycle built from ≥ 2 real cycles whose next real
+	// start fell in [from_day, to_day], minus the cycles during which a daily snapshot shows pregnancy or postpartum mode
+	// or a warning of excluded_mask (hormonal contraception).
+	ListResolvedFirstPredictions(ctx context.Context, arg ListResolvedFirstPredictionsParams) ([]ListResolvedFirstPredictionsRow, error)
 	ListResolvedMetricAlerts(ctx context.Context, limit int32) ([]ListResolvedMetricAlertsRow, error)
+	// Retention cohorts: the users who signed up in [from_at, to_at) with their Tehran signup day.
+	ListSignupDays(ctx context.Context, arg ListSignupDaysParams) ([]ListSignupDaysRow, error)
+	// Activation funnel: one row per user who signed up (= verified the OTP) in [from_at, to_at), with the server facts
+	// of each step. Day offsets are user-local activity days minus the Tehran signup day.
+	ListSignupFacts(ctx context.Context, arg ListSignupFactsParams) ([]ListSignupFactsRow, error)
 	// One user's days in [from_day, to_day] (the activity projection, T-M10-32).
 	ListUserActivityDays(ctx context.Context, arg ListUserActivityDaysParams) ([]ListUserActivityDaysRow, error)
+	// requires_user_input episodes: the snapshots in [from_day, to_day] of every user who had a warning of rui_mask in
+	// [rui_from_day, rui_to_day], in (user, day) order.
+	ListUserInputSnapshots(ctx context.Context, arg ListUserInputSnapshotsParams) ([]ListUserInputSnapshotsRow, error)
 	MarkUserLoggedDay(ctx context.Context, arg MarkUserLoggedDayParams) error
 	// Per-user activity days (migration 00105, T-M10-25; SPEC v6 §5.6, DECISIONS.md A-06). One row per user and Tehran
 	// day; writers mark a session or a data log, readers count DAU / MAU / logging users. The existing raw-SQL
@@ -35,6 +70,10 @@ type Querier interface {
 	// Opens an alert, or refreshes the one already open for (rule, subject) with the latest day and value.
 	OpenMetricAlert(ctx context.Context, arg OpenMetricAlertParams) error
 	ResolveMetricAlert(ctx context.Context, arg ResolveMetricAlertParams) (int64, error)
+	// AI cost of the lab analysis and the assistant since since_at (USD micros) and the users behind it.
+	SumAICost(ctx context.Context, sinceAt sql.NullTime) (SumAICostRow, error)
+	// Plus revenue (IRR, excluding VAT) of the invoices paid in [from_at, to_at) and the paying users.
+	SumPlusRevenue(ctx context.Context, arg SumPlusRevenueParams) (SumPlusRevenueRow, error)
 	// The admin edit (T-M10-31): threshold and enabled only.
 	UpdateMetricAlertRuleSettings(ctx context.Context, arg UpdateMetricAlertRuleSettingsParams) (int64, error)
 	UpsertMetricAlertRule(ctx context.Context, arg UpsertMetricAlertRuleParams) error

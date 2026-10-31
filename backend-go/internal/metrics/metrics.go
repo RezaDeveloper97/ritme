@@ -1,5 +1,7 @@
-// Package metrics is the aggregation job behind the admin overview dashboard (bloom B-N9-03, D-85): it computes
-// product KPIs from existing tables and stores ONE JSON snapshot per Tehran day in `metric_snapshots`.
+// Package metrics is the aggregation job behind the admin overview dashboard (bloom B-N9-03, D-85) and the KPI screen
+// (B-N9-08, T-M10-30, D-179): it computes the SPEC v6 §5.6 KPIs from the activity days, the engine snapshots and
+// prediction log and the existing tables, and stores ONE JSON snapshot per Tehran day in `metric_snapshots`. The KPI
+// and overview endpoints only read stored snapshots. Definitions: docs/engine-v6/kpi.md.
 //
 // Privacy: only aggregates leave this package — counts, rates and daily series. Any group smaller than MinCohort (k = 10)
 // is suppressed (value null + suppressed true) before it is stored. A metric whose source does not exist is null with a
@@ -13,9 +15,11 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
-	"sort"
+	"sync"
 	"time"
 
+	"github.com/ritme/backend-go/internal/cycle/engine"
+	"github.com/ritme/backend-go/internal/metrics/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/queue"
 )
@@ -53,18 +57,19 @@ type ModeCount struct {
 	Suppressed bool   `json:"suppressed"`
 }
 
-// Engine is the prediction-engine health: how well the median of the previous (up to 3) cycle lengths predicted each
-// confirmed period start in the last 180 days.
+// Engine is the prediction-engine health (A-05): the error of the engine's own `first` prediction of each cycle built
+// from ≥ 2 real cycles whose next real start fell in the last EngineDays days, pregnancy / postpartum / hormonal
+// contraception cycles excluded (engine_prediction_log × engine_daily_snapshots).
 type Engine struct {
-	Status          *string  `json:"status"`
-	MeanErrorDays   *float64 `json:"mean_error_days"`
-	Within2DaysPct  *float64 `json:"within_2_days_pct"`
-	Users           int      `json:"users"`
-	Samples         int      `json:"samples"`
-	Suppressed      bool     `json:"suppressed"`
-	Confidence      any      `json:"confidence"` // null: confidence is not stored anywhere
-	ConfidenceNote  string   `json:"confidence_note"`
-	MethodologyNote string   `json:"note"`
+	Status          *string       `json:"status"`
+	MeanErrorDays   *float64      `json:"mean_error_days"`
+	Within2DaysPct  *float64      `json:"within_2_days_pct"`
+	Users           int           `json:"users"`
+	Samples         int           `json:"samples"`
+	Suppressed      bool          `json:"suppressed"`
+	Confidence      *Distribution `json:"confidence"` // the active users' confidence on the newest snapshot day (A-06)
+	ConfidenceNote  string        `json:"confidence_note"`
+	MethodologyNote string        `json:"note"`
 }
 
 // Alert is an active metric alert (B-N9-04+ fills the list; none exist yet).
@@ -74,7 +79,7 @@ type Alert struct {
 	Text     string `json:"text"`
 }
 
-// Point is one day of the series.
+// Point is one day of the series (DAU = users with a session, Loggers = users with a data log; user_activity_days).
 type Point struct {
 	Date    string `json:"date"`
 	DAU     int    `json:"dau"`
@@ -88,6 +93,8 @@ type Payload struct {
 	DAU          Value             `json:"dau"`
 	MAU          Value             `json:"mau"`
 	Stickiness   Value             `json:"stickiness_pct"`
+	Loggers      Value             `json:"loggers"`
+	Loggers15d   Rate              `json:"loggers_15d"`
 	SignupsToday Value             `json:"signups_today"`
 	PlusActive   Value             `json:"plus_active"`
 	TrialToPaid  Rate              `json:"trial_to_paid"`
@@ -97,8 +104,12 @@ type Payload struct {
 	Alerts       []Alert           `json:"alerts"`
 	OKR          any               `json:"okr"`
 	Series       []Point           `json:"series"`
+	KPI          *KPIData          `json:"kpi"`
 	Notes        map[string]string `json:"notes"`
 }
+
+// PayloadVersion is the snapshot document version (2: §5.6 KPIs from activity days and engine snapshots, T-M10-30).
+const PayloadVersion = 2
 
 // Snapshot is a stored payload with its day and compute time.
 type Snapshot struct {
@@ -107,14 +118,34 @@ type Snapshot struct {
 	Payload    json.RawMessage
 }
 
+// AfterCompute runs on a freshly computed payload before it is stored (the OKR evaluation, T-M10-30).
+type AfterCompute func(ctx context.Context, now time.Time, p *Payload) error
+
 // Service computes and stores snapshots.
 type Service struct {
 	db     *sql.DB
+	q      *store.Queries
 	logger *slog.Logger
+
+	mu    sync.Mutex
+	after []AfterCompute
 }
 
 // New builds the service.
-func New(db *sql.DB, logger *slog.Logger) *Service { return &Service{db: db, logger: logger} }
+func New(db *sql.DB, logger *slog.Logger) *Service {
+	s := &Service{db: db, logger: logger}
+	if db != nil {
+		s.q = store.New(db)
+	}
+	return s
+}
+
+// OnComputed registers fn to run on every computed payload, in registration order, before Refresh stores it.
+func (s *Service) OnComputed(fn AfterCompute) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.after = append(s.after, fn)
+}
 
 func fp(v float64) *float64 { return &v }
 func ip(v int) *int         { return &v }
@@ -126,31 +157,16 @@ func startOfDay(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, civildate.Tehran)
 }
 
-// activeUsers counts distinct users active on a day in [from, to] (inclusive Tehran dates).
-// Activity = a token issued / refreshed (oauth_access_tokens.updated_at), a daily health log entry (log_date) or a
-// first-party analytics event (analytics_events, B-N9-08 — only users who opted in to anonymous stats). The first two
-// stay as the fallback for everyone else, so users who stay signed in without logging are still undercounted.
-const activeUnion = "SELECT user_id AS uid, DATE(updated_at) AS d FROM oauth_access_tokens WHERE user_id IS NOT NULL AND updated_at >= ? AND updated_at < ? " +
-	"UNION SELECT user_id, log_date FROM daily_health_logs WHERE log_date >= ? AND log_date <= ? " +
-	"UNION SELECT user_id, occurred_on FROM analytics_events WHERE occurred_on >= ? AND occurred_on <= ?"
-
-func (s *Service) activeUsers(ctx context.Context, from, to time.Time) (int, error) {
-	var n int
-	err := s.db.QueryRowContext(ctx, "SELECT COUNT(DISTINCT uid) FROM ("+activeUnion+") a",
-		from, to.AddDate(0, 0, 1), ymd(from), ymd(to), ymd(from), ymd(to)).Scan(&n)
-	return n, err
-}
-
 // Compute builds the payload for now (Tehran).
 func (s *Service) Compute(ctx context.Context, now time.Time) (*Payload, error) {
 	now = now.In(civildate.Tehran)
 	today := startOfDay(now)
-	p := &Payload{Version: 1, Alerts: []Alert{}, Modes: []ModeCount{}, Notes: map[string]string{
-		"activity":   "DAU/MAU count users with a sign-in token refresh, a daily health log or a product analytics event (opt-in users only) that day, so they undercount.",
+	p := &Payload{Version: PayloadVersion, Alerts: []Alert{}, Modes: []ModeCount{}, Notes: map[string]string{
+		"activity":   "DAU/MAU count users with at least one signed-in request on their local day / in 30 days; loggers count users with at least one data log that day (user_activity_days).",
 		"mrr":        "Active purchased subscriptions: invoice subtotal minus discount, per month, excluding VAT; admin grants excluded.",
-		"confidence": "Prediction confidence is not stored per user, so the distribution is not available.",
-		"alerts":     "No alert source exists yet.",
-		"okr":        "OKR summary is provided by B-N9-09.",
+		"confidence": "Confidence and data quality of the active users on the newest engine snapshot day.",
+		"alerts":     "Automatic alerts are T-M10-31.",
+		"okr":        "OKR summary of the objectives active today, evaluated right after the KPIs.",
 	}}
 
 	// Series (90 days): one grouped query per source.
@@ -160,30 +176,16 @@ func (s *Service) Compute(ctx context.Context, now time.Time) (*Payload, error) 
 		d := ymd(first.AddDate(0, 0, i))
 		byDay[d] = &Point{Date: d}
 	}
-	rows, err := s.db.QueryContext(ctx, "SELECT DATE_FORMAT(d, '%Y-%m-%d'), COUNT(*) FROM ("+activeUnion+") a GROUP BY d",
-		first, today.AddDate(0, 0, 1), ymd(first), ymd(today), ymd(first), ymd(today))
+	act, err := s.q.CountActiveUsersByDay(ctx, store.CountActiveUsersByDayParams{FromDay: civildate.InTehran(first), ToDay: civildate.InTehran(today)})
 	if err != nil {
-		return nil, fmt.Errorf("metrics: dau series: %w", err)
+		return nil, fmt.Errorf("metrics: activity series: %w", err)
 	}
-	if err := scanDays(rows, func(d string, n int) {
-		if pt := byDay[d]; pt != nil {
-			pt.DAU = n
+	for _, r := range act {
+		if pt := byDay[r.Day.String()]; pt != nil {
+			pt.DAU, pt.Loggers = int(r.SessionUsers), int(r.LoggedUsers)
 		}
-	}); err != nil {
-		return nil, err
 	}
-	rows, err = s.db.QueryContext(ctx, "SELECT DATE_FORMAT(log_date, '%Y-%m-%d'), COUNT(DISTINCT user_id) FROM daily_health_logs WHERE log_date >= ? AND log_date <= ? GROUP BY log_date", ymd(first), ymd(today))
-	if err != nil {
-		return nil, fmt.Errorf("metrics: logger series: %w", err)
-	}
-	if err := scanDays(rows, func(d string, n int) {
-		if pt := byDay[d]; pt != nil {
-			pt.Loggers = n
-		}
-	}); err != nil {
-		return nil, err
-	}
-	rows, err = s.db.QueryContext(ctx, "SELECT DATE_FORMAT(created_at, '%Y-%m-%d'), COUNT(*) FROM users WHERE created_at >= ? AND created_at < ? GROUP BY DATE(created_at)", first, today.AddDate(0, 0, 1))
+	rows, err := s.db.QueryContext(ctx, "SELECT DATE_FORMAT(created_at, '%Y-%m-%d'), COUNT(*) FROM users WHERE created_at >= ? AND created_at < ? GROUP BY DATE(created_at)", first, today.AddDate(0, 0, 1))
 	if err != nil {
 		return nil, fmt.Errorf("metrics: signup series: %w", err)
 	}
@@ -204,11 +206,12 @@ func (s *Service) Compute(ctx context.Context, now time.Time) (*Payload, error) 
 	dau := byDay[ymd(yesterday)].DAU
 	dauPrev := byDay[ymd(yesterday.AddDate(0, 0, -1))].DAU
 	p.DAU = Value{Value: fp(float64(dau)), Prev: fp(float64(dauPrev))}
-	mau, err := s.activeUsers(ctx, yesterday.AddDate(0, 0, -29), yesterday)
+	yd := civildate.InTehran(yesterday)
+	mau, err := s.sessionUsers(ctx, yd.AddDays(-29), yd)
 	if err != nil {
 		return nil, fmt.Errorf("metrics: mau: %w", err)
 	}
-	mauPrev, err := s.activeUsers(ctx, yesterday.AddDate(0, 0, -59), yesterday.AddDate(0, 0, -30))
+	mauPrev, err := s.sessionUsers(ctx, yd.AddDays(-59), yd.AddDays(-30))
 	if err != nil {
 		return nil, fmt.Errorf("metrics: mau prev: %w", err)
 	}
@@ -219,6 +222,12 @@ func (s *Service) Compute(ctx context.Context, now time.Time) (*Payload, error) 
 	if mauPrev > 0 {
 		p.Stickiness.Prev = fp(round1(100 * float64(dauPrev) / float64(mauPrev)))
 	}
+	p.Loggers = Value{Value: fp(float64(byDay[ymd(yesterday)].Loggers)), Prev: fp(float64(byDay[ymd(yesterday.AddDate(0, 0, -1))].Loggers))}
+	l15, err := s.q.CountLoggersAtLeast(ctx, store.CountLoggersAtLeastParams{FromDay: yd.AddDays(-29), ToDay: yd, MinDays: LoggerDays})
+	if err != nil {
+		return nil, fmt.Errorf("metrics: loggers 15d: %w", err)
+	}
+	p.Loggers15d = rate(int(l15), mau)
 	p.SignupsToday = Value{Value: fp(float64(byDay[ymd(today)].Signups)), Prev: fp(float64(byDay[ymd(yesterday)].Signups))}
 
 	// Plus.
@@ -263,12 +272,32 @@ func (s *Service) Compute(ctx context.Context, now time.Time) (*Payload, error) 
 	}
 	p.Modes = append(p.Modes, suppress("companion", comp))
 
-	eng, err := s.engineHealth(ctx, now)
+	eng, err := s.engineHealth(ctx, today)
 	if err != nil {
 		return nil, err
 	}
+	if p.KPI, err = s.computeKPI(ctx, now); err != nil {
+		return nil, err
+	}
+	eng.Confidence = &p.KPI.Distributions.Confidence
 	p.Engine = *eng
 	return p, nil
+}
+
+// LoggerDays is the "loggers ≥ 15 days in the month" threshold.
+const LoggerDays = 15
+
+func (s *Service) sessionUsers(ctx context.Context, from, to civildate.Date) (int, error) {
+	n, err := s.q.CountDistinctSessionUsers(ctx, store.CountDistinctSessionUsersParams{FromDay: from, ToDay: to})
+	return int(n), err
+}
+
+// rate is n of `of` as a Rate, suppressed (pct and count hidden) while the group is below MinCohort.
+func rate(n, of int) Rate {
+	if of < MinCohort {
+		return Rate{Of: ip(of), Suppressed: true}
+	}
+	return Rate{Pct: pct(n, of), Count: n, Of: ip(of)}
 }
 
 func suppress(mode string, n int) ModeCount {
@@ -293,62 +322,36 @@ func scanDays(rows *sql.Rows, f func(key string, n int)) error {
 
 func round1(v float64) float64 { return math.Round(v*10) / 10 }
 
-// engineHealth replays the stored period history: for each confirmed cycle in the last 180 days that had at least two
-// earlier valid cycles, the prediction is the median of the previous (up to 3) cycle lengths and the error is the
-// absolute difference to the real length = the error of the predicted next period start. Aggregated across users.
-func (s *Service) engineHealth(ctx context.Context, now time.Time) (*Engine, error) {
+// EngineDays is the MAE / ±2-day accuracy window (next real starts in the last EngineDays days).
+const EngineDays = 180
+
+// excludedMask is the warning bits whose cycles the MAE excludes (hormonal contraception; pregnancy and postpartum are
+// excluded by the snapshot mode).
+var excludedMask = uint32(1) << engine.WarnHormonalContraceptionActive
+
+// engineHealth is the MAE and ±2-day accuracy of the engine's `first` predictions (A-05).
+func (s *Service) engineHealth(ctx context.Context, today time.Time) (*Engine, error) {
 	e := &Engine{
-		ConfidenceNote:  "Prediction confidence is not stored per user, so the distribution is not available.",
-		MethodologyNote: "Backtest on confirmed period history: median of the previous 1-3 cycle lengths vs the next real length (last 180 days).",
+		ConfidenceNote:  "Distribution of the active users' prediction confidence on the newest engine snapshot day.",
+		MethodologyNote: "Engine prediction log: the first prediction of each cycle built from at least 2 real cycles vs the next real start (last 180 days); pregnancy, postpartum and hormonal-contraception cycles excluded.",
 	}
-	cut := startOfDay(now).AddDate(0, 0, -180)
-	rows, err := s.db.QueryContext(ctx, "SELECT user_id, DATE_FORMAT(period_start_date, '%Y-%m-%d'), cycle_length FROM cycle_histories WHERE is_estimated = 0 AND cycle_length BETWEEN 15 AND 90 AND period_start_date >= ? ORDER BY user_id, period_start_date",
-		ymd(cut.AddDate(0, 0, -400)))
+	td := civildate.InTehran(today)
+	rows, err := s.q.ListResolvedFirstPredictions(ctx, store.ListResolvedFirstPredictionsParams{
+		FromDay: civildate.NullDate{Date: td.AddDays(-(EngineDays - 1)), Valid: true}, ToDay: civildate.NullDate{Date: td, Valid: true},
+		ExcludedMask: excludedMask,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("metrics: engine: %w", err)
 	}
-	defer rows.Close()
-	var cur uint64
-	var prior []int
-	users := map[uint64]bool{}
-	var sum float64
-	var within, n int
-	for rows.Next() {
-		var uid uint64
-		var start string
-		var l int
-		if err := rows.Scan(&uid, &start, &l); err != nil {
-			return nil, err
-		}
-		if uid != cur {
-			cur, prior = uid, nil
-		}
-		if len(prior) >= 2 && start >= ymd(cut) {
-			k := prior
-			if len(k) > 3 {
-				k = k[len(k)-3:]
-			}
-			d := math.Abs(float64(l) - median(k))
-			sum += d
-			n++
-			if d <= 2 {
-				within++
-			}
-			users[uid] = true
-		}
-		prior = append(prior, l)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	e.Users, e.Samples = len(users), n
-	if len(users) < MinCohort {
+	m := MAEOf(rows)
+	e.Users, e.Samples = m.Users, m.Samples
+	if m.Users < MinCohort {
 		e.Suppressed = true
 		e.Users, e.Samples = 0, 0
 		return e, nil
 	}
-	e.MeanErrorDays = fp(round1(sum / float64(n)))
-	e.Within2DaysPct = fp(round1(100 * float64(within) / float64(n)))
+	e.MeanErrorDays = fp(round1(m.Mean))
+	e.Within2DaysPct = fp(round1(m.Within2Pct))
 	st := "watch"
 	if *e.MeanErrorDays <= healthyMeanError && *e.Within2DaysPct >= 100*healthyWithin2 {
 		st = "healthy"
@@ -357,13 +360,38 @@ func (s *Service) engineHealth(ctx context.Context, now time.Time) (*Engine, err
 	return e, nil
 }
 
-func median(v []int) float64 {
-	c := append([]int(nil), v...)
-	sort.Ints(c)
-	if len(c)%2 == 1 {
-		return float64(c[len(c)/2])
+// MAE is the aggregate of resolved predictions.
+type MAE struct {
+	Mean       float64
+	Within2Pct float64
+	Users      int
+	Samples    int
+}
+
+// MAEOf folds the resolved predictions: mean |error| and the share with |error| ≤ 2 days.
+func MAEOf(rows []store.ListResolvedFirstPredictionsRow) MAE {
+	var m MAE
+	users := map[uint64]bool{}
+	var sum float64
+	within := 0
+	for _, r := range rows {
+		if !r.ErrorDays.Valid {
+			continue
+		}
+		d := math.Abs(float64(r.ErrorDays.Int16))
+		sum += d
+		if d <= 2 {
+			within++
+		}
+		m.Samples++
+		users[r.UserID] = true
 	}
-	return float64(c[len(c)/2-1]+c[len(c)/2]) / 2
+	m.Users = len(users)
+	if m.Samples > 0 {
+		m.Mean = sum / float64(m.Samples)
+		m.Within2Pct = 100 * float64(within) / float64(m.Samples)
+	}
+	return m
 }
 
 // Refresh computes and upserts today's snapshot.
@@ -371,6 +399,14 @@ func (s *Service) Refresh(ctx context.Context, now time.Time) error {
 	p, err := s.Compute(ctx, now)
 	if err != nil {
 		return err
+	}
+	s.mu.Lock()
+	after := append([]AfterCompute(nil), s.after...)
+	s.mu.Unlock()
+	for _, fn := range after {
+		if err := fn(ctx, now, p); err != nil {
+			return err
+		}
 	}
 	raw, err := json.Marshal(p)
 	if err != nil {
@@ -385,18 +421,24 @@ func (s *Service) Refresh(ctx context.Context, now time.Time) error {
 
 // Latest returns the newest snapshot (sql.ErrNoRows when none).
 func (s *Service) Latest(ctx context.Context) (*Snapshot, error) {
-	var sn Snapshot
-	var raw string
-	var day time.Time
-	err := s.db.QueryRowContext(ctx, "SELECT `day`, payload, computed_at FROM metric_snapshots ORDER BY `day` DESC LIMIT 1").Scan(&day, &raw, &sn.ComputedAt)
+	r, err := s.q.GetLatestMetricSnapshot(ctx)
 	if err != nil {
 		return nil, err
 	}
-	sn.Day, sn.Payload = ymd(day), json.RawMessage(raw)
-	return &sn, nil
+	return &Snapshot{Day: r.Day.String(), ComputedAt: r.ComputedAt, Payload: json.RawMessage(r.Payload)}, nil
+}
+
+// OnOrBefore returns the newest snapshot on or before day (sql.ErrNoRows when none).
+func (s *Service) OnOrBefore(ctx context.Context, day civildate.Date) (*Snapshot, error) {
+	r, err := s.q.GetMetricSnapshotOnOrBefore(ctx, day)
+	if err != nil {
+		return nil, err
+	}
+	return &Snapshot{Day: r.Day.String(), ComputedAt: r.ComputedAt, Payload: json.RawMessage(r.Payload)}, nil
 }
 
 // Background job (T-M9-11, docs/engine-v6/jobs.md): the snapshot refresh hourly on the low queue, also at start-up.
+// It recomputes today's row (Tehran) with every §5.6 KPI, then the OKR evaluation (OnComputed) on the same payload.
 const (
 	JobRefresh  = "admin_metrics:snapshot"
 	RefreshCron = "15 * * * *"

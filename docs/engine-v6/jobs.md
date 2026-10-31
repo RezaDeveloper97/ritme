@@ -77,7 +77,7 @@ q.RegisterPeriodic(job, handler, "*/10 * * * *", opts...)        // Register + S
 | `partners:purge` | low | `5 * * * *` + at start | `Unique(55m)` | 3 / 1 m, 5 m / 2 m | request id; only blobs still present and closed > 30 d | `internal/partners` |
 | `telemed:booking_sweep` | default | `* * * * *` + at start | `Unique(50s)` | 2 / 10 s / 50 s | booking id; `ExpireHold` matches only a lapsed hold, `Complete` only a confirmed booking | `internal/telemed` |
 | `sharelinks:purge` | low | `10 * * * *` + at start | `Unique(55m)` | 3 / 1 m, 5 m / 2 m | link id; wipes only non-null reports, deletes rows expired > 30 d | `internal/sharelinks` |
-| `admin_metrics:snapshot` | low | `15 * * * *` + at start | `Unique(55m)` | 3 / 1 m, 5 m / 10 m | Tehran day (`metric_snapshots.day`, upsert) | `internal/metrics` |
+| `admin_metrics:snapshot` | low | `15 * * * *` + at start | `Unique(55m)` | 3 / 1 m, 5 m / 10 m | Tehran day (`metric_snapshots.day`, upsert); the §5.6 KPIs then the OKR evaluation on the same payload | `internal/metrics` (+ `internal/okr` hook) |
 | `files:sweep` | low | `20 */6 * * *` + at start | `Unique(5h)` | 1 / — / 30 m | blob path; removes only blobs with no row, older than 1 h | `internal/files` |
 | `media:sweep` | low | `25 * * * *` + at start | `Unique(55m)` | 1 / — / 30 m | media id / file path; removes only abandoned, orphan or stray ones | `internal/media` |
 | `safety:nightly_scenarios` | low | `0 3 * * *` | `Unique(1h)` | 1 / — / 60 s | Tehran day (pure scenarios; the run replaces the last) | `internal/safety` |
@@ -106,6 +106,14 @@ Notes:
   onboarding anchor and roll-forward references never count), then `actual_start` / `error_days` on that cycle's rows;
   `first` = the new state resolved on the start day. An edit (`Update`), a backfilled older period, an estimate or a
   skip writes nothing.
+- `admin_metrics:snapshot` (T-M10-30, D-179): recomputes today's row with every SPEC §5.6 KPI (definitions in
+  [`kpi.md`](kpi.md)) and then runs the OKR evaluation (`okr.New` registers it with `metrics.Service.OnComputed`), so the
+  stored row carries the `okr` summary. The KPI endpoint reads the newest row and the row one period earlier (≤ 2
+  queries) and computes nothing. It reads `engine_daily_snapshots` from `engine:snapshot_nightly` (03:30), so the
+  distributions and RUI share move once a day; activity days are written continuously by the auth guard.
+- Not a job, but background work: the activity-day writer (`internal/auth/activity`, T-M10-30) is a per-process
+  goroutine with a 4 096-slot buffer (drops when full: `activity_marks_dropped_total`), started when the routes mount
+  and drained on shutdown; it runs in the API whatever `API_RUN_WORKERS` says.
 - Not migrated, on purpose (replica-safe pollers with `SKIP LOCKED` / leases): the labs runner and its job sweep
   (`internal/labs/worker.go`), the health-record extract runner (`internal/healthrecord/extract/runner.go`) and the
   learning dispatch poller (`internal/learning/dispatch.go`).

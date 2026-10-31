@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/ritme/backend-go/internal/metrics"
 	"github.com/ritme/backend-go/internal/okr"
 )
 
@@ -20,11 +21,30 @@ func TestProgress(t *testing.T) {
 	assert.InDelta(t, 1.0, okr.Progress(10, 10, 10), 0)
 }
 
+// SPEC §5.7 / A-07: on track iff progress ≥ elapsed% − 10 points; done at 100 %.
 func TestStatusOf(t *testing.T) {
-	assert.Equal(t, okr.StatusDone, okr.StatusOf(1, 0.5))
-	assert.Equal(t, okr.StatusOnTrack, okr.StatusOf(0.45, 0.5), "above 80% of pace")
-	assert.Equal(t, okr.StatusAtRisk, okr.StatusOf(0.3, 0.5))
+	assert.Equal(t, okr.StatusOnTrack, okr.StatusOf(0.10, 0.20), "10 at 20 % elapsed")
+	assert.Equal(t, okr.StatusAtRisk, okr.StatusOf(0.099, 0.20), "9.9 at 20 % elapsed")
+	assert.Equal(t, okr.StatusOnTrack, okr.StatusOf(0.40, 0.50), "40 at 50 %")
+	assert.Equal(t, okr.StatusAtRisk, okr.StatusOf(0.399, 0.50), "39.9 at 50 %")
+	assert.Equal(t, okr.StatusOnTrack, okr.StatusOf(0.90, 1), "90 at 100 %")
+	assert.Equal(t, okr.StatusAtRisk, okr.StatusOf(0.899, 1), "89.9 at 100 %")
+	assert.Equal(t, okr.StatusDone, okr.StatusOf(1, 1))
+	assert.Equal(t, okr.StatusDone, okr.StatusOf(1, 0.2), "done before the end")
 	assert.Equal(t, okr.StatusOnTrack, okr.StatusOf(0, 0), "period not started")
+	assert.Equal(t, okr.StatusOnTrack, okr.StatusOf(0, 0.1), "first 10 % of the period")
+}
+
+// The catalogue binds every §5.6 scalar metric the snapshot provides.
+func TestMetrics_CoverSpecKeys(t *testing.T) {
+	for _, k := range metrics.MetricKeys {
+		_, ok := okr.MetricUnit(k)
+		assert.True(t, ok, k)
+	}
+	for _, k := range []string{"loggers_15d", "low_confidence_share", "ai_cost_share", "ocr_correction_rate", "message_ctr", "engine_mae", "accuracy_2d", "rui_resolved_7d"} {
+		_, ok := okr.MetricUnit(k)
+		assert.True(t, ok, k)
+	}
 }
 
 func TestElapsed(t *testing.T) {

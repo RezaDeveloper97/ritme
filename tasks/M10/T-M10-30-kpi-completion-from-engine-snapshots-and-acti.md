@@ -3,10 +3,10 @@ id: T-M10-30
 title: KPI completion from engine snapshots and activity days; OKR status rule
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-25, T-M10-06, T-M9-39]
 parallel_group: M10-D
-touches: [backend-go/internal/metrics, backend-go/internal/okr, backend-go/internal/auth/guard.go, backend-go/internal/auth/activity, backend-go/internal/cycle/revision, backend-go/db/queries/metrics, docs/engine-v6/jobs.md, docs/engine-v6/kpi.md]
+touches: [backend-go/internal/metrics, backend-go/internal/okr, backend-go/internal/auth/guard.go, backend-go/internal/auth/activity, backend-go/internal/cycle/revision, backend-go/db/queries/metrics, docs/engine-v6/jobs.md, docs/engine-v6/kpi.md, backend-go/internal/metrics/store, backend-go/internal/http/routes_auth.go]
 skills: []
 verify: cd backend-go && make sqlc && go vet ./... && go test ./internal/metrics/... ./internal/okr/... && make test-int PKG="./internal/metrics/... ./internal/okr/..."
 ---

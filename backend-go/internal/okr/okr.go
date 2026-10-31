@@ -1,7 +1,8 @@
-// Package okr is the OKR module of the admin panel (bloom B-N9-09, D-95): objectives and key results with baseline,
-// target, owner and period. A key result bound to a live metric key reads its value from the newest metrics snapshot
-// (and the KPI cohorts) on every request, so progress updates by itself; a manual key result uses the value the admin
-// typed. Aggregates only — nothing here touches a user row.
+// Package okr is the OKR module of the admin panel (bloom B-N9-09, D-95; SPEC v6 §5.7, T-M10-30, D-179): objectives
+// and key results with baseline, target, owner and period. A key result bound to a §5.6 metric key reads its value
+// from the newest metrics snapshot (metrics.MetricValues), so progress updates by itself; a manual key result uses the
+// value the admin typed. The evaluation also runs right after every snapshot computation (OnComputed) and is stored
+// as the snapshot's `okr` summary. Aggregates only — nothing here touches a user row.
 package okr
 
 import (
@@ -14,6 +15,7 @@ import (
 	"time"
 
 	"github.com/ritme/backend-go/internal/metrics"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
 // Statuses of a key result / objective.
@@ -24,8 +26,12 @@ const (
 	StatusNoData  = "no_data"
 )
 
-// paceFloor: a key result is on track while its progress is at least this share of the time elapsed in the period.
-const paceFloor = 0.8
+// paceSlackPoints: a key result is on track while its progress (in points) is at least the elapsed share of the period
+// minus this many points (A-07).
+const paceSlackPoints = 10
+
+// pointsEps absorbs float error at the boundary (progress 10 at 20 % elapsed is on track).
+const pointsEps = 1e-9
 
 // Metric is one bindable live metric.
 type Metric struct {
@@ -33,12 +39,16 @@ type Metric struct {
 	Unit string // count | pct | toman | days
 }
 
-// Metrics is the catalogue of keys a key result can bind to, in display order.
+// Metrics is the catalogue of keys a key result can bind to, in display order: every §5.6 scalar metric
+// (metrics.MetricKeys) plus the B-N9-09 names kept for existing key results.
 var Metrics = []Metric{
-	{"dau", "count"}, {"mau", "count"}, {"stickiness_pct", "pct"}, {"signups_today", "count"},
-	{"plus_active", "count"}, {"trial_to_paid_pct", "pct"}, {"mrr_toman", "toman"},
+	{"dau", "count"}, {"mau", "count"}, {"stickiness_pct", "pct"}, {"loggers", "count"}, {"loggers_15d", "pct"},
+	{"signups_today", "count"}, {"activation_first_log_pct", "pct"}, {"activation_log_d7_pct", "pct"},
 	{"retention_d7", "pct"}, {"retention_d30", "pct"},
-	{"engine_within_2_days_pct", "pct"}, {"engine_mean_error_days", "days"},
+	{"engine_mae", "days"}, {"accuracy_2d", "pct"}, {"engine_within_2_days_pct", "pct"}, {"engine_mean_error_days", "days"},
+	{"low_confidence_share", "pct"}, {"low_data_quality_share", "pct"}, {"rui_resolved_7d", "pct"},
+	{"plus_active", "count"}, {"trial_to_paid_pct", "pct"}, {"mrr_toman", "toman"}, {"ai_cost_share", "pct"},
+	{"ocr_correction_rate", "pct"}, {"message_ctr", "pct"},
 }
 
 // Units a manual key result may use.
@@ -77,13 +87,13 @@ func Elapsed(start, end, now time.Time) float64 {
 	return math.Min(1, (now.Sub(start).Hours()/24+1)/total)
 }
 
-// StatusOf classifies a progress against the time elapsed: done at 100 %, on track while at least 80 % of the
-// expected pace, otherwise at risk. A period that has not started is on track.
+// StatusOf classifies a progress against the time elapsed (SPEC §5.7, A-07): done at 100 %, on track while
+// progress ≥ elapsed% − 10 points, otherwise at risk. A period that has not started is on track.
 func StatusOf(progress, elapsed float64) string {
 	switch {
 	case progress >= 1:
 		return StatusDone
-	case progress >= elapsed*paceFloor:
+	case 100*progress+pointsEps >= 100*elapsed-paceSlackPoints:
 		return StatusOnTrack
 	}
 	return StatusAtRisk
@@ -147,19 +157,37 @@ type Service struct {
 	metrics *metrics.Service
 }
 
-// New builds the service; svc is the metrics service the bound key results read from.
-func New(db *sql.DB, svc *metrics.Service) *Service { return &Service{db: db, metrics: svc} }
+// New builds the service; svc is the metrics service the bound key results read from. It also registers the OKR
+// evaluation on svc, so every snapshot the job stores carries the summary of the objectives active that day.
+func New(db *sql.DB, svc *metrics.Service) *Service {
+	s := &Service{db: db, metrics: svc}
+	if svc != nil && db != nil {
+		svc.OnComputed(s.evaluateSnapshot)
+	}
+	return s
+}
+
+// evaluateSnapshot stores the OKR summary in a freshly computed payload (runs after the KPIs, before the upsert).
+func (s *Service) evaluateSnapshot(ctx context.Context, now time.Time, p *metrics.Payload) error {
+	objs, err := s.List(ctx, "")
+	if err != nil {
+		return fmt.Errorf("okr: evaluate: %w", err)
+	}
+	day := now.In(civildate.Tehran)
+	if sum := Summarize(EvaluateWith(objs, Values(metrics.MetricValues(p)), day), day); sum != nil {
+		p.OKR = sum
+	}
+	return nil
+}
 
 // Values are the resolved live metric values; a key is absent while it is not computable (no snapshot, suppressed).
 type Values map[string]float64
 
-// LiveValues resolves every catalogue key from the newest snapshot; the retention keys read the KPI cohorts and are
-// only computed when withRetention is set (it is an on-demand query).
-func (s *Service) LiveValues(ctx context.Context, now time.Time, withRetention bool) (Values, error) {
-	v := Values{}
+// LiveValues resolves every catalogue key from the newest snapshot (one query; nothing is computed on the request).
+func (s *Service) LiveValues(ctx context.Context) (Values, error) {
 	sn, err := s.metrics.Latest(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
-		return v, nil
+		return Values{}, nil
 	}
 	if err != nil {
 		return nil, err
@@ -168,62 +196,12 @@ func (s *Service) LiveValues(ctx context.Context, now time.Time, withRetention b
 	if err := json.Unmarshal(sn.Payload, &p); err != nil {
 		return nil, fmt.Errorf("okr: snapshot payload: %w", err)
 	}
-	put := func(k string, x *float64) {
-		if x != nil {
-			v[k] = *x
-		}
-	}
-	put("dau", p.DAU.Value)
-	put("mau", p.MAU.Value)
-	put("stickiness_pct", p.Stickiness.Value)
-	put("signups_today", p.SignupsToday.Value)
-	put("plus_active", p.PlusActive.Value)
-	put("trial_to_paid_pct", p.TrialToPaid.Pct)
-	if p.MRRToman != nil {
-		v["mrr_toman"] = float64(*p.MRRToman)
-	}
-	if !p.Engine.Suppressed {
-		put("engine_within_2_days_pct", p.Engine.Within2DaysPct)
-		put("engine_mean_error_days", p.Engine.MeanErrorDays)
-	}
-	if withRetention {
-		k, err := s.metrics.KPI(ctx, now, metrics.KPIOptions{})
-		if err != nil {
-			return nil, err
-		}
-		for key, off := range map[string]int{"retention_d7": 7, "retention_d30": 30} {
-			col := -1
-			for i, o := range metrics.RetentionOffsets {
-				if o == off {
-					col = i
-				}
-			}
-			// Newest weekly cohort that is large enough and old enough to have a value.
-			for i := len(k.Retention.Cohorts) - 1; i >= 0 && col >= 0; i-- {
-				c := k.Retention.Cohorts[i]
-				if !c.Suppressed && col < len(c.Cells) && c.Cells[col] != nil {
-					v[key] = *c.Cells[col]
-					break
-				}
-			}
-		}
-	}
-	return v, nil
-}
-
-func isRetention(k sql.NullString) bool {
-	return k.Valid && (k.String == "retention_d7" || k.String == "retention_d30")
+	return Values(metrics.MetricValues(&p)), nil
 }
 
 // Evaluate resolves live values (once) and computes progress and status for each objective.
 func (s *Service) Evaluate(ctx context.Context, now time.Time, objs []Objective) ([]EvaluatedObjective, error) {
-	need := false
-	for _, o := range objs {
-		for _, kr := range o.KeyResults {
-			need = need || isRetention(kr.MetricKey)
-		}
-	}
-	live, err := s.LiveValues(ctx, now, need)
+	live, err := s.LiveValues(ctx)
 	if err != nil {
 		return nil, err
 	}

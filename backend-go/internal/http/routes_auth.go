@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/auth/activity"
 	"github.com/ritme/backend-go/internal/consent"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
@@ -17,6 +18,7 @@ func init() {
 		if m == nil {
 			return // the server refuses to start (FailStartup)
 		}
+		activity.Install(r, d.DB, d.Cache, d.Logger) // T-M10-30: user-local activity days (async writer, no query on the request)
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		h, guard := m.Handlers, m.Guard.RequireUser
 		h.OnSignup(learningSignupHook(d)) // B-N8-01: pending course grants of the new number become active

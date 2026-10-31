@@ -12,6 +12,11 @@
 //
 // calculation_version / profile.MarkRecalculated stay the client-visible "recalculated" signal (unchanged).
 // Reading the revision (caches, ETags) is T-M9-31.
+//
+// Every bump on a user request also marks the user's log day (user_activity_days.logged, T-M10-30) through the marker
+// the auth guard put on the context; the mark is queued for after the request and never fails or slows the write.
+// A bump inside a transaction that later rolls back still marks the day (the writer is fire-and-forget); refused
+// writes are rejected before they reach Bump.
 package revision
 
 import (
@@ -20,6 +25,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ritme/backend-go/internal/auth/activity"
 	"github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
@@ -31,6 +37,7 @@ func Bump(ctx context.Context, db store.DBTX, userID uint64) error {
 	if err := store.New(db).BumpUserRevisions(ctx, store.BumpUserRevisionsParams{UserID: userID, Now: now(ctx)}); err != nil {
 		return fmt.Errorf("revision: bump: %w", err)
 	}
+	activity.MarkLogged(ctx, userID)
 	return nil
 }
 
@@ -40,6 +47,7 @@ func BumpAnalysis(ctx context.Context, db store.DBTX, userID uint64) error {
 	if err := store.New(db).BumpAnalysisRevision(ctx, store.BumpAnalysisRevisionParams{UserID: userID, Now: now(ctx)}); err != nil {
 		return fmt.Errorf("revision: bump analysis: %w", err)
 	}
+	activity.MarkLogged(ctx, userID)
 	return nil
 }
 

@@ -20,30 +20,48 @@ func TestMain(m *testing.M) { testdb.Main(m) }
 
 var now = time.Date(2026, 10, 11, 12, 0, 0, 0, civildate.Tehran)
 
+// seed writes `users` users, each with one resolved `first` prediction (basis 3 cycles) whose next real start was
+// 20 days ago: errors 0, 2, 0, 0 … by user (every 2nd user is 2 days late) → mean ≈ 0.9 at ≤ 12 users, all within ±2.
 func seed(e *admintest.Env, users int) {
 	for i := 0; i < users; i++ {
 		id := 100 + i
 		e.Exec("INSERT INTO users (id, mobile, created_at, updated_at) VALUES (?, ?, ?, ?)", id, fmt.Sprintf("0990000%04d", id), "2026-09-01 10:00:00", "2026-09-01 10:00:00")
-		// Five confirmed cycles, 28 days apart; the 4th is 30 days long.
-		start := now.AddDate(0, 0, -150)
-		for c, l := range []int{28, 28, 28, 30, 28} {
-			e.Exec("INSERT INTO cycle_histories (user_id, period_start_date, cycle_length, is_confirmed, is_estimated, created_at, updated_at) VALUES (?, ?, ?, 1, 0, NOW(), NOW())",
-				id, start.AddDate(0, 0, 28*c).Format("2006-01-02"), l)
+		errDays := 0
+		if i%2 == 1 {
+			errDays = 2
 		}
+		predict(e, id, "2026-08-24", "first", 3, errDays)
 	}
+}
+
+// predict writes a resolved prediction: cycle_start, predicted next = actual − err, actual = cycle_start + 28.
+func predict(e *admintest.Env, uid int, cycleStart, kind string, basis, errDays int) {
+	cs := parseDay(cycleStart)
+	actual := cs.AddDate(0, 0, 28)
+	e.Exec("INSERT INTO engine_prediction_log (user_id, cycle_start, kind, predicted_next, basis_cycles, ovulation_source, confidence, actual_start, error_days, created_at) "+
+		"VALUES (?, ?, ?, ?, ?, 'calendar', 'medium', ?, ?, NOW())", uid, cycleStart, kind, actual.AddDate(0, 0, -errDays).Format("2006-01-02"), basis, actual.Format("2006-01-02"), errDays)
+}
+
+func parseDay(s string) time.Time { t, _ := time.Parse("2006-01-02", s); return t }
+
+func activity(e *admintest.Env, uid int, day string, session, logged int) {
+	e.Exec("INSERT INTO user_activity_days (user_id, `day`, `session`, `logged`) VALUES (?, ?, ?, ?)", uid, day, session, logged)
 }
 
 func TestCompute_AggregatesSeededData(t *testing.T) {
 	e := admintest.New(t)
 	seed(e, 12)
-	// Yesterday (10-10): users 100..104 refreshed a token, 103/104 also logged; the day before: user 100 only.
-	for i := 0; i < 5; i++ {
-		e.Exec("INSERT INTO oauth_access_tokens (id, user_id, client_id, revoked, created_at, updated_at) VALUES (?, ?, 'c', 0, ?, ?)", fmt.Sprintf("t%d", i), 100+i, "2026-10-10 09:00:00", "2026-10-10 09:00:00")
+	// Yesterday (10-10): users 100..105 had a session, 103..105 also logged; the day before: user 100 only. A
+	// legacy token refresh or daily log alone no longer counts (T-M10-30: sessions come from user_activity_days).
+	for i := 0; i < 6; i++ {
+		logged := 0
+		if i >= 3 {
+			logged = 1
+		}
+		activity(e, 100+i, "2026-10-10", 1, logged)
 	}
-	e.Exec("INSERT INTO oauth_access_tokens (id, user_id, client_id, revoked, created_at, updated_at) VALUES ('t9', 100, 'c', 0, '2026-10-09 09:00:00', '2026-10-09 09:00:00')")
-	for _, u := range []int{103, 104, 105} {
-		e.Exec("INSERT INTO daily_health_logs (user_id, log_date, created_at, updated_at) VALUES (?, '2026-10-10', NOW(), NOW())", u)
-	}
+	activity(e, 100, "2026-10-09", 1, 0)
+	e.Exec("INSERT INTO oauth_access_tokens (id, user_id, client_id, revoked, created_at, updated_at) VALUES ('t9', 110, 'c', 0, '2026-10-10 09:00:00', '2026-10-10 09:00:00')")
 	e.Exec("UPDATE users SET created_at = '2026-10-11 08:00:00' WHERE id IN (100, 101)")
 	// Modes: 12 default cycle users; 10 of them ttc.
 	for i := 0; i < 10; i++ {
@@ -59,8 +77,11 @@ func TestCompute_AggregatesSeededData(t *testing.T) {
 	p, err := svc.Compute(t.Context(), now)
 	require.NoError(t, err)
 
-	assert.InDelta(t, 6, *p.DAU.Value, 0) // 100..104 by token, 105 by log
+	assert.InDelta(t, 6, *p.DAU.Value, 0) // 100..105 by session (110's token refresh is not a session)
 	assert.InDelta(t, 1, *p.DAU.Prev, 0)
+	assert.InDelta(t, 3, *p.Loggers.Value, 0)
+	assert.True(t, p.Loggers15d.Suppressed, "MAU 6 < k")
+	assert.Equal(t, metrics.PayloadVersion, p.Version)
 	assert.InDelta(t, 6, *p.MAU.Value, 0)
 	assert.InDelta(t, 100, *p.Stickiness.Value, 0)
 	assert.InDelta(t, 2, *p.SignupsToday.Value, 0)
@@ -86,13 +107,15 @@ func TestCompute_AggregatesSeededData(t *testing.T) {
 	assert.Equal(t, 6, last.DAU)
 	assert.Equal(t, 3, last.Loggers)
 
-	// Engine: rows 3-5 of 12 users each; errors 0, 2, 0 → mean 0.7, all within ±2.
+	// Engine: one first prediction per user, errors 0 / 2 alternating → mean 1.0, all within ±2.
 	assert.False(t, p.Engine.Suppressed)
 	assert.Equal(t, 12, p.Engine.Users)
-	assert.InDelta(t, 0.7, *p.Engine.MeanErrorDays, 0.001)
+	assert.InDelta(t, 1.0, *p.Engine.MeanErrorDays, 0.001)
 	assert.InDelta(t, 100, *p.Engine.Within2DaysPct, 0)
 	assert.Equal(t, "healthy", *p.Engine.Status)
-	assert.Nil(t, p.Engine.Confidence, "confidence is not stored: never faked")
+	require.NotNil(t, p.Engine.Confidence)
+	assert.Nil(t, p.Engine.Confidence.Of, "no engine snapshot yet: no distribution, never faked")
+	require.NotNil(t, p.KPI)
 	assert.Empty(t, p.Alerts)
 	assert.Nil(t, p.OKR)
 

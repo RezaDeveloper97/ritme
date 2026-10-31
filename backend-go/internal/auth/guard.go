@@ -12,6 +12,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/ritme/backend-go/internal/auth/activity"
 	"github.com/ritme/backend-go/internal/auth/passport"
 	"github.com/ritme/backend-go/internal/auth/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -169,7 +170,22 @@ func (g *Guard) RequireUser(c fiber.Ctx) error {
 	c.Locals(userKey, &user)
 	c.Locals(tokenKey, tokenOf(s))
 	c.Locals(revisionsKey, s.Revisions)
+	markActivity(c, user.ID)
 	return c.Next()
+}
+
+// markActivity marks the user's session day and attaches the marker for the log-day mark of the revision bumps
+// (T-M10-30, internal/auth/activity). It adds no query and no Redis call to the request: a repeat of the day is an
+// in-process lookup, a first request only queues the mark for the background writer (dropped when its buffer is
+// full). It cannot fail the request. Without an installed marker it does nothing.
+func markActivity(c fiber.Ctx, uid uint64) {
+	m := activity.From(c.App())
+	if m == nil {
+		return
+	}
+	zone := activity.ParseZone(c.Get(activity.TimezoneHeader))
+	m.Mark(c.Context(), uid, activity.Session, zone)
+	c.SetContext(activity.WithMarker(c.Context(), m, zone))
 }
 
 // OptionalUser is `RequireUser` for public routes that still know a signed-in caller (CB-SHOP-10): no Authorization

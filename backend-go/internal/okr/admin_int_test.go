@@ -100,3 +100,16 @@ func TestOKR_Permissions(t *testing.T) {
 }
 
 func itoa(f float64) string { return strconv.Itoa(int(f)) }
+
+// T-M10-30: the OKR evaluation runs right after the snapshot computation and is stored in the snapshot's `okr` block.
+func TestOKR_EvaluatedAfterSnapshotJob(t *testing.T) {
+	e := admintest.New(t)
+	svc := metrics.New(e.DB, admintest.Quiet)
+	okr.New(e.DB, svc) // registers the evaluation on svc
+	e.Exec("INSERT INTO okr_objectives (id, title, period, starts_on, ends_on, sort_order, created_at, updated_at) VALUES (1, 'O', 'p', '2020-01-01', '2099-12-31', 0, NOW(), NOW())")
+	e.Exec("INSERT INTO okr_key_results (objective_id, title, metric_key, unit, baseline, target, sort_order, created_at, updated_at) VALUES (1, 'DAU', 'dau', 'count', 0, 0, 0, NOW(), NOW())")
+	e.Exec("INSERT INTO okr_key_results (objective_id, title, metric_key, unit, baseline, target, sort_order, created_at, updated_at) VALUES (1, 'Accuracy', 'accuracy_2d', 'pct', 60, 75, 1, NOW(), NOW())")
+	require.NoError(t, svc.Refresh(t.Context(), time.Now()))
+	assert.JSONEq(t, `{"objectives":1,"key_results":2,"on_track":0,"at_risk":0,"done":1,"no_data":1}`,
+		e.String("SELECT JSON_EXTRACT(payload, '$.okr') FROM metric_snapshots"))
+}

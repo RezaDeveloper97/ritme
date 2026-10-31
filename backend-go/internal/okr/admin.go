@@ -117,7 +117,7 @@ func (a *Admin) List(c fiber.Ctx) error {
 			items = append(items, a.objectiveJSON(o))
 		}
 	}
-	live, err := a.svc.LiveValues(c.Context(), now, true)
+	live, err := a.svc.LiveValues(c.Context())
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (a *Admin) List(c fiber.Ctx) error {
 	}
 	return httpadmin.OK(c, jsonx.Obj("objectives", items, "periods", periods, "summary", Summarize(evAll, now),
 		"metrics", cat, "units", Units,
-		"notes", jsonx.Obj("live", "Live key results read the newest hourly aggregate snapshot; retention reads the weekly cohorts. A value is empty while it is suppressed (fewer than 10 users) or not computed yet.")))
+		"notes", jsonx.Obj("live", "Live key results read the newest hourly KPI snapshot (retention: the newest weekly cohort with a value). A value is empty while it is suppressed (fewer than 10 users) or not computed yet.")))
 }
 
 func (a *Admin) objectiveInput(c fiber.Ctx) (ObjectiveInput, error) {
