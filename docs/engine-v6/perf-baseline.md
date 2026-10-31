@@ -287,3 +287,19 @@ Reading it:
 `/messages/selected?placement=status_banner` and the four `/analysis/*` paths all return 200. The `grafana/k6:1.3.0` image pin could not be checked
 (not pulled, nothing in the docker image cache); these runs used the local k6 v2.3.0. The threshold exit code 99 of
 calendar_browse is the measured budget miss above, not a script error. Raw outputs: `backend-go/loadtest/results/*-20261023-14*` (git-ignored).
+
+## messages — compiled rules (T-M10-05)
+
+Recorded 2026-10-31 09:23 (Asia/Tehran) on Apple M4 (10 cores), go1.27.1, `504f56f1` + the T-M10-05 working tree, load
+average 8.1 / 5.6 / 5.0 (other agents working). `go test -run '^$' -bench 'BenchmarkCompile|BenchmarkSelect' -benchtime 2000x ./internal/messages/...`.
+
+| Package | Benchmark | µs/op | B/op | allocs/op | Budget |
+|---|---|---:|---:|---:|---|
+| messages/compiled | `Compile_500Rows` (JSON parse + compile + fingerprint) | 4 438 | 6 121 060 | 39 600 | ≤ 20 ms ✔ |
+| messages/compiled | `Select_200Compiled` (one slot, same mix as `SelectSlot_200Rules`) | 0.32 | 80 | 1 | ≤ 50 µs, ≤ 2 allocs ✔ |
+| messages/compiled | `Select_200CompiledOnePriority` (no early stop: all 200 evaluated) | 6.36 | 80 | 1 | ≤ 50 µs, ≤ 2 allocs ✔ |
+| messages/rules | `SelectSlot_200Rules` (parsed path, T-M10-04, same run) | 25.17 | 37 957 | 815 | — |
+
+The compiled path pre-sorts each slot by (safety, priority, id), so it stops as soon as the capacity is full and no
+later group can win; the one allocation is the winners slice. The worst case (one shared priority) still evaluates
+every rule in ≈ 6 µs.

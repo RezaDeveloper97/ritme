@@ -3,10 +3,10 @@ id: T-M10-05
 title: Compiled message rules cache with pub/sub invalidation
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-04]
 parallel_group: M10-B
-touches: [backend-go/internal/messages/rules, backend-go/internal/messages/compiled]
+touches: [backend-go/internal/messages/rules, backend-go/internal/messages/compiled, docs/engine-v6/perf-baseline.md]
 skills: []
 verify: cd backend-go && go vet ./... && go test -race ./internal/messages/... ./internal/platform/configcache/... && go test -run '^$' -bench 'BenchmarkCompile|BenchmarkSelect' -benchtime 2000x ./internal/messages/...
 ---

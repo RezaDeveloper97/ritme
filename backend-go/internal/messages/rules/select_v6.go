@@ -113,6 +113,9 @@ func (w WindowCounts) of(period string) int {
 	return 0
 }
 
+// Of is the count of period (day | week | cycle; 0 otherwise).
+func (w WindowCounts) Of(period string) int { return w.of(period) }
+
 // RuleHistory is one rule's shown / dismissed history.
 type RuleHistory struct {
 	LastShown, LastDismissed time.Time // zero = never
@@ -123,6 +126,30 @@ type RuleHistory struct {
 func (h RuleHistory) capCount(period string) int {
 	return max(h.Shown.of(period), h.Dismissed.of(period))
 }
+
+// CapCount is what a cap of period counts (the compiled selection, T-M10-05).
+func (h RuleHistory) CapCount(period string) int { return h.capCount(period) }
+
+// LastSeen is the later of the last shown and the last dismissed (the compiled selection, T-M10-05).
+func (h RuleHistory) LastSeen() time.Time { return h.lastSeen() }
+
+// The exported gates below are what the compiled selection (internal/messages/compiled, T-M10-05) precomputes, so
+// both paths share one definition.
+
+// InHours reports whether hour h falls in the window (from > to wraps midnight).
+func (w HourWindow) InHours(h int) bool { return w.inHours(h) }
+
+// TestsFact reports whether one of the rule's condition groups reads the fact (exceptions do not count).
+func (r *Rule) TestsFact(name string) bool { return r.testsFact(name) }
+
+// IsFertileWindow reports whether the rule is a fertile-window message (topic, or fertility facts / variables, M-06).
+func (r *Rule) IsFertileWindow() bool { return r.isFertileWindow() }
+
+// CandidateOf reports whether a rule of placement p runs in slot (legacy `alerts` rows are inbox rows too).
+func CandidateOf(slot, p string) bool { return candidateOf(slot, p) }
+
+// FactTrue reports whether a fact is true (bool true or the string "true").
+func FactTrue(f Facts, name string) bool { return factTrue(f, name) }
 
 // lastSeen is the later of the last shown and the last dismissed (the cooldown counts from it).
 func (h RuleHistory) lastSeen() time.Time {

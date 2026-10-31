@@ -2502,3 +2502,11 @@ Nothing needed fixing.
 - QA: `docs/engine-v6/qa/admin/rule-editor-v6-{light,dark}.png` (mocked API data, reviewed by the main session).
 - Verify: typecheck, lint, fsd:lint clean; vitest 48 files / 186 tests passed; build ok.
 - Open: the detail API does not return the `approved` snapshot yet, so the banner shows "diff unavailable" until the backend serves it; diff labels use field paths (`a.body`); no live-backend browser pass yet (do it in T-M10-36).
+
+## T-M10-05 — Compiled message rules cache with pub/sub invalidation
+- Shipped: `internal/messages/compiled` — `Compile(rows)` / `CompileRules`, `Compiled{BySlot, NeedFacts, Rev, Fingerprint, Errors}` (rules filed per slot, pre-sorted safety → priority DESC → id; hour windows as a 24-bit mask; caps, cooldown and variant weights precomputed; conditions coerced once with `rules.Match` semantics), `(*Compiled).Select` (same pipeline and `rules.Choice` output as T-M10-04 `SelectSlot`, early stop, 1 alloc), `Need(slots...)` + `Prefetch`, `Cache` on `configcache.Cache[*Compiled]` over `message_rules` (recompile on local change / pub/sub / 60 s TTL; failed load or snapshot compile keeps the previous snapshot). Thin exports added in `rules/select_v6.go`.
+- Metrics: `messages_rules_compile_errors_total`, `messages_rules_compile_snapshot_errors_total`, `messages_rules_rev`.
+- Bench (M-series, 2000x): compile 500 rows 4.6 ms (budget 20 ms); Select 200 compiled rules 0.32 µs, worst case 6.2 µs, 1 alloc/op (budget 50 µs / 2 allocs). Row appended to `docs/engine-v6/perf-baseline.md`.
+- Verify: `go vet ./...` clean; tests green without `-race` (CGO linker bug on macOS — the 50-goroutine swap test must run under `-race` in CI/Linux); golangci-lint 0 issues. Equivalence with the parsed path over 1 000 random rule sets.
+- Deviations: `compiled.FactSet` (sorted `[]string`) instead of `facts.Set` (does not exist); slots keyed by name; dates kept as Y-m-d strings (parsed path only has eq/ne); placeholders not in NeedFacts (T-M10-06 uses `rules.Placeholders`).
+- Open: no wiring needed — T-M10-06 calls `compiled.Load` → `Prefetch` → `Select` and returns `comp.Rev`; the compile-error counter adds 1 per reload per broken rule.
