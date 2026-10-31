@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 
 import type { Locale } from '@/shared/i18n';
+import { localizeFeedText, type FeedItem } from '@/entities/message';
 import { formatNumber } from '@/shared/lib/date';
 import { IconCircle } from '@/shared/ui';
 
@@ -83,6 +84,52 @@ export function TodayBanner({
             {tSkip('action')}
           </button>
         )}
+      </span>
+    </div>
+  );
+}
+
+export interface FeedBannerProps {
+  item: FeedItem;
+  /** The resolved CTA (the three banner deep links open the home's editors); null = no button. */
+  onCta: (() => void) | null;
+  /** «پریود نداشتم» on the overdue banner; omitted when the skip is not offered. */
+  onSkip?: () => void;
+  onDismiss: () => void;
+}
+
+/**
+ * The status banner when the message engine answered (`status_banner` slot, M-14): the server's copy and CTA in
+ * the same `ch-alert` frame as the built-in banner. Server numbers arrive in Latin digits and are shown in the
+ * app's own.
+ */
+export function FeedBanner({ item, onCta, onSkip, onDismiss }: FeedBannerProps) {
+  const tSkip = useTranslations('home.skip');
+  const tCommon = useTranslations('common.actions');
+  const loc = useLocale() as Locale;
+  const overdue = item.ruleKey === 'banner.overdue';
+
+  return (
+    <div role="status" className="ch-alert" data-banner={item.ruleKey ?? 'feed'} data-feed-slot="status_banner">
+      <IconCircle icon="info" tone="warm" size="sm" />
+      <span className="ch-alert-body">
+        <b className="ch-alert-title">{localizeFeedText(item.title, loc)}</b>
+        <span className="ch-alert-text">{localizeFeedText(item.body, loc)}</span>
+        {onCta && item.ctaText ? (
+          <button type="button" className="ch-link" data-action="feed_cta" onClick={onCta}>
+            {localizeFeedText(item.ctaText, loc)}
+          </button>
+        ) : null}
+        {overdue && onSkip ? (
+          <button type="button" className="ch-link" data-action="skip_period" onClick={onSkip}>
+            {tSkip('action')}
+          </button>
+        ) : null}
+        {item.dismissible ? (
+          <button type="button" className="ch-link" data-action="feed_dismiss" onClick={onDismiss}>
+            {tCommon('close')}
+          </button>
+        ) : null}
       </span>
     </div>
   );

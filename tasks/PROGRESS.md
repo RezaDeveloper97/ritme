@@ -2562,3 +2562,10 @@ Nothing needed fixing.
 - Tests: an untouched save keeps `translations` byte-identical; editing en changes only that variant's entry; clearing fields removes the entry; a rule without an overlay sends none.
 - Verify: typecheck, lint, fsd:lint clean; vitest 48 files / 189 tests passed; build ok.
 - Open: overlay entries for removed variant keys are kept, not pruned; no browser/QA screenshot yet (T-M10-36).
+
+## T-M10-14 — Frontend home reads the message feed
+- Shipped (D-168): `entities/message` `fetchFeed` (null on 404/405, throws otherwise), boundary parser (unknown slots/fields ignored, bad items dropped), `useMessageFeed`, `useMessageEvent` (clicked/dismissed only, never shown), `useAckAlert`, deep-link map (`ritme://period/end|last`, `ritme://log/pregnancy-test` → home editors, other `ritme://a/b` → route, external refused). Feed key under `['message','feed']` so T-M9-41 invalidation covers it.
+- Home: status banner from `status_banner` (else built-in T-M9-42 copy, M-14), `smart_tip` card, «توصیه‌های امروز» from `daily_advice` (≤ 3), challenge from `daily_challenge` (legacy pick when empty), urgent modal (cannot close until «دیدم» → ack; call button), dismissible `modal`. Server Latin digits shown in app digits. Route CTAs into switched-off modules hidden. `/messages/daily` only when the feed settled without an answer (404 / network / offline = old behaviour).
+- Copy: `home.feed.{ack,call,seen,confidence,ackError}` fa/en (reviewed); synced to backend-go resources; i18n goldens re-recorded; contract public 26/0.
+- Verify: typecheck, lint (1 old warning), fsd, styles, dark gates clean; vitest 309 files / 2100 tests; copy:check home clean. Screenshots light + dark (full feed, urgent, modal, feed 404) in `docs/engine-v6/qa/T-M10-14/` (live Go + mocked feed/alerts/events), reviewed.
+- Open → T-M10-14b: feed item `alert_id` (client now looks the inbox row up in `GET /alerts`), urgent modal z-index vs open sheets, banner actions stacked. Also: feed challenge has no completion flag; `feed.SlotModules` empty; when the feed answers, the phase subtitle / `dos` no longer come from `/messages/daily`.

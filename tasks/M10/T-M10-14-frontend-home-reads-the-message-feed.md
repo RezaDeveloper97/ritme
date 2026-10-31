@@ -3,10 +3,10 @@ id: T-M10-14
 title: Frontend home reads the message feed
 milestone: M10
 type: frontend
-status: todo
+status: done
 depends_on: [T-M10-07, T-M10-10, T-M9-47]
 parallel_group: M10-W
-touches: [frontend/src/entities/message, frontend/src/screens/home, frontend/src/widgets/smart-tip, frontend/src/widgets/today-challenge, frontend/src/widgets/for-today, frontend/messages/fa/home.json, frontend/messages/en/home.json, backend-go/resources/translations/fa/home.json, backend-go/resources/translations/en/home.json]
+touches: [frontend/src/entities/message, frontend/src/screens/home, frontend/src/widgets/smart-tip, frontend/src/widgets/today-challenge, frontend/src/widgets/for-today, frontend/messages/fa/home.json, frontend/messages/en/home.json, backend-go/resources/translations/fa/home.json, backend-go/resources/translations/en/home.json, backend-go/internal/i18n/testdata, backend-go/contract/golden/public, docs/engine-v6/qa/T-M10-14]
 skills: []
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run copy:check -- home
 ---

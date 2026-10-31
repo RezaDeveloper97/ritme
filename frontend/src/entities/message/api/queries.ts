@@ -67,11 +67,11 @@ export async function fetchDailyMessage(date?: string): Promise<DailyMessage | n
 }
 
 /** Reads today's (or a given day's) personalized message. */
-export function useDailyMessage(date?: string) {
+export function useDailyMessage(date?: string, enabled = true) {
   return useQuery({
     queryKey: messageKeys.daily(date),
     queryFn: () => fetchDailyMessage(date),
-    enabled: isAuthenticated(),
+    enabled: isAuthenticated() && enabled,
     staleTime: 5 * 60_000,
     retry: false,
   });

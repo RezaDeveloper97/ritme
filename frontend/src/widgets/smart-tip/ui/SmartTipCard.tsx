@@ -2,9 +2,10 @@
 
 import clsx from 'clsx';
 import { useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
-import { selectSmartTip, useDailyMessage } from '@/entities/message';
+import { localizeFeedText, selectSmartTip, useDailyMessage, type FeedItem } from '@/entities/message';
+import type { Locale } from '@/shared/i18n';
 import { Icon } from '@/shared/ui';
 
 /**
@@ -80,6 +81,48 @@ function SmartTipSkeleton() {
         <span key={width} className="skeleton-line" style={{ width }} />
       ))}
       <span className="skeleton-line home-skel-block" />
+    </div>
+  );
+}
+
+interface FeedSmartTipCardProps {
+  /** The `smart_tip` winner of GET /messages/feed. */
+  item: FeedItem;
+  /** The resolved CTA; null = the message has no usable button. */
+  onCta: (() => void) | null;
+  onDismiss: () => void;
+}
+
+/**
+ * The same «نکته هوشمند» card, written by the message engine's `smart_tip` slot (SPEC §5.4): the rule's title
+ * heads the card, its body is the paragraph, an optional CTA and a dismiss link close it.
+ */
+export function FeedSmartTipCard({ item, onCta, onDismiss }: FeedSmartTipCardProps) {
+  const t = useTranslations('home');
+  const tCommon = useTranslations('common.actions');
+  const loc = useLocale() as Locale;
+
+  return (
+    <div className="sec-tight" data-feed-slot="smart_tip">
+      <div className="card pad-card-sm home-tip-card">
+        <div className="home-tip-head">
+          <span className="home-tip-badge" aria-hidden>
+            <Icon name="sparkle" size={15} fill="currentColor" strokeWidth={0} />
+          </span>
+          <span className="home-tip-title">{item.title ? localizeFeedText(item.title, loc) : t('smartTip.title')}</span>
+        </div>
+        {item.body && <p className="sub home-tip-body">{localizeFeedText(item.body, loc)}</p>}
+        {onCta && item.ctaText ? (
+          <button type="button" className="ch-link" data-action="feed_cta" onClick={onCta}>
+            {localizeFeedText(item.ctaText, loc)}
+          </button>
+        ) : null}
+        {item.dismissible ? (
+          <button type="button" className="ch-link" data-action="feed_dismiss" onClick={onDismiss}>
+            {tCommon('close')}
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

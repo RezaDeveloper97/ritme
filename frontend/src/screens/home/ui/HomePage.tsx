@@ -39,7 +39,21 @@ import {
 import { useFertilityToday } from '@/entities/fertility';
 import { HomeConditionNudge } from '@/entities/condition';
 import { LossCareReturn } from '@/entities/loss';
-import { useDailyMessage, useUserMode, type DailyMessage } from '@/entities/message';
+import {
+  dailyAdvice,
+  feedLinkTarget,
+  feedState,
+  localizeFeedText,
+  slotItems,
+  useAckAlert,
+  useDailyMessage,
+  useMessageEvent,
+  useMessageFeed,
+  useUserMode,
+  type DailyMessage,
+  type FeedItem,
+  type FeedLinkTarget,
+} from '@/entities/message';
 import {
   readLifeModeHint,
   useLifeStage,
@@ -97,10 +111,12 @@ import {
   ttcPhase,
 } from '@/widgets/fertility-tiles';
 import { TeenHome } from '@/widgets/teen-home';
+import { FeedSmartTipCard } from '@/widgets/smart-tip';
 import { TodayChallengeCard } from '@/widgets/today-challenge';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
 import { needsPeriodData } from '../model/cycle-data';
+import { feedItemKey, firstVisible, legacyDailyEnabled, usableLink } from '../model/feed-home';
 import { phaseFromMainPhase } from '../model/hero-state';
 import { homeLimits } from '../model/limits';
 import { dismissPrompt, isPromptDismissed } from '../model/prompt-dismiss';
@@ -110,7 +126,8 @@ import { isEnginePayload, todayHero } from '../model/today-ui';
 
 import { PmsInsightCard, PredictionsCard, type PredictionSlot } from './PredictionsCard';
 import { PregnancyPromptCard } from './PregnancyPromptCard';
-import { TodayBanner } from './TodayBanner';
+import { FeedBanner, TodayBanner } from './TodayBanner';
+import { InAppModal, UrgentModal } from './FeedModals';
 import { MenopauseHome } from './MenopauseHome';
 import { PlusTrialOffer } from './PlusTrialOffer';
 import { TodayLogCard } from './TodayLogCard';
@@ -441,15 +458,24 @@ const TIP_ICONS: Record<string, IconName> = {
 const REC_TONES: Tone[] = ['data', 'warm', 'brand', 'bloom'];
 
 function Recommendations({
-  t, tips, dos, phase,
+  t, tips, dos, phase, advice, loc,
 }: {
   t: T;
   tips: CycleDailyTip[];
   dos: string[];
+  /** The message engine's `daily_advice` (up to 3); wins over the legacy tips when the feed answered. */
+  advice: FeedItem[];
+  loc: Locale;
   /** Today's phase — the pill beside the title (none while unknown). */
   phase: CyclePhase | null;
 }) {
-  const items = tips.length > 0
+  const items = advice.length > 0
+    ? advice.slice(0, 3).map(a => ({
+        icon: 'sparkle' as IconName,
+        title: localizeFeedText(a.title || a.body, loc),
+        desc: a.title && a.body ? localizeFeedText(a.body, loc) : undefined,
+      }))
+    : tips.length > 0
     ? tips.slice(0, 4).map(tip => ({
         // `hasOwn`, not `in`: `in` also matches Object.prototype keys, so a
         // category named `toString` would hand <Icon> a function and then ask
@@ -639,7 +665,18 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   // Server state (§8) — cycle math + personalized message for today.
   const todayQuery = useCycleToday();
   const todayData = todayQuery.data;
-  const { data: daily } = useDailyMessage();
+  // The message engine (SPEC §5.4): one feed for the banner, tip, advice, challenge and the two modals. When it does
+  // not answer (Laravel 404, network error, offline) the home is exactly what it was: built-in copy + legacy reads.
+  const feedQuery = useMessageFeed();
+  const feedStatus = feedState(feedQuery);
+  const feed = feedQuery.data ?? null;
+  const legacyDaily = legacyDailyEnabled(feedStatus);
+  const { data: daily } = useDailyMessage(undefined, legacyDaily);
+  const router = useRouter();
+  const sendEvent = useMessageEvent();
+  const ackAlert = useAckAlert();
+  // Served messages she closed (or acted on) this session; the server's cap/cooldown takes over after the refetch.
+  const [closedFeed, setClosedFeed] = useState<ReadonlySet<string>>(() => new Set());
   const profileQuery = useUserProfile();
   // The layout the last fresh profile decided (read after mount: localStorage is
   // client-only). Lets a cold load skip waiting on `/profile` (T-M5-12).
@@ -797,7 +834,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   // A tapped past/future day loads its own calculation + message; today reuses
   // the queries above (same cache keys — no extra fetch).
   const { data: dateData, isFetching: dateFetching } = useCycleForDate(selApiDate, !isToday);
-  const { data: infoMessage } = useDailyMessage(isToday ? undefined : selApiDate);
+  const { data: infoMessage } = useDailyMessage(isToday ? undefined : selApiDate, !isToday || legacyDaily);
 
   const infoCalc = (isToday ? todayData : dateData)?.calculation ?? null;
   const infoPred = infoCalc ? deriveCyclePredictions(infoCalc) : null;
@@ -1119,6 +1156,44 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
     );
   }
 
+  // ── The message feed (T-M10-14) ──
+  const closeFeedItem = (item: FeedItem) => setClosedFeed((prev) => new Set(prev).add(feedItemKey(item)));
+  const dismissFeedItem = (item: FeedItem) => {
+    closeFeedItem(item);
+    sendEvent.mutate({ item, event: 'dismissed' });
+  };
+  // A CTA runs the home's own editor for the three banner links, else navigates; a link into a switched-off
+  // module (or an external one) gives no button at all.
+  const runFeedTarget = (target: FeedLinkTarget) => {
+    if (target.kind === 'route') {
+      router.push(target.path as never);
+      return;
+    }
+    if (target.action === 'edit_end') {
+      setDateEditorIntent('edit');
+      setDateEditorOpen(true);
+    } else if (target.action === 'edit_last_period') {
+      setDateEditorIntent(undefined);
+      setDateEditorOpen(true);
+    } else {
+      openSheet('log', `${toApiDate(base)}:pregnancy_test`);
+    }
+  };
+  const feedCta = (item: FeedItem, afterClick?: () => void): (() => void) | null => {
+    const target = usableLink(feedLinkTarget(item.ctaDeeplink), modules);
+    if (!target) return null;
+    return () => {
+      sendEvent.mutate({ item, event: 'clicked' });
+      afterClick?.();
+      runFeedTarget(target);
+    };
+  };
+  const feedBannerAll = slotItems(feed, 'status_banner')[0] ?? null;
+  const feedBanner = firstVisible(feedBannerAll ? [feedBannerAll] : [], closedFeed);
+  const feedTip = firstVisible(slotItems(feed, 'smart_tip').slice(0, 1), closedFeed);
+  const urgentItem = firstVisible(slotItems(feed, 'urgent_modal').slice(0, 1), closedFeed);
+  const modalItem = urgentItem ? null : firstVisible(slotItems(feed, 'modal').slice(0, 1), closedFeed);
+
   return (
     <div className="view">
       {/* Full-page gradient backdrop (lavender → soft turquoise, §10.2) */}
@@ -1212,7 +1287,15 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
               )}
             </CycleRing>
           </section>
-          {hero.fromEngine && hero.banner ? (
+          {feedBanner ? (
+            // M-14: the engine's `status_banner` copy and CTA win over the built-in banner below.
+            <FeedBanner
+              item={feedBanner}
+              onCta={feedCta(feedBanner)}
+              onSkip={skipOffered ? () => setSkipOpen(true) : undefined}
+              onDismiss={() => dismissFeedItem(feedBanner)}
+            />
+          ) : feedBannerAll ? null : hero.fromEngine && hero.banner ? (
             // §2.43: one banner at a time, chosen by the engine (`today_ui.banner`).
             <TodayBanner
               banner={hero.banner}
@@ -1340,15 +1423,24 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
             )}
             {/* «چکاپ‌های دوره‌ای» (M4, /checkups/home) — after the cycle predictions. */}
             <CheckupsCard />
+            {feedTip && (
+              <FeedSmartTipCard
+                item={feedTip}
+                onCta={feedCta(feedTip)}
+                onDismiss={() => dismissFeedItem(feedTip)}
+              />
+            )}
             <Recommendations
               t={t}
               tips={calc?.dailyTips ?? []}
               dos={dos}
               phase={todayPhase}
+              advice={dailyAdvice(feed)}
+              loc={loc}
             />
             {!teen && <BannerSlideshow position="home_middle" />}
             {!teen && <HomeLabCards />}
-            <TodayChallengeCard />
+            <TodayChallengeCard pick={feed?.dailyChallenge ?? null} />
             {!noPeriodData && !loadFailed && !teen && (
               <PmsInsightCard pms={toPrediction(pmsSlot)} basedOnCycles={overview?.cycleLength.basedOnCycles ?? null} />
             )}
@@ -1384,6 +1476,23 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
           setDateEditorIntent(undefined);
         }}
       />
+
+      {/* SPEC §5.4.1: the urgent message cannot be closed — only «دیدم» (POST /alerts/{id}/ack) clears it. */}
+      {urgentItem && (
+        <UrgentModal
+          item={urgentItem}
+          pending={ackAlert.isPending}
+          failed={ackAlert.isError}
+          onAck={() => ackAlert.mutate(urgentItem.id, { onSuccess: () => closeFeedItem(urgentItem) })}
+        />
+      )}
+      {modalItem && (
+        <InAppModal
+          item={modalItem}
+          onCta={feedCta(modalItem, () => closeFeedItem(modalItem))}
+          onClose={() => dismissFeedItem(modalItem)}
+        />
+      )}
 
       {skipExpected && <SkipPeriodSheet open={skipOpen} onClose={() => setSkipOpen(false)} expectedStart={skipExpected} />}
 

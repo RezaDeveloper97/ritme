@@ -4825,6 +4825,13 @@
      "action": "Life stage"
     },
     "modeChip": "Life stage: {mode}"
+   },
+   "feed": {
+    "ack": "Got it",
+    "call": "Call",
+    "seen": "What we saw",
+    "confidence": "How sure we are",
+    "ackError": "Couldn't save that. Try again."
    }
   },
   "home-lab": {

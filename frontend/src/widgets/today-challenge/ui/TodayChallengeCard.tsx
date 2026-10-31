@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useFormatter, useTranslations } from 'next-intl';
 
 import { useTodayChallenge, type TodayChallenge } from '@/entities/challenge';
+import type { FeedChallenge } from '@/entities/message';
 import { useToggleChallenge } from '@/features/complete-challenge';
 import { Card, Icon, IconCircle, type IconName } from '@/shared/ui';
 
@@ -42,14 +43,28 @@ function rangeLabel(
  * The card renders nothing while loading or when no challenge is available, so
  * the home feed simply closes up rather than showing an empty shell.
  */
-export function TodayChallengeCard() {
+export function TodayChallengeCard({ pick }: { pick?: FeedChallenge | null } = {}) {
   const t = useTranslations('challenge');
   // Locale digits (۱ in fa): the messages take a pre-formatted string, so they
   // stay correct even when the runtime bundle from the API still has plain `{n}`.
   const format = useFormatter();
   const num = (n: number): string => format.number(n);
-  const { data: challenge } = useTodayChallenge();
+  const { data: legacy } = useTodayChallenge();
   const toggle = useToggleChallenge();
+  // The message engine's `daily_challenge` pick (T-M10-10) leads when the feed has one; the legacy pick stays the
+  // fallback (feed empty, Laravel, offline). Completion lives on the legacy card, so it carries over only for the
+  // same challenge; for a different one the tick starts empty and follows the toggle's own answer.
+  const challenge: TodayChallenge | null = pick
+    ? {
+        id: pick.id,
+        title: pick.title,
+        description: pick.description,
+        category: pick.category,
+        cycleDay: legacy?.id === pick.id ? legacy.cycleDay : null,
+        cycleDayRange: legacy?.id === pick.id ? legacy.cycleDayRange : { from: null, to: null },
+        isCompleted: legacy?.id === pick.id ? legacy.isCompleted : (toggle.data?.challengeId === pick.id && toggle.data.isCompleted),
+      }
+    : (legacy ?? null);
 
   if (!challenge) return null;
 

@@ -1,1 +1,1 @@
-export { SmartTipCard } from './ui/SmartTipCard';
+export { FeedSmartTipCard, SmartTipCard } from './ui/SmartTipCard';
