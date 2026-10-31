@@ -509,7 +509,7 @@ func TestPatterns(t *testing.T) {
 	d := r.data()
 	assert.Equal(t, true, d["not_a_diagnosis"])
 	assert.Equal(t, 0, num(d["found"]))
-	assert.Equal(t, 20, num(d["min_days"]))
+	assert.Equal(t, 30, num(d["min_days"]), "§4.1 minimum (T-M10-26b)")
 	disc, _ := d["disclaimer"].(map[string]any)
 	require.NotNil(t, disc)
 	assert.Equal(t, "patterns_disclaimer", disc["code"])

@@ -12,6 +12,7 @@ import { ChartCard, ReportFrame, StatTiles } from '@/widgets/charts';
 
 import { isPregnancyInactive, usePregnancyAnalysis } from '../api/queries';
 import { isUserRow } from '../model/chart';
+import { weightNoteText } from './AnalysisPregnancyHub';
 import { GainChartView } from './GainChartView';
 
 /**
@@ -100,7 +101,7 @@ export function PregnancyWeightPage() {
               </ul>
             </>
           ) : (
-            <p className="anr-note">{tHub(`weight.missing.${w?.missing ?? 'weights'}`)}</p>
+            <p className="anr-note">{weightNoteText(w, tHub, num)}</p>
           )}
         </ChartCard>
 

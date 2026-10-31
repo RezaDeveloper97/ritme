@@ -7,6 +7,21 @@
     "due_date": "2027-05-21",
     "start_date": "2026-08-14"
   },
+  "top_finding": {
+    "kind": "keep_logging",
+    "parts": [
+      {
+        "key": "findings.keep_logging",
+        "params": {},
+        "text": "وزن، فشار و علائمت را ثبت کن تا مهم‌ترین یافتهٔ بارداری‌ات این‌جا بیاید."
+      }
+    ],
+    "text": "وزن، فشار و علائمت را ثبت کن تا مهم‌ترین یافتهٔ بارداری‌ات این‌جا بیاید.",
+    "strength": null,
+    "score": null,
+    "evidence_date": null,
+    "days_needed": null
+  },
   "sections": {
     "weight_gain": {
       "plus": false,
@@ -14,6 +29,8 @@
       "ready": false,
       "data": {
         "missing": "baseline",
+        "min_logs": 2,
+        "logs_needed": 2,
         "baseline": null,
         "height_cm": null,
         "bmi": null,

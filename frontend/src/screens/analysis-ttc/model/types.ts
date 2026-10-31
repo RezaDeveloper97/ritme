@@ -108,7 +108,17 @@ export interface TtcCycleSummary {
   lutealDays: number | null;
 }
 
+/** «مهم‌ترین یافته» of the TTC hub (§4.1 strength × recency, T-M10-26b); `kind` is the server's finding kind. */
+export interface TtcTopFinding {
+  kind: string | null;
+  text: string;
+  /** The «N more days» nudge's N; null for a finding. */
+  daysNeeded: number | null;
+}
+
 export interface TtcHub {
+  /** null on a backend without it. */
+  topFinding: TtcTopFinding | null;
   trying: TtcTrying;
   bbt: AnalysisSection<TtcBbt>;
   lh: AnalysisSection<TtcLh>;

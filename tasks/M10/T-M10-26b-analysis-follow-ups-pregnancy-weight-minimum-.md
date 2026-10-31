@@ -3,10 +3,10 @@ id: T-M10-26b
 title: Analysis follow-ups: pregnancy weight minimum, menopause rate-ratio, top finding on TTC and pregnancy hubs
 milestone: M10
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M10-26]
 parallel_group: M10-D
-touches: [backend-go/internal/analysis,backend-go/internal/menopause,backend-go/contract/golden-v6,backend-go/contract/allowlist,frontend/src/screens/analysis-pregnancy,frontend/src/screens/analysis-ttc,frontend/messages/fa/analysis-pregnancy.json,frontend/messages/en/analysis-pregnancy.json,backend-go/resources/translations/fa/analysis-pregnancy.json,backend-go/resources/translations/en/analysis-pregnancy.json,backend-go/internal/i18n/testdata]
+touches: [backend-go/internal/analysis,backend-go/internal/menopause,backend-go/contract/golden-v6,backend-go/contract/allowlist/analysis.yaml,backend-go/contract/allowlist/analysis-ttc.yaml,backend-go/contract/allowlist/analysis-pregnancy.yaml,backend-go/contract/allowlist/menopause.yaml,backend-go/contract/golden/menopause,backend-go/contract/golden/analysis-ttc,backend-go/contract/golden/analysis-pregnancy,backend-go/contract/golden/analysis,frontend/src/screens/analysis-pregnancy,frontend/src/screens/analysis-ttc,frontend/messages/fa/analysis-pregnancy.json,frontend/messages/en/analysis-pregnancy.json,backend-go/resources/translations/fa/analysis-pregnancy.json,backend-go/resources/translations/en/analysis-pregnancy.json,backend-go/internal/i18n/testdata]
 skills: []
 verify: cd backend-go && go vet ./... && go test ./internal/analysis/... ./internal/menopause/... ./internal/i18n/... && make test-int PKG="./internal/analysis/... ./internal/menopause/..." && make contract ROUTES=analysis,analysis-ttc,analysis-pregnancy && cd ../frontend && npm run typecheck && npm run test && npm run fsd:lint
 ---

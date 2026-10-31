@@ -40,6 +40,23 @@ describe.skipIf(!existsSync(GOLDEN_DIR))('pregnancy analysis parser', () => {
     expect(early.sections.visits.ready).toBe(false);
   });
 
+  it('parses the top finding and the §4.1 weight minimum (T-M10-26b)', () => {
+    const full = pregnancyAnalysisSchema.parse(golden('preg_full_pregnancy'));
+    expect(full.topFinding?.kind).toBe('preg_gain_within');
+    expect(full.topFinding?.text).toContain('بازهٔ توصیه‌شده');
+    expect(full.sections.weightGain.data).toMatchObject({ minLogs: 2, logsNeeded: 0 });
+    const sparse = pregnancyAnalysisSchema.parse(golden('preg_sparse_pregnancy'));
+    expect(sparse.topFinding?.kind).toBe('preg_bp_high');
+    const early = pregnancyAnalysisSchema.parse(golden('preg_early_pregnancy'));
+    expect(early.topFinding).toMatchObject({ kind: 'keep_logging', daysNeeded: null });
+  });
+
+  it('tolerates a backend without the top finding', () => {
+    const raw = golden('preg_full_pregnancy') as Record<string, unknown>;
+    delete raw.top_finding;
+    expect(pregnancyAnalysisSchema.parse(raw).topFinding).toBeNull();
+  });
+
   it('degrades an unknown enum to null', () => {
     const raw = golden('preg_full_pregnancy') as { sections: { weight_gain: { data: { status: string } } } };
     raw.sections.weight_gain.data.status = 'way_off';

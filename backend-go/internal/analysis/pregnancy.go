@@ -61,6 +61,8 @@ type PregnancyInput struct {
 	DeepAnalysis bool
 	// Label names a symptom key (nil → the key).
 	Label func(key string) string
+	// Copy renders the top finding from the analysis-pregnancy namespace (nil → key + params only).
+	Copy *Copy
 }
 
 func (in *PregnancyInput) gaDays(d civildate.Date) int { return in.Start.DiffDays(d) }
@@ -162,8 +164,19 @@ func iomTableJSON() []any {
 	return out
 }
 
-// weightGain is the An_PregWeight body (and the hub's weight card).
-func (in *PregnancyInput) weightGain() Section {
+// pregnancyWeightLogs counts the days with a weight from Start to Today (the pre-pregnancy lookback is not counted).
+func (in *PregnancyInput) pregnancyWeightLogs() int {
+	n := 0
+	for d := range in.Weights {
+		if !d.Before(in.Start) && !d.After(in.Today) {
+			n++
+		}
+	}
+	return n
+}
+
+// weightGain is the An_PregWeight body (and the hub's weight card); the candidate is the gain against the band.
+func (in *PregnancyInput) weightGain() (Section, *Candidate) {
 	base, source, baseDate, hasBase := in.baseline()
 	// The pregnancy weights: one point per gestational week (its last weight), oldest first.
 	byWeek := map[int]civildate.Date{}
@@ -197,6 +210,9 @@ func (in *PregnancyInput) weightGain() Section {
 	case len(points) == 0:
 		missing = MissingWeights
 	}
+	// §4.1 (D-175, T-M10-26b): the IOM comparison needs P.PregWeightMinLogs weights logged in the pregnancy (days
+	// from Start to Today) besides the pre-pregnancy BMI; below it ready false + logs_needed.
+	logsNeeded := max(0, P.PregWeightMinLogs-in.pregnancyWeightLogs())
 	if hasBase {
 		var bd any
 		if baseDate != nil {
@@ -225,7 +241,8 @@ func (in *PregnancyInput) weightGain() Section {
 				"weight", round(p.weight, 1), "gain", round(p.gain, 1)))
 		}
 	}
-	ready := missing == nil
+	ready := missing == nil && logsNeeded == 0
+	var cand *Candidate
 	if hasBase && len(points) > 0 {
 		last := points[len(points)-1]
 		g := in.gaDays(last.date)
@@ -243,6 +260,10 @@ func (in *PregnancyInput) weightGain() Section {
 				status = GainWithin
 			}
 			recommended = jsonx.Obj("min", lo, "max", hi)
+			kind := "preg_gain_" + status.(string)
+			cand = &Candidate{Kind: kind, Strength: findingStrength[kind], Evidence: last.date, Parts: []Phrase{{
+				Key: "findings.gain." + status.(string), Args: []Arg{
+					Num("week", min(42, g/7+1)), Num("gain", gain), Num("min", lo), Num("max", hi)}}}}
 		}
 		current = jsonx.Obj("date", last.date.String(), "ga_days", g, "week", min(42, g/7+1),
 			"weight", round(last.weight, 1), "gain", round(last.gain, 1), "recommended", recommended)
@@ -262,6 +283,8 @@ func (in *PregnancyInput) weightGain() Section {
 	}
 	return freeSection(ready, jsonx.Obj(
 		"missing", missing,
+		"min_logs", P.PregWeightMinLogs,
+		"logs_needed", logsNeeded,
 		"baseline", baseline,
 		"height_cm", nullInt(in.HeightCM),
 		"bmi", bmi,
@@ -275,7 +298,7 @@ func (in *PregnancyInput) weightGain() Section {
 		"iom_table", iomTableJSON(),
 		"singleton_only", true,
 		"source", "IOM 2009",
-	))
+	)), cand
 }
 
 func nullInt(n int) any {
@@ -292,7 +315,8 @@ const (
 	BPSevere = "severe"
 )
 
-func (in *PregnancyInput) bloodPressure() Section {
+// bloodPressure is the BP card; the candidate names a high / severe reading (the latest one is the evidence).
+func (in *PregnancyInput) bloodPressure() (Section, *Candidate) {
 	dates := []civildate.Date{}
 	for d := range in.BP {
 		if !d.Before(in.Start) && !d.After(in.Today) {
@@ -301,15 +325,18 @@ func (in *PregnancyInput) bloodPressure() Section {
 	}
 	sort.Slice(dates, func(i, j int) bool { return dates[i].Before(dates[j]) })
 	high, severe := 0, 0
+	var lastHigh, lastSevere civildate.Date
 	readings := []any{}
 	for i, d := range dates {
 		r := in.BP[d]
 		isHigh := r.Systolic >= BPHighSystolic || r.Diastolic >= BPHighDiastolic
 		if isHigh {
 			high++
+			lastHigh = d
 		}
 		if r.Systolic >= BPSevereSystolic || r.Diastolic >= BPSevereDiastolic {
 			severe++
+			lastSevere = d
 		}
 		if i >= len(dates)-BPChartReadings {
 			readings = append(readings, jsonx.Obj("date", d.String(), "systolic", int(r.Systolic),
@@ -329,6 +356,16 @@ func (in *PregnancyInput) bloodPressure() Section {
 		r := in.BP[dates[n-1]]
 		latest = jsonx.Obj("date", dates[n-1].String(), "systolic", int(r.Systolic), "diastolic", int(r.Diastolic))
 	}
+	var cand *Candidate
+	switch {
+	case severe > 0:
+		cand = &Candidate{Kind: FindingPregBPSevere, Strength: findingStrength[FindingPregBPSevere], Evidence: lastSevere,
+			Parts: []Phrase{{Key: "findings.bp.severe", Args: []Arg{Num("sys", BPSevereSystolic), Num("dia", BPSevereDiastolic)}}}}
+	case high > 0:
+		cand = &Candidate{Kind: FindingPregBPHigh, Strength: findingStrength[FindingPregBPHigh], Evidence: lastHigh,
+			Parts: []Phrase{{Key: "findings.bp.high", Args: []Arg{
+				Num("n", high), Num("sys", BPHighSystolic), Num("dia", BPHighDiastolic)}}}}
+	}
 	return freeSection(len(dates) > 0, jsonx.Obj(
 		"readings_count", len(dates),
 		"high_count", high,
@@ -339,11 +376,13 @@ func (in *PregnancyInput) bloodPressure() Section {
 		"threshold", jsonx.Obj("systolic", BPHighSystolic, "diastolic", BPHighDiastolic),
 		"severe_threshold", jsonx.Obj("systolic", BPSevereSystolic, "diastolic", BPSevereDiastolic),
 		"source", "ACOG",
-	))
+	)), cand
 }
 
-func (in *PregnancyInput) glucose() Section {
-	return plusSection(in.DeepAnalysis, func() (bool, any) {
+// glucose is the Plus glucose card; a candidate per slot whose average is at or above its target.
+func (in *PregnancyInput) glucose() (Section, []Candidate) {
+	var cands []Candidate
+	sec := plusSection(in.DeepAnalysis, func() (bool, any) {
 		slots := []any{}
 		ready := false
 		for _, t := range GlucoseTargets {
@@ -369,12 +408,18 @@ func (in *PregnancyInput) glucose() Section {
 				a := int(round(m, 0))
 				avg, within = a, a < t.Max
 				latest = jsonx.Obj("date", last.Date.String(), "value", round(last.Value, 1))
+				if a >= t.Max {
+					cands = append(cands, Candidate{Kind: FindingPregGlucoseAbove,
+						Strength: findingStrength[FindingPregGlucoseAbove], Evidence: last.Date,
+						Parts: []Phrase{{Key: "findings.glucose_above." + t.Slot, Args: []Arg{Num("avg", a), Num("target", t.Max)}}}})
+				}
 			}
 			slots = append(slots, jsonx.Obj("slot", t.Slot, "target_max", t.Max, "avg", avg,
 				"within_target", within, "readings", len(vals), "in_target", inTarget, "latest", latest))
 		}
 		return ready, jsonx.Obj("slots", slots, "unit", "mg_dl", "source", "ADA 2024")
 	})
+	return sec, cands
 }
 
 func (in *PregnancyInput) kicks() Section {
@@ -420,9 +465,12 @@ func (in *PregnancyInput) kicks() Section {
 	))
 }
 
-func (in *PregnancyInput) symptomsByTrimester() Section {
-	return plusSection(in.DeepAnalysis, func() (bool, any) {
+// symptomsByTrimester is the Plus symptoms card; the candidate is the current trimester's most logged symptom.
+func (in *PregnancyInput) symptomsByTrimester() (Section, *Candidate) {
+	var cand *Candidate
+	sec := plusSection(in.DeepAnalysis, func() (bool, any) {
 		counts := [4]map[string]int{{}, {}, {}, {}}
+		lastDay := [4]map[string]civildate.Date{{}, {}, {}, {}}
 		logged := [4]int{}
 		for d, set := range in.Symptoms {
 			g := in.gaDays(d)
@@ -433,6 +481,9 @@ func (in *PregnancyInput) symptomsByTrimester() Section {
 			logged[t]++
 			for k := range set {
 				counts[t][k]++
+				if d.After(lastDay[t][k]) {
+					lastDay[t][k] = d
+				}
 			}
 		}
 		cur := trimesterOn(in.gaDays(in.Today), in.Today)
@@ -454,11 +505,18 @@ func (in *PregnancyInput) symptomsByTrimester() Section {
 				items = append(items, jsonx.Obj("key", k, "label", in.label(k), "days", counts[t][k]))
 			}
 			ready = ready || len(items) > 0
+			if t == cur && len(keys) > 0 && logged[t] > 0 {
+				k := keys[0]
+				cand = &Candidate{Kind: FindingPregSymptomTop,
+					Strength: pregSymptomStrengthMax * float64(counts[t][k]) / float64(logged[t]), Evidence: lastDay[t][k],
+					Parts: []Phrase{{Key: "findings.symptom_top", Args: []Arg{Symptom("symptom", k), Num("days", counts[t][k])}}}}
+			}
 			out = append(out, jsonx.Obj("trimester", t, "is_current", t == cur, "is_future", t > cur,
 				"logged_days", logged[t], "items", items))
 		}
 		return ready, jsonx.Obj("trimesters", out)
 	})
+	return sec, cand
 }
 
 func (in *PregnancyInput) visits() Section {
@@ -487,20 +545,35 @@ func (in *PregnancyInput) visits() Section {
 	))
 }
 
-// PregnancyReport is GET /analysis/pregnancy.
+// BuildPregnancy is GET /analysis/pregnancy: the sections and the hub's top finding (§4.1, T-M10-26b).
 func BuildPregnancy(in *PregnancyInput) *jsonx.OrderedMap {
 	g := in.gaDays(in.Today)
+	weight, gainCand := in.weightGain()
+	bp, bpCand := in.bloodPressure()
+	glucose, glucoseCands := in.glucose()
+	symptoms, symptomCand := in.symptomsByTrimester()
+	var cands []Candidate
+	for _, c := range []*Candidate{bpCand, gainCand} {
+		if c != nil {
+			cands = append(cands, *c)
+		}
+	}
+	cands = append(cands, glucoseCands...)
+	if symptomCand != nil {
+		cands = append(cands, *symptomCand)
+	}
 	return jsonx.Obj(
 		"pregnancy", jsonx.Obj(
 			"week", in.CurrentWeek(), "weeks", max(0, g)/7, "days", max(0, g)%7,
 			"trimester", trimesterOn(g, in.Today), "due_date", in.Due.String(), "start_date", in.Start.String(),
 		),
+		"top_finding", in.topFinding(cands).JSON(in.Copy),
 		"sections", jsonx.Obj(
-			"weight_gain", in.weightGain().JSON(),
-			"blood_pressure", in.bloodPressure().JSON(),
-			"glucose", in.glucose().JSON(),
+			"weight_gain", weight.JSON(),
+			"blood_pressure", bp.JSON(),
+			"glucose", glucose.JSON(),
 			"kicks", in.kicks().JSON(),
-			"symptoms", in.symptomsByTrimester().JSON(),
+			"symptoms", symptoms.JSON(),
 			"visits", in.visits().JSON(),
 		),
 	)

@@ -1,0 +1,21 @@
+group: analysis-pregnancy
+entries:
+  # D-175 (task T-M10-26b, engine v6 M10, follow-up of T-M10-26; SPEC v6 §4.1). These goldens were recorded from the
+  # pre-§4.1 Go server (the route is Go-only, B-N3-12).
+
+  # Top finding on the pregnancy hub = strength × recency (the cycle hub's scorer) over BP, the IOM gain verdict,
+  # glucose targets and the trimester's top symptom (Plus); without one the weight-logs nudge or keep_logging.
+  - case: "*"
+    where: data.top_finding.**
+    deviation: D-175
+    reason: pregnancy hub top finding (strength × recency), new key
+
+  # Pregnancy weight: the IOM comparison needs a pre-pregnancy BMI + 2 weights logged in the pregnancy.
+  - case: "*"
+    where: data.sections.weight_gain.data.min_logs
+    deviation: D-175
+    reason: pregnancy weight minimum (2 logs), new key
+  - case: "*"
+    where: data.sections.weight_gain.data.logs_needed
+    deviation: D-175
+    reason: pregnancy weight logs still needed, new key

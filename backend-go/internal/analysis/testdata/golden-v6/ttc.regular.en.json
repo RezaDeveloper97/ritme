@@ -1,6 +1,23 @@
 {
   "success": true,
   "data": {
+    "top_finding": {
+      "kind": "cycle_regular",
+      "parts": [
+        {
+          "key": "findings.cycle.regular",
+          "params": {
+            "days": 0
+          },
+          "text": "Your cycles are regular (variation 0 days)."
+        }
+      ],
+      "text": "Your cycles are regular (variation 0 days).",
+      "strength": 0.3,
+      "score": 0.238,
+      "evidence_date": "2026-09-13",
+      "days_needed": null
+    },
     "trying": {
       "since": null,
       "cycles": 0,

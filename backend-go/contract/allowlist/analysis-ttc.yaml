@@ -24,3 +24,9 @@ entries:
     where: data.explanation.text
     deviation: D-175
     reason: BBT minimum 10 (was 6 + 3)
+  # D-175 (task T-M10-26b): top finding on the TTC hub = strength × recency (the cycle hub's scorer) over the cycle
+  # sentence and, for Plus, the egg-white mucus pattern; without one the days nudge.
+  - case: "*"
+    where: data.top_finding.**
+    deviation: D-175
+    reason: TTC hub top finding (strength × recency), new key

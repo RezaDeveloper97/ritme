@@ -146,3 +146,15 @@ export function bpChart(
 export function gainUntilWeek(weighInWeek: number, todayWeek: number): boolean {
   return !weighInWeek || weighInWeek === todayWeek;
 }
+
+/** The weight card's not-ready line: what is missing, or the §4.1 minimum still unmet (T-M10-26b). */
+export type WeightNote =
+  | { kind: 'missing'; reason: 'baseline' | 'height' | 'weights' }
+  | { kind: 'notEnough'; min: number; left: number };
+
+export function weightNote(w: WeightGain | null | undefined): WeightNote {
+  if (w && !w.missing && w.logsNeeded && w.logsNeeded > 0) {
+    return { kind: 'notEnough', min: w.minLogs ?? w.logsNeeded, left: w.logsNeeded };
+  }
+  return { kind: 'missing', reason: w?.missing ?? 'weights' };
+}

@@ -1,4 +1,21 @@
 {
+  "top_finding": {
+    "kind": "not_enough_data",
+    "parts": [
+      {
+        "key": "findings.not_enough_days",
+        "params": {
+          "days": 56
+        },
+        "text": "برای دیدن الگوها ۵۶ روز دیگر ثبت کن."
+      }
+    ],
+    "text": "برای دیدن الگوها ۵۶ روز دیگر ثبت کن.",
+    "strength": null,
+    "score": null,
+    "evidence_date": null,
+    "days_needed": 56
+  },
   "trying": {
     "since": null,
     "cycles": 0,

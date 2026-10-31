@@ -29,6 +29,16 @@ describe('TTC schemas against the Go engine goldens', () => {
     expect(hub.mucus.locked).toBe(true);
   });
 
+  it('parses the top finding (§4.1 strength × recency, T-M10-26b)', () => {
+    expect(ttcHubSchema.parse(golden('ttc_plus_hub')).topFinding?.kind).toBe('ttc_mucus');
+    expect(ttcHubSchema.parse(golden('ttc_free_hub')).topFinding?.kind).toBe('cycle_regular');
+    const empty = ttcHubSchema.parse(golden('ttc_empty_hub')).topFinding;
+    expect(empty).toMatchObject({ kind: 'not_enough_data', daysNeeded: 56 });
+    const raw = golden('ttc_plus_hub') as Record<string, unknown>;
+    delete raw.top_finding;
+    expect(ttcHubSchema.parse(raw).topFinding).toBeNull();
+  });
+
   it('parses the empty and no-log hubs', () => {
     expect(ttcHubSchema.parse(golden('ttc_empty_hub')).cycles).toEqual([]);
     const nologs = ttcHubSchema.parse(golden('ttc_nologs_hub'));

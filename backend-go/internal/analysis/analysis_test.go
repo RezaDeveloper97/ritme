@@ -30,15 +30,6 @@ func TestCramersV(t *testing.T) {
 	assert.InDelta(t, math.Abs(Phi(7, 3, 2, 8)), CramersV([]int{7, 2}, []int{10, 10}), 1e-9)
 }
 
-func TestStrength(t *testing.T) {
-	for r, want := range map[float64]string{
-		0.5: StrengthStrong, -0.62: StrengthStrong, 0.49: StrengthMedium, 0.3: StrengthMedium, -0.3: StrengthMedium,
-		0.29: StrengthWeak, 0.1: StrengthWeak, 0.099: "", 0: "",
-	} {
-		assert.Equal(t, want, Strength(r), "r=%v", r)
-	}
-}
-
 func TestFIGO(t *testing.T) {
 	for age, want := range map[int]int{0: 7, 16: 9, 18: 9, 25: 9, 26: 7, 41: 7, 42: 9, 45: 9} {
 		assert.Equal(t, want, FIGOVariationLimit(age), "age %d", age)
@@ -135,14 +126,14 @@ func TestOutlier_OnlyALoneOneIsExcluded(t *testing.T) {
 }
 
 func TestCorrelation_MinData(t *testing.T) {
-	c := binary(CorrSleepMood, Group{Key: "ok", Days: 30, Hits: 2}, Group{Key: "short", Days: 4, Hits: 4})
+	c := Binary(CorrSleepMood, Group{Key: "ok", Days: 30, Hits: 2}, Group{Key: "short", Days: 4, Hits: 4})
 	assert.Equal(t, CorrNotEnoughData, c.Status, "a group under 5 days")
-	c = binary(CorrSleepMood, Group{Key: "ok", Days: 10, Hits: 1}, Group{Key: "short", Days: 9, Hits: 1})
+	c = Binary(CorrSleepMood, Group{Key: "ok", Days: 10, Hits: 1}, Group{Key: "short", Days: 9, Hits: 1})
 	assert.Equal(t, CorrNotEnoughData, c.Status, "under 30 paired days")
-	c = binary(CorrSleepMood, Group{Key: "ok", Days: 20, Hits: 4}, Group{Key: "short", Days: 20, Hits: 4})
+	c = Binary(CorrSleepMood, Group{Key: "ok", Days: 20, Hits: 4}, Group{Key: "short", Days: 20, Hits: 4})
 	assert.Equal(t, CorrNoAssociation, c.Status)
 	assert.Empty(t, c.Strength)
-	c = binary(CorrSleepMood, Group{Key: "ok", Days: 20, Hits: 2}, Group{Key: "short", Days: 20, Hits: 14})
+	c = Binary(CorrSleepMood, Group{Key: "ok", Days: 20, Hits: 2}, Group{Key: "short", Days: 20, Hits: 14})
 	assert.Equal(t, CorrReady, c.Status)
 	assert.Equal(t, StrengthStrong, c.Strength)
 	require.NotNil(t, c.Ratio)

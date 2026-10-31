@@ -65,38 +65,6 @@ type CorrelationsReport struct {
 	MoodByPhase MoodByPhase
 }
 
-// enough is the menopause φ cards' minimum (Binary, CorrMinDays / CorrMinGroupDays / CorrMinOutcome).
-func enough(groups []Group) bool {
-	n, hits := 0, 0
-	for _, g := range groups {
-		if g.Days < CorrMinGroupDays {
-			return false
-		}
-		n += g.Days
-		hits += g.Hits
-	}
-	return n >= CorrMinDays && hits >= CorrMinOutcome
-}
-
-// finish is the menopause φ card rule (Binary): Cohen strength of φ, CorrMinDays.
-func (c *Correlation) finish(value float64, groups []Group) {
-	c.Groups = groups
-	for _, g := range groups {
-		c.N += g.Days
-	}
-	switch {
-	case !enough(groups):
-		c.Status = CorrNotEnoughData
-		return
-	case Strength(value) == "":
-		c.Status = CorrNoAssociation
-	default:
-		c.Status = CorrReady
-	}
-	c.Value = round(value, 2)
-	c.Strength = Strength(value)
-}
-
 // specEnough is the §4.1 minimum of a correlations-tab card (P): CorrMinPairedDays paired days, every group at
 // least CorrMinGroupDays days and the outcome at least CorrMinOutcome times.
 func specEnough(groups []Group) bool {
@@ -166,24 +134,14 @@ func ratio(num, den float64) *float64 {
 	return &v
 }
 
-// binary builds a correlations-tab card from exposed / unexposed groups (groups[0] unexposed, groups[1] exposed, the
-// order the cards draw them): §4.1 rate-ratio strength, φ as the extra value.
-func binary(key string, unexposed, exposed Group) Correlation {
-	c := Correlation{Key: key, Statistic: StatPhi}
-	phi := Phi(exposed.Hits, exposed.Days-exposed.Hits, unexposed.Hits, unexposed.Days-unexposed.Hits)
-	c.finishSpec(phi, []Group{unexposed, exposed}, exposed, unexposed)
-	if c.Status == CorrReady {
-		c.Ratio = ratio(exposed.Rate(), unexposed.Rate())
-	}
-	return c
-}
-
-// Binary is the φ card of other domains (CB-MENO-02 menopause patterns): Cohen strengths of φ and the CorrMinDays /
-// CorrMinGroupDays / CorrMinOutcome minimum, unchanged by §4.1 (the analysis tab's binary uses P).
+// Binary builds a two-group card (groups[0] unexposed, groups[1] exposed, the order the cards draw them) with the
+// §4.1 method (A-02, D-175): readiness from P (CorrMinPairedDays paired days, CorrMinGroupDays per group,
+// CorrMinOutcome outcome days), strength from the exposed ÷ unexposed rate ratio, φ kept as `value` for the
+// direction. The analysis tab's cards and the menopause patterns (CB-MENO-02, T-M10-26b) share it.
 func Binary(key string, unexposed, exposed Group) Correlation {
 	c := Correlation{Key: key, Statistic: StatPhi}
 	phi := Phi(exposed.Hits, exposed.Days-exposed.Hits, unexposed.Hits, unexposed.Days-unexposed.Hits)
-	c.finish(phi, []Group{unexposed, exposed})
+	c.finishSpec(phi, []Group{unexposed, exposed}, exposed, unexposed)
 	if c.Status == CorrReady {
 		c.Ratio = ratio(exposed.Rate(), unexposed.Rate())
 	}
@@ -283,7 +241,7 @@ func BuildCorrelations(in *Input) CorrelationsReport {
 		}
 	}
 
-	sleep := binary(CorrSleepMood, sleepOK, sleepShort)
+	sleep := Binary(CorrSleepMood, sleepOK, sleepShort)
 	sleep.Last = lastSleep
 	if sleep.Status == CorrReady {
 		switch {
@@ -311,7 +269,7 @@ func BuildCorrelations(in *Input) CorrelationsReport {
 		}
 	}
 
-	ex := binary(CorrExerciseCramps, rest, exercise)
+	ex := Binary(CorrExerciseCramps, rest, exercise)
 	ex.Last = lastExercise
 	if ex.Status == CorrReady {
 		key := "correlations.exercise_cramps.more"

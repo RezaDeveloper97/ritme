@@ -35,6 +35,9 @@ const minMax = z.object({ min: num, max: num });
 const weightGain = z
   .object({
     missing: softEnum(['baseline', 'height', 'weights']),
+    // §4.1 (T-M10-26b): weights logged in the pregnancy needed for the IOM verdict; absent on an older backend.
+    min_logs: nullableNum.optional(),
+    logs_needed: nullableNum.optional(),
     baseline: z
       .object({ weight: num, source: softEnum(['before_pregnancy', 'first_trimester', 'profile']), date: z.string().nullable() })
       .nullable(),
@@ -63,6 +66,8 @@ const weightGain = z
   })
   .transform((w) => ({
     missing: w.missing,
+    minLogs: w.min_logs ?? null,
+    logsNeeded: w.logs_needed ?? null,
     baseline: w.baseline,
     heightCm: w.height_cm,
     bmi: w.bmi,
@@ -200,6 +205,21 @@ const visits = z
     latestResult: v.latest_result,
   }));
 
+/**
+ * «مهم‌ترین یافته» (§4.1, T-M10-26b): the server's strength × recency pick, rendered
+ * server-side (`text`). Unknown kinds stay readable; a backend without it → null.
+ */
+const topFinding = z
+  .object({
+    kind: z.string().nullable().catch(null),
+    text: z.string(),
+    days_needed: nullableNum.optional(),
+  })
+  .transform((f) => ({ kind: f.kind, text: f.text, daysNeeded: f.days_needed ?? null }))
+  .nullable()
+  .optional()
+  .catch(null);
+
 export const pregnancyAnalysisSchema = z
   .object({
     pregnancy: z.object({
@@ -210,6 +230,7 @@ export const pregnancyAnalysisSchema = z
       due_date: z.string(),
       start_date: z.string(),
     }),
+    top_finding: topFinding,
     sections: z.object({
       weight_gain: section(weightGain),
       blood_pressure: section(bloodPressure),
@@ -228,6 +249,7 @@ export const pregnancyAnalysisSchema = z
       dueDate: r.pregnancy.due_date,
       startDate: r.pregnancy.start_date,
     },
+    topFinding: r.top_finding ?? null,
     sections: {
       weightGain: r.sections.weight_gain,
       bloodPressure: r.sections.blood_pressure,

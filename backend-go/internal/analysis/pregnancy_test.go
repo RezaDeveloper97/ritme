@@ -25,6 +25,16 @@ func pregLabeler(t *testing.T, locale string) func(string) string {
 	return PregnancyLabeler(own, copyFor(t, locale))
 }
 
+// pregCopy sets the labeler and the top-finding Copy the handler builds (PregnancyCopy).
+func pregCopy(t *testing.T, in *PregnancyInput, locale string) *PregnancyInput {
+	t.Helper()
+	store := i18n.NewTranslationStore(translations.FS, "")
+	in.Label = pregLabeler(t, locale)
+	in.Copy = PregnancyCopy(store.NamespaceMessages(locale, PregnancyNamespace, "fa"),
+		store.NamespaceMessages(locale, Namespace, "fa"), store.NamespaceMessages(locale, "log-taxonomy", "fa"), in.Label)
+	return in
+}
+
 func emptyPregnancy(start civildate.Date) *PregnancyInput {
 	return &PregnancyInput{
 		Today: fixtureToday, Start: start, Due: start.AddDays(280),
@@ -128,12 +138,10 @@ func TestPregnancy_Golden(t *testing.T) {
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		in := pregnancyFixtures[name]()
-		in.Label = pregLabeler(t, "fa")
+		in := pregCopy(t, pregnancyFixtures[name](), "fa")
 		golden(t, name+"_pregnancy", render(t, BuildPregnancy(in)))
 	}
-	en := fullPregnancy()
-	en.Label = pregLabeler(t, "en")
+	en := pregCopy(t, fullPregnancy(), "en")
 	golden(t, "preg_full_pregnancy_en", render(t, BuildPregnancy(en)))
 }
 

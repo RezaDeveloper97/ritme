@@ -1,4 +1,21 @@
 {
+  "top_finding": {
+    "kind": "cycle_regular",
+    "parts": [
+      {
+        "key": "findings.cycle.regular",
+        "params": {
+          "days": 3
+        },
+        "text": "چرخه‌هایت منظم‌اند (نوسان ۳ روز)."
+      }
+    ],
+    "text": "چرخه‌هایت منظم‌اند (نوسان ۳ روز).",
+    "strength": 0.3,
+    "score": 0.212,
+    "evidence_date": "2026-09-08",
+    "days_needed": null
+  },
   "trying": {
     "since": null,
     "cycles": 0,

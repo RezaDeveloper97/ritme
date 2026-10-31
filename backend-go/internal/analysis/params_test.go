@@ -27,12 +27,12 @@ func TestParams_SpecValues(t *testing.T) {
 }
 
 func TestCorrelation_PairedDaysBoundary(t *testing.T) {
-	c := binary(CorrSleepMood, Group{Key: "ok", Days: 15, Hits: 3}, Group{Key: "short", Days: 14, Hits: 7})
+	c := Binary(CorrSleepMood, Group{Key: "ok", Days: 15, Hits: 3}, Group{Key: "short", Days: 14, Hits: 7})
 	assert.Equal(t, CorrNotEnoughData, c.Status, "29 paired days")
 	assert.Equal(t, 1, c.DaysNeeded)
 	assert.Empty(t, c.Strength)
 
-	c = binary(CorrSleepMood, Group{Key: "ok", Days: 20, Hits: 5}, Group{Key: "short", Days: 10, Hits: 5})
+	c = Binary(CorrSleepMood, Group{Key: "ok", Days: 20, Hits: 5}, Group{Key: "short", Days: 10, Hits: 5})
 	assert.Equal(t, CorrReady, c.Status, "30 paired days")
 	assert.Equal(t, 0, c.DaysNeeded)
 	assert.Equal(t, StrengthStrong, c.Strength, "ratio 2.0 at 30 days")
@@ -42,7 +42,7 @@ func TestCorrelation_PairedDaysBoundary(t *testing.T) {
 }
 
 func TestCorrelation_RatioBoundary(t *testing.T) {
-	c := binary(CorrSleepMood, Group{Key: "ok", Days: 20, Hits: 5}, Group{Key: "short", Days: 40, Hits: 19})
+	c := Binary(CorrSleepMood, Group{Key: "ok", Days: 20, Hits: 5}, Group{Key: "short", Days: 40, Hits: 19})
 	assert.Equal(t, CorrReady, c.Status)
 	assert.Equal(t, StrengthMedium, c.Strength, "ratio 1.9")
 
@@ -54,17 +54,20 @@ func TestCorrelation_RatioBoundary(t *testing.T) {
 	assert.Empty(t, RatioStrength(0.29, 0.25, 30))
 	assert.Equal(t, StrengthStrong, RatioStrength(0.2, 0, 40), "an empty-rate group")
 
-	c = binary(CorrSleepMood, Group{Key: "ok", Days: 20, Hits: 5}, Group{Key: "short", Days: 20, Hits: 5})
+	c = Binary(CorrSleepMood, Group{Key: "ok", Days: 20, Hits: 5}, Group{Key: "short", Days: 20, Hits: 5})
 	assert.Equal(t, CorrNoAssociation, c.Status)
 }
 
-// Binary (menopause patterns) keeps its own φ rule.
-func TestBinary_MenopauseRuleUnchanged(t *testing.T) {
-	c := Binary("x", Group{Key: "ok", Days: 20, Hits: 2}, Group{Key: "short", Days: 20, Hits: 14})
+// Binary is one rule for the analysis tab and the menopause patterns (T-M10-26b): the old φ rule's 20 days and
+// Cohen bands are gone.
+func TestBinary_SharedRuleForMenopause(t *testing.T) {
+	c := Binary("x", Group{Key: "ok", Days: 10, Hits: 1}, Group{Key: "short", Days: 10, Hits: 5})
+	assert.Equal(t, CorrNotEnoughData, c.Status, "20 days was enough for the old φ cards")
+	assert.Equal(t, 10, c.DaysNeeded)
+	// φ ≈ 0.12 (old: weak) but a 1.5× rate difference over 40 days → medium.
+	c = Binary("x", Group{Key: "ok", Days: 20, Hits: 6}, Group{Key: "short", Days: 20, Hits: 9})
 	assert.Equal(t, CorrReady, c.Status)
-	assert.Equal(t, StrengthStrong, c.Strength)
-	c = Binary("x", Group{Key: "ok", Days: 10, Hits: 1}, Group{Key: "short", Days: 10, Hits: 5})
-	assert.Equal(t, CorrReady, c.Status, "20 days is enough for the φ cards")
+	assert.Equal(t, StrengthMedium, c.Strength)
 }
 
 func moodInput(perPhase map[string]int) (*Input, map[civildate.Date]string) {
@@ -228,7 +231,7 @@ func TestTopFinding_StrengthTimesRecency(t *testing.T) {
 func TestNudge_CorrelationDays(t *testing.T) {
 	in := ranged(emptyFixture(), Range6M)
 	corr := &CorrelationsReport{Items: []Correlation{
-		binary(CorrSleepMood, Group{Key: "sleep_6_plus", Days: 9, Hits: 2}, Group{Key: "sleep_under_6", Days: 9, Hits: 3}),
+		Binary(CorrSleepMood, Group{Key: "sleep_6_plus", Days: 9, Hits: 2}, Group{Key: "sleep_under_6", Days: 9, Hits: 3}),
 	}}
 	assert.Equal(t, 12, corr.Items[0].DaysNeeded)
 	f := BuildTopFinding(in, CycleReport{}, SymptomsReport{}, corr)

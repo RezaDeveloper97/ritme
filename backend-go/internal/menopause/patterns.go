@@ -12,9 +12,10 @@ import (
 )
 
 // Patterns (nbl_Meno_Score «الگوهایی که دیدیم — بر اساس ثبت‌های خودت · تشخیص پزشکی نیست»): associations in her own
-// logs, computed as φ cards by bloom's analysis engine (analysis.Binary) with its minimum-data rules — at least
-// analysis.CorrMinDays paired days, analysis.CorrMinGroupDays days in each group and analysis.CorrMinOutcome
-// outcome days — and Cohen strengths. Never causal, never a diagnosis; the sentences are flagged needs_review.
+// logs, built with the analysis tab's §4.1 method (analysis.Binary, D-175, T-M10-26b) — at least
+// analysis.P.CorrMinPairedDays paired days, analysis.P.CorrMinGroupDays days in each group and
+// analysis.P.CorrMinOutcome outcome days; strength from the with ÷ without rate ratio (strong = 30 days and ≥ 2×).
+// Never causal, never a diagnosis; the sentences are flagged needs_review.
 const (
 	// PatternWindowDays is how far back the patterns read (today included).
 	PatternWindowDays = 90

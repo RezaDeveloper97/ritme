@@ -11,3 +11,15 @@ entries:
     where: data.checkups[*].label
     deviation: D-172
     reason: new checkup item key (additive)
+  # D-175 (task T-M10-26b, engine v6 M10, follow-up of T-M10-26; SPEC v6 §4.1): the menopause patterns use the analysis
+  # tab's correlation method — 30 paired days (was 20) and strength from the with ÷ without rate ratio (strong =
+  # 30 days and ≥ 2×; was Cohen bands of φ). The fixture persona has 4 logged days, so only the advertised minimum
+  # changes in these goldens; strength would differ only for cards with enough data.
+  - case: "patterns*"
+    where: data.min_days
+    deviation: D-175
+    reason: correlation minimum 30 paired days (was 20)
+  - case: "patterns*"
+    where: data.items[*].strength
+    deviation: D-175
+    reason: strength from the group-rate ratio (A-02), not φ's Cohen bands

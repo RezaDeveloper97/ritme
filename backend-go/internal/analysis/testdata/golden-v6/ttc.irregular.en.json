@@ -1,6 +1,24 @@
 {
   "success": true,
   "data": {
+    "top_finding": {
+      "kind": "cycle_irregular",
+      "parts": [
+        {
+          "key": "findings.cycle.irregular",
+          "params": {
+            "days": 17,
+            "limit": 7
+          },
+          "text": "Your cycle length varied by 17 days, more than the regular range (\u22647 days)."
+        }
+      ],
+      "text": "Your cycle length varied by 17 days, more than the regular range (\u22647 days).",
+      "strength": 0.8,
+      "score": 0.566,
+      "evidence_date": "2026-09-08",
+      "days_needed": null
+    },
     "trying": {
       "since": null,
       "cycles": 0,

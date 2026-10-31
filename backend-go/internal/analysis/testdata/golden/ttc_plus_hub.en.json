@@ -1,4 +1,23 @@
 {
+  "top_finding": {
+    "kind": "ttc_mucus",
+    "parts": [
+      {
+        "key": "ttc.mucus.one",
+        "params": {
+          "cycles": 4,
+          "min": 1,
+          "max": 1
+        },
+        "text": "Cycles with “egg-white” mucus 1 day(s) before estimated ovulation: 4."
+      }
+    ],
+    "text": "Cycles with “egg-white” mucus 1 day(s) before estimated ovulation: 4.",
+    "strength": 0.4,
+    "score": 0.382,
+    "evidence_date": "2026-09-21",
+    "days_needed": null
+  },
   "trying": {
     "since": "2026-06-17",
     "cycles": 4,

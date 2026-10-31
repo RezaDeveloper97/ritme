@@ -16,25 +16,12 @@ import (
 //   - a binary outcome across the four phases (high energy × phase, good mood × phase): Cramér's V =
 //     √(χ² / (n·(min(r, c) − 1))) = √(χ² / n) for a 2 × k table, unsigned.
 //
-// Strength uses Cohen's conventions for both: |r| ≥ 0.5 strong, ≥ 0.3 medium, ≥ 0.1 weak, below that
-// no association (not shown as a finding).
+// Strength is not read from r: §4.1 grades an association by the group-rate ratio (RatioStrength, A-02); φ and V
+// stay in the payload as `value` (φ's sign gives the direction).
 const (
 	StrengthStrong = "strong"
 	StrengthMedium = "medium"
 	StrengthWeak   = "weak"
-
-	strongMin = 0.5
-	mediumMin = 0.3
-	weakMin   = 0.1
-)
-
-// Minimum data for an association: at least CorrMinDays paired days, every compared group (exposed /
-// unexposed, or each phase) at least CorrMinGroupDays days, and the outcome logged at least
-// CorrMinOutcome times (a table with a handful of hits says nothing).
-const (
-	CorrMinDays      = 20
-	CorrMinGroupDays = 5
-	CorrMinOutcome   = 3
 )
 
 // Statistic names in the payload.
@@ -42,20 +29,6 @@ const (
 	StatPhi      = "phi"
 	StatCramersV = "cramers_v"
 )
-
-// Strength classifies |r| ("" = no association).
-func Strength(r float64) string {
-	a := math.Abs(r)
-	switch {
-	case a >= strongMin:
-		return StrengthStrong
-	case a >= mediumMin:
-		return StrengthMedium
-	case a >= weakMin:
-		return StrengthWeak
-	}
-	return ""
-}
 
 // Phi is the phi coefficient of the 2 × 2 table [[a, b], [c, d]] (rows exposed / unexposed, columns
 // outcome / no outcome); 0 when a margin is empty.

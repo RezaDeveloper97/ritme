@@ -45,10 +45,31 @@ type Phrase struct {
 // key + params); a missing label falls back to the code.
 type Copy struct {
 	ns, taxonomy any
+	// fallback is read for a path ns lacks (the pregnancy copy borrows the analysis format.* digits); label, when
+	// set, names symptom args instead of SymptomLabel.
+	fallback any
+	label    func(string) string
 }
 
 // NewCopy wraps the two namespaces.
 func NewCopy(analysisNS, taxonomyNS any) *Copy { return &Copy{ns: analysisNS, taxonomy: taxonomyNS} }
+
+// WithFallback reads a path missing from the copy's namespace from fallbackNS (T-M10-26b: the pregnancy top
+// finding renders from analysis-pregnancy with the analysis namespace's number format).
+func (c *Copy) WithFallback(fallbackNS any) *Copy {
+	if c != nil {
+		c.fallback = fallbackNS
+	}
+	return c
+}
+
+// WithLabels names symptom args with label (nil keeps SymptomLabel).
+func (c *Copy) WithLabels(label func(string) string) *Copy {
+	if c != nil {
+		c.label = label
+	}
+	return c
+}
 
 func getString(ns any, path string) (string, bool) {
 	if v, ok := phpval.Get(ns, path); ok {
@@ -65,6 +86,11 @@ func (c *Copy) text(path, fallback string) string {
 	}
 	if s, ok := getString(c.ns, path); ok {
 		return s
+	}
+	if c.fallback != nil {
+		if s, ok := getString(c.fallback, path); ok {
+			return s
+		}
 	}
 	return fallback
 }
@@ -121,6 +147,9 @@ func (c *Copy) Number(v any) string {
 func (c *Copy) arg(a Arg) string {
 	switch a.kind {
 	case argSymptom:
+		if c.label != nil {
+			return c.label(a.Value.(string))
+		}
 		return c.SymptomLabel(a.Value.(string))
 	case argPhase:
 		p := a.Value.(string)

@@ -32,6 +32,7 @@
     "dot": " · ",
     "none": "—",
     "footnote": "These trends are for tracking, not a medical diagnosis. Bring any concern to your doctor or midwife.",
+    "topFinding": "Top finding",
     "weight": {
       "title": "Weight gain",
       "sub": "Pre-pregnancy BMI {bmi} · total target {min}–{max} kg (IOM)",
@@ -46,7 +47,8 @@
         "baseline": "We don't have your pre-pregnancy weight. Add your weight in your profile or daily log to see your gain.",
         "height": "Add your height in your profile to work out your BMI and recommended range.",
         "weights": "You haven't logged a weight during pregnancy yet. Log one and the trend shows here."
-      }
+      },
+      "notEnough": "To compare with the recommended range, you need at least {min} weights logged in pregnancy; log {left} more."
     },
     "bp": {
       "title": "Blood pressure",
@@ -101,6 +103,25 @@
       "result": "{title}: {note}",
       "empty": "No visits yet. Add them from your pregnancy calendar."
     }
+  },
+  "findings": {
+    "bp": {
+      "severe": "You logged a blood pressure of {sys}/{dia} or higher. Call your doctor or midwife today.",
+      "high": "You logged {n} readings of {sys}/{dia} or higher. This isn't a diagnosis; talk it over with your doctor or midwife."
+    },
+    "gain": {
+      "above": "Your weight gain up to week {week} is {gain} kg, above this week's recommended range ({min}–{max} kg).",
+      "below": "Your weight gain up to week {week} is {gain} kg, below this week's recommended range ({min}–{max} kg).",
+      "within": "Your weight gain up to week {week} is {gain} kg, within this week's recommended range ({min}–{max} kg)."
+    },
+    "glucose_above": {
+      "fasting": "Your average fasting sugar is {avg}, above the target (under {target}). Talk it over with your doctor.",
+      "one_hour": "Your average sugar one hour after meals is {avg}, above the target (under {target}). Talk it over with your doctor.",
+      "two_hour": "Your average sugar two hours after meals is {avg}, above the target (under {target}). Talk it over with your doctor."
+    },
+    "symptom_top": "This trimester, {symptom} is the symptom you logged most often ({days} days).",
+    "not_enough_days": "Log your weight on {days} more days to see your top finding.",
+    "keep_logging": "Log your weight, blood pressure and symptoms to see your top pregnancy finding here."
   },
   "weight": {
     "title": "Pregnancy weight gain",

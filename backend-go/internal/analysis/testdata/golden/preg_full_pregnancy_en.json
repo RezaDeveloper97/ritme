@@ -7,6 +7,26 @@
     "due_date": "2026-11-27",
     "start_date": "2026-02-20"
   },
+  "top_finding": {
+    "kind": "preg_gain_within",
+    "parts": [
+      {
+        "key": "findings.gain.within",
+        "params": {
+          "week": 31,
+          "gain": 8.4,
+          "min": 7.5,
+          "max": 11
+        },
+        "text": "Your weight gain up to week 31 is 8.4 kg, within this week's recommended range (7.5–11 kg)."
+      }
+    ],
+    "text": "Your weight gain up to week 31 is 8.4 kg, within this week's recommended range (7.5–11 kg).",
+    "strength": 0.3,
+    "score": 0.28,
+    "evidence_date": "2026-09-20",
+    "days_needed": null
+  },
   "sections": {
     "weight_gain": {
       "plus": false,
@@ -14,6 +34,8 @@
       "ready": true,
       "data": {
         "missing": null,
+        "min_logs": 2,
+        "logs_needed": 0,
         "baseline": {
           "weight": 60,
           "source": "before_pregnancy",

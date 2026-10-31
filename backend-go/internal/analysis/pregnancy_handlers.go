@@ -141,11 +141,20 @@ func PregnancyLabeler(own any, cp *Copy) func(string) string {
 	}
 }
 
-func (h *PregnancyHandlers) labeler(c fiber.Ctx) func(string) string {
+// copies are the symptom labeler and the top-finding Copy (analysis-pregnancy templates, the analysis number format).
+func (h *PregnancyHandlers) copies(c fiber.Ctx) (func(string) string, *Copy) {
 	locale, def := i18n.Locale(c), h.languages.DefaultCode(c.Context())
-	return PregnancyLabeler(h.bundles.NamespaceMessages(locale, PregnancyNamespace, def),
-		NewCopy(h.bundles.NamespaceMessages(locale, Namespace, def),
-			h.bundles.NamespaceMessages(locale, healthlog.TaxonomyNamespace, def)))
+	own := h.bundles.NamespaceMessages(locale, PregnancyNamespace, def)
+	analysisNS := h.bundles.NamespaceMessages(locale, Namespace, def)
+	taxonomy := h.bundles.NamespaceMessages(locale, healthlog.TaxonomyNamespace, def)
+	label := PregnancyLabeler(own, NewCopy(analysisNS, taxonomy))
+	return label, PregnancyCopy(own, analysisNS, taxonomy, label)
+}
+
+// PregnancyCopy renders the pregnancy top finding: templates from the pregnancy namespace, digits from the
+// analysis namespace, symptom names from label.
+func PregnancyCopy(own, analysisNS, taxonomy any, label func(string) string) *Copy {
+	return NewCopy(own, taxonomy).WithFallback(analysisNS).WithLabels(label)
 }
 
 // Pregnancy is GET /analysis/pregnancy: 409 pregnancy_not_active when pregnancy mode is off or undated.
@@ -174,8 +183,9 @@ func (h *PregnancyHandlers) Pregnancy(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	label, cp := h.copies(c)
 	in := &PregnancyInput{
-		Today: today, Start: d.Start(), Due: d.Due, DeepAnalysis: ent.Allowed, Label: h.labeler(c),
+		Today: today, Start: d.Start(), Due: d.Due, DeepAnalysis: ent.Allowed, Label: label, Copy: cp,
 		Weights: map[civildate.Date]float64{}, BP: map[civildate.Date]BPReading{},
 		Symptoms: map[civildate.Date]map[string]bool{}, Kicks: map[civildate.Date]KickSession{},
 	}

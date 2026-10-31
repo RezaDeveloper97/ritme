@@ -6,12 +6,12 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatDayMonth, formatDecimal, formatNumber, fromApiDate, weekdayKeys, weekdayLabels } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
-import { EmptyState, InfoNote, PrimaryButton, SecondaryButton, Skeleton, SkeletonGroup, StatusPill } from '@/shared/ui';
+import { EmptyState, Icon, InfoNote, PrimaryButton, SecondaryButton, Skeleton, SkeletonGroup, StatusPill } from '@/shared/ui';
 import { ColumnChart } from '@/widgets/charts';
 
 import { isPregnancyInactive, usePregnancyAnalysis } from '../api/queries';
-import type { PregnancySections } from '../api/schema';
-import { gainUntilWeek, tileItems, weekdayKeyOf } from '../model/chart';
+import type { PregnancyAnalysis, PregnancySections } from '../api/schema';
+import { gainUntilWeek, tileItems, weekdayKeyOf, weightNote } from '../model/chart';
 import { BpChartView } from './BpChartView';
 import { GainChartView } from './GainChartView';
 import { PregCard } from './PregCard';
@@ -77,9 +77,33 @@ function WeightCard({ s, t, week }: { s: PregnancySections['weightGain']; t: T; 
           <GainChartView data={w} height={130} />
         </>
       ) : (
-        <p className="an-card-note">{t(`weight.missing.${w?.missing ?? 'weights'}`)}</p>
+        <p className="an-card-note">{weightNoteText(w, t, num)}</p>
       )}
     </PregCard>
+  );
+}
+
+/** The weight card's not-ready line (the hub and `/analysis/pregnancy-weight`). */
+export function weightNoteText(w: PregnancySections['weightGain']['data'], t: T, num: (n: number) => string): string {
+  const note = weightNote(w);
+  return note.kind === 'notEnough'
+    ? t('weight.notEnough', { min: num(note.min), left: num(note.left) })
+    : t(`weight.missing.${note.reason}`);
+}
+
+/** «مهم‌ترین یافته» (§4.1, T-M10-26b): the server's strength × recency pick, the same card as the cycle hub. */
+function TopFindingCard({ finding, t }: { finding: PregnancyAnalysis['topFinding']; t: T }) {
+  if (!finding?.text) return null;
+  return (
+    <section className="an-finding-card" aria-labelledby="apg-finding-title">
+      <Icon name="sparkle" size={20} className="an-finding-icon" />
+      <div>
+        <h2 id="apg-finding-title" className="an-finding-title">
+          {t('topFinding')}
+        </h2>
+        <p className="an-finding-text">{finding.text}</p>
+      </div>
+    </section>
   );
 }
 
@@ -320,6 +344,7 @@ export function AnalysisPregnancyHub() {
     const s = r.sections;
     body = (
       <div className="an-content">
+        <TopFindingCard finding={r.topFinding} t={t} />
         <WeightCard s={s.weightGain} t={t} week={r.pregnancy.week} />
         <BloodPressureCard s={s.bloodPressure} t={t} />
         <GlucoseCard s={s.glucose} t={t} />

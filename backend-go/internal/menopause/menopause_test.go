@@ -251,18 +251,42 @@ func TestBuildPatterns(t *testing.T) {
 	assert.Equal(t, DirectionMore, ns.Direction())
 	assert.InDelta(t, 1.0, ns.Value, 0.001)
 
-	// too few days: the engine's minimum (analysis.CorrMinDays) holds the cards back
-	logs, flashes = patternLogs(analysis.CorrMinDays - 1)
+	// too few days: the §4.1 minimum (analysis.P.CorrMinPairedDays = 30) holds the cards back at 29
+	logs, flashes = patternLogs(analysis.P.CorrMinPairedDays - 1)
 	for _, p := range BuildPatterns(logs, flashes, LogTriggers()) {
 		assert.Equal(t, analysis.CorrNotEnoughData, p.Status, p.Key)
 		assert.False(t, p.Found())
 		assert.Empty(t, p.Direction())
+		assert.Equal(t, 29, p.N, p.Key)
+		assert.Equal(t, 1, p.DaysNeeded, p.Key)
 	}
 
 	// no logs at all: only the night-sweats card, not enough data
 	ps = BuildPatterns(map[civildate.Date]LogDay{}, nil, LogTriggers())
 	require.Len(t, ps, 1)
 	assert.Equal(t, analysis.CorrNotEnoughData, ps[0].Status)
+}
+
+// The patterns grade with the shared §4.1 rate ratio (T-M10-26b), not φ's Cohen bands: φ ≈ 0.19 here would have
+// been "weak" before; a 1.6× rate difference over 40 days is medium, 2.5× strong, 1.1× no association.
+func TestPatternsRateRatio(t *testing.T) {
+	g := func(days, hits int) analysis.Group { return analysis.Group{Days: days, Hits: hits} }
+	c := analysis.Binary(PatternNightSweatsFatigue, g(20, 5), g(20, 8)) // 0.40 ÷ 0.25 = 1.6×
+	assert.Equal(t, analysis.CorrReady, c.Status)
+	assert.Equal(t, analysis.StrengthMedium, c.Strength)
+	require.NotNil(t, c.Ratio)
+	assert.InDelta(t, 1.6, *c.Ratio, 0.001)
+
+	c = analysis.Binary(PatternNightSweatsFatigue, g(20, 4), g(20, 10)) // 2.5×, 40 paired days
+	assert.Equal(t, analysis.StrengthStrong, c.Strength)
+
+	c = analysis.Binary(PatternNightSweatsFatigue, g(20, 10), g(20, 11)) // 1.1×
+	assert.Equal(t, analysis.CorrNoAssociation, c.Status)
+	assert.Empty(t, c.Strength)
+
+	// exactly 30 paired days is enough; 29 is not
+	assert.Equal(t, analysis.CorrReady, analysis.Binary(PatternNightSweatsFatigue, g(15, 2), g(15, 9)).Status)
+	assert.Equal(t, analysis.CorrNotEnoughData, analysis.Binary(PatternNightSweatsFatigue, g(14, 2), g(15, 9)).Status)
 }
 
 func TestSweatyNightWindow(t *testing.T) {

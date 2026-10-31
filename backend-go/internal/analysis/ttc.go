@@ -560,39 +560,47 @@ func (r TTCReport) timingCard() Section {
 	})
 }
 
+// mucusLeads are the egg-white leads of the analysed cycles with an ovulation day so far, and their count.
+func (r TTCReport) mucusLeads() (leads []int, analysed int) {
+	for _, c := range r.Cycles {
+		if c.OvulationDay == 0 || c.OvulationDay > c.Days {
+			continue
+		}
+		analysed++
+		if c.MucusLead != nil {
+			leads = append(leads, *c.MucusLead)
+		}
+	}
+	return leads, analysed
+}
+
+// mucusPhrase is the mucus card's sentence.
+func (r TTCReport) mucusPhrase() Phrase {
+	leads, _ := r.mucusLeads()
+	if len(leads) == 0 {
+		return Phrase{Key: "ttc.mucus.none"}
+	}
+	mn, mx := slices.Min(leads), slices.Max(leads)
+	args := []Arg{Num("cycles", len(leads)), Num("min", mn), Num("max", mx)}
+	switch {
+	case mx == 0:
+		return Phrase{Key: "ttc.mucus.same_day", Args: args}
+	case mn == mx:
+		return Phrase{Key: "ttc.mucus.one", Args: args}
+	case mn == 0:
+		return Phrase{Key: "ttc.mucus.up_to", Args: args}
+	}
+	return Phrase{Key: "ttc.mucus.range", Args: args}
+}
+
 // mucusCard: in how many cycles egg-white mucus came before ovulation, and how many days before (Plus).
 func (r TTCReport) mucusCard() Section {
 	return plusSection(r.in.DeepAnalysis, func() (bool, any) {
-		var leads []int
-		analysed := 0
-		for _, c := range r.Cycles {
-			if c.OvulationDay == 0 || c.OvulationDay > c.Days {
-				continue
-			}
-			analysed++
-			if c.MucusLead != nil {
-				leads = append(leads, *c.MucusLead)
-			}
-		}
-		var text Phrase
+		leads, analysed := r.mucusLeads()
+		text := r.mucusPhrase()
 		var lo, hi any
-		switch {
-		case len(leads) == 0:
-			text = Phrase{Key: "ttc.mucus.none"}
-		default:
-			mn, mx := slices.Min(leads), slices.Max(leads)
-			lo, hi = mn, mx
-			args := []Arg{Num("cycles", len(leads)), Num("min", mn), Num("max", mx)}
-			switch {
-			case mx == 0:
-				text = Phrase{Key: "ttc.mucus.same_day", Args: args}
-			case mn == mx:
-				text = Phrase{Key: "ttc.mucus.one", Args: args}
-			case mn == 0:
-				text = Phrase{Key: "ttc.mucus.up_to", Args: args}
-			default:
-				text = Phrase{Key: "ttc.mucus.range", Args: args}
-			}
+		if len(leads) > 0 {
+			lo, hi = slices.Min(leads), slices.Max(leads)
 		}
 		return len(leads) > 0, jsonx.Obj(
 			"cycles_with_egg_white", len(leads),
@@ -704,6 +712,7 @@ func (r TTCReport) JSON() *jsonx.OrderedMap {
 		cycles = append(cycles, c.summaryJSON())
 	}
 	return jsonx.Obj(
+		"top_finding", r.TopFinding().JSON(r.in.Copy),
 		"trying", r.tryingJSON(),
 		"bbt", r.bbtCard().JSON(),
 		"lh", r.lhCard().JSON(),

@@ -20,6 +20,7 @@ import type {
   TtcMucus,
   TtcRegularity,
   TtcTiming,
+  TtcTopFinding,
   TtcTrying,
 } from '../model/types';
 
@@ -170,16 +171,28 @@ const cycleSummarySchema: Parser<TtcCycleSummary> = z
     lutealDays: c.luteal_days,
   }));
 
-export const ttcHubSchema: Parser<TtcHub> = z.object({
-  trying: tryingSchema,
-  bbt: sectionSchema(bbtSchema),
-  lh: sectionSchema(lhSchema),
-  timing: sectionSchema(timingSchema),
-  mucus: sectionSchema(mucusSchema),
-  luteal: sectionSchema(lutealSchema),
-  regularity: sectionSchema(regularitySchema),
-  cycles: z.array(cycleSummarySchema),
-});
+/** «مهم‌ترین یافته» (§4.1, T-M10-26b): rendered server-side; a backend without it → null. */
+const topFindingSchema: Parser<TtcTopFinding | null> = z
+  .object({ kind: z.string().nullable().catch(null), text: z.string(), days_needed: nullableNum.optional() })
+  .transform((f) => ({ kind: f.kind, text: f.text, daysNeeded: f.days_needed ?? null }))
+  .nullable()
+  .optional()
+  .catch(null)
+  .transform((f) => f ?? null);
+
+export const ttcHubSchema: Parser<TtcHub> = z
+  .object({
+    top_finding: topFindingSchema,
+    trying: tryingSchema,
+    bbt: sectionSchema(bbtSchema),
+    lh: sectionSchema(lhSchema),
+    timing: sectionSchema(timingSchema),
+    mucus: sectionSchema(mucusSchema),
+    luteal: sectionSchema(lutealSchema),
+    regularity: sectionSchema(regularitySchema),
+    cycles: z.array(cycleSummarySchema),
+  })
+  .transform(({ top_finding, ...hub }) => ({ ...hub, topFinding: top_finding }));
 
 export const fertilityCycleSchema: Parser<FertilityCycle> = z
   .object({

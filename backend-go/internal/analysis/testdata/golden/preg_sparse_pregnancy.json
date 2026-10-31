@@ -7,6 +7,25 @@
     "due_date": "2027-01-31",
     "start_date": "2026-04-26"
   },
+  "top_finding": {
+    "kind": "preg_bp_high",
+    "parts": [
+      {
+        "key": "findings.bp.high",
+        "params": {
+          "n": 1,
+          "sys": 140,
+          "dia": 90
+        },
+        "text": "۱ بار فشار ۱۴۰/۹۰ یا بالاتر ثبت کرده‌ای. این تشخیص نیست؛ با پزشک یا ماما در میانش بگذار."
+      }
+    ],
+    "text": "۱ بار فشار ۱۴۰/۹۰ یا بالاتر ثبت کرده‌ای. این تشخیص نیست؛ با پزشک یا ماما در میانش بگذار.",
+    "strength": 0.9,
+    "score": 0.859,
+    "evidence_date": "2026-09-21",
+    "days_needed": null
+  },
   "sections": {
     "weight_gain": {
       "plus": false,
@@ -14,6 +33,8 @@
       "ready": false,
       "data": {
         "missing": "height",
+        "min_logs": 2,
+        "logs_needed": 0,
         "baseline": {
           "weight": 72,
           "source": "profile",

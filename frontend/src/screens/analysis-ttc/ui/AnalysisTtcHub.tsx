@@ -10,6 +10,7 @@ import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
 import {
   EmptyState,
+  Icon,
   LineChart,
   PrimaryButton,
   ProgressRing,
@@ -67,6 +68,29 @@ function TryingCard({ trying }: { trying: TtcHub['trying'] }) {
           <span className="ttc-an-ring-unit">{t('trying.unit')}</span>
         </ProgressRing>
       ) : null}
+    </section>
+  );
+}
+
+/**
+ * «مهم‌ترین یافته» (§4.1, T-M10-26b): the same card and scorer as the cycle hub; the heading names what was analysed
+ * (the trying cycles, or the TTC analysis before the first TTC log).
+ */
+function TopFindingCard({ hub }: { hub: TtcHub }) {
+  const t = useTranslations('analysis.ttc.ui');
+  const tHub = useTranslations('analysis.hub');
+  const f = hub.topFinding;
+  if (!f?.text) return null;
+  const scope = hub.trying.since != null ? t('trying.title', { n: hub.trying.cycles }) : t('trying.startTitle');
+  return (
+    <section className="an-finding-card" aria-labelledby="ttc-an-finding-title">
+      <Icon name="sparkle" size={20} className="an-finding-icon" />
+      <div>
+        <h2 id="ttc-an-finding-title" className="an-finding-title">
+          {tHub('topFinding', { range: scope })}
+        </h2>
+        <p className="an-finding-text">{f.text}</p>
+      </div>
     </section>
   );
 }
@@ -314,6 +338,7 @@ export function AnalysisTtcHub() {
   } else {
     body = (
       <div className="an-content">
+        <TopFindingCard hub={hub} />
         <TryingCard trying={hub.trying} />
         <BbtCard section={hub.bbt} />
         <LhCard section={hub.lh} />

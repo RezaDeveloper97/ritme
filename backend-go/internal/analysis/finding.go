@@ -104,14 +104,20 @@ const (
 )
 
 // findingOrder breaks score ties.
+// The TTC and pregnancy kinds (finding_hubs.go) slot in by their strength.
 var findingOrder = []string{
-	FindingCycleFrequent, FindingCycleInfrequent, FindingPeriodProlonged, FindingCycleIrregular,
-	FindingCorrelation, FindingPattern, FindingMoodByPhase, FindingCycleRegular,
+	FindingPregBPSevere, FindingCycleFrequent, FindingCycleInfrequent, FindingPregBPHigh, FindingPeriodProlonged,
+	FindingCycleIrregular, FindingCorrelation, FindingPregGainAbove, FindingPregGainBelow,
+	FindingPregGlucoseAbove, FindingPattern, FindingTTCMucus, FindingPregSymptomTop, FindingMoodByPhase,
+	FindingCycleRegular, FindingPregGainWithin,
 }
 
 var findingStrength = map[string]float64{
 	FindingCycleFrequent: 1, FindingCycleInfrequent: 1, FindingPeriodProlonged: 0.9, FindingCycleIrregular: 0.8,
 	FindingMoodByPhase: 0.4, FindingCycleRegular: 0.3,
+	// TTC / pregnancy hubs (finding_hubs.go)
+	FindingPregBPSevere: 1, FindingPregBPHigh: 0.9, FindingPregGainAbove: 0.7,
+	FindingPregGainBelow: 0.7, FindingPregGlucoseAbove: 0.6, FindingPregGainWithin: 0.3,
 }
 
 var correlationStrength = map[string]float64{StrengthStrong: 0.7, StrengthMedium: 0.5, StrengthWeak: 0.3}
