@@ -16,11 +16,15 @@ import (
 // Engine view and simulator (bloom B-N9-06): GET /messages/rules/engine lists the live rules per placement in the
 // engine's order with conflict counts; POST /messages/rules/simulate runs the pure engine over synthetic facts
 // (no database writes, no real user data) and returns the winner and the evaluation trace per placement. A real
-// user's facts are only reachable through the audited /messages/rules/preview.
+// user's facts are only reachable through the audited /messages/rules/preview and, since T-M10-11, the v6 simulator
+// POST /messages/simulate (simulate.go: health-access grant + audit, real facts and history, every slot's winners and
+// dropped candidates). GET /messages/rules/conflicts lists every conflicting pair (conflicts.go, check v2).
 
 func (h *Handlers) engineRoutes(route func(method, path string, chain httpadmin.Chain), kit *httpadmin.Kit) {
 	route(fiber.MethodGet, "/messages/rules/engine", kit.Admin(h.EngineView))
 	route(fiber.MethodPost, "/messages/rules/simulate", kit.Admin(h.Simulate))
+	route(fiber.MethodGet, "/messages/rules/conflicts", kit.Admin(h.ConflictPairs)) // T-M10-11: every pair, v2
+	route(fiber.MethodPost, "/messages/simulate", kit.Admin(h.SimulateV6))          // T-M10-11: real user or synthetic
 }
 
 func (h *Handlers) activeByPlacement(c fiber.Ctx, only []string) (map[string][]rules.Rule, map[uint64]string, error) {
@@ -82,8 +86,9 @@ type simulateBody struct {
 	Placements []string       `json:"placements"`
 }
 
-// Simulate is POST /messages/rules/simulate {facts, at?, user_id?, placements?}. user_id only seeds the stable A/B
-// and audience buckets (no data is read for it). History is empty: caps and cooldown never trigger.
+// Simulate is POST /messages/rules/simulate {facts, at?, user_id?, placements?} (pre-v6, kept for the current
+// admin-web screen; the v6 simulator is SimulateV6). user_id only seeds the stable A/B and audience buckets (no data is
+// read for it). History is empty: caps and cooldown never trigger.
 func (h *Handlers) Simulate(c fiber.Ctx) error {
 	var b simulateBody
 	if err := json.Unmarshal(c.Body(), &b); err != nil {

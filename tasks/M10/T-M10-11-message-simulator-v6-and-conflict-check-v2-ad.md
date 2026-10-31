@@ -3,10 +3,10 @@ id: T-M10-11
 title: Message simulator v6 and conflict check v2 (admin API)
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-06]
 parallel_group: M10-B
-touches: [backend-go/internal/admin/messages/engine.go, backend-go/internal/admin/messages/simulate.go, backend-go/internal/admin/messages/conflicts.go, backend-go/internal/messages/rules/explain.go, backend-go/internal/messages/rules/conflicts.go, backend-go/internal/messages/rules/validate.go]
+touches: [backend-go/internal/admin/messages/engine.go, backend-go/internal/admin/messages/simulate.go, backend-go/internal/admin/messages/conflicts.go, backend-go/internal/messages/rules/explain.go, backend-go/internal/messages/rules/conflicts.go, backend-go/internal/messages/rules/validate.go, backend-go/internal/messages/rules/conflicts_test.go, backend-go/internal/messages/rules/simulate_slot_test.go, backend-go/internal/admin/messages/simulate_int_test.go, backend-go/internal/messages/handlers.go, backend-go/internal/admin/messages/rules.go, docs/go-migration/admin-api.md, docs/engine-v6/gap/03-message-engine.md]
 skills: []
 verify: cd backend-go && go vet ./... && go test ./internal/messages/... ./internal/admin/messages/... && make test-int PKG=./internal/admin/messages/...
 ---

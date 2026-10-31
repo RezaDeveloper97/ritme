@@ -112,3 +112,54 @@ func Simulate(all []Rule, facts Facts, userID uint64, now time.Time, h History) 
 	}
 	return out, nil
 }
+
+// SimulateSlot is the simulator's view of one slot (T-M10-11, SPEC §5.4.1): the feed's winners — SelectSlot over the
+// slot's rules whose assigned variant renders with f (the feed skips a winner with an unfilled {variable}, T-M10-06),
+// so a dropped unrenderable rule never changes who wins — and every other candidate with the first reason that
+// dropped it: a SelectSlot reason (SelectionReasons, inactive, not_approved), or missing_variable for a rule that
+// passed every gate but whose text cannot render. Dropped follows all's order. It is pure (no writes); h may be nil.
+func SimulateSlot(slot string, all []Rule, f Facts, h *UserHistory, userID uint64, now time.Time) ([]Choice, []Dropped) {
+	_, gated := SelectSlot(slot, all, f, h, userID, now)
+	gate := make(map[uint64]string, len(gated))
+	for _, d := range gated {
+		gate[d.RuleID] = d.Reason
+	}
+	pool := make([]Rule, 0, len(all))
+	unrenderable := map[uint64]bool{}
+	for i := range all {
+		r := &all[i]
+		if !candidateOf(slot, r.Placement) {
+			continue
+		}
+		if _, ok := RenderVariant(r.VariantContent(r.Assign(userID)), f); ok {
+			pool = append(pool, *r)
+		} else {
+			unrenderable[r.ID] = true
+		}
+	}
+	winners, dropped := SelectSlot(slot, pool, f, h, userID, now)
+	why := make(map[uint64]string, len(dropped))
+	for _, d := range dropped {
+		why[d.RuleID] = d.Reason
+	}
+	won := make(map[uint64]bool, len(winners))
+	for _, w := range winners {
+		won[w.Rule.ID] = true
+	}
+	out := make([]Dropped, 0, len(all)-len(winners))
+	for i := range all {
+		r := &all[i]
+		if !candidateOf(slot, r.Placement) || won[r.ID] {
+			continue
+		}
+		reason := why[r.ID]
+		if unrenderable[r.ID] {
+			reason = gate[r.ID]
+			if reason == "" || reason == ReasonCapacity {
+				reason = ReasonMissingVariable
+			}
+		}
+		out = append(out, Dropped{RuleID: r.ID, Reason: reason})
+	}
+	return winners, out
+}

@@ -742,9 +742,8 @@ func bands() *jsonx.OrderedMap {
 
 func conflictJSON(cs []rules.Conflict, titles map[uint64]string) []*jsonx.OrderedMap {
 	out := make([]*jsonx.OrderedMap, 0, len(cs))
-	for _, c := range cs {
-		out = append(out, jsonx.Obj("rule_id", c.RuleID, "title", titles[c.RuleID], "priority", c.Priority, "kind", c.Kind,
-			"winner", c.Winner, "safety", c.Safety))
+	for i := range cs {
+		out = append(out, ConflictV2JSON(&cs[i], titles[cs[i].RuleID]))
 	}
 	return out
 }

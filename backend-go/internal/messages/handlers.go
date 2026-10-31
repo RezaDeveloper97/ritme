@@ -91,6 +91,15 @@ func (h *Handlers) UserToday(ctx context.Context, userID uint64, now time.Time) 
 	return civildate.FromTime(now.In(usertz.ZoneOf(name))), nil
 }
 
+// UserZone is userID's stored zone (user_profiles.timezone; Tehran when none) — the admin simulator (T-M10-11).
+func (h *Handlers) UserZone(ctx context.Context, userID uint64) (*time.Location, error) {
+	name, err := h.zones.GetUserTimezone(ctx, userID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("messages: user zone: %w", err)
+	}
+	return usertz.ZoneOf(name), nil
+}
+
 // request is one request's manager and its source.
 func (h *Handlers) request(c fiber.Ctx) (*manager.Manager, *StoreSource, string, civildate.Date, error) {
 	return h.requestOf(c, false)
