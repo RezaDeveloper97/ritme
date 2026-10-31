@@ -8,7 +8,7 @@ import { api, pagedSchema, type QueryValue } from '@/shared/api';
 /** Smart messages v2 — rule-based messages (admin-api.md §22, B-N9-05, D-86). */
 
 export const LEVELS = ['info', 'suggestion', 'worth_followup', 'follow_soon'] as const;
-export const KINDS = ['safety', 'engine', 'clinical', 'product'] as const;
+export const KINDS = ['safety', 'engine', 'clinical', 'content', 'product', 'marketing'] as const;
 export const STATUSES = ['draft', 'pending_approval', 'approved'] as const;
 
 const variantSchema = z.object({
@@ -23,6 +23,12 @@ const conditionSchema = z.object({ fact: z.string(), op: z.string(), value: z.un
 export type Condition = z.infer<typeof conditionSchema>;
 const groupSchema = z.object({ op: z.enum(['and', 'or']), items: z.array(conditionSchema).default([]) });
 export type Group = z.infer<typeof groupSchema>;
+
+const nullable = <T extends z.ZodTypeAny>(s: T) => s.nullish().transform((v) => v ?? null);
+const capSchema = z.object({ count: z.number(), period: z.string() });
+export type Cap = z.infer<typeof capSchema>;
+const variantWeightSchema = z.object({ key: z.string(), weight: z.number() });
+export type VariantWeight = z.infer<typeof variantWeightSchema>;
 
 const statSchema = z.object({
   impressions: z.number(),
@@ -43,6 +49,7 @@ export const ruleSchema = z.object({
   content: z.object({
     a: variantSchema,
     b: variantSchema.nullish(),
+    variants: z.record(z.string(), variantSchema).nullish().transform((v) => v ?? {}),
     seen: z.string().optional().default(''),
     confidence: z.string().optional().default(''),
     contact: z.string().optional().default(''),
@@ -60,6 +67,22 @@ export const ruleSchema = z.object({
   ends_on: z.string().nullable(),
   audience_percent: z.number(),
   goal: z.string().nullable(),
+  // Message model v6 (T-M10-02)
+  rule_key: nullable(z.string()),
+  variants: nullable(z.array(variantWeightSchema)),
+  topics: nullable(z.array(z.string())),
+  caps: nullable(z.array(capSchema)),
+  hour_windows: nullable(z.array(z.tuple([z.number(), z.number()]))),
+  starts_at: nullable(z.string()),
+  ends_at: nullable(z.string()),
+  goal_event: nullable(z.string()),
+  locked: z.boolean().default(false),
+  approved_version: nullable(z.number()),
+  served_version: nullable(z.number()),
+  type: z.string().optional(),
+  slot: z.string().optional(),
+  name: z.string().optional(),
+  level_name: z.string().optional(),
   status: z.enum(STATUSES),
   is_active: z.boolean(),
   version: z.number(),
@@ -82,6 +105,12 @@ const enumsSchema = z.object({
   ops: z.array(z.string()),
   cap_periods: z.array(z.string()),
   bands: z.record(z.string(), z.object({ min: z.number(), max: z.number() })),
+  goal_events: z.array(z.string()).default([]),
+  topics: z.array(z.string()).default([]),
+  level_kinds: z.record(z.string(), z.array(z.string())).default({}),
+  slot_kinds: z.record(z.string(), z.array(z.string())).default({}),
+  approval_kinds: z.array(z.string()).default(['safety', 'clinical', 'content']),
+  max_variants: z.number().default(6),
 });
 export type RuleEnums = z.infer<typeof enumsSchema>;
 
@@ -97,6 +126,8 @@ export type Conflict = z.infer<typeof conflictSchema>;
 
 const detailSchema = z.object({
   rule: ruleSchema,
+  /** Snapshot of the approved version (for the diff); not served by the API yet — the banner works without it. */
+  approved: ruleSchema.partial().nullish(),
   versions: z.array(z.object({ version: z.number(), changed_by: z.number().nullable(), created_at: z.string().nullable() })),
   variant_stats_7d: z.object({ a: statSchema, b: statSchema }),
   conflicts: z.array(conflictSchema),

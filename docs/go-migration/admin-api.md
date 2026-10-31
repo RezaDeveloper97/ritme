@@ -895,6 +895,34 @@ needs_medical_approval, approved_by, approved_at, …}`.
 
 Static `/messages/rules*` routes are registered before `/messages/{id}`. Audit actions: `message_rule.create|update|delete|submit|approve|reject|toggle|preview`.
 
+### Message rules v6 additions (T-M10-02, T-M10-03, T-M10-12)
+
+New rule fields (all optional on write; a legacy a/b rule round-trips unchanged): `rule_key` (unique, `a-z0-9_.-`, 1-64;
+duplicate = 422), `approved_version` / `served_version`, `topics[]` (`fertile_window` is required when a condition reads a
+fertility fact), `caps[{count, period: day|week|cycle}]`, `variants[{key, weight}]` with each variant's text in
+`content.variants{key: {title, body, cta_label, cta_target}}` (at most `enums.max_variants` = 6, weights positive; a safety
+rule has exactly one), `starts_at` / `ends_at` (datetime,
+user-local wall clock), `hour_windows[[from_hour, to_hour], ...]`, `goal_event`, `locked`, and read-only `type` / `slot` / `name` /
+`level_name` (spec names). New `enums` on the list: `goal_events`, `topics`, `level_kinds` (level -> allowed kinds),
+`slot_kinds` (slot -> allowed kinds), `approval_kinds` (`safety`, `clinical`, `content`), `max_variants`. Stored levels stay
+`worth_followup` / `follow_soon`; the spec names `follow_up` / `urgent` are accepted as aliases.
+
+Authority: without the `clinical` capability, create / update of `safety|clinical|content` rules and toggle / delete of
+`safety` rules answer 403. Editing the text of a medical rule sends it straight to `pending_approval`. A `locked` (seeded)
+rule answers 409 `locked` on delete / switch-off, and only the clinical capability edits its copy. A suggestion needs exactly
+one CTA; slot x kind and level x kind mismatches are 422 on `placement` / `level`.
+
+`GET /messages/facts` (capability `messages`, view): the fact registry for the condition builder.
+`{facts[{name, type: int|float|bool|date|enum|set|string, enum|null, unit|null, group, description{<lang>: text},
+member_safe, pending|null}], groups[], fertility_facts[]}`, sorted by name. `pending` is the id of the task that will fill
+the fact (the editor disables it). Text variables (`name`...) are not facts and stay in the rules `enums.variables`.
+
+422 codes on create / update: besides the per-field `errors`, the body carries `error_code` = `unknown_fact` when a
+condition or exception names a fact that is not in the registry (wins), or `bad_value` when an operator or value does not
+fit the fact's type (e.g. `between` on a bool, a value outside the enum). Other error codes: 409 `locked`,
+409 `approval_required`, 409 `not_pending`, 422 `approval_not_needed`. admin-web maps them to a banner and the
+`conditions` field (`screens/message-rules/lib/errors.ts`).
+
 
 ## 23. Clinical thresholds & config — «آستانه‌ها و پیکربندی» (B-N9-11, D-88)
 

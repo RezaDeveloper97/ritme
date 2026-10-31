@@ -2495,3 +2495,10 @@ Nothing needed fixing.
 - Health reads fail closed (503 `audit_unavailable`): `/health-access/users/:id`, `/users/:id`, `/users/:id/overview`.
 - Test fixtures updated for the new defaults: clinicalcfg, okr, cityservices admin_dir, shop/admin. Docs: `docs/go-migration/admin-api.md` §21, `docs/engine-v6/jobs.md`. No migration (00105 already had the columns).
 - Open: legacy `/users` still shows the full mobile (noted in T-M10-32). Rollout: an older binary writing unchained rows after genesis shows up as an `unchained` break — deploy all stacks together.
+
+## T-M10-12 — Admin-web message rule editor v6
+- Shipped: reusable condition builder `admin-web/src/features/rule-conditions` (facts picker from `GET /messages/facts`, typed inputs, operators per type, all_of / any_of / exclude groups); v6 rule form (kind/level/slot matrices with disabled reasons, up to 6 weighted variants, caps + cooldown, topics with forced `fertile_window`, datetime schedule + several hour windows, goal event, spec names); `ApprovalBanner` (approved vN · draft vM, word diff, approve/reject only with the clinical capability); authority gating (`lib/authority.ts`) mirroring the API; 422/409/403 mapping (`lib/errors.ts`); fa/en strings.
+- Docs: `docs/go-migration/admin-api.md` §22 "Message rules v6 additions" (fields, enums, authority, `/messages/facts`, `unknown_fact` / `bad_value`).
+- QA: `docs/engine-v6/qa/admin/rule-editor-v6-{light,dark}.png` (mocked API data, reviewed by the main session).
+- Verify: typecheck, lint, fsd:lint clean; vitest 48 files / 186 tests passed; build ok.
+- Open: the detail API does not return the `approved` snapshot yet, so the banner shows "diff unavailable" until the backend serves it; diff labels use field paths (`a.body`); no live-backend browser pass yet (do it in T-M10-36).

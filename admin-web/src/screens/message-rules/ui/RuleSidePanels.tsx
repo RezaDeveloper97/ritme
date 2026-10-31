@@ -3,7 +3,6 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-import { useCan } from '@/features/auth';
 import { formatNumber } from '@/shared/lib';
 import { Badge, Button, Panel, TextInput, toast, useNotifyError, confirm } from '@/shared/ui';
 
@@ -18,12 +17,11 @@ import {
 } from '../api/rules';
 
 /** Medical approval (Admin_MessageEditor «تأیید»): submit, approve / reject (clinical capability), publish. */
-export function ApprovalPanel({ rule }: { rule: Rule }) {
+export function ApprovalPanel({ rule, canToggle = true }: { rule: Rule; canToggle?: boolean }) {
   const t = useTranslations('messageRules');
   const notifyError = useNotifyError();
   const act = useRuleAction();
-  const canApprove = useCan('clinical', 'manage');
-  const run = (action: 'submit' | 'approve' | 'reject' | 'toggle', done: string) =>
+  const run = (action: 'submit' | 'toggle', done: string) =>
     act.mutate({ id: rule.id, action }, { onSuccess: () => toast.success(done), onError: notifyError });
 
   return (
@@ -35,6 +33,7 @@ export function ApprovalPanel({ rule }: { rule: Rule }) {
           </Badge>
           {rule.is_active ? <Badge tone="green">{t('active')}</Badge> : <Badge>{t('inactive')}</Badge>}
           <span className="text-[13px] text-ink-3">{t('version', { n: rule.version })}</span>
+          {rule.locked ? <Badge>{t('locked')}</Badge> : null}
         </div>
         <p className="m-0 text-[13px] text-ink-3">{rule.needs_medical_approval ? t('approvalHint') : t('approvalNotNeeded')}</p>
         <div className="flex flex-wrap gap-2">
@@ -43,19 +42,7 @@ export function ApprovalPanel({ rule }: { rule: Rule }) {
               {t('submit')}
             </Button>
           ) : null}
-          {rule.status === 'pending_approval' && canApprove ? (
-            <>
-              <Button variant="primary" loading={act.isPending} onClick={() => run('approve', t('approved'))}>
-                {t('approve')}
-              </Button>
-              <Button loading={act.isPending} onClick={() => run('reject', t('rejected'))}>
-                {t('reject')}
-              </Button>
-            </>
-          ) : null}
-          {rule.status === 'pending_approval' && !canApprove ? (
-            <span className="text-[13px] text-ink-3">{t('waitingForAdvisor')}</span>
-          ) : null}
+          {canToggle ? (
           <Button
             loading={act.isPending}
             disabled={!rule.is_active && rule.needs_medical_approval && rule.status !== 'approved'}
@@ -66,6 +53,7 @@ export function ApprovalPanel({ rule }: { rule: Rule }) {
           >
             {rule.is_active ? t('unpublish') : t('publish')}
           </Button>
+          ) : null}
         </div>
       </div>
     </Panel>

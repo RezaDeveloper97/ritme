@@ -3,10 +3,10 @@ id: T-M10-12
 title: Admin-web message rule editor v6
 milestone: M10
 type: frontend
-status: todo
+status: done
 depends_on: [T-M10-03]
 parallel_group: M10-W
-touches: [admin-web/src/screens/message-rules, admin-web/src/features/rule-conditions, admin-web/src/entities/admin, admin-web/messages/fa.json, admin-web/messages/en.json]
+touches: [admin-web/src/screens/message-rules, admin-web/src/features/rule-conditions, admin-web/src/entities/admin, admin-web/messages/fa.json, admin-web/messages/en.json, docs/go-migration/admin-api.md, docs/engine-v6/qa/admin]
 skills: []
 verify: cd admin-web && npm run typecheck && npm run lint && npm run fsd:lint && npm run test && npm run build
 ---
