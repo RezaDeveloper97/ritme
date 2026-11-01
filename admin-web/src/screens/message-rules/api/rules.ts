@@ -95,7 +95,14 @@ export const ruleSchema = z.object({
 });
 export type Rule = z.infer<typeof ruleSchema>;
 
-const listRuleSchema = ruleSchema.extend({ stats_7d: statSchema });
+/** One row of `stats_by_version`: the last 7 days of one version and variant of a rule (T-M10-06). */
+const versionStatSchema = statSchema.extend({ version: z.number(), variant: z.string() });
+export type VersionStat = z.infer<typeof versionStatSchema>;
+
+const listRuleSchema = ruleSchema.extend({
+  stats_7d: statSchema,
+  stats_by_version: z.array(versionStatSchema).nullish().transform((v) => v ?? []),
+});
 export type ListRule = z.infer<typeof listRuleSchema>;
 
 const enumsSchema = z.object({
@@ -116,6 +123,22 @@ const enumsSchema = z.object({
 });
 export type RuleEnums = z.infer<typeof enumsSchema>;
 
+const factRangeSchema = z.object({
+  fact: z.string(),
+  kind: z.string(),
+  absent: z.boolean().default(false),
+  present: z.boolean().default(false),
+  min: z.number().nullish().transform((v) => v ?? null),
+  max: z.number().nullish().transform((v) => v ?? null),
+  min_open: z.boolean().default(false),
+  max_open: z.boolean().default(false),
+  values: z.array(z.string()).nullish().transform((v) => v ?? null),
+  contains: z.array(z.string()).nullish().transform((v) => v ?? null),
+  any_of: z.array(z.array(z.string())).nullish().transform((v) => v ?? null),
+  not: z.array(z.string()).nullish().transform((v) => v ?? []),
+});
+export type FactRange = z.infer<typeof factRangeSchema>;
+
 const conflictSchema = z.object({
   rule_id: z.number(),
   title: z.string(),
@@ -123,6 +146,20 @@ const conflictSchema = z.object({
   kind: z.string(),
   winner: z.enum(['this', 'other', 'tie']),
   safety: z.boolean(),
+  // Conflict check v2 (T-M10-11); absent on older servers.
+  slot: z.string().nullish().transform((v) => v ?? null),
+  tie_break: z.boolean().nullish().transform((v) => v ?? false),
+  co_shown: z.boolean().nullish().transform((v) => v ?? false),
+  overlap: z
+    .object({
+      starts_at: z.string().nullish().transform((v) => v ?? null),
+      ends_at: z.string().nullish().transform((v) => v ?? null),
+      hours: z.array(z.tuple([z.number(), z.number()])).nullish().transform((v) => v ?? null),
+      audience_percent: z.number().nullish().transform((v) => v ?? null),
+      facts: z.array(factRangeSchema).nullish().transform((v) => v ?? []),
+    })
+    .nullish()
+    .transform((v) => v ?? null),
 });
 export type Conflict = z.infer<typeof conflictSchema>;
 
@@ -288,5 +325,80 @@ export function useSimulate() {
   return useMutation({
     mutationFn: (body: { facts: Record<string, unknown>; at?: string; user_id?: number }) =>
       api.post('/messages/rules/simulate', body, { schema: simulationSchema }),
+  });
+}
+
+// ---- T-M10-11: the v6 simulator (real user behind a health-access grant, or synthetic facts) ----
+
+const simVariantSchema = z.object({
+  rule_id: z.number(),
+  rule_key: z.string().nullish().transform((v) => v ?? null),
+  title: z.string(),
+  kind: z.string(),
+  level: z.string(),
+  priority: z.number(),
+  version: z.number().nullish().transform((v) => v ?? null),
+  variant: z.string(),
+  message_title: z.string(),
+  message_body: z.string(),
+  cta_label: z.string().nullish().transform((v) => v ?? null),
+});
+const simDroppedSchema = z.object({
+  rule_id: z.number(),
+  title: z.string(),
+  kind: z.string(),
+  priority: z.number(),
+  reason: z.string(),
+});
+const simulationV6Schema = z.object({
+  source: z.enum(['user', 'synthetic']),
+  at: z.string(),
+  date: z.string(),
+  time: z.string(),
+  zone: z.string(),
+  history: z.string(),
+  facts_overridden: z.array(z.string()).default([]),
+  engine: z.record(z.string(), z.unknown()),
+  slots: z.array(
+    z.object({
+      slot: z.string(),
+      capacity: z.number().nullable(),
+      winners: z.array(simVariantSchema),
+      dropped: z.array(simDroppedSchema),
+    }),
+  ),
+  notes: z.array(z.string()).default([]),
+});
+export type SimulationV6 = z.infer<typeof simulationV6Schema>;
+export type SimSlot = SimulationV6['slots'][number];
+
+export interface SimulateInput {
+  user_id?: number;
+  date?: string;
+  time?: string;
+  slots?: string[];
+  facts_override?: Record<string, unknown>;
+}
+
+export function useSimulateV6() {
+  return useMutation({ mutationFn: (body: SimulateInput) => api.post('/messages/simulate', body, { schema: simulationV6Schema }) });
+}
+
+/** RT-code (or id fragment) → user id through the anonymised directory (`ref` + id only, no health value). */
+const directorySchema = z.object({ items: z.array(z.object({ id: z.number(), ref: z.string().nullable() })) });
+export function useResolveUser() {
+  return useMutation({
+    mutationFn: async (code: string) => {
+      const res = await api.get('/users/directory', { query: { q: code, per_page: 5 }, schema: directorySchema });
+      const hit = res.items.find((u) => u.ref?.toLowerCase() === code.toLowerCase());
+      return hit?.id ?? null;
+    },
+  });
+}
+
+/** The existing health-access request (reason + ticket) — the same endpoint the access screen posts to. */
+export function useRequestHealthAccess() {
+  return useMutation({
+    mutationFn: (body: { user_id: number; reason: string; ticket: string }) => api.post('/health-access', body),
   });
 }

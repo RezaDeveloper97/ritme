@@ -137,7 +137,7 @@ export const NAV: readonly NavGroup[] = [
     items: [
       { key: 'pregnancyWeeks', href: '/pregnancy-weeks', icon: 'baby', cap: 'clinical', ready: true },
       { key: 'pregnancyCarePlan', href: '/pregnancy-care-plan', icon: 'calendar', cap: 'clinical', ready: true },
-      { key: 'pregnancyAlertRules', href: '/pregnancy-alert-rules', icon: 'alert', cap: 'clinical', ready: true },
+      // The alert rules are inbox rules now (T-M10-13): /pregnancy-alert-rules forwards to /messages/rules?placement=alerts_inbox.
     ],
   },
   {

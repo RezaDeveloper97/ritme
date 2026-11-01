@@ -578,15 +578,17 @@
       "duration": "Duration (days)",
       "startRule": "Start",
       "startRules": {
-        "anytime": "Any time on joining",
-        "menstrual": "Only in the menstrual phase",
-        "fixed_date": "From a fixed date"
+        "on_join": "On joining",
+        "on_phase_start": "When a cycle phase starts",
+        "fixed_date": "From a fixed date",
+        "anytime": "On joining",
+        "menstrual": "Only in the menstrual phase"
       },
       "startsOn": "Opens on",
       "reminder": "Reminder time",
       "reminderHint": "Local time of the user (HH:MM). Leave empty for no reminder.",
       "eligibility": "Eligibility",
-      "eligibilityHint": "Empty include lists allow everyone; an exclude always wins. Phase rules need cycle data, so users without it are refused.",
+      "eligibilityHint": "Who may join. «All of» must all hold, «any of» needs one condition per group, «exclude» refuses anyone it matches. An empty rule allows everyone.",
       "modesInclude": "Modes allowed",
       "modesExclude": "Modes refused",
       "phasesInclude": "Phases allowed",
@@ -632,7 +634,15 @@
       "rewardsGranted": "Rewards granted",
       "plusDaysShort": "{count} Plus days",
       "usersPerDay": "Active users per day",
-      "day": "Day {day}"
+      "day": "Day {day}",
+      "startPhase": "Phase it starts on",
+      "contraindications": "Contraindications",
+      "contraindicationsHint": "Users matching these are never offered the challenge (pregnancy, conditions, medical flags). They win over eligibility.",
+      "ruleInvalid": "The stored eligibility could not be read. Saving replaces it.",
+      "contraInvalid": "The stored contraindications could not be read, so nobody is offered this challenge. Saving without changes keeps them.",
+      "dropOff": "Drop-off by day",
+      "dropOffHint": "Share of the runs that reached each day and stopped there.",
+      "dropOffTitle": "Day {day}: {dropped} of {reached} stopped ({rate})"
     },
     "days": {
       "all": "Every day",
@@ -1655,7 +1665,8 @@
     },
     "paramHints": {
       "contact_phone": "The number the alert’s “Call” button dials (maternity unit or emergency, e.g. 115). ASCII digits, optional leading +, spaces or dashes. Empty = no number."
-    }
+    },
+    "movedToInbox": "The alert rules moved to the inbox rules. Opening them; click here if nothing happens."
   },
   "catalog": {
     "title": "Content catalog",
@@ -2976,7 +2987,8 @@
       "modal": "In-app (modal)",
       "sms": "SMS",
       "alerts": "Alerts",
-      "urgent_modal": "Urgent modal"
+      "urgent_modal": "Urgent modal",
+      "alerts_inbox": "Alerts inbox"
     },
     "statuses": {
       "draft": "Draft",
@@ -3101,7 +3113,17 @@
       "other": "The other message wins.",
       "tie": "Equal priority; the older message wins."
     },
-    "variantStats": "Variant stats (7 days)"
+    "variantStats": "Variant stats (7 days)",
+    "coShown": "Both can show together",
+    "tieBreak": "(Equal priority and safety: the least recently shown wins.)",
+    "overlapTitle": "Where they overlap",
+    "overlapSchedule": "Dates: {range}",
+    "overlapHours": "Hours: {range}",
+    "overlapAudience": "About {n}% of users are in both audiences",
+    "ruleKeyPrefix": "Rule key",
+    "inboxRules": "Inbox rules",
+    "ctrByVersion": "CTR per version",
+    "versionUnknown": "Before versions were recorded"
   },
   "clinicalConfig": {
     "title": "Thresholds & config",
@@ -3841,5 +3863,60 @@
       "services": "Services & the Me hub",
       "today": "Today screen sections"
     }
+  },
+  "messageSim": {
+    "title": "Message simulator",
+    "hint": "Why did (or didn't) a user see a message on a given day? Leave the user empty to run synthetic facts instead. A real user needs an approved health-access request; the read is audited and nothing is written.",
+    "user": "User",
+    "userHint": "Numeric id or RT code",
+    "date": "Date",
+    "time": "Time",
+    "facts": "Override facts (JSON)",
+    "factsHint": "Optional; wins over the user's real facts",
+    "run": "Run simulation",
+    "userInvalid": "Enter a numeric id or an RT- code.",
+    "userNotFound": "No user has this RT code.",
+    "factsInvalid": "The override facts are not valid JSON.",
+    "source": {
+      "user": "Real user",
+      "synthetic": "Synthetic facts"
+    },
+    "overridden": "Overridden: {list}",
+    "engineTitle": "Engine summary",
+    "capacityAll": "Every eligible message",
+    "capacity": "Capacity {n}",
+    "noWinner": "No message",
+    "winner": "Shown",
+    "variantLabel": "Variant {v}",
+    "versionLabel": "v{n}",
+    "reasons": {
+      "inactive": "Not published",
+      "not_approved": "Waiting for medical approval",
+      "kind_not_allowed": "This kind is not allowed in this slot",
+      "schedule": "Outside the start and end dates",
+      "hours": "Outside the allowed hours",
+      "conditions": "The conditions do not hold for this user",
+      "exclude": "An exception applies",
+      "audience": "Outside the audience share",
+      "requires_user_input": "The engine needs input from the user first",
+      "low_confidence": "The engine is not confident enough about the cycle",
+      "contraception": "Hidden: the user is on contraception",
+      "post_safety_24h": "Blocked for 24 hours after a safety message",
+      "quiet_hours": "Inside the slot's quiet hours",
+      "cap_day": "Daily cap reached",
+      "cap_week": "Weekly cap reached",
+      "cap_cycle": "Cap for this cycle reached",
+      "cooldown": "Inside the gap since the last impression",
+      "slot_cap": "The slot's own cap is reached",
+      "capacity": "Eligible, but the slot is full and a higher message took the place",
+      "missing_variable": "A text variable has no value for this user",
+      "unknown": "Dropped by the engine"
+    },
+    "grantTitle": "Health-data access needed",
+    "grantHint": "Simulating user {id} reads their health state. Nothing about the user was returned. Send an access request with a ticket and a reason; once it is approved (30 minutes) run the simulation again.",
+    "ticket": "Ticket",
+    "reason": "Reason (at least 10 characters)",
+    "grantSend": "Send request",
+    "grantSent": "Access request sent"
   }
 }

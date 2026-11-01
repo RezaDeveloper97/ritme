@@ -3,10 +3,10 @@ id: T-M10-13
 title: Admin-web simulator, inbox rules, challenge rules and CTR per version
 milestone: M10
 type: frontend
-status: todo
+status: done
 depends_on: [T-M10-12, T-M10-11, T-M10-10, T-M10-08]
 parallel_group: M10-W
-touches: [admin-web/src/screens/message-rules, admin-web/src/screens/challenges, admin-web/src/screens/pregnancy-alert-rules, admin-web/src/widgets/shell/model/nav.ts, admin-web/messages/fa.json, admin-web/messages/en.json]
+touches: [admin-web/src/screens/message-rules, admin-web/src/screens/challenges, admin-web/src/screens/pregnancy-alert-rules, admin-web/src/widgets/shell/model/nav.ts, admin-web/messages/fa.json, admin-web/messages/en.json, docs/engine-v6/qa/T-M10-13, docs/go-migration/admin-api.md]
 skills: []
 verify: cd admin-web && npm run typecheck && npm run lint && npm run fsd:lint && npm run test && npm run build
 ---
@@ -39,4 +39,4 @@ ADM-03; SPEC §5.4.1, §5.5, §5.6).
 - Backend changes.
 
 ## Acceptance
-- Verify passes; screenshots saved under `docs/engine-v6/qa/admin/`.
+- Verify passes; screenshots saved under `docs/engine-v6/qa/T-M10-13/` (mock API).

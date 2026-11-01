@@ -5,6 +5,19 @@ import { z } from 'zod';
 
 import { api, createResource, pagedSchema, translationsSchema, type QueryValue } from '@/shared/api';
 
+/** A v6 rule {all_of, any_of, exclude} over the message fact registry (T-M10-10); `{invalid: true}` = unreadable stored value. */
+const conditionSchema = z.object({ fact: z.string(), op: z.string(), value: z.unknown() });
+export type RuleCondition = z.infer<typeof conditionSchema>;
+export const challengeRuleSchema = z
+  .object({
+    all_of: z.array(conditionSchema).nullish().transform((v) => v ?? []),
+    any_of: z.array(z.array(conditionSchema)).nullish().transform((v) => v ?? []),
+    exclude: z.array(conditionSchema).nullish().transform((v) => v ?? []),
+    invalid: z.boolean().optional(),
+  })
+  .nullable();
+export type ChallengeRule = z.infer<typeof challengeRuleSchema>;
+
 /** `Challenge` (admin-api.md §11). */
 export const challengeSchema = z.object({
   id: z.number(),
@@ -31,6 +44,10 @@ export const challengeSchema = z.object({
       reward_badge_title: translationsSchema.nullable(),
       reward_plus_days: z.number(),
       completion_min_days: z.number().nullable(),
+      // T-M10-10
+      eligibility: challengeRuleSchema.optional().transform((v) => v ?? null),
+      contraindications: challengeRuleSchema.optional().transform((v) => v ?? null),
+      start_phase: z.string().nullish().transform((v) => v ?? null),
     })
     .nullable()
     .optional(),
@@ -99,6 +116,20 @@ const challengeStatsSchema = z.object({
     rewards_granted: z.number(),
     plus_days_granted: z.number(),
     per_day: z.array(z.object({ day: z.number(), users: z.number() })),
+    /** Day-by-day drop-off of the runs (T-M10-10); rates are percent of the runs that reached the day, null when none did. */
+    drop_off: z
+      .array(
+        z.object({
+          day: z.number(),
+          reached: z.number(),
+          retained: z.number(),
+          dropped: z.number(),
+          retained_rate: z.number().nullable(),
+          drop_off_rate: z.number().nullable(),
+        }),
+      )
+      .nullish()
+      .transform((v) => v ?? []),
   }),
 });
 export type ChallengeStats = z.infer<typeof challengeStatsSchema>['stats'];

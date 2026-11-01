@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { useFacts } from '@/features/rule-conditions';
 import { fieldError, fieldErrorsOf } from '@/shared/api';
 import { useLocalized } from '@/shared/i18n';
 import { blankToNull, formatNumber, toIntOrNull } from '@/shared/lib';
@@ -56,6 +57,7 @@ function ChallengeForm({ id, row, maxDay }: { id: number | null; row: Challenge 
   const [sortOrder, setSortOrder] = useState(String(row?.sort_order ?? 0));
   const [active, setActive] = useState(row?.is_active ?? true);
   const [program, setProgram] = useState(() => toDraft(row));
+  const facts = useFacts().data?.facts ?? [];
   const err = (name: string) => fieldError(save.error, name);
 
   const submit = () =>
@@ -68,7 +70,7 @@ function ChallengeForm({ id, row, maxDay }: { id: number | null; row: Challenge 
         category: blankToNull(category),
         sort_order: toIntOrNull(sortOrder) ?? 0,
         is_active: active,
-        ...toPayload(program),
+        ...toPayload(program, facts),
       },
       {
         onSuccess: () => {

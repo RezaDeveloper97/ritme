@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
@@ -15,6 +16,7 @@ import {
   type Rule,
   type Stat,
 } from '../api/rules';
+import { toConflictView } from '../lib/conflicts';
 
 /** Medical approval (Admin_MessageEditor «تأیید»): submit, approve / reject (clinical capability), publish. */
 export function ApprovalPanel({ rule, canToggle = true }: { rule: Rule; canToggle?: boolean }) {
@@ -138,14 +140,36 @@ export function ConflictPanel({ payload, ruleId, initial }: { payload: () => unk
       {list.length === 0 ? (
         <p className="m-0 text-[13px] text-ink-3">{t('noConflicts')}</p>
       ) : (
-        <ul className="m-0 flex list-none flex-col gap-2 p-0">
-          {list.map((c) => (
-            <li key={c.rule_id} className="flex flex-col gap-1 text-[13px]">
-              <span>
-                <strong>{c.title}</strong> · {t('priority')} {formatNumber(c.priority, locale)}
-                {c.safety ? ` · ${t('kinds.safety')}` : ''}
+        <ul className="m-0 flex list-none flex-col gap-3 p-0">
+          {list.map(toConflictView).map((c) => (
+            <li key={c.ruleId} className="flex flex-col gap-1 text-[13px]" data-winner={c.winner}>
+              <span className="flex flex-wrap items-center gap-2">
+                <Link href={`/messages/rules/${c.ruleId}`} className="font-semibold">
+                  {c.title}
+                </Link>
+                <span className="text-ink-3">
+                  {t('priority')} {formatNumber(c.priority, locale)}
+                </span>
+                {c.safety ? <Badge tone="red">{t('kinds.safety')}</Badge> : null}
+                {c.slot ? <Badge>{t(`placements.${c.slot}` as 'placements.smart_tip')}</Badge> : null}
+                {c.coShown ? <Badge tone="green">{t('coShown')}</Badge> : null}
               </span>
-              <span className="text-ink-3">{t(`winner.${c.winner}`)}</span>
+              <span className={c.winner === 'this' ? 'text-ink' : 'text-ink-3'}>
+                {t(`winner.${c.winner}`)}
+                {c.tieBreak ? ` ${t('tieBreak')}` : ''}
+              </span>
+              {c.facts.length + (c.schedule ? 1 : 0) + (c.hours ? 1 : 0) > 0 || c.audience !== null ? (
+                <ul className="m-0 list-disc ps-5 text-[12px] text-ink-3" aria-label={t('overlapTitle')}>
+                  {c.facts.map((f) => (
+                    <li key={f} dir="ltr">
+                      {f}
+                    </li>
+                  ))}
+                  {c.schedule ? <li dir="ltr">{t('overlapSchedule', { range: c.schedule })}</li> : null}
+                  {c.hours ? <li dir="ltr">{t('overlapHours', { range: c.hours })}</li> : null}
+                  {c.audience !== null ? <li>{t('overlapAudience', { n: formatNumber(Math.round(c.audience), locale) })}</li> : null}
+                </ul>
+              ) : null}
             </li>
           ))}
         </ul>

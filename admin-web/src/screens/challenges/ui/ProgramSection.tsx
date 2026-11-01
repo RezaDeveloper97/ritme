@@ -2,10 +2,11 @@
 
 import { useTranslations } from 'next-intl';
 
+import { ConditionBuilder, useFacts } from '@/features/rule-conditions';
 import { fieldError, fieldErrorsOf } from '@/shared/api';
-import { Button, CheckboxGrid, Icon, Panel, Select, Switch, TextInput, TranslatableField } from '@/shared/ui';
+import { Badge, Button, Icon, Panel, Select, Switch, TextInput, TranslatableField } from '@/shared/ui';
 
-import { daysOf, MODES, newTask, PHASES, START_RULES, tasksOnDay, type ProgramDraft, type TaskDraft } from '../lib/program';
+import { daysOf, newTask, START_PHASES, START_RULES, tasksOnDay, type ProgramDraft, type TaskDraft } from '../lib/program';
 
 /**
  * Challenges v2 editor (nbl_Admin_Challenges): duration, start rule, reminder, eligibility include / exclude,
@@ -23,8 +24,9 @@ export function ProgramSection({
   const t = useTranslations('challenges.program');
   const set = <K extends keyof ProgramDraft>(key: K, value: ProgramDraft[K]) => onChange({ ...draft, [key]: value });
   const err = (name: string) => fieldError(error, name);
-  const modeOptions = MODES.map((m) => ({ value: m, label: t(`modes.${m}`) }));
-  const phaseOptions = PHASES.map((p) => ({ value: p, label: t(`phases.${p}`) }));
+  const facts = useFacts().data?.facts ?? [];
+  // A challenge saved with the old «menstrual only» start keeps that choice visible until the admin switches.
+  const startRules = draft.startRule === 'menstrual' ? [...START_RULES, 'menstrual'] : START_RULES;
   const setTask = (key: string, patch: Partial<TaskDraft>) =>
     set(
       'tasks',
@@ -53,9 +55,19 @@ export function ProgramSection({
                 label={t('startRule')}
                 value={draft.startRule}
                 onChange={(e) => set('startRule', e.target.value)}
-                options={START_RULES.map((r) => ({ value: r, label: t(`startRules.${r}`) }))}
+                options={startRules.map((r) => ({ value: r, label: t(`startRules.${r}` as "startRules.on_join") }))}
                 error={err('start_rule')}
               />
+              {draft.startRule === 'on_phase_start' ? (
+                <Select
+                  label={t('startPhase')}
+                  value={draft.startPhase}
+                  onChange={(e) => set('startPhase', e.target.value)}
+                  options={[{ value: '', label: '—' }, ...START_PHASES.map((p) => ({ value: p, label: t(`phases.${p}`) }))]}
+                  error={err('start_phase')}
+                  required
+                />
+              ) : null}
               {draft.startRule === 'fixed_date' ? (
                 <TextInput
                   label={t('startsOn')}
@@ -80,12 +92,27 @@ export function ProgramSection({
                 {t('eligibility')}
               </h3>
               <p className="field-hint m-0">{t('eligibilityHint')}</p>
-              <div className="form-grid">
-                <CheckboxGrid label={t('modesInclude')} options={modeOptions} value={draft.modesInclude} onChange={(v) => set('modesInclude', v)} />
-                <CheckboxGrid label={t('modesExclude')} options={modeOptions} value={draft.modesExclude} onChange={(v) => set('modesExclude', v)} />
-                <CheckboxGrid label={t('phasesInclude')} options={phaseOptions} value={draft.phasesInclude} onChange={(v) => set('phasesInclude', v)} />
-                <CheckboxGrid label={t('phasesExclude')} options={phaseOptions} value={draft.phasesExclude} onChange={(v) => set('phasesExclude', v)} />
-              </div>
+              {draft.eligibilityInvalid ? <Badge tone="red">{t('ruleInvalid')}</Badge> : null}
+              <ConditionBuilder
+                value={draft.eligibility}
+                onChange={(v) => set('eligibility', v)}
+                facts={facts}
+                error={err('eligibility') ?? firstError(error, 'eligibility.')}
+              />
+            </section>
+
+            <section aria-labelledby="contra-title" className="flex flex-col gap-3">
+              <h3 id="contra-title" className="panel-title m-0">
+                {t('contraindications')}
+              </h3>
+              <p className="field-hint m-0">{t('contraindicationsHint')}</p>
+              {draft.contraindicationsInvalid ? <Badge tone="red">{t('contraInvalid')}</Badge> : null}
+              <ConditionBuilder
+                value={draft.contraindications}
+                onChange={(v) => set('contraindications', v)}
+                facts={facts}
+                error={err('contraindications') ?? firstError(error, 'contraindications.')}
+              />
             </section>
 
             <section aria-labelledby="tasks-title" className="flex flex-col gap-3">
@@ -209,6 +236,13 @@ export function ProgramSection({
       </div>
     </Panel>
   );
+}
+
+/** The first server message for a nested path (`eligibility.all_of.0`) — the builder shows one message for the rule. */
+function firstError(error: unknown, prefix: string): string | undefined {
+  const all = fieldErrorsOf(error) ?? {};
+  const key = Object.keys(all).find((k) => k.startsWith(prefix));
+  return key ? all[key]?.[0] : undefined;
 }
 
 /** A compact day strip: how many tasks each day of the run carries (days with none can never be completed). */
