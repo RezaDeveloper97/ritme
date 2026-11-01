@@ -85,6 +85,8 @@ q.RegisterPeriodic(job, handler, "*/10 * * * *", opts...)        // Register + S
 | `engine:snapshot_purge` | low | `50 3 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 10 m | Tehran day − 400; deletes only older rows, in chunks of 5 000 | `internal/cycle/snapshots` |
 | `engine:prediction_log` | low | on demand (a committed real period start, `periods.StartHook`) | `TaskID(engine:prediction_log:<uid>:<rev_after>)` | 3 / 1 m, 5 m / 60 s | (user, cycle_start, kind): `first` insert-once, `last` upsert, actual/error recomputed | `internal/cycle/snapshots` |
 | `admin.audit_verify` | low | `40 3 * * *` | `Unique(23h)` | 1 / — / 10 m | read-only walk of `admin_audit_logs` by id (plus the one-off genesis, a no-op once `genesis_last_id` is set) | `internal/admin/auditchain` |
+| `admin.user_activity` | low | `30 4 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 30 m | user id: `admin_user_activity` PK, upsert; rows not touched on the run's Tehran day are deleted | `internal/admin/users` |
+| `admin.ref_code_backfill` | low | `35 4 * * *` + at start | `Unique(23h)` | 1 / — / 30 m | user id: `SetUserRefCode … WHERE ref_code IS NULL` (a user with a code keeps it); one query once every user has one | `internal/admin/users` |
 | `messages.rollup` | low | `20 0 * * *` | `Unique(23h)` | 3 / 5 m, 30 m / 10 m | (Tehran day, rule, version, variant, slot, event): `message_event_daily` PK, upsert overwrites the count | `internal/messages/events` |
 | `messages.prune` | low | `45 3 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 30 m | Tehran day − 180; backfills missing rollup keys of the doomed rows (existing counts kept), then deletes older raw rows in batches of 5 000 | `internal/messages/events` |
 | `messages.inbox_sweep` | low | `10 4 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 30 m | (user, rule) open row: re-evaluation writes only what changed; archive matches only resolved / acknowledged / noted rows with `last_at` before Tehran midnight of today − 29, in chunks of 5 000 | `internal/messages/inbox` |
@@ -146,5 +148,16 @@ Notes:
   hours) and writes one `user_notifications` row (`type = message_push`) whose title and body are the neutral
   «یادآور ریتمی» line in every active language — never the message text — with the CTA path as `action_url` and only
   ids in `data`. No real web push yet (M-09). Metrics: `messages_push_slot_sent_total`, `inbox_missing_evidence_total`.
+
+- `admin.user_activity` / `admin.ref_code_backfill` (T-M10-32, D-181; SPEC §5.2, A-08, A-09): the projection job pages
+  every user (1 000 per read, one transaction per page) and writes the directory row: last activity day and logged days
+  in [today − 29, today], recent [today − 13, today] and prior [today − 27, today − 14] (Tehran day of the run, from
+  `user_activity_days`); churn `new` (account < 14 days) → `high` (recent ≤ 50 % of prior, or 7+ days since the last
+  activity / none) → `medium` (≤ 75 %) → `low` (no logged prior day = no ratio); plan (plus.tierOf); mode = the newest
+  `engine_daily_snapshots` row since yesterday, else the stored life mode, else `cycle`; data_quality and the main
+  warning (first requires-user-input warning, else the first in spec order) from that snapshot only. It runs after
+  `engine:snapshot_nightly` (03:30), so the directory and the `segment` message fact move once a day. The backfill
+  gives every user without a reference code `RT-` + 6 base32 chars of HMAC-SHA256(id, `ADMIN_REF_SECRET`), 7 then 8 on
+  a unique collision; new accounts get theirs from the signup hook. Neither job logs a user id, a code or a value.
 
 New jobs add a row here in the same change.

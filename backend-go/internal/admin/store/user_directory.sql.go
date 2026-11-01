@@ -10,9 +10,84 @@ import (
 	"database/sql"
 	"encoding/json"
 	"strings"
+	"time"
 
+	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
+
+const countAdminDirectory = `-- name: CountAdminDirectory :one
+SELECT COUNT(*) FROM ` + "`" + `users` + "`" + ` u
+LEFT JOIN ` + "`" + `admin_user_activity` + "`" + ` a ON a.user_id = u.id
+WHERE (? IS NULL OR IFNULL(u.name, '') LIKE ? OR IFNULL(u.mobile, '') LIKE ?
+       OR IFNULL(u.email, '') LIKE ?)
+  AND (? IS NULL OR u.ref_code = ?)
+  AND COALESCE(u.blocked_at, CAST('1971-01-01 00:00:00' AS DATETIME)) >= ?
+  AND COALESCE(u.blocked_at, CAST('1971-01-01 00:00:00' AS DATETIME)) <= ?
+  AND (? IS NULL OR u.created_at >= ?)
+  AND (? IS NULL OR u.created_at < ?)
+  AND (? IS NULL OR a.plan = ?)
+  AND (? IS NULL OR a.churn = ?)
+  AND (? IS NULL OR a.mode = ?)
+  AND (? IS NULL OR a.data_quality = ?)
+  AND (? IS NULL OR a.main_warning = ?)
+  AND (? IS NULL OR a.last_activity_at >= ?)
+  AND (? IS NULL OR a.last_activity_at IS NULL OR a.last_activity_at < ?)
+`
+
+type CountAdminDirectoryParams struct {
+	Pattern        sql.NullString
+	RefCode        sql.NullString
+	BlockedFrom    sql.NullTime
+	BlockedTo      sql.NullTime
+	CreatedFrom    sql.NullTime
+	CreatedTo      sql.NullTime
+	Plan           sql.NullString
+	Churn          sql.NullString
+	Mode           sql.NullString
+	DataQuality    sql.NullString
+	MainWarning    sql.NullString
+	ActiveSince    sql.NullTime
+	InactiveBefore sql.NullTime
+}
+
+// The directory filters (segments.Filters): every one is optional (NULL = no filter) and reads an indexed column of
+// users or admin_user_activity; no aggregate per request. pattern = a LIKE pattern over name / mobile / email,
+// ref_code = an exact reference code (A-09); the status filter is CountUsers' blocked_at range (NULL = the 1971-01-01
+// sentinel, users.statusRange).
+func (q *Queries) CountAdminDirectory(ctx context.Context, arg CountAdminDirectoryParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countAdminDirectory,
+		arg.Pattern,
+		arg.Pattern,
+		arg.Pattern,
+		arg.Pattern,
+		arg.RefCode,
+		arg.RefCode,
+		arg.BlockedFrom,
+		arg.BlockedTo,
+		arg.CreatedFrom,
+		arg.CreatedFrom,
+		arg.CreatedTo,
+		arg.CreatedTo,
+		arg.Plan,
+		arg.Plan,
+		arg.Churn,
+		arg.Churn,
+		arg.Mode,
+		arg.Mode,
+		arg.DataQuality,
+		arg.DataQuality,
+		arg.MainWarning,
+		arg.MainWarning,
+		arg.ActiveSince,
+		arg.ActiveSince,
+		arg.InactiveBefore,
+		arg.InactiveBefore,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
 
 const createAdminSegment = `-- name: CreateAdminSegment :execlastid
 INSERT INTO ` + "`" + `admin_segments` + "`" + ` (` + "`" + `name` + "`" + `, ` + "`" + `filters` + "`" + `, ` + "`" + `created_by` + "`" + `, ` + "`" + `created_at` + "`" + `, ` + "`" + `updated_at` + "`" + `)
@@ -106,6 +181,376 @@ func (q *Queries) GetAdminUserActivity(ctx context.Context, userID uint64) (Admi
 	return i, err
 }
 
+const getLatestEngineSnapshot = `-- name: GetLatestEngineSnapshot :one
+SELECT ` + "`" + `day` + "`" + `, main_phase, subphase, confidence, data_quality, warnings_mask, days_late, ` + "`" + `mode` + "`" + `
+FROM ` + "`" + `engine_daily_snapshots` + "`" + `
+WHERE user_id = ? AND ` + "`" + `day` + "`" + ` <= ?
+ORDER BY ` + "`" + `day` + "`" + ` DESC
+LIMIT 1
+`
+
+type GetLatestEngineSnapshotParams struct {
+	UserID uint64
+	Today  civildate.Date
+}
+
+type GetLatestEngineSnapshotRow struct {
+	Day          civildate.Date
+	MainPhase    string
+	Subphase     string
+	Confidence   string
+	DataQuality  string
+	WarningsMask uint32
+	DaysLate     sql.NullInt16
+	Mode         string
+}
+
+// Today's engine card: the newest snapshot on or before today (codes only).
+func (q *Queries) GetLatestEngineSnapshot(ctx context.Context, arg GetLatestEngineSnapshotParams) (GetLatestEngineSnapshotRow, error) {
+	row := q.db.QueryRowContext(ctx, getLatestEngineSnapshot, arg.UserID, arg.Today)
+	var i GetLatestEngineSnapshotRow
+	err := row.Scan(
+		&i.Day,
+		&i.MainPhase,
+		&i.Subphase,
+		&i.Confidence,
+		&i.DataQuality,
+		&i.WarningsMask,
+		&i.DaysLate,
+		&i.Mode,
+	)
+	return i, err
+}
+
+const getOverviewAccount = `-- name: GetOverviewAccount :one
+
+SELECT u.created_at, u.mobile_verified_at, u.blocked_at, u.updated_at, u.ref_code, p.user_goal,
+       (SELECT CAST(COUNT(*) AS SIGNED) FROM ` + "`" + `companions` + "`" + ` c WHERE c.owner_id = u.id AND c.status = 'active') AS companions,
+       (SELECT CAST(COUNT(DISTINCT lpg.course_id) AS SIGNED) FROM ` + "`" + `learning_progress` + "`" + ` lpg WHERE lpg.user_id = u.id) AS courses
+FROM ` + "`" + `users` + "`" + ` u
+LEFT JOIN ` + "`" + `user_profiles` + "`" + ` p ON p.id = (SELECT MIN(p2.id) FROM ` + "`" + `user_profiles` + "`" + ` p2 WHERE p2.user_id = u.id)
+WHERE u.id = ?
+LIMIT 1
+`
+
+type GetOverviewAccountRow struct {
+	CreatedAt        sql.NullTime
+	MobileVerifiedAt sql.NullTime
+	BlockedAt        sql.NullTime
+	UpdatedAt        sql.NullTime
+	RefCode          sql.NullString
+	UserGoal         sql.NullString
+	Companions       int64
+	Courses          int64
+}
+
+// ---------------------------------------------------------------------------
+// User detail (GET /users/:id/overview). Every query is scoped by user_id.
+func (q *Queries) GetOverviewAccount(ctx context.Context, id uint64) (GetOverviewAccountRow, error) {
+	row := q.db.QueryRowContext(ctx, getOverviewAccount, id)
+	var i GetOverviewAccountRow
+	err := row.Scan(
+		&i.CreatedAt,
+		&i.MobileVerifiedAt,
+		&i.BlockedAt,
+		&i.UpdatedAt,
+		&i.RefCode,
+		&i.UserGoal,
+		&i.Companions,
+		&i.Courses,
+	)
+	return i, err
+}
+
+const getSegmentSubject = `-- name: GetSegmentSubject :one
+SELECT u.id, u.blocked_at, u.created_at,
+       a.user_id AS projected_user_id, a.last_activity_at, a.churn, a.mode, a.plan, a.data_quality, a.main_warning
+FROM ` + "`" + `users` + "`" + ` u
+LEFT JOIN ` + "`" + `admin_user_activity` + "`" + ` a ON a.user_id = u.id
+WHERE u.id = ?
+LIMIT 1
+`
+
+type GetSegmentSubjectRow struct {
+	ID              uint64
+	BlockedAt       sql.NullTime
+	CreatedAt       sql.NullTime
+	ProjectedUserID sql.NullInt64
+	LastActivityAt  sql.NullTime
+	Churn           sql.NullString
+	Mode            sql.NullString
+	Plan            sql.NullString
+	DataQuality     sql.NullString
+	MainWarning     sql.NullString
+}
+
+// The user's directory row for the `segment` message fact: the projection (NULL columns when the nightly job has not
+// run for her yet) plus the account columns the filters read.
+func (q *Queries) GetSegmentSubject(ctx context.Context, id uint64) (GetSegmentSubjectRow, error) {
+	row := q.db.QueryRowContext(ctx, getSegmentSubject, id)
+	var i GetSegmentSubjectRow
+	err := row.Scan(
+		&i.ID,
+		&i.BlockedAt,
+		&i.CreatedAt,
+		&i.ProjectedUserID,
+		&i.LastActivityAt,
+		&i.Churn,
+		&i.Mode,
+		&i.Plan,
+		&i.DataQuality,
+		&i.MainWarning,
+	)
+	return i, err
+}
+
+const listAdminActivitySources = `-- name: ListAdminActivitySources :many
+
+SELECT
+  u.id AS user_id,
+  u.created_at,
+  lp.life_mode,
+  CAST(EXISTS (
+    SELECT 1 FROM ` + "`" + `plus_subscriptions` + "`" + ` s
+    WHERE s.user_id = u.id AND s.status IN ('active', 'canceled')
+      AND s.starts_at <= ? AND s.ends_at > ?
+  ) AS UNSIGNED) AS plus_active,
+  CAST(EXISTS (
+    SELECT 1 FROM ` + "`" + `plus_trials` + "`" + ` t
+    WHERE t.user_id = u.id AND t.started_at <= ? AND t.ends_at > ?
+  ) AS UNSIGNED) AS trial_running,
+  (SELECT MAX(d.day) FROM ` + "`" + `user_activity_days` + "`" + ` d WHERE d.user_id = u.id AND d.day <= ?) AS last_day,
+  (SELECT CAST(COUNT(*) AS SIGNED) FROM ` + "`" + `user_activity_days` + "`" + ` d WHERE d.user_id = u.id AND d.logged = 1
+    AND d.day >= ? AND d.day <= ?) AS log_days_30,
+  (SELECT CAST(COUNT(*) AS SIGNED) FROM ` + "`" + `user_activity_days` + "`" + ` d WHERE d.user_id = u.id AND d.logged = 1
+    AND d.day >= ? AND d.day <= ?) AS log_days_recent14,
+  (SELECT CAST(COUNT(*) AS SIGNED) FROM ` + "`" + `user_activity_days` + "`" + ` d WHERE d.user_id = u.id AND d.logged = 1
+    AND d.day >= ? AND d.day <= ?) AS log_days_prior14,
+  es.mode AS snapshot_mode,
+  es.data_quality AS snapshot_data_quality,
+  es.warnings_mask AS snapshot_warnings_mask
+FROM ` + "`" + `users` + "`" + ` u
+LEFT JOIN ` + "`" + `user_life_profiles` + "`" + ` lp ON lp.user_id = u.id
+LEFT JOIN ` + "`" + `engine_daily_snapshots` + "`" + ` es ON es.user_id = u.id AND es.day = (
+  SELECT MAX(s2.day) FROM ` + "`" + `engine_daily_snapshots` + "`" + ` s2 WHERE s2.user_id = u.id AND s2.day >= ?
+)
+WHERE u.id > ?
+ORDER BY u.id
+LIMIT ?
+`
+
+type ListAdminActivitySourcesParams struct {
+	Now           time.Time
+	ToDay         civildate.Date
+	From30        civildate.Date
+	RecentFrom    civildate.Date
+	PriorFrom     civildate.Date
+	PriorTo       civildate.Date
+	SnapshotSince civildate.Date
+	AfterID       uint64
+	Limit         int32
+}
+
+type ListAdminActivitySourcesRow struct {
+	UserID               uint64
+	CreatedAt            sql.NullTime
+	LifeMode             sql.NullString
+	PlusActive           int64
+	TrialRunning         int64
+	LastDay              interface{}
+	LogDays30            int64
+	LogDaysRecent14      int64
+	LogDaysPrior14       int64
+	SnapshotMode         sql.NullString
+	SnapshotDataQuality  sql.NullString
+	SnapshotWarningsMask sql.NullInt32
+}
+
+// ---------------------------------------------------------------------------
+// T-M10-32 (D-181; SPEC v6 §5.2, A-08, A-09): the nightly projection writer, the directory read and the user-detail
+// engine card. Nothing here returns a health value: the projection carries codes (mode, plan, churn, data_quality,
+// the main warning) and counts of logged days, never what was logged.
+// One page of users (id > after_id) with what the projection row needs, in one query: signup, the stored life mode,
+// the Plus tier at now (a covering active / canceled subscription → plus; else a running trial → trial — plus.tierOf),
+// the newest activity day, logged days in [from30, to] / [recent_from, to] / [prior_from, prior_to] from
+// user_activity_days (KEY user_id, day), and the newest engine snapshot on or after snapshot_since (today's row on the
+// user's own day; yesterday's covers a zone behind Tehran).
+func (q *Queries) ListAdminActivitySources(ctx context.Context, arg ListAdminActivitySourcesParams) ([]ListAdminActivitySourcesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listAdminActivitySources,
+		arg.Now,
+		arg.Now,
+		arg.Now,
+		arg.Now,
+		arg.ToDay,
+		arg.From30,
+		arg.ToDay,
+		arg.RecentFrom,
+		arg.ToDay,
+		arg.PriorFrom,
+		arg.PriorTo,
+		arg.SnapshotSince,
+		arg.AfterID,
+		arg.Limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAdminActivitySourcesRow{}
+	for rows.Next() {
+		var i ListAdminActivitySourcesRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.CreatedAt,
+			&i.LifeMode,
+			&i.PlusActive,
+			&i.TrialRunning,
+			&i.LastDay,
+			&i.LogDays30,
+			&i.LogDaysRecent14,
+			&i.LogDaysPrior14,
+			&i.SnapshotMode,
+			&i.SnapshotDataQuality,
+			&i.SnapshotWarningsMask,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAdminDirectory = `-- name: ListAdminDirectory :many
+SELECT u.id, u.ref_code, u.mobile, u.blocked_at, u.created_at,
+       a.user_id AS projected_user_id, a.last_activity_at, a.log_days_30, a.churn, a.mode, a.plan, a.data_quality,
+       a.main_warning
+FROM ` + "`" + `users` + "`" + ` u
+LEFT JOIN ` + "`" + `admin_user_activity` + "`" + ` a ON a.user_id = u.id
+WHERE (? IS NULL OR IFNULL(u.name, '') LIKE ? OR IFNULL(u.mobile, '') LIKE ?
+       OR IFNULL(u.email, '') LIKE ?)
+  AND (? IS NULL OR u.ref_code = ?)
+  AND COALESCE(u.blocked_at, CAST('1971-01-01 00:00:00' AS DATETIME)) >= ?
+  AND COALESCE(u.blocked_at, CAST('1971-01-01 00:00:00' AS DATETIME)) <= ?
+  AND (? IS NULL OR u.created_at >= ?)
+  AND (? IS NULL OR u.created_at < ?)
+  AND (? IS NULL OR a.plan = ?)
+  AND (? IS NULL OR a.churn = ?)
+  AND (? IS NULL OR a.mode = ?)
+  AND (? IS NULL OR a.data_quality = ?)
+  AND (? IS NULL OR a.main_warning = ?)
+  AND (? IS NULL OR a.last_activity_at >= ?)
+  AND (? IS NULL OR a.last_activity_at IS NULL OR a.last_activity_at < ?)
+ORDER BY u.created_at DESC, u.id DESC
+LIMIT ? OFFSET ?
+`
+
+type ListAdminDirectoryParams struct {
+	Pattern        sql.NullString
+	RefCode        sql.NullString
+	BlockedFrom    sql.NullTime
+	BlockedTo      sql.NullTime
+	CreatedFrom    sql.NullTime
+	CreatedTo      sql.NullTime
+	Plan           sql.NullString
+	Churn          sql.NullString
+	Mode           sql.NullString
+	DataQuality    sql.NullString
+	MainWarning    sql.NullString
+	ActiveSince    sql.NullTime
+	InactiveBefore sql.NullTime
+	Limit          int32
+	Offset         int32
+}
+
+type ListAdminDirectoryRow struct {
+	ID              uint64
+	RefCode         sql.NullString
+	Mobile          sql.NullString
+	BlockedAt       sql.NullTime
+	CreatedAt       sql.NullTime
+	ProjectedUserID sql.NullInt64
+	LastActivityAt  sql.NullTime
+	LogDays30       sql.NullInt16
+	Churn           sql.NullString
+	Mode            sql.NullString
+	Plan            sql.NullString
+	DataQuality     sql.NullString
+	MainWarning     sql.NullString
+}
+
+// CountAdminDirectory's filters, one page newest signup first (KEY users.created_at).
+func (q *Queries) ListAdminDirectory(ctx context.Context, arg ListAdminDirectoryParams) ([]ListAdminDirectoryRow, error) {
+	rows, err := q.db.QueryContext(ctx, listAdminDirectory,
+		arg.Pattern,
+		arg.Pattern,
+		arg.Pattern,
+		arg.Pattern,
+		arg.RefCode,
+		arg.RefCode,
+		arg.BlockedFrom,
+		arg.BlockedTo,
+		arg.CreatedFrom,
+		arg.CreatedFrom,
+		arg.CreatedTo,
+		arg.CreatedTo,
+		arg.Plan,
+		arg.Plan,
+		arg.Churn,
+		arg.Churn,
+		arg.Mode,
+		arg.Mode,
+		arg.DataQuality,
+		arg.DataQuality,
+		arg.MainWarning,
+		arg.MainWarning,
+		arg.ActiveSince,
+		arg.ActiveSince,
+		arg.InactiveBefore,
+		arg.InactiveBefore,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAdminDirectoryRow{}
+	for rows.Next() {
+		var i ListAdminDirectoryRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.RefCode,
+			&i.Mobile,
+			&i.BlockedAt,
+			&i.CreatedAt,
+			&i.ProjectedUserID,
+			&i.LastActivityAt,
+			&i.LogDays30,
+			&i.Churn,
+			&i.Mode,
+			&i.Plan,
+			&i.DataQuality,
+			&i.MainWarning,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAdminSegments = `-- name: ListAdminSegments :many
 
 SELECT id, name, filters, created_by, created_at, updated_at FROM ` + "`" + `admin_segments` + "`" + ` ORDER BY ` + "`" + `name` + "`" + `
@@ -182,6 +627,304 @@ func (q *Queries) ListAdminUserActivityByIDs(ctx context.Context, userIds []uint
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOverviewChallenges = `-- name: ListOverviewChallenges :many
+SELECT e.challenge_id, ch.title, e.status, e.started_on
+FROM ` + "`" + `challenge_enrollments` + "`" + ` e
+JOIN ` + "`" + `challenges` + "`" + ` ch ON ch.id = e.challenge_id
+WHERE e.user_id = ?
+ORDER BY e.id DESC
+LIMIT ?
+`
+
+type ListOverviewChallengesParams struct {
+	UserID uint64
+	Limit  int32
+}
+
+type ListOverviewChallengesRow struct {
+	ChallengeID uint64
+	Title       json.RawMessage
+	Status      string
+	StartedOn   civildate.Date
+}
+
+func (q *Queries) ListOverviewChallenges(ctx context.Context, arg ListOverviewChallengesParams) ([]ListOverviewChallengesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listOverviewChallenges, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListOverviewChallengesRow{}
+	for rows.Next() {
+		var i ListOverviewChallengesRow
+		if err := rows.Scan(
+			&i.ChallengeID,
+			&i.Title,
+			&i.Status,
+			&i.StartedOn,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOverviewConsents = `-- name: ListOverviewConsents :many
+SELECT consent, granted, version, granted_at, revoked_at FROM ` + "`" + `user_consents` + "`" + `
+WHERE user_id = ?
+ORDER BY consent
+LIMIT ?
+`
+
+type ListOverviewConsentsParams struct {
+	UserID uint64
+	Limit  int32
+}
+
+type ListOverviewConsentsRow struct {
+	Consent   string
+	Granted   bool
+	Version   sql.NullInt16
+	GrantedAt sql.NullTime
+	RevokedAt sql.NullTime
+}
+
+func (q *Queries) ListOverviewConsents(ctx context.Context, arg ListOverviewConsentsParams) ([]ListOverviewConsentsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listOverviewConsents, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListOverviewConsentsRow{}
+	for rows.Next() {
+		var i ListOverviewConsentsRow
+		if err := rows.Scan(
+			&i.Consent,
+			&i.Granted,
+			&i.Version,
+			&i.GrantedAt,
+			&i.RevokedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOverviewMessages = `-- name: ListOverviewMessages :many
+SELECT e.rule_id, r.rule_key, r.kind, r.title, r.placement, e.slot, e.version, e.variant, e.event, e.created_at
+FROM ` + "`" + `message_events` + "`" + ` e
+JOIN ` + "`" + `message_rules` + "`" + ` r ON r.id = e.rule_id
+WHERE e.user_id = ? AND e.event <> 'eligible'
+ORDER BY e.id DESC
+LIMIT ?
+`
+
+type ListOverviewMessagesParams struct {
+	UserID uint64
+	Limit  int32
+}
+
+type ListOverviewMessagesRow struct {
+	RuleID    uint64
+	RuleKey   sql.NullString
+	Kind      string
+	Title     string
+	Placement string
+	Slot      sql.NullString
+	Version   sql.NullInt32
+	Variant   string
+	Event     string
+	CreatedAt sql.NullTime
+}
+
+// Messages the user was shown, with the rule that triggered them (id, key, kind, title) and the version she saw.
+func (q *Queries) ListOverviewMessages(ctx context.Context, arg ListOverviewMessagesParams) ([]ListOverviewMessagesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listOverviewMessages, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListOverviewMessagesRow{}
+	for rows.Next() {
+		var i ListOverviewMessagesRow
+		if err := rows.Scan(
+			&i.RuleID,
+			&i.RuleKey,
+			&i.Kind,
+			&i.Title,
+			&i.Placement,
+			&i.Slot,
+			&i.Version,
+			&i.Variant,
+			&i.Event,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOverviewSubscriptions = `-- name: ListOverviewSubscriptions :many
+SELECT s.status, s.source, s.starts_at, s.ends_at, s.auto_renew,
+       pl.title AS plan_title
+FROM ` + "`" + `plus_subscriptions` + "`" + ` s
+LEFT JOIN ` + "`" + `plus_plans` + "`" + ` pl ON pl.id = s.plan_id
+WHERE s.user_id = ?
+ORDER BY s.id DESC
+LIMIT ?
+`
+
+type ListOverviewSubscriptionsParams struct {
+	UserID uint64
+	Limit  int32
+}
+
+type ListOverviewSubscriptionsRow struct {
+	Status    string
+	Source    string
+	StartsAt  time.Time
+	EndsAt    time.Time
+	AutoRenew bool
+	PlanTitle db.NullRawJSON
+}
+
+func (q *Queries) ListOverviewSubscriptions(ctx context.Context, arg ListOverviewSubscriptionsParams) ([]ListOverviewSubscriptionsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listOverviewSubscriptions, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListOverviewSubscriptionsRow{}
+	for rows.Next() {
+		var i ListOverviewSubscriptionsRow
+		if err := rows.Scan(
+			&i.Status,
+			&i.Source,
+			&i.StartsAt,
+			&i.EndsAt,
+			&i.AutoRenew,
+			&i.PlanTitle,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOverviewSupportReports = `-- name: ListOverviewSupportReports :many
+SELECT id, status, app_version, created_at FROM ` + "`" + `support_reports` + "`" + `
+WHERE user_id = ?
+ORDER BY id DESC
+LIMIT ?
+`
+
+type ListOverviewSupportReportsParams struct {
+	UserID uint64
+	Limit  int32
+}
+
+type ListOverviewSupportReportsRow struct {
+	ID         uint64
+	Status     string
+	AppVersion sql.NullString
+	CreatedAt  sql.NullTime
+}
+
+// Never the report text: it is free-form and may hold health data.
+func (q *Queries) ListOverviewSupportReports(ctx context.Context, arg ListOverviewSupportReportsParams) ([]ListOverviewSupportReportsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listOverviewSupportReports, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListOverviewSupportReportsRow{}
+	for rows.Next() {
+		var i ListOverviewSupportReportsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Status,
+			&i.AppVersion,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUserPeriodStarts = `-- name: ListUserPeriodStarts :many
+SELECT period_start_date FROM ` + "`" + `cycle_histories` + "`" + `
+WHERE user_id = ? AND is_estimated = 0
+ORDER BY period_start_date DESC
+LIMIT ?
+`
+
+type ListUserPeriodStartsParams struct {
+	UserID uint64
+	Limit  int32
+}
+
+// The newest logged (not estimated) period starts; the caller turns them into cycle lengths and drops the dates.
+func (q *Queries) ListUserPeriodStarts(ctx context.Context, arg ListUserPeriodStartsParams) ([]civildate.Date, error) {
+	rows, err := q.db.QueryContext(ctx, listUserPeriodStarts, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []civildate.Date{}
+	for rows.Next() {
+		var period_start_date civildate.Date
+		if err := rows.Scan(&period_start_date); err != nil {
+			return nil, err
+		}
+		items = append(items, period_start_date)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

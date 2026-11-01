@@ -47,6 +47,13 @@ type Handlers struct {
 	feed     *feed.Service       // T-M10-06: the message feed (GET /messages/feed, /messages/selected)
 	writer   *events.Writer      // T-M10-06: the buffered event log (nil = synchronous inserts)
 	marks    *events.Marks       // T-M10-06: once-a-day marks of server-logged events (nil = DB check)
+	segs     SegmentResolver     // T-M10-32: the `segment` fact (nil = empty set)
+}
+
+// WithSegments wires the saved admin segments behind the `segment` fact (T-M10-32).
+func (h *Handlers) WithSegments(r SegmentResolver) *Handlers {
+	h.segs = r
+	return h
 }
 
 // WithFeed wires the feed's event log: the buffered writer, the Redis marks and the app module switches (T-M10-06).
@@ -126,7 +133,7 @@ func (h *Handlers) requestOf(c fiber.Ctx, deferCompanion bool) (*manager.Manager
 	if h.states != nil { // v6: the user-local day, as every engine consumer (D-126)
 		today = civildate.LocalToday(c, clock.FromContext(c, h.clock))
 	}
-	src := NewStoreSource(h.q, h.pq, uid, today).WithEngine(h.states)
+	src := NewStoreSource(h.q, h.pq, uid, today).WithEngine(h.states).WithSegments(h.segs)
 	return manager.New(WithPostpartum(src, h.pp), content.NewRepository(h.q), locale, today), src, locale, today, nil
 }
 

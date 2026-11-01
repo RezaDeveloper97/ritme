@@ -111,7 +111,7 @@ func (h *Handlers) List(c fiber.Ctx) error {
 		items = append(items, jsonx.Obj(
 			"id", u.ID,
 			"name", httpadmin.NullString(u.Name),
-			"mobile", httpadmin.NullString(u.Mobile),
+			"mobile", mobileFor(c, u.Mobile),
 			"email", httpadmin.NullString(u.Email),
 			"is_blocked", u.BlockedAt.Valid,
 			"blocked_at", httpadmin.Time(u.BlockedAt),
@@ -123,6 +123,19 @@ func (h *Handlers) List(c fiber.Ctx) error {
 	page := httpadmin.Page(items, p, int(total))
 	page.Set("filters", jsonx.Obj("q", search, "status", status))
 	return httpadmin.OK(c, page)
+}
+
+// mobileFor is the mobile as the current admin may see it (T-M10-32, SPEC §5.8 "masked users"): in full only with
+// users at manage (super, editor — the roles that edit, block and delete accounts); masked (MaskMobile) for view-only
+// roles such as support and product manager. The search still matches the full number.
+func mobileFor(c fiber.Ctx, m sql.NullString) any {
+	if !m.Valid {
+		return nil
+	}
+	if httpadmin.Can(c, httpadmin.CapUsers, httpadmin.LevelManage) {
+		return m.String
+	}
+	return MaskMobile(m.String)
 }
 
 // orDefault is `$user->profile?->x ?? default`.
@@ -211,7 +224,7 @@ func (h *Handlers) detail(c fiber.Ctx, id uint64) (*jsonx.OrderedMap, error) {
 		"user", jsonx.Obj(
 			"id", u.ID,
 			"name", httpadmin.NullString(u.Name),
-			"mobile", httpadmin.NullString(u.Mobile),
+			"mobile", mobileFor(c, u.Mobile),
 			"email", httpadmin.NullString(u.Email),
 			"is_blocked", u.BlockedAt.Valid,
 			"blocked_at", httpadmin.Time(u.BlockedAt),

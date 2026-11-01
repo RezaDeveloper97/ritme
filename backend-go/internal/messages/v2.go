@@ -38,7 +38,7 @@ import (
 // from the fact registry (T-M10-03, D-161: the v6 engine and the modules, lazy producers); CYCLE_ENGINE=v1 keeps the
 // legacy builder (mode via the message manager, the legacy cycle engine).
 func BuildFacts(ctx context.Context, h *Handlers, userID uint64, today civildate.Date) (rules.Facts, error) {
-	src := NewStoreSource(h.q, h.pq, userID, today).WithEngine(h.states).WithNow(h.clock.Now())
+	src := NewStoreSource(h.q, h.pq, userID, today).WithEngine(h.states).WithNow(h.clock.Now()).WithSegments(h.segs)
 	return buildFacts(ctx, h, src, userID, today, "", nil)
 }
 

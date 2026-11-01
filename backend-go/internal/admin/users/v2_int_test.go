@@ -1,6 +1,7 @@
 package users_test
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
@@ -54,15 +55,21 @@ func TestDirectory_MaskedFiltersAndNoHealth(t *testing.T) {
 	r := sup.Get("/users/directory")
 	require.Equal(t, 200, r.Status, string(r.Raw))
 	require.Len(t, r.Items(), 2)
+	items, _ := json.Marshal(r.Items()) // the options block lists every mode, ttc included
 	raw := string(r.Raw)
-	for _, leak := range []string{"09121234567", "sara@example.com", "Sara", "ttc", "user_goal", "cycle", "2026-09-20"} {
+	for _, leak := range []string{"09121234567", "sara@example.com", "Sara", "user_goal", "2026-09-20", "RT-000A"} {
 		assert.NotContains(t, raw, leak)
 	}
+	for _, leak := range []string{"ttc", "cycle_duration"} {
+		assert.NotContains(t, string(items), leak)
+	}
 	assert.Contains(t, raw, `0912\u2022\u2022\u20224567`)
-	assert.Contains(t, raw, "RT-000A")
 
+	// Projection filters read admin_user_activity (nightly); before the first run nobody matches them.
+	assert.Len(t, sup.Get("/users/directory?plan=free").Items(), 0)
+	require.NoError(t, users.NewActivity(e.DB, admintest.Quiet).Rebuild(t.Context(), time.Now()))
 	assert.Len(t, sup.Get("/users/directory?plan=plus").Items(), 0)
-	assert.Len(t, sup.Get("/users/directory?plan=free&activity=7d&churn=low").Items(), 2)
+	assert.Len(t, sup.Get("/users/directory?plan=free&churn=new").Items(), 2)
 	assert.Len(t, sup.Get("/users/directory?cohort="+time.Now().Format("2006-01")).Items(), 2)
 	assert.Len(t, sup.Get("/users/directory?q=Mina").Items(), 1)
 	assert.Equal(t, 422, sup.Get("/users/directory?plan=gold").Status)
@@ -80,7 +87,7 @@ func TestDirectoryExport_AnonymisedAndNeedsExportCap(t *testing.T) {
 	r := e.As(admintest.SuperID).Get("/users/directory/export")
 	require.Equal(t, 200, r.Status)
 	body := string(r.Raw)
-	assert.True(t, strings.HasPrefix(body, "ref,plan,signup_month,logged_days_30,churn_risk,blocked"))
+	assert.True(t, strings.HasPrefix(body, "ref,mode,plan,signup_month,logged_days_30,data_quality,churn_risk,blocked"))
 	for _, leak := range []string{"0912", "Sara", "example.com"} {
 		assert.NotContains(t, body, leak)
 	}

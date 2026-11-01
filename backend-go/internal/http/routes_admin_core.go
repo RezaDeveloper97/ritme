@@ -2,6 +2,8 @@ package http
 
 import (
 	"context"
+	"log/slog"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -11,6 +13,7 @@ import (
 	"github.com/ritme/backend-go/internal/admin/dashboard"
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
 	"github.com/ritme/backend-go/internal/admin/overview"
+	"github.com/ritme/backend-go/internal/admin/segments"
 	"github.com/ritme/backend-go/internal/admin/store"
 	"github.com/ritme/backend-go/internal/admin/users"
 	"github.com/ritme/backend-go/internal/auth"
@@ -72,6 +75,18 @@ func init() {
 		h(post, "/users/:id/block", kit.Admin(usersH.Block))
 		h(post, "/users/:id/unblock", kit.Admin(usersH.Unblock))
 		h(del, "/users/:id", kit.Admin(usersH.Destroy))
+
+		// T-M10-32 (D-181): saved segments, the nightly activity projection and the reference codes.
+		segments.New(d.DB, d.Logger).Routes(segments.Route(h), kit)
+		if d.DB != nil {
+			jobs := auth.Jobs(r, d.Cache, d.Logger)
+			mustJobs(users.NewActivity(d.DB, d.Logger).RegisterJobs(jobs, tehranNow))
+			if rc, err := users.NewRefCoder(d.DB, d.Config.App.Env, os.Getenv(users.RefSecretEnv), d.Logger); err == nil {
+				mustJobs(rc.RegisterJobs(jobs))
+			} else {
+				d.Logger.Error("admin ref codes disabled", slog.String("error", err.Error())) // fail closed: no codes
+			}
+		}
 
 		h(get, "/admins", kit.Super(adminsH.List))
 		h(post, "/admins", kit.Super(adminsH.Store))

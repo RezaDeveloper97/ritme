@@ -1,9 +1,12 @@
 package users
 
-// B-N9-04: users list v2 (GET /users/directory, /users/directory/export) and the user-detail overview
-// (GET /users/:id/overview). Nothing here reads a health value: the list carries a masked mobile, the plan, the
-// last activity, a 30-day logging count and a churn bucket (counts of log DAYS only, never what was logged); the
-// overview's engine / message-rule titles / goal stay null until an approved health-access grant (B-N9-02, D-84).
+// B-N9-04 + T-M10-32 (D-181; SPEC v6 §5.2): the user directory (GET /users/directory, /users/directory/export) and the
+// user-detail overview (GET /users/:id/overview). The directory reads the nightly projection (admin_user_activity,
+// activity.go) with indexed filters — one count and one page query, no per-request aggregate — and shows the
+// reference code (A-09, refcode.go), a masked mobile, mode, plan, last activity, logged days in 30 days, data_quality,
+// the engine's main warning and churn (A-08). The overview adds today's engine card (codes from engine_daily_snapshots)
+// and the cycle-length history (lengths only, no dates). Symptoms, labs, notes and assistant chats are never read here;
+// the goal and clinical rule titles stay behind an approved health-access grant (B-N9-02, D-84, T-M10-33).
 
 import (
 	"context"
@@ -12,7 +15,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -20,15 +22,16 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
+	"github.com/ritme/backend-go/internal/admin/segments"
+	"github.com/ritme/backend-go/internal/admin/store"
+	"github.com/ritme/backend-go/internal/cycle/engine"
+	"github.com/ritme/backend-go/internal/i18n"
+	"github.com/ritme/backend-go/internal/messages/rules"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 )
 
 const exportMaxRows = 5000
-
-var cohortRe = regexp.MustCompile(`^\d{4}-(0[1-9]|1[0-2])$`)
-
-// RefCode is the support-facing reference of a user ("RT-1F2A"): no name, no mobile.
-func RefCode(id uint64) string { return fmt.Sprintf("RT-%04X", id) }
 
 // MaskMobile keeps the first four and last four digits: 09121234567 -> 0912•••4567.
 func MaskMobile(m string) string {
@@ -39,199 +42,134 @@ func MaskMobile(m string) string {
 	return string(r[:4]) + "•••" + string(r[len(r)-4:])
 }
 
-type dirFilter struct {
-	q, status, plan, activity, cohort, churn string
+// refOf is the stored reference code (null until the signup hook or the backfill wrote it).
+func refOf(s sql.NullString) any { return httpadmin.NullString(s) }
+
+// readDirFilter reads the directory filters (segments.Keys) and an optional saved `segment` id underneath them
+// (explicit parameters win). 422 on a bad value or an unknown / broken segment.
+func (h *Handlers) readDirFilter(c fiber.Ctx) (segments.Filters, uint64, error) {
+	var f segments.Filters
+	for _, k := range segments.Keys {
+		f.Set(k, strings.TrimSpace(c.Query(k)))
+	}
+	if f.Status == "all" {
+		f.Status = ""
+	}
+	if bad := f.Invalid(); bad != "" {
+		return f, 0, httpadmin.FieldError(bad, "Invalid filter.")
+	}
+	raw := c.Query("segment")
+	if raw == "" {
+		return f, 0, nil
+	}
+	id, err := strconv.ParseUint(raw, 10, 64)
+	if err != nil || id == 0 {
+		return f, 0, httpadmin.FieldError("segment", "Invalid filter.")
+	}
+	saved, ok, err := segments.Lookup(c.Context(), h.q, id)
+	if err != nil {
+		return f, 0, err
+	}
+	if !ok {
+		return f, 0, httpadmin.FieldError("segment", "Invalid filter.")
+	}
+	return saved.Over(f), id, nil
 }
 
-func readDirFilter(c fiber.Ctx) (dirFilter, error) {
-	f := dirFilter{
-		q: strings.TrimSpace(c.Query("q")), status: c.Query("status"), plan: c.Query("plan"),
-		activity: c.Query("activity"), cohort: c.Query("cohort"), churn: c.Query("churn"),
-	}
-	in := func(v string, ok ...string) bool {
-		if v == "" {
-			return true
-		}
-		for _, o := range ok {
-			if v == o {
-				return true
-			}
-		}
-		return false
-	}
-	switch {
-	case !in(f.status, "active", "blocked", "all"),
-		!in(f.plan, "free", "plus", "trial"),
-		!in(f.activity, "today", "7d", "30d", "inactive"),
-		!in(f.churn, "low", "medium", "high"),
-		f.cohort != "" && !cohortRe.MatchString(f.cohort):
-		return f, httpadmin.Fail(fiber.StatusUnprocessableEntity, "validation_error", "Invalid filter.")
-	}
-	return f, nil
-}
-
-// dirQuery builds the inner select (one row per user) plus the outer filters.
-func (f dirFilter) build(now time.Time) (inner string, innerArgs []any, where string, whereArgs []any) {
-	day := func(n int) string { return now.AddDate(0, 0, -n).Format("2006-01-02") }
-	inner = "SELECT u.id, u.mobile, u.blocked_at, u.created_at, u.name, u.email, " +
-		"CASE WHEN ps.id IS NULL THEN 'free' WHEN ps.source = 'trial_offer' THEN 'trial' ELSE 'plus' END AS plan, " +
-		"GREATEST(u.updated_at, IFNULL(a.last_log, u.updated_at)) AS last_activity, " +
-		"IFNULL(a.d30, 0) AS d30, IFNULL(a.a14, 0) AS a14, IFNULL(a.b14, 0) AS b14 " +
-		"FROM users u " +
-		"LEFT JOIN plus_subscriptions ps ON ps.id = (SELECT MAX(s.id) FROM plus_subscriptions s " +
-		"WHERE s.user_id = u.id AND s.status = 'active' AND s.ends_at > ?) " +
-		"LEFT JOIN (SELECT user_id, MAX(updated_at) AS last_log, COUNT(*) AS d30, " +
-		"SUM(log_date >= ?) AS a14, SUM(log_date >= ? AND log_date < ?) AS b14 " +
-		"FROM daily_health_logs WHERE log_date >= ? GROUP BY user_id) a ON a.user_id = u.id"
-	innerArgs = []any{now.Format("2006-01-02 15:04:05"), day(14), day(28), day(14), day(30)}
-
-	conds := []string{"1=1"}
-	add := func(cond string, args ...any) {
-		conds = append(conds, cond)
-		whereArgs = append(whereArgs, args...)
-	}
-	if f.q != "" {
-		p := "%" + escapeLike(f.q) + "%"
-		add("(IFNULL(name,'') LIKE ? OR IFNULL(mobile,'') LIKE ? OR IFNULL(email,'') LIKE ?)", p, p, p)
-	}
-	switch f.status {
-	case "active":
-		add("blocked_at IS NULL")
-	case "blocked":
-		add("blocked_at IS NOT NULL")
-	}
-	if f.plan != "" {
-		add("plan = ?", f.plan)
-	}
-	switch f.activity {
-	case "today":
-		add("last_activity >= ?", now.Format("2006-01-02")+" 00:00:00")
-	case "7d":
-		add("last_activity >= ?", day(7)+" 00:00:00")
-	case "30d":
-		add("last_activity >= ?", day(30)+" 00:00:00")
-	case "inactive":
-		add("last_activity < ?", day(30)+" 00:00:00")
-	}
-	if f.cohort != "" {
-		add("DATE_FORMAT(created_at, '%Y-%m') = ?", f.cohort)
-	}
-	switch f.churn {
-	case "low":
-		add("(b14 = 0 OR a14 * 10 >= b14 * 7)")
-	case "medium":
-		add("(b14 > 0 AND a14 * 10 < b14 * 7 AND a14 * 10 >= b14 * 3)")
-	case "high":
-		add("(b14 > 0 AND a14 * 10 < b14 * 3)")
-	}
-	where = strings.Join(conds, " AND ")
-	return inner, innerArgs, where, whereArgs
-}
-
-func churnOf(a14, b14 int64) string {
-	switch {
-	case b14 == 0 || a14*10 >= b14*7:
-		return "low"
-	case a14*10 >= b14*3:
-		return "medium"
-	default:
-		return "high"
-	}
-}
-
-type dirRow struct {
-	id            uint64
-	mobile        sql.NullString
-	blockedAt     sql.NullTime
-	createdAt     sql.NullTime
-	plan          string
-	lastActivity  sql.NullTime
-	d30, a14, b14 int64
-}
-
-func (h *Handlers) dirRows(ctx context.Context, f dirFilter, now time.Time, limit, offset int) ([]dirRow, int64, error) {
-	inner, ia, where, wa := f.build(now)
-	var total int64
-	//nolint:gosec // G202: inner/where are fixed fragments; every value is a bound argument
-	if err := h.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM ("+inner+") t WHERE "+where,
-		append(append([]any{}, ia...), wa...)...).Scan(&total); err != nil {
-		return nil, 0, err
-	}
-	args := append(append(append([]any{}, ia...), wa...), limit, offset)
-	//nolint:gosec // G202: see above
-	rs, err := h.db.QueryContext(ctx, "SELECT id, mobile, blocked_at, created_at, plan, last_activity, d30, a14, b14 FROM ("+
-		inner+") t WHERE "+where+" ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?", args...)
+// DirectoryPage is one directory page and the total for f at now: two queries.
+func (h *Handlers) DirectoryPage(ctx context.Context, f segments.Filters, now time.Time, limit, offset int) (
+	[]store.ListAdminDirectoryRow, int64, error) {
+	total, err := h.q.CountAdminDirectory(ctx, f.CountParams(now))
 	if err != nil {
 		return nil, 0, err
 	}
-	defer rs.Close()
-	var out []dirRow
-	for rs.Next() {
-		var r dirRow
-		if err := rs.Scan(&r.id, &r.mobile, &r.blockedAt, &r.createdAt, &r.plan, &r.lastActivity, &r.d30, &r.a14, &r.b14); err != nil {
-			return nil, 0, err
-		}
-		out = append(out, r)
+	rows, err := h.q.ListAdminDirectory(ctx, f.ListParams(now,
+		int32(min(limit, 1<<30)), int32(min(offset, 1<<30)))) //nolint:gosec // G115: clamped
+	if err != nil {
+		return nil, 0, err
 	}
-	return out, total, rs.Err()
+	return rows, total, nil
 }
 
-// Directory is GET /users/directory?q=&status=&plan=free|plus|trial&activity=today|7d|30d|inactive&cohort=YYYY-MM
-// &churn=low|medium|high&page=&per_page= — the v2 list: masked mobile, no name / email / health value.
+func dirItem(r store.ListAdminDirectoryRow) *jsonx.OrderedMap {
+	var logged any
+	if r.LogDays30.Valid {
+		logged = r.LogDays30.Int16
+	}
+	return jsonx.Obj(
+		"id", r.ID,
+		"ref", refOf(r.RefCode),
+		"mobile_masked", MaskMobile(r.Mobile.String),
+		"mode", httpadmin.NullString(r.Mode),
+		"plan", httpadmin.NullString(r.Plan),
+		"is_blocked", r.BlockedAt.Valid,
+		"last_activity_at", httpadmin.Time(r.LastActivityAt),
+		"logged_days_30", logged,
+		"data_quality", httpadmin.NullString(r.DataQuality),
+		"main_warning", httpadmin.NullString(r.MainWarning),
+		"churn_risk", httpadmin.NullString(r.Churn),
+		"projected", r.ProjectedUserID.Valid,
+		"created_at", httpadmin.Time(r.CreatedAt),
+	)
+}
+
+// Directory is GET /users/directory?q=&status=&plan=&activity=&cohort=&churn=&mode=&data_quality=&main_warning=
+// &segment=&page=&per_page= — masked mobile, reference code, projection codes; no name, email or health value.
+// q is a substring of name / mobile / email or an exact RT- code.
 func (h *Handlers) Directory(c fiber.Ctx) error {
-	f, err := readDirFilter(c)
+	f, seg, err := h.readDirFilter(c)
 	if err != nil {
 		return err
 	}
 	p := httpadmin.PageOf(c)
-	rows, total, err := h.dirRows(c.Context(), f, httpadmin.Now(c), p.PerPage, min(p.Offset(), 1<<30))
+	rows, total, err := h.DirectoryPage(c.Context(), f, httpadmin.Now(c), p.PerPage, p.Offset())
 	if err != nil {
 		return err
 	}
 	items := make([]*jsonx.OrderedMap, 0, len(rows))
 	for _, r := range rows {
-		items = append(items, jsonx.Obj(
-			"id", r.id,
-			"ref", RefCode(r.id),
-			"mobile_masked", MaskMobile(r.mobile.String),
-			"plan", r.plan,
-			"is_blocked", r.blockedAt.Valid,
-			"last_activity_at", httpadmin.Time(r.lastActivity),
-			"logged_days_30", r.d30,
-			"churn_risk", churnOf(r.a14, r.b14),
-			"created_at", httpadmin.Time(r.createdAt),
-		))
+		items = append(items, dirItem(r))
 	}
 	page := httpadmin.Page(items, p, int(total))
-	page.Set("filters", jsonx.Obj("q", f.q, "status", f.status, "plan", f.plan, "activity", f.activity,
-		"cohort", f.cohort, "churn", f.churn))
+	filters := jsonx.Obj(f.Map()...)
+	var segment any
+	if seg > 0 {
+		segment = seg
+	}
+	filters.Set("segment", segment)
+	page.Set("filters", filters)
+	page.Set("options", segments.Options())
 	return httpadmin.OK(c, page)
 }
 
-// ExportDirectory is GET /users/directory/export (same filters): an anonymised CSV (ref, plan, signup month,
-// logged days, churn) — no name, mobile, email or health value. Needs the export capability besides users.
+// ExportDirectory is GET /users/directory/export (same filters): an anonymised CSV (ref, mode, plan, signup month,
+// logged days, data_quality, churn, blocked) — no name, mobile, email or health value. Needs the export capability.
 func (h *Handlers) ExportDirectory(c fiber.Ctx) error {
 	if !httpadmin.Can(c, httpadmin.CapExport, httpadmin.LevelView) {
 		return httpadmin.ForbiddenPermission(httpadmin.CapExport)
 	}
-	f, err := readDirFilter(c)
+	f, _, err := h.readDirFilter(c)
 	if err != nil {
 		return err
 	}
-	rows, _, err := h.dirRows(c.Context(), f, httpadmin.Now(c), exportMaxRows, 0)
+	rows, _, err := h.DirectoryPage(c.Context(), f, httpadmin.Now(c), exportMaxRows, 0)
 	if err != nil {
 		return err
 	}
 	var b strings.Builder
 	w := csv.NewWriter(&b)
-	_ = w.Write([]string{"ref", "plan", "signup_month", "logged_days_30", "churn_risk", "blocked"})
+	_ = w.Write([]string{"ref", "mode", "plan", "signup_month", "logged_days_30", "data_quality", "churn_risk", "blocked"})
 	for _, r := range rows {
 		month := ""
-		if r.createdAt.Valid {
-			month = r.createdAt.Time.Format("2006-01")
+		if r.CreatedAt.Valid {
+			month = r.CreatedAt.Time.Format("2006-01")
 		}
-		_ = w.Write([]string{RefCode(r.id), r.plan, month, strconv.FormatInt(r.d30, 10), churnOf(r.a14, r.b14),
-			strconv.FormatBool(r.blockedAt.Valid)})
+		logged := ""
+		if r.LogDays30.Valid {
+			logged = strconv.Itoa(int(r.LogDays30.Int16))
+		}
+		_ = w.Write([]string{r.RefCode.String, r.Mode.String, r.Plan.String, month, logged, r.DataQuality.String,
+			r.Churn.String, strconv.FormatBool(r.BlockedAt.Valid)})
 	}
 	w.Flush()
 	httpadmin.Audit(c, h.logger, "users.export", "users", 0, slog.Int("rows", len(rows)))
@@ -241,24 +179,66 @@ func (h *Handlers) ExportDirectory(c fiber.Ctx) error {
 	return c.SendString(b.String())
 }
 
-const overviewLimit = 20
+const (
+	overviewLimit = 20
+	// cycleHistoryLengths is how many recent cycle lengths the detail shows.
+	cycleHistoryLengths = 12
+)
 
-// Overview is GET /users/:id/overview: the non-health tabs of the detail page in one payload (summary, events,
-// messages & challenges, subscription, consents, support) plus `health_access` and `health` — the health-gated
-// part (goal, message-rule titles) is null unless the admin holds an approved grant for this user.
+// CycleLengths turns period starts (newest first) into cycle lengths in days, newest first; the dates are dropped.
+func CycleLengths(starts []civildate.Date) []int {
+	out := []int{}
+	for i := 0; i+1 < len(starts); i++ {
+		if n := starts[i+1].DiffDays(starts[i]); n > 0 {
+			out = append(out, n)
+		}
+	}
+	return out
+}
+
+// engineCard is today's engine output from the newest snapshot (codes only), or nil without one.
+func engineCard(s store.GetLatestEngineSnapshotRow) *jsonx.OrderedMap {
+	set := engine.WarningSet(s.WarningsMask)
+	warnings := []string{}
+	for w := range set.All() {
+		warnings = append(warnings, w.String())
+	}
+	var late any
+	if s.DaysLate.Valid {
+		late = s.DaysLate.Int16
+	}
+	var main any
+	if m := MainWarning(s.WarningsMask); m != "" {
+		main = m
+	}
+	return jsonx.Obj(
+		"day", s.Day.String(),
+		"mode", s.Mode,
+		"main_phase", s.MainPhase,
+		"subphase", s.Subphase,
+		"confidence", s.Confidence,
+		"data_quality", s.DataQuality,
+		"warnings", warnings,
+		"main_warning", main,
+		"requires_user_input", set.RequiresUserInput(),
+		"days_late", late,
+	)
+}
+
+// openTitle reports whether a rule title is shown without a health grant: product and marketing titles name a
+// campaign; clinical, safety, content and engine titles can name a condition.
+func openTitle(kind string) bool { return kind == rules.KindProduct || kind == rules.KindMarketing }
+
+// Overview is GET /users/:id/overview: the detail page in one payload — summary (projection), today's engine card,
+// cycle-length history, recent messages with the rule (id, key, version, title) and challenges, subscriptions,
+// consents, support tickets (no text), `health_access` and `health` (the goal, null without a grant).
 func (h *Handlers) Overview(c fiber.Ctx) error {
 	id, err := h.userID(c)
 	if err != nil {
 		return err
 	}
 	ctx := c.Context()
-	var (
-		created, verified, blocked, updated sql.NullTime
-		goal                                sql.NullString
-	)
-	err = h.db.QueryRowContext(ctx, `SELECT u.created_at, u.mobile_verified_at, u.blocked_at, u.updated_at,
-		(SELECT p.user_goal FROM user_profiles p WHERE p.user_id = u.id ORDER BY p.id LIMIT 1)
-		FROM users u WHERE u.id = ?`, id).Scan(&created, &verified, &blocked, &updated, &goal)
+	acc, err := h.q.GetOverviewAccount(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return httpadmin.NotFound("User")
 	}
@@ -276,126 +256,128 @@ func (h *Handlers) Overview(c fiber.Ctx) error {
 		}
 	}
 	now := httpadmin.Now(c)
-	day30 := now.AddDate(0, 0, -30).Format("2006-01-02")
-	var d30 int64
-	var lastLog sql.NullTime
-	if err := h.db.QueryRowContext(ctx, `SELECT COUNT(*), MAX(updated_at) FROM daily_health_logs
-		WHERE user_id = ? AND log_date >= ?`, id, day30).Scan(&d30, &lastLog); err != nil {
+	locale, def := i18n.Locale(c), i18n.LanguagesOf(c).DefaultCode()
+
+	summary := jsonx.Obj(
+		"signed_up_at", httpadmin.Time(acc.CreatedAt),
+		"last_activity_at", nil,
+		"logged_days_30", nil,
+		"mode", nil,
+		"plan", nil,
+		"churn_risk", nil,
+		"data_quality", nil,
+		"main_warning", nil,
+		"projected_on", nil,
+		"companions", acc.Companions,
+		"courses", acc.Courses,
+		"is_blocked", acc.BlockedAt.Valid,
+	)
+	if a, err := h.q.GetAdminUserActivity(ctx, id); err == nil {
+		summary.Set("last_activity_at", httpadmin.Time(a.LastActivityAt))
+		summary.Set("logged_days_30", a.LogDays30)
+		summary.Set("mode", a.Mode)
+		summary.Set("plan", a.Plan)
+		summary.Set("churn_risk", a.Churn)
+		summary.Set("data_quality", httpadmin.NullString(a.DataQuality))
+		summary.Set("main_warning", httpadmin.NullString(a.MainWarning))
+		summary.Set("projected_on", a.UpdatedOn.String())
+	} else if !errors.Is(err, sql.ErrNoRows) {
 		return err
-	}
-	var companions, courses int64
-	_ = h.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM companions WHERE owner_id = ? AND status = 'active'`, id).Scan(&companions)
-	_ = h.db.QueryRowContext(ctx, `SELECT COUNT(DISTINCT course_id) FROM learning_progress WHERE user_id = ?`, id).Scan(&courses)
-	last := updated
-	if lastLog.Valid && (!last.Valid || lastLog.Time.After(last.Time)) {
-		last = lastLog
 	}
 
-	subs, err := h.queryRows(ctx, `SELECT s.status, s.source, s.starts_at, s.ends_at, s.auto_renew,
-		JSON_UNQUOTE(JSON_EXTRACT(pl.title, '$.fa')) FROM plus_subscriptions s
-		LEFT JOIN plus_plans pl ON pl.id = s.plan_id WHERE s.user_id = ? ORDER BY s.id DESC LIMIT ?`, 6,
-		func(rs *sql.Rows) (*jsonx.OrderedMap, error) {
-			var status, source string
-			var from, to sql.NullTime
-			var renew bool
-			var plan sql.NullString
-			if err := rs.Scan(&status, &source, &from, &to, &renew, &plan); err != nil {
-				return nil, err
-			}
-			return jsonx.Obj("status", status, "source", source, "starts_at", httpadmin.Time(from),
-				"ends_at", httpadmin.Time(to), "auto_renew", renew, "plan", httpadmin.NullString(plan)), nil
-		}, id, overviewLimit)
+	var card any
+	if s, err := h.q.GetLatestEngineSnapshot(ctx, store.GetLatestEngineSnapshotParams{
+		UserID: id, Today: civildate.InTehran(now)}); err == nil {
+		card = engineCard(s)
+	} else if !errors.Is(err, sql.ErrNoRows) {
+		return err
+	}
+	starts, err := h.q.ListUserPeriodStarts(ctx, store.ListUserPeriodStartsParams{UserID: id, Limit: cycleHistoryLengths + 1})
 	if err != nil {
 		return err
 	}
-	consents, err := h.queryRows(ctx, `SELECT consent, granted, version, granted_at, revoked_at FROM user_consents
-		WHERE user_id = ? ORDER BY consent LIMIT ?`, 6,
-		func(rs *sql.Rows) (*jsonx.OrderedMap, error) {
-			var key string
-			var granted bool
-			var ver sql.NullInt64
-			var gAt, rAt sql.NullTime
-			if err := rs.Scan(&key, &granted, &ver, &gAt, &rAt); err != nil {
-				return nil, err
-			}
-			var v any
-			if ver.Valid {
-				v = ver.Int64
-			}
-			return jsonx.Obj("consent", key, "granted", granted, "version", v,
-				"granted_at", httpadmin.Time(gAt), "revoked_at", httpadmin.Time(rAt)), nil
-		}, id, overviewLimit)
+
+	subRows, err := h.q.ListOverviewSubscriptions(ctx, store.ListOverviewSubscriptionsParams{UserID: id, Limit: overviewLimit})
 	if err != nil {
 		return err
 	}
-	support, err := h.queryRows(ctx, `SELECT id, status, app_version, created_at FROM support_reports
-		WHERE user_id = ? ORDER BY id DESC LIMIT ?`, 6,
-		func(rs *sql.Rows) (*jsonx.OrderedMap, error) { // never the report text: it is free-form and may hold health data
-			var rid uint64
-			var status string
-			var app sql.NullString
-			var at sql.NullTime
-			if err := rs.Scan(&rid, &status, &app, &at); err != nil {
-				return nil, err
-			}
-			return jsonx.Obj("id", rid, "status", status, "app_version", httpadmin.NullString(app),
-				"created_at", httpadmin.Time(at)), nil
-		}, id, overviewLimit)
+	subs := make([]*jsonx.OrderedMap, 0, len(subRows))
+	for _, s := range subRows {
+		var plan any
+		if s.PlanTitle.Valid {
+			plan = i18n.PickString(s.PlanTitle.V, locale, def)
+		}
+		subs = append(subs, jsonx.Obj("status", s.Status, "source", s.Source,
+			"starts_at", httpadmin.Time(sql.NullTime{Time: s.StartsAt, Valid: true}),
+			"ends_at", httpadmin.Time(sql.NullTime{Time: s.EndsAt, Valid: true}), "auto_renew", s.AutoRenew, "plan", plan))
+	}
+	conRows, err := h.q.ListOverviewConsents(ctx, store.ListOverviewConsentsParams{UserID: id, Limit: overviewLimit})
 	if err != nil {
 		return err
 	}
-	challenges, err := h.queryRows(ctx, `SELECT JSON_UNQUOTE(JSON_EXTRACT(ch.title, '$.fa')), e.status, e.started_on
-		FROM challenge_enrollments e JOIN challenges ch ON ch.id = e.challenge_id
-		WHERE e.user_id = ? ORDER BY e.id DESC LIMIT ?`, 6,
-		func(rs *sql.Rows) (*jsonx.OrderedMap, error) {
-			var title sql.NullString
-			var status string
-			var started sql.NullTime
-			if err := rs.Scan(&title, &status, &started); err != nil {
-				return nil, err
-			}
-			return jsonx.Obj("title", httpadmin.NullString(title), "status", status,
-				"started_on", httpadmin.Time(started)), nil
-		}, id, overviewLimit)
+	consents := make([]*jsonx.OrderedMap, 0, len(conRows))
+	for _, r := range conRows {
+		var v any
+		if r.Version.Valid {
+			v = int64(r.Version.Int16)
+		}
+		consents = append(consents, jsonx.Obj("consent", r.Consent, "granted", r.Granted, "version", v,
+			"granted_at", httpadmin.Time(r.GrantedAt), "revoked_at", httpadmin.Time(r.RevokedAt)))
+	}
+	supRows, err := h.q.ListOverviewSupportReports(ctx, store.ListOverviewSupportReportsParams{UserID: id, Limit: overviewLimit})
 	if err != nil {
 		return err
 	}
-	// Messages shown: placement + outcome always; the rule title (it can name a condition) only with a grant.
-	messages, err := h.queryRows(ctx, `SELECT r.title, r.placement, e.event, e.created_at FROM message_events e
-		JOIN message_rules r ON r.id = e.rule_id WHERE e.user_id = ? ORDER BY e.id DESC LIMIT ?`, 6,
-		func(rs *sql.Rows) (*jsonx.OrderedMap, error) {
-			var title, placement, event string
-			var at sql.NullTime
-			if err := rs.Scan(&title, &placement, &event, &at); err != nil {
-				return nil, err
-			}
-			var t any
-			if grant != nil {
-				t = title
-			}
-			return jsonx.Obj("title", t, "placement", placement, "event", event, "created_at", httpadmin.Time(at)), nil
-		}, id, overviewLimit)
+	support := make([]*jsonx.OrderedMap, 0, len(supRows))
+	for _, r := range supRows {
+		support = append(support, jsonx.Obj("id", r.ID, "status", r.Status, "app_version", httpadmin.NullString(r.AppVersion),
+			"created_at", httpadmin.Time(r.CreatedAt)))
+	}
+	chRows, err := h.q.ListOverviewChallenges(ctx, store.ListOverviewChallengesParams{UserID: id, Limit: overviewLimit})
 	if err != nil {
 		return err
 	}
-	events := accountEvents(created, verified, blocked, subs, consents, support, challenges)
+	challenges := make([]*jsonx.OrderedMap, 0, len(chRows))
+	for _, r := range chRows {
+		challenges = append(challenges, jsonx.Obj("challenge_id", r.ChallengeID,
+			"title", i18n.PickString(r.Title, locale, def), "status", r.Status, "started_on", r.StartedOn.String()))
+	}
+	msgRows, err := h.q.ListOverviewMessages(ctx, store.ListOverviewMessagesParams{UserID: id, Limit: overviewLimit})
+	if err != nil {
+		return err
+	}
+	messages := make([]*jsonx.OrderedMap, 0, len(msgRows))
+	for _, r := range msgRows {
+		var title, version any
+		if grant != nil || openTitle(r.Kind) {
+			title = r.Title
+		}
+		if r.Version.Valid {
+			version = r.Version.Int32
+		}
+		slot := r.Placement
+		if r.Slot.Valid && r.Slot.String != "" {
+			slot = r.Slot.String
+		}
+		messages = append(messages, jsonx.Obj(
+			"rule", jsonx.Obj("id", r.RuleID, "key", httpadmin.NullString(r.RuleKey), "kind", r.Kind, "title", title,
+				"version", version),
+			"title", title, "placement", r.Placement, "slot", slot, "variant", r.Variant, "event", r.Event,
+			"created_at", httpadmin.Time(r.CreatedAt)))
+	}
+	events := accountEvents(acc.CreatedAt, acc.MobileVerifiedAt, acc.BlockedAt, subs, consents, support, challenges)
 
 	access := jsonx.Obj("granted", grant != nil, "expires_at", nil)
 	var health any
 	if grant != nil {
 		access.Set("expires_at", httpadmin.Time(grant.ExpiresAt))
-		health = jsonx.Obj("user_goal", httpadmin.NullString(goal))
+		health = jsonx.Obj("user_goal", httpadmin.NullString(acc.UserGoal))
 	}
 	return httpadmin.OK(c, jsonx.Obj(
-		"ref", RefCode(id),
-		"summary", jsonx.Obj(
-			"signed_up_at", httpadmin.Time(created),
-			"last_activity_at", httpadmin.Time(last),
-			"logged_days_30", d30,
-			"companions", companions,
-			"courses", courses,
-			"is_blocked", blocked.Valid,
-		),
+		"ref", refOf(acc.RefCode),
+		"summary", summary,
+		"engine", card,
+		"cycle_lengths", CycleLengths(starts),
 		"events", events,
 		"messages", messages,
 		"challenges", challenges,
@@ -405,24 +387,6 @@ func (h *Handlers) Overview(c fiber.Ctx) error {
 		"health_access", access,
 		"health", health,
 	))
-}
-
-func (h *Handlers) queryRows(ctx context.Context, q string, _ int, scan func(*sql.Rows) (*jsonx.OrderedMap, error),
-	args ...any) ([]*jsonx.OrderedMap, error) {
-	rs, err := h.db.QueryContext(ctx, q, args...)
-	if err != nil {
-		return nil, err
-	}
-	defer rs.Close()
-	out := []*jsonx.OrderedMap{}
-	for rs.Next() {
-		m, err := scan(rs)
-		if err != nil {
-			return nil, err
-		}
-		out = append(out, m)
-	}
-	return out, rs.Err()
 }
 
 // accountEvents is the non-health timeline: sign-up, verification, block, plan changes, consents, support

@@ -165,15 +165,28 @@ B-N9-02 adds nine capability-based roles (`product_manager`, `medical_advisor`, 
 change their own role, deactivate or delete themselves (422 `cannot_modify_self`; the form should disable those
 controls for the current admin).
 
-## 6c. Users list v2 and detail overview (B-N9-04)
+## 6c. Users list v2 and detail overview (B-N9-04, T-M10-32)
 
-Capability `users` (view). `GET /users/directory?q=&status=&plan=free|plus|trial&activity=today|7d|30d|inactive&cohort=YYYY-MM&churn=low|medium|high&page=&per_page=`
--> rows `{id, ref (RT-xxxx), mobile_masked, plan, is_blocked, last_activity_at, logged_days_30, churn_risk, created_at}`; no name,
-email or health value (422 on a bad filter). Churn = logged days of the last 14 days vs the 14 before (low >= 70 %, high < 30 %).
+Capability `users` (view). `GET /users/directory?q=&status=&plan=free|plus|trial&activity=today|7d|30d|inactive&cohort=YYYY-MM&churn=new|low|medium|high&mode=&data_quality=&main_warning=&segment=<id>&page=&per_page=`
+reads the nightly projection `admin_user_activity` (job `admin.user_activity`, 04:30 Tehran; 2 queries per page, 3 with
+`segment`; explicit filters win over the saved segment's) -> rows `{id, ref, mobile_masked, plan, is_blocked, last_activity_at,
+logged_days_30, churn_risk, mode, data_quality, main_warning, projected, created_at}` plus `options` (the filter vocabulary);
+no name, email or health value (422 on a bad filter). `ref` is the stored code `RT-` + 6 base32 chars of
+HMAC-SHA256(id, `ADMIN_REF_SECRET`) (7/8 on a collision; signup hook + `admin.ref_code_backfill`), or null when the
+secret is unset; `q` matches a substring or an exact RT- code. Churn (A-08): `new` (account < 14 days) → `high` (recent
+14 days ≤ 50 % of the prior 14, or 7+ days inactive) → `medium` (≤ 75 %) → `low`.
 `GET /users/directory/export` (same filters, also needs `export`): anonymised CSV (ref, plan, signup_month, logged_days_30, churn_risk,
-blocked), audited as `users.export`. `GET /users/:id/overview` -> `{ref, summary, events, messages, challenges, subscriptions, consents,
-support_reports (no text), health_access, health}`; `health` (`{user_goal}`) and message-rule titles are null without a live health
-grant (D-84). Saved segments are a client-side convenience (localStorage), not stored server-side.
+mode, data_quality, blocked), audited as `users.export`. `GET /users/:id/overview` -> `{ref, summary, engine, cycle_lengths, events,
+messages, challenges, subscriptions, consents, support_reports (no text), health_access, health}`; `engine` is today's
+snapshot as codes (phase, confidence, warnings, days_late), `cycle_lengths` lengths only (no dates), each message carries
+`rule {id, key, kind, title, version}`. `health` (`{user_goal}`) and clinical/safety/content/engine rule titles are null
+without a live health grant (D-84). The legacy `GET /users` / `GET /users/:id` show the full mobile only with
+`users:manage`; view-only roles get the masked number.
+
+Saved segments (capability `segments`, D-181): `GET /segments`, `GET /segments/:id` (`size` null + `size_suppressed: true`
+below 10 users), `POST /segments`, `PUT /segments/:id`, `DELETE /segments/:id` `{name, filters}` — the directory filters
+without free-text `q`; writes audited as `segment.create|update|delete`. The message fact `segment` is the ids a user
+matches.
 
 ## 6c. KPI & cohorts (B-N9-08, D-89)
 

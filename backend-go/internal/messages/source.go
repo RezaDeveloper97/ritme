@@ -51,6 +51,30 @@ type StoreSource struct {
 	now           time.Time // the Plus tier's moment (fact registry)
 	factRow       *store.GetMessageFactProfileRow
 	factLoaded    bool
+	segs          SegmentResolver // T-M10-32: the saved admin segments (nil = the `segment` fact is empty)
+}
+
+// SegmentResolver lists the ids of the saved admin segments a user matches at now (admin/segments.Resolver, T-M10-32).
+type SegmentResolver interface {
+	UserSegments(ctx context.Context, userID uint64, now time.Time) ([]string, error)
+}
+
+// WithSegments wires the `segment` fact's resolver (T-M10-32).
+func (s *StoreSource) WithSegments(r SegmentResolver) *StoreSource {
+	s.segs = r
+	return s
+}
+
+// Segments implements facts.SegmentSource; it costs the resolver's queries only when a rule names `segment`.
+func (s *StoreSource) Segments(ctx context.Context) ([]string, error) {
+	if s.segs == nil {
+		return []string{}, nil
+	}
+	now := s.now
+	if now.IsZero() {
+		now = time.Now()
+	}
+	return s.segs.UserSegments(ctx, s.userID, now)
 }
 
 // NewStoreSource returns the source for userID; today is the request's Tehran day.

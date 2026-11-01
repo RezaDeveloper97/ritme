@@ -172,7 +172,7 @@ func TestFacts_MissingInputsAreAbsent(t *testing.T) {
 	}
 	assert.Equal(t, false, v["hormonal_contraception"])
 	assert.Equal(t, 0.0, v["logs_30d"])
-	assert.Equal(t, []string{}, v["segment"], "empty until T-M10-32")
+	assert.Equal(t, []string{}, v["segment"], "no segment source")
 	assert.Equal(t, false, v["push_opt_in"], "M-09")
 }
 
@@ -285,7 +285,8 @@ func TestRegistry_Definitions(t *testing.T) {
 		assert.True(t, ok, n)
 	}
 	d, _ := facts.Lookup("segment")
-	assert.Equal(t, "T-M10-32", d.Pending)
+	assert.Empty(t, d.Pending)
+	assert.Equal(t, facts.GroupSegment, d.Group)
 }
 
 // Budget: every engine fact from a warm state (the state already loaded) in ≤ 50 µs.
@@ -319,4 +320,29 @@ func BenchmarkEngineFactsWarm(b *testing.B) {
 		fs := facts.New(f.sources(), today, "fa")
 		_ = fs.Need(context.Background(), "main_phase", "warnings", "today_ui.banner", "cycle_day", "days_late")
 	}
+}
+
+type segFake struct {
+	*fake
+	ids []string
+}
+
+func (s segFake) Segments(context.Context) ([]string, error) {
+	s.calls["segments"]++
+	return s.ids, nil
+}
+
+// T-M10-32: the segment fact comes from the account source's SegmentSource, only when a rule needs it.
+func TestFacts_SegmentFromSource(t *testing.T) {
+	src := segFake{fake: newFake(), ids: []string{"3", "7"}}
+	f := facts.New(facts.Sources{Account: src}, today, "fa")
+	_, _, err := f.Get(context.Background(), "plan")
+	require.NoError(t, err)
+	assert.Zero(t, src.calls["segments"], "account facts do not read segments")
+	v, ok, err := f.Get(context.Background(), "segment")
+	require.NoError(t, err)
+	require.True(t, ok)
+	assert.Equal(t, []string{"3", "7"}, v)
+	_, _, _ = f.Get(context.Background(), "segment")
+	assert.Equal(t, 1, src.calls["segments"])
 }

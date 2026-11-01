@@ -465,14 +465,14 @@
     },
     {
       "description": {
-        "en": "Saved segment ids; empty until T-M10-32.",
-        "fa": "سگمنت‌های ذخیره‌شده؛ تا T-M10-32 خالی"
+        "en": "Ids of the saved admin segments the user is in (from the nightly user-directory row).",
+        "fa": "شناسه سگمنت‌های ذخیره‌شده پنل که کاربر در آن‌هاست (از ردیف شبانه رصد کاربران)"
       },
       "enum": null,
-      "group": "account",
+      "group": "segment",
       "member_safe": false,
       "name": "segment",
-      "pending": "T-M10-32",
+      "pending": null,
       "type": "set",
       "unit": null
     },
@@ -815,6 +815,7 @@
     "logs",
     "postpartum",
     "pregnancy",
+    "segment",
     "symptoms",
     "vitals"
   ]

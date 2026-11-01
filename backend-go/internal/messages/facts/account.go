@@ -52,8 +52,9 @@ func init() {
 			Description: desc("زبان درخواست (از جدول زبان\u200cها)", "The request language (from the languages table).")},
 		Def{Name: "life_mode", Type: TypeEnum, Enum: enums.LifeModeValues(), Group: a, MemberSafe: true,
 			Description: desc("حالت زندگی ذخیره\u200cشده (بدون ردیف وجود ندارد)", "The stored life-stage mode (absent without one).")},
-		Def{Name: "segment", Type: TypeSet, Group: a, Pending: "T-M10-32",
-			Description: desc("سگمنت\u200cهای ذخیره\u200cشده؛ تا T-M10-32 خالی", "Saved segment ids; empty until T-M10-32.")},
+		Def{Name: "segment", Type: TypeSet, Group: GroupSegment,
+			Description: desc("شناسه سگمنت\u200cهای ذخیره\u200cشده پنل که کاربر در آن\u200cهاست (از ردیف شبانه رصد کاربران)",
+				"Ids of the saved admin segments the user is in (from the nightly user-directory row).")},
 		Def{Name: "push_opt_in", Type: TypeBool, Group: a, Pending: "M-09",
 			Description: desc("اجازه پوش؛ تا پوش وب واقعی false (M-09)", "Push opt-in; false until real web push (M-09).")},
 		Def{Name: "name", Type: TypeEnum, Group: a, Variable: true,
@@ -63,6 +64,32 @@ func init() {
 	)
 	RegisterGroup(a, accountFacts)
 	RegisterGroup(GroupGoal, goalFacts)
+	RegisterGroup(GroupSegment, segmentFacts)
+}
+
+// GroupSegment is the `segment` fact (T-M10-32): its own group, so only a rule that names a segment pays its queries.
+const GroupSegment = "segment"
+
+// SegmentSource lists the ids of the saved admin segments whose filters match the user's directory projection row
+// (admin/segments.Resolver). An AccountSource that also implements it fills the `segment` fact; without one the fact
+// is the empty set.
+type SegmentSource interface {
+	Segments(ctx context.Context) ([]string, error)
+}
+
+func segmentFacts(ctx context.Context, f *Facts) (Values, error) {
+	src, ok := f.src.Account.(SegmentSource)
+	if !ok || src == nil {
+		return Values{"segment": []string{}}, nil
+	}
+	ids, err := src.Segments(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if ids == nil {
+		ids = []string{}
+	}
+	return Values{"segment": ids}, nil
 }
 
 // account reads the account row once per request (the account and goal groups share it).
@@ -79,7 +106,7 @@ func (f *Facts) account(ctx context.Context) (*Account, error) {
 }
 
 func accountFacts(ctx context.Context, f *Facts) (Values, error) {
-	v := Values{"segment": []string{}, "push_opt_in": false, "is_premium": false}
+	v := Values{"push_opt_in": false, "is_premium": false}
 	if f.locale != "" {
 		v["locale"] = f.locale
 	}

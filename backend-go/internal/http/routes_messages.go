@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/ritme/backend-go/internal/admin/segments"
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/catalog"
 	catalogstore "github.com/ritme/backend-go/internal/catalog/store"
@@ -37,6 +38,7 @@ func init() {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		h := messages.NewHandlers(d.DB, clock.Real{}).WithEngine(engineStates(r, d)) // T-M9-38: v6 facts under shadow|v6
+		h.WithSegments(segments.NewResolver(d.DB))                                   // T-M10-32: the `segment` fact
 		const p = "/api/v1/messages"
 
 		// T-M10-06 (D-163): the buffered event log (drained before shutdown), the shown/eligible marks, the

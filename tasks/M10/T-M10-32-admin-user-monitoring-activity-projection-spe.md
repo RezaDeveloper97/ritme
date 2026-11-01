@@ -3,10 +3,10 @@ id: T-M10-32
 title: Admin user monitoring: activity projection, spec churn, segments, reference codes, engine card
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-25, T-M10-30, T-M10-03, T-M9-39]
 parallel_group: M10-D
-touches: [backend-go/internal/admin/users, backend-go/internal/admin/segments, backend-go/internal/messages/facts/account.go, backend-go/internal/auth/handlers.go, backend-go/db/queries/admin, backend-go/db/queries/auth, docs/engine-v6/jobs.md]
+touches: [backend-go/internal/admin/users, backend-go/internal/admin/segments, backend-go/internal/messages/facts/account.go, backend-go/internal/auth/handlers.go, backend-go/db/queries/admin, backend-go/db/queries/auth, docs/engine-v6/jobs.md, backend-go/internal/http/routes_admin_core.go, backend-go/internal/http/routes_auth.go, backend-go/internal/http/routes_messages.go, backend-go/internal/messages/source.go, backend-go/internal/messages/handlers.go, backend-go/internal/messages/v2.go, backend-go/internal/admin/messages/testdata/facts_registry.json, docs/go-migration/admin-api.md]
 skills: []
 verify: cd backend-go && make sqlc && go vet ./... && go test ./internal/admin/... ./internal/messages/... && make test-int PKG="./internal/admin/users/... ./internal/admin/segments/..."
 ---

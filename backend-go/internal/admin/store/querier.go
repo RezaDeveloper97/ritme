@@ -110,6 +110,11 @@ type Querier interface {
 	// (creation, password, role or any other account change of the would-be approver by the requester).
 	CountAdminChangesBy(ctx context.Context, arg CountAdminChangesByParams) (int64, error)
 	CountAdminCompanionLinks(ctx context.Context, arg CountAdminCompanionLinksParams) (int64, error)
+	// The directory filters (segments.Filters): every one is optional (NULL = no filter) and reads an indexed column of
+	// users or admin_user_activity; no aggregate per request. pattern = a LIKE pattern over name / mobile / email,
+	// ref_code = an exact reference code (A-09); the status filter is CountUsers' blocked_at range (NULL = the 1971-01-01
+	// sentinel, users.statusRange).
+	CountAdminDirectory(ctx context.Context, arg CountAdminDirectoryParams) (int64, error)
 	// ---------------------------------------------------------------------------
 	// Info sections (InfoSection::inGroup($group)->ordered())
 	CountAdminInfoSections(ctx context.Context, group string) (int64, error)
@@ -228,15 +233,23 @@ type Querier interface {
 	GetHealthAccessRequest(ctx context.Context, id uint64) (GetHealthAccessRequestRow, error)
 	GetInfoSection(ctx context.Context, id uint64) (InfoSection, error)
 	GetLanguage(ctx context.Context, id uint64) (Language, error)
+	// Today's engine card: the newest snapshot on or before today (codes only).
+	GetLatestEngineSnapshot(ctx context.Context, arg GetLatestEngineSnapshotParams) (GetLatestEngineSnapshotRow, error)
 	GetLearningCourse(ctx context.Context, id uint64) (GetLearningCourseRow, error)
 	GetLearningInstructorAdmin(ctx context.Context, arg GetLearningInstructorAdminParams) (GetLearningInstructorAdminRow, error)
 	GetLearningInstructorForUpdate(ctx context.Context, id uint64) (GetLearningInstructorForUpdateRow, error)
 	GetLearningLessonForUpdate(ctx context.Context, id uint64) (GetLearningLessonForUpdateRow, error)
 	GetLearningReviewLesson(ctx context.Context, id uint64) (GetLearningReviewLessonRow, error)
 	GetMessageContent(ctx context.Context, id uint64) (MessageContent, error)
+	// ---------------------------------------------------------------------------
+	// User detail (GET /users/:id/overview). Every query is scoped by user_id.
+	GetOverviewAccount(ctx context.Context, id uint64) (GetOverviewAccountRow, error)
 	GetPhaseContentByID(ctx context.Context, id uint64) (PhaseContent, error)
 	GetPregnancyWeek(ctx context.Context, id uint64) (PregnancyWeeklyContent, error)
 	GetRecommendation(ctx context.Context, id uint64) (Recommendation, error)
+	// The user's directory row for the `segment` message fact: the projection (NULL columns when the nightly job has not
+	// run for her yet) plus the account columns the filters read.
+	GetSegmentSubject(ctx context.Context, id uint64) (GetSegmentSubjectRow, error)
 	GetSupportReport(ctx context.Context, id uint64) (GetSupportReportRow, error)
 	GetTaskTemplate(ctx context.Context, id uint64) (TaskTemplate, error)
 	GetUserDetail(ctx context.Context, id uint64) (GetUserDetailRow, error)
@@ -257,6 +270,16 @@ type Querier interface {
 	LanguageCodeTaken(ctx context.Context, arg LanguageCodeTakenParams) (bool, error)
 	// The anchor of a partial verification (?from=): the newest row before from.
 	LastAdminAuditLogBefore(ctx context.Context, beforeID uint64) (LastAdminAuditLogBeforeRow, error)
+	// ---------------------------------------------------------------------------
+	// T-M10-32 (D-181; SPEC v6 §5.2, A-08, A-09): the nightly projection writer, the directory read and the user-detail
+	// engine card. Nothing here returns a health value: the projection carries codes (mode, plan, churn, data_quality,
+	// the main warning) and counts of logged days, never what was logged.
+	// One page of users (id > after_id) with what the projection row needs, in one query: signup, the stored life mode,
+	// the Plus tier at now (a covering active / canceled subscription → plus; else a running trial → trial — plus.tierOf),
+	// the newest activity day, logged days in [from30, to] / [recent_from, to] / [prior_from, prior_to] from
+	// user_activity_days (KEY user_id, day), and the newest engine snapshot on or after snapshot_since (today's row on the
+	// user's own day; yesterday's covers a zone behind Tehran).
+	ListAdminActivitySources(ctx context.Context, arg ListAdminActivitySourcesParams) ([]ListAdminActivitySourcesRow, error)
 	ListAdminAffirmations(ctx context.Context, arg ListAdminAffirmationsParams) ([]Affirmation, error)
 	// Article::orderBy('sort_order')->orderByDesc('id')->paginate(20).
 	ListAdminArticles(ctx context.Context, arg ListAdminArticlesParams) ([]Article, error)
@@ -267,6 +290,8 @@ type Querier interface {
 	ListAdminBanners(ctx context.Context, arg ListAdminBannersParams) ([]Banner, error)
 	ListAdminChallenges(ctx context.Context, arg ListAdminChallengesParams) ([]Challenge, error)
 	ListAdminCompanionLinks(ctx context.Context, arg ListAdminCompanionLinksParams) ([]ListAdminCompanionLinksRow, error)
+	// CountAdminDirectory's filters, one page newest signup first (KEY users.created_at).
+	ListAdminDirectory(ctx context.Context, arg ListAdminDirectoryParams) ([]ListAdminDirectoryRow, error)
 	ListAdminInfoSections(ctx context.Context, arg ListAdminInfoSectionsParams) ([]InfoSection, error)
 	ListAdminMessages(ctx context.Context, arg ListAdminMessagesParams) ([]MessageContent, error)
 	ListAdminRecommendations(ctx context.Context, arg ListAdminRecommendationsParams) ([]Recommendation, error)
@@ -319,6 +344,13 @@ type Querier interface {
 	// Smart messages (message_contents). group/locale patterns: '%' = all.
 	ListMessageGroups(ctx context.Context) ([]string, error)
 	ListMessageLocales(ctx context.Context) ([]string, error)
+	ListOverviewChallenges(ctx context.Context, arg ListOverviewChallengesParams) ([]ListOverviewChallengesRow, error)
+	ListOverviewConsents(ctx context.Context, arg ListOverviewConsentsParams) ([]ListOverviewConsentsRow, error)
+	// Messages the user was shown, with the rule that triggered them (id, key, kind, title) and the version she saw.
+	ListOverviewMessages(ctx context.Context, arg ListOverviewMessagesParams) ([]ListOverviewMessagesRow, error)
+	ListOverviewSubscriptions(ctx context.Context, arg ListOverviewSubscriptionsParams) ([]ListOverviewSubscriptionsRow, error)
+	// Never the report text: it is free-form and may hold health data.
+	ListOverviewSupportReports(ctx context.Context, arg ListOverviewSupportReportsParams) ([]ListOverviewSupportReportsRow, error)
 	// ---------------------------------------------------------------------------
 	// Phase contents
 	ListPhaseContentIDs(ctx context.Context) ([]ListPhaseContentIDsRow, error)
@@ -327,6 +359,8 @@ type Querier interface {
 	// Pregnancy weeks (pregnancy_weekly_content)
 	ListPregnancyWeekIDs(ctx context.Context) ([]ListPregnancyWeekIDsRow, error)
 	ListSupportReports(ctx context.Context, arg ListSupportReportsParams) ([]ListSupportReportsRow, error)
+	// The newest logged (not estimated) period starts; the caller turns them into cycle lengths and drops the dates.
+	ListUserPeriodStarts(ctx context.Context, arg ListUserPeriodStartsParams) ([]civildate.Date, error)
 	// User::with('profile')->…->latest()->paginate(20). The profile is the user's first row (hasOne).
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
 	// Audit hash chain (migration 00105, T-M10-25; SPEC v6 §5.8; written by T-M10-33). admin_audit_logs is append-only
