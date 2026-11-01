@@ -15,7 +15,7 @@ func (r *Result) JSON(locale string) *jsonx.OrderedMap {
 	for _, s := range r.Slots {
 		items := make([]*jsonx.OrderedMap, 0, len(s.Choices))
 		for i := range s.Choices {
-			items = append(items, itemJSON(x, &s.Choices[i], s.Texts[i], locale))
+			items = append(items, itemJSON(x, &s.Choices[i], s.Texts[i], locale, s.AlertIDs))
 		}
 		slots.Set(s.Name, items)
 	}
@@ -55,7 +55,7 @@ func challengeJSON(c *ChallengeResult, locale string) any {
 
 // itemJSON is one feed item. evidence («what we saw», «how sure we are», the contact of an urgent message) is present
 // only for the follow-up and urgent levels; level is the spec name (SPEC §5.3).
-func itemJSON(x *extras, ch *rules.Choice, v rules.Variant, locale string) *jsonx.OrderedMap {
+func itemJSON(x *extras, ch *rules.Choice, v rules.Variant, locale string, alertIDs map[uint64]uint64) *jsonx.OrderedMap {
 	r := ch.Rule
 	var key any
 	if r.RuleKey != "" {
@@ -69,6 +69,9 @@ func itemJSON(x *extras, ch *rules.Choice, v rules.Variant, locale string) *json
 	} else {
 		o.Set("cta_text", nil)
 		o.Set("cta_deeplink", nil)
+	}
+	if id, ok := alertIDs[r.ID]; ok { // only items fanned out from the inbox carry the row id for POST /alerts/{id}/ack
+		o.Set("alert_id", id)
 	}
 	o.Set("dismissible", r.Level != rules.LevelFollowSoon)
 	if r.Level == rules.LevelWorthFollowUp || r.Level == rules.LevelFollowSoon {

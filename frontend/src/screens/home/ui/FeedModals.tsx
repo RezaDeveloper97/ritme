@@ -38,7 +38,7 @@ export function UrgentModal({ item, onAck, pending, failed }: UrgentModalProps) 
   }, []);
 
   return (
-    <div ref={dialogRef} role="alertdialog" aria-modal="true" aria-label={item.title} className="del-backdrop" data-feed-slot="urgent_modal">
+    <div ref={dialogRef} role="alertdialog" aria-modal="true" aria-label={item.title} className="del-backdrop is-urgent" data-feed-slot="urgent_modal">
       <div className="del-card">
         <UrgentCard
           title={localizeFeedText(item.title, loc)}

@@ -22,6 +22,8 @@ export interface FeedItem {
   slot: FeedSlot;
   /** The message rule's id (not the alerts-inbox row id). */
   id: number;
+  /** The alerts-inbox row id for `POST /alerts/{id}/ack`; present only on items fanned out from the inbox. */
+  alertId: number | null;
   ruleKey: string | null;
   version: number;
   variant: string;

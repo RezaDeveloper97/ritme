@@ -49,6 +49,14 @@ describe('parseFeed', () => {
     expect(feed?.dailyChallenge).toMatchObject({ id: 11, day: 2, category: 'exercise' });
   });
 
+  it('reads alert_id (inbox row id) when present, null otherwise', () => {
+    const feed = parseFeed({
+      slots: { urgent_modal: [{ ...banner, id: 9, alert_id: 77 }], status_banner: [banner] },
+    });
+    expect(feed?.slots.urgent_modal[0]?.alertId).toBe(77);
+    expect(feed?.slots.status_banner[0]?.alertId).toBeNull();
+  });
+
   it('empty slots parse to empty lists and no challenge', () => {
     const feed = parseFeed({ slots: { status_banner: [] }, alerts: { open: 0, urgent: 0 }, rules_rev: 1 });
     expect(feed?.slots.status_banner).toEqual([]);

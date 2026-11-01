@@ -2,6 +2,7 @@ package feed
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"testing"
 	"time"
@@ -74,6 +75,15 @@ func TestFeed_InboxFanOut(t *testing.T) {
 	sb := slotOf(res, "status_banner")
 	require.Len(t, sb.Choices, 1)
 	assert.EqualValues(t, 2, sb.Choices[0].Rule.ID)
+	// alert_id (the inbox row id) rides on fanned-out items only.
+	body, err := json.Marshal(res.JSON("en"))
+	require.NoError(t, err)
+	var out struct {
+		Slots map[string][]map[string]any `json:"slots"`
+	}
+	require.NoError(t, json.Unmarshal(body, &out))
+	assert.EqualValues(t, 10, out.Slots["urgent_modal"][0]["alert_id"])
+	assert.EqualValues(t, 11, out.Slots["status_banner"][0]["alert_id"])
 	assert.Empty(t, slotOf(res, "smart_tip").Choices) // clinical stays in the inbox only
 	assert.Equal(t, Alerts{Open: 3, Urgent: 1}, res.Alerts)
 

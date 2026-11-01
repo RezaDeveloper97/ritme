@@ -384,6 +384,7 @@ body {
   --z-toast: 50;
   --z-dialog: 60;
   --z-sheet: 70;
+  --z-urgent: 80; /* the unclosable urgent health modal: above any open sheet, below the update prompts */
   --z-update: 90;
   --z-forced: 999;
 }
@@ -1943,6 +1944,7 @@ body {
   padding: 16px; background: var(--scrim);
   padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 }
+.del-backdrop.is-urgent { z-index: var(--z-urgent); }
 .del-card  { width: 100%; max-width: 420px; padding: 22px; text-align: start; }
 .del-title { font-size: 17px; font-weight: 800; color: var(--ink); margin-top: 14px; }
 .del-body  { font-size: 13.5px; line-height: 1.9; color: var(--muted); margin: 8px 0 0; }
@@ -4644,6 +4646,7 @@ body.pwa-locked { overflow: hidden; }
    so each cell stays ≥ 44px wide at 390px (CB-CORE-02b). */
 .nb-nscale-row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
 .nb-nscale.is-dense .nb-nscale-row { grid-auto-flow: row; row-gap: 4px; }
+.ch-alert-actions:empty { display: none; }
 .nb-nscale.is-cols-4 .nb-nscale-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .nb-nscale.is-cols-5 .nb-nscale-row { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .nb-nscale.is-cols-6 .nb-nscale-row { grid-template-columns: repeat(6, minmax(0, 1fr)); }
@@ -5556,6 +5559,8 @@ html[data-motion="reduce"] *::after {
 /* Banner actions: the .ch-link buttons stack under the text, start-aligned. */
 .ch-alert-body .ch-link { align-self: flex-start; border: 0; background: none; font-family: inherit; cursor: pointer; }
 .ch-alert-body .ch-link + .ch-link { margin-inline-start: 0; }
+/* CTA + close share one row (logical gap, so RTL mirrors for free). */
+.ch-alert-actions { display: flex; flex-wrap: wrap; align-items: center; column-gap: 16px; row-gap: 4px; }
 .ch-pred-disclaimer { margin: 8px 0 0; font-size: 11px; line-height: 1.7; color: var(--text-3); text-align: start; }
 
 /* Error card (today's data failed) */

@@ -8,6 +8,7 @@ import { bannerSource, feedItemKey, firstVisible, legacyDailyEnabled, usableLink
 const item = (over: Partial<FeedItem> = {}): FeedItem => ({
   slot: 'status_banner',
   id: 3,
+  alertId: null,
   ruleKey: 'banner.overdue',
   version: 1,
   variant: 'a',

@@ -26471,6 +26471,12 @@ components:
         cta_text: {type: [string, 'null']}
         cta_deeplink: {type: [string, 'null']}
         dismissible: {type: boolean}
+        alert_id:
+          type: integer
+          format: int64
+          description: >-
+            message_inbox row id. Present only on items fanned out from the alerts inbox (urgent_modal /
+            status_banner); use it for POST /alerts/{id}/ack. Absent on regular rule winners (T-M10-14b).
         evidence:
           type: object
           required: [seen, confidence]

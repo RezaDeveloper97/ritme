@@ -115,21 +115,23 @@ export function FeedBanner({ item, onCta, onSkip, onDismiss }: FeedBannerProps) 
       <span className="ch-alert-body">
         <b className="ch-alert-title">{localizeFeedText(item.title, loc)}</b>
         <span className="ch-alert-text">{localizeFeedText(item.body, loc)}</span>
-        {onCta && item.ctaText ? (
-          <button type="button" className="ch-link" data-action="feed_cta" onClick={onCta}>
-            {localizeFeedText(item.ctaText, loc)}
-          </button>
-        ) : null}
-        {overdue && onSkip ? (
-          <button type="button" className="ch-link" data-action="skip_period" onClick={onSkip}>
-            {tSkip('action')}
-          </button>
-        ) : null}
-        {item.dismissible ? (
-          <button type="button" className="ch-link" data-action="feed_dismiss" onClick={onDismiss}>
-            {tCommon('close')}
-          </button>
-        ) : null}
+        <span className="ch-alert-actions">
+          {onCta && item.ctaText ? (
+            <button type="button" className="ch-link" data-action="feed_cta" onClick={onCta}>
+              {localizeFeedText(item.ctaText, loc)}
+            </button>
+          ) : null}
+          {overdue && onSkip ? (
+            <button type="button" className="ch-link" data-action="skip_period" onClick={onSkip}>
+              {tSkip('action')}
+            </button>
+          ) : null}
+          {item.dismissible ? (
+            <button type="button" className="ch-link" data-action="feed_dismiss" onClick={onDismiss}>
+              {tCommon('close')}
+            </button>
+          ) : null}
+        </span>
       </span>
     </div>
   );

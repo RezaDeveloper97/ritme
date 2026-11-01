@@ -114,8 +114,9 @@ export async function findAlertRowId(ruleId: number): Promise<number | null> {
 export function useAckAlert() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (ruleId: number) => {
-      const rowId = await findAlertRowId(ruleId);
+    mutationFn: async ({ ruleId, alertId }: { ruleId: number; alertId?: number | null }) => {
+      // The feed's alert_id is the row id (one request); the GET /alerts lookup is only the fallback.
+      const rowId = alertId ?? (await findAlertRowId(ruleId));
       if (rowId !== null) await apiClient.post(`/alerts/${rowId}/ack`);
     },
     onSettled: () => {

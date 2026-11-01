@@ -98,7 +98,7 @@ func countOpen(open []OpenAlert) Alerts {
 // whose text cannot be rendered is skipped; the slot keeps its capacity.
 func fanOut(slot string, winners []rules.Choice, texts []rules.Variant, open []OpenAlert, x *extras, f rules.Facts,
 	locale string, userID uint64,
-) ([]rules.Choice, []rules.Variant) {
+) ([]rules.Choice, []rules.Variant, map[uint64]uint64) {
 	var pick func(o *OpenAlert) bool
 	first := false
 	switch slot {
@@ -107,15 +107,16 @@ func fanOut(slot string, winners []rules.Choice, texts []rules.Variant, open []O
 		first = true
 	case "status_banner":
 		if len(winners) > 0 {
-			return winners, texts
+			return winners, texts, nil
 		}
 		pick = func(o *OpenAlert) bool { return o.Kind == rules.KindEngine }
 	default:
-		return winners, texts
+		return winners, texts, nil
 	}
 	var add []rules.Choice
 	var addTexts []rules.Variant
-	for i := range open { // open is newest first
+	ids := map[uint64]uint64{} // rule id → inbox row id of the fanned-out items (feed alert_id)
+	for i := range open {      // open is newest first
 		o := &open[i]
 		if o.Rule == nil || !pick(o) || containsRule(winners, o.Rule.ID) || containsRule(add, o.Rule.ID) {
 			continue
@@ -126,9 +127,10 @@ func fanOut(slot string, winners []rules.Choice, texts []rules.Variant, open []O
 			continue
 		}
 		add, addTexts = append(add, ch), append(addTexts, v)
+		ids[o.Rule.ID] = o.ID
 	}
 	if len(add) == 0 {
-		return winners, texts
+		return winners, texts, nil
 	}
 	var outW []rules.Choice
 	var outT []rules.Variant
@@ -138,7 +140,7 @@ func fanOut(slot string, winners []rules.Choice, texts []rules.Variant, open []O
 		outW, outT = slices.Concat(winners, add), slices.Concat(texts, addTexts)
 	}
 	n := capacity(slot, len(outW))
-	return outW[:min(n, len(outW))], outT[:min(n, len(outT))]
+	return outW[:min(n, len(outW))], outT[:min(n, len(outT))], ids
 }
 
 func containsRule(chs []rules.Choice, id uint64) bool {

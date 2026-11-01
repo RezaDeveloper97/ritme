@@ -1483,7 +1483,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
           item={urgentItem}
           pending={ackAlert.isPending}
           failed={ackAlert.isError}
-          onAck={() => ackAlert.mutate(urgentItem.id, { onSuccess: () => closeFeedItem(urgentItem) })}
+          onAck={() => ackAlert.mutate({ ruleId: urgentItem.id, alertId: urgentItem.alertId }, { onSuccess: () => closeFeedItem(urgentItem) })}
         />
       )}
       {modalItem && (

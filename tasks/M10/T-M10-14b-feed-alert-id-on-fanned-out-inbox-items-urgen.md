@@ -3,10 +3,10 @@ id: T-M10-14b
 title: Feed alert_id on fanned-out inbox items, urgent modal above sheets, banner action layout
 milestone: M10
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M10-14,T-M10-07]
 parallel_group: M10-W
-touches: [backend-go/internal/messages/feed,backend-go/api/openapi.yaml,frontend/src/entities/message,frontend/src/screens/home,frontend/src/app/globals.css]
+touches: [backend-go/internal/messages/feed,frontend/src/entities/message,frontend/src/screens/home,frontend/src/app/globals.css,docs/engine-v6/qa/T-M10-14b,backend-go/api/openapi.yaml]
 skills: []
 verify: cd backend-go && go vet ./internal/messages/... && go test ./internal/messages/... && make test-int PKG=./internal/messages/... && make contract ROUTES=messages && cd ../frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test
 ---

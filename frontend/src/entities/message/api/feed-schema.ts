@@ -22,6 +22,7 @@ const evidenceSchema = z
 
 const itemSchema = z.object({
   id: z.number().int().positive(),
+  alert_id: z.number().int().positive().nullish().catch(null),
   rule_key: optStr,
   version: z.number().int().catch(1),
   variant: z.string().min(1).catch('a'),
@@ -69,6 +70,7 @@ export function parseFeed(raw: unknown): MessageFeed | null {
       slots[slot].push({
         slot,
         id: i.id,
+        alertId: i.alert_id ?? null,
         ruleKey: i.rule_key,
         version: i.version,
         variant: i.variant,

@@ -86,6 +86,8 @@ type Slot struct {
 	Name    string
 	Choices []rules.Choice
 	Texts   []rules.Variant // rendered, in Choices order
+	// AlertIDs maps a rule id to the inbox row id for items fanned out from the inbox (feed alert_id); nil = none.
+	AlertIDs map[uint64]uint64
 }
 
 // Alerts are the open inbox counts.
@@ -192,7 +194,7 @@ func (s *Service) Build(ctx context.Context, req Request) (*Result, error) {
 			}
 		}
 		if len(open) > 0 {
-			winners, texts = fanOut(name, winners, texts, open, x, f, req.Locale, req.UserID)
+			winners, texts, sl.AlertIDs = fanOut(name, winners, texts, open, x, f, req.Locale, req.UserID)
 		}
 		if winners == nil {
 			winners = []rules.Choice{}
