@@ -2,8 +2,7 @@ package safety
 
 import (
 	"context"
-	"io"
-	"log/slog"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -15,29 +14,66 @@ import (
 	"github.com/ritme/backend-go/internal/platform/queue"
 )
 
-// TestUrgentScenarios is the nightly urgent-path run (.github/workflows/safety-scenarios-nightly.yml): every
-// scenario must give its verdict with the clinical config in force today.
+func byName(list []Scenario) map[string]Scenario {
+	out := map[string]Scenario{}
+	for _, s := range list {
+		out[s.Name] = s
+	}
+	return out
+}
+
+func failures(r Run) map[string][]string {
+	out := map[string][]string{}
+	for _, res := range r.Results {
+		if !res.Passed {
+			out[res.Scenario] = res.Detail.Failures()
+		}
+	}
+	return out
+}
+
+// TestUrgentScenarios is the nightly urgent-path run (.github/workflows/safety-scenarios-nightly.yml): every path
+// scenario gives its verdict at threshold − 1, threshold and threshold + 1 with the clinical config in force today.
 func TestUrgentScenarios(t *testing.T) {
 	now := time.Now()
-	r := RunScenarios(civildate.InTehran(now), now)
-	assert.Empty(t, r.Failed)
-	assert.Equal(t, len(Scenarios), r.Passed)
-	assert.GreaterOrEqual(t, r.Total, 15)
+	r := RunScenarios(context.Background(), PureEnv(civildate.InTehran(now)), PathScenarios, now)
+	assert.Empty(t, failures(r))
+	assert.Equal(t, len(PathScenarios), r.Passed)
+	assert.GreaterOrEqual(t, r.Total, 20)
+	for _, res := range r.Results {
+		assert.NotEmpty(t, res.Detail.Threshold, res.Scenario)
+		assert.GreaterOrEqual(t, len(res.Detail.Probes), 2, res.Scenario)
+	}
+}
+
+func TestScenarioNamesUniqueAndKinds(t *testing.T) {
+	seen := map[string]bool{}
+	for _, s := range Scenarios() {
+		assert.False(t, seen[s.Name], s.Name)
+		seen[s.Name] = true
+		assert.Equal(t, s.Kind, KindOf(s.Name), s.Name)
+		assert.LessOrEqual(t, len(s.Name), 64) // safety_scenario_runs.scenario
+	}
 }
 
 func TestRunScenarios_ReportsFailuresAndPanics(t *testing.T) {
-	saved := Scenarios
-	t.Cleanup(func() { Scenarios = saved })
-	Scenarios = []Scenario{
-		{"ok", func(civildate.Date) bool { return true }},
-		{"wrong", func(civildate.Date) bool { return false }},
-		{"boom", func(civildate.Date) bool { panic("x") }},
+	list := []Scenario{
+		{"ok", KindPath, func(context.Context, *Env) Detail { return Detail{Probes: []Probe{{"x", true, true}}} }},
+		{"wrong", KindPath, func(context.Context, *Env) Detail { return Detail{Probes: []Probe{{"x", true, false}}} }},
+		{"boom", KindPath, func(context.Context, *Env) Detail { panic("x") }},
 	}
-	r := RunAndRecord(context.Background(), slog.New(slog.NewTextHandler(io.Discard, nil)), time.Now())
+	r := RunScenarios(context.Background(), PureEnv(civildate.MustParse("2026-10-21")), list, time.Now())
 	assert.Equal(t, 1, r.Passed)
 	assert.Equal(t, []string{"wrong", "boom"}, r.Failed)
-	require.NotNil(t, Last())
-	assert.Equal(t, 3, Last().Total)
+	assert.Equal(t, []string{"x: want true, got false"}, r.Results[1].Detail.Failures())
+	assert.Equal(t, []string{"panic: x"}, r.Results[2].Detail.Problems)
+}
+
+// Without a database the configuration checks fail (never pass silently).
+func TestConfigChecks_NeedTheDatabase(t *testing.T) {
+	r := RunScenarios(context.Background(), PureEnv(civildate.MustParse("2026-10-21")), ConfigChecks, time.Now())
+	assert.Len(t, r.Failed, len(ConfigChecks)-1, "config.registry needs no database")
+	assert.Equal(t, []string{"no database"}, r.Results[0].Detail.Problems)
 }
 
 func TestNightlyCron_0300Tehran(t *testing.T) {
@@ -51,18 +87,6 @@ func TestNightlyCron_0300Tehran(t *testing.T) {
 	assert.True(t, at(3, 0).AddDate(0, 0, 1).Equal(next(at(3, 0))))
 	assert.True(t, at(3, 0).AddDate(0, 0, 1).Equal(next(at(22, 30))))
 	assert.True(t, at(3, 0).Equal(next(at(1, 0).UTC())), "the schedule is Tehran wall clock whatever the input zone")
-}
-
-// The nightly handler run twice records an equal run (the scenarios are pure for a given day).
-func TestNightlyJob_Idempotent(t *testing.T) {
-	quiet := slog.New(slog.NewTextHandler(io.Discard, nil))
-	fixed := time.Date(2026, 10, 21, 3, 0, 0, 0, civildate.Tehran)
-	h := NightlyJob(quiet, func() time.Time { return fixed })
-	require.NoError(t, h(context.Background(), []byte("{}")))
-	first := *Last()
-	require.NoError(t, h(context.Background(), []byte("{}")))
-	assert.Equal(t, first, *Last())
-	assert.Equal(t, len(Scenarios), first.Total)
 }
 
 func TestReducedKicks(t *testing.T) {
@@ -79,25 +103,56 @@ func TestWindows(t *testing.T) {
 	assert.Equal(t, cur.from, prev.to)
 }
 
-// T-M9-06: the EPDS score scenario reads epds.urgent_total — still green when the advisor switches it off (31), and
-// the postpartum scenarios exist.
-func TestScenarios_PostpartumReadTheConfig(t *testing.T) {
+// The path scenarios follow the registry: a moved boundary (valid version) moves the probes and they still pass.
+func TestScenarios_FollowTheRegistry(t *testing.T) {
 	t.Cleanup(clinicalconfig.Reset)
-	names := map[string]Scenario{}
-	for _, s := range Scenarios {
-		names[s.Name] = s
-	}
-	for _, n := range []string{"postpartum_fever", "postpartum_pad_per_hour", "postpartum_breathless", "epds_q10_low_total", "epds_high_total_urgent"} {
-		require.Contains(t, names, n)
-	}
 	day := civildate.MustParse("2026-10-21")
-	for _, v := range []float64{13, 20, 31} {
-		clinicalconfig.SetVersions([]clinicalconfig.Version{{Key: clinicalconfig.KeyEPDSUrgentTotal, Version: 2,
-			Value: clinicalconfig.Value{"score": v}, EffectiveFrom: civildate.MustParse("2026-10-01")}})
-		assert.True(t, names["epds_high_total_urgent"].Run(day), "urgent_total %v", v)
-		assert.True(t, names["epds_q10_low_total"].Run(day), "urgent_total %v", v)
+	from := civildate.MustParse("2026-10-01")
+	v := func(key string, val clinicalconfig.Value) clinicalconfig.Version {
+		return clinicalconfig.Version{Key: key, Version: 2, Value: val, EffectiveFrom: from}
 	}
-	clinicalconfig.SetVersions([]clinicalconfig.Version{{Key: clinicalconfig.KeyPostpartumRedFlags, Version: 2,
-		Value: clinicalconfig.Value{"fever_c": 38.5}, EffectiveFrom: civildate.MustParse("2026-10-01")}})
-	assert.True(t, names["postpartum_fever"].Run(day))
+	for _, total := range []float64{13, 20, 31} {
+		clinicalconfig.SetVersions([]clinicalconfig.Version{
+			v(clinicalconfig.KeyEPDSUrgentTotal, clinicalconfig.Value{"score": total}),
+			v(clinicalconfig.KeyPostpartumRedFlags, clinicalconfig.Value{"fever_c": 38.5}),
+			v(clinicalconfig.KeyPregnancyKicks, clinicalconfig.Value{"target": 8, "window_min": 90, "from_week": 26}),
+			v(clinicalconfig.KeyBPCrisis, clinicalconfig.Value{"systolic": 170, "diastolic": 115}),
+			v(clinicalconfig.KeyPregnancyBPHigh, clinicalconfig.Value{"systolic": 140, "diastolic": 90, "urgent": 0}),
+			v(clinicalconfig.KeyPregnancyContractions511, clinicalconfig.Value{"interval_min": 4, "duration_s": 60, "period_min": 60}),
+		})
+		r := RunScenarios(context.Background(), PureEnv(day), PathScenarios, time.Now())
+		assert.Empty(t, failures(r), "urgent_total %v", total)
+		res := r.Results[indexOf(r, "preg.kicks_count")]
+		assert.Equal(t, "< 8 kicks in 1h30m0s from week 26", res.Detail.Threshold)
+	}
+	// An invalid stored value (out of the key's range) fails exactly config.registry.
+	clinicalconfig.SetVersions([]clinicalconfig.Version{v(clinicalconfig.KeyPregnancyKicks,
+		clinicalconfig.Value{"target": 2, "window_min": 120, "from_week": 28})})
+	r := RunScenarios(context.Background(), PureEnv(day), append(append([]Scenario{}, PathScenarios...),
+		byName(ConfigChecks)["config.registry"]), time.Now())
+	assert.Equal(t, []string{"config.registry"}, r.Failed)
+	assert.Equal(t, []string{"pregnancy.kicks v2: range:target"}, r.Results[len(r.Results)-1].Detail.Problems)
+}
+
+func indexOf(r Run, name string) int {
+	for i, res := range r.Results {
+		if res.Scenario == name {
+			return i
+		}
+	}
+	return -1
+}
+
+func TestDetail_JSON(t *testing.T) {
+	b, err := json.Marshal(Detail{Threshold: "> 180", Probes: []Probe{{"181/119", true, true}}})
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"threshold":"> 180","probes":[{"input":"181/119","want":true,"got":true}]}`, string(b))
+}
+
+func TestNewULID(t *testing.T) {
+	a := newULID(time.UnixMilli(1_700_000_000_000))
+	b := newULID(time.UnixMilli(1_700_000_000_001))
+	assert.Regexp(t, runIDPattern, a)
+	assert.Less(t, a, b)
+	assert.Equal(t, a[:10], newULID(time.UnixMilli(1_700_000_000_000))[:10])
 }

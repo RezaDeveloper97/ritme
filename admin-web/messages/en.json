@@ -3311,6 +3311,29 @@
       "yes": "Yes",
       "unapproved": "{n} unapproved texts",
       "notRun": "Not run yet"
+    },
+    "selftest": {
+      "title": "Nightly safety self-test",
+      "note": "Every emergency path at its threshold − 1, threshold and + 1, plus the live rules, emergency copy and clinical registry. Synthetic inputs only.",
+      "runsLabel": "Last 30 runs",
+      "empty": "No run yet — the first one runs at 03:00.",
+      "allPassed": "All passed",
+      "failedCount": "{n} failed",
+      "scenario": "Scenario",
+      "kind": "Type",
+      "kinds": {
+        "path": "Path",
+        "config": "Configuration"
+      },
+      "status": "Status",
+      "passed": "Passed",
+      "failed": "Failed",
+      "detail": "Detail",
+      "probes": "{n} inputs checked",
+      "duration": "Time",
+      "ms": "{n} ms",
+      "pick": "Pick a run.",
+      "resultsCaption": "Scenarios of the selected run"
     }
   },
   "okr": {

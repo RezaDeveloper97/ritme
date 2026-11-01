@@ -18,6 +18,8 @@ type Querier interface {
 	CountGlucoseUrgentLowReadings(ctx context.Context, arg CountGlucoseUrgentLowReadingsParams) (int64, error)
 	CountHeavyLochiaDays(ctx context.Context, arg CountHeavyLochiaDaysParams) (int64, error)
 	CountReducedKickSessions(ctx context.Context, arg CountReducedKickSessionsParams) (int64, error)
+	// Rows written in [from_at, to_at): the nightly job's per-day idempotency key (T-M10-24).
+	CountSafetyRunsBetween(ctx context.Context, arg CountSafetyRunsBetweenParams) (int64, error)
 	// Live urgent-message copy rows that are not the approved version (the «approved-text parity» check).
 	CountUnapprovedUrgentCopy(ctx context.Context, copyGroups []string) (int64, error)
 	// Persisted nightly safety self-test runs (migration 00105, T-M10-25; SPEC v6 §5.8; written by T-M10-24). One row per
@@ -25,6 +27,8 @@ type Querier interface {
 	InsertSafetyScenarioRun(ctx context.Context, arg InsertSafetyScenarioRunParams) error
 	// The latest runs, newest first, with their scenario and failure counts.
 	ListRecentSafetyRunIDs(ctx context.Context, limit int32) ([]ListRecentSafetyRunIDsRow, error)
+	// The active languages (default first): the languages every emergency copy must cover (T-M10-24).
+	ListSafetyActiveLanguages(ctx context.Context) ([]ListSafetyActiveLanguagesRow, error)
 	// Assistant departments still flagged «needs clinical review» (B-N7-08).
 	ListSafetyAssistantDepartments(ctx context.Context) ([]ListSafetyAssistantDepartmentsRow, error)
 	// Catalog groups with rows flagged «needs clinical review», one row per group (its first row's id is the claim key).
@@ -37,6 +41,8 @@ type Querier interface {
 	ListSafetyPendingClinicalConfig(ctx context.Context) ([]ListSafetyPendingClinicalConfigRow, error)
 	// Smart messages v2 awaiting the medical approval (B-N9-05).
 	ListSafetyPendingMessageRules(ctx context.Context) ([]ListSafetyPendingMessageRulesRow, error)
+	// The message_rules rows of the locked emergency rules, active or not (T-M10-24 live configuration check).
+	ListSafetyRulesByKeys(ctx context.Context, ruleKeys []sql.NullString) ([]ListSafetyRulesByKeysRow, error)
 	// One scenario's latest results, newest first.
 	ListSafetyScenarioHistory(ctx context.Context, arg ListSafetyScenarioHistoryParams) ([]SafetyScenarioRun, error)
 	ListSafetyScenarioRunsByRun(ctx context.Context, runID string) ([]SafetyScenarioRun, error)

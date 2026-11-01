@@ -80,7 +80,7 @@ q.RegisterPeriodic(job, handler, "*/10 * * * *", opts...)        // Register + S
 | `admin_metrics:snapshot` | low | `15 * * * *` + at start | `Unique(55m)` | 3 / 1 m, 5 m / 10 m | Tehran day (`metric_snapshots.day`, upsert); the §5.6 KPIs then the OKR evaluation on the same payload | `internal/metrics` (+ `internal/okr` hook) |
 | `files:sweep` | low | `20 */6 * * *` + at start | `Unique(5h)` | 1 / — / 30 m | blob path; removes only blobs with no row, older than 1 h | `internal/files` |
 | `media:sweep` | low | `25 * * * *` + at start | `Unique(55m)` | 1 / — / 30 m | media id / file path; removes only abandoned, orphan or stray ones | `internal/media` |
-| `safety:nightly_scenarios` | low | `0 3 * * *` | `Unique(1h)` | 1 / — / 60 s | Tehran day (pure scenarios; the run replaces the last) | `internal/safety` |
+| `safety.nightly` | critical | `0 3 * * *` | `Unique(23h)` | 3 / 5 m, 15 m / 5 m | Tehran day: a day with rows in `safety_scenario_runs` is skipped (one run a day) | `internal/safety` |
 | `engine:snapshot_nightly` | low | `30 3 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 30 m | (user, user-local day): `engine_daily_snapshots` PK, upsert | `internal/cycle/snapshots` |
 | `engine:snapshot_purge` | low | `50 3 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 10 m | Tehran day − 400; deletes only older rows, in chunks of 5 000 | `internal/cycle/snapshots` |
 | `engine:prediction_log` | low | on demand (a committed real period start, `periods.StartHook`) | `TaskID(engine:prediction_log:<uid>:<rev_after>)` | 3 / 1 m, 5 m / 60 s | (user, cycle_start, kind): `first` insert-once, `last` upsert, actual/error recomputed | `internal/cycle/snapshots` |
@@ -96,8 +96,20 @@ Notes:
 
 - `files:sweep` and `media:sweep` read the local storage volumes (`STORAGE_PATH`, `MEDIA_STORAGE_PATH`): a process
   that runs the worker must mount them (T-M9-12).
-- `safety:nightly_scenarios` keeps its result in the memory of the process that ran it; the API also runs the set once
-  at start-up so its own dashboard row is filled. Persisting the result is T-M10-24.
+- `safety.nightly` (T-M10-24, D-183; SPEC §5.8) replaces `safety:nightly_scenarios` and its in-process start-up run.
+  It reloads the clinical registry, then runs every scenario and writes one `safety_scenario_runs` row per scenario
+  (one ULID `run_id`; `passed`, `duration_ms`, `detail` = threshold, probes, problems). **Path scenarios** (no user
+  data read or written) feed synthetic inputs at threshold − 1, threshold and threshold + 1 of the registry version
+  valid today through the API's own functions: vitals crisis / urgent-low, EPDS item 10 and urgent total, 5-1-1,
+  postpartum red flags and heavy bleeding, and the `preg.*` rules (kicks, manual movement, BP weekly and via vitals,
+  GDM, contractions, critical symptoms) through the alerts-inbox slot compiled from the live `message_rules` rows (with
+  the code-held stand-in for a locked rule that is not served), rendered in every active language. **Config checks**:
+  `config.locked_rules` (each locked safety rule has a row that is locked, active, approved, with complete copy in
+  every active language), `config.emergency_copy` (every emergency text as served — locked rules, postpartum red
+  flags, EPDS item 10, vitals modals — says 115; EPDS item 10 also 123), `config.registry` (a valid version today for
+  every emergency key). A run sets the gauge `safety_selftest_failed` (failed scenarios, 0 = green; T-M10-31 alerts
+  on it), counts `safety_selftest_runs_total{result}` and logs `alert=safety_selftest_failed` once per failing
+  scenario with its synthetic failures only. Admin: `GET /safety/runs` (last 30) and `GET /safety/runs/:run_id`.
 - `engine:snapshot_nightly` (T-M9-39, D-137; A-06): active users = any token issued/refreshed, session or logged day
   (`user_activity_days`), daily log, v2 log entry, period row or analytics event in the last 30 days; pages of 500 by
   user id through `inputs.LoadMany` + `engine.Prepare` + `Resolve` on each user's local day (stored

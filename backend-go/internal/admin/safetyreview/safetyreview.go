@@ -100,8 +100,12 @@ func (h *Handlers) Show(c fiber.Ctx) error {
 		return err
 	}
 	var scenarios any
-	if r := safety.Last(); r != nil {
-		scenarios = jsonx.Obj("ran_at", at(r.RanAt), "passed", r.Passed, "total", r.Total, "failed", nonNil(r.Failed))
+	last, err := h.svc.LatestRun(c.Context()) // T-M10-24: the persisted safety.nightly run (any process)
+	if err != nil {
+		return err
+	}
+	if last != nil {
+		scenarios = jsonx.Obj("ran_at", at(last.RanAt), "passed", last.Passed, "total", last.Total, "failed", nonNil(last.Failed))
 	}
 	checks := jsonx.Obj(
 		// Not instrumented: an analytics event would tie a user id to an urgent health event (D-90).

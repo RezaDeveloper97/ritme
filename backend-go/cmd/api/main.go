@@ -36,7 +36,6 @@ import (
 	"github.com/ritme/backend-go/internal/platform/db"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/metrics"
-	"github.com/ritme/backend-go/internal/safety"
 )
 
 const shutdownTimeout = 10 * time.Second
@@ -93,12 +92,10 @@ func run(logger *slog.Logger) error {
 	app := newApp(apihttp.Default(), &apihttp.Deps{Config: cfg, DB: pool, Cache: rdb, Logger: logger})
 	auth.SetRunWorkers(app, runWorkers)
 	if !runWorkers {
-		// The `api worker` container runs the job worker, the scheduler and the pollers; this process only
-		// dispatches. The safety scenarios still run once here: their result lives in process memory and the admin
-		// dashboard of THIS process reads it (persisted results: T-M10-24).
+		// The `api worker` container runs the job worker, the scheduler and the pollers (safety.nightly included,
+		// T-M10-24); this process only dispatches.
 		logger.Info("background work off (API_RUN_WORKERS=0): jobs are dispatched for the worker",
 			slog.Int("hooks", auth.BackgroundHooks(app)))
-		go safety.RunAndRecord(context.Background(), logger, time.Now().In(cfg.App.Location))
 	}
 
 	logger.Info("listening",

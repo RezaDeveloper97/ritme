@@ -501,3 +501,5 @@
 2026-11-01T08:00Z T-M10-08b -> in_progress
 2026-11-01T08:00Z T-M10-13 -> in_progress
 2026-11-01T08:19Z T-M10-13 -> done
+2026-11-01T08:20Z T-M10-24 -> in_progress
+2026-11-01T08:43Z T-M10-24 -> done

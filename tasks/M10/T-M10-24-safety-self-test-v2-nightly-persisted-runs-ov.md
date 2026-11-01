@@ -3,10 +3,10 @@ id: T-M10-24
 title: Safety self-test v2: nightly persisted runs over the live rules and registry
 milestone: M10
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M10-08, T-M10-19, T-M10-25, T-M9-06, T-M9-12]
 parallel_group: M10-C
-touches: [backend-go/internal/safety, backend-go/internal/http/routes_admin_safety.go, backend-go/db/queries/safety, docs/engine-v6/jobs.md, admin-web/src/screens/safety, admin-web/messages/fa.json, admin-web/messages/en.json]
+touches: [backend-go/internal/safety, backend-go/internal/http/routes_admin_safety.go, backend-go/db/queries/safety, docs/engine-v6/jobs.md, admin-web/src/screens/safety, admin-web/messages/fa.json, admin-web/messages/en.json, backend-go/internal/admin/safetyreview, backend-go/cmd/api/main.go, docs/go-migration/admin-api.md]
 skills: []
 verify: cd backend-go && make sqlc && go vet ./... && go test ./internal/safety/... && make test-int PKG=./internal/safety/... && cd ../admin-web && npm run typecheck && npm run lint && npm run test
 ---

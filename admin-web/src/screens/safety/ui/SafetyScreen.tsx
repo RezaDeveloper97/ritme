@@ -21,6 +21,7 @@ import {
 
 import { SIGNALS, SOURCES, useClaim, useSafety, type ReviewItem, type SafetyData, type Source } from '../api/safety';
 import { ageParts, sourceHref } from '../lib/links';
+import { SelfTestRuns } from './SelfTestRuns';
 
 /** The review queue can hold hundreds of catalog items; show it ten rows at a time. */
 const QUEUE_PAGE_SIZE = 10;
@@ -53,6 +54,7 @@ export function SafetyScreen() {
             <Queue data={q.data} loading={q.isPending} />
             <Checks data={q.data} />
           </div>
+          <SelfTestRuns />
         </>
       )}
     </div>

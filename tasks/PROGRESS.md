@@ -2609,3 +2609,12 @@ Nothing needed fixing.
 - Docs: admin-api.md `/messages/simulate` `slots` is a list. Screenshots (mock API) in `docs/engine-v6/qa/T-M10-13/`.
 - Verify: admin-web typecheck, lint, fsd:lint, 204 tests, build.
 - Open: rules API has no `rule_key` filter (client-side, first 100 rules); unparseable stored eligibility is replaced on save (editor warns); legacy `menstrual` start shown only when already stored.
+
+## T-M10-24 — Safety self-test v2: nightly persisted runs over the live rules and registry (D-183)
+- Shipped: job `safety.nightly` (critical queue, `0 3 * * *`, once per Tehran day) replaces the in-process start-up run (removed from `cmd/api/main.go`). Each run reloads the clinical registry and writes one `safety_scenario_runs` row per scenario (ULID run_id, passed, duration_ms, detail {threshold, probes, problems}) in one transaction.
+- 24 path scenarios at threshold −1 / = / +1 on today's registry through the API's own functions (vitals crisis/urgent-low, EPDS item 10 + total + short check, 5-1-1, postpartum fever / red flags / heavy bleeding, every locked `preg.*` rule through the alerts_inbox slot compiled from live `message_rules`, code-held fallback as in the inbox); copy rendered in every active language from `languages`.
+- 3 config checks: `config.locked_rules` (row locked + active + approved, complete copy per language), `config.emergency_copy` (115 in every emergency text as served, 123 on EPDS item 10), `config.registry` (valid version today).
+- Metrics `safety_selftest_failed` (gauge) + `safety_selftest_runs_total{result}`, one `alert=safety_selftest_failed` log line per failing scenario (synthetic inputs only). API `GET /api/admin/v1/safety/runs`, `/safety/runs/:run_id` (clinical:view); the `/safety` dashboard's scenarios row reads the persisted latest run. Admin-web: last 30 runs + per-scenario detail.
+- Also: safetyreview int-test fixture rule ids moved to 9011/9012 (collided with the 00113 seeds).
+- Verify: sqlc, vet, unit + test-int safety and admin/safetyreview, lint, admin-web typecheck/lint/208 tests.
+- Open: a queued legacy `safety:nightly_scenarios` task archives once after deploy (no handler); T-M10-31 can alert on the gauge.

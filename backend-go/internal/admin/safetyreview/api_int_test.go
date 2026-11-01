@@ -74,8 +74,8 @@ func seedSignals(e *admintest.Env) {
 
 func seedQueue(e *admintest.Env) {
 	e.Exec(`INSERT INTO message_rules (id, title, content, conditions, exceptions, status, created_by, created_at, updated_at) VALUES
-		(11, 'PMS likely tomorrow (B)', '{}', '[]', '[]', 'pending_approval', 3, ?, ?),
-		(12, 'Draft rule', '{}', '[]', '[]', 'draft', 3, NOW(), NOW())`, ts(-100*time.Hour), ts(-100*time.Hour))
+		(9011, 'PMS likely tomorrow (B)', '{}', '[]', '[]', 'pending_approval', 3, ?, ?),
+		(9012, 'Draft rule', '{}', '[]', '[]', 'draft', 3, NOW(), NOW())`, ts(-100*time.Hour), ts(-100*time.Hour))
 	e.Exec(`INSERT INTO clinical_config_versions (id, config_key, version, value, effective_from, status, proposed_by, created_at, updated_at) VALUES
 		(21, 'glucose.post_meal', 2, '{"mgdl":170}', ?, 'pending', 4, ?, ?),
 		(22, 'bp.crisis', 2, '{"systolic":180,"diastolic":120}', ?, 'approved', 4, NOW(), NOW())`,
@@ -120,7 +120,7 @@ func TestSafety_PermissionsAndAuth(t *testing.T) {
 	e := newEnv(t)
 	assert.Equal(t, 401, e.Anonymous().Get("/safety").Status)
 	assert.Equal(t, 403, e.As(marketing).Get("/safety").Status)
-	assert.Equal(t, 403, e.As(marketing).JSON(fiber.MethodPost, "/safety/queue/message/11/claim", nil).Status)
+	assert.Equal(t, 403, e.As(marketing).JSON(fiber.MethodPost, "/safety/queue/message/9011/claim", nil).Status)
 	assert.Equal(t, 200, e.As(advisor1).Get("/safety").Status)
 	assert.Equal(t, 200, e.As(1).Get("/safety").Status)
 }
@@ -175,13 +175,13 @@ func TestSafety_QueueAggregatesEverySource(t *testing.T) {
 	assert.EqualValues(t, 1, q["overdue"])
 
 	list := items(r)
-	msg := find(list, "message", 11)
+	msg := find(list, "message", 9011)
 	require.NotNil(t, msg)
 	assert.Equal(t, "PMS likely tomorrow (B)", msg["title"])
 	assert.Equal(t, "Dr Ahmadi", msg["submitted_by"])
 	assert.Equal(t, true, msg["overdue"])
 	assert.GreaterOrEqual(t, msg["age_hours"], 99.0)
-	assert.Nil(t, find(list, "message", 12))
+	assert.Nil(t, find(list, "message", 9012))
 
 	th := find(list, "threshold", 21)
 	require.NotNil(t, th)
@@ -211,29 +211,29 @@ func TestSafety_QueueAggregatesEverySource(t *testing.T) {
 func TestSafety_ClaimAndRelease(t *testing.T) {
 	e := newEnv(t)
 	seedQueue(e)
-	assert.Equal(t, 404, e.As(advisor1).JSON(fiber.MethodPost, "/safety/queue/nope/11/claim", nil).Status)
-	assert.Equal(t, 404, e.As(advisor1).JSON(fiber.MethodPost, "/safety/queue/message/12/claim", nil).Status)
+	assert.Equal(t, 404, e.As(advisor1).JSON(fiber.MethodPost, "/safety/queue/nope/9011/claim", nil).Status)
+	assert.Equal(t, 404, e.As(advisor1).JSON(fiber.MethodPost, "/safety/queue/message/9012/claim", nil).Status)
 	assert.Equal(t, 404, e.As(advisor1).JSON(fiber.MethodPost, "/safety/queue/message/x/claim", nil).Status)
 
-	r := e.As(advisor1).JSON(fiber.MethodPost, "/safety/queue/message/11/claim", nil)
+	r := e.As(advisor1).JSON(fiber.MethodPost, "/safety/queue/message/9011/claim", nil)
 	require.Equal(t, 200, r.Status, r.Body)
-	assert.Equal(t, 1, e.Int("SELECT COUNT(*) FROM admin_audit_logs WHERE action = 'safety.claim' AND target_type = 'safety.message' AND target_id = 11"))
+	assert.Equal(t, 1, e.Int("SELECT COUNT(*) FROM admin_audit_logs WHERE action = 'safety.claim' AND target_type = 'safety.message' AND target_id = 9011"))
 	// Claiming again is idempotent (no second audit row); another admin gets 409.
-	assert.Equal(t, 200, e.As(advisor1).JSON(fiber.MethodPost, "/safety/queue/message/11/claim", nil).Status)
+	assert.Equal(t, 200, e.As(advisor1).JSON(fiber.MethodPost, "/safety/queue/message/9011/claim", nil).Status)
 	assert.Equal(t, 1, e.Int("SELECT COUNT(*) FROM admin_audit_logs WHERE action = 'safety.claim'"))
-	c := e.As(advisor2).JSON(fiber.MethodPost, "/safety/queue/message/11/claim", nil)
+	c := e.As(advisor2).JSON(fiber.MethodPost, "/safety/queue/message/9011/claim", nil)
 	assert.Equal(t, 409, c.Status)
 	assert.Equal(t, safetyreview.CodeAlreadyClaimed, c.Code())
 
-	claimed, _ := find(items(e.As(advisor2).Get("/safety")), "message", 11)["claimed_by"].(map[string]any)
+	claimed, _ := find(items(e.As(advisor2).Get("/safety")), "message", 9011)["claimed_by"].(map[string]any)
 	assert.Equal(t, "Dr Ahmadi", claimed["name"])
 
-	rel := e.As(advisor2).JSON(fiber.MethodPost, "/safety/queue/message/11/release", nil)
+	rel := e.As(advisor2).JSON(fiber.MethodPost, "/safety/queue/message/9011/release", nil)
 	assert.Equal(t, 403, rel.Status)
 	assert.Equal(t, safetyreview.CodeNotClaimer, rel.Code())
-	assert.Equal(t, 200, e.As(advisor1).JSON(fiber.MethodPost, "/safety/queue/message/11/release", nil).Status)
-	assert.Nil(t, find(items(e.As(advisor2).Get("/safety")), "message", 11)["claimed_by"])
-	assert.Equal(t, 200, e.As(advisor2).JSON(fiber.MethodPost, "/safety/queue/message/11/claim", nil).Status)
+	assert.Equal(t, 200, e.As(advisor1).JSON(fiber.MethodPost, "/safety/queue/message/9011/release", nil).Status)
+	assert.Nil(t, find(items(e.As(advisor2).Get("/safety")), "message", 9011)["claimed_by"])
+	assert.Equal(t, 200, e.As(advisor2).JSON(fiber.MethodPost, "/safety/queue/message/9011/claim", nil).Status)
 	// A super admin may release anyone's claim.
-	assert.Equal(t, 200, e.As(1).JSON(fiber.MethodPost, "/safety/queue/message/11/release", nil).Status)
+	assert.Equal(t, 200, e.As(1).JSON(fiber.MethodPost, "/safety/queue/message/9011/release", nil).Status)
 }

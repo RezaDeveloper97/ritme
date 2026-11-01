@@ -20,3 +20,16 @@ SELECT * FROM `safety_scenario_runs` WHERE `run_id` = ? ORDER BY `scenario`, `id
 -- name: ListSafetyScenarioHistory :many
 -- One scenario's latest results, newest first.
 SELECT * FROM `safety_scenario_runs` WHERE `scenario` = ? ORDER BY `created_at` DESC, `id` DESC LIMIT ?;
+
+-- name: CountSafetyRunsBetween :one
+-- Rows written in [from_at, to_at): the nightly job's per-day idempotency key (T-M10-24).
+SELECT COUNT(*) FROM `safety_scenario_runs` WHERE `created_at` >= sqlc.arg(from_at) AND `created_at` < sqlc.arg(to_at);
+
+-- name: ListSafetyActiveLanguages :many
+-- The active languages (default first): the languages every emergency copy must cover (T-M10-24).
+SELECT `code`, `is_default` FROM `languages` WHERE `is_active` = 1 ORDER BY `is_default` DESC, `sort_order`, `id`;
+
+-- name: ListSafetyRulesByKeys :many
+-- The message_rules rows of the locked emergency rules, active or not (T-M10-24 live configuration check).
+SELECT `id`, `rule_key`, `kind`, `level`, `is_active`, `locked`, `status`, `version`, `approved_version`
+FROM `message_rules` WHERE `rule_key` IN (sqlc.slice(rule_keys)) ORDER BY `rule_key`, `id`;

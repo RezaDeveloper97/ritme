@@ -976,6 +976,8 @@ deep-links there. Claims are rows of `admin_audit_logs` (`safety.claim` / `safet
 | GET | `/safety` | clinical:view | — | `{window_days: 7, today, signals[{key, count, previous, delta}] (bp_crisis, glucose_urgent_low, epds_q10, reduced_kicks, contractions_511, postpartum_heavy_bleeding — thresholds in force today), queue{pending, overdue, sla_hours: 72, by_source{message, threshold, lesson, assistant, catalog}, items[{source, id, title, ref, status (pending\|changed\|partially_approved), approvals, required_approvals, items, submitted_by, submitted_at, age_hours, overdue, claimed_by{id, name, at}\|null}]}, checks{modal_latency_p95_ms: null, call_115_ctr: null (not instrumented, D-90), text_parity{ok, unapproved, groups[]}, scenarios{ran_at, passed, total, failed[]}\|null}}` |
 | POST | `/safety/queue/:source/:id/claim` | clinical:manage | — | `{claimed_by}`; idempotent for the claimer; 409 `already_claimed`; 404 when the item is not in the queue; audit `safety.claim` |
 | POST | `/safety/queue/:source/:id/release` | clinical:manage (the claimer or super) | — | `{claimed_by: null}`; 403 `not_claimer`; audit `safety.release` |
+| GET | `/safety/runs` | clinical:view | — | `{runs:[{run_id, started_at, scenarios, passed, failed}], limit: 30}` — the persisted `safety.nightly` self-test runs, newest first (T-M10-24, D-183) |
+| GET | `/safety/runs/:run_id` | clinical:view | — | `{run_id, started_at, results:[{scenario, kind: path\|config, passed, duration_ms, detail{threshold, probes[{input,want,got}], problems[]}}]}`, failures first; 404 for an unknown or malformed id |
 
 ## 25. Shop catalog — «فروشگاه» (B-N10-03, D-91)
 

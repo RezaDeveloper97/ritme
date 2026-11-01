@@ -1,7 +1,6 @@
 package http
 
 import (
-	"context"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -14,21 +13,20 @@ import (
 )
 
 // Safety & clinical content dashboard and review queue (bloom B-N9-10, D-90) under /api/admin/v1/safety —
-// docs/go-migration/admin-api.md «Safety & clinical content». Also runs the urgent-path scenarios at start-up and
-// nightly (internal/safety; the CI twin is .github/workflows/safety-scenarios-nightly.yml).
+// docs/go-migration/admin-api.md «Safety & clinical content», plus the nightly safety self-test (internal/safety,
+// T-M10-24; the CI twin is .github/workflows/safety-scenarios-nightly.yml).
 func init() {
 	Register("admin_safety", func(r fiber.Router, d *Deps) {
 		kit := httpadmin.Wire(d.Config.App.Env, d.DB, d.Cache, d.Logger)
 		safetyreview.New(d.DB, d.Logger).Routes(func(method, path string, chain httpadmin.Chain) {
 			httpadmin.Handle(r, method, httpadmin.Prefix+path, chain)
 		}, kit)
-		// The nightly run is a scheduled job (any process may run it); the start-up run stays in this process so its
-		// in-memory dashboard row is filled (persisted results: T-M10-24).
-		mustJobs(safety.RegisterJobs(auth.Jobs(r, d.Cache, d.Logger), d.Logger, tehranNow))
-		auth.OnLifecycle(r, func() error {
-			go safety.RunAndRecord(context.Background(), d.Logger, tehranNow())
-			return nil
-		}, func() {})
+		// The persisted self-test runs (T-M10-24) and the nightly job safety.nightly (any process with workers runs
+		// it; the result is read back from safety_scenario_runs).
+		safety.NewRunsHandlers(d.DB).Routes(func(method, path string, chain httpadmin.Chain) {
+			httpadmin.Handle(r, method, httpadmin.Prefix+path, chain)
+		}, kit)
+		mustJobs(safety.RegisterJobs(auth.Jobs(r, d.Cache, d.Logger), safety.NewRunner(d.DB, d.Logger), tehranNow))
 	})
 }
 

@@ -80,3 +80,48 @@ export function useClaim() {
     onSuccess: () => client.invalidateQueries({ queryKey: KEY }),
   });
 }
+
+/** Nightly safety self-test runs (T-M10-24, admin-api.md §24): persisted per scenario, synthetic inputs only. */
+const runSchema = z.object({
+  run_id: z.string(),
+  started_at: z.string().nullable(),
+  scenarios: z.number(),
+  passed: z.number(),
+  failed: z.number(),
+});
+export type SelfTestRun = z.infer<typeof runSchema>;
+
+const probeSchema = z.object({ input: z.string(), want: z.boolean(), got: z.boolean() });
+
+const resultSchema = z.object({
+  scenario: z.string(),
+  kind: z.enum(['path', 'config']),
+  passed: z.boolean(),
+  duration_ms: z.number(),
+  detail: z
+    .object({
+      threshold: z.string().optional(),
+      probes: z.array(probeSchema).optional(),
+      problems: z.array(z.string()).optional(),
+    })
+    .nullable(),
+});
+export type SelfTestResult = z.infer<typeof resultSchema>;
+
+const runsSchema = z.object({ runs: z.array(runSchema), limit: z.number() });
+const runDetailSchema = z.object({ run_id: z.string(), started_at: z.string().nullable(), results: z.array(resultSchema) });
+
+export function useSelfTestRuns() {
+  return useQuery({
+    queryKey: [...KEY, 'runs'],
+    queryFn: ({ signal }) => api.get('/safety/runs', { schema: runsSchema, signal }),
+  });
+}
+
+export function useSelfTestRun(runId: string | null) {
+  return useQuery({
+    queryKey: [...KEY, 'runs', runId],
+    enabled: runId != null,
+    queryFn: ({ signal }) => api.get(`/safety/runs/${runId}`, { schema: runDetailSchema, signal }),
+  });
+}

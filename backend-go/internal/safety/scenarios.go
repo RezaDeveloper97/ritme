@@ -1,23 +1,24 @@
 // Package safety is the safety & clinical content dashboard of the admin panel (bloom B-N9-10, D-90): aggregated
 // urgent-signal counts (no user ids), the unified clinical review queue over the existing review states, the urgent-path
-// health checks and the nightly urgent-scenario test run.
+// health checks and the nightly safety self-test (T-M10-24, D-183; SPEC v6 §5.8).
 package safety
 
 import (
 	"context"
 	"database/sql"
-	"log/slog"
+	"fmt"
+	"math"
 	"slices"
-	"sync"
+	"strconv"
 	"time"
 
+	"github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/messages/facts"
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts/inboxalerts"
 	"github.com/ritme/backend-go/internal/messages/rules"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
-	"github.com/ritme/backend-go/internal/platform/queue"
 	"github.com/ritme/backend-go/internal/postpartum"
 	"github.com/ritme/backend-go/internal/postpartum/guide"
 	"github.com/ritme/backend-go/internal/pregnancy/labor"
@@ -32,12 +33,106 @@ func ReducedKicks(kicks int, counted time.Duration) bool {
 	return kicks < tools.KickTarget && counted >= tools.KickWindowMinutes*time.Minute
 }
 
-// Scenario is one urgent-path scenario: a synthetic input run through the real classifier of its domain with the
-// clinical config in force on day, and the verdict it must give.
+// Scenario kinds.
+const (
+	KindPath   = "path"   // synthetic inputs through the functions the API calls (no user data read or written)
+	KindConfig = "config" // the live rule rows, emergency copy and clinical registry
+)
+
+// Probe is one synthetic input of a path scenario and the verdict it must give.
+type Probe struct {
+	Input string `json:"input"`
+	Want  bool   `json:"want"`
+	Got   bool   `json:"got"`
+}
+
+// Detail is what a scenario checked: the threshold in force, its probes and every problem found (all synthetic; never
+// a user value).
+type Detail struct {
+	Threshold string   `json:"threshold,omitempty"`
+	Probes    []Probe  `json:"probes,omitempty"`
+	Problems  []string `json:"problems,omitempty"`
+}
+
+// Passed reports whether every probe gave its verdict and nothing was wrong.
+func (d *Detail) Passed() bool {
+	if len(d.Problems) > 0 {
+		return false
+	}
+	for _, p := range d.Probes {
+		if p.Want != p.Got {
+			return false
+		}
+	}
+	return true
+}
+
+// Failures are the failing probes and the problems, one line each.
+func (d *Detail) Failures() []string {
+	var out []string
+	for _, p := range d.Probes {
+		if p.Want != p.Got {
+			out = append(out, fmt.Sprintf("%s: want %t, got %t", p.Input, p.Want, p.Got))
+		}
+	}
+	return append(out, d.Problems...)
+}
+
+func (d *Detail) probe(input string, want, got bool) {
+	d.Probes = append(d.Probes, Probe{input, want, got})
+}
+
+func (d *Detail) fail(format string, args ...any) {
+	if p := fmt.Sprintf(format, args...); !slices.Contains(d.Problems, p) {
+		d.Problems = append(d.Problems, p)
+	}
+}
+
+// Scenario is one self-test scenario.
 type Scenario struct {
 	Name string
-	Run  func(day civildate.Date) bool
+	Kind string
+	Run  func(ctx context.Context, e *Env) Detail
 }
+
+// PregEngine evaluates one pregnancy alert rule (preg.*) on an input and renders it in a language.
+type PregEngine interface {
+	Fire(key string, in *facts.PregnancyAlertInput, locale string) (inboxalerts.Fired, bool)
+}
+
+// codeHeld is the engine of the code-held definitions (inboxalerts.Fires): the shipped rules, no database.
+type codeHeld struct{}
+
+func (codeHeld) Fire(key string, in *facts.PregnancyAlertInput, locale string) (inboxalerts.Fired, bool) {
+	return inboxalerts.Fires(key, in, locale)
+}
+
+// Env is what one run reads: the day whose clinical config applies, the languages every emergency text must cover,
+// the pregnancy rule engine and the live copy. PureEnv needs no database; the nightly run builds a live one.
+type Env struct {
+	Day     civildate.Date
+	Langs   []string // languages to render (default first)
+	Default string
+	Preg    PregEngine
+	Copy    guide.Payloader // live postpartum copy (nil = embedded)
+	Live    *Live           // live configuration (nil = the config checks fail with «no database»)
+}
+
+// PureEnv runs the path scenarios over the code-held rules and the embedded copy in every embedded language.
+func PureEnv(day civildate.Date) *Env {
+	langs := inboxalerts.Languages()
+	def := ""
+	if len(langs) > 0 {
+		def = langs[0]
+	}
+	return &Env{Day: day, Langs: langs, Default: def, Preg: codeHeld{}}
+}
+
+func (e *Env) copyFor(locale string) *guide.Copy { return guide.NewCopy(e.Copy, locale, e.Default) }
+
+// ---- helpers ----
+
+func num(v float64) string { return strconv.FormatFloat(v, 'f', -1, 64) }
 
 func contractions(n int, every, last time.Duration) []labor.Contraction {
 	start := time.Date(2026, 1, 1, 8, 0, 0, 0, time.UTC)
@@ -47,6 +142,15 @@ func contractions(n int, every, last time.Duration) []labor.Contraction {
 		out[i] = labor.Contraction{Start: s, End: s.Add(last)}
 	}
 	return out
+}
+
+// runOf is enough contractions every `every` for the tail to span p.Run.
+func runOf(p labor.Params, every, last time.Duration) []labor.Contraction {
+	n := 2
+	if every > 0 {
+		n = int(math.Ceil(float64(p.Run)/float64(every))) + 2
+	}
+	return contractions(n, every, last)
 }
 
 // epdsTotal is a full check with item 10 = 0 and the other nine items summing to total (≤ 27) on day.
@@ -63,7 +167,7 @@ func epdsTotal(day civildate.Date, total int) postpartum.Result {
 	return postpartum.ScoreOn(postpartum.KindFull, answers, day)
 }
 
-// hasCall reports whether a safety message carries a call action to number.
+// hasCall reports whether a message carries a call action to number.
 func hasCall(msg any, number string) bool {
 	m, ok := msg.(*jsonx.OrderedMap)
 	if !ok {
@@ -79,52 +183,48 @@ func hasCall(msg any, number string) bool {
 	return false
 }
 
-// redFlag runs the real recovery alert builder on r on day and reports whether it raised key as urgent with 115.
-func redFlag(day civildate.Date, r postpartum.Recovery, key string) bool {
-	for _, loc := range []string{"fa", "en"} {
-		alerts, err := postpartum.RecoveryAlerts(context.Background(), guide.NewCopy(nil, loc, loc), r, day)
-		if err != nil || len(alerts) == 0 {
+// recoveryAlert runs the real recovery alert builder on r in every language and reports whether it raised key with
+// a call to 115 (urgent when the key is a red flag); a text missing in a language is a problem.
+func (e *Env) recoveryAlert(ctx context.Context, d *Detail, r postpartum.Recovery, key string) bool {
+	fired := false
+	for i, loc := range e.Langs {
+		alerts, err := postpartum.RecoveryAlerts(ctx, e.copyFor(loc), r, e.Day)
+		if err != nil {
+			d.fail("%s: %v", key, err)
 			return false
 		}
-		a, ok := alerts[0].(*jsonx.OrderedMap)
-		if !ok {
-			return false
+		var hit *jsonx.OrderedMap
+		for _, raw := range alerts {
+			if a, ok := raw.(*jsonx.OrderedMap); ok {
+				if k, _ := a.Get("key"); k == key {
+					hit = a
+				}
+			}
 		}
-		k, _ := a.Get("key")
-		level, _ := a.Get("level")
-		title, _ := a.Get("title")
-		if k != key || level != postpartum.LevelUrgent || title == "" {
-			return false
+		if i == 0 {
+			fired = hit != nil
+		} else if (hit != nil) != fired {
+			d.fail("%s: raised in %s but not in %s", key, e.Langs[0], loc)
 		}
-		act, _ := a.Get("action")
+		if hit == nil {
+			continue
+		}
+		title, _ := hit.Get("title")
+		level, _ := hit.Get("level")
+		act, _ := hit.Get("action")
 		am, _ := act.(*jsonx.OrderedMap)
-		if am == nil {
-			return false
+		number := any(nil)
+		if am != nil {
+			number, _ = am.Get("number")
 		}
-		if n, _ := am.Get("number"); n != postpartum.EmergencyNumber {
-			return false
+		if title == "" || number != postpartum.EmergencyNumber {
+			d.fail("%s: %s alert without a title or a call to %s", key, loc, postpartum.EmergencyNumber)
+		}
+		if postpartum.IsUrgentAlert(key) && level != postpartum.LevelUrgent {
+			d.fail("%s: level %v, want %s", key, level, postpartum.LevelUrgent)
 		}
 	}
-	return true
-}
-
-func epds(kind string, score int, q10 int) postpartum.Result {
-	answers := map[string]int{}
-	for _, it := range postpartum.ItemsOf(kind) {
-		answers[it.Code] = score
-	}
-	if kind == postpartum.KindFull {
-		answers[postpartum.SelfHarmItem] = q10
-	}
-	return postpartum.ScoreOn(kind, answers, civildate.Date{})
-}
-
-func bp(day civildate.Date, sys, dia float64) string {
-	return vitals.AlertRule(vitals.Reading{Type: vitals.TypeBP, Date: day, Systolic: sys, Diastolic: dia})
-}
-
-func glucose(day civildate.Date, mgdl float64) string {
-	return vitals.AlertRule(vitals.Reading{Type: vitals.TypeGlucose, Date: day, MgDl: mgdl})
+	return fired
 }
 
 // pregnant are the alert-engine facts of a pregnancy at weeks+0 on day, evaluated at 12:00.
@@ -144,234 +244,336 @@ func kickSession(day civildate.Date, kicks int, after, targetAt time.Duration) p
 	return k
 }
 
-// fires runs the real pregnancy alert rules (the message-engine preg.* definitions over the alert fact producer,
-// T-M10-08) on f in fa and en and reports whether rule key raised an urgent alert with its evidence and contact.
-func fires(key string, f pregnancyalerts.Facts) bool {
-	for _, loc := range []string{"fa", "en"} {
-		m, ok := inboxalerts.Fires(key, &facts.PregnancyAlertInput{Facts: f}, loc)
-		if !ok || m.Level != rules.LevelFollowSoon || m.Title == "" || m.Seen == "" || m.Ask == "" {
-			return false
+// fire runs pregnancy rule key on f in every language and reports whether it fired (in the first language); a rule
+// that fires in one language and not another, or renders without its title, evidence or (urgent rules) contact line
+// is a problem.
+func (e *Env) fire(d *Detail, key string, f pregnancyalerts.Facts) bool {
+	def, ok := inboxalerts.DefOf(key)
+	if !ok {
+		d.fail("%s: unknown rule", key)
+		return false
+	}
+	urgent := def.Level == rules.LevelFollowSoon
+	in := &facts.PregnancyAlertInput{Facts: f}
+	fired := false
+	for i, loc := range e.Langs {
+		m, ok := e.Preg.Fire(key, in, loc)
+		if i == 0 {
+			fired = ok
+		} else if ok != fired {
+			d.fail("%s: fires in %s but not in %s", key, e.Langs[0], loc)
+		}
+		if !ok {
+			continue
+		}
+		if m.Title == "" || m.Seen == "" {
+			d.fail("%s: %s text without a title or evidence", key, loc)
+		}
+		if urgent && (m.Level != rules.LevelFollowSoon || m.Ask == "") {
+			d.fail("%s: %s not urgent or without a contact line", key, loc)
 		}
 	}
-	return true
+	if len(e.Langs) == 0 {
+		d.fail("no language to render")
+	}
+	return fired
 }
 
-// kickAlert runs the real kick-count rule on one session at week 28+0 and reports whether it raised the urgent alert.
-func kickAlert(day civildate.Date, k pregnancyalerts.Kick) bool {
-	f := pregnant(day, pregnancyalerts.KickParamsOn(day).FromWeek)
-	f.Kicks = []pregnancyalerts.Kick{k}
-	return fires("preg.fetal_movement_kicks", f)
+// boundary probes v-step, v and v+step with want(x) on got(x).
+func boundary(d *Detail, v, step float64, label func(float64) string, want, got func(float64) bool) {
+	for _, x := range []float64{v - step, v, v + step} {
+		d.probe(label(x), want(x), got(x))
+	}
 }
 
-// urgentBP reports whether a BP alert of f is urgent (≥ 160/110 always; ≥ 140/90 when pregnancy.bp.high is urgent).
-func urgentBP(f pregnancyalerts.Facts) bool {
-	return fires("preg.bp_severe", f) || fires("preg.bp_high_urgent", f)
+// ---- path scenarios ----
+
+func bpLabel(sys, dia float64) string { return num(sys) + "/" + num(dia) }
+
+func vitalsBP(d civildate.Date, sys, dia float64) string {
+	return vitals.AlertRule(vitals.Reading{Type: vitals.TypeBP, Date: d, Systolic: sys, Diastolic: dia})
 }
 
-// Scenarios are the urgent paths the nightly run checks (the «آخرین تست خودکار سناریوها» row).
-var Scenarios = []Scenario{
-	{"bp_crisis_systolic", func(d civildate.Date) bool {
-		t := vitals.ThresholdsOn(d)
-		return bp(d, t.BPCrisisSystolic+1, 70) == vitals.RuleBPCrisis
+// PathScenarios run synthetic inputs at threshold − 1, the threshold and threshold + 1 (the clinical config valid on
+// the run's day) through the functions the API calls.
+var PathScenarios = []Scenario{
+	{"vitals.bp_crisis_systolic", KindPath, func(_ context.Context, e *Env) Detail {
+		t := vitals.ThresholdsOn(e.Day)
+		dia := t.BPCrisisDiastolic - 1
+		d := Detail{Threshold: "systolic > " + num(t.BPCrisisSystolic)}
+		boundary(&d, t.BPCrisisSystolic, 1, func(x float64) string { return bpLabel(x, dia) },
+			func(x float64) bool { return x > t.BPCrisisSystolic },
+			func(x float64) bool { return vitalsBP(e.Day, x, dia) == vitals.RuleBPCrisis })
+		return d
 	}},
-	{"bp_crisis_diastolic", func(d civildate.Date) bool {
-		t := vitals.ThresholdsOn(d)
-		return bp(d, 110, t.BPCrisisDiastolic+1) == vitals.RuleBPCrisis
+	{"vitals.bp_crisis_diastolic", KindPath, func(_ context.Context, e *Env) Detail {
+		t := vitals.ThresholdsOn(e.Day)
+		sys := t.BPCrisisSystolic - 1
+		d := Detail{Threshold: "diastolic > " + num(t.BPCrisisDiastolic)}
+		boundary(&d, t.BPCrisisDiastolic, 1, func(x float64) string { return bpLabel(sys, x) },
+			func(x float64) bool { return x > t.BPCrisisDiastolic },
+			func(x float64) bool { return vitalsBP(e.Day, sys, x) == vitals.RuleBPCrisis })
+		return d
 	}},
-	{"bp_below_crisis_not_urgent", func(d civildate.Date) bool {
-		t := vitals.ThresholdsOn(d)
-		return bp(d, t.BPCrisisSystolic-1, t.BPCrisisDiastolic-1) == ""
+	{"vitals.glucose_urgent_low", KindPath, func(_ context.Context, e *Env) Detail {
+		at := vitals.ThresholdsOn(e.Day).GlucoseUrgentBelow
+		d := Detail{Threshold: "mg/dL < " + num(at)}
+		boundary(&d, at, 1, func(x float64) string { return num(x) + " mg/dL" },
+			func(x float64) bool { return x < at },
+			func(x float64) bool {
+				return vitals.AlertRule(vitals.Reading{Type: vitals.TypeGlucose, Date: e.Day, MgDl: x}) == vitals.RuleGlucoseLow
+			})
+		return d
 	}},
-	{"glucose_urgent_low", func(d civildate.Date) bool {
-		return glucose(d, vitals.ThresholdsOn(d).GlucoseUrgentBelow-1) == vitals.RuleGlucoseLow
+	{"epds.q10", KindPath, func(ctx context.Context, e *Env) Detail {
+		d := Detail{Threshold: "item 10 ≥ 1"}
+		boundary(&d, 1, 1, func(x float64) string { return "q10=" + num(x) },
+			func(x float64) bool { return x >= 1 },
+			func(x float64) bool {
+				r := postpartum.ScoreOn(postpartum.KindFull, map[string]int{postpartum.SelfHarmItem: int(x)}, e.Day)
+				return r.Urgent && slices.Contains(r.Reasons, postpartum.ReasonSelfHarm)
+			})
+		// The urgent message of a low total with item 10 > 0 calls 115 and 123 in every language.
+		r := postpartum.ScoreOn(postpartum.KindFull, map[string]int{"q1": 1, "q2": 1, "q3": 1, postpartum.SelfHarmItem: 1}, e.Day)
+		for _, loc := range e.Langs {
+			msg, err := postpartum.SafetyJSON(ctx, e.copyFor(loc), r)
+			if err != nil || !hasCall(msg, postpartum.EmergencyNumber) || !hasCall(msg, postpartum.SocialEmergencyNumber) {
+				d.fail("%s: urgent message without calls to %s and %s", loc, postpartum.EmergencyNumber,
+					postpartum.SocialEmergencyNumber)
+			}
+		}
+		return d
 	}},
-	{"glucose_at_threshold_not_urgent", func(d civildate.Date) bool {
-		return glucose(d, vitals.ThresholdsOn(d).GlucoseUrgentBelow) == ""
-	}},
-	{"epds_q10_positive_urgent", func(civildate.Date) bool {
-		r := epds(postpartum.KindFull, 0, 1)
-		return r.Urgent && slices.Contains(r.Reasons, postpartum.ReasonSelfHarm)
-	}},
-	// T-M9-06 / H-01: the score path reads epds.urgent_total (13 today; 31 = off — then no total without item 10
-	// is urgent, the top one being 27).
-	{"epds_high_total_urgent", func(d civildate.Date) bool {
-		at := postpartum.CutoffsOn(d).UrgentTotal
-		top := len(postpartum.Items[:9]) * postpartum.ItemMax
+	// T-M9-06 / H-01: the score path reads epds.urgent_total (31 = off: then no total without item 10 is urgent).
+	{"epds.urgent_total", KindPath, func(_ context.Context, e *Env) Detail {
+		at := postpartum.CutoffsOn(e.Day).UrgentTotal
+		top := (len(postpartum.Items) - 1) * postpartum.ItemMax
+		d := Detail{Threshold: "total ≥ " + strconv.Itoa(at)}
+		for _, x := range []int{at - 1, at, at + 1} {
+			if x < 0 || x > top {
+				continue
+			}
+			d.probe("total="+strconv.Itoa(x), x >= at, epdsTotal(e.Day, x).Urgent)
+		}
 		if at > top {
-			return !epdsTotal(d, top).Urgent
+			d.probe("total="+strconv.Itoa(top), false, epdsTotal(e.Day, top).Urgent)
 		}
-		return epdsTotal(d, at).Urgent && !epdsTotal(d, at-1).Urgent
+		return d
 	}},
-	{"epds_q10_low_total", func(d civildate.Date) bool {
-		r := postpartum.ScoreOn(postpartum.KindFull, map[string]int{"q1": 1, "q2": 1, "q3": 1, "q10": 1}, d)
-		if r.Total != 4 || !r.Urgent {
-			return false
+	{"epds.short_never_urgent", KindPath, func(_ context.Context, e *Env) Detail {
+		d := Detail{Threshold: "short check never urgent"}
+		for _, v := range []int{0, postpartum.ItemMax} {
+			answers := map[string]int{}
+			for _, it := range postpartum.ItemsOf(postpartum.KindShort) {
+				answers[it.Code] = v
+			}
+			d.probe("short items="+strconv.Itoa(v), false, postpartum.ScoreOn(postpartum.KindShort, answers, e.Day).Urgent)
 		}
-		msg, err := postpartum.SafetyJSON(context.Background(), guide.NewCopy(nil, "fa", "fa"), r)
-		return err == nil && hasCall(msg, postpartum.EmergencyNumber) && hasCall(msg, postpartum.SocialEmergencyNumber)
+		return d
 	}},
-	{"epds_low_not_urgent", func(civildate.Date) bool { return !epds(postpartum.KindFull, 0, 0).Urgent }},
-	{"epds_short_never_urgent", func(civildate.Date) bool { return !epds(postpartum.KindShort, 3, 0).Urgent }},
-	{"contractions_511_met", func(d civildate.Date) bool {
-		return labor.FiveOneOne(contractions(14, 5*time.Minute, time.Minute), labor.ParamsOn(d)).Met
+	{"labor.511_interval", KindPath, func(_ context.Context, e *Env) Detail {
+		p := labor.ParamsOn(e.Day)
+		last := p.DurationMin + 15*time.Second
+		d := Detail{Threshold: "average interval ≤ " + p.IntervalMax.String()}
+		for _, every := range []time.Duration{p.IntervalMax - time.Minute, p.IntervalMax, p.IntervalMax + time.Minute} {
+			d.probe("every "+every.String(), every <= p.IntervalMax, labor.FiveOneOne(runOf(p, every, last), p).Met)
+		}
+		return d
 	}},
-	{"contractions_sparse_not_met", func(d civildate.Date) bool {
-		return !labor.FiveOneOne(contractions(8, 12*time.Minute, time.Minute), labor.ParamsOn(d)).Met
-	}},
-	{"postpartum_heavy_bleeding_alert", func(civildate.Date) bool {
-		return slices.Contains(postpartum.Recovery{LochiaAmount: "heavy"}.Alerts(), guide.AlertHeavyBleeding)
-	}},
-	{"postpartum_light_bleeding_no_alert", func(civildate.Date) bool {
-		return len(postpartum.Recovery{LochiaAmount: "light"}.Alerts()) == 0
+	{"labor.511_duration", KindPath, func(_ context.Context, e *Env) Detail {
+		p := labor.ParamsOn(e.Day)
+		d := Detail{Threshold: "average duration ≥ " + p.DurationMin.String()}
+		for _, last := range []time.Duration{p.DurationMin - time.Second, p.DurationMin, p.DurationMin + time.Second} {
+			d.probe("lasting "+last.String(), last >= p.DurationMin, labor.FiveOneOne(runOf(p, p.IntervalMax, last), p).Met)
+		}
+		return d
 	}},
 	// T-M9-06: the postpartum red flags are urgent with 115 (fever from postpartum.redflags.fever_c).
-	{"postpartum_fever", func(d civildate.Date) bool {
-		fever := postpartum.FeverOn(d)
-		below := fever - 0.1
-		return redFlag(d, postpartum.Recovery{TemperatureC: &fever}, guide.AlertFever) &&
-			len(postpartum.Recovery{TemperatureC: &below}.AlertsOn(d)) == 0
+	{"postpartum.fever", KindPath, func(ctx context.Context, e *Env) Detail {
+		fever := postpartum.FeverOn(e.Day)
+		d := Detail{Threshold: "°C ≥ " + num(fever)}
+		boundary(&d, fever, 0.1, func(x float64) string { return num(math.Round(x*10)/10) + " °C" },
+			func(x float64) bool { return math.Round(x*10) >= math.Round(fever*10) },
+			func(x float64) bool {
+				return e.recoveryAlert(ctx, &d, postpartum.Recovery{TemperatureC: &x}, guide.AlertFever)
+			})
+		return d
 	}},
-	{"postpartum_pad_per_hour", func(d civildate.Date) bool {
-		yes := true
-		return redFlag(d, postpartum.Recovery{PadSoakedWithinHour: &yes}, guide.AlertPadPerHour)
+	{"postpartum.yes_no_flags", KindPath, func(ctx context.Context, e *Env) Detail {
+		d := Detail{Threshold: "yes = urgent"}
+		for _, v := range []bool{false, true} {
+			b := v
+			d.probe("pad_per_hour="+strconv.FormatBool(v), v,
+				e.recoveryAlert(ctx, &d, postpartum.Recovery{PadSoakedWithinHour: &b}, guide.AlertPadPerHour))
+			d.probe("severe_pain="+strconv.FormatBool(v), v,
+				e.recoveryAlert(ctx, &d, postpartum.Recovery{SeverePain: &b}, guide.AlertSeverePain))
+			d.probe("breathless="+strconv.FormatBool(v), v,
+				e.recoveryAlert(ctx, &d, postpartum.Recovery{Breathless: &b}, guide.AlertBreathless))
+		}
+		return d
 	}},
-	{"postpartum_breathless", func(d civildate.Date) bool {
-		yes := true
-		return redFlag(d, postpartum.Recovery{Breathless: &yes}, guide.AlertBreathless)
+	{"postpartum.heavy_bleeding", KindPath, func(ctx context.Context, e *Env) Detail {
+		d := Detail{Threshold: "lochia = heavy"}
+		for _, amount := range []string{"light", "medium", "heavy"} {
+			d.probe("lochia="+amount, amount == "heavy",
+				e.recoveryAlert(ctx, &d, postpartum.Recovery{LochiaAmount: amount}, guide.AlertHeavyBleeding))
+		}
+		return d
 	}},
-	// T-M9-05: the kick paths run the real alert rule (pregnancyalerts fetal_movement), not a counter.
-	{"reduced_kicks", func(d civildate.Date) bool {
-		p := pregnancyalerts.KickParamsOn(d)
-		return kickAlert(d, kickSession(d, p.Target-1, p.Window, 0))
-	}},
-	{"enough_kicks_not_reduced", func(d civildate.Date) bool {
-		p := pregnancyalerts.KickParamsOn(d)
-		return !kickAlert(d, kickSession(d, p.Target, 30*time.Minute, 30*time.Minute))
-	}},
-	{"pregnancy_bp_severe", func(d civildate.Date) bool {
-		f := pregnant(d, 30)
-		sys := int32(pregnancyalerts.BPTierThreshold("severe", "systolic", d)) //nolint:gosec // mmHg
-		f.Weekly = []store.PregnancyWeeklyLog{{LogDate: d,
-			SystolicPressure: sql.NullInt32{Int32: sys, Valid: true}, DiastolicPressure: sql.NullInt32{Int32: 80, Valid: true}}}
-		return fires("preg.bp_severe", f)
-	}},
-	{"pregnancy_vitals_bp", func(d civildate.Date) bool {
-		r := vitals.Reading{Type: vitals.TypeBP, Date: d, Systolic: 165, Diastolic: 112, Pregnant: true}
-		in, ok := vitals.PregnancyReading(r)
-		f := pregnant(d, 30)
-		f.Readings = []pregnancyalerts.Reading{in}
-		return ok && r.Class() == vitals.ClassCrisis && r.Urgent() && vitals.AlertRule(r) == "" && urgentBP(f)
-	}},
-	{"gdm_two_hour", func(d civildate.Date) bool {
-		hits := func(mgdl float64) int {
-			in, _ := vitals.PregnancyReading(vitals.Reading{Type: vitals.TypeGlucose, Date: d, MgDl: mgdl,
-				Context: vitals.ContextAfterMeal, Pregnant: true})
-			f := pregnant(d, 30)
-			f.Readings = []pregnancyalerts.Reading{in}
-			n := 0
-			if _, ok := inboxalerts.Fires("preg.gdm", &facts.PregnancyAlertInput{Facts: f}, "fa"); ok {
-				n++
+	// T-M9-05: the kick paths run the real alert rule, not a counter.
+	{"preg.kicks_count", KindPath, func(_ context.Context, e *Env) Detail {
+		p := pregnancyalerts.KickParamsOn(e.Day)
+		d := Detail{Threshold: fmt.Sprintf("< %d kicks in %s from week %d", p.Target, p.Window, p.FromWeek)}
+		for _, n := range []int{p.Target - 1, p.Target, p.Target + 1} {
+			f := pregnant(e.Day, p.FromWeek)
+			k := kickSession(e.Day, n, p.Window, 0)
+			if n >= p.Target {
+				k = kickSession(e.Day, n, p.Window, p.Window/2)
 			}
-			return n
+			f.Kicks = []pregnancyalerts.Kick{k}
+			d.probe("kicks="+strconv.Itoa(n), n < p.Target, e.fire(&d, "preg.fetal_movement_kicks", f))
 		}
-		at := pregnancyalerts.GDMTarget(pregnancyalerts.GlucoseTwoHour, d)
-		return hits(at) == 1 && hits(at-1) == 0
+		return d
 	}},
-	// The locked safety rules raise from their code-held definition and embedded copy (no database row needed).
-	{"emergency_rule_without_copy", func(d civildate.Date) bool {
-		p := pregnancyalerts.KickParamsOn(d)
-		f := pregnant(d, p.FromWeek)
-		f.Kicks = []pregnancyalerts.Kick{kickSession(d, 2, time.Hour, 0)}
-		g := pregnant(d, 30)
-		g.Days[d] = pregnancyalerts.Day{"fluid_leakage": "mild"}
-		return fires("preg.fetal_movement_kicks", f) && fires("preg.critical_symptom", g)
-	}},
-	{"pregnancy_contractions_511", func(d civildate.Date) bool {
-		f := pregnant(d, 38)
-		f.Contractions = contractions(14, 5*time.Minute, time.Minute)
-		f.ContractionSession = 1
-		return fires("preg.contractions_511", f)
-	}},
-}
-
-// Run is one scenario run.
-type Run struct {
-	RanAt  time.Time
-	Passed int
-	Total  int
-	Failed []string
-}
-
-// RunScenarios runs every scenario with the clinical config in force on day.
-func RunScenarios(day civildate.Date, now time.Time) Run {
-	r := Run{RanAt: now, Total: len(Scenarios)}
-	for _, s := range Scenarios {
-		if ok := safeRun(s, day); ok {
-			r.Passed++
-		} else {
-			r.Failed = append(r.Failed, s.Name)
+	{"preg.kicks_window", KindPath, func(_ context.Context, e *Env) Detail {
+		p := pregnancyalerts.KickParamsOn(e.Day)
+		d := Detail{Threshold: "target reached within " + p.Window.String()}
+		for _, at := range []time.Duration{p.Window - time.Minute, p.Window, p.Window + time.Minute} {
+			f := pregnant(e.Day, p.FromWeek)
+			f.Kicks = []pregnancyalerts.Kick{kickSession(e.Day, p.Target, at, at)}
+			d.probe("target at "+at.String(), at > p.Window, e.fire(&d, "preg.fetal_movement_kicks", f))
 		}
-	}
-	return r
-}
-
-func safeRun(s Scenario, day civildate.Date) (ok bool) {
-	defer func() {
-		if recover() != nil {
-			ok = false
+		return d
+	}},
+	{"preg.kicks_from_week", KindPath, func(_ context.Context, e *Env) Detail {
+		p := pregnancyalerts.KickParamsOn(e.Day)
+		d := Detail{Threshold: "from week " + strconv.Itoa(p.FromWeek)}
+		for _, w := range []int{p.FromWeek - 1, p.FromWeek, p.FromWeek + 1} {
+			f := pregnant(e.Day, w)
+			f.Kicks = []pregnancyalerts.Kick{kickSession(e.Day, p.Target-1, p.Window, 0)}
+			d.probe("week "+strconv.Itoa(w), w >= p.FromWeek, e.fire(&d, "preg.fetal_movement_kicks", f))
 		}
-	}()
-	return s.Run(day)
+		return d
+	}},
+	{"preg.fetal_movement_manual", KindPath, func(_ context.Context, e *Env) Detail {
+		from := clinicalconfig.Int(clinicalconfig.KeyPregnancyManualFetalWeek, "week", e.Day)
+		d := Detail{Threshold: "reduced from week " + strconv.Itoa(from)}
+		for _, w := range []int{from - 1, from, from + 1} {
+			f := pregnant(e.Day, w)
+			f.Fetal = []store.PregnancyFetalMovement{{LogDate: e.Day, PregnancyWeek: int32(w), MovementStatus: facts.FetalReduced}} //nolint:gosec // weeks
+			d.probe("week "+strconv.Itoa(w), w >= from, e.fire(&d, "preg.fetal_movement", f))
+		}
+		return d
+	}},
+	{"preg.bp_severe_systolic", KindPath, func(_ context.Context, e *Env) Detail {
+		at := pregnancyalerts.BPTierThreshold("severe", "systolic", e.Day)
+		high := pregnancyalerts.BPTierThreshold("high", "diastolic", e.Day)
+		d := Detail{Threshold: "systolic ≥ " + num(at)}
+		boundary(&d, at, 1, func(x float64) string { return "weekly " + bpLabel(x, high-1) },
+			func(x float64) bool { return x >= at },
+			func(x float64) bool { return e.fire(&d, "preg.bp_severe", weeklyBP(e.Day, x, high-1)) })
+		return d
+	}},
+	{"preg.bp_severe_diastolic", KindPath, func(_ context.Context, e *Env) Detail {
+		at := pregnancyalerts.BPTierThreshold("severe", "diastolic", e.Day)
+		high := pregnancyalerts.BPTierThreshold("high", "systolic", e.Day)
+		d := Detail{Threshold: "diastolic ≥ " + num(at)}
+		boundary(&d, at, 1, func(x float64) string { return "weekly " + bpLabel(high-1, x) },
+			func(x float64) bool { return x >= at },
+			func(x float64) bool { return e.fire(&d, "preg.bp_severe", weeklyBP(e.Day, high-1, x)) })
+		return d
+	}},
+	// Pregnancy BP through vitals: a pregnant user's reading is handed to the pregnancy rules (not the vitals crisis
+	// copy below 180/120), at the severe and the ≥ 140/90 tiers (urgent or follow-up per pregnancy.bp.high.urgent).
+	{"preg.vitals_bp_severe", KindPath, func(_ context.Context, e *Env) Detail {
+		at := pregnancyalerts.BPTierThreshold("severe", "systolic", e.Day)
+		d := Detail{Threshold: "systolic ≥ " + num(at)}
+		boundary(&d, at, 1, func(x float64) string { return "vitals " + bpLabel(x, 80) },
+			func(x float64) bool { return x >= at },
+			func(x float64) bool {
+				r := vitals.Reading{Type: vitals.TypeBP, Date: e.Day, Systolic: x, Diastolic: 80, Pregnant: true}
+				fired := e.fire(&d, "preg.bp_severe", vitalsFacts(e.Day, r))
+				if fired && !r.Urgent() { // the severe tier is urgent in vitals too (the generic crisis may add more)
+					d.fail("vitals %s: severe in pregnancy but the reading is not urgent", bpLabel(x, 80))
+				}
+				return fired
+			})
+		return d
+	}},
+	{"preg.vitals_bp_high", KindPath, func(_ context.Context, e *Env) Detail {
+		at := pregnancyalerts.BPTierThreshold("high", "systolic", e.Day)
+		key := "preg.bp_high"
+		if pregnancyalerts.BPTierThreshold("high", "urgent", e.Day) >= 1 {
+			key = "preg.bp_high_urgent"
+		}
+		d := Detail{Threshold: "systolic ≥ " + num(at) + " → " + key}
+		boundary(&d, at, 1, func(x float64) string { return "vitals " + bpLabel(x, 70) },
+			func(x float64) bool { return x >= at },
+			func(x float64) bool {
+				return e.fire(&d, key, vitalsFacts(e.Day, vitals.Reading{Type: vitals.TypeBP, Date: e.Day, Systolic: x,
+					Diastolic: 70, Pregnant: true}))
+			})
+		return d
+	}},
+	{"preg.gdm_two_hour", KindPath, func(_ context.Context, e *Env) Detail {
+		return gdm(e, vitals.ContextAfterMeal, pregnancyalerts.GlucoseTwoHour)
+	}},
+	{"preg.gdm_fasting", KindPath, func(_ context.Context, e *Env) Detail {
+		return gdm(e, vitals.ContextFasting, pregnancyalerts.GlucoseFasting)
+	}},
+	{"preg.contractions_511", KindPath, func(_ context.Context, e *Env) Detail {
+		p := labor.ParamsOn(e.Day)
+		d := Detail{Threshold: "5-1-1 every ≤ " + p.IntervalMax.String()}
+		for _, every := range []time.Duration{p.IntervalMax - time.Minute, p.IntervalMax, p.IntervalMax + time.Minute} {
+			f := pregnant(e.Day, 38)
+			f.Contractions = runOf(p, every, p.DurationMin+15*time.Second)
+			f.ContractionSession = 1
+			d.probe("every "+every.String(), every <= p.IntervalMax, e.fire(&d, "preg.contractions_511", f))
+		}
+		return d
+	}},
+	{"preg.critical_symptom", KindPath, func(_ context.Context, e *Env) Detail {
+		d := Detail{Threshold: "bleeding / fluid leakage / severe sudden pain"}
+		for _, sym := range []string{"", "bleeding", "fluid_leakage", "severe_sudden_pain"} {
+			f := pregnant(e.Day, 30)
+			if sym != "" {
+				f.Days[e.Day] = pregnancyalerts.Day{sym: "mild"}
+			}
+			label := sym
+			if label == "" {
+				label = "nothing logged"
+			}
+			d.probe(label, sym != "", e.fire(&d, "preg.critical_symptom", f))
+		}
+		return d
+	}},
 }
 
-var (
-	lastMu  sync.RWMutex
-	lastRun *Run
-)
-
-// Last is the latest in-process run (nil before the first).
-func Last() *Run {
-	lastMu.RLock()
-	defer lastMu.RUnlock()
-	return lastRun
+func weeklyBP(day civildate.Date, sys, dia float64) pregnancyalerts.Facts {
+	f := pregnant(day, 30)
+	f.Weekly = []store.PregnancyWeeklyLog{{LogDate: day,
+		SystolicPressure:  sql.NullInt32{Int32: int32(sys), Valid: true},  //nolint:gosec // mmHg
+		DiastolicPressure: sql.NullInt32{Int32: int32(dia), Valid: true}}} //nolint:gosec // mmHg
+	return f
 }
 
-func record(r Run) {
-	lastMu.Lock()
-	lastRun = &r
-	lastMu.Unlock()
-}
-
-// Background job (T-M9-11, docs/engine-v6/jobs.md): the nightly run at 03:00 Asia/Tehran on the low queue. The result
-// stays in the memory of the process that ran it until T-M10-24 persists it; the API also runs the set once at
-// start-up (RunAndRecord) so its own dashboard row is filled.
-const (
-	JobNightly  = "safety:nightly_scenarios"
-	NightlyCron = "0 3 * * *"
-)
-
-// RegisterJobs puts the nightly job on q.
-func RegisterJobs(q *queue.Queue, logger *slog.Logger, now func() time.Time) error {
-	return q.RegisterPeriodic(queue.Job{
-		Type: JobNightly, Priority: queue.Low, MaxTries: 1, Timeout: time.Minute,
-	}, NightlyJob(logger, now), NightlyCron, queue.Unique(time.Hour))
-}
-
-// NightlyJob is the safety:nightly_scenarios handler. Idempotent: the scenarios are pure functions of the clinical
-// config in force today; a rerun replaces the recorded run with an equal one.
-func NightlyJob(logger *slog.Logger, now func() time.Time) queue.Handler {
-	return func(ctx context.Context, _ []byte) error {
-		RunAndRecord(ctx, logger, now())
-		return nil
+// vitalsFacts are the pregnancy facts with r handed over the way vitals.Service.PregnancyAlerts does.
+func vitalsFacts(day civildate.Date, r vitals.Reading) pregnancyalerts.Facts {
+	f := pregnant(day, 30)
+	if in, ok := vitals.PregnancyReading(r); ok {
+		f.Readings = []pregnancyalerts.Reading{in}
 	}
+	return f
 }
 
-// RunAndRecord runs the scenarios now and keeps the result for the dashboard (failures are logged by name only).
-func RunAndRecord(ctx context.Context, logger *slog.Logger, now time.Time) Run {
-	r := RunScenarios(civildate.InTehran(now), now)
-	record(r)
-	if len(r.Failed) > 0 {
-		logger.ErrorContext(ctx, "safety: urgent scenarios failed", slog.Any("failed", r.Failed))
-	}
-	return r
+func gdm(e *Env, context, slot string) Detail {
+	at := pregnancyalerts.GDMTarget(slot, e.Day)
+	d := Detail{Threshold: slot + " ≥ " + num(at)}
+	boundary(&d, at, 1, func(x float64) string { return slot + " " + num(x) + " mg/dL" },
+		func(x float64) bool { return x >= at },
+		func(x float64) bool {
+			return e.fire(&d, "preg.gdm", vitalsFacts(e.Day, vitals.Reading{Type: vitals.TypeGlucose, Date: e.Day, MgDl: x,
+				Context: context, Pregnant: true}))
+		})
+	return d
 }

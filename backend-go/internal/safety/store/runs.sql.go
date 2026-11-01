@@ -8,9 +8,27 @@ package store
 import (
 	"context"
 	"database/sql"
+	"strings"
 
 	"github.com/ritme/backend-go/db"
 )
+
+const countSafetyRunsBetween = `-- name: CountSafetyRunsBetween :one
+SELECT COUNT(*) FROM ` + "`" + `safety_scenario_runs` + "`" + ` WHERE ` + "`" + `created_at` + "`" + ` >= ? AND ` + "`" + `created_at` + "`" + ` < ?
+`
+
+type CountSafetyRunsBetweenParams struct {
+	FromAt sql.NullTime
+	ToAt   sql.NullTime
+}
+
+// Rows written in [from_at, to_at): the nightly job's per-day idempotency key (T-M10-24).
+func (q *Queries) CountSafetyRunsBetween(ctx context.Context, arg CountSafetyRunsBetweenParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countSafetyRunsBetween, arg.FromAt, arg.ToAt)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
 
 const insertSafetyScenarioRun = `-- name: InsertSafetyScenarioRun :exec
 
@@ -72,6 +90,100 @@ func (q *Queries) ListRecentSafetyRunIDs(ctx context.Context, limit int32) ([]Li
 			&i.StartedAt,
 			&i.Scenarios,
 			&i.Failed,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSafetyActiveLanguages = `-- name: ListSafetyActiveLanguages :many
+SELECT ` + "`" + `code` + "`" + `, ` + "`" + `is_default` + "`" + ` FROM ` + "`" + `languages` + "`" + ` WHERE ` + "`" + `is_active` + "`" + ` = 1 ORDER BY ` + "`" + `is_default` + "`" + ` DESC, ` + "`" + `sort_order` + "`" + `, ` + "`" + `id` + "`" + `
+`
+
+type ListSafetyActiveLanguagesRow struct {
+	Code      string
+	IsDefault bool
+}
+
+// The active languages (default first): the languages every emergency copy must cover (T-M10-24).
+func (q *Queries) ListSafetyActiveLanguages(ctx context.Context) ([]ListSafetyActiveLanguagesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listSafetyActiveLanguages)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListSafetyActiveLanguagesRow{}
+	for rows.Next() {
+		var i ListSafetyActiveLanguagesRow
+		if err := rows.Scan(&i.Code, &i.IsDefault); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSafetyRulesByKeys = `-- name: ListSafetyRulesByKeys :many
+SELECT ` + "`" + `id` + "`" + `, ` + "`" + `rule_key` + "`" + `, ` + "`" + `kind` + "`" + `, ` + "`" + `level` + "`" + `, ` + "`" + `is_active` + "`" + `, ` + "`" + `locked` + "`" + `, ` + "`" + `status` + "`" + `, ` + "`" + `version` + "`" + `, ` + "`" + `approved_version` + "`" + `
+FROM ` + "`" + `message_rules` + "`" + ` WHERE ` + "`" + `rule_key` + "`" + ` IN (/*SLICE:rule_keys*/?) ORDER BY ` + "`" + `rule_key` + "`" + `, ` + "`" + `id` + "`" + `
+`
+
+type ListSafetyRulesByKeysRow struct {
+	ID              uint64
+	RuleKey         sql.NullString
+	Kind            string
+	Level           string
+	IsActive        bool
+	Locked          bool
+	Status          string
+	Version         uint32
+	ApprovedVersion sql.NullInt32
+}
+
+// The message_rules rows of the locked emergency rules, active or not (T-M10-24 live configuration check).
+func (q *Queries) ListSafetyRulesByKeys(ctx context.Context, ruleKeys []sql.NullString) ([]ListSafetyRulesByKeysRow, error) {
+	query := listSafetyRulesByKeys
+	var queryParams []interface{}
+	if len(ruleKeys) > 0 {
+		for _, v := range ruleKeys {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:rule_keys*/?", strings.Repeat(",?", len(ruleKeys))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:rule_keys*/?", "NULL", 1)
+	}
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListSafetyRulesByKeysRow{}
+	for rows.Next() {
+		var i ListSafetyRulesByKeysRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.RuleKey,
+			&i.Kind,
+			&i.Level,
+			&i.IsActive,
+			&i.Locked,
+			&i.Status,
+			&i.Version,
+			&i.ApprovedVersion,
 		); err != nil {
 			return nil, err
 		}
