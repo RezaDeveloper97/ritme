@@ -2,6 +2,8 @@ package billing_test
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -14,6 +16,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/admin/billing"
 	"github.com/ritme/backend-go/internal/admin/content/admintest"
+	"github.com/ritme/backend-go/internal/metrics"
 	"github.com/ritme/backend-go/internal/payments"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/config"
@@ -303,6 +306,62 @@ func TestSettingsDriveCheckout(t *testing.T) {
 	r = c.JSON(fiber.MethodPut, "/plus/settings", map[string]any{"trial_offer_percent": 30})
 	require.Equal(t, 200, r.Status)
 	assert.Equal(t, 2, e.actions("settings.update"), "no change, no ledger row")
+}
+
+func TestSettingsAICostFXRateFeedsKPI(t *testing.T) {
+	e := newEnv(t)
+	c := e.As(admintest.SuperID)
+	put := func(extra map[string]any) admintest.Resp {
+		body := map[string]any{"trial_offer_percent": 50}
+		for k, v := range extra {
+			body[k] = v
+		}
+		return c.JSON(fiber.MethodPut, "/plus/settings", body)
+	}
+	assert.Nil(t, c.Get("/plus/settings").Obj("settings")["ai_cost_usd_irr_rate"])
+	for _, bad := range []any{0, -5, "abc", 1e9} {
+		r := put(map[string]any{"ai_cost_usd_irr_rate": bad})
+		require.Equal(t, 422, r.Status, "%v", bad)
+		assert.Contains(t, r.Errors(), "ai_cost_usd_irr_rate")
+	}
+	assert.Equal(t, 0, e.actions("settings.update"))
+
+	// KPI inputs: 10 payers/users, 10 USD of AI cost, 100 000 000 IRR revenue.
+	for i := 0; i < 10; i++ {
+		uid := 700 + i
+		e.Exec("INSERT INTO users (id, mobile, created_at, updated_at) VALUES (?, ?, '2026-06-01 10:00:00', '2026-06-01 10:00:00')", uid, fmt.Sprintf("0991000%04d", uid))
+		e.Exec("INSERT INTO ai_usage_logs (user_id, feature, op, provider, model, cost_micros, ok, created_at) VALUES (?, 'lab_analysis', 'x', 'p', 'm', 1000000, 1, '2026-10-05 10:00:00')", uid)
+		e.Exec("INSERT INTO plus_invoices (reference, user_id, duration_months, status, subtotal_rials, discount_rials, vat_rate_bps, vat_rials, total_rials, expires_at, paid_at, created_at, updated_at) "+
+			"VALUES (?, ?, 1, 'paid', 11000000, 1000000, 1000, 1000000, 11000000, '2026-12-01 00:00:00', '2026-10-05 10:00:00', NOW(), NOW())", fmt.Sprintf("FX%d", i), uid)
+	}
+	share := func() *float64 {
+		now := time.Date(2026, 10, 10, 12, 0, 0, 0, civildate.Tehran)
+		require.NoError(t, metrics.New(e.DB, admintest.Quiet).Refresh(t.Context(), now))
+		var p metrics.Payload
+		require.NoError(t, json.Unmarshal([]byte(e.String("SELECT payload FROM metric_snapshots ORDER BY `day` DESC LIMIT 1")), &p))
+		require.NotNil(t, p.KPI)
+		return p.KPI.AICost.SharePct
+	}
+	assert.Nil(t, share(), "no rate yet")
+
+	r := put(map[string]any{"ai_cost_usd_irr_rate": 1000000})
+	require.Equal(t, 200, r.Status, r.Body)
+	assert.EqualValues(t, 1000000, r.Obj("settings")["ai_cost_usd_irr_rate"])
+	assert.Equal(t, 1, e.actions("settings.update"))
+	sp := share()
+	require.NotNil(t, sp, "the next snapshot has a share")
+	assert.InDelta(t, 10, *sp, 0)
+
+	require.Equal(t, 200, put(nil).Status)
+	assert.Equal(t, 1, e.actions("settings.update"), "absent = unchanged")
+	require.Equal(t, 200, put(map[string]any{"ai_cost_usd_irr_rate": 1000000}).Status)
+	assert.Equal(t, 1, e.actions("settings.update"), "same value, no ledger row")
+
+	r = put(map[string]any{"ai_cost_usd_irr_rate": nil})
+	require.Equal(t, 200, r.Status, r.Body)
+	assert.Nil(t, r.Obj("settings")["ai_cost_usd_irr_rate"])
+	assert.Equal(t, 2, e.actions("settings.update"))
+	assert.Nil(t, share(), "cleared rate → null share")
 }
 
 func TestSubscriptionsListMasksAndFilters(t *testing.T) {

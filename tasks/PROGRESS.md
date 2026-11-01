@@ -2578,3 +2578,8 @@ Nothing needed fixing.
 - OKR: on track iff progress ≥ elapsed % − 10 points; done at 100 %; catalogue covers every §5.6 key; evaluated in the same job (`metrics.OnComputed`) and stored as the snapshot's `okr`.
 - Verify: sqlc, vet clean; unit + int metrics, okr, auth (+ activity), cycle/revision, querybudget ok; contract auth 45/0; golangci-lint 0 issues.
 - Open: activity-based KPIs start at 0 (no backfill); FX rate not editable yet → T-M10-30b; admin-web funnel keys (`install, otp_verified, onboarding_done, first_log, log_d7, log_d30`) and new blocks → T-M10-34; a rolled-back bump still marks `logged`; migration 00105 comment says "Tehran day" (writer uses the local day).
+
+## T-M10-30b — Admin billing settings accept the AI cost FX rate
+- Shipped: `PUT /api/admin/v1/plus/settings` takes optional `ai_cost_usd_irr_rate` (1–100 000 000 IRR per USD; null removes; absent = unchanged), super role like the other billing settings, audited on the existing `settings.update` ledger row (details from/to; none when unchanged). Stored as `plus_settings.ai_cost_usd_irr_rate` (read by the T-M10-30 KPI job); `GET` returns it. `admin-api.md` updated.
+- Verify: vet clean; unit + test-int admin/billing ok (`TestSettingsAICostFXRateFeedsKPI`: invalid rates 422 without audit; set rate → next snapshot `ai_cost.share` non-null; null → null again).
+- Open: no separate finance capability (kept super, like the other billing settings).

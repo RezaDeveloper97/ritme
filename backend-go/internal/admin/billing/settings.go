@@ -1,7 +1,10 @@
 package billing
 
 import (
+	"database/sql"
+	"errors"
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -9,6 +12,7 @@ import (
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
+	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 	"github.com/ritme/backend-go/internal/plus"
 )
 
@@ -17,6 +21,26 @@ func intOrNil(p *int) any {
 		return nil
 	}
 	return *p
+}
+
+// aiCostFXKey is the plus_settings key the KPI job reads (metrics.FXRateSetting): IRR per USD for the AI cost share.
+const aiCostFXKey = "ai_cost_usd_irr_rate"
+
+// aiCostFXRate is the stored rate as a number (nil when unset or unparsable — the KPI treats both as unset).
+func (h *Handlers) aiCostFXRate(c fiber.Ctx) (any, error) {
+	var v string
+	err := h.db.QueryRowContext(c, "SELECT `value` FROM plus_settings WHERE `key` = ?", aiCostFXKey).Scan(&v)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	f, perr := strconv.ParseFloat(strings.TrimSpace(v), 64)
+	if perr != nil || f <= 0 {
+		return nil, nil
+	}
+	return f, nil
 }
 
 func (h *Handlers) settingsJSON(c fiber.Ctx) (*jsonx.OrderedMap, error) {
@@ -32,6 +56,10 @@ func (h *Handlers) settingsJSON(c fiber.Ctx) (*jsonx.OrderedMap, error) {
 	if err != nil {
 		return nil, err
 	}
+	fx, err := h.aiCostFXRate(c)
+	if err != nil {
+		return nil, err
+	}
 	cfg := h.svc.Config()
 	source := "env"
 	if override != nil {
@@ -44,6 +72,7 @@ func (h *Handlers) settingsJSON(c fiber.Ctx) (*jsonx.OrderedMap, error) {
 		"vat_env_rate_bps", cfg.VATRateBps,
 		"vat_source", source,
 		"trial_days", cfg.TrialDays,
+		"ai_cost_usd_irr_rate", fx,
 	)), nil
 }
 
@@ -59,11 +88,13 @@ func (h *Handlers) ShowSettings(c fiber.Ctx) error {
 
 // UpdateSettings is PUT /plus/settings (super): trial_offer_percent (0–100, 0 = no offer) and vat_rate_bps
 // (0–10000 basis points; null removes the override so the env value applies again; absent = unchanged). New
-// checkouts use the values at once; existing invoices keep their own VAT snapshot.
+// checkouts use the values at once; ai_cost_usd_irr_rate (IRR per USD, 1–100 000 000; null removes it so the KPI
+// ai_cost.share is null again; absent = unchanged) feeds the KPI snapshot job; existing invoices keep their own VAT snapshot.
 func (h *Handlers) UpdateSettings(c fiber.Ctx) error {
 	data, err := form.Validate(c, validation.Rules{
 		validation.F("trial_offer_percent", "required|integer|min:0|max:100"),
 		validation.F("vat_rate_bps", "nullable|integer|min:0|max:"+strconv.Itoa(plus.MaxVATRateBps)),
+		validation.F("ai_cost_usd_irr_rate", "nullable|numeric|min:1|max:100000000"),
 	})
 	if err != nil {
 		return err
@@ -96,6 +127,29 @@ func (h *Handlers) UpdateSettings(c fiber.Ctx) error {
 				return err
 			}
 			details.Set("vat_override_bps", jsonx.Obj("from", intOrNil(oldVAT), "to", intOrNil(next)))
+		}
+	}
+	if v, sent := data.Get("ai_cost_usd_irr_rate"); sent {
+		old, err := h.aiCostFXRate(c)
+		if err != nil {
+			return err
+		}
+		var next any
+		if v != nil {
+			next = phpval.ToFloat(v)
+		}
+		if old != next {
+			if next == nil {
+				_, err = h.db.ExecContext(c, "DELETE FROM plus_settings WHERE `key` = ?", aiCostFXKey)
+			} else {
+				_, err = h.db.ExecContext(c, "INSERT INTO plus_settings (`key`, `value`, created_at, updated_at) VALUES (?, ?, ?, ?) "+
+					"ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), updated_at = VALUES(updated_at)",
+					aiCostFXKey, strconv.FormatFloat(next.(float64), 'f', -1, 64), at, at)
+			}
+			if err != nil {
+				return err
+			}
+			details.Set("ai_cost_usd_irr_rate", jsonx.Obj("from", old, "to", next))
 		}
 	}
 	if details.Len() > 0 {

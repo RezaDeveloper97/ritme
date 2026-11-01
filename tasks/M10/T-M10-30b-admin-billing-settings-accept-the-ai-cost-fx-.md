@@ -3,7 +3,7 @@ id: T-M10-30b
 title: Admin billing settings accept the AI cost FX rate (ai_cost_usd_irr_rate)
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-30]
 parallel_group: M10-D
 touches: [backend-go/internal/admin/billing,docs/go-migration/admin-api.md]
