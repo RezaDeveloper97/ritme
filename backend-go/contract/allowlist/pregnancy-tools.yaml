@@ -1,0 +1,25 @@
+group: pregnancy-tools
+entries:
+  # D-165 (task T-M10-08, engine v6 M10, user OK 2026-10-21): the contraction / 5-1-1 alerts are message_inbox rows
+  # (preg.fetal_movement, preg.contractions_511): the id is the inbox id and what_we_saw / advice are the engine copy
+  # (dated evidence lines). These goldens were recorded from the pre-T-M10-08 Go server (Go-only routes, D-60).
+  - case: "contraction_timer.*"
+    where: data.alerts[*].id
+    deviation: D-165
+    reason: message_inbox id
+  - case: "contraction_timer.*"
+    where: data.alerts[*].what_we_saw
+    deviation: D-165
+    reason: engine evidence copy (dated)
+  - case: "five_one_one"
+    where: data.alerts[*].id
+    deviation: D-165
+    reason: message_inbox id
+  - case: "five_one_one"
+    where: data.alerts[*].what_we_saw
+    deviation: D-165
+    reason: engine evidence copy
+  - case: "five_one_one"
+    where: data.alerts[*].advice
+    deviation: D-165
+    reason: engine 5-1-1 copy

@@ -1,15 +1,14 @@
 // Package pregnancy is the pregnancy mode of the API: the 26 /api/v1/pregnancy routes
 // (PregnancyProfileController, PregnancySymptomController, PregnancyWeeklyController,
 // PregnancyAlertController), the Eloquent-shaped model JSON and the persistence of logs and
-// alerts. The engine lives in calc (PregnancyCalculationService), alerts
-// (PregnancyAlertService rules) and content (weekly content).
+// alerts. The engine lives in calc (PregnancyCalculationService) and content (weekly content); the alerts a save raises
+// come from the pregnancy alert rules of the message engine (messages/pregnancyalerts → the alerts inbox, T-M10-08).
 //
 // Reusable API: LoadProfile, ProfileJSON, AlertJSON, calc.New.
 package pregnancy
 
 import (
 	"context"
-	"log/slog"
 	"strings"
 	"time"
 
@@ -36,26 +35,28 @@ import (
 // Handlers serves the pregnancy routes. Every handler runs behind auth RequireUser and the
 // locale middleware.
 type Handlers struct {
-	q         store.Querier
-	afterSave AfterLogSave
-	family    companionstore.DBTX // SetFamilyGrants; nil = no companion links to reset (tests)
-	cycleLen  CycleLength         // SetCycleLength; nil = unknown (no cycle-length correction of the due date)
+	q        store.Querier
+	family   companionstore.DBTX // SetFamilyGrants; nil = no companion links to reset (tests)
+	cycleLen CycleLength         // SetCycleLength; nil = unknown (no cycle-length correction of the due date)
 }
 
 // CycleLength is the user's effective cycle length in days from the cycle engine (0 = unknown). The optional
 // pregnancy.edd.cycle_correction (off by default) adds its difference to 28 to an LMP due date (calc.EDDFromLMP).
 type CycleLength func(ctx context.Context, userID uint64) (int, error)
 
-// AfterLogSave runs after every symptom / weekly / fetal-movement save (the v2 alert rules of
-// messages/pregnancyalerts, T-M7-04). It is best-effort and never changes the v1 response
-// (D-21): the v1 log is already committed, so a hook error is logged, not returned.
+// AfterLogSave was the hook that ran the v2 alert rules after a v1 log save (T-M7-04). Since T-M10-08 the saves
+// evaluate the pregnancy alert rules themselves (raiseAlerts) and answer the alerts they raised.
+//
+// Deprecated: kept for the route wiring until it drops the SetAfterLogSave call; the hook is not run.
 type AfterLogSave func(ctx context.Context, userID uint64, locale, defaultLocale string, now time.Time) error
 
 // NewHandlers wires the handlers.
 func NewHandlers(q store.Querier) *Handlers { return &Handlers{q: q} }
 
-// SetAfterLogSave installs the log-save hook.
-func (h *Handlers) SetAfterLogSave(f AfterLogSave) { h.afterSave = f }
+// SetAfterLogSave is a no-op since T-M10-08 (see AfterLogSave).
+//
+// Deprecated: the saves evaluate the alert rules themselves.
+func (h *Handlers) SetAfterLogSave(AfterLogSave) {}
 
 // SetCycleLength installs the cycle-length source of the optional due-date correction (T-M10-18b).
 func (h *Handlers) SetCycleLength(f CycleLength) { h.cycleLen = f }
@@ -72,17 +73,6 @@ func (h *Handlers) resetFamilyGrants(r req, reason companion.ResetReason) error 
 	}
 	_, err := companion.ResetModeScopedGrants(r.c.Context(), h.family, r.userID, reason, r.now)
 	return err
-}
-
-func (h *Handlers) afterLogSave(r req) {
-	if h.afterSave == nil {
-		return
-	}
-	ctx := r.c.Context()
-	if err := h.afterSave(ctx, r.userID, r.locale, i18n.LanguagesOf(r.c).DefaultCode(), r.now); err != nil {
-		slog.WarnContext(ctx, "pregnancy: v2 alert hook failed after a v1 log save",
-			slog.Uint64("user_id", r.userID), slog.String("error", err.Error()))
-	}
 }
 
 // req is the per-request context the controllers use.
@@ -469,16 +459,12 @@ func (h *Handlers) SymptomStore(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	cl, err := h.calculator(r)
+	p, err := LoadProfile(ctx, h.q, r.userID)
 	if err != nil {
 		return err
 	}
-	drafts := alerts.ForSymptomLog(alerts.Context{Locale: r.locale, Week: cl.CurrentWeek(), Profile: cl.Profile()}, log)
-	created, err := createAlerts(ctx, h.q, r.userID, drafts, r.now)
-	if err != nil {
-		return err
-	}
-	h.afterLogSave(r)
+	created := v1Alerts(r.userID, raiseAlerts(ctx, h.q, r.userID, r.locale, i18n.LanguagesOf(r.c).DefaultCode(), r.now),
+		alerts.MedicalHistoryFlags(p))
 	return httpx.Created(c, jsonx.Obj("log", log, "alerts", jsonx.List(created)),
 		r.tr("علائم با موفقیت ذخیره شد", "Symptom log saved successfully"))
 }
@@ -574,16 +560,7 @@ func (h *Handlers) WeeklyStore(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	cl, err := h.calculator(r)
-	if err != nil {
-		return err
-	}
-	drafts := alerts.ForWeeklyLog(alerts.Context{Locale: r.locale, Week: cl.CurrentWeek(), Profile: cl.Profile()}, log)
-	created, err := createAlerts(ctx, h.q, r.userID, drafts, r.now)
-	if err != nil {
-		return err
-	}
-	h.afterLogSave(r)
+	created := v1Alerts(r.userID, raiseAlerts(ctx, h.q, r.userID, r.locale, i18n.LanguagesOf(r.c).DefaultCode(), r.now), nil)
 	return httpx.Created(c, jsonx.Obj("log", log, "alerts", jsonx.List(created)),
 		r.tr("گزارش هفتگی با موفقیت ذخیره شد", "Weekly log saved successfully"))
 }
@@ -678,16 +655,7 @@ func (h *Handlers) FetalStore(c fiber.Ctx) error {
 		}
 		break
 	}
-	cl, err := h.calculator(r)
-	if err != nil {
-		return err
-	}
-	drafts := alerts.ForFetalMovement(alerts.Context{Locale: r.locale, Week: cl.CurrentWeek(), Profile: cl.Profile()}, log)
-	created, err := createAlerts(ctx, h.q, r.userID, drafts, r.now)
-	if err != nil {
-		return err
-	}
-	h.afterLogSave(r)
+	created := v1Alerts(r.userID, raiseAlerts(ctx, h.q, r.userID, r.locale, i18n.LanguagesOf(r.c).DefaultCode(), r.now), nil)
 	return httpx.Created(c, jsonx.Obj("log", log, "alerts", jsonx.List(created)),
 		r.tr("حرکات جنین ثبت شد", "Fetal movement logged successfully"))
 }

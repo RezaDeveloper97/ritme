@@ -413,6 +413,233 @@
     },
     {
       "description": {
+        "en": "The level of a ≥ 140/90 reading from the clinical config pregnancy.bp.high.urgent.",
+        "fa": "سطح فشار ≥ ۱۴۰/۹۰ از تنظیم بالینی pregnancy.bp.high.urgent"
+      },
+      "enum": [
+        "follow_up",
+        "urgent"
+      ],
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.bp_high_level",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The highest pregnancy BP class of the last 7 days (weekly logs and vitals).",
+        "fa": "بالاترین ردهٔ فشار خون بارداری در ۷ روز اخیر (ثبت هفتگی و علائم حیاتی)"
+      },
+      "enum": [
+        "normal",
+        "high",
+        "severe"
+      ],
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.bp_last_category",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "«I can't keep fluids down» was logged.",
+        "fa": "«مایعات را نگه نمی‌دارم» ثبت شده"
+      },
+      "enum": null,
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.cant_keep_fluids",
+      "pending": "no log field yet",
+      "type": "bool",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The running contraction session met 5-1-1 (present only when it holds).",
+        "fa": "انقباض‌های جلسهٔ جاری به الگوی ۵-۱-۱ رسیده (فقط وقتی برقرار است)"
+      },
+      "enum": null,
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.contractions_511",
+      "pending": null,
+      "type": "bool",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Critical symptoms logged in the last 7 days, from the newest such day (present only when any).",
+        "fa": "علائم بحرانی ثبت‌شده در ۷ روز اخیر، از تازه‌ترین روز (فقط وقتی هست)"
+      },
+      "enum": [
+        "bleeding",
+        "fluid_leakage",
+        "severe_sudden_pain",
+        "spotting"
+      ],
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.critical_symptom",
+      "pending": null,
+      "type": "set",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Days since the last weight log (or since the pregnancy started).",
+        "fa": "روزهای گذشته از آخرین ثبت وزن (یا از شروع بارداری)"
+      },
+      "enum": null,
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.days_since_weight",
+      "pending": null,
+      "type": "int",
+      "unit": "day"
+    },
+    {
+      "description": {
+        "en": "Severe depression feelings in a weekly log of the last 7 days.",
+        "fa": "احساس افسردگی «شدید» در ثبت هفتگی ۷ روز اخیر"
+      },
+      "enum": null,
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.depression_severe",
+      "pending": null,
+      "type": "bool",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Fetal movement: reduced or none (manual log), or a kick count short of the target (present only when it holds).",
+        "fa": "حرکات جنین: کم (ثبت دستی)، بدون حرکت، یا شمارش کمتر از هدف (فقط وقتی برقرار است)"
+      },
+      "enum": [
+        "reduced",
+        "none",
+        "low_session"
+      ],
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.fetal_movement",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Blood sugar of the last 7 days against the GDM targets.",
+        "fa": "قند خون ۷ روز اخیر نسبت به اهداف دیابت بارداری"
+      },
+      "enum": [
+        "in_target",
+        "above_target"
+      ],
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.gdm_last",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Days until the next visit.",
+        "fa": "روزهای مانده تا ویزیت بعدی"
+      },
+      "enum": null,
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.next_visit_in_days",
+      "pending": null,
+      "type": "int",
+      "unit": "day"
+    },
+    {
+      "description": {
+        "en": "Severe symptoms logged in the last 7 days.",
+        "fa": "تعداد علائم «شدید» در ۷ روز اخیر"
+      },
+      "enum": null,
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.severe_symptoms_7",
+      "pending": null,
+      "type": "int",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Days with vomiting in the last 7 days.",
+        "fa": "روزهای دارای استفراغ در ۷ روز اخیر"
+      },
+      "enum": null,
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.vomiting_days_7",
+      "pending": null,
+      "type": "int",
+      "unit": "day"
+    },
+    {
+      "description": {
+        "en": "Days with severe vomiting in the last 7 days.",
+        "fa": "روزهای استفراغ «شدید» در ۷ روز اخیر"
+      },
+      "enum": null,
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.vomiting_severe_7",
+      "pending": null,
+      "type": "int",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Consecutive days of vomiting up to today (or yesterday).",
+        "fa": "روزهای پشت سر هم استفراغ تا امروز (یا دیروز)"
+      },
+      "enum": null,
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.vomiting_streak",
+      "pending": null,
+      "type": "int",
+      "unit": "day"
+    },
+    {
+      "description": {
+        "en": "Day of the pregnancy week (0–6).",
+        "fa": "روز هفتهٔ بارداری (۰ تا ۶)"
+      },
+      "enum": null,
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.week_day",
+      "pending": null,
+      "type": "int",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "The pregnancy week started today.",
+        "fa": "هفتهٔ بارداری امروز شروع شده"
+      },
+      "enum": null,
+      "group": "pregnancy_alerts",
+      "member_safe": false,
+      "name": "preg.week_started_today",
+      "pending": null,
+      "type": "bool",
+      "unit": null
+    },
+    {
+      "description": {
         "en": "The pregnancy trimester (1–3).",
         "fa": "سه‌ماهه بارداری (۱ تا ۳)"
       },
@@ -815,6 +1042,7 @@
     "logs",
     "postpartum",
     "pregnancy",
+    "pregnancy_alerts",
     "segment",
     "symptoms",
     "vitals"

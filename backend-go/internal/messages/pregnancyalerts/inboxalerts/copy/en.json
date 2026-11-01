@@ -1,0 +1,99 @@
+{
+  "preg.vomiting": {
+    "title": "Vomiting on {preg_vomit_days} of the last 7 days",
+    "body": "Nausea and vomiting are common in these weeks. If you can't keep fluids down, you pee very little, or you are losing weight, it is worth talking to your doctor or midwife.",
+    "seen": "Vomiting on {preg_vomit_days} of the last 7 days, {preg_vomit_severe} of them severe",
+    "confidence": "This pattern comes from your own logs, not a diagnosis"
+  },
+  "preg.cant_keep_fluids": {
+    "title": "You can't keep fluids down",
+    "body": "When no fluids stay down, you can get dehydrated quickly. Contact your doctor or midwife today.",
+    "seen": "You logged that you can't keep fluids down.",
+    "confidence": "This comes from your own log; only a doctor can tell the cause.",
+    "contact": "Contact your doctor or midwife now; if you can't reach them or it gets worse, call emergency services (115)."
+  },
+  "preg.severe_symptoms": {
+    "title": "{preg_severe_count} severe symptoms this week",
+    "body": "Repeated severe symptoms are worth raising at your next visit. If they disrupt your daily life, talk to your doctor sooner.",
+    "seen": "You logged a severe symptom {preg_severe_count} times in the last 7 days",
+    "confidence": "This pattern comes from your own logs, not a diagnosis"
+  },
+  "preg.critical_symptom": {
+    "title": "{preg_symptoms} logged",
+    "body": "Don't ignore this symptom. Contact your doctor or midwife now.",
+    "seen": "You logged \"{preg_symptoms}\" ({preg_symptom_on}).",
+    "confidence": "This comes from your own log; only a doctor can tell the cause.",
+    "contact": "Contact your doctor or midwife now; if you can't reach them or it gets worse, call emergency services (115)."
+  },
+  "preg.weight_missing": {
+    "title": "This week's weight isn't logged",
+    "body": "Logging your weight once a week makes the trend more complete for your visits. It's fine to skip it too.",
+    "seen": "No weight logged yet in week {preg_week}",
+    "confidence": "Just a reminder"
+  },
+  "preg.week_entered": {
+    "title": "You've entered week {preg_week}",
+    "body": "Your dating basis is still {preg_basis}. After the NT scan you can update it to narrow the estimate range.",
+    "seen": "Pregnancy week {preg_week} started on {preg_week_on}",
+    "confidence": "Based on your current dating basis ({preg_basis})"
+  },
+  "preg.next_visit": {
+    "title": "Your next visit is coming up",
+    "body": "If you have questions or symptoms you want to ask about, jot them down now so you don't forget.",
+    "seen": "Next visit: {preg_visit_on}",
+    "confidence": "From the visits you added"
+  },
+  "preg.fetal_movement": {
+    "title": "Fewer baby movements",
+    "body": "Fewer or no movements should not wait until tomorrow. Contact your doctor or midwife now, or go to the hospital.",
+    "seen": "You logged baby movements as \"{preg_fetal_status}\" ({preg_fetal_on}).",
+    "confidence": "This is your own log; only an exam can check on the baby.",
+    "contact": "Contact your doctor or midwife now; if you can't reach them or it gets worse, call emergency services (115)."
+  },
+  "preg.fetal_movement_kicks": {
+    "title": "Fewer than {preg_kick_target} movements in {preg_kick_minutes} minutes",
+    "body": "Contact your doctor or midwife now. Don't wait for the movements to come back, and don't leave it until tomorrow.",
+    "seen": "In the count of {preg_kick_at} you logged {preg_kick_count} movements; the aim is {preg_kick_target} movements within {preg_kick_minutes} minutes.",
+    "confidence": "This comes from your own count and is not a diagnosis; only an exam can check on the baby.",
+    "contact": "Contact your doctor or midwife now; if you can't reach them or it gets worse, call emergency services (115)."
+  },
+  "preg.bp_high": {
+    "title": "High blood pressure logged",
+    "body": "A reading of 140/90 or higher in pregnancy should be checked soon. Rest a few minutes, measure again and contact your doctor today.",
+    "seen": "You logged {preg_bp_sys}/{preg_bp_dia} ({preg_bp_on}).",
+    "confidence": "One reading from your own log; measuring again at rest helps."
+  },
+  "preg.bp_high_urgent": {
+    "title": "High blood pressure logged",
+    "body": "A reading of 140/90 or higher in pregnancy should be checked soon. Rest a few minutes, measure again and contact your doctor.",
+    "seen": "You logged {preg_bp_sys}/{preg_bp_dia} ({preg_bp_on}).",
+    "confidence": "One reading from your own log; measuring again at rest helps.",
+    "contact": "Contact your doctor or midwife now; if you can't reach them or it gets worse, call emergency services (115)."
+  },
+  "preg.bp_severe": {
+    "title": "Your blood pressure is in the severe range for pregnancy",
+    "body": "Contact your doctor or midwife now, or go to the hospital. If you have a severe headache, blurred vision, pain high in your belly or trouble breathing, call emergency services (115).",
+    "seen": "You logged {preg_bp_sys}/{preg_bp_dia} ({preg_bp_on}); 160/110 or higher in pregnancy is urgent.",
+    "confidence": "One reading from your own log; with a number like this, don't wait to measure again.",
+    "contact": "Contact your doctor or midwife now; if you can't reach them or it gets worse, call emergency services (115)."
+  },
+  "preg.gdm": {
+    "title": "Blood sugar above the usual range",
+    "body": "Sugar above the usual pregnancy range is worth following up. Show the numbers to your doctor at the next visit or call sooner.",
+    "seen": "You logged fasting {preg_fasting} or after-meal {preg_post_meal} ({preg_gdm_on})",
+    "confidence": "This pattern comes from your own logs, not a diagnosis"
+  },
+  "preg.contractions_511": {
+    "title": "Your contractions reached the 5-1-1 pattern",
+    "body": "You timed {preg_labor_count} contractions in the last {preg_labor_minutes} minutes, on average {preg_labor_interval} apart and {preg_labor_duration} long. It is time to call your maternity unit or midwife and get your hospital bag ready. If your waters break, you are bleeding or the baby moves less, do not wait.",
+    "seen": "The contractions of the session started {preg_labor_at} reached the 5-1-1 pattern.",
+    "confidence": "This is worked out from the times you logged; only an exam can confirm that labour has started",
+    "contact": "If you have heavy bleeding, constant pain or the baby moves less, call emergency services (115) now."
+  },
+  "preg.depression": {
+    "title": "This week has felt hard",
+    "body": "You don't have to carry this alone. Talking to your doctor, midwife or a counsellor helps. If you have thoughts of harming yourself, call 123 or emergency services (115) now.",
+    "seen": "In your weekly log ({preg_mood_on}) you marked feeling low or depressed as \"severe\"",
+    "confidence": "This comes from your own log, not a diagnosis"
+  }
+}

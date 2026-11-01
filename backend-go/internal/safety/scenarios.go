@@ -11,7 +11,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ritme/backend-go/internal/messages/facts"
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
+	"github.com/ritme/backend-go/internal/messages/pregnancyalerts/inboxalerts"
+	"github.com/ritme/backend-go/internal/messages/rules"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/queue"
@@ -20,7 +23,6 @@ import (
 	"github.com/ritme/backend-go/internal/pregnancy/labor"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
 	"github.com/ritme/backend-go/internal/pregnancy/tools"
-	v2 "github.com/ritme/backend-go/internal/pregnancy/v2"
 	"github.com/ritme/backend-go/internal/vitals"
 )
 
@@ -131,11 +133,6 @@ func pregnant(day civildate.Date, weeks int) pregnancyalerts.Facts {
 		Now: day.TehranMidnight().Add(12 * time.Hour)}
 }
 
-// rule is a live, enabled rule row of the alert engine.
-func rule(level string, window int, params map[string]any) pregnancyalerts.Config {
-	return pregnancyalerts.Config{Enabled: true, Level: level, WindowDays: window, Params: params}
-}
-
 // kickSession: kicks counted in a session started at 09:00 on day, ended after `after`, with the target-th kick at
 // targetAt (0 = not reached).
 func kickSession(day civildate.Date, kicks int, after, targetAt time.Duration) pregnancyalerts.Kick {
@@ -147,27 +144,28 @@ func kickSession(day civildate.Date, kicks int, after, targetAt time.Duration) p
 	return k
 }
 
-// kickAlert runs the real fetal_movement rule on one session at week 28+0 and reports whether it raised the urgent
-// alert.
+// fires runs the real pregnancy alert rules (the message-engine preg.* definitions over the alert fact producer,
+// T-M10-08) on f in fa and en and reports whether rule key raised an urgent alert with its evidence and contact.
+func fires(key string, f pregnancyalerts.Facts) bool {
+	for _, loc := range []string{"fa", "en"} {
+		m, ok := inboxalerts.Fires(key, &facts.PregnancyAlertInput{Facts: f}, loc)
+		if !ok || m.Level != rules.LevelFollowSoon || m.Title == "" || m.Seen == "" || m.Ask == "" {
+			return false
+		}
+	}
+	return true
+}
+
+// kickAlert runs the real kick-count rule on one session at week 28+0 and reports whether it raised the urgent alert.
 func kickAlert(day civildate.Date, k pregnancyalerts.Kick) bool {
 	f := pregnant(day, pregnancyalerts.KickParamsOn(day).FromWeek)
 	f.Kicks = []pregnancyalerts.Kick{k}
-	for _, h := range pregnancyalerts.Detect("fetal_movement", rule("urgent", 1, map[string]any{}), f) {
-		if h.Level == "urgent" {
-			return true
-		}
-	}
-	return false
+	return fires("preg.fetal_movement_kicks", f)
 }
 
-// urgentHit reports whether rule raised an urgent hit on f.
-func urgentHit(name string, f pregnancyalerts.Facts) bool {
-	for _, h := range pregnancyalerts.Detect(name, rule("follow_up", 7, map[string]any{}), f) {
-		if h.Level == "urgent" {
-			return true
-		}
-	}
-	return false
+// urgentBP reports whether a BP alert of f is urgent (≥ 160/110 always; ≥ 140/90 when pregnancy.bp.high is urgent).
+func urgentBP(f pregnancyalerts.Facts) bool {
+	return fires("preg.bp_severe", f) || fires("preg.bp_high_urgent", f)
 }
 
 // Scenarios are the urgent paths the nightly run checks (the «آخرین تست خودکار سناریوها» row).
@@ -255,14 +253,14 @@ var Scenarios = []Scenario{
 		sys := int32(pregnancyalerts.BPTierThreshold("severe", "systolic", d)) //nolint:gosec // mmHg
 		f.Weekly = []store.PregnancyWeeklyLog{{LogDate: d,
 			SystolicPressure: sql.NullInt32{Int32: sys, Valid: true}, DiastolicPressure: sql.NullInt32{Int32: 80, Valid: true}}}
-		return urgentHit("bp_high", f)
+		return fires("preg.bp_severe", f)
 	}},
 	{"pregnancy_vitals_bp", func(d civildate.Date) bool {
 		r := vitals.Reading{Type: vitals.TypeBP, Date: d, Systolic: 165, Diastolic: 112, Pregnant: true}
 		in, ok := vitals.PregnancyReading(r)
 		f := pregnant(d, 30)
 		f.Readings = []pregnancyalerts.Reading{in}
-		return ok && r.Class() == vitals.ClassCrisis && r.Urgent() && vitals.AlertRule(r) == "" && urgentHit("bp_high", f)
+		return ok && r.Class() == vitals.ClassCrisis && r.Urgent() && vitals.AlertRule(r) == "" && urgentBP(f)
 	}},
 	{"gdm_two_hour", func(d civildate.Date) bool {
 		hits := func(mgdl float64) int {
@@ -270,25 +268,29 @@ var Scenarios = []Scenario{
 				Context: vitals.ContextAfterMeal, Pregnant: true})
 			f := pregnant(d, 30)
 			f.Readings = []pregnancyalerts.Reading{in}
-			return len(pregnancyalerts.Detect("sugar_high", rule("follow_up", 7, map[string]any{}), f))
+			n := 0
+			if _, ok := inboxalerts.Fires("preg.gdm", &facts.PregnancyAlertInput{Facts: f}, "fa"); ok {
+				n++
+			}
+			return n
 		}
 		at := pregnancyalerts.GDMTarget(pregnancyalerts.GlucoseTwoHour, d)
 		return hits(at) == 1 && hits(at-1) == 0
 	}},
+	// The locked safety rules raise from their code-held definition and embedded copy (no database row needed).
 	{"emergency_rule_without_copy", func(d civildate.Date) bool {
 		p := pregnancyalerts.KickParamsOn(d)
 		f := pregnant(d, p.FromWeek)
 		f.Kicks = []pregnancyalerts.Kick{kickSession(d, 2, time.Hour, 0)}
-		for _, loc := range []string{"fa", "en"} {
-			level, title, contact := pregnancyalerts.FiresWithoutCopy("fetal_movement", f, v2.Lang{Locale: loc, Default: loc})
-			if level != "urgent" || title == "" || contact == "" {
-				return false
-			}
-		}
 		g := pregnant(d, 30)
 		g.Days[d] = pregnancyalerts.Day{"fluid_leakage": "mild"}
-		level, _, _ := pregnancyalerts.FiresWithoutCopy("critical_symptom", g, v2.Lang{Locale: "en", Default: "en"})
-		return level == "urgent"
+		return fires("preg.fetal_movement_kicks", f) && fires("preg.critical_symptom", g)
+	}},
+	{"pregnancy_contractions_511", func(d civildate.Date) bool {
+		f := pregnant(d, 38)
+		f.Contractions = contractions(14, 5*time.Minute, time.Minute)
+		f.ContractionSession = 1
+		return fires("preg.contractions_511", f)
 	}},
 }
 

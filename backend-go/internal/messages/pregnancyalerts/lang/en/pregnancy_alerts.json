@@ -17,5 +17,14 @@
     "messages": {
         "action_done": "Done",
         "visit_note_added": "Added to your visit note"
-    }
+    },
+    "actions": {
+        "ack": "Got it, thanks",
+        "add_to_visit_note": "Add to visit note",
+        "call": "Call your doctor or midwife",
+        "call_maternity": "Call the maternity unit",
+        "log_weight": "Log weight",
+        "open_week": "Review this week"
+    },
+    "list_separator": ", "
 }

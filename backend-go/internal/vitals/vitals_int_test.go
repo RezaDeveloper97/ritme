@@ -24,6 +24,7 @@ import (
 	authstore "github.com/ritme/backend-go/internal/auth/store"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/messages/pregnancyalerts/inboxalerts"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
@@ -57,6 +58,7 @@ func setup(t *testing.T) *env {
 	q := authstore.New(db)
 	guard := auth.NewGuardWith(&key.PublicKey, q, clock.Real{}, quiet).RequireUser
 	locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(db), nil, quiet))
+	inboxalerts.Install(db, quiet) // the pregnancy alert backend (T-M10-08), as the API wires it
 	h := vitals.NewHandlers(vitals.NewService(db), clock.Fixed(fixed))
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})

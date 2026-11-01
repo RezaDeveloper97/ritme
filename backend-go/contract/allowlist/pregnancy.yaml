@@ -93,3 +93,44 @@ entries:
     where: "**.trimester_info.*"
     deviation: D-169
     reason: the trimester flag text follows the trimester (13+4 → 1)
+
+  # D-165 (task T-M10-08, engine v6 M10, user OK 2026-10-21): pregnancy alerts come from the message engine (seeded
+  # preg.* rules, goose 00113; locked safety rules have a code-held fallback). The v1 save answers keep their shape and
+  # key order, but each alert is now one open inbox row: alert_type is the rule name (critical_symptom, fetal_movement,
+  # bp_high …), title / message / recommended_actions are the engine copy, id is the message_inbox id,
+  # trigger_symptoms carries the evidence (bools for critical symptoms), and several hits merge into one critical
+  # alert. The Laravel-schema contract DB has no 00113 rows, so only the locked safety rules fire here (no GDM alert).
+  - case: "symptoms_store_alerts.*"
+    where: data.alerts.**
+    deviation: D-165
+    reason: engine alerts (one merged critical_symptom inbox row, engine copy)
+  - case: "symptoms_store_spotting.*"
+    where: data.alerts.**
+    deviation: D-165
+    reason: spotting ≤ week 12 is the locked critical_symptom rule (engine copy, emergency)
+  - case: "symptoms_store_upsert"
+    where: data.alerts.**
+    deviation: D-165
+    reason: reduced fetal movement is the locked fetal_movement rule; severe-symptom counts need the seeded rule
+  - case: "weekly_store_upsert.*"
+    where: data.alerts.**
+    deviation: D-165
+    reason: engine alerts (fetal_movement, bp severe); GDM is a non-locked rule absent from the contract DB
+  - case: "fetal_movement_store_reduced.*"
+    where: data.alerts.**
+    deviation: D-165
+    reason: the locked fetal_movement rule with the engine copy
+  # TEMPORARY (T-M10-08b removes these): /pregnancy/alerts/summary still reads the legacy pregnancy_alerts table, which
+  # the saves no longer write. T-M10-08b re-points the v1 list / summary / unread badge to the inbox.
+  - case: "symptoms_store_alerts.*"
+    where: data.has_emergency
+    deviation: D-165
+    reason: summary still on the legacy table until T-M10-08b
+  - case: "symptoms_store_alerts.*"
+    where: data.has_unread
+    deviation: D-165
+    reason: summary still on the legacy table until T-M10-08b
+  - case: "symptoms_store_alerts.*"
+    where: data.latest_emergency.**
+    deviation: D-165
+    reason: summary still on the legacy table until T-M10-08b

@@ -15,7 +15,6 @@ import (
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
-	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
 	"github.com/ritme/backend-go/internal/pregnancy"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
 )
@@ -27,9 +26,8 @@ func init() {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		h := pregnancy.NewHandlers(store.New(d.DB))
-		h.SetAfterLogSave(pregnancyalerts.New(store.New(d.DB)).AfterSave) // v2 alert rules (T-M7-04)
-		h.SetFamilyGrants(d.DB)                                           // reset stale pregnancy grants on activate/onboarding/deactivate (T-M9-02)
-		h.SetCycleLength(effectiveCycleLength(cyclestore.New(d.DB)))      // optional EDD cycle correction (D-169, T-M10-18c)
+		h.SetFamilyGrants(d.DB)                                      // reset stale pregnancy grants on activate/onboarding/deactivate (T-M9-02)
+		h.SetCycleLength(effectiveCycleLength(cyclestore.New(d.DB))) // optional EDD cycle correction (D-169, T-M10-18c)
 		const p = "/api/v1/pregnancy"
 
 		r.Post(p+"/activate", locale, guard, h.Activate)

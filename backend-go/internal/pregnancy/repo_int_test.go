@@ -14,7 +14,6 @@ import (
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
-	"github.com/ritme/backend-go/internal/pregnancy/alerts"
 	"github.com/ritme/backend-go/internal/pregnancy/calc"
 	"github.com/ritme/backend-go/internal/pregnancy/content"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
@@ -89,7 +88,7 @@ func TestSymptomUpsertShapes(t *testing.T) {
 	assert.Equal(t, "x", row.Notes.String)
 }
 
-func TestWeeklyUpsertDecimalsAndAlerts(t *testing.T) {
+func TestWeeklyUpsertDecimalsAndAlertShape(t *testing.T) {
 	_, q, uid := setup(t)
 	ctx := context.Background()
 	log, err := upsertWeeklyLog(ctx, q, uid, 27, int64(27), input(t,
@@ -101,19 +100,17 @@ func TestWeeklyUpsertDecimalsAndAlerts(t *testing.T) {
 	assert.Equal(t, []any{"face", "feet"}, got["swelling_locations"])
 	assert.NotContains(t, got, "has_blood_pressure_device")
 
-	drafts := alerts.ForWeeklyLog(alerts.Context{Locale: "en", Week: 1}, log)
-	require.Len(t, drafts, 2)
-	models, err := createAlerts(ctx, q, uid, drafts, t0)
-	require.NoError(t, err)
-	a := toJSON(t, models[1])
-	assert.Equal(t, map[string]any{"fasting": "130.50", "post_meal": nil}, a["trigger_symptoms"])
+	// The alerts of a save are the inbox alerts in the v1 model shape (T-M10-08): the keys PregnancyAlert::create()
+	// returned, no read state.
+	models := v1Alerts(uid, []RaisedAlert{{ID: 7, Level: "emergency", Type: "bp_high", Title: "t", Message: "m", Week: 27,
+		Actions: []string{"Call"}, CreatedAt: t0, Trigger: jsonx.Obj("systolic", 165.0, "diastolic", 112.0, "severe", true)}}, nil)
+	a := toJSON(t, models[0])
+	assert.Equal(t, []string{"user_id", "alert_level", "alert_type", "title", "message", "pregnancy_week",
+		"trigger_symptoms", "recommended_actions", "updated_at", "created_at", "id"}, models[0].attrs.Keys())
+	assert.Equal(t, map[string]any{"systolic": 165.0, "diastolic": 112.0, "severe": true}, a["trigger_symptoms"])
+	assert.Equal(t, []any{"Call"}, a["recommended_actions"])
 	assert.NotContains(t, a, "medical_history_flags")
 	assert.NotContains(t, a, "is_read")
-
-	cnt, err := q.CountActiveAlerts(ctx, uid)
-	require.NoError(t, err)
-	// 165/112 is the severe pregnancy tier since T-M9-05 (D-134): one emergency + one warning.
-	assert.Equal(t, store.CountActiveAlertsRow{Total: 2, Unread: 2, Emergency: 1, UnreadEmergency: 1, Warning: 1}, cnt)
 	row, err := q.GetWeeklyLog(ctx, store.GetWeeklyLogParams{UserID: uid, PregnancyWeek: 27})
 	require.NoError(t, err)
 	assert.False(t, row.HasBloodPressureDevice)

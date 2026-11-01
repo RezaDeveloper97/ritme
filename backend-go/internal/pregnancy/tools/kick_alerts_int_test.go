@@ -11,22 +11,23 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// T-M9-05: a kick session short of the target raises the urgent fetal_movement alert.
+// T-M9-05 / T-M10-08: a kick session short of the target raises the urgent preg.fetal_movement_kicks alert (a locked
+// safety rule of the alerts inbox).
 
 type kickAlert struct {
-	Level, Title, Trigger string
+	Level, Kind, State, Evidence string
 }
 
 func (e *env) kickAlerts(t *testing.T, user uint64) []kickAlert {
 	t.Helper()
-	rows, err := e.db.Query(`SELECT alert_level, title, trigger_symptoms FROM pregnancy_alerts
-		WHERE user_id = ? AND alert_type = 'v2:fetal_movement' ORDER BY id`, user)
+	rows, err := e.db.Query(`SELECT level, kind, state, evidence FROM message_inbox
+		WHERE user_id = ? AND rule_key = 'preg.fetal_movement_kicks' ORDER BY id`, user)
 	require.NoError(t, err)
 	defer func() { _ = rows.Close() }()
 	var out []kickAlert
 	for rows.Next() {
 		var a kickAlert
-		require.NoError(t, rows.Scan(&a.Level, &a.Title, &a.Trigger))
+		require.NoError(t, rows.Scan(&a.Level, &a.Kind, &a.State, &a.Evidence))
 		out = append(out, a)
 	}
 	require.NoError(t, rows.Err())
@@ -56,12 +57,15 @@ func TestKickAlerts_StopShortOfTarget(t *testing.T) {
 
 	got := e.kickAlerts(t, sara)
 	require.Len(t, got, 1)
-	assert.Equal(t, "emergency", got[0].Level)
-	assert.Equal(t, "Fewer than 10 movements in 120 minutes", got[0].Title)
-	var m map[string]any
-	require.NoError(t, json.Unmarshal([]byte(got[0].Trigger), &m))
-	assert.Equal(t, "urgent", m["level4"])
-	assert.Equal(t, "kicks", m["variant"])
+	assert.Equal(t, kickAlert{Level: "follow_soon", Kind: "safety", State: "active"}, kickAlert{Level: got[0].Level, Kind: got[0].Kind, State: got[0].State},
+		"urgent, safety, active: the feed's urgent_modal pick")
+	var m struct {
+		Vars map[string]any `json:"vars"`
+	}
+	require.NoError(t, json.Unmarshal([]byte(got[0].Evidence), &m))
+	assert.InDelta(t, 9, m.Vars["preg_kick_count"], 0)
+	assert.InDelta(t, 10, m.Vars["preg_kick_target"], 0)
+	assert.InDelta(t, 120, m.Vars["preg_kick_minutes"], 0)
 
 	// Re-reading does not duplicate it; the fetal day keeps its real status (felt).
 	e.do(t, t0.Add(125*time.Minute), http.MethodGet, "/api/v1/pregnancy/kick-sessions", tok, "")
@@ -107,12 +111,11 @@ func TestKickAlerts_BeforeWeek28(t *testing.T) {
 	assert.Empty(t, e.kickAlerts(t, sara))
 }
 
-// The copy row disabled or deleted → the alert still fires with the embedded copy.
-func TestKickAlerts_WithoutCopyRow(t *testing.T) {
+// The locked rule row inactive or deleted → the alert still fires from the code-held definition (SPEC §4.2).
+func TestKickAlerts_WithoutRuleRow(t *testing.T) {
 	for name, stmt := range map[string]string{
-		"disabled": `UPDATE message_contents SET payload = JSON_SET(payload, '$.enabled', false)
-			WHERE ` + "`group`" + ` = 'pregnancy_alert' AND item_key = 'fetal_movement'`,
-		"deleted": `DELETE FROM message_contents WHERE ` + "`group`" + ` = 'pregnancy_alert' AND item_key = 'fetal_movement'`,
+		"inactive": `UPDATE message_rules SET is_active = 0 WHERE rule_key = 'preg.fetal_movement_kicks'`,
+		"deleted":  `DELETE FROM message_rules WHERE rule_key = 'preg.fetal_movement_kicks'`,
 	} {
 		t.Run(name, func(t *testing.T) {
 			e := setup(t)
@@ -124,8 +127,8 @@ func TestKickAlerts_WithoutCopyRow(t *testing.T) {
 			require.Equal(t, http.StatusOK, r.status, r.raw)
 			got := e.kickAlerts(t, sara)
 			require.Len(t, got, 1)
-			assert.Equal(t, "emergency", got[0].Level)
-			assert.Equal(t, "Fewer than 10 movements in 120 minutes", got[0].Title)
+			assert.Equal(t, "follow_soon", got[0].Level)
+			assert.Equal(t, "safety", got[0].Kind)
 		})
 	}
 }

@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// T-M9-05: severe BP is urgent in both engines; emergency rules fire without their copy row.
+// T-M9-05 / T-M10-08: severe BP is urgent; the locked safety rules fire without their rule row (SPEC §4.2).
 
-func TestEmergency_SevereBPBothEngines(t *testing.T) {
+func TestEmergency_SevereBP(t *testing.T) {
 	h := setup(t)
 	uid, tok := h.user(t, "09120000950", true)
 	r := h.do(t, http.MethodPost, "/api/v1/pregnancy/weekly", tok, "fa",
@@ -27,13 +27,14 @@ func TestEmergency_SevereBPBothEngines(t *testing.T) {
 	assert.Equal(t, "urgent", bp[0]["level"])
 	assert.Equal(t, "Your blood pressure is in the severe range for pregnancy", bp[0]["title"])
 	assert.Contains(t, bp[0]["contact"], "115")
-	assert.Equal(t, 1, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type = 'v2:bp_high'`, uid))
+	assert.Equal(t, 1, h.inbox(uid, "rule_key = 'preg.bp_severe' AND level = 'follow_soon' AND kind = 'safety'"))
+	assert.Equal(t, 1, h.inbox(uid, "rule_key LIKE 'preg.bp%'"), "one BP row, no second BP alert")
 }
 
-func TestEmergency_RulesWithoutCopyRow(t *testing.T) {
+func TestEmergency_LockedRulesWithoutRow(t *testing.T) {
 	for name, stmt := range map[string]string{
-		"disabled": "UPDATE message_contents SET payload = JSON_SET(payload, '$.enabled', false) WHERE `group` = 'pregnancy_alert' AND item_key IN ('critical_symptom', 'bp_high')",
-		"deleted":  "DELETE FROM message_contents WHERE `group` = 'pregnancy_alert' AND item_key IN ('critical_symptom', 'bp_high')",
+		"inactive": "UPDATE message_rules SET is_active = 0 WHERE rule_key IN ('preg.critical_symptom', 'preg.bp_severe', 'preg.bp_high', 'preg.bp_high_urgent')",
+		"deleted":  "DELETE FROM message_rules WHERE rule_key IN ('preg.critical_symptom', 'preg.bp_severe', 'preg.bp_high', 'preg.bp_high_urgent')",
 	} {
 		t.Run(name, func(t *testing.T) {
 			h := setup(t)
@@ -46,7 +47,7 @@ func TestEmergency_RulesWithoutCopyRow(t *testing.T) {
 				`{"pregnancy_week":13,"log_date":"2026-09-23","systolic_pressure":150,"diastolic_pressure":95}`)
 			require.Equal(t, http.StatusCreated, r.status, r.raw)
 			r = h.do(t, http.MethodPost, "/api/v1/pregnancy/weekly", tok, "en",
-				`{"pregnancy_week":13,"log_date":"2026-09-22","systolic_pressure":170,"diastolic_pressure":100}`)
+				`{"pregnancy_week":12,"log_date":"2026-09-22","systolic_pressure":170,"diastolic_pressure":100}`)
 			require.Equal(t, http.StatusCreated, r.status, r.raw)
 
 			for _, loc := range []string{"fa", "en"} {
@@ -55,12 +56,15 @@ func TestEmergency_RulesWithoutCopyRow(t *testing.T) {
 				require.Len(t, crit, 1, loc)
 				assert.Equal(t, "urgent", crit[0]["level"], loc)
 				assert.NotEmpty(t, crit[0]["title"], loc)
+				assert.NotEmpty(t, crit[0]["what_we_saw"], loc)
 				assert.Contains(t, crit[0]["contact"], map[string]string{"fa": "۱۱۵", "en": "115"}[loc], loc)
 				bp := byRule(list, "bp_high")
-				require.Len(t, bp, 1, "%s: only the severe tier fires while the row is off", loc)
+				require.Len(t, bp, 1, "%s: only the severe (locked) rule fires while the BP rows are off", loc)
 				assert.Equal(t, "urgent", bp[0]["level"], loc)
 			}
-			assert.Equal(t, 1, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type = 'v2:critical_symptom'`, uid))
+			assert.Equal(t, 1, h.inbox(uid, "rule_key = 'preg.critical_symptom'"))
+			assert.Equal(t, 1, h.inbox(uid, "rule_key = 'preg.bp_severe'"))
+			assert.Zero(t, h.inbox(uid, "rule_key IN ('preg.bp_high', 'preg.bp_high_urgent')"), "unlocked rules stay off")
 		})
 	}
 }

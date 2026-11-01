@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -25,6 +24,8 @@ import (
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
+	"github.com/ritme/backend-go/internal/messages/pregnancyalerts/inboxalerts"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
@@ -72,8 +73,9 @@ func setup(t *testing.T) *harness {
 	q := store.New(db)
 	al := pregnancyalerts.NewHandlers(q, clock.Real{})
 	dl := daylog.NewHandlers(q, al.Engine(), clock.Real{})
+	inboxalerts.Install(db, quiet) // the alerts inbox backend (T-M10-08), as tools.NewService installs it in the API
+	t.Cleanup(func() { inboxalerts.Install(db, quiet) })
 	v1 := pregnancy.NewHandlers(q)
-	v1.SetAfterLogSave(al.Engine().AfterSave)
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
 	app.Use(clock.Middleware(clock.Real{}, true))
@@ -85,14 +87,6 @@ func setup(t *testing.T) *harness {
 	app.Post("/api/v1/pregnancy/symptoms", locale, guard, v1.SymptomStore)
 	app.Post("/api/v1/pregnancy/weekly", locale, guard, v1.WeeklyStore)
 	app.Get("/api/v1/pregnancy/alerts", locale, guard, v1.AlertIndex)
-	// The same v1 handlers with a hook that always fails (review #5, T-M2-34).
-	broken := pregnancy.NewHandlers(q)
-	broken.SetAfterLogSave(func(context.Context, uint64, string, string, time.Time) error {
-		return errors.New("lock wait timeout")
-	})
-	app.Post("/broken/symptoms", locale, guard, broken.SymptomStore)
-	app.Post("/broken/weekly", locale, guard, broken.WeeklyStore)
-	app.Post("/broken/fetal-movement", locale, guard, broken.FetalStore)
 	return &harness{
 		app: app, iss: passport.NewIssuer(key, aq, clock.Real{}, 365),
 		exec: func(s string, args ...any) { _, err := db.Exec(s, args...); require.NoError(t, err) },
@@ -169,6 +163,11 @@ func (h *harness) vomit(t *testing.T, tok string, days ...string) {
 	}
 }
 
+// inbox counts the user's preg.* alerts inbox rows matching cond.
+func (h *harness) inbox(uid uint64, cond string) int {
+	return h.count(`SELECT COUNT(*) FROM message_inbox WHERE user_id = ? AND rule_key LIKE 'preg.%' AND `+cond, uid)
+}
+
 func TestAlerts_401AndNotActive(t *testing.T) {
 	h := setup(t)
 	r := h.do(t, http.MethodGet, base+"/alerts", "", "en", "")
@@ -192,78 +191,72 @@ func TestAlerts_ListLegendAndDailyRules(t *testing.T) {
 	require.Len(t, legend, 4)
 	assert.Equal(t, "info", legend[0].(map[string]any)["level"])
 	assert.Equal(t, "urgent", legend[3].(map[string]any)["level"])
-	// Daily: week 13 entered today (12w0d). Weight not logged, but "weight missing" waits for
-	// day 5 of the week (review #11, T-M2-34).
+	// Daily: week 13 entered today (12w0d). No weight was ever logged, 84 days into the pregnancy: the weight
+	// reminder is due (SPEC §5.4.1: ≥ 7 days without a weight).
 	we := byRule(list, "week_entered")
 	require.Len(t, we, 1)
 	assert.Equal(t, "You've entered week 13", we[0]["title"])
 	assert.Equal(t, "info", we[0]["level"])
-	assert.Empty(t, byRule(list, "weight_missing_week"))
-	// Once per window.
-	n := h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid)
+	assert.Equal(t, "2026-09-23", we[0]["fact_date"])
+	wm := byRule(list, "weight_missing_week")
+	require.Len(t, wm, 1)
+	assert.Equal(t, "suggestion", wm[0]["level"])
+	// Once: the second read changes nothing.
+	n := h.inbox(uid, "1")
+	assert.Equal(t, 2, n)
 	alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "en", ""))
-	assert.Equal(t, n, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid))
-	// Localized (fa row).
+	assert.Equal(t, n, h.inbox(uid, "hit_count = 1"))
+	// Localized (the rule's base fa copy).
 	fa := alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "fa", ""))
-	assert.NotEqual(t, we[0]["title"], byRule(fa, "week_entered")[0]["title"])
+	assert.Equal(t, "وارد هفتهٔ ۱۳ شدی", byRule(fa, "week_entered")[0]["title"])
+	assert.Zero(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid), "no new pregnancy_alerts rows")
 }
 
-func TestAlerts_VomitingStreakThresholdAndDedupe(t *testing.T) {
+func TestAlerts_VomitingThresholdAndDedupe(t *testing.T) {
 	h := setup(t)
 	uid, tok := h.user(t, "09120000902", true)
 	h.vomit(t, tok, "2026-09-22")
-	// streak 1 on 09-22 (today not logged → counted from yesterday) with 1 severe day: below 3 / 2.
-	assert.Zero(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type = 'v2:vomiting_streak'`, uid))
+	// 1 day of 7, 1 severe, streak 1: below 4 / 2 / 3.
+	assert.Zero(t, h.inbox(uid, "rule_key = 'preg.vomiting'"))
 	r := h.do(t, http.MethodPut, base+"/days/2026-09-23", tok, "en", `{"symptoms":{"vomiting":"severe"}}`)
 	got := byRule(alertsOf(t, r), "vomiting_streak")
 	require.Len(t, got, 1, r.raw)
 	a := got[0]
 	assert.Equal(t, "follow_up", a["level"])
-	assert.Equal(t, "Vomiting logged 2 days in a row", a["title"])
-	assert.Equal(t, "Vomiting in your last 2 logs, 2 of them severe", a["what_we_saw"])
+	assert.Equal(t, "warning", a["alert_level"])
+	assert.Equal(t, "Vomiting on 2 of the last 7 days", a["title"])
+	assert.Equal(t, "Vomiting on 2 of the last 7 days, 2 of them severe", a["what_we_saw"])
+	assert.Equal(t, "This pattern comes from your own logs, not a diagnosis", a["how_sure"])
 	assert.NotEmpty(t, a["actions"])
 	assert.Nil(t, a["contact"])
-	assert.Equal(t, 1, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type = 'v2:vomiting_streak' AND alert_level = 'warning'`, uid))
+	assert.Equal(t, 1, h.inbox(uid, "rule_key = 'preg.vomiting' AND level = 'worth_followup' AND state = 'active'"))
+	// The same data again: the row is unchanged (same evidence).
 	h.vomit(t, tok, "2026-09-23")
-	assert.Equal(t, 1, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type = 'v2:vomiting_streak'`, uid))
+	assert.Equal(t, 1, h.inbox(uid, "rule_key = 'preg.vomiting' AND hit_count = 1"))
 }
 
-func TestAlerts_DisableRuleAndEditTextsWithoutDeploy(t *testing.T) {
+func TestAlerts_LockedRuleOffAndEditTextsWithoutDeploy(t *testing.T) {
 	h := setup(t)
 	uid, tok := h.user(t, "09120000903", true)
-	// critical_symptom is an emergency rule (T-M9-05): a disabled row no longer switches the path off; the embedded
-	// copy is used and the alert stays urgent.
-	h.exec(`UPDATE message_contents SET payload = JSON_SET(payload, '$.enabled', false)
-		WHERE ` + "`group`" + ` = 'pregnancy_alert' AND item_key = 'critical_symptom'`)
+	// preg.critical_symptom is a locked safety rule (SPEC §4.2, T-M9-05): an inactive row no longer switches the path
+	// off; the code-held definition with the embedded copy raises the alert, urgent.
+	h.exec(`UPDATE message_rules SET is_active = 0 WHERE rule_key = 'preg.critical_symptom'`)
 	r := h.do(t, http.MethodPut, base+"/days/2026-09-23", tok, "en", `{"symptoms":{"spotting":"severe"}}`)
 	got := byRule(alertsOf(t, r), "critical_symptom")
 	require.Len(t, got, 1, r.raw)
 	assert.Equal(t, "urgent", got[0]["level"])
 	assert.Equal(t, "Spotting logged", got[0]["title"])
-	assert.Equal(t, 1, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type = 'v2:critical_symptom'`, uid))
+	assert.Contains(t, got[0]["contact"], "115")
+	assert.Equal(t, 1, h.inbox(uid, "rule_key = 'preg.critical_symptom' AND level = 'follow_soon'"))
 
-	// Enabled again with the admin's level: the row's behaviour applies to new hits.
-	h.exec(`UPDATE message_contents SET payload = JSON_SET(payload, '$.enabled', true, '$.level', 'follow_up')
-		WHERE ` + "`group`" + ` = 'pregnancy_alert' AND item_key = 'critical_symptom'`)
-	r = h.do(t, http.MethodPost, "/api/v1/pregnancy/symptoms", tok, "en",
-		`{"log_date":"2026-09-23","has_spotting":true,"spotting_severity":"severe","has_bleeding":true,"bleeding_severity":"mild"}`)
-	require.Equal(t, http.StatusCreated, r.status, r.raw)
-	var bleeding []map[string]any
-	for _, a := range byRule(alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "en", "")), "critical_symptom") {
-		if a["title"] == "Bleeding logged" {
-			bleeding = append(bleeding, a)
-		}
-	}
-	require.Len(t, bleeding, 1)
-	assert.Equal(t, "follow_up", bleeding[0]["level"])
-
-	// An admin edit of the texts shows on the next read, for alerts already raised.
-	h.exec(`UPDATE message_contents SET payload = JSON_SET(payload, '$.title', 'Edited: {symptom}')
-		WHERE ` + "`group`" + ` = 'pregnancy_alert' AND item_key = 'critical_symptom' AND locale = 'en'`)
+	// Active again, with the advisor's edit of the en text: it shows on the next read, for the alert already raised.
+	h.exec(`UPDATE message_rules SET is_active = 1,
+		content = JSON_SET(content, '$.translations.en.a.title', 'Edited: {preg_symptoms}') WHERE rule_key = 'preg.critical_symptom'`)
 	list := alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "en", ""))
-	for _, a := range byRule(list, "critical_symptom") {
-		assert.Contains(t, a["title"], "Edited: ")
-	}
+	crit := byRule(list, "critical_symptom")
+	require.Len(t, crit, 1)
+	assert.Equal(t, "Edited: Spotting", crit[0]["title"])
+	assert.Equal(t, 1, h.inbox(uid, "rule_key = 'preg.critical_symptom'"), "one alert history: the code-held hit kept the row id")
 }
 
 func TestAlerts_V1SaveRunsRules(t *testing.T) {
@@ -272,53 +265,111 @@ func TestAlerts_V1SaveRunsRules(t *testing.T) {
 	r := h.do(t, http.MethodPost, "/api/v1/pregnancy/weekly", tok, "en",
 		`{"pregnancy_week":13,"log_date":"2026-09-23","systolic_pressure":150,"diastolic_pressure":85}`)
 	require.Equal(t, http.StatusCreated, r.status, r.raw)
-	// The v1 response still carries only the v1 alert.
+	// The v1 response carries the alert of the save in the v1 shape (an inbox row).
 	v1, _ := r.data()["alerts"].([]any)
-	require.Len(t, v1, 1)
-	assert.Equal(t, 1, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type = 'v2:bp_high' AND alert_level = 'emergency'`, uid))
+	require.Len(t, v1, 1, r.raw)
+	a := v1[0].(map[string]any)
+	assert.Equal(t, "bp_high", a["alert_type"])
+	urgent := pregnancyalerts.HighBPLevel(civildate.MustParse("2026-09-23")) == "urgent"
+	assert.Equal(t, map[bool]string{true: "emergency", false: "warning"}[urgent], a["alert_level"])
+	assert.Equal(t, []string{"user_id", "alert_level", "alert_type", "title", "message", "pregnancy_week",
+		"trigger_symptoms", "recommended_actions", "updated_at", "created_at", "id"}, keys(a, r.raw))
+	assert.Equal(t, map[string]any{"systolic": 150.0, "diastolic": 85.0}, a["trigger_symptoms"])
+	key := map[bool]string{true: "preg.bp_high_urgent", false: "preg.bp_high"}[urgent]
+	assert.Equal(t, 1, h.inbox(uid, "rule_key = '"+key+"'"))
+	assert.EqualValues(t, h.count(`SELECT id FROM message_inbox WHERE user_id = ? AND rule_key = ?`, uid, key), a["id"])
+	assert.Zero(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid), "the v1 rules are retired")
 	list := alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "en", ""))
 	bp := byRule(list, "bp_high")
 	require.Len(t, bp, 1)
-	assert.Equal(t, "You logged 150/85", bp[0]["what_we_saw"])
-	assert.NotEmpty(t, bp[0]["contact"])
+	assert.Contains(t, bp[0]["what_we_saw"], "You logged 150/85 (")
+	assert.Equal(t, urgent, bp[0]["contact"] != nil)
+	// A re-save of the same reading raises nothing new.
+	r = h.do(t, http.MethodPost, "/api/v1/pregnancy/weekly", tok, "en",
+		`{"pregnancy_week":13,"log_date":"2026-09-23","systolic_pressure":150,"diastolic_pressure":85}`)
+	require.Equal(t, http.StatusCreated, r.status, r.raw)
+	assert.Empty(t, r.data()["alerts"])
 }
 
-// Review #5 (T-M2-34): the v2 hook is best-effort. A hook failure after the v1 log committed
-// is logged, and the v1 save still answers 201 with its v1 body (D-21).
-func TestAlerts_V1SaveSurvivesHookFailure(t *testing.T) {
+// keys are the JSON keys of the alert object in raw, in order (the v1 shape is pinned by key order).
+func keys(a map[string]any, raw string) []string {
+	i := strings.Index(raw, `"alerts":[{`)
+	if i < 0 {
+		return nil
+	}
+	var out []string
+	dec := json.NewDecoder(strings.NewReader(raw[i+len(`"alerts":[`):]))
+	if _, err := dec.Token(); err != nil {
+		return nil
+	}
+	for dec.More() {
+		tok, err := dec.Token()
+		if err != nil {
+			return out
+		}
+		k, _ := tok.(string)
+		out = append(out, k)
+		var skip json.RawMessage
+		if err := dec.Decode(&skip); err != nil {
+			return out
+		}
+	}
+	_ = a
+	return out
+}
+
+// Review #5 (T-M2-34) / D-21: the alert evaluation is best-effort for a v1 save — when it fails (here: no backend),
+// the v1 log is committed and the save still answers 201 with an empty alerts array.
+func TestAlerts_V1SaveSurvivesEvaluationFailure(t *testing.T) {
 	h := setup(t)
 	uid, tok := h.user(t, "09120000907", true)
+	pregnancyalerts.InstallBackend(nil)
 
-	r := h.do(t, http.MethodPost, "/broken/weekly", tok, "en",
+	r := h.do(t, http.MethodPost, "/api/v1/pregnancy/weekly", tok, "en",
 		`{"pregnancy_week":13,"log_date":"2026-09-23","systolic_pressure":150,"diastolic_pressure":85}`)
 	require.Equal(t, http.StatusCreated, r.status, r.raw)
 	assert.Equal(t, true, r.body["success"])
-	v1, _ := r.data()["alerts"].([]any)
-	assert.Len(t, v1, 1, "v1 alerts unchanged")
+	assert.Empty(t, r.data()["alerts"])
 	assert.Equal(t, 1, h.count(`SELECT COUNT(*) FROM pregnancy_weekly_logs WHERE user_id = ?`, uid))
 
-	r = h.do(t, http.MethodPost, "/broken/symptoms", tok, "en",
-		`{"log_date":"2026-09-23","has_nausea":true,"nausea_severity":"mild"}`)
+	r = h.do(t, http.MethodPost, "/api/v1/pregnancy/symptoms", tok, "en",
+		`{"log_date":"2026-09-23","has_bleeding":true,"bleeding_severity":"mild"}`)
 	require.Equal(t, http.StatusCreated, r.status, r.raw)
 	assert.Equal(t, 1, h.count(`SELECT COUNT(*) FROM pregnancy_symptom_logs WHERE user_id = ?`, uid))
+	assert.Zero(t, h.inbox(uid, "1"), "the failing evaluation wrote nothing")
+}
 
-	r = h.do(t, http.MethodPost, "/broken/fetal-movement", tok, "en",
-		`{"log_date":"2026-09-23","pregnancy_week":13,"movement_status":"felt","movement_count":2}`)
+// The v1 symptom save answers its urgent alert in the v1 shape, with the medical history flags (contract shape).
+func TestAlerts_V1SymptomSaveShape(t *testing.T) {
+	h := setup(t)
+	uid, tok := h.user(t, "09120000911", true)
+	r := h.do(t, http.MethodPost, "/api/v1/pregnancy/symptoms", tok, "fa",
+		`{"log_date":"2026-09-23","has_bleeding":true,"bleeding_severity":"mild"}`)
 	require.Equal(t, http.StatusCreated, r.status, r.raw)
-
-	assert.Zero(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type LIKE 'v2:%'`, uid),
-		"the failing hook wrote nothing")
+	v1, _ := r.data()["alerts"].([]any)
+	require.Len(t, v1, 1, r.raw)
+	a := v1[0].(map[string]any)
+	assert.Equal(t, []string{"user_id", "alert_level", "alert_type", "title", "message", "pregnancy_week",
+		"trigger_symptoms", "medical_history_flags", "recommended_actions", "updated_at", "created_at", "id"}, keys(a, r.raw))
+	assert.Equal(t, "emergency", a["alert_level"])
+	assert.Equal(t, "critical_symptom", a["alert_type"])
+	assert.Equal(t, map[string]any{"bleeding": true}, a["trigger_symptoms"])
+	assert.Positive(t, a["pregnancy_week"], "the week comes from the dating when the rule text has no {preg_week}")
+	assert.Equal(t, []any{}, a["medical_history_flags"])
+	assert.NotEmpty(t, a["recommended_actions"])
+	assert.Equal(t, 1, h.inbox(uid, "rule_key = 'preg.critical_symptom' AND kind = 'safety' AND level = 'follow_soon'"))
 }
 
 func TestAlerts_ActionsAndIDOR(t *testing.T) {
 	h := setup(t)
-	_, tok := h.user(t, "09120000905", true)
+	uid, tok := h.user(t, "09120000905", true)
 	_, other := h.user(t, "09120000906", true)
 	h.vomit(t, tok, "2026-09-21", "2026-09-22", "2026-09-23")
 	list := alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "en", ""))
 	a := byRule(list, "vomiting_streak")
 	require.Len(t, a, 1)
 	id := fmt.Sprint(int64(a[0]["id"].(float64)))
+	assert.Equal(t, 1, h.inbox(uid, "rule_key = 'preg.vomiting' AND hit_count = 2"), "the 3rd day was new evidence: one row, two hits")
 
 	// Another user can neither act on it nor see it.
 	r := h.do(t, http.MethodPost, base+"/alerts/"+id+"/actions/ack", other, "en", "")
@@ -330,9 +381,10 @@ func TestAlerts_ActionsAndIDOR(t *testing.T) {
 	h.do(t, http.MethodPut, base+"/days/2026-09-23", tok, "en", `{"visit_note":"ask about iron"}`)
 	r = h.do(t, http.MethodPost, base+"/alerts/"+id+"/actions/add_to_visit_note", tok, "en", "")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
-	want := "ask about iron\nVomiting in your last 2 logs, 2 of them severe" // fired at the 2nd severe day; the 3rd is deduped
+	want := "ask about iron\nVomiting on 3 of the last 7 days, 3 of them severe"
 	assert.Equal(t, want, r.data()["visit_note"])
 	assert.Equal(t, true, r.data()["alert"].(map[string]any)["is_read"])
+	assert.Equal(t, 1, h.inbox(uid, "rule_key = 'preg.vomiting' AND state = 'added_to_visit_note'"))
 	// Idempotent.
 	r = h.do(t, http.MethodPost, base+"/alerts/"+id+"/actions/add_to_visit_note", tok, "en", "")
 	assert.Equal(t, want, r.data()["visit_note"])
@@ -340,11 +392,9 @@ func TestAlerts_ActionsAndIDOR(t *testing.T) {
 	r = h.do(t, http.MethodPost, base+"/alerts/"+id+"/actions/ack", tok, "en", "")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	assert.Equal(t, true, r.data()["alert"].(map[string]any)["is_acked"])
-	// Acked alerts leave the v1 active list but stay in the v2 window (is_acked).
-	v1 := h.do(t, http.MethodGet, "/api/v1/pregnancy/alerts", tok, "en", "")
-	for _, x := range v1.data()["alerts"].([]any) {
-		assert.NotEqual(t, "v2:vomiting_streak", x.(map[string]any)["alert_type"])
-	}
+	assert.Equal(t, 1, h.inbox(uid, "rule_key = 'preg.vomiting' AND state = 'acknowledged'"))
+	// Acked alerts stay in the v2 window (is_acked).
+	assert.Len(t, byRule(alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "en", "")), "vomiting_streak"), 1)
 }
 
 // Review #10 (T-M2-34): HEAD /alerts (answered by the GET route) never runs the evaluation.
@@ -353,41 +403,33 @@ func TestAlerts_HeadIsReadOnly(t *testing.T) {
 	uid, tok := h.user(t, "09120000908", true)
 	r := h.do(t, http.MethodHead, base+"/alerts", tok, "en", "")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
-	assert.Zero(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid))
+	assert.Zero(t, h.inbox(uid, "1"))
 	alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "en", ""))
-	assert.Positive(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid), "GET still evaluates (week_entered)")
+	assert.Positive(t, h.inbox(uid, "1"), "GET still evaluates (week_entered)")
 }
 
-// Today's unread badge counts the calendar alerts without the Alerts screen being opened first
-// (review #10): GET /today evaluates them (deduplicated, so a second GET adds nothing); HEAD stays
-// read-only. weight_missing_week reads the admin-editable params.from_weekday (review #11).
+// GET /today evaluates the calendar alerts without the Alerts screen being opened first (review #10), deduplicated;
+// HEAD stays read-only.
 func TestAlerts_TodayEvaluatesCalendarRules(t *testing.T) {
 	h := setup(t)
 	uid, tok := h.user(t, "09120000909", true) // 12w0d on 2026-09-23: first day of week 13
-	unread := func(method string) any {
+	today := func(method string) {
 		t.Helper()
 		r := h.do(t, method, base+"/today", tok, "en", "")
 		require.Equal(t, http.StatusOK, r.status, r.raw)
-		return r.data()["unread_alerts"]
 	}
-
-	unread(http.MethodHead)
-	assert.Zero(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid), "HEAD writes nothing")
-
-	// Day 0 of the week: week_entered fires; weight_missing_week waits for from_weekday (default 5).
-	assert.EqualValues(t, 1, unread(http.MethodGet))
-	assert.EqualValues(t, 1, unread(http.MethodGet), "deduplicated")
-
-	// An admin sets from_weekday = 0: the weight reminder fires today as well.
-	h.exec(`UPDATE message_contents SET payload = JSON_SET(payload, '$.params.from_weekday', 0)
-		WHERE ` + "`group`" + ` = 'pregnancy_alert' AND item_key = 'weight_missing_week'`)
-	assert.EqualValues(t, 2, unread(http.MethodGet))
-	assert.Equal(t, 1, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type = 'v2:weight_missing_week'`, uid))
+	today(http.MethodHead)
+	assert.Zero(t, h.inbox(uid, "1"), "HEAD writes nothing")
+	today(http.MethodGet)
+	assert.Equal(t, 1, h.inbox(uid, "rule_key = 'preg.week_entered'"))
+	assert.Equal(t, 1, h.inbox(uid, "rule_key = 'preg.weight_missing'"))
+	today(http.MethodGet)
+	assert.Equal(t, 2, h.inbox(uid, "hit_count = 1"), "deduplicated")
 }
 
-// QA 2026-09-29-c L5: re-dating (manual → LMP) in Setup refreshes the current week's week_entered
-// alert — basis in the text and fact date — instead of keeping the facts frozen at creation. The
-// read state survives, and no second alert is created.
+// QA 2026-09-29-c L5: re-dating (manual → LMP) in Setup refreshes the current week's week_entered alert — basis in the
+// text and fact date (the week start is its evidence) — instead of keeping the facts frozen. The read state survives,
+// and no second alert is created.
 func TestAlerts_WeekEnteredFollowsReDating(t *testing.T) {
 	h := setup(t)
 	uid, tok := h.user(t, "09120000910", false)
@@ -398,12 +440,15 @@ func TestAlerts_WeekEnteredFollowsReDating(t *testing.T) {
 	require.Len(t, we, 1)
 	assert.Equal(t, "2026-09-23", we[0]["fact_date"])
 	assert.Contains(t, we[0]["advice"], "Manual Entry")
-	h.exec(`UPDATE pregnancy_alerts SET is_read = 1 WHERE user_id = ?`, uid)
+	id := we[0]["id"]
+	r := h.do(t, http.MethodPost, base+"/alerts/"+fmt.Sprint(int64(id.(float64)))+"/actions/ack", tok, "en", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
 
 	// Setup re-dates by LMP: 12w2d, so week 13 started two days ago.
 	h.exec(`UPDATE pregnancy_profiles SET age_source = 'lmp', lmp_date = '2026-06-29' WHERE user_id = ?`, uid)
 	we = byRule(alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "en", "")), "week_entered")
 	require.Len(t, we, 1, "refreshed, not duplicated")
+	assert.Equal(t, id, we[0]["id"])
 	assert.EqualValues(t, 13, we[0]["pregnancy_week"])
 	assert.Equal(t, "2026-09-21", we[0]["fact_date"])
 	assert.Contains(t, we[0]["advice"], "Last Menstrual Period")
@@ -412,7 +457,4 @@ func TestAlerts_WeekEnteredFollowsReDating(t *testing.T) {
 	fa := byRule(alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "fa", "")), "week_entered")
 	require.Len(t, fa, 1)
 	assert.NotContains(t, fa[0]["advice"], "ورود دستی")
-	// The stored fallback text follows too.
-	assert.Zero(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND message LIKE '%Manual%'`, uid))
-
 }

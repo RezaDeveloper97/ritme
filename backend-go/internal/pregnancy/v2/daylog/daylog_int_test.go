@@ -24,6 +24,7 @@ import (
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
+	"github.com/ritme/backend-go/internal/messages/pregnancyalerts/inboxalerts"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
@@ -80,6 +81,7 @@ func setup(t *testing.T) *harness {
 	guard := auth.NewGuardWith(&key.PublicKey, aq, clock.Real{}, quiet).RequireUser
 	locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(db), nil, quiet))
 	q := store.New(db)
+	inboxalerts.Install(db, quiet) // T-M10-08: the v1 save path raises its alerts through the inbox
 	dl := daylog.NewHandlers(q, pregnancyalerts.New(q), clock.Real{})
 	v1 := pregnancy.NewHandlers(q)
 
@@ -205,16 +207,15 @@ func TestDay_SpottingFiresV2AlertOnce(t *testing.T) {
 	assert.Equal(t, "urgent", a["level"])
 	assert.NotEmpty(t, a["what_we_saw"])
 	assert.NotEmpty(t, a["actions"])
-	n := h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid)
-	// The v1 rule keeps writing its row next to the v2 one.
-	crit := h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_level = 'warning' AND title = 'Warning: Spotting'`, uid)
-	assert.Positive(t, crit)
+	n := h.count(`SELECT COUNT(*) FROM message_inbox WHERE user_id = ?`, uid)
+	// T-M10-08: the spotting is one open preg.critical_symptom inbox row (no v1 pregnancy_alerts row any more).
+	assert.Equal(t, 1, h.count(`SELECT COUNT(*) FROM message_inbox WHERE user_id = ? AND rule_key = 'preg.critical_symptom'`, uid))
 
 	// The offline outbox resends: no second write, no duplicate alert.
 	r = h.do(t, http.MethodPut, base+"/days/"+today, tok, "en", body)
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	assert.Empty(t, r.data()["alerts"])
-	assert.Equal(t, n, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid))
+	assert.Equal(t, n, h.count(`SELECT COUNT(*) FROM message_inbox WHERE user_id = ?`, uid))
 }
 
 func TestDay_Validation(t *testing.T) {

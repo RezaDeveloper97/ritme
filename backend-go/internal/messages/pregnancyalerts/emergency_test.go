@@ -10,7 +10,6 @@ import (
 
 	"github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
-	v2 "github.com/ritme/backend-go/internal/pregnancy/v2"
 )
 
 // T-M9-05 — the fixed emergency paths.
@@ -166,64 +165,4 @@ func TestCriticalSymptom_MandatorySymptoms(t *testing.T) {
 	f := facts(map[int]Day{0: {"fluid_leakage": "mild"}})
 	hits := Detect("critical_symptom", c, f)
 	require.Len(t, hits, 1, "fluid leakage stays on the path even when the admin list drops it")
-}
-
-// Copy row disabled or deleted → the alert still fires with the embedded copy, in fa and en.
-func TestEmergencyRulesWithoutCopy(t *testing.T) {
-	clinicalconfig.Reset()
-	for _, loc := range []string{"fa", "en"} {
-		l := v2.Lang{Locale: loc, Default: "fa"}
-		f := pregnantOn(30, 0, kickStart.Add(3*time.Hour))
-		f.Kicks = []Kick{kick(1, 4, time.Hour, 0)}
-		level, title, contact := FiresWithoutCopy("fetal_movement", f, l)
-		assert.Equal(t, "urgent", level, loc)
-		assert.NotEmpty(t, title, loc)
-		assert.Contains(t, contact, map[string]string{"fa": "۱۱۵", "en": "115"}[loc], loc)
-
-		f = facts(map[int]Day{0: {"fluid_leakage": "mild"}})
-		level, title, _ = FiresWithoutCopy("critical_symptom", f, l)
-		assert.Equal(t, "urgent", level, loc)
-		assert.NotEmpty(t, title, loc)
-
-		f = facts(nil)
-		f.Weekly = []store.PregnancyWeeklyLog{weekly(162, 100)}
-		level, title, _ = FiresWithoutCopy("bp_high", f, l)
-		assert.Equal(t, "urgent", level, loc)
-		assert.Equal(t, embeddedRule("bp_high", loc)["variants"].(map[string]any)["severe"].(map[string]any)["title"], title)
-		f.Weekly = []store.PregnancyWeeklyLog{weekly(150, 95)}
-		level, _, _ = FiresWithoutCopy("bp_high", f, l)
-		assert.Empty(t, level, "a disabled bp_high row keeps only the severe tier")
-	}
-
-	// A disabled row is replaced; an enabled one is kept.
-	rs := rows{"fetal_movement": {"fa": {"enabled": false, "level": "info", "title": "x"}},
-		"critical_symptom": {"fa": {"enabled": true, "level": "urgent", "title": "admin"}}}
-	l := v2.Lang{Locale: "fa", Default: "fa"}
-	rs.withEmergency(l)
-	c, ok := rs.config("fetal_movement", l)
-	require.True(t, ok)
-	assert.True(t, c.Enabled && c.Forced)
-	assert.Equal(t, "urgent", c.Level)
-	c, _ = rs.config("critical_symptom", l)
-	assert.False(t, c.Forced)
-	assert.Equal(t, "admin", rs.texts("critical_symptom", l)["title"])
-	_, ok = rs.config("contractions_511", l)
-	assert.True(t, ok, "a deleted row is replaced too")
-}
-
-// A kick hit on a live admin row renders the embedded kicks variant (the row has none) and the row's contact.
-func TestRenderVariantOverRow(t *testing.T) {
-	row := map[string]any{"title": "row title", "what_we_saw": "row {status}", "contact": "row contact"}
-	m := meta{Rule: "fetal_movement", Level4: "urgent", Variant: VariantKicks,
-		Vars: map[string]string{"count": "4", "target": "10", "minutes": "120"}}
-	en := render(row, m, "en")
-	assert.Equal(t, "Fewer than 10 movements in 120 minutes", en.title)
-	assert.Equal(t, "row contact", en.contact)
-	fa := render(row, m, "fa")
-	assert.Contains(t, fa.title, "۱۲۰")
-	assert.Contains(t, fa.advice, "همین حالا با پزشک یا ماما تماس بگیر")
-	row["variants"] = map[string]any{"kicks": map[string]any{"title": "admin kicks"}}
-	assert.Equal(t, "admin kicks", render(row, m, "en").title)
-	// An empty emergency row still renders.
-	assert.NotEmpty(t, render(nil, meta{Rule: "critical_symptom", Level4: "urgent", Vars: map[string]string{"symptom": "bleeding"}}, "fa").contact)
 }

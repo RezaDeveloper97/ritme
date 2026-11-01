@@ -17,5 +17,14 @@
     "messages": {
         "action_done": "انجام شد",
         "visit_note_added": "به یادداشت ویزیت اضافه شد"
-    }
+    },
+    "actions": {
+        "ack": "دیدم، ممنون",
+        "add_to_visit_note": "افزودن به یادداشت ویزیت",
+        "call": "تماس با پزشک یا ماما",
+        "call_maternity": "تماس با زایشگاه",
+        "log_weight": "ثبت وزن",
+        "open_week": "مرور این هفته"
+    },
+    "list_separator": "، "
 }

@@ -6,9 +6,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ritme/backend-go/internal/clinicalconfig"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
-// T-M9-05: vitals in pregnancy use the pregnancy table and hand the reading to the pregnancy alert engine.
+// T-M9-05 / T-M10-08: vitals in pregnancy use the pregnancy table and hand the reading to the pregnancy alert rules of
+// the message engine (the alerts inbox).
 
 // pregnant makes the user pregnant: LMP 2026-04-01 → 26+6 on the fixed clock (2026-10-06).
 func (e *env) pregnant(t *testing.T, user uint64) {
@@ -18,17 +22,19 @@ func (e *env) pregnant(t *testing.T, user uint64) {
 	require.NoError(t, err)
 }
 
-type pregAlert struct{ level, typ, trigger string }
+type pregAlert struct{ level, key, state string }
 
+// pregnancyAlerts are the user's preg.* alerts inbox rows (the calendar rules aside), oldest first.
 func (e *env) pregnancyAlerts(t *testing.T, user uint64) []pregAlert {
 	t.Helper()
-	rows, err := e.db.Query(`SELECT alert_level, alert_type, trigger_symptoms FROM pregnancy_alerts WHERE user_id = ? ORDER BY id`, user)
+	rows, err := e.db.Query(`SELECT level, rule_key, state FROM message_inbox WHERE user_id = ? AND rule_key LIKE 'preg.%'
+		AND rule_key NOT IN ('preg.week_entered', 'preg.weight_missing', 'preg.next_visit') ORDER BY id`, user)
 	require.NoError(t, err)
 	defer func() { _ = rows.Close() }()
 	var out []pregAlert
 	for rows.Next() {
 		var a pregAlert
-		require.NoError(t, rows.Scan(&a.level, &a.typ, &a.trigger))
+		require.NoError(t, rows.Scan(&a.level, &a.key, &a.state))
 		out = append(out, a)
 	}
 	require.NoError(t, rows.Err())
@@ -57,9 +63,8 @@ func TestVitals_PregnancySevereBP(t *testing.T) {
 	assert.Equal(t, "115", actions[0].(map[string]any)["phone"])
 
 	got := e.pregnancyAlerts(t, sara)
-	require.Len(t, got, 1, "one alert row, never two")
-	assert.Equal(t, "emergency", got[0].level)
-	assert.Equal(t, "v2:bp_high", got[0].typ)
+	require.Len(t, got, 1, "one urgent inbox row, never two")
+	assert.Equal(t, pregAlert{"follow_soon", "preg.bp_severe", "active"}, got[0])
 
 	// The same reading again: still the modal, still one row.
 	r = e.do(t, http.MethodPost, "/api/v1/vitals/readings", tok, "fa", body)
@@ -72,11 +77,38 @@ func TestVitals_PregnancySevereBP(t *testing.T) {
 	r = e.do(t, http.MethodPost, "/api/v1/vitals/readings", tok, "en", map[string]any{"type": "bp", "systolic": 139, "diastolic": 89})
 	assert.Equal(t, "normal", r.data()["reading"].(map[string]any)["classification"].(map[string]any)["code"])
 	assert.Nil(t, r.data()["alert"])
-	// 140/80 → the high tier (urgent level from pregnancy.bp.high.urgent = 1).
+	// 140/80 → the high tier; the window's worst reading is still the severe one, so the BP alert stays the severe
+	// row (one BP alert at a time) and the save's modal is that open urgent alert of the same window.
 	r = e.do(t, http.MethodPost, "/api/v1/vitals/readings", tok, "en", map[string]any{"type": "bp", "systolic": 140, "diastolic": 80})
 	assert.Equal(t, "stage2", r.data()["reading"].(map[string]any)["classification"].(map[string]any)["code"])
-	assert.Equal(t, "pregnancy_bp_high", r.data()["alert"].(map[string]any)["rule"])
-	assert.Len(t, e.pregnancyAlerts(t, sara), 2)
+	assert.Len(t, e.pregnancyAlerts(t, sara), 1)
+}
+
+// H-02 (T-M10-08): the level of a ≥ 140/90 reading is the clinical config pregnancy.bp.high.urgent — two rules keyed on
+// preg.bp_high_level; flipping the flag moves 145/92 between follow_up and urgent.
+func TestVitals_PregnancyHighBPLevelFollowsTheRegistry(t *testing.T) {
+	for _, urgent := range []bool{true, false} {
+		t.Run(map[bool]string{true: "urgent", false: "follow_up"}[urgent], func(t *testing.T) {
+			e := setup(t)
+			t.Cleanup(clinicalconfig.Reset)
+			clinicalconfig.SetVersions([]clinicalconfig.Version{{Key: clinicalconfig.KeyPregnancyBPHigh, Version: 2,
+				Value:         clinicalconfig.Value{"systolic": 140, "diastolic": 90, "urgent": map[bool]float64{true: 1, false: 0}[urgent]},
+				EffectiveFrom: civildate.MustParse("2026-01-01")}})
+			sara, tok := e.user(t, "09120000001")
+			e.pregnant(t, sara)
+			r := e.do(t, http.MethodPost, "/api/v1/vitals/readings", tok, "en", map[string]any{"type": "bp", "systolic": 145, "diastolic": 92})
+			require.Equal(t, http.StatusCreated, r.status, r.body)
+			got := e.pregnancyAlerts(t, sara)
+			require.Len(t, got, 1)
+			if urgent {
+				assert.Equal(t, pregAlert{"follow_soon", "preg.bp_high_urgent", "active"}, got[0])
+				assert.Equal(t, "pregnancy_bp_high", r.data()["alert"].(map[string]any)["rule"])
+			} else {
+				assert.Equal(t, pregAlert{"worth_followup", "preg.bp_high", "active"}, got[0])
+				assert.Nil(t, r.data()["alert"], "follow_up: no urgent modal")
+			}
+		})
+	}
 }
 
 func TestVitals_NotPregnantUnchanged(t *testing.T) {
@@ -105,9 +137,8 @@ func TestVitals_PregnancyGDM(t *testing.T) {
 	assert.Equal(t, "high", post(120, "after_meal")["code"], "2 h ≥ 120")
 	got := e.pregnancyAlerts(t, sara)
 	require.Len(t, got, 1)
-	assert.Equal(t, "warning", got[0].level)
-	assert.Equal(t, "v2:sugar_high", got[0].typ)
+	assert.Equal(t, pregAlert{"worth_followup", "preg.gdm", "active"}, got[0])
 	assert.Equal(t, "in_range", post(94, "fasting")["code"])
 	assert.Equal(t, "high", post(95, "fasting")["code"])
-	assert.Len(t, e.pregnancyAlerts(t, sara), 2)
+	assert.Len(t, e.pregnancyAlerts(t, sara), 1, "one GDM alert at a time: the open row")
 }

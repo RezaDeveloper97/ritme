@@ -3,10 +3,10 @@ id: T-M10-08
 title: Pregnancy alerts through the message engine; retire the v1 alert engine
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-07, T-M9-05]
 parallel_group: M10-B
-touches: [backend-go/internal/messages/pregnancyalerts, backend-go/internal/messages/facts/pregnancy_alerts.go, backend-go/internal/pregnancy/alerts, backend-go/internal/pregnancy/handlers.go, backend-go/internal/pregnancy/daylog_bridge.go, backend-go/internal/pregnancy/tools, backend-go/internal/vitals/alerts.go, backend-go/internal/safety, backend-go/db/migrations, backend-go/api/openapi.yaml, docs/engine-v6/clinical-signoff.md]
+touches: [backend-go/internal/messages/pregnancyalerts, backend-go/internal/messages/facts/pregnancy_alerts.go, backend-go/internal/pregnancy/alerts, backend-go/internal/pregnancy/handlers.go, backend-go/internal/pregnancy/daylog_bridge.go, backend-go/internal/pregnancy/tools, backend-go/internal/vitals/alerts.go, backend-go/internal/safety, backend-go/db/migrations, backend-go/api/openapi.yaml, docs/engine-v6/clinical-signoff.md, backend-go/internal/http/routes_pregnancy.go, backend-go/internal/pregnancy/repo.go, backend-go/internal/pregnancy/v2/daylog/daylog_int_test.go, backend-go/internal/messages/feed_int_test.go, backend-go/internal/admin/messages/testdata/facts_registry.json, backend-go/contract/allowlist/pregnancy.yaml, backend-go/contract/allowlist/pregnancy-tools.yaml]
 skills: []
 verify: cd backend-go && go vet ./... && go test ./internal/messages/... ./internal/pregnancy/... ./internal/safety/... ./internal/vitals/... && make test-int PKG="./internal/messages/... ./internal/pregnancy/... ./internal/vitals/... ./db/migrations/..." && make contract ROUTES=pregnancy,pregnancy-v2,pregnancy-tools,vitals
 ---

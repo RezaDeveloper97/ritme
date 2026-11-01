@@ -18172,11 +18172,17 @@ paths:
       tags: [PregnancyV2]
       summary: Pregnancy alerts of the last 7 days + the 4-level legend
       description: >-
-        Runs the daily evaluation of the alert rules first (deduplicated per rule per window, so at most once per
-        window); HEAD skips it and never writes. `weight_missing_week` fires from day `from_weekday` (default 5, i.e.
-        the 6th day) of the week. Rules, levels, thresholds and texts are `message_contents` rows of group `pregnancy_alert`; texts are
-        rendered at read time in the request locale (fallback: default language). Acked alerts stay listed with
-        `is_acked: true`.
+        An adapter over the alerts inbox (T-M10-08, D-165): the pregnancy alerts are the `preg.*` message rules of
+        the `alerts_inbox` slot (`message_rules`, seeded by goose 00113; the safety rules are locked and, when their
+        row is missing or off, raise from the code-held definition with the embedded copy). Runs the daily
+        evaluation first (one open row per rule; the same evidence changes nothing); HEAD skips it and never writes.
+        Lists the open `preg.*` inbox rows and the history rows of the last 7 days, newest first, in the same shape
+        as before: `id` is the `message_inbox` id, `rule_key` the v2 key the clients know (`vomiting_streak`,
+        `critical_symptom`, `bp_high`, `sugar_high`, `fetal_movement`, `contractions_511`, `weight_missing_week`,
+        `week_entered`, plus `next_visit`, `cant_keep_fluids`, `depression_severe`); `is_read` = the row is no
+        longer `active`. `weight_missing_week` fires after 7 days without a weight. Texts are the rule's content
+        rendered at read time in the request locale with the evidence stored at the last hit (fallback: default
+        language). Acked alerts stay listed with `is_acked: true`.
       operationId: getPregnancyV2Alerts
       security:
         - {bearerAuth: []}
@@ -18217,8 +18223,9 @@ paths:
       tags: [PregnancyV2]
       summary: Run an alert action (ack, add_to_visit_note)
       description: >-
-        `ack` marks the alert read and dismissed (it leaves the v1 active list). `add_to_visit_note` appends the
-        alert's "what we saw" line (title when empty) to today's `visit_note` once and marks it read.
+        `id` is a `message_inbox` id (D-165). `ack` acknowledges the open alert (an urgent one becomes active again on
+        new evidence). `add_to_visit_note` appends the alert's "what we saw" line (title when empty) to today's
+        `visit_note` once and marks the open alert `added_to_visit_note`.
       operationId: postPregnancyV2AlertAction
       security:
         - {bearerAuth: []}

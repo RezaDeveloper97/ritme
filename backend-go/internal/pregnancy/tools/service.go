@@ -27,6 +27,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
+	"github.com/ritme/backend-go/internal/messages/pregnancyalerts/inboxalerts"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/pregnancy/labor"
@@ -93,11 +94,14 @@ type Service struct {
 	alerts Alerts // nil = no alert rules
 }
 
-// NewService returns a Service on db (a *sql.DB or a transaction); alerts may be nil.
+// NewService returns a Service on db (a *sql.DB or a transaction); alerts may be nil. On a *sql.DB it also makes the
+// alerts inbox the pregnancy alert backend (inboxalerts.Install, T-M10-08) — the API wires this service once, so
+// every pregnancy alert path (the logs, the tools, /vitals) evaluates the preg.* rules from then on.
 func NewService(db store.DBTX, alerts Alerts) *Service {
 	s := &Service{q: store.New(db), alerts: alerts}
 	if pool, ok := db.(*sql.DB); ok {
 		s.db = pool
+		inboxalerts.Install(pool, nil)
 	}
 	return s
 }

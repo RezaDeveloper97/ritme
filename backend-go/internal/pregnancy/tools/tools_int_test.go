@@ -292,7 +292,8 @@ func TestTools_ContractionTimer511(t *testing.T) {
 		a := obj(alerts[0])
 		assert.Equal(t, "contractions_511", a["rule_key"])
 		assert.Equal(t, "urgent", a["level"])
-		assert.Equal(t, "You timed 13 contractions in the last 61 minutes, on average 5:00 apart and 1:00 long", a["what_we_saw"])
+		assert.Contains(t, a["what_we_saw"], "reached the 5-1-1 pattern")
+		assert.Contains(t, a["advice"], "You timed 13 contractions in the last 61 minutes, on average 5:00 apart and 1:00 long")
 		assert.Contains(t, a["contact"], "115")
 		assert.Equal(t, "call", obj(list(a["actions"])[0])["key"])
 		s := obj(r.data(), "session")
@@ -309,7 +310,7 @@ func TestTools_ContractionTimer511(t *testing.T) {
 	r = e.do(t, t0.Add(66*time.Minute), http.MethodPost, c+"/stop", tok, "")
 	assert.Empty(t, list(r.data()["alerts"]))
 	var n int
-	require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type = 'v2:contractions_511'`, sara).Scan(&n))
+	require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM message_inbox WHERE user_id = ? AND rule_key = 'preg.contractions_511' AND hit_count = 1`, sara).Scan(&n))
 	assert.Equal(t, 1, n)
 
 	// Finish with one in progress: it ends now.

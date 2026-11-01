@@ -1,16 +1,11 @@
-// Package pregnancyalerts is the pregnancy v2 alert-rule registry of the message engine
-// (T-M7-04, docs/pregnancy-v2/README.md § Message engine integration).
-//
-// Detectors are Go; everything else is data: each rule reads enabled / level / window_days /
-// params (from the default-language row) and its texts (request locale → default language) from
-// message_contents group `pregnancy_alert`, item_key = rule key (admin-web
-// pregnancy-alert-rules). A rule without a live row does not fire, except the emergency rules
-// (EmergencyRules, T-M9-05): their path is fixed and a missing or disabled row falls back to the
-// embedded copy (emergency/<locale>.json). Clinical thresholds of the pregnancy rules (BP, GDM,
-// kicks, 5-1-1) are the versioned clinical config (internal/clinicalconfig), not row params. Hits are persisted to
-// pregnancy_alerts (alert_type `v2:<rule>`, v1 alert_level mapped from the 4 levels, the v2
-// metadata in trigger_symptoms) and deduplicated per rule + dedupe key per window. Texts are
-// rendered when an alert is read, so an admin edit shows without a deploy.
+// Package pregnancyalerts holds the pregnancy alert detectors (T-M7-04, T-M9-05) and the Engine API the pregnancy
+// paths call. Since T-M10-08 (D-165, DECISIONS.md M-10) the detectors are pure fact producers: they read the user's
+// logs (Facts) and messages/facts/pregnancy_alerts.go turns their hits into the preg.* facts and the evidence
+// variables; one seeded message rule per alert (rule_key preg.<name>, slot alerts_inbox) decides kind and level, and
+// the alerts are message_inbox rows (pregnancyalerts/inboxalerts, the Backend). The v1 engine of pregnancy_alerts rows
+// (alert_type `v2:<rule>`, the message_contents rule rows' enabled / level / params) is retired: nothing writes or
+// reads pregnancy_alerts for a new alert any more. Clinical thresholds (BP, GDM, kicks, 5-1-1) are the versioned
+// clinical config (internal/clinicalconfig).
 package pregnancyalerts
 
 import (
