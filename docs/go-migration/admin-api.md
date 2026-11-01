@@ -208,6 +208,14 @@ Capability `dashboard` (view reads, manage writes; 403 without it). `GET /okr?pe
 suppressed, confidence null}`, `alerts []`, `okr null`, `series` (90 days: `date, dau, loggers, signups`), `notes`. Aggregates only; groups
 under 10 are suppressed (null). Nullable = not available, never a fake number. The existing `/dashboard` stays (recent users).
 
+Automatic metric alerts (T-M10-31, D-180): after each snapshot the enabled `metric_alert_rules` are evaluated
+(`ocr_correction_rate`, `message_ctr` drop vs the mean per rule version above `min_volume`, `rui_users` rising days,
+`engine_mae`, `safety_selftest_failed`); one open alert per (rule, subject), resolved when the condition clears. The
+overview payload carries `alerts` (open, newest first: `{key, subject, state, day, value, threshold, opened_at}`) and
+`resolved_alerts` (last 10). `GET /dashboard/alert-rules` (dashboard view) lists the rules; `PUT
+/dashboard/alert-rules/:key` `{threshold, enabled}` (dashboard manage) validates and audits
+`dashboard.alert_rule.update`; the stored lists move at the next hourly snapshot.
+
 ## 7. Uploads (conventions for T-M2-21)
 
 - `multipart/form-data`, one file per field, field name = the column concept (`image`, `cover`), other fields as

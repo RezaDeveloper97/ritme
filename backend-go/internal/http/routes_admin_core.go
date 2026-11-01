@@ -64,6 +64,7 @@ func init() {
 		}).Routes(overview.Route(h), kit)
 		if d.DB != nil {
 			mustJobs(metricsSvc.RegisterJobs(auth.Jobs(r, d.Cache, d.Logger), tehranNow))
+			dashboard.NewAlertHandlers(d.DB, d.Logger).Routes(dashboard.Route(h), kit) // T-M10-31 (D-180): metric alert rules
 		}
 
 		h(get, "/users", kit.Admin(usersH.List))

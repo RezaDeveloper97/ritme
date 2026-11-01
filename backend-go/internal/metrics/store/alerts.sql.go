@@ -12,6 +12,93 @@ import (
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
+const countOCRMarkersSince = `-- name: CountOCRMarkersSince :one
+SELECT CAST(COALESCE(SUM(m.` + "`" + `source` + "`" + ` = 'edited'), 0) AS SIGNED) AS edited, COUNT(*) AS total, COUNT(DISTINCT r.` + "`" + `user_id` + "`" + `) AS users
+FROM ` + "`" + `lab_markers` + "`" + ` m
+JOIN ` + "`" + `lab_reports` + "`" + ` r ON r.` + "`" + `id` + "`" + ` = m.` + "`" + `lab_id` + "`" + `
+WHERE r.` + "`" + `source` + "`" + ` = 'upload' AND m.` + "`" + `source` + "`" + ` IN ('extracted', 'edited') AND r.` + "`" + `created_at` + "`" + ` >= ?
+`
+
+type CountOCRMarkersSinceRow struct {
+	Edited int64
+	Total  int64
+	Users  int64
+}
+
+// Extracted / edited lab values of uploaded sheets since since_at, and the users behind them (the OCR correction rule).
+func (q *Queries) CountOCRMarkersSince(ctx context.Context, sinceAt sql.NullTime) (CountOCRMarkersSinceRow, error) {
+	row := q.db.QueryRowContext(ctx, countOCRMarkersSince, sinceAt)
+	var i CountOCRMarkersSinceRow
+	err := row.Scan(&i.Edited, &i.Total, &i.Users)
+	return i, err
+}
+
+const countRUIUsersByDay = `-- name: CountRUIUsersByDay :many
+SELECT ` + "`" + `day` + "`" + `, COUNT(*) AS total,
+       CAST(COALESCE(SUM((` + "`" + `warnings_mask` + "`" + ` & ?) <> 0), 0) AS SIGNED) AS rui
+FROM ` + "`" + `engine_daily_snapshots` + "`" + `
+WHERE ` + "`" + `day` + "`" + ` BETWEEN ? AND ?
+GROUP BY ` + "`" + `day` + "`" + `
+ORDER BY ` + "`" + `day` + "`" + `
+`
+
+type CountRUIUsersByDayParams struct {
+	RuiMask uint32
+	FromDay civildate.Date
+	ToDay   civildate.Date
+}
+
+type CountRUIUsersByDayRow struct {
+	Day   civildate.Date
+	Total int64
+	Rui   int64
+}
+
+// Per engine snapshot day in [from_day, to_day]: the snapshots and those with a requires_user_input warning (rui_mask).
+func (q *Queries) CountRUIUsersByDay(ctx context.Context, arg CountRUIUsersByDayParams) ([]CountRUIUsersByDayRow, error) {
+	rows, err := q.db.QueryContext(ctx, countRUIUsersByDay, arg.RuiMask, arg.FromDay, arg.ToDay)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CountRUIUsersByDayRow{}
+	for rows.Next() {
+		var i CountRUIUsersByDayRow
+		if err := rows.Scan(&i.Day, &i.Total, &i.Rui); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getLatestSafetyRunFailures = `-- name: GetLatestSafetyRunFailures :one
+SELECT ` + "`" + `run_id` + "`" + `, CAST(SUM(` + "`" + `passed` + "`" + ` = 0) AS SIGNED) AS failed
+FROM ` + "`" + `safety_scenario_runs` + "`" + `
+GROUP BY ` + "`" + `run_id` + "`" + `
+ORDER BY MIN(` + "`" + `created_at` + "`" + `) DESC, ` + "`" + `run_id` + "`" + ` DESC
+LIMIT 1
+`
+
+type GetLatestSafetyRunFailuresRow struct {
+	RunID  string
+	Failed int64
+}
+
+// The failed-scenario count of the newest nightly self-test run (sql.ErrNoRows before the first run).
+func (q *Queries) GetLatestSafetyRunFailures(ctx context.Context) (GetLatestSafetyRunFailuresRow, error) {
+	row := q.db.QueryRowContext(ctx, getLatestSafetyRunFailures)
+	var i GetLatestSafetyRunFailuresRow
+	err := row.Scan(&i.RunID, &i.Failed)
+	return i, err
+}
+
 const getMetricAlertRuleByKey = `-- name: GetMetricAlertRuleByKey :one
 SELECT id, metric_key, comparator, threshold, window_days, min_volume, enabled, created_at, updated_at FROM ` + "`" + `metric_alert_rules` + "`" + ` WHERE ` + "`" + `metric_key` + "`" + ` = ? LIMIT 1
 `
@@ -56,6 +143,59 @@ func (q *Queries) ListEnabledMetricAlertRules(ctx context.Context) ([]MetricAler
 			&i.Enabled,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listMessageVersionCTRByDay = `-- name: ListMessageVersionCTRByDay :many
+SELECT ` + "`" + `day` + "`" + `, ` + "`" + `rule_id` + "`" + `, ` + "`" + `version` + "`" + `,
+       CAST(COALESCE(SUM(CASE WHEN ` + "`" + `event` + "`" + ` = 'impression' THEN ` + "`" + `count` + "`" + ` END), 0) AS SIGNED) AS shown,
+       CAST(COALESCE(SUM(CASE WHEN ` + "`" + `event` + "`" + ` = 'click' THEN ` + "`" + `count` + "`" + ` END), 0) AS SIGNED) AS clicked
+FROM ` + "`" + `message_event_daily` + "`" + `
+WHERE ` + "`" + `day` + "`" + ` BETWEEN ? AND ?
+GROUP BY ` + "`" + `day` + "`" + `, ` + "`" + `rule_id` + "`" + `, ` + "`" + `version` + "`" + `
+ORDER BY ` + "`" + `day` + "`" + `, ` + "`" + `rule_id` + "`" + `, ` + "`" + `version` + "`" + `
+`
+
+type ListMessageVersionCTRByDayParams struct {
+	SinceDay civildate.Date
+	UntilDay civildate.Date
+}
+
+type ListMessageVersionCTRByDayRow struct {
+	Day     civildate.Date
+	RuleID  uint64
+	Version uint32
+	Shown   int64
+	Clicked int64
+}
+
+// Shown / clicked per rule version and day from the daily rollup (T-M10-06) in [since_day, until_day].
+func (q *Queries) ListMessageVersionCTRByDay(ctx context.Context, arg ListMessageVersionCTRByDayParams) ([]ListMessageVersionCTRByDayRow, error) {
+	rows, err := q.db.QueryContext(ctx, listMessageVersionCTRByDay, arg.SinceDay, arg.UntilDay)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListMessageVersionCTRByDayRow{}
+	for rows.Next() {
+		var i ListMessageVersionCTRByDayRow
+		if err := rows.Scan(
+			&i.Day,
+			&i.RuleID,
+			&i.Version,
+			&i.Shown,
+			&i.Clicked,
 		); err != nil {
 			return nil, err
 		}

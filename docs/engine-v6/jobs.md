@@ -128,6 +128,11 @@ Notes:
 - Not a job, but background work: the activity-day writer (`internal/auth/activity`, T-M10-30) is a per-process
   goroutine with a 4 096-slot buffer (drops when full: `activity_marks_dropped_total`), started when the routes mount
   and drained on shutdown; it runs in the API whatever `API_RUN_WORKERS` says.
+- `admin_metrics:snapshot` also evaluates the metric alerts (T-M10-31, D-180; no new job): the enabled
+  `metric_alert_rules` (OCR correction, per-version message CTR drop, requires_user_input rising days, engine MAE,
+  `safety_selftest_failed` from the newest `safety_scenario_runs` run) open or resolve `metric_alerts` right after the
+  KPIs, one open alert per (rule, subject); the stored payload lists the open alerts and the last 10 resolved. Hourly
+  and idempotent, so a nightly safety failure shows within the hour. A failed evaluation is logged, never fails the snapshot.
 - Not migrated, on purpose (replica-safe pollers with `SKIP LOCKED` / leases): the labs runner and its job sweep
   (`internal/labs/worker.go`), the health-record extract runner (`internal/healthrecord/extract/runner.go`) and the
   learning dispatch poller (`internal/learning/dispatch.go`).

@@ -72,11 +72,19 @@ type Engine struct {
 	MethodologyNote string        `json:"note"`
 }
 
-// Alert is an active metric alert (B-N9-04+ fills the list; none exist yet).
+// Alert is a metric alert of the dashboard (T-M10-31, D-180): open ones in Payload.Alerts, the last resolved ones in
+// Payload.AlertsDone. Only aggregates and rule/version ids — no user data.
 type Alert struct {
-	Key      string `json:"key"`
-	Severity string `json:"severity"`
-	Text     string `json:"text"`
+	Key        string  `json:"key"`
+	Severity   string  `json:"severity"`
+	Text       string  `json:"text"`
+	Subject    string  `json:"subject"`
+	State      string  `json:"state"`
+	Day        string  `json:"day"`
+	Value      float64 `json:"value"`
+	Threshold  float64 `json:"threshold"`
+	OpenedAt   string  `json:"opened_at"`
+	ResolvedAt *string `json:"resolved_at"`
 }
 
 // Point is one day of the series (DAU = users with a session, Loggers = users with a data log; user_activity_days).
@@ -101,7 +109,8 @@ type Payload struct {
 	MRRToman     *int64            `json:"mrr_toman"`
 	Modes        []ModeCount       `json:"modes"`
 	Engine       Engine            `json:"engine"`
-	Alerts       []Alert           `json:"alerts"`
+	Alerts       []Alert           `json:"alerts"`          // open alerts, newest first
+	AlertsDone   []Alert           `json:"resolved_alerts"` // the last AlertsResolvedKept resolved alerts
 	OKR          any               `json:"okr"`
 	Series       []Point           `json:"series"`
 	KPI          *KPIData          `json:"kpi"`
@@ -136,6 +145,7 @@ func New(db *sql.DB, logger *slog.Logger) *Service {
 	s := &Service{db: db, logger: logger}
 	if db != nil {
 		s.q = store.New(db)
+		s.OnComputed(s.evaluateAlerts) // T-M10-31: the alert rules run on every computed snapshot
 	}
 	return s
 }
@@ -161,11 +171,11 @@ func startOfDay(t time.Time) time.Time {
 func (s *Service) Compute(ctx context.Context, now time.Time) (*Payload, error) {
 	now = now.In(civildate.Tehran)
 	today := startOfDay(now)
-	p := &Payload{Version: PayloadVersion, Alerts: []Alert{}, Modes: []ModeCount{}, Notes: map[string]string{
+	p := &Payload{Version: PayloadVersion, Alerts: []Alert{}, AlertsDone: []Alert{}, Modes: []ModeCount{}, Notes: map[string]string{
 		"activity":   "DAU/MAU count users with at least one signed-in request on their local day / in 30 days; loggers count users with at least one data log that day (user_activity_days).",
 		"mrr":        "Active purchased subscriptions: invoice subtotal minus discount, per month, excluding VAT; admin grants excluded.",
 		"confidence": "Confidence and data quality of the active users on the newest engine snapshot day.",
-		"alerts":     "Automatic alerts are T-M10-31.",
+		"alerts":     "Open alerts of the enabled metric_alert_rules (newest first) and the last 10 resolved; evaluated right after each snapshot (D-180).",
 		"okr":        "OKR summary of the objectives active today, evaluated right after the KPIs.",
 	}}
 

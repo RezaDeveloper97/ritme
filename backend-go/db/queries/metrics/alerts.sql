@@ -54,3 +54,37 @@ LIMIT ?;
 -- name: ListOpenMetricAlertSubjects :many
 -- The open (rule, subject) pairs of one rule, so the evaluator resolves those whose condition no longer holds.
 SELECT `subject` FROM `metric_alerts` WHERE `rule_id` = ? AND `state` = 'open' ORDER BY `subject`;
+
+-- name: CountOCRMarkersSince :one
+-- Extracted / edited lab values of uploaded sheets since since_at, and the users behind them (the OCR correction rule).
+SELECT CAST(COALESCE(SUM(m.`source` = 'edited'), 0) AS SIGNED) AS edited, COUNT(*) AS total, COUNT(DISTINCT r.`user_id`) AS users
+FROM `lab_markers` m
+JOIN `lab_reports` r ON r.`id` = m.`lab_id`
+WHERE r.`source` = 'upload' AND m.`source` IN ('extracted', 'edited') AND r.`created_at` >= sqlc.arg(since_at);
+
+-- name: ListMessageVersionCTRByDay :many
+-- Shown / clicked per rule version and day from the daily rollup (T-M10-06) in [since_day, until_day].
+SELECT `day`, `rule_id`, `version`,
+       CAST(COALESCE(SUM(CASE WHEN `event` = 'impression' THEN `count` END), 0) AS SIGNED) AS shown,
+       CAST(COALESCE(SUM(CASE WHEN `event` = 'click' THEN `count` END), 0) AS SIGNED) AS clicked
+FROM `message_event_daily`
+WHERE `day` BETWEEN sqlc.arg(since_day) AND sqlc.arg(until_day)
+GROUP BY `day`, `rule_id`, `version`
+ORDER BY `day`, `rule_id`, `version`;
+
+-- name: CountRUIUsersByDay :many
+-- Per engine snapshot day in [from_day, to_day]: the snapshots and those with a requires_user_input warning (rui_mask).
+SELECT `day`, COUNT(*) AS total,
+       CAST(COALESCE(SUM((`warnings_mask` & sqlc.arg(rui_mask)) <> 0), 0) AS SIGNED) AS rui
+FROM `engine_daily_snapshots`
+WHERE `day` BETWEEN sqlc.arg(from_day) AND sqlc.arg(to_day)
+GROUP BY `day`
+ORDER BY `day`;
+
+-- name: GetLatestSafetyRunFailures :one
+-- The failed-scenario count of the newest nightly self-test run (sql.ErrNoRows before the first run).
+SELECT `run_id`, CAST(SUM(`passed` = 0) AS SIGNED) AS failed
+FROM `safety_scenario_runs`
+GROUP BY `run_id`
+ORDER BY MIN(`created_at`) DESC, `run_id` DESC
+LIMIT 1;

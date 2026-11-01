@@ -25,11 +25,17 @@ type Querier interface {
 	// with a user id. The KPI endpoint never runs these: it reads the stored snapshot.
 	// Users with a data log on at least min_days days of [from_day, to_day] (loggers ≥ 15 days in the month).
 	CountLoggersAtLeast(ctx context.Context, arg CountLoggersAtLeastParams) (int64, error)
+	// Extracted / edited lab values of uploaded sheets since since_at, and the users behind them (the OCR correction rule).
+	CountOCRMarkersSince(ctx context.Context, sinceAt sql.NullTime) (CountOCRMarkersSinceRow, error)
+	// Per engine snapshot day in [from_day, to_day]: the snapshots and those with a requires_user_input warning (rui_mask).
+	CountRUIUsersByDay(ctx context.Context, arg CountRUIUsersByDayParams) ([]CountRUIUsersByDayRow, error)
 	// The stored zone of a user, read by the activity writer (internal/auth/activity) off the request path.
 	GetActivityUserTimezone(ctx context.Context, userID uint64) (sql.NullString, error)
 	// An admin-set KPI setting (plus_settings row; e.g. the USD → IRR rate of the AI cost share).
 	GetKPISetting(ctx context.Context, settingKey string) (string, error)
 	GetLatestMetricSnapshot(ctx context.Context) (GetLatestMetricSnapshotRow, error)
+	// The failed-scenario count of the newest nightly self-test run (sql.ErrNoRows before the first run).
+	GetLatestSafetyRunFailures(ctx context.Context) (GetLatestSafetyRunFailuresRow, error)
 	GetMetricAlertRuleByKey(ctx context.Context, metricKey string) (MetricAlertRule, error)
 	// The newest metrics snapshot on or before day (the previous period of the KPI endpoint).
 	GetMetricSnapshotOnOrBefore(ctx context.Context, day civildate.Date) (GetMetricSnapshotOnOrBeforeRow, error)
@@ -40,6 +46,8 @@ type Querier interface {
 	ListEnabledMetricAlertRules(ctx context.Context) ([]MetricAlertRule, error)
 	// Message CTR per rule version from the daily rollup (T-M10-06) in [since_day, until_day].
 	ListMessageVersionCTR(ctx context.Context, arg ListMessageVersionCTRParams) ([]ListMessageVersionCTRRow, error)
+	// Shown / clicked per rule version and day from the daily rollup (T-M10-06) in [since_day, until_day].
+	ListMessageVersionCTRByDay(ctx context.Context, arg ListMessageVersionCTRByDayParams) ([]ListMessageVersionCTRByDayRow, error)
 	// Automatic dashboard alerts (migration 00105, T-M10-25; SPEC v6 §5.1). Rules are keyed by metric_key; at most one
 	// open alert per (rule, subject) — the UNIQUE (rule_id, subject, open_flag) key, open_flag = 1 only while open.
 	ListMetricAlertRules(ctx context.Context) ([]MetricAlertRule, error)

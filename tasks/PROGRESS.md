@@ -2626,3 +2626,9 @@ Nothing needed fixing.
 - Contract: TEMPORARY summary entries removed; precise D-165 entries for `latest_emergency`; D-134 counts reasons updated. 429/0 over pregnancy, pregnancy-v2, pregnancy-tools, healthlog, loss, messages.
 - Verify: sqlc, vet, unit, test-int pregnancy/healthlog/loss/messages/http, lint.
 - Open → T-M10-08c: migrate the legacy v1 rows into the inbox and drop the legacy reads; feed modal for code-held locked rules whose row is missing/off.
+
+## T-M10-31 — Automatic metric alerts on the dashboard (D-180)
+- Shipped: `internal/metrics/alerts.go` evaluates the enabled `metric_alert_rules` (00105) after each `admin_metrics:snapshot`: `ocr_correction_rate` (edited/total lab markers over window_days), `message_ctr` (yesterday's CTR vs the mean of the previous window per rule version with shown ≥ min_volume), `rui_users` (rising-days streak), `engine_mae` (MAEOf over window), `safety_selftest_failed` (newest T-M10-24 run). One open alert per (rule, subject), resolved on recovery or when the rule is disabled; no data / under k=10 keeps the state; failures logged, never fail the snapshot; no user data stored or logged.
+- Overview payload: `alerts` (open, newest first) + `resolved_alerts` (last 10). Admin API `GET /dashboard/alert-rules`, `PUT /dashboard/alert-rules/:key` {threshold, enabled} (audited). Docs: admin-api.md §6b, jobs.md.
+- Verify: sqlc, vet, unit + test-int metrics/okr, lint, http tests.
+- Open: OCR / RUI / MAE data paths only unit-tested at the boundary; threshold edits show at the next hourly snapshot; admin-web UI for alerts → T-M10-34.

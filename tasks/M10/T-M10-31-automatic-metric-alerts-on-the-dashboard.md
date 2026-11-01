@@ -3,10 +3,10 @@ id: T-M10-31
 title: Automatic metric alerts on the dashboard
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-30, T-M10-24]
 parallel_group: M10-D
-touches: [backend-go/internal/metrics/alerts.go, backend-go/internal/metrics/metrics.go, backend-go/internal/admin/dashboard, backend-go/db/queries/metrics, docs/engine-v6/jobs.md]
+touches: [backend-go/internal/metrics/alerts.go, backend-go/internal/metrics/metrics.go, backend-go/internal/admin/dashboard, backend-go/db/queries/metrics, docs/engine-v6/jobs.md, backend-go/internal/http/routes_admin_core.go, docs/go-migration/admin-api.md]
 skills: []
 verify: cd backend-go && make sqlc && go vet ./... && go test ./internal/metrics/... ./internal/admin/dashboard/... && make test-int PKG=./internal/metrics/...
 ---
