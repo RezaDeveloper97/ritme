@@ -697,9 +697,11 @@ func alertCounts(cnt store.CountActiveAlertsRow, emergency int64) *jsonx.Ordered
 	)
 }
 
-// AlertIndex is GET /pregnancy/alerts (?level, ?unread_only).
+// AlertIndex is GET /pregnancy/alerts (?level, ?unread_only): the preg.* inbox rows and the legacy rows (inbox_alerts.go),
+// newest first; the counts cover every alert not dismissed, whatever the filters.
 func (h *Handlers) AlertIndex(c fiber.Ctx) error {
 	r := h.request(c)
+	ctx := c.Context()
 	q := validation.Query(c)
 	level := ""
 	if v, ok := q.Get("level"); ok {
@@ -714,17 +716,39 @@ func (h *Handlers) AlertIndex(c fiber.Ctx) error {
 	if v, ok := q.Get("unread_only"); ok && filterBool(v) {
 		unread = 1
 	}
-	rows, err := h.q.ListActiveAlerts(c.Context(), store.ListActiveAlertsParams{UserID: r.userID, Level: level, UnreadOnly: unread})
+	rows, err := h.q.ListActiveAlerts(ctx, store.ListActiveAlertsParams{UserID: r.userID, Level: level, UnreadOnly: unread})
 	if err != nil {
 		return err
 	}
-	cnt, err := h.q.CountActiveAlerts(c.Context(), r.userID)
+	cnt, err := h.q.CountActiveAlerts(ctx, r.userID)
 	if err != nil {
 		return err
 	}
-	list := make([]any, len(rows))
-	for i := range rows {
-		list[i] = AlertJSON(&rows[i])
+	inbox, err := listInbox(ctx, h.q, r.userID)
+	if err != nil {
+		return err
+	}
+	cnt = addCounts(cnt, inboxCounts(inbox))
+	texts := newAlertTexts(h.q, r.locale)
+	list := make([]any, 0, len(rows)+len(inbox))
+	i := 0
+	for j := range inbox {
+		ib := &inbox[j]
+		if (level != "" && ib.v1Level() != level) || (unread == 1 && ib.isRead()) {
+			continue
+		}
+		for i < len(rows) && rows[i].CreatedAt.Valid && rows[i].CreatedAt.Time.After(ib.at()) {
+			list = append(list, AlertJSON(&rows[i]))
+			i++
+		}
+		a, err := texts.json(ctx, r.userID, ib)
+		if err != nil {
+			return err
+		}
+		list = append(list, a)
+	}
+	for ; i < len(rows); i++ {
+		list = append(list, AlertJSON(&rows[i]))
 	}
 	return httpx.OK(c, jsonx.Obj("alerts", list, "counts", alertCounts(cnt, cnt.Emergency)))
 }
@@ -741,19 +765,38 @@ func filterBool(v any) bool {
 	return false
 }
 
-func (h *Handlers) findAlert(c fiber.Ctx, r req) (*store.PregnancyAlert, error) {
+// v1Alert is the alert of a v1 {id}: a preg.* inbox row, else a legacy pregnancy_alerts row. The inbox wins an id
+// both hold (D-165: v1 ids are inbox ids; the legacy table gets no new rows).
+type v1Alert struct {
+	inbox  *inboxRow
+	legacy *store.PregnancyAlert
+}
+
+func (h *Handlers) findAlert(c fiber.Ctx, r req) (v1Alert, error) {
 	id, err := intParam(c, "id")
 	if err != nil {
-		return nil, err
+		return v1Alert{}, err
 	}
-	row, err := noRows(h.q.GetAlert(c.Context(), store.GetAlertParams{UserID: r.userID, ID: uint64(max(id, 0))}))
+	notFound := httpx.Fail(fiber.StatusNotFound, r.tr("هشدار یافت نشد", "Alert not found"))
+	if id <= 0 {
+		return v1Alert{}, notFound
+	}
+	ib, err := noRows(h.q.GetPregnancyInboxAlert(c.Context(), store.GetPregnancyInboxAlertParams{UserID: r.userID, ID: uint64(id)}))
 	if err != nil {
-		return nil, err
+		return v1Alert{}, err
 	}
-	if row == nil || id <= 0 {
-		return nil, httpx.Fail(fiber.StatusNotFound, r.tr("هشدار یافت نشد", "Alert not found"))
+	if ib != nil {
+		row := inboxRowOf(*ib)
+		return v1Alert{inbox: &row}, nil
 	}
-	return row, nil
+	row, err := noRows(h.q.GetAlert(c.Context(), store.GetAlertParams{UserID: r.userID, ID: uint64(id)}))
+	if err != nil {
+		return v1Alert{}, err
+	}
+	if row == nil {
+		return v1Alert{}, notFound
+	}
+	return v1Alert{legacy: row}, nil
 }
 
 // AlertShow is GET /pregnancy/alerts/{id}.
@@ -763,10 +806,17 @@ func (h *Handlers) AlertShow(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return httpx.OK(c, jsonx.Obj("alert", AlertJSON(a)))
+	if a.inbox != nil {
+		j, err := newAlertTexts(h.q, r.locale).json(c.Context(), r.userID, a.inbox)
+		if err != nil {
+			return err
+		}
+		return httpx.OK(c, jsonx.Obj("alert", j))
+	}
+	return httpx.OK(c, jsonx.Obj("alert", AlertJSON(a.legacy)))
 }
 
-// AlertRead is POST /pregnancy/alerts/{id}/read.
+// AlertRead is POST /pregnancy/alerts/{id}/read: an inbox row is acknowledged (a read row stays as it is).
 func (h *Handlers) AlertRead(c fiber.Ctx) error {
 	r := h.request(c)
 	a, err := h.findAlert(c, r)
@@ -774,13 +824,18 @@ func (h *Handlers) AlertRead(c fiber.Ctx) error {
 		return err
 	}
 	ts := sqlTime(dbNow(r.now))
-	if err := h.q.MarkAlertRead(c.Context(), store.MarkAlertReadParams{ReadAt: ts, UpdatedAt: ts, ID: a.ID}); err != nil {
+	if a.inbox != nil {
+		if _, err := h.q.ReadPregnancyInboxAlert(c.Context(), store.ReadPregnancyInboxAlertParams{Now: ts, ID: a.inbox.ID, UserID: r.userID}); err != nil {
+			return err
+		}
+	} else if err := h.q.MarkAlertRead(c.Context(), store.MarkAlertReadParams{ReadAt: ts, UpdatedAt: ts, ID: a.legacy.ID}); err != nil {
 		return err
 	}
 	return httpx.Message(c, r.tr("هشدار خوانده شد", "Alert marked as read"))
 }
 
-// AlertReadAll is POST /pregnancy/alerts/read-all.
+// AlertReadAll is POST /pregnancy/alerts/read-all: count is the legacy rows marked read plus the inbox rows
+// acknowledged.
 func (h *Handlers) AlertReadAll(c fiber.Ctx) error {
 	r := h.request(c)
 	ts := sqlTime(dbNow(r.now))
@@ -788,10 +843,14 @@ func (h *Handlers) AlertReadAll(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return httpx.OK(c, jsonx.Obj("count", n), r.tr("همه هشدارها خوانده شدند", "All alerts marked as read"))
+	m, err := h.q.ReadAllPregnancyInboxAlerts(c.Context(), store.ReadAllPregnancyInboxAlertsParams{Now: ts, UserID: r.userID})
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, jsonx.Obj("count", n+m), r.tr("همه هشدارها خوانده شدند", "All alerts marked as read"))
 }
 
-// AlertDismiss is POST /pregnancy/alerts/{id}/dismiss.
+// AlertDismiss is POST /pregnancy/alerts/{id}/dismiss: an inbox row is archived (and acknowledged with it).
 func (h *Handlers) AlertDismiss(c fiber.Ctx) error {
 	r := h.request(c)
 	a, err := h.findAlert(c, r)
@@ -799,26 +858,51 @@ func (h *Handlers) AlertDismiss(c fiber.Ctx) error {
 		return err
 	}
 	ts := sqlTime(dbNow(r.now))
-	if err := h.q.DismissAlert(c.Context(), store.DismissAlertParams{DismissedAt: ts, UpdatedAt: ts, ID: a.ID}); err != nil {
+	if a.inbox != nil {
+		if _, err := h.q.DismissPregnancyInboxAlert(c.Context(), store.DismissPregnancyInboxAlertParams{Now: ts, ID: a.inbox.ID, UserID: r.userID}); err != nil {
+			return err
+		}
+	} else if err := h.q.DismissAlert(c.Context(), store.DismissAlertParams{DismissedAt: ts, UpdatedAt: ts, ID: a.legacy.ID}); err != nil {
 		return err
 	}
 	return httpx.Message(c, r.tr("هشدار رد شد", "Alert dismissed"))
 }
 
-// AlertSummary is GET /pregnancy/alerts/summary.
+// AlertSummary is GET /pregnancy/alerts/summary: has_emergency / latest_emergency are the newest unread emergency of
+// the inbox and the legacy rows.
 func (h *Handlers) AlertSummary(c fiber.Ctx) error {
 	r := h.request(c)
-	cnt, err := h.q.CountActiveAlerts(c.Context(), r.userID)
+	ctx := c.Context()
+	cnt, err := h.q.CountActiveAlerts(ctx, r.userID)
 	if err != nil {
 		return err
 	}
-	var latest any
+	inbox, err := listInbox(ctx, h.q, r.userID)
+	if err != nil {
+		return err
+	}
+	var legacy *store.PregnancyAlert
 	if cnt.UnreadEmergency > 0 {
-		row, err := noRows(h.q.LatestUnreadEmergencyAlert(c.Context(), r.userID))
-		if err != nil {
+		if legacy, err = noRows(h.q.LatestUnreadEmergencyAlert(ctx, r.userID)); err != nil {
 			return err
 		}
-		latest = AlertJSON(row)
+	}
+	var ib *inboxRow
+	for i := range inbox { // newest first
+		if !inbox[i].isRead() && inbox[i].v1Level() == "emergency" {
+			ib = &inbox[i]
+			break
+		}
+	}
+	cnt = addCounts(cnt, inboxCounts(inbox))
+	var latest any
+	switch {
+	case ib != nil && (legacy == nil || !legacy.CreatedAt.Valid || !legacy.CreatedAt.Time.After(ib.at())):
+		if latest, err = newAlertTexts(h.q, r.locale).json(ctx, r.userID, ib); err != nil {
+			return err
+		}
+	case legacy != nil:
+		latest = AlertJSON(legacy)
 	}
 	return httpx.OK(c, jsonx.Obj(
 		"has_emergency", cnt.UnreadEmergency > 0,

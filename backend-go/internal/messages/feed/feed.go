@@ -160,6 +160,10 @@ func (s *Service) Build(ctx context.Context, req Request) (*Result, error) {
 		return nil, err
 	}
 	res.Challenge = challenge
+	ev, err := s.evidenceOf(ctx, req.UserID, open)
+	if err != nil {
+		return nil, err
+	}
 	var log []candidate
 	sampled := Sampled(req.UserID)
 	for _, name := range req.Slots {
@@ -194,7 +198,7 @@ func (s *Service) Build(ctx context.Context, req Request) (*Result, error) {
 			}
 		}
 		if len(open) > 0 {
-			winners, texts, sl.AlertIDs = fanOut(name, winners, texts, open, x, f, req.Locale, req.UserID)
+			winners, texts, sl.AlertIDs = fanOut(name, winners, texts, open, ev, x, f, req.Locale, req.UserID)
 		}
 		if winners == nil {
 			winners = []rules.Choice{}

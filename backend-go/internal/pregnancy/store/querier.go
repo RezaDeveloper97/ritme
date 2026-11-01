@@ -9,11 +9,12 @@ import (
 )
 
 type Querier interface {
-	// Action ack («دیدم، ممنون»): read + dismissed (hidden from the v1 active list too).
-	AckV2Alert(ctx context.Context, arg AckV2AlertParams) error
 	// One kick on a running session, atomically. tenth_kick_at is assigned before kicks (MariaDB evaluates SET left to
 	// right on the updated row), so it sees the count before this kick.
 	AddKick(ctx context.Context, arg AddKickParams) (int64, error)
+	// A pregnancy loss (CB-LOSS-01): every preg.* row not yet archived is archived, so no pregnancy alert outlives the
+	// pregnancy as a badge, modal or nudge.
+	ArchivePregnancyInboxAlerts(ctx context.Context, arg ArchivePregnancyInboxAlertsParams) (int64, error)
 	CountActiveAlerts(ctx context.Context, userID uint64) (CountActiveAlertsRow, error)
 	CountAppointmentsOfCareItem(ctx context.Context, id uint64) (int64, error)
 	// Pregnancy v2 admin API (T-M7-06, docs/go-migration/admin-api.md §13): care-item delete guard and the
@@ -21,8 +22,6 @@ type Querier interface {
 	// Appointments (reminders type = 'appointment') linked to each care item through meta.care_item_key.
 	// Cancelled appointments do not count (review #13, T-M2-34): a cancelled booking never blocks a delete.
 	CountCareItemAppointments(ctx context.Context) ([]CountCareItemAppointmentsRow, error)
-	// Dedupe: how many alerts of one rule with the same dedupe key exist since `since`.
-	CountV2AlertDedupe(ctx context.Context, arg CountV2AlertDedupeParams) (int64, error)
 	CreateCareItem(ctx context.Context, arg CreateCareItemParams) (int64, error)
 	DeleteCareItem(ctx context.Context, id uint64) (int64, error)
 	DeleteContractionSession(ctx context.Context, arg DeleteContractionSessionParams) (int64, error)
@@ -33,8 +32,12 @@ type Querier interface {
 	// new booking).
 	DeleteUnlinkedCareItem(ctx context.Context, id uint64) (int64, error)
 	DismissAlert(ctx context.Context, arg DismissAlertParams) error
-	// A pregnancy loss (CB-LOSS-01) closes every open alert (v1 and v2): none may resurface as a badge or nudge.
+	// A pregnancy loss (CB-LOSS-01) closes every open legacy alert: none may resurface as a badge or nudge.
 	DismissOpenAlerts(ctx context.Context, arg DismissOpenAlertsParams) (int64, error)
+	// v1 dismiss: the row is archived. The user dismissed it herself, so an unacknowledged row is acknowledged with it
+	// (the inbox's urgent-ack rule is met by the explicit action). Should the condition still hold, the next evaluation
+	// opens a new row (M-16: archived is history).
+	DismissPregnancyInboxAlert(ctx context.Context, arg DismissPregnancyInboxAlertParams) (int64, error)
 	FinishContractionSession(ctx context.Context, arg FinishContractionSessionParams) (int64, error)
 	GetActiveContractionSession(ctx context.Context, userID uint64) (PregnancyContractionSession, error)
 	GetActiveKickSession(ctx context.Context, userID uint64) (PregnancyKickSession, error)
@@ -48,21 +51,23 @@ type Querier interface {
 	GetDailyExtras(ctx context.Context, arg GetDailyExtrasParams) (PregnancyDailyExtra, error)
 	GetFetalMovement(ctx context.Context, arg GetFetalMovementParams) (PregnancyFetalMovement, error)
 	GetKickSession(ctx context.Context, arg GetKickSessionParams) (PregnancyKickSession, error)
+	// The message rule of an inbox row (its texts, whether it is served).
+	GetPregnancyAlertRule(ctx context.Context, id uint64) (MessageRule, error)
+	GetPregnancyInboxAlert(ctx context.Context, arg GetPregnancyInboxAlertParams) (GetPregnancyInboxAlertRow, error)
 	// PregnancyProfile (App\Models\PregnancyProfile). One row per user (unique user_id).
 	GetProfileByUser(ctx context.Context, userID uint64) (PregnancyProfile, error)
 	GetSymptomLog(ctx context.Context, arg GetSymptomLogParams) (PregnancySymptomLog, error)
-	GetV2Alert(ctx context.Context, arg GetV2AlertParams) (PregnancyAlert, error)
 	// Pregnancy v2 day log (T-M7-03). Every query is scoped by user_id.
 	// The newest weekly log with a weight (value + the day it was logged).
 	GetV2LastWeight(ctx context.Context, userID uint64) (GetV2LastWeightRow, error)
 	// Pregnancy v2 read model (T-M7-02, internal/pregnancy/v2): the Today screen's extras and the message
 	// rows it reads. Every user-scoped query filters by user_id.
-	// One row for the Today screen: the unread (not dismissed) alert count, the next upcoming non-cancelled
+	// One row for the Today screen: the unread alert count, the next upcoming non-cancelled
 	// M3 appointment at or after `now`, and the first active care-plan item whose week window has not ended
 	// (the next-visit fallback). The users row only anchors the single result row.
-	// The count covers exactly what GET /pregnancy/v2/alerts lists (ListV2AlertsSince): v2 rows created at
-	// or after `alerts_since`. Legacy v1 rows (e.g. `symptom_based`) are never shown there, so they must
-	// not inflate the badge either (QA 2026-09-29-c L1).
+	// The count is the unread pregnancy alerts of GET /pregnancy/v2/alerts (T-M10-08b, D-165): the active preg.* rows of
+	// the alerts inbox (is_read = state <> active there). An active row is always open and the v2 list shows open rows
+	// whatever their age, so `alerts_since` never hides one (the open_flag term); it stays in the signature for the callers.
 	GetV2TodayExtras(ctx context.Context, arg GetV2TodayExtrasParams) (GetV2TodayExtrasRow, error)
 	// Pregnancy v2 week details (table pregnancy_week_details, T-M7-01, docs/pregnancy-v2/README.md § Data).
 	// One row per week 1–42, admin-defined; translatable columns are JSON keyed by language code.
@@ -73,7 +78,6 @@ type Querier interface {
 	// PregnancyWeeklyContent (table pregnancy_weekly_content).
 	GetWeeklyContent(ctx context.Context, weekNumber int32) (PregnancyWeeklyContent, error)
 	GetWeeklyLog(ctx context.Context, arg GetWeeklyLogParams) (PregnancyWeeklyLog, error)
-	InsertAlert(ctx context.Context, arg InsertAlertParams) (int64, error)
 	InsertContraction(ctx context.Context, arg InsertContractionParams) (int64, error)
 	InsertContractionSession(ctx context.Context, arg InsertContractionSessionParams) (int64, error)
 	InsertFetalMovement(ctx context.Context, arg InsertFetalMovementParams) (int64, error)
@@ -85,8 +89,18 @@ type Querier interface {
 	InsertSymptomLog(ctx context.Context, arg InsertSymptomLogParams) (int64, error)
 	InsertWeeklyLog(ctx context.Context, arg InsertWeeklyLogParams) (int64, error)
 	LatestUnreadEmergencyAlert(ctx context.Context, userID uint64) (PregnancyAlert, error)
-	// PregnancyAlert (App\Models\PregnancyAlert). Scopes: active = is_dismissed 0, unread = is_read 0.
-	// Ordering mirrors Laravel's orderBy('created_at', 'desc') (no tie-breaker).
+	// The v1 pregnancy alert endpoints (PregnancyAlertController: GET /pregnancy/alerts, /alerts/summary, /alerts/{id},
+	// POST /alerts/{id}/read|dismiss, /alerts/read-all) over two sources (T-M10-08b, D-165):
+	//   * the alerts inbox: every pregnancy alert since T-M10-08 is a message_inbox row of a preg.* rule (one open row per
+	//     rule; read = acknowledged, dismiss = archived; resolved rows are history the v1 list still shows, as Laravel
+	//     showed every alert not dismissed);
+	//   * the legacy pregnancy_alerts rows (PregnancyAlert, App\Models\PregnancyAlert) the retired v1 rules wrote before
+	//     T-M10-08 (Laravel included). Nothing inserts them any more; they keep their read / dismiss lifecycle so an
+	//     unread legacy emergency is never hidden. v2 rows (alert_type 'v2:<rule>') were moved into the inbox by goose
+	//     00113 and are left out here, so no alert is listed twice.
+	// Every query is scoped by user_id. Legacy scopes: active = is_dismissed 0, unread = is_read 0; Laravel's
+	// orderBy('created_at', 'desc') (no tie-breaker).
+	// ---------------- legacy pregnancy_alerts (read / lifecycle only) ----------------
 	ListActiveAlerts(ctx context.Context, arg ListActiveAlertsParams) ([]PregnancyAlert, error)
 	// Pregnancy v2 care plan (table pregnancy_care_items, T-M7-01): admin-defined visits / tests / scans /
 	// vaccines with a pregnancy-week window. Visits themselves are M3 appointments (meta.care_item_key).
@@ -107,23 +121,22 @@ type Querier interface {
 	ListKickSessions(ctx context.Context, arg ListKickSessionsParams) ([]PregnancyKickSession, error)
 	// Ended sessions started in [date_from, date_to) (the day's kick total written to pregnancy_fetal_movements).
 	ListKickSessionsBetween(ctx context.Context, arg ListKickSessionsBetweenParams) ([]PregnancyKickSession, error)
-	// Pregnancy v2 alert rules (T-M7-04, internal/messages/pregnancyalerts). v2 rows live in pregnancy_alerts
-	// with alert_type = 'v2:<rule_key>' and their v2 metadata (level4, dedupe key, placeholder values) in
-	// trigger_symptoms. Every user-scoped query filters by user_id.
+	// Pregnancy alert rule inputs (internal/messages/pregnancyalerts): the legend / contact rows of message_contents and the
+	// weekly logs the detectors read. The alerts themselves are message_inbox rows since T-M10-08 (D-165; alerts.sql).
+	// Every user-scoped query filters by user_id.
 	// Every live (active + approved) row of one message_contents group, all locales (rules + legend).
 	ListLiveMessageGroup(ctx context.Context, messageGroup string) ([]ListLiveMessageGroupRow, error)
 	// Every (group, item_key, locale) triple — the "missing rows of registered groups" view.
 	ListMessageContentKeys(ctx context.Context) ([]ListMessageContentKeysRow, error)
 	ListMessageContentsOfGroup(ctx context.Context, group string) ([]MessageContent, error)
+	// ---------------- the alerts inbox (preg.* rows) ----------------
+	// The user's preg.* inbox rows the v1 list shows: open (active, acknowledged, added_to_visit_note) and resolved —
+	// everything not archived (= not dismissed). Newest activity first.
+	ListPregnancyInboxAlerts(ctx context.Context, userID uint64) ([]ListPregnancyInboxAlertsRow, error)
 	ListSessionContractions(ctx context.Context, arg ListSessionContractionsParams) ([]PregnancyContraction, error)
 	// PregnancySymptomLog (App\Models\PregnancySymptomLog). Unique (user_id, log_date).
 	// from/to are compared as the raw query-string text, like Laravel's where('log_date', '>=', $from).
 	ListSymptomLogs(ctx context.Context, arg ListSymptomLogsParams) ([]PregnancySymptomLog, error)
-	// The alerts behind CountV2AlertDedupe (same filter), for the rules whose facts come from the dating
-	// (week_entered): a re-dating refreshes their stored placeholders and fact date (QA 2026-09-29-c L5).
-	ListV2AlertsByDedupe(ctx context.Context, arg ListV2AlertsByDedupeParams) ([]PregnancyAlert, error)
-	// The user's v2 alerts created at or after `since`, newest first (dismissed = acked ones included).
-	ListV2AlertsSince(ctx context.Context, arg ListV2AlertsSinceParams) ([]PregnancyAlert, error)
 	// Pregnancy v2 calendar (T-M7-05, internal/pregnancy/v2/calendar): the user's M3 appointments that are
 	// not cancelled, soonest first. Month filtering and care-item linking (meta.care_item_key) happen in Go.
 	// is_active is the reminder bell: off → the visit stays, but it has no «remind before» (QA 2026-09-29-c L4).
@@ -150,12 +163,16 @@ type Querier interface {
 	MarkAllAlertsRead(ctx context.Context, arg MarkAllAlertsReadParams) (int64, error)
 	// The first counted kick marks the profile's first felt movement (like POST /pregnancy/fetal-movement with felt).
 	MarkFetalMovementFelt(ctx context.Context, arg MarkFetalMovementFeltParams) error
-	MarkV2AlertRead(ctx context.Context, arg MarkV2AlertReadParams) error
 	MessageContentExists(ctx context.Context, arg MessageContentExistsParams) (bool, error)
 	NextCareItemSortOrder(ctx context.Context) (int64, error)
-	// Rewrites the facts of one v2 alert (v2 metadata + the stored fallback title / message); the read and
-	// ack state are kept.
-	RefreshV2AlertFacts(ctx context.Context, arg RefreshV2AlertFactsParams) error
+	// v1 read-all: every active preg.* row becomes acknowledged.
+	ReadAllPregnancyInboxAlerts(ctx context.Context, arg ReadAllPregnancyInboxAlertsParams) (int64, error)
+	// v1 read: an active row becomes acknowledged (the inbox ack); a row already read stays as it is.
+	ReadPregnancyInboxAlert(ctx context.Context, arg ReadPregnancyInboxAlertParams) (int64, error)
+	// A flow logged in pregnancy on the general day log (healthlog bridge, T-M10-08b) is the day's bleeding symptom: the
+	// day's row is created or gets has_bleeding + the severity (its other symptoms are kept). The caller never lowers a
+	// severity the user logged herself.
+	RecordFlowBleedingSymptom(ctx context.Context, arg RecordFlowBleedingSymptomParams) error
 	SetCareItemActive(ctx context.Context, arg SetCareItemActiveParams) (int64, error)
 	SetCareItemSortOrder(ctx context.Context, arg SetCareItemSortOrderParams) (int64, error)
 	SetContractionAlertAt(ctx context.Context, arg SetContractionAlertAtParams) error

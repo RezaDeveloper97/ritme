@@ -34,3 +34,11 @@ UPDATE `pregnancy_symptom_logs` SET
   has_spotting = ?, spotting_severity = ?, has_bleeding = ?, bleeding_severity = ?, has_fluid_leakage = ?, fluid_leakage_severity = ?,
   has_severe_sudden_pain = ?, severe_sudden_pain_severity = ?, notes = ?, updated_at = ?
 WHERE id = ?;
+
+-- name: RecordFlowBleedingSymptom :exec
+-- A flow logged in pregnancy on the general day log (healthlog bridge, T-M10-08b) is the day's bleeding symptom: the
+-- day's row is created or gets has_bleeding + the severity (its other symptoms are kept). The caller never lowers a
+-- severity the user logged herself.
+INSERT INTO `pregnancy_symptom_logs` (user_id, log_date, has_bleeding, bleeding_severity, created_at, updated_at)
+VALUES (sqlc.arg(user_id), sqlc.arg(log_date), 1, sqlc.arg(bleeding_severity), sqlc.arg(now), sqlc.arg(now))
+ON DUPLICATE KEY UPDATE has_bleeding = 1, bleeding_severity = VALUES(bleeding_severity), updated_at = VALUES(updated_at);

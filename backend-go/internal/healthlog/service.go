@@ -39,6 +39,9 @@ type Service struct {
 	// nil = none. started is the transaction's record of it (nil outside a transaction this Service owns).
 	startHook periods.StartHook
 	started   *bridgeStart
+	// pregAlerts is the transaction's record that a flow in pregnancy needs the pregnancy alert rules evaluated after
+	// the commit (nil outside a transaction this Service owns; bridge.go, T-M10-08b).
+	pregAlerts *pregnancyEval
 }
 
 // bridgeStart records, inside a write, the new real period row the bridge inserted (read after the revision bump and
@@ -97,6 +100,9 @@ func (s *Service) inTxLocked(ctx context.Context, userID uint64, fn func(t *Serv
 		return fmt.Errorf("healthlog: begin: %w", err)
 	}
 	t := &Service{q: store.New(tx), raw: tx, cycle: s.cycle}
+	if userID != 0 {
+		t.pregAlerts = &pregnancyEval{}
+	}
 	if s.startHook != nil && userID != 0 {
 		t.started = &bridgeStart{}
 	}
@@ -131,6 +137,9 @@ func (s *Service) inTxLocked(ctx context.Context, userID uint64, fn func(t *Serv
 	}
 	if st != nil && st.ok {
 		s.startHook(ctx, periods.StartEvent{UserID: userID, PeriodID: st.periodID, RevBefore: st.rev - min(st.rev, 1), RevAfter: st.rev})
+	}
+	if pe := t.pregAlerts; pe != nil && pe.pending {
+		s.evaluatePregnancyAlerts(ctx, userID, pe.locale, pe.now)
 	}
 	return nil
 }

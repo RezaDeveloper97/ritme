@@ -106,6 +106,12 @@ func (e *env) pregnant(t *testing.T, userID uint64) {
 		exec(`INSERT INTO pregnancy_alerts (user_id, alert_level, alert_type, title, message, created_at, updated_at)
 			VALUES (?, ?, 'v2:test', 't', 'm', '2026-09-20 09:00:00', '2026-09-20 09:00:00')`, userID, lvl)
 	}
+	// T-M10-08b: the pregnancy alerts of the message engine (preg.* inbox rows), open and resolved.
+	exec(`INSERT INTO message_inbox (user_id, rule_id, version, rule_key, kind, level, state, first_at, last_at, created_at, updated_at)
+		VALUES (?, 1, 1, 'preg.critical_symptom', 'safety', 'follow_soon', 'active', '2026-09-20 09:00:00', '2026-09-20 09:00:00',
+		'2026-09-20 09:00:00', '2026-09-20 09:00:00'),
+		(?, 2, 1, 'preg.vomiting', 'clinical', 'worth_followup', 'acknowledged', '2026-09-20 09:00:00', '2026-09-20 09:00:00',
+		'2026-09-20 09:00:00', '2026-09-20 09:00:00')`, userID, userID)
 	exec(`INSERT INTO reminders (user_id, type, title, recurrence, is_active, meta, created_at, updated_at) VALUES
 		(?, 'medication', 'Folic acid', 'daily', 1, '{"v":1,"duration":"pregnancy_end"}', '2026-09-01 09:00:00', '2026-09-01 09:00:00'),
 		(?, 'medication', 'Iron', 'daily', 1, '{"v":1,"duration":"ongoing"}', '2026-09-01 09:00:00', '2026-09-01 09:00:00')`, userID, userID)
@@ -190,6 +196,8 @@ func TestLoss_RecordStopsPregnancyContentDurably(t *testing.T) {
 	// Pregnancy mode off (the flag every pregnancy reader keys on), alerts closed, mode back to cycle.
 	assert.EqualValues(t, 0, e.scalar(t, `SELECT pregnancy_mode FROM pregnancy_profiles WHERE user_id = ?`, uid))
 	assert.EqualValues(t, 0, e.scalar(t, `SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND is_dismissed = 0`, uid))
+	assert.EqualValues(t, 0, e.scalar(t, `SELECT COUNT(*) FROM message_inbox WHERE user_id = ? AND rule_key LIKE 'preg.%' AND state <> 'archived'`, uid),
+		"the preg.* inbox rows are archived")
 	assert.Equal(t, "cycle", e.scalar(t, `SELECT life_mode FROM user_life_profiles WHERE user_id = ?`, uid))
 	// Pregnancy-only reminders paused / cancelled; the ordinary ones untouched.
 	assert.EqualValues(t, 0, e.scalar(t, `SELECT is_active FROM reminders WHERE user_id = ? AND title = 'Folic acid'`, uid))
@@ -404,6 +412,8 @@ func TestLoss_EraseAndConcurrency(t *testing.T) {
 	assert.Nil(t, e.do(t, http.MethodGet, "/api/v1/loss", tok, "").data()["loss"])
 	assert.EqualValues(t, 0, e.scalar(t, `SELECT pregnancy_mode FROM pregnancy_profiles WHERE user_id = ?`, uid))
 	assert.EqualValues(t, 0, e.scalar(t, `SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND is_dismissed = 0`, uid))
+	assert.EqualValues(t, 0, e.scalar(t, `SELECT COUNT(*) FROM message_inbox WHERE user_id = ? AND rule_key LIKE 'preg.%' AND state <> 'archived'`, uid),
+		"the preg.* inbox rows are archived")
 	assert.EqualValues(t, 0, e.scalar(t, `SELECT is_active FROM reminders WHERE user_id = ? AND title = 'Folic acid'`, uid))
 	assert.Equal(t, "cycle", e.scalar(t, `SELECT life_mode FROM user_life_profiles WHERE user_id = ?`, uid))
 	assert.Equal(t, http.StatusNotFound, e.do(t, http.MethodDelete, "/api/v1/loss/note", tok, "").status)

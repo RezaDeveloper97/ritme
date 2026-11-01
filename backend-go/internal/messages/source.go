@@ -19,7 +19,9 @@ import (
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/messages/facts"
+	"github.com/ritme/backend-go/internal/messages/feed"
 	"github.com/ritme/backend-go/internal/messages/manager"
+	"github.com/ritme/backend-go/internal/messages/pregnancyalerts/inboxalerts"
 	"github.com/ritme/backend-go/internal/messages/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/pregnancy"
@@ -28,6 +30,10 @@ import (
 	"github.com/ritme/backend-go/internal/vitals"
 	vstore "github.com/ritme/backend-go/internal/vitals/store"
 )
+
+// The feed renders a fanned-out preg.* inbox row (urgent_modal, status_banner) with its stored evidence in the
+// pregnancy alert copy's terms (localized digits, dates, symptom labels: inboxalerts.Render), T-M10-08b.
+func init() { feed.InstallEvidenceRenderer(inboxalerts.KeyPrefix, inboxalerts.Render) }
 
 // StoreSource is the sqlc-backed manager.Source for one user and request. It memoises every
 // read (Laravel's relation cache and HealthDataEngine's per-request caches) and builds the
@@ -52,6 +58,8 @@ type StoreSource struct {
 	factRow       *store.GetMessageFactProfileRow
 	factLoaded    bool
 	segs          SegmentResolver // T-M10-32: the saved admin segments (nil = the `segment` fact is empty)
+	pregAlert     *facts.PregnancyAlertInput
+	pregAlertDone bool
 }
 
 // SegmentResolver lists the ids of the saved admin segments a user matches at now (admin/segments.Resolver, T-M10-32).
@@ -380,6 +388,38 @@ func (s *StoreSource) PregnancyDating(ctx context.Context, day civildate.Date) (
 		return nil, nil
 	}
 	return &facts.PregnancyDating{Week: d.CurrentWeek(), Trimester: d.Trimester()}, nil
+}
+
+// PregnancyAlertInput implements facts.PregnancyAlertSource (T-M10-08b): the pregnancy alert detectors' input of an
+// active pregnancy, read by inboxalerts.Input — the same input the pregnancy alert paths evaluate the preg.* rules on,
+// so the feed's alerts inbox sees the preg.* facts (nil without an active pregnancy; one read per request).
+func (s *StoreSource) PregnancyAlertInput(ctx context.Context, _ civildate.Date) (*facts.PregnancyAlertInput, error) {
+	if s.pregAlertDone {
+		return s.pregAlert, nil
+	}
+	p, err := s.activePregnancy(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if p != nil {
+		if s.pregAlert, err = inboxalerts.Input(ctx, s.pq, s.q, s.userID, s.alertNow()); err != nil {
+			return nil, fmt.Errorf("messages: pregnancy alert input: %w", err)
+		}
+	}
+	s.pregAlertDone = true
+	return s.pregAlert, nil
+}
+
+// alertNow is the moment the pregnancy alert input is read at: the request time, else now when it falls on the
+// source's today, else the start of today in Tehran.
+func (s *StoreSource) alertNow() time.Time {
+	if !s.now.IsZero() {
+		return s.now
+	}
+	if now := time.Now(); civildate.InTehran(now) == s.today {
+		return now
+	}
+	return s.today.TehranMidnight()
 }
 
 // logsSince is the first day of the logs_30d window of the source's today.

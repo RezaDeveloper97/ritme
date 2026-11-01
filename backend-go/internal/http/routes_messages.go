@@ -22,6 +22,7 @@ import (
 	"github.com/ritme/backend-go/internal/messages/feed"
 	"github.com/ritme/backend-go/internal/messages/inbox"
 	"github.com/ritme/backend-go/internal/messages/menomessages"
+	"github.com/ritme/backend-go/internal/messages/pregnancyalerts/inboxalerts"
 	"github.com/ritme/backend-go/internal/messages/rules"
 	mstore "github.com/ritme/backend-go/internal/messages/store"
 	"github.com/ritme/backend-go/internal/modules"
@@ -39,6 +40,9 @@ func init() {
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		h := messages.NewHandlers(d.DB, clock.Real{}).WithEngine(engineStates(r, d)) // T-M9-38: v6 facts under shadow|v6
 		h.WithSegments(segments.NewResolver(d.DB))                                   // T-M10-32: the `segment` fact
+		// T-M10-08b: the pregnancy alert backend (preg.* rules on the inbox) no longer depends on the pregnancy-tools
+		// group registering; installing it twice is harmless (same pool).
+		inboxalerts.Install(d.DB, d.Logger)
 		const p = "/api/v1/messages"
 
 		// T-M10-06 (D-163): the buffered event log (drained before shutdown), the shown/eligible marks, the

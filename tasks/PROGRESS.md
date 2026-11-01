@@ -2618,3 +2618,11 @@ Nothing needed fixing.
 - Also: safetyreview int-test fixture rule ids moved to 9011/9012 (collided with the 00113 seeds).
 - Verify: sqlc, vet, unit + test-int safety and admin/safetyreview, lint, admin-web typecheck/lint/208 tests.
 - Open: a queued legacy `safety:nightly_scenarios` task archives once after deploy (no handler); T-M10-31 can alert on the gauge.
+
+## T-M10-08b — Pregnancy alerts off the legacy table: v1 list/summary/unread badge, healthlog flow alert, loss dismissal, feed preg facts
+- Shipped: v1 `GET /pregnancy/alerts`, `/{id}`, `/summary`, `POST /{id}/read|dismiss`, `/read-all` serve the preg.* `message_inbox` rows in the v1 PregnancyAlert shape (`internal/pregnancy/inbox_alerts.go`: served rule copy else code-held copy over the stored evidence; alert_type = rule name; urgent stays emergency; read = acknowledged, dismiss = archived) next to the legacy v1 rows written before T-M10-08 (`v2:%` excluded, already in the inbox) — so an old unread v1 emergency is never silenced. No code path inserts `pregnancy_alerts` any more.
+- v2 Today `unread_alerts` counts active preg.* inbox rows; `EndForLoss` archives the user's preg.* inbox rows; healthlog's pregnancy flow becomes the day's bleeding symptom and preg.critical_symptom is evaluated after the commit (inside the tx it deadlocked on the users row lock vs the inbox FK check). `pregnancy/alerts` keeps only MedicalHistoryFlags + flow severity helpers.
+- Feed: `StoreSource.PregnancyAlertInput` (feed facts include preg.*), feed fanOut renders urgent_modal / status_banner from the row's stored evidence (`feed.InstallEvidenceRenderer`); `inboxalerts.Install` also wired in routes_messages.go.
+- Contract: TEMPORARY summary entries removed; precise D-165 entries for `latest_emergency`; D-134 counts reasons updated. 429/0 over pregnancy, pregnancy-v2, pregnancy-tools, healthlog, loss, messages.
+- Verify: sqlc, vet, unit, test-int pregnancy/healthlog/loss/messages/http, lint.
+- Open → T-M10-08c: migrate the legacy v1 rows into the inbox and drop the legacy reads; feed modal for code-held locked rules whose row is missing/off.

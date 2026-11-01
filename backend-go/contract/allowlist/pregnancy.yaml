@@ -38,7 +38,8 @@ entries:
   # embedded fa/en copy when the admin message_contents row is missing — the contract dump has none, so before
   # T-M9-05 no v2 row was written there. v2 alerts share the pregnancy_alerts table (alert_type 'v2:<rule>',
   # T-M7-04), so the extra rows move the auto-increment ids of later v1 alerts and are counted by the legacy
-  # /pregnancy/alerts/summary. The v1 alerts in the responses are otherwise unchanged.
+  # /pregnancy/alerts/summary. The v1 alerts in the responses are otherwise unchanged. Since T-M10-08/08b (D-165) the
+  # counts below come from the preg.* message_inbox rows read next to the legacy v1 rows.
   - case: "weekly_store_upsert.*"
     step: 2
     where: data.alerts[*].id
@@ -53,17 +54,17 @@ entries:
     step: 2
     where: data.counts.total
     deviation: D-134
-    reason: three v2 critical_symptom rows (embedded copy) are counted next to the three v1 alerts
+    reason: the preg.* inbox rows (D-165) are counted next to the legacy v1 alerts
   - case: "symptoms_store_alerts.*"
     step: 2
     where: data.counts.unread
     deviation: D-134
-    reason: the v2 critical_symptom rows are unread
+    reason: the preg.* inbox critical_symptom row (D-165) is unread
   - case: "symptoms_store_alerts.*"
     step: 2
     where: data.counts.emergency
     deviation: D-134
-    reason: the v2 critical_symptom rows are emergency level
+    reason: the preg.* inbox critical_symptom row (D-165) is emergency level
 
   # D-169 (task T-M10-18, engine v6 M10, user OK 2026-10-21): the trimester is by completed days (SPEC v6 §3.1, ACOG
   # CO 700: T1 to 13+6, T2 14+0 … 27+6, T3 from 28+0, registry key pregnancy.trimester). Laravel's `weeks <= 12` put
@@ -120,17 +121,37 @@ entries:
     where: data.alerts.**
     deviation: D-165
     reason: the locked fetal_movement rule with the engine copy
-  # TEMPORARY (T-M10-08b removes these): /pregnancy/alerts/summary still reads the legacy pregnancy_alerts table, which
-  # the saves no longer write. T-M10-08b re-points the v1 list / summary / unread badge to the inbox.
+  # D-165 (task T-M10-08b): /pregnancy/alerts/summary reads the alerts inbox (preg.* rows) next to the legacy rows, so
+  # has_emergency / has_unread match Laravel again; latest_emergency is now the inbox row — the one merged
+  # critical_symptom alert (bleeding + fluid leakage + severe pain) with the engine copy, instead of Laravel's newest
+  # "Emergency: Heavy Bleeding" pregnancy_alerts row. Its level, read state, week and timestamps are unchanged.
   - case: "symptoms_store_alerts.*"
-    where: data.has_emergency
+    step: 2
+    where: data.latest_emergency.id
     deviation: D-165
-    reason: summary still on the legacy table until T-M10-08b
+    reason: the message_inbox id of the critical_symptom row
   - case: "symptoms_store_alerts.*"
-    where: data.has_unread
+    step: 2
+    where: data.latest_emergency.alert_type
     deviation: D-165
-    reason: summary still on the legacy table until T-M10-08b
+    reason: alert_type is the rule name (critical_symptom; Laravel symptom_based)
   - case: "symptoms_store_alerts.*"
-    where: data.latest_emergency.**
+    step: 2
+    where: data.latest_emergency.title
     deviation: D-165
-    reason: summary still on the legacy table until T-M10-08b
+    reason: engine copy of the merged critical symptom alert
+  - case: "symptoms_store_alerts.*"
+    step: 2
+    where: data.latest_emergency.message
+    deviation: D-165
+    reason: engine copy (contact the doctor or midwife now)
+  - case: "symptoms_store_alerts.*"
+    step: 2
+    where: data.latest_emergency.trigger_symptoms.*
+    deviation: D-165
+    reason: the evidence is every critical symptom logged (bools), one merged alert instead of one per symptom
+  - case: "symptoms_store_alerts.*"
+    step: 2
+    where: data.latest_emergency.recommended_actions[*]
+    deviation: D-165
+    reason: the rule's action labels (call the doctor or midwife, got it)

@@ -7,6 +7,8 @@ package healthlog_test
 
 import (
 	"fmt"
+	"io"
+	"log/slog"
 	"strconv"
 	"sync"
 	"testing"
@@ -14,6 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
+	"github.com/ritme/backend-go/internal/messages/pregnancyalerts/inboxalerts"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
@@ -229,10 +233,14 @@ func TestBridge_EditedRowBecomesUserLogged(t *testing.T) {
 		"the edited row is the user's, never rebuilt")
 }
 
-// Pregnancy mode: flow creates no period and keeps the LMP; it raises the bleeding alert once (a re-save or a
-// lighter value does not alert again; heavier flow does).
+// Pregnancy mode: flow creates no period and keeps the LMP; it is the day's bleeding symptom and raises the
+// preg.critical_symptom alert of the message engine — urgent (emergency in v1) whatever the flow, one inbox row (a
+// re-save or a lighter value changes nothing; a heavier flow raises the symptom severity). No pregnancy_alerts row.
 func TestBridge_PregnancyFlowAlertsOnly(t *testing.T) {
 	e := setupLogs(t)
+	quiet := slog.New(slog.NewTextHandler(io.Discard, nil))
+	inboxalerts.Install(e.db, quiet)
+	t.Cleanup(func() { pregnancyalerts.InstallBackend(nil) })
 	uid, tok := e.user(t, "09121002003", "")
 	e.withProfile(t, uid)
 	_, err := e.db.Exec(`UPDATE user_profiles SET last_period_start = '2026-07-01' WHERE user_id = ?`, uid)
@@ -240,30 +248,43 @@ func TestBridge_PregnancyFlowAlertsOnly(t *testing.T) {
 	_, err = e.db.Exec(`INSERT INTO pregnancy_profiles (user_id, pregnancy_mode, age_source, lmp_date, created_at, updated_at)
 		VALUES (?, 1, 'lmp', '2026-07-01', NOW(), NOW())`, uid)
 	require.NoError(t, err)
-	alerts := func() int {
-		return e.count(t, `SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type = 'symptom_based'`, uid)
+	rows := func() int {
+		return e.count(t, `SELECT COUNT(*) FROM message_inbox WHERE user_id = ? AND rule_key = 'preg.critical_symptom'`, uid)
+	}
+	severity := func() string {
+		var s string
+		require.NoError(t, e.db.QueryRow(`SELECT CONCAT(has_bleeding, ' ', bleeding_severity) FROM pregnancy_symptom_logs
+			WHERE user_id = ? AND log_date = '2026-09-20'`, uid).Scan(&s))
+		return s
 	}
 
 	e.bleed(t, tok, "2026-09-20")
 	assert.Empty(t, e.bridgeRows(t, uid), "no period in pregnancy")
 	assert.Equal(t, "2026-07-01", e.lmp(t, uid), "the LMP does not move")
-	assert.Equal(t, 1, alerts())
-	var level, trigger string
-	require.NoError(t, e.db.QueryRow(`SELECT alert_level, CAST(trigger_symptoms AS CHAR) FROM pregnancy_alerts WHERE user_id = ?`, uid).Scan(&level, &trigger))
-	assert.Equal(t, "warning", level)
-	assert.JSONEq(t, `{"bleeding":"moderate","flow":"medium","source":"day_log"}`, trigger)
+	assert.Equal(t, "1 moderate", severity(), "medium flow is a moderate bleeding symptom")
+	assert.Equal(t, 1, rows())
+	var level, state, evidence string
+	require.NoError(t, e.db.QueryRow(`SELECT level, state, CAST(evidence AS CHAR) FROM message_inbox WHERE user_id = ?
+		AND rule_key = 'preg.critical_symptom'`, uid).Scan(&level, &state, &evidence))
+	assert.Equal(t, "follow_soon", level, "bleeding in pregnancy is urgent")
+	assert.Equal(t, "active", state)
+	assert.Contains(t, evidence, "bleeding")
 
 	e.bleed(t, tok, "2026-09-20") // the same value again
-	assert.Equal(t, 1, alerts(), "raised once")
+	assert.Equal(t, 1, rows(), "raised once")
+	assert.Equal(t, 1, e.count(t, `SELECT hit_count FROM message_inbox WHERE user_id = ? AND rule_key = 'preg.critical_symptom'`, uid))
 
 	r := e.do(t, "PUT", "/api/v1/logs/days/2026-09-20", tok, "fa", `{"categories":{"bleeding":{"flow":"very_heavy"}}}`)
 	require.Equal(t, 200, r.status, r.raw)
-	assert.Equal(t, 2, alerts(), "heavier flow raises the emergency")
-	assert.Equal(t, 1, e.count(t, `SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_level = 'emergency'`, uid))
+	assert.Equal(t, "1 severe", severity(), "heavier flow raises the severity")
+	assert.Equal(t, 1, rows(), "still one urgent row")
 
 	e.clearFlow(t, tok, "2026-09-20")
 	assert.Empty(t, e.bridgeRows(t, uid))
-	assert.Equal(t, 2, alerts())
+	assert.Equal(t, "1 severe", severity(), "the recorded symptom stays")
+	assert.Equal(t, 1, e.count(t, `SELECT COUNT(*) FROM message_inbox WHERE user_id = ? AND rule_key = 'preg.critical_symptom'
+		AND state = 'active'`, uid), "the alert stays open")
+	assert.Zero(t, e.count(t, `SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid), "no legacy alert rows")
 }
 
 // Postpartum: flow is lochia before birth + 42 days (not offered, a 422 on the v2 sheet, ignored by the bridge on the

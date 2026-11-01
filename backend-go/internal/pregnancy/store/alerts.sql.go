@@ -12,6 +12,28 @@ import (
 	"github.com/ritme/backend-go/db"
 )
 
+const archivePregnancyInboxAlerts = `-- name: ArchivePregnancyInboxAlerts :execrows
+UPDATE ` + "`" + `message_inbox` + "`" + `
+SET state = 'archived', archived_at = ?, updated_at = ?
+WHERE user_id = ? AND rule_key LIKE 'preg.%'
+  AND state IN ('active', 'acknowledged', 'added_to_visit_note', 'resolved')
+`
+
+type ArchivePregnancyInboxAlertsParams struct {
+	Now    sql.NullTime
+	UserID uint64
+}
+
+// A pregnancy loss (CB-LOSS-01): every preg.* row not yet archived is archived, so no pregnancy alert outlives the
+// pregnancy as a badge, modal or nudge.
+func (q *Queries) ArchivePregnancyInboxAlerts(ctx context.Context, arg ArchivePregnancyInboxAlertsParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, archivePregnancyInboxAlerts, arg.Now, arg.Now, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const countActiveAlerts = `-- name: CountActiveAlerts :one
 SELECT
   COUNT(*) AS total,
@@ -20,7 +42,7 @@ SELECT
   CAST(COALESCE(SUM(alert_level = 'emergency' AND is_read = 0), 0) AS SIGNED) AS unread_emergency,
   CAST(COALESCE(SUM(alert_level = 'warning'), 0) AS SIGNED) AS warning,
   CAST(COALESCE(SUM(alert_level = 'info'), 0) AS SIGNED) AS info
-FROM ` + "`" + `pregnancy_alerts` + "`" + ` WHERE user_id = ? AND is_dismissed = 0
+FROM ` + "`" + `pregnancy_alerts` + "`" + ` WHERE user_id = ? AND is_dismissed = 0 AND alert_type NOT LIKE 'v2:%'
 `
 
 type CountActiveAlertsRow struct {
@@ -73,7 +95,7 @@ type DismissOpenAlertsParams struct {
 	UserID uint64
 }
 
-// A pregnancy loss (CB-LOSS-01) closes every open alert (v1 and v2): none may resurface as a badge or nudge.
+// A pregnancy loss (CB-LOSS-01) closes every open legacy alert: none may resurface as a badge or nudge.
 func (q *Queries) DismissOpenAlerts(ctx context.Context, arg DismissOpenAlertsParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, dismissOpenAlerts,
 		arg.Now,
@@ -87,8 +109,39 @@ func (q *Queries) DismissOpenAlerts(ctx context.Context, arg DismissOpenAlertsPa
 	return result.RowsAffected()
 }
 
+const dismissPregnancyInboxAlert = `-- name: DismissPregnancyInboxAlert :execrows
+UPDATE ` + "`" + `message_inbox` + "`" + `
+SET state = 'archived', acked_at = COALESCE(acked_at, ?), archived_at = ?,
+    updated_at = ?
+WHERE id = ? AND user_id = ? AND rule_key LIKE 'preg.%'
+  AND state IN ('active', 'acknowledged', 'added_to_visit_note', 'resolved')
+`
+
+type DismissPregnancyInboxAlertParams struct {
+	Now    sql.NullTime
+	ID     uint64
+	UserID uint64
+}
+
+// v1 dismiss: the row is archived. The user dismissed it herself, so an unacknowledged row is acknowledged with it
+// (the inbox's urgent-ack rule is met by the explicit action). Should the condition still hold, the next evaluation
+// opens a new row (M-16: archived is history).
+func (q *Queries) DismissPregnancyInboxAlert(ctx context.Context, arg DismissPregnancyInboxAlertParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, dismissPregnancyInboxAlert,
+		arg.Now,
+		arg.Now,
+		arg.Now,
+		arg.ID,
+		arg.UserID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const getAlert = `-- name: GetAlert :one
-SELECT id, user_id, alert_level, alert_type, title, message, pregnancy_week, trigger_symptoms, medical_history_flags, is_read, is_dismissed, read_at, dismissed_at, recommended_actions, created_at, updated_at FROM ` + "`" + `pregnancy_alerts` + "`" + ` WHERE user_id = ? AND id = ? LIMIT 1
+SELECT id, user_id, alert_level, alert_type, title, message, pregnancy_week, trigger_symptoms, medical_history_flags, is_read, is_dismissed, read_at, dismissed_at, recommended_actions, created_at, updated_at FROM ` + "`" + `pregnancy_alerts` + "`" + ` WHERE user_id = ? AND id = ? AND alert_type NOT LIKE 'v2:%' LIMIT 1
 `
 
 type GetAlertParams struct {
@@ -120,50 +173,107 @@ func (q *Queries) GetAlert(ctx context.Context, arg GetAlertParams) (PregnancyAl
 	return i, err
 }
 
-const insertAlert = `-- name: InsertAlert :execlastid
-INSERT INTO ` + "`" + `pregnancy_alerts` + "`" + ` (
-  user_id, alert_level, alert_type, title, message, pregnancy_week, trigger_symptoms, medical_history_flags,
-  recommended_actions, created_at, updated_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+const getPregnancyAlertRule = `-- name: GetPregnancyAlertRule :one
+SELECT id, title, level, kind, priority, placement, content, variants_enabled, ab_split, conditions, exceptions, cap_count, cap_period, cooldown_days, hours_from, hours_to, starts_on, ends_on, audience_percent, goal, status, is_active, version, approved_by, approved_at, created_by, created_at, updated_at, rule_key, approved_version, topics, caps, variants, starts_at, ends_at, hour_windows, goal_event, locked FROM ` + "`" + `message_rules` + "`" + ` WHERE id = ? LIMIT 1
 `
 
-type InsertAlertParams struct {
-	UserID              uint64
-	AlertLevel          string
-	AlertType           string
-	Title               string
-	Message             string
-	PregnancyWeek       sql.NullInt32
-	TriggerSymptoms     db.NullRawJSON
-	MedicalHistoryFlags db.NullRawJSON
-	RecommendedActions  db.NullRawJSON
-	CreatedAt           sql.NullTime
-	UpdatedAt           sql.NullTime
+// The message rule of an inbox row (its texts, whether it is served).
+func (q *Queries) GetPregnancyAlertRule(ctx context.Context, id uint64) (MessageRule, error) {
+	row := q.db.QueryRowContext(ctx, getPregnancyAlertRule, id)
+	var i MessageRule
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Level,
+		&i.Kind,
+		&i.Priority,
+		&i.Placement,
+		&i.Content,
+		&i.VariantsEnabled,
+		&i.AbSplit,
+		&i.Conditions,
+		&i.Exceptions,
+		&i.CapCount,
+		&i.CapPeriod,
+		&i.CooldownDays,
+		&i.HoursFrom,
+		&i.HoursTo,
+		&i.StartsOn,
+		&i.EndsOn,
+		&i.AudiencePercent,
+		&i.Goal,
+		&i.Status,
+		&i.IsActive,
+		&i.Version,
+		&i.ApprovedBy,
+		&i.ApprovedAt,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RuleKey,
+		&i.ApprovedVersion,
+		&i.Topics,
+		&i.Caps,
+		&i.Variants,
+		&i.StartsAt,
+		&i.EndsAt,
+		&i.HourWindows,
+		&i.GoalEvent,
+		&i.Locked,
+	)
+	return i, err
 }
 
-func (q *Queries) InsertAlert(ctx context.Context, arg InsertAlertParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, insertAlert,
-		arg.UserID,
-		arg.AlertLevel,
-		arg.AlertType,
-		arg.Title,
-		arg.Message,
-		arg.PregnancyWeek,
-		arg.TriggerSymptoms,
-		arg.MedicalHistoryFlags,
-		arg.RecommendedActions,
-		arg.CreatedAt,
-		arg.UpdatedAt,
+const getPregnancyInboxAlert = `-- name: GetPregnancyInboxAlert :one
+SELECT id, rule_id, rule_key, level, state, evidence, first_at, last_at, acked_at, noted_at, resolved_at, archived_at
+FROM ` + "`" + `message_inbox` + "`" + `
+WHERE id = ? AND user_id = ? AND rule_key LIKE 'preg.%'
+LIMIT 1
+`
+
+type GetPregnancyInboxAlertParams struct {
+	ID     uint64
+	UserID uint64
+}
+
+type GetPregnancyInboxAlertRow struct {
+	ID         uint64
+	RuleID     uint64
+	RuleKey    sql.NullString
+	Level      string
+	State      string
+	Evidence   db.NullRawJSON
+	FirstAt    sql.NullTime
+	LastAt     sql.NullTime
+	AckedAt    sql.NullTime
+	NotedAt    sql.NullTime
+	ResolvedAt sql.NullTime
+	ArchivedAt sql.NullTime
+}
+
+func (q *Queries) GetPregnancyInboxAlert(ctx context.Context, arg GetPregnancyInboxAlertParams) (GetPregnancyInboxAlertRow, error) {
+	row := q.db.QueryRowContext(ctx, getPregnancyInboxAlert, arg.ID, arg.UserID)
+	var i GetPregnancyInboxAlertRow
+	err := row.Scan(
+		&i.ID,
+		&i.RuleID,
+		&i.RuleKey,
+		&i.Level,
+		&i.State,
+		&i.Evidence,
+		&i.FirstAt,
+		&i.LastAt,
+		&i.AckedAt,
+		&i.NotedAt,
+		&i.ResolvedAt,
+		&i.ArchivedAt,
 	)
-	if err != nil {
-		return 0, err
-	}
-	return result.LastInsertId()
+	return i, err
 }
 
 const latestUnreadEmergencyAlert = `-- name: LatestUnreadEmergencyAlert :one
 SELECT id, user_id, alert_level, alert_type, title, message, pregnancy_week, trigger_symptoms, medical_history_flags, is_read, is_dismissed, read_at, dismissed_at, recommended_actions, created_at, updated_at FROM ` + "`" + `pregnancy_alerts` + "`" + `
-WHERE user_id = ? AND alert_level = 'emergency' AND is_read = 0 AND is_dismissed = 0
+WHERE user_id = ? AND alert_level = 'emergency' AND is_read = 0 AND is_dismissed = 0 AND alert_type NOT LIKE 'v2:%'
 ORDER BY created_at DESC LIMIT 1
 `
 
@@ -193,8 +303,9 @@ func (q *Queries) LatestUnreadEmergencyAlert(ctx context.Context, userID uint64)
 
 const listActiveAlerts = `-- name: ListActiveAlerts :many
 
+
 SELECT id, user_id, alert_level, alert_type, title, message, pregnancy_week, trigger_symptoms, medical_history_flags, is_read, is_dismissed, read_at, dismissed_at, recommended_actions, created_at, updated_at FROM ` + "`" + `pregnancy_alerts` + "`" + `
-WHERE user_id = ? AND is_dismissed = 0
+WHERE user_id = ? AND is_dismissed = 0 AND alert_type NOT LIKE 'v2:%'
   AND (? = '' OR alert_level = ?)
   AND (? = 0 OR is_read = 0)
 ORDER BY created_at DESC
@@ -206,8 +317,19 @@ type ListActiveAlertsParams struct {
 	UnreadOnly interface{}
 }
 
-// PregnancyAlert (App\Models\PregnancyAlert). Scopes: active = is_dismissed 0, unread = is_read 0.
-// Ordering mirrors Laravel's orderBy('created_at', 'desc') (no tie-breaker).
+// The v1 pregnancy alert endpoints (PregnancyAlertController: GET /pregnancy/alerts, /alerts/summary, /alerts/{id},
+// POST /alerts/{id}/read|dismiss, /alerts/read-all) over two sources (T-M10-08b, D-165):
+//   - the alerts inbox: every pregnancy alert since T-M10-08 is a message_inbox row of a preg.* rule (one open row per
+//     rule; read = acknowledged, dismiss = archived; resolved rows are history the v1 list still shows, as Laravel
+//     showed every alert not dismissed);
+//   - the legacy pregnancy_alerts rows (PregnancyAlert, App\Models\PregnancyAlert) the retired v1 rules wrote before
+//     T-M10-08 (Laravel included). Nothing inserts them any more; they keep their read / dismiss lifecycle so an
+//     unread legacy emergency is never hidden. v2 rows (alert_type 'v2:<rule>') were moved into the inbox by goose
+//     00113 and are left out here, so no alert is listed twice.
+//
+// Every query is scoped by user_id. Legacy scopes: active = is_dismissed 0, unread = is_read 0; Laravel's
+// orderBy('created_at', 'desc') (no tie-breaker).
+// ---------------- legacy pregnancy_alerts (read / lifecycle only) ----------------
 func (q *Queries) ListActiveAlerts(ctx context.Context, arg ListActiveAlertsParams) ([]PregnancyAlert, error) {
 	rows, err := q.db.QueryContext(ctx, listActiveAlerts,
 		arg.UserID,
@@ -253,6 +375,69 @@ func (q *Queries) ListActiveAlerts(ctx context.Context, arg ListActiveAlertsPara
 	return items, nil
 }
 
+const listPregnancyInboxAlerts = `-- name: ListPregnancyInboxAlerts :many
+
+SELECT id, rule_id, rule_key, level, state, evidence, first_at, last_at, acked_at, noted_at, resolved_at, archived_at
+FROM ` + "`" + `message_inbox` + "`" + `
+WHERE user_id = ? AND rule_key LIKE 'preg.%'
+  AND state IN ('active', 'acknowledged', 'added_to_visit_note', 'resolved')
+ORDER BY last_at DESC, id DESC
+`
+
+type ListPregnancyInboxAlertsRow struct {
+	ID         uint64
+	RuleID     uint64
+	RuleKey    sql.NullString
+	Level      string
+	State      string
+	Evidence   db.NullRawJSON
+	FirstAt    sql.NullTime
+	LastAt     sql.NullTime
+	AckedAt    sql.NullTime
+	NotedAt    sql.NullTime
+	ResolvedAt sql.NullTime
+	ArchivedAt sql.NullTime
+}
+
+// ---------------- the alerts inbox (preg.* rows) ----------------
+// The user's preg.* inbox rows the v1 list shows: open (active, acknowledged, added_to_visit_note) and resolved —
+// everything not archived (= not dismissed). Newest activity first.
+func (q *Queries) ListPregnancyInboxAlerts(ctx context.Context, userID uint64) ([]ListPregnancyInboxAlertsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPregnancyInboxAlerts, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPregnancyInboxAlertsRow{}
+	for rows.Next() {
+		var i ListPregnancyInboxAlertsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.RuleID,
+			&i.RuleKey,
+			&i.Level,
+			&i.State,
+			&i.Evidence,
+			&i.FirstAt,
+			&i.LastAt,
+			&i.AckedAt,
+			&i.NotedAt,
+			&i.ResolvedAt,
+			&i.ArchivedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const markAlertRead = `-- name: MarkAlertRead :exec
 UPDATE ` + "`" + `pregnancy_alerts` + "`" + ` SET is_read = 1, read_at = ?, updated_at = ? WHERE id = ?
 `
@@ -269,7 +454,8 @@ func (q *Queries) MarkAlertRead(ctx context.Context, arg MarkAlertReadParams) er
 }
 
 const markAllAlertsRead = `-- name: MarkAllAlertsRead :execrows
-UPDATE ` + "`" + `pregnancy_alerts` + "`" + ` SET is_read = 1, read_at = ?, updated_at = ? WHERE user_id = ? AND is_read = 0
+UPDATE ` + "`" + `pregnancy_alerts` + "`" + ` SET is_read = 1, read_at = ?, updated_at = ?
+WHERE user_id = ? AND is_read = 0 AND alert_type NOT LIKE 'v2:%'
 `
 
 type MarkAllAlertsReadParams struct {
@@ -280,6 +466,52 @@ type MarkAllAlertsReadParams struct {
 
 func (q *Queries) MarkAllAlertsRead(ctx context.Context, arg MarkAllAlertsReadParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, markAllAlertsRead, arg.ReadAt, arg.UpdatedAt, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const readAllPregnancyInboxAlerts = `-- name: ReadAllPregnancyInboxAlerts :execrows
+UPDATE ` + "`" + `message_inbox` + "`" + `
+SET state = 'acknowledged', acked_at = ?, updated_at = ?
+WHERE user_id = ? AND rule_key LIKE 'preg.%' AND state = 'active'
+`
+
+type ReadAllPregnancyInboxAlertsParams struct {
+	Now    sql.NullTime
+	UserID uint64
+}
+
+// v1 read-all: every active preg.* row becomes acknowledged.
+func (q *Queries) ReadAllPregnancyInboxAlerts(ctx context.Context, arg ReadAllPregnancyInboxAlertsParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, readAllPregnancyInboxAlerts, arg.Now, arg.Now, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const readPregnancyInboxAlert = `-- name: ReadPregnancyInboxAlert :execrows
+UPDATE ` + "`" + `message_inbox` + "`" + `
+SET state = 'acknowledged', acked_at = ?, updated_at = ?
+WHERE id = ? AND user_id = ? AND rule_key LIKE 'preg.%' AND state = 'active'
+`
+
+type ReadPregnancyInboxAlertParams struct {
+	Now    sql.NullTime
+	ID     uint64
+	UserID uint64
+}
+
+// v1 read: an active row becomes acknowledged (the inbox ack); a row already read stays as it is.
+func (q *Queries) ReadPregnancyInboxAlert(ctx context.Context, arg ReadPregnancyInboxAlertParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, readPregnancyInboxAlert,
+		arg.Now,
+		arg.Now,
+		arg.ID,
+		arg.UserID,
+	)
 	if err != nil {
 		return 0, err
 	}

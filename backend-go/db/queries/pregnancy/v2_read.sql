@@ -2,16 +2,16 @@
 -- rows it reads. Every user-scoped query filters by user_id.
 
 -- name: GetV2TodayExtras :one
--- One row for the Today screen: the unread (not dismissed) alert count, the next upcoming non-cancelled
+-- One row for the Today screen: the unread alert count, the next upcoming non-cancelled
 -- M3 appointment at or after `now`, and the first active care-plan item whose week window has not ended
 -- (the next-visit fallback). The users row only anchors the single result row.
--- The count covers exactly what GET /pregnancy/v2/alerts lists (ListV2AlertsSince): v2 rows created at
--- or after `alerts_since`. Legacy v1 rows (e.g. `symptom_based`) are never shown there, so they must
--- not inflate the badge either (QA 2026-09-29-c L1).
+-- The count is the unread pregnancy alerts of GET /pregnancy/v2/alerts (T-M10-08b, D-165): the active preg.* rows of
+-- the alerts inbox (is_read = state <> active there). An active row is always open and the v2 list shows open rows
+-- whatever their age, so `alerts_since` never hides one (the open_flag term); it stays in the signature for the callers.
 SELECT
-  (SELECT COUNT(*) FROM `pregnancy_alerts` pa
-    WHERE pa.user_id = sqlc.arg(user_id) AND pa.is_dismissed = 0 AND pa.is_read = 0
-      AND pa.alert_type LIKE 'v2:%' AND pa.created_at >= sqlc.arg(alerts_since)) AS unread_alerts,
+  (SELECT COUNT(*) FROM `message_inbox` mi
+    WHERE mi.user_id = sqlc.arg(user_id) AND mi.rule_key LIKE 'preg.%' AND mi.state = 'active'
+      AND (mi.last_at IS NULL OR mi.last_at >= sqlc.arg(alerts_since) OR mi.open_flag = 1)) AS unread_alerts,
   a.id AS appointment_id,
   a.title AS appointment_title,
   a.scheduled_at AS appointment_at,

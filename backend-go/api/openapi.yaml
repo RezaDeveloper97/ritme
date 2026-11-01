@@ -11189,7 +11189,10 @@ paths:
     get:
       tags: [Pregnancy]
       summary: Get pregnancy alerts
-      description: Retrieve all active pregnancy alerts for the authenticated user
+      description: >-
+        Every pregnancy alert not dismissed, newest first (T-M10-08b, D-165): the `preg.*` rows of the alerts inbox
+        (`id` is the `message_inbox` id, `alert_type` the rule name, title / message the engine copy, `is_read` =
+        acknowledged) next to the legacy `pregnancy_alerts` rows written before T-M10-08. Counts ignore the filters.
       operationId: getPregnancyAlerts
       security:
         - {bearerAuth: []}
@@ -11302,7 +11305,7 @@ paths:
     post:
       tags: [Pregnancy]
       summary: Mark all alerts as read
-      description: Mark all pregnancy alerts as read
+      description: Mark all pregnancy alerts as read (active inbox rows are acknowledged; `count` covers both sources)
       operationId: postPregnancyAlertsReadAll
       security:
         - {bearerAuth: []}
@@ -11328,7 +11331,9 @@ paths:
     get:
       tags: [Pregnancy]
       summary: Get alerts summary
-      description: Get a summary of pregnancy alerts including counts and emergency status
+      description: >-
+        Counts and emergency status over the alerts inbox (`preg.*` rows) and the legacy rows (T-M10-08b, D-165):
+        `has_emergency` is an unread (not acknowledged) urgent alert, `latest_emergency` the newest one.
       operationId: getPregnancyAlertsSummary
       security:
         - {bearerAuth: []}
@@ -11541,7 +11546,7 @@ paths:
     post:
       tags: [Pregnancy]
       summary: Dismiss alert
-      description: Dismiss a specific pregnancy alert
+      description: Dismiss a pregnancy alert (an inbox row is archived and acknowledged with it, D-165)
       operationId: postPregnancyAlertsByIdDismiss
       security:
         - {bearerAuth: []}
@@ -11576,7 +11581,7 @@ paths:
     post:
       tags: [Pregnancy]
       summary: Mark alert as read
-      description: Mark a specific pregnancy alert as read
+      description: Mark a pregnancy alert as read (an inbox row is acknowledged, D-165)
       operationId: postPregnancyAlertsByIdRead
       security:
         - {bearerAuth: []}

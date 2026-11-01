@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -98,4 +100,37 @@ func TestFeed_InboxErrorKeepsCounts(t *testing.T) {
 	res := buildWith(t, &fakeInbox{err: errors.New("boom")})
 	assert.Equal(t, Alerts{}, res.Alerts)
 	assert.Empty(t, slotOf(res, "urgent_modal").Choices)
+}
+
+// T-M10-08b: an open row of a rule with an evidence renderer (the preg.* alerts) renders with its stored evidence over
+// the facts, in the renderer's terms; without one (or with a variable missing) it falls back to the fact render.
+func TestRenderOpen_StoredEvidence(t *testing.T) {
+	InstallEvidenceRenderer("preg.", func(text string, vars map[string]any, _ string) string {
+		for _, name := range rules.Placeholders(text) {
+			if v, ok := vars[name]; ok {
+				text = strings.ReplaceAll(text, "{"+name+"}", "<"+fmt.Sprint(v)+">")
+			}
+		}
+		return text
+	})
+	t.Cleanup(func() { InstallEvidenceRenderer("preg.", nil) })
+	v := rules.Variant{Title: "Logged {preg_symptoms}", Body: "Week {preg_week}"}
+	f := rules.Facts{"preg_week": 20.0}
+	preg := &OpenAlert{ID: 7, Rule: &rules.Rule{ID: 1, RuleKey: "preg.critical_symptom"}}
+	ev := openEvidence{7: {"preg_symptoms": "bleeding"}}
+
+	out, ok := renderOpen(v, preg, ev, f, "en")
+	require.True(t, ok)
+	assert.Equal(t, "Logged <bleeding>", out.Title, "the stored evidence")
+	assert.Equal(t, "Week <20>", out.Body, "the facts fill what the evidence lacks")
+
+	// No stored evidence and no fact: not renderable.
+	_, ok = renderOpen(v, preg, nil, f, "en")
+	assert.False(t, ok)
+
+	// Another domain's rule: the plain fact render.
+	other := &OpenAlert{ID: 8, Rule: &rules.Rule{ID: 2, RuleKey: "cycle.late"}}
+	out, ok = renderOpen(rules.Variant{Title: "Week {preg_week}"}, other, ev, f, "en")
+	require.True(t, ok)
+	assert.Equal(t, "Week 20", out.Title)
 }

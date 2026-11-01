@@ -7,97 +7,10 @@ package store
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 
-	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
-
-const ackV2Alert = `-- name: AckV2Alert :exec
-UPDATE ` + "`" + `pregnancy_alerts` + "`" + `
-SET is_read = 1, read_at = COALESCE(read_at, ?), is_dismissed = 1,
-    dismissed_at = COALESCE(dismissed_at, ?), updated_at = ?
-WHERE user_id = ? AND id = ?
-`
-
-type AckV2AlertParams struct {
-	Now    sql.NullTime
-	UserID uint64
-	ID     uint64
-}
-
-// Action ack («دیدم، ممنون»): read + dismissed (hidden from the v1 active list too).
-func (q *Queries) AckV2Alert(ctx context.Context, arg AckV2AlertParams) error {
-	_, err := q.db.ExecContext(ctx, ackV2Alert,
-		arg.Now,
-		arg.Now,
-		arg.Now,
-		arg.UserID,
-		arg.ID,
-	)
-	return err
-}
-
-const countV2AlertDedupe = `-- name: CountV2AlertDedupe :one
-SELECT COUNT(*) FROM ` + "`" + `pregnancy_alerts` + "`" + `
-WHERE user_id = ? AND alert_type = ? AND created_at >= ?
-  AND JSON_UNQUOTE(JSON_EXTRACT(trigger_symptoms, '$.dedupe')) = CAST(? AS CHAR)
-`
-
-type CountV2AlertDedupeParams struct {
-	UserID    uint64
-	AlertType string
-	Since     sql.NullTime
-	Dedupe    interface{}
-}
-
-// Dedupe: how many alerts of one rule with the same dedupe key exist since `since`.
-func (q *Queries) CountV2AlertDedupe(ctx context.Context, arg CountV2AlertDedupeParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countV2AlertDedupe,
-		arg.UserID,
-		arg.AlertType,
-		arg.Since,
-		arg.Dedupe,
-	)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
-}
-
-const getV2Alert = `-- name: GetV2Alert :one
-SELECT id, user_id, alert_level, alert_type, title, message, pregnancy_week, trigger_symptoms, medical_history_flags, is_read, is_dismissed, read_at, dismissed_at, recommended_actions, created_at, updated_at FROM ` + "`" + `pregnancy_alerts` + "`" + `
-WHERE user_id = ? AND id = ? AND alert_type LIKE 'v2:%' LIMIT 1
-`
-
-type GetV2AlertParams struct {
-	UserID uint64
-	ID     uint64
-}
-
-func (q *Queries) GetV2Alert(ctx context.Context, arg GetV2AlertParams) (PregnancyAlert, error) {
-	row := q.db.QueryRowContext(ctx, getV2Alert, arg.UserID, arg.ID)
-	var i PregnancyAlert
-	err := row.Scan(
-		&i.ID,
-		&i.UserID,
-		&i.AlertLevel,
-		&i.AlertType,
-		&i.Title,
-		&i.Message,
-		&i.PregnancyWeek,
-		&i.TriggerSymptoms,
-		&i.MedicalHistoryFlags,
-		&i.IsRead,
-		&i.IsDismissed,
-		&i.ReadAt,
-		&i.DismissedAt,
-		&i.RecommendedActions,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
-}
 
 const listLiveMessageGroup = `-- name: ListLiveMessageGroup :many
 
@@ -112,9 +25,9 @@ type ListLiveMessageGroupRow struct {
 	Payload json.RawMessage
 }
 
-// Pregnancy v2 alert rules (T-M7-04, internal/messages/pregnancyalerts). v2 rows live in pregnancy_alerts
-// with alert_type = 'v2:<rule_key>' and their v2 metadata (level4, dedupe key, placeholder values) in
-// trigger_symptoms. Every user-scoped query filters by user_id.
+// Pregnancy alert rule inputs (internal/messages/pregnancyalerts): the legend / contact rows of message_contents and the
+// weekly logs the detectors read. The alerts themselves are message_inbox rows since T-M10-08 (D-165; alerts.sql).
+// Every user-scoped query filters by user_id.
 // Every live (active + approved) row of one message_contents group, all locales (rules + legend).
 func (q *Queries) ListLiveMessageGroup(ctx context.Context, messageGroup string) ([]ListLiveMessageGroupRow, error) {
 	rows, err := q.db.QueryContext(ctx, listLiveMessageGroup, messageGroup)
@@ -126,119 +39,6 @@ func (q *Queries) ListLiveMessageGroup(ctx context.Context, messageGroup string)
 	for rows.Next() {
 		var i ListLiveMessageGroupRow
 		if err := rows.Scan(&i.ItemKey, &i.Locale, &i.Payload); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listV2AlertsByDedupe = `-- name: ListV2AlertsByDedupe :many
-SELECT id, user_id, alert_level, alert_type, title, message, pregnancy_week, trigger_symptoms, medical_history_flags, is_read, is_dismissed, read_at, dismissed_at, recommended_actions, created_at, updated_at FROM ` + "`" + `pregnancy_alerts` + "`" + `
-WHERE user_id = ? AND alert_type = ? AND created_at >= ?
-  AND JSON_UNQUOTE(JSON_EXTRACT(trigger_symptoms, '$.dedupe')) = CAST(? AS CHAR)
-ORDER BY id
-`
-
-type ListV2AlertsByDedupeParams struct {
-	UserID    uint64
-	AlertType string
-	Since     sql.NullTime
-	Dedupe    interface{}
-}
-
-// The alerts behind CountV2AlertDedupe (same filter), for the rules whose facts come from the dating
-// (week_entered): a re-dating refreshes their stored placeholders and fact date (QA 2026-09-29-c L5).
-func (q *Queries) ListV2AlertsByDedupe(ctx context.Context, arg ListV2AlertsByDedupeParams) ([]PregnancyAlert, error) {
-	rows, err := q.db.QueryContext(ctx, listV2AlertsByDedupe,
-		arg.UserID,
-		arg.AlertType,
-		arg.Since,
-		arg.Dedupe,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []PregnancyAlert{}
-	for rows.Next() {
-		var i PregnancyAlert
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.AlertLevel,
-			&i.AlertType,
-			&i.Title,
-			&i.Message,
-			&i.PregnancyWeek,
-			&i.TriggerSymptoms,
-			&i.MedicalHistoryFlags,
-			&i.IsRead,
-			&i.IsDismissed,
-			&i.ReadAt,
-			&i.DismissedAt,
-			&i.RecommendedActions,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listV2AlertsSince = `-- name: ListV2AlertsSince :many
-SELECT id, user_id, alert_level, alert_type, title, message, pregnancy_week, trigger_symptoms, medical_history_flags, is_read, is_dismissed, read_at, dismissed_at, recommended_actions, created_at, updated_at FROM ` + "`" + `pregnancy_alerts` + "`" + `
-WHERE user_id = ? AND alert_type LIKE 'v2:%' AND created_at >= ?
-ORDER BY created_at DESC, id DESC
-`
-
-type ListV2AlertsSinceParams struct {
-	UserID uint64
-	Since  sql.NullTime
-}
-
-// The user's v2 alerts created at or after `since`, newest first (dismissed = acked ones included).
-func (q *Queries) ListV2AlertsSince(ctx context.Context, arg ListV2AlertsSinceParams) ([]PregnancyAlert, error) {
-	rows, err := q.db.QueryContext(ctx, listV2AlertsSince, arg.UserID, arg.Since)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []PregnancyAlert{}
-	for rows.Next() {
-		var i PregnancyAlert
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.AlertLevel,
-			&i.AlertType,
-			&i.Title,
-			&i.Message,
-			&i.PregnancyWeek,
-			&i.TriggerSymptoms,
-			&i.MedicalHistoryFlags,
-			&i.IsRead,
-			&i.IsDismissed,
-			&i.ReadAt,
-			&i.DismissedAt,
-			&i.RecommendedActions,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -309,55 +109,4 @@ func (q *Queries) ListV2WeeklyLogsSince(ctx context.Context, arg ListV2WeeklyLog
 		return nil, err
 	}
 	return items, nil
-}
-
-const markV2AlertRead = `-- name: MarkV2AlertRead :exec
-UPDATE ` + "`" + `pregnancy_alerts` + "`" + ` SET is_read = 1, read_at = COALESCE(read_at, ?), updated_at = ?
-WHERE user_id = ? AND id = ?
-`
-
-type MarkV2AlertReadParams struct {
-	Now    sql.NullTime
-	UserID uint64
-	ID     uint64
-}
-
-func (q *Queries) MarkV2AlertRead(ctx context.Context, arg MarkV2AlertReadParams) error {
-	_, err := q.db.ExecContext(ctx, markV2AlertRead,
-		arg.Now,
-		arg.Now,
-		arg.UserID,
-		arg.ID,
-	)
-	return err
-}
-
-const refreshV2AlertFacts = `-- name: RefreshV2AlertFacts :exec
-UPDATE ` + "`" + `pregnancy_alerts` + "`" + `
-SET title = ?, message = ?, trigger_symptoms = ?,
-    updated_at = ?
-WHERE user_id = ? AND id = ?
-`
-
-type RefreshV2AlertFactsParams struct {
-	Title           string
-	Message         string
-	TriggerSymptoms db.NullRawJSON
-	Now             sql.NullTime
-	UserID          uint64
-	ID              uint64
-}
-
-// Rewrites the facts of one v2 alert (v2 metadata + the stored fallback title / message); the read and
-// ack state are kept.
-func (q *Queries) RefreshV2AlertFacts(ctx context.Context, arg RefreshV2AlertFactsParams) error {
-	_, err := q.db.ExecContext(ctx, refreshV2AlertFacts,
-		arg.Title,
-		arg.Message,
-		arg.TriggerSymptoms,
-		arg.Now,
-		arg.UserID,
-		arg.ID,
-	)
-	return err
 }

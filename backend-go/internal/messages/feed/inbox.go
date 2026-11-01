@@ -2,7 +2,11 @@ package feed
 
 import (
 	"context"
+	"encoding/json"
+	"maps"
 	"slices"
+	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -96,8 +100,8 @@ func countOpen(open []OpenAlert) Alerts {
 // fanOut adds the open inbox rows to the slots SPEC §5.4.1 mirrors them in: an unacknowledged open safety row goes
 // first in urgent_modal (it stays there until acknowledged); an open engine row fills an empty status_banner. A row
 // whose text cannot be rendered is skipped; the slot keeps its capacity.
-func fanOut(slot string, winners []rules.Choice, texts []rules.Variant, open []OpenAlert, x *extras, f rules.Facts,
-	locale string, userID uint64,
+func fanOut(slot string, winners []rules.Choice, texts []rules.Variant, open []OpenAlert, ev openEvidence, x *extras,
+	f rules.Facts, locale string, userID uint64,
 ) ([]rules.Choice, []rules.Variant, map[uint64]uint64) {
 	var pick func(o *OpenAlert) bool
 	first := false
@@ -122,7 +126,7 @@ func fanOut(slot string, winners []rules.Choice, texts []rules.Variant, open []O
 			continue
 		}
 		ch := rules.Choice{Rule: o.Rule, Variant: o.Rule.Assign(userID)}
-		v, ok := rules.RenderVariant(x.text(ch.Rule, ch.Variant, locale), f)
+		v, ok := renderOpen(x.text(ch.Rule, ch.Variant, locale), o, ev, f, locale)
 		if !ok {
 			continue
 		}
@@ -141,6 +145,94 @@ func fanOut(slot string, winners []rules.Choice, texts []rules.Variant, open []O
 	}
 	n := capacity(slot, len(outW))
 	return outW[:min(n, len(outW))], outT[:min(n, len(outT))], ids
+}
+
+// EvidenceRenderer renders text with an inbox row's variables in locale (a missing variable stays as written).
+type EvidenceRenderer func(text string, vars map[string]any, locale string) string
+
+var (
+	renderersMu sync.Mutex
+	renderers   atomic.Pointer[map[string]EvidenceRenderer] // rule_key prefix → renderer
+)
+
+// InstallEvidenceRenderer makes fanOut render the open rows of the rules whose rule_key starts with prefix through fn,
+// with the row's stored evidence over the request's facts (the pregnancy alerts: inboxalerts.Render, T-M10-08b) — the
+// text says what the alert was raised for, in that domain's localized terms. nil removes the prefix.
+func InstallEvidenceRenderer(prefix string, fn EvidenceRenderer) {
+	renderersMu.Lock()
+	defer renderersMu.Unlock()
+	next := map[string]EvidenceRenderer{}
+	if cur := renderers.Load(); cur != nil {
+		maps.Copy(next, *cur)
+	}
+	if fn == nil {
+		delete(next, prefix)
+	} else {
+		next[prefix] = fn
+	}
+	renderers.Store(&next)
+}
+
+// rendererOf is the evidence renderer of a rule key (nil = the plain fact render).
+func rendererOf(key string) EvidenceRenderer {
+	cur := renderers.Load()
+	if cur == nil || key == "" {
+		return nil
+	}
+	for prefix, fn := range *cur {
+		if strings.HasPrefix(key, prefix) {
+			return fn
+		}
+	}
+	return nil
+}
+
+// openEvidence are the stored evidence variables of open inbox rows, by row id.
+type openEvidence map[uint64]map[string]any
+
+// evidenceOf reads the stored evidence of the open rows an evidence renderer renders (one query, only when one of
+// them was not written by this evaluation; nil otherwise).
+func (s *Service) evidenceOf(ctx context.Context, userID uint64, open []OpenAlert) (openEvidence, error) {
+	need := false
+	for i := range open {
+		if open[i].ID != 0 && open[i].Rule != nil && rendererOf(open[i].Rule.RuleKey) != nil {
+			need = true
+			break
+		}
+	}
+	if !need {
+		return nil, nil
+	}
+	rows, err := s.q.ListUserOpenInbox(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	out := openEvidence{}
+	for _, r := range rows {
+		var d struct {
+			Vars map[string]any `json:"vars"`
+		}
+		if r.Evidence.Valid && json.Unmarshal(r.Evidence.V, &d) == nil && d.Vars != nil {
+			out[r.ID] = d.Vars
+		}
+	}
+	return out, nil
+}
+
+// renderOpen renders a fanned-out open row: through its rule's evidence renderer with the stored evidence over the
+// facts when it has one and every variable fills, else the plain fact render.
+func renderOpen(v rules.Variant, o *OpenAlert, ev openEvidence, f rules.Facts, locale string) (rules.Variant, bool) {
+	if fn := rendererOf(o.Rule.RuleKey); fn != nil {
+		vars := make(map[string]any, len(f)+len(ev[o.ID]))
+		maps.Copy(vars, f)
+		maps.Copy(vars, ev[o.ID])
+		out := v
+		out.Title, out.Body, out.CTALabel = fn(v.Title, vars, locale), fn(v.Body, vars, locale), fn(v.CTALabel, vars, locale)
+		if len(rules.Placeholders(out.Title, out.Body, out.CTALabel)) == 0 {
+			return out, true
+		}
+	}
+	return rules.RenderVariant(v, f)
 }
 
 func containsRule(chs []rules.Choice, id uint64) bool {

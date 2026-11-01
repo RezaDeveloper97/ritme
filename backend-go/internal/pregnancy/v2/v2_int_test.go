@@ -259,24 +259,29 @@ func TestToday(t *testing.T) {
 	assert.Nil(t, r.data()["next_visit"].(map[string]any)["appointment_id"], "cancelled → care-plan fallback")
 }
 
-// QA 2026-09-29-c L1: the badge counts exactly what the Alerts screen lists — unread, not dismissed
-// v2 rows of the last AlertsWindowDays days — never legacy v1 rows (symptom_based) nor older v2 rows.
+// QA 2026-09-29-c L1, T-M10-08b (D-165): the badge counts exactly the unread alerts the Alerts screen lists — the active
+// preg.* rows of the alerts inbox (is_read = state ≠ active), whatever their age; never a read, resolved or archived
+// row, another domain's inbox row, or a legacy pregnancy_alerts row.
 func TestToday_UnreadAlertsMatchAlertsList(t *testing.T) {
 	e := setup(t)
 	uid, tok := e.lmpUser(t, "09120000705", "2026-07-01")
-	ins := func(typ, level, created string, read, dismissed int) {
+	ins := func(rule, level, state, last string) {
 		t.Helper()
-		_, err := e.db.Exec(`INSERT INTO pregnancy_alerts (user_id, alert_level, alert_type, title, message, pregnancy_week,
-			is_read, is_dismissed, created_at, updated_at) VALUES (?, ?, ?, 't', 'm', 13, ?, ?, ?, ?)`,
-			uid, level, typ, read, dismissed, created, created)
+		_, err := e.db.Exec(`INSERT INTO message_inbox (user_id, rule_id, version, rule_key, kind, level, state, first_at, last_at,
+			created_at, updated_at) VALUES (?, ?, 1, ?, 'clinical', ?, ?, ?, ?, ?, ?)`,
+			uid, len(rule)*10+len(state), rule, level, state, last, last, last, last)
 		require.NoError(t, err)
 	}
-	ins("v2:week_entered", "info", "2026-09-23 08:00:00", 0, 0)          // counted
-	ins("v2:critical_symptom", "emergency", "2026-09-17 00:00:00", 0, 0) // first day of the window: counted
-	ins("symptom_based", "emergency", "2026-09-23 08:00:00", 0, 0)       // legacy v1: never listed
-	ins("v2:weight_missing_week", "info", "2026-09-16 23:59:59", 0, 0)   // before the window
-	ins("v2:week_entered", "info", "2026-09-22 08:00:00", 1, 0)          // read
-	ins("v2:critical_symptom", "warning", "2026-09-22 08:00:00", 0, 1)   // dismissed (acked)
+	ins("preg.week_entered", "info", "active", "2026-09-23 08:00:00")             // counted
+	ins("preg.critical_symptom", "follow_soon", "active", "2026-09-01 00:00:00")  // open, older than the window: counted
+	ins("preg.vomiting", "worth_followup", "acknowledged", "2026-09-22 08:00:00") // read
+	ins("preg.gdm", "worth_followup", "resolved", "2026-09-22 08:00:00")          // history
+	ins("preg.bp_high", "worth_followup", "archived", "2026-09-22 08:00:00")      // dismissed
+	ins("cycle.late", "worth_followup", "active", "2026-09-22 08:00:00")          // not a pregnancy alert
+	_, err := e.db.Exec(`INSERT INTO pregnancy_alerts (user_id, alert_level, alert_type, title, message, pregnancy_week,
+		is_read, is_dismissed, created_at, updated_at) VALUES (?, 'emergency', 'symptom_based', 't', 'm', 13, 0, 0,
+		'2026-09-23 08:00:00', '2026-09-23 08:00:00')`, uid) // legacy: not the v2 list's
+	require.NoError(t, err)
 
 	r := e.do(t, http.MethodGet, base+"/today", tok, "fa", "")
 	require.Equal(t, http.StatusOK, r.status, r.raw)

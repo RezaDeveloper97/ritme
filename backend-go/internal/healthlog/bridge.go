@@ -19,28 +19,29 @@ package healthlog
 //     (periods.RecomputeCycleLengths / periods.Reanchor) in the same transaction, under the per-user lock
 //     (periods.LockUser, D-131) the period button takes too.
 //   - Mode guard: in effective mode pregnancy, flow never touches cycle_histories or the LMP; a new or heavier flow
-//     raises the v1 bleeding alert (pregnancy/alerts.ForLoggedFlow) once. In postpartum mode, flow before birth +
-//     postpartum.flow_from_day (42) is lochia and builds nothing; from that day the bridge works as in cycle mode.
+//     is the day's bleeding symptom and raises the preg.critical_symptom alert of the message engine (T-M10-08b).
+//     In postpartum mode, flow before birth + postpartum.flow_from_day (42) is lochia and builds nothing; from that
+//     day the bridge works as in cycle mode.
 
 import (
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
-	rootdb "github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/clinicalconfig"
 	"github.com/ritme/backend-go/internal/cycle/periods"
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/healthlog/store"
 	"github.com/ritme/backend-go/internal/healthlog/taxonomy"
+	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
 	"github.com/ritme/backend-go/internal/platform/civildate"
-	"github.com/ritme/backend-go/internal/platform/jsonx"
 	pregalerts "github.com/ritme/backend-go/internal/pregnancy/alerts"
-	"github.com/ritme/backend-go/internal/pregnancy/calc"
 	pregstore "github.com/ritme/backend-go/internal/pregnancy/store"
+	pregv2 "github.com/ritme/backend-go/internal/pregnancy/v2"
 	profilestore "github.com/ritme/backend-go/internal/profile/store"
 )
 
@@ -116,7 +117,7 @@ func (s *Service) bridge(ctx context.Context, userID uint64, ch bleedingChange, 
 	switch mode {
 	case taxonomy.ModePregnancy:
 		if pregalerts.FlowRank(ch.after) > pregalerts.FlowRank(ch.before) {
-			return false, s.raisePregnancyFlowAlert(ctx, userID, ch.after, locale, now)
+			return false, s.raisePregnancyFlowAlert(ctx, userID, ch.date, ch.after, locale, now)
 		}
 		return false, nil
 	case taxonomy.ModePostpartum:
@@ -372,57 +373,56 @@ func (s *Service) closeAtLastBleeding(ctx context.Context, userID uint64, previo
 		sql.NullInt32{Int32: int32(previous.PeriodStartDate.DiffDays(last) + 1), Valid: true}, ts) //nolint:gosec // G115: day counts fit int32
 }
 
-// raisePregnancyFlowAlert stores the v1 bleeding alert of a flow logged in pregnancy (pregnancy_alerts, the same row
-// shape as the pregnancy package's createAlerts writes).
-func (s *Service) raisePregnancyFlowAlert(ctx context.Context, userID uint64, intensity, locale string, now time.Time) error {
-	pq := pregstore.New(s.raw)
-	var profile *pregstore.PregnancyProfile
-	switch p, err := pq.GetProfileByUser(ctx, userID); {
-	case err == nil:
-		profile = &p
-	case !errors.Is(err, sql.ErrNoRows):
-		return fmt.Errorf("healthlog: pregnancy profile: %w", err)
-	}
-	cl := calc.New(profile, locale, civildate.InTehran(now))
-	d, ok := pregalerts.ForLoggedFlow(pregalerts.Context{Locale: locale, Week: cl.CurrentWeek(), Profile: cl.Profile()}, intensity)
-	if !ok {
+// raisePregnancyFlowAlert turns a new or heavier flow logged in pregnancy into the day's bleeding symptom
+// (pregnancy_symptom_logs: the day's row gets has_bleeding + the severity, its other symptoms kept; a heavier severity
+// the user logged herself is kept) and has the pregnancy alert rules evaluated after the commit (T-M10-08b, D-165):
+// bleeding is a critical symptom, so preg.critical_symptom opens (or re-raises) its urgent inbox row. The evaluation
+// waits for the commit because the write holds the per-user lock the inbox insert's user check would wait on.
+// Recording the symptom keeps the alert standing: every later evaluation (the feed, the pregnancy Today and alerts
+// reads, the next save) sees the bleeding too — also when this Service runs on a caller's transaction and the
+// evaluation is left to them.
+func (s *Service) raisePregnancyFlowAlert(ctx context.Context, userID uint64, date civildate.Date, intensity, locale string,
+	now time.Time,
+) error {
+	sev := pregalerts.FlowSeverity(intensity)
+	if sev == "" {
 		return nil
 	}
-	trigger, err := jsonColumn(d.Trigger)
-	if err != nil {
-		return err
+	pq := pregstore.New(s.raw)
+	cur, err := pq.GetSymptomLog(ctx, pregstore.GetSymptomLogParams{UserID: userID, LogDate: date})
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+	case err != nil:
+		return fmt.Errorf("healthlog: pregnancy symptoms: %w", err)
 	}
-	flags, err := jsonColumn(d.MedicalFlags)
-	if err != nil {
-		return err
+	logged := cur.HasBleeding.Valid && cur.HasBleeding.Bool
+	if !logged || pregalerts.SeverityRank(cur.BleedingSeverity.String) < pregalerts.SeverityRank(sev) {
+		if err := pq.RecordFlowBleedingSymptom(ctx, pregstore.RecordFlowBleedingSymptomParams{UserID: userID, LogDate: date,
+			BleedingSeverity: sql.NullString{String: sev, Valid: true}, Now: sql.NullTime{Time: now, Valid: true}}); err != nil {
+			return fmt.Errorf("healthlog: pregnancy bleeding symptom: %w", err)
+		}
 	}
-	actions := make([]any, len(d.Actions))
-	for i, a := range d.Actions {
-		actions[i] = a
-	}
-	acts, err := jsonColumn(actions)
-	if err != nil {
-		return err
-	}
-	ts := sql.NullTime{Time: now, Valid: true}
-	if _, err := pq.InsertAlert(ctx, pregstore.InsertAlertParams{
-		UserID: userID, AlertLevel: string(d.Level), AlertType: d.Type, Title: d.Title, Message: d.Message,
-		PregnancyWeek:   sql.NullInt32{Int32: int32(d.Week), Valid: true}, //nolint:gosec // G115: 1..42
-		TriggerSymptoms: trigger, MedicalHistoryFlags: flags, RecommendedActions: acts, CreatedAt: ts, UpdatedAt: ts,
-	}); err != nil {
-		return fmt.Errorf("healthlog: pregnancy bleeding alert: %w", err)
+	if s.pregAlerts != nil {
+		s.pregAlerts.pending, s.pregAlerts.locale, s.pregAlerts.now = true, locale, now
 	}
 	return nil
 }
 
-// jsonColumn is a JSON column value (the pregnancy package's encoding: jsonx, no escaping flags).
-func jsonColumn(v any) (rootdb.NullRawJSON, error) {
-	if v == nil {
-		return rootdb.NullRawJSON{}, nil
+// pregnancyEval is a pending evaluation of the pregnancy alert rules (after the write's commit).
+type pregnancyEval struct {
+	pending bool
+	locale  string
+	now     time.Time
+}
+
+// evaluatePregnancyAlerts evaluates the user's pregnancy alert rules on the pool (after a commit). The log is committed,
+// so a failure is logged, not returned (as the v1 pregnancy saves do, D-21): the recorded symptom raises the alert at
+// the next evaluation.
+func (s *Service) evaluatePregnancyAlerts(ctx context.Context, userID uint64, locale string, now time.Time) {
+	pq := pregstore.New(s.raw)
+	_, err := pregnancyalerts.New(pq).EvaluateOn(ctx, pq, userID, now, pregv2.Lang{Locale: locale, Default: locale})
+	if err != nil && !errors.Is(err, pregnancyalerts.ErrNotActive) {
+		slog.WarnContext(ctx, "healthlog: pregnancy alert evaluation failed after a flow log",
+			slog.Uint64("user_id", userID), slog.String("error", err.Error()))
 	}
-	b, err := jsonx.Marshal(v, 0)
-	if err != nil {
-		return rootdb.NullRawJSON{}, fmt.Errorf("healthlog: encode alert column: %w", err)
-	}
-	return rootdb.NullRawJSON{V: b, Valid: true}, nil
 }

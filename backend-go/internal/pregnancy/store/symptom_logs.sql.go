@@ -253,6 +253,33 @@ func (q *Queries) ListSymptomLogs(ctx context.Context, arg ListSymptomLogsParams
 	return items, nil
 }
 
+const recordFlowBleedingSymptom = `-- name: RecordFlowBleedingSymptom :exec
+INSERT INTO ` + "`" + `pregnancy_symptom_logs` + "`" + ` (user_id, log_date, has_bleeding, bleeding_severity, created_at, updated_at)
+VALUES (?, ?, 1, ?, ?, ?)
+ON DUPLICATE KEY UPDATE has_bleeding = 1, bleeding_severity = VALUES(bleeding_severity), updated_at = VALUES(updated_at)
+`
+
+type RecordFlowBleedingSymptomParams struct {
+	UserID           uint64
+	LogDate          civildate.Date
+	BleedingSeverity sql.NullString
+	Now              sql.NullTime
+}
+
+// A flow logged in pregnancy on the general day log (healthlog bridge, T-M10-08b) is the day's bleeding symptom: the
+// day's row is created or gets has_bleeding + the severity (its other symptoms are kept). The caller never lowers a
+// severity the user logged herself.
+func (q *Queries) RecordFlowBleedingSymptom(ctx context.Context, arg RecordFlowBleedingSymptomParams) error {
+	_, err := q.db.ExecContext(ctx, recordFlowBleedingSymptom,
+		arg.UserID,
+		arg.LogDate,
+		arg.BleedingSeverity,
+		arg.Now,
+		arg.Now,
+	)
+	return err
+}
+
 const updateSymptomLog = `-- name: UpdateSymptomLog :exec
 UPDATE ` + "`" + `pregnancy_symptom_logs` + "`" + ` SET
   has_nausea = ?, nausea_severity = ?, has_vomiting = ?, vomiting_severity = ?, has_fatigue = ?, fatigue_severity = ?,

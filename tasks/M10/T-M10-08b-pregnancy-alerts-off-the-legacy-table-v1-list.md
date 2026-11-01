@@ -3,10 +3,10 @@ id: T-M10-08b
 title: Pregnancy alerts off the legacy table: v1 list/summary/unread badge, healthlog flow alert, loss dismissal, feed preg facts
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-08]
 parallel_group: M10-B
-touches: [backend-go/internal/pregnancy,backend-go/internal/pregnancy/v2,backend-go/db/queries/pregnancy,backend-go/internal/healthlog,backend-go/internal/loss,backend-go/internal/messages/source.go,backend-go/internal/messages/feed,backend-go/contract/allowlist/pregnancy.yaml,backend-go/api/openapi.yaml]
+touches: [backend-go/internal/pregnancy,backend-go/internal/pregnancy/v2,backend-go/db/queries/pregnancy,backend-go/internal/healthlog,backend-go/internal/loss,backend-go/internal/messages/source.go,backend-go/internal/messages/feed,backend-go/contract/allowlist/pregnancy.yaml,backend-go/api/openapi.yaml,backend-go/internal/http/routes_messages.go,backend-go/internal/messages/source_pregnancy_int_test.go]
 skills: []
 verify: cd backend-go && make sqlc && go vet ./... && go test ./internal/pregnancy/... ./internal/healthlog/... ./internal/loss/... ./internal/messages/... && make test-int PKG="./internal/pregnancy/... ./internal/healthlog/... ./internal/loss/... ./internal/messages/..." && make contract ROUTES=pregnancy,pregnancy-v2,pregnancy-tools,healthlog,loss,messages
 ---
