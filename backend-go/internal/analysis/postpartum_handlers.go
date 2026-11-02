@@ -47,6 +47,13 @@ type PostpartumDeps struct {
 type PostpartumHandlers struct {
 	d     PostpartumDeps
 	clock clock.Clock
+	cache *Cache // nil = computed every request (T-M10-28)
+}
+
+// WithCache serves the hub through the analysis cache (T-M10-28).
+func (h *PostpartumHandlers) WithCache(c *Cache) *PostpartumHandlers {
+	h.cache = c
+	return h
 }
 
 // NewPostpartumHandlers wires the handlers; base is the fallback clock (clock.Middleware's request clock wins).
@@ -72,30 +79,47 @@ func (h *PostpartumHandlers) Postpartum(c fiber.Ctx) error {
 	}
 	now := clock.FromContext(c, h.clock).Now()
 	today := civildate.InTehran(now)
-	st, err := h.d.Postpartum.State(ctx, uid)
-	if err != nil {
-		return err
-	}
-	if !st.Active() || st.Profile == nil {
-		return httpx.Fail(fiber.StatusConflict, postpartum.T("messages.not_active", i18n.Locale(c)), "error_code", ErrorCodeNotPostpartum)
-	}
 	ent, err := h.d.Plus.Entitlement(ctx, uid, plus.DeepAnalysis, now)
 	if err != nil {
 		return err
 	}
+	locale := i18n.Locale(c)
+	children := h.d.Modules.Enabled(ctx, modules.Children)
+	part := deepPart(ent.Allowed)
+	if children {
+		part += "c1" // the children module switch changes the body
+	}
+	k, ok := requestKey(c, uid, "postpartum", part, today)
+	return h.cache.serveKey(c, k, ok, func(ctx context.Context) (any, error) {
+		return h.postpartum(ctx, uid, now, today, ent.Allowed, children, locale)
+	})
+}
+
+// postpartum is the hub's data (409 not_postpartum outside postpartum mode).
+func (h *PostpartumHandlers) postpartum(ctx context.Context, uid uint64, now time.Time, today civildate.Date, deep, children bool,
+	locale string,
+) (any, error) {
+	st, err := h.d.Postpartum.State(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	if !st.Active() || st.Profile == nil {
+		return nil, httpx.Fail(fiber.StatusConflict, postpartum.T("messages.not_active", locale), "error_code", ErrorCodeNotPostpartum)
+	}
+	ent := plus.Entitlement{Allowed: deep}
 	in := &PostpartumInput{
 		Today: today, Birth: st.Profile.BirthDate, DeepAnalysis: ent.Allowed,
 		Recovery: map[civildate.Date]postpartum.Recovery{}, Weights: map[civildate.Date]float64{},
-		ChildrenEnabled: h.d.Modules.Enabled(ctx, modules.Children),
+		ChildrenEnabled: children,
 	}
 	if st.Profile.Breastfeeding.Valid {
 		b := st.Profile.Breastfeeding.Bool
 		in.Breastfeeding = &b
 	}
-	if err := h.load(ctx, uid, st.Profile, in, now, i18n.Locale(c)); err != nil {
-		return err
+	if err := h.load(ctx, uid, st.Profile, in, now, locale); err != nil {
+		return nil, err
 	}
-	return httpx.OK(c, BuildPostpartum(in))
+	return BuildPostpartum(in), nil
 }
 
 func (h *PostpartumHandlers) load(ctx context.Context, uid uint64, p *postpartumstore.PostpartumProfile,

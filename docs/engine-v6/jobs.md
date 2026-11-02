@@ -91,6 +91,7 @@ q.RegisterPeriodic(job, handler, "*/10 * * * *", opts...)        // Register + S
 | `messages.prune` | low | `45 3 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 30 m | Tehran day − 180; backfills missing rollup keys of the doomed rows (existing counts kept), then deletes older raw rows in batches of 5 000 | `internal/messages/events` |
 | `messages.inbox_sweep` | low | `10 4 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 30 m | (user, rule) open row: re-evaluation writes only what changed; archive matches only resolved / acknowledged / noted rows with `last_at` before Tehran midnight of today − 29, in chunks of 5 000 | `internal/messages/inbox` |
 | `messages.push_slot` | low | `0 * * * *` | `Unique(55m)` | 2 / 5 m / 20 m | (user, user-local day): the push slot's `shown` row (slot cap 1 a day, 3 in 7 days) is written in the same transaction as the notification | `internal/messages/inbox` |
+| `analysis.warm` | low | `0 5 * * *` | `Unique(23h)` | 2 / 30 m / 30 m | the cache key (user, analysis_rev, engine_rev, summary, 6m, plus, local day, cfgFP, locale, build): a key already in Redis is skipped | `internal/analysis` |
 
 Notes:
 
@@ -176,5 +177,17 @@ Notes:
   `engine:snapshot_nightly` (03:30), so the directory and the `segment` message fact move once a day. The backfill
   gives every user without a reference code `RT-` + 6 base32 chars of HMAC-SHA256(id, `ADMIN_REF_SECRET`), 7 then 8 on
   a unique collision; new accounts get theirs from the signup hook. Neither job logs a user id, a code or a value.
+
+- `analysis.warm` (T-M10-28, D-177; SPEC §4.1): pages the users active in the last 7 days (the A-06 query of
+  `engine:snapshot_nightly` with a 7-day cutoff, 200 per page) and fills the analysis cache with the hub
+  (`/analysis/summary`, default range `6m`, the default language, each user's local day from her stored zone under v6)
+  unless that key is already cached — so a rerun the same day writes nothing. A failing user is counted and skipped
+  (one aggregate log line, no ids). Not a job, but the same cache: every `/api/v1/analysis/*` GET is cache-aside in
+  Redis (`ritme-go:ana:{uid}:{analysis_rev}:{engine_rev}:{endpoint}:{range}:{plus}:{localToday}:{cfgFP}:{locale}:{build}`,
+  24 h TTL, singleflight per key, Redis errors fall back to computing) and tagged
+  `W/"u{uid36}.a{analysis_rev}.e{engine_rev}-{localToday}-{endpoint}-{range}-{plus}-{locale}-{cfgFP}-{build}"` (304 on
+  match). `analysis_rev` moves inside every engine-input write and every analysis-only write (vitals, labs, EPDS,
+  recovery red flags, baby logs, pregnancy logs — `revision.AnalysisManifest`); `cfgFP` is the clinical-registry
+  version set valid on the day.
 
 New jobs add a row here in the same change.

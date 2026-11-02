@@ -39,6 +39,7 @@ type Handlers struct {
 	labTrends LabTrends
 	vitals    VitalsSource
 	states    state.UserStates // v6 engine (nil = CYCLE_ENGINE v1, engine.go)
+	cache     *Cache           // nil = every report computed (T-M10-28)
 }
 
 // WithEngine makes the reports read the v6 engine (CYCLE_ENGINE shadow|v6, T-M9-35, D-129); nil keeps v1 unchanged.
@@ -47,19 +48,17 @@ func (h *Handlers) WithEngine(states state.UserStates) *Handlers {
 	return h
 }
 
-// engineState is uid's v6 state on today: the request's engine revision from the auth query on the shared provider
-// (no query on an L1 hit), else Source.ForUser.
-func (h *Handlers) engineState(c fiber.Ctx, uid uint64, today civildate.Date) (*engine.State, error) {
-	if src, ok := h.states.(state.Source); ok && src.P != nil {
-		if r, ok := auth.CurrentRevisions(c); ok {
-			st, err := src.P.For(c.Context(), uid, r.Engine, state.Params{Engine: engineparams.For(today), FP: engineparams.Fingerprint(today)})
-			if err != nil {
-				return nil, fmt.Errorf("analysis: engine state: %w", err)
-			}
-			return st, nil
+// engineState is the user's v6 state on her day: the request's engine revision (from the auth query) on the shared
+// provider (no query on an L1 hit), else Source.ForUser.
+func (h *Handlers) engineState(ri *reqInfo) (*engine.State, error) {
+	if src, ok := h.states.(state.Source); ok && src.P != nil && ri.hasRevs {
+		st, err := src.P.For(ri.ctx, ri.uid, ri.revs.Engine, state.Params{Engine: engineparams.For(ri.today), FP: engineparams.Fingerprint(ri.today)})
+		if err != nil {
+			return nil, fmt.Errorf("analysis: engine state: %w", err)
 		}
+		return st, nil
 	}
-	st, err := h.states.ForUser(c.Context(), uid, today)
+	st, err := h.states.ForUser(ri.ctx, ri.uid, ri.today)
 	if err != nil {
 		return nil, fmt.Errorf("analysis: engine state: %w", err)
 	}
@@ -73,6 +72,13 @@ func NewHandlers(cycle *cycleservice.Service, logs *healthlog.Service, plusSvc *
 	return &Handlers{cycle: cycle, logs: logs, plus: plusSvc, bundles: bundles, languages: languages, clock: base}
 }
 
+// WithCache serves the reports through the analysis cache (T-M10-28: Redis cache-aside + ETag / 304); nil computes
+// every request, as before.
+func (h *Handlers) WithCache(c *Cache) *Handlers {
+	h.cache = c
+	return h
+}
+
 func fieldFail(c fiber.Ctx, field, key string, params map[string]string) error {
 	all := map[string]string{"attribute": field}
 	for k, v := range params {
@@ -83,45 +89,80 @@ func fieldFail(c fiber.Ctx, field, key string, params map[string]string) error {
 	return e
 }
 
-func (h *Handlers) copy(c fiber.Ctx) *Copy {
-	locale, def := i18n.Locale(c), h.languages.DefaultCode(c.Context())
-	return NewCopy(h.bundles.NamespaceMessages(locale, Namespace, def),
-		h.bundles.NamespaceMessages(locale, healthlog.TaxonomyNamespace, def))
+func (h *Handlers) copy(ri *reqInfo) *Copy {
+	return NewCopy(h.bundles.NamespaceMessages(ri.locale, Namespace, ri.def),
+		h.bundles.NamespaceMessages(ri.locale, healthlog.TaxonomyNamespace, ri.def))
 }
 
-// request is the loaded user context of one report.
-type request struct {
-	userID uint64
-	now    time.Time
-	in     *Input
+// reqInfo is what one report request knows before it loads anything: the user, her clock and day, the locale, her
+// revisions (from the auth query) and her Plus entitlements (one plus.Usage read). The warm job builds one without a
+// Fiber request.
+type reqInfo struct {
+	ctx     context.Context
+	uid     uint64
+	now     time.Time
+	today   civildate.Date
+	locale  string
+	def     string
+	revs    auth.Revisions
+	hasRevs bool
+	ents    entitlements
 }
 
-// load reads the snapshot and the day logs from logsFrom(range) to today. plusOnly skips the day logs
-// for a user without plus.deep_analysis: a locked report computes nothing.
-func (h *Handlers) load(c fiber.Ctx, rng func(today civildate.Date) Range, logsFrom func(Range) civildate.Date, plusOnly bool) (*request, error) {
+// info reads the request's reqInfo.
+func (h *Handlers) info(c fiber.Ctx) (*reqInfo, error) {
 	uid, ok := auth.CurrentUserID(c)
 	if !ok {
 		return nil, &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
 	}
-	ctx := c.Context()
-	now := clock.FromContext(c, h.clock).Now()
+	clk := clock.FromContext(c, h.clock)
+	now := clk.Now()
 	today := civildate.InTehran(now)
 	if h.states != nil {
-		today = civildate.LocalToday(c, clock.FromContext(c, h.clock)) // D-126
+		today = civildate.LocalToday(c, clk) // D-126
 	}
-	r := rng(today)
-	ent, err := h.plus.Entitlement(ctx, uid, plus.DeepAnalysis, now)
+	ri := &reqInfo{ctx: c.Context(), uid: uid, now: now, today: today, locale: i18n.Locale(c),
+		def: h.languages.DefaultCode(c.Context())}
+	ri.revs, ri.hasRevs = auth.CurrentRevisions(c)
+	return ri, h.loadEntitlements(ri)
+}
+
+func (h *Handlers) loadEntitlements(ri *reqInfo) error {
+	u, err := h.plus.Usage(ri.ctx, ri.uid, ri.now)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	in := &Input{Today: today, Range: r, DeepAnalysis: ent.Allowed, Copy: h.copy(c), Days: map[civildate.Date]*Day{}}
+	ri.ents = entitlementsOf(u)
+	return nil
+}
+
+// key is the cache key of one report of the request.
+func (ri *reqInfo) key(endpoint, rng string) CacheKey {
+	return CacheKey{UserID: ri.uid, AnalysisRev: ri.revs.Analysis, EngineRev: ri.revs.Engine, Endpoint: endpoint,
+		Range: rng, Plus: ri.ents.plusPart(), Today: ri.today, Locale: ri.locale, ConfigFP: ConfigFingerprint(ri.today)}
+}
+
+// serve answers a report through the cache (computed directly when the request carries no revisions).
+func serve(c fiber.Ctx, cc *Cache, ri *reqInfo, endpoint, rng string, compute Compute) error {
+	if !ri.hasRevs {
+		cc = nil
+	}
+	return cc.Serve(c, ri.key(endpoint, rng), compute)
+}
+
+// load reads the snapshot and the day logs from logsFrom to today. plusOnly skips the day logs for a user without
+// plus.deep_analysis: a locked report computes nothing.
+func (h *Handlers) load(ri *reqInfo, r Range, logsFrom civildate.Date, plusOnly bool) (*Input, error) {
+	ctx, uid, today := ri.ctx, ri.uid, ri.today
+	in := &Input{Today: today, Range: r, DeepAnalysis: ri.ents.allowed(plus.DeepAnalysis), Copy: h.copy(ri),
+		Days: map[civildate.Date]*Day{}}
 	sn, err := h.cycle.Load(ctx, uid, today, today, today)
 	if err != nil {
 		return nil, err
 	}
 	in.Histories, in.Profile = sn.Histories, sn.EngineProfile()
 	if h.states != nil {
-		if in.Engine, err = h.engineState(c, uid, today); err != nil {
+		if in.Engine, err = h.engineState(ri); err != nil {
 			return nil, err
 		}
 	}
@@ -135,14 +176,14 @@ func (h *Handlers) load(c fiber.Ctx, rng func(today civildate.Date) Range, logsF
 		}
 	}
 	if !plusOnly || in.DeepAnalysis {
-		if in.Days, err = h.days(ctx, uid, logsFrom(r), today); err != nil {
+		if in.Days, err = h.days(ctx, uid, logsFrom, today); err != nil {
 			return nil, err
 		}
-		if err := loadVitals(ctx, h.vitals, uid, in, logsFrom(r), today); err != nil {
+		if err := loadVitals(ctx, h.vitals, uid, in, logsFrom, today); err != nil {
 			return nil, err
 		}
 	}
-	return &request{userID: uid, now: now, in: in}, nil
+	return in, nil
 }
 
 func (h *Handlers) days(ctx context.Context, uid uint64, from, to civildate.Date) (map[civildate.Date]*Day, error) {
@@ -176,17 +217,24 @@ func rangeQuery(c fiber.Ctx) (string, error) {
 
 func lookback(r Range) civildate.Date { return r.From.AddDays(-LookbackDays) }
 
-// report loads the range's Input and renders build's body under {range, …}.
-func (h *Handlers) report(c fiber.Ctx, build func(in *Input) *jsonx.OrderedMap) error {
-	key, err := h.rangeQueryFor(c)
+// report answers a ranged report: build's body under {range, …}, through the cache.
+func (h *Handlers) report(c fiber.Ctx, endpoint string, build func(in *Input) *jsonx.OrderedMap) error {
+	ri, err := h.info(c)
 	if err != nil {
 		return err
 	}
-	req, err := h.load(c, func(today civildate.Date) Range { return NewRange(key, today) }, lookback, false)
+	key, err := h.rangeQueryFor(c, ri)
 	if err != nil {
 		return err
 	}
-	return httpx.OK(c, withRange(req.in.Range, build(req.in)))
+	return serve(c, h.cache, ri, endpoint, key, func(context.Context) (any, error) {
+		r := NewRange(key, ri.today)
+		in, err := h.load(ri, r, lookback(r), false)
+		if err != nil {
+			return nil, err
+		}
+		return withRange(in.Range, build(in)), nil
+	})
 }
 
 func withRange(r Range, body *jsonx.OrderedMap) *jsonx.OrderedMap {
@@ -216,21 +264,34 @@ func (h *Handlers) WithVitals(v VitalsSource) *Handlers {
 	return h
 }
 
+// EndpointSummary is the hub's cache endpoint (the one the warm job fills).
+const EndpointSummary = "summary"
+
 // Summary is GET /analysis/summary: the hub (free users get every free card; Plus cards are locked).
 func (h *Handlers) Summary(c fiber.Ctx) error {
-	key, err := h.rangeQueryFor(c)
+	ri, err := h.info(c)
 	if err != nil {
 		return err
 	}
-	req, err := h.load(c, func(today civildate.Date) Range { return NewRange(key, today) }, lookback, false)
+	key, err := h.rangeQueryFor(c, ri)
 	if err != nil {
 		return err
 	}
-	body := BuildSummary(req.in).JSON(req.in.Copy)
-	if h.labs != nil && req.in.DeepAnalysis {
-		ready, data, err := h.labs.HubLabs(c, req.userID, i18n.Locale(c), h.languages.DefaultCode(c.Context()))
+	return serve(c, h.cache, ri, EndpointSummary, key, func(context.Context) (any, error) { return h.summary(ri, key) })
+}
+
+// summary is the hub's data for the range key.
+func (h *Handlers) summary(ri *reqInfo, key string) (any, error) {
+	r := NewRange(key, ri.today)
+	in, err := h.load(ri, r, lookback(r), false)
+	if err != nil {
+		return nil, err
+	}
+	body := BuildSummary(in).JSON(in.Copy)
+	if h.labs != nil && in.DeepAnalysis {
+		ready, data, err := h.labs.HubLabs(ri.ctx, ri.uid, ri.locale, ri.def)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if sections, ok := body.Get("sections"); ok {
 			if m, ok := sections.(*jsonx.OrderedMap); ok {
@@ -238,57 +299,63 @@ func (h *Handlers) Summary(c fiber.Ctx) error {
 			}
 		}
 	}
-	return httpx.OK(c, withRange(req.in.Range, body))
+	return withRange(in.Range, body), nil
 }
 
 // Cycle is GET /analysis/cycle.
 func (h *Handlers) Cycle(c fiber.Ctx) error {
-	return h.report(c, func(in *Input) *jsonx.OrderedMap { return BuildCycle(in).JSON() })
+	return h.report(c, "cycle", func(in *Input) *jsonx.OrderedMap { return BuildCycle(in).JSON() })
 }
 
 // Period is GET /analysis/period.
 func (h *Handlers) Period(c fiber.Ctx) error {
-	return h.report(c, func(in *Input) *jsonx.OrderedMap { return BuildPeriod(in).JSON(in.Copy) })
+	return h.report(c, "period", func(in *Input) *jsonx.OrderedMap { return BuildPeriod(in).JSON(in.Copy) })
 }
 
 // Symptoms is GET /analysis/symptoms.
 func (h *Handlers) Symptoms(c fiber.Ctx) error {
-	return h.report(c, func(in *Input) *jsonx.OrderedMap { return BuildSymptoms(in).JSON(in.Copy) })
+	return h.report(c, "symptoms", func(in *Input) *jsonx.OrderedMap { return BuildSymptoms(in).JSON(in.Copy) })
 }
 
 // Body is GET /analysis/body.
 func (h *Handlers) Body(c fiber.Ctx) error {
-	return h.report(c, func(in *Input) *jsonx.OrderedMap { return BuildBody(in).JSON() })
+	return h.report(c, "body", func(in *Input) *jsonx.OrderedMap { return BuildBody(in).JSON() })
 }
 
 // Correlations is GET /analysis/correlations: Plus (plus.deep_analysis). A free user gets 200 with
 // `locked: true` and no data — the client shows the Plus lock, nothing is computed.
 func (h *Handlers) Correlations(c fiber.Ctx) error {
-	key, err := h.rangeQueryFor(c)
+	ri, err := h.info(c)
 	if err != nil {
 		return err
 	}
-	req, err := h.load(c, func(today civildate.Date) Range { return NewRange(key, today) }, lookback, true)
+	key, err := h.rangeQueryFor(c, ri)
 	if err != nil {
 		return err
 	}
-	in := req.in
-	sec := plusSection(in.DeepAnalysis, func() (bool, any) {
-		r := BuildCorrelations(in)
-		ready := false
-		for _, it := range r.Items {
-			ready = ready || it.Status == CorrReady
+	return serve(c, h.cache, ri, "correlations", key, func(context.Context) (any, error) {
+		r := NewRange(key, ri.today)
+		in, err := h.load(ri, r, lookback(r), true)
+		if err != nil {
+			return nil, err
 		}
-		return ready, r.JSON(in.Copy)
+		sec := plusSection(in.DeepAnalysis, func() (bool, any) {
+			r := BuildCorrelations(in)
+			ready := false
+			for _, it := range r.Items {
+				ready = ready || it.Status == CorrReady
+			}
+			return ready, r.JSON(in.Copy)
+		})
+		return jsonx.Obj(
+			"range", in.Range.JSON(),
+			"not_causal", true,
+			"plus", sec.Plus,
+			"locked", sec.Locked,
+			"ready", sec.Ready,
+			"data", sec.Data,
+		), nil
 	})
-	return httpx.OK(c, jsonx.Obj(
-		"range", in.Range.JSON(),
-		"not_causal", true,
-		"plus", sec.Plus,
-		"locked", sec.Locked,
-		"ready", sec.Ready,
-		"data", sec.Data,
-	))
 }
 
 var ymPattern = regexp.MustCompile(`^(\d{4})-(0[1-9]|1[0-2])$`)
@@ -316,20 +383,19 @@ func (h *Handlers) Monthly(c fiber.Ctx) error {
 	year, _ := strconv.Atoi(m[1])
 	month, _ := strconv.Atoi(m[2])
 
-	var cur, prev Month
-	req, err := h.load(c, func(today civildate.Date) Range {
-		cur, prev = MonthOf(year, month, calendar, today)
-		return Range{Key: "month", From: cur.From, To: cur.To}
-	}, func(Range) civildate.Date { return prev.From.AddDays(-6) }, false)
+	ri, err := h.info(c)
 	if err != nil {
 		return err
 	}
-	if cur.From.After(req.in.Today) {
-		return fieldFail(c, "ym", "validation.before_or_equal", map[string]string{"date": req.in.Today.String()})
+	cur, prev := MonthOf(year, month, calendar, ri.today)
+	if cur.From.After(ri.today) {
+		return fieldFail(c, "ym", "validation.before_or_equal", map[string]string{"date": ri.today.String()})
 	}
-	pdf, err := h.plus.Entitlement(c.Context(), req.userID, plus.PDFShare, req.now)
-	if err != nil {
-		return err
-	}
-	return httpx.OK(c, BuildMonthly(req.in, cur, prev, pdf.Allowed).JSON(req.in.Copy))
+	return serve(c, h.cache, ri, "monthly:"+m[0]+":"+calendar, "-", func(context.Context) (any, error) {
+		in, err := h.load(ri, Range{Key: "month", From: cur.From, To: cur.To}, prev.From.AddDays(-6), false)
+		if err != nil {
+			return nil, err
+		}
+		return BuildMonthly(in, cur, prev, ri.ents.allowed(plus.PDFShare)).JSON(in.Copy), nil
+	})
 }

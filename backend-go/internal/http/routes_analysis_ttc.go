@@ -29,7 +29,7 @@ func init() {
 			i18n.NewTranslationStore(translations.FS, d.Config.StoragePath),
 			languages,
 			clock.Real{},
-		).WithEngine(engineStates(r, d)), fertility.NewService(d.DB)) // T-M9-35: v6 under shadow|v6
+		).WithEngine(engineStates(r, d)).WithCache(analysisCache(d)), fertility.NewService(d.DB)) // T-M9-35: v6 under shadow|v6
 
 		r.Get("/api/v1/analysis/ttc", locale, guard, h.TTC)
 		r.Get("/api/v1/analysis/fertility", locale, guard, h.Fertility)

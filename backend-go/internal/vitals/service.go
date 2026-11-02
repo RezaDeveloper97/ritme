@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
 	"github.com/ritme/backend-go/internal/notifications"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -100,10 +101,15 @@ func (in Input) columns() (sys, dia, pulse sql.NullInt16, arm, pos, mgdl, unit, 
 // Create stores a reading.
 func (s *Service) Create(ctx context.Context, userID uint64, in Input, now time.Time) (Reading, error) {
 	sys, dia, pulse, arm, pos, mgdl, unit, cx, method := in.columns()
-	id, err := s.q.InsertReading(ctx, store.InsertReadingParams{
-		UserID: userID, Type: in.Type, MeasuredAt: dbTime(in.MeasuredAt), Systolic: sys, Diastolic: dia, Pulse: pulse,
-		Arm: arm, Position: pos, GlucoseMgDl: mgdl, GlucoseUnit: unit, Context: cx, Method: method,
-		Note: nullStr(in.Note), Now: sql.NullTime{Time: dbTime(now), Valid: true},
+	var id int64
+	err := s.analysisTx(ctx, userID, func(q *store.Queries) error {
+		var err error
+		id, err = q.InsertReading(ctx, store.InsertReadingParams{
+			UserID: userID, Type: in.Type, MeasuredAt: dbTime(in.MeasuredAt), Systolic: sys, Diastolic: dia, Pulse: pulse,
+			Arm: arm, Position: pos, GlucoseMgDl: mgdl, GlucoseUnit: unit, Context: cx, Method: method,
+			Note: nullStr(in.Note), Now: sql.NullTime{Time: dbTime(now), Valid: true},
+		})
+		return err
 	})
 	if err != nil {
 		return Reading{}, fmt.Errorf("vitals: insert: %w", err)
@@ -133,10 +139,13 @@ func (s *Service) Update(ctx context.Context, userID, id uint64, in Input, now t
 		return Reading{}, err
 	}
 	sys, dia, pulse, arm, pos, mgdl, unit, cx, method := in.columns()
-	if _, err := s.q.UpdateReading(ctx, store.UpdateReadingParams{
-		ID: id, UserID: userID, Type: in.Type, MeasuredAt: dbTime(in.MeasuredAt), Systolic: sys, Diastolic: dia,
-		Pulse: pulse, Arm: arm, Position: pos, GlucoseMgDl: mgdl, GlucoseUnit: unit, Context: cx, Method: method,
-		Note: nullStr(in.Note), Now: sql.NullTime{Time: dbTime(now), Valid: true},
+	if err := s.analysisTx(ctx, userID, func(q *store.Queries) error {
+		_, err := q.UpdateReading(ctx, store.UpdateReadingParams{
+			ID: id, UserID: userID, Type: in.Type, MeasuredAt: dbTime(in.MeasuredAt), Systolic: sys, Diastolic: dia,
+			Pulse: pulse, Arm: arm, Position: pos, GlucoseMgDl: mgdl, GlucoseUnit: unit, Context: cx, Method: method,
+			Note: nullStr(in.Note), Now: sql.NullTime{Time: dbTime(now), Valid: true},
+		})
+		return err
 	}); err != nil {
 		return Reading{}, fmt.Errorf("vitals: update: %w", err)
 	}
@@ -145,14 +154,27 @@ func (s *Service) Update(ctx context.Context, userID, id uint64, in Input, now t
 
 // Delete removes a reading of the user.
 func (s *Service) Delete(ctx context.Context, userID, id uint64) error {
-	n, err := s.q.DeleteReading(ctx, store.DeleteReadingParams{ID: id, UserID: userID})
-	if err != nil {
-		return fmt.Errorf("vitals: delete: %w", err)
+	err := s.analysisTx(ctx, userID, func(q *store.Queries) error {
+		n, err := q.DeleteReading(ctx, store.DeleteReadingParams{ID: id, UserID: userID})
+		if err != nil {
+			return fmt.Errorf("vitals: delete: %w", err)
+		}
+		if n == 0 {
+			return ErrNotFound // rolls back: a refused delete never bumps
+		}
+		return nil
+	})
+	return err
+}
+
+// analysisTx runs a reading write in a transaction that bumps the user's analysis_rev (T-M10-28): the analysis cache
+// keyed on it can never serve a body computed before the write. Without a pool (a service built on a test double) the
+// write runs as is.
+func (s *Service) analysisTx(ctx context.Context, userID uint64, fn func(q *store.Queries) error) error {
+	if s.db == nil {
+		return fn(s.q)
 	}
-	if n == 0 {
-		return ErrNotFound
-	}
-	return nil
+	return revision.AnalysisTx(ctx, s.db, userID, func(tx *sql.Tx) error { return fn(s.q.WithTx(tx)) })
 }
 
 // Timed is the user's timed readings of [from, to] (days), newest first; typ "" = all types.

@@ -8,7 +8,9 @@
 // request moves the revision by exactly 1. A refused or rolled-back write never bumps (the bump rolls back with it).
 //
 // manifest.go lists every sqlc write query on an engine-input table with the integration test that proves its bump
-// (or why it is exempt); TestManifest_CoversEveryEngineWrite keeps it complete.
+// (or why it is exempt); TestManifest_CoversEveryEngineWrite keeps it complete. AnalysisManifest does the same for the
+// analysis-only tables (T-M10-28: vitals, labs, EPDS, recovery, baby and pregnancy logs), whose writers call
+// BumpAnalysis / AnalysisTx; TestAnalysisManifest_CoversEveryAnalysisWrite keeps it complete.
 //
 // calculation_version / profile.MarkRecalculated stay the client-visible "recalculated" signal (unchanged).
 // Reading the revision (caches, ETags) is T-M9-31.
@@ -48,6 +50,28 @@ func BumpAnalysis(ctx context.Context, db store.DBTX, userID uint64) error {
 		return fmt.Errorf("revision: bump analysis: %w", err)
 	}
 	activity.MarkLogged(ctx, userID)
+	return nil
+}
+
+// AnalysisTx runs fn in a transaction on db and bumps userID's analysis_rev before the commit (T-M10-28): the owner
+// helper of the analysis-only writers that had no transaction of their own (vitals, labs, EPDS, recovery log, baby
+// logs, pregnancy logs). An error from fn rolls the write and the bump back.
+func AnalysisTx(ctx context.Context, db *sql.DB, userID uint64, fn func(tx *sql.Tx) error) error {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("revision: begin: %w", err)
+	}
+	if err := fn(tx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err := BumpAnalysis(ctx, tx, userID); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("revision: commit: %w", err)
+	}
 	return nil
 }
 

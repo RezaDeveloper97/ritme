@@ -25,6 +25,7 @@ import (
 	rootdb "github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/companion"
 	"github.com/ritme/backend-go/internal/cycle/revision"
+	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -187,16 +188,24 @@ func (s *Service) SetBreastfeeding(ctx context.Context, userID uint64, v *bool, 
 var errNoProfile = errors.New("postpartum: no profile")
 
 func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries, tx store.DBTX) error) error {
-	return s.inTxBump(ctx, 0, fn)
+	return s.inTxBump(ctx, 0, nil, fn)
+}
+
+// analysisTx is inTx for an analysis-only write of userID (EPDS, the recovery red-flag row — T-M10-28): when s owns
+// the transaction it bumps analysis_rev before the commit; on a caller's transaction (db nil) the caller bumps.
+func (s *Service) analysisTx(ctx context.Context, userID uint64, fn func(q *store.Queries) error) error {
+	return s.inTxBump(ctx, userID, revision.BumpAnalysis, func(q *store.Queries, _ store.DBTX) error { return fn(q) })
 }
 
 // engineTx is inTx for an engine-input write of userID: when s owns the transaction it bumps the engine revision
 // before the commit (T-M9-30); on a caller's transaction (db nil) the caller bumps.
 func (s *Service) engineTx(ctx context.Context, userID uint64, fn func(q *store.Queries, tx store.DBTX) error) error {
-	return s.inTxBump(ctx, userID, fn)
+	return s.inTxBump(ctx, userID, revision.Bump, fn)
 }
 
-func (s *Service) inTxBump(ctx context.Context, bumpUser uint64, fn func(q *store.Queries, tx store.DBTX) error) error {
+func (s *Service) inTxBump(ctx context.Context, bumpUser uint64, bump func(context.Context, cyclestore.DBTX, uint64) error,
+	fn func(q *store.Queries, tx store.DBTX) error,
+) error {
 	if s.db == nil {
 		return fn(s.q, s.conn)
 	}
@@ -208,8 +217,8 @@ func (s *Service) inTxBump(ctx context.Context, bumpUser uint64, fn func(q *stor
 		_ = tx.Rollback()
 		return err
 	}
-	if bumpUser != 0 {
-		if err := revision.Bump(ctx, tx, bumpUser); err != nil {
+	if bumpUser != 0 && bump != nil {
+		if err := bump(ctx, tx, bumpUser); err != nil {
 			_ = tx.Rollback()
 			return err
 		}
@@ -246,7 +255,7 @@ func (s *Service) SaveRecovery(ctx context.Context, userID uint64, date civildat
 	if in.HasLog() {
 		p := in.LogRow(stored)
 		p.UserID, p.LogDate, p.Now = userID, date, tehranNow(now)
-		if err := s.q.UpsertRecoveryLog(ctx, p); err != nil {
+		if err := s.analysisTx(ctx, userID, func(q *store.Queries) error { return q.UpsertRecoveryLog(ctx, p) }); err != nil {
 			return Recovery{}, fmt.Errorf("postpartum: save recovery log: %w", err)
 		}
 	}
@@ -358,7 +367,7 @@ func (s *Service) SaveCheck(ctx context.Context, userID uint64, r Result, today 
 	if r.SelfHarm != nil {
 		p.SelfHarm = sql.NullInt16{Int16: int16(*r.SelfHarm), Valid: true} //nolint:gosec // G115: 0–3
 	}
-	if err := s.q.UpsertEpdsCheck(ctx, p); err != nil {
+	if err := s.analysisTx(ctx, userID, func(q *store.Queries) error { return q.UpsertEpdsCheck(ctx, p) }); err != nil {
 		return Check{}, fmt.Errorf("postpartum: save check: %w", err)
 	}
 	row, err := s.q.GetEpdsCheckOn(ctx, store.GetEpdsCheckOnParams{UserID: userID, Kind: r.Kind, TakenOn: today})

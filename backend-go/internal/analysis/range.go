@@ -6,10 +6,8 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/platform/civildate"
-	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/plus"
 )
@@ -48,26 +46,22 @@ var LongRanges = []string{Range1Y, RangeAll}
 func IsLongRange(key string) bool { return slices.Contains(LongRanges, key) }
 
 // rangeQueryFor is rangeQuery plus the long-range gate: a user without plus.analysis_long_range who selects a long
-// range gets 402 plus_required (feature plus.analysis_long_range, reason locked) before anything is loaded. Shorter
-// ranges never ask the Plus service.
-func (h *Handlers) rangeQueryFor(c fiber.Ctx) (string, error) {
+// range gets 402 plus_required (feature plus.analysis_long_range, reason locked) before anything is loaded — and before
+// the cache is asked, so a cached Plus range is never served to a free user (the {plus} key part separates them too).
+// The entitlement is the request's own (reqInfo, one plus.Usage read).
+func (h *Handlers) rangeQueryFor(c fiber.Ctx, ri *reqInfo) (string, error) {
 	key, err := rangeQuery(c)
 	if err != nil || !IsLongRange(key) {
 		return key, err
 	}
-	uid, ok := auth.CurrentUserID(c)
+	e, ok := ri.ents[plus.AnalysisLongRange]
+	if ok && e.Allowed {
+		return key, nil
+	}
 	if !ok {
-		return "", &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
+		e = plus.Entitlement{Key: plus.AnalysisLongRange}
 	}
-	now := clock.FromContext(c, h.clock).Now().In(civildate.Tehran).Truncate(time.Second)
-	e, err := h.plus.Entitlement(c, uid, plus.AnalysisLongRange, now)
-	if err != nil {
-		return "", err
-	}
-	if !e.Allowed {
-		return "", plus.Denied(e, plus.TierFree, now, i18n.Locale(c))
-	}
-	return key, nil
+	return "", plus.Denied(e, plus.TierFree, ri.now.In(civildate.Tehran).Truncate(time.Second), i18n.Locale(c))
 }
 
 // Range is the selected window [From, To], To = the request day.

@@ -19,6 +19,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/httpx"
@@ -310,7 +311,7 @@ func (s *Service) Save(ctx context.Context, userID uint64, date civildate.Date, 
 		return nil, err
 	}
 
-	q, commit, rollback, err := s.begin(ctx)
+	q, commit, rollback, err := s.begin(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -341,8 +342,10 @@ type TxEvaluator interface {
 }
 
 // begin opens the save transaction when the querier is a *store.Queries on a connection
-// pool; otherwise (a test double, an outer transaction) it writes through s.q directly.
-func (s *Service) begin(ctx context.Context) (store.Querier, func() error, func(), error) {
+// pool; otherwise (a test double, an outer transaction) it writes through s.q directly. The
+// commit bumps userID's analysis_rev first (T-M10-28: the day's symptom, extras and weekly logs
+// are analysis inputs; the transaction owner bumps).
+func (s *Service) begin(ctx context.Context, userID uint64) (store.Querier, func() error, func(), error) {
 	sq, ok := s.q.(*store.Queries)
 	if !ok {
 		return s.q, func() error { return nil }, func() {}, nil
@@ -356,6 +359,9 @@ func (s *Service) begin(ctx context.Context) (store.Querier, func() error, func(
 	}
 	done := false
 	commit := func() error {
+		if err := revision.BumpAnalysis(ctx, tx, userID); err != nil {
+			return err
+		}
 		done = true
 		if err := tx.Commit(); err != nil {
 			return fmt.Errorf("pregnancy daylog: commit: %w", err)

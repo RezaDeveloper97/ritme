@@ -40,6 +40,8 @@ func init() {
 		).WithLabs(labsSvc).WithVitals(vitals.NewService(d.DB)) // B-N6-03: vitals averages read vital_readings merged with the log sheet
 		h.WithEngine(engineStates(r, d)) // T-M9-35: v6 under shadow|v6
 		h.WithLabTrends(labsSvc)         // T-M10-26: GET /analysis/labs
+		h.WithCache(analysisCache(d))    // T-M10-28: cache-aside + ETag on analysis_rev
+		mustJobs(analysis.NewWarmer(h, d.DB, d.Logger).RegisterJobs(auth.Jobs(r, d.Cache, d.Logger), tehranNow))
 
 		r.Get("/api/v1/analysis/summary", locale, guard, h.Summary)
 		r.Get("/api/v1/analysis/cycle", locale, guard, h.Cycle)

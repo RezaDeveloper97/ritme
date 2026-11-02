@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ritme/backend-go/internal/cycle/revision"
+	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
@@ -32,6 +33,18 @@ func LoadProfile(ctx context.Context, q store.Querier, userID uint64) (*store.Pr
 // (it already runs on a caller's transaction — pregnancy.EndForLoss, ApplyUltrasoundDating — or it is a test double)
 // fn runs on q and the transaction's owner bumps.
 func engineWrite(ctx context.Context, q store.Querier, userID uint64, fn func(q store.Querier) error) error {
+	return bumpingWrite(ctx, q, userID, revision.Bump, fn)
+}
+
+// analysisWrite is engineWrite for the analysis-only pregnancy logs (weekly, symptom and fetal-movement logs, daily
+// extras — T-M10-28): the transaction bumps analysis_rev only.
+func analysisWrite(ctx context.Context, q store.Querier, userID uint64, fn func(q store.Querier) error) error {
+	return bumpingWrite(ctx, q, userID, revision.BumpAnalysis, fn)
+}
+
+func bumpingWrite(ctx context.Context, q store.Querier, userID uint64, bump func(context.Context, cyclestore.DBTX, uint64) error,
+	fn func(q store.Querier) error,
+) error {
 	qq, ok := q.(*store.Queries)
 	if !ok {
 		return fn(q)
@@ -47,7 +60,7 @@ func engineWrite(ctx context.Context, q store.Querier, userID uint64, fn func(q 
 	if err := fn(qtx); err != nil {
 		return err
 	}
-	if err := revision.Bump(ctx, tx, userID); err != nil {
+	if err := bump(ctx, tx, userID); err != nil {
 		return err
 	}
 	if err := tx.Commit(); err != nil {

@@ -85,3 +85,74 @@ var Manifest = map[string]Entry{
 	"ivf.SetIVFSwitch":                 {Bumps: "TestBump_IVFAndMenopause"},
 	"menopause.UpsertMenopauseProfile": {Bumps: "TestBump_IVFAndMenopause"},
 }
+
+// AnalysisTables are the analysis-only input tables (T-M10-28, D-177): the engine never reads them, the analysis
+// reports do, so a write to any of them must bump the writer's analysis_rev (BumpAnalysis / AnalysisTx) in the same
+// transaction. Weight lives in health_log_entries / user_profiles (engine tables: Bump moves analysis_rev too) and in
+// pregnancy_weekly_logs (listed here).
+var AnalysisTables = []string{
+	"vital_readings", "lab_reports", "lab_markers", "epds_checks", "postpartum_recovery_logs",
+	"baby_feeds", "baby_sleeps", "baby_diapers", "baby_med_doses",
+	"pregnancy_weekly_logs", "pregnancy_symptom_logs", "pregnancy_daily_extras", "pregnancy_fetal_movements",
+}
+
+// AnalysisManifest lists every sqlc write query on an AnalysisTables table, like Manifest: the integration test that
+// proves the write request moves analysis_rev (Bumps), or why it needs no bump (Exempt).
+// TestAnalysisManifest_CoversEveryAnalysisWrite fails when a write query is missing or an entry is stale.
+var AnalysisManifest = map[string]Entry{
+	// vital_readings — vitals.Service (Create / Update / Delete through revision.AnalysisTx).
+	"vitals.InsertReading": {Bumps: "TestBumpAnalysis_Vitals"},
+	"vitals.UpdateReading": {Bumps: "TestBumpAnalysis_Vitals"},
+	"vitals.DeleteReading": {Bumps: "TestBumpAnalysis_Vitals"},
+
+	// lab_reports / lab_markers — labs.Service: the writes that change what the trends and the hub card read (a
+	// verified, not failed lab and its markers, labs.trendRows).
+	"labs.CreateLabReport":           {Bumps: "TestBumpAnalysis_Labs"},
+	"labs.CreateLabMarker":           {Bumps: "TestBumpAnalysis_Labs"},
+	"labs.UpdateLabMarker":           {Bumps: "TestBumpAnalysis_Labs"},
+	"labs.ConfirmLabMarker":          {Bumps: "TestBumpAnalysis_Labs"},
+	"labs.DeleteLabMarker":           {Bumps: "TestBumpAnalysis_Labs"},
+	"labs.DeleteLabReport":           {Bumps: "TestBumpAnalysis_Labs"},
+	"labs.UpdateLabMeta":             {Bumps: "TestBumpAnalysis_Labs"},
+	"labs.MarkLabVerified":           {Bumps: "TestBumpAnalysis_Labs"},
+	"labs.DeleteExtractedLabMarkers": {Exempt: "extraction of an unverified upload: the trends and the hub read verified labs only (labs.trendRows)"},
+	"labs.SetLabExtracted":           {Exempt: "extraction of an unverified upload: the trends and the hub read verified labs only (labs.trendRows)"},
+	"labs.SetLabStatus":              {Exempt: "processing status: only `failed` drops a lab from the trends, and failLab runs on unverified extractions only"},
+	"labs.SetLabInterpretation":      {Exempt: "the lab's own summary: no analysis report reads it"},
+	"labs.SetLabFeedback":            {Exempt: "the user's 👍/👎 on the summary: no analysis report reads it"},
+	"labs.TouchLab":                  {Exempt: "updated_at only, inside a marker edit that bumps"},
+	"labs.ClearLabQuota":             {Exempt: "the Plus refund claim: no analysis report reads it"},
+
+	// epds_checks / postpartum_recovery_logs — postpartum.Service.SaveCheck / SaveRecovery.
+	"postpartum.UpsertEpdsCheck":   {Bumps: "TestBumpAnalysis_Postpartum"},
+	"postpartum.UpsertRecoveryLog": {Bumps: "TestBumpAnalysis_Postpartum"},
+
+	// baby_feeds / baby_sleeps / baby_diapers — babylog.Service (owner writes only; the owner's revision moves).
+	"babylog.InsertFeed":    {Bumps: "TestBumpAnalysis_BabyLog"},
+	"babylog.UpdateFeed":    {Bumps: "TestBumpAnalysis_BabyLog"},
+	"babylog.DeleteFeed":    {Bumps: "TestBumpAnalysis_BabyLog"},
+	"babylog.InsertSleep":   {Bumps: "TestBumpAnalysis_BabyLog"},
+	"babylog.StopSleep":     {Bumps: "TestBumpAnalysis_BabyLog"},
+	"babylog.UpdateSleep":   {Bumps: "TestBumpAnalysis_BabyLog"},
+	"babylog.DeleteSleep":   {Bumps: "TestBumpAnalysis_BabyLog"},
+	"babylog.InsertDiaper":  {Bumps: "TestBumpAnalysis_BabyLog"},
+	"babylog.UpdateDiaper":  {Bumps: "TestBumpAnalysis_BabyLog"},
+	"babylog.DeleteDiaper":  {Bumps: "TestBumpAnalysis_BabyLog"},
+	"babylog.InsertMedDose": {Exempt: "no caller (dead query); the hub's baby days read feeds, sleeps and diapers only"},
+	"babylog.UpdateMedDose": {Exempt: "no caller (dead query); the hub's baby days read feeds, sleeps and diapers only"},
+	"babylog.DeleteMedDose": {Exempt: "no caller (dead query); the hub's baby days read feeds, sleeps and diapers only"},
+
+	// pregnancy logs — v1 handlers (analysisWrite), the v2 day log (its save transaction) and the kick counter.
+	"pregnancy.InsertWeeklyLog":           {Bumps: "TestBumpAnalysis_PregnancyLogs"},
+	"pregnancy.UpdateWeeklyLog":           {Bumps: "TestBumpAnalysis_PregnancyLogs"},
+	"pregnancy.InsertSymptomLog":          {Bumps: "TestBumpAnalysis_PregnancyLogs"},
+	"pregnancy.UpdateSymptomLog":          {Bumps: "TestBumpAnalysis_PregnancyLogs"},
+	"pregnancy.DeleteSymptomLog":          {Bumps: "TestBumpAnalysis_PregnancyLogs"},
+	"pregnancy.UpsertDailyExtras":         {Bumps: "TestBumpAnalysis_PregnancyLogs"},
+	"pregnancy.InsertFetalMovement":       {Bumps: "TestBumpAnalysis_PregnancyLogs"},
+	"pregnancy.UpdateFetalMovement":       {Bumps: "TestBumpAnalysis_PregnancyLogs"},
+	"pregnancy.RecordFlowBleedingSymptom": {Exempt: "runs inside the health-log write that revision.Bump bumps (engine_rev and analysis_rev); bleeding is not a pregnancy-analysis symptom"},
+	"pregnancy.DeleteDailyExtras":         {Exempt: "no caller (dead query)"},
+	"pregnancy.SetDailyVisitNote":         {Exempt: "visit_note only: no analysis report reads it"},
+	"messages.SetInboxVisitNote":          {Exempt: "pregnancy_daily_extras.visit_note only: no analysis report reads it"},
+}

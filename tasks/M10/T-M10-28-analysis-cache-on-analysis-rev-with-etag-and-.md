@@ -3,10 +3,10 @@ id: T-M10-28
 title: Analysis cache on analysis_rev with ETag and a nightly warm job
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-26, T-M10-27, T-M9-30, T-M9-31, T-M9-31b, T-M9-12]
 parallel_group: M10-D
-touches: [backend-go/internal/analysis/cache.go, backend-go/internal/analysis/handlers.go, backend-go/internal/analysis/pregnancy_handlers.go, backend-go/internal/analysis/ttc_handlers.go, backend-go/internal/analysis/postpartum_handlers.go, backend-go/internal/cycle/revision, backend-go/internal/vitals/service.go, backend-go/internal/labs/service.go, backend-go/internal/postpartum, backend-go/internal/babylog, backend-go/internal/pregnancy, backend-go/internal/healthlog, docs/engine-v6/jobs.md]
+touches: [backend-go/internal/http/analysis_cache.go, backend-go/internal/http/routes_analysis.go, backend-go/internal/http/routes_analysis_ttc.go, backend-go/internal/http/routes_analysis_pregnancy.go, backend-go/internal/http/routes_analysis_postpartum.go, backend-go/internal/analysis/cache.go, backend-go/internal/analysis/handlers.go, backend-go/internal/analysis/pregnancy_handlers.go, backend-go/internal/analysis/ttc_handlers.go, backend-go/internal/analysis/postpartum_handlers.go, backend-go/internal/cycle/revision, backend-go/internal/vitals/service.go, backend-go/internal/labs/service.go, backend-go/internal/postpartum, backend-go/internal/babylog, backend-go/internal/pregnancy, backend-go/internal/healthlog, docs/engine-v6/jobs.md]
 skills: []
 verify: cd backend-go && go vet ./... && go test -race ./internal/analysis/... ./internal/cycle/revision/... && make test-int PKG="./internal/analysis/... ./internal/cycle/revision/..." && go test -run '^$' -bench BenchmarkAnalysis -benchtime 200x ./internal/analysis/...
 ---

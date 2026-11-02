@@ -14,3 +14,7 @@ ON DUPLICATE KEY UPDATE engine_rev = engine_rev + 1;
 
 -- name: FakeDeleteAliased :exec
 DELETE h FROM `cycle_skips` h JOIN `users` u ON u.id = h.user_id WHERE u.id = ?;
+
+-- name: FakeInsertReading :exec
+-- T-M10-28: a write on an analysis-only table that AnalysisManifest does not list.
+INSERT INTO `vital_readings` (user_id, type, measured_at) VALUES (?, 'bp', ?);

@@ -40,6 +40,12 @@ var (
 // parseQueries reads every *.sql under root and returns its write queries on engine tables.
 func parseQueries(t *testing.T, root string) []writeQuery {
 	t.Helper()
+	return parseQueriesOn(t, root, revision.EngineTables)
+}
+
+// parseQueriesOn reads every *.sql under root and returns its write queries on one of tables.
+func parseQueriesOn(t *testing.T, root string, tables []string) []writeQuery {
+	t.Helper()
 	var out []writeQuery
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() || filepath.Ext(path) != ".sql" {
@@ -58,9 +64,9 @@ func parseQueries(t *testing.T, root string) []writeQuery {
 				end = locs[i+1][0]
 			}
 			name := text[loc[2]:loc[3]]
-			tables := engineTargets(statement(text[loc[1]:end]))
-			if len(tables) > 0 {
-				out = append(out, writeQuery{Key: dir + "." + name, Tables: tables})
+			hit := targetsOn(statement(text[loc[1]:end]), tables)
+			if len(hit) > 0 {
+				out = append(out, writeQuery{Key: dir + "." + name, Tables: hit})
 			}
 		}
 		return nil
@@ -81,7 +87,10 @@ func statement(block string) string {
 }
 
 // engineTargets are the engine tables a statement writes (every table of a multi-table UPDATE counts).
-func engineTargets(stmt string) []string {
+func engineTargets(stmt string) []string { return targetsOn(stmt, revision.EngineTables) }
+
+// targetsOn are the tables of list a statement writes.
+func targetsOn(stmt string, list []string) []string {
 	var targets []string
 	for _, m := range insertInto.FindAllStringSubmatch(stmt, -1) {
 		targets = append(targets, m[1])
@@ -99,7 +108,7 @@ func engineTargets(stmt string) []string {
 	}
 	var out []string
 	for _, tb := range targets {
-		if slices.Contains(revision.EngineTables, strings.ToLower(tb)) && !slices.Contains(out, tb) {
+		if slices.Contains(list, strings.ToLower(tb)) && !slices.Contains(out, tb) {
 			out = append(out, tb)
 		}
 	}
@@ -185,6 +194,31 @@ func TestManifest_FailsOnUnlistedWrite(t *testing.T) {
 	m["cycle.InsertPeriod"] = revision.Entry{Bumps: "TestBump_DoesNotExist"}
 	assert.Contains(t, problems(parseQueries(t, queriesDir), m, testNames(t)),
 		"entry names a test that does not exist: cycle.InsertPeriod → TestBump_DoesNotExist")
+}
+
+// T-M10-28 (D-177): every sqlc write query on an analysis-only input table is in AnalysisManifest, and each Bumps
+// entry names an existing integration test.
+func TestAnalysisManifest_CoversEveryAnalysisWrite(t *testing.T) {
+	queries := parseQueriesOn(t, queriesDir, revision.AnalysisTables)
+	require.NotEmpty(t, queries)
+	assert.Empty(t, problems(queries, revision.AnalysisManifest, testNames(t)))
+	for _, tb := range revision.AnalysisTables {
+		assert.NotContains(t, revision.EngineTables, tb, "a table is engine or analysis-only, not both")
+	}
+}
+
+// The analysis manifest catches a new writer too: the fixture's `INSERT INTO vital_readings` without a bump fails it.
+func TestAnalysisManifest_FailsOnUnlistedWrite(t *testing.T) {
+	fake := parseQueriesOn(t, fixtureDir, revision.AnalysisTables)
+	keys := []string{}
+	for _, q := range fake {
+		keys = append(keys, q.Key)
+	}
+	assert.ElementsMatch(t, []string{"fake.FakeInsertReading"}, keys)
+
+	all := append(parseQueriesOn(t, queriesDir, revision.AnalysisTables), fake...)
+	assert.Equal(t, []string{"unlisted write on vital_readings: fake.FakeInsertReading"},
+		problems(all, revision.AnalysisManifest, testNames(t)))
 }
 
 func TestEngineTargets(t *testing.T) {

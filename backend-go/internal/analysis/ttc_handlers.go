@@ -27,21 +27,21 @@ func NewTTCHandlers(h *Handlers, fert *fertility.Service) *TTCHandlers {
 
 // loadTTC reads the shared Input (no day logs: the TTC report reads its own signals), the first TTC log
 // day and the TTC logs of the analysed cycles (taxonomy v2 rows merged with fertility_logs).
-func (h *TTCHandlers) loadTTC(c fiber.Ctx) (*TTCInput, error) {
+func (h *TTCHandlers) loadTTC(ri *reqInfo) (*TTCInput, error) {
 	// plusOnly = true and a logs window that starts after today: load never reads health_log_entries
 	// for the shared Days map, which this report does not use.
-	req, err := h.load(c, func(today civildate.Date) Range { return NewRange(RangeAll, today) },
-		func(r Range) civildate.Date { return r.To.AddDays(1) }, true)
+	r := NewRange(RangeAll, ri.today)
+	base, err := h.load(ri, r, r.To.AddDays(1), true)
 	if err != nil {
 		return nil, err
 	}
-	in := &TTCInput{Input: req.in, Signals: NewTTCSignals()}
-	ctx := c.Context()
-	if in.FirstSignal, err = h.fertility.FirstSignal(ctx, req.userID); err != nil {
+	in := &TTCInput{Input: base, Signals: NewTTCSignals()}
+	ctx := ri.ctx
+	if in.FirstSignal, err = h.fertility.FirstSignal(ctx, ri.uid); err != nil {
 		return nil, err
 	}
 	if from := in.AnalysedFrom(); !from.IsZero() {
-		if err := h.signals(ctx, req.userID, in, from); err != nil {
+		if err := h.signals(ctx, ri.uid, in, from); err != nil {
 			return nil, err
 		}
 	}
@@ -71,11 +71,17 @@ func (h *TTCHandlers) signals(ctx context.Context, uid uint64, in *TTCInput, fro
 // TTC is GET /analysis/ttc: the TTC hub (An_Hub_TTC). Plus cards (timing, mucus, luteal) arrive locked
 // without data for a free user.
 func (h *TTCHandlers) TTC(c fiber.Ctx) error {
-	in, err := h.loadTTC(c)
+	ri, err := h.info(c)
 	if err != nil {
 		return err
 	}
-	return httpx.OK(c, BuildTTC(in).JSON())
+	return serve(c, h.cache, ri, "ttc", "-", func(context.Context) (any, error) {
+		in, err := h.loadTTC(ri)
+		if err != nil {
+			return nil, err
+		}
+		return BuildTTC(in).JSON(), nil
+	})
 }
 
 // Fertility is GET /analysis/fertility[?cycle=YYYY-MM-DD]: one analysed cycle's BBT chart and ovulation
@@ -99,17 +105,24 @@ func (h *TTCHandlers) Fertility(c fiber.Ctx) error {
 			start = d
 		}
 	}
-	in, err := h.loadTTC(c)
+	ri, err := h.info(c)
 	if err != nil {
 		return err
 	}
-	r := BuildTTC(in)
-	if len(r.Cycles) == 0 {
-		return httpx.NotFound()
-	}
-	i, ok := r.FindCycle(start)
-	if !ok {
-		return fieldFail(c, "cycle", "validation.in", nil)
-	}
-	return httpx.OK(c, r.FertilityJSON(i))
+	cycleNotFound := fieldFail(c, "cycle", "validation.in", nil) // built here: the compute never touches c
+	return serve(c, h.cache, ri, "fertility:"+start.String(), "-", func(context.Context) (any, error) {
+		in, err := h.loadTTC(ri)
+		if err != nil {
+			return nil, err
+		}
+		r := BuildTTC(in)
+		if len(r.Cycles) == 0 {
+			return nil, httpx.NotFound()
+		}
+		i, ok := r.FindCycle(start)
+		if !ok {
+			return nil, cycleNotFound
+		}
+		return r.FertilityJSON(i), nil
+	})
 }

@@ -1,12 +1,17 @@
 package analysis_test
 
 import (
+	"context"
 	"testing"
+
+	"github.com/alicebob/miniredis/v2"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/ritme/backend-go/internal/analysis"
 	"github.com/ritme/backend-go/internal/benchfixtures"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/i18n"
+	"github.com/ritme/backend-go/internal/platform/cache"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/resources/translations"
 )
@@ -44,4 +49,41 @@ func BenchmarkSummary(b *testing.B) {
 			}
 		})
 	}
+}
+
+// T-M10-28 budgets: a summary hit (Redis GET of the stored body) against a cold summary (compute + encode + store),
+// through Cache.Body on miniredis. The DB part of a cold request (the snapshot and log reads) is not in this number.
+func BenchmarkAnalysisSummary(b *testing.B) {
+	mr := miniredis.RunT(b)
+	rdb := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+	b.Cleanup(func() { _ = rdb.Close() })
+	c := analysis.NewCache(cache.NewFromClient(rdb, "ritme-go-bench:"), "bench", nil)
+	in := benchInput(analysis.DefaultRange)
+	compute := func(context.Context) (any, error) { return analysis.BuildSummary(in).JSON(in.Copy), nil }
+	key := func(rev uint64) analysis.CacheKey {
+		return analysis.CacheKey{UserID: 1, AnalysisRev: rev, Endpoint: analysis.EndpointSummary, Range: analysis.DefaultRange,
+			Plus: "d1l1p1", Today: benchfixtures.Today, Locale: "fa", ConfigFP: analysis.ConfigFingerprint(benchfixtures.Today)}
+	}
+	ctx := context.Background()
+	b.Run("hit", func(b *testing.B) {
+		if _, err := c.Body(ctx, key(1), compute); err != nil {
+			b.Fatal(err)
+		}
+		b.ReportAllocs()
+		for b.Loop() {
+			if _, err := c.Body(ctx, key(1), compute); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("cold", func(b *testing.B) {
+		rev := uint64(1000)
+		b.ReportAllocs()
+		for b.Loop() {
+			rev++ // a new revision: always a miss
+			if _, err := c.Body(ctx, key(rev), compute); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
 }

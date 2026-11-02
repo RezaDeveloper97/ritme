@@ -15,6 +15,7 @@ import (
 	"github.com/ritme/backend-go/internal/ai"
 	"github.com/ritme/backend-go/internal/catalog"
 	"github.com/ritme/backend-go/internal/consent"
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/labs/files"
 	"github.com/ritme/backend-go/internal/labs/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -305,7 +306,7 @@ func (s *Service) CreateManual(ctx context.Context, userID uint64, m Meta, marke
 		return 0, err
 	}
 	var labID uint64
-	err = s.inTx(ctx, func(q *store.Queries) error {
+	err = s.analysisTx(ctx, userID, func(q *store.Queries) error {
 		id, err := q.CreateLabReport(ctx, store.CreateLabReportParams{UserID: userID, Source: SourceManual, Category: m.Category,
 			Title: nullString(m.Title), TakenOn: m.TakenOn, Fasting: m.Fasting, Status: StatusInterpreting,
 			VerifiedAt: nullTime(now), Now: nullTime(now)})
@@ -341,15 +342,17 @@ func insertMarker(ctx context.Context, q *store.Queries, labID, userID uint64, i
 
 // UpdateMeta changes the lab's type, title, date and fasting flag.
 func (s *Service) UpdateMeta(ctx context.Context, userID, id uint64, m Meta, now time.Time) error {
-	n, err := s.q.UpdateLabMeta(ctx, store.UpdateLabMetaParams{Category: m.Category, Title: nullString(m.Title), TakenOn: m.TakenOn,
-		Fasting: m.Fasting, Now: nullTime(now), ID: id, UserID: userID})
-	if err != nil {
-		return fmt.Errorf("labs: update: %w", err)
-	}
-	if n == 0 {
-		return ErrNotFound
-	}
-	return nil
+	return s.analysisTx(ctx, userID, func(q *store.Queries) error {
+		n, err := q.UpdateLabMeta(ctx, store.UpdateLabMetaParams{Category: m.Category, Title: nullString(m.Title), TakenOn: m.TakenOn,
+			Fasting: m.Fasting, Now: nullTime(now), ID: id, UserID: userID})
+		if err != nil {
+			return fmt.Errorf("labs: update: %w", err)
+		}
+		if n == 0 {
+			return ErrNotFound
+		}
+		return nil
+	})
 }
 
 // Delete removes the lab, its markers, jobs and files (rows first, then the files).
@@ -358,12 +361,17 @@ func (s *Service) Delete(ctx context.Context, userID, id uint64) error {
 	if err != nil {
 		return err
 	}
-	n, err := s.q.DeleteLabReport(ctx, store.DeleteLabReportParams{ID: id, UserID: userID})
-	if err != nil {
-		return fmt.Errorf("labs: delete: %w", err)
-	}
-	if n == 0 {
-		return ErrNotFound
+	if err := s.analysisTx(ctx, userID, func(q *store.Queries) error {
+		n, err := q.DeleteLabReport(ctx, store.DeleteLabReportParams{ID: id, UserID: userID})
+		if err != nil {
+			return fmt.Errorf("labs: delete: %w", err)
+		}
+		if n == 0 {
+			return ErrNotFound
+		}
+		return nil
+	}); err != nil {
+		return err
 	}
 	s.removeFiles(ctx, userID, fs)
 	return nil
@@ -465,7 +473,7 @@ func (s *Service) AddMarker(ctx context.Context, userID, labID uint64, in Marker
 		return 0, fmt.Errorf("labs: marker sort: %w", err)
 	}
 	var id int64
-	err = s.inTx(ctx, func(q *store.Queries) error {
+	err = s.analysisTx(ctx, userID, func(q *store.Queries) error {
 		id, err = q.CreateLabMarker(ctx, store.CreateLabMarkerParams{LabID: labID, UserID: userID, Code: in.code(cat),
 			Name: strings.TrimSpace(in.Name), Value: nullDecimal(in.Value), ValueText: nullString(in.ValueText), Unit: nullString(in.Unit),
 			RefLow: nullDecimal(in.RefLow), RefHigh: nullDecimal(in.RefHigh), RefText: nullString(in.refText()),
@@ -503,7 +511,7 @@ func (s *Service) UpdateMarker(ctx context.Context, userID, labID, markerID uint
 		source = MarkerManual
 	}
 	var n int64
-	err = s.inTx(ctx, func(q *store.Queries) error {
+	err = s.analysisTx(ctx, userID, func(q *store.Queries) error {
 		n, err = q.UpdateLabMarker(ctx, store.UpdateLabMarkerParams{Code: in.code(cat), Name: strings.TrimSpace(in.Name),
 			Value: nullDecimal(in.Value), ValueText: nullString(in.ValueText), Unit: nullString(in.Unit), RefLow: nullDecimal(in.RefLow),
 			RefHigh: nullDecimal(in.RefHigh), RefText: nullString(in.refText()), Source: source, Now: nullTime(now),
@@ -532,8 +540,15 @@ func (s *Service) DeleteMarker(ctx context.Context, userID, labID, markerID uint
 	if err != nil {
 		return err
 	}
-	n, err := s.q.DeleteLabMarker(ctx, store.DeleteLabMarkerParams{ID: markerID, LabID: labID, UserID: userID})
-	if err != nil {
+	var n int64
+	err = s.analysisTx(ctx, userID, func(q *store.Queries) error {
+		n, err = q.DeleteLabMarker(ctx, store.DeleteLabMarkerParams{ID: markerID, LabID: labID, UserID: userID})
+		if err == nil && n == 0 {
+			return errNoRows // nothing deleted: roll back, no bump
+		}
+		return err
+	})
+	if err != nil && !errors.Is(err, errNoRows) {
 		return fmt.Errorf("labs: delete marker: %w", err)
 	}
 	if n == 0 {
@@ -563,7 +578,10 @@ func (s *Service) ConfirmMarker(ctx context.Context, userID, labID, markerID uin
 	if cur.ConfirmedAt.Valid {
 		return nil
 	}
-	if _, err := s.q.ConfirmLabMarker(ctx, store.ConfirmLabMarkerParams{Now: nullTime(now), ID: markerID, UserID: userID}); err != nil {
+	if err := s.analysisTx(ctx, userID, func(q *store.Queries) error {
+		_, err := q.ConfirmLabMarker(ctx, store.ConfirmLabMarkerParams{Now: nullTime(now), ID: markerID, UserID: userID})
+		return err
+	}); err != nil {
 		return fmt.Errorf("labs: confirm marker: %w", err)
 	}
 	return s.afterEdit(ctx, lab, l, now)
@@ -586,7 +604,7 @@ func (s *Service) Verify(ctx context.Context, userID, labID uint64, locale strin
 		return ErrNoMarkers
 	}
 	var jobID uint64
-	err = s.inTx(ctx, func(q *store.Queries) error {
+	err = s.analysisTx(ctx, userID, func(q *store.Queries) error {
 		n, err := q.MarkLabVerified(ctx, store.MarkLabVerifiedParams{Now: nullTime(now), Status: StatusInterpreting, ID: labID,
 			UserID: userID, MaxCount: MaxInterpretations})
 		if err != nil {
@@ -700,6 +718,15 @@ func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries) error) err
 		return err
 	}
 	return tx.Commit()
+}
+
+// errNoRows rolls an analysisTx back when its write matched no row (nothing changed: no bump).
+var errNoRows = errors.New("labs: no rows")
+
+// analysisTx is inTx for a write that changes what the analysis reads (a verified lab, its markers or its date —
+// labs.trendRows): it bumps the user's analysis_rev before the commit (T-M10-28, D-177).
+func (s *Service) analysisTx(ctx context.Context, userID uint64, fn func(q *store.Queries) error) error {
+	return revision.AnalysisTx(ctx, s.db, userID, func(tx *sql.Tx) error { return fn(s.q.WithTx(tx)) })
 }
 
 // now is the clock of ctx (a request's pinned test clock travels with the job in sync mode), else the service's.

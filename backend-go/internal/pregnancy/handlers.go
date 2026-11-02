@@ -455,7 +455,12 @@ func (h *Handlers) SymptomStore(c fiber.Ctx) error {
 	if !ok {
 		return httpx.ServerError()
 	}
-	log, err := upsertSymptomLog(ctx, h.q, r.userID, date, rawDate, validated, r.now)
+	var log *model
+	err = analysisWrite(ctx, h.q, r.userID, func(q store.Querier) error {
+		var err error
+		log, err = upsertSymptomLog(ctx, q, r.userID, date, rawDate, validated, r.now)
+		return err
+	})
 	if err != nil {
 		return err
 	}
@@ -510,12 +515,15 @@ func (h *Handlers) SymptomDestroy(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	n, err := h.q.DeleteSymptomLog(c.Context(), store.DeleteSymptomLogParams{UserID: r.userID, LogDate: date})
+	err = analysisWrite(c.Context(), h.q, r.userID, func(q store.Querier) error {
+		n, err := q.DeleteSymptomLog(c.Context(), store.DeleteSymptomLogParams{UserID: r.userID, LogDate: date})
+		if err == nil && n == 0 {
+			return r.symptomNotFound() // rolls back: nothing deleted, no bump
+		}
+		return err
+	})
 	if err != nil {
 		return err
-	}
-	if n == 0 {
-		return r.symptomNotFound()
 	}
 	return httpx.Message(c, r.tr("گزارش علائم حذف شد", "Symptom log deleted successfully"))
 }
@@ -556,7 +564,12 @@ func (h *Handlers) WeeklyStore(c fiber.Ctx) error {
 		return err
 	}
 	rawWeek := get(validated, "pregnancy_week")
-	log, err := upsertWeeklyLog(ctx, h.q, r.userID, wInt(rawWeek).Int32, rawWeek, validated, r.now)
+	var log *model
+	err = analysisWrite(ctx, h.q, r.userID, func(q store.Querier) error {
+		var err error
+		log, err = upsertWeeklyLog(ctx, q, r.userID, wInt(rawWeek).Int32, rawWeek, validated, r.now)
+		return err
+	})
 	if err != nil {
 		return err
 	}
@@ -629,7 +642,12 @@ func (h *Handlers) FetalStore(c fiber.Ctx) error {
 	if !ok {
 		return httpx.ServerError()
 	}
-	log, err := upsertFetalMovement(ctx, h.q, r.userID, date, rawDate, validated, r.now)
+	var log *model
+	err = analysisWrite(ctx, h.q, r.userID, func(q store.Querier) error {
+		var err error
+		log, err = upsertFetalMovement(ctx, q, r.userID, date, rawDate, validated, r.now)
+		return err
+	})
 	if err != nil {
 		return err
 	}

@@ -2682,3 +2682,10 @@ Nothing needed fixing.
 - Migration 00115_menopause_condition_rules (data only): 11 approved rules; Down removes inbox rows then rules. Missing row → code-held rule; locked bleeding rule fires from code even if inactive. clinical-signoff.md §E lists every rule (bleeding stays worth_followup; new «what we saw / how sure» lines flagged for review).
 - Test fixes: feed budget test excludes meno./cond. rules; admin facts registry golden regenerated.
 - Open: feed/jobs don't load meno/cond facts yet → T-M10-09b.
+
+## T-M10-28 — Analysis cache on analysis_rev with ETag and a nightly warm job
+- D-177. `internal/analysis/cache.go`: every /analysis/* GET cache-aside in Redis (24 h TTL, singleflight, compute on Redis error, errors never cached), ETag/304 via `etag`. Key = user + analysis_rev + range + {plus} + locale + build + clinical-registry fingerprint. Free-user 1y/all 402 answered before the cache.
+- analysis_rev bumps inside the writers' transactions (`revision.AnalysisTx`): vitals, labs, postpartum EPDS/red flags, babylog, pregnancy v1 logs, v2 day-log, kick sessions. `revision.AnalysisManifest` + manifest test fail on any un-bumped write query.
+- Job `analysis.warm` (queue low, 05:00 Tehran, Unique 23h): users active 7 d, summary 6m, skips cached. Wiring: `internal/http/analysis_cache.go` (one Cache per Deps) + WithCache in the 4 analysis route files.
+- Bench: hit ~0.06 ms vs cold ~1.15 ms (compute only).
+- Open: hit still costs the Plus Usage read (2–3 queries); children growth and pregnancy appointments don't bump analysis_rev; running baby timers stale until next bump; perf-baseline.md entry not written (T-M9-49 territory).

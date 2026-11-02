@@ -39,6 +39,13 @@ type PregnancyHandlers struct {
 	languages *i18n.Registry
 	clock     clock.Clock
 	vitals    VitalsSource
+	cache     *Cache // nil = computed every request (T-M10-28)
+}
+
+// WithCache serves the report through the analysis cache (T-M10-28).
+func (h *PregnancyHandlers) WithCache(c *Cache) *PregnancyHandlers {
+	h.cache = c
+	return h
 }
 
 // WithVitals wires the merged vitals readings into the BP / glucose sections (bloom B-N6-03; nil = weekly logs and
@@ -166,33 +173,43 @@ func (h *PregnancyHandlers) Pregnancy(c fiber.Ctx) error {
 	ctx := c.Context()
 	now := clock.FromContext(c, h.clock).Now()
 	today := civildate.InTehran(now)
-	p, err := h.preg.GetProfileByUser(ctx, uid)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("analysis pregnancy: profile: %w", err)
-	}
-	var d v2.Dating
-	if err == nil && p.PregnancyMode {
-		d, ok = v2.Resolve(&p, today)
-	} else {
-		ok = false
-	}
-	if !ok {
-		return httpx.Fail(fiber.StatusConflict, v2.T("messages.not_active", i18n.Locale(c)), "error_code", "pregnancy_not_active")
-	}
 	ent, err := h.plus.Entitlement(ctx, uid, plus.DeepAnalysis, now)
 	if err != nil {
 		return err
 	}
 	label, cp := h.copies(c)
+	notActive := httpx.Fail(fiber.StatusConflict, v2.T("messages.not_active", i18n.Locale(c)), "error_code", "pregnancy_not_active")
+	k, ok := requestKey(c, uid, "pregnancy", deepPart(ent.Allowed), today)
+	return h.cache.serveKey(c, k, ok, func(ctx context.Context) (any, error) {
+		return h.pregnancy(ctx, uid, today, ent.Allowed, label, cp, notActive)
+	})
+}
+
+// pregnancy is the report's data (notActive outside a dated pregnancy).
+func (h *PregnancyHandlers) pregnancy(ctx context.Context, uid uint64, today civildate.Date, deep bool,
+	label func(string) string, cp *Copy, notActive error,
+) (any, error) {
+	p, err := h.preg.GetProfileByUser(ctx, uid)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("analysis pregnancy: profile: %w", err)
+	}
+	var d v2.Dating
+	ok := false
+	if err == nil && p.PregnancyMode {
+		d, ok = v2.Resolve(&p, today)
+	}
+	if !ok {
+		return nil, notActive
+	}
 	in := &PregnancyInput{
-		Today: today, Start: d.Start(), Due: d.Due, DeepAnalysis: ent.Allowed, Label: label, Copy: cp,
+		Today: today, Start: d.Start(), Due: d.Due, DeepAnalysis: deep, Label: label, Copy: cp,
 		Weights: map[civildate.Date]float64{}, BP: map[civildate.Date]BPReading{},
 		Symptoms: map[civildate.Date]map[string]bool{}, Kicks: map[civildate.Date]KickSession{},
 	}
 	if err := h.loadPregnancy(ctx, uid, in); err != nil {
-		return err
+		return nil, err
 	}
-	return httpx.OK(c, BuildPregnancy(in))
+	return BuildPregnancy(in), nil
 }
 
 func (h *PregnancyHandlers) loadPregnancy(ctx context.Context, uid uint64, in *PregnancyInput) error {

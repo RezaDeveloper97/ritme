@@ -5,12 +5,9 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/labs"
-	"github.com/ritme/backend-go/internal/platform/clock"
-	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/plus"
@@ -103,28 +100,26 @@ func (h *Handlers) LabTrend(c fiber.Ctx) error {
 			marker = s
 		}
 	}
-	uid, ok := auth.CurrentUserID(c)
-	if !ok {
-		return &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
-	}
-	ent, err := h.plus.Entitlement(c.Context(), uid, plus.DeepAnalysis, clock.FromContext(c, h.clock).Now())
+	ri, err := h.info(c)
 	if err != nil {
 		return err
 	}
-	var series []LabSeries
-	if ent.Allowed && h.labTrends != nil {
-		t, _, err := h.labTrends.Trends(c.Context(), uid)
-		if err != nil {
-			return err
+	return serve(c, h.cache, ri, "labs:"+marker, "-", func(context.Context) (any, error) {
+		allowed := ri.ents.allowed(plus.DeepAnalysis)
+		var series []LabSeries
+		if allowed && h.labTrends != nil {
+			t, _, err := h.labTrends.Trends(ri.ctx, ri.uid)
+			if err != nil {
+				return nil, err
+			}
+			for _, s := range t.Series {
+				series = append(series, NewLabSeries(s, ri.locale, ri.def))
+			}
 		}
-		locale, def := i18n.Locale(c), h.languages.DefaultCode(c.Context())
-		for _, s := range t.Series {
-			series = append(series, NewLabSeries(s, locale, def))
-		}
-	}
-	cp := h.copy(c)
-	sec := plusSection(ent.Allowed, func() (bool, any) { return LabTrendBody(series, marker, cp) })
-	return httpx.OK(c, jsonx.Obj("plus", sec.Plus, "locked", sec.Locked, "ready", sec.Ready, "data", sec.Data))
+		cp := h.copy(ri)
+		sec := plusSection(allowed, func() (bool, any) { return LabTrendBody(series, marker, cp) })
+		return jsonx.Obj("plus", sec.Plus, "locked", sec.Locked, "ready", sec.Ready, "data", sec.Data), nil
+	})
 }
 
 // LabTrendBody is the data of GET /analysis/labs: the marker's trend (an unknown marker → an empty, not-ready body),

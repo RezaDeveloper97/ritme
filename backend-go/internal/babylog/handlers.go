@@ -211,7 +211,7 @@ func (h *Handlers) FeedSide(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	f, err := h.svc.SetSide(c, a.Child.ID, id, side, now)
+	f, err := h.svc.SetSide(c, a, id, side, now)
 	if err != nil {
 		return fail(err, locale)
 	}
@@ -311,7 +311,7 @@ func (h *Handlers) StartSleep(c fiber.Ctx) error {
 		return err
 	}
 	now := h.now(c)
-	s, err := h.svc.StartSleep(c, a.Child.ID, now)
+	s, err := h.svc.StartSleep(c, a, now)
 	if err != nil {
 		return fail(err, i18n.Locale(c))
 	}
@@ -329,7 +329,7 @@ func (h *Handlers) StoreSleep(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	s, err := h.svc.CreateSleep(c, a.Child.ID, in, now)
+	s, err := h.svc.CreateSleep(c, a, in, now)
 	if err != nil {
 		return fail(err, locale)
 	}
@@ -347,7 +347,7 @@ func (h *Handlers) StopSleep(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	s, err := h.svc.StopSleep(c, a.Child.ID, id, note, now)
+	s, err := h.svc.StopSleep(c, a, id, note, now)
 	if err != nil {
 		return fail(err, locale)
 	}
@@ -368,7 +368,7 @@ func (h *Handlers) UpdateSleep(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	s, err := h.svc.UpdateSleep(c, a.Child.ID, id, in, now)
+	s, err := h.svc.UpdateSleep(c, a, id, in, now)
 	if err != nil {
 		return fail(err, locale)
 	}
@@ -382,7 +382,7 @@ func (h *Handlers) DestroySleep(c fiber.Ctx) error {
 		return err
 	}
 	locale := i18n.Locale(c)
-	if err := h.svc.DeleteSleep(c, a.Child.ID, id); err != nil {
+	if err := h.svc.DeleteSleep(c, a, id); err != nil {
 		return fail(err, locale)
 	}
 	return httpx.Message(c, T("messages.deleted", locale))
@@ -424,7 +424,7 @@ func (h *Handlers) StoreDiaper(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	d, err := h.svc.CreateDiaper(c, a.Child.ID, in, now)
+	d, err := h.svc.CreateDiaper(c, a, in, now)
 	if err != nil {
 		return fail(err, locale)
 	}
@@ -445,7 +445,7 @@ func (h *Handlers) UpdateDiaper(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	d, err := h.svc.UpdateDiaper(c, a.Child.ID, id, in, now)
+	d, err := h.svc.UpdateDiaper(c, a, id, in, now)
 	if err != nil {
 		return fail(err, locale)
 	}
@@ -459,7 +459,7 @@ func (h *Handlers) DestroyDiaper(c fiber.Ctx) error {
 		return err
 	}
 	locale := i18n.Locale(c)
-	if err := h.svc.DeleteDiaper(c, a.Child.ID, id); err != nil {
+	if err := h.svc.DeleteDiaper(c, a, id); err != nil {
 		return fail(err, locale)
 	}
 	return httpx.Message(c, T("messages.deleted", locale))

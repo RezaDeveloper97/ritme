@@ -25,6 +25,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/babylog/store"
 	"github.com/ritme/backend-go/internal/children"
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
@@ -94,22 +95,14 @@ func isDuplicate(err error) bool {
 	return errors.As(err, &me) && me.Number == 1062
 }
 
-func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries) error) error {
+// analysisTx runs a baby-log write in a transaction that bumps the owner's analysis_rev before the commit (T-M10-28):
+// the postpartum hub reads her own child's baby days. Only the owner writes (a shared child is read-only). On a
+// service built on a transaction the write runs on it and the caller bumps.
+func (s *Service) analysisTx(ctx context.Context, a children.Access, fn func(q *store.Queries) error) error {
 	if s.db == nil {
 		return fn(s.q)
 	}
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("babylog: begin: %w", err)
-	}
-	if err := fn(s.q.WithTx(tx)); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("babylog: commit: %w", err)
-	}
-	return nil
+	return revision.AnalysisTx(ctx, s.db, a.Child.OwnerID, func(tx *sql.Tx) error { return fn(s.q.WithTx(tx)) })
 }
 
 func dayRange(d civildate.Date, days int) (time.Time, time.Time) {
@@ -183,15 +176,19 @@ func (s *Service) StartFeed(ctx context.Context, a children.Access, typ, side st
 		p.ActiveSide = sql.NullString{String: side, Valid: true}
 		p.SideStartedAt = nullTime(now)
 	}
-	id, err := s.q.InsertFeed(ctx, p)
+	var id int64
+	err := s.analysisTx(ctx, a, func(q *store.Queries) error {
+		var err error
+		if id, err = q.InsertFeed(ctx, p); err != nil {
+			return err
+		}
+		return s.writeFeedsCount(ctx, q, a.Child.OwnerID, civildate.InTehran(now), now)
+	})
 	if isDuplicate(err) {
 		return store.BabyFeed{}, ErrFeedActive
 	}
 	if err != nil {
 		return store.BabyFeed{}, fmt.Errorf("babylog: start feed: %w", err)
-	}
-	if err := s.writeFeedsCount(ctx, s.q, a.Child.OwnerID, civildate.InTehran(now), now); err != nil {
-		return store.BabyFeed{}, err
 	}
 	return s.Feed(ctx, a.Child.ID, uint64(id)) //nolint:gosec // auto-increment id
 }
@@ -234,9 +231,10 @@ func lockRunning(ctx context.Context, q *store.Queries, childID, id uint64) (sto
 }
 
 // SetSide switches the running breast feed to side ("" pauses both sides).
-func (s *Service) SetSide(ctx context.Context, childID, id uint64, side string, now time.Time) (store.BabyFeed, error) {
+func (s *Service) SetSide(ctx context.Context, a children.Access, id uint64, side string, now time.Time) (store.BabyFeed, error) {
+	childID := a.Child.ID
 	var out store.BabyFeed
-	err := s.inTx(ctx, func(q *store.Queries) error {
+	err := s.analysisTx(ctx, a, func(q *store.Queries) error {
 		f, err := lockRunning(ctx, q, childID, id)
 		if err != nil {
 			return err
@@ -270,7 +268,7 @@ type StopInput struct {
 // StopFeed ends the running feed.
 func (s *Service) StopFeed(ctx context.Context, a children.Access, id uint64, in StopInput, now time.Time) (store.BabyFeed, error) {
 	var out store.BabyFeed
-	err := s.inTx(ctx, func(q *store.Queries) error {
+	err := s.analysisTx(ctx, a, func(q *store.Queries) error {
 		f, err := lockRunning(ctx, q, a.Child.ID, id)
 		if err != nil {
 			return err
@@ -328,15 +326,20 @@ func (in FeedInput) row(childID uint64) store.BabyFeed {
 // CreateFeed adds an ended feed («ثبت دستی»).
 func (s *Service) CreateFeed(ctx context.Context, a children.Access, in FeedInput, now time.Time) (store.BabyFeed, error) {
 	f := in.row(a.Child.ID)
-	id, err := s.q.InsertFeed(ctx, store.InsertFeedParams{
-		ChildID: f.ChildID, Type: f.Type, StartedAt: f.StartedAt, EndedAt: f.EndedAt, LastSide: f.LastSide,
-		LeftSeconds: f.LeftSeconds, RightSeconds: f.RightSeconds, DurationSeconds: f.DurationSeconds,
-		AmountMl: f.AmountMl, Note: f.Note, Now: nullTime(now),
+	var id int64
+	err := s.analysisTx(ctx, a, func(q *store.Queries) error {
+		var err error
+		id, err = q.InsertFeed(ctx, store.InsertFeedParams{
+			ChildID: f.ChildID, Type: f.Type, StartedAt: f.StartedAt, EndedAt: f.EndedAt, LastSide: f.LastSide,
+			LeftSeconds: f.LeftSeconds, RightSeconds: f.RightSeconds, DurationSeconds: f.DurationSeconds,
+			AmountMl: f.AmountMl, Note: f.Note, Now: nullTime(now),
+		})
+		if err != nil {
+			return fmt.Errorf("babylog: create feed: %w", err)
+		}
+		return s.writeFeedsCount(ctx, q, a.Child.OwnerID, civildate.InTehran(f.StartedAt), now)
 	})
 	if err != nil {
-		return store.BabyFeed{}, fmt.Errorf("babylog: create feed: %w", err)
-	}
-	if err := s.writeFeedsCount(ctx, s.q, a.Child.OwnerID, civildate.InTehran(f.StartedAt), now); err != nil {
 		return store.BabyFeed{}, err
 	}
 	return s.Feed(ctx, a.Child.ID, uint64(id)) //nolint:gosec // auto-increment id
@@ -346,7 +349,7 @@ func (s *Service) CreateFeed(ctx context.Context, a children.Access, in FeedInpu
 func (s *Service) UpdateFeed(ctx context.Context, a children.Access, id uint64, in FeedInput, now time.Time) (store.BabyFeed, error) {
 	var out store.BabyFeed
 	var oldDay civildate.Date
-	err := s.inTx(ctx, func(q *store.Queries) error {
+	err := s.analysisTx(ctx, a, func(q *store.Queries) error {
 		cur, err := q.LockFeed(ctx, store.LockFeedParams{ID: id, ChildID: a.Child.ID})
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrFeedNotFound
@@ -382,10 +385,12 @@ func (s *Service) DeleteFeed(ctx context.Context, a children.Access, id uint64, 
 	if err != nil {
 		return err
 	}
-	if _, err := s.q.DeleteFeed(ctx, store.DeleteFeedParams{ID: id, ChildID: a.Child.ID}); err != nil {
-		return fmt.Errorf("babylog: delete feed: %w", err)
-	}
-	return s.writeFeedsCount(ctx, s.q, a.Child.OwnerID, civildate.InTehran(f.StartedAt), now)
+	return s.analysisTx(ctx, a, func(q *store.Queries) error {
+		if _, err := q.DeleteFeed(ctx, store.DeleteFeedParams{ID: id, ChildID: a.Child.ID}); err != nil {
+			return fmt.Errorf("babylog: delete feed: %w", err)
+		}
+		return s.writeFeedsCount(ctx, q, a.Child.OwnerID, civildate.InTehran(f.StartedAt), now)
+	})
 }
 
 func uniqueDays(a, b civildate.Date) []civildate.Date {
@@ -462,8 +467,14 @@ func (s *Service) Sleep(ctx context.Context, childID, id uint64) (store.BabySlee
 }
 
 // StartSleep opens a running sleep.
-func (s *Service) StartSleep(ctx context.Context, childID uint64, now time.Time) (store.BabySleep, error) {
-	id, err := s.q.InsertSleep(ctx, store.InsertSleepParams{ChildID: childID, StartedAt: dbTime(now), ActiveLock: active, Now: nullTime(now)})
+func (s *Service) StartSleep(ctx context.Context, a children.Access, now time.Time) (store.BabySleep, error) {
+	childID := a.Child.ID
+	var id int64
+	err := s.analysisTx(ctx, a, func(q *store.Queries) error {
+		var err error
+		id, err = q.InsertSleep(ctx, store.InsertSleepParams{ChildID: childID, StartedAt: dbTime(now), ActiveLock: active, Now: nullTime(now)})
+		return err
+	})
 	if isDuplicate(err) {
 		return store.BabySleep{}, ErrSleepActive
 	}
@@ -474,8 +485,14 @@ func (s *Service) StartSleep(ctx context.Context, childID uint64, now time.Time)
 }
 
 // StopSleep ends the running sleep.
-func (s *Service) StopSleep(ctx context.Context, childID, id uint64, note sql.NullString, now time.Time) (store.BabySleep, error) {
-	n, err := s.q.StopSleep(ctx, store.StopSleepParams{EndedAt: nullTime(now), Note: note, Now: nullTime(now), ID: id, ChildID: childID})
+func (s *Service) StopSleep(ctx context.Context, a children.Access, id uint64, note sql.NullString, now time.Time) (store.BabySleep, error) {
+	childID := a.Child.ID
+	var n int64
+	err := s.analysisTx(ctx, a, func(q *store.Queries) error {
+		var err error
+		n, err = q.StopSleep(ctx, store.StopSleepParams{EndedAt: nullTime(now), Note: note, Now: nullTime(now), ID: id, ChildID: childID})
+		return err
+	})
 	if err != nil {
 		return store.BabySleep{}, fmt.Errorf("babylog: stop sleep: %w", err)
 	}
@@ -496,9 +513,15 @@ type SleepInput struct {
 }
 
 // CreateSleep adds an ended sleep.
-func (s *Service) CreateSleep(ctx context.Context, childID uint64, in SleepInput, now time.Time) (store.BabySleep, error) {
-	id, err := s.q.InsertSleep(ctx, store.InsertSleepParams{
-		ChildID: childID, StartedAt: dbTime(in.StartedAt), EndedAt: nullTime(in.EndedAt), Note: in.Note, Now: nullTime(now),
+func (s *Service) CreateSleep(ctx context.Context, a children.Access, in SleepInput, now time.Time) (store.BabySleep, error) {
+	childID := a.Child.ID
+	var id int64
+	err := s.analysisTx(ctx, a, func(q *store.Queries) error {
+		var err error
+		id, err = q.InsertSleep(ctx, store.InsertSleepParams{
+			ChildID: childID, StartedAt: dbTime(in.StartedAt), EndedAt: nullTime(in.EndedAt), Note: in.Note, Now: nullTime(now),
+		})
+		return err
 	})
 	if err != nil {
 		return store.BabySleep{}, fmt.Errorf("babylog: create sleep: %w", err)
@@ -507,7 +530,8 @@ func (s *Service) CreateSleep(ctx context.Context, childID uint64, in SleepInput
 }
 
 // UpdateSleep replaces an ended sleep (ErrRunning for the running one).
-func (s *Service) UpdateSleep(ctx context.Context, childID, id uint64, in SleepInput, now time.Time) (store.BabySleep, error) {
+func (s *Service) UpdateSleep(ctx context.Context, a children.Access, id uint64, in SleepInput, now time.Time) (store.BabySleep, error) {
+	childID := a.Child.ID
 	cur, err := s.Sleep(ctx, childID, id)
 	if err != nil {
 		return cur, err
@@ -515,8 +539,10 @@ func (s *Service) UpdateSleep(ctx context.Context, childID, id uint64, in SleepI
 	if cur.ActiveLock.Valid {
 		return cur, ErrRunning
 	}
-	if err := s.q.UpdateSleep(ctx, store.UpdateSleepParams{
-		StartedAt: dbTime(in.StartedAt), EndedAt: nullTime(in.EndedAt), Note: in.Note, Now: nullTime(now), ID: id, ChildID: childID,
+	if err := s.analysisTx(ctx, a, func(q *store.Queries) error {
+		return q.UpdateSleep(ctx, store.UpdateSleepParams{
+			StartedAt: dbTime(in.StartedAt), EndedAt: nullTime(in.EndedAt), Note: in.Note, Now: nullTime(now), ID: id, ChildID: childID,
+		})
 	}); err != nil {
 		return cur, fmt.Errorf("babylog: update sleep: %w", err)
 	}
@@ -524,15 +550,18 @@ func (s *Service) UpdateSleep(ctx context.Context, childID, id uint64, in SleepI
 }
 
 // DeleteSleep removes a sleep (running or ended).
-func (s *Service) DeleteSleep(ctx context.Context, childID, id uint64) error {
-	n, err := s.q.DeleteSleep(ctx, store.DeleteSleepParams{ID: id, ChildID: childID})
-	if err != nil {
-		return fmt.Errorf("babylog: delete sleep: %w", err)
-	}
-	if n == 0 {
-		return ErrSleepNotFound
-	}
-	return nil
+func (s *Service) DeleteSleep(ctx context.Context, a children.Access, id uint64) error {
+	childID := a.Child.ID
+	return s.analysisTx(ctx, a, func(q *store.Queries) error {
+		n, err := q.DeleteSleep(ctx, store.DeleteSleepParams{ID: id, ChildID: childID})
+		if err != nil {
+			return fmt.Errorf("babylog: delete sleep: %w", err)
+		}
+		if n == 0 {
+			return ErrSleepNotFound // rolls back: no bump
+		}
+		return nil
+	})
 }
 
 // ---------------------------------------------------------------- diapers
@@ -567,9 +596,15 @@ type DiaperInput struct {
 }
 
 // CreateDiaper adds a diaper change.
-func (s *Service) CreateDiaper(ctx context.Context, childID uint64, in DiaperInput, now time.Time) (store.BabyDiaper, error) {
-	id, err := s.q.InsertDiaper(ctx, store.InsertDiaperParams{
-		ChildID: childID, ChangedAt: dbTime(in.ChangedAt), Kind: in.Kind, Note: in.Note, Now: nullTime(now),
+func (s *Service) CreateDiaper(ctx context.Context, a children.Access, in DiaperInput, now time.Time) (store.BabyDiaper, error) {
+	childID := a.Child.ID
+	var id int64
+	err := s.analysisTx(ctx, a, func(q *store.Queries) error {
+		var err error
+		id, err = q.InsertDiaper(ctx, store.InsertDiaperParams{
+			ChildID: childID, ChangedAt: dbTime(in.ChangedAt), Kind: in.Kind, Note: in.Note, Now: nullTime(now),
+		})
+		return err
 	})
 	if err != nil {
 		return store.BabyDiaper{}, fmt.Errorf("babylog: create diaper: %w", err)
@@ -578,12 +613,15 @@ func (s *Service) CreateDiaper(ctx context.Context, childID uint64, in DiaperInp
 }
 
 // UpdateDiaper replaces a diaper change.
-func (s *Service) UpdateDiaper(ctx context.Context, childID, id uint64, in DiaperInput, now time.Time) (store.BabyDiaper, error) {
+func (s *Service) UpdateDiaper(ctx context.Context, a children.Access, id uint64, in DiaperInput, now time.Time) (store.BabyDiaper, error) {
+	childID := a.Child.ID
 	if _, err := s.Diaper(ctx, childID, id); err != nil {
 		return store.BabyDiaper{}, err
 	}
-	if err := s.q.UpdateDiaper(ctx, store.UpdateDiaperParams{
-		ChangedAt: dbTime(in.ChangedAt), Kind: in.Kind, Note: in.Note, Now: nullTime(now), ID: id, ChildID: childID,
+	if err := s.analysisTx(ctx, a, func(q *store.Queries) error {
+		return q.UpdateDiaper(ctx, store.UpdateDiaperParams{
+			ChangedAt: dbTime(in.ChangedAt), Kind: in.Kind, Note: in.Note, Now: nullTime(now), ID: id, ChildID: childID,
+		})
 	}); err != nil {
 		return store.BabyDiaper{}, fmt.Errorf("babylog: update diaper: %w", err)
 	}
@@ -591,15 +629,18 @@ func (s *Service) UpdateDiaper(ctx context.Context, childID, id uint64, in Diape
 }
 
 // DeleteDiaper removes a diaper change.
-func (s *Service) DeleteDiaper(ctx context.Context, childID, id uint64) error {
-	n, err := s.q.DeleteDiaper(ctx, store.DeleteDiaperParams{ID: id, ChildID: childID})
-	if err != nil {
-		return fmt.Errorf("babylog: delete diaper: %w", err)
-	}
-	if n == 0 {
-		return ErrDiaperNotFound
-	}
-	return nil
+func (s *Service) DeleteDiaper(ctx context.Context, a children.Access, id uint64) error {
+	childID := a.Child.ID
+	return s.analysisTx(ctx, a, func(q *store.Queries) error {
+		n, err := q.DeleteDiaper(ctx, store.DeleteDiaperParams{ID: id, ChildID: childID})
+		if err != nil {
+			return fmt.Errorf("babylog: delete diaper: %w", err)
+		}
+		if n == 0 {
+			return ErrDiaperNotFound // rolls back: no bump
+		}
+		return nil
+	})
 }
 
 // ---------------------------------------------------------------- summaries

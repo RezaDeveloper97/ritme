@@ -26,6 +26,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 
+	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts/inboxalerts"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -131,6 +132,15 @@ func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries) error) err
 		return fmt.Errorf("pregnancy tools: commit: %w", err)
 	}
 	return nil
+}
+
+// analysisTx is inTx for a write that rewrites the day's fetal-movement log (an analysis input, T-M10-28): it bumps
+// userID's analysis_rev before the commit.
+func (s *Service) analysisTx(ctx context.Context, userID uint64, fn func(q *store.Queries) error) error {
+	if s.db == nil {
+		return fn(s.q)
+	}
+	return revision.AnalysisTx(ctx, s.db, userID, func(tx *sql.Tx) error { return fn(s.q.WithTx(tx)) })
 }
 
 // dating is the user's active, dated pregnancy on day (ErrNotActive otherwise).
@@ -270,7 +280,7 @@ func (s *Service) UndoKick(ctx context.Context, userID, id uint64, now time.Time
 // StopKicks ends a running session and writes the day total into the fetal movement log.
 func (s *Service) StopKicks(ctx context.Context, userID, id uint64, now time.Time) (store.PregnancyKickSession, error) {
 	var out store.PregnancyKickSession
-	err := s.inTx(ctx, func(q *store.Queries) error {
+	err := s.analysisTx(ctx, userID, func(q *store.Queries) error {
 		n, err := q.StopKickSession(ctx, store.StopKickSessionParams{EndedAt: nullTime(now), Now: nullTime(now), ID: id, UserID: userID})
 		if err != nil {
 			return fmt.Errorf("pregnancy tools: stop kicks: %w", err)
@@ -293,7 +303,7 @@ func (s *Service) StopKicks(ctx context.Context, userID, id uint64, now time.Tim
 
 // DeleteKicks removes a session (running or ended); an ended one's day total is rewritten.
 func (s *Service) DeleteKicks(ctx context.Context, userID, id uint64, now time.Time) error {
-	return s.inTx(ctx, func(q *store.Queries) error {
+	return s.analysisTx(ctx, userID, func(q *store.Queries) error {
 		k, err := q.GetKickSession(ctx, store.GetKickSessionParams{ID: id, UserID: userID})
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrNotFound

@@ -40,7 +40,7 @@ func init() {
 			ChildrenStore:   childrenstore.New(d.DB),
 			Children:        kids,
 			BabyLog:         babylog.NewService(d.DB, kids),
-		}, clock.Real{})
+		}, clock.Real{}).WithCache(analysisCache(d)) // T-M10-28
 		r.Get("/api/v1/analysis/postpartum", i18n.Middleware(languages), guard, h.Postpartum)
 	})
 }
