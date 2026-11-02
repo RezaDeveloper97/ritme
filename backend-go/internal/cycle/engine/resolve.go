@@ -165,9 +165,11 @@ func (s *State) resolveCycle(target Day, c *cycle, ok, quiet bool, m *layoutMemo
 	var f facts
 
 	sup := s.suppressionAt(target)
+	gap := ok && s.pregnancyGap(target, c)
 	// E-14 / E-25: no cycle is predicted at all (only real period days resolve); hormonal (E-13) keeps the period
-	// predictions and drops the fertile/ovulation layer only.
-	noPrediction := sup == SuppressionPregnancy || sup == SuppressionPostpartumNotReturned
+	// predictions and drops the fertile/ovulation layer only. The pregnancy gap before a delivery is unknown the
+	// same way, without the postpartum warning or suppression (T-M9-48b).
+	noPrediction := sup == SuppressionPregnancy || sup == SuppressionPostpartumNotReturned || gap
 	if sup == SuppressionPostpartumNotReturned {
 		st.Warnings.Add(WarnPostpartumCyclesNotReturned)
 	}
@@ -187,7 +189,7 @@ func (s *State) resolveCycle(target Day, c *cycle, ok, quiet bool, m *layoutMemo
 	f.futureK = c.futureK
 	st.FutureK = c.futureK
 	st.Limits = s.limitsFor(target, c.promptFrom, sup)
-	l := s.layout(c, sup == SuppressionNone, m)
+	l := s.layout(c, sup == SuppressionNone && !gap, m)
 
 	cycleDay := int(target-a.start) + 1 // §2.5, 1-based
 	raw := int(l.next - target)         // §2.22
@@ -212,7 +214,7 @@ func (s *State) resolveCycle(target Day, c *cycle, ok, quiet bool, m *layoutMemo
 	case l.endConfirmed:
 		st.Anchors.CurrentPeriodEndSource = EndUserLogged
 	}
-	if sup != SuppressionNone { // §2.42: ovulation is not computed
+	if sup != SuppressionNone || gap { // §2.42: ovulation is not computed
 		st.Anchors.EstimatedOvulationDate, st.Anchors.OvulationSource = NoDay, OvulationUnknown
 	}
 	if noPrediction {
@@ -301,17 +303,18 @@ func (s *State) resolveCycle(target Day, c *cycle, ok, quiet bool, m *layoutMemo
 	if c.futureK > 0 {
 		f.futureCap = c.futureCap
 	}
+	// E-25 / E-14: no cycle runs during a pregnancy or before cycles return after a delivery, so only logged bleeding
+	// keeps its day (T-M9-53: no «روز N چرخه» counted from a pre-delivery start; T-M9-48b: nor inside the pregnancy
+	// gap before the delivery).
+	if noPrediction && st.MainPhase != MainPhaseMenstrual {
+		st.CycleDay = None[int]()
+	}
 	if sup != SuppressionNone { // §2.26 / §2.34: suppressed fertility is unknown and has no countdown
 		st.FertilityLevel = FertilityUnknown
-		// E-25 / E-14: no cycle runs during a pregnancy or before cycles return after a delivery, so only logged
-		// bleeding keeps its day (T-M9-53: no «روز N چرخه» counted from a pre-delivery start).
-		if noPrediction && st.MainPhase != MainPhaseMenstrual {
-			st.CycleDay = None[int]()
-		}
 		return st, f
 	}
 	st.FertilityLevel = fertilityOf(sub)
-	if daysLate <= p.MaxLateDays { // §2.34
+	if daysLate <= p.MaxLateDays && !gap { // §2.34 (the pregnancy gap has no ovulation)
 		st.DaysToOvulation = Some(int(l.ov - target))
 	}
 	st.SuggestPregnancyTest = s.suggestPregnancyTest(daysLate)

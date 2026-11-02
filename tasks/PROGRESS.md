@@ -2656,3 +2656,11 @@ Nothing needed fixing.
 - Frontend: `entities/plus` gates/keys/PlusLocks; locks on why-this-date, BBT coverline/confirmation, LH explanation; lab quota copy, cap message, 1y paywall; `plus` scope added for assistant-chat and fertility/bbt.
 - Contract allowlist `contract/allowlist/plus.yaml` (8th entitlement row, lab_ai free values). i18n Laravel goldens re-recorded (plus keys only). Analysis int tests grant a one-request trial for 1y; ttc goldens unchanged.
 - Open: no screenshots of the locked surfaces yet; no fertility/LH detail endpoints exist, so no backend `plus.Require` there; openapi unchanged.
+
+## T-M9-48b — Engine v6: postpartum suppression only from the delivery date
+- engine/limits.go: postpartumPeriods applies only on/after delivery; new pregnancyGap: days of the cycle spanning the pregnancy resolve to unknown with no predictions/cycle_day and no postpartum warning (only when mode=postpartum or breastfeeding with a delivery date). Pre-pregnancy closed cycles lay out normally (E-22).
+- Golden postpartum_breastfeeding: 62 pre-delivery days lose suppression + warning. Test TestLimits_PostpartumOnlyFromDelivery.
+
+## T-M9-48c — Engine v6: data_quality stays good on deliberately suppressed days
+- engine/quality.go: `good` accepts unknown phase when suppression is hormonal or postpartum_not_returned. Goldens: pill 144 days + postpartum 298 days partial→good; messages/manager golden-v6/pill.json 2 facts. Test TestQuality_SuppressedUnknownStaysGood.
+- Open: pregnancy-gap days stay `partial`. Pre-existing failure: internal/labs TestGateAndUploadPipeline (consent_required), unrelated.

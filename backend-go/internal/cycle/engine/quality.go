@@ -236,13 +236,19 @@ func (s *State) grade(st *Status, f facts, today Day) {
 	endOK := !f.endInvolved || st.Anchors.CurrentPeriodEndIsConfirmed
 	res := st.ResolutionSource
 	declaredRes := res == ResolutionOnboardingBased || res == ResolutionDefaultBased
+	// An unknown phase under hormonal contraception (E-13) or postpartum not returned (E-14) is a deliberate
+	// suppression, not missing data: it counts as resolved for §2.28 good (T-M9-48c). A day that would be unknown
+	// anyway (E-11, the defensive rule) is forced poor above it.
+	sup := st.Limits.SuppressionReason
+	phaseResolved := st.MainPhase != MainPhaseUnknown ||
+		sup == SuppressionHormonalContraception || sup == SuppressionPostpartumNotReturned
 
 	// §2.28: insufficient → poor → good → partial (E-02 contradiction → poor; E-20 + E-23 sources must be history).
 	switch {
 	case f.forcedPoor || daysLate > p.MaxLateDays || s.contradictory || s.onlyOutliers:
 		st.DataQuality = DataQualityPoor
 	case startSrc == StartUserLogged && s.validCycles >= 2 && s.cycleSrc == LengthHistory &&
-		s.periodSrc == LengthHistory && st.MainPhase != MainPhaseUnknown && daysLate < p.OverdueDaysLate && endOK:
+		s.periodSrc == LengthHistory && phaseResolved && daysLate < p.OverdueDaysLate && endOK:
 		st.DataQuality = DataQualityGood
 	default:
 		st.DataQuality = DataQualityPartial

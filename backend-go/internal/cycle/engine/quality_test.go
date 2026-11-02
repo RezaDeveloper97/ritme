@@ -448,3 +448,38 @@ func TestQuality_NoAllocs(t *testing.T) {
 	assert.Zero(t, allocs)
 	_ = st
 }
+
+// T-M9-48c: an unknown phase under hormonal contraception (E-13) or postpartum not returned (E-14) is a deliberate
+// suppression, so the day keeps the data_quality it would have without it.
+func TestQuality_SuppressedUnknownStaysGood(t *testing.T) {
+	t.Run("pill", func(t *testing.T) {
+		in, today := personaFixture(t, "pill")
+		s := Prepare(in, DefaultParams())
+		in.Hormonal = false
+		plain := Prepare(in, DefaultParams())
+		for d := today - 150; d <= today; d++ {
+			st := s.Resolve(d, today)
+			require.Equal(t, plain.Resolve(d, today).DataQuality, st.DataQuality, d)
+			if st.MainPhase == MainPhaseUnknown {
+				assert.Equal(t, DataQualityGood, st.DataQuality, d)
+				assert.Equal(t, ConfidenceLow, st.Confidence, d) // unchanged: E-13 is low through §2.29
+			}
+		}
+	})
+	t.Run("postpartum", func(t *testing.T) {
+		s, today := personaState(t, "postpartum_breastfeeding")
+		for _, d := range []Day{day("2026-06-23"), day("2026-08-01"), day("2026-10-10"), today} {
+			st := s.Resolve(d, today)
+			require.Equal(t, SuppressionPostpartumNotReturned, st.Limits.SuppressionReason, d)
+			assert.Equal(t, MainPhaseUnknown, st.MainPhase, d)
+			assert.Equal(t, DataQualityGood, st.DataQuality, d)
+		}
+	})
+	t.Run("an unresolved late day stays poor", func(t *testing.T) {
+		in := regular(day("2026-06-01"), 28, 5)
+		in.Hormonal = true
+		late := day("2026-06-01") + days(28+15) // the predicted next start + 15 > max_late (E-11)
+		st := Prepare(in, DefaultParams()).Resolve(late, late)
+		assert.Equal(t, DataQualityPoor, st.DataQuality)
+	})
+}

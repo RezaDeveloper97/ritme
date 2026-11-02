@@ -325,6 +325,75 @@ func TestLimits_Postpartum(t *testing.T) {
 	})
 }
 
+// personaFixture is the Input and today of one persona fixture of testdata/personas by name.
+func personaFixture(t *testing.T, name string) (Input, Day) {
+	t.Helper()
+	for _, p := range loadPersonas(t) {
+		if p.Name == name {
+			return p.input(t), day(p.Today)
+		}
+	}
+	t.Fatalf("no persona %s", name)
+	return Input{}, NoDay
+}
+
+// personaState prepares one persona fixture of testdata/personas by name.
+func personaState(t *testing.T, name string) (*State, Day) {
+	t.Helper()
+	in, today := personaFixture(t, name)
+	return Prepare(in, DefaultParams()), today
+}
+
+// T-M9-48b: E-14 applies only on and after the delivery date; the history before it resolves normally.
+func TestLimits_PostpartumOnlyFromDelivery(t *testing.T) {
+	s, today := personaState(t, "postpartum_breastfeeding")
+	delivery := day("2026-06-23")
+
+	t.Run("closed pre-pregnancy cycle keeps its phases and cycle days", func(t *testing.T) {
+		for _, c := range []struct {
+			date string
+			cd   int
+		}{{"2025-06-10", 10}, {"2025-06-20", 20}} {
+			st := s.Resolve(day(c.date), today)
+			assert.Equal(t, Some(c.cd), st.CycleDay, c.date)
+			assert.NotEqual(t, MainPhaseUnknown, st.MainPhase, c.date)
+			assert.Equal(t, ResolutionPrediction, st.ResolutionSource, c.date)
+			assert.False(t, st.Warnings.Has(WarnPostpartumCyclesNotReturned), c.date)
+			assert.Zero(t, st.Limits, c.date)
+			assert.Equal(t, day("2025-06-30"), st.Anchors.PredictedNextPeriodStart, c.date)
+			assert.True(t, st.Anchors.EstimatedOvulationDate.IsSet(), c.date)
+		}
+		assert.Equal(t, MainPhaseFertile, s.Resolve(day("2025-06-14"), today).MainPhase) // O = 06-16 (E-22)
+	})
+
+	t.Run("pregnancy gap: unknown, nothing predicted, no postpartum warning or suppression", func(t *testing.T) {
+		for _, d := range []Day{day("2025-08-15"), day("2026-04-22"), delivery - 1} {
+			st := s.Resolve(d, today)
+			assert.Equal(t, MainPhaseUnknown, st.MainPhase, d)
+			assert.False(t, st.CycleDay.OK(), d)
+			assert.Equal(t, NoDay, st.Anchors.PredictedNextPeriodStart, d)
+			assert.Equal(t, NoDay, st.Anchors.EstimatedOvulationDate, d)
+			assert.False(t, st.DaysToOvulation.OK(), d)
+			assert.False(t, st.Warnings.Has(WarnPostpartumCyclesNotReturned), d)
+			assert.False(t, st.Warnings.Has(WarnInsufficientAnchorData), d)
+			assert.Zero(t, st.Limits, d)
+			assert.False(t, st.RequiresUserInput, d)
+		}
+		// The logged bleeding that opens the gap cycle stays menstrual.
+		st := s.Resolve(day("2025-07-29"), today)
+		assert.Equal(t, MainPhaseMenstrual, st.MainPhase)
+		assert.Equal(t, Some(2), st.CycleDay)
+	})
+
+	t.Run("on and after the delivery date E-14 is unchanged", func(t *testing.T) {
+		for _, d := range []Day{delivery, delivery + 30, today} {
+			st := s.Resolve(d, today)
+			assert.True(t, st.Warnings.Has(WarnPostpartumCyclesNotReturned), d)
+			assert.Equal(t, SuppressionPostpartumNotReturned, st.Limits.SuppressionReason, d)
+		}
+	})
+}
+
 // E-26: a positive pregnancy test.
 func TestLimits_PositivePregnancyTest(t *testing.T) {
 	start := day("2026-07-01")
