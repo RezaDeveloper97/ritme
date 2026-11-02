@@ -245,7 +245,57 @@
     "okrPlaceholder": "The OKR summary arrives with the OKR module.",
     "okrSummary": "{n} of {of} key results on track or done",
     "okrNone": "No active objective.",
-    "okrOpen": "Open OKRs"
+    "okrOpen": "Open OKRs",
+    "alertRule": {
+      "ocr_correction_rate": "OCR correction rate",
+      "message_ctr": "Message CTR drop",
+      "rui_users": "Users needing input",
+      "engine_mae": "Engine mean error",
+      "safety_selftest_failed": "Safety self-test"
+    },
+    "alertRuleHint": {
+      "ocr_correction_rate": "Alert when the correction rate goes above this percent.",
+      "message_ctr": "Alert when a version's CTR falls more than this percent below its 7-day mean.",
+      "rui_users": "Alert when this count has risen for more than this many days in a row.",
+      "engine_mae": "Alert when the mean error (days) goes above this value.",
+      "safety_selftest_failed": "Alert when more than this many scenarios fail."
+    },
+    "alertRuleCtr": "CTR of rule {rule}, version {version}",
+    "severity": {
+      "critical": "Critical",
+      "warning": "Warning"
+    },
+    "alertValue": "Value {value} against a limit of {limit}",
+    "alertOpened": "Opened: {at}",
+    "alertSource": "Go to the source screen",
+    "alertsResolved": "{n} recently resolved alerts",
+    "alertResolvedAt": "Resolved: {at}",
+    "alertRulesEdit": "Alert rules",
+    "alertRulesTitle": "Alert rules",
+    "alertRulesNote": "Changes apply from the next hourly computation.",
+    "alertRulesError": "Could not load the alert rules.",
+    "alertRulesSaved": "Alert rule saved",
+    "alertThreshold": "Threshold",
+    "unitDays": "days",
+    "unitCount": "count",
+    "close": "Close",
+    "save": "Save",
+    "engineReal": "Computed from real predictions",
+    "engineSamples": "Prediction samples",
+    "engineDataQuality": "Data-quality distribution",
+    "confidence": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "unknown": "Unknown"
+    },
+    "quality": {
+      "good": "Good",
+      "partial": "Partial",
+      "poor": "Poor",
+      "insufficient": "Insufficient"
+    },
+    "suppressedShort": "Below display threshold"
   },
   "table": {
     "search": "Search",
@@ -3317,7 +3367,8 @@
       "growth": "Growth & activation",
       "retention": "Retention",
       "engine": "Prediction engine",
-      "ai": "AI"
+      "ai": "AI",
+      "indicators": "Key indicators"
     },
     "funnelTitle": "Activation funnel",
     "window": "Window",
@@ -3357,7 +3408,23 @@
     "referral": "Referral to a doctor",
     "noteEvents": "Counts start with the first product analytics event; earlier signups are not in the funnel or the cohorts. Only users who opted in to anonymous statistics are recorded.",
     "noteSuppression": "Groups smaller than 10 users are hidden.",
-    "noteDataQuality": "Data quality and confidence are read from the same users' current engine output; buckets under 10 users are hidden."
+    "noteDataQuality": "Data quality and confidence are read from the same users' current engine output; buckets under 10 users are hidden.",
+    "indicatorsTitle": "Key indicators",
+    "tile": {
+      "rui7d": "Input requests resolved in 7 days",
+      "aiCostShare": "AI cost share of revenue",
+      "loggers15d": "Loggers on 15+ days a month",
+      "ocrCorrection": "OCR correction rate",
+      "ctr": "Message CTR"
+    },
+    "belowDisplay": "Below display threshold",
+    "lastDays": "Last {n} days",
+    "ctrTitle": "CTR per message version",
+    "ctrEmpty": "No version has had enough impressions yet.",
+    "ctrRule": "Rule",
+    "ctrVersion": "Version",
+    "ctrShown": "Shown",
+    "ctrClicked": "Clicked"
   },
   "safety": {
     "title": "Safety & clinical content",
@@ -3485,7 +3552,19 @@
       "retention_d7": "Retention D7",
       "retention_d30": "Retention D30",
       "engine_within_2_days_pct": "Engine within ±2 days",
-      "engine_mean_error_days": "Engine mean error (days)"
+      "engine_mean_error_days": "Engine mean error (days)",
+      "loggers": "Daily loggers",
+      "loggers_15d": "Loggers on 15+ days a month",
+      "activation_first_log_pct": "Activation: first log",
+      "activation_log_d7_pct": "Activation: log on day 7",
+      "engine_mae": "Engine mean error (MAE, days)",
+      "accuracy_2d": "Engine accuracy within ±2 days",
+      "low_confidence_share": "Low-confidence share",
+      "low_data_quality_share": "Poor data-quality share",
+      "rui_resolved_7d": "Input requests resolved in 7 days",
+      "ai_cost_share": "AI cost share",
+      "ocr_correction_rate": "OCR correction rate",
+      "message_ctr": "Message CTR"
     },
     "units": {
       "count": "Count",
@@ -3493,7 +3572,16 @@
       "toman": "Toman",
       "days": "Days"
     },
-    "liveNote": "Live key results read the newest hourly aggregate snapshot; retention reads the weekly cohorts. A value is empty while it is suppressed (fewer than 10 users) or not computed yet."
+    "liveNote": "Live key results read the newest hourly aggregate snapshot; retention reads the weekly cohorts. A value is empty while it is suppressed (fewer than 10 users) or not computed yet.",
+    "statusHint": {
+      "on_track": "Progress is not behind the minimum pace.",
+      "at_risk": "Progress is behind the time elapsed.",
+      "behind": "Behind the minimum pace: {elapsed}% of the time is gone, at least {floor}% is needed (now {progress}%).",
+      "done": "Target reached.",
+      "no_data": "The value is not available yet or is below the display threshold."
+    },
+    "paceNote": "{elapsed}% of the period has passed; «on track» means progress is at most {slack} points behind the share of time gone.",
+    "paceRule": "«On track» means progress is at most {slack} points behind the share of time gone; 100% is done."
   },
   "partnerLab": {
     "requests": {

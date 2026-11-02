@@ -7,8 +7,9 @@ import { cn, formatDateTime, formatNumber } from '@/shared/lib';
 import { ErrorState, PageHeader, Panel, Skeleton } from '@/shared/ui';
 
 import { useKpi, type Kpi, type KpiCohort } from '../api/kpi';
+import { ctrRows, kpiTiles } from '../lib/tiles';
 
-const TABS = ['growth', 'retention', 'engine', 'ai'] as const;
+const TABS = ['indicators', 'growth', 'retention', 'engine', 'ai'] as const;
 type Tab = (typeof TABS)[number];
 const DAYS = [30, 60, 90] as const;
 
@@ -16,7 +17,7 @@ const DAYS = [30, 60, 90] as const;
 export function KpiScreen() {
   const t = useTranslations('kpi');
   const locale = useLocale();
-  const [tab, setTab] = useState<Tab>('growth');
+  const [tab, setTab] = useState<Tab>('indicators');
   const [days, setDays] = useState<(typeof DAYS)[number]>(90);
   const [event, setEvent] = useState<'any' | 'log_saved'>('any');
   const q = useKpi(days, event);
@@ -51,6 +52,7 @@ export function KpiScreen() {
               <p className="m-0 text-ink-3">{t('noEvents')}</p>
             </Panel>
           ) : null}
+          {tab === 'indicators' ? <Indicators k={k} /> : null}
           {tab === 'growth' ? <Funnel k={k} days={days} setDays={setDays} /> : null}
           {tab === 'retention' ? <Retention k={k} event={event} setEvent={setEvent} /> : null}
           {tab === 'engine' ? <Engine k={k} /> : null}
@@ -59,6 +61,70 @@ export function KpiScreen() {
         </>
       )}
     </div>
+  );
+}
+
+function Indicators({ k }: { k: Kpi | undefined }) {
+  const t = useTranslations('kpi');
+  const locale = useLocale();
+  if (!k) return <Skeleton className="h-48 w-full" />;
+  const rows = ctrRows(k);
+  const n = (v: number | null) => (v == null ? '—' : formatNumber(v, locale));
+  return (
+    <>
+      <Panel title={t('indicatorsTitle')} bodyClassName="">
+        <dl className="ledger m-0">
+          {kpiTiles(k).map((x) => (
+            <div key={x.key} className="ledger-cell">
+              <dt className="text-[13px] font-semibold text-ink-3">{t(`tile.${x.key}`)}</dt>
+              <dd className="m-0 mt-1">
+                <span className="ledger-value">
+                  {x.suppressed ? <span className="text-base font-semibold text-muted">{t('belowDisplay')}</span> : x.value == null ? '—' : `${formatNumber(x.value, locale)}٪`}
+                </span>
+                <span
+                  className={cn('mt-0.5 block text-xs', x.delta == null ? 'text-muted' : x.delta >= 0 ? 'font-semibold text-green-deep' : 'font-semibold text-danger-deep')}
+                >
+                  {x.delta != null ? <span dir="ltr">{`${x.delta >= 0 ? '+' : '−'}${formatNumber(Math.abs(x.delta), locale)}`}</span> : x.days != null ? t('lastDays', { n: formatNumber(x.days, locale) }) : ' '}
+                </span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </Panel>
+      <Panel title={t('ctrTitle')} bodyClassName="">
+        {rows.length === 0 ? (
+          <p className="m-0 p-4 text-ink-3">{t('ctrEmpty')}</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <caption className="sr-only">{t('ctrTitle')}</caption>
+              <thead>
+                <tr className="text-xs text-muted">
+                  <th scope="col" className="p-2 text-start font-semibold">{t('ctrRule')}</th>
+                  <th scope="col" className="p-2 text-start font-semibold">{t('ctrVersion')}</th>
+                  <th scope="col" className="p-2 text-end font-semibold">{t('ctrShown')}</th>
+                  <th scope="col" className="p-2 text-end font-semibold">{t('ctrClicked')}</th>
+                  <th scope="col" className="p-2 text-end font-semibold">CTR</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.id}>
+                    <td className="p-2">{formatNumber(r.ruleId, locale)}</td>
+                    <td className="p-2">{formatNumber(r.version, locale)}</td>
+                    <td className="p-2 text-end">{n(r.shown)}</td>
+                    <td className="p-2 text-end">{n(r.clicked)}</td>
+                    <td className="p-2 text-end font-semibold" dir="ltr">
+                      {r.suppressed ? <span className="font-normal text-muted">{t('belowDisplay')}</span> : r.ctr == null ? '—' : `${formatNumber(r.ctr, locale)}٪`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Panel>
+    </>
   );
 }
 

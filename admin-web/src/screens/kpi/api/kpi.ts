@@ -19,6 +19,17 @@ const cohort = z.object({
   suppressed: z.boolean(),
   cells: z.array(z.number().nullable()),
 });
+const rate = z.object({ pct: z.number().nullable(), count: z.number().nullable().optional(), of: z.number().nullable().optional(), suppressed: z.boolean() });
+const bucket = z.object({ key: z.string(), pct: z.number().nullable(), count: z.number().nullable(), suppressed: z.boolean() });
+const distribution = z.object({ of: z.number().nullable(), suppressed: z.boolean(), buckets: z.array(bucket) });
+const versionCtr = z.object({
+  rule_id: z.number(),
+  version: z.number(),
+  shown: z.number().nullable(),
+  clicked: z.number().nullable(),
+  ctr_pct: z.number().nullable(),
+  suppressed: z.boolean(),
+});
 const kpiSchema = z.object({
   generated_at: z.string(),
   events_since: z.string().nullable(),
@@ -32,9 +43,15 @@ const kpiSchema = z.object({
       users: z.number(),
       samples: z.number(),
       suppressed: z.boolean(),
+      confidence: distribution.nullable().optional(),
     })
     .nullable(),
-  data_quality: z.unknown().nullable(),
+  data_quality: distribution.nullable().optional(),
+  activity: z.object({ loggers_15d: rate }).nullable().optional(),
+  rui_resolved_7d: rate.nullable().optional(),
+  ai_cost: z.object({ days: z.number(), share_pct: z.number().nullable(), suppressed: z.boolean() }).nullable().optional(),
+  message_ctr: z.object({ days: z.number(), overall: rate, versions: z.array(versionCtr) }).nullable().optional(),
+  deltas: z.record(z.string(), z.object({ delta: z.number().nullable().optional() })).optional(),
   ai: z.object({
     days: z.number(),
     labs_per_day: z.number().nullable(),
@@ -47,6 +64,7 @@ const kpiSchema = z.object({
   notes: z.record(z.string(), z.string()),
 });
 export type Kpi = z.infer<typeof kpiSchema>;
+export type KpiDistribution = z.infer<typeof distribution>;
 export type KpiCohort = z.infer<typeof cohort>;
 
 export const kpiKeys = { all: ['kpi'] as const, of: (days: number, event: string) => ['kpi', days, event] as const };

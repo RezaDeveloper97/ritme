@@ -2670,3 +2670,9 @@ Nothing needed fixing.
 - Engine: Input.HormonalFrom + hormonalAt(d) everywhere Hormonal was read (suppression, quality warning/confidence/reason, pregnancy-test suggestion, skip layout). Loader query selects the dates; L2 snapshot Version 1→2 (old snapshots reload once).
 - New persona pill_started + golden; existing goldens unchanged; contract-v6 80/0.
 - Open: if the contraception API ever deletes+recreates the row, created_at moves forward. Pre-existing labs TestGateAndUploadPipeline failure unrelated.
+
+## T-M10-34 — Admin-web dashboard alerts, engine health, KPI tiles and OKR status
+- Dashboard: AlertsPanel (active alerts sorted critical-first with subject, value vs threshold, opened time, link to source screen; collapsible recently-resolved; rule editor for threshold/enabled behind `dashboard` manage, fractions shown as %), EngineHealthCard (MAE, ±2-day accuracy from real predictions, confidence + data-quality distributions; suppressed buckets «کمتر از حد نمایش»).
+- KPI: new default "Key indicators" tab (RUI 7d, AI cost share, loggers ≥15 days, OCR correction, CTR with deltas; CTR per version table). OKR: pace-rule status copy, metric labels for the §5.6 catalogue.
+- APIs: GET /overview, /kpi, /okr, GET/PUT /dashboard/alert-rules. Vitest for alert rows, tiles, OKR labels.
+- Open: no light/dark screenshots yet; overview data_quality distribution is undocumented in admin-api.md §6b (optional in schema); KPI Engine tab placeholder unchanged; OKR elapsed% computed in UTC vs Tehran on the server.

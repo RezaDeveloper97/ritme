@@ -19,6 +19,7 @@ import {
   type Objective,
   type Okr,
 } from '../api/okr';
+import { elapsedPct, statusHint } from '../lib/status';
 
 const TONE: Record<KrStatus, BadgeTone> = { on_track: 'data', at_risk: 'amber', done: 'green', no_data: 'neutral' };
 const FILL: Record<KrStatus, string> = { on_track: 'bg-data-deep', at_risk: 'bg-amber-deep', done: 'bg-green-deep', no_data: 'bg-track' };
@@ -98,6 +99,7 @@ function ObjectiveCard({ o, okr, canWrite, onEdit }: { o: Objective; okr: Okr; c
   const [adding, setAdding] = useState(false);
   const del = useDeleteObjective();
   const notifyError = useNotifyError();
+  const elapsed = elapsedPct(o.starts_on, o.ends_on, new Date());
   return (
     <Panel
       title={
@@ -128,9 +130,10 @@ function ObjectiveCard({ o, okr, canWrite, onEdit }: { o: Objective; okr: Okr; c
         {o.period} · {formatDate(o.starts_on, locale)} – {formatDate(o.ends_on, locale)}
         {o.progress_pct != null ? ` · ${formatNumber(o.progress_pct, locale)}٪` : ''}
       </p>
+      <p className="m-0 mb-3 text-xs text-muted">{elapsed == null ? t('paceRule', { slack: formatNumber(10, locale) }) : t('paceNote', { elapsed: formatNumber(elapsed, locale), slack: formatNumber(10, locale) })}</p>
       <ul className="m-0 flex list-none flex-col gap-3 p-0">
         {o.key_results.map((kr) => (
-          <KrRow key={kr.id} kr={kr} canWrite={canWrite} okr={okr} />
+          <KrRow key={kr.id} kr={kr} canWrite={canWrite} okr={okr} elapsed={elapsed} />
         ))}
       </ul>
       {adding ? <KrForm objectiveId={o.id} kr={null} okr={okr} onClose={() => setAdding(false)} /> : null}
@@ -138,13 +141,15 @@ function ObjectiveCard({ o, okr, canWrite, onEdit }: { o: Objective; okr: Okr; c
   );
 }
 
-function KrRow({ kr, canWrite, okr }: { kr: KeyResult; canWrite: boolean; okr: Okr }) {
+function KrRow({ kr, canWrite, okr, elapsed }: { kr: KeyResult; canWrite: boolean; okr: Okr; elapsed: number | null }) {
   const t = useTranslations('okr');
   const locale = useLocale();
   const [edit, setEdit] = useState(false);
   const del = useDeleteKeyResult();
   const notifyError = useNotifyError();
   const pct = kr.progress_pct ?? 0;
+  const hint = statusHint(kr.status, kr.progress_pct, elapsed);
+  const hintText = t(`statusHint.${hint.key}`, { elapsed: formatNumber(hint.elapsed ?? 0, locale), floor: formatNumber(hint.floor ?? 0, locale), progress: formatNumber(kr.progress_pct ?? 0, locale) });
   if (edit) return <li><KrForm objectiveId={kr.objective_id} kr={kr} okr={okr} onClose={() => setEdit(false)} /></li>;
   return (
     <li className="grid items-center gap-2 sm:grid-cols-[1fr_16rem_auto]">
@@ -154,6 +159,7 @@ function KrRow({ kr, canWrite, okr }: { kr: KeyResult; canWrite: boolean; okr: O
           {kr.metric_key ? t(`metric.${kr.metric_key}` as 'metric.dau') : t('manual')}
           {kr.owner ? ` · ${kr.owner}` : ''} · {fmt(kr.baseline, kr.unit, locale)} → {fmt(kr.target, kr.unit, locale)}
         </div>
+        <div className="text-xs text-muted">{hintText}</div>
       </div>
       <div className="flex items-center gap-2">
         <div

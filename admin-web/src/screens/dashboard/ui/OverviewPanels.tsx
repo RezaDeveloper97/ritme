@@ -8,6 +8,8 @@ import { cn, formatDateTime, formatNumber } from '@/shared/lib';
 import { ErrorState, Panel, Skeleton } from '@/shared/ui';
 
 import { useOverview, type OverviewMetrics, type SeriesPoint } from '../api/overview';
+import { AlertsPanel } from './AlertsPanel';
+import { EngineHealthCard } from './EngineHealthCard';
 
 const RANGES = [7, 30, 90] as const;
 
@@ -47,8 +49,8 @@ export function Overview() {
             <Modes m={m} />
           </div>
           <div className="grid gap-4 lg:grid-cols-3">
-            <Engine m={m} />
-            <Alerts m={m} />
+            <EngineHealthCard m={m} />
+            <AlertsPanel m={m} />
             <Panel title={t('okrTitle')}>
               {m?.okr ? (
                 <p className="m-0 flex flex-col gap-1 text-ink-3">
@@ -272,61 +274,6 @@ function Modes({ m }: { m: OverviewMetrics | null }) {
                 <div className={`h-2 w-(--w) rounded-full ${MODE_BAR[x.mode] ?? 'bg-data-deep'}`} style={{ '--w': `${((x.count ?? 0) / max) * 100}%` } as React.CSSProperties} />
               </div>
             </li>
-          ))}
-        </ul>
-      )}
-    </Panel>
-  );
-}
-
-function Engine({ m }: { m: OverviewMetrics | null }) {
-  const t = useTranslations('overview');
-  const locale = useLocale();
-  const e = m?.engine;
-  return (
-    <Panel title={t('engineTitle')}>
-      {!e ? (
-        <Skeleton className="h-32 w-full" />
-      ) : e.suppressed || e.mean_error_days == null ? (
-        <p className="m-0 text-ink-3">{t('engineSuppressed')}</p>
-      ) : (
-        <dl className="m-0 flex flex-col gap-2 text-sm">
-          <div className="flex justify-between">
-            <dt className="text-ink-3">{t('engineStatus')}</dt>
-            <dd className={cn('m-0 font-semibold', e.status === 'healthy' ? 'text-green-deep' : 'text-amber-deep')}>
-              {e.status === 'healthy' ? t('engineHealthy') : t('engineWatch')}
-            </dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-ink-3">{t('engineMeanError')}</dt>
-            <dd className="m-0">{t('daysValue', { n: formatNumber(e.mean_error_days, locale) })}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-ink-3">{t('engineWithin2')}</dt>
-            <dd className="m-0">{`${formatNumber(e.within_2_days_pct ?? 0, locale)}٪`}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-ink-3">{t('engineConfidence')}</dt>
-            <dd className="m-0 text-muted">{t('notAvailable')}</dd>
-          </div>
-        </dl>
-      )}
-    </Panel>
-  );
-}
-
-function Alerts({ m }: { m: OverviewMetrics | null }) {
-  const t = useTranslations('overview');
-  return (
-    <Panel title={t('alertsTitle')}>
-      {!m ? (
-        <Skeleton className="h-24 w-full" />
-      ) : m.alerts.length === 0 ? (
-        <p className="m-0 text-ink-3">{t('alertsNone')}</p>
-      ) : (
-        <ul className="m-0 flex list-none flex-col gap-2 p-0 text-sm">
-          {m.alerts.map((a) => (
-            <li key={a.key} className="text-ink">{a.text}</li>
           ))}
         </ul>
       )}

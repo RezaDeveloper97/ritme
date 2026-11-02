@@ -3,7 +3,7 @@ id: T-M10-34
 title: Admin-web dashboard alerts, engine health, KPI tiles and OKR status
 milestone: M10
 type: frontend
-status: todo
+status: done
 depends_on: [T-M10-30, T-M10-31]
 parallel_group: M10-W
 touches: [admin-web/src/screens/dashboard, admin-web/src/screens/kpi, admin-web/src/screens/okr, admin-web/messages/fa.json, admin-web/messages/en.json]
