@@ -207,6 +207,12 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // Alerts inbox (T-M10-15): `entities/alert` is read by `screens/alerts` only — references FROM `screens`
+    // are invisible to steiger (same reason as the blocks above).
+    files: ['./src/entities/alert/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // Voice logging (B-N3-05): `features/voice-log` is handed to the log sheet as its `VoiceLog` slot by
     // `screens/log` only — references FROM `screens` are invisible to steiger (same reason as above).
     files: ['./src/features/voice-log/**'],

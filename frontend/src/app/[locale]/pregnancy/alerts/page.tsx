@@ -1,20 +1,11 @@
-import { setRequestLocale } from 'next-intl/server';
-
-import { PregnancyAlertsPage } from '@/screens/pregnancy-alerts';
-
-import { RouteMessages } from '../../../RouteMessages';
+import { redirect } from 'next/navigation';
 
 interface Props {
   params: Promise<{ locale: string }>;
 }
 
-/** `/pregnancy/alerts` — the v2 Alerts screen (last 7 days + level legend). */
+/** `/pregnancy/alerts` — the old pregnancy-only screen; every mode now shares `/alerts` (T-M10-15). The URL keeps working. */
 export default async function PregnancyAlertsRoute({ params }: Props) {
   const { locale } = await params;
-  setRequestLocale(locale);
-  return (
-    <RouteMessages route="pregnancyAlerts">
-      <PregnancyAlertsPage />
-    </RouteMessages>
-  );
+  redirect(`/${locale}/alerts`);
 }

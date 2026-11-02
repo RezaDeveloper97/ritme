@@ -1,0 +1,42 @@
+{
+  "title": "Alerts & messages",
+  "subtitle": "Everything Ritme has noticed in your own logs, in one place.",
+  "back": "Back",
+  "settings": "Reminder settings",
+  "loading": "Loading…",
+  "loadError": "Couldn't load your alerts. Try again in a moment.",
+  "saveError": "That didn't go through. Try again in a moment.",
+  "retry": "Try again",
+  "loadMore": "Show more",
+  "tabs": {
+    "label": "Alert list",
+    "open": "Open",
+    "history": "History"
+  },
+  "empty": {
+    "open": "No alerts right now. If we notice something, you'll see it here.",
+    "history": "Nothing in your history yet."
+  },
+  "levels": {
+    "urgent": "Follow up soon",
+    "follow_up": "Worth following up",
+    "suggestion": "Suggestion",
+    "info": "Info"
+  },
+  "whatWeSaw": "What we saw",
+  "howSure": "How sure we are",
+  "seenTimes": "Seen {count, number} times",
+  "urgentHint": "Please don't ignore this one. It stays open until you tell us you've seen it.",
+  "actions": {
+    "ack": "Got it, thanks",
+    "visitNote": "Add to visit note",
+    "visitNoteDone": "Added to your visit note",
+    "dismiss": "Close",
+    "call": "Call {contact}"
+  },
+  "bell": {
+    "open": "Alerts: {count, number} open",
+    "urgent": "Alerts: {count, number} urgent, {open, number} open"
+  },
+  "disclaimer": "None of these messages is a medical diagnosis. If you're worried, talk to a doctor or midwife."
+}

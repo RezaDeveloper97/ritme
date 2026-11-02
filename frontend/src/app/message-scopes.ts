@@ -53,7 +53,7 @@ const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly Mes
 
 /** Per route: the namespaces its screen (and everything it imports) uses. */
 export const ROUTE_NAMESPACES = {
-  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'conditions', 'fertility', 'home', 'homeLab', 'log', 'logPeriod', 'loss', 'menopause', 'nav', 'plus', 'profileEdit', 'search', 'teen', 'todo', 'learn'], // B-N8-03 widgets/learn-home-card; CB-NAV-03 «برای امروز» to-do row (entities/todo barrel); B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
+  home: ['alerts', 'articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'conditions', 'fertility', 'home', 'homeLab', 'log', 'logPeriod', 'loss', 'menopause', 'nav', 'plus', 'profileEdit', 'search', 'teen', 'todo', 'learn'], // B-N8-03 widgets/learn-home-card; CB-NAV-03 «برای امروز» to-do row (entities/todo barrel); B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav'],
   log: ['children', 'common', 'logSheet', 'nav', 'plus', 'voiceLog'], // CB-NAV-03: children = widgets/log-later via screens/log; // B-N3-03: /log renders the log sheet v2 as a page
   logCustomize: ['common', 'logCustomize', 'logSheet', 'plus'], // B-N3-04 /log/customize (the log sheet's gear; categoryLook comes via features/log-day)
@@ -93,7 +93,7 @@ export const ROUTE_NAMESPACES = {
   pregnancy: ['care', 'common', 'loss', 'nav', 'pregnancyV2', 'search', 'teen', 'todo'], // CB-NAV-04b widgets/quick-access reads entities/teen; CB-NAV-03b «برای امروز» to-do row (widgets/for-today); CB-NAV-02 header search button; B-N5-10 post-loss care row (entities/loss)
   pregnancyLog: [...PREGNANCY, 'logSheet', 'plus', 'pregnancyV2', 'voiceLog'], // B-N3-06: default tab = log sheet v2 (pregnancy preset)
   pregnancyWeek: ['common', 'nav', 'pregnancyV2'],
-  pregnancyAlerts: ['common', 'nav', 'pregnancyV2'],
+  alerts: ['alerts', 'common', 'nav'], // T-M10-15 /alerts (the old /pregnancy/alerts redirects here)
   pregnancyKicks: ['common', 'pregnancyTools'], // B-N5-08 /pregnancy/kicks (Log_Kick)
   pregnancyContractions: ['common', 'pregnancyTools'], // B-N5-08 /pregnancy/contractions (Log_Contraction)
   pregnancyCalendar: ['care', 'common', 'nav', 'pregnancyV2'],

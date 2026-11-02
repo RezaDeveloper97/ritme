@@ -23,6 +23,7 @@ import enLog from '../../../messages/en/log.json';
 import enLogPeriod from '../../../messages/en/log-period.json';
 import enLogCustomize from '../../../messages/en/log-customize.json';
 import enLogSheet from '../../../messages/en/log-sheet.json';
+import enAlerts from '../../../messages/en/alerts.json';
 import enVoiceLog from '../../../messages/en/voice-log.json';
 import enVitals from '../../../messages/en/vitals.json'; // B-N6-02
 import enTodo from '../../../messages/en/todo.json'; // B-N6-08
@@ -93,6 +94,7 @@ import faLog from '../../../messages/fa/log.json';
 import faLogPeriod from '../../../messages/fa/log-period.json';
 import faLogCustomize from '../../../messages/fa/log-customize.json';
 import faLogSheet from '../../../messages/fa/log-sheet.json';
+import faAlerts from '../../../messages/fa/alerts.json';
 import faVoiceLog from '../../../messages/fa/voice-log.json';
 import faVitals from '../../../messages/fa/vitals.json'; // B-N6-02
 import faTodo from '../../../messages/fa/todo.json'; // B-N6-08
@@ -227,6 +229,7 @@ const bundled = {
     logCustomize: faLogCustomize,
     logSheet: faLogSheet,
     voiceLog: faVoiceLog,
+    alerts: faAlerts, // T-M10-15 /alerts
     vitals: faVitals,
     todo: faTodo, // B-N6-08 /todo
     learn: faLearn, // B-N8-03 /learn*
@@ -299,6 +302,7 @@ const bundled = {
     logCustomize: enLogCustomize,
     logSheet: enLogSheet,
     voiceLog: enVoiceLog,
+    alerts: enAlerts, // T-M10-15 /alerts
     vitals: enVitals,
     todo: enTodo, // B-N6-08 /todo
     learn: enLearn, // B-N8-03 /learn*

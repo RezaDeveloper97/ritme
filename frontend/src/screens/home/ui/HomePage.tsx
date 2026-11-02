@@ -146,6 +146,36 @@ function greetingKey(hour: number): 'morning' | 'noon' | 'evening' | 'night' {
   return 'night';
 }
 
+/**
+ * T-M10-15: the alerts-inbox bell with the open count (urgent tints it). Shown whenever at least one item is open and
+ * never switchable off by a module flag — health alerts must stay reachable. Counts come from the feed's `alerts`.
+ */
+function AlertsBell({ loc }: { loc: Locale }) {
+  const tAlerts = useTranslations('alerts');
+  const counts = useMessageFeed().data?.alerts;
+  const mounted = useMounted();
+  if (!mounted || !counts || counts.open < 1) return null;
+  const urgent = counts.urgent > 0;
+  return (
+    <Link
+      href="/alerts"
+      className={clsx('home-hdr-btn relative', urgent && 'text-[var(--danger)]')}
+      aria-label={urgent ? tAlerts('bell.urgent', { count: counts.urgent, open: counts.open }) : tAlerts('bell.open', { count: counts.open })}
+    >
+      <Icon name="bell" size={20} strokeWidth={1.8} />
+      <span
+        aria-hidden
+        className={clsx(
+          'pointer-events-none absolute -top-1 -end-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none',
+          urgent ? 'bg-[var(--danger)] text-[var(--on-danger)]' : 'bg-[var(--brand-fill)] text-[var(--on-brand)]',
+        )}
+      >
+        {localizeNum(Math.min(counts.open, 99), loc)}
+      </span>
+    </Link>
+  );
+}
+
 function HomeHeader({ t, loc }: { t: T; loc: Locale }) {
   const tSearch = useTranslations('search');
   return (
@@ -157,6 +187,7 @@ function HomeHeader({ t, loc }: { t: T; loc: Locale }) {
         <div className="home-hdr-greet">{t(`greeting.${greetingKey(currentHour())}`)}</div>
       </div>
       <div className="home-hdr-actions">
+        <AlertsBell loc={loc} />
         {/* CB-NAV-02: global search (nbd_Nav_Today header). */}
         <Link href="/search" className="home-hdr-btn" aria-label={tSearch('open')}>
           <Icon name="search" size={20} strokeWidth={1.8} />

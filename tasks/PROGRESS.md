@@ -2699,3 +2699,8 @@ Nothing needed fixing.
 ## T-M10-29b — Contract allow-lists for the D-178 Plus changes across all route groups
 - `make contract ROUTES=all`: 1922 passed, 0 failed (was 41 failed + 5 in analysis groups). Entries cite D-178: 8th entitlement row (`plus.analysis_long_range`) in trial-start/status/usage/trial responses; row-1 `plus.lab_ai` free values; labs `upload_locked` 402→403 consent_required; analysis summary/cycle 1y/all free → 402. New files sharelinks.yaml, voicelog.yaml. No regressions found.
 - labs TestGateAndUploadPipeline: free user now expects 403 consent_required (free 1/month lab AI).
+
+## T-M10-15 — Frontend generic alerts inbox
+- `entities/alert` (types, view model, boundary parser, keys, cursor list + ack/visit-note/dismiss) and `screens/alerts` at `/alerts`: open/history tabs, sections urgent → follow_up → suggestion → info, «چی دیدیم / چقدر مطمئنیم» evidence, call button for phone contacts, urgent cards can't close until acknowledged.
+- `/pregnancy/alerts` redirects to `/alerts`; `screens/pregnancy-alerts` removed. Home bell (cycle + menopause homes) from `GET /messages/feed` alert counts, shown only with ≥1 open item, rose when urgent. No module flag hides it (safety alerts never switchable). New `alerts` namespace (fa/en, copied to backend translations); steiger override for entities/alert like voice-log.
+- Open: no light/dark screenshots; bell hidden where the feed is unavailable (Laravel); old level legend and "last 7 days" note replaced by a disclaimer.

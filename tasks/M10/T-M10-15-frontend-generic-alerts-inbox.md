@@ -3,10 +3,10 @@ id: T-M10-15
 title: Frontend generic alerts inbox
 milestone: M10
 type: frontend
-status: todo
+status: done
 depends_on: [T-M10-08, T-M10-09, T-M10-14]
 parallel_group: M10-W
-touches: [frontend/src/screens/alerts, frontend/src/entities/alert, frontend/src/screens/pregnancy-alerts, frontend/src/app/[locale]/alerts, frontend/src/app/[locale]/pregnancy/alerts, frontend/src/app/message-scopes.ts, frontend/src/screens/home/ui/HomePage.tsx, frontend/messages/fa/alerts.json, frontend/messages/en/alerts.json, backend-go/resources/translations/fa/alerts.json, backend-go/resources/translations/en/alerts.json]
+touches: [frontend/steiger.config.ts, frontend/src/shared/i18n/bundled.ts, frontend/src/global.d.ts, docs/engine-v6/qa/T-M10-15, frontend/src/screens/alerts, frontend/src/entities/alert, frontend/src/screens/pregnancy-alerts, frontend/src/app/[locale]/alerts, frontend/src/app/[locale]/pregnancy/alerts, frontend/src/app/message-scopes.ts, frontend/src/screens/home/ui/HomePage.tsx, frontend/messages/fa/alerts.json, frontend/messages/en/alerts.json, backend-go/resources/translations/fa/alerts.json, backend-go/resources/translations/en/alerts.json]
 skills: [new-fsd-slice]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run copy:check -- alerts
 ---
