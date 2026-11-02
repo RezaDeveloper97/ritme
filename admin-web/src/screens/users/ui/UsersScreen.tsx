@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { useCan } from "@/features/auth";
 import { formatDate, formatNumber, useListParams } from "@/shared/lib";
@@ -28,33 +28,14 @@ import {
   useDirectory,
   type DirectoryRow,
 } from "../api/directory";
-
-const SEGMENTS_KEY = "ritme-admin-user-segments";
-interface Segment {
-  name: string;
-  qs: string;
-}
-
-function readSegments(): Segment[] {
-  try {
-    const raw: unknown = JSON.parse(localStorage.getItem(SEGMENTS_KEY) ?? "[]");
-    return Array.isArray(raw)
-      ? (raw as Segment[]).filter(
-          (s) => typeof s.name === "string" && typeof s.qs === "string",
-        )
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeSegments(list: Segment[]): void {
-  try {
-    localStorage.setItem(SEGMENTS_KEY, JSON.stringify(list));
-  } catch {
-    // private mode / blocked storage: segments just don't persist
-  }
-}
+import type { Segment } from "../api/segments";
+import {
+  filtersToSegment,
+  isFiltered,
+  LIST_DEFAULTS,
+  segmentToSearch,
+} from "../model/segment-filters";
+import { SegmentsPanel } from "./SegmentsPanel";
 
 /** The last 12 signup months as YYYY-MM (cohort filter). */
 function cohortOptions(): string[] {
@@ -73,6 +54,7 @@ function enumLabel(t: T, ns: string, value: string): string {
 }
 
 const CHURN_TONE: Record<string, BadgeTone> = {
+  new: "data",
   low: "green",
   medium: "amber",
   high: "red",
@@ -84,50 +66,26 @@ export function UsersScreen() {
   const tc = useTranslations("common");
   const locale = useLocale();
   const router = useRouter();
-  const pathname = usePathname();
-  const search = useSearchParams();
   const canExport = useCan("export");
-  const list = useListParams({
-    status: "all",
-    plan: "",
-    activity: "",
-    cohort: "",
-    churn: "",
-  });
+  const list = useListParams(LIST_DEFAULTS);
   const query = useDirectory(list.query);
-  const [segments, setSegments] = useState<Segment[]>([]);
   const [exporting, setExporting] = useState(false);
-  useEffect(() => setSegments(readSegments()), []);
 
   const f = list.params.filters;
-  const filtered =
-    Boolean(list.params.q) ||
-    f.status !== "all" ||
-    Boolean(f.plan || f.activity || f.cohort || f.churn);
+  const filtered = isFiltered(list.params.q, f);
+  const segmentFilters = filtersToSegment(f);
+  const hasSegmentFilters = Object.keys(segmentFilters).length > 0;
+  const options = query.data?.options ?? {};
   const opt = (value: string, label: string) => ({ value, label });
+  /** Option list: server vocabulary when present, else the static fallback. */
+  const vocab = (key: string, fallback: readonly string[], ns: string) => [
+    opt("", t("statusAll")),
+    ...(options[key] ?? fallback).map((v) => opt(v, enumLabel(t, ns, v))),
+  ];
 
-  const saveSegment = () => {
-    const name = window.prompt(t("segmentName"))?.trim();
-    if (!name) return;
-    const qs = search.toString();
-    const next = [
-      ...segments.filter((s) => s.name !== name),
-      { name, qs },
-    ].slice(-12);
-    setSegments(next);
-    writeSegments(next);
-  };
-  const applySegment = (name: string) => {
-    const seg = segments.find((s) => s.name === name);
-    if (seg)
-      router.replace(seg.qs ? `${pathname}?${seg.qs}` : pathname, {
-        scroll: false,
-      });
-  };
-  const removeSegment = (name: string) => {
-    const next = segments.filter((s) => s.name !== name);
-    setSegments(next);
-    writeSegments(next);
+  const applySegment = (seg: Segment) => {
+    const qs = segmentToSearch(seg.filters);
+    router.replace(qs ? `?${qs}` : "?", { scroll: false });
   };
   const onExport = async () => {
     setExporting(true);
@@ -144,7 +102,7 @@ export function UsersScreen() {
     {
       key: "ref",
       header: t("ref"),
-      cell: (u) => <span dir="ltr">{u.ref}</span>,
+      cell: (u) => <span dir="ltr">{u.ref ?? "—"}</span>,
       className: "cell-num whitespace-nowrap",
     },
     {
@@ -152,6 +110,12 @@ export function UsersScreen() {
       header: t("mobile"),
       cell: (u) => <span dir="ltr">{u.mobile_masked}</span>,
       className: "cell-num",
+    },
+    {
+      key: "mode",
+      header: t("mode"),
+      cell: (u) => (u.mode ? enumLabel(t, "modes", u.mode) : "—"),
+      className: "whitespace-nowrap",
     },
     {
       key: "plan",
@@ -173,6 +137,23 @@ export function UsersScreen() {
       header: t("loggedDays"),
       cell: (u) => formatNumber(u.logged_days_30, locale),
       className: "cell-num",
+    },
+    {
+      key: "quality",
+      header: t("dataQuality"),
+      cell: (u) =>
+        u.data_quality ? enumLabel(t, "dataQualities", u.data_quality) : "—",
+      className: "whitespace-nowrap",
+    },
+    {
+      key: "warning",
+      header: t("mainWarning"),
+      cell: (u) =>
+        u.main_warning ? (
+          <Badge tone="amber">{enumLabel(t, "warnings", u.main_warning)}</Badge>
+        ) : (
+          "—"
+        ),
     },
     {
       key: "churn",
@@ -216,126 +197,118 @@ export function UsersScreen() {
   ];
 
   return (
-    <Panel
-      title={t("title")}
-      bodyClassName=""
-      actions={
-        <>
-          <Button size="sm" onClick={saveSegment} disabled={!filtered}>
-            {t("saveSegment")}
-          </Button>
-          {canExport && (
-            <Button size="sm" onClick={onExport} loading={exporting}>
-              {t("exportAnonymised")}
-            </Button>
-          )}
-        </>
-      }
-    >
-      <div className="filter-bar">
-        <SearchInput
-          value={list.params.q}
-          onChange={list.setSearch}
-          placeholder={t("searchPlaceholder")}
-        />
-        <Select
-          label={t("status")}
-          className="w-36"
-          value={f.status}
-          onChange={(e) => list.setFilter("status", e.target.value)}
-          options={[
-            opt("all", t("statusAll")),
-            opt("active", tc("active")),
-            opt("blocked", tc("blocked")),
-          ]}
-        />
-        <Select
-          label={t("plan")}
-          className="w-36"
-          value={f.plan}
-          onChange={(e) => list.setFilter("plan", e.target.value)}
-          options={[
-            opt("", t("statusAll")),
-            ...PLANS.map((p) => opt(p, enumLabel(t, "plans", p))),
-          ]}
-        />
-        <Select
-          label={t("lastActivity")}
-          className="w-40"
-          value={f.activity}
-          onChange={(e) => list.setFilter("activity", e.target.value)}
-          options={[
-            opt("", t("statusAll")),
-            ...ACTIVITIES.map((a) => opt(a, enumLabel(t, "activities", a))),
-          ]}
-        />
-        <Select
-          label={t("cohort")}
-          className="w-36"
-          value={f.cohort}
-          onChange={(e) => list.setFilter("cohort", e.target.value)}
-          options={[
-            opt("", t("statusAll")),
-            ...cohortOptions().map((c) => opt(c, c)),
-          ]}
-        />
-        <Select
-          label={t("churnRisk")}
-          className="w-36"
-          value={f.churn}
-          onChange={(e) => list.setFilter("churn", e.target.value)}
-          options={[
-            opt("", t("statusAll")),
-            ...CHURNS.map((c) => opt(c, enumLabel(t, "churn", c))),
-          ]}
-        />
-        {segments.length > 0 && (
+    <div className="flex flex-col gap-4">
+      <SegmentsPanel
+        current={segmentFilters}
+        activeId={f.segment ? Number(f.segment) : null}
+        canSave={hasSegmentFilters}
+        onApply={applySegment}
+      />
+      <Panel
+        title={t("title")}
+        bodyClassName=""
+        actions={
+          <>
+            {canExport && (
+              <Button size="sm" onClick={onExport} loading={exporting}>
+                {t("exportAnonymised")}
+              </Button>
+            )}
+          </>
+        }
+      >
+        <div className="filter-bar">
+          <SearchInput
+            value={list.params.q}
+            onChange={list.setSearch}
+            placeholder={t("searchPlaceholder")}
+          />
           <Select
-            label={t("segments")}
-            className="w-44"
-            value=""
-            onChange={(e) => applySegment(e.target.value)}
+            label={t("status")}
+            className="w-36"
+            value={f.status}
+            onChange={(e) => list.setFilter("status", e.target.value)}
             options={[
-              opt("", t("pickSegment")),
-              ...segments.map((s) => opt(s.name, s.name)),
+              opt("all", t("statusAll")),
+              opt("active", tc("active")),
+              opt("blocked", tc("blocked")),
             ]}
           />
-        )}
-      </div>
-      {segments.length > 0 && (
-        <ul className="m-0 flex list-none flex-wrap gap-2 px-4 pb-3 sm:px-5">
-          {segments.map((s) => (
-            <li key={s.name}>
-              <Badge tone="neutral">
-                {s.name}{" "}
-                <button
-                  type="button"
-                  className="min-h-[24px] min-w-[24px]"
-                  aria-label={t("removeSegment", { name: s.name })}
-                  onClick={() => removeSegment(s.name)}
-                >
-                  ×
-                </button>
-              </Badge>
-            </li>
-          ))}
-        </ul>
-      )}
-      <DataTable
-        columns={columns}
-        items={query.data?.items}
-        rowKey={(u) => u.id}
-        loading={query.isPending}
-        error={query.error}
-        onRetry={() => query.refetch()}
-        onRowClick={(u) => router.push(`/users/${u.id}`)}
-        emptyText={filtered ? t("emptyFiltered") : t("empty")}
-        caption={t("title")}
-      />
-      <Pagination meta={query.data?.meta} onPage={list.setPage} />
-      <p className="m-0 p-4 text-[13px] text-ink-3 sm:p-5">
-        {t("privacyNote")}
-      </p>
-    </Panel>
+          <Select
+            label={t("plan")}
+            className="w-36"
+            value={f.plan}
+            onChange={(e) => list.setFilter("plan", e.target.value)}
+            options={[
+              opt("", t("statusAll")),
+              ...PLANS.map((p) => opt(p, enumLabel(t, "plans", p))),
+            ]}
+          />
+          <Select
+            label={t("lastActivity")}
+            className="w-40"
+            value={f.activity}
+            onChange={(e) => list.setFilter("activity", e.target.value)}
+            options={[
+              opt("", t("statusAll")),
+              ...ACTIVITIES.map((a) => opt(a, enumLabel(t, "activities", a))),
+            ]}
+          />
+          <Select
+            label={t("cohort")}
+            className="w-36"
+            value={f.cohort}
+            onChange={(e) => list.setFilter("cohort", e.target.value)}
+            options={[
+              opt("", t("statusAll")),
+              ...cohortOptions().map((c) => opt(c, c)),
+            ]}
+          />
+          <Select
+            label={t("churnRisk")}
+            className="w-36"
+            value={f.churn}
+            onChange={(e) => list.setFilter("churn", e.target.value)}
+            options={vocab("churn", CHURNS, "churn")}
+          />
+          <Select
+            label={t("mode")}
+            className="w-40"
+            value={f.mode}
+            onChange={(e) => list.setFilter("mode", e.target.value)}
+            options={vocab("mode", [], "modes")}
+          />
+          <Select
+            label={t("dataQuality")}
+            className="w-40"
+            value={f.data_quality}
+            onChange={(e) => list.setFilter("data_quality", e.target.value)}
+            options={vocab("data_quality", [], "dataQualities")}
+          />
+          <Select
+            label={t("mainWarning")}
+            className="w-52"
+            value={f.main_warning}
+            onChange={(e) => list.setFilter("main_warning", e.target.value)}
+            options={vocab("main_warning", [], "warnings")}
+          />
+        </div>
+        <DataTable
+          columns={columns}
+          items={query.data?.items}
+          rowKey={(u) => u.id}
+          loading={query.isPending}
+          error={query.error}
+          onRetry={() => query.refetch()}
+          onRowClick={(u) => router.push(`/users/${u.id}`)}
+          emptyText={filtered ? t("emptyFiltered") : t("empty")}
+          caption={t("title")}
+        />
+        <Pagination meta={query.data?.meta} onPage={list.setPage} />
+        <p className="m-0 p-4 text-[13px] text-ink-3 sm:p-5">
+          {t("privacyNote")}
+        </p>
+      </Panel>
+    </div>
   );
 }

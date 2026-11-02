@@ -4,11 +4,65 @@ import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
-import { useCan } from '@/features/auth';
+import { useCan, useCurrentAdmin } from '@/features/auth';
 import { formatDateTime, formatNumber, nextSearch, useListParams } from '@/shared/lib';
-import { Button, DataTable, Icon, PageHeader, Pagination, Panel, TextInput, useNotifyError, type Column } from '@/shared/ui';
+import {
+  Badge,
+  Button,
+  DataTable,
+  Icon,
+  PageHeader,
+  Pagination,
+  Panel,
+  TextInput,
+  useNotifyError,
+  type Column,
+} from '@/shared/ui';
 
-import { downloadAuditCsv, useAuditLog, type AuditRow } from '../api/access';
+import { downloadAuditCsv, useAuditLog, useVerifyChain, type AuditRow } from '../api/access';
+
+/** Chain status card (super only): a verify button walks the hash chain and names the first break. */
+export function ChainStatusCard() {
+  const t = useTranslations('access');
+  const verify = useVerifyChain();
+  const notifyError = useNotifyError();
+  const r = verify.data;
+  return (
+    <Panel
+      title={t('chainTitle')}
+      actions={
+        <Button size="sm" loading={verify.isPending} onClick={() => verify.mutate(undefined, { onError: notifyError })}>
+          {t('chainVerify')}
+        </Button>
+      }
+    >
+      <p className="m-0 text-ink-3">{t('chainNote')}</p>
+      <div role="status" aria-live="polite" className="mt-3">
+        {r ? (
+          r.ok ? (
+            <Badge tone="green">{t('chainOk', { count: formatNumber(r.checked, 'en') })}</Badge>
+          ) : (
+            <div className="flex flex-col gap-1">
+              <Badge tone="red">{t('chainBroken')}</Badge>
+              {r.break ? (
+                <span dir="ltr" className="text-sm">
+                  #{r.break.id} · {r.break.reason}
+                </span>
+              ) : null}
+            </div>
+          )
+        ) : (
+          <span className="text-ink-3">{t('chainNotRun')}</span>
+        )}
+        {r?.head ? (
+          <p dir="ltr" className="m-0 mt-2 break-all text-[13px] text-ink-3">
+            head #{r.head.id} · {r.head.hash}
+          </p>
+        ) : null}
+      </div>
+    </Panel>
+  );
+}
 
 const FILTERS = { action: '', admin_id: '', target_type: '', from: '', to: '' };
 
@@ -18,6 +72,7 @@ export function AuditLogScreen() {
   const tr = useTranslations('roles');
   const locale = useLocale();
   const canExport = useCan('export');
+  const isSuper = useCurrentAdmin()?.role === 'super';
   const notifyError = useNotifyError();
   const list = useListParams(FILTERS);
   const router = useRouter();
@@ -47,7 +102,11 @@ export function AuditLogScreen() {
           t('system')
         ),
     },
-    { key: 'action', header: t('action'), cell: (r) => <code dir="ltr">{r.action}</code> },
+    {
+      key: 'action',
+      header: t('action'),
+      cell: (r) => <code dir="ltr">{r.action}</code>,
+    },
     {
       key: 'target',
       header: t('target'),
@@ -72,13 +131,20 @@ export function AuditLogScreen() {
           '—'
         ),
     },
-    { key: 'ip', header: t('ip'), cell: (r) => (r.ip ? <span dir="ltr">{r.ip}</span> : '—'), className: 'text-ink-3' },
+    {
+      key: 'ip',
+      header: t('ip'),
+      cell: (r) => (r.ip ? <span dir="ltr">{r.ip}</span> : '—'),
+      className: 'text-ink-3',
+    },
   ];
 
   // One URL update for every filter (setFilter per key would race: each replace starts from the same URL).
   const apply = () => {
     const patch = Object.fromEntries(Object.entries(draft).map(([k, v]) => [k, v.trim()]));
-    router.replace(`${pathname}${nextSearch(new URLSearchParams(search.toString()), patch, FILTERS)}`, { scroll: false });
+    router.replace(`${pathname}${nextSearch(new URLSearchParams(search.toString()), patch, FILTERS)}`, {
+      scroll: false,
+    });
   };
 
   return (
@@ -107,6 +173,7 @@ export function AuditLogScreen() {
           ) : null
         }
       />
+      {isSuper ? <ChainStatusCard /> : null}
       <Panel>
         <form
           className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5"

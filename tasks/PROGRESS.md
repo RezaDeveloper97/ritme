@@ -2632,3 +2632,11 @@ Nothing needed fixing.
 - Overview payload: `alerts` (open, newest first) + `resolved_alerts` (last 10). Admin API `GET /dashboard/alert-rules`, `PUT /dashboard/alert-rules/:key` {threshold, enabled} (audited). Docs: admin-api.md §6b, jobs.md.
 - Verify: sqlc, vet, unit + test-int metrics/okr, lint, http tests.
 - Open: OCR / RUI / MAE data paths only unit-tested at the boundary; threshold edits show at the next hourly snapshot; admin-web UI for alerts → T-M10-34.
+
+## T-M10-35 — Admin-web users, segments, roles and audit chain
+- Users list: RT code, masked mobile, mode, plan, activity, 30-day log days, data_quality, main warning, churn (incl. "new"), filters, save-as-segment.
+- SegmentsPanel on /users backed by the real `/segments` API (list/edit/delete), replacing the browser-local list.
+- User detail: engine card, cycle-length chart, messages/challenges with rule+version; rule titles hidden without health grant.
+- Roles screen marks customised roles; audit screen chain-status card with super-only verify (`GET /audit/verify`).
+- Vitest: segment filters → query, segment save, role-gated rendering, ChainStatusCard. Shots: docs/engine-v6/qa/admin/ (light+dark).
+- Open: segment picker in the message rule editor moved to T-M10-35b (outside touches). Segments are a panel, not a standalone page.

@@ -427,7 +427,8 @@
     "churn": {
       "low": "کم",
       "medium": "متوسط",
-      "high": "زیاد"
+      "high": "زیاد",
+      "new": "جدید"
     },
     "tabs": {
       "label": "بخش‌های کاربر",
@@ -471,7 +472,98 @@
       "limitedBody": "علائم، آزمایش‌ها، یادداشت‌ها و خروجی موتور بدون دسترسی موقت نمایش داده نمی‌شوند. فقط نقش «پشتیبانی بالینی» با ثبت دلیل و شماره تیکت، به مدت ۳۰ دقیقه دسترسی می‌گیرد و در لاگ ممیزی ثبت می‌شود.",
       "request": "درخواست دسترسی موقت",
       "engineNote": "دسترسی موقت فعال است؛ هر مشاهده در لاگ ممیزی ثبت می‌شود."
-    }
+    },
+    "mode": "حالت",
+    "dataQuality": "کیفیت داده",
+    "mainWarning": "هشدار اصلی موتور",
+    "segmentSize": "{count} کاربر",
+    "segmentSizeHidden": "اندازه پنهان (کمتر از ۱۰ کاربر)",
+    "filterNames": {
+      "status": "وضعیت",
+      "plan": "پلن",
+      "activity": "فعالیت",
+      "cohort": "گروه ثبت‌نام",
+      "churn": "ریزش",
+      "mode": "حالت",
+      "data_quality": "کیفیت داده",
+      "main_warning": "هشدار"
+    },
+    "segmentAll": "همه کاربران",
+    "segmentSaved": "سگمنت ذخیره شد.",
+    "segmentsEmpty": "هنوز سگمنتی ذخیره نشده. فیلترها را تنظیم کن و اینجا ذخیره کن.",
+    "segmentActive": "اعمال‌شده",
+    "segmentApply": "اعمال",
+    "segmentEdit": "ویرایش",
+    "segmentDelete": "حذف",
+    "segmentConfirmDelete": "سگمنت «{name}» حذف شود؟ قانون‌های پیامی که از آن استفاده می‌کنند دیگر تطبیق نمی‌دهند.",
+    "segmentDeleted": "سگمنت حذف شد.",
+    "segmentEditing": "تغییر نام «{name}» و جایگزینی فیلترهایش با فیلترهای فعلی",
+    "segmentUpdate": "به‌روزرسانی سگمنت",
+    "segmentCancel": "انصراف",
+    "segmentSaveHint": "فیلترهای تنظیم‌شده در فهرست ذخیره می‌شود (جست‌وجوی متنی هرگز ذخیره نمی‌شود).",
+    "segmentNeedFilters": "برای ذخیره به‌عنوان سگمنت، دست‌کم یک فیلتر در فهرست تنظیم کن.",
+    "modes": {
+      "cycle": "چرخه",
+      "ttc": "قصد بارداری",
+      "pregnancy": "بارداری",
+      "postpartum": "پس از زایمان",
+      "menopause": "یائسگی",
+      "teen": "نوجوان"
+    },
+    "dataQualities": {
+      "insufficient": "ناکافی",
+      "good": "خوب",
+      "partial": "نسبی",
+      "poor": "ضعیف"
+    },
+    "warnings": {
+      "period_end_missing": "پایان پریود ثبت نشده",
+      "period_end_missing_warning_cap_exceeded": "پایان پریود ثبت نشده (سقف هشدار)",
+      "period_end_missing_hard_cap_exceeded": "پایان پریود ثبت نشده (سقف قطعی)",
+      "low_history": "سابقه کم",
+      "high_cycle_variability": "تغییرپذیری زیاد چرخه",
+      "short_cycle_outlier_detected": "چرخه کوتاه پرت",
+      "long_cycle_outlier_detected": "چرخه بلند پرت",
+      "onboarding_data_used": "استفاده از داده آغازین",
+      "default_values_used": "استفاده از مقادیر پیش‌فرض",
+      "prediction_based_output": "خروجی مبتنی بر پیش‌بینی",
+      "predicted_period_overdue": "پریود پیش‌بینی‌شده دیر شده",
+      "cycle_unresolved_after_expected_period": "چرخه پس از پریود مورد انتظار نامشخص",
+      "insufficient_anchor_data": "داده لنگر ناکافی",
+      "stale_onboarding_anchor": "لنگر آغازین کهنه",
+      "hormonal_contraception_active": "پیشگیری هورمونی فعال",
+      "postpartum_cycles_not_returned": "چرخه پس از زایمان برنگشته",
+      "perimenopause_age_range": "بازه سنی پیش‌یائسگی",
+      "long_absence_no_period": "غیبت طولانی پریود",
+      "skipped_cycle_recorded": "چرخه رد‌شده ثبت شده",
+      "lh_bbt_conflict": "تعارض LH و BBT",
+      "contradictory_anchor_data": "داده لنگر متناقض"
+    },
+    "phases": {
+      "unknown": "نامشخص",
+      "menstrual": "قاعدگی",
+      "follicular": "فولیکولار",
+      "fertile": "باروری",
+      "luteal": "لوتئال",
+      "period_expected": "پریود در راه است"
+    },
+    "confidences": {
+      "unknown": "نامشخص",
+      "low": "کم",
+      "medium": "متوسط",
+      "high": "زیاد"
+    },
+    "engineToday": "خروجی موتور امروز",
+    "mainPhase": "فاز اصلی",
+    "confidence": "اطمینان",
+    "daysLate": "روز تأخیر",
+    "noWarnings": "بدون هشدار.",
+    "engineNone": "هنوز تصویری از موتور برای این کاربر نیست.",
+    "cycleHistory": "سابقه طول چرخه",
+    "cycleHistoryEmpty": "کمتر از دو چرخه ثبت شده.",
+    "cycleChartLabel": "طول چرخه‌ها به روز، از قدیمی به جدید: {list}",
+    "cycleChartCaption": "{count} چرخه اخیر، طول به روز (تاریخ‌ها نمایش داده نمی‌شود).",
+    "ruleVersion": "نسخه {v}"
   },
   "supportReports": {
     "title": "گزارش‌های مشکل",
@@ -2699,7 +2791,11 @@
       "learning": "مدرسین و دوره‌ها",
       "telemed": "پزشکان و تله‌مدیسین",
       "telemed_doctor": "صندوق پزشک",
-      "audit": "لاگ ممیزی"
+      "audit": "لاگ ممیزی",
+      "kpi": "شاخص‌های KPI",
+      "okr": "هدف‌ها و OKR",
+      "thresholds": "آستانه‌های بالینی",
+      "segments": "سگمنت‌های کاربر"
     },
     "auditTitle": "لاگ ممیزی",
     "export": "خروجی",
@@ -2764,7 +2860,14 @@
       "health_logs": "ثبت‌های روزانه",
       "reminders": "یادآورها"
     },
-    "role": "نقش"
+    "role": "نقش",
+    "chainTitle": "زنجیره ممیزی",
+    "chainVerify": "بررسی زنجیره",
+    "chainNote": "هر ردیف ممیزی با ردیف قبلی زنجیره هش دارد؛ بررسی، اولین ردیفی را که ویرایش، حذف یا جابه‌جا شده گزارش می‌کند.",
+    "chainNotRun": "در این نشست بررسی نشده.",
+    "chainOk": "زنجیره سالم است — {count} ردیف بررسی شد.",
+    "chainBroken": "زنجیره شکسته است",
+    "customizedLegend": "نقطه کنار نقش یعنی ماتریسش با پیش‌فرض فرق دارد."
   },
   "messageEngine": {
     "title": "موتور پیام",

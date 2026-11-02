@@ -16,21 +16,29 @@ import { ADMIN_API_BASE_URL } from "@/shared/config";
 
 export const PLANS = ["free", "plus", "trial"] as const;
 export const ACTIVITIES = ["today", "7d", "30d", "inactive"] as const;
-export const CHURNS = ["low", "medium", "high"] as const;
+export const CHURNS = ["new", "low", "medium", "high"] as const;
 export type Churn = (typeof CHURNS)[number];
 
 const directoryRowSchema = z.object({
   id: z.number(),
-  ref: z.string(),
+  /** Stored RT- code; null until the backfill ran or when the secret is unset. */
+  ref: z.string().nullable(),
   mobile_masked: z.string(),
   plan: z.string(),
   is_blocked: z.boolean(),
   last_activity_at: z.string().nullable(),
   logged_days_30: z.number(),
   churn_risk: z.string(),
+  mode: z.string().nullable().optional(),
+  data_quality: z.string().nullable().optional(),
+  main_warning: z.string().nullable().optional(),
+  projected: z.boolean().optional(),
   created_at: z.string().nullable(),
 });
 export type DirectoryRow = z.infer<typeof directoryRowSchema>;
+
+/** The filter vocabulary the directory answers with (`options`). */
+const optionsSchema = z.record(z.string(), z.array(z.string())).optional();
 
 export function useDirectory(query: Record<string, QueryValue>) {
   return useQuery({
@@ -38,7 +46,7 @@ export function useDirectory(query: Record<string, QueryValue>) {
     queryFn: ({ signal }) =>
       api.get("/users/directory", {
         query,
-        schema: pagedSchema(directoryRowSchema, {}),
+        schema: pagedSchema(directoryRowSchema, { options: optionsSchema }),
         signal,
       }),
     placeholderData: keepPreviousData,
@@ -70,8 +78,32 @@ export async function downloadDirectoryCsv(
 }
 
 const at = z.string().nullable();
+const ruleRefSchema = z.object({
+  id: z.number(),
+  key: z.string().nullable(),
+  kind: z.string(),
+  /** null without a live health grant for clinical/safety/content/engine rules. */
+  title: z.string().nullable(),
+  version: z.number().nullable(),
+});
+
+/** Today's engine output as codes (phase, confidence, warnings). */
+const engineCardSchema = z.object({
+  day: z.string().optional(),
+  mode: z.string(),
+  main_phase: z.string(),
+  subphase: z.string().nullable().optional(),
+  confidence: z.union([z.string(), z.number()]).nullable().optional(),
+  data_quality: z.string().nullable().optional(),
+  warnings: z.array(z.string()),
+  main_warning: z.string().nullable(),
+  requires_user_input: z.boolean().optional(),
+  days_late: z.number().nullable(),
+});
+export type EngineCard = z.infer<typeof engineCardSchema>;
+
 const overviewSchema = z.object({
-  ref: z.string(),
+  ref: z.string().nullable(),
   summary: z.object({
     signed_up_at: at,
     last_activity_at: at,
@@ -80,9 +112,13 @@ const overviewSchema = z.object({
     courses: z.number(),
     is_blocked: z.boolean(),
   }),
+  engine: engineCardSchema.nullable().optional(),
+  /** Cycle lengths in days, oldest first (no dates). */
+  cycle_lengths: z.array(z.number()).optional(),
   events: z.array(z.object({ kind: z.string(), at: z.string() })),
   messages: z.array(
     z.object({
+      rule: ruleRefSchema.nullable().optional(),
       title: z.string().nullable(),
       placement: z.string(),
       event: z.string(),
@@ -91,6 +127,7 @@ const overviewSchema = z.object({
   ),
   challenges: z.array(
     z.object({
+      rule: ruleRefSchema.nullable().optional(),
       title: z.string().nullable(),
       status: z.string(),
       started_on: at,

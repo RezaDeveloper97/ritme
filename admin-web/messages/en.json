@@ -427,7 +427,8 @@
     "churn": {
       "low": "Low",
       "medium": "Medium",
-      "high": "High"
+      "high": "High",
+      "new": "New"
     },
     "tabs": {
       "label": "User sections",
@@ -471,7 +472,98 @@
       "limitedBody": "Symptoms, labs, notes and engine output stay hidden without temporary access. Only the clinical-support role, with a reason and ticket number, gets 30 minutes of access, recorded in the audit log.",
       "request": "Request temporary access",
       "engineNote": "Temporary access is active; every view is recorded in the audit log."
-    }
+    },
+    "mode": "Mode",
+    "dataQuality": "Data quality",
+    "mainWarning": "Main engine warning",
+    "segmentSize": "{count} users",
+    "segmentSizeHidden": "Size hidden (under 10 users)",
+    "filterNames": {
+      "status": "Status",
+      "plan": "Plan",
+      "activity": "Activity",
+      "cohort": "Cohort",
+      "churn": "Churn",
+      "mode": "Mode",
+      "data_quality": "Data quality",
+      "main_warning": "Warning"
+    },
+    "segmentAll": "All users",
+    "segmentSaved": "Segment saved.",
+    "segmentsEmpty": "No saved segments yet. Set filters below and save them here.",
+    "segmentActive": "Applied",
+    "segmentApply": "Apply",
+    "segmentEdit": "Edit",
+    "segmentDelete": "Delete",
+    "segmentConfirmDelete": "Delete the segment «{name}»? Message rules using it stop matching.",
+    "segmentDeleted": "Segment deleted.",
+    "segmentEditing": "Rename «{name}» and replace its filters with the current ones",
+    "segmentUpdate": "Update segment",
+    "segmentCancel": "Cancel",
+    "segmentSaveHint": "Saves the filters currently set in the list (free-text search is never saved).",
+    "segmentNeedFilters": "Set at least one filter in the list to save it as a segment.",
+    "modes": {
+      "cycle": "Cycle",
+      "ttc": "Trying to conceive",
+      "pregnancy": "Pregnancy",
+      "postpartum": "Postpartum",
+      "menopause": "Menopause",
+      "teen": "Teen"
+    },
+    "dataQualities": {
+      "insufficient": "Insufficient",
+      "good": "Good",
+      "partial": "Partial",
+      "poor": "Poor"
+    },
+    "warnings": {
+      "period_end_missing": "Period end missing",
+      "period_end_missing_warning_cap_exceeded": "Period end missing (warning cap)",
+      "period_end_missing_hard_cap_exceeded": "Period end missing (hard cap)",
+      "low_history": "Low history",
+      "high_cycle_variability": "High cycle variability",
+      "short_cycle_outlier_detected": "Short cycle outlier",
+      "long_cycle_outlier_detected": "Long cycle outlier",
+      "onboarding_data_used": "Onboarding data used",
+      "default_values_used": "Default values used",
+      "prediction_based_output": "Prediction-based output",
+      "predicted_period_overdue": "Predicted period overdue",
+      "cycle_unresolved_after_expected_period": "Cycle unresolved after expected period",
+      "insufficient_anchor_data": "Insufficient anchor data",
+      "stale_onboarding_anchor": "Stale onboarding anchor",
+      "hormonal_contraception_active": "Hormonal contraception",
+      "postpartum_cycles_not_returned": "Postpartum cycles not returned",
+      "perimenopause_age_range": "Perimenopause age range",
+      "long_absence_no_period": "Long absence of period",
+      "skipped_cycle_recorded": "Skipped cycle recorded",
+      "lh_bbt_conflict": "LH/BBT conflict",
+      "contradictory_anchor_data": "Contradictory anchor data"
+    },
+    "phases": {
+      "unknown": "Unknown",
+      "menstrual": "Menstrual",
+      "follicular": "Follicular",
+      "fertile": "Fertile",
+      "luteal": "Luteal",
+      "period_expected": "Period expected"
+    },
+    "confidences": {
+      "unknown": "Unknown",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "engineToday": "Engine output today",
+    "mainPhase": "Main phase",
+    "confidence": "Confidence",
+    "daysLate": "Days late",
+    "noWarnings": "No warnings.",
+    "engineNone": "No engine snapshot for this user yet.",
+    "cycleHistory": "Cycle length history",
+    "cycleHistoryEmpty": "Fewer than two recorded cycles.",
+    "cycleChartLabel": "Cycle lengths in days, oldest first: {list}",
+    "cycleChartCaption": "Last {count} cycles, length in days (dates are not shown).",
+    "ruleVersion": "v{v}"
   },
   "supportReports": {
     "title": "Problem reports",
@@ -2699,7 +2791,11 @@
       "learning": "Instructors & courses",
       "telemed": "Doctors & telemedicine",
       "telemed_doctor": "Doctor inbox",
-      "audit": "Audit log"
+      "audit": "Audit log",
+      "kpi": "KPI",
+      "okr": "OKR",
+      "thresholds": "Clinical thresholds",
+      "segments": "User segments"
     },
     "auditTitle": "Audit log",
     "export": "Export",
@@ -2764,7 +2860,14 @@
       "health_logs": "Daily logs",
       "reminders": "Reminders"
     },
-    "role": "Role"
+    "role": "Role",
+    "chainTitle": "Audit chain",
+    "chainVerify": "Verify chain",
+    "chainNote": "Every audit row is hash-chained to the previous one; verifying reports the first row that was edited, deleted or reordered.",
+    "chainNotRun": "Not verified in this session.",
+    "chainOk": "Chain intact — {count} rows checked.",
+    "chainBroken": "Chain broken",
+    "customizedLegend": "A dot next to a role marks a matrix changed from the default."
   },
   "messageEngine": {
     "title": "Message engine",

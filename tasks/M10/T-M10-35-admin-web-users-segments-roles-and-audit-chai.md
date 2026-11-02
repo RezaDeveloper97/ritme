@@ -3,7 +3,7 @@ id: T-M10-35
 title: Admin-web users, segments, roles and audit chain
 milestone: M10
 type: frontend
-status: todo
+status: done
 depends_on: [T-M10-32, T-M10-33, T-M10-13]
 parallel_group: M10-W
 touches: [admin-web/src/screens/users, admin-web/src/screens/segments, admin-web/src/screens/access-control, admin-web/src/widgets/shell/model/nav.ts, admin-web/messages/fa.json, admin-web/messages/en.json]

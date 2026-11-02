@@ -8,6 +8,7 @@ import { formatDate, formatNumber } from "@/shared/lib";
 import { Badge, ErrorState, Panel, Skeleton } from "@/shared/ui";
 
 import { useUserOverview, type UserOverview } from "../api/directory";
+import { CycleLengthChart } from "./CycleLengthChart";
 
 export const OVERVIEW_TABS = [
   "summary",
@@ -84,6 +85,23 @@ function RequestAccess({ id }: { id: number }) {
   );
 }
 
+type RuleInfo = UserOverview["messages"][number]["rule"];
+
+/** «rule key · v3 · kind» under a message or challenge; the title is already null without a health grant. */
+function RuleRef({ rule }: { rule: RuleInfo }) {
+  const t = useTranslations("users");
+  if (!rule) return null;
+  return (
+    <span dir="ltr" className="text-[13px] text-ink-3">
+      {rule.key ?? `#${rule.id}`}
+      {rule.version != null
+        ? ` · ${t("ruleVersion", { v: rule.version })}`
+        : ""}
+      {` · ${rule.kind}`}
+    </span>
+  );
+}
+
 function Empty() {
   const t = useTranslations("users");
   return <p className="m-0 p-4 text-ink-3 sm:p-5">{t("tabEmpty")}</p>;
@@ -114,7 +132,7 @@ function TabBody({
             <dl className="facts">
               <div>
                 <dt>{t("ref")}</dt>
-                <dd dir="ltr">{data.ref}</dd>
+                <dd dir="ltr">{data.ref ?? "—"}</dd>
               </div>
               <div>
                 <dt>{t("joined")}</dt>
@@ -142,24 +160,93 @@ function TabBody({
         </>
       );
     case "engine":
-      return data.health ? (
-        <Panel title={t("tabs.engine")}>
-          <dl className="facts">
-            <div>
-              <dt>{t("goal")}</dt>
-              <dd>
-                {data.health.user_goal
-                  ? label("goals", data.health.user_goal)
-                  : "—"}
-              </dd>
-            </div>
-          </dl>
-          <p className="m-0 mt-3 text-[13px] text-ink-3">
-            {t("health.engineNote")}
-          </p>
-        </Panel>
-      ) : (
-        <RequestAccess id={id} />
+      return (
+        <>
+          <Panel title={t("engineToday")}>
+            {data.engine ? (
+              <>
+                <dl className="facts">
+                  <div>
+                    <dt>{t("mode")}</dt>
+                    <dd>{label("modes", data.engine.mode)}</dd>
+                  </div>
+                  <div>
+                    <dt>{t("mainPhase")}</dt>
+                    <dd>{label("phases", data.engine.main_phase)}</dd>
+                  </div>
+                  <div>
+                    <dt>{t("confidence")}</dt>
+                    <dd>
+                      {data.engine.confidence != null
+                        ? label("confidences", String(data.engine.confidence))
+                        : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t("dataQuality")}</dt>
+                    <dd>
+                      {data.engine.data_quality
+                        ? label("dataQualities", data.engine.data_quality)
+                        : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t("daysLate")}</dt>
+                    <dd>
+                      {data.engine.days_late != null
+                        ? formatNumber(data.engine.days_late, locale)
+                        : "—"}
+                    </dd>
+                  </div>
+                </dl>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {data.engine.warnings.length === 0 ? (
+                    <span className="text-ink-3">{t("noWarnings")}</span>
+                  ) : (
+                    data.engine.warnings.map((w) => (
+                      <Badge
+                        key={w}
+                        tone={
+                          w === data.engine?.main_warning ? "amber" : "neutral"
+                        }
+                      >
+                        {label("warnings", w)}
+                      </Badge>
+                    ))
+                  )}
+                </div>
+              </>
+            ) : (
+              <p className="m-0 text-ink-3">{t("engineNone")}</p>
+            )}
+          </Panel>
+          <Panel title={t("cycleHistory")}>
+            {data.cycle_lengths && data.cycle_lengths.length > 0 ? (
+              <CycleLengthChart lengths={data.cycle_lengths} />
+            ) : (
+              <p className="m-0 text-ink-3">{t("cycleHistoryEmpty")}</p>
+            )}
+          </Panel>
+          {data.health ? (
+            <Panel title={t("tabs.engine")}>
+              <dl className="facts">
+                <div>
+                  <dt>{t("goal")}</dt>
+                  <dd>
+                    {data.health.user_goal
+                      ? label("goals", data.health.user_goal)
+                      : "—"}
+                  </dd>
+                </div>
+              </dl>
+              <p className="m-0 mt-3 text-[13px] text-ink-3">
+                {t("health.engineNote")}
+              </p>
+            </Panel>
+          ) : (
+            <RequestAccess id={id} />
+          )}
+        </>
       );
     case "events":
       return (
@@ -194,7 +281,10 @@ function TabBody({
                     key={i}
                     className="flex flex-wrap justify-between gap-3 border-b border-line px-4 py-3 last:border-b-0"
                   >
-                    <span>{m.title ?? label("placements", m.placement)}</span>
+                    <span className="flex flex-col">
+                      <span>{m.title ?? label("placements", m.placement)}</span>
+                      <RuleRef rule={m.rule} />
+                    </span>
                     <span className="flex gap-2">
                       <Badge tone="neutral">
                         {label("messageEvents", m.event)}
@@ -218,7 +308,10 @@ function TabBody({
                     key={i}
                     className="flex justify-between gap-3 border-b border-line px-4 py-3 last:border-b-0"
                   >
-                    <span>{c.title ?? "—"}</span>
+                    <span className="flex flex-col">
+                      <span>{c.title ?? "—"}</span>
+                      <RuleRef rule={c.rule} />
+                    </span>
                     <span className="flex gap-2">
                       <Badge tone="neutral">{c.status}</Badge>
                       <span className="cell-num text-ink-3">

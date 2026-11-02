@@ -11,7 +11,10 @@ import { ADMIN_API_BASE_URL } from '@/shared/config';
 
 export const HEALTH_ACCESS_MINUTES = 30;
 
-const capabilitySchema = z.object({ key: z.string(), levels: z.array(z.enum(['view', 'manage'])) });
+const capabilitySchema = z.object({
+  key: z.string(),
+  levels: z.array(z.enum(['view', 'manage'])),
+});
 export type Capability = z.infer<typeof capabilitySchema>;
 
 const roleSchema = z.object({
@@ -23,11 +26,20 @@ const roleSchema = z.object({
 });
 export type RoleRow = z.infer<typeof roleSchema>;
 
-const rolesSchema = z.object({ capabilities: z.array(capabilitySchema), roles: z.array(roleSchema) });
+const rolesSchema = z.object({
+  capabilities: z.array(capabilitySchema),
+  roles: z.array(roleSchema),
+});
 
 const auditRowSchema = z.object({
   id: z.number(),
-  admin: z.object({ id: z.number(), name: z.string().nullable(), role: z.string().nullable() }).nullable(),
+  admin: z
+    .object({
+      id: z.number(),
+      name: z.string().nullable(),
+      role: z.string().nullable(),
+    })
+    .nullable(),
   action: z.string(),
   target_type: z.string(),
   target_id: z.number(),
@@ -70,6 +82,24 @@ const healthSchema = z.object({
 });
 export type HealthData = z.infer<typeof healthSchema>;
 
+const chainSchema = z.object({
+  ok: z.boolean(),
+  started: z.boolean().optional(),
+  from: z.number().optional(),
+  checked: z.number(),
+  genesis_last_id: z.number().nullable().optional(),
+  head: z.object({ id: z.number(), hash: z.string() }).nullable().optional(),
+  break: z.object({ id: z.number(), reason: z.string() }).nullable(),
+});
+export type ChainStatus = z.infer<typeof chainSchema>;
+
+/** GET /audit/verify (super): walks the hash chain and reports the first break. Read-only, run on demand. */
+export function useVerifyChain() {
+  return useMutation({
+    mutationFn: () => api.get('/audit/verify', { schema: chainSchema }),
+  });
+}
+
 const keys = {
   roles: ['access', 'roles'] as const,
   audit: (q: Record<string, QueryValue>) => ['access', 'audit', q] as const,
@@ -78,7 +108,10 @@ const keys = {
 };
 
 export function useRoles() {
-  return useQuery({ queryKey: keys.roles, queryFn: ({ signal }) => api.get('/roles', { schema: rolesSchema, signal }) });
+  return useQuery({
+    queryKey: keys.roles,
+    queryFn: ({ signal }) => api.get('/roles', { schema: rolesSchema, signal }),
+  });
 }
 
 export function useSaveRole() {
@@ -101,7 +134,12 @@ export function useResetRole() {
 export function useAuditLog(query: Record<string, QueryValue>) {
   return useQuery({
     queryKey: keys.audit(query),
-    queryFn: ({ signal }) => api.get('/audit-logs', { query, schema: pagedSchema(auditRowSchema, {}), signal }),
+    queryFn: ({ signal }) =>
+      api.get('/audit-logs', {
+        query,
+        schema: pagedSchema(auditRowSchema, {}),
+        signal,
+      }),
     placeholderData: keepPreviousData,
   });
 }
@@ -109,7 +147,11 @@ export function useAuditLog(query: Record<string, QueryValue>) {
 /** Downloads the filtered audit log as CSV (session cookie; the export itself is audited). */
 export async function downloadAuditCsv(query: Record<string, QueryValue>): Promise<void> {
   const res = await fetch(buildUrl(ADMIN_API_BASE_URL, '/audit-logs/export', query), { credentials: 'include' });
-  if (!res.ok) throw new ApiError({ status: res.status, code: res.status === 403 ? 'forbidden' : 'http_error' });
+  if (!res.ok)
+    throw new ApiError({
+      status: res.status,
+      code: res.status === 403 ? 'forbidden' : 'http_error',
+    });
   const url = URL.createObjectURL(await res.blob());
   const a = document.createElement('a');
   a.href = url;
@@ -121,7 +163,12 @@ export async function downloadAuditCsv(query: Record<string, QueryValue>): Promi
 export function useAccessRequests(query: Record<string, QueryValue>) {
   return useQuery({
     queryKey: keys.requests(query),
-    queryFn: ({ signal }) => api.get('/health-access', { query, schema: pagedSchema(accessSchema, {}), signal }),
+    queryFn: ({ signal }) =>
+      api.get('/health-access', {
+        query,
+        schema: pagedSchema(accessSchema, {}),
+        signal,
+      }),
     placeholderData: keepPreviousData,
   });
 }
@@ -150,7 +197,11 @@ export const useDecideAccess = () =>
 export function useHealthData(userId: number | null) {
   return useQuery({
     queryKey: keys.health(userId ?? 0),
-    queryFn: ({ signal }) => api.get(`/health-access/users/${userId}`, { schema: healthSchema, signal }),
+    queryFn: ({ signal }) =>
+      api.get(`/health-access/users/${userId}`, {
+        schema: healthSchema,
+        signal,
+      }),
     enabled: userId !== null,
     retry: false,
     staleTime: 0,

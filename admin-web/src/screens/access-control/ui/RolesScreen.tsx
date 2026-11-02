@@ -45,7 +45,15 @@ function Matrix({ capabilities, roles }: { capabilities: Capability[]; roles: Ro
   const t = useTranslations('access');
   const tr = useTranslations('roles');
   return (
-    <Panel title={t('rolesTitle')} actions={<span className="text-sm text-ink-3">{t('legend')}</span>} bodyClassName="">
+    <Panel
+      title={t('rolesTitle')}
+      actions={
+        <span className="text-sm text-ink-3">
+          {t('legend')} · {t('customizedLegend')}
+        </span>
+      }
+      bodyClassName=""
+    >
       <div className="overflow-x-auto">
         <table className="data-table access-matrix">
           <caption className="sr-only">{t('rolesTitle')}</caption>
@@ -55,7 +63,9 @@ function Matrix({ capabilities, roles }: { capabilities: Capability[]; roles: Ro
               {roles.map((r) => (
                 <th key={r.key} scope="col" className="text-center whitespace-nowrap">
                   {tr(r.key)}
-                  {r.customized ? <span className="access-dot" aria-label={t('customized')} title={t('customized')} /> : null}
+                  {r.customized ? (
+                    <span className="access-dot" aria-label={t('customized')} title={t('customized')} />
+                  ) : null}
                 </th>
               ))}
             </tr>
@@ -128,7 +138,10 @@ function RoleEditor({ capabilities, roles }: { capabilities: Capability[]; roles
                 else next[c.key] = e.target.value as 'view' | 'manage';
                 setDraft(next);
               }}
-              options={['none', ...c.levels].map((l) => ({ value: l, label: levelLabel(l) }))}
+              options={['none', ...c.levels].map((l) => ({
+                value: l,
+                label: levelLabel(l),
+              }))}
             />
           ))}
         </div>
@@ -139,7 +152,10 @@ function RoleEditor({ capabilities, roles }: { capabilities: Capability[]; roles
             disabled={!draft}
             onClick={() =>
               save.mutate(
-                { role: role.key, permissions: Object.fromEntries(capabilities.map((c) => [c.key, perms[c.key] ?? 'none'])) },
+                {
+                  role: role.key,
+                  permissions: Object.fromEntries(capabilities.map((c) => [c.key, perms[c.key] ?? 'none'])),
+                },
                 {
                   onSuccess: () => {
                     toast.success(t('saved'));
