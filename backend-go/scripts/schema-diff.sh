@@ -78,10 +78,13 @@ dump_schema() {
     --skip-dump-date --ignore-table="$1.migrations" --ignore-table="$1.goose_db_version" "$1" |
     sed -E 's/ AUTO_INCREMENT=[0-9]+//'
 }
+# Tables seeded only by Go data migrations (no Laravel twin on purpose): their row counts are skipped,
+# their structure is still diffed. message_rules: v6 message engine rules, goose 00112–00115 (T-M10-37).
+go_only_seeds="'message_rules'"
 seed_rows() {
   sql -N "$1" -e "SELECT code, name, english_name, direction, is_active, is_default, sort_order FROM languages ORDER BY id"
   local tables
-  tables="$(sql -N -e "SELECT table_name FROM information_schema.tables WHERE table_schema='$1' AND table_name NOT IN ('migrations','goose_db_version','languages') ORDER BY table_name")"
+  tables="$(sql -N -e "SELECT table_name FROM information_schema.tables WHERE table_schema='$1' AND table_name NOT IN ('migrations','goose_db_version','languages',$go_only_seeds) ORDER BY table_name")"
   for t in $tables; do
     echo "$t $(sql -N "$1" -e "SELECT COUNT(*) FROM \`$t\`")"
   done

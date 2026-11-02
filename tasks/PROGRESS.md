@@ -2716,3 +2716,7 @@ Nothing needed fixing.
 - Frontend add-vital: `model/preview.ts` mirrors the server's glucose class (own targets for diabetic users, registry default, low wins, method-aware); no new copy.
 - Contract: vitals goldens re-recorded from Go (Go-only D-170 fields now in the goldens, allowlist empty) + new `targets_anon` / `targets_flow` cases; 16/0. openapi: hub `reports`, report `status` / `readings_needed` required.
 - Open: `make schema-diff` red from Go-only message_rules seeds (00112–00115) → T-M10-37; targets_flow 422 reports only the later item's errors (current behaviour).
+
+## T-M10-37 — schema-diff: message_rules row counts from Go-only data seeds
+- `scripts/schema-diff.sh` skips the row count of tables in `go_only_seeds` (`message_rules`); their structure is still diffed. Rule documented in `docs/go-migration/migrations.md`.
+- `make schema-diff`: OK, 239 tables, seed rows equal.

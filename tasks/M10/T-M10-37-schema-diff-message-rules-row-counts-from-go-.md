@@ -3,7 +3,7 @@ id: T-M10-37
 title: schema-diff: message_rules row counts from Go-only data seeds (00112–00115)
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M10-B
 touches: [backend-go/Makefile,backend-go/scripts,docs/go-migration/migrations.md]

@@ -80,7 +80,9 @@ migrations (local `php` + `backend/vendor`, env vars only; `backend/.env` is not
 `goose up`. Then it diffs:
 
 - `mariadb-dump --no-data` of both, ignoring `migrations` / `goose_db_version` and `AUTO_INCREMENT` counters;
-- seed rows: `languages` (minus timestamps) and every other table's row count.
+- seed rows: `languages` (minus timestamps) and every other table's row count, except the Go-only seeded tables
+  in `go_only_seeds` (`message_rules`, goose 00112–00115: the v6 message engine is Go-only, Laravel never reads
+  it). Their structure is still diffed. A new Go-only data seed adds its table there (T-M10-37).
 
 Exit 0 = identical. `--against dump.sql` compares a schema-only dump (e.g. staging) with goose instead.
 Run it in any commit that touches a migration on either side.
