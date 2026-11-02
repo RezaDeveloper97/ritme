@@ -47,3 +47,12 @@ export function findBbtReminder(
     ) ?? null
   );
 }
+
+/**
+ * A-11: the chart itself is free, the coverline and the shift confirmation are
+ * Plus. A locked user gets the readings and the fertile window without them
+ * (the engine output is complete; this only trims what the UI draws).
+ */
+export function trimPlusDetail(cycles: BbtCycle[], locked: boolean): BbtCycle[] {
+  return locked ? cycles.map((c) => ({ ...c, coverline: null, shiftDay: null })) : cycles;
+}

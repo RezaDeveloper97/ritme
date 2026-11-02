@@ -35,6 +35,7 @@ func offerEnv(t *testing.T) *env {
 	e.app.Get("/api/v1/plus/trial", locale, g, h.TrialSheet)
 	e.app.Get("/probe/deep", locale, g, gate.Require(plus.DeepAnalysis), ok)
 	e.app.Get("/probe/lab", locale, g, gate.Require(plus.LabAI), ok)
+	e.app.Get("/probe/long-range", locale, g, gate.Require(plus.AnalysisLongRange), ok)
 	e.app.Get("/probe/assistant", locale, g, gate.Require(plus.AssistantUnlimited), ok)
 	hh := home.NewHandlers(home.Deps{
 		Queries: homestore.New(e.db), Messages: msgstore.New(e.db), Pregnancy: pstore.New(e.db), Logger: quiet, Plus: e.svc,
@@ -113,7 +114,8 @@ func TestTrialOffer_StatusBannerSheetAndExpiry(t *testing.T) {
 		{"key":"plus.pdf_share","used":0,"unlimited":true,"plus_limit":null},
 		{"key":"plus.visit_discount","used":0,"unlimited":true,"plus_limit":null},
 		{"key":"plus.voice_log","used":0,"unlimited":true,"plus_limit":null},
-		{"key":"plus.doc_ai","used":0,"unlimited":false,"plus_limit":20}]}`, mustJSON(t, d["usage"]))
+		{"key":"plus.doc_ai","used":0,"unlimited":false,"plus_limit":20},
+		{"key":"plus.analysis_long_range","used":0,"unlimited":true,"plus_limit":null}]}`, mustJSON(t, d["usage"]))
 	r = e.doAt(t, at, http.MethodGet, "/api/v1/plus/usage", tok, "en", "")
 	assert.EqualValues(t, 1, entitlement(t, r.data()["features"], "plus.deep_analysis")["used"], "monthly counter")
 
@@ -240,9 +242,20 @@ func TestGate_PlusRequiredAndQuotas(t *testing.T) {
 	assert.Equal(t, http.StatusPaymentRequired, r.status)
 	assert.JSONEq(t, `{"success":false,"message":"This feature is part of Ritme Plus.","error_code":"plus_required",
 		"feature":"plus.deep_analysis","reason":"locked","limit":null,"resets_at":null}`, r.raw)
-	r = e.do(t, http.MethodGet, "/probe/lab", tok, "fa", "")
+	r = e.do(t, http.MethodGet, "/probe/long-range", tok, "fa", "")
 	assert.Equal(t, http.StatusPaymentRequired, r.status)
 	assert.Equal(t, "این امکان بخشی از ریتمی پلاس است.", r.body["message"])
+	assert.Equal(t, "plus.analysis_long_range", r.body["feature"])
+
+	// Free lab AI: 1 a month (A-03), then plus_required with the quota reason (upgrading helps).
+	r = e.do(t, http.MethodGet, "/probe/lab", tok, "en", "")
+	assert.Equal(t, http.StatusOK, r.status, r.raw)
+	_, err := e.svc.Consume(ctx, uid, plus.LabAI, tNow)
+	require.NoError(t, err)
+	r = e.do(t, http.MethodGet, "/probe/lab", tok, "en", "")
+	assert.Equal(t, http.StatusPaymentRequired, r.status)
+	assert.JSONEq(t, `{"success":false,"message":"This feature is part of Ritme Plus.","error_code":"plus_required",
+		"feature":"plus.lab_ai","reason":"quota","limit":1,"resets_at":"2026-10-01T00:00:00+03:30"}`, r.raw)
 
 	// Free assistant allowance: 5 a month, then plus_required with the quota reason.
 	r = e.do(t, http.MethodGet, "/probe/assistant", tok, "en", "")
@@ -258,11 +271,11 @@ func TestGate_PlusRequiredAndQuotas(t *testing.T) {
 
 	// Trial: everything open; a spent Plus quota is 429 plus_quota_exceeded (upgrading does not help).
 	require.NoError(t, e.svc.StartTrial(ctx, uid, tNow))
-	for _, p := range []string{"/probe/deep", "/probe/lab", "/probe/assistant"} {
+	for _, p := range []string{"/probe/deep", "/probe/lab", "/probe/assistant", "/probe/long-range"} {
 		r = e.do(t, http.MethodGet, p, tok, "en", "")
 		assert.Equal(t, http.StatusOK, r.status, p)
 	}
-	for range 10 {
+	for range 9 { // the free use above counts in the trial month too
 		_, err := e.svc.Consume(ctx, uid, plus.LabAI, tNow)
 		require.NoError(t, err)
 	}
@@ -299,7 +312,67 @@ func TestGate_GateErrorMapsConsume(t *testing.T) {
 		return c.JSON(fiber.Map{"remaining": ent.Remaining})
 	})
 	r := e.do(t, http.MethodPost, "/probe/consume-lab", tok, "en", "")
+	assert.Equal(t, http.StatusOK, r.status, r.raw) // the one free lab AI of the month (A-03)
+	r = e.do(t, http.MethodPost, "/probe/consume-lab", tok, "en", "")
 	assert.Equal(t, http.StatusPaymentRequired, r.status, r.raw)
 	assert.Equal(t, "plus_required", r.body["error_code"])
-	assert.Equal(t, 0, e.count(t, `SELECT COUNT(*) FROM plus_usage_counters WHERE user_id = ?`, uid), "nothing counted")
+	assert.Equal(t, "quota", r.body["reason"])
+	assert.Equal(t, 1, e.count(t, `SELECT COALESCE(SUM(used), 0) FROM plus_usage_counters WHERE user_id = ?`, uid), "the refused use is not counted")
+}
+
+// T-M10-29 (D-178): the admin-set lab-AI free allowance and the assistant fair-use cap are applied at runtime —
+// by the gate, by Consume and by the usage list — and clearing them restores the code defaults.
+func TestSettings_TunableAllowancesAppliedAtRuntime(t *testing.T) {
+	e := offerEnv(t)
+	uid, tok := e.user(t, "09120000951")
+	ctx := context.Background()
+	tNow := mustTime("2026-09-15T10:00:00+03:30")
+
+	three := 3
+	require.NoError(t, e.svc.SetLabAIFreeLimit(ctx, &three, tNow))
+	n, err := e.svc.LabAIFreeLimit(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 3, n)
+	for i := range 3 {
+		got, err := e.svc.Consume(ctx, uid, plus.LabAI, tNow)
+		require.NoError(t, err, "use %d", i+1)
+		assert.Equal(t, 3, got.Limit)
+	}
+	_, err = e.svc.Consume(ctx, uid, plus.LabAI, tNow)
+	require.ErrorIs(t, err, plus.ErrQuotaExceeded)
+	r := e.doAt(t, "2026-09-15T10:00:00+03:30", http.MethodGet, "/probe/lab", tok, "en", "")
+	assert.Equal(t, http.StatusPaymentRequired, r.status)
+	assert.Equal(t, float64(3), r.body["limit"])
+
+	// 0 locks it for free users; nil restores the default (1).
+	zero := 0
+	require.NoError(t, e.svc.SetLabAIFreeLimit(ctx, &zero, tNow))
+	ent, err := e.svc.Entitlement(ctx, uid, plus.LabAI, tNow)
+	require.NoError(t, err)
+	assert.False(t, ent.Allowed)
+	assert.Equal(t, 0, ent.Limit)
+	require.NoError(t, e.svc.SetLabAIFreeLimit(ctx, nil, tNow))
+	n, err = e.svc.LabAIFreeLimit(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, plus.DefaultLabAIFreeLimit, n)
+	eleven := 11
+	require.ErrorIs(t, e.svc.SetLabAIFreeLimit(ctx, &eleven, tNow), plus.ErrInvalidSetting)
+
+	// Assistant fair-use cap for a trial (Plus) user: shown unlimited, capped by the setting.
+	pid, _ := e.user(t, "09120000952")
+	_, err = e.db.Exec(`INSERT INTO plus_trials (user_id, started_at, ends_at, created_at, updated_at)
+		VALUES (?, '2026-09-10 10:00:00', '2026-09-17 10:00:00', NOW(), NOW())`, pid)
+	require.NoError(t, err)
+	two := 2
+	require.NoError(t, e.svc.SetAssistantFairUse(ctx, &two, tNow))
+	for range 2 {
+		_, err = e.svc.Consume(ctx, pid, plus.AssistantUnlimited, tNow)
+		require.NoError(t, err)
+	}
+	ent, err = e.svc.Entitlement(ctx, pid, plus.AssistantUnlimited, tNow)
+	require.NoError(t, err)
+	assert.True(t, ent.Unlimited)
+	assert.True(t, ent.AtFairUseCap())
+	_, err = e.svc.Consume(ctx, pid, plus.AssistantUnlimited, tNow)
+	require.ErrorIs(t, err, plus.ErrQuotaExceeded)
 }

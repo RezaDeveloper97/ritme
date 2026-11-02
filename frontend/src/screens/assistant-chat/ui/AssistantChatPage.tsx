@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 
 import {
@@ -16,13 +16,17 @@ import {
   type ConversationPage,
 } from '@/entities/assistant';
 import { ChatThread, Composer, itemsOf, useChat, type ChatItem } from '@/features/assistant-chat';
+import { isAssistantFairUse } from '@/entities/plus';
 import { getApiErrorStatus } from '@/shared/api';
-import { useRouter } from '@/shared/i18n';
+import { useRouter, type Locale } from '@/shared/i18n';
+import { formatDayMonth, fromApiDate } from '@/shared/lib/date';
 import { Card, EmptyState, HeaderButton, Icon, IconCircle, PrimaryButton, ScreenHeader, SkyLayer } from '@/shared/ui';
 
 function ChatBody({ page }: { page: ConversationPage }) {
   const t = useTranslations('assistant');
   const router = useRouter();
+  const tp = useTranslations('plus.limits.assistant');
+  const loc = useLocale() as Locale;
   const errText = useAssistantError();
   const consent = useAssistantConsent('ai_assistant');
   const { conversation: c, department: d } = page;
@@ -57,7 +61,14 @@ function ChatBody({ page }: { page: ConversationPage }) {
       />
       <div className="scroll as-chat-scroll">
         <ChatThread items={chat.items} busy={chat.busy} onChip={(x) => send(x)} />
-        {chat.denial ? (
+        {chat.denial && isAssistantFairUse(chat.denial) ? (
+          <Card className="as-paywall" role="status">
+            <IconCircle icon="clock" tone="warm" size="md" />
+            <p className="as-text">
+              {tp('fairUse', { date: chat.denial.resetsAt ? formatDayMonth(fromApiDate(chat.denial.resetsAt.slice(0, 10)), loc) : '' })}
+            </p>
+          </Card>
+        ) : chat.denial ? (
           <Card className="as-paywall" role="alert">
             <IconCircle icon="crown" tone="warm" size="md" />
             <p className="as-text">{chat.denial.kind === 'locked' ? t('paywall.locked') : t('paywall.quota', { limit: chat.denial.limit ?? 5 })}</p>

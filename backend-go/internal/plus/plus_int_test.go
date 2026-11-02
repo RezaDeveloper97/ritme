@@ -671,8 +671,11 @@ func TestUsage_QuotaAndConcurrency(t *testing.T) {
 	uid, tok := e.user(t, "09120000818")
 	ctx := context.Background()
 
-	_, err := e.svc.Consume(ctx, uid, plus.LabAI, tNow)
-	require.ErrorIs(t, err, plus.ErrNotEntitled, "free users have no lab AI")
+	lab, err := e.svc.Consume(ctx, uid, plus.LabAI, tNow)
+	require.NoError(t, err, "free users get one lab AI a month (A-03)")
+	assert.Equal(t, plus.Entitlement{Key: plus.LabAI, Limit: 1, Used: 1}, lab)
+	_, err = e.svc.Consume(ctx, uid, plus.LabAI, tNow)
+	require.ErrorIs(t, err, plus.ErrQuotaExceeded, "the second free lab AI of the month")
 	ent, err := e.svc.Consume(ctx, uid, plus.AssistantUnlimited, tNow)
 	require.NoError(t, err)
 	assert.Equal(t, 4, ent.Remaining, "free assistant quota")
@@ -698,7 +701,7 @@ func TestUsage_QuotaAndConcurrency(t *testing.T) {
 			assert.ErrorIs(t, err, plus.ErrQuotaExceeded)
 		}
 	}
-	assert.Equal(t, 10, ok, "exactly the monthly quota")
+	assert.Equal(t, 9, ok, "exactly the monthly quota (10, one used while free)")
 	_, err = e.svc.Consume(ctx, uid, plus.DeepAnalysis, tNow)
 	require.NoError(t, err)
 

@@ -2,9 +2,16 @@ package analysis
 
 import (
 	"slices"
+	"time"
 
+	"github.com/gofiber/fiber/v3"
+
+	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
+	"github.com/ritme/backend-go/internal/plus"
 )
 
 // Range keys. The hub and the detail screens use 3m / 6m / 1y / all; the symptom trend adds 2w / 1m
@@ -32,6 +39,36 @@ var rangeDays = map[string]int{
 
 // IsRange reports whether key is an accepted range.
 func IsRange(key string) bool { return slices.Contains(RangeKeys, key) }
+
+// LongRanges are the ranges of a year and more: Plus (plus.analysis_long_range, SPEC §4.3, D-178). `all` reaches
+// further back than `1y`, so it is Plus too; every shorter range stays free.
+var LongRanges = []string{Range1Y, RangeAll}
+
+// IsLongRange reports whether key is one of LongRanges.
+func IsLongRange(key string) bool { return slices.Contains(LongRanges, key) }
+
+// rangeQueryFor is rangeQuery plus the long-range gate: a user without plus.analysis_long_range who selects a long
+// range gets 402 plus_required (feature plus.analysis_long_range, reason locked) before anything is loaded. Shorter
+// ranges never ask the Plus service.
+func (h *Handlers) rangeQueryFor(c fiber.Ctx) (string, error) {
+	key, err := rangeQuery(c)
+	if err != nil || !IsLongRange(key) {
+		return key, err
+	}
+	uid, ok := auth.CurrentUserID(c)
+	if !ok {
+		return "", &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
+	}
+	now := clock.FromContext(c, h.clock).Now().In(civildate.Tehran).Truncate(time.Second)
+	e, err := h.plus.Entitlement(c, uid, plus.AnalysisLongRange, now)
+	if err != nil {
+		return "", err
+	}
+	if !e.Allowed {
+		return "", plus.Denied(e, plus.TierFree, now, i18n.Locale(c))
+	}
+	return key, nil
+}
 
 // Range is the selected window [From, To], To = the request day.
 type Range struct {

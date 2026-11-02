@@ -5,10 +5,12 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
 import { DEFAULT_RANGE, HUB_RANGES, useAnalysisSummary, type AnalysisSummary, type HubRangeKey } from '@/entities/analysis';
+import { isRangeDenial, PlusRangePaywall, usePlusRangeLocked } from '@/entities/plus';
 import { Link, type Locale } from '@/shared/i18n';
 import { calendarSystem, monthName, todayParts } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
+import { plusDenialOf } from '@/shared/ui/plus-gate';
 import {
   EmptyState,
   Icon,
@@ -100,7 +102,10 @@ export function AnalysisHub({ variant }: { variant: HubVariant }) {
   const mounted = useMounted();
   const [range, setRange] = useState<HubRangeKey>(DEFAULT_RANGE);
   const [category, setCategory] = useState<HubCategory>('all');
-  const query = useAnalysisSummary(range);
+  const rangeIsLocked = usePlusRangeLocked(range);
+  const query = useAnalysisSummary(range, { enabled: !rangeIsLocked });
+  const denial = plusDenialOf(query.error);
+  const paywalled = rangeIsLocked || isRangeDenial(denial);
   const summary = query.data;
 
   const cards = useMemo(() => (summary ? visibleCards(summary, variant) : []), [summary, variant]);
@@ -114,7 +119,9 @@ export function AnalysisHub({ variant }: { variant: HubVariant }) {
     groups.some((g) => g.cards.some((c) => (c === 'moodByPhase' || c === 'sleepMood') && summary.sections[c].ready));
 
   let body;
-  if (!mounted || (query.isPending && query.fetchStatus !== 'idle')) {
+  if (mounted && paywalled) {
+    body = <PlusRangePaywall />;
+  } else if (!mounted || (query.isPending && query.fetchStatus !== 'idle')) {
     body = <HubSkeleton label={t('loading')} />;
   } else if (query.isError || !summary) {
     body = (
@@ -179,7 +186,7 @@ export function AnalysisHub({ variant }: { variant: HubVariant }) {
         tabs={HUB_RANGES.map((r) => ({ value: r, label: t(`ranges.${r}`) }))}
         onChange={setRange}
       />
-      {summary && !noData && categories.length > 2 ? (
+      {summary && !noData && !paywalled && categories.length > 2 ? (
         <div className="an-chips" role="group" aria-label={t('filterLabel')}>
           {categories.map((c) => (
             <PillChip key={c} pressed={active === c} onPressedChange={() => setCategory(c)} className="an-chip">

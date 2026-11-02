@@ -685,6 +685,11 @@ func (h *Handlers) PrepareMessage(c fiber.Ctx) error {
 		return err
 	}
 	if !in.terms.IsEmergency(in.text) {
+		// A-04: a Plus user at the fair-use cap gets a polite in-chat answer, never the 429 of the AI gate. An
+		// emergency message never reaches this (the 115 card above always wins).
+		if handled, err := h.fairUseReply(c, userID, in, now); handled || err != nil {
+			return err
+		}
 		c.Locals(inputKey{}, in)
 		return c.Next()
 	}

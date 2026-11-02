@@ -171,7 +171,11 @@ func (s *Service) usage(ctx context.Context, userID uint64, tier Tier, now time.
 	for _, r := range rows {
 		used[Key(r.Feature)] = int(r.Used)
 	}
-	return Usage{PeriodStart: period, ResetsAt: resetsAt(now), Entitlements: Resolve(tier, used)}, nil
+	defs, err := s.Definitions(ctx) // the admin-tunable allowances applied (T-M10-29, D-178)
+	if err != nil {
+		return Usage{}, err
+	}
+	return Usage{PeriodStart: period, ResetsAt: resetsAt(now), Entitlements: ResolveAll(defs, tier, used)}, nil
 }
 
 // Status is the user's tier, subscription, trial and entitlements at now.
@@ -256,15 +260,18 @@ func (s *Service) entitlement(ctx context.Context, userID uint64, key Key, now t
 // statement, so concurrent uses can never exceed the quota. Unlimited features are still counted (the trial
 // sheet's «۸ پیام» lines).
 func (s *Service) Consume(ctx context.Context, userID uint64, key Key, now time.Time) (Entitlement, error) {
-	def, ok := Lookup(key)
-	if !ok {
-		return Entitlement{}, ErrUnknownFeature
+	def, err := s.Definition(ctx, key) // the admin-tunable allowances applied (T-M10-29)
+	if err != nil {
+		return Entitlement{}, err
 	}
 	tier, _, _, err := tierOf(ctx, s.q, userID, now)
 	if err != nil {
 		return Entitlement{}, err
 	}
 	quota := def.QuotaFor(tier)
+	if quota.Limit == 0 && quota.FairUse > 0 {
+		quota.Limit = quota.FairUse // the fair-use cap is enforced like a limit (A-04)
+	}
 	period := PeriodStart(now)
 	stamp := sql.NullTime{Time: now, Valid: true}
 	switch {

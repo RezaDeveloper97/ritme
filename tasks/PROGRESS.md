@@ -2647,3 +2647,12 @@ Nothing needed fixing.
 - feed.InstallHeldRules: open rows whose rule is missing from the compiled snapshot use the code-held rule (urgent modal survives deactivating preg.bp_severe).
 - Tests: migration int test, held_int_test (TestFeedInt_UrgentModalForInactiveLockedRule), TestV1Alerts_LegacyEmergencyMigrated.
 - Open: on production this runs only at the Go cutover (T-M2-26, blocked).
+
+## T-M10-29 — Plus quotas, detail-surface gating and the no-paywall guarantee
+- D-178. Entitlements: Lab AI free 1/month (A-03), Plus assistant fair-use cap 300/month (A-04), new key `plus.analysis_long_range`. Admin-tunable settings `lab_ai_free_limit` (0–10, nil→1) and `assistant_fair_use_cap`, applied at runtime via `Service.Definition(s)` in Entitlement/Consume/usage; Consume treats the fair-use cap as a hard limit.
+- Analysis: free users get 402 `plus_required` on range=1y/all (`rangeQueryFor` in Summary/Correlations/reports).
+- Assistant: at the cap a Plus user gets a polite in-chat reply (SSE done `fair_use_cap:true`), not 429; the emergency 115 card still wins. Copy lives in `plus.json` `limits.assistant.fairUseReply` (shipped seed; runtime admin edits to that key don't apply).
+- No-paywall guarantee: `internal/http/paywall_guard_int_test.go` (free-user safety routes + safety packages never import plus).
+- Frontend: `entities/plus` gates/keys/PlusLocks; locks on why-this-date, BBT coverline/confirmation, LH explanation; lab quota copy, cap message, 1y paywall; `plus` scope added for assistant-chat and fertility/bbt.
+- Contract allowlist `contract/allowlist/plus.yaml` (8th entitlement row, lab_ai free values). i18n Laravel goldens re-recorded (plus keys only). Analysis int tests grant a one-request trial for 1y; ttc goldens unchanged.
+- Open: no screenshots of the locked surfaces yet; no fertility/LH detail endpoints exist, so no backend `plus.Require` there; openapi unchanged.

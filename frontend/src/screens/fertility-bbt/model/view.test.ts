@@ -10,6 +10,7 @@ import {
   hasEnoughReadings,
   parseRange,
   todayReading,
+  trimPlusDetail,
 } from "./view";
 import en from "../../../../messages/en/fertility.json";
 import fa from "../../../../messages/fa/fertility.json";
@@ -79,5 +80,13 @@ describe("bbt.stats.gaps count", () => {
     expect(render("fa", 3)).toBe("۳ روز جاافتاده");
     expect(render("en", 3)).toBe("3 days missed");
     expect(render("en", 1)).toBe("1 day missed");
+  });
+});
+
+describe('trimPlusDetail', () => {
+  const cycle = { startDate: null, points: [], coverline: 36.5, fertileWindow: null, shiftDay: 14, phase: null } as BbtCycle;
+  it('drops coverline and shift for a locked user only', () => {
+    expect(trimPlusDetail([cycle], true)[0]).toMatchObject({ coverline: null, shiftDay: null });
+    expect(trimPlusDetail([cycle], false)[0]).toMatchObject({ coverline: 36.5, shiftDay: 14 });
   });
 });

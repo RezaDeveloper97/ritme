@@ -178,7 +178,7 @@ func lookback(r Range) civildate.Date { return r.From.AddDays(-LookbackDays) }
 
 // report loads the range's Input and renders build's body under {range, …}.
 func (h *Handlers) report(c fiber.Ctx, build func(in *Input) *jsonx.OrderedMap) error {
-	key, err := rangeQuery(c)
+	key, err := h.rangeQueryFor(c)
 	if err != nil {
 		return err
 	}
@@ -218,7 +218,7 @@ func (h *Handlers) WithVitals(v VitalsSource) *Handlers {
 
 // Summary is GET /analysis/summary: the hub (free users get every free card; Plus cards are locked).
 func (h *Handlers) Summary(c fiber.Ctx) error {
-	key, err := rangeQuery(c)
+	key, err := h.rangeQueryFor(c)
 	if err != nil {
 		return err
 	}
@@ -264,7 +264,7 @@ func (h *Handlers) Body(c fiber.Ctx) error {
 // Correlations is GET /analysis/correlations: Plus (plus.deep_analysis). A free user gets 200 with
 // `locked: true` and no data — the client shows the Plus lock, nothing is computed.
 func (h *Handlers) Correlations(c fiber.Ctx) error {
-	key, err := rangeQuery(c)
+	key, err := h.rangeQueryFor(c)
 	if err != nil {
 		return err
 	}

@@ -25,6 +25,22 @@ export {
   type GatewayReturn,
   type PlusMembership,
 } from './lib/plans';
+export {
+  detailLocked,
+  featureLocked,
+  findEntitlement,
+  isAssistantFairUse,
+  isLongRange,
+  isRangeDenial,
+  labQuotaOf,
+  PLUS_ANALYSIS_LONG_RANGE,
+  PLUS_ASSISTANT,
+  PLUS_DEEP_ANALYSIS,
+  PLUS_LAB_AI,
+  rangeLocked,
+  type LabQuota,
+} from './lib/gates';
+export { PlusDetailLock, PlusRangePaywall, usePlusDetailLocked, usePlusRangeLocked } from './ui/PlusLocks';
 export { PlusCrown } from './ui/PlusCrown';
 export { entitlementOf, PlusFeatureGate, usePlusLocked } from './ui/PlusFeatureGate';
 export type {

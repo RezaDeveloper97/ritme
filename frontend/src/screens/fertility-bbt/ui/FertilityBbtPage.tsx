@@ -11,6 +11,7 @@ import {
   formatBbt,
   useFertilityBbt,
 } from "@/entities/fertility";
+import { PlusDetailLock, usePlusDetailLocked } from "@/entities/plus";
 import { useReminders } from "@/entities/reminder";
 import {
   useCreateReminder,
@@ -41,6 +42,7 @@ import {
   parseRange,
   REMINDER_TIME,
   todayReading,
+  trimPlusDetail,
 } from "../model/view";
 
 const BACK_HREF = "/home";
@@ -58,6 +60,8 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
   const router = useRouter();
   const range = parseRange(rawRange);
   const query = useFertilityBbt(range);
+  const detailLocked = usePlusDetailLocked();
+  const tp = useTranslations("plus.limits.detail");
   const [explainer, setExplainer] = useState(false);
   const todayStr = toApiDate(today());
   const rangeTabs: SegmentedTab<`${BbtRange}`>[] = BBT_RANGES.map((r) => ({
@@ -142,7 +146,8 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
               </span>
             )}
           </div>
-          <BbtChart cycles={data.cycles} today={todayStr} />
+          <BbtChart cycles={trimPlusDetail(data.cycles, detailLocked)} today={todayStr} />
+          {detailLocked && <PlusDetailLock text={tp("bbt")} />}
         </Card>
 
         <div className="ttc-grid-2">

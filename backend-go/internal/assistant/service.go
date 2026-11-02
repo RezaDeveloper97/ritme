@@ -1,6 +1,7 @@
 package assistant
 
 import (
+	"bufio"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -11,12 +12,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofiber/fiber/v3"
+
 	"github.com/ritme/backend-go/internal/ai"
 	"github.com/ritme/backend-go/internal/assistant/store"
 	"github.com/ritme/backend-go/internal/consent"
 	"github.com/ritme/backend-go/internal/files"
+	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/plus"
 	telemedstore "github.com/ritme/backend-go/internal/telemed/store"
+	"github.com/ritme/backend-go/resources/translations"
 )
 
 // ProfileBuilder returns the shared profile parts of userID by key (keys ⊆ ProfileKeys), as JSON-ready values.
@@ -754,4 +760,65 @@ func (s *Service) SharedSummaries(ctx context.Context, doctorID, bookingID uint6
 		rows[i].Summary = s.open(rows[i].Summary, handoffAD(rows[i].UserID, rows[i].ConversationID, rows[i].BookingID))
 	}
 	return rows, nil
+}
+
+// --- Plus fair-use cap (A-04, T-M10-29) ------------------------------------------------------------------------------
+
+// GuardrailFairUse marks the polite in-chat answer at the Plus fair-use cap (no model call, nothing counted).
+const GuardrailFairUse = "fair_use_cap"
+
+// fairUseReply answers a Plus (or trial) user whose monthly fair-use cap of plus.assistant_unlimited is spent with
+// a polite in-chat assistant message instead of the 429 of the Plus gate (A-04: «نامحدود» with a fair cap, no
+// error). It runs in PrepareMessage AFTER the emergency check, so an emergency message always gets the 115 card,
+// cap or not. handled false = not at the cap (the request continues to the AI gate); a free user's spent quota is
+// not handled here (the gate answers 402 with the paywall).
+func (h *Handlers) fairUseReply(c fiber.Ctx, userID uint64, in *messageInput, now time.Time) (bool, error) {
+	if h.plus == nil {
+		return false, nil
+	}
+	e, err := h.plus.Entitlement(c, userID, plus.AssistantUnlimited, now)
+	if err != nil {
+		return false, fmt.Errorf("assistant: fair use: %w", err)
+	}
+	if !e.AtFairUseCap() {
+		return false, nil
+	}
+	locale := i18n.Locale(c)
+	body := fairUseText(locale)
+	ids, err := h.svc.AddTurns(c, in.conv, now,
+		Turn{Role: RoleUser, Body: in.text, PhotoID: in.photoID},
+		Turn{Role: RoleAssistant, Body: body, Guardrail: GuardrailFairUse})
+	if err != nil {
+		return false, fail(err, locale)
+	}
+	msg := store.AssistantMessage{ID: ids[1], Role: RoleAssistant, Body: body, Guardrail: ns(GuardrailFairUse),
+		Status: StatusComplete, CreatedAt: nt(now)}
+	sseHeaders(c)
+	return true, c.SendStreamWriter(func(w *bufio.Writer) {
+		_ = sse(w, "meta", map[string]any{"conversation_id": in.conv.ID, "user_message_id": ids[0]})
+		_ = sse(w, "done", map[string]any{"message": messageJSON(msg, locale), "triage_level": nil, "emergency": in.conv.Emergency,
+			"fair_use_cap": true})
+	})
+}
+
+// fairUseText is plus.limits.assistant.fairUseReply of the shared UI-string seed (resources/translations, the same
+// copy the client renders), English fallback.
+func fairUseText(locale string) string {
+	for _, code := range []string{locale, "en"} {
+		raw, err := translations.FS.ReadFile(code + "/plus.json")
+		if err != nil {
+			continue
+		}
+		var m struct {
+			Limits struct {
+				Assistant struct {
+					FairUseReply string `json:"fairUseReply"`
+				} `json:"assistant"`
+			} `json:"limits"`
+		}
+		if json.Unmarshal(raw, &m) == nil && m.Limits.Assistant.FairUseReply != "" {
+			return m.Limits.Assistant.FairUseReply
+		}
+	}
+	return "You have reached this month's fair-use limit for the assistant."
 }

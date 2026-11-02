@@ -9317,6 +9317,39 @@
     "label": "Plus",
     "lockedText": "This opens with Ritme Plus",
     "exhausted": "This month's allowance is used up; it renews on {date}."
+   },
+   "limits": {
+    "range": {
+     "title": "The full year is part of Ritme Plus",
+     "body": "The free plan shows up to 6 months. With Plus you can look back over a whole year and everything you have logged.",
+     "cta": "See Ritme Plus"
+    },
+    "detail": {
+     "cta": "Open with Plus",
+     "why": "See where this date comes from: which cycles it rests on and what shaped how sure we are.",
+     "bbt": "The coverline and the confirmation of your temperature shift open with Plus.",
+     "lh": "The reasoning behind the LH-based prediction opens with Plus."
+    },
+    "why": {
+     "title": "Why this date",
+     "source": "Based on",
+     "sourceRecent": "your recent cycles",
+     "sourceProfile": "what you told us",
+     "sourceDefault": "a typical cycle",
+     "basis": "{n, plural, one {The last cycle} other {Your last # cycles}} shaped this estimate",
+     "noBasis": "Not enough finished cycles yet",
+     "reasons": "{n, plural, one {# thing shaped how sure we are} other {# things shaped how sure we are}}"
+    },
+    "lab": {
+     "available": "{remaining} of {limit} free analyses left this month. Renews on {date}.",
+     "spent": "You have used this month's free analysis ({limit}). It renews on {date}, or go unlimited with Plus.",
+     "plusAvailable": "{remaining} of {limit} analyses left this month.",
+     "spentCta": "See Ritme Plus"
+    },
+    "assistant": {
+     "fairUse": "You have reached this month's fair-use limit for the assistant. It opens up again on {date}. If something feels urgent, please talk to a doctor or call 115.",
+     "fairUseReply": "You have reached this month's fair-use limit for the assistant. It opens up again when the next month starts. If something feels urgent, please talk to a doctor or call 115."
+    }
    }
   },
   "postpartum": {

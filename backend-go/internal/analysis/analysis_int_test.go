@@ -242,13 +242,22 @@ func TestAnalysis_EveryReportAndLanguage(t *testing.T) {
 	e := setup(t)
 	a, tok := e.user(t, "09120000003")
 	seedA(t, e, a)
+	// T-M10-29 (D-178): 1y / all are Plus (plus.analysis_long_range) — a free user gets 402 plus_required.
+	r := e.get(t, "/api/v1/analysis/cycle?range=1y", tok, "")
+	require.Equal(t, 402, r.status, r.raw)
+	assert.Equal(t, "plus_required", r.body["error_code"])
+	assert.Equal(t, "plus.analysis_long_range", r.body["feature"])
+	r = e.get(t, "/api/v1/analysis/period?range=all", tok, "")
+	assert.Equal(t, 402, r.status, r.raw)
+	grantTrial(t, e.db, a)
 	for _, url := range []string{
 		"/api/v1/analysis/cycle?range=1y", "/api/v1/analysis/period?range=all", "/api/v1/analysis/symptoms?range=2w",
 		"/api/v1/analysis/body?range=7d", "/api/v1/analysis/monthly/2026-09", "/api/v1/analysis/monthly/1405-06?calendar=jalali",
 	} {
-		r := e.get(t, url, tok, "")
+		r = e.get(t, url, tok, "")
 		assert.Equal(t, 200, r.status, url+" "+r.raw)
 	}
+	revokeTrial(t, e.db, a) // the rest reads her as a free user again
 	m := e.get(t, "/api/v1/analysis/monthly/1405-06?calendar=jalali", tok, "")
 	assert.Equal(t, "2026-08-23", path(m.data(), "month", "from"))
 	assert.Equal(t, true, path(m.data(), "pdf", "locked"))
@@ -291,4 +300,19 @@ func TestAnalysis_ValidationAndAuth(t *testing.T) {
 	require.Equal(t, 200, r.status, r.raw)
 	assert.Equal(t, "not_enough_data", path(r.data(), "top_finding", "kind"))
 	assert.NotNil(t, path(r.data(), "top_finding", "days_needed"))
+}
+
+// grantTrial gives uid a trial running at the test clock (now), so the Plus long ranges (1y / all) open.
+func grantTrial(t *testing.T, db *sql.DB, uid uint64) {
+	t.Helper()
+	_, err := db.Exec(`INSERT INTO plus_trials (user_id, started_at, ends_at, created_at, updated_at)
+		VALUES (?, '2026-09-20 10:00:00', '2026-09-27 10:00:00', NOW(), NOW())
+		ON DUPLICATE KEY UPDATE started_at = VALUES(started_at), ends_at = VALUES(ends_at)`, uid)
+	require.NoError(t, err)
+}
+
+func revokeTrial(t *testing.T, db *sql.DB, uid uint64) {
+	t.Helper()
+	_, err := db.Exec(`DELETE FROM plus_trials WHERE user_id = ?`, uid)
+	require.NoError(t, err)
 }

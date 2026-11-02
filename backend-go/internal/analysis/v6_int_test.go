@@ -15,6 +15,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -145,7 +146,7 @@ func TestAnalysisV6_RegularityAgreesWithCycleView(t *testing.T) {
 	for _, p := range analysisPersonas {
 		t.Run(p.name, func(t *testing.T) {
 			want := e.engineRegularity(p.uid)
-			status, raw := e.get(p.uid, "/api/v1/analysis/cycle?range=1y", "en")
+			status, raw := e.getPlus(p.uid, "/api/v1/analysis/cycle?range=1y", "en")
 			require.Equal(t, fiber.StatusOK, status, string(raw))
 			var cyc struct {
 				Data struct {
@@ -213,7 +214,7 @@ func TestAnalysisV6_NoOutlierExclusion(t *testing.T) {
 			VALUES (?, ?, ?, 1, 'user_logged', NOW(), NOW())`, uid, d, d.AddDays(4))
 		require.NoError(t, err)
 	}
-	status, raw := e.get(uid, "/api/v1/analysis/cycle?range=1y", "en")
+	status, raw := e.getPlus(uid, "/api/v1/analysis/cycle?range=1y", "en")
 	require.Equal(t, fiber.StatusOK, status, string(raw))
 	var body struct {
 		Data struct {
@@ -248,7 +249,11 @@ func TestAnalysisV6_Goldens(t *testing.T) {
 			{"ttc." + p.name + ".en", "/api/v1/analysis/ttc", "en"},
 		} {
 			t.Run(c.name, func(t *testing.T) {
-				status, raw := e.get(p.uid, c.path, c.lang)
+				get := e.get
+				if strings.Contains(c.path, "range=1y") {
+					get = e.getPlus
+				}
+				status, raw := get(p.uid, c.path, c.lang)
 				require.Equal(t, fiber.StatusOK, status, string(raw))
 				var pretty bytes.Buffer
 				require.NoError(t, json.Indent(&pretty, raw, "", "  "))
@@ -265,4 +270,13 @@ func TestAnalysisV6_Goldens(t *testing.T) {
 			})
 		}
 	}
+}
+
+// getPlus is get for a Plus-only range (1y, T-M10-29 / D-178): the user holds a trial for this one request only,
+// so every other endpoint (the TTC goldens) keeps reading her as a free user.
+func (e *v6Env) getPlus(uid uint64, path, lang string) (int, []byte) {
+	e.t.Helper()
+	grantTrial(e.t, e.db, uid)
+	defer revokeTrial(e.t, e.db, uid)
+	return e.get(uid, path, lang)
 }

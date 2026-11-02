@@ -3,10 +3,10 @@ id: T-M10-29
 title: Plus quotas, detail-surface gating and the no-paywall guarantee
 milestone: M10
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M10-26, T-M10-07, T-M10-08, T-M10-19]
 parallel_group: M10-D
-touches: [backend-go/internal/plus/entitlements.go, backend-go/internal/plus/settings.go, backend-go/internal/analysis/range.go, backend-go/internal/assistant/service.go, backend-go/internal/labs/extract.go, backend-go/internal/fertility, backend-go/internal/http/paywall_guard_int_test.go, backend-go/api/openapi.yaml, frontend/src/entities/plus, frontend/src/screens/analysis, frontend/src/screens/phase-details, frontend/src/screens/fertility-bbt, frontend/src/screens/lab-upload, frontend/src/screens/assistant-chat, frontend/messages/fa/plus.json, frontend/messages/en/plus.json, backend-go/resources/translations/fa/plus.json, backend-go/resources/translations/en/plus.json]
+touches: [backend-go/internal/analysis/analysis_int_test.go, backend-go/internal/analysis/v6_int_test.go, backend-go/internal/i18n/testdata, backend-go/internal/assistant, backend-go/internal/plus/entitlements.go, backend-go/internal/plus/settings.go, backend-go/internal/plus/service.go, backend-go/internal/plus/gate.go, backend-go/internal/analysis/handlers.go, backend-go/internal/assistant/handlers.go, backend-go/contract/allowlist/plus.yaml, frontend/src/app/message-scopes.ts, backend-go/internal/analysis/range.go, backend-go/internal/assistant/service.go, backend-go/internal/labs/extract.go, backend-go/internal/fertility, backend-go/internal/http/paywall_guard_int_test.go, backend-go/api/openapi.yaml, frontend/src/entities/plus, frontend/src/screens/analysis, frontend/src/screens/phase-details, frontend/src/screens/fertility-bbt, frontend/src/screens/lab-upload, frontend/src/screens/assistant-chat, frontend/messages/fa/plus.json, frontend/messages/en/plus.json, backend-go/resources/translations/fa/plus.json, backend-go/resources/translations/en/plus.json]
 skills: []
 verify: cd backend-go && go vet ./... && go test ./internal/plus/... ./internal/analysis/... ./internal/assistant/... ./internal/labs/... && make test-int PKG="./internal/plus/... ./internal/http/..." && make contract ROUTES=plus && cd ../frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run test && npm run copy:check -- plus
 ---

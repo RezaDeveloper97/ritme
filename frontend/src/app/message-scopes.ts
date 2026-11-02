@@ -160,7 +160,7 @@ export const ROUTE_NAMESPACES = {
   teenOnboarding: ['common', 'teen'], // CB-TEEN-02 /teen/onboarding (nbl_Teen_Onb, form — no nav)
   teenParent: ['children', 'common', 'companions', 'teen'], // B-N4-10b features/invite-companion barrel pulls entities/child; CB-TEEN-03 /teen/parent (nbl_Teen_Parent, flow — no nav; companions = InviteCodeCard + entities/companion)
   fertilityLog: ['common', 'fertility'],
-  fertilityBbt: ['common', 'fertility'],
+  fertilityBbt: ['common', 'fertility', 'plus'], // T-M10-29 coverline/confirmation Plus lock
   fertilityInsights: ['common', 'fertility'],
   splash: [...AUTH, 'welcome'], // B-N1-05: the splash ring comes from widgets/intro-carousel
   signup: AUTH,
@@ -201,7 +201,7 @@ export const ROUTE_NAMESPACES = {
   doctors: ['common', 'doctors'], // B-N7-05 /services/doctors*, /services/bookings* (directory, profile, book, return, booked, chat)
   assistant: ['common', 'nav', 'assistant'], // B-N7-07 /assistant (hub; bottom nav)
   assistantDept: ['common', 'assistant'], // B-N7-07 /assistant/[dept]
-  assistantChat: ['common', 'assistant'], // B-N7-07 /assistant/chat/[id]
+  assistantChat: ['common', 'assistant', 'plus'], // B-N7-07 /assistant/chat/[id]; T-M10-29 fair-use cap
   assistantSummary: ['common', 'assistant'], // B-N7-07 /assistant/chat/[id]/summary
   assistantHandoff: ['common', 'assistant', 'doctors'], // B-N7-07 /assistant/chat/[id]/handoff (own bookings use the doctors copy)
   assistantHistory: ['common', 'assistant', 'doctors'], // B-N7-07 /assistant/history

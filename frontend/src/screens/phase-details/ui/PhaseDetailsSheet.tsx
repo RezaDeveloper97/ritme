@@ -4,12 +4,14 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { useCycleToday } from '@/entities/cycle';
+import { PlusDetailLock, usePlusDetailLocked } from '@/entities/plus';
 import { usePhaseContent, type PhaseSectionKey } from '@/entities/phase-content';
 import type { Locale } from '@/shared/i18n';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { closeSheet } from '@/shared/sheet';
 import { EmptyState, IconCircle, InfoNote, PrimaryButton, Skeleton, SkeletonGroup, type IconName, type Tone } from '@/shared/ui';
 
+import { whyThisDate } from '../model/why';
 import { availableTabs, phaseDayRange, TAB_SECTIONS, type PhaseTab } from '../model/tabs';
 
 /** Icon + tone per section so each item reads at a glance (tokens only, via tone classes). */
@@ -36,6 +38,8 @@ const SECTION_LOOK: Record<PhaseSectionKey, { icon: IconName; tone: Tone }> = {
 export function PhaseDetailsSheet() {
   const t = useTranslations('phaseDetails');
   const locale = useLocale() as Locale;
+  const tw = useTranslations('plus.limits');
+  const detailLocked = usePlusDetailLocked();
   const mounted = useMounted();
 
   const { data: today } = useCycleToday();
@@ -66,6 +70,7 @@ export function PhaseDetailsSheet() {
   const range = phaseDayRange(view);
   const main = view?.mainPhase;
   const title = main && main !== 'unknown' ? t(`phases.${main}`) : content.phaseLabel || t('title');
+  const why = whyThisDate(view);
   const sections = TAB_SECTIONS[tab].filter((k) => (content.sections[k] ?? '').trim() !== '');
 
   return (
@@ -103,6 +108,23 @@ export function PhaseDetailsSheet() {
           </section>
         ))}
       </div>
+
+      {why ? (
+        detailLocked ? (
+          <PlusDetailLock text={tw('detail.why')} />
+        ) : (
+          <section className="phs-item" aria-label={tw('why.title')}>
+            <div className="phs-item-b">
+              <h4 className="phs-item-t">{tw('why.title')}</h4>
+              <p className="phs-item-s">{tw('why.source')}: {tw(`why.${why.source}`)}</p>
+              <p className="phs-item-s">
+                {why.basisCycles ? tw('why.basis', { n: why.basisCycles, count: why.basisCycles }) : tw('why.noBasis')}
+              </p>
+              {why.reasonCount > 0 ? <p className="phs-item-s">{tw('why.reasons', { n: why.reasonCount })}</p> : null}
+            </div>
+          </section>
+        )
+      ) : null}
 
       <InfoNote className="phs-note">{t('disclaimer')}</InfoNote>
       <PrimaryButton onClick={() => closeSheet()}>{t('gotIt')}</PrimaryButton>

@@ -1,0 +1,80 @@
+group: plus
+entries:
+  # D-178 (task T-M10-29, engine v6 M10; SPEC §4.3, DECISIONS A-03 / A-04 / A-11): the Plus entitlement rules changed
+  # on purpose. These goldens were recorded from Laravel, which has neither change.
+
+  # New 8th row plus.analysis_long_range (analysis ranges 1y / all are Plus) — the list is one row longer.
+  - case: "*"
+    where: data.entitlements
+    deviation: D-178
+    reason: new entitlement row plus.analysis_long_range (8 rows instead of 7)
+  # Row 1 = plus.lab_ai: free users get 1 analysis per month (A-03, admin-tunable) instead of locked.
+  - case: "*"
+    where: data.entitlements[1].allowed
+    deviation: D-178
+    reason: lab AI free allowance 1 per month (A-03) — allowed
+  - case: "*"
+    where: data.entitlements[1].limit
+    deviation: D-178
+    reason: lab AI free allowance 1 per month (A-03) — limit
+  - case: "*"
+    where: data.entitlements[1].remaining
+    deviation: D-178
+    reason: lab AI free allowance 1 per month (A-03) — remaining
+
+  # New 8th row plus.analysis_long_range (analysis ranges 1y / all are Plus) — the list is one row longer.
+  - case: "*"
+    where: data.features
+    deviation: D-178
+    reason: new entitlement row plus.analysis_long_range (8 rows instead of 7)
+  # Row 1 = plus.lab_ai: free users get 1 analysis per month (A-03, admin-tunable) instead of locked.
+  - case: "*"
+    where: data.features[1].allowed
+    deviation: D-178
+    reason: lab AI free allowance 1 per month (A-03) — allowed
+  - case: "*"
+    where: data.features[1].limit
+    deviation: D-178
+    reason: lab AI free allowance 1 per month (A-03) — limit
+  - case: "*"
+    where: data.features[1].remaining
+    deviation: D-178
+    reason: lab AI free allowance 1 per month (A-03) — remaining
+
+  # New 8th row plus.analysis_long_range (analysis ranges 1y / all are Plus) — the list is one row longer.
+  - case: "*"
+    where: data.status.entitlements
+    deviation: D-178
+    reason: new entitlement row plus.analysis_long_range (8 rows instead of 7)
+  # Row 1 = plus.lab_ai: free users get 1 analysis per month (A-03, admin-tunable) instead of locked.
+  - case: "*"
+    where: data.status.entitlements[1].allowed
+    deviation: D-178
+    reason: lab AI free allowance 1 per month (A-03) — allowed
+  - case: "*"
+    where: data.status.entitlements[1].limit
+    deviation: D-178
+    reason: lab AI free allowance 1 per month (A-03) — limit
+  - case: "*"
+    where: data.status.entitlements[1].remaining
+    deviation: D-178
+    reason: lab AI free allowance 1 per month (A-03) — remaining
+
+  # New 8th row plus.analysis_long_range (analysis ranges 1y / all are Plus) — the list is one row longer.
+  - case: "*"
+    where: data.usage.features
+    deviation: D-178
+    reason: new entitlement row plus.analysis_long_range (8 rows instead of 7)
+  # Row 1 = plus.lab_ai: free users get 1 analysis per month (A-03, admin-tunable) instead of locked.
+  - case: "*"
+    where: data.usage.features[1].allowed
+    deviation: D-178
+    reason: lab AI free allowance 1 per month (A-03) — allowed
+  - case: "*"
+    where: data.usage.features[1].limit
+    deviation: D-178
+    reason: lab AI free allowance 1 per month (A-03) — limit
+  - case: "*"
+    where: data.usage.features[1].remaining
+    deviation: D-178
+    reason: lab AI free allowance 1 per month (A-03) — remaining
