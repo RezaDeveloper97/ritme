@@ -3,7 +3,7 @@ id: T-M9-48
 title: Stage rollout: shadow, review, switch to v6, visual QA
 milestone: M9
 type: investigate
-status: in_progress
+status: blocked
 depends_on: [T-M9-01, T-M9-02, T-M9-03, T-M9-04, T-M9-05, T-M9-06, T-M9-07, T-M9-08, T-M9-09, T-M9-10, T-M9-11, T-M9-12, T-M9-13, T-M9-14, T-M9-22, T-M9-23, T-M9-27, T-M9-28, T-M9-29, T-M9-31, T-M9-33, T-M9-34, T-M9-35, T-M9-36, T-M9-37, T-M9-38, T-M9-39, T-M9-41, T-M9-45, T-M9-46, T-M9-47]
 parallel_group: M9-R
 touches: [docs/engine-v6/rollout.md, docs/engine-v6/qa, docker-compose.stage.yml]
@@ -36,3 +36,8 @@ against v1.1 without changing what anyone sees.
 
 ## Acceptance
 - rollout.md complete; zero unexplained diff classes; zero cache mismatches; the user has seen the screenshots.
+
+## Blocked — stage deploy handed to the user (2026-11-02)
+User decision: the user deploys stage and does the rest of the stage rollout themselves; the runner must not deploy stage for this task.
+Done so far: verify-all green; stage shadow (CYCLE_ENGINE=shadow, cache verify 10 %) deployed at 7d7798b8; 9 QA personas seeded; diff classes reviewed in docs/engine-v6/rollout.md (0 cache mismatches, 0 5xx); bugs fixed in T-M9-48b/c/d (commits 65a497f7, 23e2ee9f).
+Left for the user: deploy the `stage` branch (23e2ee9f or later; three deploy-stage.sh attempts failed with rsync "connection closed"), re-run docs/engine-v6/qa/stage-shadow/probe.py for personas 53 and 54, finish the ≥24 h shadow soak, switch stage to CYCLE_ENGINE=v6, visual QA, metrics check, then write "Stage: v6 since <date>" in rollout.md and set this task done.
