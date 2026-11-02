@@ -367,3 +367,81 @@ func jsonNum(v any) string {
 	b, _ := json.Marshal(v)
 	return string(b)
 }
+
+type inboxRow struct {
+	state string
+	hits  int
+}
+
+func (e *env) inboxRows(t *testing.T, uid uint64, key string) []inboxRow {
+	t.Helper()
+	rows, err := e.db.Query(`SELECT state, hit_count FROM message_inbox WHERE user_id = ? AND rule_key = ? ORDER BY id`, uid, key)
+	require.NoError(t, err)
+	defer func() { _ = rows.Close() }()
+	out := []inboxRow{}
+	for rows.Next() {
+		var r inboxRow
+		require.NoError(t, rows.Scan(&r.state, &r.hits))
+		out = append(out, r)
+	}
+	require.NoError(t, rows.Err())
+	return out
+}
+
+// T-M10-09 (D-166): a repeated postmenopausal bleeding signal merges into one alerts inbox row (count 2): the same
+// day again changes nothing, a new bleeding day is new evidence.
+func TestMessages_RepeatedBleedingMergesIntoOneInboxRow(t *testing.T) {
+	e := setup(t)
+	uid, tok := e.menopauseUser(t, "09120000010", "meno", "2025-01-01")
+	e.spotting(t, uid, "2026-09-28")
+	require.NotNil(t, e.get(t, tok, "en").message("postmenopausal_bleeding"))
+	require.NotNil(t, e.get(t, tok, "fa").message("postmenopausal_bleeding"))
+	assert.Equal(t, []inboxRow{{"active", 1}}, e.inboxRows(t, uid, "meno.postmenopausal_bleeding"))
+
+	e.spotting(t, uid, "2026-09-30")
+	b := e.get(t, tok, "en").message("postmenopausal_bleeding")
+	require.NotNil(t, b)
+	assert.Equal(t, map[string]any{"last_on": "2026-09-30"}, b["data"])
+	assert.Equal(t, []inboxRow{{"active", 2}}, e.inboxRows(t, uid, "meno.postmenopausal_bleeding"))
+
+	var level, kind, evidence string
+	require.NoError(t, e.db.QueryRow(`SELECT level, kind, evidence FROM message_inbox WHERE user_id = ? AND rule_key = 'meno.postmenopausal_bleeding'`, uid).
+		Scan(&level, &kind, &evidence))
+	assert.Equal(t, []string{"worth_followup", "clinical"}, []string{level, kind}, "today's level: follow-up, no modal")
+	assert.Contains(t, evidence, `"meno_bleeding_on":"2026-09-30"`)
+}
+
+// T-M10-09: the messages are rules — a switched-off rule is gone, an ended pattern resolves its inbox row, the locked
+// bleeding rule still fires when its row is off (code-held), a stage tip rule can be switched off.
+func TestMessages_RulesAreAdminControlled(t *testing.T) {
+	e := setup(t)
+	uid, tok := e.menopauseUser(t, "09120000011", "meno", "2025-01-01")
+	e.spotting(t, uid, "2026-09-28")
+	e.score(t, uid, "2026-08-23", 5)
+	e.score(t, uid, "2026-09-23", 15)
+	require.Equal(t, []string{"postmenopausal_bleeding", "score_worsened", "checkup_due", "stage_meno"}, e.get(t, tok, "en").keys())
+	assert.Equal(t, []inboxRow{{"active", 1}}, e.inboxRows(t, uid, "meno.score_worsened"))
+
+	e.exec(t, `UPDATE menopause_scores SET total = 6 WHERE user_id = ? AND month = '2026-09-23'`, uid)
+	assert.Nil(t, e.get(t, tok, "en").message("score_worsened"))
+	assert.Equal(t, []inboxRow{{"resolved", 1}}, e.inboxRows(t, uid, "meno.score_worsened"))
+
+	e.exec(t, "UPDATE message_rules SET is_active = 0 WHERE rule_key IN ('meno.postmenopausal_bleeding', 'meno.checkup_due', 'meno.tip_stage_meno')")
+	assert.Equal(t, []string{"postmenopausal_bleeding"}, e.get(t, tok, "en").keys(), "locked: the code-held rule stands in")
+
+	// A raised threshold is honoured (the score rule reads meno.score_rise).
+	e.exec(t, `UPDATE menopause_scores SET total = 14 WHERE user_id = ? AND month = '2026-09-23'`, uid)
+	e.exec(t, `UPDATE message_rules SET conditions = '[{"op":"and","items":[{"fact":"meno.score_rise","op":"gte","value":10}]}]' WHERE rule_key = 'meno.score_worsened'`)
+	assert.Nil(t, e.get(t, tok, "en").message("score_worsened"))
+}
+
+// Leaving menopause mode resolves the open rows (the «nothing» facts of another mode).
+func TestMessages_LeavingMenopauseResolvesRows(t *testing.T) {
+	e := setup(t)
+	uid, tok := e.menopauseUser(t, "09120000012", "meno", "2025-01-01")
+	e.spotting(t, uid, "2026-09-28")
+	require.NotNil(t, e.get(t, tok, "en").message("postmenopausal_bleeding"))
+	e.exec(t, `UPDATE user_life_profiles SET life_mode = 'cycle' WHERE user_id = ?`, uid)
+	assert.Empty(t, e.get(t, tok, "en").keys())
+	assert.Equal(t, []inboxRow{{"resolved", 1}}, e.inboxRows(t, uid, "meno.postmenopausal_bleeding"))
+}

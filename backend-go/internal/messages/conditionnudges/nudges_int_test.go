@@ -305,3 +305,66 @@ func TestEngine_DoctorLinkOnlyWithDirectory(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, string(raw), `"doctor":{"action":"Find a gynaecologist","link":"/services/doctors?specialty=gynaecology"}`)
 }
+
+type inboxRow struct {
+	state string
+	hits  int
+}
+
+func (e *env) inboxRows(t *testing.T, uid uint64, key string) []inboxRow {
+	t.Helper()
+	rows, err := e.db.Query(`SELECT state, hit_count FROM message_inbox WHERE user_id = ? AND rule_key = ? ORDER BY id`, uid, key)
+	require.NoError(t, err)
+	defer func() { _ = rows.Close() }()
+	out := []inboxRow{}
+	for rows.Next() {
+		var r inboxRow
+		require.NoError(t, rows.Scan(&r.state, &r.hits))
+		out = append(out, r)
+	}
+	require.NoError(t, rows.Err())
+	return out
+}
+
+// T-M10-09 (D-166): a nudge is an alerts inbox row of its cond.* rule — one row, merged when a new qualifying day
+// comes, resolved once she enrols in the program.
+func TestNudges_ThroughTheInbox(t *testing.T) {
+	e := setup(t)
+	uid, tok := e.user(t, "09120000011")
+	e.period(t, uid, "2026-09-08")
+	e.painDay(t, uid, "2026-09-09", "8")
+	e.painDay(t, uid, "2026-09-10", "8")
+
+	require.Equal(t, []string{"heavy_pain"}, e.get(t, tok, "en").keys())
+	require.Equal(t, []string{"heavy_pain"}, e.get(t, tok, "fa").keys())
+	assert.Equal(t, []inboxRow{{"active", 1}}, e.inboxRows(t, uid, "cond.heavy_pain"), "the same days: one row, no merge")
+
+	e.painDay(t, uid, "2026-09-12", "9")
+	require.Equal(t, []string{"heavy_pain"}, e.get(t, tok, "en").keys())
+	assert.Equal(t, []inboxRow{{"active", 2}}, e.inboxRows(t, uid, "cond.heavy_pain"), "a new day merges")
+
+	e.enrol(t, uid, "endo")
+	assert.Empty(t, e.get(t, tok, "en").keys())
+	assert.Equal(t, []inboxRow{{"resolved", 2}}, e.inboxRows(t, uid, "cond.heavy_pain"))
+}
+
+// T-M10-09: the rules are data — a raised threshold or a switched-off rule changes the nudges.
+func TestNudges_RulesAreAdminControlled(t *testing.T) {
+	e := setup(t)
+	uid, tok := e.user(t, "09120000012")
+	e.period(t, uid, "2026-09-08")
+	for _, day := range []string{"2026-09-09", "2026-09-10"} {
+		e.painDay(t, uid, day, "8")
+		e.flowDay(t, uid, day, "heavy")
+	}
+	require.Equal(t, []string{"heavy_pain", "heavy_bleeding"}, e.get(t, tok, "en").keys())
+
+	e.exec(t, `UPDATE message_rules SET conditions = '[{"op":"and","items":[{"fact":"cond.heavy_pain_days","op":"gte","value":3},{"fact":"cond.programs","op":"nin","value":["endo"]}]}]'
+		WHERE rule_key = 'cond.heavy_pain'`)
+	e.exec(t, `UPDATE message_rules SET is_active = 0 WHERE rule_key = 'cond.heavy_bleeding'`)
+	assert.Empty(t, e.get(t, tok, "en").keys())
+	assert.Equal(t, []inboxRow{{"resolved", 1}}, e.inboxRows(t, uid, "cond.heavy_pain"))
+
+	e.painDay(t, uid, "2026-09-11", "8")
+	assert.Equal(t, []string{"heavy_pain"}, e.get(t, tok, "en").keys())
+}

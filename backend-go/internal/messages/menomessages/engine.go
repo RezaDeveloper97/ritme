@@ -12,9 +12,12 @@ import (
 
 	"github.com/ritme/backend-go/internal/catalog"
 	"github.com/ritme/backend-go/internal/checkups"
+	"github.com/ritme/backend-go/internal/checkups/engine"
 	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/menopause"
 	"github.com/ritme/backend-go/internal/messages/content"
+	"github.com/ritme/backend-go/internal/messages/facts"
+	"github.com/ritme/backend-go/internal/messages/rules"
 	"github.com/ritme/backend-go/internal/messages/store"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 )
@@ -52,8 +55,9 @@ type SignalSource interface {
 
 // Engine evaluates the menopause messages of one user. Reads only, all scoped to the user.
 type Engine struct {
-	mq  store.Querier
-	src SignalSource
+	mq    store.Querier
+	src   SignalSource
+	rules ruleCache
 }
 
 // NewEngine wires the engine: db for the message_contents texts, src for the menopause facts.
@@ -74,15 +78,27 @@ type Result struct {
 	Messages []Message
 }
 
-// Evaluate runs the rules for userID at now; loc picks the texts (request locale, then the default language).
+// Evaluate runs the meno.* rules for userID at now (the alerts through her inbox) and resolves the texts of the hits;
+// loc picks the texts (request locale, then the default language).
 func (e *Engine) Evaluate(ctx context.Context, userID uint64, now time.Time, loc catalog.Localizer) (Result, error) {
 	sig, err := e.src.Signals(ctx, userID, now)
 	if err != nil {
 		return Result{}, err
 	}
 	res := Result{Signals: sig, Messages: []Message{}}
+	set, err := e.rules.get(ctx, e.mq)
+	if err != nil {
+		return Result{}, err
+	}
+	// The facts of the signals (checkup titles in the request language) through the alerts inbox: a new match opens
+	// a row, a repeated one merges into it, an ended one resolves (also when she left menopause mode).
+	in := Input(sig, func(it *engine.Item) string { return checkupTitle(Hit{Checkup: it}, sig, loc) })
+	open, err := set.sync(ctx, e.mq, userID, rules.Facts(facts.MenopauseValues(in)), now)
+	if err != nil {
+		return Result{}, err
+	}
 	repo := content.NewRepository(e.mq)
-	for _, h := range Detect(sig) {
+	for _, h := range DetectWith(sig, set.holds(open, userID, now)) {
 		m := Message{Hit: h, Texts: map[string]string{}}
 		switch {
 		case h.Kind == KindTip:

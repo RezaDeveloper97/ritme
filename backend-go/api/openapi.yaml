@@ -10720,7 +10720,10 @@ paths:
       description: >-
         Go-only (D-41, CB-COND-06b). Heavy pain (score ≥7, or level `severe` when unscored) or heavy / very heavy
         flow on 2+ days of the current cycle while not enrolled in the matching condition program suggests the pain
-        diary or the PBAC chart. Computed per request from the day log; nothing is stored. Only the cycle, ttc and
+        diary or the PBAC chart. Since T-M10-09 (D-166) each nudge is a message rule (`cond.heavy_pain`,
+        `cond.heavy_bleeding`; the day count and the program are rule conditions) and this endpoint is an adapter over
+        the alerts inbox: the call evaluates the rules and writes the user's inbox (a new match opens a row, a new
+        qualifying day merges into it, enrolling resolves it); the answer shape is unchanged. Only the cycle, ttc and
         teen modes are nudged — otherwise `nudges` is `[]`. Texts are the admin `condition_nudge` message rows in the
         request language, falling back per field to the embedded copy (`needs_review` true while any fallback is
         used). `doctor` is null until the doctors directory exists.
@@ -11049,7 +11052,11 @@ paths:
         an active HRT item's `review_on` is today or within 14 days; one per item), `checkup_due` (reminder, low —
         only when none is overdue; never done counts as due), then the stage tips (kind `tip`, key = the catalog
         `meno_tips` code placed on the home for her stage; no stage yet → the `unsure` tips). Only users whose
-        effective life mode is menopause get messages; for everyone else `messages` is `[]`. Texts: the bleeding
+        effective life mode is menopause get messages; for everyone else `messages` is `[]`. Since T-M10-09 (D-166)
+        every message is a message rule (`meno.<name>`: thresholds are rule conditions; alerts and reminders in the
+        alerts inbox, stage tips in daily_advice) and this endpoint is an adapter: the call evaluates the rules and
+        writes the user's inbox (a repeated bleeding signal merges into one row; an ended pattern or leaving
+        menopause mode resolves it); the answer shape is unchanged. Texts: the bleeding
         alert and the tips are the catalog items (`meno_alerts` / `meno_tips`, title, body, `meta.cta` as action);
         the other rules are admin `menopause_message` rows in the request language, falling back per field to the
         embedded copy (`needs_review` true while any fallback is used or the catalog item is flagged). All

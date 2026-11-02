@@ -134,3 +134,36 @@ the one marked):
 | Reduced / no fetal movement (≥ 24 w) | warning / emergency | urgent | urgent |
 | Severe depression feelings | warning | — | follow_up |
 | One BP alert at a time | one row per save | one row per reading | one open row per rule; the 7-day worst reading picks severe over high |
+
+## E. Menopause message and condition nudge rules (T-M10-09, D-166) — seeded `message_rules`, review before production
+
+Goose `00115_menopause_condition_rules.sql` (data only) seeds one approved rule per message of the two retired
+per-request engines (D-43 menopause messages, D-41 condition nudges), generated from
+`internal/messages/menomessages` and `internal/messages/conditionnudges` (`Defs` + `copy/fa.json`, `copy/en.json`; the
+int test pins the rows to them). The copy is today's (menopause / nudge embedded copy, catalog `meno_alerts`
+`postmenopausal_bleeding` and `meno_tips` `stage_*`) with the variables renamed (`{meno_*}`, `{cond_*}`); rows marked
+**new** carry new text. `GET /messages/menopause` and `GET /messages/nudges` keep their texts (catalog /
+`message_contents` / embedded copy); the rule copy below is what the alerts inbox (`/alerts`) and the feed render.
+Thresholds that were code constants are now rule conditions (score rise ≥ 4, review within 14 days, 2 qualifying
+days); the day rules (pain ≥ 7 or level severe, flow heavy / very heavy) and the 30-day bleeding window stay in code.
+
+**Advisor flag — postmenopausal bleeding.** Today's behaviour is kept: an «alert, high» card, no modal, no
+acknowledgement required → stored level `worth_followup` (follow_up), kind clinical, **locked** (a deleted or inactive
+row still raises it from the code-held definition). The advisor should confirm follow_up, or raise it to urgent
+(`follow_soon`, which would need kind safety and a contact line).
+
+| Rule | Slot | Kind | Level | Locked | Condition | fa text (title — body · what we saw · how sure) | Sign-off |
+|---|---|---|---|---|---|---|---|
+| `meno.postmenopausal_bleeding` | alerts_inbox | clinical | worth_followup (follow_up) | yes | `meno.postmenopausal_bleeding = true` (bleeding / spotting in the last 30 days at stage meno or post) | **خونریزی بعد از یائسگی** — هر خونریزی یا لکه‌بینی، حتی کم، بعد از ۱۲ ماه قطع پریود باید بررسی شود. بیشتر وقت‌ها علت ساده‌ای دارد، اما بررسی زودهنگام مهم است.<br>دیدیم (**new**): خونریزی یا لکه‌بینی ثبت کردی؛ آخرین بار {meno_bleeding_on}.<br>اطمینان (**new**): این از ثبت خودت است، نه تشخیص؛ فقط معاینه می‌تواند علتش را بگوید. | |
+| `meno.score_worsened` | alerts_inbox | clinical | worth_followup (follow_up) | no | `meno.score_rise ≥ 4` (newest questionnaire of this or the previous Jalali month vs the one before) | **امتیاز علائمت بیشتر شده** — امتیاز آخرت {meno_score_total} است؛ {meno_score_rise} واحد بیشتر از دفعه قبل ({meno_score_previous}). ببین چه چیزی تغییر کرده و اگر بالا ماند با پزشکت حرف بزن.<br>دیدیم (**new**): امتیاز ماهانه‌ات از {meno_score_previous} به {meno_score_total} رسید.<br>اطمینان (**new**): این از پرسش‌نامه‌ای است که خودت پر کردی، نه تشخیص. | |
+| `meno.checkup_overdue` | alerts_inbox | content | suggestion | no | `meno.checkups_overdue ≥ 1` | **یک چکاپ عقب افتاده** — زمان {meno_overdue_checkup} گذشته است. اگر زودتر نوبت بگیری، برنامه سلامتت مرتب می‌ماند. | |
+| `meno.hrt_review` | alerts_inbox | content | suggestion | no | `meno.hrt_review_in_days between 0 and 14` (nearest review of an active HRT item; the GET matches each item) | **بازبینی درمان نزدیک است** — بازبینی {meno_hrt_name} با پزشکت ({meno_hrt_on}) نزدیک است. حال این مدت و عوارض احتمالی را یادداشت کن تا با خودت ببری. (the relative «{when}:» lead-in of today's copy dropped: the inbox stores language-free evidence) | |
+| `meno.checkup_due` | alerts_inbox | content | info | no | `meno.checkups_due ≥ 1` ∧ `meno.checkups_overdue = 0` | **وقت یک چکاپ رسیده** — زمان {meno_due_checkup} رسیده است. بعد از یائسگی چکاپ منظم برای استخوان و قلب اهمیت بیشتری دارد. | |
+| `meno.tip_stage_peri` / `_meno` / `_post` / `_unsure` | daily_advice | content | info | no | `meno.stage = peri / meno / post / unsure` | the catalog `meno_tips` `stage_*` title and body (unchanged) | |
+| `cond.heavy_pain` | alerts_inbox | content | suggestion | no | `cond.heavy_pain_days ≥ 2` ∧ `cond.programs nin [endo]` (cycle, ttc, teen; current cycle) | **درد شدید در چند روز** — در این چرخه {cond_pain_days} روز درد ۷ یا بیشتر ثبت کرده‌ای. دفترچه درد کمک می‌کند تو و پزشکت الگوی آن را ببینید. | |
+| `cond.heavy_bleeding` | alerts_inbox | content | suggestion | no | `cond.heavy_bleeding_days ≥ 2` ∧ `cond.programs nin [heavy_bleeding]` | **خونریزی سنگین در چند روز** — در این چرخه {cond_bleeding_days} روز خونریزی سنگین ثبت کرده‌ای. جدول نوار بهداشتی (PBAC) مقدار خونریزی را می‌سنجد تا بشود بررسی‌اش کرد. | |
+
+Differences from the retired engines (parity tables `menomessages/parity_test.go`, `conditionnudges/parity_test.go`):
+none in what is raised. New: one inbox row per rule (a repeated bleeding signal on a new day merges, count + 1), rows
+resolve when the pattern ends or she leaves the mode, and the admin can switch a rule off or change its threshold
+(except the locked bleeding rule's code-held fallback).

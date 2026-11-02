@@ -1,0 +1,12 @@
+{
+    "cond.heavy_pain": {
+        "title": "Strong pain on several days",
+        "body": "You logged pain of 7 or more on {cond_pain_days} days this cycle. A pain diary helps you and your doctor see the pattern.",
+        "cta": "Open the pain diary"
+    },
+    "cond.heavy_bleeding": {
+        "title": "Heavy flow on several days",
+        "body": "You logged heavy flow on {cond_bleeding_days} days this cycle. The pad chart (PBAC) measures how much you bleed so it can be checked.",
+        "cta": "Open the bleeding chart"
+    }
+}

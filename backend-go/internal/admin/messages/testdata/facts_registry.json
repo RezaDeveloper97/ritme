@@ -47,6 +47,45 @@
     },
     {
       "description": {
+        "en": "Days of the current cycle with heavy or very heavy flow; 0 without a current cycle.",
+        "fa": "روزهای چرخهٔ جاری با خونریزی سنگین یا خیلی سنگین؛ بیرون از چرخه ۰"
+      },
+      "enum": null,
+      "group": "conditions",
+      "member_safe": false,
+      "name": "cond.heavy_bleeding_days",
+      "pending": null,
+      "type": "int",
+      "unit": "day"
+    },
+    {
+      "description": {
+        "en": "Days of the current cycle with pain of 7 or more (or severe when unscored); 0 without a current cycle.",
+        "fa": "روزهای چرخهٔ جاری با درد ۷ یا بیشتر (یا «شدید» بدون نمره)؛ بیرون از چرخه ۰"
+      },
+      "enum": null,
+      "group": "conditions",
+      "member_safe": false,
+      "name": "cond.heavy_pain_days",
+      "pending": null,
+      "type": "int",
+      "unit": "day"
+    },
+    {
+      "description": {
+        "en": "The condition programs the user is enrolled in (program codes).",
+        "fa": "برنامه‌های بیماری که کاربر عضوشان است (کد برنامه)"
+      },
+      "enum": null,
+      "group": "conditions",
+      "member_safe": false,
+      "name": "cond.programs",
+      "pending": null,
+      "type": "set",
+      "unit": null
+    },
+    {
+      "description": {
         "en": "The engine's confidence.",
         "fa": "اطمینان موتور"
       },
@@ -339,6 +378,89 @@
       "group": "engine",
       "member_safe": false,
       "name": "main_phase",
+      "pending": null,
+      "type": "enum",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Menopause checkups of the plan that are due (never done included).",
+        "fa": "تعداد چکاپ‌های یائسگی که وقتشان رسیده (هرگز انجام‌نشده هم)"
+      },
+      "enum": null,
+      "group": "menopause",
+      "member_safe": false,
+      "name": "meno.checkups_due",
+      "pending": null,
+      "type": "int",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Menopause checkups of the plan that are overdue.",
+        "fa": "تعداد چکاپ‌های یائسگیِ عقب‌افتاده در برنامهٔ چکاپ"
+      },
+      "enum": null,
+      "group": "menopause",
+      "member_safe": false,
+      "name": "meno.checkups_overdue",
+      "pending": null,
+      "type": "int",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Days to the nearest review of an active HRT item (today or later); -1 without one.",
+        "fa": "روزهای مانده تا نزدیک‌ترین بازبینی درمان هورمونی فعال (امروز به بعد)؛ بدون بازبینی −۱"
+      },
+      "enum": null,
+      "group": "menopause",
+      "member_safe": false,
+      "name": "meno.hrt_review_in_days",
+      "pending": null,
+      "type": "int",
+      "unit": "day"
+    },
+    {
+      "description": {
+        "en": "Bleeding or spotting in the last 30 days at stage meno or post (12 months after the last period).",
+        "fa": "خونریزی یا لکه‌بینی در ۳۰ روز اخیر در مرحلهٔ یائسگی یا پس از یائسگی (۱۲ ماه بعد از آخرین پریود)"
+      },
+      "enum": null,
+      "group": "menopause",
+      "member_safe": false,
+      "name": "meno.postmenopausal_bleeding",
+      "pending": null,
+      "type": "bool",
+      "unit": null
+    },
+    {
+      "description": {
+        "en": "Rise of the newest monthly score (this or the previous month) over the one before; 0 without one.",
+        "fa": "افزایش امتیاز تازه‌ترین پرسش‌نامهٔ ماهانه (این ماه یا ماه قبل) نسبت به قبلی؛ بدون آن ۰"
+      },
+      "enum": null,
+      "group": "menopause",
+      "member_safe": false,
+      "name": "meno.score_rise",
+      "pending": null,
+      "type": "int",
+      "unit": "point"
+    },
+    {
+      "description": {
+        "en": "The menopause stage (unanswered: unsure; menopause mode only).",
+        "fa": "مرحلهٔ یائسگی (بدون پاسخ: unsure؛ فقط در حالت یائسگی)"
+      },
+      "enum": [
+        "peri",
+        "meno",
+        "post",
+        "unsure"
+      ],
+      "group": "menopause",
+      "member_safe": false,
+      "name": "meno.stage",
       "pending": null,
       "type": "enum",
       "unit": null
@@ -1036,10 +1158,12 @@
   "groups": [
     "account",
     "challenge",
+    "conditions",
     "contraception",
     "engine",
     "goal",
     "logs",
+    "menopause",
     "postpartum",
     "pregnancy",
     "pregnancy_alerts",

@@ -1,0 +1,47 @@
+{
+    "meno.postmenopausal_bleeding": {
+        "title": "Bleeding after menopause",
+        "body": "Any bleeding or spotting, even a little, 12 months or more after your last period should be checked. Usually the cause is simple, but an early check matters.",
+        "cta": "Tell your doctor about this",
+        "seen": "You logged bleeding or spotting; the last time on {meno_bleeding_on}.",
+        "confidence": "This comes from your own log, not a diagnosis; only an exam can tell the cause."
+    },
+    "meno.checkup_overdue": {
+        "title": "A checkup is overdue",
+        "body": "{meno_overdue_checkup} is past its due time. Booking it soon keeps your health plan on track.",
+        "cta": "See my checkups"
+    },
+    "meno.score_worsened": {
+        "title": "Your symptom score went up",
+        "body": "Your latest score is {meno_score_total}, {meno_score_rise} points higher than the time before ({meno_score_previous}). Note what changed, and talk to your doctor if it stays high.",
+        "cta": "See my score",
+        "seen": "Your monthly score went from {meno_score_previous} to {meno_score_total}.",
+        "confidence": "This comes from the questionnaire you filled in, not a diagnosis."
+    },
+    "meno.hrt_review": {
+        "title": "Treatment review coming up",
+        "body": "The review of {meno_hrt_name} with your doctor ({meno_hrt_on}) is coming up. Write down how you have felt and any side effects to take with you.",
+        "cta": "Open my treatment"
+    },
+    "meno.checkup_due": {
+        "title": "A checkup is due",
+        "body": "It is time for {meno_due_checkup}. Regular checks matter more for your bones and heart after menopause.",
+        "cta": "See my checkups"
+    },
+    "meno.tip_stage_peri": {
+        "title": "Perimenopause",
+        "body": "Periods may become irregular, lighter or heavier, and new symptoms may start. Logging periods and symptoms helps you see patterns and talk to your doctor in detail."
+    },
+    "meno.tip_stage_meno": {
+        "title": "Menopause",
+        "body": "It has been more than 12 months, which means you have reached menopause. From now on, log any bleeding or spotting and tell your doctor."
+    },
+    "meno.tip_stage_post": {
+        "title": "Postmenopause",
+        "body": "In these years caring for your bones and heart matters more. Keep up with regular checkups and tell your doctor about any bleeding or spotting."
+    },
+    "meno.tip_stage_unsure": {
+        "title": "Not sure",
+        "body": "If you are not sure where you are, the approximate date of your last period helps. 12 months without a period means menopause; your doctor can tell you more."
+    }
+}

@@ -2676,3 +2676,9 @@ Nothing needed fixing.
 - KPI: new default "Key indicators" tab (RUI 7d, AI cost share, loggers ≥15 days, OCR correction, CTR with deltas; CTR per version table). OKR: pace-rule status copy, metric labels for the §5.6 catalogue.
 - APIs: GET /overview, /kpi, /okr, GET/PUT /dashboard/alert-rules. Vitest for alert rows, tiles, OKR labels.
 - Open: no light/dark screenshots yet; overview data_quality distribution is undocumented in admin-api.md §6b (optional in schema); KPI Engine tab placeholder unchanged; OKR elapsed% computed in UTC vs Tehran on the server.
+
+## T-M10-09 — Menopause messages and condition nudges as rules
+- D-166. Facts `meno.*` (stage, postmenopausal_bleeding, checkups_overdue/due, score_rise, hrt_review_in_days) and `cond.*` (heavy_pain_days, heavy_bleeding_days, programs). menomessages: 9 rules (5 alerts_inbox, 4 daily_advice stage tips); conditionnudges: rules + EvaluateAt. Both GETs are adapters over inbox.Evaluate, same JSON shape; legacy engines kept as parity oracles.
+- Migration 00115_menopause_condition_rules (data only): 11 approved rules; Down removes inbox rows then rules. Missing row → code-held rule; locked bleeding rule fires from code even if inactive. clinical-signoff.md §E lists every rule (bleeding stays worth_followup; new «what we saw / how sure» lines flagged for review).
+- Test fixes: feed budget test excludes meno./cond. rules; admin facts registry golden regenerated.
+- Open: feed/jobs don't load meno/cond facts yet → T-M10-09b.

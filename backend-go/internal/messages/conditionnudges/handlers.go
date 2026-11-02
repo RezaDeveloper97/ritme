@@ -34,8 +34,8 @@ func (h *Handlers) Index(c fiber.Ctx) error {
 	if !ok {
 		return &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
 	}
-	today := civildate.LocalToday(c, clock.FromContext(c, h.clock))
-	res, err := h.eng.Evaluate(c.Context(), uid, today, i18n.Locale(c))
+	now := civildate.LocalNow(c, clock.FromContext(c, h.clock))
+	res, err := h.eng.EvaluateAt(c.Context(), uid, now, i18n.Locale(c))
 	if err != nil {
 		return err
 	}

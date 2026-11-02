@@ -1,20 +1,23 @@
 // Package conditionnudges is the heavy pain / heavy bleeding nudges of the condition programs (CB-COND-06, IA_Map
-// cross-link «ثبت درد زیاد → پیشنهاد دفترچه درد و پزشک»):
+// cross-link «ثبت درد زیاد → پیشنهاد دفترچه درد و پزشک»). Since T-M10-09 (D-166) each nudge is a message rule
+// (rule_key cond.<name>, seeded by goose 00115, slot alerts_inbox, content / suggestion):
 //
-//   - heavy_pain: pain ≥ PainMinScore on MinDays+ days of the current cycle while not enrolled in the endometriosis
-//     program → suggest the pain diary (/programs/pain);
-//   - heavy_bleeding: heavy or very heavy flow on MinDays+ days of the current cycle while not enrolled in the
-//     heavy-bleeding program → suggest the PBAC chart (/programs/bleeding).
+//   - cond.heavy_pain: cond.heavy_pain_days ≥ 2 (pain ≥ PainMinScore on a day of the current cycle) while
+//     cond.programs does not hold endo → suggest the pain diary (/programs/pain);
+//   - cond.heavy_bleeding: cond.heavy_bleeding_days ≥ 2 (heavy or very heavy flow) while not enrolled in
+//     heavy_bleeding → suggest the PBAC chart (/programs/bleeding).
 //
 // The facts come from bloom's day log (health_log_entries through healthlog.Service — the pain diary of CB-COND-01
-// writes its score there too), the enrolments from condition_enrolments and the cycle start from cycle_histories:
-// no parallel storage, nothing is persisted — a nudge is computed per request and disappears once she enrols (or
-// the cycle turns over). Only the cycle-tracking modes (cycle, ttc, teen) are nudged; pregnancy, postpartum and
-// menopause have their own bleeding / pain alerts.
+// writes its score there too), the enrolments from condition_enrolments and the cycle window from cycle_histories (v1)
+// or the v6 engine; the counts become the cond.* facts (messages/facts/conditions.go) and the nudges run through the
+// alerts inbox (one row per rule, merged on a new day, resolved once she enrols or the cycle turns over). Only the
+// cycle-tracking modes (cycle, ttc, teen) are nudged; pregnancy, postpartum and menopause have their own alerts.
+// GET /messages/nudges is an adapter over the inbox with the D-41 shape.
 //
-// The texts are admin-editable message_contents rows of group `condition_nudge` (item = rule key, payload
-// {title, body, action, doctor_action}, `{days}` placeholder); a missing text falls back to the embedded copy in
-// lang/<code>/condition_nudges.json. All thresholds and copy are [needs clinical review].
+// The adapter's texts are unchanged: admin-editable message_contents rows of group `condition_nudge` (item = rule key,
+// payload {title, body, action, doctor_action}, `{days}` placeholder); a missing text falls back to the embedded copy
+// in lang/<code>/condition_nudges.json. The seeded rules carry the same copy (copy/<code>.json) for the inbox and the
+// feed. All thresholds and copy are [needs clinical review].
 package conditionnudges
 
 import (
@@ -25,6 +28,8 @@ import (
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/healthlog/taxonomy"
+	mfacts "github.com/ritme/backend-go/internal/messages/facts"
+	"github.com/ritme/backend-go/internal/messages/rules"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
@@ -47,12 +52,11 @@ const (
 	ProgramHeavyBleeding = "heavy_bleeding"
 )
 
-// Thresholds [needs clinical review].
+// Day rule and window [needs clinical review]. How many qualifying days raise a nudge and the program that silences
+// it are conditions of the seeded cond.* rules (T-M10-09).
 const (
 	// PainMinScore is the lowest 0–10 pain score that counts as strong pain.
 	PainMinScore = 7
-	// MinDays is how many qualifying days of the cycle raise a nudge.
-	MinDays = 2
 	// MaxCycleDays (CYCLE_ENGINE v1 only): a latest period start older than this is not "the current cycle" (no period
 	// logged since); the window is then the last FallbackCycleDays (or the profile's cycle length). The v6 window is
 	// EngineCycleWindow.
@@ -71,15 +75,38 @@ var heavyFlow = []string{"heavy", "very_heavy"}
 // nudgedModes are the life modes the nudges run in.
 var nudgedModes = []string{string(enums.LifeModeCycle), string(enums.LifeModeTTC), string(enums.LifeModeTeen)}
 
-// rule is one nudge rule.
-type rule struct {
-	key, program, link string
-	day                func([]taxonomy.Entry) bool
+// KeyPrefix is the rule_key prefix of the condition nudge rules.
+const KeyPrefix = "cond."
+
+// Def is one seeded condition nudge rule (goose 00115 is generated from these and the copy; its int test pins them).
+type Def struct {
+	Key, Msg, Name string // rule_key, the GET answer's key, the admin title
+	Program, Link  string
+	Kind, Level    string
+	Prio           int
+	Groups         []rules.Group
+	// Fact is the day-count fact of the rule (its qualifying days).
+	Fact string
+	day  func([]taxonomy.Entry) bool
 }
 
-var rules = []rule{
-	{key: RuleHeavyPain, program: ProgramEndo, link: "/programs/pain", day: strongPainDay},
-	{key: RuleHeavyBleeding, program: ProgramHeavyBleeding, link: "/programs/bleeding", day: heavyFlowDay},
+func cnd(fact, op string, v any) rules.Condition {
+	return rules.Condition{Fact: fact, Op: op, Value: v}
+}
+
+// Defs are the nudge rules in display order: alerts inbox, content / suggestion (a pointer to a program, not a
+// warning), «two qualifying days of the current cycle while not enrolled in the program».
+var Defs = []Def{
+	{Key: KeyPrefix + RuleHeavyPain, Msg: RuleHeavyPain, Name: "Condition nudge: strong pain on several days",
+		Program: ProgramEndo, Link: "/programs/pain", Kind: rules.KindContent, Level: rules.LevelSuggestion, Prio: 450,
+		Fact: "cond.heavy_pain_days", day: strongPainDay,
+		Groups: []rules.Group{{Op: "and", Items: []rules.Condition{cnd("cond.heavy_pain_days", "gte", 2),
+			cnd("cond.programs", "nin", []any{ProgramEndo})}}}},
+	{Key: KeyPrefix + RuleHeavyBleeding, Msg: RuleHeavyBleeding, Name: "Condition nudge: heavy flow on several days",
+		Program: ProgramHeavyBleeding, Link: "/programs/bleeding", Kind: rules.KindContent, Level: rules.LevelSuggestion,
+		Prio: 440, Fact: "cond.heavy_bleeding_days", day: heavyFlowDay,
+		Groups: []rules.Group{{Op: "and", Items: []rules.Condition{cnd("cond.heavy_bleeding_days", "gte", 2),
+			cnd("cond.programs", "nin", []any{ProgramHeavyBleeding})}}}},
 }
 
 // Facts are one user's inputs to the rules.
@@ -96,30 +123,65 @@ type Hit struct {
 	Dates               []civildate.Date // qualifying days, oldest first
 }
 
-// Detect runs every rule on f (pure).
-func Detect(f Facts) []Hit {
-	if !slices.Contains(nudgedModes, f.Mode) || f.From.IsZero() {
-		return nil
-	}
+// Holds reports whether the rule of d holds on f for this user (served or code-held; the adapter: its inbox row is
+// open).
+type Holds func(d *Def, f rules.Facts) bool
+
+// CodeHolds evaluates the code-held rules.
+func CodeHolds(d *Def, f rules.Facts) bool {
+	r := d.Rule(0)
+	return rules.MatchRule(&r, f)
+}
+
+// Detect runs the code-held rules on f (pure).
+func Detect(f Facts) []Hit { return DetectWith(f, CodeHolds) }
+
+// DetectWith builds the nudges of f whose rules hold, in display order.
+func DetectWith(f Facts, holds Holds) []Hit {
+	dates := qualifying(f)
+	vals := rules.Facts(mfacts.ConditionValues(Input(f)))
 	var out []Hit
-	for _, r := range rules {
-		if f.Enrolled[r.program] {
-			continue
+	for i := range Defs {
+		d := &Defs[i]
+		if len(dates[d.Key]) > 0 && holds(d, vals) {
+			out = append(out, Hit{Rule: d.Msg, Program: d.Program, Link: d.Link, Dates: dates[d.Key]})
 		}
-		var dates []civildate.Date
+	}
+	return out
+}
+
+// qualifying are the qualifying days of each rule inside the window (none outside a nudged mode or a current cycle).
+func qualifying(f Facts) map[string][]civildate.Date {
+	out := map[string][]civildate.Date{}
+	if !slices.Contains(nudgedModes, f.Mode) || f.From.IsZero() {
+		return out
+	}
+	for _, r := range Defs {
 		for _, d := range f.Days {
 			if d.Date.Before(f.From) || d.Date.After(f.To) {
 				continue
 			}
 			if r.day(d.Entries) {
-				dates = append(dates, d.Date)
+				out[r.Key] = append(out[r.Key], d.Date)
 			}
-		}
-		if len(dates) >= MinDays {
-			out = append(out, Hit{Rule: r.key, Program: r.program, Link: r.link, Dates: dates})
 		}
 	}
 	return out
+}
+
+// Input is the cond.* fact input of f: the qualifying day counts (0 outside a nudged mode or a current cycle) and the
+// enrolled programs.
+func Input(f Facts) *mfacts.ConditionInput {
+	q := qualifying(f)
+	in := &mfacts.ConditionInput{PainDays: len(q[KeyPrefix+RuleHeavyPain]), BleedingDays: len(q[KeyPrefix+RuleHeavyBleeding]),
+		Programs: []string{}}
+	for p, on := range f.Enrolled {
+		if on {
+			in.Programs = append(in.Programs, p)
+		}
+	}
+	slices.Sort(in.Programs)
+	return in
 }
 
 // strongPainDay: any pain location scored ≥ PainMinScore (a location without a score counts when its level is

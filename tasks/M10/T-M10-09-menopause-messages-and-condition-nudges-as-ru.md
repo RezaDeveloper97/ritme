@@ -3,7 +3,7 @@ id: T-M10-09
 title: Menopause messages and condition nudges as rules
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-07]
 parallel_group: M10-B
 touches: [backend-go/internal/messages/menomessages, backend-go/internal/messages/conditionnudges, backend-go/internal/messages/facts/menopause.go, backend-go/internal/messages/facts/conditions.go, backend-go/db/migrations, backend-go/api/openapi.yaml, docs/engine-v6/clinical-signoff.md]

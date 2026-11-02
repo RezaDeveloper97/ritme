@@ -11,12 +11,15 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	cstore "github.com/ritme/backend-go/internal/conditions/store"
 	"github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/messages/content"
+	mfacts "github.com/ritme/backend-go/internal/messages/facts"
+	"github.com/ritme/backend-go/internal/messages/rules"
 	"github.com/ritme/backend-go/internal/messages/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
@@ -72,6 +75,7 @@ type Engine struct {
 	logs    *healthlog.Service
 	doctors DoctorDirectory
 	states  CycleStates
+	rules   ruleCache
 }
 
 // WithCycle makes the window and the mode come from the v6 engine (CYCLE_ENGINE shadow / v6, T-M9-37); nil keeps v1.
@@ -99,14 +103,35 @@ type Result struct {
 	Nudges   []Nudge
 }
 
-// Evaluate runs the rules for userID on today; locale picks the texts.
+// Evaluate runs the rules for userID on today; locale picks the texts. The inbox clock is now when today is the
+// Tehran day of now, else noon of today.
 func (e *Engine) Evaluate(ctx context.Context, userID uint64, today civildate.Date, locale string) (Result, error) {
+	now := time.Now().In(civildate.Tehran)
+	if civildate.FromTime(now) != today {
+		now = today.TehranMidnight().Add(12 * time.Hour)
+	}
+	return e.EvaluateAt(ctx, userID, now, locale)
+}
+
+// EvaluateAt runs the cond.* rules for userID at now (user-local; its day is the target day) through her alerts inbox
+// — a new match opens a row, a new qualifying day merges into it, an ended pattern resolves it — and resolves the
+// texts of the nudges; locale picks the texts.
+func (e *Engine) EvaluateAt(ctx context.Context, userID uint64, now time.Time, locale string) (Result, error) {
+	today := civildate.FromTime(now)
 	f, err := e.facts(ctx, userID, today)
 	if err != nil {
 		return Result{}, err
 	}
 	res := Result{From: f.From, To: f.To, Nudges: []Nudge{}}
-	hits := Detect(f)
+	set, err := e.rules.get(ctx, e.mq)
+	if err != nil {
+		return Result{}, err
+	}
+	open, err := set.sync(ctx, e.mq, userID, rules.Facts(mfacts.ConditionValues(Input(f))), now)
+	if err != nil {
+		return Result{}, err
+	}
+	hits := DetectWith(f, set.holds(open))
 	if len(hits) == 0 {
 		return res, nil
 	}
