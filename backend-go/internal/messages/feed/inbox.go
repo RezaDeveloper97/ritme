@@ -187,15 +187,58 @@ func rendererOf(key string) EvidenceRenderer {
 	return nil
 }
 
+// HeldRule is the code-held definition of a locked rule (rule_key key, the open row's rule_id id) with its texts in
+// locale, or nil when the domain holds none for key.
+type HeldRule func(key string, id uint64, locale string) *rules.Rule
+
+var (
+	heldMu sync.Mutex
+	held   atomic.Pointer[map[string]HeldRule] // rule_key prefix → code-held rules
+)
+
+// InstallHeldRules makes fanOut fan out an open row whose rule is not served (its row missing, inactive or not
+// approved: no rule in the snapshot) through fn's code-held rule for the rule keys starting with prefix — the locked
+// pregnancy safety rules (inboxalerts' guarantee, T-M10-08c): such an alert is raised by the domain's own evaluation
+// and must still reach the urgent modal. nil removes the prefix.
+func InstallHeldRules(prefix string, fn HeldRule) {
+	heldMu.Lock()
+	defer heldMu.Unlock()
+	next := map[string]HeldRule{}
+	if cur := held.Load(); cur != nil {
+		maps.Copy(next, *cur)
+	}
+	if fn == nil {
+		delete(next, prefix)
+	} else {
+		next[prefix] = fn
+	}
+	held.Store(&next)
+}
+
+// heldOf is the code-held rule source of a rule key (nil = none).
+func heldOf(key string) HeldRule {
+	cur := held.Load()
+	if cur == nil || key == "" {
+		return nil
+	}
+	for prefix, fn := range *cur {
+		if strings.HasPrefix(key, prefix) {
+			return fn
+		}
+	}
+	return nil
+}
+
 // openEvidence are the stored evidence variables of open inbox rows, by row id.
 type openEvidence map[uint64]map[string]any
 
 // evidenceOf reads the stored evidence of the open rows an evidence renderer renders (one query, only when one of
-// them was not written by this evaluation; nil otherwise).
-func (s *Service) evidenceOf(ctx context.Context, userID uint64, open []OpenAlert) (openEvidence, error) {
+// them was not written by this evaluation, or an open row's rule is not served; nil otherwise). An open row whose
+// rule is not served gets its code-held rule (InstallHeldRules) in locale, so fanOut can show it.
+func (s *Service) evidenceOf(ctx context.Context, userID uint64, open []OpenAlert, locale string) (openEvidence, error) {
 	need := false
 	for i := range open {
-		if open[i].ID != 0 && open[i].Rule != nil && rendererOf(open[i].Rule.RuleKey) != nil {
+		if open[i].ID != 0 && (open[i].Rule == nil || rendererOf(open[i].Rule.RuleKey) != nil) {
 			need = true
 			break
 		}
@@ -206,6 +249,20 @@ func (s *Service) evidenceOf(ctx context.Context, userID uint64, open []OpenAler
 	rows, err := s.q.ListUserOpenInbox(ctx, userID)
 	if err != nil {
 		return nil, err
+	}
+	for i := range open {
+		if open[i].Rule != nil || open[i].ID == 0 {
+			continue
+		}
+		for _, r := range rows {
+			if r.ID != open[i].ID {
+				continue
+			}
+			if fn := heldOf(r.RuleKey.String); fn != nil {
+				open[i].Rule = fn(r.RuleKey.String, r.RuleID, locale)
+			}
+			break
+		}
 	}
 	out := openEvidence{}
 	for _, r := range rows {

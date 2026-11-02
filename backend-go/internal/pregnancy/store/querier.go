@@ -15,7 +15,6 @@ type Querier interface {
 	// A pregnancy loss (CB-LOSS-01): every preg.* row not yet archived is archived, so no pregnancy alert outlives the
 	// pregnancy as a badge, modal or nudge.
 	ArchivePregnancyInboxAlerts(ctx context.Context, arg ArchivePregnancyInboxAlertsParams) (int64, error)
-	CountActiveAlerts(ctx context.Context, userID uint64) (CountActiveAlertsRow, error)
 	CountAppointmentsOfCareItem(ctx context.Context, id uint64) (int64, error)
 	// Pregnancy v2 admin API (T-M7-06, docs/go-migration/admin-api.md §13): care-item delete guard and the
 	// message_contents writes of the alert-rule editor and POST /messages (create in a registered group).
@@ -31,9 +30,6 @@ type Querier interface {
 	// Deletes the item only while no non-cancelled appointment references its key (one statement: no race with a
 	// new booking).
 	DeleteUnlinkedCareItem(ctx context.Context, id uint64) (int64, error)
-	DismissAlert(ctx context.Context, arg DismissAlertParams) error
-	// A pregnancy loss (CB-LOSS-01) closes every open legacy alert: none may resurface as a badge or nudge.
-	DismissOpenAlerts(ctx context.Context, arg DismissOpenAlertsParams) (int64, error)
 	// v1 dismiss: the row is archived. The user dismissed it herself, so an unacknowledged row is acknowledged with it
 	// (the inbox's urgent-ack rule is met by the explicit action). Should the condition still hold, the next evaluation
 	// opens a new row (M-16: archived is history).
@@ -41,7 +37,6 @@ type Querier interface {
 	FinishContractionSession(ctx context.Context, arg FinishContractionSessionParams) (int64, error)
 	GetActiveContractionSession(ctx context.Context, userID uint64) (PregnancyContractionSession, error)
 	GetActiveKickSession(ctx context.Context, userID uint64) (PregnancyKickSession, error)
-	GetAlert(ctx context.Context, arg GetAlertParams) (PregnancyAlert, error)
 	GetCareItem(ctx context.Context, id uint64) (PregnancyCareItem, error)
 	GetCareItemByKey(ctx context.Context, key string) (PregnancyCareItem, error)
 	GetContractionSession(ctx context.Context, arg GetContractionSessionParams) (PregnancyContractionSession, error)
@@ -88,20 +83,6 @@ type Querier interface {
 	InsertProfile(ctx context.Context, arg InsertProfileParams) (int64, error)
 	InsertSymptomLog(ctx context.Context, arg InsertSymptomLogParams) (int64, error)
 	InsertWeeklyLog(ctx context.Context, arg InsertWeeklyLogParams) (int64, error)
-	LatestUnreadEmergencyAlert(ctx context.Context, userID uint64) (PregnancyAlert, error)
-	// The v1 pregnancy alert endpoints (PregnancyAlertController: GET /pregnancy/alerts, /alerts/summary, /alerts/{id},
-	// POST /alerts/{id}/read|dismiss, /alerts/read-all) over two sources (T-M10-08b, D-165):
-	//   * the alerts inbox: every pregnancy alert since T-M10-08 is a message_inbox row of a preg.* rule (one open row per
-	//     rule; read = acknowledged, dismiss = archived; resolved rows are history the v1 list still shows, as Laravel
-	//     showed every alert not dismissed);
-	//   * the legacy pregnancy_alerts rows (PregnancyAlert, App\Models\PregnancyAlert) the retired v1 rules wrote before
-	//     T-M10-08 (Laravel included). Nothing inserts them any more; they keep their read / dismiss lifecycle so an
-	//     unread legacy emergency is never hidden. v2 rows (alert_type 'v2:<rule>') were moved into the inbox by goose
-	//     00113 and are left out here, so no alert is listed twice.
-	// Every query is scoped by user_id. Legacy scopes: active = is_dismissed 0, unread = is_read 0; Laravel's
-	// orderBy('created_at', 'desc') (no tie-breaker).
-	// ---------------- legacy pregnancy_alerts (read / lifecycle only) ----------------
-	ListActiveAlerts(ctx context.Context, arg ListActiveAlertsParams) ([]PregnancyAlert, error)
 	// Pregnancy v2 care plan (table pregnancy_care_items, T-M7-01): admin-defined visits / tests / scans /
 	// vaccines with a pregnancy-week window. Visits themselves are M3 appointments (meta.care_item_key).
 	ListActiveCareItems(ctx context.Context) ([]PregnancyCareItem, error)
@@ -129,6 +110,12 @@ type Querier interface {
 	// Every (group, item_key, locale) triple — the "missing rows of registered groups" view.
 	ListMessageContentKeys(ctx context.Context) ([]ListMessageContentKeysRow, error)
 	ListMessageContentsOfGroup(ctx context.Context, group string) ([]MessageContent, error)
+	// The v1 pregnancy alert endpoints (PregnancyAlertController: GET /pregnancy/alerts, /alerts/summary, /alerts/{id},
+	// POST /alerts/{id}/read|dismiss, /alerts/read-all) over the alerts inbox (T-M10-08b, D-165): every pregnancy alert is a
+	// message_inbox row of a preg.* rule (one open row per rule; read = acknowledged, dismiss = archived; resolved rows are
+	// history the v1 list still shows, as Laravel showed every alert not dismissed). The legacy pregnancy_alerts rows the
+	// retired v1 and v2 rules wrote were moved into the inbox (goose 00113 the v2 rows, 00114 the v1 rows, T-M10-08c):
+	// nothing reads or writes that table any more. Every query is scoped by user_id.
 	// ---------------- the alerts inbox (preg.* rows) ----------------
 	// The user's preg.* inbox rows the v1 list shows: open (active, acknowledged, added_to_visit_note) and resolved —
 	// everything not archived (= not dismissed). Newest activity first.
@@ -159,8 +146,6 @@ type Querier interface {
 	ListWeekUserStatesRange(ctx context.Context, arg ListWeekUserStatesRangeParams) ([]PregnancyWeekUserState, error)
 	// PregnancyWeeklyLog (App\Models\PregnancyWeeklyLog). Unique (user_id, pregnancy_week).
 	ListWeeklyLogs(ctx context.Context, userID uint64) ([]PregnancyWeeklyLog, error)
-	MarkAlertRead(ctx context.Context, arg MarkAlertReadParams) error
-	MarkAllAlertsRead(ctx context.Context, arg MarkAllAlertsReadParams) (int64, error)
 	// The first counted kick marks the profile's first felt movement (like POST /pregnancy/fetal-movement with felt).
 	MarkFetalMovementFelt(ctx context.Context, arg MarkFetalMovementFeltParams) error
 	MessageContentExists(ctx context.Context, arg MessageContentExistsParams) (bool, error)

@@ -405,7 +405,7 @@ func (s *Service) write(ctx context.Context, q store.Querier, userID uint64, dat
 			}
 		}
 		if changed {
-			// The v1 rules still write their pregnancy_alerts rows (v1 parity); the day
+			// The v1 symptom save (the preg.* rules on the alerts inbox since T-M10-08); the day
 			// returns the v2 rule alerts.
 			if _, err := pregnancy.SaveSymptomDay(ctx, q, userID, date, attrs, locale, now); err != nil {
 				return err

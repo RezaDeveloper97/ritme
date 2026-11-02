@@ -34,81 +34,6 @@ func (q *Queries) ArchivePregnancyInboxAlerts(ctx context.Context, arg ArchivePr
 	return result.RowsAffected()
 }
 
-const countActiveAlerts = `-- name: CountActiveAlerts :one
-SELECT
-  COUNT(*) AS total,
-  CAST(COALESCE(SUM(is_read = 0), 0) AS SIGNED) AS unread,
-  CAST(COALESCE(SUM(alert_level = 'emergency'), 0) AS SIGNED) AS emergency,
-  CAST(COALESCE(SUM(alert_level = 'emergency' AND is_read = 0), 0) AS SIGNED) AS unread_emergency,
-  CAST(COALESCE(SUM(alert_level = 'warning'), 0) AS SIGNED) AS warning,
-  CAST(COALESCE(SUM(alert_level = 'info'), 0) AS SIGNED) AS info
-FROM ` + "`" + `pregnancy_alerts` + "`" + ` WHERE user_id = ? AND is_dismissed = 0 AND alert_type NOT LIKE 'v2:%'
-`
-
-type CountActiveAlertsRow struct {
-	Total           int64
-	Unread          int64
-	Emergency       int64
-	UnreadEmergency int64
-	Warning         int64
-	Info            int64
-}
-
-func (q *Queries) CountActiveAlerts(ctx context.Context, userID uint64) (CountActiveAlertsRow, error) {
-	row := q.db.QueryRowContext(ctx, countActiveAlerts, userID)
-	var i CountActiveAlertsRow
-	err := row.Scan(
-		&i.Total,
-		&i.Unread,
-		&i.Emergency,
-		&i.UnreadEmergency,
-		&i.Warning,
-		&i.Info,
-	)
-	return i, err
-}
-
-const dismissAlert = `-- name: DismissAlert :exec
-UPDATE ` + "`" + `pregnancy_alerts` + "`" + ` SET is_dismissed = 1, dismissed_at = ?, updated_at = ? WHERE id = ?
-`
-
-type DismissAlertParams struct {
-	DismissedAt sql.NullTime
-	UpdatedAt   sql.NullTime
-	ID          uint64
-}
-
-func (q *Queries) DismissAlert(ctx context.Context, arg DismissAlertParams) error {
-	_, err := q.db.ExecContext(ctx, dismissAlert, arg.DismissedAt, arg.UpdatedAt, arg.ID)
-	return err
-}
-
-const dismissOpenAlerts = `-- name: DismissOpenAlerts :execrows
-UPDATE ` + "`" + `pregnancy_alerts` + "`" + `
-SET is_read = 1, read_at = COALESCE(read_at, ?), is_dismissed = 1, dismissed_at = ?,
-    updated_at = ?
-WHERE user_id = ? AND is_dismissed = 0
-`
-
-type DismissOpenAlertsParams struct {
-	Now    sql.NullTime
-	UserID uint64
-}
-
-// A pregnancy loss (CB-LOSS-01) closes every open legacy alert: none may resurface as a badge or nudge.
-func (q *Queries) DismissOpenAlerts(ctx context.Context, arg DismissOpenAlertsParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, dismissOpenAlerts,
-		arg.Now,
-		arg.Now,
-		arg.Now,
-		arg.UserID,
-	)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
-}
-
 const dismissPregnancyInboxAlert = `-- name: DismissPregnancyInboxAlert :execrows
 UPDATE ` + "`" + `message_inbox` + "`" + `
 SET state = 'archived', acked_at = COALESCE(acked_at, ?), archived_at = ?,
@@ -138,39 +63,6 @@ func (q *Queries) DismissPregnancyInboxAlert(ctx context.Context, arg DismissPre
 		return 0, err
 	}
 	return result.RowsAffected()
-}
-
-const getAlert = `-- name: GetAlert :one
-SELECT id, user_id, alert_level, alert_type, title, message, pregnancy_week, trigger_symptoms, medical_history_flags, is_read, is_dismissed, read_at, dismissed_at, recommended_actions, created_at, updated_at FROM ` + "`" + `pregnancy_alerts` + "`" + ` WHERE user_id = ? AND id = ? AND alert_type NOT LIKE 'v2:%' LIMIT 1
-`
-
-type GetAlertParams struct {
-	UserID uint64
-	ID     uint64
-}
-
-func (q *Queries) GetAlert(ctx context.Context, arg GetAlertParams) (PregnancyAlert, error) {
-	row := q.db.QueryRowContext(ctx, getAlert, arg.UserID, arg.ID)
-	var i PregnancyAlert
-	err := row.Scan(
-		&i.ID,
-		&i.UserID,
-		&i.AlertLevel,
-		&i.AlertType,
-		&i.Title,
-		&i.Message,
-		&i.PregnancyWeek,
-		&i.TriggerSymptoms,
-		&i.MedicalHistoryFlags,
-		&i.IsRead,
-		&i.IsDismissed,
-		&i.ReadAt,
-		&i.DismissedAt,
-		&i.RecommendedActions,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
 }
 
 const getPregnancyAlertRule = `-- name: GetPregnancyAlertRule :one
@@ -271,111 +163,8 @@ func (q *Queries) GetPregnancyInboxAlert(ctx context.Context, arg GetPregnancyIn
 	return i, err
 }
 
-const latestUnreadEmergencyAlert = `-- name: LatestUnreadEmergencyAlert :one
-SELECT id, user_id, alert_level, alert_type, title, message, pregnancy_week, trigger_symptoms, medical_history_flags, is_read, is_dismissed, read_at, dismissed_at, recommended_actions, created_at, updated_at FROM ` + "`" + `pregnancy_alerts` + "`" + `
-WHERE user_id = ? AND alert_level = 'emergency' AND is_read = 0 AND is_dismissed = 0 AND alert_type NOT LIKE 'v2:%'
-ORDER BY created_at DESC LIMIT 1
-`
-
-func (q *Queries) LatestUnreadEmergencyAlert(ctx context.Context, userID uint64) (PregnancyAlert, error) {
-	row := q.db.QueryRowContext(ctx, latestUnreadEmergencyAlert, userID)
-	var i PregnancyAlert
-	err := row.Scan(
-		&i.ID,
-		&i.UserID,
-		&i.AlertLevel,
-		&i.AlertType,
-		&i.Title,
-		&i.Message,
-		&i.PregnancyWeek,
-		&i.TriggerSymptoms,
-		&i.MedicalHistoryFlags,
-		&i.IsRead,
-		&i.IsDismissed,
-		&i.ReadAt,
-		&i.DismissedAt,
-		&i.RecommendedActions,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
-}
-
-const listActiveAlerts = `-- name: ListActiveAlerts :many
-
-
-SELECT id, user_id, alert_level, alert_type, title, message, pregnancy_week, trigger_symptoms, medical_history_flags, is_read, is_dismissed, read_at, dismissed_at, recommended_actions, created_at, updated_at FROM ` + "`" + `pregnancy_alerts` + "`" + `
-WHERE user_id = ? AND is_dismissed = 0 AND alert_type NOT LIKE 'v2:%'
-  AND (? = '' OR alert_level = ?)
-  AND (? = 0 OR is_read = 0)
-ORDER BY created_at DESC
-`
-
-type ListActiveAlertsParams struct {
-	UserID     uint64
-	Level      string
-	UnreadOnly interface{}
-}
-
-// The v1 pregnancy alert endpoints (PregnancyAlertController: GET /pregnancy/alerts, /alerts/summary, /alerts/{id},
-// POST /alerts/{id}/read|dismiss, /alerts/read-all) over two sources (T-M10-08b, D-165):
-//   - the alerts inbox: every pregnancy alert since T-M10-08 is a message_inbox row of a preg.* rule (one open row per
-//     rule; read = acknowledged, dismiss = archived; resolved rows are history the v1 list still shows, as Laravel
-//     showed every alert not dismissed);
-//   - the legacy pregnancy_alerts rows (PregnancyAlert, App\Models\PregnancyAlert) the retired v1 rules wrote before
-//     T-M10-08 (Laravel included). Nothing inserts them any more; they keep their read / dismiss lifecycle so an
-//     unread legacy emergency is never hidden. v2 rows (alert_type 'v2:<rule>') were moved into the inbox by goose
-//     00113 and are left out here, so no alert is listed twice.
-//
-// Every query is scoped by user_id. Legacy scopes: active = is_dismissed 0, unread = is_read 0; Laravel's
-// orderBy('created_at', 'desc') (no tie-breaker).
-// ---------------- legacy pregnancy_alerts (read / lifecycle only) ----------------
-func (q *Queries) ListActiveAlerts(ctx context.Context, arg ListActiveAlertsParams) ([]PregnancyAlert, error) {
-	rows, err := q.db.QueryContext(ctx, listActiveAlerts,
-		arg.UserID,
-		arg.Level,
-		arg.Level,
-		arg.UnreadOnly,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []PregnancyAlert{}
-	for rows.Next() {
-		var i PregnancyAlert
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.AlertLevel,
-			&i.AlertType,
-			&i.Title,
-			&i.Message,
-			&i.PregnancyWeek,
-			&i.TriggerSymptoms,
-			&i.MedicalHistoryFlags,
-			&i.IsRead,
-			&i.IsDismissed,
-			&i.ReadAt,
-			&i.DismissedAt,
-			&i.RecommendedActions,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const listPregnancyInboxAlerts = `-- name: ListPregnancyInboxAlerts :many
+
 
 SELECT id, rule_id, rule_key, level, state, evidence, first_at, last_at, acked_at, noted_at, resolved_at, archived_at
 FROM ` + "`" + `message_inbox` + "`" + `
@@ -399,6 +188,12 @@ type ListPregnancyInboxAlertsRow struct {
 	ArchivedAt sql.NullTime
 }
 
+// The v1 pregnancy alert endpoints (PregnancyAlertController: GET /pregnancy/alerts, /alerts/summary, /alerts/{id},
+// POST /alerts/{id}/read|dismiss, /alerts/read-all) over the alerts inbox (T-M10-08b, D-165): every pregnancy alert is a
+// message_inbox row of a preg.* rule (one open row per rule; read = acknowledged, dismiss = archived; resolved rows are
+// history the v1 list still shows, as Laravel showed every alert not dismissed). The legacy pregnancy_alerts rows the
+// retired v1 and v2 rules wrote were moved into the inbox (goose 00113 the v2 rows, 00114 the v1 rows, T-M10-08c):
+// nothing reads or writes that table any more. Every query is scoped by user_id.
 // ---------------- the alerts inbox (preg.* rows) ----------------
 // The user's preg.* inbox rows the v1 list shows: open (active, acknowledged, added_to_visit_note) and resolved —
 // everything not archived (= not dismissed). Newest activity first.
@@ -436,40 +231,6 @@ func (q *Queries) ListPregnancyInboxAlerts(ctx context.Context, userID uint64) (
 		return nil, err
 	}
 	return items, nil
-}
-
-const markAlertRead = `-- name: MarkAlertRead :exec
-UPDATE ` + "`" + `pregnancy_alerts` + "`" + ` SET is_read = 1, read_at = ?, updated_at = ? WHERE id = ?
-`
-
-type MarkAlertReadParams struct {
-	ReadAt    sql.NullTime
-	UpdatedAt sql.NullTime
-	ID        uint64
-}
-
-func (q *Queries) MarkAlertRead(ctx context.Context, arg MarkAlertReadParams) error {
-	_, err := q.db.ExecContext(ctx, markAlertRead, arg.ReadAt, arg.UpdatedAt, arg.ID)
-	return err
-}
-
-const markAllAlertsRead = `-- name: MarkAllAlertsRead :execrows
-UPDATE ` + "`" + `pregnancy_alerts` + "`" + ` SET is_read = 1, read_at = ?, updated_at = ?
-WHERE user_id = ? AND is_read = 0 AND alert_type NOT LIKE 'v2:%'
-`
-
-type MarkAllAlertsReadParams struct {
-	ReadAt    sql.NullTime
-	UpdatedAt sql.NullTime
-	UserID    uint64
-}
-
-func (q *Queries) MarkAllAlertsRead(ctx context.Context, arg MarkAllAlertsReadParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, markAllAlertsRead, arg.ReadAt, arg.UpdatedAt, arg.UserID)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
 }
 
 const readAllPregnancyInboxAlerts = `-- name: ReadAllPregnancyInboxAlerts :execrows

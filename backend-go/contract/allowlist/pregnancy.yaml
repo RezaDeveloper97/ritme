@@ -38,8 +38,8 @@ entries:
   # embedded fa/en copy when the admin message_contents row is missing — the contract dump has none, so before
   # T-M9-05 no v2 row was written there. v2 alerts share the pregnancy_alerts table (alert_type 'v2:<rule>',
   # T-M7-04), so the extra rows move the auto-increment ids of later v1 alerts and are counted by the legacy
-  # /pregnancy/alerts/summary. The v1 alerts in the responses are otherwise unchanged. Since T-M10-08/08b (D-165) the
-  # counts below come from the preg.* message_inbox rows read next to the legacy v1 rows.
+  # /pregnancy/alerts/summary. The v1 alerts in the responses are otherwise unchanged. Since T-M10-08/08b/08c (D-165)
+  # the counts below come from the preg.* message_inbox rows only.
   - case: "weekly_store_upsert.*"
     step: 2
     where: data.alerts[*].id
@@ -54,7 +54,7 @@ entries:
     step: 2
     where: data.counts.total
     deviation: D-134
-    reason: the preg.* inbox rows (D-165) are counted next to the legacy v1 alerts
+    reason: the preg.* inbox rows (D-165) are the v1 alerts counted
   - case: "symptoms_store_alerts.*"
     step: 2
     where: data.counts.unread
@@ -121,7 +121,45 @@ entries:
     where: data.alerts.**
     deviation: D-165
     reason: the locked fetal_movement rule with the engine copy
-  # D-165 (task T-M10-08b): /pregnancy/alerts/summary reads the alerts inbox (preg.* rows) next to the legacy rows, so
+  # D-165 (task T-M10-08c): no code path reads pregnancy_alerts any more — goose 00114 moves the legacy v1 rows into the
+  # alerts inbox (preg.* rows, legacy_alert_id kept; an unread emergency stays an unread emergency). The contract DB is
+  # the Laravel schema without the goose data migrations, so the cases below, which seed v1 pregnancy_alerts fixture
+  # rows, see no alert at all on Go (empty list, zero counts, 404 for the fixture ids, read-all count 0). On stage, beta
+  # and prod (at the cutover) the same rows are inbox rows served in the v1 shape (alerts_inbox_int_test.go,
+  # pregnancy_v1_alerts_inbox_int_test.go).
+  - case: "alerts_summary.*"
+    where: "**"
+    deviation: D-165
+    reason: the fixture pregnancy_alerts rows are moved into the inbox by goose 00114, absent from the contract DB
+  - case: "alerts_index*"
+    where: "**"
+    deviation: D-165
+    reason: the fixture pregnancy_alerts rows are moved into the inbox by goose 00114, absent from the contract DB
+  - case: "alerts_show.*"
+    where: status
+    deviation: D-165
+    reason: the fixture id is a legacy pregnancy_alerts id (moved into the inbox by goose 00114) → 404
+  - case: "alerts_show.*"
+    where: "**"
+    deviation: D-165
+    reason: the fixture id is a legacy pregnancy_alerts id (moved into the inbox by goose 00114) → not found
+  - case: "alerts_read*"
+    where: status
+    deviation: D-165
+    reason: the fixture id is a legacy pregnancy_alerts id (moved into the inbox by goose 00114) → 404
+  - case: "alerts_read*"
+    where: "**"
+    deviation: D-165
+    reason: legacy pregnancy_alerts rows are not read or written (goose 00114 moved them into the inbox)
+  - case: "alerts_dismiss.*"
+    where: status
+    deviation: D-165
+    reason: the fixture id is a legacy pregnancy_alerts id (moved into the inbox by goose 00114) → 404
+  - case: "alerts_dismiss.*"
+    where: "**"
+    deviation: D-165
+    reason: legacy pregnancy_alerts rows are not read or written (goose 00114 moved them into the inbox)
+  # D-165 (task T-M10-08b): /pregnancy/alerts/summary reads the alerts inbox (preg.* rows; 08c: only those), so
   # has_emergency / has_unread match Laravel again; latest_emergency is now the inbox row — the one merged
   # critical_symptom alert (bleeding + fluid leakage + severe pain) with the engine copy, instead of Laravel's newest
   # "Emergency: Heavy Bleeding" pregnancy_alerts row. Its level, read state, week and timestamps are unchanged.

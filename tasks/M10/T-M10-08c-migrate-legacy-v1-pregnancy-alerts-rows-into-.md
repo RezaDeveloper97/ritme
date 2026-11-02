@@ -3,7 +3,7 @@ id: T-M10-08c
 title: Migrate legacy v1 pregnancy_alerts rows into the inbox; feed modal for code-held locked rules
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-08b]
 parallel_group: M10-B
 touches: [backend-go/db/migrations,backend-go/internal/pregnancy,backend-go/db/queries/pregnancy,backend-go/internal/messages/feed,backend-go/internal/messages/compiled,backend-go/contract/allowlist/pregnancy.yaml]

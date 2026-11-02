@@ -160,7 +160,7 @@ func (s *Service) Build(ctx context.Context, req Request) (*Result, error) {
 		return nil, err
 	}
 	res.Challenge = challenge
-	ev, err := s.evidenceOf(ctx, req.UserID, open)
+	ev, err := s.evidenceOf(ctx, req.UserID, open, req.Locale)
 	if err != nil {
 		return nil, err
 	}

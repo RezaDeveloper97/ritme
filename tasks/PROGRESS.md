@@ -2640,3 +2640,10 @@ Nothing needed fixing.
 - Roles screen marks customised roles; audit screen chain-status card with super-only verify (`GET /audit/verify`).
 - Vitest: segment filters → query, segment save, role-gated rendering, ChainStatusCard. Shots: docs/engine-v6/qa/admin/ (light+dark).
 - Open: segment picker in the message rule editor moved to T-M10-35b (outside touches). Segments are a panel, not a standalone page.
+
+## T-M10-08c — Migrate legacy v1 pregnancy_alerts rows into the inbox; feed modal for code-held locked rules
+- Migration 00114_pregnancy_v1_alerts_inbox (data-only, no Laravel twin): non-`v2:%` pregnancy_alerts rows → message_inbox with legacy_alert_id. Rule mapping: bleeding/spotting/fluid/sudden pain → preg.critical_symptom; multiple_severe → preg.severe_symptoms; BP → preg.bp_severe (emergency/severe/≥160/110) else preg.bp_high; fasting/post_meal → preg.gdm; fetal movement → preg.fetal_movement; mental health → preg.depression; unmappable → archived (unmappable emergency → critical_symptom). Same state rules as 00113; idempotent; Down restores replaced open rows.
+- No code path reads pregnancy_alerts anymore; legacy queries removed; v1 response shape unchanged.
+- feed.InstallHeldRules: open rows whose rule is missing from the compiled snapshot use the code-held rule (urgent modal survives deactivating preg.bp_severe).
+- Tests: migration int test, held_int_test (TestFeedInt_UrgentModalForInactiveLockedRule), TestV1Alerts_LegacyEmergencyMigrated.
+- Open: on production this runs only at the Go cutover (T-M2-26, blocked).

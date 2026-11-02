@@ -26,6 +26,7 @@ import (
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts/inboxalerts"
 	"github.com/ritme/backend-go/internal/platform/clock"
+	platformdb "github.com/ritme/backend-go/internal/platform/db"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
@@ -151,8 +152,8 @@ func alertKeys(t *testing.T, raw, marker string) []string {
 }
 
 // T-M10-08b (D-165): the v1 alert routes read the alerts inbox. A critical symptom save is an emergency in the v1 list
-// and the summary; read acknowledges, dismiss archives, read-all acknowledges every active row; legacy v1 rows stay
-// listed next to them (v2 legacy rows were migrated by 00113 and are not listed twice); nothing writes a new
+// and the summary; read acknowledges, dismiss archives, read-all acknowledges every active row; a legacy
+// pregnancy_alerts row is not read any more (T-M10-08c: 00113 / 00114 moved them into the inbox); nothing writes a new
 // pregnancy_alerts row.
 func TestV1Alerts_ServedFromTheInbox(t *testing.T) {
 	e := setupInboxAlerts(t)
@@ -170,7 +171,7 @@ func TestV1Alerts_ServedFromTheInbox(t *testing.T) {
 	require.NoError(t, e.db.QueryRow(`SELECT id FROM message_inbox WHERE user_id = ? AND rule_key = 'preg.critical_symptom'`, uid).Scan(&inboxID))
 	assert.EqualValues(t, inboxID, saved[0]["id"])
 
-	// Legacy rows: a v1 warning (listed) and a v2 row (moved to the inbox by 00113 — not listed).
+	// Legacy rows written after the migrations ran: never read (no code path reads pregnancy_alerts).
 	_, err := e.db.Exec(`INSERT INTO pregnancy_alerts (user_id, alert_level, alert_type, title, message, created_at, updated_at) VALUES
 		(?, 'warning', 'symptom_based', 'Legacy', 'm', '2026-09-20 09:00:00', '2026-09-20 09:00:00'),
 		(?, 'emergency', 'v2:critical_symptom', 'v2', 'm', '2026-09-21 09:00:00', '2026-09-21 09:00:00')`, uid, uid)
@@ -189,9 +190,9 @@ func TestV1Alerts_ServedFromTheInbox(t *testing.T) {
 	st, data, raw = e.do(t, http.MethodGet, "/api/v1/pregnancy/alerts", tok, "")
 	require.Equal(t, http.StatusOK, st, raw)
 	list := alertList(t, data)
-	require.Len(t, list, open+1, raw)
+	require.Len(t, list, open, raw)
 	var a map[string]any
-	for _, x := range list[:open] { // the inbox rows are newer than the legacy row
+	for _, x := range list {
 		if x["alert_type"] == "critical_symptom" {
 			a = x
 		}
@@ -208,15 +209,11 @@ func TestV1Alerts_ServedFromTheInbox(t *testing.T) {
 	assert.Equal(t, map[string]any{"bleeding": true}, a["trigger_symptoms"])
 	assert.NotEmpty(t, a["recommended_actions"])
 	assert.Equal(t, v1Keys, alertKeys(t, raw, `"alerts":[{`))
-	assert.Equal(t, "Legacy", list[open]["title"])
 	counts := data["counts"].(map[string]any)
-	assert.EqualValues(t, open+1, counts["total"])
-	assert.EqualValues(t, open+1, counts["unread"])
+	assert.EqualValues(t, open, counts["total"])
+	assert.EqualValues(t, open, counts["unread"])
 	assert.EqualValues(t, 1, counts["emergency"])
-	assert.EqualValues(t, 1, counts["warning"])
 	_, data, _ = e.do(t, http.MethodGet, "/api/v1/pregnancy/alerts?level=emergency", tok, "")
-	require.Len(t, alertList(t, data), 1)
-	_, data, _ = e.do(t, http.MethodGet, "/api/v1/pregnancy/alerts?level=warning", tok, "")
 	require.Len(t, alertList(t, data), 1)
 
 	st, data, raw = e.do(t, http.MethodGet, "/api/v1/pregnancy/alerts/summary", tok, "")
@@ -249,15 +246,15 @@ func TestV1Alerts_ServedFromTheInbox(t *testing.T) {
 	assert.EqualValues(t, open-1, extras())
 	_, data, _ = e.do(t, http.MethodGet, "/api/v1/pregnancy/alerts/summary", tok, "")
 	assert.Equal(t, false, data["has_emergency"])
-	assert.Equal(t, true, data["has_unread"], "the legacy warning is unread")
+	assert.Equal(t, open > 1, data["has_unread"], "the other open rows are unread")
 	_, data, _ = e.do(t, http.MethodGet, "/api/v1/pregnancy/alerts/"+itoa(inboxID), tok, "")
 	shown := data["alert"].(map[string]any)
 	assert.Equal(t, true, shown["is_read"])
 	assert.NotNil(t, shown["read_at"])
 
-	// read-all: the legacy row and the other open inbox rows.
+	// read-all: the other open inbox rows.
 	_, data, _ = e.do(t, http.MethodPost, "/api/v1/pregnancy/alerts/read-all", tok, "")
-	assert.EqualValues(t, 1+open-1, data["count"])
+	assert.EqualValues(t, open-1, data["count"])
 	assert.EqualValues(t, 0, extras())
 	_, data, _ = e.do(t, http.MethodGet, "/api/v1/pregnancy/alerts/summary", tok, "")
 	assert.Equal(t, false, data["has_unread"])
@@ -267,7 +264,7 @@ func TestV1Alerts_ServedFromTheInbox(t *testing.T) {
 	require.Equal(t, http.StatusOK, st, raw)
 	assert.Equal(t, "archived", e.state(t, inboxID))
 	_, data, _ = e.do(t, http.MethodGet, "/api/v1/pregnancy/alerts", tok, "")
-	require.Len(t, alertList(t, data), open)
+	require.Len(t, alertList(t, data), open-1)
 	_, data, _ = e.do(t, http.MethodGet, "/api/v1/pregnancy/alerts/"+itoa(inboxID), tok, "")
 	assert.Equal(t, true, data["alert"].(map[string]any)["is_dismissed"])
 
@@ -298,6 +295,57 @@ func TestV1Alerts_ReadAllAcknowledgesInboxRows(t *testing.T) {
 	require.Equal(t, http.StatusCreated, st, raw)
 	_, data, _ = e.do(t, http.MethodGet, "/api/v1/pregnancy/alerts/summary", tok, "")
 	assert.Equal(t, true, data["has_emergency"])
+}
+
+// T-M10-08c: an unread v1 emergency written before T-M10-08 (Laravel's PregnancyAlertService row shape) is moved into the
+// inbox by goose 00114 and is still the unread emergency of the v1 summary and list; read acknowledges it.
+func TestV1Alerts_LegacyEmergencyMigrated(t *testing.T) {
+	e := setupInboxAlerts(t)
+	uid, tok := e.user(t, "09120000804")
+	res, err := e.db.Exec(`INSERT INTO pregnancy_alerts (user_id, alert_level, alert_type, title, message, pregnancy_week,
+		trigger_symptoms, medical_history_flags, recommended_actions, created_at, updated_at) VALUES
+		(?, 'emergency', 'symptom_based', 'اورژانس: خونریزی شدید', 'm', 12, '{"bleeding":"severe"}', '[]', '["a"]',
+		NOW() - INTERVAL 2 DAY, NOW() - INTERVAL 2 DAY)`, uid)
+	require.NoError(t, err)
+	legacyID, err := res.LastInsertId()
+	require.NoError(t, err)
+	p, err := platformdb.NewMigrator(e.db)
+	require.NoError(t, err)
+	_, err = p.DownTo(context.Background(), 113)
+	require.NoError(t, err)
+	_, err = p.UpTo(context.Background(), 114)
+	require.NoError(t, err)
+	var inboxID uint64
+	require.NoError(t, e.db.QueryRow(`SELECT id FROM message_inbox WHERE legacy_alert_id = ?`, legacyID).Scan(&inboxID))
+
+	st, data, raw := e.do(t, http.MethodGet, "/api/v1/pregnancy/alerts/summary", tok, "")
+	require.Equal(t, http.StatusOK, st, raw)
+	assert.Equal(t, true, data["has_emergency"], raw)
+	assert.Equal(t, true, data["has_unread"])
+	assert.EqualValues(t, 1, data["counts"].(map[string]any)["emergency"])
+	latest := data["latest_emergency"].(map[string]any)
+	assert.EqualValues(t, inboxID, latest["id"])
+	assert.Equal(t, "critical_symptom", latest["alert_type"])
+	assert.Equal(t, "emergency", latest["alert_level"])
+	assert.Equal(t, false, latest["is_read"])
+	assert.EqualValues(t, 12, latest["pregnancy_week"])
+	assert.Equal(t, map[string]any{"bleeding": true}, latest["trigger_symptoms"])
+	assert.NotContains(t, latest["title"], "{", "the copy renders from the moved evidence")
+	assert.Equal(t, v1Keys, alertKeys(t, raw, `"latest_emergency":{`))
+
+	_, data, raw = e.do(t, http.MethodGet, "/api/v1/pregnancy/alerts?unread_only=1", tok, "")
+	list := alertList(t, data)
+	require.Len(t, list, 1, raw)
+	assert.EqualValues(t, inboxID, list[0]["id"])
+
+	st, _, raw = e.do(t, http.MethodPost, "/api/v1/pregnancy/alerts/"+itoa(inboxID)+"/read", tok, "")
+	require.Equal(t, http.StatusOK, st, raw)
+	assert.Equal(t, "acknowledged", e.state(t, inboxID))
+	_, data, _ = e.do(t, http.MethodGet, "/api/v1/pregnancy/alerts/summary", tok, "")
+	assert.Equal(t, false, data["has_emergency"])
+	var legacyRead int
+	require.NoError(t, e.db.QueryRow(`SELECT is_read FROM pregnancy_alerts WHERE id = ?`, legacyID).Scan(&legacyRead))
+	assert.Zero(t, legacyRead, "the legacy table is not written")
 }
 
 func itoa(n uint64) string {

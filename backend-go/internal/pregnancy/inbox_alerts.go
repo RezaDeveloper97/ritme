@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ritme/backend-go/internal/messages/feed"
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts/inboxalerts"
 	"github.com/ritme/backend-go/internal/messages/rules"
@@ -20,15 +21,36 @@ import (
 	v2 "github.com/ritme/backend-go/internal/pregnancy/v2"
 )
 
-// The v1 alert endpoints over the alerts inbox (T-M10-08b, D-165). Every pregnancy alert since T-M10-08 is a
-// message_inbox row of a preg.* rule; the v1 routes answer those rows in the v1 PregnancyAlert shape (key order of
-// alertModel) next to the legacy pregnancy_alerts rows written before T-M10-08 (db/queries/pregnancy/alerts.sql):
+// The v1 alert endpoints over the alerts inbox (T-M10-08b, D-165). Every pregnancy alert is a message_inbox row of a
+// preg.* rule — the legacy v1 pregnancy_alerts rows written before T-M10-08 were moved in by goose 00114 (T-M10-08c),
+// so no code path reads that table any more. The v1 routes answer the rows in the v1 PregnancyAlert shape (the key
+// order of Laravel's PregnancyAlert::toArray()):
 //
 //	id            the message_inbox id          alert_type        the rule's v2 key (critical_symptom, bp_high, …)
 //	alert_level   urgent → emergency, follow_up → warning, else info (pregnancyalerts.V1Level)
 //	title/message the rule's texts in the request locale, rendered with the stored evidence (engine copy)
 //	is_read       state ≠ active (read = acknowledged)     is_dismissed  state = archived (dismiss = archived)
 //	created_at    first hit                     updated_at        last hit (the list's sort key)
+
+// The feed fans out an open preg.* row of a locked rule whose message_rules row is missing, inactive or not approved
+// through the same code-held definition the pregnancy evaluation raised it with (inboxalerts), so such an alert still
+// reaches the urgent modal (T-M10-08c).
+func init() { feed.InstallHeldRules(inboxalerts.KeyPrefix, heldRule) }
+
+// heldRule is the code-held rule of a locked preg.* rule key with id (the open row's rule_id) and its texts in locale
+// (the embedded copy); nil for a rule that is not locked.
+func heldRule(key string, id uint64, locale string) *rules.Rule {
+	d, ok := inboxalerts.DefOf(key)
+	if !ok || !d.Locked {
+		return nil
+	}
+	r := d.Rule(id)
+	if c, ok := inboxalerts.CopyOf(key, locale); ok {
+		r.Content = rules.Content{A: rules.Variant{Title: c.Title, Body: c.Body}, Seen: c.Seen, Confidence: c.Confidence,
+			Contact: c.Contact}
+	}
+	return &r
+}
 
 // inboxRow is one preg.* inbox row as the v1 routes read it.
 type inboxRow store.ListPregnancyInboxAlertsRow
@@ -53,14 +75,6 @@ func (r *inboxRow) isRead() bool { return r.State != stateActive }
 
 // v1Level is the row's v1 alert_level.
 func (r *inboxRow) v1Level() string { return pregnancyalerts.V1Level(rules.SpecLevel(r.Level)) }
-
-// at is the row's activity time (last hit, else first): the v1 list's newest-first order.
-func (r *inboxRow) at() time.Time {
-	if r.LastAt.Valid {
-		return r.LastAt.Time
-	}
-	return r.FirstAt.Time
-}
 
 // Inbox states the v1 routes distinguish (messages/inbox).
 const (
@@ -246,9 +260,14 @@ func (t *alertTexts) json(ctx context.Context, userID uint64, r *inboxRow) (any,
 		JSON(), nil
 }
 
+// alertCountsRow are the v1 alert counts.
+type alertCountsRow struct {
+	Total, Unread, Emergency, UnreadEmergency, Warning, Info int64
+}
+
 // inboxCounts are the v1 counts of the inbox rows (all of them: the counts ignore the list filters, as Laravel's).
-func inboxCounts(rows []inboxRow) store.CountActiveAlertsRow {
-	var c store.CountActiveAlertsRow
+func inboxCounts(rows []inboxRow) alertCountsRow {
+	var c alertCountsRow
 	for i := range rows {
 		r := &rows[i]
 		c.Total++
@@ -269,14 +288,6 @@ func inboxCounts(rows []inboxRow) store.CountActiveAlertsRow {
 		}
 	}
 	return c
-}
-
-// addCounts sums the legacy and the inbox counts.
-func addCounts(a, b store.CountActiveAlertsRow) store.CountActiveAlertsRow {
-	return store.CountActiveAlertsRow{
-		Total: a.Total + b.Total, Unread: a.Unread + b.Unread, Emergency: a.Emergency + b.Emergency,
-		UnreadEmergency: a.UnreadEmergency + b.UnreadEmergency, Warning: a.Warning + b.Warning, Info: a.Info + b.Info,
-	}
 }
 
 // archivePregnancyAlerts archives the user's preg.* inbox rows (a pregnancy loss; q may be a transaction).

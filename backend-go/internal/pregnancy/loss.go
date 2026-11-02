@@ -2,8 +2,6 @@ package pregnancy
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/ritme/backend-go/internal/platform/jsonx"
@@ -13,8 +11,9 @@ import (
 // EndForLoss stops the user's pregnancy after a pregnancy loss (CB-LOSS-01): pregnancy mode goes off exactly as
 // POST /pregnancy/deactivate does (pregnancy_mode 0, cycle_mode 1 — every reader of pregnancy content keys on that
 // flag: home, Today, weeks, calendar, day log, the message engine, the alert engine, the companion pregnancy view),
-// and every open pregnancy alert is closed — the preg.* rows of the alerts inbox are archived (T-M10-08b) and the legacy
-// pregnancy_alerts rows dismissed — so no badge, urgent modal or alert nudge outlives the pregnancy. The profile row and
+// and every open pregnancy alert is closed — the preg.* rows of the alerts inbox are archived (T-M10-08b; the legacy
+// pregnancy_alerts rows live there since goose 00114, T-M10-08c) — so no badge, urgent modal or alert nudge outlives the
+// pregnancy. The profile row and
 // its history stay. q may be a transaction. Reports whether a pregnancy was active.
 func EndForLoss(ctx context.Context, q store.Querier, userID uint64, now time.Time) (bool, error) {
 	p, err := LoadProfile(ctx, q, userID)
@@ -26,9 +25,6 @@ func EndForLoss(ctx context.Context, q store.Querier, userID uint64, now time.Ti
 		if err := saveProfile(ctx, q, userID, p, jsonx.Obj("pregnancy_mode", false, "cycle_mode", true), now); err != nil {
 			return false, err
 		}
-	}
-	if _, err := q.DismissOpenAlerts(ctx, store.DismissOpenAlertsParams{UserID: userID, Now: sql.NullTime{Time: dbNow(now), Valid: true}}); err != nil {
-		return false, fmt.Errorf("pregnancy: dismiss alerts: %w", err)
 	}
 	if err := archivePregnancyAlerts(ctx, q, userID, now); err != nil {
 		return false, err

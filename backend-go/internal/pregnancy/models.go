@@ -377,40 +377,12 @@ func fetalInsertParams(m *model, userID uint64) (store.InsertFetalMovementParams
 	}, err
 }
 
-// ---- PregnancyAlert ----
+// ---- PregnancyAlert (the v1 alert shape of the inbox rows, inbox_alerts.go) ----
 
 var alertCasts = casts{
 	"is_read": castBool, "is_dismissed": castBool, "read_at": castDateTime, "dismissed_at": castDateTime,
 	"trigger_symptoms": castArray, "medical_history_flags": castArray, "recommended_actions": castArray,
 	"created_at": castDateTime, "updated_at": castDateTime,
-}
-
-func alertModel(r *store.PregnancyAlert) *model {
-	return newModel(alertCasts).
-		set("id", i64(r.ID)).
-		set("user_id", i64(r.UserID)).
-		set("alert_level", r.AlertLevel).
-		set("alert_type", r.AlertType).
-		set("title", r.Title).
-		set("message", r.Message).
-		set("pregnancy_week", rawInt(r.PregnancyWeek)).
-		set("trigger_symptoms", rawJSON(r.TriggerSymptoms)).
-		set("medical_history_flags", rawJSON(r.MedicalHistoryFlags)).
-		set("is_read", rawFlag(r.IsRead)).
-		set("is_dismissed", rawFlag(r.IsDismissed)).
-		set("read_at", rawTime(r.ReadAt)).
-		set("dismissed_at", rawTime(r.DismissedAt)).
-		set("recommended_actions", rawJSON(r.RecommendedActions)).
-		set("created_at", rawTime(r.CreatedAt)).
-		set("updated_at", rawTime(r.UpdatedAt))
-}
-
-// AlertJSON is a loaded PregnancyAlert's toArray().
-func AlertJSON(r *store.PregnancyAlert) any {
-	if r == nil {
-		return nil
-	}
-	return alertModel(r).JSON()
 }
 
 // i64 converts an id for a raw attribute (ids always fit int64).
