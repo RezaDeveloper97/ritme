@@ -6,3 +6,26 @@ entries:
     where: data.grants.*
     deviation: D-194
     reason: accept lists effective sections only (no none rows, no symptoms)
+
+  # D-178 (T-M10-29; DECISIONS A-03 / A-11): GET /plus/status and GET /plus/trial show the new 8th row
+  # plus.analysis_long_range, and row 1 plus.lab_ai is a free 1-per-month allowance instead of locked.
+  - case: "plus_blocked.*"
+    where: data.entitlements
+    deviation: D-178
+    reason: new entitlement row plus.analysis_long_range (8 rows instead of 7)
+  - case: "plus_blocked.*"
+    where: data.entitlements[1].allowed
+    deviation: D-178
+    reason: lab AI free allowance 1 per month (A-03) — allowed
+  - case: "plus_blocked.*"
+    where: data.entitlements[1].limit
+    deviation: D-178
+    reason: lab AI free allowance 1 per month (A-03) — limit
+  - case: "plus_blocked.*"
+    where: data.entitlements[1].remaining
+    deviation: D-178
+    reason: lab AI free allowance 1 per month (A-03) — remaining
+  - case: "plus_blocked.*"
+    where: data.usage.features
+    deviation: D-178
+    reason: new entitlement row plus.analysis_long_range (8 rows instead of 7)

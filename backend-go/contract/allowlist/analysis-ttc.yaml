@@ -30,3 +30,9 @@ entries:
     where: data.top_finding.**
     deviation: D-175
     reason: TTC hub top finding (strength × recency), new key
+
+  # D-178 (T-M10-29): new 8th entitlement row plus.analysis_long_range in the trial-start response.
+  - case: "*_trial"
+    where: data.entitlements
+    deviation: D-178
+    reason: new entitlement row plus.analysis_long_range (8 rows instead of 7)

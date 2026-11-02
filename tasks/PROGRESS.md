@@ -2695,3 +2695,7 @@ Nothing needed fixing.
 - `entities/segment` (moved from screens/users/api/segments.ts): useSegments/useSegmentSize/useSaveSegment/useDeleteSegment. Users screen imports from it.
 - Rule editor: SegmentPicker above the ConditionBuilder manages top-level all-of `segment contains <id>` rows; shows segment names, deleted ids as a flagged clearable chip, raw "Segment #id" without the segments capability. Helpers in message-rules/lib/segment-condition.ts; vitest for both.
 - Open: segment conditions under any-of/exceptions still show raw ids in the generic builder; no light/dark screenshots yet.
+
+## T-M10-29b — Contract allow-lists for the D-178 Plus changes across all route groups
+- `make contract ROUTES=all`: 1922 passed, 0 failed (was 41 failed + 5 in analysis groups). Entries cite D-178: 8th entitlement row (`plus.analysis_long_range`) in trial-start/status/usage/trial responses; row-1 `plus.lab_ai` free values; labs `upload_locked` 402→403 consent_required; analysis summary/cycle 1y/all free → 402. New files sharelinks.yaml, voicelog.yaml. No regressions found.
+- labs TestGateAndUploadPipeline: free user now expects 403 consent_required (free 1/month lab AI).

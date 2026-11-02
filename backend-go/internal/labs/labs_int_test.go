@@ -236,9 +236,10 @@ func TestGateAndUploadPipeline(t *testing.T) {
 	_ = free
 
 	assert.Equal(t, http.StatusUnauthorized, e.json(t, http.MethodGet, "/api/v1/labs", "", nil).status)
+	// D-178 (A-03): a free user has 1 lab-AI use a month, so she passes the Plus gate and stops at consent.
 	r := e.upload(t, freeTok, nil, part{"files", "sheet.pdf", pdf("lab_panel")})
-	require.Equal(t, http.StatusPaymentRequired, r.status, string(r.raw))
-	assert.Equal(t, "plus_required", r.body["error_code"])
+	require.Equal(t, http.StatusForbidden, r.status, string(r.raw))
+	assert.Equal(t, "consent_required", r.body["error_code"])
 
 	r = e.upload(t, ncTok, nil, part{"files", "sheet.pdf", pdf("lab_panel")})
 	require.Equal(t, http.StatusForbidden, r.status, string(r.raw))

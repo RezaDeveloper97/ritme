@@ -17,3 +17,15 @@ entries:
     where: data.status.flags.trimester_info.*
     deviation: D-169
     reason: the trimester flag text follows the trimester (13+1 → 1)
+
+  # D-178 (T-M10-29): new 8th entitlement row plus.analysis_long_range in the trial-start response.
+  - case: "*"
+    where: data.entitlements
+    deviation: D-178
+    reason: new entitlement row plus.analysis_long_range (8 rows instead of 7)
+
+  # D-178: the same 8th row in GET /plus/usage (row 1 plus.lab_ai is unchanged during the trial).
+  - case: "*"
+    where: data.features
+    deviation: D-178
+    reason: new entitlement row plus.analysis_long_range (8 rows instead of 7)

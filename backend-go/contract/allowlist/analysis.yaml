@@ -54,3 +54,27 @@ entries:
     where: data.days_needed
     deviation: D-175
     reason: monthly minimum — days still needed
+
+  # D-178 (T-M10-29, DECISIONS A-11): ranges 1y / all are Plus. These Laravel goldens ask as a free user, so Go
+  # answers 402 plus_required instead of the report. Plus users still get it (covered by the analysis int tests).
+  - case: summary_irregular
+    where: status
+    deviation: D-178
+    reason: free user on range=1y gets 402 plus_required
+  - case: summary_irregular
+    where: body
+    deviation: D-178
+    reason: free user on range=1y gets the plus_required envelope
+  - case: cycle_irregular
+    where: status
+    deviation: D-178
+    reason: free user on range=all gets 402 plus_required
+  - case: cycle_irregular
+    where: body
+    deviation: D-178
+    reason: free user on range=all gets the plus_required envelope
+  # D-178: new 8th entitlement row plus.analysis_long_range in the trial-start response.
+  - case: "*_trial"
+    where: data.entitlements
+    deviation: D-178
+    reason: new entitlement row plus.analysis_long_range (8 rows instead of 7)

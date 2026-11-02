@@ -132,3 +132,27 @@ entries:
     where: data.marker.reference.note
     deviation: D-171
     reason: basis of a general range (pregnancy, trimester 2, inflammation)
+
+  # D-178 (T-M10-29): new 8th entitlement row plus.analysis_long_range in the trial-start response.
+  - case: "*"
+    where: data.entitlements
+    deviation: D-178
+    reason: new entitlement row plus.analysis_long_range (8 rows instead of 7)
+
+  # D-178: the same 8th row in GET /plus/usage (row 1 plus.lab_ai is unchanged during the trial).
+  - case: "*"
+    where: data.features
+    deviation: D-178
+    reason: new entitlement row plus.analysis_long_range (8 rows instead of 7)
+
+  # D-178 (T-M10-29, DECISIONS A-03): free users get 1 lab AI use per month, so a free user without the
+  # ai_lab_analysis consent now passes the Plus gate and stops at the consent gate: 403 consent_required instead of
+  # 402 plus_required (the whole envelope is the consent one).
+  - case: "upload_locked.*"
+    where: status
+    deviation: D-178
+    reason: free user passes the Plus gate (1/month) → 403 consent_required instead of 402
+  - case: "upload_locked.*"
+    where: body
+    deviation: D-178
+    reason: consent_required envelope instead of the plus_required one

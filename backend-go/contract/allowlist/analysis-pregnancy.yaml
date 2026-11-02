@@ -19,3 +19,9 @@ entries:
     where: data.sections.weight_gain.data.logs_needed
     deviation: D-175
     reason: pregnancy weight logs still needed, new key
+
+  # D-178 (T-M10-29): new 8th entitlement row plus.analysis_long_range in the trial-start response.
+  - case: "*_trial"
+    where: data.entitlements
+    deviation: D-178
+    reason: new entitlement row plus.analysis_long_range (8 rows instead of 7)
