@@ -38,7 +38,7 @@ func (h *Handlers) aiCostFXRate(c fiber.Ctx) (any, error) {
 	}
 	f, perr := strconv.ParseFloat(strings.TrimSpace(v), 64)
 	if perr != nil || f <= 0 {
-		return nil, nil
+		return nil, nil //nolint:nilerr // an unreadable or non-positive setting means "unset"
 	}
 	return f, nil
 }

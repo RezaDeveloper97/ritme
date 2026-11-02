@@ -108,7 +108,9 @@ type v1 struct {
 	inputs inputs.Querier
 }
 
-func v1Cycle(db *sql.DB) CycleSource { return v1{svc: cycleservice.New(db, nil), inputs: cyclestore.New(db)} }
+func v1Cycle(db *sql.DB) CycleSource {
+	return v1{svc: cycleservice.New(db, nil), inputs: cyclestore.New(db)}
+}
 
 func (s v1) Facts(ctx context.Context, ownerID uint64, today civildate.Date) (CycleFacts, error) {
 	sn, err := s.svc.Load(ctx, ownerID, today, today, today)

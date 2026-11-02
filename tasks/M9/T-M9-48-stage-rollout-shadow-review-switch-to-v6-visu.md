@@ -3,7 +3,7 @@ id: T-M9-48
 title: Stage rollout: shadow, review, switch to v6, visual QA
 milestone: M9
 type: investigate
-status: todo
+status: in_progress
 depends_on: [T-M9-01, T-M9-02, T-M9-03, T-M9-04, T-M9-05, T-M9-06, T-M9-07, T-M9-08, T-M9-09, T-M9-10, T-M9-11, T-M9-12, T-M9-13, T-M9-14, T-M9-22, T-M9-23, T-M9-27, T-M9-28, T-M9-29, T-M9-31, T-M9-33, T-M9-34, T-M9-35, T-M9-36, T-M9-37, T-M9-38, T-M9-39, T-M9-41, T-M9-45, T-M9-46, T-M9-47]
 parallel_group: M9-R
 touches: [docs/engine-v6/rollout.md, docs/engine-v6/qa, docker-compose.stage.yml]

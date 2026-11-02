@@ -104,6 +104,11 @@ services:
       # goose owns the stage schema: on start, stamp a Laravel-built DB, build
       # an empty one, or apply pending migrations (db.MigrateOnStart).
       RUN_MIGRATIONS: "true"
+      # T-M9-48 engine v6 rollout: shadow first (serves v1.1, computes v6 and records diffs), then v6.
+      # Cache verify rebuilds 10 % of cache hits from the DB and counts mismatches.
+      CYCLE_ENGINE: ${CYCLE_ENGINE:-shadow}
+      ENGINE_CACHE_VERIFY: ${ENGINE_CACHE_VERIFY:-true}
+      ENGINE_CACHE_VERIFY_SAMPLE: ${ENGINE_CACHE_VERIFY_SAMPLE:-0.1}
       # Admin API (T-M2-20/25) on the single stage origin: admin-web at /panel
       # and /api/admin/ share stage.ritmeapp.ir, so every call is same-origin.
       # Empty ADMIN_HOSTS would disable the admin API outside local/testing.

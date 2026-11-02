@@ -113,7 +113,7 @@ func (s *Service) intSetting(ctx context.Context, key string, lo, hi int) (int, 
 	n, err := strconv.Atoi(strings.TrimSpace(raw))
 	if err != nil || n < lo || n > hi {
 		s.logger.WarnContext(ctx, "plus: unreadable setting, using the default", "key", key)
-		return 0, false, nil
+		return 0, false, nil //nolint:nilerr // logged; an unreadable setting falls back to the default
 	}
 	return n, true, nil
 }

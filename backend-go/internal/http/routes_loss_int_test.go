@@ -210,14 +210,6 @@ func TestLoss_PrivacyOfFollowupsAndNotices(t *testing.T) {
 }
 
 // pick is the subset of m (a JSON object) with keys.
-func pick(v any, keys ...string) map[string]any {
-	m, _ := v.(map[string]any)
-	out := map[string]any{}
-	for _, k := range keys {
-		out[k] = m[k]
-	}
-	return out
-}
 
 // idOfLink is the viewer's first companion link id.
 func idOfLink(t *testing.T, e *companionEnv, token string) uint64 {

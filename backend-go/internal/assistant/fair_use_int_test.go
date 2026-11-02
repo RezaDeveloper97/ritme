@@ -40,7 +40,7 @@ func TestAssistant_PlusFairUseCapPoliteReply(t *testing.T) {
 	assert.Contains(t, msg["text"], "سقف استفادهٔ منصفانه")
 	assert.Equal(t, calls, e.spy.calls(), "no model call at the cap")
 
-	r = e.send(t, tok, conv, map[string]any{"text": "می‌خواهم خودکشی کنم"})
+	r = e.send(t, tok, conv, map[string]any{"text": "می\u200cخواهم خودکشی کنم"})
 	require.Equal(t, 200, r.status, r.raw)
 	assert.NotNil(t, find(events(r.raw), "card"), "an emergency always gets the 115 card")
 }
