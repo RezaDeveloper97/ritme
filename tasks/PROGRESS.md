@@ -2664,3 +2664,9 @@ Nothing needed fixing.
 ## T-M9-48c — Engine v6: data_quality stays good on deliberately suppressed days
 - engine/quality.go: `good` accepts unknown phase when suppression is hormonal or postpartum_not_returned. Goldens: pill 144 days + postpartum 298 days partial→good; messages/manager golden-v6/pill.json 2 facts. Test TestQuality_SuppressedUnknownStaysGood.
 - Open: pregnancy-gap days stay `partial`. Pre-existing failure: internal/labs TestGateAndUploadPipeline (consent_required), unrelated.
+
+## T-M9-48d — Engine v6: hormonal suppression only from the method start date
+- User decisions 2026-11-02: suppress only from the start date = min(contraception_methods.created_at as Tehran day, the method's own date: pack_started_on / inserted_on / injected_on; implant created_at only). Onboarding-medications path keeps whole-history suppression. DECISIONS.md E-13 amended.
+- Engine: Input.HormonalFrom + hormonalAt(d) everywhere Hormonal was read (suppression, quality warning/confidence/reason, pregnancy-test suggestion, skip layout). Loader query selects the dates; L2 snapshot Version 1→2 (old snapshots reload once).
+- New persona pill_started + golden; existing goldens unchanged; contract-v6 80/0.
+- Open: if the contraception API ever deletes+recreates the row, created_at moves forward. Pre-existing labs TestGateAndUploadPipeline failure unrelated.

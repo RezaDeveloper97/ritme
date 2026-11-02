@@ -421,6 +421,9 @@ func randomHistory(r *rand.Rand, today Day) Input {
 		in.Mode = ModeTeen
 	}
 	in.Hormonal = r.IntN(8) == 0 // the pill
+	if in.Hormonal && r.IntN(2) == 0 {
+		in.HormonalFrom = Some(today - Day(r.IntN(400))) // started inside the history (T-M9-48d)
+	}
 	if in.Mode == ModePostpartum || r.IntN(12) == 0 {
 		in.Breastfeeding = r.IntN(2) == 0
 		if r.IntN(5) != 0 {

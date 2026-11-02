@@ -1,0 +1,35 @@
+{
+  "name": "pill_started",
+  "about": "Combined pill started on the last bleed (2026-10-11, the method start date): cycles before it resolve normally, suppression from that day (E-13, T-M9-48d).",
+  "today": "2026-10-21",
+  "input": {
+    "periods": [
+      {
+        "start": "2026-05-24",
+        "end": "2026-05-27"
+      },
+      {
+        "start": "2026-06-21",
+        "end": "2026-06-24"
+      },
+      {
+        "start": "2026-07-19",
+        "end": "2026-07-22"
+      },
+      {
+        "start": "2026-08-16",
+        "end": "2026-08-19"
+      },
+      {
+        "start": "2026-09-13",
+        "end": "2026-09-16"
+      },
+      {
+        "start": "2026-10-11",
+        "end": "2026-10-14"
+      }
+    ],
+    "hormonal": true,
+    "hormonal_from": "2026-10-11"
+  }
+}

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -209,6 +210,59 @@ func TestMapProfile(t *testing.T) {
 			Medications: db.NullRawJSON{V: json.RawMessage(`["contraceptive_pill"]`), Valid: true},
 		})
 		assert.False(t, in.Hormonal)
+		assert.False(t, in.HormonalFrom.OK())
+	})
+}
+
+// T-M9-48d: the start of a saved hormonal method is min(created_at as a Tehran day, the method's own date).
+func TestMapProfile_HormonalFrom(t *testing.T) {
+	// 2026-10-22 21:00 UTC is 2026-10-23 00:30 in Tehran.
+	created := sql.NullTime{Time: time.Date(2026, 10, 22, 21, 0, 0, 0, time.UTC), Valid: true}
+	row := func(method string) store.ListEngineInputProfilesRow {
+		return store.ListEngineInputProfilesRow{
+			UserID: 1, LengthsAuto: true, ContraceptionMethod: ns(method), ContraceptionCreatedAt: created,
+			ContraceptionPackStartedOn: nd("2026-10-01"), ContraceptionInsertedOn: nd("2026-09-01"),
+			ContraceptionInjectedOn: nd("2026-08-01"),
+		}
+	}
+	for method, want := range map[string]string{
+		contraception.MethodCombinedPill:  "2026-10-01", // pack_started_on
+		contraception.MethodProgestinPill: "2026-10-01",
+		contraception.MethodHormonalIUD:   "2026-09-01", // inserted_on
+		contraception.MethodInjection:     "2026-08-01", // injected_on
+		contraception.MethodImplant:       "2026-10-23", // created_at only
+	} {
+		in := mapProfile(row(method))
+		assert.True(t, in.Hormonal, method)
+		assert.Equal(t, engine.Some(day(want)), in.HormonalFrom, method)
+	}
+
+	t.Run("created_at earlier than the method's own date wins", func(t *testing.T) {
+		r := row(contraception.MethodCombinedPill)
+		r.ContraceptionPackStartedOn = nd("2026-11-20") // a later pack
+		assert.Equal(t, engine.Some(day("2026-10-23")), mapProfile(r).HormonalFrom)
+	})
+	t.Run("own date without created_at", func(t *testing.T) {
+		r := row(contraception.MethodCombinedPill)
+		r.ContraceptionCreatedAt = sql.NullTime{}
+		assert.Equal(t, engine.Some(day("2026-10-01")), mapProfile(r).HormonalFrom)
+	})
+	t.Run("no date at all → none (whole history)", func(t *testing.T) {
+		r := store.ListEngineInputProfilesRow{UserID: 1, LengthsAuto: true, ContraceptionMethod: ns("implant")}
+		in := mapProfile(r)
+		assert.True(t, in.Hormonal)
+		assert.False(t, in.HormonalFrom.OK())
+	})
+	t.Run("non-hormonal method → no start", func(t *testing.T) {
+		in := mapProfile(row(contraception.MethodCopperIUD))
+		assert.False(t, in.Hormonal)
+		assert.False(t, in.HormonalFrom.OK())
+	})
+	t.Run("onboarding medications only → whole history", func(t *testing.T) {
+		in := mapProfile(store.ListEngineInputProfilesRow{UserID: 1, LengthsAuto: true,
+			Medications: db.NullRawJSON{V: json.RawMessage(`["contraceptive_pill"]`), Valid: true}})
+		assert.True(t, in.Hormonal)
+		assert.False(t, in.HormonalFrom.OK())
 	})
 }
 

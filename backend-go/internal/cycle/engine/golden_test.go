@@ -55,6 +55,7 @@ type personaInput struct {
 	TeenBandOnly  bool    `json:"teen_band_only"`
 	Mode          string  `json:"mode"`
 	Hormonal      bool    `json:"hormonal"`
+	HormonalFrom  *string `json:"hormonal_from"`
 	DeliveryDate  *string `json:"delivery_date"`
 	Breastfeeding bool    `json:"breastfeeding"`
 	LH            []struct {
@@ -106,6 +107,7 @@ func (p *persona) input(t *testing.T) Input {
 		in.Mode = m
 	}
 	in.Hormonal, in.DeliveryDate, in.Breastfeeding = w.Hormonal, optDay(w.DeliveryDate), w.Breastfeeding
+	in.HormonalFrom = optDay(w.HormonalFrom)
 	for _, x := range w.LH {
 		in.LH = append(in.LH, LHTest{Date: day(x.Date), Positive: x.Positive})
 	}

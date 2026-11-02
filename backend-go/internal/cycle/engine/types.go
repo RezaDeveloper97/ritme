@@ -49,6 +49,7 @@ type Input struct {
 
 	Mode          Mode
 	Hormonal      bool     // active hormonal contraception (I-03)
+	HormonalFrom  Opt[Day] // the day it started (E-13, T-M9-48d); none = unknown, suppresses the whole history
 	DeliveryDate  Opt[Day] // none = no delivery (E-14)
 	Breastfeeding bool
 

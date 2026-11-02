@@ -381,7 +381,9 @@ func TestV6_TimezoneHeaderPicksTheLocalDay(t *testing.T) {
 func TestV6_PillPersonaAgainstFrontendSchema(t *testing.T) {
 	e := newV6Env(t, config.CycleEngineV6)
 	const uid = 1004
-	_, err := e.db.Exec(`INSERT INTO contraception_methods (user_id, method, created_at, updated_at) VALUES (?, 'combined_pill', NOW(), NOW())`, uid)
+	// Saved before the fixture clock (2026-09-23): E-13 applies only from the method's start (T-M9-48d), and NOW()
+	// would be after the contract day.
+	_, err := e.db.Exec(`INSERT INTO contraception_methods (user_id, method, created_at, updated_at) VALUES (?, 'combined_pill', '2026-01-01 10:00:00', '2026-01-01 10:00:00')`, uid)
 	require.NoError(t, err)
 	require.NoError(t, revision.Bump(context.Background(), e.db, uid))
 

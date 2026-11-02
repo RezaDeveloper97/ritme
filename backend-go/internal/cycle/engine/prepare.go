@@ -39,6 +39,7 @@ type State struct {
 
 	// Declared dates, NoDay when absent (Opt none or Some(NoDay)).
 	lmp, birth, delivery Day
+	hormonalFrom         Day // Input.HormonalFrom, NoDay = unknown (the whole history)
 
 	bbt        []BBTReading     // sorted by date, one per day
 	lh         []LHTest         // sorted by date
@@ -67,6 +68,7 @@ func Prepare(in Input, p Params) *State {
 	s.lmp = dayOr(s.in.Declared.LastPeriodStart)
 	s.birth = dayOr(s.in.BirthDate)
 	s.delivery = dayOr(s.in.DeliveryDate)
+	s.hormonalFrom = dayOr(s.in.HormonalFrom)
 	s.preparePeriods()
 	s.prepareSkips()
 	s.prepareCycles()

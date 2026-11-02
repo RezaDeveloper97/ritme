@@ -221,7 +221,8 @@ func (s *State) grade(st *Status, f facts, today Day) {
 	if s.contradictory {
 		w.Add(WarnContradictoryAnchorData)
 	}
-	if s.in.Hormonal {
+	hormonal := s.hormonalAt(st.Date) // E-13 only from the method's start (T-M9-48d)
+	if hormonal {
 		w.Add(WarnHormonalContraceptionActive)
 	}
 	if perimenopause {
@@ -261,7 +262,7 @@ func (s *State) grade(st *Status, f facts, today Day) {
 		st.Confidence = ConfidenceUnknown
 	case f.forcedLow || st.MainPhase == MainPhaseUnknown || daysLate >= p.OverdueDaysLate ||
 		st.DataQuality == DataQualityPoor || s.validCycles < 2 || varLow || declaredRes ||
-		startSrc == StartPredictedReference || s.in.Hormonal:
+		startSrc == StartPredictedReference || hormonal:
 		st.Confidence = ConfidenceLow
 	case st.DataQuality == DataQualityGood && s.validCycles >= 2 && s.validPeriods >= 2 &&
 		startSrc == StartUserLogged && endOK && (!highVar || bbtCycle) &&
@@ -299,7 +300,7 @@ func (s *State) grade(st *Status, f facts, today Day) {
 	add(st.DataQuality == DataQualityPoor, ReasonPoorDataQuality)
 	add(w.Has(WarnInsufficientAnchorData) || s.contradictory, ReasonInsufficientAnchorData)
 	add(w.Has(WarnStaleOnboardingAnchor), ReasonStaleOnboardingAnchor)
-	add(s.in.Hormonal, ReasonHormonalContraceptionActive)
+	add(hormonal, ReasonHormonalContraceptionActive)
 
 	s.limitGrade(st)
 }

@@ -42,6 +42,9 @@ func (f *fuzzInput) input(flags uint16) Input {
 	in := none()
 	in.Mode = Mode(flags % uint16(modeCount))
 	in.Hormonal = flags&(1<<3) != 0
+	if flags&(1<<7) != 0 { // a method start date (T-M9-48d), up to ~3 years back
+		in.HormonalFrom = Some(f.today - Day(int(flags>>8)*4))
+	}
 	in.Breastfeeding = flags&(1<<4) != 0
 	in.TeenBandOnly = flags&(1<<5) != 0
 	in.Declared.Manual = flags&(1<<6) != 0

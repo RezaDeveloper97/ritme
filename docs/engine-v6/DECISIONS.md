@@ -127,7 +127,14 @@ before they run.
   `limits.fertility_suppressed = true` (E-24); warning + reason `hormonal_contraception_active`; confidence `low`;
   `requires_user_input = false`. "unknown" here never means "insufficient data".
 - **Alternative:** `follicular / mid_follicular` for all other days (a placeholder phase the UI must then hide).
-- **Owner:** user · **Status:** accepted (user, 2026-10-21) · **Blocks:** T-M9-19, T-M9-44
+- **Amendment (user, 2026-11-02, T-M9-48d):** the rule applies only to days on or after the method's start date;
+  earlier cycles resolve normally (phases, fertile window, ovulation, no `hormonal_contraception_active` warning or
+  reason, no suppression). The start date is the earlier of `contraception_methods.created_at` (Tehran day) and the
+  method's own date when set — `pack_started_on` (pills), `inserted_on` (hormonal IUD), `injected_on` (injection);
+  the implant has only `created_at`. Hormonal contraception known only from the onboarding medications has no start
+  date and keeps suppressing the whole history. Engine input `HormonalFrom` (none = whole history); L2 input
+  snapshot format v2.
+- **Owner:** user · **Status:** accepted (user, 2026-10-21; amended 2026-11-02) · **Blocks:** T-M9-19, T-M9-44
 
 ### E-14 — Postpartum and breastfeeding before cycles return
 - **Recommended:** applies in postpartum mode, or in any mode while `breastfeeding = true`, until 2 real periods have

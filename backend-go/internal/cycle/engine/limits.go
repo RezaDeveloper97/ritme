@@ -60,10 +60,17 @@ func (s *State) suppressionAt(target Day) SuppressionReason {
 	if n, ok := s.postpartumPeriods(target); ok && n < s.p.PostpartumPeriods {
 		return SuppressionPostpartumNotReturned
 	}
-	if s.in.Hormonal {
+	if s.hormonalAt(target) {
 		return SuppressionHormonalContraception
 	}
 	return SuppressionNone
+}
+
+// hormonalAt reports whether hormonal contraception is in force on d (E-13, T-M9-48d): only on and after the
+// method's start date, so the cycles before it resolve normally. Without a start date (the onboarding medications
+// answer) it covers the whole history.
+func (s *State) hormonalAt(d Day) bool {
+	return s.in.Hormonal && (s.hormonalFrom == NoDay || d >= s.hormonalFrom)
 }
 
 // promptPregnancy is E-26: mode cycle or ttc and a positive test dated from the cycle start to target. A new real

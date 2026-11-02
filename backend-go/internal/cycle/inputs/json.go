@@ -16,7 +16,7 @@ import (
 // (ErrVersion), which forces a reload from the database.
 
 // Version is the snapshot format version written by Encode.
-const Version = 1
+const Version = 2 // 2: hormonal_from (T-M9-48d)
 
 // ErrVersion is returned by Decode for a snapshot of another (or no) version.
 var ErrVersion = errors.New("inputs: unknown snapshot version")
@@ -30,6 +30,7 @@ type wireInput struct {
 	TeenBandOnly   bool         `json:"teen_band_only"`
 	Mode           string       `json:"mode"`
 	Hormonal       bool         `json:"hormonal"`
+	HormonalFrom   *string      `json:"hormonal_from"`
 	DeliveryDate   *string      `json:"delivery_date"`
 	Breastfeeding  bool         `json:"breastfeeding"`
 	LH             []wireTest   `json:"lh,omitempty"`
@@ -66,6 +67,7 @@ func Encode(in engine.Input) ([]byte, error) {
 		V: Version, TeenBandOnly: in.TeenBandOnly, Mode: in.Mode.String(), Hormonal: in.Hormonal,
 		Breastfeeding: in.Breastfeeding,
 		BirthDate:     optISO(in.BirthDate), DeliveryDate: optISO(in.DeliveryDate),
+		HormonalFrom: optISO(in.HormonalFrom),
 		Declared: wireDeclared{
 			LastPeriodStart: optISO(in.Declared.LastPeriodStart), CycleLength: optInt(in.Declared.CycleLength),
 			PeriodLength: optInt(in.Declared.PeriodLength), Manual: in.Declared.Manual,
@@ -102,7 +104,7 @@ func Decode(data []byte) (engine.Input, error) {
 	d := decoder{}
 	in := engine.Input{
 		TeenBandOnly: w.TeenBandOnly, Hormonal: w.Hormonal, Breastfeeding: w.Breastfeeding,
-		BirthDate: d.opt(w.BirthDate), DeliveryDate: d.opt(w.DeliveryDate),
+		BirthDate: d.opt(w.BirthDate), DeliveryDate: d.opt(w.DeliveryDate), HormonalFrom: d.opt(w.HormonalFrom),
 		Declared: engine.Declared{
 			LastPeriodStart: d.opt(w.Declared.LastPeriodStart), Manual: w.Declared.Manual,
 			CycleLength: intOpt(w.Declared.CycleLength), PeriodLength: intOpt(w.Declared.PeriodLength),

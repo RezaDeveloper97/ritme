@@ -344,6 +344,61 @@ func personaState(t *testing.T, name string) (*State, Day) {
 	return Prepare(in, DefaultParams()), today
 }
 
+// T-M9-48d: E-13 applies only on and after the method's start date; earlier cycles resolve normally.
+func TestLimits_HormonalOnlyFromStartDate(t *testing.T) {
+	in, today := personaFixture(t, "pill_started")
+	from := day("2026-10-11")
+	require.Equal(t, Some(from), in.HormonalFrom)
+	s := Prepare(in, DefaultParams())
+	in.HormonalFrom = None[Day]()
+	whole := Prepare(in, DefaultParams())
+	in.Hormonal = false
+	plain := Prepare(in, DefaultParams())
+
+	t.Run("before the start: the status without hormonal contraception", func(t *testing.T) {
+		for d := day("2026-05-24"); d < from; d++ {
+			st := s.Resolve(d, today)
+			assert.Equal(t, plain.Resolve(d, today), st, d)
+			assert.Zero(t, st.Limits, d)
+			assert.False(t, st.Warnings.Has(WarnHormonalContraceptionActive), d)
+			assert.False(t, st.ConfidenceReasons.Has(ReasonHormonalContraceptionActive), d)
+		}
+		assert.Equal(t, MainPhaseFertile, s.Resolve(day("2026-09-22"), today).MainPhase) // O = 09-27 (E-22)
+	})
+
+	t.Run("from the start on: the whole-history pill status", func(t *testing.T) {
+		for d := from; d <= today+60; d++ {
+			st := s.Resolve(d, today)
+			assert.Equal(t, whole.Resolve(d, today), st, d)
+			assert.Equal(t, SuppressionHormonalContraception, st.Limits.SuppressionReason, d)
+		}
+		wantSt, wantUI := whole.Today(today)
+		gotSt, gotUI := s.Today(today)
+		assert.Equal(t, wantSt, gotSt)
+		assert.Equal(t, wantUI, gotUI)
+		assert.Equal(t, whole.FutureCycles(today), s.FutureCycles(today))
+	})
+
+	t.Run("no start date → the whole history (onboarding medications)", func(t *testing.T) {
+		st := whole.Resolve(day("2026-06-10"), today)
+		assert.Equal(t, SuppressionHormonalContraception, st.Limits.SuppressionReason)
+		assert.Equal(t, MainPhaseUnknown, st.MainPhase)
+	})
+
+	t.Run("a late period before the start still suggests a test", func(t *testing.T) {
+		cur := day("2026-07-01")
+		pl := regular(cur, 28, 5)
+		pl.Hormonal, pl.HormonalFrom = true, Some(cur+60)
+		late := cur + 28 + 10
+		st := Prepare(pl, DefaultParams()).Resolve(late, late)
+		assert.True(t, st.SuggestPregnancyTest)
+		assert.Zero(t, st.Limits)
+		after := cur + 60
+		assert.Equal(t, SuppressionHormonalContraception,
+			Prepare(pl, DefaultParams()).Resolve(after, after).Limits.SuppressionReason)
+	})
+}
+
 // T-M9-48b: E-14 applies only on and after the delivery date; the history before it resolves normally.
 func TestLimits_PostpartumOnlyFromDelivery(t *testing.T) {
 	s, today := personaState(t, "postpartum_breastfeeding")

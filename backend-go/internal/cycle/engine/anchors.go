@@ -50,7 +50,7 @@ func (s *State) prepareSkipAnchors() {
 			// The predicted next of the base as if it were the current cycle (no later real start).
 			cur := a
 			cur.nextReal = NoDay
-			base, expected = a.start, s.layoutFor(cur, !s.in.Hormonal, false).next
+			base, expected = a.start, s.layoutFor(cur, !s.hormonalAt(sk), false).next
 		}
 		if sk != expected {
 			s.ignoredSkips = append(s.ignoredSkips, sk)

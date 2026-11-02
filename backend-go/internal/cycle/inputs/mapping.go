@@ -67,11 +67,42 @@ func mapProfile(r store.ListEngineInputProfilesRow) engine.Input {
 	in.Mode = mapMode(r.LifeMode.String, r.PregnancyActive != 0, r.UserGoal.String)
 	in.Hormonal = contraception.HormonalActive(r.ContraceptionMethod.String, r.ContraceptionMethod.Valid,
 		medications(r.Medications.V, r.Medications.Valid))
+	if in.Hormonal && r.ContraceptionMethod.Valid {
+		in.HormonalFrom = hormonalFrom(r)
+	}
 	if r.DeliveryDate.Valid {
 		in.DeliveryDate = optDay(r.DeliveryDate)
 	}
 	in.Breastfeeding = r.Breastfeeding.Valid && r.Breastfeeding.Bool // I-04: NULL = not asked = no
 	return in
+}
+
+// hormonalFrom is the start of the saved hormonal method (E-13, T-M9-48d; user decision 2026-11-02): the earlier
+// of the day the method was saved (contraception_methods.created_at, Tehran civil day) and the method's own date
+// when set — pack_started_on for the pills, inserted_on for the hormonal IUD, injected_on for the injection (the
+// implant has none). The other method's columns are ignored, so a date left over from an earlier method never
+// counts. None when neither is known (the engine then suppresses the whole history, as for the onboarding answer).
+func hormonalFrom(r store.ListEngineInputProfilesRow) engine.Opt[engine.Day] {
+	from := engine.NoDay
+	if r.ContraceptionCreatedAt.Valid {
+		from = engine.DayOf(civildate.InTehran(r.ContraceptionCreatedAt.Time))
+	}
+	var own civildate.NullDate
+	switch r.ContraceptionMethod.String {
+	case contraception.MethodCombinedPill, contraception.MethodProgestinPill:
+		own = r.ContraceptionPackStartedOn
+	case contraception.MethodHormonalIUD:
+		own = r.ContraceptionInsertedOn
+	case contraception.MethodInjection:
+		own = r.ContraceptionInjectedOn
+	}
+	if d, ok := optDay(own).Get(); ok && (from == engine.NoDay || d < from) {
+		from = d
+	}
+	if from == engine.NoDay {
+		return engine.None[engine.Day]()
+	}
+	return engine.Some(from)
 }
 
 // mapMode is the effective mode (enums.ResolveLifeMode: an active pregnancy wins, then the stored postpartum /

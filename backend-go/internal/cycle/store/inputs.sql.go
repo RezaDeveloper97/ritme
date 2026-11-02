@@ -193,6 +193,10 @@ SELECT
   pp.birth_date AS delivery_date,
   pp.breastfeeding,
   cm.method AS contraception_method,
+  cm.created_at AS contraception_created_at,
+  cm.pack_started_on AS contraception_pack_started_on,
+  cm.inserted_on AS contraception_inserted_on,
+  cm.injected_on AS contraception_injected_on,
   tp.age_band
 FROM ` + "`" + `users` + "`" + ` u
 LEFT JOIN ` + "`" + `user_profiles` + "`" + ` p ON p.user_id = u.id
@@ -206,20 +210,24 @@ WHERE u.id IN (/*SLICE:user_ids*/?)
 `
 
 type ListEngineInputProfilesRow struct {
-	UserID                    uint64
-	Birthday                  civildate.NullDate
-	PeriodDuration            sql.NullInt16
-	CycleDuration             sql.NullInt16
-	OnboardingLastPeriodStart civildate.NullDate
-	UserGoal                  sql.NullString
-	LengthsAuto               bool
-	LifeMode                  sql.NullString
-	Medications               db.NullRawJSON
-	PregnancyActive           int64
-	DeliveryDate              civildate.NullDate
-	Breastfeeding             sql.NullBool
-	ContraceptionMethod       sql.NullString
-	AgeBand                   sql.NullString
+	UserID                     uint64
+	Birthday                   civildate.NullDate
+	PeriodDuration             sql.NullInt16
+	CycleDuration              sql.NullInt16
+	OnboardingLastPeriodStart  civildate.NullDate
+	UserGoal                   sql.NullString
+	LengthsAuto                bool
+	LifeMode                   sql.NullString
+	Medications                db.NullRawJSON
+	PregnancyActive            int64
+	DeliveryDate               civildate.NullDate
+	Breastfeeding              sql.NullBool
+	ContraceptionMethod        sql.NullString
+	ContraceptionCreatedAt     sql.NullTime
+	ContraceptionPackStartedOn civildate.NullDate
+	ContraceptionInsertedOn    civildate.NullDate
+	ContraceptionInjectedOn    civildate.NullDate
+	AgeBand                    sql.NullString
 }
 
 // Engine v6 input loader (T-M9-25, internal/cycle/inputs): everything engine.Input needs for a batch of users in
@@ -228,8 +236,9 @@ type ListEngineInputProfilesRow struct {
 // 1/4 — one row per existing user: the declared data of user_profiles, the «خودکار از داده‌ها» switch
 // (no cycle_preferences row = automatic), the stored life mode and onboarding medications, the active pregnancy
 // (pregnancy_mode = 1 wins the mode), the postpartum delivery date and breastfeeding flag (I-04), the active
-// contraception method (a row exists only while tracking, I-03) and the teen age band. Every table holds at most
-// one row per user (UNIQUE user_id), so the joins never fan out.
+// contraception method (a row exists only while tracking, I-03) with the dates its start is taken from (E-13,
+// T-M9-48d: created_at and the method's own pack/insertion/injection date) and the teen age band. Every table holds
+// at most one row per user (UNIQUE user_id), so the joins never fan out.
 func (q *Queries) ListEngineInputProfiles(ctx context.Context, userIds []uint64) ([]ListEngineInputProfilesRow, error) {
 	query := listEngineInputProfiles
 	var queryParams []interface{}
@@ -263,6 +272,10 @@ func (q *Queries) ListEngineInputProfiles(ctx context.Context, userIds []uint64)
 			&i.DeliveryDate,
 			&i.Breastfeeding,
 			&i.ContraceptionMethod,
+			&i.ContraceptionCreatedAt,
+			&i.ContraceptionPackStartedOn,
+			&i.ContraceptionInsertedOn,
+			&i.ContraceptionInjectedOn,
 			&i.AgeBand,
 		); err != nil {
 			return nil, err

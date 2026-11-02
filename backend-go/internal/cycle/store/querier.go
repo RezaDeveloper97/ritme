@@ -85,8 +85,9 @@ type Querier interface {
 	// 1/4 — one row per existing user: the declared data of user_profiles, the «خودکار از داده‌ها» switch
 	// (no cycle_preferences row = automatic), the stored life mode and onboarding medications, the active pregnancy
 	// (pregnancy_mode = 1 wins the mode), the postpartum delivery date and breastfeeding flag (I-04), the active
-	// contraception method (a row exists only while tracking, I-03) and the teen age band. Every table holds at most
-	// one row per user (UNIQUE user_id), so the joins never fan out.
+	// contraception method (a row exists only while tracking, I-03) with the dates its start is taken from (E-13,
+	// T-M9-48d: created_at and the method's own pack/insertion/injection date) and the teen age band. Every table holds
+	// at most one row per user (UNIQUE user_id), so the joins never fan out.
 	ListEngineInputProfiles(ctx context.Context, userIds []uint64) ([]ListEngineInputProfilesRow, error)
 	// 3/4 — the skipped predicted starts «پریود نداشتم» (E-15, goose 00098), passed to the engine as stored.
 	ListEngineInputSkips(ctx context.Context, userIds []uint64) ([]ListEngineInputSkipsRow, error)

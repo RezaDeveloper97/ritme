@@ -110,6 +110,7 @@ func wantFull() engine.Input {
 		BirthDate:     engine.Some(day("1995-03-10")),
 		Mode:          engine.ModePostpartum,
 		Hormonal:      true,
+		HormonalFrom:  engine.Some(day("2026-05-01")), // inserted_on, before created_at = NOW() (T-M9-48d)
 		DeliveryDate:  engine.Some(day("2026-03-01")),
 		Breastfeeding: true,
 		LH: []engine.LHTest{

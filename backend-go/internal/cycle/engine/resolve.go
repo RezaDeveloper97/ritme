@@ -317,7 +317,7 @@ func (s *State) resolveCycle(target Day, c *cycle, ok, quiet bool, m *layoutMemo
 	if daysLate <= p.MaxLateDays && !gap { // §2.34 (the pregnancy gap has no ovulation)
 		st.DaysToOvulation = Some(int(l.ov - target))
 	}
-	st.SuggestPregnancyTest = s.suggestPregnancyTest(daysLate)
+	st.SuggestPregnancyTest = s.suggestPregnancyTest(target, daysLate)
 	return st, f
 }
 
@@ -371,8 +371,8 @@ func (s *State) menstrual(st *Status, f *facts, c *cycle, l *layout, cycleDay in
 
 // suggestPregnancyTest is §2.22: mode cycle or ttc, no hormonal contraception, and days_late ≥ the mode's
 // threshold (Params). A late period is the premise, so days_late 0 never suggests a test.
-func (s *State) suggestPregnancyTest(daysLate int) bool {
-	if s.in.Hormonal || daysLate < 1 {
+func (s *State) suggestPregnancyTest(target Day, daysLate int) bool {
+	if s.hormonalAt(target) || daysLate < 1 {
 		return false
 	}
 	switch s.in.Mode {

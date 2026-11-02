@@ -25,6 +25,7 @@ func fullInput() engine.Input {
 		TeenBandOnly:   true,
 		Mode:           engine.ModePostpartum,
 		Hormonal:       true,
+		HormonalFrom:   engine.Some(day("2026-09-27")),
 		DeliveryDate:   engine.Some(day("2026-05-01")),
 		Breastfeeding:  true,
 		LH:             []engine.LHTest{{Date: day("2026-10-10"), Positive: true}},
@@ -48,14 +49,14 @@ func TestJSON_RoundTrip(t *testing.T) {
 func TestJSON_StableShape(t *testing.T) {
 	b, err := Encode(engine.Input{Periods: []engine.Period{{Start: day("2026-09-27"), End: engine.NoDay}}})
 	require.NoError(t, err)
-	assert.JSONEq(t, `{"v":1,"periods":[{"start":"2026-09-27","end":null,"source":"user_logged"}],
+	assert.JSONEq(t, `{"v":2,"periods":[{"start":"2026-09-27","end":null,"source":"user_logged"}],
 		"declared":{"last_period_start":null,"cycle_length":null,"period_length":null,"manual":false},
-		"birth_date":null,"teen_band_only":false,"mode":"cycle","hormonal":false,"delivery_date":null,
+		"birth_date":null,"teen_band_only":false,"mode":"cycle","hormonal":false,"hormonal_from":null,"delivery_date":null,
 		"breastfeeding":false}`, string(b))
 }
 
 func TestJSON_UnknownVersionForcesReload(t *testing.T) {
-	for _, s := range []string{`{"v":2,"mode":"cycle"}`, `{"mode":"cycle"}`, `{"v":0}`} {
+	for _, s := range []string{`{"v":1,"mode":"cycle"}`, `{"v":3,"mode":"cycle"}`, `{"mode":"cycle"}`, `{"v":0}`} {
 		_, err := Decode([]byte(s))
 		require.ErrorIs(t, err, ErrVersion, s)
 	}
@@ -64,10 +65,11 @@ func TestJSON_UnknownVersionForcesReload(t *testing.T) {
 func TestJSON_MalformedFails(t *testing.T) {
 	for _, s := range []string{
 		`not json`,
-		`{"v":1,"mode":"sleeping"}`,
-		`{"v":1,"mode":"cycle","periods":[{"start":"2026-02-30","end":null,"source":"user_logged"}]}`,
-		`{"v":1,"mode":"cycle","periods":[{"start":"2026-02-01","end":null,"source":"guess"}]}`,
-		`{"v":1,"mode":"cycle","birth_date":"yesterday"}`,
+		`{"v":2,"mode":"sleeping"}`,
+		`{"v":2,"mode":"cycle","periods":[{"start":"2026-02-30","end":null,"source":"user_logged"}]}`,
+		`{"v":2,"mode":"cycle","periods":[{"start":"2026-02-01","end":null,"source":"guess"}]}`,
+		`{"v":2,"mode":"cycle","birth_date":"yesterday"}`,
+		`{"v":2,"mode":"cycle","hormonal":true,"hormonal_from":"2026-13-01"}`,
 	} {
 		_, err := Decode([]byte(s))
 		require.Error(t, err, s)

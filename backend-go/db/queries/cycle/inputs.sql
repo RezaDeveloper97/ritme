@@ -6,8 +6,9 @@
 -- 1/4 — one row per existing user: the declared data of user_profiles, the «خودکار از داده‌ها» switch
 -- (no cycle_preferences row = automatic), the stored life mode and onboarding medications, the active pregnancy
 -- (pregnancy_mode = 1 wins the mode), the postpartum delivery date and breastfeeding flag (I-04), the active
--- contraception method (a row exists only while tracking, I-03) and the teen age band. Every table holds at most
--- one row per user (UNIQUE user_id), so the joins never fan out.
+-- contraception method (a row exists only while tracking, I-03) with the dates its start is taken from (E-13,
+-- T-M9-48d: created_at and the method's own pack/insertion/injection date) and the teen age band. Every table holds
+-- at most one row per user (UNIQUE user_id), so the joins never fan out.
 SELECT
   u.id AS user_id,
   p.birthday,
@@ -22,6 +23,10 @@ SELECT
   pp.birth_date AS delivery_date,
   pp.breastfeeding,
   cm.method AS contraception_method,
+  cm.created_at AS contraception_created_at,
+  cm.pack_started_on AS contraception_pack_started_on,
+  cm.inserted_on AS contraception_inserted_on,
+  cm.injected_on AS contraception_injected_on,
   tp.age_band
 FROM `users` u
 LEFT JOIN `user_profiles` p ON p.user_id = u.id

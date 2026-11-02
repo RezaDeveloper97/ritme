@@ -3,10 +3,10 @@ id: T-M9-48d
 title: Engine v6: hormonal suppression only from the method start date
 milestone: M9
 type: backend
-status: todo
+status: done
 depends_on: [T-M9-48]
 parallel_group: M9-R
-touches: [backend-go/internal/cycle/engine,backend-go/internal/cycle/state,backend-go/internal/cycle/service,docs/engine-v6/DECISIONS.md]
+touches: [backend-go/db/queries/cycle, backend-go/internal/cycle/store, backend-go/internal/cycle/inputs, backend-go/internal/labs/engine_test.go, backend-go/internal/cycle/engine,backend-go/internal/cycle/state,backend-go/internal/cycle/service,docs/engine-v6/DECISIONS.md]
 skills: []
 verify: cd backend-go && go vet ./... && go test ./internal/cycle/... && make test-int PKG=./internal/cycle/...
 ---
@@ -30,3 +30,6 @@ Stage shadow (rollout.md): `Input.Hormonal` is a single bool, so pill suppressio
 - Pill persona: days before 2026-10-23 show normal phases; from that date suppressed.
 - DECISIONS.md updated.
 - verify green. 
+
+## Decision (2026-11-02)
+Start date = min(contraception_methods.created_at, the method's own date column if set: pill pack_started_on / hormonal_iud inserted_on / injection injected_on). Onboarding-medications path has no date → whole history (unchanged). Snapshot L2 format version 1 → 2.
