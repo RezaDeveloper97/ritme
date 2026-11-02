@@ -1,8 +1,9 @@
--- 00NNN_vitals_alert_threshold_placeholders.sql — T-M10-19 (D-170): the seeded vitals_alert copy (goose 00035) spells
--- the thresholds; replace them with the placeholders the API fills from the registry version of the reading's day
+-- DRAFT → shipped as backend-go/db/migrations/00116_vitals_alert_threshold_placeholders.sql (T-M10-19b, D-170) with the
+-- Laravel twin backend/database/migrations/2026_11_02_000116_vitals_alert_threshold_placeholders.php (Scope 1 asks
+-- for one; Laravel 2026_10_06_000035 seeds the same rows). The seeded vitals_alert copy (goose 00035) spells the
+-- thresholds; replace them with the placeholders the API fills from the registry version of the reading's day
 -- ({systolic}, {diastolic}, {mgdl}, {mmol_l}). Only rows still holding the seeded numbers change (an admin edit that
--- already rewrote the sentence is left alone). Data-only: no Laravel twin needed for schema-diff (prod Laravel does not
--- read vitals_alert). Down puts the numbers back.
+-- already rewrote the sentence is left alone). Down puts the numbers back.
 
 -- +goose Up
 UPDATE `message_contents`

@@ -117,6 +117,8 @@
             "to": "2026-09-23",
             "days": 30
           },
+          "status": "ok",
+          "readings_needed": 0,
           "unit": "bpm",
           "readings": 2,
           "average": {

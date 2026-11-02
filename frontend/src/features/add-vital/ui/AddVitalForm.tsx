@@ -15,7 +15,6 @@ import {
   POSITIONS,
   bpScalePosition,
   classifyBp,
-  classifyGlucose,
   classifyHr,
   convertGlucose,
   fieldErrors,
@@ -25,6 +24,7 @@ import {
   uiTone,
   unitSymbol,
   useCreateReading,
+  useGlucoseTargets,
   useVitalFormat,
   useVitalThresholds,
   type Arm,
@@ -42,6 +42,7 @@ import {
 import type { Locale } from '@/shared/i18n';
 import { Card, ChipGroup, Icon, IconCircle, InfoNote, PillChip, PrimaryButton, StatusPill } from '@/shared/ui';
 
+import { previewGlucoseClass, targetBand } from '../model/preview';
 import {
   measuredAtBody,
   validateBp,
@@ -301,6 +302,9 @@ function BpForm({ latest, header, tail, common, footer, submit }: SubFormProps) 
   );
 }
 
+/** Diabetic target classes: the verdict names the user's band instead of the general one. */
+const TARGET_CLASSES = new Set(['below_target', 'in_target', 'above_target']);
+
 function GlucoseForm({ latest, header, tail, common, footer, submit }: SubFormProps) {
   const t = useTranslations('vitals');
   const locale = useLocale() as Locale;
@@ -314,20 +318,30 @@ function GlucoseForm({ latest, header, tail, common, footer, submit }: SubFormPr
   const [method, setMethod] = useState<GlucoseMethod | null>(last?.method ?? 'glucometer');
   const errors = { ...validateGlucose(value, unit), ...common.commonErrors };
   const lim = unit === 'mmol_l' ? LIMITS.mmolL : LIMITS.mgDl;
-  const cls = value !== null && !errors.value ? classifyGlucose(toMgDl(value, unit), context, th) : null;
+  // The preview uses the method and, for a user with diabetes, her targets, so it equals the saved class (T-M10-19b).
+  const targets = useGlucoseTargets().data;
+  const cls = value !== null && !errors.value ? previewGlucoseClass(toMgDl(value, unit), context, method, th, targets) : null;
   const band = th.glucose.contexts[context];
+  const target = targetBand(context, targets);
   const inUnit = (mg: number) => {
     const v = unit === 'mmol_l' ? Math.round((mg / th.glucose.mmolFactor) * 10) / 10 : mg;
     return f.dec(v, glucoseDecimals(unit));
   };
-  const verdict = cls
-    ? t(`add.glucoseVerdict.${cls.code}` as 'add.glucoseVerdict.in_range', {
-        context: t(`glucoseContextsShort.${context}`),
-        min: inUnit(band.targetMin),
-        max: inUnit(band.targetMax),
-        value: inUnit(th.glucose.urgentBelow),
-      })
-    : null;
+  const targetRange = (b: NonNullable<typeof target>) => {
+    if (b.low && b.high) return t('targets.range', { low: inUnit(b.low), high: inUnit(b.high) });
+    if (b.high) return t(b.highInclusive ? 'targets.atMost' : 'targets.below', { high: inUnit(b.high) });
+    return b.low ? t('targets.from', { low: inUnit(b.low) }) : '';
+  };
+  const verdict = !cls
+    ? null
+    : TARGET_CLASSES.has(cls.code) && target
+      ? `${t(`classes.glucose.${cls.code}` as 'classes.glucose.in_target')} (${targetRange(target)})`
+      : t(`add.glucoseVerdict.${cls.code}` as 'add.glucoseVerdict.in_range', {
+          context: t(`glucoseContextsShort.${context}`),
+          min: inUnit(band.targetMin),
+          max: inUnit(band.targetMax),
+          value: inUnit(th.glucose.urgentBelow),
+        });
   const switchUnit = (next: GlucoseUnit) => {
     if (next === unit) return;
     setValue((v) => (v === null ? v : convertGlucose(v, unit, next)));

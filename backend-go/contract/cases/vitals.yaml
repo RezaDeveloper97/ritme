@@ -158,3 +158,43 @@ cases:
       - method: GET
         path: /api/v1/vitals
         status: 200
+
+  - name: targets_anon
+    persona: anon
+    method: GET
+    path: /api/v1/vitals/targets
+    status: 401
+  - name: targets_flow
+    doc: T-M10-19 diabetic glucose targets (Go-only route, recorded from Go, T-M10-19b) — registry defaults, invalid rows, the doctor's fasting 90–140, reset; another user never sees them
+    locales: [fa, en]
+    steps:
+      - method: GET
+        path: /api/v1/vitals/targets
+        status: 200
+      - method: PUT
+        path: /api/v1/vitals/targets
+        body:
+          items:
+            - {context: fasting, low_mgdl: 140, high_mgdl: 90, set_by: doctor}
+            - {context: random, high_mgdl: 140, set_by: nurse}
+        status: 422
+      - method: PUT
+        path: /api/v1/vitals/targets
+        body:
+          items:
+            - {context: fasting, low_mgdl: 90, high_mgdl: 140, set_by: doctor, note: "Dr. Ahmadi"}
+            - {context: post_meal, high_mgdl: 170, set_by: user}
+        status: 200
+      - method: GET
+        path: /api/v1/vitals/targets
+        status: 200
+      - method: GET
+        path: /api/v1/vitals/targets
+        as: no_profile
+        status: 200
+      - method: DELETE
+        path: /api/v1/vitals/targets
+        status: 200
+      - method: GET
+        path: /api/v1/vitals/targets
+        status: 200

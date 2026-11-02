@@ -2710,3 +2710,9 @@ Nothing needed fixing.
 - Non-menopause users pay no extra query; condition reads skipped when there is no log day in the current cycle (`cond.programs` = [] then). Feed budget ≤ 3 + auth for a cycle user.
 - Int tests: menopause stage tip + bleeding inbox row from the feed alone; heavy-bleeding nudge from the feed, resolved by enrolment.
 - Open: condition fact loading duplicated from conditionnudges (unexported); a menopause user's feed pays the full Signals read set; TestFeedInt_Budget p95 can flake under parallel load.
+
+## T-M10-19b — Vitals follow-ups: alert copy placeholders, add-form preview, targets contract, goldens
+- Migration 00116_vitals_alert_threshold_placeholders (+ Laravel twin 2026_11_02_000116): seeded vitals_alert fa/en rows use `{systolic}/{diastolic}` and `{mgdl} mg/dL ({mmol_l} mmol/L)`; only rows still holding the seed numbers change; Down restores.
+- Frontend add-vital: `model/preview.ts` mirrors the server's glucose class (own targets for diabetic users, registry default, low wins, method-aware); no new copy.
+- Contract: vitals goldens re-recorded from Go (Go-only D-170 fields now in the goldens, allowlist empty) + new `targets_anon` / `targets_flow` cases; 16/0. openapi: hub `reports`, report `status` / `readings_needed` required.
+- Open: `make schema-diff` red from Go-only message_rules seeds (00112–00115) → T-M10-37; targets_flow 422 reports only the later item's errors (current behaviour).

@@ -3,7 +3,7 @@ id: T-M10-19b
 title: Vitals follow-ups: alert copy placeholders in message_contents, add-form preview, targets contract, goldens
 milestone: M10
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M10-19,T-M10-21]
 parallel_group: M10-C
 touches: [backend-go/db/migrations,backend/database/migrations,backend-go/contract/fixtures/dump.sql,backend-go/contract/cases/vitals.yaml,backend-go/contract/golden/vitals,backend-go/contract/allowlist/vitals.yaml,backend-go/api/openapi.yaml,backend-go/internal/vitals,frontend/src/features/add-vital,docs/engine-v6/drafts/T-M10-19b-vitals-alert-placeholders.sql]

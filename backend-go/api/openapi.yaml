@@ -19730,7 +19730,7 @@ paths:
                   success: {type: boolean}
                   data:
                     type: object
-                    required: [date, latest, plan, recent, notifications] # reports: required once the vitals goldens are re-recorded (T-M10-19b)
+                    required: [date, latest, plan, recent, notifications, reports]
                     properties:
                       date: {$ref: "#/components/schemas/Date"}
                       latest:
@@ -28880,7 +28880,7 @@ components:
         notifications: {$ref: "#/components/schemas/VitalNotifications"}
     VitalReportState:
       type: object
-      required: [range] # status, readings_needed: required once the vitals goldens are re-recorded (T-M10-19b)
+      required: [range, status, readings_needed]
       properties:
         range: {type: string, enum: [7d, 14d, 30d, 90d]}
         status: {type: string, enum: [ok, not_enough_data]}
@@ -28923,7 +28923,7 @@ components:
               updated_at: {type: [string, "null"], format: date-time}
     VitalReport:
       type: object
-      required: [type, range, unit, readings, average, min, max, distribution, morning_vs_night, time_in_range, series]
+      required: [type, status, readings_needed, range, unit, readings, average, min, max, distribution, morning_vs_night, time_in_range, series]
       properties:
         type: {type: string, enum: [bp, glucose, hr]}
         status: {type: string, enum: [ok, not_enough_data]}

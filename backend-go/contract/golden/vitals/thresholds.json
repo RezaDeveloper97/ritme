@@ -100,6 +100,17 @@
                 "target_max": 140,
                 "very_high_from": 200
               }
+            },
+            "contexts_spec": 0,
+            "target_classes": [
+              "below_target",
+              "in_target",
+              "above_target"
+            ],
+            "diabetic": {
+              "fasting_lo": 80,
+              "fasting_hi": 130,
+              "post_meal_max": 180
             }
           },
           "heart_rate": {

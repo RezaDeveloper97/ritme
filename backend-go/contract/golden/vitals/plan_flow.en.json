@@ -462,6 +462,23 @@
           "notifications": {
             "category": "vitals",
             "enabled": false
+          },
+          "reports": {
+            "bp": {
+              "range": "7d",
+              "status": "not_enough_data",
+              "readings_needed": 1
+            },
+            "hr": {
+              "range": "7d",
+              "status": "not_enough_data",
+              "readings_needed": 2
+            },
+            "glucose": {
+              "range": "14d",
+              "status": "not_enough_data",
+              "readings_needed": 2
+            }
           }
         }
       }

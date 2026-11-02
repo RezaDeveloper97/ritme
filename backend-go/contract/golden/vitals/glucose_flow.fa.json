@@ -209,6 +209,8 @@
             "to": "2026-09-23",
             "days": 14
           },
+          "status": "ok",
+          "readings_needed": 0,
           "filter": "all",
           "unit": "mg_dl",
           "readings": 3,
@@ -402,23 +404,17 @@
             "to": "2026-09-23",
             "days": 30
           },
+          "status": "not_enough_data",
+          "readings_needed": 1,
           "filter": "fasting",
           "unit": "mg_dl",
           "readings": 1,
-          "average": {
-            "mg_dl": 94,
-            "mmol_l": 5.2,
-            "readings": 1
-          },
+          "average": null,
           "by_context": [
             {
               "context": "fasting",
               "readings": 1,
-              "average": {
-                "mg_dl": 94,
-                "mmol_l": 5.2,
-                "readings": 1
-              },
+              "average": null,
               "above_target": 0,
               "target": {
                 "min": 70,
@@ -426,106 +422,11 @@
               }
             }
           ],
-          "min": {
-            "id": 2,
-            "source": "vitals",
-            "type": "glucose",
-            "date": "2026-09-23",
-            "time": "07:45",
-            "measured_at": "2026-09-23T07:45:00+03:30",
-            "period": "morning",
-            "blood_pressure": null,
-            "glucose": {
-              "mg_dl": 94,
-              "mmol_l": 5.2,
-              "value": 94,
-              "unit": "mg_dl",
-              "context": "fasting",
-              "method": "glucometer"
-            },
-            "heart_rate": null,
-            "classification": {
-              "code": "in_range",
-              "tone": "ok"
-            },
-            "urgent": false,
-            "note": null,
-            "editable": true
-          },
-          "max": {
-            "id": 2,
-            "source": "vitals",
-            "type": "glucose",
-            "date": "2026-09-23",
-            "time": "07:45",
-            "measured_at": "2026-09-23T07:45:00+03:30",
-            "period": "morning",
-            "blood_pressure": null,
-            "glucose": {
-              "mg_dl": 94,
-              "mmol_l": 5.2,
-              "value": 94,
-              "unit": "mg_dl",
-              "context": "fasting",
-              "method": "glucometer"
-            },
-            "heart_rate": null,
-            "classification": {
-              "code": "in_range",
-              "tone": "ok"
-            },
-            "urgent": false,
-            "note": null,
-            "editable": true
-          },
-          "distribution": [
-            {
-              "code": "urgent_low",
-              "tone": "urgent",
-              "count": 0,
-              "percent": 0
-            },
-            {
-              "code": "low",
-              "tone": "high",
-              "count": 0,
-              "percent": 0
-            },
-            {
-              "code": "in_range",
-              "tone": "ok",
-              "count": 1,
-              "percent": 100
-            },
-            {
-              "code": "high",
-              "tone": "watch",
-              "count": 0,
-              "percent": 0
-            },
-            {
-              "code": "very_high",
-              "tone": "high",
-              "count": 0,
-              "percent": 0
-            }
-          ],
-          "morning_vs_night": {
-            "morning": {
-              "mg_dl": 94,
-              "mmol_l": 5.2,
-              "readings": 1
-            },
-            "night": null,
-            "night_out_of_range": 0
-          },
-          "time_in_range": {
-            "in_range": 1,
-            "below": 0,
-            "above": 0,
-            "readings": 1,
-            "percent": 100
-          },
+          "min": null,
+          "max": null,
+          "distribution": null,
+          "morning_vs_night": null,
+          "time_in_range": null,
           "series": [
             {
               "date": "2026-09-23",
