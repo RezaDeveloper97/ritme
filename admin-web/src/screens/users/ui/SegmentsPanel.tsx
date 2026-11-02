@@ -24,7 +24,7 @@ import {
   useSegments,
   useSegmentSize,
   type Segment,
-} from "../api/segments";
+} from "@/entities/segment";
 
 function SegmentSize({ id }: { id: number }) {
   const t = useTranslations("users");

@@ -5,8 +5,6 @@ import { z } from "zod";
 
 import { api } from "@/shared/api";
 
-import type { SegmentFilters } from "../model/segment-filters";
-
 /** Saved segments (capability `segments`, admin-api.md §6c). Replaces the old browser-local list. */
 
 const segmentSchema = z.object({
@@ -59,7 +57,7 @@ export function useSaveSegment() {
     }: {
       id?: number;
       name: string;
-      filters: SegmentFilters;
+      filters: Partial<Record<string, string>>;
     }) =>
       id
         ? api.put(`/segments/${id}`, { name, filters })

@@ -3276,7 +3276,19 @@
     "ruleKeyPrefix": "Rule key",
     "inboxRules": "Inbox rules",
     "ctrByVersion": "CTR per version",
-    "versionUnknown": "Before versions were recorded"
+    "versionUnknown": "Before versions were recorded",
+    "segmentPicker": {
+      "label": "Target segments",
+      "hint": "Adds a «segment contains» condition; the user must be in every chosen segment.",
+      "noAccess": "You don't have access to segments; existing segment ids are shown as numbers.",
+      "loading": "Loading…",
+      "choose": "Choose a segment",
+      "none": "No more segments",
+      "add": "Add",
+      "deleted": "Deleted segment (#{id})",
+      "unknown": "Segment #{id}",
+      "clear": "Remove segment"
+    }
   },
   "clinicalConfig": {
     "title": "Thresholds & config",

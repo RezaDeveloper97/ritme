@@ -2689,3 +2689,9 @@ Nothing needed fixing.
 - Job `analysis.warm` (queue low, 05:00 Tehran, Unique 23h): users active 7 d, summary 6m, skips cached. Wiring: `internal/http/analysis_cache.go` (one Cache per Deps) + WithCache in the 4 analysis route files.
 - Bench: hit ~0.06 ms vs cold ~1.15 ms (compute only).
 - Open: hit still costs the Plus Usage read (2–3 queries); children growth and pregnancy appointments don't bump analysis_rev; running baby timers stale until next bump; perf-baseline.md entry not written (T-M9-49 territory).
+
+## T-M10-35b — Admin-web segment picker in the message rule condition editor
+- Rescoped: rule audience has only audience_percent; segments target rules via the `segment` set fact (T-M10-32). No backend change.
+- `entities/segment` (moved from screens/users/api/segments.ts): useSegments/useSegmentSize/useSaveSegment/useDeleteSegment. Users screen imports from it.
+- Rule editor: SegmentPicker above the ConditionBuilder manages top-level all-of `segment contains <id>` rows; shows segment names, deleted ids as a flagged clearable chip, raw "Segment #id" without the segments capability. Helpers in message-rules/lib/segment-condition.ts; vitest for both.
+- Open: segment conditions under any-of/exceptions still show raw ids in the generic builder; no light/dark screenshots yet.

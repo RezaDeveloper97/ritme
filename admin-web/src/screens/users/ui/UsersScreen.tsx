@@ -28,7 +28,7 @@ import {
   useDirectory,
   type DirectoryRow,
 } from "../api/directory";
-import type { Segment } from "../api/segments";
+import type { Segment } from "@/entities/segment";
 import {
   filtersToSegment,
   isFiltered,

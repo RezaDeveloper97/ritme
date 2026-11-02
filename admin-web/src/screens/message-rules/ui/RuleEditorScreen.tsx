@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 
 import { useCan } from '@/features/auth';
+import { segmentIds, withoutSegments, withSegments } from '../lib/segment-condition';
+import { SegmentPicker } from './SegmentPicker';
 import { ConditionBuilder, useFacts, usesFertilityFact, type FactRegistry } from '@/features/rule-conditions';
 import { useContentLanguages } from '@/shared/i18n';
 import { formatDate } from '@/shared/lib';
@@ -304,9 +306,10 @@ function Editor({
 
           <Lock disabled={structureLocked}>
             <Panel title={t('ruleTitle')}>
+              <SegmentPicker ids={segmentIds(form.conditions)} onChange={(ids) => set('conditions', withSegments(form.conditions, ids))} disabled={structureLocked} />
               <ConditionBuilder
-                value={form.conditions}
-                onChange={(c) => set('conditions', c)}
+                value={withoutSegments(form.conditions)}
+                onChange={(c) => set('conditions', withSegments(c, segmentIds(form.conditions)))}
                 facts={registry.facts}
                 error={err('conditions')}
               />
