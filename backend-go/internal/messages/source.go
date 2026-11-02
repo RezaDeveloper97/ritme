@@ -6,10 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
+	"sync/atomic"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
 
+	"github.com/ritme/backend-go/internal/checkups"
+	chkengine "github.com/ritme/backend-go/internal/checkups/engine"
+	cstore "github.com/ritme/backend-go/internal/conditions/store"
 	"github.com/ritme/backend-go/internal/contraception"
 	"github.com/ritme/backend-go/internal/cycle/engine"
 	"github.com/ritme/backend-go/internal/cycle/legacy"
@@ -18,9 +23,13 @@ import (
 	"github.com/ritme/backend-go/internal/cycle/state"
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
 	"github.com/ritme/backend-go/internal/enums"
+	"github.com/ritme/backend-go/internal/healthlog"
+	"github.com/ritme/backend-go/internal/menopause"
+	"github.com/ritme/backend-go/internal/messages/conditionnudges"
 	"github.com/ritme/backend-go/internal/messages/facts"
 	"github.com/ritme/backend-go/internal/messages/feed"
 	"github.com/ritme/backend-go/internal/messages/manager"
+	"github.com/ritme/backend-go/internal/messages/menomessages"
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts/inboxalerts"
 	"github.com/ritme/backend-go/internal/messages/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -60,6 +69,7 @@ type StoreSource struct {
 	segs          SegmentResolver // T-M10-32: the saved admin segments (nil = the `segment` fact is empty)
 	pregAlert     *facts.PregnancyAlertInput
 	pregAlertDone bool
+	mods          *ModuleReads // T-M10-09b: the meno.* / cond.* reads (nil = the installed ones)
 }
 
 // SegmentResolver lists the ids of the saved admin segments a user matches at now (admin/segments.Resolver, T-M10-32).
@@ -566,4 +576,200 @@ func (s *StoreSource) markVitals(ctx context.Context, bp, glucose *vitals.Readin
 		glucose.Targets[t.Context] = vitals.TargetFromRow(vstore.VitalTarget(t))
 	}
 	return nil
+}
+
+// ---- Menopause and condition nudge facts (T-M10-09b, D-166) ----
+//
+// The meno.* and cond.* facts read other modules (the menopause signals, the condition enrolments and the day logs)
+// through ModuleReads, which the route mount installs once (InstallModuleReads), as the feed's inbox and challenges
+// are installed. Without them both groups stay absent (every meno.* / cond.* rule silent), as before T-M10-09b.
+
+// ModuleReads are the module reads behind the meno.* and cond.* facts.
+type ModuleReads struct {
+	meno menomessages.SignalSource // *menopause.Service
+	cq   cstore.Querier
+	logs *healthlog.Service
+}
+
+// NewModuleReads wires the reads on db; meno is the menopause signal source (*menopause.Service on the same db).
+func NewModuleReads(db store.DBTX, meno menomessages.SignalSource) *ModuleReads {
+	return &ModuleReads{meno: meno, cq: cstore.New(db), logs: healthlog.NewService(db)}
+}
+
+type moduleReadsBox struct{ m *ModuleReads }
+
+var installedModuleReads atomic.Pointer[moduleReadsBox]
+
+// InstallModuleReads makes m the module reads of every StoreSource without its own (WithModuleReads); nil uninstalls.
+func InstallModuleReads(m *ModuleReads) {
+	if m == nil {
+		installedModuleReads.Store(nil)
+		return
+	}
+	installedModuleReads.Store(&moduleReadsBox{m: m})
+}
+
+// WithModuleReads sets this source's module reads (instead of the installed ones).
+func (s *StoreSource) WithModuleReads(m *ModuleReads) *StoreSource {
+	s.mods = m
+	return s
+}
+
+func (s *StoreSource) moduleReads() *ModuleReads {
+	if s.mods != nil {
+		return s.mods
+	}
+	if b := installedModuleReads.Load(); b != nil {
+		return b.m
+	}
+	return nil
+}
+
+// menoDefaultLocale is the language of the checkup titles of a request in no known language (the jobs): the default
+// language when no row says otherwise (i18n.Languages.DefaultCode).
+const menoDefaultLocale = "fa"
+
+// MenopauseInput implements facts.MenopauseSource: the menopause signals (menopause.Service.Signals, the GET's own
+// detection) as the meno.* input (menomessages.Input), checkup titles in locale. A user whose stored life mode is not
+// menopause can never be in menopause mode (enums.ResolveLifeMode): she gets the «nothing» input without a read, so
+// her open meno.* rows resolve and the feed pays nothing for her.
+func (s *StoreSource) MenopauseInput(ctx context.Context, day civildate.Date, locale string) (*facts.MenopauseInput, error) {
+	m := s.moduleReads()
+	if m == nil || m.meno == nil {
+		return nil, nil
+	}
+	row, err := s.factProfile(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if row == nil || row.LifeMode.String != string(enums.LifeModeMenopause) {
+		mode := enums.LifeModeCycle
+		if row != nil {
+			mode = enums.ResolveLifeMode(row.LifeMode.String, row.PregnancyActive != 0, row.UserGoal.String)
+		}
+		return menomessages.Input(menopause.Signals{Mode: mode, Date: day}, nil), nil
+	}
+	now := s.alertNow()
+	if civildate.InTehran(now) != day {
+		now = day.TehranMidnight().Add(12 * time.Hour)
+	}
+	sig, err := m.meno.Signals(ctx, s.userID, now)
+	if err != nil {
+		return nil, fmt.Errorf("messages: menopause signals: %w", err)
+	}
+	if locale == "" {
+		locale = menoDefaultLocale
+	}
+	lang := checkups.Lang{Locale: locale, Default: menoDefaultLocale}
+	title := func(it *chkengine.Item) string {
+		if sig.Plan == nil {
+			return ""
+		}
+		t, _ := sig.Plan.ItemJSON(*it, lang).Get("title")
+		str, _ := t.(string)
+		return str
+	}
+	return menomessages.Input(sig, title), nil
+}
+
+// condNudgedModes are the life modes the condition nudges run in (conditionnudges' nudged modes): outside them the
+// cond.* input is «nothing» without a read.
+var condNudgedModes = []string{string(enums.LifeModeCycle), string(enums.LifeModeTTC), string(enums.LifeModeTeen)}
+
+// ConditionInput implements facts.ConditionSource: the condition nudge input of the source's today, read as the
+// nudges GET reads it (conditionnudges.Engine): under an engine source the engine's mode and current cycle (the
+// shared state, no extra read), else the v1 mode and window; then the enrolments and the day logs of the window.
+func (s *StoreSource) ConditionInput(ctx context.Context) (*facts.ConditionInput, error) {
+	m := s.moduleReads()
+	if m == nil {
+		return nil, nil
+	}
+	f := conditionnudges.Facts{Enrolled: map[string]bool{}}
+	if s.states != nil {
+		st, err := s.EngineState(ctx)
+		if err != nil {
+			return nil, err
+		}
+		f.Mode = st.Mode().String()
+		if slices.Contains(condNudgedModes, f.Mode) {
+			if from, to, ok := conditionnudges.EngineCycleWindow(st, s.today); ok {
+				f.From, f.To = from, to
+			}
+		}
+	} else {
+		mode, err := m.logs.LifeMode(ctx, s.userID)
+		if err != nil {
+			return nil, fmt.Errorf("messages: condition facts: %w", err)
+		}
+		f.Mode = mode
+		if slices.Contains(condNudgedModes, f.Mode) {
+			if f.From, f.To, err = s.v1CycleWindow(ctx); err != nil {
+				return nil, err
+			}
+		}
+	}
+	if f.From.IsZero() || !s.loggedSince(ctx, f.From, f.To) {
+		// Nothing to nudge: no current cycle (the GET skips the reads too), or no log day in it — the fact profile row
+		// (read anyway) says so, which keeps a warm feed at its query budget. cond.programs is then empty, as outside a
+		// current cycle.
+		return conditionnudges.Input(f), nil
+	}
+	rows, err := m.cq.ListEnrolments(ctx, s.userID)
+	if err != nil {
+		return nil, fmt.Errorf("messages: condition enrolments: %w", err)
+	}
+	for _, r := range rows {
+		f.Enrolled[r.Program] = true
+	}
+	if f.Days, err = m.logs.Range(ctx, s.userID, f.From, f.To); err != nil {
+		return nil, fmt.Errorf("messages: condition day logs: %w", err)
+	}
+	return conditionnudges.Input(f), nil
+}
+
+// v1CycleWindow is the nudges' v1 current cycle (conditionnudges.CycleWindow): the latest period start on or before
+// today of the profile and the cycle histories, else the profile's cycle length.
+func (s *StoreSource) v1CycleWindow(ctx context.Context) (civildate.Date, civildate.Date, error) {
+	row, err := s.profile(ctx)
+	if err != nil {
+		return civildate.Date{}, civildate.Date{}, err
+	}
+	var latest *civildate.Date
+	cycleLen := 0
+	if row != nil {
+		if row.CycleDuration.Valid {
+			cycleLen = int(row.CycleDuration.Int16)
+		}
+		if d := row.LastPeriodStart; d.Valid && !d.Date.After(s.today) {
+			latest = &d.Date
+		}
+	}
+	histories, err := s.q.ListMessageCycleHistories(ctx, s.userID)
+	if err != nil {
+		return civildate.Date{}, civildate.Date{}, fmt.Errorf("messages: cycle histories: %w", err)
+	}
+	for _, h := range histories {
+		if d := h.PeriodStartDate; !d.After(s.today) && (latest == nil || d.After(*latest)) {
+			latest = &d
+		}
+	}
+	from, to := conditionnudges.CycleWindow(s.today, latest, cycleLen)
+	return from, to, nil
+}
+
+// loggedSince reports whether the user may have a log day in [from, to]: false only when the fact profile row (its
+// newest log day up to the source's today) proves there is none; true when it cannot tell.
+func (s *StoreSource) loggedSince(ctx context.Context, from, to civildate.Date) bool {
+	if to != s.today {
+		return true
+	}
+	row, err := s.factProfile(ctx)
+	if err != nil || row == nil {
+		return true
+	}
+	last, err := scanDay(row.LastLogDate)
+	if err != nil {
+		return true
+	}
+	return !last.IsZero() && !last.Before(from)
 }

@@ -22,7 +22,7 @@ type ConditionInput struct {
 }
 
 // ConditionSource reads a user's condition nudge input on the target day (nil = every fact absent). Any Sources field
-// that also implements it produces the group.
+// that also implements it produces the group (messages.StoreSource, the feed's and the jobs' source, T-M10-09b).
 type ConditionSource interface {
 	ConditionInput(ctx context.Context) (*ConditionInput, error)
 }

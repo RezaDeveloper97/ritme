@@ -41,10 +41,11 @@ type MenopauseInput struct {
 	HRTOn   civildate.Date
 }
 
-// MenopauseSource reads a user's menopause message input on day (nil = no input: every fact absent). Any Sources
-// field that also implements it produces the group (the feed's fact source once it wires the menopause signals).
+// MenopauseSource reads a user's menopause message input on day (nil = no input: every fact absent); locale is the
+// evaluating request's language ("" = unknown: the default language), the language of the checkup titles. Any Sources
+// field that also implements it produces the group (messages.StoreSource, the feed's and the jobs' source, T-M10-09b).
 type MenopauseSource interface {
-	MenopauseInput(ctx context.Context, day civildate.Date) (*MenopauseInput, error)
+	MenopauseInput(ctx context.Context, day civildate.Date, locale string) (*MenopauseInput, error)
 }
 
 // GroupMenopause is the menopause message producer group.
@@ -95,7 +96,7 @@ func init() {
 		if !ok {
 			return nil, nil
 		}
-		in, err := src.MenopauseInput(ctx, f.today)
+		in, err := src.MenopauseInput(ctx, f.today, f.locale)
 		if err != nil || in == nil {
 			return nil, err
 		}

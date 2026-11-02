@@ -2704,3 +2704,9 @@ Nothing needed fixing.
 - `entities/alert` (types, view model, boundary parser, keys, cursor list + ack/visit-note/dismiss) and `screens/alerts` at `/alerts`: open/history tabs, sections urgent → follow_up → suggestion → info, «چی دیدیم / چقدر مطمئنیم» evidence, call button for phone contacts, urgent cards can't close until acknowledged.
 - `/pregnancy/alerts` redirects to `/alerts`; `screens/pregnancy-alerts` removed. Home bell (cycle + menopause homes) from `GET /messages/feed` alert counts, shown only with ≥1 open item, rose when urgent. No module flag hides it (safety alerts never switchable). New `alerts` namespace (fa/en, copied to backend translations); steiger override for entities/alert like voice-log.
 - Open: no light/dark screenshots; bell hidden where the feed is unavailable (Laravel); old level legend and "last 7 days" note replaced by a disclaimer.
+
+## T-M10-09b — Feed and jobs see meno.* and cond.* facts
+- `messages.StoreSource` implements `facts.MenopauseSource` / `facts.ConditionSource` through installed `ModuleReads` (`InstallModuleReads`, same pattern as feed.InstallInbox); wired once in routes_messages.go, so feed, BuildFacts (sweep, push, admin preview) and challenges all see meno.*/cond.*.
+- Non-menopause users pay no extra query; condition reads skipped when there is no log day in the current cycle (`cond.programs` = [] then). Feed budget ≤ 3 + auth for a cycle user.
+- Int tests: menopause stage tip + bleeding inbox row from the feed alone; heavy-bleeding nudge from the feed, resolved by enrolment.
+- Open: condition fact loading duplicated from conditionnudges (unexported); a menopause user's feed pays the full Signals read set; TestFeedInt_Budget p95 can flake under parallel load.

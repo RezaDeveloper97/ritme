@@ -3,10 +3,10 @@ id: T-M10-09b
 title: Feed and jobs see meno.* and cond.* facts (StoreSource implements Menopause/Condition sources)
 milestone: M10
 type: backend
-status: todo
+status: done
 depends_on: [T-M10-09]
 parallel_group: M10-B
-touches: [backend-go/internal/messages/source.go,backend-go/internal/messages/facts]
+touches: [backend-go/internal/http/routes_messages.go, backend-go/internal/messages/modulefacts_int_test.go, backend-go/internal/messages/feed_int_test.go, backend-go/internal/messages/source.go,backend-go/internal/messages/facts]
 skills: []
 verify: cd backend-go && go vet ./... && go test ./internal/messages/... && make test-int PKG="./internal/messages/..."
 ---

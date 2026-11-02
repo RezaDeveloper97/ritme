@@ -111,6 +111,7 @@ func init() {
 		// Menopause alerts and stage tips (CB-MENO-12): Go-only, D-43. Facts from the menopause API's rules, texts
 		// from its catalog and message_contents group menopause_message.
 		cat := catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger)
+		messages.InstallModuleReads(messages.NewModuleReads(d.DB, menopause.NewService(d.DB, cat))) // T-M10-09b: meno.*/cond.* facts in the feed and the inbox jobs
 		meno := menomessages.NewHandlers(d.DB, menopause.NewService(d.DB, cat), clock.Real{})
 		r.Get(p+"/menopause", locale, guard, meno.Index)
 	})

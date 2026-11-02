@@ -408,7 +408,7 @@ func TestFeedInt_Budget(t *testing.T) {
 	}
 	configcache.Changed(context.Background(), rules.Table)
 	require.Equal(t, 200, e.count(`SELECT COUNT(*) FROM message_rules WHERE is_active = 1 AND (rule_key IS NULL OR (rule_key NOT LIKE 'preg.%' AND rule_key NOT LIKE 'meno.%' AND rule_key NOT LIKE 'cond.%'))`)) // the 00113 preg.* inbox rules are not feed rules
-	for range 3 {                                                                                                                                 // warm: rules compiled, engine state cached, marks set
+	for range 3 {                                                                                                                                                                                                 // warm: rules compiled, engine state cached, marks set
 		st, body, _ := e.call(fiber.MethodGet, "/api/v1/messages/feed", feedDay1, nil)
 		require.Equal(t, 200, st, body)
 	}
