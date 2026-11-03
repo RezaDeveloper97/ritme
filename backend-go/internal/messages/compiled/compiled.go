@@ -49,6 +49,9 @@ type Compiled struct {
 	Fingerprint string
 	// Errors are the rows that failed to compile and were skipped.
 	Errors []RuleError `json:"-"`
+	// Rows are the source rows a Cache compiled this snapshot from (nil outside a Cache); shared, read-only. The feed
+	// reads the translations off them instead of a second rows read (T-M9-49b).
+	Rows []store.MessageRule `json:"-"`
 
 	slots map[string]*rules.Slot // the slot table at compile time (a pointer per slot: Select copies nothing)
 }

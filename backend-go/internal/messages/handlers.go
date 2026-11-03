@@ -37,17 +37,16 @@ import (
 // Handlers are the MessageController actions. Mount them behind auth RequireUser and the
 // locale middleware.
 type Handlers struct {
-	q        *store.Queries
-	pq       *pstore.Queries
-	clock    clock.Clock
-	accounts *companion.Accounts // B-N4-03: a companion (male) account has no daily cycle messages → 409
-	pp       PostpartumSignals   // B-N5-01: the postpartum engine's facts
-	states   state.UserStates    // T-M9-38: the v6 engine state source (nil = CYCLE_ENGINE=v1)
-	zones    zoneStore           // T-M9-38b: a user's stored zone (admin preview of another user's day)
-	feed     *feed.Service       // T-M10-06: the message feed (GET /messages/feed, /messages/selected)
-	writer   *events.Writer      // T-M10-06: the buffered event log (nil = synchronous inserts)
-	marks    *events.Marks       // T-M10-06: once-a-day marks of server-logged events (nil = DB check)
-	segs     SegmentResolver     // T-M10-32: the `segment` fact (nil = empty set)
+	q      *store.Queries
+	pq     *pstore.Queries
+	clock  clock.Clock
+	pp     PostpartumSignals // B-N5-01: the postpartum engine's facts
+	states state.UserStates  // T-M9-38: the v6 engine state source (nil = CYCLE_ENGINE=v1)
+	zones  zoneStore         // T-M9-38b: a user's stored zone (admin preview of another user's day)
+	feed   *feed.Service     // T-M10-06: the message feed (GET /messages/feed, /messages/selected)
+	writer *events.Writer    // T-M10-06: the buffered event log (nil = synchronous inserts)
+	marks  *events.Marks     // T-M10-06: once-a-day marks of server-logged events (nil = DB check)
+	segs   SegmentResolver   // T-M10-32: the `segment` fact (nil = empty set)
 }
 
 // WithSegments wires the saved admin segments behind the `segment` fact (T-M10-32).
@@ -79,7 +78,7 @@ func (h *Handlers) WithEngine(states state.UserStates) *Handlers {
 func NewHandlers(db store.DBTX, base clock.Clock) *Handlers {
 	q := store.New(db)
 	return &Handlers{
-		q: q, pq: pstore.New(db), clock: base, accounts: companion.NewAccounts(db), pp: postpartum.NewService(db),
+		q: q, pq: pstore.New(db), clock: base, pp: postpartum.NewService(db),
 		zones: profilestore.New(db), feed: feed.New(q, nil, nil, nil),
 	}
 }
@@ -119,8 +118,15 @@ func (h *Handlers) requestOf(c fiber.Ctx, deferCompanion bool) (*manager.Manager
 	if !ok {
 		return nil, nil, "", civildate.Date{}, &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
 	}
+	locale := i18n.ResolveLocale(c, "")
+	today := civildate.Today(clock.FromContext(c, h.clock))
+	if h.states != nil { // v6: the user-local day, as every engine consumer (D-126)
+		today = civildate.LocalToday(c, clock.FromContext(c, h.clock))
+	}
+	src := NewStoreSource(h.q, h.pq, uid, today).WithEngine(h.states).WithSegments(h.segs)
 	if !deferCompanion {
-		is, err := h.accounts.IsCompanion(c.Context(), uid)
+		// T-M9-49b: off the source's account row, which the profile, life mode and pregnancy reads reuse.
+		is, err := src.IsCompanion(c.Context())
 		if err != nil {
 			return nil, nil, "", civildate.Date{}, err
 		}
@@ -128,12 +134,6 @@ func (h *Handlers) requestOf(c fiber.Ctx, deferCompanion bool) (*manager.Manager
 			return nil, nil, "", civildate.Date{}, companion.AccountConflict(i18n.Locale(c))
 		}
 	}
-	locale := i18n.ResolveLocale(c, "")
-	today := civildate.Today(clock.FromContext(c, h.clock))
-	if h.states != nil { // v6: the user-local day, as every engine consumer (D-126)
-		today = civildate.LocalToday(c, clock.FromContext(c, h.clock))
-	}
-	src := NewStoreSource(h.q, h.pq, uid, today).WithEngine(h.states).WithSegments(h.segs)
 	return manager.New(WithPostpartum(src, h.pp), content.NewRepository(h.q), locale, today), src, locale, today, nil
 }
 

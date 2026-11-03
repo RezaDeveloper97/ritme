@@ -179,7 +179,6 @@ func (s *Service) Sync(ctx context.Context, comp *compiled.Compiled, userID uint
 	if len(comp.BySlot[Slot]) == 0 && open == 0 {
 		return nil, nil
 	}
-	winners := comp.Select(Slot, f, nil, userID, now)
 	var rows []store.ListUserOpenInboxRow
 	if open != 0 {
 		var err error
@@ -187,6 +186,17 @@ func (s *Service) Sync(ctx context.Context, comp *compiled.Compiled, userID uint
 			return nil, fmt.Errorf("inbox: open rows: %w", err)
 		}
 	}
+	return s.SyncRows(ctx, comp, userID, f, now, rows)
+}
+
+// SyncRows is Sync over the open rows the caller already read (feed.RowSyncer, T-M9-49b).
+func (s *Service) SyncRows(ctx context.Context, comp *compiled.Compiled, userID uint64, f rules.Facts, now time.Time,
+	rows []store.ListUserOpenInboxRow,
+) ([]feed.OpenAlert, error) {
+	if len(comp.BySlot[Slot]) == 0 && len(rows) == 0 {
+		return nil, nil
+	}
+	winners := comp.Select(Slot, f, nil, userID, now)
 	if len(winners) == 0 && len(rows) == 0 {
 		return nil, nil
 	}

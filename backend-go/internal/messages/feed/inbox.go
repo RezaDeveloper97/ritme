@@ -48,6 +48,12 @@ type Inbox interface {
 	Sync(ctx context.Context, comp *compiled.Compiled, userID uint64, f rules.Facts, now time.Time, open int64) ([]OpenAlert, error)
 }
 
+// RowSyncer is an Inbox that can diff with open rows the caller already read (ListUserOpenInbox's rows, by id).
+type RowSyncer interface {
+	SyncRows(ctx context.Context, comp *compiled.Compiled, userID uint64, f rules.Facts, now time.Time,
+		rows []store.ListUserOpenInboxRow) ([]OpenAlert, error)
+}
+
 var inboxErrors = prometheus.NewCounter(prometheus.CounterOpts{
 	Name: "messages_feed_inbox_errors_total",
 	Help: "Feed builds whose alerts inbox evaluation failed (the feed answered with the counts read before it).",

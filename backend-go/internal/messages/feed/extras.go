@@ -55,7 +55,11 @@ func extrasOf(ctx context.Context, q store.Querier, comp *compiled.Compiled) *ex
 	}
 	// The translations live in the raw content JSON (rules.Content does not carry them); the rows come from the same
 	// process snapshot compiled.Load read, so this costs no query once warm.
-	if rows, err := rules.ActiveRows(ctx, q, ""); err == nil {
+	rows, err := comp.Rows, error(nil)
+	if rows == nil { // T-M9-49b: a snapshot built outside a Cache
+		rows, err = rules.ActiveRows(ctx, q, "")
+	}
+	if err == nil {
 		for i := range rows {
 			if t := parseTranslations(rows[i].Content); len(t) > 0 {
 				x.translations[rows[i].ID] = t

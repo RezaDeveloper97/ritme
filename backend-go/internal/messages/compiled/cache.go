@@ -62,6 +62,7 @@ func (c *Cache) Get(ctx context.Context, load RowsLoader) (*Compiled, error) {
 			return nil, err
 		}
 		compileErrors.Add(float64(len(comp.Errors)))
+		comp.Rows = rows
 		comp.Rev = c.rev.Add(1)
 		revGauge.Set(float64(comp.Rev))
 		c.cur.Store(comp)

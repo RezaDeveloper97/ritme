@@ -80,7 +80,27 @@ SELECT
   -- T-M10-10: the user's challenge runs (every status: a joined challenge is never a product candidate again) as a
   -- JSON list [{"id", "started_on", "status"}] for the feed's daily_challenge slot — no extra query (NULL = none).
   (SELECT CAST(JSON_ARRAYAGG(JSON_OBJECT('id', ce.challenge_id, 'started_on', ce.started_on, 'status', ce.status)) AS CHAR)
-    FROM ` + "`" + `challenge_enrollments` + "`" + ` ce WHERE ce.user_id = u.id) AS challenge_runs
+    FROM ` + "`" + `challenge_enrollments` + "`" + ` ce WHERE ce.user_id = u.id) AS challenge_runs,
+  -- T-M9-49b: the condition programs she is enrolled in (ListEnrolments' programs) as a JSON list (NULL = none), so
+  -- the cond.* facts cost no enrolment read.
+  (SELECT CAST(JSON_ARRAYAGG(en.program) AS CHAR)
+    FROM ` + "`" + `condition_enrolments` + "`" + ` en WHERE en.user_id = u.id) AS condition_programs,
+  -- T-M9-49b: the pain-location and bleeding-flow entries of [cond_since, today] — the only entries the condition
+  -- nudges' day rules read — as [[log_date, category, param, item, value_code, value_num]] (any order: the day rules
+  -- group by day; NULL = none): a current cycle window inside it needs no day-log read.
+  (SELECT CAST(JSON_ARRAYAGG(JSON_ARRAY(DATE_FORMAT(e.log_date, '%Y-%m-%d'), e.category, e.param, e.item, e.value_code,
+      CAST(e.value_num AS CHAR))) AS CHAR)
+    FROM ` + "`" + `health_log_entries` + "`" + ` e
+    WHERE e.user_id = u.id AND e.log_date >= ? AND e.log_date <= ?
+      AND ((e.category = 'pain' AND e.param = 'location') OR (e.category = 'bleeding' AND e.param = 'flow'))) AS cond_entries,
+  -- T-M9-49b: the open inbox rows (ListUserOpenInbox's columns, any order — the reader sorts by id; timestamps as Tehran wall-clock text) as a
+  -- JSON list (NULL = none), so the feed's inbox evaluation diffs without reading them again.
+  (SELECT CAST(JSON_ARRAYAGG(JSON_OBJECT('id', i.id, 'user_id', i.user_id, 'rule_id', i.rule_id, 'version', i.version,
+      'rule_key', i.rule_key, 'kind', i.kind, 'level', i.level, 'state', i.state, 'evidence_key', i.evidence_key,
+      'hit_count', i.hit_count, 'evidence', i.evidence,
+      'first_at', DATE_FORMAT(i.first_at, '%Y-%m-%d %H:%i:%s'), 'last_at', DATE_FORMAT(i.last_at, '%Y-%m-%d %H:%i:%s'),
+      'acked_at', DATE_FORMAT(i.acked_at, '%Y-%m-%d %H:%i:%s'), 'noted_at', DATE_FORMAT(i.noted_at, '%Y-%m-%d %H:%i:%s'))) AS CHAR)
+    FROM ` + "`" + `message_inbox` + "`" + ` i WHERE i.user_id = u.id AND i.open_flag = 1) AS inbox_rows
 FROM ` + "`" + `users` + "`" + ` u
 LEFT JOIN ` + "`" + `user_profiles` + "`" + ` p ON p.id = (SELECT MIN(p2.id) FROM ` + "`" + `user_profiles` + "`" + ` p2 WHERE p2.user_id = u.id)
 LEFT JOIN ` + "`" + `user_life_profiles` + "`" + ` lp ON lp.user_id = u.id
@@ -90,10 +110,11 @@ WHERE u.id = ?
 `
 
 type GetMessageFactProfileParams struct {
-	Today  civildate.Date
-	Since  civildate.Date
-	Now    time.Time
-	UserID uint64
+	Today     civildate.Date
+	Since     civildate.Date
+	Now       time.Time
+	CondSince civildate.Date
+	UserID    uint64
 }
 
 type GetMessageFactProfileRow struct {
@@ -117,6 +138,9 @@ type GetMessageFactProfileRow struct {
 	InboxOpen           int64
 	InboxUrgent         int64
 	ChallengeRuns       interface{}
+	ConditionPrograms   interface{}
+	CondEntries         interface{}
+	InboxRows           interface{}
 }
 
 // Message fact registry v6 (T-M10-03, D-161): the small read-only queries behind the lazy fact producers
@@ -139,6 +163,8 @@ func (q *Queries) GetMessageFactProfile(ctx context.Context, arg GetMessageFactP
 		arg.Now,
 		arg.Now,
 		arg.Now,
+		arg.CondSince,
+		arg.Today,
 		arg.UserID,
 	)
 	var i GetMessageFactProfileRow
@@ -163,6 +189,9 @@ func (q *Queries) GetMessageFactProfile(ctx context.Context, arg GetMessageFactP
 		&i.InboxOpen,
 		&i.InboxUrgent,
 		&i.ChallengeRuns,
+		&i.ConditionPrograms,
+		&i.CondEntries,
+		&i.InboxRows,
 	)
 	return i, err
 }

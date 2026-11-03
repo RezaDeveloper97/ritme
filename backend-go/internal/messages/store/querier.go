@@ -29,6 +29,10 @@ type Querier interface {
 	DismissInboxItem(ctx context.Context, arg DismissInboxItemParams) (int64, error)
 	// The day's visit note the «add to visit note» action appends to (pregnancy_daily_extras, as the pregnancy alerts did).
 	GetInboxVisitNote(ctx context.Context, arg GetInboxVisitNoteParams) (sql.NullString, error)
+	// T-M9-49b: the daily's account reads in one row — the companion check (GetUserGender), the stored life mode
+	// (GetMessageLifeMode), $user->profile (GetMessageProfile's columns; profile_id NULL = no row) and whether any
+	// pregnancy profile exists (the pregnancy profile is read only then).
+	GetMessageAccount(ctx context.Context, userID uint64) (GetMessageAccountRow, error)
 	// HealthDataEngine::dailyLogFor(): $user->dailyHealthLogs()->whereDate('log_date', $date)->first().
 	// Only the columns MessageManager::extractSymptoms can read exist here (see messages/manager).
 	GetMessageDailyLog(ctx context.Context, arg GetMessageDailyLogParams) (GetMessageDailyLogRow, error)

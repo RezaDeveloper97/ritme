@@ -70,6 +70,11 @@ type StoreSource struct {
 	pregAlert     *facts.PregnancyAlertInput
 	pregAlertDone bool
 	mods          *ModuleReads // T-M10-09b: the meno.* / cond.* reads (nil = the installed ones)
+	acct          *store.GetMessageAccountRow
+	acctLoaded    bool
+	recent        []store.ListMessageRecentLogsRow // the last recent-logs window read (recentFrom..recentTo)
+	recentFrom    civildate.Date
+	recentTo      civildate.Date
 }
 
 // SegmentResolver lists the ids of the saved admin segments a user matches at now (admin/segments.Resolver, T-M10-32).
@@ -100,17 +105,48 @@ func NewStoreSource(q store.Querier, pq pstore.Querier, userID uint64, today civ
 	return &StoreSource{q: q, pq: pq, userID: userID, today: today}
 }
 
+// account is the account row (T-M9-49b): the gender, the stored life mode, the profile and whether a pregnancy
+// profile exists in one read. nil = no user row.
+func (s *StoreSource) account(ctx context.Context) (*store.GetMessageAccountRow, error) {
+	if s.acctLoaded {
+		return s.acct, nil
+	}
+	row, err := s.q.GetMessageAccount(ctx, s.userID)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+	case err != nil:
+		return nil, fmt.Errorf("messages: load account: %w", err)
+	default:
+		s.acct = &row
+	}
+	s.acctLoaded = true
+	return s.acct, nil
+}
+
+// IsCompanion is companion.Accounts.IsCompanion off the account row: gender male. No row or no gender = a woman's
+// account.
+func (s *StoreSource) IsCompanion(ctx context.Context) (bool, error) {
+	a, err := s.account(ctx)
+	if err != nil || a == nil {
+		return false, err
+	}
+	return a.Gender.Valid && a.Gender.String == string(enums.GenderMale), nil
+}
+
 func (s *StoreSource) profile(ctx context.Context) (*store.GetMessageProfileRow, error) {
 	if s.profileLoaded {
 		return s.profileRow, nil
 	}
-	row, err := s.q.GetMessageProfile(ctx, s.userID)
-	switch {
-	case errors.Is(err, sql.ErrNoRows):
-	case err != nil:
+	a, err := s.account(ctx)
+	if err != nil {
 		return nil, fmt.Errorf("messages: load profile: %w", err)
-	default:
-		s.profileRow = &row
+	}
+	if a != nil && a.ProfileID.Valid {
+		s.profileRow = &store.GetMessageProfileRow{
+			ID: uint64(a.ProfileID.Int64), Birthday: a.Birthday, PeriodDuration: a.PeriodDuration, //nolint:gosec // auto-increment id
+			CycleDuration: a.CycleDuration, LastPeriodStart: a.LastPeriodStart, UserGoal: a.UserGoal.String,
+			SubscriptionType: a.SubscriptionType.String,
+		}
 	}
 	s.profileLoaded = true
 	return s.profileRow, nil
@@ -132,11 +168,14 @@ func (s *StoreSource) Profile(ctx context.Context) (*manager.Profile, error) {
 // LifeMode implements manager.LifeModeSource (B-N2-01): the stored life-stage mode, "" when none.
 func (s *StoreSource) LifeMode(ctx context.Context) (string, error) {
 	if !s.lifeLoaded {
-		v, err := s.q.GetMessageLifeMode(ctx, s.userID)
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		a, err := s.account(ctx)
+		if err != nil {
 			return "", fmt.Errorf("messages: life mode: %w", err)
 		}
-		s.lifeMode, s.lifeLoaded = v.String, true
+		if a != nil {
+			s.lifeMode = a.LifeMode.String
+		}
+		s.lifeLoaded = true
 	}
 	return s.lifeMode, nil
 }
@@ -144,6 +183,12 @@ func (s *StoreSource) LifeMode(ctx context.Context) (string, error) {
 // PregnancyProfile implements manager.Source.
 func (s *StoreSource) PregnancyProfile(ctx context.Context) (*pstore.PregnancyProfile, error) {
 	if !s.pregLoaded {
+		if a, err := s.account(ctx); err != nil {
+			return nil, err
+		} else if a == nil || a.HasPregnancyProfile == 0 { // no pregnancy profile row: nothing to read
+			s.pregLoaded = true
+			return nil, nil
+		}
 		p, err := pregnancy.LoadProfile(ctx, s.pq, s.userID)
 		if err != nil {
 			return nil, err
@@ -164,22 +209,25 @@ func logFromColumns(energy, sleep sql.NullString) manager.Log {
 	return manager.NewLog(map[string]any{"energy_level": str(energy), "sleep_quality": str(sleep)})
 }
 
-// DailyLog implements manager.Source.
+// DailyLog implements manager.Source: the date's row of the 90-day recent logs window ending on date (T-M9-49b: the
+// manager reads both, so one query answers them; (user_id, log_date) is unique).
 func (s *StoreSource) DailyLog(ctx context.Context, date civildate.Date) (*manager.Log, error) {
-	row, err := s.q.GetMessageDailyLog(ctx, store.GetMessageDailyLogParams{UserID: s.userID, LogDate: date})
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
+	rows, err := s.recentRows(ctx, date.AddDays(-90), date)
 	if err != nil {
 		return nil, fmt.Errorf("messages: load daily log: %w", err)
 	}
-	l := logFromColumns(row.EnergyLevel, row.SleepQuality)
-	return &l, nil
+	for _, r := range rows {
+		if r.LogDate.Compare(date) == 0 {
+			l := logFromColumns(r.EnergyLevel, r.SleepQuality)
+			return &l, nil
+		}
+	}
+	return nil, nil
 }
 
 // RecentLogs implements manager.Source.
 func (s *StoreSource) RecentLogs(ctx context.Context, from, to civildate.Date) ([]manager.Log, error) {
-	rows, err := s.q.ListMessageRecentLogs(ctx, store.ListMessageRecentLogsParams{UserID: s.userID, DateFrom: from, DateTo: to})
+	rows, err := s.recentRows(ctx, from, to)
 	if err != nil {
 		return nil, fmt.Errorf("messages: load recent logs: %w", err)
 	}
@@ -188,6 +236,19 @@ func (s *StoreSource) RecentLogs(ctx context.Context, from, to civildate.Date) (
 		out[i] = logFromColumns(r.EnergyLevel, r.SleepQuality)
 	}
 	return out, nil
+}
+
+// recentRows is ListMessageRecentLogs of [from, to], memoised for the last window read.
+func (s *StoreSource) recentRows(ctx context.Context, from, to civildate.Date) ([]store.ListMessageRecentLogsRow, error) {
+	if s.recent != nil && s.recentFrom == from && s.recentTo == to {
+		return s.recent, nil
+	}
+	rows, err := s.q.ListMessageRecentLogs(ctx, store.ListMessageRecentLogsParams{UserID: s.userID, DateFrom: from, DateTo: to})
+	if err != nil {
+		return nil, err
+	}
+	s.recent, s.recentFrom, s.recentTo = rows, from, to
+	return rows, nil
 }
 
 // Cycle implements manager.Source: HealthDataEngine::calculateForDate in calendar mode (the
@@ -328,7 +389,7 @@ func (s *StoreSource) factProfile(ctx context.Context) (*store.GetMessageFactPro
 		now = s.today.TehranMidnight()
 	}
 	row, err := s.q.GetMessageFactProfile(ctx, store.GetMessageFactProfileParams{
-		UserID: s.userID, Now: now, Today: s.today, Since: s.logsSince(),
+		UserID: s.userID, Now: now, Today: s.today, Since: s.logsSince(), CondSince: s.condSince(),
 	})
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
@@ -434,6 +495,9 @@ func (s *StoreSource) alertNow() time.Time {
 
 // logsSince is the first day of the logs_30d window of the source's today.
 func (s *StoreSource) logsSince() civildate.Date { return s.today.AddDays(-29) }
+
+// condSince is the first day of the condition entries the fact profile row carries (T-M9-49b).
+func (s *StoreSource) condSince() civildate.Date { return s.today.AddDays(-condLookbackDays) }
 
 // scanDay reads a MAX(date) column (nil = no row).
 func scanDay(v any) (civildate.Date, error) {
@@ -714,15 +778,33 @@ func (s *StoreSource) ConditionInput(ctx context.Context) (*facts.ConditionInput
 		// current cycle.
 		return conditionnudges.Input(f), nil
 	}
-	rows, err := m.cq.ListEnrolments(ctx, s.userID)
-	if err != nil {
-		return nil, fmt.Errorf("messages: condition enrolments: %w", err)
+	// T-M9-49b: the enrolments and the window's day entries off the fact profile row when it carries them.
+	row, _ := s.factProfile(ctx)
+	programs, ok := []string(nil), false
+	if row != nil {
+		programs, ok = parsePrograms(row.ConditionPrograms)
 	}
-	for _, r := range rows {
-		f.Enrolled[r.Program] = true
+	if !ok {
+		rows, err := m.cq.ListEnrolments(ctx, s.userID)
+		if err != nil {
+			return nil, fmt.Errorf("messages: condition enrolments: %w", err)
+		}
+		for _, r := range rows {
+			programs = append(programs, r.Program)
+		}
 	}
-	if f.Days, err = m.logs.Range(ctx, s.userID, f.From, f.To); err != nil {
-		return nil, fmt.Errorf("messages: condition day logs: %w", err)
+	for _, p := range programs {
+		f.Enrolled[p] = true
+	}
+	ok = false
+	if row != nil && !f.From.Before(s.condSince()) && !f.To.After(s.today) {
+		f.Days, ok = parseCondEntries(row.CondEntries)
+	}
+	if !ok {
+		var err error
+		if f.Days, err = m.logs.Range(ctx, s.userID, f.From, f.To); err != nil {
+			return nil, fmt.Errorf("messages: condition day logs: %w", err)
+		}
 	}
 	return conditionnudges.Input(f), nil
 }

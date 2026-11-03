@@ -14,6 +14,52 @@ import (
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
+const getMessageAccount = `-- name: GetMessageAccount :one
+SELECT
+  (SELECT lp.gender FROM ` + "`" + `user_life_profiles` + "`" + ` lp WHERE lp.user_id = u.id LIMIT 1) AS gender,
+  (SELECT lp.life_mode FROM ` + "`" + `user_life_profiles` + "`" + ` lp WHERE lp.user_id = u.id LIMIT 1) AS life_mode,
+  p.id AS profile_id, p.birthday, p.period_duration, p.cycle_duration, p.last_period_start, p.user_goal,
+  p.subscription_type,
+  CAST(EXISTS (SELECT 1 FROM ` + "`" + `pregnancy_profiles` + "`" + ` pg WHERE pg.user_id = u.id) AS UNSIGNED) AS has_pregnancy_profile
+FROM ` + "`" + `users` + "`" + ` u
+LEFT JOIN ` + "`" + `user_profiles` + "`" + ` p ON p.id = (SELECT MIN(p2.id) FROM ` + "`" + `user_profiles` + "`" + ` p2 WHERE p2.user_id = u.id)
+WHERE u.id = ?
+`
+
+type GetMessageAccountRow struct {
+	Gender              sql.NullString
+	LifeMode            sql.NullString
+	ProfileID           sql.NullInt64
+	Birthday            civildate.NullDate
+	PeriodDuration      sql.NullInt16
+	CycleDuration       sql.NullInt16
+	LastPeriodStart     civildate.NullDate
+	UserGoal            sql.NullString
+	SubscriptionType    sql.NullString
+	HasPregnancyProfile int64
+}
+
+// T-M9-49b: the daily's account reads in one row — the companion check (GetUserGender), the stored life mode
+// (GetMessageLifeMode), $user->profile (GetMessageProfile's columns; profile_id NULL = no row) and whether any
+// pregnancy profile exists (the pregnancy profile is read only then).
+func (q *Queries) GetMessageAccount(ctx context.Context, userID uint64) (GetMessageAccountRow, error) {
+	row := q.db.QueryRowContext(ctx, getMessageAccount, userID)
+	var i GetMessageAccountRow
+	err := row.Scan(
+		&i.Gender,
+		&i.LifeMode,
+		&i.ProfileID,
+		&i.Birthday,
+		&i.PeriodDuration,
+		&i.CycleDuration,
+		&i.LastPeriodStart,
+		&i.UserGoal,
+		&i.SubscriptionType,
+		&i.HasPregnancyProfile,
+	)
+	return i, err
+}
+
 const getMessageDailyLog = `-- name: GetMessageDailyLog :one
 SELECT id, log_date, energy_level, sleep_quality FROM ` + "`" + `daily_health_logs` + "`" + `
 WHERE user_id = ? AND DATE(log_date) = ? LIMIT 1

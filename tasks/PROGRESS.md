@@ -2720,3 +2720,9 @@ Nothing needed fixing.
 ## T-M10-37 — schema-diff: message_rules row counts from Go-only data seeds
 - `scripts/schema-diff.sh` skips the row count of tables in `go_only_seeds` (`message_rules`); their structure is still diffed. Rule documented in `docs/go-migration/migrations.md`.
 - `make schema-diff`: OK, 239 tables, seed rows equal.
+
+## T-M9-49b — Query budget: messages feed and daily under v6
+- feed v6 cold/warm 16/7 → 13/4; daily v6 14/8 → 10/4 (v1 routes also lower). No budget raised.
+- `GetMessageFactProfile` returns condition programs, condition log entries and open inbox rows as JSON (`internal/messages/prefetch.go`, fallback to the old queries); `inbox.Service.SyncRows`; compiled snapshot keeps its rows for translations; new `GetMessageAccount` (gender, life mode, profile, pregnancy flag in one row).
+- Verify: messages int tests green, messages contract 125/0. querybudget still red only on the analysis cold rows (T-M9-49c).
+- Open: feed v6 cold sits exactly on budget (13); fact profile query is heavier per call (watch in jobs).

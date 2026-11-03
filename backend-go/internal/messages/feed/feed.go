@@ -79,6 +79,9 @@ type Request struct {
 	// ChallengeRuns answers the user's challenge runs off the fact profile row (T-M10-10); nil = no challenge pick
 	// for this request (the daily_challenge slot then holds the rule winners only).
 	ChallengeRuns func(ctx context.Context) (runs []ChallengeRun, ok bool, err error)
+	// OpenRows answers the open inbox rows off a row the request already read (T-M9-49b, the fact profile); ok = false
+	// (or an Inbox without RowSyncer) lets the inbox evaluation read them itself.
+	OpenRows func(ctx context.Context) (rows []store.ListUserOpenInboxRow, ok bool, err error)
 }
 
 // Slot is one slot's answer.
@@ -147,7 +150,7 @@ func (s *Service) Build(ctx context.Context, req Request) (*Result, error) {
 			return nil, err
 		}
 		if evaluate {
-			if o, err := in.Sync(ctx, comp, req.UserID, f, req.Now, res.Alerts.Open); err != nil {
+			if o, err := s.sync(ctx, in, req, comp, f, res.Alerts.Open); err != nil {
 				inboxErrors.Inc()
 			} else {
 				open, res.Alerts = o, countOpen(o)
@@ -211,6 +214,20 @@ func (s *Service) Build(ctx context.Context, req Request) (*Result, error) {
 	}
 	s.logEvents(ctx, req, rows, log)
 	return res, nil
+}
+
+// sync runs the inbox evaluation, on the open rows req already holds when the inbox takes them (T-M9-49b).
+func (s *Service) sync(ctx context.Context, in Inbox, req Request, comp *compiled.Compiled, f rules.Facts, open int64) ([]OpenAlert, error) {
+	if rs, ok := in.(RowSyncer); ok && req.OpenRows != nil && open != 0 {
+		rows, ok, err := req.OpenRows(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			return rs.SyncRows(ctx, comp, req.UserID, f, req.Now, rows)
+		}
+	}
+	return in.Sync(ctx, comp, req.UserID, f, req.Now, open)
 }
 
 // alerts is the open inbox counts: off req.Inbox when it has them, else one CountUserOpenInbox.
