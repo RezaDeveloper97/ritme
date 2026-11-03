@@ -150,7 +150,7 @@ func PregnancyLabeler(own any, cp *Copy) func(string) string {
 
 // copies are the symptom labeler and the top-finding Copy (analysis-pregnancy templates, the analysis number format).
 func (h *PregnancyHandlers) copies(c fiber.Ctx) (func(string) string, *Copy) {
-	locale, def := i18n.Locale(c), h.languages.DefaultCode(c.Context())
+	locale, def := i18n.Locale(c), requestDefaultCode(c, h.languages)
 	own := h.bundles.NamespaceMessages(locale, PregnancyNamespace, def)
 	analysisNS := h.bundles.NamespaceMessages(locale, Namespace, def)
 	taxonomy := h.bundles.NamespaceMessages(locale, healthlog.TaxonomyNamespace, def)

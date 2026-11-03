@@ -122,9 +122,18 @@ func (h *Handlers) info(c fiber.Ctx) (*reqInfo, error) {
 		today = civildate.LocalToday(c, clk) // D-126
 	}
 	ri := &reqInfo{ctx: c.Context(), uid: uid, now: now, today: today, locale: i18n.Locale(c),
-		def: h.languages.DefaultCode(c.Context())}
+		def: requestDefaultCode(c, h.languages)}
 	ri.revs, ri.hasRevs = auth.CurrentRevisions(c)
 	return ri, h.loadEntitlements(ri)
+}
+
+// requestDefaultCode is the default language of the list the locale middleware already loaded for this request, so
+// a cold config cache costs no second languages read (T-M9-49c); without the middleware (Bootstrap) it asks reg.
+func requestDefaultCode(c fiber.Ctx, reg *i18n.Registry) string {
+	if l := i18n.LanguagesOf(c); len(l) > 0 && (len(i18n.Bootstrap) == 0 || &l[0] != &i18n.Bootstrap[0]) {
+		return l.DefaultCode()
+	}
+	return reg.DefaultCode(c.Context())
 }
 
 func (h *Handlers) loadEntitlements(ri *reqInfo) error {

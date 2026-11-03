@@ -45,6 +45,7 @@ var Budgets = []Budget{
 	{"cycle date v6", "/api/v1/cycle/date/:date", "/api/v1/cycle/date/2026-10-25", enums.LifeModeCycle, 8, 1, config.CycleEngineV6},
 	{"cycle month calendar", "/api/v1/cycle/month/:year/:month", "/api/v1/cycle/month/2026/10?view=calendar", enums.LifeModeCycle, 5, 4, ""},
 	// T-M9-49: v6 rows for the month calendar, fertility and analysis summary; every row lowered to the measured count.
+	// T-M9-49c: analysis reads the default language from the locale middleware (one cold query less).
 	{"cycle month calendar v6", "/api/v1/cycle/month/:year/:month", "/api/v1/cycle/month/2026/10?view=calendar", enums.LifeModeCycle, 8, 1, config.CycleEngineV6},
 	{"cycle month full", "/api/v1/cycle/month/:year/:month", "/api/v1/cycle/month/2026/10", enums.LifeModeCycle, 7, 4, ""},
 	{"home", "/api/v1/home", "/api/v1/home", enums.LifeModeCycle, 20, 11, ""},
@@ -76,8 +77,8 @@ var Budgets = []Budget{
 	{"analysis summary", "/api/v1/analysis/summary", "/api/v1/analysis/summary?range=3m", enums.LifeModeCycle, 14, 6, ""},
 	{"fertility insights v6", "/api/v1/fertility/insights", "/api/v1/fertility/insights", enums.LifeModeTTC, 8, 2, config.CycleEngineV6},
 	{"fertility bbt v6", "/api/v1/fertility/bbt", "/api/v1/fertility/bbt", enums.LifeModeTTC, 7, 1, config.CycleEngineV6},
-	{"analysis summary v6", "/api/v1/analysis/summary", "/api/v1/analysis/summary?range=3m", enums.LifeModeCycle, 19, 6, config.CycleEngineV6},
-	{"analysis monthly", "/api/v1/analysis/monthly/:ym", "/api/v1/analysis/monthly/2026-09", enums.LifeModeCycle, 15, 6, ""},
+	{"analysis summary v6", "/api/v1/analysis/summary", "/api/v1/analysis/summary?range=3m", enums.LifeModeCycle, 18, 6, config.CycleEngineV6},
+	{"analysis monthly", "/api/v1/analysis/monthly/:ym", "/api/v1/analysis/monthly/2026-09", enums.LifeModeCycle, 14, 6, ""},
 	{"analysis ttc", "/api/v1/analysis/ttc", "/api/v1/analysis/ttc", enums.LifeModeTTC, 15, 6, ""},
 	{"analysis pregnancy", "/api/v1/analysis/pregnancy", "/api/v1/analysis/pregnancy", enums.LifeModePregnancy, 18, 6, ""},
 }

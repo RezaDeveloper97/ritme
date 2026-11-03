@@ -98,13 +98,15 @@ func meanPtr(values []float64) *float64 {
 // values logged on d−6 … d (days without a value are skipped, not counted as zero). ok is false when
 // none of the 7 days has a value. It damps day-to-day water-weight swings (e.g. before a period).
 func MovingAverage7(values map[civildate.Date]float64, d civildate.Date) (float64, bool) {
-	var window []float64
+	var buf [7]float64 // on the stack: called once per day of the range (T-M9-49c)
+	n := 0
 	for i := 6; i >= 0; i-- {
 		if v, ok := values[d.AddDays(-i)]; ok {
-			window = append(window, v)
+			buf[n] = v
+			n++
 		}
 	}
-	return mean(window)
+	return mean(buf[:n])
 }
 
 // sortedDates returns the keys of a date set in order.

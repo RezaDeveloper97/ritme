@@ -1,6 +1,10 @@
 package analysis
 
 import (
+	"encoding/json"
+	"math"
+	"strconv"
+
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 )
@@ -68,14 +72,19 @@ func delta(values map[civildate.Date]float64, d civildate.Date, back int, curren
 func BuildBody(in *Input) BodyReport {
 	out := BodyReport{Weight: []WeightPoint{}, Weeks: []WeekBucket{}, RangeDays: in.Range.Days()}
 	values := in.weights()
+	if len(values) > 0 { // one backing array for the points and their logged values (T-M9-49c)
+		out.Weight = make([]WeightPoint, 0, max(out.RangeDays, 0))
+	}
+	logged := make([]float64, 0, len(values))
 	for d := in.Range.From; !d.After(in.Range.To); d = d.AddDays(1) {
 		avg, ok := MovingAverage7(values, d)
 		if !ok {
 			continue
 		}
 		p := WeightPoint{Date: d, Avg7: round(avg, 1)}
-		if v, has := values[d]; has {
-			p.Value = &v
+		if v, has := values[d]; has { // len(logged) ≤ len(values) = cap: never reallocates
+			logged = append(logged, v)
+			p.Value = &logged[len(logged)-1]
 		}
 		out.Weight = append(out.Weight, p)
 	}
@@ -160,12 +169,12 @@ func BuildBody(in *Input) BodyReport {
 // WeightJSON is the weight block; lastDays > 0 keeps only the points of the last lastDays days (the
 // hub's sparkline), 0 keeps all.
 func (r BodyReport) WeightJSON(lastDays int) *jsonx.OrderedMap {
-	points := make([]*jsonx.OrderedMap, 0, len(r.Weight))
+	points := make([]weightPointJSON, 0, len(r.Weight))
 	for _, p := range r.Weight {
 		if lastDays > 0 && p.Date.DiffDays(r.AsOf) >= lastDays {
 			continue
 		}
-		points = append(points, jsonx.Obj("date", p.Date.String(), "value", ptrOrNil(p.Value), "avg7", p.Avg7))
+		points = append(points, weightPointJSON(p))
 	}
 	return jsonx.Obj(
 		"ready", r.WeightReady(),
@@ -206,4 +215,41 @@ func (r BodyReport) JSON() *jsonx.OrderedMap {
 		),
 		"activity", jsonx.Obj("active_days", r.ActiveDays, "days", r.RangeDays, "weeks", weeks),
 	)
+}
+
+// weightPointJSON encodes one point as {"date":"Y-m-d","value":v|null,"avg7":a}, byte-identical to
+// jsonx.Obj("date", …, "value", …, "avg7", …) without an ordered map and three nested encoders per point
+// (a range has up to a year of points; T-M9-49c).
+type weightPointJSON WeightPoint
+
+// MarshalJSON implements json.Marshaler.
+func (p weightPointJSON) MarshalJSON() ([]byte, error) {
+	b := make([]byte, 0, 64)
+	b = append(b, `{"date":"`...)
+	b = append(b, p.Date.String()...)
+	b = append(b, `","value":`...)
+	var err error
+	if p.Value == nil {
+		b = append(b, "null"...)
+	} else if b, err = appendJSONFloat(b, *p.Value); err != nil {
+		return nil, err
+	}
+	b = append(b, `,"avg7":`...)
+	if b, err = appendJSONFloat(b, p.Avg7); err != nil {
+		return nil, err
+	}
+	return append(b, '}'), nil
+}
+
+// appendJSONFloat is encoding/json's float64 format: 'f' in [1e-6, 1e21), else json.Marshal's own form (which also
+// fails on NaN / ±Inf, as the map encoding did).
+func appendJSONFloat(b []byte, f float64) ([]byte, error) {
+	if abs := math.Abs(f); abs == 0 || (abs >= 1e-6 && abs < 1e21) {
+		return strconv.AppendFloat(b, f, 'f', -1, 64), nil
+	}
+	enc, err := json.Marshal(f)
+	if err != nil {
+		return nil, err
+	}
+	return append(b, enc...), nil
 }

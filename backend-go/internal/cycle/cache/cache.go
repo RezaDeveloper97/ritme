@@ -26,8 +26,8 @@ import (
 	"fmt"
 	"log/slog"
 	"strconv"
-	"strings"
 	"time"
+	"unsafe"
 
 	"github.com/redis/go-redis/v9"
 
@@ -68,15 +68,23 @@ func (k Key) String() (string, error) {
 		return "", fmt.Errorf("cycle cache: hash inputs: %w", err)
 	}
 	sum := sha256.Sum256(payload)
-	return strings.Join([]string{
-		"cycle-engine",
-		strconv.FormatUint(k.UserID, 10),
-		strconv.FormatInt(k.Version, 10),
-		k.Locale,
-		k.Today.String(),
-		k.Scope,
-		hex.EncodeToString(sum[:16]),
-	}, ":"), nil
+	// One buffer instead of strings.Join over formatted parts (T-M9-49c: every cached GET builds this key).
+	b := make([]byte, 0, 96+len(k.Locale)+len(k.Scope))
+	b = append(b, "cycle-engine:"...)
+	b = strconv.AppendUint(b, k.UserID, 10)
+	b = append(b, ':')
+	b = strconv.AppendInt(b, k.Version, 10)
+	b = append(b, ':')
+	b = append(b, k.Locale...)
+	b = append(b, ':')
+	if !k.Today.IsZero() { // Today.String() ("2006-01-02") without its own allocation
+		b = time.Date(k.Today.Year, k.Today.Month, k.Today.Day, 0, 0, 0, 0, time.UTC).AppendFormat(b, civildate.Layout)
+	}
+	b = append(b, ':')
+	b = append(b, k.Scope...)
+	b = append(b, ':')
+	b = hex.AppendEncode(b, sum[:16])
+	return unsafe.String(unsafe.SliceData(b), len(b)), nil // b is never written again
 }
 
 // Cache is the engine cache. A nil *Cache or a disabled one always computes.

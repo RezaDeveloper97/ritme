@@ -2726,3 +2726,9 @@ Nothing needed fixing.
 - `GetMessageFactProfile` returns condition programs, condition log entries and open inbox rows as JSON (`internal/messages/prefetch.go`, fallback to the old queries); `inbox.Service.SyncRows`; compiled snapshot keeps its rows for translations; new `GetMessageAccount` (gender, life mode, profile, pregnancy flag in one row).
 - Verify: messages int tests green, messages contract 125/0. querybudget still red only on the analysis cold rows (T-M9-49c).
 - Open: feed v6 cold sits exactly on budget (13); fact profile query is heavier per call (watch in jobs).
+
+## T-M9-49c — Analysis cold query and allocs regressions, lock bench baseline
+- Extra cold query: analysis read the default language again; now taken from the list the locale middleware already loaded (`requestDefaultCode`, registry fallback).
+- Allocs: weight points marshalled by hand (`weightPointJSON`), `MovingAverage7` on a stack array; `cache.Key.String()` builds into one buffer. BenchmarkSummary 3482→2334 allocs (1m), ~10× faster; KeyString −2 allocs.
+- Budgets only lowered; `bench/baseline.txt` re-recorded (7 new benches). querybudget green; bench gate: 62 benchmarks, 0 allocs regressions. analysis contract 24/0.
+- Open (needs user OK, outside touches): `civildate.NullDate.MarshalJSON` could return a shared `null` slice.
