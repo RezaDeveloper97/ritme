@@ -231,6 +231,22 @@ Not engine, noted only: the cycles page «نوسان ±۲» (median ± band, min
 «نوسان ۰» (range) use the same word for two measures — copy question for M8; fertility insights still says «سیکل»
 in one row.
 
+## Beta shadow (T-M9-50)
+
+| | |
+|---|---|
+| First user OK | 2026-11-04 (stage results, perf gate and visible changes I-01, E-04, E-13, E-15 shown) |
+| Backup | `root@89.251.8.115:/root/backups/ritme-beta-T-M9-50-20261104T1101Z.sql.gz` (mariadb-dump `--single-transaction --routines --triggers`, 237 tables, goose 108, 2 users; outside the docker volumes) |
+| Shipped | `FROM_WORKTREE=0 ./deploy-beta.sh`, `stage` at `71af5a7e`; first try failed in rsync (broken pipe, nothing changed), retry ok |
+| Config | `docker-compose.beta.yml`: `CYCLE_ENGINE=${CYCLE_ENGINE:-shadow}`, `ENGINE_CACHE_VERIFY=true`, `ENGINE_CACHE_VERIFY_SAMPLE=0.1` |
+| Shadow started | 2026-11-04 12:12 UTC (backend-go start; goose 108 → 116 applied) |
+| First check (12:30 UTC) | env `CYCLE_ENGINE=shadow`; all deploy probes ok; `engine_cache_verify_mismatch_total` 0; users 2 (unchanged); only log error = `admin ref codes disabled` (known) |
+| Rollback | `CYCLE_ENGINE=v1` in `/opt/ritme-beta/.env`, `NO_BUILD=1 SERVICES=backend-go ./deploy-beta.sh`; the data migrations work with v1; DB restore from the backup above only as a last resort |
+
+Pending: ≥ 48 h of shadow (not before 2026-11-06 12:12 UTC) → `api engine-shadow-report` on beta + 5xx + verify
+metrics → second user OK → `CYCLE_ENGINE=v6` → 48 h watch → "Beta: v6 since <date>". Beta has only 2 users, so the
+shadow sample will be small; stage's 9 149 comparisons stay the main evidence.
+
 ## Next
 
 1. T-M9-48e (late ring label) before beta.

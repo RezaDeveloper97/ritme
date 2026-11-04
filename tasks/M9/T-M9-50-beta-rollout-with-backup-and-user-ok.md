@@ -32,3 +32,7 @@ Beta is the first place real users see v6 (X-03). It must be reversible and appr
 
 ## Acceptance
 - Two user approvals recorded; backup path recorded; beta on v6 with no open incident.
+
+## Progress (resume here)
+- 2026-11-04: user OK #1; backup taken; beta on `CYCLE_ENGINE=shadow` since 12:12 UTC (`71af5a7e`). See rollout.md "Beta shadow".
+- Next: after 2026-11-06 12:12 UTC run the shadow report on beta, show it, ask user OK #2, switch to v6, watch 48 h.
