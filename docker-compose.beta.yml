@@ -81,6 +81,11 @@ services:
       APP_ENV: production
       APP_DEBUG: "false"
       RUN_MIGRATIONS: "true"
+      # T-M9-50 engine v6 rollout: shadow first (users get v1.1, v6 compared in the background), v6 after the
+      # second user OK. Rollback = CYCLE_ENGINE=v1 in /opt/ritme-beta/.env. Cache verify rebuilds 10 % of cache hits.
+      CYCLE_ENGINE: ${CYCLE_ENGINE:-shadow}
+      ENGINE_CACHE_VERIFY: ${ENGINE_CACHE_VERIFY:-true}
+      ENGINE_CACHE_VERIFY_SAMPLE: ${ENGINE_CACHE_VERIFY_SAMPLE:-0.1}
       # Admin API on its own host, like production's adpanell: admin-web at `/`
       # and /api/admin/ share beta-admin.ritme.app (deploy/vhost-beta-admin.inc),
       # so every admin call is same-origin. Any other Host gets no admin API.

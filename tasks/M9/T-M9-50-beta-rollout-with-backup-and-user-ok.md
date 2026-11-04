@@ -3,10 +3,10 @@ id: T-M9-50
 title: Beta rollout with backup and user OK
 milestone: M9
 type: investigate
-status: todo
+status: in_progress
 depends_on: [T-M9-48, T-M9-49]
 parallel_group: M9-R
-touches: [docs/engine-v6/rollout.md]
+touches: [docs/engine-v6/rollout.md, docker-compose.beta.yml]
 skills: [deploy-beta]
 verify: grep -q 'Beta: v6' docs/engine-v6/rollout.md
 ---
