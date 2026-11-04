@@ -3,7 +3,7 @@ id: T-M9-49
 title: Performance gate: k6 after, benchmarks, query budgets vs baseline
 milestone: M9
 type: investigate
-status: todo
+status: done
 depends_on: [T-M9-48]
 parallel_group: M9-R
 touches: [docs/engine-v6/perf-baseline.md, backend-go/bench, backend-go/internal/querybudget]

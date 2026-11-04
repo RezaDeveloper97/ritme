@@ -290,6 +290,121 @@ Reading it:
 (not pulled, nothing in the docker image cache); these runs used the local k6 v2.3.0. The threshold exit code 99 of
 calendar_browse is the measured budget miss above, not a script error. Raw outputs: `backend-go/loadtest/results/*-20261023-14*` (git-ignored).
 
+## After (T-M9-49)
+
+The performance gate for engine v6. Recorded 2026-11-03 08:34–08:47 (Asia/Tehran) on `stage` at `c800e46e` + the
+T-M9-49 working tree (only `internal/querybudget/budgets.go` changed in code). Misses 1–4 below were fixed in T-M9-49b/49c;
+see "Re-check after T-M9-49b/49c" for the final gate state.
+
+**Setup.** Same as "Before": the same k6 scripts, v2.3.0 local binary, defaults (200 RPS / 2 m, log_burst 100 RPS), a fresh
+`ritme_loadtest` DB (the old one was gone with the tmpfs stack) re-seeded by `make loadtest-seed RESET=1` — same seeder, same
+2 000 users (~515 k daily logs), schema at goose 116. The API is a `go build ./cmd/api` binary with `CYCLE_ENGINE=v6`,
+`API_RUN_WORKERS=1` (worker, scheduler and pollers in-process), `APP_DEBUG=false`, `METRICS_ADDR=127.0.0.1:9091` (9090
+was held by another agent's contract server). Same machine (Apple M4, go1.27.1); load average 5.0 / 5.0 / 5.2 during
+the runs (other agents' docker containers running). Read the numbers to about ±30 %, as before.
+
+### Before vs After (client = k6 `http_req_duration`, ms p50 / p95 / p99; queries = server average, cold + warm mixed)
+
+| Scenario | Endpoint | Before warm | **After warm** | Before cold | **After cold** | Queries/req before → after | §8 warm p95 / cold p95 |
+|---|---|---|---|---|---|---|---|
+| app_open | `/cycle/today` | 2.9 / 5.2 / 8.4 | **1.6 / 7.0 / 15.8** | 8.7 / 18.0 / 29.4 | 5.1 / 11.7 / 16.8 | 4.29 → **2.36** | 15 ✔ / 60 ✔ |
+| app_open | `/cycle/month?view=calendar` | 2.8 / 5.3 / 8.2 | **1.2 / 2.7 / 5.2** | 10.1 / 22.9 / 35.6 | 5.5 / 9.4 / 11.3 | 4.00 → **1.00** | 20 ✔ / 80 ✔ |
+| app_open | `/home` | 4.8 / 8.8 / 13.7 | **5.3 / 10.9 / 21.9** | 19.2 / 33.0 / 45.8 | 20.1 / 38.7 / 53.7 | 11.11 → **8.10** | 40 ✔ / 120 ✔ |
+| app_open | `/messages/selected` | 2.4 / 4.8 / 8.0 | **2.1 / 4.9 / 9.5** | 10.2 / 19.9 / 30.6 | 7.9 / 16.6 / 26.7 | 6.90 → **4.00** | 20 ✔ / 60 ✔ |
+| app_open | `/banners` | 1.2 / 2.4 / 4.1 | 1.3 / 3.0 / 6.1 | 4.7 / 9.9 / 15.7 | 4.1 / 9.6 / 14.2 | 3.00 → 3.00 | – |
+| app_open | all warm (mixed) | 2.7 / 6.4 / 9.6 | **1.9 / 7.3 / 13.4** | – | – | – | p95 < 100 ✔ |
+| calendar_browse | `/cycle/month?view=calendar` | 4.3 / **29.7** / 58.9 | **1.6 / 4.0 / 7.8** | 9.1 / 15.9 / 21.5 | 4.7 / 12.2 / 22.9 | 4.00 → **1.01** | 20 ✔ (was ✘) / 80 ✔ |
+| log_burst | `POST /health-logs` | 8.1 / 19.6 / 35.8 | 7.8 / 16.0 / 32.5 | – | – | 13.40 → 15.43 | 100 ✔ |
+| log_burst | `GET /cycle/today` after a write (server) | 3.5 / 9.1 / 20.0 | 3.4 / 7.1 / 10.0 | – | – | 4.01 → 5.02 | – |
+| analysis_tab | `/analysis/summary` | 4.6 / 11.4 / 19.0 | **3.3 / 12.4 / 34.2** | 15.3 / 27.8 / 44.8 | 10.3 / 17.9 / 21.8 | 11.00 → **7.67** | 20 ✔ / 150 ✔ |
+| fertility_tab | `/fertility/insights` | 3.1 / 6.4 / 10.4 | **2.0 / 4.5 / 6.7** | 12.6 / 26.5 / 33.6 | 4.3 / 9.6 / 17.4 | 5.00 → **2.00** | 25 ✔ / 80 ✔ |
+| fertility_tab | `/fertility/bbt` (server) | 3.2 / 17.3 / 23.7 | 1.5 / 4.4 / 8.0 | – | – | 4.00 → 1.00 | – |
+
+**Error rate: 0 %** in every scenario (`http_req_failed` 0 of 34 000 / 48 480 / 11 883 / 32 000 / 30 123; 0 failed checks, 0 5xx).
+**log_burst: 0 stale reads** (3 961 iterations, `stale_reads` = 0). Every k6 threshold passed (all runs exit 0).
+The 304 revalidation row of §8 has no k6 scenario; not measured here. Raw outputs: `backend-go/loadtest/results/*-20261103-08*` (git-ignored).
+
+The load-test queries/request column mixes cold and warm (2 000 cold first touches per scenario); the per-route warm
+counts are the querybudget table below. `POST /health-logs` gained 2 queries (13.4 → 15.4): the v6 write path invalidates
+the engine state and enqueues the worker job; its latency still fell.
+
+### Query budgets (`internal/querybudget`, `make test-int PKG="-v ./internal/querybudget/..."`)
+
+New v6 rows: `cycle month calendar v6`, `fertility insights v6`, `fertility bbt v6`, `analysis summary v6`. Every row
+that measured below its budget was lowered to the measured count; no row was raised.
+
+| Route (engine) | Budget before (cold / warm) | Measured = new budget | README §8 warm target |
+|---|---|---|---|
+| `/cycle/today` v6, `/cycle/date` v6 | 9 / 1 | 8 / **1** | 1 ✔ (cold ≤ 5 ✘: 8, fresh process + config caches off) |
+| `/cycle/month?view=calendar` v6 | (new) | 8 / **1** | 1 ✔ (cold ≤ 5 ✘, same reason) |
+| `/home` v6 | 21 / 8 | 21 / **8** | ≤ 8 ✔ |
+| `/home/cycle-overview` v6 | 11 / 5 | 10 / 5 | – |
+| `/messages/selected` v6 | 11 / 4 | 11 / **4** | ≤ 4 ✔ |
+| `/messages/daily` v6 | 15 / 8 | 14 / **8** | ≤ 4 **✘** |
+| `/messages/feed` v6 | 13 / 4 | **16 / 7 — over budget, test red** | ≤ 3 + auth **✘** |
+| `/fertility/insights` v6 | (new) | 8 / **2** | ≤ 4 ✔ |
+| `/fertility/bbt` v6 | (new) | 7 / 1 | – |
+| `/analysis/summary` v6 | (new) | 19 / **6** | ≤ 6 ✔ |
+| `/analysis/summary`, `/ttc`, `/pregnancy` (v1) | 14/11, 15/11, 18/15 | warm 6 (lowered); **cold 15/16/19 over budget by 1, test red** | – |
+| v1 cycle/home/messages/fertility rows | – | lowered by 1 cold where measured (see `budgets.go`) | – |
+
+The v1 rows `cycle today`, `cycle date`, `cycle month` still warm 4: v1 is not the engine under the gate.
+Cold counts above §8 "cold ≤ 5" are the test's definition of cold (fresh process, config caches off); in k6 the cold phase
+(warm process, new user) of `/cycle/today` averages well under that (2.36 mixed).
+
+### Benchmarks (`make bench` → `make bench-compare`)
+
+Engine benches are inside every README §8 ceiling (medians, this run): `Prepare` 2.13 µs / 8 allocs (≤ 300 µs),
+`Prepare_Markers` 17.1 µs / 10 allocs (≤ 300 µs), `Resolve` 0.21 µs / 0 allocs (≤ 3 µs, ≤ 3 allocs), `Range31` 5.56 µs / 1 alloc
+(≤ 150 µs, ≤ 40 allocs), `EncodeDay` 0.55 µs / 0 allocs (≤ 20 µs), `rules.Select_200Rules` 20.4 µs (≤ 200 µs),
+auth `Verify` 27.9 µs (≤ 150 µs). 0 sec/op warnings.
+
+**The gate fails: 11 allocs/op regressions** against `bench/baseline.txt`:
+- `analysis.BenchmarkSummary/{1m,3m,1y}`: 3 153 → 3 482, 3 432 → 4 024, 4 599 → 5 146 (+10–17 %) — real, from M10 analysis work since T-M9-08.
+- `cycle/cache.BenchmarkKeyString/*` (8 rows): +1 alloc each — the v1 cache key (not on the v6 path).
+- New benches not in the baseline (notice only): `state.For_L1Hit`, `For_L2HitPrepare24(_Redis)`, `fertility.InsightsV6`,
+  `analysis.AnalysisSummary/{hit,cold}`, `rules.SelectSlot_200Rules`.
+
+`bench/baseline.txt` was **not** re-recorded and the ceilings were **not** locked at measured × 1.2: re-recording would
+bless the regressions above, which is a decision for the user (Scope 5).
+
+### Open misses (Scope 5 → fix task before T-M9-50)
+
+1. `/messages/feed` v6 warm 7 queries (budget and §8: 4) and cold 16 (budget 13) — a regression after T-M10-06/10
+   (likely T-M10-09b menopause/condition facts). Needs an opus fix task in `internal/messages`.
+2. `/messages/daily` v6 warm 8 against the §8 target ≤ 4 (unchanged since T-M9-38b).
+3. `/analysis/{summary,ttc,pregnancy}` (v1 path) cold +1 query over budget.
+4. Bench gate: `analysis.Summary` allocs +10–17 %, `cycle/cache.KeyString` +1 alloc; then re-record the baseline (× 1.2 lock).
+5. §8 cold ≤ 5 for the engine GETs is met only in a warm process; in the querybudget cold definition it is 8.
+
+### Re-check after T-M9-49b/49c (2026-11-04)
+
+Run 2026-11-04 09:10–09:24 (Asia/Tehran) on `stage` at `d1abd00f`, same machine, load average ~7 (other stacks running).
+
+- **Query budgets** (`make test-int PKG=./internal/querybudget/...`): `ok`, every row green, no budget raised.
+  v6 rows now (cold / warm, auth included): `/cycle/today` + `/cycle/date` 8 / **1**, `/cycle/month?view=calendar` 8 / **1**,
+  `/home` 21 / **8**, `/messages/selected` 10 / **4**, `/messages/daily` 10 / **4** (was 14 / 8), `/messages/feed` 13 / **4**
+  (was 16 / 7), `/fertility/insights` 8 / **2**, `/analysis/summary` 18 / **6**. v1 analysis rows back inside budget
+  (summary 14 / 6, ttc 15 / 6, pregnancy 18 / 6). Misses 1–3 closed.
+- **Bench gate** (`make bench` + `bench/gate` against the baseline re-recorded in T-M9-49c): `62 benchmarks, 0 allocs/op
+  regressions, 1 sec/op warnings` — `analysis.BenchmarkSummary/3m` +22 %; its six samples spread 0.84–2.36 ms under the
+  load, so it is noise, not a code change (warning only, the gate passes). Engine medians unchanged and inside §8:
+  `Prepare` 2.1 µs, `Prepare_Markers` 16.8 µs, `Resolve` 0.20 µs, `Range31` 5.6 µs, `EncodeDay` 0.55 µs,
+  `Select_200Rules` 20.4 µs, auth `Verify` 28.0 µs. Miss 4 closed (ceilings locked at × 1.2 in T-M9-49c).
+- **k6** not re-run: 49b/49c only removed queries and allocations, so the "After" latencies above are an upper bound.
+- **log_burst**: 0 stale reads (above); no change since.
+
+**Gate state.** Every README §8 latency, warm-query, bench and stale-read row is met. Two documented exceptions remain:
+
+1. **§8 "cold ≤ 5 queries"** for `/cycle/today`, `/cycle/date`, `/cycle/month`: met for a cold engine state in a
+   running process (k6 cold phase: new user, warm config caches — averages 2.36 / 1.00 queries per request), not for
+   the querybudget "fresh process, every Redis cache empty" definition (8). A new user on a warm process costs the
+   auth join + the 4 engine input queries = **5** (`budgets.go`, T-M9-32 note); the other 3 (OAuth client list, stored
+   zone, languages) are loaded once per process, not per user.
+2. **304 revalidation row** has no k6 scenario and was not measured.
+
+Both accepted by the user on 2026-11-04 as documented exceptions. **Gate passed; T-M9-50 is unblocked.**
+
 ## messages — compiled rules (T-M10-05)
 
 Recorded 2026-10-31 09:23 (Asia/Tehran) on Apple M4 (10 cores), go1.27.1, `504f56f1` + the T-M10-05 working tree, load

@@ -2748,3 +2748,9 @@ Nothing needed fixing.
 - Checked with a headless-Chrome harness of the ring DOM + real `globals.css` (fa/en, light/dark, 360/390 px): before
   reproduces the stage overlap, after the overline sits clear of the dot track. Re-check on stage after the next deploy.
 - `touches` widened to `frontend/src/app/globals.css` (ring styles live there).
+
+## T-M9-49 — Performance gate: k6 after, benchmarks, query budgets vs baseline
+- "After" table in `docs/engine-v6/perf-baseline.md` (k6 2026-11-03, 0 % errors, 0 stale reads, every §8 latency row met) plus a re-check on 2026-11-04 after the fix tasks T-M9-49b/49c.
+- querybudget green, v6 warm counts at §8 targets (cycle 1, home 8, messages 4, fertility 2, analysis 6); bench gate 62 benchmarks, 0 allocs regressions (1 sec/op warning from machine load); ceilings locked in T-M9-49c.
+- Accepted exceptions (user, 2026-11-04): §8 "cold ≤ 5" holds for a new user on a warm process (5), fresh process is 8 (per-process caches); 304 revalidation not measured.
+- Open: k6 not re-run after 49b/49c (they only removed queries/allocs).
