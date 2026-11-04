@@ -51,7 +51,12 @@ STAGE_HOST="${STAGE_HOST:-stage.ritmeapp.ir}"
 BRANCH="${BRANCH:-stage}"
 SERVICES="${SERVICES:-}"
 
-SSH_OPTS=(-i "$SSH_KEY" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=8)
+# One shared SSH connection for the whole run: the server's firewall bans an IP
+# that opens many SSH connections in a short burst.
+SSH_CTL="/tmp/rs-ssh-%C"   # short: macOS caps socket paths at 104 chars
+SSH_OPTS=(-i "$SSH_KEY" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=8
+  -o ControlMaster=auto -o "ControlPath=${SSH_CTL}" -o ControlPersist=300)
+trap 'ssh "${SSH_OPTS[@]}" -O exit "$SERVER" >/dev/null 2>&1 || true' EXIT
 COMPOSE="docker compose -p ritme-stage -f docker-compose.yml -f docker-compose.stage.yml"
 PROD_COMPOSE="docker compose -f docker-compose.yml -f docker-compose.prod.yml"
 
@@ -69,7 +74,7 @@ if [[ "${SKIP_SYNC:-0}" != "1" ]]; then
     # branch — no untracked scratch files, no uncommitted edits leaking into an
     # environment whose whole point is "this is what the commit does".
     SRC="$(mktemp -d)/"
-    trap 'rm -rf "${SRC%/}"' EXIT
+    trap 'rm -rf "${SRC%/}"; ssh "${SSH_OPTS[@]}" -O exit "$SERVER" >/dev/null 2>&1 || true' EXIT
     git archive "$BRANCH" | tar -x -C "$SRC"
     echo "==> Syncing branch '${BRANCH}' ($(git rev-parse --short "$BRANCH")) to ${SERVER}:${REMOTE_DIR} ..."
   fi

@@ -47,7 +47,12 @@ ADMIN_HOST="beta-admin.ritme.app"
 BRANCH="${BRANCH:-stage}"      # only with FROM_WORKTREE=0
 SERVICES="${SERVICES:-}"
 
-SSH_OPTS=(-i "$SSH_KEY" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=8)
+# One shared SSH connection for the whole run: the server's firewall bans an IP
+# that opens many SSH connections in a short burst.
+SSH_CTL="/tmp/rb-ssh-%C"   # short: macOS caps socket paths at 104 chars
+SSH_OPTS=(-i "$SSH_KEY" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=8
+  -o ControlMaster=auto -o "ControlPath=${SSH_CTL}" -o ControlPersist=300)
+trap 'ssh "${SSH_OPTS[@]}" -O exit "$SERVER" >/dev/null 2>&1 || true' EXIT
 COMPOSE="docker compose -p ritme-beta -f docker-compose.yml -f docker-compose.beta.yml"
 PROD_COMPOSE="docker compose -f docker-compose.yml -f docker-compose.prod.yml"
 
@@ -76,6 +81,9 @@ if [[ "${SKIP_SYNC:-0}" != "1" ]]; then
     --exclude 'application/' \
     --exclude 'twa/' \
     --exclude 'android-shell/' \
+    --exclude 'docs/qa/' \
+    --exclude 'laravel-site/docs/' \
+    --exclude 'laravel-site/storage/' \
     --exclude '*.tar.gz' \
     --exclude '*.fig' \
     --exclude '*.log' \
