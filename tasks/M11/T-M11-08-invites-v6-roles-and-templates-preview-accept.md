@@ -3,7 +3,7 @@ id: T-M11-08
 title: Invites v6: roles and templates, preview, accept or decline, mutual request, phone auto-bind, owner confirmation, share requests
 milestone: M11
 type: backend
-status: blocked
+status: todo
 depends_on: [T-M11-05]
 parallel_group: M11-C
 touches: [backend-go/internal/family/invites, backend-go/internal/family/sharerequests, backend-go/internal/companion, backend-go/internal/http/routes_family.go, backend-go/internal/http/routes_companion.go, backend-go/internal/http/routes_auth.go, backend-go/internal/http/companion_guards.go, backend-go/internal/platform/config/config.go, backend-go/db/queries/companion, backend-go/api/openapi.yaml, backend-go/contract/allowlist, docs/engine-v6/jobs.md]
@@ -56,6 +56,3 @@ FAM-L3). DECISIONS.md F-11, F-12, F-13, F-17; D-196.
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-196.
-
-## Blocked
-Suspended by the user on 2026-10-31: all family (M11) work is on hold. Do not pick, plan or run this task until the user lifts the suspension explicitly.

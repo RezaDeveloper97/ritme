@@ -3,7 +3,7 @@ id: T-M11-13
 title: Member home for every member, member tips on a member-safe fact set, member notifications
 milestone: M11
 type: backend
-status: blocked
+status: todo
 depends_on: [T-M11-06, T-M11-10, T-M11-12, T-M11-14, T-M10-04, T-M9-39]
 parallel_group: M11-C
 touches: [backend-go/internal/family/home, backend-go/internal/family/notices, backend-go/internal/companion/home, backend-go/internal/messages/facts/member.go, backend-go/internal/messages/rules, backend-go/internal/http/routes_family.go, backend-go/internal/http/routes_companion_home.go, backend-go/db/queries/companion, backend-go/api/openapi.yaml, backend-go/contract/allowlist, docs/engine-v6/jobs.md]
@@ -52,6 +52,3 @@ DECISIONS.md F-01, F-10; D-201.
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-201.
-
-## Blocked
-Suspended by the user on 2026-10-31: all family (M11) work is on hold. Do not pick, plan or run this task until the user lifts the suspension explicitly.

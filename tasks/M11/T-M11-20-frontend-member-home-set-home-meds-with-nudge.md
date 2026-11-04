@@ -3,7 +3,7 @@ id: T-M11-20
 title: Frontend member home set: home, meds with nudge and propose, calendar with attendance, alert, postpartum
 milestone: M11
 type: frontend
-status: blocked
+status: todo
 depends_on: [T-M11-10, T-M11-12, T-M11-13, T-M11-14]
 parallel_group: M11-W
 touches: [frontend/src/screens/companion-home, frontend/src/screens/family-meds, frontend/src/screens/family-calendar, frontend/src/screens/family-alert, frontend/src/screens/family-postpartum, frontend/src/entities/family, frontend/src/app/[locale]/companion, frontend/src/app/[locale]/family, frontend/src/app/message-scopes.ts, frontend/messages/fa/family.json, frontend/messages/en/family.json, frontend/messages/fa/companion-home.json, frontend/messages/en/companion-home.json, backend-go/resources/translations/fa/family.json, backend-go/resources/translations/en/family.json, backend-go/resources/translations/fa/companion-home.json, backend-go/resources/translations/en/companion-home.json]
@@ -46,6 +46,3 @@ F-24.
 `days_to_period`, symptoms). Since T-M11-06 the server sends the v6 member DTOs (`cycle_phase`: `main_phase`,
 `period_soon` partner-only, no numbers; symptoms gone → 404); the `.catch` hides it but the cycle card stays empty.
 Move the parser to the v6 DTOs (OpenAPI `Family*` schemas) here.
-
-## Blocked
-Suspended by the user on 2026-10-31: all family (M11) work is on hold. Do not pick, plan or run this task until the user lifts the suspension explicitly.

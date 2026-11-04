@@ -3,7 +3,7 @@ id: T-M11-18
 title: Frontend member acceptance: code preview, accept or decline, mutual answer, pending phone invites
 milestone: M11
 type: frontend
-status: blocked
+status: todo
 depends_on: [T-M11-08]
 parallel_group: M11-W
 touches: [frontend/src/screens/companion-home, frontend/src/features/accept-invite, frontend/src/entities/family, frontend/src/app/[locale]/companion, frontend/src/app/message-scopes.ts, frontend/messages/fa/companion-home.json, frontend/messages/en/companion-home.json, backend-go/resources/translations/fa/companion-home.json, backend-go/resources/translations/en/companion-home.json]
@@ -35,6 +35,3 @@ entering the code activates the link at once (`CompanionLinksPage`). DECISIONS.m
 
 ## Acceptance
 - Verify passes; screenshots reviewed by the main session.
-
-## Blocked
-Suspended by the user on 2026-10-31: all family (M11) work is on hold. Do not pick, plan or run this task until the user lifts the suspension explicitly.

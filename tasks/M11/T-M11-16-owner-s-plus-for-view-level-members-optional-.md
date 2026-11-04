@@ -3,7 +3,7 @@ id: T-M11-16
 title: Owner's Plus for view-level members (optional, per F-18)
 milestone: M11
 type: backend
-status: blocked
+status: todo
 depends_on: [T-M11-06, T-M10-29]
 parallel_group: M11-C
 touches: [backend-go/internal/family/projections, backend-go/internal/family/plus.go, backend-go/internal/healthrecord, backend-go/internal/http/routes_family.go, backend-go/api/openapi.yaml]
@@ -36,6 +36,3 @@ to view-level members. Plus is per user today and nothing reads the owner's stat
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-206 (or the task is marked skipped per F-18).
-
-## Blocked
-Suspended by the user on 2026-10-31: all family (M11) work is on hold. Do not pick, plan or run this task until the user lifts the suspension explicitly.

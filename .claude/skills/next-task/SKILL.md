@@ -30,10 +30,8 @@ T-M2-26 (production cutover to Go) and T-M2-27 (Laravel decommission) are `block
 run them, and never add production-cutover work to other tasks, unless the user asks for it explicitly in that
 session. (User decision, 2026-10-18.)
 
-## 0.3 Hard rule — family (M11) suspended
-Every unfinished M11 task (T-M11-07 … T-M11-23) is `blocked` on purpose: never pick, plan or run them, never resume
-T-M11-08, and never add family work to other tasks, unless the user lifts the suspension explicitly.
-(User decision, 2026-10-31.)
+## 0.3 Family (M11) — suspension lifted
+The 2026-10-31 suspension of M11 was lifted by the user on 2026-11-04; M11 tasks run like any other.
 
 ## 1. Session start ritual
 1. `bash tasks/bin/next.sh` and `tail -5 tasks/LOG.md`.

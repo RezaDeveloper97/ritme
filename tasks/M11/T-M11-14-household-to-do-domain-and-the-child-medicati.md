@@ -3,7 +3,7 @@ id: T-M11-14
 title: Household to-do domain and the child medication dose log
 milestone: M11
 type: backend
-status: blocked
+status: todo
 depends_on: [T-M11-11]
 parallel_group: M11-C
 touches: [backend-go/internal/todo, backend-go/db/queries/todo, backend-go/internal/babylog, backend-go/db/queries/babylog, backend-go/internal/family/household, backend-go/internal/http/routes_todo.go, backend-go/internal/http/routes_babylog.go, backend-go/internal/http/routes_family.go, backend-go/api/openapi.yaml, backend-go/contract/allowlist]
@@ -43,6 +43,3 @@ Fam_PPostpartum has a night shift. To-do is strictly personal and there is no ch
 
 ## Note from T-M11-04
 The existing personal todo queries (`ListBoardTasks`, `GetTask`, …) do not filter by `scope`. Add `scope = 'personal'` to them before the first household row is written, or household tasks appear on the owner's personal board. Writers must also start setting `created_by` / `updated_by`.
-
-## Blocked
-Suspended by the user on 2026-10-31: all family (M11) work is on hold. Do not pick, plan or run this task until the user lifts the suspension explicitly.
