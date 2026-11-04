@@ -2740,3 +2740,11 @@ Nothing needed fixing.
 - Visual QA: 9 personas, light + dark, `docs/engine-v6/qa/T-M9-48/` (38 shots). Engine output correct everywhere.
 - Open: T-M9-48e — late-ring label under the today marker (late 1–14 days), frontend only, before beta.
 - Copy note for M8: «نوسان» means ±band on the cycles page and range on analysis.
+
+## T-M9-48e — Home ring: late-period label must not sit under the today marker
+- `CycleRing` takes `compact`; it is on when the start prompt shows with the skip action (late 1–14 days, three
+  actions). `.home-ring-center.is-compact` in `globals.css`: number 72 → 52 px, tighter gaps, «هنوز نه» /
+  «پریود نداشتم» min-height 36 px. Other ring states unchanged (no class).
+- Checked with a headless-Chrome harness of the ring DOM + real `globals.css` (fa/en, light/dark, 360/390 px): before
+  reproduces the stage overlap, after the overline sits clear of the dot track. Re-check on stage after the next deploy.
+- `touches` widened to `frontend/src/app/globals.css` (ring styles live there).

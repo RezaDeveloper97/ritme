@@ -3,10 +3,10 @@ id: T-M9-48e
 title: Home ring: late-period label must not sit under the today marker
 milestone: M9
 type: frontend
-status: todo
+status: done
 depends_on: [T-M9-48]
 parallel_group: M9-R
-touches: [frontend/src/screens/home,frontend/src/shared/ui]
+touches: [frontend/src/screens/home, frontend/src/shared/ui, frontend/src/app/globals.css]
 skills: [new-fsd-slice]
 verify: cd frontend && npm run typecheck && npm run test -- --run src/screens/home
 ---

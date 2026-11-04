@@ -348,12 +348,14 @@ interface RingDay {
 }
 
 function CycleRing({
-  days, nowIndex, label, children,
+  days, nowIndex, label, compact = false, children,
 }: {
   days: RingDay[];
   /** Index of the selected day, or null when the cycle can't be placed. */
   nowIndex: number | null;
   label: string;
+  /** Three actions under the number: tighten the stack so it stays inside the dot track. */
+  compact?: boolean;
   children: ReactNode;
 }) {
   // useId() may contain characters a `url(#…)` reference can't carry.
@@ -401,7 +403,7 @@ function CycleRing({
           </>
         )}
       </svg>
-      <div className="home-ring-center">{children}</div>
+      <div className={clsx('home-ring-center', compact && 'is-compact')}>{children}</div>
     </>
   );
 }
@@ -1250,7 +1252,12 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
               className={clsx('home-ring-glow', ttcRing && 'is-ttc', !ttcRing && hero.variant !== 'normal' && 'is-period')}
               aria-hidden
             />
-            <CycleRing days={ringDays} nowIndex={ringNowIndex} label={ringLabel}>
+            <CycleRing
+              days={ringDays}
+              nowIndex={ringNowIndex}
+              label={ringLabel}
+              compact={!ttcRing && hero.startPrompt && skipOffered}
+            >
               {/* `--period` red means menstruation (§10.2); "nothing logged yet"
                   is not a period, so the empty state takes the neutral caption. */}
               <span className={noPeriodData || noCountdown ? 'home-ring-sub' : clsx('home-ring-over', ttcRing && 'is-ttc')}>

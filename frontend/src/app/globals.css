@@ -5547,6 +5547,13 @@ html[data-motion="reduce"] *::after {
   font-family: inherit; font-size: 12px; font-weight: 700; color: var(--text-2); cursor: pointer;
 }
 
+/* Start prompt with the skip action (late 1–14 days): three actions don't fit the ring at full size —
+   the stack grew past the dot track and the overline sat under the today marker (T-M9-48e). */
+.home-ring-center.is-compact { gap: 2px; }
+.home-ring-center.is-compact .home-ring-num { font-size: 52px; }
+.home-ring-center.is-compact .home-ring-cta { margin-top: 4px; }
+.home-ring-center.is-compact .home-ring-later { margin-top: 0; min-height: 36px; }
+
 /* «پایان پریود هنوز ثبت نشده» (During) */
 .ch-alert {
   display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--r-xl);
