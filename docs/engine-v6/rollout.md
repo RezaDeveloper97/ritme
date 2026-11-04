@@ -176,13 +176,62 @@ Taken 2026-11-02 ≈ 14:20 UTC from the private listener (`127.0.0.1:9090`) and 
 
 Query counts per route (task step 5) are not collected yet — do it with the switch (`db_queries_per_request` by route).
 
+## Stage: v6 since 2026-11-04
+
+**Stage: v6 since 2026-11-04** (commit `db1a3214` sets `CYCLE_ENGINE` default to `v6` in `docker-compose.stage.yml`;
+rollback = `CYCLE_ENGINE=shadow` in `/opt/ritme-stage/.env` and restart `backend-go`). Shadow ran 2026-11-02 13:16 UTC →
+2026-11-04 (> 24 h). The T-M9-48b/c/d fixes shipped with it.
+
+### Checks (2026-11-04 ≈ 09:50 UTC, process up since 08:15 UTC)
+
+| Check | Value | Target |
+|---|---|---|
+| `docker exec ritme-stage-backend-go-1 env` | `CYCLE_ENGINE=v6`, `ENGINE_CACHE_VERIFY=true`, `ENGINE_CACHE_VERIFY_SAMPLE=0.1` | ✔ |
+| Containers | `backend-go`, `backend-go-worker` healthy; `/ready` → `{"status":"ok"}` | ✔ |
+| `engine_cache_verify_mismatch_total` | **0** | 0 ✔ |
+| 5xx (Prometheus + backend log, last 26 h) | **0** (log: 600 × 200, 84 × 304, 2 × 409) | no increase ✔ |
+| 409s | 2 × `GET /api/v1/messages/mode` | not engine; left as is |
+| Log errors | only `admin ref codes disabled` (`ADMIN_REF_SECRET` unset on stage, known); one slow query `ListCheckupPlanRows` 202 ms | — |
+
+Query counts per route (`db_queries_per_request` sum / count since 08:15 UTC; cold and warm mixed, QA traffic only):
+
+| Route | Avg queries | Requests |
+|---|---|---|
+| `/cycle/today` | 1.55 | 38 |
+| `/cycle/date/:date` | 1.00 | 2 |
+| `/cycle/month/:year/:month` | 1.46 | 78 |
+| `/home/cycle-overview` | 5.4 | 16 |
+| `/home/sections/:section` | 6.9 | 30 |
+| `/messages/feed` | 5.0 | 16 |
+| `/fertility/today` | 2.6 | 16 |
+| `/fertility/insights` | 2.5 | 2 |
+| `/analysis/cycle` | 10 | 2 |
+| `/companion/home` | 35 | 2 |
+| `/plus/status` | 8.4 | 16 |
+| `/profile/life-stage` | 5.5 | 30 |
+
+Engine GETs are in line with the local gate (T-M9-49/49b/49c). `/companion/home` (35) is the family/companion path —
+not engine, M11 suspended; not acted on.
+
+### Visual QA (light + dark, fa, 390 px) — `docs/engine-v6/qa/T-M9-48/`
+
+| Persona | Screens | Result |
+|---|---|---|
+| 1 regular | home, calendar, cycles, fertility insights, analysis cycle | ✔ day 15, next period in 14 days, window 8–13 Aban, ovulation ≈ 13 Aban; calendar months consistent |
+| 2 late 8 | home | engine ✔ (10 days late now — seeded 2026-11-02, dates moved on); **layout bug**: «تأخیر پریود» under the today marker → T-M9-48e |
+| 3 late 15 | home, calendar, cycles | ✔ 17 days late, > 2 weeks banner with test / last-period / no-period actions |
+| 4 pill | home, calendar, cycles | ✔ withdrawal bleed predictions («خون‌ریزی قطع مصرف»), no ovulation |
+| 5 postpartum | home, calendar, cycles | ✔ postpartum home (week 17); calendar empty after delivery (T-M9-48b) |
+| 6 onboarding only | home | ✔ predictions from onboarding answers |
+| 7 stale anchor | home | ✔ «تاریخ آخرین پریودت را بگو» banner, hollow predicted dots |
+| 8 skip | home | ✔ |
+| 9 partner | companion home | ✔ partner sees the shared persona tabs |
+
+Not engine, noted only: the cycles page «نوسان ±۲» (median ± band, minimum 2, `insights/history.go`) and analysis
+«نوسان ۰» (range) use the same word for two measures — copy question for M8; fertility insights still says «سیکل»
+in one row.
+
 ## Next
 
-1. Soak: keep `CYCLE_ENGINE=shadow` running untouched until **≥ 2026-11-03 13:20 UTC** (24 h after the first
-   traffic); re-run `traffic.py` once near the end and the report; check that no new class or field shows up and
-   that `engine_cache_verify_mismatch_total` and 5xx are still 0.
-2. Fix T-M9-48b and T-M9-48c (and T-M9-48d once decided) with regenerated goldens; deploy stage and re-run
-   `probe.py` for personas 53 and 54 to confirm the diffs move to the expected rows.
-3. Switch stage to `CYCLE_ENGINE=v6` (`deploy-stage`), then visual QA light + dark: Home for the 8 personas, Calendar,
-   phase details, fertility, analysis cycle, companion home → screenshots in `docs/engine-v6/qa/`; record query
-   counts per route; then record the switch date here.
+1. T-M9-48e (late ring label) before beta.
+2. Beta (T-M9-50): user OK + DB backup first.

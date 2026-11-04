@@ -2732,3 +2732,11 @@ Nothing needed fixing.
 - Allocs: weight points marshalled by hand (`weightPointJSON`), `MovingAverage7` on a stack array; `cache.Key.String()` builds into one buffer. BenchmarkSummary 3482→2334 allocs (1m), ~10× faster; KeyString −2 allocs.
 - Budgets only lowered; `bench/baseline.txt` re-recorded (7 new benches). querybudget green; bench gate: 62 benchmarks, 0 allocs regressions. analysis contract 24/0.
 - Open (needs user OK, outside touches): `civildate.NullDate.MarshalJSON` could return a shared `null` slice.
+
+## T-M9-48 — Stage rollout: shadow, review, switch to v6, visual QA
+- Stage runs `CYCLE_ENGINE=v6` since 2026-11-04 (`db1a3214`, default in `docker-compose.stage.yml`; rollback =
+  `CYCLE_ENGINE=shadow` in `/opt/ritme-stage/.env`). Shadow ran 2026-11-02 → 11-04; fixes in T-M9-48b/c/d.
+- Live checks: `engine_cache_verify_mismatch_total` 0, 0 × 5xx, `/ready` ok, per-route query counts in `rollout.md`.
+- Visual QA: 9 personas, light + dark, `docs/engine-v6/qa/T-M9-48/` (38 shots). Engine output correct everywhere.
+- Open: T-M9-48e — late-ring label under the today marker (late 1–14 days), frontend only, before beta.
+- Copy note for M8: «نوسان» means ±band on the cycles page and range on analysis.
